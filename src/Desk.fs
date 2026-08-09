@@ -69,14 +69,35 @@ type DeskPayload =
 /// This is the case TypeScript structurally cannot help with: `drama_arc:
 /// string` is a completely accurate type annotation that tells you nothing
 /// about whether the thing inside parses, or what shape it has when it does.
+/// Absence has THREE real representations in this payload, not two. Found by
+/// the drift sentinel on its first live run against 36 games:
+///
+///   1. JSON null                  -> the field is absent
+///   2. "[15,15,36,53]"            -> a real value
+///   3. "null"  (a *string*        -> also absent, and the one that was missed
+///      containing the literal
+///      null)
+///
+/// Variant 3 produced `Error at: $ Expecting a list but instead got: null` on a
+/// real EFL Cup game. It means "no arc", exactly like variant 1, so reporting it
+/// as corruption is a false positive that would have kept the sentinel red
+/// forever over a benign, stable shape.
+///
+/// The nullness test goes through the JSON decoder rather than comparing the
+/// raw string to "null", so whitespace and quoting are handled properly. The
+/// narrowness matters: anything that is not genuinely null still surfaces as
+/// Malformed, which is what keeps the sentinel's teeth.
 let nestedJson (inner: Decoder<'T>) : Decoder<Nested<'T>> =
     Decode.oneOf [
         Decode.nil NotPresent
         Decode.string
         |> Decode.map (fun raw ->
-            match Decode.fromString inner raw with
-            | Ok value -> Decoded value
-            | Error err -> Malformed err)
+            match Decode.fromString (Decode.nil ()) raw with
+            | Ok () -> NotPresent
+            | Error _ ->
+                match Decode.fromString inner raw with
+                | Ok value -> Decoded value
+                | Error err -> Malformed err)
     ]
 
 /// `start_time` is ISO-8601 with **no seconds component** — "2026-08-09T16:15Z",
