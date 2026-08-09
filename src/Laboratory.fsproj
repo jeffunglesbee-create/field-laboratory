@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <!-- The F# SDK adds its own implicit FSharp.Core PackageReference. Left on,
+         that sits alongside the explicit pin below as a genuine duplicate
+         (NU1504) and resolution picks the SDK's older 10.0.110 anyway, so the
+         pin has no effect (NU1605). Disabling the implicit reference is what
+         actually makes the pin authoritative. -->
+    <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
   </PropertyGroup>
 
   <!-- F# compilation is order-sensitive: a file may only reference files
@@ -15,9 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Pinned explicitly. Thoth.Json 10.5.1 requires FSharp.Core >= 10.1.203,
-         which is newer than the SDK's implicit 10.0.110; without this the
-         restore emits NU1605 downgrade warnings. -->
+    <!-- Thoth.Json 10.5.1 requires FSharp.Core >= 10.1.203, newer than the
+         SDK's 10.0.110. Authoritative only because the implicit reference is
+         disabled above; on its own this line is a duplicate, not a pin. -->
     <PackageReference Include="FSharp.Core" Version="10.1.203" />
     <PackageReference Include="Fable.Core" Version="5.2.0" />
     <PackageReference Include="Fable.Browser.Dom" Version="2.20.0" />
