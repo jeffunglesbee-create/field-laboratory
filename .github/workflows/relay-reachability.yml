@@ -1,0 +1,30 @@
+# Task 1 of CC-CMD-2026-08-09-drift-sentinel-and-reactive-staleness: the cheapest
+# discriminator. The drift sentinel assumes a runner has open egress to the
+# relay. This session's sandbox does NOT (403 CONNECT tunnel failed at the agent
+# proxy for *.workers.dev), so the assumption has to be tested before anything
+# is built on it.
+#
+# Deliberately fetches 2019-01-01: a date early enough that every collection is
+# empty, so the whole response is 109 bytes.
+name: relay-reachability
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe the relay
+        run: |
+          URL=https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2019-01-01
+          echo "GET $URL"
+          CODE=$(curl -sS --max-time 30 -o /tmp/body.json -w '%{http_code}' "$URL") || {
+            echo "RESULT: curl failed outright — runner cannot reach the relay"
+            exit 1
+          }
+          echo "RESULT: HTTP $CODE"
+          echo "--- body ---"
+          cat /tmp/body.json
+          echo
+          test "$CODE" = "200"
