@@ -1,0 +1,16 @@
+{
+  "name": "field-laboratory",
+  "version": "0.0.0",
+  "private": true,
+  "description": "FIELD Laboratory — F# compiled to JavaScript via Fable.",
+  "type": "module",
+  "scripts": {
+    "build": "bash scripts/build.sh"
+  },
+  "dependencies": {
+    "solid-js": "^1.9.14"
+  },
+  "devDependencies": {
+    "@fable-org/fable-compiler-js": "^2.11.0"
+  }
+}
