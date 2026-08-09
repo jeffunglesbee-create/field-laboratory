@@ -6,16 +6,69 @@ it.
 
 ## Paste this into the environment's Setup script field
 
-At [claude.ai/code](https://claude.ai/code) → cloud environments → the
-environment used for `field-laboratory` → **Setup script**:
+At [claude.ai/code](https://claude.ai/code) → environment selector (the cloud
+icon above the message box) → gear icon on the environment → **Setup script**:
 
 ```bash
 #!/bin/bash
-apt-get update && apt-get install -y --no-install-recommends dotnet-sdk-10.0 || true
+timeout 240 bash -c '
+  apt-get -o DPkg::Lock::Timeout=60 update
+  apt-get -o DPkg::Lock::Timeout=60 install -y --no-install-recommends dotnet-sdk-10.0
+' || echo "setup: .NET SDK install did not complete; the SessionStart hook will retry."
+dotnet --version || true
+exit 0
 ```
 
-That's the whole thing. Measured cold, from an environment with no .NET at all:
-**~30 seconds**, well inside the field's ~5-minute budget.
+Measured cold, from a container with no .NET at all: **31.6 seconds**, exit 0,
+`dotnet 10.0.110` installed.
+
+### Why this shape and not a one-liner
+
+The obvious version — `apt-get update && apt-get install ... || true` — is what
+was tried first, and a real session reported **"Setup script failed"** with it.
+That failure was never reproduced, and the cause is still unknown. What was
+ruled out by direct test:
+
+- **Not the exit code.** That one-liner exits 0 in every case tested: normal
+  run, `apt-get` returning 100, and under both `set -e` and `set -eo pipefail`.
+  Bash parses it as `(update && install) || true`, so it cannot propagate a
+  failure.
+- **Not a blocked host.** `archive.ubuntu.com`, `security.ubuntu.com`, and
+  `*.ubuntu.com` are all on the documented default allowlist.
+- **Not `apt-get update` failing.** It exits 0 on this image (see the PPA note
+  below).
+
+So the hardening targets what could not be ruled out:
+
+- `timeout 240` caps the whole install below the ~5-minute budget, so a hang —
+  the most likely remaining cause, e.g. apt lock contention with a boot-time
+  `apt-daily` job — fails fast instead of blowing the budget.
+- `-o DPkg::Lock::Timeout=60` makes apt wait a bounded time for the dpkg lock
+  rather than potentially blocking indefinitely.
+- An explicit `exit 0` on its own line removes any dependence on operator
+  precedence for the script's final status.
+- `dotnet --version` at the end puts the installed version in the setup log, so
+  the next failure is diagnosable from the log alone.
+
+**If it fails again, expand the "Ran setup script" step in the failed session and
+read the actual error.** Everything above is inference; that log is evidence.
+
+### Unknown, and worth knowing
+
+Two PPAs baked into the base image (`deadsnakes`, `ondrej/php`) 403 through the
+proxy on every `apt-get update`:
+
+```
+Err:5 https://ppa.launchpadcontent.net/deadsnakes/ppa/ubuntu noble InRelease
+  Invalid response from proxy: HTTP/1.1 403 Forbidden
+```
+
+The allowlist carries `ppa.launchpad.net` and `launchpad.net`, but Launchpad
+serves PPA content from **`ppa.launchpadcontent.net`**, which is neither — the
+same host-vs-hostname gap as `builds.dotnet.microsoft.com`. It is harmless here:
+apt reports them as warnings, still exits 0, and the Ubuntu archives it actually
+needs are reachable. Recorded so the noise in the setup log is not mistaken for
+the cause of a failure.
 
 ## Why it belongs there and not in the repo
 
