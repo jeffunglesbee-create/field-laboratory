@@ -8,3 +8,4 @@ Appended by .github/workflows/drift-sentinel.yml. One row per run.
 | run (UTC) | payload date | games | status | malformed | note |
 | --- | --- | --- | --- | --- | --- |
 | 2026-08-09 23:25 | 2026-08-09 | 36 | malformed | 2 | EFL Cup_2026-08-09_mansfield_sheffieldutd.drama_arc: Error at: `$` Expecting a list but instead got: null |
+| 2026-08-09 23:28 | 2026-08-09 | 36 | ok | 0 | — |
