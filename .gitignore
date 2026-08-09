@@ -4,3 +4,5 @@ build/
 # .NET build artifacts, in case a session ever runs a real dotnet build here.
 bin/
 obj/
+
+fable_modules/

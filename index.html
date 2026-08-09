@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIELD Laboratory — desk scoreboard</title>
+<!-- Suppresses the browser's automatic /favicon.ico request, which would
+     otherwise be the only 404 in the render check. -->
+<link rel="icon" href="data:,">
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
+    margin: 0; padding: 2rem; background: #0f1115; color: #e6e8ec;
+  }
+  h1 { font-size: 1.1rem; letter-spacing: .04em; text-transform: uppercase; opacity: .6; margin: 0 0 1.5rem; }
+  .meta { font-size: .85rem; opacity: .65; margin-bottom: 1.5rem; }
+  .meta div { margin-bottom: .25rem; }
+  #desk { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .desk-card {
+    border: 1px solid #262a33; border-radius: 10px; padding: 1rem 1.1rem; background: #161920;
+  }
+  .desk-card__header { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; opacity: .5; }
+  .desk-card__teams { font-weight: 600; margin: .4rem 0 .1rem; }
+  .desk-card__score { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .desk-card__status { font-size: .8rem; opacity: .75; }
+  .desk-card__drama, .desk-card__odds { font-size: .75rem; opacity: .55; margin-top: .3rem; }
+</style>
+</head>
+<body>
+  <h1>FIELD Laboratory — desk scoreboard</h1>
+  <div class="meta">
+    <div id="decode-status">decoding…</div>
+    <div id="units-demo"></div>
+  </div>
+  <div id="desk"></div>
+
+  <!-- Fable emits bare module specifiers for npm packages — `import {
+       createSignal } from "solid-js"` — which browsers cannot resolve natively.
+       An import map fixes that without introducing a bundler.
+
+       Note the target: solid-js's `module` field points at dist/server.js, the
+       SSR build. The browser build is dist/solid.js, reachable only through the
+       package's "browser" export condition, which a plain <script type="module">
+       does not apply. Pointing this at the default entry silently loads the
+       server renderer and nothing reactive works. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "solid-js": "./node_modules/solid-js/dist/solid.js"
+    }
+  }
+  </script>
+
+  <script type="module" src="./build/Program.js"></script>
+</body>
+</html>

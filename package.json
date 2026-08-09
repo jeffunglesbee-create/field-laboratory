@@ -5,12 +5,15 @@
   "description": "FIELD Laboratory — F# compiled to JavaScript via Fable.",
   "type": "module",
   "scripts": {
-    "build": "bash scripts/build.sh"
+    "build": "dotnet fable src/Laboratory.fsproj --outDir build",
+    "serve": "node scripts/serve.mjs",
+    "check": "node scripts/render-check.mjs",
+    "check:hard": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/render-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
   },
   "devDependencies": {
-    "@fable-org/fable-compiler-js": "^2.11.0"
+    "playwright": "^1.62.1"
   }
 }

@@ -1,14 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <!-- F# compilation is order-sensitive: a file may only reference files
        listed above it. Append new files to the bottom of this list unless a
        later file genuinely needs to see them first. -->
   <ItemGroup>
+    <Compile Include="Units.fs" />
+    <Compile Include="Desk.fs" />
+    <Compile Include="Scoreboard.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pinned explicitly. Thoth.Json 10.5.1 requires FSharp.Core >= 10.1.203,
+         which is newer than the SDK's implicit 10.0.110; without this the
+         restore emits NU1605 downgrade warnings. -->
+    <PackageReference Include="FSharp.Core" Version="10.1.203" />
+    <PackageReference Include="Fable.Core" Version="5.2.0" />
+    <PackageReference Include="Fable.Browser.Dom" Version="2.20.0" />
+    <PackageReference Include="Fable.Promise" Version="3.2.0" />
+    <PackageReference Include="Fable.Fetch" Version="2.7.0" />
+    <PackageReference Include="Thoth.Json" Version="10.5.1" />
+    <!-- Reactive primitives only (createSignal / createMemo). The view layer
+         from this package needs Fable's JSX mode via Feliz.JSX.Solid, which is
+         a 2022 beta; the view here is plain typed DOM instead. -->
+    <PackageReference Include="Fable.Solid" Version="1.0.0-beta-004" />
   </ItemGroup>
 
 </Project>

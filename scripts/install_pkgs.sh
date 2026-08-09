@@ -9,14 +9,15 @@
 # the documented way to scope this to cloud sessions only, so local machines
 # are left untouched.
 #
-# `npm install` alone is genuinely sufficient to bootstrap this Fable project —
-# verified, not assumed. The compiler here is the JS-hosted Fable
-# (@fable-org/fable-compiler-js), which bundles the reference assemblies it
-# needs (FSharp.Core, Fable.Core, Browser.*, core BCL) inside
-# @fable-org/fable-metadata. There is no `dotnet tool restore` or
-# `dotnet restore` step, because there is no .NET SDK dependency at all. That
-# changes the moment the project references a NuGet package outside that
-# bundled set — see docs and the outbox note for what that would require.
+# Three steps, in dependency order: the .NET SDK, then the Fable tool pinned by
+# the committed manifest, then npm packages.
+#
+# The SDK step is a FALLBACK, not the intended mechanism. Its proper home is the
+# environment's own setup-script field, where the environment cache makes it
+# free after the first run — see docs/SETUP-SCRIPT.md for the text to paste.
+# It lives here too so a session on a cold VM can heal itself instead of failing
+# every Fable build. install_dotnet.sh no-ops in ~6ms when the SDK is already
+# present, so the common case costs nothing.
 #
 # Every command degrades safely. A failed install must not hard-fail the
 # session the way the original environment setup script did.
@@ -24,6 +25,10 @@
 if [ "$CLAUDE_CODE_REMOTE" != "true" ]; then
   exit 0
 fi
+
+bash "$(dirname "${BASH_SOURCE[0]}")/install_dotnet.sh" || true
+
+dotnet tool restore || true
 
 npm install || true
 
