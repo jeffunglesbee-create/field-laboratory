@@ -7,6 +7,7 @@
 // in this project, so silence is treated as suspicious rather than fine.
 
 import { chromium } from 'playwright'
+import { createChecks } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
 
@@ -31,10 +32,36 @@ const cards = await page.$$eval('.desk-card', nodes => nodes.map(n => ({
   odds: n.querySelector('.desk-card__odds')?.textContent,
 })))
 
+// --- state transition -------------------------------------------------------
+// The initial paint is not enough. A previous version of this check passed 6/6
+// over a real bug: the score node was reactive and the status node was not, so
+// a game reaching Final rendered a final score labelled "In progress". Nothing
+// that only samples the first render can catch that. This drives a real
+// transition and asserts every state-derived node moves together.
+const transition = { ran: false, before: null, after: null, error: null }
+try {
+  const sim = await browser.newPage()
+  sim.on('pageerror', e => errors.push(`pageerror(sim): ${e.message}`))
+  await sim.goto(`${URL}${URL.includes('?') ? '&' : '?'}simulate=1`, { waitUntil: 'networkidle' })
+  await sim.waitForSelector('.desk-card', { timeout: 10_000 })
+
+  const sample = () => sim.$eval('.desk-card', n => ({
+    score: n.querySelector('[data-testid="score"]')?.textContent,
+    status: n.querySelector('[data-testid="status"]')?.textContent,
+  }))
+
+  transition.before = await sample()
+  await sim.evaluate(() => window.__labSetState(0, 'final'))
+  transition.after = await sample()
+  transition.ran = true
+  await sim.close()
+} catch (e) {
+  transition.error = e.message
+}
+
 await browser.close()
 
-const checks = []
-const check = (name, pass, detail) => checks.push({ name, pass, detail })
+const { check, summarize } = createChecks()
 
 check('decode status reports success', /^decoded \d+ game/.test(status || ''), status)
 check('at least one card rendered', cards.length > 0, `${cards.length} card(s)`)
@@ -45,6 +72,15 @@ check('no card shows a malformed nested payload',
 check('every card has a real score or an explicit scheduled dash',
   cards.every(c => /\d+–\d+/.test(c.score) || c.score === '—'),
   cards.map(c => c.score).join(' | '))
+check('state transition ran', transition.ran, transition.error || 'ok')
+check('score updates on state change',
+  transition.ran && transition.before.score !== transition.after.score,
+  `${transition.before?.score} -> ${transition.after?.score}`)
+// The regression guard. Before the fix this was the failing line: the score
+// moved and the status did not.
+check('status updates with it (no stale node)',
+  transition.ran && transition.after.status === 'Final / OT',
+  `${transition.before?.status} -> ${transition.after?.status}`)
 check('no page or console errors', errors.length === 0, errors.join('; ') || 'none')
 
 console.log(`\nURL: ${URL}`)
@@ -56,10 +92,6 @@ for (const c of cards) {
   console.log(`    ${c.drama}  |  ${c.odds}`)
 }
 console.log()
-for (const c of checks) {
-  console.log(`${c.pass ? 'PASS' : 'FAIL'}  ${c.name}${c.pass ? '' : `\n      → ${c.detail}`}`)
-}
-
-const failed = checks.filter(c => !c.pass)
-console.log(`\n${checks.length - failed.length}/${checks.length} checks passed`)
-process.exit(failed.length === 0 ? 0 : 1)
+console.log(`transition:   ${transition.before?.score} [${transition.before?.status}]`)
+console.log(`          ->  ${transition.after?.score} [${transition.after?.status}]\n`)
+process.exit(summarize() === 0 ? 0 : 1)

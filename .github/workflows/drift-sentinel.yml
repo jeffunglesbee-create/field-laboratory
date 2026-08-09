@@ -1,0 +1,89 @@
+# Daily drift sentinel.
+#
+# Runs this repo's own compiled F# decoders against a live /context/date payload
+# and appends the outcome to outbox/drift-log.md.
+#
+# The question: the decoders are proven correct and not proven necessary. This
+# measures whether FIELD's live payloads actually drift. A long run of `ok` rows
+# is a real result that argues the decoders are insurance nobody has claimed on —
+# report it that way rather than tuning this workflow toward green.
+name: drift-sentinel
+
+on:
+  schedule:
+    # Daily. This is a drift detector, not a monitor; hourly would add cost and
+    # no information.
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: drift-sentinel
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore pinned Fable and build the decoders
+        run: |
+          dotnet tool restore
+          dotnet fable src/Laboratory.fsproj --outDir build
+
+      - name: Run the sentinel against today's live payload
+        id: sentinel
+        run: |
+          DATE=$(date -u +%F)
+          URL="https://field-relay-nba.jeffunglesbee.workers.dev/context/date/$DATE"
+          set +e
+          node scripts/drift-check.mjs --url "$URL" | tee /tmp/out.txt
+          echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          set -e
+          echo "date=$DATE" >> "$GITHUB_OUTPUT"
+          # RESULT|source|status|games|malformed|note
+          grep '^RESULT|' /tmp/out.txt | tail -1 > /tmp/result.txt || echo "RESULT|$URL|no-result|0|0|sentinel produced no RESULT line" > /tmp/result.txt
+
+      # Runs even when the check failed — a red run is precisely the row worth
+      # keeping, so the log must be written before the job is allowed to fail.
+      - name: Append to the drift log
+        if: always()
+        run: |
+          IFS='|' read -r _ SRC STATUS GAMES MALFORMED NOTE < /tmp/result.txt
+          mkdir -p outbox
+          if [ ! -f outbox/drift-log.md ]; then
+            {
+              echo "# Drift log"
+              echo
+              echo "Appended by .github/workflows/drift-sentinel.yml. One row per run."
+              echo "\`status\` is \`ok\`, \`malformed\` (a nested JSON field stopped decoding),"
+              echo "\`decode-failed\` (the payload shape changed), or \`fetch-failed\`"
+              echo "(infrastructure, not drift)."
+              echo
+              echo "| run (UTC) | payload date | games | status | malformed | note |"
+              echo "| --- | --- | --- | --- | --- | --- |"
+            } > outbox/drift-log.md
+          fi
+          printf '| %s | %s | %s | %s | %s | %s |\n' \
+            "$(date -u +'%Y-%m-%d %H:%M')" "${{ steps.sentinel.outputs.date }}" \
+            "$GAMES" "$STATUS" "$MALFORMED" "${NOTE:-—}" >> outbox/drift-log.md
+
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/drift-log.md
+          git diff --staged --quiet || git commit -m "drift-sentinel: $STATUS on ${{ steps.sentinel.outputs.date }} [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Fail if the sentinel failed
+        if: always() && steps.sentinel.outputs.code != '0'
+        run: |
+          echo "Sentinel reported a problem — see the log above and outbox/drift-log.md."
+          exit 1

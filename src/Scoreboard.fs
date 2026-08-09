@@ -61,35 +61,57 @@ let private oddsText (g: Game) =
         | Some h, Some a -> sprintf "%s ML %+d / %+d" o.Source a h
         | _ -> sprintf "%s (no moneyline)" o.Source
 
-/// Builds the card and mounts it. Returns a setter so the score can be pushed
-/// reactively without re-rendering the card — the whole point of an island.
+/// A node whose text is a function of the game's live state. Creating it also
+/// wires the effect that keeps it current — the two cannot be separated, which
+/// is the point.
+///
+/// The previous version created each node with its text baked in and then wired
+/// an effect for the score only. That shipped a real bug: a game reaching Final
+/// updated its score and kept rendering the word "Scheduled" beside it, because
+/// nothing drove the status node. Same mechanism as the ambient-panel skeleton
+/// overlap — under fine-grained rendering, anything the reactive system does not
+/// explicitly own is simply never updated again.
+let private stateNode (className: string) (testId: string) (compute: unit -> string) =
+    let node = el "div" className (compute ())
+    node.setAttribute("data-testid", testId)
+    Solid.createEffect (fun () -> node.textContent <- compute ())
+    node
+
+/// A node whose text comes from the immutable game record. Safe to set once,
+/// because there is no state it could fall behind.
+let private staticNode (className: string) (testId: string) (text: string) =
+    let node = el "div" className text
+    if testId <> "" then node.setAttribute("data-testid", testId)
+    node
+
+/// Builds the card and mounts it. Returns the state setter so scores can be
+/// pushed reactively without re-rendering the card — the whole point of an
+/// island.
 let render (mount: HTMLElement) (game: Game) =
     let state, setState = Solid.createSignal (gameState game)
 
-    // A derived value that recomputes reactively rather than being baked in at
+    // Derived values that recompute reactively rather than being baked in at
     // render time.
     let display = Solid.createMemo (fun () -> scoreText (state ()))
+    let status = Solid.createMemo (fun () -> statusText game (state ()))
 
     let card = el "div" "desk-card" ""
     card.setAttribute("data-game-id", game.Id)
 
-    let header = el "div" "desk-card__header" (sprintf "%s · %s" game.Sport (defaultArg game.Venue "—"))
-    let teams = el "div" "desk-card__teams" (sprintf "%s @ %s" game.Away game.Home)
-    let score = el "div" "desk-card__score" (display ())
-    score.setAttribute("data-testid", "score")
-    let status = el "div" "desk-card__status" (statusText game (state ()))
-    status.setAttribute("data-testid", "status")
-    let drama = el "div" "desk-card__drama" (dramaText game)
-    drama.setAttribute("data-testid", "drama")
-    let odds = el "div" "desk-card__odds" (oddsText game)
+    let children =
+        [ staticNode "desk-card__header" "" (sprintf "%s · %s" game.Sport (defaultArg game.Venue "—"))
+          staticNode "desk-card__teams" "" (sprintf "%s @ %s" game.Away game.Home)
+          stateNode "desk-card__score" "score" display
+          stateNode "desk-card__status" "status" status
+          staticNode "desk-card__drama" "drama" (dramaText game)
+          staticNode "desk-card__odds" "" (oddsText game) ]
 
-    for child in [ header; teams; score; status; drama; odds ] do
+    // drama and odds are staticNode deliberately, not by omission: both derive
+    // from the immutable Game record, not from GameState, so they cannot go
+    // stale. Anything that reads `state ()` must be a stateNode.
+    for child in children do
         card.appendChild child |> ignore
 
     mount.appendChild card |> ignore
-
-    // Solid drives the score node only. Nothing else in the card is touched
-    // when the score changes.
-    Solid.createEffect (fun () -> score.textContent <- display ())
 
     setState
