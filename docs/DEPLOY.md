@@ -24,7 +24,34 @@ one Cloudflare account; wrangler infers the account otherwise.
 Then re-run the `deploy` workflow (Actions → deploy → Run workflow), or push any
 non-docs change.
 
-## Why a session cannot set the secret for you
+## The secret CAN be provisioned with zero manual steps — via the Deploy Courier
+
+Recorded here because a previous session in this repo concluded the opposite and
+was wrong.
+
+FIELD already has a solved mechanism for exactly this, proven on
+field-playground (Drive: *FIELD — July 21-28 2026 — Part 2 of 3*):
+
+> CREDENTIAL — solved with ZERO manual steps. … `ALLOWED_REPOS` gates the
+> CALLER's OIDC repository claim, and already contains
+> `jeffunglesbee-create/field-relay-nba`. `/secret` accepts
+> `{name, value, repo, owner}`; `repo` defaults to jubilant-bassoon but is a
+> plain BODY PARAMETER — any target repo can be named. So no Courier change was
+> needed. One workflow step in field-relay-nba (which already holds
+> `CLOUDFLARE_API_TOKEN` and already mints OIDC tokens) sets the secret in
+> field-playground.
+
+The Deploy Courier is `field-deploy.jeffunglesbee.workers.dev`, source in
+`field-relay-nba/workers/field-deploy/`. The same one-step pattern points at
+`field-laboratory` by naming it in the request body.
+
+**Why the earlier "impossible" conclusion was wrong.** GitHub secrets genuinely
+cannot be read back through its API — that part was right. But that is not the
+mechanism here: a *workflow* in field-relay-nba has the value injected into its
+environment at run time, which is the one place a secret is legitimately
+readable, and forwards it to the Courier. Correct fact, wrong question.
+
+## Why a *session* still cannot set it directly
 
 Not an oversight — a deliberate guardrail, verified directly:
 
