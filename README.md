@@ -39,7 +39,8 @@ is still a judgement call.
 | --- | --- |
 | `src/Units.fs` | Units of measure for the 0–1 / 0–100 scales that already caused a production bug |
 | `src/Desk.fs` | Thoth.Json decoders for the real `/context/date` payload |
-| `src/Scoreboard.fs` | One card. `stateNode` wires its own effect; `staticNode` cannot go stale |
+| `src/Scoreboard.fs` | The cards and the slate. `stateNode` wires its own effect; `staticNode` cannot go stale |
+| `src/Program.fs` | Entry point: fetch, decode, render, and the date navigation |
 | `data/` | Verbatim live captures — see `data/PROVENANCE.md`. Nothing here is fabricated |
 | `test/` | Deliberately corrupted fixtures, kept apart from `data/` on purpose |
 | `outbox/drift-log.md` | One row per sentinel run |
@@ -51,13 +52,30 @@ npm install && dotnet tool restore
 npm run build      # F# -> JS, then assemble public/
 npm run serve      # serves public/ — the same artifact that deploys
 npm run check      # 9 checks in real Chromium, including a state transition
+npm run check:nav  # 18 checks: sport grouping and date navigation
 ```
+
+`check:nav` is separate rather than more assertions in `check`, because `check`
+structurally cannot reach either feature: both committed captures are
+single-sport, so grouping "works" on them in exactly the shape a broken
+grouping would also produce, and both load `?data=`, which pins the page to one
+committed day and disables the date controls by design. `check:nav` intercepts
+the relay with Playwright routing instead — no egress needed, and no synthetic
+payload is committed or shipped, since the game records are read out of the two
+real captures and recombined.
+
+It was mutation-tested, not assumed: deleting the two teardown lines from
+`Program.fs` takes it from 18/18 to 11/18, with cards accumulating
+4 → 6 → 12 → 16 → 18 under a status line still reading "decoded 2". The check
+that stays green throughout is "no page or console errors" — nothing throws
+when a slate fails to tear down, which is why this needed a counting assertion
+rather than error monitoring.
 
 ## Automation
 
 | Workflow | When | What |
 | --- | --- | --- |
-| `verify` | push, PR | build, zero-warning gate, decoders accept real captures **and still reject the corrupted one**, both render checks |
+| `verify` | push, PR | build, zero-warning gate, decoders accept real captures **and still reject the corrupted one**, both render checks, grouping and date navigation |
 | `drift-sentinel` | daily | real decoders against a live payload, appends to the drift log |
 | `deploy` | after `verify` passes | builds and publishes the page |
 | `probe-url` | manual | reach a URL from a runner — the sandbox blocks `*.workers.dev` |
