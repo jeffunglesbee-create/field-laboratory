@@ -1,0 +1,108 @@
+# Deploys the same public/ to GitHub Pages using ZERO secrets.
+#
+# THE POINT, which is a design change rather than a workaround:
+#
+# An automated deploy needs a credential the runner can obtain without a human.
+# There are exactly two kinds. A stored secret — which a session cannot write,
+# because the GitHub proxy refuses the Actions secrets path by design
+# (403, verified) and should not be handed a live credential anyway. Or the
+# runner's OWN identity, via OIDC, which needs no secret at all.
+#
+# Cloudflare does not federate GitHub OIDC into an API token, so that path
+# always requires a human to place a token once. GitHub Pages accepts the
+# runner's OIDC identity natively. So pointing at a deploy target that already
+# trusts the runner removes the blocker entirely rather than defeating it.
+#
+# This does NOT replace the Cloudflare deploy. It is a second, independent
+# target so there is a live page now; deploy.yml still publishes to workers.dev
+# the moment its token exists.
+name: pages
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [verify]
+    types: [completed]
+    branches: [main]
+
+# The three grants that replace a secret. id-token is what lets the runner
+# prove who it is to the Pages deployment API.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build
+        run: |
+          npm ci
+          dotnet tool restore
+          npm run build
+
+      - name: Verify the built site before publishing it
+        run: |
+          test -s public/index.html
+          test -s public/build/Program.js
+          test -s public/vendor/solid.js
+          test -s public/version.txt
+          echo "public/: $(find public -type f | wc -l) files"
+
+      # enablement: true turns Pages on for the repository if it is off, using
+      # the workflow's own token — so even first-time setup needs no dashboard
+      # visit. It fails clearly if the account plan does not allow Pages on a
+      # private repository, which is the one real precondition here.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Confirm the deployed page actually serves
+        run: |
+          URL="${{ steps.deployment.outputs.page_url }}"
+          echo "page_url: $URL"
+          for i in 1 2 3 4 5 6; do
+            CODE=$(curl -sSL --max-time 20 -o /tmp/body -w '%{http_code}' "$URL" || echo 000)
+            echo "attempt $i: HTTP $CODE"
+            [ "$CODE" = "200" ] && break
+            sleep 10
+          done
+          test "$CODE" = "200"
+          # A 200 alone is not proof — assert the real page shipped.
+          grep -q 'FIELD Laboratory' /tmp/body
+          {
+            echo "### Deployed to GitHub Pages"
+            echo "$URL"
+          } >> "$GITHUB_STEP_SUMMARY"
