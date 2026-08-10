@@ -99,7 +99,9 @@ let render (mount: HTMLElement) (game: Game) =
     card.setAttribute("data-game-id", game.Id)
 
     let children =
-        [ staticNode "desk-card__header" "" (sprintf "%s · %s" game.Sport (defaultArg game.Venue "—"))
+        // The sport is the group heading now, so the card header carries the
+        // venue alone rather than repeating it on every card in the section.
+        [ staticNode "desk-card__header" "" (defaultArg game.Venue "—")
           staticNode "desk-card__teams" "" (sprintf "%s @ %s" game.Away game.Home)
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
@@ -115,3 +117,37 @@ let render (mount: HTMLElement) (game: Game) =
     mount.appendChild card |> ignore
 
     setState
+
+/// Renders the whole slate, grouped by sport, and returns the state setters in
+/// DOM order so index 0 always addresses the first card on screen.
+///
+/// Groups are ordered by size descending then name, so a 20-game MLB slate leads
+/// and a single cup tie does not. Deterministic either way — no reliance on the
+/// order the relay happened to return.
+///
+/// Cards keep their `.desk-card` class and are merely nested one level deeper,
+/// so every existing check that counts or queries cards is unaffected by the
+/// grouping.
+let renderSlate (mount: HTMLElement) (games: Game list) =
+    let setters = ResizeArray<GameState -> unit>()
+
+    let groups =
+        games
+        |> List.groupBy (fun g -> g.Sport)
+        |> List.sortBy (fun (sport, gs) -> (-(List.length gs), sport))
+
+    for (sport, gs) in groups do
+        let section = el "section" "sport-group" ""
+        section.setAttribute("data-sport", sport)
+
+        let title = el "h2" "sport-group__title" (sprintf "%s · %d" sport (List.length gs))
+        section.appendChild title |> ignore
+
+        let grid = el "div" "sport-group__grid" ""
+        for game in gs do
+            setters.Add(render grid game)
+        section.appendChild grid |> ignore
+
+        mount.appendChild section |> ignore
+
+    setters

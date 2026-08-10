@@ -8,7 +8,16 @@
      otherwise be the only 404 in the render check. -->
 <link rel="icon" href="data:,">
 <style>
-  :root { color-scheme: light dark; }
+  :root {
+    color-scheme: light dark;
+    /* The sport headings stick directly beneath the date bar, so the two
+       offsets must agree exactly. Derived from one variable rather than
+       eyeballed: a hand-tuned `top` that is 3px short of the bar's real height
+       leaves a sliver of card content scrolling through the seam, which is
+       precisely what the first attempt did. */
+    --nav-h: 3.25rem;
+    --bg: #0f1115;
+  }
   body {
     font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif;
     margin: 0; padding: 2rem; background: #0f1115; color: #e6e8ec;
@@ -16,7 +25,52 @@
   h1 { font-size: 1.1rem; letter-spacing: .04em; text-transform: uppercase; opacity: .6; margin: 0 0 1.5rem; }
   .meta { font-size: .85rem; opacity: .65; margin-bottom: 1.5rem; }
   .meta div { margin-bottom: .25rem; }
-  #desk { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+
+  /* Date navigation. Sticky because a full multi-sport slate is long and the
+     controls are useless if you have to scroll back to the top to reach them. */
+  .datenav {
+    position: sticky; top: 0; z-index: 2;
+    display: flex; align-items: center; gap: .6rem;
+    height: var(--nav-h); box-sizing: border-box;
+    margin: 0 0 1.5rem;
+    background: var(--bg);
+    border-bottom: 1px solid #262a33;
+  }
+  .datenav button {
+    font: inherit; font-size: .8rem;
+    color: #e6e8ec; background: #161920;
+    border: 1px solid #262a33; border-radius: 8px;
+    padding: .35rem .7rem; cursor: pointer;
+  }
+  .datenav button:hover:not([disabled]) { background: #1d212a; border-color: #343a46; }
+  /* Pinning to a committed capture disables navigation — the capture is one
+     fixed day, so stepping off it would silently show a different date's data
+     under a URL that claims to be pinned. Disabled controls say so visually. */
+  .datenav button[disabled] { opacity: .35; cursor: not-allowed; }
+  #viewed-date {
+    font-variant-numeric: tabular-nums; letter-spacing: .04em;
+    font-size: .9rem; opacity: .8; min-width: 10ch;
+  }
+
+  /* The slate stacks sport sections vertically; the grid now lives on each
+     section's own grid, not on #desk, or the section headings would be laid
+     out as grid cells alongside the cards. */
+  #desk { display: block; }
+  .sport-group { margin: 0 0 2rem; }
+  /* Sticky so the sport stays identifiable while scrolling a long section.
+     Opaque background and a full-bleed rule are load-bearing, not decoration:
+     a sticky heading floats OVER the cards, so a transparent or partial
+     background lets card text render through it. */
+  .sport-group__title {
+    position: sticky; top: var(--nav-h); z-index: 1;
+    font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
+    font-weight: 600; color: #8a90a0; margin: 0 0 .75rem;
+    padding: .55rem 0; background: var(--bg);
+    box-shadow: 0 -1px 0 var(--bg), 0 1px 0 #21252e;
+  }
+  .sport-group__grid {
+    display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
   .desk-card {
     border: 1px solid #262a33; border-radius: 10px; padding: 1rem 1.1rem; background: #161920;
   }
@@ -29,6 +83,17 @@
 </head>
 <body>
   <h1>FIELD Laboratory — desk scoreboard</h1>
+
+  <!-- Wired by Program.fs (wireDateNav). Navigation rewrites the URL with
+       history.pushState and re-renders in place, so every day is linkable and
+       the back button works. -->
+  <nav class="datenav" aria-label="Slate date">
+    <button id="prev-day" type="button" aria-label="Previous day">←</button>
+    <span id="viewed-date"></span>
+    <button id="next-day" type="button" aria-label="Next day">→</button>
+    <button id="today" type="button">Today</button>
+  </nav>
+
   <div class="meta">
     <div id="decode-status">decoding…</div>
     <div id="units-demo"></div>
