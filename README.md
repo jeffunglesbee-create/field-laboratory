@@ -33,12 +33,30 @@ reject a bug written deliberately to be rejected (`docs/UNITS-PROOF.md`). The
 compiler protects the interior; the boundary where a raw `float` gets its unit
 is still a judgement call.
 
+**The first result that was not written to be found:** the ADR-002 amnesty gate
+(`docs/AMNESTY-PROOF.md`). FIELD classifies displaying a raw composite drama
+number outside the post-game amnesty zone as a bright-line CRITICAL violation,
+and this repo was doing it — `dramaText` took a whole `Game` and ran for every
+card at every state. The committed captures are all Final, so the output
+happened to be compliant by accident of the data rather than by construction.
+
+The gate makes it structural: the drama score is sealed at the decode boundary,
+and the one function that can render it demands a witness only a `Final` game
+produces. Three deliberate violations, including forging the witness, are
+rejected by the compiler with real errors.
+
+That is a legal boundary rather than a correctness one, which is what makes it
+the strongest evidence here. Production holds it with a design doc, a manual
+`call-graph.js` run, and an outbox note asking the next session to re-check —
+and its own audit record states that "string-search RUWT audits are not
+reliable." A data flow cannot be grepped. It can be typed.
+
 ## Layout
 
 | Path | What it is |
 | --- | --- |
 | `src/Units.fs` | Units of measure for the 0–1 / 0–100 scales that already caused a production bug |
-| `src/Desk.fs` | Thoth.Json decoders for the real `/context/date` payload |
+| `src/Desk.fs` | Thoth.Json decoders for the real `/context/date` payload, plus the ADR-002 amnesty gate (`SealedDrama` / `AmnestyZone`) |
 | `src/Scoreboard.fs` | The cards and the slate. `stateNode` wires its own effect; `staticNode` cannot go stale |
 | `src/Program.fs` | Entry point: fetch, decode, render, and the date navigation |
 | `data/` | Verbatim live captures — see `data/PROVENANCE.md`. Nothing here is fabricated |
@@ -51,7 +69,7 @@ is still a judgement call.
 npm install && dotnet tool restore
 npm run build      # F# -> JS, then assemble public/
 npm run serve      # serves public/ — the same artifact that deploys
-npm run check      # 9 checks in real Chromium, including a state transition
+npm run check      # 11 checks in real Chromium, including two state transitions
 npm run check:nav  # 18 checks: sport grouping and date navigation
 ```
 

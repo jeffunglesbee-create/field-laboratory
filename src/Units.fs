@@ -35,6 +35,16 @@ let toProb (p: float<pct>) : float<prob> = p / 100.0<pct/prob>
 let formatWinProbability (p: float<prob>) : string =
     sprintf "%.0f%%" (float (toPct p))
 
-/// Formats a drama score. Deliberately cannot accept a probability.
-let formatDrama (d: float<drama>) : string =
-    sprintf "%.0f" (float d)
+// There is deliberately no `formatDrama` here.
+//
+// There was one, and it was the hole. It took a bare `float<drama>` and
+// returned a string, so any call site anywhere could render a raw composite
+// drama number — which ADR-002 classifies as a bright-line CRITICAL violation
+// outside the post-game amnesty zone. The unit of measure stopped a drama score
+// being confused with a probability; it did nothing about *where* the number
+// was allowed to be displayed, because that is a different question.
+//
+// The formatter now lives in `Desk` as `formatDramaPeak`, where `GameState` is
+// in scope, and it demands an `AmnestyZone` witness that only a Final game can
+// produce. Keeping an ungated formatter here as well would reopen the hole,
+// since nothing would stop a caller reaching for the easier one.
