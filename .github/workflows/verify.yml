@@ -85,6 +85,14 @@ jobs:
           npm run check
           npm run check:hard
 
+      # Grouping and date navigation, which the two checks above structurally
+      # cannot reach: both captures are single-sport, and both pin `?data=`,
+      # which disables the date controls by design. This probe intercepts the
+      # relay at the network layer instead, so it needs no egress and asserts
+      # that each navigation leaves exactly the new slate behind.
+      - name: Grouping and date-navigation checks
+        run: npm run check:nav
+
       # The two checks above are pinned to committed captures so their
       # assertions are deterministic. This one exercises the path the DEPLOYED
       # page actually takes: fetch today's real slate from the relay and render
