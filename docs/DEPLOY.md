@@ -24,12 +24,19 @@ one Cloudflare account; wrangler infers the account otherwise.
 Then re-run the `deploy` workflow (Actions → deploy → Run workflow), or push any
 non-docs change.
 
-## Deploy runs only after verify passes
+## You do not need to trigger anything
 
-`deploy` is triggered by `verify` completing successfully on `main`, not by the
-push itself. A failing check suite therefore blocks the deploy rather than
-racing it. A manual dispatch bypasses this deliberately, so you can still ship
-from a known-good commit without waiting.
+The deploy **skips cleanly** when the secret is absent and re-checks every six
+hours, so the site publishes itself once `CLOUDFLARE_API_TOKEN` exists. No
+re-run, no push.
+
+Skipping rather than failing is deliberate: an unconfigured deploy is not a
+broken build, and going red on every push until someone pastes a secret trains
+you to ignore red. The skip is loud in the run summary instead.
+
+`deploy` is also triggered by `verify` completing successfully on `main`, not by
+the push itself, so a failing check suite blocks the deploy rather than racing
+it. A manual dispatch bypasses that deliberately.
 
 ## What it will publish
 
