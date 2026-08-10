@@ -66,6 +66,12 @@ const rows = [
   { name: 'doc claims are compiler-verified, not prose', weight: 25, skipQuick: true,
     run: () => ok('node scripts/proof-check.mjs') },
 
+  // Deterministic, so it runs at any hour. The zone fix is only observable
+  // when ET and UTC disagree, and every scheduled job in this repo runs
+  // outside that window.
+  { name: 'FIELD-zone day is correct at fixed instants', weight: 10,
+    run: () => ok('node scripts/zone-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 ]
 

@@ -887,3 +887,70 @@ clean. `series` remains `empty-or-failed`.
 Gate 100/100. proof-check 13/13 (10 doc cases across five proof docs plus
 registry completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift
 9/9 both captures, corrupted fixture rejected, zero warnings.
+
+---
+
+## The zone check was false confidence, and mutation testing caught it
+
+Asked to confirm ET on live. Ran the sentinel — clean, `2026-08-10`, keying
+unchanged — and stated up front that it could not demonstrate anything, because
+at 18:35 UTC the two zones agree. That was the honest caveat, and it pointed at
+a real hole.
+
+### Every scheduled job runs outside the window
+
+```
+drift-sentinel   0 12 * * *   12:00 UTC = 08:00 ET   same day
+live-check      37  6 * * *   06:37 UTC = 02:37 ET   same day
+verify                        whenever a push lands
+```
+
+The zone fix is only observable from 00:00 to 04:00 UTC. Nothing in this repo
+was scheduled to run there. The fix would have been exercised by luck, on
+whichever pushes happened to land after 8pm Eastern.
+
+### The first zone check did not work, and passed anyway
+
+Wrote `zone-check.mjs`, got 16/16, then mutation-tested it. **A hardcoded UTC-4
+passed 11/11. Plain UTC passed 11/11.**
+
+Two reasons, both mine:
+
+1. The fixed-instant assertions tested `etDay`, a helper defined inside the
+   check file. They verified my test's own arithmetic, not the F# code.
+2. The one assertion that did reach F# compared `fieldToday()` to today — which
+   is identical under UTC, under a fixed offset, and under the correct rules,
+   for twenty hours out of every twenty-four.
+
+A guard whose only real assertion is time-dependent, in exactly the window that
+is hard to reach, is worse than no guard: it reports green and means nothing.
+
+### The fix: make the conversion pure
+
+`fieldDayAt (instant: DateTimeOffset) : FieldDay`, with `fieldToday()` a
+one-liner over it. Now the checks call the real compiled F# at chosen instants,
+each picked so a wrong implementation gives a different answer:
+
+| instant | correct | catches |
+| --- | --- | --- |
+| 2026-08-11T02:00Z | 2026-08-10 | plain UTC |
+| 2026-01-01T04:30Z | 2025-12-31 | a fixed -4 |
+| 2026-07-01T04:30Z | 2026-07-01 | a fixed -5 |
+
+Re-mutated: UTC-4 now fails 1, UTC-5 fails 2, plain UTC fails 2. 16/16 clean.
+
+### Coverage, not luck
+
+- `zone-check` is in `verify` and is a gate row — deterministic, so it runs at
+  any hour.
+- The sentinel gains a second cron at `30 1 * * *` — 21:30 ET, inside the
+  window, and also the busiest slate of the day in ET. That makes it the most
+  informative run rather than merely the most awkward.
+
+### The pattern, four times now
+
+The drama arc, the split total, the `Game.Date` string, and this. Each time a
+guard looked complete and was not, and each time the tell was the same: the
+thing being asserted was not the thing that could break. Only mutation testing
+distinguished them, and in this case the check I had just written to protect the
+fix was itself the thing that needed protecting.

@@ -101,6 +101,12 @@ jobs:
       - name: Proof-doc claims are compiler-verified
         run: npm run check:proof
 
+      # Deterministic zone assertions. CI runs whenever a push lands, which is
+      # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
+      # so the zone logic would otherwise be exercised only by luck.
+      - name: FIELD-zone day checks
+        run: npm run check:zone
+
       # The confidence gate the CC-CMD ceremony asks for, mechanised. Every row
       # runs a real command and takes its score from the exit code, so the total
       # cannot be asserted, only earned. Below 95 fails the build.

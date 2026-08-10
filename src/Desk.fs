@@ -67,21 +67,36 @@ type Nested<'T> =
 /// the reader travels.
 type FieldDay = private FieldDay of string
 
-/// Today in FIELD's zone.
+/// The FIELD-zone day containing a given instant.
 ///
-/// Via `Intl` with an IANA zone name, not a hand-rolled UTC offset. EST/EDT
-/// changes on the second Sunday in March and the first Sunday in November;
-/// hand-rolling that is how a date library becomes a bug, and the browser and
-/// Node both already carry the rules.
+/// Takes the instant rather than reading the clock, so it is a pure function
+/// and can be tested at fixed points. That is not incidental: the first version
+/// read `new Date()` internally, and the only assertion that could reach it
+/// compared its output to "today" — which is identical under UTC, under a
+/// hardcoded -4, and under the correct rules for twenty hours out of every
+/// twenty-four. Both mutations passed 11/11. A guard whose one real assertion
+/// is time-dependent, in precisely the window that is hard to reach, is false
+/// confidence.
+///
+/// Via `Intl` with an IANA zone name, not a fixed offset. EST/EDT changes on
+/// the second Sunday in March and the first Sunday in November; hand-rolling
+/// that is how a date library becomes a bug, and the browser and Node both
+/// already carry the rules.
 [<Emit("""(() => {
   const p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York',
-    year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date($0));
   const g = t => p.find(x => x.type === t).value;
   return `${g('year')}-${g('month')}-${g('day')}`;
 })()""")>]
-let private todayInFieldZone () : string = jsNative
+let private dayInFieldZone (epochMs: float) : string = jsNative
 
-let fieldToday () : FieldDay = FieldDay(todayInFieldZone ())
+/// The FIELD-zone day for an arbitrary instant. Pure, and therefore testable.
+let fieldDayAt (instant: DateTimeOffset) : FieldDay =
+    FieldDay(dayInFieldZone (float (instant.ToUnixTimeMilliseconds())))
+
+/// Today in FIELD's zone. The only impure entry point, and a one-liner over
+/// `fieldDayAt` so there is nothing here that the fixed-instant tests miss.
+let fieldToday () : FieldDay = fieldDayAt DateTimeOffset.UtcNow
 
 /// Lifts a relay date string into the canonical zone.
 ///

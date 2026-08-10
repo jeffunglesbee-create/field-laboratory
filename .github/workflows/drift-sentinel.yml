@@ -14,6 +14,13 @@ on:
     # Daily. This is a drift detector, not a monitor; hourly would add cost and
     # no information.
     - cron: '0 12 * * *'
+    # A second run at 01:30 UTC — 21:30 ET, inside the four-hour window where
+    # the FIELD zone and UTC disagree. The 12:00 run is 08:00 ET, the same day
+    # in both zones, so on its own it would never once exercise the date
+    # handling this repo just rebuilt. This is also the busiest slate of the
+    # day in ET, which makes it the most informative run, not just the most
+    # awkward one.
+    - cron: '30 1 * * *'
   workflow_dispatch:
 
 permissions:

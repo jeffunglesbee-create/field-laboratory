@@ -14,7 +14,8 @@
     "check:nav": "node scripts/nav-check.mjs",
     "check:proof": "node scripts/proof-check.mjs",
     "check:deployed": "node scripts/live-grouping-check.mjs",
-    "gate": "node scripts/confidence.mjs"
+    "gate": "node scripts/confidence.mjs",
+    "check:zone": "node scripts/zone-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
