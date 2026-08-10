@@ -66,6 +66,7 @@ let unmodelled = []
 let vocabulary = []
 let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0, none: 0 }
 let lineShape = { spreads: 0, unbalanced: 0, totals: 0, split: 0, compared: 0, mismatched: 0 }
+let mismatchDetail = []
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -133,7 +134,14 @@ if (decoded) {
       const ag = favouriteAgreement(o)
       if (ag.tag !== AGREE.NotComparable) {
         lineShape.compared += 1
-        if (ag.tag === AGREE.Disagrees) lineShape.mismatched += 1
+        if (ag.tag === AGREE.Disagrees) {
+          lineShape.mismatched += 1
+          // Name the game and show the numbers. A count alone is not
+          // actionable, and this invariant is new enough that a mismatch is at
+          // least as likely to be wrong about soccer as the data is to be wrong.
+          mismatchDetail.push(
+            `${sportMeta(g.Sport).Label} ${g.Id}: ML ${o.MoneylineHome}/${o.MoneylineAway} H ${o.SpreadHome}/${o.SpreadAway}`)
+        }
       }
     }
   }
@@ -145,7 +153,7 @@ if (decoded) {
   check('every spread is a balanced handicap', lineShape.unbalanced === 0,
     `${lineShape.unbalanced} of ${lineShape.spreads} spreads have home != -away`)
   check('moneyline and handicap agree on the favourite', lineShape.mismatched === 0,
-    `${lineShape.mismatched} of ${lineShape.compared} comparable games disagree`)
+    `${lineShape.mismatched} of ${lineShape.compared} comparable: ${[...new Set(mismatchDetail)].slice(0, 6).join(' | ')}`)
   // Not a data-integrity violation like the two above — a split total could
   // just as easily mean the relay started serving real over/under PRICES
   // instead of the line duplicated, which would be an upstream improvement.
@@ -180,11 +188,25 @@ console.log()
 const failures = summarize()
 
 // Single machine-readable line for the appended log.
+// Every failing invariant must reach the status. The first version computed
+// this from malformed/unmodelled only, so a run where the favourite-agreement
+// check failed still logged `ok` — a row that says the opposite of the run's
+// own exit code is worse than no row at all.
+const lineFault =
+  lineShape.unbalanced ? 'spread-unbalanced'
+  : lineShape.split ? 'total-split'
+  : lineShape.mismatched ? 'favourite-mismatch'
+  : ''
 const status = decoded
-  ? (malformed.length ? 'malformed' : (unmodelled.length ? 'unmodelled-sport' : 'ok'))
+  ? (malformed.length ? 'malformed'
+     : unmodelled.length ? 'unmodelled-sport'
+     : lineFault ? lineFault
+     : 'ok')
   : 'decode-failed'
 const note = decoded
-  ? (malformed[0] ?? (unmodelled.length ? `unmodelled: ${unmodelled.map(v => v.label).join(', ')}` : ''))
+  ? (malformed[0]
+     ?? (unmodelled.length ? `unmodelled: ${unmodelled.map(v => v.label).join(', ')}`
+         : (mismatchDetail.length ? [...new Set(mismatchDetail)].slice(0, 3).join(' ; ') : '')))
   : decodeError
 // The observed vocabulary rides along on every run, so the log answers "which
 // sports has this relay ever served" without needing a separate probe.
