@@ -11,3 +11,4 @@ Appended by .github/workflows/drift-sentinel.yml. One row per run.
 | 2026-08-09 23:28 | 2026-08-09 | 36 | ok | 0 | — |
 | 2026-08-10 13:23 | 2026-08-10 | 18 | ok | 0 | — |
 | 2026-08-10 14:48 | 2026-08-10 | 18 | unmodelled-sport | 0 | unmodelled: MLS, WNBA, EFL Cup|MLB:10 MLS*:5 WNBA*:2 EFL Cup*:1 |
+| 2026-08-10 14:56 | 2026-08-10 | 18 | ok | 0 | |MLB:10 MLS:5 WNBA:2 EFL Cup:1 |
