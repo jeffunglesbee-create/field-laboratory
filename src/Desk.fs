@@ -183,7 +183,10 @@ type GameState =
 /// as plain strings, so asking "is this game's date already past" needs no date
 /// parsing at all. Built from parts rather than a format string so it does not
 /// depend on Fable's ToString format support.
-let private todayUtc () =
+///
+/// Public because Program.fs builds the live /context/date URL from it, so the
+/// page and the state inference cannot disagree about which day "today" is.
+let todayUtc () =
     let n = System.DateTime.UtcNow
     sprintf "%04d-%02d-%02d" n.Year n.Month n.Day
 

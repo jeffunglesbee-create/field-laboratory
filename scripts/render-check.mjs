@@ -29,7 +29,16 @@ page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
 page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
 
 await page.goto(URL, { waitUntil: 'networkidle' })
-await page.waitForSelector('.desk-card', { timeout: 10_000 })
+// Wait for the status line to be filled, NOT for a card. A card may legitimately
+// not exist on an empty live slate, and waiting for one would throw before a
+// single assertion ran — turning "no games today" into an unexplained crash.
+await page.waitForFunction(
+  () => {
+    const el = document.getElementById('decode-status')
+    return el && el.textContent && el.textContent !== 'decoding…'
+  },
+  { timeout: 15_000 }
+)
 
 const status = await page.textContent('#decode-status')
 const units = await page.textContent('#units-demo')
@@ -48,8 +57,13 @@ const cards = await page.$$eval('.desk-card', nodes => nodes.map(n => ({
 // a game reaching Final rendered a final score labelled "In progress". Nothing
 // that only samples the first render can catch that. This drives a real
 // transition and asserts every state-derived node moves together.
-const transition = { ran: false, before: null, after: null, error: null }
+const transition = { ran: false, before: null, after: null, error: null, skipped: false }
 try {
+  if (cards.length === 0) {
+    // Nothing to drive. Only reachable on a genuinely empty live slate.
+    transition.skipped = true
+    throw new Error('no cards to transition')
+  }
   const sim = await browser.newPage()
   sim.on('pageerror', e => errors.push(`pageerror(sim): ${e.message}`))
   await sim.goto(`${URL}${URL.includes('?') ? '&' : '?'}simulate=1`, { waitUntil: 'networkidle' })
@@ -74,7 +88,15 @@ await browser.close()
 const { check, summarize } = createChecks()
 
 check('decode status reports success', /^decoded \d+ game/.test(status || ''), status)
-check('at least one card rendered', cards.length > 0, `${cards.length} card(s)`)
+// Stronger than "at least one card", and correct on a genuinely empty day:
+// the number of cards must equal the number of games the decoder reported.
+// A mismatch means decode and render disagree, which "at least one" would miss
+// entirely — and this also lets the live check run on an off-season date
+// without a zero-game slate reading as a failure.
+const decodedCount = Number((status || '').match(/^decoded (\d+) game/)?.[1] ?? NaN)
+check('card count matches decoded game count',
+  Number.isFinite(decodedCount) && cards.length === decodedCount,
+  `decoded ${decodedCount}, rendered ${cards.length}`)
 check('units demo rendered as a percentage', /\d+%/.test(units || ''), units)
 check('no card shows a malformed nested payload',
   !cards.some(c => /MALFORMED/.test(`${c.drama} ${c.odds}`)),
@@ -82,14 +104,15 @@ check('no card shows a malformed nested payload',
 check('every card has a real score or an explicit scheduled dash',
   cards.every(c => /\d+–\d+/.test(c.score) || c.score === '—'),
   cards.map(c => c.score).join(' | '))
-check('state transition ran', transition.ran, transition.error || 'ok')
+check('state transition ran', transition.ran || transition.skipped,
+  transition.skipped ? 'skipped — empty slate' : (transition.error || 'ok'))
 check('score updates on state change',
-  transition.ran && transition.before.score !== transition.after.score,
+  transition.skipped || (transition.ran && transition.before.score !== transition.after.score),
   `${transition.before?.score} -> ${transition.after?.score}`)
 // The regression guard. Before the fix this was the failing line: the score
 // moved and the status did not.
 check('status updates with it (no stale node)',
-  transition.ran && transition.after.status === 'Final / OT',
+  transition.skipped || (transition.ran && transition.after.status === 'Final / OT'),
   `${transition.before?.status} -> ${transition.after?.status}`)
 check('no page or console errors', errors.length === 0, errors.join('; ') || 'none')
 

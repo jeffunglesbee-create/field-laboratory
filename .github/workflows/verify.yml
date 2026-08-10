@@ -84,3 +84,20 @@ jobs:
           done
           npm run check
           npm run check:hard
+
+      # The two checks above are pinned to committed captures so their
+      # assertions are deterministic. This one exercises the path the DEPLOYED
+      # page actually takes: fetch today's real slate from the relay and render
+      # it. A runner has unrestricted egress, so the fetch genuinely succeeds
+      # here — the sandbox where this repo is developed cannot reach the relay,
+      # which is exactly why it needs proving in CI rather than locally.
+      #
+      # Safe on an empty day: the card assertion compares against the decoded
+      # game count rather than requiring at least one.
+      - name: Render check against the LIVE slate
+        run: |
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+          npm run check:live

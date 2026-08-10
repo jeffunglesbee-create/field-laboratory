@@ -7,9 +7,10 @@
   "scripts": {
     "build": "dotnet fable src/Laboratory.fsproj --outDir build && node scripts/build-site.mjs",
     "serve": "node scripts/serve.mjs",
-    "check": "node scripts/render-check.mjs",
+    "check": "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
     "check:hard": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/render-check.mjs",
-    "site": "node scripts/build-site.mjs"
+    "site": "node scripts/build-site.mjs",
+    "check:live": "node scripts/render-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
