@@ -441,15 +441,37 @@ let totalOf (o: Odds) : TotalLine option =
 
 let favouriteAgreement (o: Odds) : FavouriteAgreement =
     match o.MoneylineHome, o.MoneylineAway, spreadOf o with
-    // A shorter price is the more negative American number, so comparing them
-    // directly gives the favourite without any sign gymnastics.
-    | Some mh, Some ma, Some (Balanced h) when mh <> ma && h <> 0.0 ->
-        let moneylineFavoursHome = mh < ma
-        // A negative home handicap means home gives points, i.e. home is favoured.
-        let handicapFavoursHome = h < 0.0
-        if moneylineFavoursHome = handicapFavoursHome then Agrees
-        else Disagrees(moneylineFavoursHome, handicapFavoursHome)
-    // A pick-em price or a zero handicap has no favourite to agree about.
+    | Some mh, Some ma, Some (Balanced h) when h <> 0.0 ->
+        match impliedOfMoneyline mh, impliedOfMoneyline ma with
+        | Some ih, Some ia ->
+            // The separation must exceed the book's own margin before either
+            // side counts as favoured.
+            //
+            // The first version asked only `mh <> ma`, and the live sentinel
+            // caught it on its first run: MLB_2026-08-10_cardinals_phillies at
+            // -113/-107 was flagged as a favourite mismatch. Those prices imply
+            // 0.5305 and 0.5169 — a separation of 0.0136 against an overround
+            // of 0.0474, three and a half times larger. There is no favourite
+            // there, and which side carries the -1.5 runline is not determined
+            // by a difference smaller than the vig.
+            //
+            // The threshold is the overround itself, taken from the same two
+            // prices, so this is not a constant tuned until the check passed —
+            // there is no constant. A market that does not separate the sides
+            // by more than its own margin has not named a favourite.
+            let overround = float ih + float ia - 1.0
+            let separation = abs (float ih - float ia)
+            if separation <= overround then NotComparable
+            else
+                let moneylineFavoursHome = float ih > float ia
+                // A negative home handicap means home gives points, i.e. home
+                // is favoured.
+                let handicapFavoursHome = h < 0.0
+                if moneylineFavoursHome = handicapFavoursHome then Agrees
+                else Disagrees(moneylineFavoursHome, handicapFavoursHome)
+        | _ -> NotComparable
+    // A zero handicap, an absent price, or an unbalanced spread has no
+    // favourite to agree about.
     | _ -> NotComparable
 
 // ---------------------------------------------------------------------------

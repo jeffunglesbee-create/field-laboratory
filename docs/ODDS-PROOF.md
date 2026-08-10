@@ -151,8 +151,42 @@ moneyline. That is checkable, and both fields agree on every observed game:
 | whitesox_guardians | away -105 (away favoured) | home +1.5 (home receives) | yes |
 
 `FavouriteAgreement` makes a disagreement a first-class case rather than a card
-that merely looks odd, and the sentinel fails on it. If it ever fires, one of
-the two fields is describing a different market.
+that merely looks odd, and the sentinel fails on it.
+
+### The invariant was wrong, and the live data said so within one run
+
+Shipped, the rule was: any moneyline difference names a favourite. The first
+live sentinel run flagged two mismatches, and naming the game settled it:
+
+```
+MLB_2026-08-10_cardinals_phillies: ML -113/-107, H +1.5/-1.5
+```
+
+| | implied | overround | separation | |
+| --- | --- | --- | --- | --- |
+| cardinals_phillies | 0.5305 / 0.5169 | 0.0474 | **0.0136** | pick-em |
+| whitesox_guardians | 0.5050 / 0.5122 | 0.0171 | **0.0072** | pick-em |
+| yankees_braves | 0.5868 / 0.4310 | 0.0178 | 0.1557 | real favourite |
+
+At -113/-107 the two sides are separated by less than a third of the book's own
+margin. There is no favourite there, and which side carries the -1.5 runline is
+not determined by a difference smaller than the vig. **The data was consistent;
+the invariant was too strict.**
+
+Worth noting the second row: `whitesox_guardians`, in the committed capture, was
+also inside the vig. It had been passing the check by luck rather than because
+the check was working — a false negative sitting next to the false positive, and
+neither visible until real data with a wider spread of prices arrived.
+
+The rule now requires the separation to exceed the overround, computed from the
+same two prices. That is not a constant tuned until the check passed — there is
+no constant. A market that does not separate the sides by more than its own
+margin has not named a favourite.
+
+Still has teeth: flipping `yankees_braves`' handicap (separation 0.1557 against
+an overround of 0.0178) still fails the check. What changed is that pick-ems
+stopped being asked a question they cannot answer — comparisons on the committed
+capture dropped from 4 to 2, and both remaining ones are genuine.
 
 ### The shape anomalies cannot be dropped
 

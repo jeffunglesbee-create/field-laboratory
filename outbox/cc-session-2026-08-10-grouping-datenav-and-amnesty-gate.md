@@ -571,3 +571,54 @@ registry completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift
   handicap). The card renders a neutral "H" because nothing in this repo
   evidences what FIELD calls them per sport, and inventing a vocabulary is how
   production ended up with five disagreeing sport registries.
+
+---
+
+## The favourite invariant was wrong, and the sentinel caught it in one run
+
+Shipped in the spread/total commit, `favouriteAgreement` treated any moneyline
+difference as naming a favourite. The first live run flagged `mismatch=2` and I
+deliberately did not call it a data finding, because the invariant was one commit
+old and unvalidated against anything but MLB.
+
+That caution was right, though not for the reason I guessed. I expected a soccer
+handicap convention my rule did not cover. The named game was MLB:
+
+```
+MLB_2026-08-10_cardinals_phillies: ML -113/-107, H +1.5/-1.5
+```
+
+Those prices imply 0.5305 and 0.5169 — separated by 0.0136 against an overround
+of 0.0474, three and a half times larger. There is no favourite there. **The
+data was consistent; my invariant was too strict.**
+
+The same check also revealed a false negative hiding beside the false positive:
+`whitesox_guardians` in the committed capture (-102/-105, separation 0.0072 vs
+overround 0.0171) had been *passing* by luck, not because the rule worked.
+Neither error was visible until live data arrived with a wider spread of prices.
+
+Fixed by requiring the separation to exceed the overround, computed from the
+same two prices. Not a tuned constant — there is no constant. A market that does
+not separate the sides by more than its own margin has not named a favourite.
+
+Verified the check kept its teeth rather than being softened into uselessness:
+flipping `yankees_braves`' handicap (separation 0.1557, overround 0.0178) still
+fails. Comparisons on the committed capture dropped 4 -> 2, and both survivors
+are genuine.
+
+### Two logging defects found on the way
+
+1. The RESULT status was computed from malformed/unmodelled only, so the run
+   whose favourite check FAILED still logged `ok` — a row contradicting its own
+   exit code. Status now carries spread-unbalanced / total-split /
+   favourite-mismatch.
+
+2. The mismatch was a bare count. A count cannot be judged. The note now names
+   the sport, the game id and both sets of numbers, which is the only reason
+   this was diagnosable at all rather than a standing mystery.
+
+### What this says about the method
+
+The alarm was built one commit before it fired, on two MLB games, and was wrong.
+It was caught within a single live run — by the naming fix, not by the alarm
+itself. An alarm that reports a count is not an alarm, it is a rumour.
