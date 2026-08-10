@@ -68,6 +68,7 @@ let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0,
 let lineShape = { spreads: 0, unbalanced: 0, totals: 0, split: 0, compared: 0, mismatched: 0 }
 let mismatchDetail = []
 let sections = []
+let deskFill = { note: 0, local_note: 0, crew: 0, tags: 0, tagsMalformed: 0 }
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -164,6 +165,20 @@ if (decoded) {
   check('every total is a single line, not two numbers', lineShape.split === 0,
     `${lineShape.split} of ${lineShape.totals} totals carry over != under — the field may now be real prices`)
 
+  // Fill rates for the four editorial columns. All four are null in every game
+  // of every capture; whether that holds on the live slate is the question.
+  for (const g of games) {
+    if (g.Note != null) deskFill.note += 1
+    if (g.LocalNote != null) deskFill.local_note += 1
+    if (g.Crew != null) deskFill.crew += 1
+    if (g.Tags?.tag === NESTED.Decoded) deskFill.tags += 1
+    if (g.Tags?.tag === NESTED.Malformed) deskFill.tagsMalformed += 1
+  }
+  // tags is the fourth double-encoded field, so it gets the same treatment as
+  // the other three: a broken inner payload is a failure, not a note.
+  check('no malformed tags payloads', deskFill.tagsMalformed === 0,
+    `${deskFill.tagsMalformed} of ${games.length} games have unparseable tags`)
+
   check('no malformed nested payloads', malformed.length === 0, malformed.join(' | '))
 
   // Context Graph sections. SECTION tags follow declaration order in Desk.fs:
@@ -198,6 +213,7 @@ console.log(`source:   ${source}`)
 console.log(`date:     ${payload?.Date ?? '(undecoded)'}`)
 console.log(`games:    ${games.length}`)
 console.log(`malformed:${malformed.length}`)
+console.log(`desk:     note=${deskFill.note} local_note=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags} of ${games.length} games`)
 console.log(`sections: ${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ') || '—'}`)
 console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} favourite-compared=${lineShape.compared} mismatched=${lineShape.mismatched}`)
 console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
@@ -239,6 +255,6 @@ const odds = `both=${oddsShape.withBoth} notseq=${oddsShape.notSequenced} moved=
 // numbers, and whether the handicap ever contradicts the moneyline, are
 // questions only observation can answer.
 const lines = `spreads=${lineShape.spreads} unbal=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} mismatch=${lineShape.mismatched}`
-console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}|${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ')}`)
+console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}|${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ')}|note=${deskFill.note} local=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags}/${games.length}`)
 
 process.exit(failures === 0 ? 0 : 1)

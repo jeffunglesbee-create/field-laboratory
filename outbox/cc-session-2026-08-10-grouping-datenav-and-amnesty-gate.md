@@ -703,3 +703,89 @@ registry completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift
 `Present` has never been observed — modelled and compiling, no real-data
 coverage. Same standing as `Moved`, `Unbalanced`, `TwoNumbers` and `Disagrees`:
 five modelled cases now waiting on data that may never arrive.
+
+---
+
+## Follow-on: note, tags, crew, local_note — a fourth double-encoded field
+
+Checked Drive first, as instructed, and it supplied every meaning rather than
+leaving them to be guessed:
+
+| field | meaning | source |
+| --- | --- | --- |
+| `crew` | broadcast crew, commentators | Archive-Consuming Client Features Phase 2 |
+| `note` | editorial note | Archive D1 + Relay Endpoints, ADR-002 status |
+| `local_note` | local/regional variant | same |
+| `tags` | a JSON array **stored as a string** | `/archive/tagged/:tag` route SQL |
+
+`crew` has a documented production render — two, actually: a full `.crew-line`
+in the card body and a compact `.crew-chip` beside the broadcast pills, both
+conditional on truthiness. The same log records crew as populated on POSTSEASON
+objects (NBA Finals, Stanley Cup Final, named commentary teams per network),
+which explains why neither capture here carries one: both are regular season.
+
+### The finding
+
+`src/Desk.fs` has said this since the first session:
+
+> Three real fields do this: drama_arc, opening_odds, closing_odds.
+
+It is four. The relay's archive route gives it away:
+
+```javascript
+const tagged = await env.ARCHIVE_DB.prepare(
+  `SELECT * FROM regular_season_games WHERE tags LIKE ?`
+).bind(`%"${tag}"%`).all();
+```
+
+Binding `%"tag"%` with the quotes INSIDE the pattern only matches a JSON array
+serialised as text. A native array column would never be queried that way.
+
+So `tags` carries the same hazard as `drama_arc` — a `string` annotation that is
+completely accurate and tells you nothing about whether the contents parse. That
+is the exact failure this laboratory exists to study, sitting undecoded in a
+field nobody had looked at, with the repo's own documentation undercounting it.
+
+### Modelled for both encodings, because the evidence is indirect
+
+The evidence is a SQL binding pattern, not an observed value: `tags` is null in
+every game of both captures, so the encoding has never been seen directly.
+`nestedJson` gained a final branch accepting the value directly as well as
+string-wrapped, ordered last so it cannot shadow the string branch.
+
+Verified both ways — `'["rivalry","playoff-race"]'` and `["direct","array"]` both
+decode — and the corrupted fixture is still rejected, which is the check that
+matters most, since a more permissive decoder is exactly how a guard loses its
+teeth. That check was run at every step of this change rather than at the end.
+
+### Sentinel
+
+`desk: note=0 local_note=0 crew=0 tags=0 of 2 games` on every run. `tags` gets
+the same alarm as the other three double-encoded fields — malformed inner
+payload fails the run. The other three are counted, not alarmed: a null
+editorial note is a normal Tuesday, not a fault.
+
+### A false alarm of my own, worth recording
+
+Running `npm run check` directly reported a crash while the confidence gate
+reported render checks 20/20. The discrepancy was mine: the local server had
+died, and the gate starts its own if nothing is listening. Confirmed by
+restarting it and re-running to 13/13 rather than assuming the gate was right.
+
+The habit is the point. A gate disagreeing with a direct run is exactly the
+shape of a gate reporting on something other than what it claims, and it
+deserved thirty seconds of checking rather than a shrug.
+
+### Verification
+
+Gate 100/100. proof-check 11/11, check 13/13, check:hard 13/13, check:nav 18/18,
+drift 9/9 on both captures, corrupted fixture rejected, zero warnings.
+
+### Not claimed
+
+- Not that `tags` is string-encoded on the wire. The SQL says the COLUMN is;
+  whether `/context/date` re-serialises it is unobserved. Both encodings decode,
+  which is the honest answer to not knowing.
+- Nothing renders for these fields on the committed data, because there is
+  nothing to render. The slot exists so the first crew or note that arrives
+  appears, rather than being discovered missing then.

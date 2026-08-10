@@ -18,7 +18,17 @@ type OvertimeStatus =
     | OvertimeUnknown
 
 /// A field that the relay serves as a *string containing JSON* rather than as
-/// JSON. Three real fields do this: drama_arc, opening_odds, closing_odds.
+/// JSON. FOUR real fields do this: drama_arc, opening_odds, closing_odds — and
+/// `tags`, which was missed until the archive spec was read.
+///
+/// The evidence for `tags` is the relay's own `/archive/tagged/:tag` route:
+///
+///     SELECT * FROM regular_season_games WHERE tags LIKE ?
+///       .bind(`%"${tag}"%`)
+///
+/// Binding `%"tag"%` — with the quotes inside the pattern — only matches if the
+/// column holds a JSON array serialised as text. A native array column would
+/// not be queried that way.
 ///
 /// The inner failure is kept as data rather than thrown, so one malformed
 /// odds blob does not take the whole game — and therefore the whole
@@ -197,6 +207,20 @@ type Game =
       AwayScore: int option
       Venue: string option
       Streams: string option
+      /// Editorial note on the game. Free text; ADR-002 CLEAN per the archive
+      /// spec's own status ("factual game results, scores, teams, dates,
+      /// editorial notes"). Never observed populated.
+      Note: string option
+      /// The local/regional variant of the same. Never observed populated.
+      LocalNote: string option
+      /// Broadcast crew — commentators. Production renders it two ways, a full
+      /// `.crew-line` in the card body and a compact `.crew-chip` beside the
+      /// broadcast pills, both conditional on the field being truthy. Its own
+      /// execution log notes crew is populated on postseason objects (NBA
+      /// Finals, Stanley Cup Final). Never observed populated here.
+      Crew: string option
+      /// The fourth double-encoded field. See `nestedJson`.
+      Tags: Nested<string list>
       StartTime: DateTimeOffset option
       RawStartTime: string option
       DramaPeak: SealedDrama option
@@ -296,6 +320,13 @@ type DeskPayload =
 /// raw string to "null", so whitespace and quoting are handled properly. The
 /// narrowness matters: anything that is not genuinely null still surfaces as
 /// Malformed, which is what keeps the sentinel's teeth.
+///
+/// The direct branch is deliberate and last. Every observed instance of these
+/// four fields is either null or a string, but the shape is a serialisation
+/// choice rather than a contract, and a relay that started sending real JSON
+/// would otherwise fail the whole game decode over a field nothing renders.
+/// Ordered after the string branch so it can never shadow it: a string is still
+/// unwrapped and still surfaces as Malformed when its contents are broken.
 let nestedJson (inner: Decoder<'T>) : Decoder<Nested<'T>> =
     Decode.oneOf [
         Decode.nil NotPresent
@@ -307,6 +338,7 @@ let nestedJson (inner: Decoder<'T>) : Decoder<Nested<'T>> =
                 match Decode.fromString inner raw with
                 | Ok value -> Decoded value
                 | Error err -> Malformed err)
+        inner |> Decode.map Decoded
     ]
 
 /// `start_time` is ISO-8601 with **no seconds component** — "2026-08-09T16:15Z",
@@ -363,6 +395,11 @@ let gameDecoder : Decoder<Game> =
           AwayScore = get.Optional.Field "away_score" Decode.int
           Venue = get.Optional.Field "venue" Decode.string
           Streams = get.Optional.Field "streams" Decode.string
+          Note = get.Optional.Field "note" Decode.string
+          LocalNote = get.Optional.Field "local_note" Decode.string
+          Crew = get.Optional.Field "crew" Decode.string
+          Tags = get.Optional.Field "tags" (nestedJson (Decode.list Decode.string))
+                 |> Option.defaultValue NotPresent
           StartTime = rawStart |> Option.bind parseStartTime
           RawStartTime = rawStart
           // Sealed at the boundary, not at the render site. The raw float exists

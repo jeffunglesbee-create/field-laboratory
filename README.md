@@ -96,6 +96,13 @@ rejected D1 query to `[]` — which is also what a quiet date returns. Modelled 
 `Absent | EmptyOrFailed | Present`, where the awkward middle name is the honest
 one. See `docs/SECTIONS-PROOF.md`.
 
+**A fourth double-encoded field, found in this repo's own documentation being
+wrong:** `src/Desk.fs` said *"Three real fields do this: drama_arc,
+opening_odds, closing_odds"* since the first session. `tags` is the fourth — the
+relay's `/archive/tagged/:tag` binds `%"${tag}"%`, quotes inside the pattern,
+which only matches a JSON array stored as text. Same hazard as `drama_arc`,
+sitting in a field nobody had decoded. See `docs/DESK-PROOF.md`.
+
 ## Layout
 
 | Path | What it is |

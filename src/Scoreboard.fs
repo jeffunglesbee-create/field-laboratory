@@ -116,6 +116,42 @@ let private linesText (o: Odds) =
                 (if mlHome then "home" else "away") (if spHome then "home" else "away")
     spread + total + agreement
 
+/// The desk slot: the four editorial fields.
+///
+/// Every one of them is null in every game of every capture taken so far, so
+/// this renders nothing on the committed data. It is built anyway because the
+/// fields are real columns with documented meanings, and because a field that
+/// only ever appears in production is exactly the kind that gets rendered wrong
+/// the first time it does.
+///
+/// `crew` follows production's own pattern — conditional on the value being
+/// present, never a placeholder. Its execution log notes crew is populated on
+/// postseason objects (NBA Finals, Stanley Cup Final), which is why neither
+/// capture here carries one.
+///
+/// ADR-002 CLEAN: the archive spec's own status records these as "factual game
+/// results, scores, teams, dates, editorial notes". No score, no threshold, no
+/// recommendation.
+let private deskText (g: Game) =
+    let parts =
+        [ match g.Crew with
+          | Some crew -> yield sprintf "crew: %s" crew
+          | None -> ()
+          match g.Note with
+          | Some note -> yield note
+          | None -> ()
+          match g.LocalNote with
+          | Some note -> yield sprintf "local: %s" note
+          | None -> ()
+          match g.Tags with
+          | NotPresent -> ()
+          // The tag values themselves, which is the whole content of the field.
+          | Decoded tags when not (List.isEmpty tags) -> yield String.concat " · " tags
+          | Decoded _ -> ()
+          | Malformed err ->
+              yield sprintf "TAGS MALFORMED: %s" (err.Substring(0, min 40 err.Length)) ]
+    String.concat "  |  " parts
+
 /// The Odds Story slot.
 ///
 /// Factual market description only. ADR-002's Rule F permits anything "a
@@ -191,7 +227,8 @@ let render (mount: HTMLElement) (game: Game) =
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
           stateNode "desk-card__drama" "drama" drama
-          staticNode "desk-card__odds" "odds" (oddsText game) ]
+          staticNode "desk-card__odds" "odds" (oddsText game)
+          staticNode "desk-card__desk" "desk" (deskText game) ]
 
     // odds is a staticNode deliberately, not by omission: it derives from the
     // immutable Game record, not from GameState, so it cannot go stale.
