@@ -1,0 +1,43 @@
+# Generalised egress probe, run by hand.
+#
+# Started life as relay-reachability.yml, which existed to answer one question
+# (can a runner reach field-relay-nba?). The answer was yes. Rather than add a
+# second near-identical workflow the next time a URL needs checking from a
+# runner, it takes the URL as an input.
+#
+# The reason this can't just be done from a session: the agent sandbox blocks
+# *.workers.dev at the proxy with 403 CONNECT tunnel failed. A runner has open
+# egress, so it is the only place in this project that can answer "does this URL
+# exist and what does it serve".
+name: probe-url
+
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 'Space-separated URLs to probe'
+        required: true
+        default: 'https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2019-01-01'
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe
+        run: |
+          FAILED=0
+          for URL in ${{ github.event.inputs.urls }}; do
+            echo "=============================================================="
+            echo "GET $URL"
+            CODE=$(curl -sSL --max-time 30 -o /tmp/body -w '%{http_code}' "$URL" 2>/tmp/err) || {
+              echo "  RESULT: unreachable — $(cat /tmp/err)"
+              FAILED=1
+              continue
+            }
+            SIZE=$(wc -c < /tmp/body)
+            echo "  RESULT: HTTP $CODE, ${SIZE} bytes"
+            echo "  --- first 400 bytes ---"
+            head -c 400 /tmp/body
+            echo
+          done
+          exit $FAILED
