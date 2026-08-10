@@ -39,15 +39,16 @@
        createSignal } from "solid-js"` — which browsers cannot resolve natively.
        An import map fixes that without introducing a bundler.
 
-       Note the target: solid-js's `module` field points at dist/server.js, the
-       SSR build. The browser build is dist/solid.js, reachable only through the
-       package's "browser" export condition, which a plain <script type="module">
-       does not apply. Pointing this at the default entry silently loads the
-       server renderer and nothing reactive works. -->
+       vendor/solid.js is placed by scripts/build-site.mjs, which copies
+       solid-js's BROWSER build specifically. The package's `module` field points
+       at dist/server.js, the SSR renderer; dist/solid.js is reachable only
+       through the "browser" export condition, which a plain <script
+       type="module"> does not apply. Vendoring the wrong one yields a page with
+       no reactivity and no error. -->
   <script type="importmap">
   {
     "imports": {
-      "solid-js": "./node_modules/solid-js/dist/solid.js"
+      "solid-js": "./vendor/solid.js"
     }
   }
   </script>

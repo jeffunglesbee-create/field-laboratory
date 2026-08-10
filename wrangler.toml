@@ -1,0 +1,20 @@
+# Cloudflare Worker serving the laboratory page as static assets.
+#
+# No `main` script: this is an assets-only Worker, which is all the page needs —
+# the F# is compiled to JavaScript ahead of time and runs in the browser.
+#
+# public/ is assembled by scripts/build-site.mjs and is gitignored. Deploying
+# without running `npm run build` first would publish an empty directory, so the
+# deploy workflow always builds.
+
+name = "field-laboratory"
+compatibility_date = "2026-08-09"
+
+[assets]
+directory = "./public"
+
+# Serves /index.html for a bare "/" and returns a real 404 for anything missing,
+# rather than silently rewriting unknown paths to the index — the page fetches
+# ./data/*.json, and a 404 masked as an HTML page would surface as a confusing
+# JSON parse error instead of a missing file.
+not_found_handling = "none"

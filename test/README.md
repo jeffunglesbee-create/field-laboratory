@@ -38,9 +38,13 @@ Three things this establishes, none of which were assumed:
    scoreboard.
 3. Nothing **threw**. No page errors.
 
-Run it against the dev server with:
+Run it through the sentinel, which needs no browser and no server:
 
 ```
-node scripts/serve.mjs &
-open 'http://localhost:8080/?data=../test/malformed-nested'
+npm run build
+node scripts/drift-check.mjs --file test/malformed-nested.json
 ```
+
+It exits 1 and names both faults. Fixtures are deliberately NOT copied into
+`public/` by `scripts/build-site.mjs` — corrupted test data has no business on
+a deployed page.

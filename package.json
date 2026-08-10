@@ -2,13 +2,14 @@
   "name": "field-laboratory",
   "version": "0.0.0",
   "private": true,
-  "description": "FIELD Laboratory — F# compiled to JavaScript via Fable.",
+  "description": "FIELD Laboratory \u2014 F# compiled to JavaScript via Fable.",
   "type": "module",
   "scripts": {
-    "build": "dotnet fable src/Laboratory.fsproj --outDir build",
+    "build": "dotnet fable src/Laboratory.fsproj --outDir build && node scripts/build-site.mjs",
     "serve": "node scripts/serve.mjs",
     "check": "node scripts/render-check.mjs",
-    "check:hard": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/render-check.mjs"
+    "check:hard": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/render-check.mjs",
+    "site": "node scripts/build-site.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

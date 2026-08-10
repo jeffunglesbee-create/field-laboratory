@@ -1,0 +1,81 @@
+# Builds the page and deploys it to Cloudflare Workers.
+#
+# Requires a CLOUDFLARE_API_TOKEN repository secret with Workers Scripts: Edit
+# permission. CLOUDFLARE_ACCOUNT_ID is only needed if the token can reach more
+# than one account — wrangler infers it otherwise.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    # Docs, the drift log, and the sentinel's own commits must not trigger a
+    # deploy — the sentinel pushes to main daily and would otherwise redeploy
+    # the site every time it records a row.
+    paths-ignore:
+      - 'docs/**'
+      - 'outbox/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail early and clearly if the token is missing
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not set on this repository."
+            echo "Add it at Settings -> Secrets and variables -> Actions -> New repository secret."
+            echo "The token needs the 'Workers Scripts: Edit' permission."
+            echo "If the token can reach more than one Cloudflare account, also add CLOUDFLARE_ACCOUNT_ID."
+            exit 1
+          fi
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build
+        run: |
+          npm ci
+          dotnet tool restore
+          npm run build
+
+      - name: Verify the built site before publishing it
+        run: |
+          test -s public/index.html
+          test -s public/build/Program.js
+          test -s public/vendor/solid.js
+          test -s public/data/context-2026-05-15.json
+          echo "public/ looks complete: $(find public -type f | wc -l) files"
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy
+
+      - name: Confirm the deployed page actually serves
+        run: |
+          URL=https://field-laboratory.jeffunglesbee.workers.dev
+          for i in 1 2 3 4 5; do
+            CODE=$(curl -sSL --max-time 20 -o /tmp/body -w '%{http_code}' "$URL" || echo 000)
+            echo "attempt $i: HTTP $CODE"
+            [ "$CODE" = "200" ] && break
+            sleep 5
+          done
+          test "$CODE" = "200"
+          grep -q 'FIELD Laboratory' /tmp/body
+          echo "Deployed and serving: $URL"
