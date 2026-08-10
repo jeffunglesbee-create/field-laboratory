@@ -18,10 +18,11 @@ on:
     workflows: [verify]
     types: [completed]
     branches: [main]
-  # Re-check for the secret. Drops to a few seconds of no-op once deployed and
-  # nothing has changed.
+  # Re-check for the secret, and re-publish if the live site is behind main.
+  # Costs ~10s when there is nothing to do, because the job compares the
+  # deployed build stamp against HEAD before building anything.
   schedule:
-    - cron: '17 */6 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -53,48 +54,63 @@ jobs:
               echo 'The token needs **Workers Scripts: Edit**.'
               echo 'Add `CLOUDFLARE_ACCOUNT_ID` too only if the token can reach more than one account.'
               echo
-              echo 'This workflow re-checks every 6 hours, so the site will deploy by itself once the secret exists.'
+              echo 'This workflow re-checks hourly, so the site will deploy by itself once the secret exists.'
             } >> "$GITHUB_STEP_SUMMARY"
             echo "::notice::Deploy skipped — CLOUDFLARE_API_TOKEN not set. Will retry on schedule."
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/setup-dotnet@v4
+      - name: Is the live site already on this commit?
+        id: live
         if: steps.token.outputs.configured == 'true'
+        run: |
+          URL=https://field-laboratory.jeffunglesbee.workers.dev/version.txt
+          LIVE=$(curl -sSL --max-time 20 "$URL" 2>/dev/null | tr -d '[:space:]' || true)
+          echo "live=$LIVE  head=$GITHUB_SHA"
+          if [ "$LIVE" = "$GITHUB_SHA" ] && [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Live site is already on $GITHUB_SHA — nothing to deploy."
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
         with:
           dotnet-version: '10.0.x'
 
       - uses: actions/setup-node@v4
-        if: steps.token.outputs.configured == 'true'
+        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
         with:
           node-version: '22'
 
       - name: Build
-        if: steps.token.outputs.configured == 'true'
+        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
         run: |
           npm ci
           dotnet tool restore
           npm run build
 
       - name: Verify the built site before publishing it
-        if: steps.token.outputs.configured == 'true'
+        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
         run: |
           test -s public/index.html
           test -s public/build/Program.js
           test -s public/vendor/solid.js
           test -s public/data/context-2026-05-15.json
+          test -s public/version.txt
           echo "public/ looks complete: $(find public -type f | wc -l) files"
 
       - name: Deploy
-        if: steps.token.outputs.configured == 'true'
+        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy
 
       - name: Confirm the deployed page actually serves
-        if: steps.token.outputs.configured == 'true'
+        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
         run: |
           URL=https://field-laboratory.jeffunglesbee.workers.dev
           for i in 1 2 3 4 5; do

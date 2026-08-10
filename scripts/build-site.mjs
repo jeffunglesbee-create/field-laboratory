@@ -40,5 +40,16 @@ await cp(`${ROOT}node_modules/solid-js/dist/solid.js`, `${OUT}/vendor/solid.js`)
 // deployed page serving real captures should carry the record of where they
 // came from, reachable at the same path as the data itself.
 
+// A build stamp, so "what is actually deployed?" is answerable by fetching the
+// site rather than inferred from workflow history. The deploy uses it to skip
+// republishing a commit that is already live, which is what makes an hourly
+// schedule cost nothing.
+const commit =
+  process.env.GITHUB_SHA ||
+  (await import('node:child_process')
+    .then(cp => cp.execSync('git rev-parse HEAD', { cwd: ROOT }).toString().trim())
+    .catch(() => 'unknown'))
+await writeFile(`${OUT}/version.txt`, `${commit}\n`)
+
 const size = (await readFile(`${OUT}/index.html`, 'utf8')).length
-console.log(`build-site: public/ assembled (index.html ${size} bytes)`)
+console.log(`build-site: public/ assembled (index.html ${size} bytes, commit ${commit.slice(0, 7)})`)

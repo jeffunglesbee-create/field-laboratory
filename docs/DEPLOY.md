@@ -24,11 +24,34 @@ one Cloudflare account; wrangler infers the account otherwise.
 Then re-run the `deploy` workflow (Actions → deploy → Run workflow), or push any
 non-docs change.
 
+## Why a session cannot set the secret for you
+
+Not an oversight — a deliberate guardrail, verified directly:
+
+```
+GET /repos/<repo>/actions/secrets/public-key
+403 {"message":"Access to this GitHub Actions path is not permitted through this proxy."}
+```
+
+The GitHub proxy authenticates ordinary API calls (`GET /user` returns 200) and
+specifically refuses the Actions secrets path. There is also no MCP tool that
+writes secrets, and a session has no business receiving a live credential in its
+transcript. Recorded so nobody spends another twenty minutes rediscovering it.
+
+`scripts/set-deploy-secret.sh` does it in one command from a machine that has
+`gh`, reading the token from stdin so it never reaches shell history or a
+process list. For a one-time secret the web form is honestly just as quick.
+
 ## You do not need to trigger anything
 
-The deploy **skips cleanly** when the secret is absent and re-checks every six
-hours, so the site publishes itself once `CLOUDFLARE_API_TOKEN` exists. No
-re-run, no push.
+The deploy **skips cleanly** when the secret is absent and re-checks **hourly**,
+so the site publishes itself within the hour once `CLOUDFLARE_API_TOKEN` exists.
+No re-run, no push.
+
+Hourly costs nothing because the job asks the live site what it is already
+serving — `/version.txt` carries the deployed commit — and stops before building
+anything if that already matches `main`. It also means "what is deployed?" is
+answerable by fetching the site rather than reading workflow history.
 
 Skipping rather than failing is deliberate: an unconfigured deploy is not a
 broken build, and going red on every push until someone pastes a secret trains
