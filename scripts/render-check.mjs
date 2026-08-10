@@ -6,13 +6,23 @@
 // a blank section with no console error is the hardest failure mode to diagnose
 // in this project, so silence is treated as suspicious rather than fine.
 
+import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { createChecks } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
 
 const errors = []
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' })
+// Chromium lives in two different places depending on where this runs. The
+// cloud session image ships one at /opt/pw-browsers/chromium whose build number
+// does not match the pinned playwright package, so default resolution there
+// looks for a directory that does not exist. A CI runner has no such image and
+// resolves its own installed browser correctly. Prefer the session's copy when
+// it is genuinely present, otherwise let playwright decide.
+const sessionChromium = '/opt/pw-browsers/chromium'
+const browser = await chromium.launch(
+  existsSync(sessionChromium) ? { executablePath: sessionChromium } : {}
+)
 const page = await browser.newPage()
 
 page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
