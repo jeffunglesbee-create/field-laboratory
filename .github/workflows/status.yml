@@ -29,9 +29,12 @@ jobs:
   status:
     runs-on: ubuntu-latest
     steps:
+      # Full history: the outbox index is read out of git log, and a shallow
+      # clone would silently produce a near-empty table.
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -40,6 +43,12 @@ jobs:
       - name: Probe and render
         run: node scripts/status.mjs
 
+      # Which commit wrote which outbox entry, derived from git. It runs here
+      # rather than in verify because it describes a commit and so can only be
+      # written after that commit exists.
+      - name: Regenerate the outbox index
+        run: node scripts/outbox-index.mjs
+
       # Commits only when a real fact changed. STATUS.md carries no timestamp
       # precisely so this stays quiet — its git history should read as a log of
       # things happening, not one commit a day saying nothing.
@@ -47,7 +56,7 @@ jobs:
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add STATUS.md
+          git add STATUS.md outbox/INDEX.md
           if git diff --staged --quiet; then
             echo "::notice::No change in status."
             exit 0

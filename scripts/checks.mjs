@@ -46,3 +46,24 @@ export const toArray = xs => (xs == null ? [] : Array.from(xs))
  * is unreadable.
  */
 export const NESTED = { NotPresent: 0, Decoded: 1, Malformed: 2 }
+
+/**
+ * The FIELD-zone calendar day for an instant, as `YYYY-MM-DD`.
+ *
+ * The JS-side twin of `dayInFieldZone` in src/Desk.fs. It was written twice
+ * already — once in zone-check.mjs as the independent oracle the F# side is
+ * compared against, once in nav-check.mjs — and the gate then went and computed
+ * "today" as `new Date().toISOString().slice(0, 10)`, which is UTC. Between
+ * 20:00 ET and midnight, that gate was looking for tomorrow's outbox file.
+ *
+ * Kept as a genuinely separate implementation from the F# one on purpose:
+ * zone-check compares the two at fixed instants with hardcoded expected days,
+ * so one of them being wrong is a failure rather than an agreement.
+ */
+export const fieldDay = (date = new Date()) => {
+  const p = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(date)
+  const g = t => p.find(x => x.type === t).value
+  return `${g('year')}-${g('month')}-${g('day')}`
+}

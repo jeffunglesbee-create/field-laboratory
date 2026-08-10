@@ -69,7 +69,21 @@ export const diffAgainst = (inventory, rows) => {
 // ---------------------------------------------------------------------------
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { createChecks } = await import('./checks.mjs')
+  const { rows } = await import('./gate-checks.mjs')
   const { check, summarize } = createChecks()
+
+  // THE REAL COMPARISON, FIRST. A Claude chat session reviewing this repo ran
+  // this script standalone, deleted a real row from docs/gate-rows.txt on disk,
+  // re-ran it, and got the same six passes — because everything below this line
+  // is synthetic. They were right to call that out: a guard that answers a
+  // question the checker did not ask is worse than one that refuses to answer.
+  //
+  // This needs no .NET, no browser and no build, which is the point. That
+  // reviewer had none of the three; the full gate was unrunnable for them, so
+  // the only reachable check had to be the honest one.
+  const realProblems = diffAgainst(readInventory(), rows)
+  check(`the live gate matches ${INVENTORY_PATH}`, realProblems.length === 0,
+    realProblems.join('\n      → '))
 
   const declared = [
     { weight: 10, name: 'alpha' },

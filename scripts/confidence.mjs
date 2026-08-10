@@ -19,116 +19,11 @@
 import { execSync, spawn } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
+import { rows, ok } from './gate-checks.mjs'
 
 const QUICK = process.argv.includes('--quick')
 const BAR = 95
 
-const ok = cmd => {
-  try {
-    execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
-    return true
-  } catch {
-    return false
-  }
-}
-
-/** Passes when the command FAILS — for asserting a guard still has teeth. */
-const fails = cmd => !ok(cmd)
-
-/** An outbox entry dated today, so a session cannot skip its own write-up. */
-const outboxToday = () => {
-  const today = new Date().toISOString().slice(0, 10)
-  const entries = readdirSync('outbox').filter(f => f.startsWith(`cc-session-${today}`))
-  // Length floor because an empty stub would otherwise satisfy the check.
-  return entries.some(f => readFileSync(`outbox/${f}`, 'utf8').length > 1500)
-}
-
-/**
- * Source changes must arrive with an outbox change.
- *
- * `outboxToday` alone is satisfiable by ANY dated file, so it cannot tell a
- * documented commit from an undocumented one. It passed on two commits in this
- * session whose work was not written up anywhere — the measurement commit,
- * whose outbox section was written an hour later, and the window-simulation
- * commit, which had none at all. Jeff found both by asking; the gate could not
- * have.
- *
- * This compares the actual changed files. Uncommitted work is judged on the
- * working tree, committed work on HEAD, so it answers the same question in both
- * places.
- */
-const outboxAccompaniesSource = () => {
-  // Bare paths from git, not positional slicing of `--porcelain`. The first
-  // version did `l.slice(3)` and ate a character off one entry — "utbox/..." —
-  // because the two status columns are not always both occupied. The output of
-  // these commands is one path per line with no prefix at all, so there is
-  // nothing to mis-slice.
-  const lines = cmd => cmd.split('\n').map(l => l.trim()).filter(Boolean)
-  let changed = [
-    ...lines(execSync('git diff --name-only', { encoding: 'utf8' })),
-    ...lines(execSync('git diff --name-only --cached', { encoding: 'utf8' })),
-    ...lines(execSync('git ls-files --others --exclude-standard', { encoding: 'utf8' })),
-  ]
-  if (changed.length === 0) {
-    // A merge commit has no single parent diff worth reading; treat it as
-    // nothing to document rather than failing on someone else's merge.
-    const parents = execSync('git rev-list --parents -n 1 HEAD', { encoding: 'utf8' }).trim().split(' ')
-    if (parents.length !== 2) return true
-    changed = lines(execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf8' }))
-  }
-  const touchesSource = changed.some(f => /^(src|scripts)\//.test(f))
-  if (!touchesSource) return true
-  return changed.some(f => /^outbox\//.test(f))
-}
-
-const rows = [
-  { name: 'build is clean, zero F#/NuGet warnings', weight: 10, skipQuick: true,
-    run: () => ok('npm run build') &&
-      !/warning (FS|NU)\d+/.test(
-        execSync('dotnet build src/Laboratory.fsproj --no-restore', { encoding: 'utf8' })) },
-
-  { name: 'decoders accept both real captures', weight: 10,
-    run: () => ok('node scripts/drift-check.mjs --file data/context-2026-05-15.json') &&
-               ok('node scripts/drift-check.mjs --file data/games-2026-08-09.json') },
-
-  { name: 'decoders still REJECT the corrupted fixture', weight: 10,
-    run: () => fails('node scripts/drift-check.mjs --file test/malformed-nested.json') },
-
-  { name: 'render checks pass on both captures', weight: 20, skipQuick: true,
-    run: () => ok('npm run check') && ok('npm run check:hard') },
-
-  { name: 'grouping and date navigation pass', weight: 15, skipQuick: true,
-    run: () => ok('npm run check:nav') },
-
-  // The heaviest row, because this is the one that failed. Every claimed
-  // compiler rejection in the proof doc is compiled for real.
-  { name: 'doc claims are compiler-verified, not prose', weight: 25, skipQuick: true,
-    run: () => ok('node scripts/proof-check.mjs') },
-
-  // Deterministic, so it runs at any hour. The zone fix is only observable
-  // when ET and UTC disagree, and every scheduled job in this repo runs
-  // outside that window.
-  { name: 'FIELD-zone day is correct at fixed instants', weight: 10,
-    run: () => ok('node scripts/zone-check.mjs') },
-
-  // A step whose script imports build/ from a job that never builds is valid
-  // YAML, a valid script, and green everywhere locally. It cost two failed
-  // runs. This is the only row that reads CI configuration rather than code.
-  { name: 'workflow jobs can run the scripts they invoke', weight: 10,
-    run: () => ok('node scripts/workflow-check.mjs') },
-
-  // The retrospective half of the outbox rule. `outboxAccompaniesSource` below
-  // judges the commit being made; this judges every commit already made, with
-  // no window to age out of and no exemption list.
-  { name: 'every governed commit paired source with outbox', weight: 10,
-    run: () => ok('node scripts/history-check.mjs --self-test') &&
-               ok('node scripts/history-check.mjs') },
-
-  { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
-
-  { name: 'source changes arrive with an outbox entry', weight: 10,
-    run: outboxAccompaniesSource },
-]
 
 // The denominator is `possible`, summed from the rows above — which means the
 // rows above can move it. Deleting a failing row raises the score: measured at

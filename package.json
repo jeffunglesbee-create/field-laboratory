@@ -19,7 +19,8 @@
     "check:window": "node scripts/window-check.mjs",
     "check:workflows": "node scripts/workflow-check.mjs",
     "check:gate-rows": "node scripts/gate-inventory.mjs",
-    "check:history": "node scripts/history-check.mjs --self-test && node scripts/history-check.mjs"
+    "check:history": "node scripts/history-check.mjs --self-test && node scripts/history-check.mjs",
+    "outbox:index": "node scripts/outbox-index.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
