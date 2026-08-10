@@ -34,6 +34,22 @@ type Odds =
       MoneylineHome: int option
       MoneylineAway: int option }
 
+/// A drama score, sealed at decode time so the raw number cannot leave this
+/// module.
+///
+/// FIELD's ADR-002 classifies "raw composite drama number displayed to user" as
+/// a bright-line violation, severity CRITICAL, explicitly including values
+/// computed client-side: the number itself IS the interest level the RUWT
+/// patents claim. Production has had to walk this back at least four times
+/// (renderAmbientPanel's "FIRE 87", updatePinWidget's threshold icon,
+/// getOTWMomentum's drama delta, _otwGetLiveTier's T3/T4 selection).
+///
+/// The union case is private, so outside `Desk` this value can be passed around
+/// but never read, formatted, compared, or thresholded. That is deliberately
+/// stronger than the display gate alone requires, and it is the second ADR-002
+/// axis rather than the first — see the note on `AmnestyZone` below.
+type SealedDrama = private SealedDrama of float<drama>
+
 type Game =
     { Id: string
       Sport: string
@@ -47,7 +63,7 @@ type Game =
       Streams: string option
       StartTime: DateTimeOffset option
       RawStartTime: string option
-      DramaPeak: float<drama> option
+      DramaPeak: SealedDrama option
       DramaArc: Nested<int list>
       OpeningOdds: Nested<Odds>
       Overtime: OvertimeStatus
@@ -144,9 +160,12 @@ let gameDecoder : Decoder<Game> =
           Streams = get.Optional.Field "streams" Decode.string
           StartTime = rawStart |> Option.bind parseStartTime
           RawStartTime = rawStart
+          // Sealed at the boundary, not at the render site. The raw float exists
+          // for exactly one expression and is never stored unwrapped, so there
+          // is no point downstream where an unsealed drama number is in scope.
           DramaPeak =
             get.Optional.Field "drama_peak" Decode.float
-            |> Option.map (fun v -> v * 1.0<drama>)
+            |> Option.map (fun v -> SealedDrama(v * 1.0<drama>))
           DramaArc = get.Optional.Field "drama_arc" (nestedJson (Decode.list Decode.int))
                      |> Option.defaultValue NotPresent
           OpeningOdds = get.Optional.Field "opening_odds" (nestedJson oddsDecoder)
@@ -214,3 +233,56 @@ let gameState (g: Game) : GameState =
         else
             InProgress(h, a)
     | _ -> Scheduled
+
+// ---------------------------------------------------------------------------
+// ADR-002 amnesty gate
+// ---------------------------------------------------------------------------
+
+/// Proof that the caller is in the post-game amnesty zone.
+///
+/// ADR-002's Defense 4 is what permits displaying a raw drama number at all,
+/// and it covers only code that *provably* runs post-game. The amnesty CC-CMD
+/// states the required shape directly:
+///
+///   "Any function that displays the raw arc number must be a dedicated
+///    function with no live-state call site, not a shared live+post function
+///    with a runtime conditional."
+///
+/// In JavaScript that is a review obligation, upheld by a design doc, a manual
+/// `call-graph.js` run, and an outbox note asking the next session to re-check.
+/// Production's own audit note is blunt about how well text-matching works
+/// here: "string-search RUWT audits are not reliable, only reading the actual
+/// composite-value flow into DOM catches this class of bug."
+///
+/// A data flow cannot be grepped. It can be typed. The case below is private,
+/// so `amnestyZone` is the only source of a value of this type, and it hands
+/// one out for `Final` alone — which makes "no live-state call site" a
+/// compile error rather than an audit finding.
+type AmnestyZone = private | AmnestyZone
+
+/// The only way to obtain the witness.
+let amnestyZone (state: GameState) : AmnestyZone option =
+    match state with
+    | Final _ -> Some AmnestyZone
+    // Named explicitly rather than wildcarded: a future fourth GameState case
+    // should fail to compile here and force a decision, not default into
+    // whichever branch happens to be the wildcard.
+    | Scheduled -> None
+    | InProgress _ -> None
+
+/// The only way a drama score becomes a string anywhere in this program.
+///
+/// Note what this does and does not cover. It is the *display* gate — ADR-002
+/// PROHIBITED #3, severity CRITICAL. It is NOT the push gate: the 2026-07-07
+/// push/pull re-analysis corrected Rules A/B/C/E so that derived drama state
+/// may be computed, stored, and served on pull, and explicitly recorded that
+/// this "does NOT touch the separate, still-fully-enforced prohibition on
+/// displaying a raw composite number to the user."
+///
+/// The two defenses are independent, and the amnesty CC-CMD names the exact
+/// residual risk: "a *later* session reusing this same arc-score data as a push
+/// trigger without re-checking this gate." Sealing the value is what addresses
+/// that second axis — an unwrapped drama float never escapes this module, so no
+/// future notification path can be handed one without editing this file.
+let formatDramaPeak (_zone: AmnestyZone) (SealedDrama peak) : string =
+    sprintf "%.0f" (float peak)

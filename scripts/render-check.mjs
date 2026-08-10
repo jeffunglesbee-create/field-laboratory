@@ -72,11 +72,18 @@ try {
   const sample = () => sim.$eval('.desk-card', n => ({
     score: n.querySelector('[data-testid="score"]')?.textContent,
     status: n.querySelector('[data-testid="status"]')?.textContent,
+    drama: n.querySelector('[data-testid="drama"]')?.textContent,
   }))
 
   transition.before = await sample()
   await sim.evaluate(() => window.__labSetState(0, 'final'))
   transition.after = await sample()
+  // Drive the same card BACK to live. ADR-002's amnesty zone permits the raw
+  // drama number post-game only, so the number must disappear again here. The
+  // compiler already makes the leak unwriteable; this asserts the rendered
+  // result, because a gate nobody exercises is a claim rather than a guard.
+  await sim.evaluate(() => window.__labSetState(0, 'inprogress'))
+  transition.live = await sample()
   transition.ran = true
   await sim.close()
 } catch (e) {
@@ -114,6 +121,21 @@ check('score updates on state change',
 check('status updates with it (no stale node)',
   transition.skipped || (transition.ran && transition.after.status === 'Final / OT'),
   `${transition.before?.status} -> ${transition.after?.status}`)
+// --- ADR-002 amnesty gate ----------------------------------------------------
+// The bright-line rule: a raw composite drama number may be displayed post-game
+// only. Before the gate, `dramaText` took the whole Game and ran for every card
+// regardless of state, so a live game carrying a drama_arc rendered its peak —
+// severity CRITICAL by FIELD's own classification.
+check('no drama peak displayed while live',
+  transition.skipped || (transition.ran && !/peak/.test(transition.live?.drama || '')),
+  `live drama slot: "${transition.live?.drama}"`)
+// The complement, so the gate cannot pass by simply hiding everything forever.
+// Skipped honestly when the sampled card has no arc to show in the first place.
+check('drama peak returns post-game',
+  transition.skipped || !/arc/.test(transition.after?.drama || '') ||
+    /peak/.test(transition.after?.drama || ''),
+  `post-game drama slot: "${transition.after?.drama}"`)
+
 check('no page or console errors', errors.length === 0, errors.join('; ') || 'none')
 
 console.log(`\nURL: ${URL}`)
@@ -126,5 +148,7 @@ for (const c of cards) {
 }
 console.log()
 console.log(`transition:   ${transition.before?.score} [${transition.before?.status}]`)
-console.log(`          ->  ${transition.after?.score} [${transition.after?.status}]\n`)
+console.log(`          ->  ${transition.after?.score} [${transition.after?.status}]`)
+console.log(`drama slot:   post-game "${transition.after?.drama}"`)
+console.log(`          ->  live      "${transition.live?.drama}"\n`)
 process.exit(summarize() === 0 ? 0 : 1)

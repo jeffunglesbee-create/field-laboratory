@@ -38,19 +38,46 @@ let private statusText (g: Game) (state: GameState) =
     | Final(_, _, true) -> "Final / OT"
     | Final(_, _, false) -> "Final"
 
-/// Renders the drama arc summary. This is the payload's nastiest field: a
-/// string containing a JSON array. All three outcomes are rendered distinctly,
-/// so a malformed blob is visible rather than silently becoming an empty chart.
-let private dramaText (g: Game) =
+/// A decode failure in the arc field. Reportable in any game state: this says
+/// the payload was broken, which is a fact about the data, not a drama score.
+let private arcFault (err: string) =
+    sprintf "ARC MALFORMED: %s" (err.Substring(0, min 60 err.Length))
+
+/// Post-game only, enforced by the compiler.
+///
+/// This function cannot be called for a live game. It needs an `AmnestyZone`,
+/// and `Desk.amnestyZone` yields one for `Final` and nothing else — so there is
+/// no live-state call site, and there cannot accidentally become one. That is
+/// ADR-002's Defense 4 requirement ("a dedicated function with no live-state
+/// call site, not a shared live+post function with a runtime conditional")
+/// expressed as a type rather than as a review checklist.
+///
+/// The arc *length* is a count of samples, not a score, so it is factual and
+/// not gated. The peak is the composite number, so it goes through
+/// `formatDramaPeak`, which is the only thing that can unseal it.
+let private postGameDramaText (zone: AmnestyZone) (g: Game) =
     match g.DramaArc with
-    | NotPresent -> "no arc"
-    | Malformed err -> sprintf "ARC MALFORMED: %s" (err.Substring(0, min 60 err.Length))
+    | NotPresent -> ""
+    | Malformed err -> arcFault err
     | Decoded arc ->
-        let peak =
-            match g.DramaPeak with
-            | Some p -> formatDrama p
-            | None -> "?"
-        sprintf "arc %d pts, peak %s" (List.length arc) peak
+        match g.DramaPeak with
+        | Some peak -> sprintf "arc %d pts, peak %s" (List.length arc) (formatDramaPeak zone peak)
+        | None -> sprintf "arc %d pts" (List.length arc)
+
+/// The drama slot, for whatever state the game is currently in.
+///
+/// Live and scheduled games get no drama number — not by a conditional that
+/// could be flipped, but because this branch holds no `AmnestyZone` and so
+/// literally cannot reach `postGameDramaText`. Deleting the guard does not
+/// leak the number; it stops compiling.
+let private dramaText (g: Game) (state: GameState) =
+    match amnestyZone state with
+    | Some zone -> postGameDramaText zone g
+    | None ->
+        match g.DramaArc with
+        | Malformed err -> arcFault err
+        | NotPresent
+        | Decoded _ -> ""
 
 let private oddsText (g: Game) =
     match g.OpeningOdds with
@@ -94,6 +121,10 @@ let render (mount: HTMLElement) (game: Game) =
     // render time.
     let display = Solid.createMemo (fun () -> scoreText (state ()))
     let status = Solid.createMemo (fun () -> statusText game (state ()))
+    // Drama is state-derived now, not immutable: the number is permitted only
+    // once the game is final, so the slot has to appear at the moment the game
+    // ends and must never be present before it.
+    let drama = Solid.createMemo (fun () -> dramaText game (state ()))
 
     let card = el "div" "desk-card" ""
     card.setAttribute("data-game-id", game.Id)
@@ -105,12 +136,13 @@ let render (mount: HTMLElement) (game: Game) =
           staticNode "desk-card__teams" "" (sprintf "%s @ %s" game.Away game.Home)
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
-          staticNode "desk-card__drama" "drama" (dramaText game)
+          stateNode "desk-card__drama" "drama" drama
           staticNode "desk-card__odds" "" (oddsText game) ]
 
-    // drama and odds are staticNode deliberately, not by omission: both derive
-    // from the immutable Game record, not from GameState, so they cannot go
-    // stale. Anything that reads `state ()` must be a stateNode.
+    // odds is a staticNode deliberately, not by omission: it derives from the
+    // immutable Game record, not from GameState, so it cannot go stale.
+    // Anything that reads `state ()` must be a stateNode — which now includes
+    // drama, because ADR-002 makes its visibility a function of game state.
     for child in children do
         card.appendChild child |> ignore
 
