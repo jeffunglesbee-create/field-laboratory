@@ -61,8 +61,8 @@ let private postGameDramaText (zone: AmnestyZone) (g: Game) =
     | Malformed err -> arcFault err
     | Decoded arc ->
         match g.DramaPeak with
-        | Some peak -> sprintf "arc %d pts, peak %s" (List.length arc) (formatDramaPeak zone peak)
-        | None -> sprintf "arc %d pts" (List.length arc)
+        | Some peak -> sprintf "arc %d pts, peak %s" (arcLength arc) (formatDramaPeak zone peak)
+        | None -> sprintf "arc %d pts" (arcLength arc)
 
 /// The drama slot, for whatever state the game is currently in.
 ///

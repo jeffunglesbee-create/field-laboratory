@@ -50,6 +50,24 @@ type Odds =
 /// axis rather than the first — see the note on `AmnestyZone` below.
 type SealedDrama = private SealedDrama of float<drama>
 
+/// The drama arc: the series of composite drama scores the peak is drawn from.
+///
+/// Sealed for the same reason as the peak, and it is easy to miss why. The peak
+/// is obviously "the drama number"; the arc looks like a chart input. But it is
+/// a list of composite drama scores, and rendering any element of it is the
+/// same bright-line violation as rendering the peak — `[15,15,36,53]` on a live
+/// card is four raw interest levels, not one.
+///
+/// The first version of this gate sealed the peak alone and left the arc as
+/// `int list`, which left the hole open while the proof doc claimed it was
+/// closed.
+type SealedArc = private SealedArc of int list
+
+/// Number of samples in the arc. Deliberately NOT gated: a count of
+/// observations is a factual property of the data, not an interest level, so it
+/// carries none of the ADR-002 weight the values themselves do.
+let arcLength (SealedArc points) = List.length points
+
 type Game =
     { Id: string
       Sport: string
@@ -64,7 +82,7 @@ type Game =
       StartTime: DateTimeOffset option
       RawStartTime: string option
       DramaPeak: SealedDrama option
-      DramaArc: Nested<int list>
+      DramaArc: Nested<SealedArc>
       OpeningOdds: Nested<Odds>
       Overtime: OvertimeStatus
       EspnEventId: string option
@@ -166,7 +184,7 @@ let gameDecoder : Decoder<Game> =
           DramaPeak =
             get.Optional.Field "drama_peak" Decode.float
             |> Option.map (fun v -> SealedDrama(v * 1.0<drama>))
-          DramaArc = get.Optional.Field "drama_arc" (nestedJson (Decode.list Decode.int))
+          DramaArc = get.Optional.Field "drama_arc" (nestedJson (Decode.list Decode.int |> Decode.map SealedArc))
                      |> Option.defaultValue NotPresent
           OpeningOdds = get.Optional.Field "opening_odds" (nestedJson oddsDecoder)
                         |> Option.defaultValue NotPresent

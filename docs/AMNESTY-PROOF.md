@@ -57,10 +57,13 @@ mechanism.
 
 ## The mechanism
 
-Two private union cases, in `src/Desk.fs`:
+Three private union cases, in `src/Desk.fs`:
 
 ```fsharp
 type SealedDrama = private SealedDrama of float<drama>
+
+type SealedArc = private SealedArc of int list
+let arcLength (SealedArc points) = List.length points
 
 type AmnestyZone = private | AmnestyZone
 
@@ -74,10 +77,23 @@ let formatDramaPeak (_zone: AmnestyZone) (SealedDrama peak) : string =
     sprintf "%.0f" (float peak)
 ```
 
-The score is sealed at the decode boundary, so no unwrapped drama float is ever
-stored on a `Game`. `formatDramaPeak` is the only path from a drama score to a
-string in the entire program, and it demands a witness that only a `Final` game
-yields.
+Both the peak and the arc are sealed at the decode boundary, so no unwrapped
+drama value is ever stored on a `Game`. `formatDramaPeak` is the only path from
+a drama score to a string in the program, and it demands a witness that only a
+`Final` game yields. `arcLength` is deliberately ungated: a count of samples is
+a factual property of the data, not an interest level.
+
+### The version of this that was wrong
+
+The first cut sealed the peak alone and left `DramaArc` as `Nested<int list>`.
+That looked complete and was not: the arc is the *series* of composite drama
+scores, so `arc |> List.map string` would have rendered four raw interest levels
+on a live card, past a gate that this document already claimed was closed.
+
+It was caught by re-reading the claim rather than by any check — the tests were
+green throughout, because nothing in the repo renders arc values. Worth
+recording plainly: the peak looks like "the drama number" and the arc looks like
+a chart input, and that intuition is what left the hole open.
 
 ## What the compiler said
 
@@ -114,6 +130,16 @@ src/Scoreboard.fs(75,36): error FS1093: The union cases or fields of the type
 ```
 src/Scoreboard.fs(75,13): error FS1093: The union cases or fields of the type
 'SealedDrama' are not accessible from this code location
+```
+
+**4 — render the arc's raw score series instead of the peak:**
+
+```fsharp
+| Decoded (SealedArc points) -> points |> List.map string |> String.concat ","
+```
+```
+src/Scoreboard.fs(75,16): error FS1093: The union cases or fields of the type
+'SealedArc' are not accessible from this code location
 ```
 
 "No live-state call site" is now a compile error rather than an audit finding.
