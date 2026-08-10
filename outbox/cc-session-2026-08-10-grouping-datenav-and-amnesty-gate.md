@@ -954,3 +954,89 @@ guard looked complete and was not, and each time the tell was the same: the
 thing being asserted was not the thing that could break. Only mutation testing
 distinguished them, and in this case the check I had just written to protect the
 fix was itself the thing that needed protecting.
+
+---
+
+## Testing the ET window without waiting for it
+
+The fix is observable only from 00:00 to 04:00 UTC, and the sentinel cron that
+reaches it was seven hours out. `scripts/window-check.mjs` removes the wait.
+
+`fieldDayAt` is a pure function of an instant — built an hour earlier to fix the
+false-confidence problem, then not used for the obvious thing. The window can be
+NAMED rather than waited for: pick an instant inside it, ask the real compiled
+F# which day that is, and fetch BOTH that day and the day the old UTC code would
+have chosen from the live relay.
+
+```
+simulated instant : 2026-08-11T02:00:00.000Z
+FIELD-zone day    : 2026-08-10   <- what the page asks for now
+UTC day           : 2026-08-11   <- what it asked for before the fix
+```
+
+`2026-08-10` is tonight's 18-game slate. `2026-08-11` is what a reader at 10pm
+Eastern would have been served. Two HTTP responses instead of an argument.
+
+Runs as a `live-check` step, not a gate row: it needs relay egress, and putting
+it in the gate would turn a deterministic gate into an environment-dependent
+one.
+
+**Deliberately not asserted:** which slate is correct. That needs ground truth
+about which games are live at the simulated instant. What the check shows is
+that the choice changes the answer, and that the fixed code chooses the day the
+reader is living in.
+
+**The general lesson,** which is the same one four different ways today: a
+time-dependent test is a design problem, not a scheduling problem. The reason
+this needed a seven-hour wait was that `fieldToday()` read the clock internally.
+Once the instant became a parameter the wait disappeared — and that same change
+is what made the mutation testing possible in the first place.
+
+---
+
+## The gate could not detect an undocumented commit
+
+Asked whether every ET item had a gate and an outbox. Gates: yes, all four.
+Outboxes: no.
+
+| commit | gate | outbox |
+| --- | --- | --- |
+| `70b2584` measurement | yes | written an hour later, with the zone fix |
+| `82475ca` zone as a type | yes | yes |
+| `a288961` false confidence | yes | yes |
+| `b187a91` window simulation | yes | **none until now** |
+
+The gate's outbox row checks that a dated file exists with more than 1500
+characters. That is satisfiable by ANY dated file, so it cannot tell a
+documented commit from an undocumented one — and it passed on both gaps above.
+
+This is the second time this session the outbox mechanism has been the weak
+link, and the first time was the reason the gate exists at all. A row that
+cannot fail for the reason it was written is decoration.
+
+**Fixed:** a new row compares the actual changed files. If a commit touches
+`src/` or `scripts/`, it must also touch `outbox/`. Uncommitted work is judged
+on the working tree, committed work on `HEAD~1..HEAD`, so it answers the same
+question in both places; merge commits are exempt rather than failed on someone
+else's merge.
+
+Mutation-tested both ways: appending one line to `scripts/serve.mjs` with no
+outbox change takes the gate to 92/100 and refuses the commit; touching both
+passes at 120/120.
+
+The positive case failed first, and the reason is worth keeping. The check
+parsed `git status --porcelain` with `l.slice(3)`, which ate a character off one
+entry — `"utbox/..."` — because the two status columns are not always both
+occupied. It was reporting "no outbox change" on a commit that had one.
+
+Caught by testing the PASS direction, not just the FAIL direction. A guard that
+has only been shown to fail correctly is half-tested, and this one would have
+blocked every future commit while looking like a working gate. Replaced with
+`git diff --name-only` plus `ls-files --others`, which emit bare paths and have
+nothing to mis-slice.
+
+**What it still cannot do:** verify that the outbox entry actually *describes*
+the change. A one-word edit to any outbox file satisfies it. That is a real
+limit, stated rather than papered over — the row raises the floor from "a file
+exists" to "this commit touched it", which would have caught both gaps, and no
+further.

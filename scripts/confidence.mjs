@@ -42,6 +42,44 @@ const outboxToday = () => {
   return entries.some(f => readFileSync(`outbox/${f}`, 'utf8').length > 1500)
 }
 
+/**
+ * Source changes must arrive with an outbox change.
+ *
+ * `outboxToday` alone is satisfiable by ANY dated file, so it cannot tell a
+ * documented commit from an undocumented one. It passed on two commits in this
+ * session whose work was not written up anywhere — the measurement commit,
+ * whose outbox section was written an hour later, and the window-simulation
+ * commit, which had none at all. Jeff found both by asking; the gate could not
+ * have.
+ *
+ * This compares the actual changed files. Uncommitted work is judged on the
+ * working tree, committed work on HEAD, so it answers the same question in both
+ * places.
+ */
+const outboxAccompaniesSource = () => {
+  // Bare paths from git, not positional slicing of `--porcelain`. The first
+  // version did `l.slice(3)` and ate a character off one entry — "utbox/..." —
+  // because the two status columns are not always both occupied. The output of
+  // these commands is one path per line with no prefix at all, so there is
+  // nothing to mis-slice.
+  const lines = cmd => cmd.split('\n').map(l => l.trim()).filter(Boolean)
+  let changed = [
+    ...lines(execSync('git diff --name-only', { encoding: 'utf8' })),
+    ...lines(execSync('git diff --name-only --cached', { encoding: 'utf8' })),
+    ...lines(execSync('git ls-files --others --exclude-standard', { encoding: 'utf8' })),
+  ]
+  if (changed.length === 0) {
+    // A merge commit has no single parent diff worth reading; treat it as
+    // nothing to document rather than failing on someone else's merge.
+    const parents = execSync('git rev-list --parents -n 1 HEAD', { encoding: 'utf8' }).trim().split(' ')
+    if (parents.length !== 2) return true
+    changed = lines(execSync('git diff --name-only HEAD~1 HEAD', { encoding: 'utf8' }))
+  }
+  const touchesSource = changed.some(f => /^(src|scripts)\//.test(f))
+  if (!touchesSource) return true
+  return changed.some(f => /^outbox\//.test(f))
+}
+
 const rows = [
   { name: 'build is clean, zero F#/NuGet warnings', weight: 10, skipQuick: true,
     run: () => ok('npm run build') &&
@@ -73,6 +111,9 @@ const rows = [
     run: () => ok('node scripts/zone-check.mjs') },
 
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
+
+  { name: 'source changes arrive with an outbox entry', weight: 10,
+    run: outboxAccompaniesSource },
 ]
 
 // Render rows need a server. Start one only if nothing is listening, and only
