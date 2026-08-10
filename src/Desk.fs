@@ -70,6 +70,9 @@ type Matchup =
 type Sport =
     | AFL
     | MLB
+    | MLS
+    | WNBA
+    | EFLCup
     | Unrecognised of raw: string
 
 /// Everything the renderer is allowed to know about a sport. One record, one
@@ -91,6 +94,12 @@ let sportMeta (sport: Sport) : SportMeta =
     match sport with
     | Sport.AFL -> { Label = "AFL"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true }
     | Sport.MLB -> { Label = "MLB"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    // Association football names the home side first, everywhere. Both of these
+    // are `IsSoccer = true`, which is the field Rule 50 names explicitly and
+    // whose absence produced `sportName.includes("MLS")` in production.
+    | Sport.MLS -> { Label = "MLS"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true }
+    | Sport.EFLCup -> { Label = "EFL Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true }
+    | Sport.WNBA -> { Label = "WNBA"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
     | Sport.Unrecognised raw ->
         { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false }
 
@@ -99,6 +108,12 @@ let sportOfString (raw: string) : Sport =
     match raw with
     | "AFL" -> Sport.AFL
     | "MLB" -> Sport.MLB
+    | "MLS" -> Sport.MLS
+    | "WNBA" -> Sport.WNBA
+    // The relay's own label, with the space. Matched verbatim rather than
+    // normalised: a normaliser is a place for two spellings to silently become
+    // one sport, which is the failure Rule 53 records for team names.
+    | "EFL Cup" -> Sport.EFLCup
     | other -> Sport.Unrecognised other
 
 /// Orders a home/away pair the way the sport names them.

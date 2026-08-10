@@ -93,6 +93,25 @@ The fix when it fires is to add the case — and the compiler then forces it
 through every function in the registry. That is the difference between a
 fallback and an alarm: a fallback keeps working quietly and never gets fixed.
 
+### The loop, run for real
+
+The union shipped modelling only AFL and MLB, the two sports the committed
+captures evidence. The sentinel then ran against the live relay:
+
+```
+2026-08-10 14:48 | 18 games | unmodelled-sport | MLB:10  MLS*:5  WNBA*:2  EFL Cup*:1
+```
+
+It filed issue #1 naming exactly what to add. MLS, WNBA and EFL Cup were then
+added with real conventions — home-first and `IsSoccer = true` for the two
+football competitions, away-at-home for WNBA — and the compiler required a
+registry entry for each before it would build.
+
+Three sports entered the registry because they were **observed**, not because
+someone guessed the relay's coverage. That is the whole design: the alarm
+produces the evidence, the evidence produces the case, and the compiler produces
+the completeness.
+
 ## What the compiler said
 
 <!-- proof: FS0025 -->
@@ -131,12 +150,12 @@ case*. The claim on this page cannot drift ahead of the code.
 
 ## What this does not claim
 
-- The registry has two modelled sports, AFL and MLB, because those are the only
-  ones evidenced by committed captures. Cases are added when the sentinel
-  observes them, not invented in advance.
-- `IsSoccer` is declared because Rule 50 names it, and is currently `false` for
-  every modelled sport. It is a registry field with no consumer yet — recorded
-  as such rather than presented as working.
+- The registry has five modelled sports — AFL, MLB, MLS, WNBA, EFL Cup — every
+  one of which was **observed before it was added**. Nothing is modelled on the
+  assumption it will appear.
+- `IsSoccer` is declared because Rule 50 names it, and is `true` for MLS and EFL
+  Cup. It has no consumer yet — a registry field recorded as present, not
+  presented as working.
 - Nothing here claims production's five registries disagree with each other.
   Their contents were never read. Only that five exist, which is the condition
   Rule 50 exists to end.

@@ -158,8 +158,12 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
 // whole script exists to prevent.
 if (baselineClean) {
   try {
+    // Anchored on Unrecognised, which is always last, rather than on whichever
+    // sport happens to precede it. The first version anchored on `| MLB` and
+    // broke the moment MLS was added — caught only because the "could not
+    // apply" branch is a failure and not a skip.
     const withCase = registrySource.replace(
-      /(\n    \| MLB\n)(    \| Unrecognised)/, '$1    | NHL\n$2')
+      /(\n)(    \| Unrecognised of raw: string)/, '$1    | NHL\n$2')
     if (withCase === registrySource) {
       check('registry mutation applied', false, 'could not add a probe case to the Sport union')
     } else {

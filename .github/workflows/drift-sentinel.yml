@@ -103,13 +103,20 @@ jobs:
         run: |
           SPORTS=$(cut -d'|' -f7 /tmp/result.txt)
           UNMODELLED=$(echo "$SPORTS" | tr ' ' '\n' | grep '\*:' | sed 's/\*:.*//' | paste -sd', ' -)
+          TITLE="Sport registry: unmodelled sports observed"
           if [ -z "$UNMODELLED" ]; then
             echo "Every observed sport is in the registry: ${SPORTS:-none}"
+            # Close the loop rather than leaving a resolved alarm open. An issue
+            # that outlives its cause trains people to ignore the next one.
+            OPEN=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number' || true)
+            if [ -n "$OPEN" ]; then
+              gh issue close "$OPEN" --comment "Every sport observed on $(date -u +%F) is now in the registry: \`${SPORTS:-none}\`. Reopened automatically if an unmodelled sport appears again."
+              echo "Closed issue #$OPEN"
+            fi
             exit 0
           fi
           echo "::warning::Unmodelled sports observed: $UNMODELLED"
 
-          TITLE="Sport registry: unmodelled sports observed"
           BODY=$(printf '%s\n' \
             "The drift sentinel observed sports the \`Sport\` union does not model." \
             "" \
