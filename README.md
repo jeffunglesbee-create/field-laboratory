@@ -71,7 +71,17 @@ npm run build      # F# -> JS, then assemble public/
 npm run serve      # serves public/ — the same artifact that deploys
 npm run check      # 11 checks in real Chromium, including two state transitions
 npm run check:nav  # 18 checks: sport grouping and date navigation
+npm run check:proof # compiles every rejection AMNESTY-PROOF.md claims
+npm run gate       # the confidence gate — every row is a real command
 ```
+
+`npm run gate` is the CC-CMD ceremony's "do not commit unless confidence >= 95",
+mechanised. It exists because a session shipped five commits without scoring any
+of them, and an overstated claim reached `main` as a direct result. The point is
+not the number: a self-reported score is free, so every row runs a real command
+and takes its score from the exit code. The total cannot be asserted, only
+earned. Mutation-tested in both directions — hiding the session outbox or
+loosening the decoder each drop it to 90/100 and exit non-zero.
 
 `check:nav` is separate rather than more assertions in `check`, because `check`
 structurally cannot reach either feature: both committed captures are
@@ -93,9 +103,10 @@ rather than error monitoring.
 
 | Workflow | When | What |
 | --- | --- | --- |
-| `verify` | push, PR | build, zero-warning gate, decoders accept real captures **and still reject the corrupted one**, both render checks, grouping and date navigation |
+| `verify` | push, PR | build, zero-warning gate, decoders accept real captures **and still reject the corrupted one**, both render checks, grouping and date navigation, proof-doc claims, confidence gate |
 | `drift-sentinel` | daily | real decoders against a live payload, appends to the drift log |
 | `deploy` | after `verify` passes | builds and publishes the page |
+| `live-check` | after `deploy`, daily | renders the **deployed** page and asserts on it |
 | `probe-url` | manual | reach a URL from a runner — the sandbox blocks `*.workers.dev` |
 
 Deployment needs a `CLOUDFLARE_API_TOKEN` secret that only a human can add —

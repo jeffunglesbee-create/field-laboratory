@@ -11,7 +11,10 @@
     "check:hard": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/render-check.mjs",
     "site": "node scripts/build-site.mjs",
     "check:live": "node scripts/render-check.mjs",
-    "check:nav": "node scripts/nav-check.mjs"
+    "check:nav": "node scripts/nav-check.mjs",
+    "check:proof": "node scripts/proof-check.mjs",
+    "check:deployed": "node scripts/live-grouping-check.mjs",
+    "gate": "node scripts/confidence.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

@@ -159,3 +159,99 @@ exactly the kind of overstatement that did in fact ship.
 5. **`closing_odds`, `note`, `tags`, `crew`, `local_note`, and the top-level
    `briefs`/`series`/`standings` are decoded by nobody.** Opening-vs-closing
    odds is the Debrief's "Odds Story" layer.
+
+---
+
+## Remediation — resolving the 77
+
+Asked to raise the score to >= 95. Taken as an instruction to fix the
+deficiencies, not to re-label them: the 77 was itself a self-reported number,
+and a model asked to score its own work will always produce one. Raising that
+digit by assertion would be the exact failure the score was recording.
+
+So the resolution replaces the mechanism rather than the number.
+
+### 1. Claims match what was built: 10/20 -> 20/20
+
+**Deficiency:** the proof doc claimed `formatDramaPeak` was "the only path from a
+drama score to a string in the entire program" while `DramaArc` was still
+`Nested<int list>`. Prose is not executable, so nothing could contradict it, and
+all 40 assertions stayed green.
+
+**Fix:** `scripts/proof-check.mjs`. Each violation in `docs/AMNESTY-PROOF.md`
+carries a `<!-- proof: FSxxxx -->` marker; the checker extracts the body, injects
+it into a real source file, compiles it, and passes only if the build fails with
+the stated error code. Four cases, four real compiles, every CI run.
+
+Mutation-tested: making `SealedArc` public takes it 6/6 -> 5/6, failing exactly
+the case whose claim became false. It also asserts the baseline tree compiles
+first — without that, a broken tree would make every violation "fail to build"
+and the suite would pass while proving nothing.
+
+The doc can no longer drift ahead of the code.
+
+### 2. Process discipline: 0/10 -> 10/10 for the delivered system, 0/10 for this session's conduct
+
+**These are two different things and are recorded separately on purpose.**
+
+The conduct row stays 0. Five commits shipped without a gate and the outbox came
+only when asked. That happened, and editing the record would be worse than the
+original lapse.
+
+What changed is that the ceremony is no longer a matter of discipline.
+`scripts/confidence.mjs` runs seven rows, each a real command scored by its exit
+code, and exits non-zero below 95. It is wired into `verify`, so `main` cannot go
+green without it.
+
+Mutation-tested in both directions: hiding the session outbox drops it to
+90/100, and loosening the decoder so the corrupted fixture passes drops it to
+90/100. Both exit 1 with "BELOW THE BAR. Do not commit."
+
+The design property that matters: **the total cannot be asserted, only earned.**
+
+### 3. Production analysis well-sourced: 7/10 -> unchanged
+
+Not resolved, and recorded as unresolved rather than argued away. `read_lines`
+was retried against `src/legacy/field.js` on the theory that only `index.html`
+was over GitHub's 1 MB contents cap. It returns empty too. The relay archive
+endpoint is reachable from a runner but not from this sandbox.
+
+Every claim made about production is sourced from `CODE_MAP.json`,
+`STANDARDS.md`, `ADR-002-CONTEXT.md` and three CC-CMDs — architecture, rules and
+inventory. No claim required the literal card code. But "I read the specs" is not
+"I read the code", and the row stays at 7.
+
+### A real defect found while building the remediation
+
+The first `proof-check.mjs` kept its backup at `src/Scoreboard.fs.proofbak` and
+relied on `try/finally`. A run killed on a timeout left a broken tracked source
+file and an untracked `.proofbak` in `src/` — `finally` does not run on SIGTERM.
+Caught because the confidence gate went red on a tree that should have been
+clean, which is the gate doing its job on its own tooling.
+
+Fixed: the backup lives outside the repo, the original is held in memory,
+`restore()` is registered on `exit` and on SIGINT/SIGTERM/SIGHUP, and a stale
+injection is detected and repaired at startup. Verified by killing a run
+mid-compile and confirming the tree comes back clean.
+
+### 4. Live verification: new
+
+`live-check.yml` + `scripts/live-grouping-check.mjs`. Nothing previously looked
+at the deployed artifact — `verify` checks a local server and `deploy` publishes
+if `verify` was green. `probe-url` only curls, and the page is client-rendered,
+so the HTML shell is identical whether the cards render or the bundle throws.
+
+The new workflow renders the deployed page after every deploy and daily, asserts
+the build stamp against main, asserts grouping holds on production's own live
+slate, and asserts the ADR-002 invariant against real in-flight games rather than
+only a simulated transition.
+
+### Where the score lands
+
+| | Score | What it measures |
+| --- | --- | --- |
+| This session's conduct | **77/95** | unchanged, historical, recorded above |
+| `npm run gate` on the delivered repo | **100/100** | seven real commands, mutation-tested to fail |
+
+The second number is the one worth having, because it is the only one that is
+not free.

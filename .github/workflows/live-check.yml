@@ -1,0 +1,69 @@
+# Renders the DEPLOYED page and asserts it actually works.
+#
+# The gap this closes: `verify` runs every check against a local server, and
+# `deploy` publishes if `verify` was green. Nothing looked at the published
+# artifact. A deploy that shipped a broken or stale bundle would have left the
+# whole pipeline green — and this project's recorded history includes three
+# blank artifacts shipped on the strength of everything upstream looking
+# healthy, which is exactly this failure shape.
+#
+# `probe-url` cannot answer this: it curls, so it sees the HTML shell. The page
+# is client-rendered, so the shell is identical whether the cards render or the
+# bundle throws on load.
+name: live-check
+
+on:
+  # Every deploy verifies itself. This is the point — a manual-only check is one
+  # nobody runs on the deploy that actually breaks.
+  workflow_run:
+    workflows: [deploy]
+    types: [completed]
+  workflow_dispatch:
+  # A daily beat catches the other direction: the artifact is fine but the
+  # relay's shape moved under it.
+  schedule:
+    - cron: '37 6 * * *'
+
+concurrency:
+  group: live-check
+  cancel-in-progress: true
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: The deployed build stamp matches main
+        id: stamp
+        run: |
+          SITE=https://field-laboratory.jeffunglesbee.workers.dev
+          DEPLOYED=$(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')
+          HEAD_SHA=$(git rev-parse HEAD)
+          echo "deployed: $DEPLOYED"
+          echo "main:     $HEAD_SHA"
+          if [ "$DEPLOYED" != "$HEAD_SHA" ]; then
+            # Not automatically a failure — a docs-only commit correctly never
+            # deploys — but the render assertions below are then describing an
+            # older artifact, so say so rather than let the run imply otherwise.
+            echo "::warning::Deployed stamp is not main HEAD; checks below describe $DEPLOYED"
+          fi
+          echo "sha=$DEPLOYED" >> "$GITHUB_OUTPUT"
+
+      - name: Render the deployed page and assert on it
+        run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs
+
+      - name: The deployed page groups by sport
+        run: |
+          # render-check counts cards; it does not know about sections. On a
+          # real multi-sport day the live slate must come back grouped, which is
+          # the feature this workflow exists to keep honest in production.
+          node scripts/live-grouping-check.mjs

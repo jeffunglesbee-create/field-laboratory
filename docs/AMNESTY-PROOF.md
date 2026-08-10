@@ -102,6 +102,7 @@ verbatim. Then it was deleted.
 
 **1 — display the peak from a live branch, with no witness:**
 
+<!-- proof: FS0001 -->
 ```fsharp
 match g.DramaPeak with
 | Some peak -> formatDramaPeak peak
@@ -114,8 +115,11 @@ src/Scoreboard.fs(75,36): error FS0001: This expression was expected to have typ
 
 **2 — forge the witness:**
 
+<!-- proof: FS1093 -->
 ```fsharp
+match g.DramaPeak with
 | Some peak -> formatDramaPeak AmnestyZone peak
+| None -> ""
 ```
 ```
 src/Scoreboard.fs(75,36): error FS1093: The union cases or fields of the type
@@ -124,8 +128,11 @@ src/Scoreboard.fs(75,36): error FS1093: The union cases or fields of the type
 
 **3 — skip the formatter and unseal the number directly:**
 
+<!-- proof: FS1093 -->
 ```fsharp
+match g.DramaPeak with
 | Some (SealedDrama raw) -> sprintf "%.0f" (float raw)
+| None -> ""
 ```
 ```
 src/Scoreboard.fs(75,13): error FS1093: The union cases or fields of the type
@@ -134,8 +141,11 @@ src/Scoreboard.fs(75,13): error FS1093: The union cases or fields of the type
 
 **4 — render the arc's raw score series instead of the peak:**
 
+<!-- proof: FS1093 -->
 ```fsharp
+match g.DramaArc with
 | Decoded (SealedArc points) -> points |> List.map string |> String.concat ","
+| _ -> ""
 ```
 ```
 src/Scoreboard.fs(75,16): error FS1093: The union cases or fields of the type

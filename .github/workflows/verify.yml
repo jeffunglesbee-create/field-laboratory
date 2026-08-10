@@ -93,6 +93,20 @@ jobs:
       - name: Grouping and date-navigation checks
         run: npm run check:nav
 
+      # Compiles every violation docs/AMNESTY-PROOF.md claims is rejected and
+      # asserts the compiler really rejects it with the stated error. The doc
+      # shipped an overstated claim once — that the drama seal was complete when
+      # the arc was still open — and every check in the repo stayed green
+      # through it, because prose is not executable. Now it is.
+      - name: Proof-doc claims are compiler-verified
+        run: npm run check:proof
+
+      # The confidence gate the CC-CMD ceremony asks for, mechanised. Every row
+      # runs a real command and takes its score from the exit code, so the total
+      # cannot be asserted, only earned. Below 95 fails the build.
+      - name: Confidence gate (>= 95)
+        run: npm run gate
+
       # The two checks above are pinned to committed captures so their
       # assertions are deterministic. This one exercises the path the DEPLOYED
       # page actually takes: fetch today's real slate from the relay and render
