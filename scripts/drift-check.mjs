@@ -18,7 +18,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { createChecks, toArray, NESTED } from './checks.mjs'
-import { decodePayload, sportMeta, oddsStory, spreadOf, totalOf, favouriteAgreement } from '../build/Desk.js'
+import { decodePayload, sportMeta, oddsStory, spreadOf, totalOf, favouriteAgreement, dateKeying } from '../build/Desk.js'
 
 const args = process.argv.slice(2)
 const argOf = flag => {
@@ -69,6 +69,8 @@ let lineShape = { spreads: 0, unbalanced: 0, totals: 0, split: 0, compared: 0, m
 let mismatchDetail = []
 let sections = []
 let deskFill = { note: 0, local_note: 0, crew: 0, tags: 0, tagsMalformed: 0 }
+let keying = new Map()
+let keyingExamples = []
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -176,6 +178,26 @@ if (decoded) {
   }
   // tags is the fourth double-encoded field, so it gets the same treatment as
   // the other three: a broken inner payload is a failure, not a note.
+  // Which day is a game's `date`? KEYING tags follow declaration order in
+  // Desk.fs: NoStartTime, SameUtcDay, StartsAfterDateUtc, StartsBeforeDateUtc.
+  //
+  // Not an assertion — a measurement. The laboratory keys off UTC and FIELD
+  // keys off ET, and before changing anything the question is what the relay's
+  // `date` column actually IS. A relay serving AFL, MLS and MLB may well key
+  // each competition to its own local day, in which case ET is as wrong as UTC.
+  const KEYING = ['no-start-time', 'same-utc-day', 'starts-after-date', 'starts-before-date']
+  for (const g of games) {
+    const k = KEYING[dateKeying(g).tag] ?? '?'
+    const label = sportMeta(g.Sport).Label
+    const key = `${label}:${k}`
+    keying.set(key, (keying.get(key) || 0) + 1)
+    // Name the games that disagree, with their numbers. A count cannot be
+    // judged — that lesson cost a whole round trip on the favourite invariant.
+    if (k === 'starts-after-date' || k === 'starts-before-date') {
+      keyingExamples.push(`${label} ${g.Id}: date=${g.Date} start=${g.RawStartTime}`)
+    }
+  }
+
   check('no malformed tags payloads', deskFill.tagsMalformed === 0,
     `${deskFill.tagsMalformed} of ${games.length} games have unparseable tags`)
 
@@ -213,6 +235,8 @@ console.log(`source:   ${source}`)
 console.log(`date:     ${payload?.Date ?? '(undecoded)'}`)
 console.log(`games:    ${games.length}`)
 console.log(`malformed:${malformed.length}`)
+console.log(`keying:   ${[...keying.entries()].sort().map(([k, n]) => `${k}=${n}`).join(' ') || '—'}`)
+if (keyingExamples.length) for (const e of keyingExamples.slice(0, 8)) console.log(`  ${e}`)
 console.log(`desk:     note=${deskFill.note} local_note=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags} of ${games.length} games`)
 console.log(`sections: ${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ') || '—'}`)
 console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} favourite-compared=${lineShape.compared} mismatched=${lineShape.mismatched}`)
@@ -255,6 +279,6 @@ const odds = `both=${oddsShape.withBoth} notseq=${oddsShape.notSequenced} moved=
 // numbers, and whether the handicap ever contradicts the moneyline, are
 // questions only observation can answer.
 const lines = `spreads=${lineShape.spreads} unbal=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} mismatch=${lineShape.mismatched}`
-console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}|${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ')}|note=${deskFill.note} local=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags}/${games.length}`)
+console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}|${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ')}|note=${deskFill.note} local=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags}/${games.length}|${[...keying.entries()].sort().map(([k, n]) => `${k}=${n}`).join(' ')}`)
 
 process.exit(failures === 0 ? 0 : 1)

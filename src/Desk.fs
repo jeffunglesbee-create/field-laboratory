@@ -658,6 +658,52 @@ let oddsStory (opening: Nested<Odds>) (closing: Nested<Odds>) : OddsStory =
     | _ -> NoPrices
 
 // ---------------------------------------------------------------------------
+// Which day is a game's `date`?
+// ---------------------------------------------------------------------------
+
+/// How a game's `date` field relates to its `start_time`.
+///
+/// This laboratory keys everything off `todayUtc()`. FIELD does not: its own
+/// `field_smoke.js` takes its date from the "system clock (America/NY)", its
+/// CC-CMDs track ET rollover explicitly ("ET is still 2026-06-23, 21:54 ET =
+/// 01:54 UTC the next day"), and a PM-19.5 session note flags the ambiguity
+/// unresolved — "this lands June 3 in UTC and likely June 2 in ET — confirm
+/// which timezone Rule 23 reads from for date-rollover".
+///
+/// Before changing the laboratory to ET, the premise needs testing, and the
+/// obvious test is not "is it ET" but "what IS it". The relay serves AFL,
+/// MLS, WNBA, MLB and EFL Cup — competitions on three continents — so a third
+/// possibility is live: `date` may be each competition's own LOCAL date, in
+/// which case no single timezone is the right answer and ET would be as wrong
+/// as UTC for the AFL.
+///
+/// Measured rather than assumed, per sport, because assuming an American
+/// convention generalises is the exact mistake that produced
+/// "Collingwood @ Sydney".
+type DateKeying =
+    | NoStartTime
+    /// `start_time` falls on the same UTC day as `date`.
+    | SameUtcDay
+    /// `start_time` is on a LATER UTC day than `date` — so `date` is behind
+    /// UTC, which is what a Western-hemisphere keying (ET) looks like.
+    | StartsAfterDateUtc
+    /// `start_time` is on an EARLIER UTC day than `date` — `date` is ahead of
+    /// UTC, which is what an Australian or Asian local keying looks like.
+    | StartsBeforeDateUtc
+
+let dateKeying (g: Game) : DateKeying =
+    match g.StartTime with
+    | None -> NoStartTime
+    | Some start when g.Date = "" -> NoStartTime
+    | Some start ->
+        let utc = start.UtcDateTime
+        let startUtcDay = sprintf "%04d-%02d-%02d" utc.Year utc.Month utc.Day
+        // ISO-8601 dates compare correctly as plain strings.
+        if startUtcDay = g.Date then SameUtcDay
+        elif startUtcDay > g.Date then StartsAfterDateUtc
+        else StartsBeforeDateUtc
+
+// ---------------------------------------------------------------------------
 // ADR-002 amnesty gate
 // ---------------------------------------------------------------------------
 
