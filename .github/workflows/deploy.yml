@@ -6,15 +6,16 @@
 name: deploy
 
 on:
-  push:
+  # Deploys only after `verify` has passed on main. Triggering both on push
+  # would let a broken page ship while its own checks were still failing — the
+  # two ran independently and nothing sequenced them.
+  #
+  # `verify` already ignores docs/outbox/markdown pushes, so the drift
+  # sentinel's daily log commit never reaches this workflow either.
+  workflow_run:
+    workflows: [verify]
+    types: [completed]
     branches: [main]
-    # Docs, the drift log, and the sentinel's own commits must not trigger a
-    # deploy — the sentinel pushes to main daily and would otherwise redeploy
-    # the site every time it records a row.
-    paths-ignore:
-      - 'docs/**'
-      - 'outbox/**'
-      - '**/*.md'
   workflow_dispatch:
 
 concurrency:
@@ -23,6 +24,11 @@ concurrency:
 
 jobs:
   deploy:
+    # A manual dispatch deploys whatever is on main. An automatic run deploys
+    # only a green verify.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

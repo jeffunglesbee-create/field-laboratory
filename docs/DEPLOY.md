@@ -24,6 +24,13 @@ one Cloudflare account; wrangler infers the account otherwise.
 Then re-run the `deploy` workflow (Actions → deploy → Run workflow), or push any
 non-docs change.
 
+## Deploy runs only after verify passes
+
+`deploy` is triggered by `verify` completing successfully on `main`, not by the
+push itself. A failing check suite therefore blocks the deploy rather than
+racing it. A manual dispatch bypasses this deliberately, so you can still ship
+from a known-good commit without waiting.
+
 ## What it will publish
 
 ```
