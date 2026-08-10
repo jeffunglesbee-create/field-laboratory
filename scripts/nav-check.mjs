@@ -58,7 +58,7 @@ const shift = (base, days) => {
 
 // The anchor is whatever date the PAGE asks for first, not a date computed
 // here. Those are two different clocks — this script's Node process and the
-// browser's `Desk.todayUtc()` — and a run that straddles UTC midnight would
+// browser's `Desk.fieldToday()` — and a run that straddles a day boundary would
 // have them disagree by a day. Keying a fixed date map off the local clock
 // would then serve a 404 for the date the page actually wanted, and the page
 // would quietly fall back to the committed capture, leaving every assertion
@@ -159,10 +159,17 @@ await settleOn(TODAY)
 await page.click('#prev-day')
 const prev = await settleOn(YESTERDAY)
 
-// The Today button asks the browser for its own current UTC date, so compare
-// against the browser's clock rather than this process's.
+// The Today button asks for today in FIELD's canonical zone, not UTC. Between
+// 00:00 and 04:00 UTC those differ, so comparing against a UTC date here would
+// fail this check for four hours a night — the same window the FieldDay type
+// exists to close.
 await page.click('#today')
-const browserToday = await page.evaluate(() => new Date().toISOString().slice(0, 10))
+const browserToday = await page.evaluate(() => {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York',
+    year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+  const g = t => parts.find(x => x.type === t).value
+  return `${g('year')}-${g('month')}-${g('day')}`
+})
 const home = await settleOn(browserToday)
 
 // The back button changes the URL without a load. Nothing re-renders unless
@@ -199,7 +206,7 @@ check('a single-sport slate renders exactly one section',
 // --- navigation -------------------------------------------------------------
 check('next-day advances the URL date', next.url.includes(TOMORROW), next.url)
 check('prev-day steps back past today', prev.url.includes(YESTERDAY), prev.url)
-check('today returns to the current UTC date', home.url.includes(browserToday),
+check('today returns to the current FIELD-zone date', home.url.includes(browserToday),
   `${home.url} vs browser ${browserToday}`)
 check('the viewed-date readout tracks the slate',
   first.viewed === TODAY && next.viewed === TOMORROW && prev.viewed === YESTERDAY,

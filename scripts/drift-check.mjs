@@ -18,7 +18,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { createChecks, toArray, NESTED } from './checks.mjs'
-import { decodePayload, sportMeta, oddsStory, spreadOf, totalOf, favouriteAgreement, dateKeying } from '../build/Desk.js'
+import { decodePayload, sportMeta, oddsStory, spreadOf, totalOf, favouriteAgreement, dateKeying, fieldDayIso } from '../build/Desk.js'
 
 const args = process.argv.slice(2)
 const argOf = flag => {
@@ -194,7 +194,9 @@ if (decoded) {
     // Name the games that disagree, with their numbers. A count cannot be
     // judged — that lesson cost a whole round trip on the favourite invariant.
     if (k === 'starts-after-date' || k === 'starts-before-date') {
-      keyingExamples.push(`${label} ${g.Id}: date=${g.Date} start=${g.RawStartTime}`)
+      // g.Day is a lifted FieldDay, not a bare string — read it through the
+      // accessor rather than a property that no longer exists.
+      keyingExamples.push(`${label} ${g.Id}: date=${g.Day ? fieldDayIso(g.Day) : 'unreadable'} start=${g.RawStartTime}`)
     }
   }
 

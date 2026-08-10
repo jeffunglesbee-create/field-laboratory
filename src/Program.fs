@@ -42,7 +42,7 @@ let private queryParam (name: string) =
 /// The date being viewed. `?date=YYYY-MM-DD` makes any day linkable and
 /// reloadable; today in UTC otherwise, matching how the relay keys its slates.
 let private viewedDate () =
-    queryParam "date" |> Option.defaultValue (Desk.todayUtc ())
+    queryParam "date" |> Option.defaultValue (Desk.fieldDayIso (Desk.fieldToday ()))
 
 /// Shifts a YYYY-MM-DD string by whole days.
 ///
@@ -213,7 +213,7 @@ let private wireDateNav () =
 
     bind "prev-day" (fun () -> goTo (shiftDate (viewedDate ()) -1))
     bind "next-day" (fun () -> goTo (shiftDate (viewedDate ()) 1))
-    bind "today" (fun () -> goTo (Desk.todayUtc ()))
+    bind "today" (fun () -> goTo (Desk.fieldDayIso (Desk.fieldToday ())))
 
     // The back/forward buttons change the URL without a load, so the slate has
     // to be re-rendered explicitly or the page would show the previous day's

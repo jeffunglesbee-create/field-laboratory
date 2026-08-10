@@ -1,6 +1,8 @@
 module Desk
 
 open System
+open Fable.Core
+open Fable.Core.JsInterop
 open Thoth.Json
 open Units
 
@@ -38,6 +40,76 @@ type Nested<'T> =
     | NotPresent
     | Decoded of 'T
     | Malformed of string
+
+/// A calendar day in FIELD's canonical zone, America/New_York.
+///
+/// The defect this replaces was a bare `string` date with an implicit zone —
+/// the same shape as a signed handicap with an unstated side, and the same
+/// class of bug. `todayUtc()` was correct-looking and wrong for four hours a
+/// night.
+///
+/// Two separate questions were being conflated:
+///
+///   1. What zone does the relay's `date` column use? A property of the data.
+///      Measured, not assumed: across a live 18-game slate, 8 games start on a
+///      LATER UTC day than their `date` and none start earlier. The date runs
+///      behind UTC, never ahead — Western-hemisphere keying, consistent with
+///      ET and inconsistent with UTC.
+///
+///   2. What day is it for the viewer? A property of the person reading the
+///      page, who is on the US east coast. No measurement can change that, and
+///      treating it as blocked on (1) was over-caution: at 21:00 ET the viewer
+///      wants tonight's slate and `todayUtc()` hands them tomorrow's.
+///
+/// Canonical ET rather than the browser's local zone, deliberately. FIELD's
+/// smoke, cron, SW_VERSION and relay day-boundary are all America/New_York, so
+/// a browser-local page would disagree with the rest of the system the moment
+/// the reader travels.
+type FieldDay = private FieldDay of string
+
+/// Today in FIELD's zone.
+///
+/// Via `Intl` with an IANA zone name, not a hand-rolled UTC offset. EST/EDT
+/// changes on the second Sunday in March and the first Sunday in November;
+/// hand-rolling that is how a date library becomes a bug, and the browser and
+/// Node both already carry the rules.
+[<Emit("""(() => {
+  const p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York',
+    year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+  const g = t => p.find(x => x.type === t).value;
+  return `${g('year')}-${g('month')}-${g('day')}`;
+})()""")>]
+let private todayInFieldZone () : string = jsNative
+
+let fieldToday () : FieldDay = FieldDay(todayInFieldZone ())
+
+/// Lifts a relay date string into the canonical zone.
+///
+/// This ASSERTS the relay's `date` is a FIELD-zone day, which the measurement
+/// above supports for every sport observed with a start time. It is not proven
+/// for the AFL: an Australian fixture lands in the small hours UTC either way,
+/// so the test cannot discriminate there. Recorded rather than glossed.
+let fieldDayOfIso (iso: string) : FieldDay option =
+    if iso.Length = 10 && iso.[4] = '-' && iso.[7] = '-' then Some(FieldDay iso) else None
+
+let fieldDayIso (FieldDay iso) = iso
+
+/// Whole-day arithmetic, built from the three integer parts rather than parsed.
+/// A bare parse of a date-only string is read in the runtime's LOCAL zone, so
+/// stepping a day could drift; integers cannot.
+let fieldDayShift (days: int) (FieldDay iso) : FieldDay =
+    match iso.Split('-') with
+    | [| y; m; d |] ->
+        match System.Int32.TryParse y, System.Int32.TryParse m, System.Int32.TryParse d with
+        | (true, yy), (true, mm), (true, dd) ->
+            let shifted = System.DateTime(yy, mm, dd).AddDays(float days)
+            FieldDay(sprintf "%04d-%02d-%02d" shifted.Year shifted.Month shifted.Day)
+        | _ -> FieldDay iso
+    | _ -> FieldDay iso
+
+/// ISO-8601 days compare correctly as plain strings, and both sides are now
+/// known to be in the same zone — which is the whole point of the type.
+let fieldDayIsBefore (FieldDay a) (FieldDay b) = a < b
 
 type Odds =
     { Source: string
@@ -200,7 +272,16 @@ type Game =
     { Id: string
       Sport: Sport
       League: string
-      Date: string
+      /// Lifted at the decode boundary, so no bare date string reaches the
+      /// renderer. `None` means the relay sent a date this laboratory cannot
+      /// read as a day — a real state, not a default.
+      ///
+      /// This is what makes the zone a type rather than a convention. With
+      /// `Date: string`, `g.Date < fieldDayIso (fieldToday ())` still compiled
+      /// — the exact defect the FieldDay work set out to remove, written in one
+      /// line, past a type that only guarded the unwrap. Verified by writing it
+      /// and watching it build.
+      Day: FieldDay option
       Home: string
       Away: string
       HomeScore: int option
@@ -386,7 +467,7 @@ let gameDecoder : Decoder<Game> =
         { Id = get.Required.Field "id" Decode.string
           Sport = get.Required.Field "sport" Decode.string |> sportOfString
           League = get.Optional.Field "league" Decode.string |> Option.defaultValue ""
-          Date = get.Optional.Field "date" Decode.string |> Option.defaultValue ""
+          Day = get.Optional.Field "date" Decode.string |> Option.bind fieldDayOfIso
           Home = get.Required.Field "home" Decode.string
           Away = get.Required.Field "away" Decode.string
           // Null pre-game, and null is NOT zero. A 0-0 game that has started and
@@ -471,17 +552,6 @@ type GameState =
     | InProgress of home: int * away: int
     | Final of home: int * away: int * overtime: bool
 
-/// Today in UTC, as the relay formats dates. ISO-8601 dates compare correctly
-/// as plain strings, so asking "is this game's date already past" needs no date
-/// parsing at all. Built from parts rather than a format string so it does not
-/// depend on Fable's ToString format support.
-///
-/// Public because Program.fs builds the live /context/date URL from it, so the
-/// page and the state inference cannot disagree about which day "today" is.
-let todayUtc () =
-    let n = System.DateTime.UtcNow
-    sprintf "%04d-%02d-%02d" n.Year n.Month n.Day
-
 let gameState (g: Game) : GameState =
     match g.HomeScore, g.AwayScore with
     | Some h, Some a ->
@@ -500,7 +570,15 @@ let gameState (g: Game) : GameState =
         // finalized_at check is kept because it is the stronger signal when
         // present — it settles a game that finished earlier *today*, which the
         // date comparison deliberately will not.
-        let datePassed = g.Date <> "" && g.Date < todayUtc ()
+        // Both sides in the canonical zone. Before the type, this compared a
+        // relay date against a UTC "today" — so between 00:00 and 04:00 UTC,
+        // which is 20:00-midnight ET, tonight's live games compared as past
+        // and rendered Final. The same bug family as the AFL "In progress in
+        // August" one, with the sign reversed, and squarely in US prime time.
+        let datePassed =
+            match g.Day with
+            | Some day -> fieldDayIsBefore day (fieldToday ())
+            | None -> false
         if g.FinalizedAt.IsSome || datePassed then
             Final(h, a, g.Overtime = WentToOvertime)
         else
@@ -694,14 +772,17 @@ type DateKeying =
 let dateKeying (g: Game) : DateKeying =
     match g.StartTime with
     | None -> NoStartTime
-    | Some start when g.Date = "" -> NoStartTime
     | Some start ->
-        let utc = start.UtcDateTime
-        let startUtcDay = sprintf "%04d-%02d-%02d" utc.Year utc.Month utc.Day
-        // ISO-8601 dates compare correctly as plain strings.
-        if startUtcDay = g.Date then SameUtcDay
-        elif startUtcDay > g.Date then StartsAfterDateUtc
-        else StartsBeforeDateUtc
+        match g.Day with
+        | None -> NoStartTime
+        | Some day ->
+            let utc = start.UtcDateTime
+            let startUtcDay = sprintf "%04d-%02d-%02d" utc.Year utc.Month utc.Day
+            let dayIso = fieldDayIso day
+            // ISO-8601 dates compare correctly as plain strings.
+            if startUtcDay = dayIso then SameUtcDay
+            elif startUtcDay > dayIso then StartsAfterDateUtc
+            else StartsBeforeDateUtc
 
 // ---------------------------------------------------------------------------
 // ADR-002 amnesty gate

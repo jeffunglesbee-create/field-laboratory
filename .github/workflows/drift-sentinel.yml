@@ -44,7 +44,10 @@ jobs:
       - name: Run the sentinel against today's live payload
         id: sentinel
         run: |
-          DATE=$(date -u +%F)
+          # FIELD's canonical zone, not UTC. Probing the UTC day between 00:00
+          # and 04:00 UTC asks the relay for tomorrow's slate during ET prime
+          # time — the same four-hour window the FieldDay type exists to close.
+          DATE=$(TZ=America/New_York date +%F)
           URL="https://field-relay-nba.jeffunglesbee.workers.dev/context/date/$DATE"
           set +e
           node scripts/drift-check.mjs --url "$URL" | tee /tmp/out.txt

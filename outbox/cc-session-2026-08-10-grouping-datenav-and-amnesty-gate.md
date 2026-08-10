@@ -789,3 +789,101 @@ drift 9/9 on both captures, corrupted fixture rejected, zero warnings.
 - Nothing renders for these fields on the committed data, because there is
   nothing to render. The slot exists so the first crew or note that arrives
   appears, rather than being discovered missing then.
+
+---
+
+## Follow-on: the zone as a type
+
+### The question I got wrong first
+
+Asked whether the scoreboard runs on ET or UTC, I answered UTC (correct) and
+then said the fix was blocked on measuring the relay's keying. Jeff corrected
+that: assuming an American convention is wrong for PRESENTATION — that is the
+AFL bug — but timing is not presentation. The reader is on the US east coast.
+Their day is ET, and no measurement changes it.
+
+I had collapsed two questions:
+
+1. **What zone does the relay's `date` use?** A property of the data. Genuinely
+   unknown, worth measuring, since per-competition local keying would make ET as
+   wrong as UTC for an AFL fixture.
+2. **What day is it for the viewer?** A property of the person. Definite.
+
+Only (1) needed evidence. Treating both as blocked was over-caution, and it
+would have left a live bug in place for no reason.
+
+### The measurement, which settled (1) anyway
+
+Live 18-game slate: `MLB:starts-after-date=6  WNBA:starts-after-date=2`,
+`MLB:same-utc-day=4  EFL Cup:same-utc-day=1  MLS:no-start-time=5`.
+
+Eight games start on a LATER UTC day than their date; none start earlier. The
+date runs behind UTC and never ahead — Western-hemisphere keying, consistent
+with ET, inconsistent with UTC.
+
+### The window
+
+00:00-04:00 UTC is 20:00-midnight ET. Every night, in US prime time:
+
+- `viewedDate()` requested tomorrow's slate while tonight's games were live.
+- `datePassed = g.Date < todayUtc()` went true for tonight's fixtures, so
+  `gameState` rendered LIVE GAMES AS FINAL. Same family as the AFL "In progress
+  in August" bug, sign reversed.
+
+### The version that was not enough, and why it matters
+
+The first cut added `FieldDay` and left `Game.Date` a `string`. The bypass
+compiled cleanly:
+
+```fsharp
+if g.Date < fieldDayIso (fieldToday ()) then "past" else "not past"
+```
+
+The original defect, one line, straight past a type that only guarded the
+unwrap. Both sides are `string`; nothing objected. "The zone is now a type"
+would have been half true and the false half was the one that mattered.
+
+Caught by writing the bypass and watching it BUILD rather than assuming a
+private constructor was sufficient. That is now the third time in this session
+that a guard looked complete and was not — the drama arc, the split total, and
+this. The pattern is consistent: sealing the accessor is not the same as
+removing the raw value, and only the second one holds.
+
+Fixed by lifting at the boundary, the `SealedDrama` principle: the decoder
+produces `Day: FieldDay option`, so no bare date string reaches the renderer.
+
+### Everything else that carried a clock
+
+- `drift-sentinel.yml` probed `date -u +%F`, so between 00:00 and 04:00 UTC it
+  asked the relay for tomorrow's slate during ET prime time. Now
+  `TZ=America/New_York date +%F`.
+- `nav-check.mjs` asserted the Today button against a UTC date — it would have
+  failed four hours a night once the page moved to ET. Same window, inverted.
+- `drift-check.mjs` read `g.Date`, which no longer exists. It would have printed
+  `date=undefined` in exactly the alarm line whose job is to be judgeable —
+  the failure the favourite-mismatch round trip already taught. Fixed and
+  verified against a synthetic evening start rather than assumed.
+
+### DST is not hand-rolled
+
+`Intl` with `America/New_York`, not a UTC offset. Verified the fall-back hour
+repeats (`2026-11-01T05:59Z` and `06:00Z` both render 01h), which an offset
+would get wrong twice a year.
+
+Canonical ET rather than browser-local, deliberately: FIELD's smoke, cron,
+SW_VERSION and relay day-boundary are all America/New_York, so a browser-local
+page would disagree with the rest of FIELD the moment the reader travels.
+
+### Also observed this run: the sections went live
+
+`briefs=present(192)` and `standings=present(8)` on the live slate. Both were
+`empty-or-failed` in every capture and `Present` was recorded as having no
+real-data coverage. It now has some — 192 real briefs decoded through the
+`Brief` type that was modelled from the relay's SQL, with the payload decoding
+clean. `series` remains `empty-or-failed`.
+
+### Verification
+
+Gate 100/100. proof-check 13/13 (10 doc cases across five proof docs plus
+registry completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift
+9/9 both captures, corrupted fixture rejected, zero warnings.

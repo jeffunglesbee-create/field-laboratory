@@ -103,6 +103,18 @@ relay's `/archive/tagged/:tag` binds `%"${tag}"%`, quotes inside the pattern,
 which only matches a JSON array stored as text. Same hazard as `drama_arc`,
 sitting in a field nobody had decoded. See `docs/DESK-PROOF.md`.
 
+**The bug that was live every night in US prime time:** the laboratory keyed
+every date off `todayUtc()`; FIELD keys off Eastern. Between 00:00 and 04:00
+UTC — 20:00 to midnight ET — the page requested tomorrow's slate, and
+`datePassed` went true for tonight's fixtures, so `gameState` rendered **live
+games as Final**.
+
+`FieldDay` makes the zone a type. The first cut was not enough: with
+`Game.Date` still a `string`, `g.Date < fieldDayIso (fieldToday ())` compiled
+cleanly — the original defect straight past a type that only guarded the unwrap.
+Lifting the date at the decode boundary is what made the claim true. See
+`docs/ZONE-PROOF.md`.
+
 ## Layout
 
 | Path | What it is |
