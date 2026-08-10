@@ -42,24 +42,53 @@ jobs:
         id: token
         env:
           TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Presence-only probes for the names this is most often saved under.
+          # These expand to a value the runner masks; the script below tests
+          # ONLY whether each is empty and never echoes one. That turns
+          # "not set" — which is a dead end — into "not set, but here is what
+          # IS set", which is actionable.
+          ALT_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_TOKEN }}
+          ALT_CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          ALT_CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          ALT_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if [ -z "$TOKEN" ]; then
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            {
-              echo "### Deploy skipped — not configured yet"
-              echo
-              echo '`CLOUDFLARE_API_TOKEN` is not set on this repository.'
-              echo
-              echo 'Add it at **Settings → Secrets and variables → Actions → New repository secret**.'
-              echo 'The token needs **Workers Scripts: Edit**.'
-              echo 'Add `CLOUDFLARE_ACCOUNT_ID` too only if the token can reach more than one account.'
-              echo
-              echo 'This workflow re-checks hourly, so the site will deploy by itself once the secret exists.'
-            } >> "$GITHUB_STEP_SUMMARY"
-            echo "::notice::Deploy skipped — CLOUDFLARE_API_TOKEN not set. Will retry on schedule."
-          else
+          if [ -n "$TOKEN" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+
+          FOUND=""
+          [ -n "$ALT_CLOUDFLARE_TOKEN" ] && FOUND="$FOUND CLOUDFLARE_TOKEN"
+          [ -n "$ALT_CF_API_TOKEN" ] && FOUND="$FOUND CF_API_TOKEN"
+          [ -n "$ALT_CLOUDFLARE_API_KEY" ] && FOUND="$FOUND CLOUDFLARE_API_KEY"
+          [ -n "$ALT_ACCOUNT_ID" ] && FOUND="$FOUND CLOUDFLARE_ACCOUNT_ID"
+
+          {
+            echo "### Deploy skipped — CLOUDFLARE_API_TOKEN is not visible to Actions"
+            echo
+            if [ -n "$FOUND" ]; then
+              echo "**A differently-named secret IS set:**\`$FOUND\`"
+              echo
+              echo 'Rename it to `CLOUDFLARE_API_TOKEN`, or tell me and I will change'
+              echo 'the workflow to read the name you used.'
+            else
+              echo 'No Cloudflare-ish secret is visible under any of the names checked.'
+              echo
+              echo 'The usual cause is the **wrong tab**. That settings page has three'
+              echo 'separate stores — **Actions**, Codespaces, and Dependabot — and only'
+              echo 'the Actions one reaches a workflow. A secret saved under Codespaces or'
+              echo 'Dependabot is invisible here.'
+              echo
+              echo 'Check: **Settings → Secrets and variables → Actions**, the'
+              echo '*Repository secrets* section, named exactly `CLOUDFLARE_API_TOKEN`.'
+              echo 'Also confirm it landed on **this** repository.'
+            fi
+            echo
+            echo 'Re-checks hourly; no re-run needed once it is in the right place.'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::CLOUDFLARE_API_TOKEN not visible to Actions.${FOUND:+ Found instead:$FOUND}"
 
       - name: Is the live site already on this commit?
         id: live
