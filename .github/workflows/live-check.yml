@@ -67,3 +67,11 @@ jobs:
           # real multi-sport day the live slate must come back grouped, which is
           # the feature this workflow exists to keep honest in production.
           node scripts/live-grouping-check.mjs
+
+      # The ET fix is only observable between 00:00 and 04:00 UTC, and nothing
+      # is scheduled there. Rather than wait for the window, this names an
+      # instant inside it, asks the real compiled F# which day that is, and
+      # fetches BOTH that day and the UTC day from the live relay — so the
+      # difference the fix makes is two HTTP responses rather than an argument.
+      - name: The zone choice changes the slate (window simulation)
+        run: npm run check:window
