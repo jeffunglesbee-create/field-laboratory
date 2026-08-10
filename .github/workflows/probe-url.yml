@@ -39,5 +39,14 @@ jobs:
             echo "  --- first 400 bytes ---"
             head -c 400 /tmp/body
             echo
+            # A non-2xx is a failed probe. Without this the workflow reported
+            # SUCCESS for a 404 — it only failed when curl could not connect at
+            # all — so a green run said nothing about whether the URL exists.
+            # Caught by being briefly misled by it: a 404 error-code-1042 page
+            # came back as a passing run.
+            case "$CODE" in
+              2*) ;;
+              *) echo "  ^ non-2xx"; FAILED=1 ;;
+            esac
           done
           exit $FAILED
