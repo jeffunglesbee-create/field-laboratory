@@ -1,0 +1,57 @@
+# Keeps STATUS.md answering "where does everything stand?" without anyone
+# reading four workflows.
+#
+# It exists because that question kept being asked out loud — is the page up,
+# did the secret land, has the sentinel found anything — and answering it meant
+# opening run logs. Now the repo answers it.
+#
+# Runs after either deploy workflow finishes, so the file is current within a
+# minute of anything actually changing, plus a slow schedule as a backstop for
+# changes made outside CI (a secret added, Pages switched on).
+name: status
+
+on:
+  workflow_run:
+    workflows: [deploy, pages, drift-sentinel]
+    types: [completed]
+  schedule:
+    - cron: '33 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: status
+  cancel-in-progress: true
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Probe and render
+        run: node scripts/status.mjs
+
+      # Commits only when a real fact changed. STATUS.md carries no timestamp
+      # precisely so this stays quiet — its git history should read as a log of
+      # things happening, not one commit a day saying nothing.
+      - name: Commit if anything changed
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add STATUS.md
+          if git diff --staged --quiet; then
+            echo "::notice::No change in status."
+            exit 0
+          fi
+          git commit -m "status: refresh [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
