@@ -24,6 +24,10 @@ on:
     workflows: [verify]
     types: [completed]
     branches: [main]
+  # Re-checks whether Pages has been switched on, so this becomes live on its
+  # own once it is. Costs a few seconds while it is off.
+  schedule:
+    - cron: '47 * * * *'
 
 # The three grants that replace a secret. id-token is what lets the runner
 # prove who it is to the Pages deployment API.
@@ -42,24 +46,67 @@ jobs:
       github.event_name != 'workflow_run' ||
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.pages.outputs.enabled }}
     steps:
       - uses: actions/checkout@v4
 
+      # Checked BEFORE building, so a disabled Pages site costs seconds rather
+      # than a full .NET + Fable build.
+      #
+      # `configure-pages` with enablement: true cannot create the site itself:
+      # GITHUB_TOKEN is refused with "Create Pages site failed. Error: Resource
+      # not accessible by integration". `pages: write` grants DEPLOYING to
+      # Pages, not CREATING the Pages site — that is deliberately not grantable
+      # to a workflow token. So the one-time switch-on is a human action, and
+      # every deploy after it needs no secret at all.
+      - name: Is Pages switched on?
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CODE=$(curl -sS -o /tmp/pages.json -w '%{http_code}' \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" || echo 000)
+          echo "GET /pages -> $CODE"
+          if [ "$CODE" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Pages deploy skipped — Pages is not switched on"
+              echo
+              echo 'Enable it once at **Settings → Pages → Build and deployment → Source: GitHub Actions**.'
+              echo
+              echo 'A workflow token cannot do this itself: `pages: write` grants deploying to Pages,'
+              echo 'not creating the Pages site. After that one click this workflow publishes on every'
+              echo 'green `verify`, with **no secret of any kind**.'
+              echo
+              echo 'Note: Pages on a *private* repository requires a paid GitHub plan.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice::Pages not enabled — skipping. Enable at Settings → Pages → Source: GitHub Actions."
+          fi
+
       - uses: actions/setup-dotnet@v4
+        if: steps.pages.outputs.enabled == 'true'
         with:
           dotnet-version: '10.0.x'
 
       - uses: actions/setup-node@v4
+        if: steps.pages.outputs.enabled == 'true'
         with:
           node-version: '22'
 
       - name: Build
+        if: steps.pages.outputs.enabled == 'true'
         run: |
           npm ci
           dotnet tool restore
           npm run build
 
       - name: Verify the built site before publishing it
+        if: steps.pages.outputs.enabled == 'true'
         run: |
           test -s public/index.html
           test -s public/build/Program.js
@@ -67,20 +114,19 @@ jobs:
           test -s public/version.txt
           echo "public/: $(find public -type f | wc -l) files"
 
-      # enablement: true turns Pages on for the repository if it is off, using
-      # the workflow's own token — so even first-time setup needs no dashboard
-      # visit. It fails clearly if the account plan does not allow Pages on a
-      # private repository, which is the one real precondition here.
+      # No enablement here — see the check above for why a workflow token
+      # cannot create the site. This only reads the existing configuration.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
+        if: steps.pages.outputs.enabled == 'true'
 
       - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outputs.enabled == 'true'
         with:
           path: public
 
   deploy:
     needs: build
+    if: needs.build.outputs.enabled == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
