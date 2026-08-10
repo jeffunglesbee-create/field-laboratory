@@ -476,3 +476,98 @@ sequence, so the one branch that would exercise `devig` and the implied-shift
 arithmetic has no real-data coverage. Recorded as untested rather than presented
 as working. It becomes reachable the day the sentinel sees a genuine sequence,
 which is the same day the issue closes itself.
+
+---
+
+## Follow-on: spread and total
+
+Same treatment as `closing_odds`. The spread held up; the total produced a
+second structural finding.
+
+### spread is a symmetric handicap, and holds
+
+`{home: -1.5, away: 1.5}` — the two numbers are exact opposites in every
+observed snapshot, which is what a single handicap requires. Modelled as
+`Balanced of homeHandicap` / `Unbalanced of home * away`.
+
+Stated relative to **home**, not to "the favourite". This repo has already
+shipped one bug from a number whose referent was implicit — every fixture
+rendered away-first because `%s @ %s` carried no convention with it. A signed
+handicap with an unstated side is the same mistake waiting.
+
+### total is one line written twice
+
+```
+total = {over: 8.5, under: 8.5}     # every game, both snapshots
+```
+
+`over` and `under` hold the same number. The field reads as two prices and
+carries one line, duplicated. There is no over price and no under price anywhere
+in the payload — the moneyline is the only priced market, which is why it is the
+only one the implied-probability work touches.
+
+Modelled as `OneLine of line`, with `TwoNumbers of over * under` for the shape
+the field's name implies and which has never been observed.
+
+### A cross-field invariant that could have been assumed
+
+The side giving points on the handicap should be the side priced shorter on the
+moneyline. Checkable, and true on every observed game:
+
+  yankees_braves     home -142 favoured, home -1.5 gives   agree
+  whitesox_guardians away -105 favoured, home +1.5 receives agree
+
+`FavouriteAgreement` makes a disagreement a first-class case rather than a card
+that merely looks odd.
+
+### Three invariants, all mutation-tested
+
+| mutation | result |
+| --- | --- |
+| `spread.away` 1.5 -> 2.5 | FAIL "every spread is a balanced handicap" |
+| `total.under` 8.5 -> 9.5 | FAIL "every total is a single line" |
+| handicap flipped against the moneyline | FAIL "moneyline and handicap agree on the favourite" |
+
+**The second one initially did not fail, and that was a defect in this work.**
+The split total was measured into the log as a counter while the other two
+failed — inconsistent, and it would have let a real shape change pass as green.
+Fixed by making it a check.
+
+The reasoning behind making it fail is worth recording, because it is not
+obvious: a split total is *not* a data-integrity violation the way an unbalanced
+handicap is. It could equally mean the relay started serving genuine over/under
+prices instead of the duplicated line — an upstream improvement. It fails for
+the same reason an unmodelled sport does: an assumption this repo encoded has
+stopped holding, and the model needs revisiting. The alarm says investigate, not
+broken.
+
+### Compile-time claim
+
+Handling only the shape the data currently takes does not compile:
+
+```
+error FS0025: Incomplete pattern matches on this expression. For example, the
+value 'Some (TwoNumbers (_, _))' may indicate a case not covered by the pattern(s).
+```
+
+Recorded in `docs/ODDS-PROOF.md` and compiled on every CI run. This is the point
+of modelling `TwoNumbers` and `Unbalanced` at all: they are the cases that would
+otherwise be discovered by a card rendering something quietly wrong.
+
+### Verification
+
+Gate 100/100. proof-check 10/10 (7 doc cases across three proof docs plus
+registry completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift
+7/7 on both captures, corrupted fixture still rejected, zero warnings.
+
+### Not claimed
+
+- No price data for spread or total exists in this payload, so nothing here
+  computes an implied probability for either. Only the moneyline is priced.
+- `Unbalanced`, `TwoNumbers` and `Disagrees` have never been observed. They are
+  modelled and mutation-tested but have no real-data coverage — the same
+  standing as `Moved`.
+- Nothing is claimed about sport-specific handicap vocabulary (runline, spread,
+  handicap). The card renders a neutral "H" because nothing in this repo
+  evidences what FIELD calls them per sport, and inventing a vocabulary is how
+  production ended up with five disagreeing sport registries.

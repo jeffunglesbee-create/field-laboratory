@@ -89,6 +89,33 @@ let private priceText (o: Odds) =
     | Some h, Some a -> sprintf "%+d / %+d" h a
     | _ -> "no moneyline"
 
+/// The handicap and the total, with any shape anomaly stated rather than
+/// smoothed over. Every branch here corresponds to a real modelled case; the
+/// two "should not happen" ones say so on the card if they ever do.
+let private linesText (o: Odds) =
+    let spread =
+        match spreadOf o with
+        | None -> ""
+        // "H" for the home handicap. Not sport-labelled (runline / spread /
+        // handicap) because nothing in this repo evidences what FIELD calls
+        // them per sport, and inventing a vocabulary is how the sport registry
+        // got five disagreeing copies in production.
+        | Some (Balanced h) -> sprintf " · H %+.1f" h
+        | Some (Unbalanced(h, a)) -> sprintf " · SPREAD UNBALANCED (%+.1f / %+.1f)" h a
+    let total =
+        match totalOf o with
+        | None -> ""
+        | Some (OneLine line) -> sprintf " · O/U %.1f" line
+        | Some (TwoNumbers(over, under)) -> sprintf " · TOTAL SPLIT (%.1f / %.1f)" over under
+    let agreement =
+        match favouriteAgreement o with
+        | Agrees
+        | NotComparable -> ""
+        | Disagrees(mlHome, spHome) ->
+            sprintf " · FAVOURITE MISMATCH (ML says %s, handicap says %s)"
+                (if mlHome then "home" else "away") (if spHome then "home" else "away")
+    spread + total + agreement
+
 /// The Odds Story slot.
 ///
 /// Factual market description only. ADR-002's Rule F permits anything "a
@@ -103,14 +130,14 @@ let private oddsText (g: Game) =
     | _ ->
         match oddsStory g.OpeningOdds g.ClosingOdds with
         | NoPrices -> "no odds"
-        | SingleSnapshot o -> sprintf "%s ML %s (one snapshot)" o.Source (priceText o)
+        | SingleSnapshot o -> sprintf "%s ML %s%s (one snapshot)" o.Source (priceText o) (linesText o)
         // Stated on the card, not swallowed. The relay labels these open and
         // close; the timestamps say they are not.
         | NotASequence(o, c) ->
-            sprintf "%s ML %s — open/close NOT SEQUENCED (%s vs %s)"
-                o.Source (priceText c)
+            sprintf "%s ML %s%s — open/close NOT SEQUENCED (%s vs %s)"
+                o.Source (priceText c) (linesText c)
                 (defaultArg o.RawCapturedAt "?") (defaultArg c.RawCapturedAt "?")
-        | Unmoved c -> sprintf "%s ML %s (line unmoved)" c.Source (priceText c)
+        | Unmoved c -> sprintf "%s ML %s%s (line unmoved)" c.Source (priceText c) (linesText c)
         | Moved(o, c, shift) ->
             sprintf "%s ML %s -> %s (home %+.1f pts implied)"
                 c.Source (priceText o) (priceText c) (float shift * 100.0)

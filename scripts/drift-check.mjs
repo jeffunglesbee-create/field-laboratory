@@ -18,7 +18,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { createChecks, toArray, NESTED } from './checks.mjs'
-import { decodePayload, sportMeta, oddsStory } from '../build/Desk.js'
+import { decodePayload, sportMeta, oddsStory, spreadOf, totalOf, favouriteAgreement } from '../build/Desk.js'
 
 const args = process.argv.slice(2)
 const argOf = flag => {
@@ -65,6 +65,7 @@ let malformed = []
 let unmodelled = []
 let vocabulary = []
 let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0, none: 0 }
+let lineShape = { spreads: 0, unbalanced: 0, totals: 0, split: 0, compared: 0, mismatched: 0 }
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -109,6 +110,51 @@ if (decoded) {
     }
   }
 
+  // Line shapes across the slate. SPREAD tags: Balanced, Unbalanced.
+  // TOTAL tags: OneLine, TwoNumbers. AGREEMENT tags: Agrees, Disagrees,
+  // NotComparable. All follow declaration order in Desk.fs.
+  const SPREAD = { Balanced: 0, Unbalanced: 1 }
+  const TOTAL = { OneLine: 0, TwoNumbers: 1 }
+  const AGREE = { Agrees: 0, Disagrees: 1, NotComparable: 2 }
+  for (const g of games) {
+    for (const nested of [g.OpeningOdds, g.ClosingOdds]) {
+      if (nested?.tag !== NESTED.Decoded) continue
+      const o = nested.fields[0]
+      const sp = spreadOf(o)
+      if (sp != null) {
+        lineShape.spreads += 1
+        if (sp.tag === SPREAD.Unbalanced) lineShape.unbalanced += 1
+      }
+      const tl = totalOf(o)
+      if (tl != null) {
+        lineShape.totals += 1
+        if (tl.tag === TOTAL.TwoNumbers) lineShape.split += 1
+      }
+      const ag = favouriteAgreement(o)
+      if (ag.tag !== AGREE.NotComparable) {
+        lineShape.compared += 1
+        if (ag.tag === AGREE.Disagrees) lineShape.mismatched += 1
+      }
+    }
+  }
+
+  // Both are real data-integrity invariants, so both fail rather than merely
+  // report. A handicap whose two numbers are not opposites is not one line, and
+  // a moneyline that disagrees with the handicap about who is favoured means one
+  // of the two fields describes a different market.
+  check('every spread is a balanced handicap', lineShape.unbalanced === 0,
+    `${lineShape.unbalanced} of ${lineShape.spreads} spreads have home != -away`)
+  check('moneyline and handicap agree on the favourite', lineShape.mismatched === 0,
+    `${lineShape.mismatched} of ${lineShape.compared} comparable games disagree`)
+  // Not a data-integrity violation like the two above — a split total could
+  // just as easily mean the relay started serving real over/under PRICES
+  // instead of the line duplicated, which would be an upstream improvement.
+  // It fails anyway, for the same reason an unmodelled sport does: an
+  // assumption this repo encoded (`total` is one line) has stopped holding, and
+  // the model needs revisiting. The alarm says investigate, not broken.
+  check('every total is a single line, not two numbers', lineShape.split === 0,
+    `${lineShape.split} of ${lineShape.totals} totals carry over != under — the field may now be real prices`)
+
   check('no malformed nested payloads', malformed.length === 0, malformed.join(' | '))
   // Deliberately a failure, not a note. An unmodelled sport means the registry
   // is incomplete and its fixtures are rendering under an unknown convention —
@@ -125,6 +171,7 @@ console.log(`source:   ${source}`)
 console.log(`date:     ${payload?.Date ?? '(undecoded)'}`)
 console.log(`games:    ${games.length}`)
 console.log(`malformed:${malformed.length}`)
+console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} favourite-compared=${lineShape.compared} mismatched=${lineShape.mismatched}`)
 console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
 console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
 if (malformed.length) for (const m of malformed) console.log(`  ${m}`)
@@ -146,6 +193,10 @@ const sports = vocabulary.map(v => `${v.label}${v.modelled ? '' : '*'}:${v.n}`).
 // is a question about the relay that only accumulates with observation — the
 // committed capture says no, on a sample of two.
 const odds = `both=${oddsShape.withBoth} notseq=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved}`
-console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}`)
+// Line shapes ride along too: whether `total` ever carries two different
+// numbers, and whether the handicap ever contradicts the moneyline, are
+// questions only observation can answer.
+const lines = `spreads=${lineShape.spreads} unbal=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} mismatch=${lineShape.mismatched}`
+console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}`)
 
 process.exit(failures === 0 ? 0 : 1)

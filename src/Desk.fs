@@ -37,7 +37,15 @@ type Odds =
       /// check that an "opening" and a "closing" price are actually a sequence
       /// — and in the committed capture, they are not.
       CapturedAt: DateTimeOffset option
-      RawCapturedAt: string option }
+      RawCapturedAt: string option
+      // The handicap and the total, as the relay nests them. Kept as the raw
+      // four numbers here; their *relationships* are derived below, because
+      // that is where the shape claims live and the shape is what turned out
+      // to be interesting.
+      SpreadHome: float option
+      SpreadAway: float option
+      TotalOver: float option
+      TotalUnder: float option }
 
 /// How a sport names a fixture.
 ///
@@ -278,7 +286,11 @@ let oddsDecoder : Decoder<Odds> =
           // string, because assuming a shared format is how the start_time bug
           // is waiting to happen again.
           CapturedAt = rawCaptured |> Option.bind parseStartTime
-          RawCapturedAt = rawCaptured })
+          RawCapturedAt = rawCaptured
+          SpreadHome = get.Optional.At [ "spread"; "home" ] Decode.float
+          SpreadAway = get.Optional.At [ "spread"; "away" ] Decode.float
+          TotalOver = get.Optional.At [ "total"; "over" ] Decode.float
+          TotalUnder = get.Optional.At [ "total"; "under" ] Decode.float })
 
 let gameDecoder : Decoder<Game> =
     Decode.object (fun get ->
@@ -372,6 +384,73 @@ let gameState (g: Game) : GameState =
         else
             InProgress(h, a)
     | _ -> Scheduled
+
+// ---------------------------------------------------------------------------
+// Line shapes
+// ---------------------------------------------------------------------------
+
+/// The handicap, always stated relative to the home side.
+///
+/// A handicap is one number. The relay serves it as two, and they must be exact
+/// opposites for the pair to describe a single line. `Unbalanced` is not
+/// defensive padding: if it ever fires, the two numbers are not one handicap and
+/// nothing downstream should be treating them as though they were.
+///
+/// Stating it relative to home rather than to "the favourite" is deliberate.
+/// This repo has already shipped one bug from a number whose referent was
+/// implicit — every fixture rendered away-first because `%s @ %s` carried no
+/// convention with it. A signed handicap with an unstated side is the same
+/// mistake waiting.
+type Spread =
+    | Balanced of homeHandicap: float
+    | Unbalanced of home: float * away: float
+
+/// The total.
+///
+/// The relay serves `{over, under}`, which reads as two prices. In every
+/// observed game both hold the SAME number — 8.5 and 8.5 — so the field carries
+/// one line written twice, not an over price and an under price. `OneLine` is
+/// what the data actually is; `TwoNumbers` is what the field name implies and
+/// has never been seen.
+type TotalLine =
+    | OneLine of line: float
+    | TwoNumbers of over: float * under: float
+
+/// Whether the handicap agrees with the moneyline about who is favoured.
+///
+/// A real cross-field invariant: the side giving points on the handicap should
+/// be the side priced shorter on the moneyline. Both currently agree on every
+/// observed game. If they ever disagree, one of the two fields is describing a
+/// different market — visible here rather than as a card that merely looks odd.
+type FavouriteAgreement =
+    | Agrees
+    | Disagrees of moneylineFavoursHome: bool * handicapFavoursHome: bool
+    | NotComparable
+
+let spreadOf (o: Odds) : Spread option =
+    match o.SpreadHome, o.SpreadAway with
+    | Some h, Some a when h = -a -> Some(Balanced h)
+    | Some h, Some a -> Some(Unbalanced(h, a))
+    | _ -> None
+
+let totalOf (o: Odds) : TotalLine option =
+    match o.TotalOver, o.TotalUnder with
+    | Some over, Some under when over = under -> Some(OneLine over)
+    | Some over, Some under -> Some(TwoNumbers(over, under))
+    | _ -> None
+
+let favouriteAgreement (o: Odds) : FavouriteAgreement =
+    match o.MoneylineHome, o.MoneylineAway, spreadOf o with
+    // A shorter price is the more negative American number, so comparing them
+    // directly gives the favourite without any sign gymnastics.
+    | Some mh, Some ma, Some (Balanced h) when mh <> ma && h <> 0.0 ->
+        let moneylineFavoursHome = mh < ma
+        // A negative home handicap means home gives points, i.e. home is favoured.
+        let handicapFavoursHome = h < 0.0
+        if moneylineFavoursHome = handicapFavoursHome then Agrees
+        else Disagrees(moneylineFavoursHome, handicapFavoursHome)
+    // A pick-em price or a zero handicap has no favourite to agree about.
+    | _ -> NotComparable
 
 // ---------------------------------------------------------------------------
 // The Odds Story

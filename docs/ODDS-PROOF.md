@@ -106,6 +106,72 @@ deeper: not a scale mismatch but a meaning mismatch at the same scale. It is
 also the first time the units of measure in this repo have had a real consumer
 rather than a demo value.
 
+## The spread and the total
+
+Same treatment, and the total produced a second structural finding.
+
+**`spread` is a symmetric handicap.** The relay serves `{home, away}`, and a
+handicap is one number, so the pair must be exact opposites to describe one
+line. Every observed game satisfies it:
+
+```
+{home: -1.5, away: 1.5}      {home: 1.5, away: -1.5}
+```
+
+`Spread` is therefore `Balanced of homeHandicap` or `Unbalanced of home * away`.
+It is stated relative to **home**, not to "the favourite", deliberately: this
+repo has already shipped one bug from a number whose referent was implicit —
+every fixture rendered away-first because `%s @ %s` carried no convention with
+it (`docs/SPORT-PROOF.md`). A signed handicap with an unstated side is the same
+mistake waiting.
+
+**`total` is one line written twice.** The field reads as two prices and is not:
+
+```
+total = {over: 8.5, under: 8.5}      # every game, both snapshots
+```
+
+`over` and `under` hold the *same number*. This is the line, duplicated — there
+is no over price and no under price anywhere in the payload. `TotalLine` models
+it as `OneLine of line`, with `TwoNumbers of over * under` for the shape the
+field's name implies and which has never been observed.
+
+Neither the spread nor the total carries any price. The moneyline is the only
+priced market in this payload, which is why it is the only one the implied-
+probability work touches.
+
+### A cross-field invariant
+
+The side giving points on the handicap should be the side priced shorter on the
+moneyline. That is checkable, and both fields agree on every observed game:
+
+| game | moneyline | handicap | agree |
+| --- | --- | --- | --- |
+| yankees_braves | home -142 (home favoured) | home -1.5 (home gives) | yes |
+| whitesox_guardians | away -105 (away favoured) | home +1.5 (home receives) | yes |
+
+`FavouriteAgreement` makes a disagreement a first-class case rather than a card
+that merely looks odd, and the sentinel fails on it. If it ever fires, one of
+the two fields is describing a different market.
+
+### The shape anomalies cannot be dropped
+
+<!-- proof: FS0025 -->
+```fsharp
+match totalOf { g with Sport = g.Sport } with
+| Some (OneLine line) -> sprintf "%.1f" line
+| None -> ""
+```
+```
+error FS0025: Incomplete pattern matches on this expression. For example, the
+value 'Some (TwoNumbers (_, _))' may indicate a case not covered by the pattern(s).
+```
+
+Handling only the shape the data currently takes does not compile. That is the
+whole point of modelling `TwoNumbers` and `Unbalanced` at all: they are the
+cases that would otherwise be discovered by a card rendering something quietly
+wrong.
+
 ## ADR-002 position
 
 Clean, and worth stating rather than assuming, since this renders numbers next

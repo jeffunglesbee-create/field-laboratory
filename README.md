@@ -84,6 +84,11 @@ every card — a true-sounding statement about a market never observed twice.
 card says so. See `docs/ODDS-PROOF.md`; the sentinel measures it daily and files
 its own issue.
 
+Decoding `spread` and `total` found a second one: `total = {over: 8.5, under:
+8.5}` in every game. The field reads as two prices and carries one line,
+duplicated. Neither the spread nor the total is priced at all — the moneyline is
+the only priced market in the payload.
+
 ## Layout
 
 | Path | What it is |
