@@ -110,6 +110,12 @@ const rows = [
   { name: 'FIELD-zone day is correct at fixed instants', weight: 10,
     run: () => ok('node scripts/zone-check.mjs') },
 
+  // A step whose script imports build/ from a job that never builds is valid
+  // YAML, a valid script, and green everywhere locally. It cost two failed
+  // runs. This is the only row that reads CI configuration rather than code.
+  { name: 'workflow jobs can run the scripts they invoke', weight: 10,
+    run: () => ok('node scripts/workflow-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

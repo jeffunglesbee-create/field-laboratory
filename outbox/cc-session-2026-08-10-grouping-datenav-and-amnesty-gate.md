@@ -1040,3 +1040,65 @@ the change. A one-word edit to any outbox file satisfies it. That is a real
 limit, stated rather than papered over — the row raises the floor from "a file
 exists" to "this commit touched it", which would have caught both gaps, and no
 further.
+
+---
+
+## The window check ran in the one job that could not run it
+
+`b187a91` added the window simulation as a step in `live-check.yml`. It failed
+twice on the runner — `31423718915` and `31422236762` — both at the same step,
+both with:
+
+```
+code: 'ERR_MODULE_NOT_FOUND',
+url: 'file:///home/runner/work/field-laboratory/field-laboratory/build/Desk.js'
+```
+
+`window-check.mjs` imports `fieldDayAt` from `../build/Desk.js`. `live-check.yml`
+runs `npm ci` and `playwright install` and nothing else: no `setup-dotnet`, no
+`npm run build`. That is not an oversight in that workflow — it exists to render
+the **deployed** artifact, so building a local one would defeat its purpose. The
+step was simply in the wrong file. My own commit message said "the fetch half
+runs as a live-check step on a runner", which named the wrong workflow.
+
+**Fixed:** the step moved to `verify.yml`, which already builds and already has
+relay egress (it runs `check:live` against the real relay). `live-check.yml`
+keeps a comment saying why the step is *not* there, so the next person moving it
+back reads the reason first.
+
+### The interesting part: nothing in the repo could have caught it
+
+The script was correct. The YAML was valid. Every local check passed, and the
+gate scored 120/120 on the commit that broke CI. The mismatch existed only in
+the *pairing* of a job and a script — a relationship no file in the repo
+described.
+
+**New guard — `scripts/workflow-check.mjs`.** It splits each workflow into jobs,
+resolves every `node scripts/*.mjs` and `npm run *` invocation to real files,
+follows their relative imports transitively, and fails any job that reaches
+`build/` without running a build.
+
+Mutation-tested in both directions, inside the script itself, so the assertions
+travel with it:
+
+- the exact historical mistake — a build-less job running `check:window` — is
+  replayed and must be flagged
+- the same job **with** a build step must not be flagged, so the detector cannot
+  pass by failing everything
+
+It found a real bug on its first run, and not the one it was written for: it
+flagged `live-check.yml` *after* the fix, because the comment explaining why the
+window check is absent contains the string `npm run check:window`. The detector
+was reading prose as configuration. Comment-only lines are now stripped before
+parsing. A guard that reads documentation as code will fire on the sentence that
+documents it.
+
+Wired into `verify.yml` (before the zone checks — it is fast and needs nothing)
+and into the confidence gate as a 10-point row. The gate now has 10 rows and
+130 possible points.
+
+**What it cannot do:** it is not a YAML parser. Jobs are found by indentation —
+keys at exactly two spaces under `jobs:` — which is true of all six workflows
+here and is asserted rather than assumed (zero jobs parsed is a failure). And it
+only knows about one dependency, `build/`. A script needing a browser, or a
+secret, in a job that provides neither would still slip through.

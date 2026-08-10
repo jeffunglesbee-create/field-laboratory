@@ -68,10 +68,9 @@ jobs:
           # the feature this workflow exists to keep honest in production.
           node scripts/live-grouping-check.mjs
 
-      # The ET fix is only observable between 00:00 and 04:00 UTC, and nothing
-      # is scheduled there. Rather than wait for the window, this names an
-      # instant inside it, asks the real compiled F# which day that is, and
-      # fetches BOTH that day and the UTC day from the live relay — so the
-      # difference the fix makes is two HTTP responses rather than an argument.
-      - name: The zone choice changes the slate (window simulation)
-        run: npm run check:window
+      # The window simulation (npm run check:window) deliberately does NOT live
+      # here. It imports the compiled `fieldDayAt` from build/, and this job has
+      # no .NET and no build step by design — it tests the DEPLOYED artifact,
+      # not a local one. Putting it here failed two runs with ERR_MODULE_NOT_FOUND
+      # before the mistake was noticed. It runs in `verify`, which builds and
+      # also has relay egress.

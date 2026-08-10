@@ -104,8 +104,27 @@ jobs:
       # Deterministic zone assertions. CI runs whenever a push lands, which is
       # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
       # so the zone logic would otherwise be exercised only by luck.
+      # Cheap and early: does every workflow job actually satisfy the imports of
+      # the scripts it invokes? Added after two live-check runs failed on a step
+      # that imported build/ from a job with no build.
+      - name: Workflow jobs can run what they invoke
+        run: npm run check:workflows
+
       - name: FIELD-zone day checks
         run: npm run check:zone
+
+      # zone-check proves the day arithmetic; this proves the day arithmetic
+      # CHANGES WHAT THE PAGE FETCHES. It names an instant inside the 00:00-04:00
+      # UTC window, asks the real compiled F# which day that is, and pulls BOTH
+      # that day and the UTC day from the live relay — so the difference the fix
+      # makes is two HTTP responses rather than an argument, available at any
+      # hour instead of once a night.
+      #
+      # It lives here, not in live-check, for two reasons that both matter: it
+      # imports from build/ (live-check never builds) and it needs relay egress
+      # (the dev sandbox has none).
+      - name: The zone choice changes the slate (window simulation)
+        run: npm run check:window
 
       # The confidence gate the CC-CMD ceremony asks for, mechanised. Every row
       # runs a real command and takes its score from the exit code, so the total
