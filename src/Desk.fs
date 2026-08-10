@@ -207,11 +207,67 @@ type Game =
       EspnEventId: string option
       FinalizedAt: string option }
 
+/// A row from the relay's `briefs` table.
+///
+/// Field names are taken from the relay's own SQL in
+/// `docs/CC-CMD-context-graph.md` (`findBriefs`, and the `/context/date`
+/// handler's `SELECT * FROM briefs`), not guessed. Everything optional: the
+/// date-level query is `SELECT *`, so the full column set is not enumerable
+/// from the source, and a column this laboratory has never seen is decoded as
+/// absent rather than assumed away.
+type Brief =
+    { Id: string option
+      BriefType: string option
+      Text: string option
+      /// FIELD's JQ score for the PROSE, not for the game. Distinct from the
+      /// drama score in every way that matters to ADR-002: it rates writing
+      /// quality, not how interesting a game is, so it carries none of the
+      /// RUWT weight `SealedDrama` does and is not gated.
+      QualityScore: float option
+      Source: string option
+      Model: string option
+      WordCount: int option
+      GameId: string option
+      Date: string option }
+
+/// A section of the Context Graph response.
+///
+/// Three states, and the middle one is the finding. The relay assembles
+/// `/context/date` with `Promise.allSettled` and collapses a rejected query to
+/// an empty array:
+///
+///   briefs: briefs.status === 'fulfilled' ? briefs.value.results : []
+///
+/// So `[]` means EITHER "no rows for this date" OR "the D1 query failed and the
+/// relay swallowed it". Those are not the same thing — one is a fact about the
+/// slate, the other is an outage — and the wire format cannot tell them apart.
+/// The client is structurally unable to distinguish them, and any code that
+/// treats `[]` as "no briefs today" is guessing.
+///
+/// Naming it `EmptyOrFailed` is the honest model. It is deliberately awkward to
+/// read, because the ambiguity is real and hiding it behind the word `Empty`
+/// would be inventing certainty the payload does not carry.
+type Section<'T> =
+    /// The key is absent from the payload entirely.
+    | Absent
+    /// Present and empty. Indistinguishable from a failed upstream query.
+    | EmptyOrFailed
+    | Present of 'T list
+
 type DeskPayload =
     { Ok: bool
       Date: string
       Regular: Game list
-      Postseason: Game list }
+      Postseason: Game list
+      Briefs: Section<Brief>
+      /// `series` and `standings` are decoded as raw key sets rather than
+      /// typed rows. The relay selects them with `SELECT * FROM
+      /// postseason_series` and a brief-table projection, and neither has ever
+      /// arrived non-empty here, so there is no observed shape to model. Their
+      /// keys are recorded so the day they arrive, they can be modelled from
+      /// evidence rather than from the SQL alone.
+      Series: Section<string list>
+      Standings: Section<string list> }
 
 // ---------------------------------------------------------------------------
 // The hazards
@@ -326,6 +382,32 @@ let gameDecoder : Decoder<Game> =
           EspnEventId = get.Optional.Field "espn_event_id" Decode.string
           FinalizedAt = get.Optional.Field "finalized_at" Decode.string })
 
+let briefDecoder : Decoder<Brief> =
+    Decode.object (fun get ->
+        { Id = get.Optional.Field "id" Decode.string
+          BriefType = get.Optional.Field "brief_type" Decode.string
+          Text = get.Optional.Field "brief_text" Decode.string
+          QualityScore = get.Optional.Field "quality_score" Decode.float
+          Source = get.Optional.Field "source" Decode.string
+          Model = get.Optional.Field "model" Decode.string
+          WordCount = get.Optional.Field "word_count" Decode.int
+          GameId = get.Optional.Field "game_id" Decode.string
+          Date = get.Optional.Field "date" Decode.string })
+
+/// Lifts a list decoder into a `Section`, preserving the empty/absent
+/// distinction the relay's own shape destroys on the other axis.
+let section (inner: Decoder<'T>) : Decoder<Section<'T>> =
+    Decode.list inner
+    |> Decode.map (fun rows -> if List.isEmpty rows then EmptyOrFailed else Present rows)
+
+/// Records what arrived without claiming to understand it. Elements that are
+/// not objects contribute no keys rather than failing the decode — the goal is
+/// to find out what arrives, and a decoder that rejects the unknown would
+/// defeat the purpose.
+let keySetDecoder : Decoder<Section<string list>> =
+    Decode.list (Decode.oneOf [ Decode.keys |> Decode.map List.ofSeq; Decode.succeed [] ])
+    |> Decode.map (fun rows -> if List.isEmpty rows then EmptyOrFailed else Present rows)
+
 let payloadDecoder : Decoder<DeskPayload> =
     Decode.object (fun get ->
         { Ok = get.Optional.Field "ok" Decode.bool |> Option.defaultValue false
@@ -333,7 +415,10 @@ let payloadDecoder : Decoder<DeskPayload> =
           Regular = get.Optional.At [ "games"; "regular" ] (Decode.list gameDecoder)
                     |> Option.defaultValue []
           Postseason = get.Optional.At [ "games"; "postseason" ] (Decode.list gameDecoder)
-                       |> Option.defaultValue [] })
+                       |> Option.defaultValue []
+          Briefs = get.Optional.Field "briefs" (section briefDecoder) |> Option.defaultValue Absent
+          Series = get.Optional.Field "series" keySetDecoder |> Option.defaultValue Absent
+          Standings = get.Optional.Field "standings" keySetDecoder |> Option.defaultValue Absent })
 
 let decodePayload (json: string) : Result<DeskPayload, string> =
     Decode.fromString payloadDecoder json

@@ -89,6 +89,13 @@ Decoding `spread` and `total` found a second one: `total = {over: 8.5, under:
 duplicated. Neither the spread nor the total is priced at all — the moneyline is
 the only priced market in the payload.
 
+**The finding that needed the relay's source to see:** `briefs`, `series` and
+`standings` are empty in every capture, and the wire format cannot say why.
+`/context/date` assembles them with `Promise.allSettled` and collapses a
+rejected D1 query to `[]` — which is also what a quiet date returns. Modelled as
+`Absent | EmptyOrFailed | Present`, where the awkward middle name is the honest
+one. See `docs/SECTIONS-PROOF.md`.
+
 ## Layout
 
 | Path | What it is |

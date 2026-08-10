@@ -67,6 +67,7 @@ let vocabulary = []
 let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0, none: 0 }
 let lineShape = { spreads: 0, unbalanced: 0, totals: 0, split: 0, compared: 0, mismatched: 0 }
 let mismatchDetail = []
+let sections = []
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -164,6 +165,24 @@ if (decoded) {
     `${lineShape.split} of ${lineShape.totals} totals carry over != under — the field may now be real prices`)
 
   check('no malformed nested payloads', malformed.length === 0, malformed.join(' | '))
+
+  // Context Graph sections. SECTION tags follow declaration order in Desk.fs:
+  // Absent, EmptyOrFailed, Present.
+  const SECTION = { Absent: 0, EmptyOrFailed: 1, Present: 2 }
+  const sectionName = t => ['absent', 'empty-or-failed', 'present'][t] ?? '?'
+  sections = ['Briefs', 'Series', 'Standings'].map(name => {
+    const v = payload[name]
+    const n = v?.tag === SECTION.Present ? v.fields[0].length ?? toArray(v.fields[0]).length : 0
+    return { name: name.toLowerCase(), state: sectionName(v?.tag), n }
+  })
+
+  // NOT a failure. The relay collapses a rejected D1 query to [] via
+  // Promise.allSettled, so `empty-or-failed` is genuinely ambiguous and firing
+  // on it would alarm on every quiet slate. Recorded and tracked instead —
+  // whether these sections are ever populated is a question only the log can
+  // answer, which is the same standing as the drift question itself.
+  check('context sections decoded', sections.length === 3,
+    sections.map(s => `${s.name}=${s.state}`).join(' '))
   // Deliberately a failure, not a note. An unmodelled sport means the registry
   // is incomplete and its fixtures are rendering under an unknown convention —
   // the same class of defect as a malformed payload, and it stays loud until
@@ -179,6 +198,7 @@ console.log(`source:   ${source}`)
 console.log(`date:     ${payload?.Date ?? '(undecoded)'}`)
 console.log(`games:    ${games.length}`)
 console.log(`malformed:${malformed.length}`)
+console.log(`sections: ${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ') || '—'}`)
 console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} favourite-compared=${lineShape.compared} mismatched=${lineShape.mismatched}`)
 console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
 console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
@@ -219,6 +239,6 @@ const odds = `both=${oddsShape.withBoth} notseq=${oddsShape.notSequenced} moved=
 // numbers, and whether the handicap ever contradicts the moneyline, are
 // questions only observation can answer.
 const lines = `spreads=${lineShape.spreads} unbal=${lineShape.unbalanced} totals=${lineShape.totals} split=${lineShape.split} mismatch=${lineShape.mismatched}`
-console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}`)
+console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}|${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ')}`)
 
 process.exit(failures === 0 ? 0 : 1)

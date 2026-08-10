@@ -622,3 +622,84 @@ are genuine.
 The alarm was built one commit before it fired, on two MLB games, and was wrong.
 It was caught within a single live run — by the naming fix, not by the alarm
 itself. An alarm that reports a count is not an alarm, it is a rumour.
+
+---
+
+## Follow-on: briefs, series, standings — and the gate earning its keep
+
+### Context checked first, and it changed the build
+
+Asked to check the cost-savings and J-layer/JQ docs on Drive before proceeding.
+That was the right instruction and it redirected the work twice.
+
+`FIELD — Insights Layer Spec ADDENDUM: O(1) Newspaper Architecture` establishes
+that journalism is generated once per sport section per cron cycle, stored in
+KV, and served flat from `/journalism/tonight` — $19/month at 1 user and at
+10,000, against $145,800/month for the per-user pattern it replaced. Its stated
+invariant: **"Client makes ZERO AI calls. Ever."**
+
+First correction: I had been about to frame the three empty sections as a gap
+the client needs filled. Journalism has its own endpoints; that framing would
+have been wrong.
+
+Second correction, from the relay's own source rather than the Drive docs:
+`/context/date/{iso}` genuinely does return all three, from D1. So they are not
+empty by architecture — which made the emptiness worth understanding rather than
+explaining away.
+
+### The finding: an empty array that means two things
+
+```javascript
+const [regular, postseason, briefs, enrichment, standings] =
+  await Promise.allSettled([ /* five D1 queries */ ]);
+briefs: briefs.status === 'fulfilled' ? briefs.value.results : []
+```
+
+`Promise.allSettled` is deliberate and correct — the CC-CMD's own rule is
+"partial results are better than total failure". But a rejected query collapses
+to `[]`, and `[]` is also what a genuinely quiet date returns. One is a fact
+about the slate, the other is an outage, and after the collapse no consumer can
+recover which happened.
+
+Modelled as `Absent | EmptyOrFailed | Present of 'T list`. `EmptyOrFailed` is
+deliberately awkward to read; calling it `Empty` would invent a certainty the
+payload does not carry — the same mistake that would have rendered "line
+unchanged" over `closing_odds`.
+
+Deliberately NOT alarmed on. Firing on an ambiguous state would alarm on every
+quiet slate; it is recorded in the drift log on every run instead.
+
+`Brief` is modelled from the relay's own SQL (`findBriefs` selects id,
+brief_type, brief_text, quality_score, source, model, word_count), every field
+optional because the date-level query is `SELECT *`. `series` and `standings`
+stay key-sets: never observed non-empty, so no shape to model.
+
+### The confidence gate blocked a real regression, for the first time
+
+While wiring the section reporting I used
+`check('no malformed nested payloads', ...)` as a text anchor across several
+edits, and the last edit REPLACED it rather than inserting before it. That
+deleted the sentinel's central guard — the one that gives
+`test/malformed-nested.json` its teeth.
+
+The suite still read 7/7 green. The corrupted fixture decoded cleanly and the
+`decoders still REJECT the corrupted fixture` row went red, taking the gate
+below the bar and refusing the commit.
+
+Worth stating plainly: every previous time the gate has run it confirmed work
+that was already correct, and I described it as insurance. This is the first
+time it caught something, and what it caught was me silently removing the check
+that protects the repo's oldest claim. A green 7/7 next to a deleted assertion
+is exactly the shape the gate exists to see through.
+
+### Verification
+
+Gate 100/100. proof-check 11/11 (8 doc cases across four proof docs plus
+registry completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift
+8/8 on both captures, corrupted fixture rejected, zero warnings.
+
+### Not claimed
+
+`Present` has never been observed — modelled and compiling, no real-data
+coverage. Same standing as `Moved`, `Unbalanced`, `TwoNumbers` and `Disagrees`:
+five modelled cases now waiting on data that may never arrive.
