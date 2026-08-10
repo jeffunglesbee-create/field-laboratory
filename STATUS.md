@@ -5,11 +5,11 @@ not read from workflow history. Edits here will be overwritten._
 
 ## Is it published?
 
-**No.** Neither deploy target is serving the page yet. Both are built and waiting on one human action each; whichever is unblocked first goes live on its own within the hour.
+**Yes** — Cloudflare Workers: <https://field-laboratory.jeffunglesbee.workers.dev>
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | not published — needs `CLOUDFLARE_API_TOKEN` as a repository secret — see docs/DEPLOY.md | — |
+| Cloudflare Workers | live | `81e35bd` |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
