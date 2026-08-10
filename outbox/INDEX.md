@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `047a1de` | 2026-08-10 | [cc-outbox-split-and-audit-fixes-2026-08-10.md](cc-outbox-split-and-audit-fixes-2026-08-10.md) | One outbox document per piece of work, and three defects a review found |
 | `dc4f26d` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Fix the correlation FIELD's gate suppressed instead of fixing |
 | `6b79a88` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | The gate's denominator was editable by the thing it was grading |
 | `814388a` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Run the window check in a job that builds, and catch the class of mistake |
