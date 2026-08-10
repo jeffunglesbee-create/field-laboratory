@@ -84,14 +84,36 @@ let private dramaText (g: Game) (state: GameState) =
         | NotPresent
         | Decoded _ -> ""
 
+let private priceText (o: Odds) =
+    match o.MoneylineHome, o.MoneylineAway with
+    | Some h, Some a -> sprintf "%+d / %+d" h a
+    | _ -> "no moneyline"
+
+/// The Odds Story slot.
+///
+/// Factual market description only. ADR-002's Rule F permits anything "a
+/// neutral data vendor could plausibly publish" — a bookmaker's price is the
+/// textbook case — and this renders no threshold, no tier and no
+/// recommendation, so it is nowhere near the composite-interest-score line the
+/// drama gate exists to hold.
 let private oddsText (g: Game) =
-    match g.OpeningOdds with
-    | NotPresent -> "no odds"
-    | Malformed err -> sprintf "ODDS MALFORMED: %s" (err.Substring(0, min 60 err.Length))
-    | Decoded o ->
-        match o.MoneylineHome, o.MoneylineAway with
-        | Some h, Some a -> sprintf "%s ML %+d / %+d" o.Source a h
-        | _ -> sprintf "%s (no moneyline)" o.Source
+    match g.OpeningOdds, g.ClosingOdds with
+    | Malformed err, _
+    | _, Malformed err -> sprintf "ODDS MALFORMED: %s" (err.Substring(0, min 60 err.Length))
+    | _ ->
+        match oddsStory g.OpeningOdds g.ClosingOdds with
+        | NoPrices -> "no odds"
+        | SingleSnapshot o -> sprintf "%s ML %s (one snapshot)" o.Source (priceText o)
+        // Stated on the card, not swallowed. The relay labels these open and
+        // close; the timestamps say they are not.
+        | NotASequence(o, c) ->
+            sprintf "%s ML %s — open/close NOT SEQUENCED (%s vs %s)"
+                o.Source (priceText c)
+                (defaultArg o.RawCapturedAt "?") (defaultArg c.RawCapturedAt "?")
+        | Unmoved c -> sprintf "%s ML %s (line unmoved)" c.Source (priceText c)
+        | Moved(o, c, shift) ->
+            sprintf "%s ML %s -> %s (home %+.1f pts implied)"
+                c.Source (priceText o) (priceText c) (float shift * 100.0)
 
 /// A node whose text is a function of the game's live state. Creating it also
 /// wires the effect that keeps it current — the two cannot be separated, which
@@ -142,7 +164,7 @@ let render (mount: HTMLElement) (game: Game) =
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
           stateNode "desk-card__drama" "drama" drama
-          staticNode "desk-card__odds" "" (oddsText game) ]
+          staticNode "desk-card__odds" "odds" (oddsText game) ]
 
     // odds is a staticNode deliberately, not by omission: it derives from the
     // immutable Game record, not from GameState, so it cannot go stale.

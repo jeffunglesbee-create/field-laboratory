@@ -18,7 +18,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { createChecks, toArray, NESTED } from './checks.mjs'
-import { decodePayload, sportMeta } from '../build/Desk.js'
+import { decodePayload, sportMeta, oddsStory } from '../build/Desk.js'
 
 const args = process.argv.slice(2)
 const argOf = flag => {
@@ -64,6 +64,7 @@ let games = []
 let malformed = []
 let unmodelled = []
 let vocabulary = []
+let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0, none: 0 }
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -72,7 +73,7 @@ if (decoded) {
   // the outer string was present and the inner JSON did not decode — a real
   // shape change, which is exactly what this sentinel is watching for.
   for (const g of games) {
-    for (const [field, value] of [['drama_arc', g.DramaArc], ['opening_odds', g.OpeningOdds]]) {
+    for (const [field, value] of [['drama_arc', g.DramaArc], ['opening_odds', g.OpeningOdds], ['closing_odds', g.ClosingOdds]]) {
       if (value?.tag === NESTED.Malformed) {
         malformed.push(`${g.Id}.${field}: ${String(value.fields[0]).replace(/\s+/g, ' ').slice(0, 120)}`)
       }
@@ -93,6 +94,21 @@ if (decoded) {
   vocabulary = [...byLabel.values()].sort((a, b) => b.n - a.n || a.label.localeCompare(b.label))
   unmodelled = vocabulary.filter(v => !v.modelled)
 
+  // The Odds Story's own shape, measured across the whole live slate rather
+  // than inferred from two committed games. ODDS_STORY tags follow declaration
+  // order in Desk.fs: NoPrices, SingleSnapshot, NotASequence, Unmoved, Moved.
+  const ODDS_STORY = { NoPrices: 0, SingleSnapshot: 1, NotASequence: 2, Unmoved: 3, Moved: 4 }
+  for (const g of games) {
+    const story = oddsStory(g.OpeningOdds, g.ClosingOdds)
+    switch (story.tag) {
+      case ODDS_STORY.NotASequence: oddsShape.notSequenced += 1; oddsShape.withBoth += 1; break
+      case ODDS_STORY.Moved:        oddsShape.moved += 1;        oddsShape.withBoth += 1; break
+      case ODDS_STORY.Unmoved:      oddsShape.unmoved += 1;      oddsShape.withBoth += 1; break
+      case ODDS_STORY.SingleSnapshot: oddsShape.single += 1; break
+      default: oddsShape.none += 1
+    }
+  }
+
   check('no malformed nested payloads', malformed.length === 0, malformed.join(' | '))
   // Deliberately a failure, not a note. An unmodelled sport means the registry
   // is incomplete and its fixtures are rendering under an unknown convention —
@@ -109,6 +125,7 @@ console.log(`source:   ${source}`)
 console.log(`date:     ${payload?.Date ?? '(undecoded)'}`)
 console.log(`games:    ${games.length}`)
 console.log(`malformed:${malformed.length}`)
+console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
 console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
 if (malformed.length) for (const m of malformed) console.log(`  ${m}`)
 console.log()
@@ -125,6 +142,10 @@ const note = decoded
 // The observed vocabulary rides along on every run, so the log answers "which
 // sports has this relay ever served" without needing a separate probe.
 const sports = vocabulary.map(v => `${v.label}${v.modelled ? '' : '*'}:${v.n}`).join(' ')
-console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}`)
+// Odds shape rides along too. Whether closing_odds is ever a real closing line
+// is a question about the relay that only accumulates with observation — the
+// committed capture says no, on a sample of two.
+const odds = `both=${oddsShape.withBoth} notseq=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved}`
+console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}`)
 
 process.exit(failures === 0 ? 0 : 1)

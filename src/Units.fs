@@ -24,6 +24,19 @@ type pct
 [<Measure>]
 type drama
 
+/// The probability implied by a bookmaker's price, *including the overround*.
+///
+/// Deliberately not `prob`, and this is the point. A two-sided moneyline of
+/// -142 / +132 implies 0.587 and 0.431 — which sum to 1.018, not 1. That 1.8%
+/// is the book's margin. Treating either number as "the chance this team wins"
+/// overstates it, and both look like plain floats in the 0–1 range, so nothing
+/// but a type distinguishes them.
+///
+/// This is the same failure the `prob`/`pct` split already guards, one level
+/// deeper: not a scale mismatch but a *meaning* mismatch at the same scale.
+[<Measure>]
+type implied
+
 /// The only sanctioned way to cross from probability to percentage.
 let toPct (p: float<prob>) : float<pct> = p * 100.0<pct/prob>
 
@@ -48,3 +61,28 @@ let formatWinProbability (p: float<prob>) : string =
 // in scope, and it demands an `AmnestyZone` witness that only a Final game can
 // produce. Keeping an ungated formatter here as well would reopen the hole,
 // since nothing would stop a caller reaching for the easier one.
+
+/// The probability an American moneyline implies, before removing the vig.
+///
+/// Returns None for a price that is not a valid American moneyline. |ml| < 100
+/// is not a price any book quotes, and 0 would imply certainty — surfacing that
+/// as None beats computing a confident wrong number from junk.
+let impliedOfMoneyline (moneyline: int) : float<implied> option =
+    if abs moneyline < 100 then None
+    elif moneyline < 0 then
+        let m = float (-moneyline)
+        Some(m / (m + 100.0) * 1.0<implied>)
+    else
+        Some(100.0 / (float moneyline + 100.0) * 1.0<implied>)
+
+/// Removes the overround from a two-sided market, yielding probabilities that
+/// sum to 1.
+///
+/// The ONLY sanctioned way to get from `implied` to `prob`. Normalising by the
+/// pair's total is the standard proportional method; it is an assumption about
+/// how the margin is distributed, not a truth, and it is applied in one place
+/// so that assumption has exactly one home.
+let devig (home: float<implied>) (away: float<implied>) : (float<prob> * float<prob>) option =
+    let total = float home + float away
+    if total <= 0.0 then None
+    else Some(float home / total * 1.0<prob>, float away / total * 1.0<prob>)

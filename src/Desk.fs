@@ -32,7 +32,12 @@ type Nested<'T> =
 type Odds =
     { Source: string
       MoneylineHome: int option
-      MoneylineAway: int option }
+      MoneylineAway: int option
+      /// When this snapshot was taken. Decoded because it is the only way to
+      /// check that an "opening" and a "closing" price are actually a sequence
+      /// — and in the committed capture, they are not.
+      CapturedAt: DateTimeOffset option
+      RawCapturedAt: string option }
 
 /// How a sport names a fixture.
 ///
@@ -189,6 +194,7 @@ type Game =
       DramaPeak: SealedDrama option
       DramaArc: Nested<SealedArc>
       OpeningOdds: Nested<Odds>
+      ClosingOdds: Nested<Odds>
       Overtime: OvertimeStatus
       EspnEventId: string option
       FinalizedAt: string option }
@@ -262,9 +268,17 @@ let overtimeDecoder : Decoder<OvertimeStatus> =
 
 let oddsDecoder : Decoder<Odds> =
     Decode.object (fun get ->
+        let rawCaptured = get.Optional.Field "captured_at" Decode.string
         { Source = get.Optional.Field "source" Decode.string |> Option.defaultValue "unknown"
           MoneylineHome = get.Optional.At [ "moneyline"; "home" ] Decode.int
-          MoneylineAway = get.Optional.At [ "moneyline"; "away" ] Decode.int })
+          MoneylineAway = get.Optional.At [ "moneyline"; "away" ] Decode.int
+          // Full ISO-8601 with milliseconds here, unlike `start_time`, which
+          // arrives with no seconds component at all. Two timestamp formats in
+          // one payload; both are parsed explicitly and both keep their raw
+          // string, because assuming a shared format is how the start_time bug
+          // is waiting to happen again.
+          CapturedAt = rawCaptured |> Option.bind parseStartTime
+          RawCapturedAt = rawCaptured })
 
 let gameDecoder : Decoder<Game> =
     Decode.object (fun get ->
@@ -292,6 +306,8 @@ let gameDecoder : Decoder<Game> =
           DramaArc = get.Optional.Field "drama_arc" (nestedJson (Decode.list Decode.int |> Decode.map SealedArc))
                      |> Option.defaultValue NotPresent
           OpeningOdds = get.Optional.Field "opening_odds" (nestedJson oddsDecoder)
+                        |> Option.defaultValue NotPresent
+          ClosingOdds = get.Optional.Field "closing_odds" (nestedJson oddsDecoder)
                         |> Option.defaultValue NotPresent
           Overtime = get.Optional.Field "went_to_ot" overtimeDecoder
                      |> Option.defaultValue OvertimeUnknown
@@ -356,6 +372,67 @@ let gameState (g: Game) : GameState =
         else
             InProgress(h, a)
     | _ -> Scheduled
+
+// ---------------------------------------------------------------------------
+// The Odds Story
+// ---------------------------------------------------------------------------
+
+/// What the opening and closing prices actually say, once both are decoded.
+///
+/// The Debrief's "Odds Story" layer is meant to narrate line movement. Building
+/// it against this relay produced the laboratory's first finding about the DATA
+/// rather than about a type:
+///
+///   opening_odds.captured_at = 2026-08-09T10:01:24.241Z
+///   closing_odds.captured_at = 2026-08-09T10:01:00.322Z
+///
+/// The "closing" line was captured 24 seconds BEFORE the "opening" one, from the
+/// same adapter (`odds-api`), and the two are byte-identical across moneyline,
+/// spread and total. They are not an open/close pair — they are the same
+/// snapshot written to two columns. Confirmed on both games in the capture.
+///
+/// So `NotASequence` is a real case, and it is the one the committed data
+/// actually takes. A narrative layer that rendered "line unchanged" here would
+/// be describing a market that was never observed twice.
+type OddsStory =
+    /// Neither price present.
+    | NoPrices
+    /// Only one side of the pair exists. Nothing to compare.
+    | SingleSnapshot of Odds
+    /// The closing snapshot is not after the opening one, so the pair does not
+    /// describe a sequence and no movement can be inferred from it.
+    | NotASequence of opening: Odds * closing: Odds
+    /// A genuine sequence, prices identical.
+    | Unmoved of Odds
+    /// A genuine sequence with a real move, in implied-probability terms.
+    | Moved of opening: Odds * closing: Odds * homeShift: float<implied>
+
+/// Builds the story. Every branch is reachable from real relay data; none is
+/// defensive padding.
+let oddsStory (opening: Nested<Odds>) (closing: Nested<Odds>) : OddsStory =
+    match opening, closing with
+    | Decoded o, Decoded c ->
+        let sequenced =
+            match o.CapturedAt, c.CapturedAt with
+            // Strictly after. Equal timestamps are not a sequence either: two
+            // snapshots taken in the same instant cannot show movement.
+            | Some ot, Some ct -> ct > ot
+            // No timestamps at all means the sequence is unverifiable, and
+            // assuming it holds is exactly the assumption this case exists to
+            // stop being made silently.
+            | _ -> false
+        if not sequenced then NotASequence(o, c)
+        else
+            match o.MoneylineHome, c.MoneylineHome with
+            | Some oh, Some ch when oh = ch -> Unmoved c
+            | Some oh, Some ch ->
+                match impliedOfMoneyline oh, impliedOfMoneyline ch with
+                | Some io, Some ic -> Moved(o, c, ic - io)
+                | _ -> NotASequence(o, c)
+            | _ -> Unmoved c
+    | Decoded o, _ -> SingleSnapshot o
+    | _, Decoded c -> SingleSnapshot c
+    | _ -> NoPrices
 
 // ---------------------------------------------------------------------------
 // ADR-002 amnesty gate

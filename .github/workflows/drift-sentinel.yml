@@ -142,3 +142,59 @@ jobs:
             gh issue create --title "$TITLE" --body "$BODY" --label "" 2>/dev/null \
               || gh issue create --title "$TITLE" --body "$BODY"
           fi
+
+      # The Odds Story's second follow-up. `closing_odds` is labelled a closing
+      # line and, in every sample so far, is a duplicate of the opening snapshot
+      # captured seconds EARLIER. Whether that holds across the live slate is a
+      # question about the relay, so it is measured rather than assumed — and
+      # measured every day, because a fix upstream should close this by itself.
+      - name: File a follow-up if closing_odds is never a real closing line
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          ODDS=$(cut -d'|' -f8 /tmp/result.txt)
+          BOTH=$(echo "$ODDS" | tr ' ' '\n' | grep '^both=' | cut -d= -f2)
+          NOTSEQ=$(echo "$ODDS" | tr ' ' '\n' | grep '^notseq=' | cut -d= -f2)
+          BOTH=${BOTH:-0}; NOTSEQ=${NOTSEQ:-0}
+          TODAY=$(date -u +%F)
+          echo "games with both prices: $BOTH, not sequenced: $NOTSEQ"
+
+          TITLE="closing_odds is not a closing line"
+          OPEN=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number' || true)
+
+          if [ "$BOTH" -eq 0 ]; then
+            echo "No game carried both prices today - nothing to conclude."
+            exit 0
+          fi
+
+          if [ "$NOTSEQ" -eq "$BOTH" ]; then
+            BODY=$(printf '%s\n' \
+              "On $TODAY, **all $BOTH** games carrying both prices had a \`closing_odds\` that is not a closing line:" \
+              "its \`captured_at\` is at or before \`opening_odds.captured_at\`, so the pair is not a sequence and no" \
+              "line movement can be inferred from it." \
+              "" \
+              "Odds shape this run: \`$ODDS\`" \
+              "" \
+              "The card states this rather than rendering \"line unchanged\" - see \`OddsStory.NotASequence\` in" \
+              "\`src/Desk.fs\` and \`docs/ODDS-PROOF.md\`. This is a finding about the relay, not the laboratory:" \
+              "the Odds Story layer cannot narrate movement that was never observed twice." \
+              "" \
+              "Closes itself on the first run where any game shows a real sequence." \
+              "" \
+              "_Filed by drift-sentinel. Run: $RUN_URL._")
+            if [ -n "$OPEN" ]; then
+              gh issue comment "$OPEN" --body "$BODY"
+              echo "Updated issue #$OPEN"
+            else
+              gh issue create --title "$TITLE" --body "$BODY"
+            fi
+          else
+            SEQ=$((BOTH - NOTSEQ))
+            echo "$SEQ of $BOTH games showed a real open/close sequence."
+            if [ -n "$OPEN" ]; then
+              gh issue close "$OPEN" --comment "On $TODAY, $SEQ of $BOTH games showed a real open/close sequence (\`$ODDS\`). The blanket claim no longer holds. Reopened automatically if a later run sees none."
+              echo "Closed issue #$OPEN"
+            fi
+          fi

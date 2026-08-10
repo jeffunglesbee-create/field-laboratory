@@ -136,6 +136,21 @@ check('drama peak returns post-game',
     /peak/.test(transition.after?.drama || ''),
   `post-game drama slot: "${transition.after?.drama}"`)
 
+// --- Odds Story --------------------------------------------------------------
+check('every card fills its odds slot', cards.every(c => (c.odds || '').trim().length > 0),
+  cards.map(c => `"${c.odds}"`).join(' | '))
+
+// Verifies the NOT SEQUENCED classification from outside the type system: the
+// card prints both timestamps, so the claim can be checked against them. A card
+// that flagged a genuine sequence as unsequenced would pass every internal test
+// and fail here.
+const unsequenced = cards
+  .map(c => (c.odds || '').match(/NOT SEQUENCED \(([^ ]+) vs ([^)]+)\)/))
+  .filter(Boolean)
+check('every NOT SEQUENCED card really is out of sequence',
+  unsequenced.every(([, open, close]) => Date.parse(close) <= Date.parse(open)),
+  unsequenced.map(([, o, c]) => `${o} -> ${c}`).join(' | ') || 'none on this slate')
+
 check('no page or console errors', errors.length === 0, errors.join('; ') || 'none')
 
 console.log(`\nURL: ${URL}`)

@@ -389,3 +389,90 @@ sports. A registry field with no consumer yet, recorded as such.
 `npm run gate`: 100/100. proof-check 8/8 (5 doc cases + registry completeness),
 check 11/11, check:hard 11/11, check:nav 18/18, drift 4/4 on both captures with
 the vocabulary reported, corrupted fixture still rejected, zero warnings.
+
+---
+
+## Follow-on: closing_odds and the Odds Story layer
+
+### The layer found that the field is not what it is named
+
+The Odds Story is meant to narrate line movement between opening and closing
+prices. Decoding `closing_odds` to build it produced this, from a verbatim live
+capture:
+
+```
+MLB_2026-08-09_yankees_braves
+  opening_odds.captured_at = 2026-08-09T10:01:24.241Z   moneyline {home: -142, away: 132}
+  closing_odds.captured_at = 2026-08-09T10:01:00.322Z   moneyline {home: -142, away: 132}
+```
+
+The "closing" snapshot was captured **~22 seconds before** the "opening" one, in
+both games, from the same adapter — and the two are identical across moneyline,
+spread *and* total. They are one snapshot written to two columns.
+
+This is the laboratory's first finding about the DATA rather than about a type.
+The type system's contribution was to make it impossible to ignore: `captured_at`
+had to be decoded to check the relationship at all, and `NotASequence` is a case
+the renderer must handle.
+
+**A layer built without checking would have rendered "line unchanged" on every
+card** — a true-sounding statement about a market never observed twice. That is
+worse than rendering nothing, because it invents a finding.
+
+### Scope of the claim
+
+Bounded deliberately. Sample of two games, one day, one sport, one adapter. The
+sentinel now measures the odds shape across the whole live slate every run and
+carries it in the log:
+
+```
+odds: both=2 not-sequenced=2 moved=0 unmoved=0 single=0 none=0
+```
+
+**Follow-up automation:** if every game carrying both prices is `NotASequence`,
+the sentinel files an issue recording it, updating the same issue rather than
+opening one daily. On the first run where any game shows a real sequence it
+closes the issue itself — that would mean the relay was fixed upstream, and an
+issue outliving its cause trains people to ignore the next one.
+
+### The units finally have a real consumer
+
+A moneyline's implied probability is not a win probability. `-142 / +132` implies
+0.587 and 0.431, which sum to **1.018** — the book's margin. Both are plain
+floats in the 0-1 range; nothing but a type separates "what this price implies"
+from "the chance this team wins".
+
+`[<Measure>] type implied` makes that a compile error (FS0001, in the proof
+doc), and `devig` is the only sanctioned route to `prob`. This is the same
+failure the prob/pct split already guards, one level deeper: not a scale
+mismatch but a meaning mismatch at the same scale.
+
+It is also the first time the units in this repo have carried real data rather
+than a demo constant, which changes the README's standing honest negative.
+
+### ADR-002 position, stated rather than assumed
+
+Clean. A bookmaker's price is the textbook case of Rule F's permitted category,
+"anything a neutral data vendor could plausibly publish". No composite score, no
+threshold, no tier, no recommendation. Movement is reported as a factual shift
+in implied percentage points, never as a signal that a game became worth
+watching — which is the whole of Rule F's labelling-independent test.
+
+### Verification
+
+Gate 100/100. proof-check 9/9 (6 doc cases across three proof docs plus registry
+completeness), check 13/13, check:hard 13/13, check:nav 18/18, drift 4/4 with
+odds shape reported, corrupted fixture still rejected, zero warnings.
+
+Two new runtime assertions, including one that verifies the NOT SEQUENCED
+classification *from outside* the type system: the card prints both timestamps,
+so the claim is checked against them. A card that flagged a genuine sequence as
+unsequenced would pass every internal test and fail that one.
+
+### Untested branch, recorded as such
+
+`Moved` is unreachable in the committed captures — no observed pair is a real
+sequence, so the one branch that would exercise `devig` and the implied-shift
+arithmetic has no real-data coverage. Recorded as untested rather than presented
+as working. It becomes reachable the day the sentinel sees a genuine sequence,
+which is the same day the issue closes itself.

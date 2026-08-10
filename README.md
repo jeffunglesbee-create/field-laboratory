@@ -28,10 +28,14 @@ committed captures are AFL and MLB, the live day spanned many more
 competitions, so the sentinel found a coverage gap. Only the accumulating log
 can answer the drift question. See `outbox/drift-log.md`.
 
-**And one honest negative:** the units of measure have caught nothing real. They
-reject a bug written deliberately to be rejected (`docs/UNITS-PROOF.md`). The
-compiler protects the interior; the boundary where a raw `float` gets its unit
-is still a judgement call.
+**The honest negative, now partly retired:** the units of measure caught nothing
+real for most of this repo's life — they rejected a bug written deliberately to
+be rejected (`docs/UNITS-PROOF.md`) and otherwise carried a demo constant. The
+Odds Story gave them their first real consumer. A moneyline's implied
+probability is not a win probability: `-142 / +132` implies 0.587 and 0.431,
+which sum to 1.018, and the 1.8% is the book's margin. `[<Measure>] type
+implied` makes confusing the two a compile error. Still true, though, that the
+boundary where a raw `float` gets its unit is a judgement call.
 
 **The first result that was not written to be found:** the ADR-002 amnesty gate
 (`docs/AMNESTY-PROOF.md`). FIELD classifies displaying a raw composite drama
@@ -69,6 +73,17 @@ Fixing the names then transposed the scoreline against them, which is the same
 lesson twice: Rule 50 lists score format in the *same* registry entry as
 home/away order because they are one decision.
 
+**The first finding about the data rather than a type:** `closing_odds` is not a
+closing line. In every sampled game its `captured_at` is ~22 seconds *before*
+`opening_odds.captured_at`, from the same adapter, with identical moneyline,
+spread and total. One snapshot written to two columns.
+
+A narrative layer built without checking would have rendered "line unchanged" on
+every card — a true-sounding statement about a market never observed twice.
+`OddsStory.NotASequence` is the case the committed data actually takes, and the
+card says so. See `docs/ODDS-PROOF.md`; the sentinel measures it daily and files
+its own issue.
+
 ## Layout
 
 | Path | What it is |
@@ -87,7 +102,7 @@ home/away order because they are one decision.
 npm install && dotnet tool restore
 npm run build      # F# -> JS, then assemble public/
 npm run serve      # serves public/ — the same artifact that deploys
-npm run check      # 11 checks in real Chromium, including two state transitions
+npm run check      # 13 checks in real Chromium, including two state transitions
 npm run check:nav  # 18 checks: sport grouping and date navigation
 npm run check:proof # compiles every rejection docs/*-PROOF.md claims
 npm run gate       # the confidence gate — every row is a real command
