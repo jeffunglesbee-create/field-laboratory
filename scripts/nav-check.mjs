@@ -48,10 +48,6 @@ const read = name => JSON.parse(readFileSync(`${ROOT}data/${name}.json`, 'utf8')
 const AFL = read('context-2026-05-15').games.regular
 const MLB = read('games-2026-08-09').games.regular
 
-// Today in UTC, computed the same way src/Desk.fs computes it. If these two
-// ever disagree the page would request a date this script does not serve, and
-// the unrouted-request check below fails loudly rather than silently falling
-// back to the committed capture.
 const pad = n => String(n).padStart(2, '0')
 const iso = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
 const shift = (base, days) => {
@@ -60,18 +56,23 @@ const shift = (base, days) => {
   return iso(d)
 }
 
-const TODAY = iso(new Date())
-const TOMORROW = shift(TODAY, 1)
-const YESTERDAY = shift(TODAY, -1)
+// The anchor is whatever date the PAGE asks for first, not a date computed
+// here. Those are two different clocks — this script's Node process and the
+// browser's `Desk.todayUtc()` — and a run that straddles UTC midnight would
+// have them disagree by a day. Keying a fixed date map off the local clock
+// would then serve a 404 for the date the page actually wanted, and the page
+// would quietly fall back to the committed capture, leaving every assertion
+// below measuring the wrong slate. Taking the date from the request cannot
+// drift, because there is only one clock involved.
+let anchor = null
 
-// Deliberately different sizes per day. A slate that renders without tearing
+// Slate sizes deliberately differ by day. A slate that renders without tearing
 // the previous one down produces a card count that is the SUM of the days
-// visited, so unequal counts make the failure unmistakable rather than a
-// coincidence of two same-sized days lining up.
-const SLATES = {
-  [TODAY]: [...AFL, ...MLB], // 4 games, 2 sports
-  [TOMORROW]: MLB,           // 2 games, 1 sport
-  [YESTERDAY]: AFL,          // 2 games, 1 sport
+// visited, so unequal sizes make that unmistakable rather than a coincidence
+// of two same-sized days lining up.
+const slateFor = date => {
+  if (date === anchor) return [...AFL, ...MLB] // 4 games, 2 sports
+  return date > anchor ? MLB : AFL             // 2 games, 1 sport
 }
 
 const errors = []
@@ -88,14 +89,15 @@ page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.te
 
 await page.route('**/context/date/**', route => {
   const date = new global.URL(route.request().url()).pathname.split('/').pop()
-  const games = SLATES[date]
-  if (!games) {
-    // Not served: record it and let the page take its fallback path. Silently
-    // 404ing here would make the page render the committed capture and every
-    // assertion below would then be measuring the wrong slate.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    // The page asked for something that is not a date. Recorded rather than
+    // served, so a malformed URL fails loudly instead of being papered over
+    // with a valid-looking slate.
     unrouted.push(date)
     return route.fulfill({ status: 404, body: 'not served by nav-check' })
   }
+  if (anchor === null) anchor = date
+  const games = slateFor(date)
   route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -135,6 +137,17 @@ const decodedCount = s => Number((s || '').match(/^decoded (\d+) game/)?.[1] ?? 
 
 // --- initial load: multi-sport day ------------------------------------------
 await page.goto(URL_BASE, { waitUntil: 'networkidle' })
+await page.waitForFunction(() => {
+  const el = document.getElementById('decode-status')
+  return el && /^decoded \d+ game/.test(el.textContent || '')
+}, null, { timeout: 15_000 })
+
+// Set by the route handler during that first fetch. Every date below is
+// derived from it, so this script and the page can never be a day apart.
+const TODAY = anchor
+const TOMORROW = shift(TODAY, 1)
+const YESTERDAY = shift(TODAY, -1)
+
 const first = await settleOn(TODAY)
 
 // --- forward, back, and home ------------------------------------------------
@@ -146,8 +159,11 @@ await settleOn(TODAY)
 await page.click('#prev-day')
 const prev = await settleOn(YESTERDAY)
 
+// The Today button asks the browser for its own current UTC date, so compare
+// against the browser's clock rather than this process's.
 await page.click('#today')
-const home = await settleOn(TODAY)
+const browserToday = await page.evaluate(() => new Date().toISOString().slice(0, 10))
+const home = await settleOn(browserToday)
 
 // The back button changes the URL without a load. Nothing re-renders unless
 // popstate is handled explicitly, so this asserts the handler is real.
@@ -158,7 +174,7 @@ await browser.close()
 
 const { check, summarize } = createChecks()
 
-check('relay served every date the page asked for', unrouted.length === 0,
+check('every relay request was a well-formed date', unrouted.length === 0,
   `unrouted: ${unrouted.join(', ')}`)
 
 // --- grouping ---------------------------------------------------------------
@@ -183,7 +199,8 @@ check('a single-sport slate renders exactly one section',
 // --- navigation -------------------------------------------------------------
 check('next-day advances the URL date', next.url.includes(TOMORROW), next.url)
 check('prev-day steps back past today', prev.url.includes(YESTERDAY), prev.url)
-check('today returns to the current UTC date', home.url.includes(TODAY), home.url)
+check('today returns to the current UTC date', home.url.includes(browserToday),
+  `${home.url} vs browser ${browserToday}`)
 check('the viewed-date readout tracks the slate',
   first.viewed === TODAY && next.viewed === TOMORROW && prev.viewed === YESTERDAY,
   `${first.viewed} / ${next.viewed} / ${prev.viewed}`)
