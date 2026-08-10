@@ -25,7 +25,13 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      # Full history, not the default shallow clone. The history check walks to
+      # the root; with fetch-depth 1 it would see one commit. FIELD's production
+      # gate hit exactly this and papered it with `fetch-depth: 25`, which is
+      # only ever "deep enough until it isn't".
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -115,6 +121,13 @@ jobs:
       # instead of a gate that quietly stops comparing.
       - name: Gate inventory guard has teeth
         run: npm run check:gate-rows
+
+      # Exact per-commit source/outbox correlation over the FULL history — the
+      # correlation FIELD's production gate approximates with a 20-commit window
+      # and then suppresses the false positives of. Needs full history, hence
+      # fetch-depth below.
+      - name: Source and outbox changed together, every commit
+        run: npm run check:history
 
       - name: FIELD-zone day checks
         run: npm run check:zone

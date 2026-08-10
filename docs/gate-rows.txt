@@ -26,5 +26,6 @@
 25  doc claims are compiler-verified, not prose
 10  FIELD-zone day is correct at fixed instants
 10  workflow jobs can run the scripts they invoke
+10  every governed commit paired source with outbox
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry

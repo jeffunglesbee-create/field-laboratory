@@ -117,6 +117,13 @@ const rows = [
   { name: 'workflow jobs can run the scripts they invoke', weight: 10,
     run: () => ok('node scripts/workflow-check.mjs') },
 
+  // The retrospective half of the outbox rule. `outboxAccompaniesSource` below
+  // judges the commit being made; this judges every commit already made, with
+  // no window to age out of and no exemption list.
+  { name: 'every governed commit paired source with outbox', weight: 10,
+    run: () => ok('node scripts/history-check.mjs --self-test') &&
+               ok('node scripts/history-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

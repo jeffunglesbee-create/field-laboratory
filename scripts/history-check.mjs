@@ -1,0 +1,175 @@
+// Exact per-commit correlation, over the whole history.
+//
+// FIELD's production gate has a documented correlation bug that was explicitly
+// left unfixed. From `Confidence-Gate Acknowledgment List — 2026-07-08`:
+//
+//   "its SRC_TOUCHED correlation check counts any src/*.js change in the last
+//    20 outbox-touching commits, not specifically whether the flagged outbox's
+//    own commits touched src/. Fixing that correlation logic precisely is out
+//    of scope here"
+//
+// So an outbox got flagged because SOMEBODY ELSE'S commit in the same window
+// touched src/. The answer shipped was `docs/confidence-gate-acknowledged.txt`
+// — a suppression list, with the wrong correlation left in place. Three entries
+// on 07-08, a fourth on 07-12, and each one is a standing false positive that a
+// human had to read, judge, and write a paragraph about.
+//
+// Three defects, one root:
+//
+//   1. WRONG CORRELATION. "Some src change happened near some outbox" is not a
+//      relationship between them. Fixed here by asking the only question that
+//      is actually well-defined: did THIS COMMIT change source without changing
+//      the outbox? A commit is the unit where the two are genuinely coupled.
+//
+//   2. A 20-COMMIT WINDOW. The 07-08 doc records two of its three entries
+//      having "aged out of the window as more commits have landed" — a
+//      violation clears itself if you commit twenty more times. There is no
+//      window here. History is walked to the root.
+//
+//   3. THE SUPPRESSION LIST. Not fixed — deleted, by removing its reason to
+//      exist. Exact correlation produces no false positives, so there is
+//      nothing to suppress. This repo has no acknowledgment list and must not
+//      acquire one.
+//
+// On the one thing that genuinely needs a boundary: this rule was mechanised at
+// RULE_EFFECTIVE, and 17 earlier commits predate it. That is not an exemption
+// list — it is one commit, it names no files, it makes no per-case judgement,
+// and it cannot hide anything after itself. It is also frozen: the count of
+// pre-rule violations is pinned, so moving the boundary forward to absorb a new
+// violation changes that count and fails this check. The boundary can be
+// audited in one line; an exemption list cannot be audited at all.
+//
+// Usage:  node scripts/history-check.mjs           (audit)
+//         node scripts/history-check.mjs --self-test
+
+import { execSync } from 'node:child_process'
+import { createChecks } from './checks.mjs'
+
+// The commit that mechanised "source changes arrive with an outbox entry".
+// Before it, the rule did not exist, and a rule cannot be violated in advance.
+const RULE_EFFECTIVE = 'e9bc4ca335f619b0dde369bb18aa461de737aa47'
+
+// Frozen. Moving RULE_EFFECTIVE forward would raise this and fail the check.
+const PRE_RULE_VIOLATIONS = 17
+
+const SOURCE = /^(src|scripts)\//
+const OUTBOX = /^outbox\//
+
+/**
+ * The correlation, stated exactly: within ONE commit, did source change without
+ * the outbox changing?
+ *
+ * Merge commits are exempt. `git show --name-only` reports nothing for them by
+ * default, and a merge introduces no change of its own to document.
+ */
+export const isViolation = files =>
+  files.some(f => SOURCE.test(f)) && !files.some(f => OUTBOX.test(f))
+
+/** Every non-merge commit, oldest last, with its touched files. */
+const walk = () => {
+  const raw = execSync(
+    "git log --no-merges --format='%x00%H%x00%s' --name-only",
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  // The format emits a NUL before the sha and another before the subject, so
+  // splitting on NUL yields a leading empty string then strict sha/body pairs.
+  // Parsed positionally rather than by regex: a commit subject can contain
+  // anything, and a pattern that matches subject text would desynchronise the
+  // whole walk on one unlucky message.
+  const parts = raw.split('\0')
+  const commits = []
+  for (let i = 1; i + 1 < parts.length + 1; i += 2) {
+    const sha = parts[i]
+    if (!sha) continue
+    const body = (parts[i + 1] ?? '').split('\n')
+    commits.push({
+      sha: sha.trim(),
+      subject: body[0],
+      files: body.slice(1).map(l => l.trim()).filter(Boolean),
+    })
+  }
+  return commits
+}
+
+const audit = () => {
+  const commits = walk()
+  const effectiveIdx = commits.findIndex(c => c.sha === RULE_EFFECTIVE)
+  if (effectiveIdx === -1) {
+    throw new Error(
+      `RULE_EFFECTIVE ${RULE_EFFECTIVE.slice(0, 7)} is not in this history. ` +
+      `If history was rewritten, re-derive the boundary and the frozen count together.`)
+  }
+  // `git log` is newest-first, so anything at a LOWER index than the boundary
+  // is newer than it — i.e. governed by the rule.
+  const governed = commits.slice(0, effectiveIdx + 1)
+  const predating = commits.slice(effectiveIdx + 1)
+  return {
+    live: governed.filter(c => isViolation(c.files)),
+    predatingCount: predating.filter(c => isViolation(c.files)).length,
+    scanned: commits.length,
+  }
+}
+
+if (process.argv.includes('--self-test')) {
+  const { check, summarize } = createChecks()
+
+  check('source without outbox is a violation',
+    isViolation(['src/Desk.fs']), 'the core correlation does not fire')
+
+  check('source WITH outbox is not',
+    !isViolation(['src/Desk.fs', 'outbox/note.md']), 'flags a documented commit')
+
+  check('outbox alone is not a violation',
+    !isViolation(['outbox/note.md']), 'flags a docs-only commit')
+
+  check('docs alone is not a violation',
+    !isViolation(['docs/ZONE-PROOF.md', 'README.md']), 'flags a docs-only commit')
+
+  check('scripts/ counts as source',
+    isViolation(['scripts/zone-check.mjs']), 'scripts/ changes escape the rule')
+
+  // The production bug, replayed. Two independent commits: one changes source,
+  // the other changes an outbox. The window approach correlates them and flags
+  // the innocent one; per-commit correlation flags exactly the guilty one.
+  const separate = [
+    { sha: 'a', files: ['src/Desk.fs'] },
+    { sha: 'b', files: ['outbox/unrelated.md'] },
+  ]
+  const flagged = separate.filter(c => isViolation(c.files)).map(c => c.sha)
+  check('an unrelated outbox in the same window is NOT implicated',
+    flagged.length === 1 && flagged[0] === 'a',
+    `flagged ${JSON.stringify(flagged)} — expected only the source-only commit`)
+
+  check('a merge commit (no files) is exempt',
+    !isViolation([]), 'merges would fail on someone else\'s history')
+
+  process.exit(summarize() === 0 ? 0 : 1)
+}
+
+const { live, predatingCount, scanned } = audit()
+
+console.log(`\nPer-commit source/outbox correlation over ${scanned} commits`)
+console.log(`  rule effective at : ${RULE_EFFECTIVE.slice(0, 7)}`)
+console.log(`  predating the rule: ${predatingCount} (frozen at ${PRE_RULE_VIOLATIONS})\n`)
+
+let failed = false
+
+if (predatingCount !== PRE_RULE_VIOLATIONS) {
+  console.log(`FAIL  the pre-rule violation count moved: ${predatingCount}, frozen at ${PRE_RULE_VIOLATIONS}`)
+  console.log(`      → either history was rewritten or RULE_EFFECTIVE was moved.`)
+  console.log(`        Both are legitimate; neither is silent. Re-derive both together.\n`)
+  failed = true
+} else {
+  console.log(`PASS  the rule boundary has not moved`)
+}
+
+if (live.length > 0) {
+  console.log(`FAIL  ${live.length} commit(s) changed source without an outbox entry:`)
+  // Named, never counted — a count tells you a problem exists and nothing else.
+  for (const c of live) console.log(`      → ${c.sha.slice(0, 7)}  ${c.subject}`)
+  failed = true
+} else {
+  console.log(`PASS  every governed commit changed source and outbox together`)
+}
+
+console.log()
+process.exit(failed ? 1 : 0)

@@ -89,9 +89,24 @@ const scriptsReachedBy = jobText => {
 const buildImporters = files =>
   files.filter(f => /from\s+'\.\.\/build\//.test(readFileSync(f, 'utf8')))
 
+/**
+ * Does any reached script walk git history? Returns the culprits.
+ *
+ * The second dependency in this family, and the one FIELD's production gate
+ * tripped over: `actions/checkout` clones shallow by default, so `git log -20`
+ * silently sees one commit. Their fix was `fetch-depth: 25` — a number that is
+ * deep enough until the day it isn't. Anything that reads history needs all of
+ * it. `git diff`/`git status` are excluded: they read the working tree.
+ */
+const historyReaders = files =>
+  files.filter(f => /git (log|rev-list)\b/.test(readFileSync(f, 'utf8')))
+
 /** A job builds if it runs the build, or invokes Fable directly. */
 const jobBuilds = jobText =>
   /npm run build/.test(jobText) || /dotnet fable/.test(jobText)
+
+/** A job has full history only with an explicit `fetch-depth: 0`. */
+const jobHasFullHistory = jobText => /fetch-depth:\s*0\b/.test(jobText)
 
 const audit = () => {
   const problems = []
@@ -100,9 +115,14 @@ const audit = () => {
     const text = readFileSync(`${WORKFLOWS}/${file}`, 'utf8')
     for (const job of jobsOf(text)) {
       jobCount++
-      const needs = buildImporters(scriptsReachedBy(job.text))
-      if (needs.length && !jobBuilds(job.text)) {
-        problems.push(`${file}:${job.name} runs ${needs.join(', ')} — which import build/ — but never builds`)
+      const reached = scriptsReachedBy(job.text)
+      const needsBuild = buildImporters(reached)
+      if (needsBuild.length && !jobBuilds(job.text)) {
+        problems.push(`${file}:${job.name} runs ${needsBuild.join(', ')} — which import build/ — but never builds`)
+      }
+      const needsHistory = historyReaders(reached)
+      if (needsHistory.length && !jobHasFullHistory(job.text)) {
+        problems.push(`${file}:${job.name} runs ${needsHistory.join(', ')} — which read git history — without fetch-depth: 0`)
       }
     }
   }
@@ -140,5 +160,24 @@ const withBuild = jobsOf(`jobs:${replay.replace('- run: npm ci', '- run: npm run
   .some(j => buildImporters(scriptsReachedBy(j.text)).length > 0 && !jobBuilds(j.text))
 check('the detector does not flag a job that does build', !withBuild,
   'the same job WITH a build step was still flagged — the detector fails everything')
+
+// Same two directions for the history dependency. The shallow-clone default is
+// the trap: a job that reads git log on a depth-1 checkout sees one commit.
+const shallow = `
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run check:history
+`
+check('the detector catches a history reader on a shallow checkout',
+  jobsOf(`jobs:${shallow}`).some(j =>
+    historyReaders(scriptsReachedBy(j.text)).length > 0 && !jobHasFullHistory(j.text)),
+  'a git-log script on a default checkout was NOT flagged')
+
+check('the detector does not flag fetch-depth: 0',
+  !jobsOf(`jobs:${shallow.replace('- uses: actions/checkout@v4', '- uses: actions/checkout@v4\n        with:\n          fetch-depth: 0')}`)
+    .some(j => historyReaders(scriptsReachedBy(j.text)).length > 0 && !jobHasFullHistory(j.text)),
+  'the same job WITH fetch-depth: 0 was still flagged')
 
 process.exit(summarize() === 0 ? 0 : 1)

@@ -1185,3 +1185,105 @@ doc — and worth noticing that the FIX production reached for on its wrong
 correlation logic was a suppression list, `docs/confidence-gate-acknowledged.txt`,
 with the correlation bug left in place. No fallbacks, only fixes: laboratory has
 no acknowledgment list and should not acquire one.
+
+---
+
+## Fixing what the 07-08 doc left unfixed
+
+The `Confidence-Gate Acknowledgment List — 2026-07-08` doc states its own gap
+plainly:
+
+> its `SRC_TOUCHED` correlation check counts any `src/*.js` change in the last
+> 20 outbox-touching commits, not specifically whether the flagged outbox's own
+> commits touched `src/`. Fixing that correlation logic precisely is out of
+> scope here
+
+So an outbox was flagged because somebody *else's* commit landed nearby. What
+shipped instead of a fix was `docs/confidence-gate-acknowledged.txt` — a
+suppression list — with the wrong correlation left in place. Three entries on
+07-08, a fourth on 07-12. Each is a standing false positive that a human had to
+read, judge, and write a paragraph justifying.
+
+Laboratory can fix it, so it is fixed. `scripts/history-check.mjs`.
+
+### Three defects, one root
+
+**1. The correlation was not a correlation.** "Some source change happened near
+some outbox" is not a relationship between them. The well-defined question is
+per-commit: *did this commit change source without changing the outbox?* A
+commit is the unit where the two are genuinely coupled — which is why
+`outboxAccompaniesSource` already got this right in the forward direction. This
+is the same question asked backwards over history.
+
+**2. The 20-commit window.** The 07-08 doc records two of its three entries
+having *"aged out of the window as more commits have landed."* A violation
+clears itself if you commit twenty more times. There is no window here — history
+is walked to the root, 106 commits.
+
+**3. The suppression list.** Not fixed — deleted, by removing its reason to
+exist. Exact correlation produces no false positives, so there is nothing to
+suppress. This repo has no acknowledgment list and must not acquire one.
+
+### The one real boundary, and why it is not an exemption list
+
+17 commits predate the rule's mechanisation at `e9bc4ca`. A rule cannot be
+violated before it exists.
+
+That is one commit SHA. It names no files. It makes no per-case judgement. It
+cannot hide anything after itself. And it is **frozen**: the pre-rule violation
+count is pinned at 17, so moving the boundary forward to absorb a new violation
+changes that count and fails the check. Mutation-tested — moving the boundary
+back to `543a64d` produces:
+
+```
+FAIL  the pre-rule violation count moved: 2, frozen at 17
+FAIL  15 commit(s) changed source without an outbox entry:
+      → b187a91  Test the ET window now instead of waiting seven hours for it
+      → 2296f00  Measure which day a game's `date` actually is, before changing anything
+      [13 more, each named]
+```
+
+15 governed + 2 predating = 17. The arithmetic closes, and the 17 was arrived at
+twice by different means — a shell loop over `git show --name-only` and the
+script's own walk — before either was trusted.
+
+A boundary can be audited in one line. An exemption list cannot be audited at
+all.
+
+### Seven self-test assertions, including the production bug replayed
+
+The sharpest one constructs the exact scenario the window approach gets wrong:
+two independent commits, one changing source, the other changing an unrelated
+outbox. Per-commit correlation must flag exactly the first and leave the second
+alone. It does.
+
+### The shallow-clone trap, caught by generalising the other detector
+
+`actions/checkout` clones depth-1 by default, so `git log` sees one commit. The
+07-07 doc records production hitting this and answering with `fetch-depth: 25` —
+a number that is deep enough until the day it isn't. `verify.yml` uses
+`fetch-depth: 0`.
+
+Rather than fix that by hand and hope, `workflow-check.mjs` was generalised: it
+already knew that a job running a `build/`-importing script must build, and now
+also knows that a job running a `git log`/`git rev-list` script must have
+`fetch-depth: 0`. Both directions mutation-tested, so it is now 6 assertions.
+`git diff`/`git status` are deliberately excluded — they read the working tree,
+not history.
+
+### What needs no laboratory fix, and why that is worth saying
+
+The other three production defects — post-deploy detection, prose-scraped
+scores, and the `tail -1` bypass where appending a higher number clears the gate
+— are all one root: **a self-reported number.** Laboratory has no fix to make
+because it has no scraper; every row takes its score from an exit code.
+
+Worth one concrete demonstration of how sharp that edge is. This very outbox
+contains the line `failing row present:  60/70 points =  86/100`, written as
+documentation. Production's original regex took the first `NN/100` in the file —
+it would read this document as an 86 and flag the session. Its own 07-07 doc
+records exactly that bug, on exactly that kind of line.
+
+So the standing conclusion is not "laboratory is ahead here" but a constraint:
+**if score-scraping is ever added to this repo, it inherits all three defects on
+day one.** Do not add it.
