@@ -110,6 +110,12 @@ jobs:
       - name: Workflow jobs can run what they invoke
         run: npm run check:workflows
 
+      # The gate's row inventory guard, self-tested. Its own assertions run here
+      # rather than only inside the gate, so a broken guard is a named failure
+      # instead of a gate that quietly stops comparing.
+      - name: Gate inventory guard has teeth
+        run: npm run check:gate-rows
+
       - name: FIELD-zone day checks
         run: npm run check:zone
 

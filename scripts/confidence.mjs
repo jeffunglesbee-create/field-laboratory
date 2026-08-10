@@ -18,6 +18,7 @@
 
 import { execSync, spawn } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
+import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
 
 const QUICK = process.argv.includes('--quick')
 const BAR = 95
@@ -121,6 +122,20 @@ const rows = [
   { name: 'source changes arrive with an outbox entry', weight: 10,
     run: outboxAccompaniesSource },
 ]
+
+// The denominator is `possible`, summed from the rows above — which means the
+// rows above can move it. Deleting a failing row raises the score: measured at
+// 86/100 with a failing row present and 100/100 with it removed. So the row set
+// is declared in docs/gate-rows.txt and compared before anything is scored.
+// This is a hard stop, not a row, because a row could be deleted alongside the
+// thing it was meant to catch.
+const inventoryProblems = diffAgainst(readInventory(), rows)
+if (inventoryProblems.length > 0) {
+  console.log(`\nThe gate does not match ${INVENTORY_PATH}:\n`)
+  for (const p of inventoryProblems) console.log(`  ${p}`)
+  console.log('\n  Refusing to score. Change both files, or change neither.\n')
+  process.exit(2)
+}
 
 // Render rows need a server. Start one only if nothing is listening, and only
 // when those rows are actually going to run.

@@ -1,0 +1,30 @@
+# The confidence gate's declared rows.  <weight> <name>
+#
+# scripts/confidence.mjs scores earned/possible, and `possible` is the sum of
+# whatever rows exist — so deleting a failing row RAISES the score. Measured:
+# 86/100 with a failing row present, 100/100 with that row removed and nothing
+# else changed.
+#
+# FIELD has paid for this shape before. "Resolve the standing confidence-gate CI
+# violation — 2026-07-12" records "100/100 (of 80 applicable points, per TASK 1's
+# N/A exclusion)" — an honest numerator over a moved denominator.
+#
+# The gate refuses to run unless its rows match this file exactly: same names,
+# same weights, no extras. Order is not compared; moving a row is not a
+# weakening.
+#
+# TO CHANGE THE GATE: edit both files. That is the whole point — a shrink shows
+# up as a docs/ change beside a scripts/ change, and the outbox row already
+# forces a written reason for the latter. This is not tamper-proof and does not
+# claim to be. It makes shrinking visible, not impossible.
+
+10  build is clean, zero F#/NuGet warnings
+10  decoders accept both real captures
+10  decoders still REJECT the corrupted fixture
+20  render checks pass on both captures
+15  grouping and date navigation pass
+25  doc claims are compiler-verified, not prose
+10  FIELD-zone day is correct at fixed instants
+10  workflow jobs can run the scripts they invoke
+10  this session wrote its outbox
+10  source changes arrive with an outbox entry

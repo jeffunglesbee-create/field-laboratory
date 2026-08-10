@@ -1102,3 +1102,86 @@ keys at exactly two spaces under `jobs:` — which is true of all six workflows
 here and is asserted rather than assumed (zero jobs parsed is a failure). And it
 only knows about one dependency, `build/`. A script needing a browser, or a
 secret, in a job that provides neither would still slip through.
+
+---
+
+## What FIELD's own confidence-gate history says about this gate
+
+Checked the Drive record for prior art before assuming this repo's gate was
+novel. It is not — production built one in July, and its four documented
+sessions are a catalogue of the failure modes a self-reported score has.
+
+| Drive doc | What it records |
+| --- | --- |
+| Confidence-Gate Violation Detection — 2026-07-07 | The gate is built: a post-deploy CI step scraping `NN/100` out of outbox markdown |
+| Confidence-Gate Regex Fix — 2026-07-07 | Same day: `head -1` matched an example table entry instead of the real score |
+| Confidence-Gate Acknowledgment List — 2026-07-08 | The correlation logic is wrong; a suppression list is added instead of fixing it |
+| Resolve the standing confidence-gate CI violation — 2026-07-12 | A standing violation resolved by acknowledgment; score reported as "100/100 (of 80 applicable points)" |
+
+Four things in that record are worth naming, because three of them this repo is
+already immune to by construction and the fourth it was **not**.
+
+**1. It is detection-only.** Its own words: *"This cannot prevent a gate
+violation — a CC session decides whether to commit before this check ever runs."*
+It runs post-deploy. Laboratory's runs before the commit and blocks it.
+
+**2. It parses prose for a number.** Two regex bugs in one day, both real: the
+first picked up a `85/100` example inside a documentation table; the fix
+anchored to `## Confidence Score` and took `tail -1`.
+
+**3. `tail -1` created a bypass, and the record describes it as a feature.** The
+2026-07-08 doc observes that `cc-afl-kali-relayfetch-fix-2026-07-08.md` contains
+two `## Confidence Score` headings — 75/100, then 100/100 — and that the script
+"picks the *last* `N/100` match in the file, which is now 100/100", concluding
+the file *"now self-resolves the gate on its own merits."* Appending a higher
+number to the bottom of an outbox clears the gate. No code changes.
+
+Laboratory is immune to 1–3 for one structural reason: no row reports a number.
+Every row runs a command and takes its score from the exit code.
+
+**4. The denominator moves — and laboratory had this bug too.**
+
+The 2026-07-12 doc reports `100/100 (of 80 applicable points, per TASK 1's N/A
+exclusion)`. The numerator is honest. The denominator shrank to fit it.
+
+Laboratory scores `earned / possible`, and `possible` is summed from whatever
+rows exist. So **deleting a failing row raises the score.** Measured, not
+reasoned about:
+
+```
+failing row present:  60/70 points =  86/100
+same row deleted:     60/60 points = 100/100
+```
+
+Nothing else changed between those two runs. The gate that exists to stop an
+overstated claim could be cleared by deleting the row that caught it — which is
+the July failure exactly, arrived at from a different direction.
+
+**Fixed:** `docs/gate-rows.txt` declares the row set. `scripts/gate-inventory.mjs`
+compares it to the live rows and the gate refuses to score on any mismatch —
+exit 2, before a single row runs. A hard stop rather than a row, because a row
+could be deleted alongside the thing it was meant to catch.
+
+Mutation-tested against the real gate, both attacks:
+
+```
+delete a row  → MISSING row "workflow jobs can run..." (10 pts)   exit=2
+halve a weight → WEIGHT changed for "grouping and date navigation pass":
+                 declared 15, gate has 5                          exit=2
+```
+
+Plus five assertions inside `gate-inventory.mjs` itself, including the two that
+keep it from being noise: reordering rows is **not** flagged, and an unchanged
+set reports nothing.
+
+**What it does not do.** It is not tamper-proof, and the file says so. Both
+files are writable by anyone who can write either. What it buys is that
+shrinking the gate is now a `docs/` change beside a `scripts/` change — and the
+outbox row already forces a written reason for the latter. It converts a silent
+shrink into a visible one. That is the whole claim.
+
+Which is the same shape as production's honest scope statement in the 2026-07-07
+doc — and worth noticing that the FIX production reached for on its wrong
+correlation logic was a suppression list, `docs/confidence-gate-acknowledged.txt`,
+with the correlation bug left in place. No fallbacks, only fixes: laboratory has
+no acknowledgment list and should not acquire one.
