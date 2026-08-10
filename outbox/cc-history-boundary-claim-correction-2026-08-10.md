@@ -89,10 +89,16 @@ review**, on every deploy, with no way to settle them except suppression.
 
 That is a smaller claim than "false positives" and it survives both documents.
 It does not weaken the case for fixing the correlation; it sharpens what the
-correlation was doing wrong. The header comment in `history-check.mjs` calls
-them "standing false positives," which inherits the 07-08 framing uncritically —
-left as-is for now and recorded here, because changing a shipped claim without
-saying so is the failure this document is about.
+correlation was doing wrong.
+
+> **Superseded.** When this was written, the header comment in
+> `history-check.mjs` still called them "standing false positives," and this
+> paragraph said it was left as-is. It was corrected immediately after, in the
+> commit following this one — see
+> `cc-false-positives-claim-correction-2026-08-10.md`. This note is edited in
+> rather than left to rot, because a document saying "left as-is" about
+> something since fixed is exactly the stale claim these corrections exist to
+> prevent. The original wording is in git.
 
 ## The PAT is still live, and has now surfaced in a second session
 

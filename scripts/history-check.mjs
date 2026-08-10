@@ -8,11 +8,28 @@
 //    own commits touched src/. Fixing that correlation logic precisely is out
 //    of scope here"
 //
-// So an outbox got flagged because SOMEBODY ELSE'S commit in the same window
-// touched src/. The answer shipped was `docs/confidence-gate-acknowledged.txt`
-// — a suppression list, with the wrong correlation left in place. Three entries
-// on 07-08, a fourth on 07-12, and each one is a standing false positive that a
-// human had to read, judge, and write a paragraph about.
+// The answer shipped was `docs/confidence-gate-acknowledged.txt` — a suppression
+// list, with the wrong correlation left in place. Three entries on 07-08, a
+// fourth on 07-12.
+//
+// An earlier version of this comment called those entries "standing false
+// positives." The Drive record does not support that, and the two documents
+// disagree with each other about the very same items:
+//
+//   07-07:  "Two pre-existing violations found ... Both are REAL VIOLATIONS
+//            the check correctly surfaces."
+//   07-08:  "the same three ALREADY-REVIEWED, NON-ACTIONABLE outbox entries."
+//
+// So the entries really were sub-95 outboxes — the score half of the test was
+// working. Naming them false positives adopted the later framing and threw away
+// the earlier one.
+//
+// The narrower claim survives both documents, and is the one this script is
+// actually built against: the check could not tell a SETTLED entry from an
+// UNSETTLED one. Having no relationship between an outbox and the commits that
+// wrote it, it re-raised reviewed entries on every deploy, forever, and the only
+// exit was suppression. The defect is not that innocent entries were invented.
+// It is that nothing could ever be closed.
 //
 // Three defects, one root:
 //
@@ -27,9 +44,11 @@
 //      window here. History is walked to the root.
 //
 //   3. THE SUPPRESSION LIST. Not fixed — deleted, by removing its reason to
-//      exist. Exact correlation produces no false positives, so there is
-//      nothing to suppress. This repo has no acknowledgment list and must not
-//      acquire one.
+//      exist. A per-commit answer is settled the moment the commit is made: the
+//      commit either paired source with an outbox entry or it did not, and no
+//      later commit changes that. Nothing can be re-raised, so nothing needs
+//      suppressing. This repo has no acknowledgment list and must not acquire
+//      one.
 //
 // On the one thing that genuinely needs a boundary: this rule was mechanised at
 // a known commit, and 17 earlier commits predate it. That is not an exemption
@@ -143,9 +162,11 @@ if (process.argv.includes('--self-test')) {
   check('scripts/ counts as source',
     isViolation(['scripts/zone-check.mjs']), 'scripts/ changes escape the rule')
 
-  // The production bug, replayed. Two independent commits: one changes source,
-  // the other changes an outbox. The window approach correlates them and flags
-  // the innocent one; per-commit correlation flags exactly the guilty one.
+  // The production shape, replayed. Two independent commits: one changes source,
+  // the other changes an unrelated outbox. Production's window sees "src changed
+  // near an outbox" and cannot tell which commit it is talking about — which is
+  // why its findings could never be settled. Per-commit correlation attributes
+  // the change to exactly one commit, and that answer never changes afterwards.
   const separate = [
     { sha: 'a', files: ['src/Desk.fs'] },
     { sha: 'b', files: ['outbox/unrelated.md'] },
