@@ -179,8 +179,35 @@ type GameState =
     | InProgress of home: int * away: int
     | Final of home: int * away: int * overtime: bool
 
+/// Today in UTC, as the relay formats dates. ISO-8601 dates compare correctly
+/// as plain strings, so asking "is this game's date already past" needs no date
+/// parsing at all. Built from parts rather than a format string so it does not
+/// depend on Fable's ToString format support.
+let private todayUtc () =
+    let n = System.DateTime.UtcNow
+    sprintf "%04d-%02d-%02d" n.Year n.Month n.Day
+
 let gameState (g: Game) : GameState =
-    match g.HomeScore, g.AwayScore, g.FinalizedAt with
-    | Some h, Some a, Some _ -> Final(h, a, g.Overtime = WentToOvertime)
-    | Some h, Some a, None -> InProgress(h, a)
+    match g.HomeScore, g.AwayScore with
+    | Some h, Some a ->
+        // `finalized_at` is NOT a reliable "this game is over" signal, and
+        // trusting it alone was a real bug visible on the deployed page: AFL
+        // games from 15 May rendered as "In progress" in August.
+        //
+        // Measured cause, not guessed. The relay has two ingest paths and only
+        // one sets the field:
+        //   live ingest  — MLB 2026-08-09, created_at same day, finalized_at SET
+        //   backfill     — AFL 2026-05-15/16, created_at 2026-07-03, ALWAYS null
+        // Confirmed across every AFL row on both dates probed.
+        //
+        // So the date does the work the missing field cannot: a game whose date
+        // has already passed is over, whatever the relay recorded. The
+        // finalized_at check is kept because it is the stronger signal when
+        // present — it settles a game that finished earlier *today*, which the
+        // date comparison deliberately will not.
+        let datePassed = g.Date <> "" && g.Date < todayUtc ()
+        if g.FinalizedAt.IsSome || datePassed then
+            Final(h, a, g.Overtime = WentToOvertime)
+        else
+            InProgress(h, a)
     | _ -> Scheduled
