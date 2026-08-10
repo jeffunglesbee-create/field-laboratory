@@ -1,0 +1,33 @@
+# The commit from which "source changes arrive with an outbox entry" applies,
+# and the number of violations that predate it.
+#
+#   <full-sha>  <pre-rule-violation-count>
+#
+# A rule cannot be violated before it exists. e9bc4ca is the commit that
+# mechanised this one; 17 earlier commits changed src/ or scripts/ without an
+# outbox entry, and always will have.
+#
+# WHY THIS IS A FILE AND NOT A CONSTANT
+#
+# It was a constant, sitting four lines from the count it was checked against.
+# A Claude chat session reviewing the repo read the pairing as tamper-evident —
+# "if someone moved that boundary later to quietly swallow a new violation, the
+# count would change and the check would fail" — which is true of moving the
+# boundary alone, and false of moving the boundary and the count together. That
+# was one edit in one file, and the header comment claiming it was "frozen" did
+# not say so. The reviewer read the claim as written; the claim was overstated.
+#
+# Splitting it out does not make it tamper-proof. Nothing self-hosted is. It
+# makes the edit cross a directory boundary, the same as docs/gate-rows.txt, so
+# a moved boundary appears as a docs/ change beside a scripts/ change — and the
+# outbox rules already force a written reason for the latter.
+#
+# THE CLAIM, STATED EXACTLY: moving the boundary WITHOUT also editing the count
+# fails the check. Moving both is permitted and visible. That is the whole
+# guarantee.
+#
+# TO MOVE IT: re-derive both together, and say in the outbox why history before
+# a later commit stopped being governed. There is no honest reason to move it
+# forward — the rule has held since it was mechanised.
+
+e9bc4ca335f619b0dde369bb18aa461de737aa47  17

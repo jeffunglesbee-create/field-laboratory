@@ -32,25 +32,41 @@
 //      acquire one.
 //
 // On the one thing that genuinely needs a boundary: this rule was mechanised at
-// RULE_EFFECTIVE, and 17 earlier commits predate it. That is not an exemption
+// a known commit, and 17 earlier commits predate it. That is not an exemption
 // list — it is one commit, it names no files, it makes no per-case judgement,
-// and it cannot hide anything after itself. It is also frozen: the count of
-// pre-rule violations is pinned, so moving the boundary forward to absorb a new
-// violation changes that count and fails this check. The boundary can be
-// audited in one line; an exemption list cannot be audited at all.
+// and it cannot hide anything after itself. The boundary can be audited in one
+// line; an exemption list cannot be audited at all.
+//
+// The boundary and the count live in docs/history-boundary.txt, and the earlier
+// version of this comment overstated what that pins down. It said the count was
+// "frozen ... so moving the boundary forward to absorb a new violation changes
+// that count and fails this check" — true of moving the boundary alone, false
+// of moving the boundary and the count together, which was one edit in one file
+// at the time. A Claude chat session reviewing this repo repeated the claim as
+// written, which is how an overstated claim propagates: it was not their error.
+//
+// Stated exactly, and no wider: moving the boundary WITHOUT also editing the
+// count fails this check. Moving both is permitted, and lands as a docs/ change
+// beside a scripts/ change. Visibility, not prevention — the same claim
+// docs/gate-rows.txt makes, and for the same reason.
 //
 // Usage:  node scripts/history-check.mjs           (audit)
 //         node scripts/history-check.mjs --self-test
 
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { createChecks } from './checks.mjs'
 
-// The commit that mechanised "source changes arrive with an outbox entry".
-// Before it, the rule did not exist, and a rule cannot be violated in advance.
-const RULE_EFFECTIVE = 'e9bc4ca335f619b0dde369bb18aa461de737aa47'
-
-// Frozen. Moving RULE_EFFECTIVE forward would raise this and fail the check.
-const PRE_RULE_VIOLATIONS = 17
+// Read, not hardcoded — see docs/history-boundary.txt for why the pair lives
+// outside this file.
+const BOUNDARY_PATH = 'docs/history-boundary.txt'
+const [RULE_EFFECTIVE, PRE_RULE_VIOLATIONS] = (() => {
+  const line = readFileSync(BOUNDARY_PATH, 'utf8')
+    .split('\n').map(l => l.replace(/^\s*#.*$/, '').trim()).filter(Boolean)[0]
+  const m = /^([0-9a-f]{40})\s+(\d+)$/.exec(line ?? '')
+  if (!m) throw new Error(`${BOUNDARY_PATH}: expected "<40-char sha> <count>", got: ${line}`)
+  return [m[1], Number(m[2])]
+})()
 
 const SOURCE = /^(src|scripts)\//
 const OUTBOX = /^outbox\//
@@ -96,7 +112,7 @@ const audit = () => {
   if (effectiveIdx === -1) {
     throw new Error(
       `RULE_EFFECTIVE ${RULE_EFFECTIVE.slice(0, 7)} is not in this history. ` +
-      `If history was rewritten, re-derive the boundary and the frozen count together.`)
+      `If history was rewritten, re-derive the boundary and the count together in ${BOUNDARY_PATH}.`)
   }
   // `git log` is newest-first, so anything at a LOWER index than the boundary
   // is newer than it — i.e. governed by the rule.
@@ -149,12 +165,12 @@ const { live, predatingCount, scanned } = audit()
 
 console.log(`\nPer-commit source/outbox correlation over ${scanned} commits`)
 console.log(`  rule effective at : ${RULE_EFFECTIVE.slice(0, 7)}`)
-console.log(`  predating the rule: ${predatingCount} (frozen at ${PRE_RULE_VIOLATIONS})\n`)
+console.log(`  predating the rule: ${predatingCount} (declared ${PRE_RULE_VIOLATIONS} in ${BOUNDARY_PATH})\n`)
 
 let failed = false
 
 if (predatingCount !== PRE_RULE_VIOLATIONS) {
-  console.log(`FAIL  the pre-rule violation count moved: ${predatingCount}, frozen at ${PRE_RULE_VIOLATIONS}`)
+  console.log(`FAIL  the pre-rule violation count moved: ${predatingCount}, declared ${PRE_RULE_VIOLATIONS}`)
   console.log(`      → either history was rewritten or RULE_EFFECTIVE was moved.`)
   console.log(`        Both are legitimate; neither is silent. Re-derive both together.\n`)
   failed = true
