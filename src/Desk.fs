@@ -34,6 +34,96 @@ type Odds =
       MoneylineHome: int option
       MoneylineAway: int option }
 
+/// How a sport names a fixture.
+///
+/// Not cosmetic. FIELD's Rule 50 (SPORT-DISPLAY-A) lists home/away order as the
+/// first field of the sport registry precisely because it is sport-specific, and
+/// this laboratory got it wrong: every card rendered "%s @ %s" away home, the
+/// American convention, including AFL — so a Sydney home game rendered as
+/// "Collingwood @ Sydney". Nothing caught it, because a string sport carries no
+/// convention with it.
+type Matchup =
+    /// "Away @ Home". NFL, NBA, MLB, NHL.
+    | AwayAtHome
+    /// "Home v Away". AFL, and association football.
+    | HomeVersusAway
+    /// The sport is not modelled, so its convention is genuinely unknown.
+    /// Rendered home-first with a neutral separator and flagged in the UI —
+    /// guessing at a convention is how the bug above happened.
+    | UnknownConvention
+
+/// The sports this laboratory models.
+///
+/// Production keeps sport identity in at least five separate string-keyed maps
+/// (`SPORT_COLORS`, `SPORT_ICONS`, `SPORT_CHIP_LABELS`, `SPORT_META`,
+/// `ESPN_SPORTS` — all confirmed present in its code map), and Rule 50 exists to
+/// unify them into one `SPORT_DISPLAY_RULES` registry. That rule has been
+/// "Specced, not yet built" for months; `SPORT_DISPLAY_RULES` is absent from the
+/// real source. Rules 51, 52 and 53 are the same shape and equally unbuilt.
+///
+/// `Unrecognised` is NOT a fallback. It is the same device as `Nested.Malformed`
+/// — a real state, rendered visibly and reported by the drift sentinel, so an
+/// unmodelled sport shows up as an alarm within a day rather than being quietly
+/// absorbed. The fix when it fires is to add the case, which the compiler then
+/// forces through every function in the registry.
+[<RequireQualifiedAccess>]
+type Sport =
+    | AFL
+    | MLB
+    | Unrecognised of raw: string
+
+/// Everything the renderer is allowed to know about a sport. One record, one
+/// exhaustive match, so "added a sport, forgot a map" is a compile error rather
+/// than five maps quietly disagreeing.
+type SportMeta =
+    { Label: string
+      Matchup: Matchup
+      /// Rule 50 names `isSoccer` explicitly, and lists `sportName.includes("MLS")`
+      /// among the prohibited patterns it exists to eliminate.
+      IsSoccer: bool
+      /// False only for `Unrecognised`. Surfaced in the UI so an unmodelled
+      /// sport is visible rather than silently rendered under a guess.
+      Modelled: bool }
+
+/// THE registry. Adding a case to `Sport` without adding it here does not
+/// compile — see docs/SPORT-PROOF.md for the compiler refusing exactly that.
+let sportMeta (sport: Sport) : SportMeta =
+    match sport with
+    | Sport.AFL -> { Label = "AFL"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true }
+    | Sport.MLB -> { Label = "MLB"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    | Sport.Unrecognised raw ->
+        { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false }
+
+/// The only place a sport string becomes a `Sport`.
+let sportOfString (raw: string) : Sport =
+    match raw with
+    | "AFL" -> Sport.AFL
+    | "MLB" -> Sport.MLB
+    | other -> Sport.Unrecognised other
+
+/// Orders a home/away pair the way the sport names them.
+///
+/// Rule 50 lists "score format" in the same registry entry as home/away order,
+/// and this is why: the two are one decision. Fixing the matchup text alone
+/// produced `Sydney v Collingwood  75–81` where 75 was Collingwood's — names in
+/// one order, numbers in the other. Internally consistent before the fix and
+/// transposed after it, which is worse than either. Both now read from here.
+let orderByMatchup (sport: Sport) (home: 'a) (away: 'a) : 'a * 'a =
+    match (sportMeta sport).Matchup with
+    | AwayAtHome -> away, home
+    | HomeVersusAway
+    | UnknownConvention -> home, away
+
+/// Renders a fixture in its sport's own convention.
+let matchupText (sport: Sport) (home: string) (away: string) =
+    let first, second = orderByMatchup sport home away
+    match (sportMeta sport).Matchup with
+    | AwayAtHome -> sprintf "%s @ %s" first second
+    | HomeVersusAway -> sprintf "%s v %s" first second
+    // Home first, neutral separator. Not a guess at the convention — a refusal
+    // to make one.
+    | UnknownConvention -> sprintf "%s vs %s" first second
+
 /// A drama score, sealed at decode time so the raw number cannot leave this
 /// module.
 ///
@@ -70,7 +160,7 @@ let arcLength (SealedArc points) = List.length points
 
 type Game =
     { Id: string
-      Sport: string
+      Sport: Sport
       League: string
       Date: string
       Home: string
@@ -165,7 +255,7 @@ let gameDecoder : Decoder<Game> =
     Decode.object (fun get ->
         let rawStart = get.Optional.Field "start_time" Decode.string
         { Id = get.Required.Field "id" Decode.string
-          Sport = get.Required.Field "sport" Decode.string
+          Sport = get.Required.Field "sport" Decode.string |> sportOfString
           League = get.Optional.Field "league" Decode.string |> Option.defaultValue ""
           Date = get.Optional.Field "date" Decode.string |> Option.defaultValue ""
           Home = get.Required.Field "home" Decode.string

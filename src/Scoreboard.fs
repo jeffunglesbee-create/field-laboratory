@@ -21,11 +21,16 @@ let private el (tag: string) (className: string) (text: string) : HTMLElement =
     if text <> "" then node.textContent <- text
     node
 
-let private scoreText (state: GameState) =
+/// The scoreline, in the same order as the team names. Both orders come from
+/// `orderByMatchup`, so they cannot drift apart — see the note there.
+let private scoreText (sport: Sport) (state: GameState) =
+    let line h a =
+        let first, second = orderByMatchup sport h a
+        sprintf "%d–%d" first second
     match state with
     | Scheduled -> "—"
-    | InProgress(h, a) -> sprintf "%d–%d" a h
-    | Final(h, a, _) -> sprintf "%d–%d" a h
+    | InProgress(h, a) -> line h a
+    | Final(h, a, _) -> line h a
 
 let private statusText (g: Game) (state: GameState) =
     match state with
@@ -119,7 +124,7 @@ let render (mount: HTMLElement) (game: Game) =
 
     // Derived values that recompute reactively rather than being baked in at
     // render time.
-    let display = Solid.createMemo (fun () -> scoreText (state ()))
+    let display = Solid.createMemo (fun () -> scoreText game.Sport (state ()))
     let status = Solid.createMemo (fun () -> statusText game (state ()))
     // Drama is state-derived now, not immutable: the number is permitted only
     // once the game is final, so the slot has to appear at the moment the game
@@ -133,7 +138,7 @@ let render (mount: HTMLElement) (game: Game) =
         // The sport is the group heading now, so the card header carries the
         // venue alone rather than repeating it on every card in the section.
         [ staticNode "desk-card__header" "" (defaultArg game.Venue "—")
-          staticNode "desk-card__teams" "" (sprintf "%s @ %s" game.Away game.Home)
+          staticNode "desk-card__teams" "" (matchupText game.Sport game.Home game.Away)
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
           stateNode "desk-card__drama" "drama" drama
@@ -163,16 +168,29 @@ let render (mount: HTMLElement) (game: Game) =
 let renderSlate (mount: HTMLElement) (games: Game list) =
     let setters = ResizeArray<GameState -> unit>()
 
+    // Ordering is by the registry's label, not by the raw relay string, so it
+    // stays stable even if the relay renames a competition it already serves.
     let groups =
         games
         |> List.groupBy (fun g -> g.Sport)
-        |> List.sortBy (fun (sport, gs) -> (-(List.length gs), sport))
+        |> List.sortBy (fun (sport, gs) -> (-(List.length gs), (sportMeta sport).Label))
 
     for (sport, gs) in groups do
+        let meta = sportMeta sport
         let section = el "section" "sport-group" ""
-        section.setAttribute("data-sport", sport)
+        section.setAttribute("data-sport", meta.Label)
 
-        let title = el "h2" "sport-group__title" (sprintf "%s · %d" sport (List.length gs))
+        // An unmodelled sport is stated on the page rather than rendered as
+        // though it were understood. The convention for its fixtures is unknown,
+        // so saying nothing would be claiming knowledge the registry lacks.
+        if not meta.Modelled then
+            section.setAttribute("data-unmodelled", "true")
+
+        let heading =
+            if meta.Modelled then sprintf "%s · %d" meta.Label (List.length gs)
+            else sprintf "%s · %d · UNMODELLED SPORT" meta.Label (List.length gs)
+
+        let title = el "h2" "sport-group__title" heading
         section.appendChild title |> ignore
 
         let grid = el "div" "sport-group__grid" ""

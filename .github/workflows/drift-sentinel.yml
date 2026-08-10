@@ -18,6 +18,9 @@ on:
 
 permissions:
   contents: write
+  # The sentinel files its own follow-up when it observes a sport the Sport
+  # registry does not model. An alarm nobody converts into work is a log line.
+  issues: write
 
 concurrency:
   group: drift-sentinel
@@ -87,3 +90,48 @@ jobs:
         run: |
           echo "Sentinel reported a problem — see the log above and outbox/drift-log.md."
           exit 1
+
+      # The Sport union is deliberately evidence-driven: cases are added when a
+      # sport is genuinely observed, never invented in advance. That only works
+      # if observing one creates work. This turns the alarm into a filed issue
+      # naming the exact sports to add, and updates the same issue rather than
+      # opening a new one every day.
+      - name: File a follow-up for any unmodelled sport
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SPORTS=$(cut -d'|' -f7 /tmp/result.txt)
+          UNMODELLED=$(echo "$SPORTS" | tr ' ' '\n' | grep '\*:' | sed 's/\*:.*//' | paste -sd', ' -)
+          if [ -z "$UNMODELLED" ]; then
+            echo "Every observed sport is in the registry: ${SPORTS:-none}"
+            exit 0
+          fi
+          echo "::warning::Unmodelled sports observed: $UNMODELLED"
+
+          TITLE="Sport registry: unmodelled sports observed"
+          BODY=$(printf '%s\n' \
+            "The drift sentinel observed sports the \`Sport\` union does not model." \
+            "" \
+            "**Unmodelled:** $UNMODELLED" \
+            "**Full vocabulary this run:** \`$SPORTS\`  (\`*\` marks unmodelled)" \
+            "" \
+            "Their fixtures currently render under \`UnknownConvention\` — home first" \
+            "with a neutral separator, and flagged \`UNMODELLED SPORT\` on the page." \
+            "That is deliberate: guessing a home/away convention is what produced the" \
+            "original AFL bug (see docs/SPORT-PROOF.md)." \
+            "" \
+            "To fix: add each case to \`Sport\` in \`src/Desk.fs\`. The compiler will" \
+            "then refuse to build until \`sportMeta\` carries an entry for it — that" \
+            "refusal is the point, and \`npm run check:proof\` asserts it stays true." \
+            "" \
+            "_Filed automatically by drift-sentinel. Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}_")
+
+          EXISTING=$(gh issue list --state open --search "$TITLE in:title" --json number --jq '.[0].number' || true)
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+            echo "Updated issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --body "$BODY" --label "" 2>/dev/null \
+              || gh issue create --title "$TITLE" --body "$BODY"
+          fi

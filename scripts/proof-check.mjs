@@ -29,8 +29,15 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createChecks } from './checks.mjs'
 
-const DOC = 'docs/AMNESTY-PROOF.md'
+import { readdirSync } from 'node:fs'
+
+// Every *-PROOF.md in docs/. A new proof document is picked up automatically
+// rather than needing this script edited — the failure being guarded against is
+// a claim that no one checks, and requiring registration would recreate it.
+const DOCS = () => readdirSync('docs').filter(f => f.endsWith('-PROOF.md')).sort()
 const TARGET = 'src/Scoreboard.fs'
+// The Sport union lives here, and the registry-completeness phase mutates it.
+const REGISTRY = 'src/Desk.fs'
 // Outside the repo on purpose. An earlier version kept the backup at
 // src/Scoreboard.fs.proofbak, and killing the run mid-compile left BOTH a
 // broken tracked source file and an untracked .proofbak sitting in src/. Hit
@@ -62,8 +69,8 @@ const parseCases = doc => {
   return cases
 }
 
-const doc = readFileSync(DOC, 'utf8')
-const cases = parseCases(doc)
+const cases = DOCS().flatMap(f =>
+  parseCases(readFileSync(`docs/${f}`, 'utf8')).map(c => ({ ...c, doc: f })))
 const { check, summarize } = createChecks()
 
 // Repair before doing anything else, so a previous interrupted run cannot make
@@ -80,19 +87,25 @@ if (readFileSync(TARGET, 'utf8').includes(MARKER)) {
 }
 
 const source = readFileSync(TARGET, 'utf8')
+const registrySource = readFileSync(REGISTRY, 'utf8')
 writeFileSync(BACKUP, source)
+writeFileSync(`${BACKUP}.registry`, registrySource)
 
 // The original is held in memory AND on disk outside the repo, and restored on
 // every exit path including signals — a plain try/finally does not run on
 // SIGTERM, which is exactly how the tree got left broken.
-let restored = false
+// NOT one-shot. An earlier version guarded this with a `restored` flag, so the
+// second phase's `finally` was a no-op after the first phase had already
+// restored — leaving the mutated Sport union on disk and every later run
+// failing its own baseline. Writing the originals back is idempotent; the
+// unlinks are existence-checked. There is nothing to guard against.
 const restore = () => {
-  if (restored) return
-  restored = true
   try {
     writeFileSync(TARGET, source)
+    writeFileSync(REGISTRY, registrySource)
     if (existsSync(BACKUP)) unlinkSync(BACKUP)
-  } catch { /* best effort — the on-disk backup is the fallback */ }
+    if (existsSync(`${BACKUP}.registry`)) unlinkSync(`${BACKUP}.registry`)
+  } catch { /* best effort — the on-disk backups are the fallback */ }
 }
 process.on('exit', restore)
 for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
@@ -108,7 +121,7 @@ check('baseline tree compiles', baselineClean,
   (baseline.match(/error FS\d+.*/g) || []).slice(0, 2).join(' | '))
 
 check('the proof doc contains machine-checkable cases', cases.length > 0,
-  `${cases.length} case(s) found in ${DOC}`)
+  `${cases.length} case(s) across ${DOCS().join(', ')}`)
 
 if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
   try {
@@ -126,7 +139,7 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
       const salient = lines.find(l => l.startsWith('|') && !/^\|\s*(None|_)\s*->\s*""$/.test(l))
         || lines[0]
 
-      check(`case ${i + 1} rejected with ${c.code}: ${salient.slice(0, 52)}`,
+      check(`${c.doc} case ${i + 1} rejected with ${c.code}: ${salient.slice(0, 34)}`,
         rejected && out.includes(`error ${c.code}`),
         rejected ? `compiler said ${codes}, doc claims ${c.code}` : 'COMPILED CLEANLY — the gate does not hold')
     }
@@ -137,5 +150,30 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
   check('injection anchor still exists in the target', false, `not found in ${TARGET}: ${ANCHOR}`)
 }
 
-console.log(`\n${DOC}: ${cases.length} claimed rejection(s), each compiled for real\n`)
+// --- registry completeness ---------------------------------------------------
+// The Sport union's headline claim is "add a sport and the compiler makes you
+// update the registry". That cannot be expressed as an injected expression
+// body — it needs the type itself edited — so it gets its own phase rather than
+// being asserted in prose and left unchecked, which is the exact failure this
+// whole script exists to prevent.
+if (baselineClean) {
+  try {
+    const withCase = registrySource.replace(
+      /(\n    \| MLB\n)(    \| Unrecognised)/, '$1    | NHL\n$2')
+    if (withCase === registrySource) {
+      check('registry mutation applied', false, 'could not add a probe case to the Sport union')
+    } else {
+      writeFileSync(REGISTRY, withCase)
+      const out = build()
+      check('adding a Sport case without the registry does not compile',
+        /error FS0025/.test(out) && /NHL/.test(out),
+        /error FS0025/.test(out) ? 'FS0025 raised but did not name the new case'
+                                 : 'COMPILED CLEANLY — the registry is not exhaustive')
+    }
+  } finally {
+    restore()
+  }
+}
+
+console.log(`\ndocs/*-PROOF.md: ${cases.length} claimed rejection(s), each compiled for real\n`)
 process.exit(summarize() === 0 ? 0 : 1)

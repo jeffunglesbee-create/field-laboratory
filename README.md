@@ -51,6 +51,24 @@ the strongest evidence here. Production holds it with a design doc, a manual
 and its own audit record states that "string-search RUWT audits are not
 reliable." A data flow cannot be grepped. It can be typed.
 
+**The second result found by the type system, not written to be found:** `Sport`
+was a `string`, so the card rendered every fixture as `Away @ Home` — the
+American convention — including AFL. A Sydney home game against Collingwood
+rendered as **"Collingwood @ Sydney"**, which reads as a Collingwood home game.
+Both captures went through it, every check stayed green, and it was on the live
+page.
+
+Home/away order is the *first* field FIELD's Rule 50 lists, and this is why. A
+`string` carries no convention with it. `Sport` is now a union with one registry
+(`docs/SPORT-PROOF.md`), and adding a case without updating the registry is a
+compile error that names the missing sport — Rule 50's requirement enforced
+rather than requested, while the rule itself has been "Specced, not yet built" in
+production for months.
+
+Fixing the names then transposed the scoreline against them, which is the same
+lesson twice: Rule 50 lists score format in the *same* registry entry as
+home/away order because they are one decision.
+
 ## Layout
 
 | Path | What it is |
@@ -71,7 +89,7 @@ npm run build      # F# -> JS, then assemble public/
 npm run serve      # serves public/ — the same artifact that deploys
 npm run check      # 11 checks in real Chromium, including two state transitions
 npm run check:nav  # 18 checks: sport grouping and date navigation
-npm run check:proof # compiles every rejection AMNESTY-PROOF.md claims
+npm run check:proof # compiles every rejection docs/*-PROOF.md claims
 npm run gate       # the confidence gate — every row is a real command
 ```
 

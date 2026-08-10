@@ -8,7 +8,12 @@
          pin has no effect (NU1605). Disabling the implicit reference is what
          actually makes the pin authoritative. -->
     <DisableImplicitFSharpCoreReference>true</DisableImplicitFSharpCoreReference>
-  </PropertyGroup>
+    <!-- An incomplete pattern match is an ERROR here, not a warning. The whole
+       claim of the Sport union is "forget a sport and it does not compile";
+       FS0025 is a warning by default, which would make that claim depend on the
+       zero-warning CI gate rather than on the compiler refusing the build. -->
+  <WarningsAsErrors>$(WarningsAsErrors);FS0025</WarningsAsErrors>
+</PropertyGroup>
 
   <!-- F# compilation is order-sensitive: a file may only reference files
        listed above it. Append new files to the bottom of this list unless a

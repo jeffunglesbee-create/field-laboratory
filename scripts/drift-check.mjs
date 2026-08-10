@@ -18,7 +18,7 @@
 
 import { readFile } from 'node:fs/promises'
 import { createChecks, toArray, NESTED } from './checks.mjs'
-import { decodePayload } from '../build/Desk.js'
+import { decodePayload, sportMeta } from '../build/Desk.js'
 
 const args = process.argv.slice(2)
 const argOf = flag => {
@@ -62,6 +62,8 @@ check('payload decodes', decoded, decodeError)
 
 let games = []
 let malformed = []
+let unmodelled = []
+let vocabulary = []
 
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
@@ -77,7 +79,27 @@ if (decoded) {
     }
   }
 
+  // The sport vocabulary the relay actually serves. This is how the Sport
+  // union's registry stays evidence-driven: cases are added when a sport is
+  // observed, not invented in advance, and an unmodelled one surfaces here
+  // within a day rather than being quietly absorbed by a fallback.
+  const byLabel = new Map()
+  for (const g of games) {
+    const meta = sportMeta(g.Sport)
+    const seen = byLabel.get(meta.Label) || { label: meta.Label, modelled: meta.Modelled, n: 0 }
+    seen.n += 1
+    byLabel.set(meta.Label, seen)
+  }
+  vocabulary = [...byLabel.values()].sort((a, b) => b.n - a.n || a.label.localeCompare(b.label))
+  unmodelled = vocabulary.filter(v => !v.modelled)
+
   check('no malformed nested payloads', malformed.length === 0, malformed.join(' | '))
+  // Deliberately a failure, not a note. An unmodelled sport means the registry
+  // is incomplete and its fixtures are rendering under an unknown convention —
+  // the same class of defect as a malformed payload, and it stays loud until
+  // someone adds the case.
+  check('every observed sport is in the registry', unmodelled.length === 0,
+    unmodelled.map(v => `${v.label} (${v.n})`).join(', '))
   check('every game has an id and both teams',
     games.every(g => g.Id && g.Home && g.Away),
     'a game decoded without id/home/away')
@@ -87,14 +109,22 @@ console.log(`source:   ${source}`)
 console.log(`date:     ${payload?.Date ?? '(undecoded)'}`)
 console.log(`games:    ${games.length}`)
 console.log(`malformed:${malformed.length}`)
+console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
 if (malformed.length) for (const m of malformed) console.log(`  ${m}`)
 console.log()
 
 const failures = summarize()
 
 // Single machine-readable line for the appended log.
-const status = decoded ? (malformed.length ? 'malformed' : 'ok') : 'decode-failed'
-const note = decoded ? (malformed[0] ?? '') : decodeError
-console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}`)
+const status = decoded
+  ? (malformed.length ? 'malformed' : (unmodelled.length ? 'unmodelled-sport' : 'ok'))
+  : 'decode-failed'
+const note = decoded
+  ? (malformed[0] ?? (unmodelled.length ? `unmodelled: ${unmodelled.map(v => v.label).join(', ')}` : ''))
+  : decodeError
+// The observed vocabulary rides along on every run, so the log answers "which
+// sports has this relay ever served" without needing a separate probe.
+const sports = vocabulary.map(v => `${v.label}${v.modelled ? '' : '*'}:${v.n}`).join(' ')
+console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}`)
 
 process.exit(failures === 0 ? 0 : 1)

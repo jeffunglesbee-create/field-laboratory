@@ -303,3 +303,89 @@ records.
 
 The third number is the one worth having, because it is the only one that is not
 free.
+
+---
+
+## Follow-on: Sport as a real union type
+
+### The bug it found on contact
+
+`Sport` was a `string`, and the card rendered every fixture as `"%s @ %s" away
+home` — the American convention — for every sport. Applied to AFL that is wrong:
+a Sydney home game against Collingwood rendered **"Collingwood @ Sydney"**, which
+reads as a Collingwood home game. Both committed captures went through it, all
+40 assertions stayed green, and it was live.
+
+Home/away order is the first field Rule 50 lists. A string carries no convention
+with it, so nothing could have caught this.
+
+### The second half of the same bug
+
+Fixing the names alone produced `Sydney v Collingwood  81–75` where 75 was
+Collingwood's — names in one order, numbers in the other. Internally consistent
+before the fix, transposed after it, which is worse than either.
+
+Rule 50 lists "score format" in the *same* registry entry as home/away order
+because they are one decision. `orderByMatchup` is now the single source for
+both, so they cannot drift apart. Caught by reading the rendered output, not by
+a check — no assertion in this repo compares team order to score order.
+
+### The mechanism
+
+`Sport` is a union with `Matchup` (`AwayAtHome` / `HomeVersusAway` /
+`UnknownConvention`) and one registry function, `sportMeta`. `Laboratory.fsproj`
+promotes FS0025 from warning to **error**, so exhaustiveness is enforced by the
+build refusing rather than by the zero-warning gate noticing afterwards.
+
+Two claims, both machine-checked on every CI run by `proof-check`:
+
+- any match on `Sport` must handle every case (FS0025)
+- adding `| NHL` to the union and nothing else fails to compile, and the error
+  **names NHL** as the missing case
+
+### `Unrecognised` is an alarm, not a fallback
+
+The relay serves many competitions. A closed union over an open world would drop
+games or take the slate down; a silent "Other" bucket would restore exactly the
+stringly-typed behaviour the union exists to remove.
+
+`Unrecognised` is the same device as `Nested.Malformed`: a real state, made
+loud. The section renders `EFL Cup · 3 · UNMODELLED SPORT` with
+`data-unmodelled="true"`, its fixtures render home-first with a neutral
+separator (a refusal to guess, since guessing produced the AFL bug), and the
+drift sentinel fails on it.
+
+**Follow-up automation:** the sentinel now reports the sport vocabulary it
+observes on every run, carries it in the RESULT line, and files a GitHub issue
+naming the exact sports to add — updating the same issue rather than opening one
+daily. An alarm nobody converts into work is a log line.
+
+### Registry contents are evidence-driven
+
+Two modelled sports, AFL and MLB, because those are the only ones the committed
+captures evidence. NBA/NHL/NFL/MLS were **not** added on the assumption they will
+show up — that would be fabricating a registry, and this repo does not fabricate.
+The sentinel adds the evidence; the next session adds the cases.
+
+`IsSoccer` is declared because Rule 50 names it, and is `false` for both modelled
+sports. A registry field with no consumer yet, recorded as such.
+
+### Two defects found in my own tooling
+
+1. **`proof-check`'s `restore()` was one-shot.** A `restored` flag meant the
+   registry phase's `finally` was a no-op after the doc phase had already
+   restored — leaving the mutated `Sport` union on disk, so every later run
+   failed its own baseline. Caught because `check:proof` went 1/2 on a tree that
+   should have been clean. The flag is gone; the writes are idempotent.
+
+2. **I ran `git checkout src/Desk.fs` to clear that mutation and destroyed the
+   uncommitted union work**, because HEAD predated it. Recovered from a
+   scratchpad copy taken before the manual NHL probe, then re-applied the
+   score-order fix. Recorded because "restore from git" is exactly the wrong
+   reflex when the good version is uncommitted, and the near-miss is the lesson.
+
+### Verification
+
+`npm run gate`: 100/100. proof-check 8/8 (5 doc cases + registry completeness),
+check 11/11, check:hard 11/11, check:nav 18/18, drift 4/4 on both captures with
+the vocabulary reported, corrupted fixture still rejected, zero warnings.
