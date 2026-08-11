@@ -66,6 +66,26 @@ jobs:
 
       # Runs even when the check failed — a red run is precisely the row worth
       # keeping, so the log must be written before the job is allowed to fail.
+      # The venue table against the planet, daily.
+      #
+      # Every check in this repo that meets a live service does so only when
+      # somebody pushes. This one has a reason to run on a clock: the venue
+      # coordinates are TRANSCRIBED, the roof types were hand-reviewed from a
+      # probe sequence, and playground's own caveat is that the table "can drift
+      # as venues are renamed or rebuilt". A table that is right today and wrong
+      # in November is exactly what a push-triggered check never notices.
+      #
+      # It also exercises the Open-Meteo request itself daily, so a changed
+      # parameter, a revoked CORS header or a units default flipping under us is
+      # caught within a day instead of at the next weather commit.
+      #
+      # `if: always()` so it runs whether or not the relay probe above succeeded
+      # — the two services are unrelated and one being down should not hide the
+      # other.
+      - name: Venue table and Open-Meteo, checked live
+        if: always()
+        run: npm run check:weather-live
+
       - name: Append to the drift log
         if: always()
         run: |

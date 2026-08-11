@@ -17,6 +17,8 @@
 // Usage:  node scripts/weather-live-check.mjs
 
 import { forecastUrl, coordinates, decodeReading, falling, describeConditions } from '../build/Weather.js'
+import { all as allVenues } from '../build/Venues.js'
+import { toArray } from './checks.mjs'
 import { createChecks } from './checks.mjs'
 
 const { check, summarize } = createChecks()
@@ -91,5 +93,57 @@ check('...and the good and bad requests differ', badRes.status !== status,
 //    refuses that latitude before a URL exists.
 check('coordinates() refuses the latitude that the service also refuses',
   coordinates(999, -71.0972) == null, 'the validator accepted latitude 999')
+
+// --- 5. the venue table, checked against the planet -------------------------
+//
+// The transcription docking on 8fc40c3, closed rather than restated: "Venues.fs
+// coordinates are transcribed from playground's hand-reviewed table and have not
+// been checked against a source."
+//
+// This is that source, and it costs nothing extra — Open-Meteo already returns
+// the IANA timezone and the elevation it resolved for the coordinates it was
+// given. So every entry declares the zone it SHOULD be in, and the service says
+// where it actually is.
+//
+// It is a real axis, not a formality. A swapped lat/lon, a dropped minus sign or
+// a mistyped digit almost always moves a point into a different zone: Fenway
+// transposed is open ocean, Coors sign-flipped is the South Pacific. Chase Field
+// is the sharpest single row, because America/Phoenix is the one US zone without
+// DST and can only be reached by genuinely being in Arizona. Coors Field carries
+// a second axis on its own — a mile of elevation that no neighbouring typo has.
+//
+// This is what pick-shape-check does for the transcribed pick fixture, applied
+// to the transcribed venue table.
+const venues = toArray(allVenues)
+console.log(`\n  Checking ${venues.length} venue coordinates against Open-Meteo's resolved zone\n`)
+
+const ELEVATION_BAND = { 'Coors Field': [1500, 1650] }
+
+let zoneMismatches = []
+for (const v of venues) {
+  const res = await fetch(forecastUrl(v.Where))
+  if (!res.ok) { zoneMismatches.push(`${v.Name}: HTTP ${res.status}`); continue }
+  const body = await res.json()
+  if (body.timezone !== v.Zone) {
+    zoneMismatches.push(`${v.Name}: declared ${v.Zone}, resolved ${body.timezone}`)
+    continue
+  }
+  const band = ELEVATION_BAND[v.Name]
+  if (band && !(body.elevation >= band[0] && body.elevation <= band[1])) {
+    zoneMismatches.push(`${v.Name}: elevation ${body.elevation}m outside ${band[0]}-${band[1]}m`)
+  }
+}
+
+check('every venue resolves to the IANA zone it declares', zoneMismatches.length === 0,
+  zoneMismatches.join('\n      \u2192 '))
+
+// And the guard has to be shown able to fail, or its clean run means only that
+// it ran. A deliberately wrong coordinate must NOT resolve to Fenway's zone.
+const wrong = coordinates(-42.3467, 71.0972)
+const wrongRes = await fetch(forecastUrl(wrong))
+const wrongZone = (await wrongRes.json()).timezone
+console.log(`  sign-flipped Fenway resolves to ${wrongZone}`)
+check('a sign-flipped coordinate does NOT resolve to the declared zone',
+  wrongZone !== 'America/New_York', `it resolved to ${wrongZone} anyway`)
 
 process.exit(summarize() === 0 ? 0 : 1)

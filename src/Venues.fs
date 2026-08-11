@@ -37,69 +37,84 @@ open Weather
 type Venue =
     { Name: string
       Where: Coordinates
-      Roof: RoofType }
+      Roof: RoofType
+      /// The IANA zone this venue's coordinates SHOULD resolve to.
+      ///
+      /// Declared here so that `scripts/weather-live-check.mjs` can ask
+      /// Open-Meteo what zone the coordinates actually land in and compare. The
+      /// coordinates in this table are transcribed from playground's
+      /// hand-reviewed table and have never met an independent source; this is
+      /// the field that lets them.
+      ///
+      /// It is a genuinely independent axis. A swapped lat/lon, a dropped minus
+      /// sign or a mistyped digit almost always moves a point into a different
+      /// zone — Fenway's 42.35/-71.10 transposed is open ocean; Coors with a
+      /// sign flip is the South Pacific. Chase Field is the sharpest single
+      /// entry in the table, because America/Phoenix is the one US zone with no
+      /// DST, so it can only be reached by being genuinely in Arizona.
+      Zone: string }
 
 /// `coordinates` returns an option because latitude has a valid range. A literal
 /// out of range here is a build-time crash rather than a venue that silently
 /// vanishes from the table — the entries below are checked by `venueTableIsSound`
 /// and by a gate row, so a typo cannot become a missing venue.
-let private at name lat lon roof =
+let private at name lat lon roof zone =
     match coordinates lat lon with
-    | Some c -> Some { Name = name; Where = c; Roof = roof }
+    | Some c -> Some { Name = name; Where = c; Roof = roof; Zone = zone }
     | None -> None
 
 /// The table. Aliases are separate entries with the SAME coordinates, so they
 /// collapse to one `CoordKey` and therefore one fetch.
 let private entries =
     [ // --- MLB, open air
-      at "Fenway Park" 42.3467 -71.0972 OpenAir
-      at "Wrigley Field" 41.9484 -87.6553 OpenAir
-      at "Dodger Stadium" 34.0739 -118.2400 OpenAir
-      at "Oracle Park" 37.7786 -122.3893 OpenAir
-      at "Coors Field" 39.7559 -104.9942 OpenAir
-      at "Yankee Stadium" 40.8296 -73.9262 OpenAir
-      at "Citi Field" 40.7571 -73.8458 OpenAir
-      at "Camden Yards" 39.2839 -76.6217 OpenAir
-      at "PNC Park" 40.4469 -80.0057 OpenAir
-      at "Petco Park" 32.7073 -117.1566 OpenAir
-      at "Progressive Field" 41.4962 -81.6852 OpenAir
-      at "Comerica Park" 42.3390 -83.0485 OpenAir
-      at "Kauffman Stadium" 39.0517 -94.4803 OpenAir
-      at "Target Field" 44.9817 -93.2776 OpenAir
-      at "Busch Stadium" 38.6226 -90.1928 OpenAir
-      at "Great American Ball Park" 39.0975 -84.5069 OpenAir
-      at "Angel Stadium" 33.8003 -117.8827 OpenAir
+      at "Fenway Park" 42.3467 -71.0972 OpenAir "America/New_York"
+      at "Wrigley Field" 41.9484 -87.6553 OpenAir "America/Chicago"
+      at "Dodger Stadium" 34.0739 -118.2400 OpenAir "America/Los_Angeles"
+      at "Oracle Park" 37.7786 -122.3893 OpenAir "America/Los_Angeles"
+      at "Coors Field" 39.7559 -104.9942 OpenAir "America/Denver"
+      at "Yankee Stadium" 40.8296 -73.9262 OpenAir "America/New_York"
+      at "Citi Field" 40.7571 -73.8458 OpenAir "America/New_York"
+      at "Camden Yards" 39.2839 -76.6217 OpenAir "America/New_York"
+      at "PNC Park" 40.4469 -80.0057 OpenAir "America/New_York"
+      at "Petco Park" 32.7073 -117.1566 OpenAir "America/Los_Angeles"
+      at "Progressive Field" 41.4962 -81.6852 OpenAir "America/New_York"
+      at "Comerica Park" 42.3390 -83.0485 OpenAir "America/New_York"
+      at "Kauffman Stadium" 39.0517 -94.4803 OpenAir "America/Chicago"
+      at "Target Field" 44.9817 -93.2776 OpenAir "America/Chicago"
+      at "Busch Stadium" 38.6226 -90.1928 OpenAir "America/Chicago"
+      at "Great American Ball Park" 39.0975 -84.5069 OpenAir "America/New_York"
+      at "Angel Stadium" 33.8003 -117.8827 OpenAir "America/Los_Angeles"
       // Alias. Playground carries both spellings for exactly this reason: the
       // venue has been written down each way and a substring match on one does
       // not find the other.
-      at "Angels Stadium" 33.8003 -117.8827 OpenAir
-      at "Rate Field" 41.8299 -87.6338 OpenAir
-      at "Guaranteed Rate Field" 41.8299 -87.6338 OpenAir
+      at "Angels Stadium" 33.8003 -117.8827 OpenAir "America/Los_Angeles"
+      at "Rate Field" 41.8299 -87.6338 OpenAir "America/Chicago"
+      at "Guaranteed Rate Field" 41.8299 -87.6338 OpenAir "America/Chicago"
 
       // --- MLB, retractable. Production's `isOutdoor` boolean has no case for
       //     these, so `getVenueCoords` returns null and they get no weather at
       //     all — for a stadium whose roof decision is often MADE on the
       //     weather at that location.
-      at "loanDepot park" 25.7781 -80.2197 Retractable
-      at "Minute Maid Park" 29.7572 -95.3556 Retractable
-      at "Daikin Park" 29.7572 -95.3556 Retractable
-      at "Globe Life Field" 32.7473 -97.0847 Retractable
-      at "American Family Field" 43.0280 -87.9712 Retractable
-      at "Rogers Centre" 43.6414 -79.3894 Retractable
-      at "T-Mobile Park" 47.5914 -122.3325 Retractable
-      at "Chase Field" 33.4455 -112.0667 Retractable
+      at "loanDepot park" 25.7781 -80.2197 Retractable "America/New_York"
+      at "Minute Maid Park" 29.7572 -95.3556 Retractable "America/Chicago"
+      at "Daikin Park" 29.7572 -95.3556 Retractable "America/Chicago"
+      at "Globe Life Field" 32.7473 -97.0847 Retractable "America/Chicago"
+      at "American Family Field" 43.0280 -87.9712 Retractable "America/Chicago"
+      at "Rogers Centre" 43.6414 -79.3894 Retractable "America/Toronto"
+      at "T-Mobile Park" 47.5914 -122.3325 Retractable "America/Los_Angeles"
+      at "Chase Field" 33.4455 -112.0667 Retractable "America/Phoenix"
 
       // --- MLB, fixed dome
-      at "Tropicana Field" 27.7683 -82.6534 Dome
+      at "Tropicana Field" 27.7683 -82.6534 Dome "America/New_York"
 
       // --- AFL. All open air, and the reason the zone work exists: these are
       //     the fixtures whose day is not the American one.
-      at "Melbourne Cricket Ground" -37.8200 144.9834 OpenAir
-      at "Adelaide Oval" -34.9155 138.5960 OpenAir
-      at "The Gabba" -27.4858 153.0381 OpenAir
-      at "Optus Stadium" -31.9510 115.8890 OpenAir
-      at "GMHBA Stadium" -38.1580 144.3546 OpenAir
-      at "Marvel Stadium" -37.8165 144.9475 Retractable ]
+      at "Melbourne Cricket Ground" -37.8200 144.9834 OpenAir "Australia/Melbourne"
+      at "Adelaide Oval" -34.9155 138.5960 OpenAir "Australia/Adelaide"
+      at "The Gabba" -27.4858 153.0381 OpenAir "Australia/Brisbane"
+      at "Optus Stadium" -31.9510 115.8890 OpenAir "Australia/Perth"
+      at "GMHBA Stadium" -38.1580 144.3546 OpenAir "Australia/Melbourne"
+      at "Marvel Stadium" -37.8165 144.9475 Retractable "Australia/Melbourne" ]
     |> List.choose id
 
 /// Lookup is EXACT, not fuzzy.

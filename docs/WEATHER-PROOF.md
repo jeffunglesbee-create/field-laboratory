@@ -91,10 +91,27 @@ be applied to an error.
 They are not independent — precipitation includes snow. Two floats side by side
 are what makes "check snow before rain" a comment somebody has to obey.
 
+The two values are bound before being compared, and that is not cosmetic. The
+first version of this case was written inline:
+
+```
+let heavier = 2.0<Weather.mm> > 1.0<Weather.mph>
+```
+
+`<` and `>` there parse as a chained comparison with `Weather.mm` read as a
+*value*, so the compiler answers **FS0039**, not the FS0001 this document
+claimed. It answered FS0001 locally and FS0039 on the CI runner — two dotnet
+builds resolving one ambiguous parse differently. A proof case that is green in
+one place and red in another is a check that passes in one direction, arriving
+inside the document written to prevent that. Bound first, the parse has no second
+reading.
+
 <!-- proof: FS0001 -->
 
 ```fsharp
-    let heavier = 2.0<Weather.mm> > 1.0<Weather.mph>
+    let total: float<Weather.mm> = 2.0<Weather.mm>
+    let wind: float<Weather.mph> = 1.0<Weather.mph>
+    let heavier = total > wind
     ignore heavier
     ""
 ```
