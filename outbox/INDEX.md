@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f553bc7` | 2026-08-11 | [cc-the-run-was-not-stuck-2026-08-11.md](cc-the-run-was-not-stuck-2026-08-11.md) | The run was not stuck — the endpoint was stale |
+| `25d0f8b` | 2026-08-11 | [cc-what-the-runner-answered-2026-08-11.md](cc-what-the-runner-answered-2026-08-11.md) | What the runner answered: 401, 404, and a green main written by CI |
 | `090397c` | 2026-08-11 | [cc-the-fetch-that-had-never-run-2026-08-11.md](cc-the-fetch-that-had-never-run-2026-08-11.md) | The fetch that had never run, and the two things running it showed |
 | `5d41454` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | "Not claimed" was a loophole, and I used it |
 | `03063ff` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | The gate failed a commit because the day rolled over mid-run |
