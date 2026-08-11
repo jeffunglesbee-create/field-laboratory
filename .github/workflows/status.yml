@@ -20,6 +20,10 @@ on:
 
 permissions:
   contents: write
+  # Reading verify's conclusion for main. The status file is what would have
+  # contradicted a false "main is green" claim, and it could not, because it had
+  # no way to look.
+  actions: read
 
 concurrency:
   group: status
@@ -42,6 +46,8 @@ jobs:
 
       - name: Probe and render
         run: node scripts/status.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       # Which commit wrote which outbox entry, derived from git. It runs here
       # rather than in verify because it describes a commit and so can only be

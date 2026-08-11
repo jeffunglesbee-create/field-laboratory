@@ -323,6 +323,15 @@ const MUTATIONS = [
   },
 
   {
+    id: 'red-main-softened',
+    file: 'scripts/status.mjs',
+    claim: 'a failing verify run is reported as failing',
+    find: "  return `**${run.conclusion.toUpperCase()}** on \\`${sha}\\` — [run ${run.id}](${run.html_url})`",
+    replace: "  return `**green** on \\`${sha}\\``",
+    expect: 'node scripts/run-row.mjs "a red main is reported, not softened"',
+  },
+
+  {
     id: 'button-order',
     file: 'src/PickemView.fs',
     claim: 'the side buttons read in the same order as the matchup label',

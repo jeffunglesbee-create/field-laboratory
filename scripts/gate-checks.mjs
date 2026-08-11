@@ -197,6 +197,11 @@ const rows = [
   { name: 'no value is written without being read back', weight: 20,
     run: () => ok('node scripts/unused-check.mjs') && ok('node scripts/units-check.mjs') },
 
+  // A red main must be visible in the repo. STATUS.md could not say so until
+  // now, which is how a false "main is green" claim stood unopposed.
+  { name: 'a red main is reported, not softened', weight: 20,
+    run: () => ok('node scripts/status-verdict-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

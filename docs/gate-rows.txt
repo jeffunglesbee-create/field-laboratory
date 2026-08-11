@@ -48,5 +48,6 @@
 30  the sparkline shows the value, not a silhouette
 20  every gate row has teeth and is deterministic
 20  no value is written without being read back
+20  a red main is reported, not softened
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry

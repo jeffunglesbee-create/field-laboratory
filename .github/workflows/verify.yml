@@ -196,6 +196,10 @@ jobs:
       - name: Every gate row has teeth
         run: npm run check:rows
 
+      # A red main must be visible in the repo, not only in the Actions tab.
+      - name: A red main is reported, not softened
+        run: npm run check:status
+
       - name: Confidence gate (>= 95)
         run: npm run gate
 
