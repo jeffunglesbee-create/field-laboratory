@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8fc40c3` | 2026-08-11 | [cc-weather-not-a-port-2026-08-11.md](cc-weather-not-a-port-2026-08-11.md) | Weather in F#, built from playground and from how it failed in production |
 | `ec28b51` | 2026-08-11 | [cc-the-harness-on-a-runner-2026-08-11.md](cc-the-harness-on-a-runner-2026-08-11.md) | Record the runner result that closes ba65230's docking |
 | `ba65230` | 2026-08-11 | [cc-the-harness-in-fsharp-2026-08-11.md](cc-the-harness-in-fsharp-2026-08-11.md) | The check harness, in F#, with the counterexample made compulsory |
 | `98d000f` | 2026-08-11 | [cc-the-other-half-of-the-answer-2026-08-11.md](cc-the-other-half-of-the-answer-2026-08-11.md) | The README carried only the wins, and then argued for them |
