@@ -87,17 +87,24 @@ export const verifyVerdict = (run, head, now = null) => {
   const sha = run.head_sha.slice(0, 7)
   const stale = head && run.head_sha !== head
   if (run.status !== 'completed') {
-    // A run that has been "running" for an hour is not in progress, it is
-    // stuck — and "**running**" reads as neutral, which is the softening this
-    // section exists to prevent, arriving through the one branch that looked
-    // harmless.
+    // A run that has been "running" for an hour is not in progress, and
+    // "**running**" reads as neutral — the softening this section exists to
+    // prevent, arriving through the one branch that looked harmless.
     //
-    // Not hypothetical: run 31501321990 (771cf8e) has been `in_progress` since
-    // 14:24 with `updated_at` unchanged since 14:24:25. `concurrency:
-    // cancel-in-progress` should have ended it when the next commit landed and
-    // the API still reports it live. Had it been main's newest run, this
-    // section would have said "running" indefinitely for a run that will never
-    // finish.
+    // Not hypothetical, and the real cause is worse than the one I first wrote
+    // here. Run 31501321990 (771cf8e) FINISHED, successfully, at 14:40:55 — its
+    // job reports `completed`/`success` with every step green. The runs
+    // endpoint THIS FUNCTION READS reported it `in_progress` with `updated_at`
+    // stuck at 14:24:25 for more than ninety minutes afterwards.
+    //
+    // So this does not guard against a stuck run. It guards against a stale
+    // answer from the endpoint the whole section depends on — and the damage
+    // runs the other way from what I assumed: the file would have withheld a
+    // true green indefinitely, not masked a red. Either way the reader is told
+    // something that is not so, which is the 30-point row in the rubric.
+    //
+    // I called it stuck after reading one endpoint. The jobs endpoint disagreed
+    // and I had not asked it. One source, one direction — again.
     const idleMs = now ? new Date(now) - new Date(run.updated_at) : 0
     if (idleMs > STALL_MINUTES * 60_000) {
       return `**STALLED** on \`${sha}\` — no update for ${Math.round(idleMs / 60_000)} minutes`

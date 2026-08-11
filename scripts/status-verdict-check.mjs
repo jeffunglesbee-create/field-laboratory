@@ -42,10 +42,16 @@ const running = { head_sha: HEAD, status: 'in_progress', conclusion: null, id: 3
 check('an in-progress run is not reported as either', /\*\*running\*\*/.test(verifyVerdict(running, HEAD)),
   verifyVerdict(running, HEAD))
 
-// A run that is still "in_progress" an hour after its last update is stuck, and
+// A run still "in_progress" an hour after its last update is not news, and
 // "running" reads as neutral — the softening this row exists to prevent, through
-// the one branch that looked harmless. Run 31501321990 is the real instance:
-// in_progress since 14:24, updated_at frozen at 14:24:25, still live at 15:22.
+// the one branch that looked harmless.
+//
+// Run 31501321990 is the real instance, and not for the reason I first gave. It
+// COMPLETED SUCCESSFULLY at 14:40:55; the runs endpoint reported it in_progress
+// with updated_at frozen at 14:24:25 for ninety minutes after that. The stale
+// answer is on the endpoint this section reads, so the file would have withheld
+// a true green rather than masked a red — both are the reader being told
+// something untrue.
 const fresh = verifyVerdict(running, HEAD, new Date('2026-08-11T15:20:00Z'))
 check('a run that started minutes ago still reads as running', /\*\*running\*\*/.test(fresh), fresh)
 
