@@ -99,6 +99,15 @@ jobs:
       - name: Grouping and date-navigation checks
         run: npm run check:nav
 
+      # Both picks. The decoder check runs headless; the tab check drives a real
+      # browser and asserts, among other things, that the composite pick score
+      # appears nowhere in the rendered DOM.
+      - name: Pick decoders
+        run: npm run check:pick
+
+      - name: Tabs, both pick panels, and the ADR-002 display check
+        run: npm run check:tabs
+
       # Compiles every violation docs/AMNESTY-PROOF.md claims is rejected and
       # asserts the compiler really rejects it with the stated error. The doc
       # shipped an overstated claim once — that the drama seal was complete when
@@ -107,9 +116,6 @@ jobs:
       - name: Proof-doc claims are compiler-verified
         run: npm run check:proof
 
-      # Deterministic zone assertions. CI runs whenever a push lands, which is
-      # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
-      # so the zone logic would otherwise be exercised only by luck.
       # Cheap and early: does every workflow job actually satisfy the imports of
       # the scripts it invokes? Added after two live-check runs failed on a step
       # that imported build/ from a job with no build.
@@ -129,6 +135,9 @@ jobs:
       - name: Source and outbox changed together, every commit
         run: npm run check:history
 
+      # Deterministic zone assertions. CI runs whenever a push lands, which is
+      # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
+      # so the zone logic would otherwise be exercised only by luck.
       - name: FIELD-zone day checks
         run: npm run check:zone
 
@@ -167,3 +176,11 @@ jobs:
             sleep 1
           done
           npm run check:live
+
+      # data/pick-2026-07-07.json was TRANSCRIBED from a Drive document rather
+      # than fetched — the dev sandbox has no route to the relay. This is where
+      # that transcription meets the real route. An HTTP failure is reported and
+      # not fatal (the bundle may not exist for a given date); a 200 the decoder
+      # cannot read is fatal, which is the actual assertion.
+      - name: Pick decoder against the LIVE analytics route
+        run: npm run check:pick-live

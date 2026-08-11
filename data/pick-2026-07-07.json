@@ -1,0 +1,58 @@
+{
+  "_provenance": {
+    "route": "/analytics/newspaper/2026-07-07",
+    "field": "bundle.pick",
+    "captured_by": "FIELD production session, recorded verbatim in the Drive document 'Field's Pick — Ranked List — 2026-07-07'",
+    "transcribed_here": "2026-08-10",
+    "warning": "TRANSCRIBED, NOT FETCHED. The laboratory sandbox has no route to the relay, so this was copied from the production outbox record rather than pulled live. It is a real response and the values are real, but the transcription itself is unverified here. scripts/pick-live-check.mjs fetches the real route on a CI runner, which does have egress, and asserts the decoder handles what actually comes back today."
+  },
+  "game_id": "MLB_2026-07-07_reds_phillies",
+  "sport": "MLB",
+  "home": "Reds",
+  "away": "Phillies",
+  "score": 3.5,
+  "reasons": ["tight line (1.5)", "prime time", "national broadcast"],
+  "ranked": [
+    {
+      "game_id": "MLB_2026-07-07_reds_phillies",
+      "sport": "MLB",
+      "home": "Reds",
+      "away": "Phillies",
+      "score": 3.5,
+      "reasons": ["tight line (1.5)", "prime time", "national broadcast"]
+    },
+    {
+      "game_id": "MLB_2026-07-07_padres_diamondbacks",
+      "sport": "MLB",
+      "home": "Padres",
+      "away": "Diamondbacks",
+      "score": 3.5,
+      "reasons": ["tight line (1.5)", "prime time", "national broadcast"]
+    },
+    {
+      "game_id": "MLB_2026-07-07_giants_bluejays",
+      "sport": "MLB",
+      "home": "Giants",
+      "away": "Blue Jays",
+      "score": 3.5,
+      "reasons": ["tight line (1.5)", "prime time", "national broadcast"]
+    },
+    {
+      "game_id": "MLB_2026-07-07_cardinals_brewers",
+      "sport": "MLB",
+      "home": "Cardinals",
+      "away": "Brewers",
+      "score": 3,
+      "reasons": ["tight line (1.5)", "prime time"]
+    },
+    {
+      "game_id": "MLB_2026-07-07_mets_royals",
+      "sport": "MLB",
+      "home": "Mets",
+      "away": "Royals",
+      "score": 3,
+      "reasons": ["tight line (1.5)", "prime time"]
+    }
+  ],
+  "brief": "You should definitely tune into the Reds and Phillies tonight, as this prime-time matchup is shaping up to be a thrilling, down-to-the-wire contest that you won't want to miss."
+}

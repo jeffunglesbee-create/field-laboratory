@@ -87,6 +87,22 @@ const page = await browser.newPage()
 page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
 page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
 
+// The page talks to TWO relay routes now: the slate, and the analytics bundle
+// behind the Field's Pick tab. This stub was written when there was only one,
+// and the second went straight to the network — which in this sandbox is a
+// console error, and on a runner would be a real request from a test that
+// claims to need no egress.
+//
+// Served as an empty bundle rather than a rich one: this check is about date
+// navigation, and the pick panel's own assertions live in tab-check.mjs.
+// scripts/pick-live-check.mjs is what exercises the real route.
+await page.route('**/analytics/newspaper/**', route =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ date: 'stub', pick: null }),
+  }))
+
 await page.route('**/context/date/**', route => {
   const date = new global.URL(route.request().url()).pathname.split('/').pop()
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {

@@ -16,6 +16,11 @@
        leaves a sliver of card content scrolling through the seam, which is
        precisely what the first attempt did. */
     --nav-h: 3.25rem;
+    /* The tab bar sits above the date nav, so every sticky offset below is
+       derived from BOTH heights rather than eyeballed. The 3px seam this
+       repo already shipped once came from a hand-tuned `top`; adding a second
+       sticky layer is exactly where that recurs. */
+    --tab-h: 3rem;
     --bg: #0f1115;
   }
   body {
@@ -26,10 +31,59 @@
   .meta { font-size: .85rem; opacity: .65; margin-bottom: 1.5rem; }
   .meta div { margin-bottom: .25rem; }
 
+  /* Tabs. Three surfaces over the same date: the slate, and the two picks —
+     which are not the same feature and must not look like one. */
+  .tabs {
+    position: sticky; top: 0; z-index: 3;
+    display: flex; gap: .25rem;
+    height: var(--tab-h); box-sizing: border-box; align-items: stretch;
+    margin: 0; background: var(--bg);
+    border-bottom: 1px solid #262a33;
+  }
+  .tabs button {
+    font: inherit; font-size: .8rem; letter-spacing: .04em;
+    color: #8a90a0; background: none;
+    border: none; border-bottom: 2px solid transparent;
+    padding: 0 .9rem; cursor: pointer;
+  }
+  .tabs button:hover { color: #e6e8ec; }
+  .tabs button[aria-selected="true"] { color: #e6e8ec; border-bottom-color: #4a9d7e; }
+  /* Focus must stay visible: a tablist is keyboard-driven by design, and the
+     arrow-key pattern is unusable if focus is invisible. */
+  .tabs button:focus-visible { outline: 2px solid #4a9d7e; outline-offset: -2px; }
+  [role="tabpanel"][hidden] { display: none; }
+
+  .pick-panel { max-width: 46rem; }
+  .pick-panel h2 { font-size: .95rem; margin: 0 0 .35rem; }
+  .pick-panel__what { font-size: .82rem; opacity: .65; margin: 0 0 1.25rem; }
+  .pick-leader {
+    border: 1px solid #262a33; border-left: 3px solid #4a9d7e; border-radius: 10px;
+    padding: .9rem 1rem; margin-bottom: 1rem; background: #12151b;
+  }
+  .pick-leader__matchup { font-size: 1.05rem; margin-bottom: .3rem; }
+  .pick-leader__tie { font-size: .8rem; color: #d8a657; margin-bottom: .5rem; }
+  .pick-reasons { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
+  .pick-reason {
+    font-size: .74rem; padding: .2rem .5rem; border-radius: 999px;
+    background: #1a1f27; border: 1px solid #2a303b; color: #b9c0cd;
+  }
+  .pick-brief { font-size: .88rem; margin-top: .6rem; opacity: .85; }
+  .pick-chaser {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: .5rem 0; border-bottom: 1px solid #1c2027; font-size: .86rem;
+  }
+  .pick-chaser__reasons { font-size: .74rem; opacity: .6; text-align: right; }
+  .gate { padding: .5rem 0; border-bottom: 1px solid #1c2027; font-size: .84rem; }
+  .gate__name { color: #b9c0cd; }
+  .gate__answer { font-size: .78rem; opacity: .7; }
+  .gate--qualifies .gate__name { color: #4a9d7e; }
+  .gate--unanswerable .gate__name { color: #d8a657; }
+  .pick-empty { font-size: .88rem; opacity: .7; }
+
   /* Date navigation. Sticky because a full multi-sport slate is long and the
      controls are useless if you have to scroll back to the top to reach them. */
   .datenav {
-    position: sticky; top: 0; z-index: 2;
+    position: sticky; top: var(--tab-h); z-index: 2;
     display: flex; align-items: center; gap: .6rem;
     height: var(--nav-h); box-sizing: border-box;
     margin: 0 0 1.5rem;
@@ -62,7 +116,7 @@
      a sticky heading floats OVER the cards, so a transparent or partial
      background lets card text render through it. */
   .sport-group__title {
-    position: sticky; top: var(--nav-h); z-index: 1;
+    position: sticky; top: calc(var(--tab-h) + var(--nav-h)); z-index: 1;
     font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
     font-weight: 600; color: #8a90a0; margin: 0 0 .75rem;
     padding: .55rem 0; background: var(--bg);
@@ -84,6 +138,15 @@
 <body>
   <h1>FIELD Laboratory — desk scoreboard</h1>
 
+  <!-- Wired by Program.fs (wireTabs). Roving arrow-key selection per the
+       WAI-ARIA tabs pattern; the panels are real tabpanels, not divs that get
+       display:none, so a screen reader is told what changed. -->
+  <div class="tabs" role="tablist" aria-label="Laboratory surfaces">
+    <button role="tab" id="tab-scoreboard" aria-controls="panel-scoreboard" aria-selected="true" tabindex="0">Scoreboard</button>
+    <button role="tab" id="tab-field-pick" aria-controls="panel-field-pick" aria-selected="false" tabindex="-1">Field's Pick</button>
+    <button role="tab" id="tab-scout-pick" aria-controls="panel-scout-pick" aria-selected="false" tabindex="-1">Scout's Pick</button>
+  </div>
+
   <!-- Wired by Program.fs (wireDateNav). Navigation rewrites the URL with
        history.pushState and re-renders in place, so every day is linkable and
        the back button works. -->
@@ -98,7 +161,11 @@
     <div id="decode-status">decoding…</div>
     <div id="units-demo"></div>
   </div>
-  <div id="desk"></div>
+  <div role="tabpanel" id="panel-scoreboard" aria-labelledby="tab-scoreboard" tabindex="0">
+    <div id="desk"></div>
+  </div>
+  <div role="tabpanel" id="panel-field-pick" aria-labelledby="tab-field-pick" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-scout-pick" aria-labelledby="tab-scout-pick" tabindex="0" hidden></div>
 
   <!-- Fable emits bare module specifiers for npm packages — `import {
        createSignal } from "solid-js"` — which browsers cannot resolve natively.

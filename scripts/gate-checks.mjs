@@ -140,6 +140,14 @@ const rows = [
     run: () => ok('node scripts/history-check.mjs --self-test') &&
                ok('node scripts/history-check.mjs') },
 
+  // Both picks. Separate rows because they are separate features that
+  // contradict each other, and one passing tells you nothing about the other.
+  { name: 'pick decoders match the recorded live response', weight: 10,
+    run: () => ok('node scripts/pick-check.mjs') },
+
+  { name: 'tabs work and the pick score never renders', weight: 15, skipQuick: true,
+    run: () => ok("URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs") },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

@@ -27,6 +27,11 @@ let private RELAY_DATE = "https://field-relay-nba.jeffunglesbee.workers.dev/cont
 /// on the strength of everything upstream looking healthy.
 let private FALLBACK = "./data/context-2026-05-15.json"
 
+/// Field's Pick lives on a different route from the slate: the analytics
+/// newspaper bundle, whose `pick` field the relay side shipped on 2026-07-07.
+/// Fetched separately and allowed to fail on its own.
+let private RELAY_PICK = "https://field-relay-nba.jeffunglesbee.workers.dev/analytics/newspaper/"
+
 /// Reads a query parameter, or None. Deliberately not URLSearchParams — this
 /// keeps the query handling in one place and identical across the params.
 let private queryParam (name: string) =
@@ -182,6 +187,53 @@ let private start () =
                     if window.location.search.Contains "simulate=1" then
                         exposeForTesting setters)
 
+            // Scout's Pick runs on the SAME payload the slate came from — its
+            // gates read game fields, not a separate endpoint.
+            match document.getElementById "panel-scout-pick" with
+            | null -> ()
+            | mount ->
+                let seriesEntries =
+                    match payload.Series with
+                    | Present rows -> List.length rows
+                    | Absent | EmptyOrFailed -> 0
+                PickView.renderScoutPick mount games seriesEntries
+
+            // Field's Pick comes from a DIFFERENT route — the analytics
+            // newspaper bundle, not /context/date — so it is fetched separately
+            // and its failure must not take the slate down with it.
+            match document.getElementById "panel-field-pick" with
+            | null -> ()
+            | mount ->
+                let pickUrl =
+                    match queryParam "data" with
+                    | Some _ -> "./data/pick-2026-07-07.json"
+                    | None -> RELAY_PICK + payload.Date
+                tryFetchText pickUrl
+                |> Promise.iter (fun result ->
+                    let outcome =
+                        match result with
+                        | Error _ ->
+                            // Unreachable is not the same as "no pick", and
+                            // saying "no pick tonight" when the fetch failed is
+                            // the exact class of quiet wrongness this repo keeps
+                            // finding. NoPickSection renders as "no section in
+                            // this payload", which is true either way.
+                            Pick.NoPickSection
+                        | Ok body ->
+                            // Try the bare pick object first (the committed
+                            // fixture), then the whole bundle (the live route).
+                            match Pick.decodePick body with
+                            | Ok (Pick.NoPickSection) ->
+                                match Pick.decodeBundle body with
+                                | Ok outcome -> outcome
+                                | Error _ -> Pick.NoPickSection
+                            | Ok outcome -> outcome
+                            | Error _ ->
+                                match Pick.decodeBundle body with
+                                | Ok outcome -> outcome
+                                | Error _ -> Pick.NoPickSection
+                    PickView.renderFieldPick mount outcome)
+
             // Prove the units are live, not just declared: a real probability
             // formatted through the only sanctioned conversion.
             let openingWinProbability = 0.62<prob>
@@ -225,5 +277,53 @@ let private wireDateNav () =
     else
         report "viewed-date" (viewedDate ())
 
+/// Wires the tablist.
+///
+/// Follows the WAI-ARIA tabs pattern rather than approximating it: exactly one
+/// tab is in the tab order at a time (`tabindex` 0/-1), arrows move selection,
+/// Home/End jump to the ends. A row of buttons that merely toggles `hidden` is
+/// not a tablist to a screen reader, and this page has three surfaces that say
+/// contradictory things — knowing which one you are on is load-bearing.
+let private wireTabs () =
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick" ]
+
+    let tabs () =
+        ids |> List.choose (fun id ->
+            match document.getElementById id with
+            | null -> None
+            | node -> Some node)
+
+    let select (target: Browser.Types.HTMLElement) =
+        for tab in tabs () do
+            let selected = tab.id = target.id
+            tab.setAttribute ("aria-selected", (if selected then "true" else "false"))
+            tab.setAttribute ("tabindex", (if selected then "0" else "-1"))
+            match document.getElementById (tab.getAttribute "aria-controls") with
+            | null -> ()
+            | panel ->
+                if selected then panel.removeAttribute "hidden"
+                else panel.setAttribute ("hidden", "true")
+        target.focus ()
+
+    let step (from: Browser.Types.HTMLElement) (delta: int) =
+        let all = tabs ()
+        match all |> List.tryFindIndex (fun t -> t.id = from.id) with
+        | None -> ()
+        // Wraps, per the pattern. Clamping would leave the last arrow press
+        // doing nothing, which reads as a broken control rather than an edge.
+        | Some i -> select all.[((i + delta) % all.Length + all.Length) % all.Length]
+
+    for tab in tabs () do
+        tab.addEventListener ("click", fun _ -> select tab)
+        tab.addEventListener ("keydown", fun ev ->
+            let key = (ev :?> Browser.Types.KeyboardEvent).key
+            match key with
+            | "ArrowRight" -> ev.preventDefault (); step tab 1
+            | "ArrowLeft" -> ev.preventDefault (); step tab -1
+            | "Home" -> ev.preventDefault (); select (List.head (tabs ()))
+            | "End" -> ev.preventDefault (); select (List.last (tabs ()))
+            | _ -> ())
+
+wireTabs ()
 wireDateNav ()
 start () |> Promise.start
