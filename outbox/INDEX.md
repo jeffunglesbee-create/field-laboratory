@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5d7a2c9` | 2026-08-11 | [cc-both-picks-in-a-tab-system-2026-08-10.md](cc-both-picks-in-a-tab-system-2026-08-10.md) | Both picks, in tabs — and they disagree with each other on purpose |
 | `e25a897` | 2026-08-10 | [cc-false-positives-claim-correction-2026-08-10.md](cc-false-positives-claim-correction-2026-08-10.md) | "Standing false positives" was the wrong name for them |
 | `e25a897` | 2026-08-10 | [cc-history-boundary-claim-correction-2026-08-10.md](cc-history-boundary-claim-correction-2026-08-10.md) | "Standing false positives" was the wrong name for them |
 | `6da936e` | 2026-08-10 | [cc-history-boundary-claim-correction-2026-08-10.md](cc-history-boundary-claim-correction-2026-08-10.md) | The boundary was not frozen the way the comment said it was |
