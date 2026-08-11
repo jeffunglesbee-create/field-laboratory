@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5d41454` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | "Not claimed" was a loophole, and I used it |
+| `03063ff` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | The gate failed a commit because the day rolled over mid-run |
+| `771cf8e` | 2026-08-11 | [cc-written-but-never-read-back-2026-08-11.md](cc-written-but-never-read-back-2026-08-11.md) | Written but never read back: four values nothing had ever observed |
 | `6c92660` | 2026-08-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-11 [skip ci] |
 | `73ffdd0` | 2026-08-11 | [cc-the-gate-was-an-average-2026-08-10.md](cc-the-gate-was-an-average-2026-08-10.md) | Cumulative, and it rotted as it grew: the gate is now a conjunction |
 | `bfddd4d` | 2026-08-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
