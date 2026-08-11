@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d1668aa` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Confirm the deployed tabs, and check the transcription against its source |
+| `4123040` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Record the live pick route result from the runner |
 | `5d7a2c9` | 2026-08-11 | [cc-both-picks-in-a-tab-system-2026-08-10.md](cc-both-picks-in-a-tab-system-2026-08-10.md) | Both picks, in tabs — and they disagree with each other on purpose |
 | `e25a897` | 2026-08-10 | [cc-false-positives-claim-correction-2026-08-10.md](cc-false-positives-claim-correction-2026-08-10.md) | "Standing false positives" was the wrong name for them |
 | `e25a897` | 2026-08-10 | [cc-history-boundary-claim-correction-2026-08-10.md](cc-history-boundary-claim-correction-2026-08-10.md) | "Standing false positives" was the wrong name for them |

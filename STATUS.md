@@ -9,7 +9,7 @@ not read from workflow history. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e25a897` (behind `main`) |
+| Cloudflare Workers | live | `5d7a2c9` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
