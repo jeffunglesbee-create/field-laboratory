@@ -146,6 +146,13 @@ jobs:
       # Deterministic zone assertions. CI runs whenever a push lands, which is
       # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
       # so the zone logic would otherwise be exercised only by luck.
+      # State transitions at named instants. `gameState` used to read the wall
+      # clock twice, so every assertion about it was an assertion about when CI
+      # happened to run. Includes four wrong implementations, run against the
+      # same table, so a passing row means something.
+      - name: Game state at fixed instants
+        run: npm run check:state
+
       - name: FIELD-zone day checks
         run: npm run check:zone
 

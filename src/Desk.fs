@@ -567,17 +567,33 @@ type GameState =
     | InProgress of home: int * away: int
     | Final of home: int * away: int * overtime: bool
 
-/// Has the game actually kicked off?
+/// Has the game kicked off, as of a named instant?
 ///
 /// `start_time` is the only status signal this payload carries. Absent, this
 /// returns false rather than guessing — an unknown start time is not evidence
 /// that a game has not begun.
-let notYetStarted (g: Game) =
+let notYetStartedAt (now: DateTimeOffset) (g: Game) =
     match g.StartTime with
-    | Some start -> DateTimeOffset.UtcNow < start
+    | Some start -> now < start
     | None -> false
 
-let gameState (g: Game) : GameState =
+let notYetStarted (g: Game) = notYetStartedAt DateTimeOffset.UtcNow g
+
+/// The state of a game AT A NAMED INSTANT.
+///
+/// This is the real function; `gameState` below just supplies "now".
+///
+/// The split is not tidiness. `gameState` read the wall clock in two places —
+/// `fieldToday ()` for the date comparison and `DateTimeOffset.UtcNow` for
+/// kickoff — which meant every assertion about it was an assertion about when
+/// the test happened to run. This repo has already paid for exactly that:
+/// zone-check reported 16/16 while a deliberately broken UTC-4 implementation
+/// also passed 11/11, because its one F# assertion was time-dependent. The fix
+/// there was to make `fieldDayAt(instant)` pure. Same fix, same reason.
+///
+/// A caller that wants "now" says so. A test that wants a Tuesday in February
+/// says that instead, and gets the same answer on every run.
+let gameStateAt (now: DateTimeOffset) (g: Game) : GameState =
     match g.HomeScore, g.AwayScore with
     | Some h, Some a ->
         // `finalized_at` is NOT a reliable "this game is over" signal, and
@@ -602,11 +618,11 @@ let gameState (g: Game) : GameState =
         // August" one, with the sign reversed, and squarely in US prime time.
         let datePassed =
             match g.Day with
-            | Some day -> fieldDayIsBefore day (fieldToday ())
+            | Some day -> fieldDayIsBefore day (fieldDayAt now)
             | None -> false
         if g.FinalizedAt.IsSome || datePassed then
             Final(h, a, g.Overtime = WentToOvertime)
-        elif notYetStarted g then
+        elif notYetStartedAt now g then
             // Scores present, but the game has not kicked off — so they are
             // placeholders, not a live scoreline.
             //
@@ -626,6 +642,9 @@ let gameState (g: Game) : GameState =
         else
             InProgress(h, a)
     | _ -> Scheduled
+
+/// The state of a game right now. The only impure entry point.
+let gameState (g: Game) : GameState = gameStateAt DateTimeOffset.UtcNow g
 
 // ---------------------------------------------------------------------------
 // Line shapes

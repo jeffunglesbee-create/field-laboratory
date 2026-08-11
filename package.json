@@ -26,6 +26,7 @@
     "check:pick-shape": "node scripts/pick-shape-check.mjs",
     "check:live-tabs": "node scripts/live-tabs-check.mjs",
     "check:pickem": "node scripts/pickem-check.mjs",
+    "check:state": "node scripts/state-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs"
   },
   "dependencies": {

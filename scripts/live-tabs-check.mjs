@@ -30,12 +30,15 @@ page.on('pageerror', e => pageErrors.push(String(e)))
 console.log(`\n${URL_BASE}\n`)
 await page.goto(URL_BASE, { waitUntil: 'networkidle' })
 
-const tabIds = await page.$$eval('[role="tab"]', ts => ts.map(t => t.id))
-check('the deployed page has all three tabs', tabIds.length === 3,
+// Scoped to the TOP-LEVEL tablist. Pick'em's sport chips are a tablist too, so
+// a bare [role="tab"] query matches both lists and reports six tabs. Nesting a
+// tablist inside a tabpanel is legitimate; querying across them is not.
+const tabIds = await page.$$eval('.tabs [role="tab"]', ts => ts.map(t => t.id))
+check('the deployed page has all four tabs', tabIds.length === 4,
   `found: ${JSON.stringify(tabIds)} — the tab build may not have deployed`)
 
-check('the pick tabs are among them',
-  tabIds.includes('tab-field-pick') && tabIds.includes('tab-scout-pick'),
+check('all three pick tabs are among them',
+  ['tab-field-pick', 'tab-scout-pick', 'tab-pickem'].every(id => tabIds.includes(id)),
   `found: ${JSON.stringify(tabIds)}`)
 
 const visible = async () =>
@@ -86,6 +89,18 @@ check('the Field\'s Pick panel is in a stated state, not blank',
 check('the Scout\'s Pick panel reports gates',
   /Gate /.test(scoutText),
   `panel said: ${scoutText.replace(/\s+/g, ' ').slice(0, 200)}`)
+
+// Pick'em on the deployed artifact. Structural only — whether tonight's slate
+// has games at all is not this check's business.
+await page.click('#tab-pickem')
+const pickemText = (await page.textContent('#panel-pickem')) ?? ''
+check('the Pick\'em panel renders and says whose opinion it is',
+  /your own pick/i.test(pickemText) && /not an editorial recommendation/i.test(pickemText),
+  `panel said: ${pickemText.replace(/\s+/g, ' ').slice(0, 200)}`)
+
+check('the Pick\'em legend explains its two numbers',
+  /Chips count games/.test(pickemText) || /No games on this slate/.test(pickemText),
+  'the production screen shows two counts with nothing saying what each counts')
 
 check('no page errors on the deployed artifact', pageErrors.length === 0,
   pageErrors.join(' | '))

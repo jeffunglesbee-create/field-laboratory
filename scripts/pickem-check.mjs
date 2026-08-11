@@ -224,6 +224,22 @@ check('a 0-0 fixture that has not kicked off reads PENDING, not LIVE',
   await chipOf('MLB_x_unplayed_zeroes') === 'PENDING',
   `chip: ${await chipOf('MLB_x_unplayed_zeroes')} — placeholder zeroes were read as a live scoreline`)
 
+// --- the sport chips are a real tablist, not a row of buttons ----------------
+
+await page.click('.pk-sport:has-text("EFL Cup")')
+await page.focus('.pk-sport[aria-selected="true"]')
+await page.keyboard.press('ArrowRight')
+const afterArrow = await page.$eval('.pk-sport[aria-selected="true"]', c => c.textContent)
+check('ArrowRight moves between sport chips',
+  !/EFL Cup/.test(afterArrow),
+  `still on ${afterArrow} — the chips carried role="tab" but responded to clicks only`)
+
+await page.keyboard.press('End')
+const afterEnd = await page.$eval('.pk-sport[aria-selected="true"]', c => c.textContent)
+check('End jumps to the last sport chip', /WNBA/.test(afterEnd), `landed on ${afterEnd}`)
+
+await page.click('.pk-sport:has-text("MLS")')
+
 // --- persistence -------------------------------------------------------------
 
 const before = await banner()

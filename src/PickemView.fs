@@ -84,6 +84,18 @@ let private renderRow (mount: HTMLElement) (game: Game) (status: PickStatus) (on
 
     child row (statusChip status) |> ignore
 
+/// Re-focus the current chip after a re-render.
+///
+/// `render` rebuilds the panel, which destroys the focused element — so a
+/// second arrow key went to `body` and did nothing. The chips passed a
+/// one-arrow-press test and were unusable on the second, which is the sharper
+/// version of the bug they were meant to fix: keyboard support that works once
+/// is not keyboard support.
+let private refocusSelectedChip (mount: HTMLElement) =
+    match mount.querySelector ".pk-sport[aria-selected=\"true\"]" with
+    | null -> ()
+    | node -> (node :?> HTMLElement).focus ()
+
 /// The whole panel. Re-rendered on every pick, which is cheap at slate size and
 /// keeps the banner, the chip counts and the rows from ever disagreeing.
 let rec render (mount: HTMLElement) (date: string) (games: Game list) (activeSport: Sport option) =
@@ -133,6 +145,26 @@ let rec render (mount: HTMLElement) (date: string) (games: Game list) (activeSpo
         child chip (el "span" "" label) |> ignore
         child chip (el "span" "pk-sport__count" (string (List.length sportGames))) |> ignore
         chip.addEventListener ("click", fun _ -> render mount date games (Some sport))
+        // Arrow keys, like the top-level tablist. These chips carried role and
+        // aria-selected from the start but responded to clicks only, which is a
+        // tablist in appearance and a row of buttons in use — the exact gap
+        // tab-check exists to close one level up. Wraps rather than clamps, so
+        // the last arrow press does something.
+        chip.addEventListener ("keydown", fun ev ->
+            let sports = bySport |> List.map fst
+            let index = sports |> List.findIndex (fun s -> s = sport)
+            let count = List.length sports
+            let go target =
+                ev.preventDefault ()
+                render mount date games (Some target)
+                refocusSelectedChip mount
+            let move delta = go sports.[((index + delta) % count + count) % count]
+            match (ev :?> Browser.Types.KeyboardEvent).key with
+            | "ArrowRight" -> move 1
+            | "ArrowLeft" -> move -1
+            | "Home" -> go (List.head sports)
+            | "End" -> go (List.last sports)
+            | _ -> ())
 
     child panel (el "p" "pk-legend"
                     (sprintf "Chips count games in each sport (%d total). The line above counts picks (%d)."

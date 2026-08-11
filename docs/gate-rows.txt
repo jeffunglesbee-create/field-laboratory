@@ -30,5 +30,6 @@
 10  pick decoders match the recorded live response
 15  tabs work and the pick score never renders
 15  pick'em grades only finished games
+10  game state is correct at fixed instants
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry

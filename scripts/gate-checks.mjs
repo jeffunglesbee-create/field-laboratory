@@ -151,6 +151,9 @@ const rows = [
   { name: "pick'em grades only finished games", weight: 15, skipQuick: true,
     run: () => ok('node scripts/pickem-check.mjs') },
 
+  { name: 'game state is correct at fixed instants', weight: 10,
+    run: () => ok('node scripts/state-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,
