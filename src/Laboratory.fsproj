@@ -19,6 +19,9 @@
        listed above it. Append new files to the bottom of this list unless a
        later file genuinely needs to see them first. -->
   <ItemGroup>
+    <!-- The check harness. First: it depends on nothing, and every proof case
+         in docs/CHECK-PROOF.md is injected into a file below it. -->
+    <Compile Include="Verify.fs" />
     <Compile Include="Units.fs" />
     <Compile Include="Desk.fs" />
     <Compile Include="Pick.fs" />
@@ -28,6 +31,11 @@
     <Compile Include="PickView.fs" />
     <Compile Include="PickemView.fs" />
     <Compile Include="Program.fs" />
+    <!-- The F# suite and its node entry point. Below Program.fs because nothing
+         imports them; `node build/VerifyMain.js` is a second entry, and it must
+         not pull in Program's browser side effects. -->
+    <Compile Include="Suite.fs" />
+    <Compile Include="VerifyMain.fs" />
   </ItemGroup>
 
   <ItemGroup>

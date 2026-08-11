@@ -136,6 +136,16 @@ const rows = [
   { name: 'doc claims are compiler-verified, not prose', weight: 20, skipQuick: true,
     run: () => ok('node scripts/proof-check.mjs') },
 
+  // The F# harness, run under node from the Fable output. Its own self-test runs
+  // FIRST and the suite is skipped if the self-test fails, so this row cannot go
+  // green on a harness that has been shown blind.
+  //
+  // Weight 20: the product may be fine, and the ability to notice would not be.
+  // That is what a toothless check costs, and it is the failure this repo has
+  // had most often.
+  { name: 'the F# harness refuses a check with no counterexample', weight: 20, skipQuick: true,
+    run: () => ok('node build/VerifyMain.js') },
+
   // Deterministic, so it runs at any hour. The zone fix is only observable
   // when ET and UTC disagree, and every scheduled job in this repo runs
   // outside that window.

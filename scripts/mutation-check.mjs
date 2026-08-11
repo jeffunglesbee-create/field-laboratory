@@ -332,10 +332,6 @@ const MUTATIONS = [
   },
 
   {
-    // The softening that already happened once. A read that fails and reports
-    // no problem is indistinguishable from a read that found nothing wrong —
-    // which is the state STATUS.md sat in on commit 363dd93, saying "unknown"
-    // with nothing recording that the token had simply not been passed.
     // The softening through the branch that looked harmless. A run stuck
     // in_progress for an hour reads as "running", which reads as neutral.
     id: 'stalled-run-reads-as-running',
@@ -347,6 +343,35 @@ const MUTATIONS = [
   },
 
   {
+    // Blind the F# harness the way every other detector here could be blinded:
+    // make a toothless check report as a pass. Its own self-test must object,
+    // and if it does not, 16/16 means only that the suite ran.
+    id: 'harness-accepts-toothless',
+    file: 'src/Verify.fs',
+    claim: 'a check whose counterexample also passes is reported as having no teeth',
+    find: '    | true, true -> NoTeeth',
+    replace: '    | true, true -> Held',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+
+  {
+    // The other direction, which the mutation above does not cover. A harness
+    // that called EVERYTHING toothless would also kill that mutation, and would
+    // be exactly as useless — this is the one-directional failure arriving in
+    // the thing built to prevent it.
+    id: 'harness-calls-everything-toothless',
+    file: 'src/Verify.fs',
+    claim: 'a genuine two-directional check is reported as holding',
+    find: '    | true, false -> Held',
+    replace: '    | true, false -> NoTeeth',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+
+  {
+    // The softening that already happened once. A read that fails and reports
+    // no problem is indistinguishable from a read that found nothing wrong —
+    // which is the state STATUS.md sat in on commit 363dd93, saying "unknown"
+    // with nothing recording that the token had simply not been passed.
     id: 'unreadable-history-swallowed',
     file: 'scripts/status.mjs',
     claim: 'a workflow-history read that the API rejects is reported as a problem',

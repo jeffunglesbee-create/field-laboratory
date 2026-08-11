@@ -200,6 +200,12 @@ jobs:
       - name: No value is written without being read back
         run: npm run check:unused
 
+      # The F# harness, run under node from the Fable output. Its own self-test
+      # runs first and the suite is skipped if that fails, so this step cannot
+      # report green on a harness that has been shown blind.
+      - name: The F# suite, on the F# harness
+        run: npm run check:verify
+
       - name: Every gate row has teeth
         run: npm run check:rows
 
