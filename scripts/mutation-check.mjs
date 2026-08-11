@@ -343,6 +343,29 @@ const MUTATIONS = [
   },
 
   {
+    // Production's flat `isOutdoor` boolean has no third state, so a retractable
+    // roof must be filed as one of the other two — and loanDepot park is filed
+    // outdoor. This is that collapse, restored.
+    id: 'retractable-assumed-open',
+    file: 'src/Weather.fs',
+    claim: 'a retractable roof is never assumed to have been open',
+    find: '    | Retractable -> UnknownRoofState',
+    replace: '    | Retractable -> PlayedInTheOpen',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+
+  {
+    // The misleading empty state playground throws to avoid: a total outage
+    // rendering as "no venues with known coordinates".
+    id: 'outage-reads-as-empty',
+    file: 'src/Weather.fs',
+    claim: 'an outage is distinguishable from a slate with no locatable venue',
+    find: '    elif List.isEmpty readings then EveryFetchFailed eligible',
+    replace: '    elif List.isEmpty readings then NoVenuesWithCoordinates',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+
+  {
     // Blind the F# harness the way every other detector here could be blinded:
     // make a toothless check report as a pass. Its own self-test must object,
     // and if it does not, 16/16 means only that the suite ran.

@@ -34,11 +34,11 @@ await page.goto(URL_BASE, { waitUntil: 'networkidle' })
 // a bare [role="tab"] query matches both lists and reports six tabs. Nesting a
 // tablist inside a tabpanel is legitimate; querying across them is not.
 const tabIds = await page.$$eval('.tabs [role="tab"]', ts => ts.map(t => t.id))
-check('the deployed page has all four tabs', tabIds.length === 4,
+check('the deployed page has all five tabs', tabIds.length === 5,
   `found: ${JSON.stringify(tabIds)} — the tab build may not have deployed`)
 
 check('all three pick tabs are among them',
-  ['tab-field-pick', 'tab-scout-pick', 'tab-pickem'].every(id => tabIds.includes(id)),
+  ['tab-field-pick', 'tab-scout-pick', 'tab-pickem', 'tab-weather'].every(id => tabIds.includes(id)),
   `found: ${JSON.stringify(tabIds)}`)
 
 const visible = async () =>

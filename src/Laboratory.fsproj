@@ -23,6 +23,9 @@
          in docs/CHECK-PROOF.md is injected into a file below it. -->
     <Compile Include="Verify.fs" />
     <Compile Include="Units.fs" />
+    <!-- Venue weather. Above Desk.fs because it is self-contained. -->
+    <Compile Include="Weather.fs" />
+    <Compile Include="Venues.fs" />
     <Compile Include="Desk.fs" />
     <Compile Include="Pick.fs" />
     <Compile Include="Scout.fs" />
@@ -30,6 +33,7 @@
     <Compile Include="Scoreboard.fs" />
     <Compile Include="PickView.fs" />
     <Compile Include="PickemView.fs" />
+    <Compile Include="WeatherView.fs" />
     <Compile Include="Program.fs" />
     <!-- The F# suite and its node entry point. Below Program.fs because nothing
          imports them; `node build/VerifyMain.js` is a second entry, and it must

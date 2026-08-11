@@ -195,5 +195,180 @@ let private state =
           ("2026-08-10T00:30:00Z", game kickoff None (Some 4) (Some 2))
           ("2026-08-10T00:30:00Z", game kickoff (Some "2026-08-10T00:20:00Z") (Some 4) (Some 2)) ]
 
+// ---------------------------------------------------------------------------
+// Weather. Each counterexample below is a failure written down in FIELD's own
+// documents or in playground's source comments — not one I invented.
+// ---------------------------------------------------------------------------
+
+let private weather =
+    let reading temp wind total rain =
+        { Weather.Temperature = temp * 1.0<Weather.degF>
+          Weather.FeelsLike = None
+          Weather.Wind = wind * 1.0<Weather.mph>
+          Weather.Gusts = None
+          Weather.WindFrom = None
+          Weather.Precip =
+            match Weather.precipitation (total * 1.0<Weather.mm>) (rain * 1.0<Weather.mm>) with
+            | Some p -> p
+            | None -> failwith "fixture is not a possible reading" }
+
+    let venue name roof temp =
+        { Weather.Venue = name
+          Weather.Where =
+            match Weather.coordinates 40.0 -80.0 with
+            | Some c -> c
+            | None -> failwith "fixture coordinates"
+          Weather.Roof = roof
+          Weather.Reading = reading temp 5.0 0.0 0.0 }
+
+    [ // Playground's own comment: "describeConditions checks snow before rain:
+      // precipitation includes snow, so snow (rain === 0, precipitation > 0)
+      // would otherwise be labelled rain". The must-fail is that label.
+      Verify.check "precipitation with no rain is not called rain"
+          (fun (total, rain) ->
+              match Weather.precipitation (total * 1.0<Weather.mm>) (rain * 1.0<Weather.mm>) with
+              | Some p -> (match Weather.falling p with Weather.FrozenOrMixed _ -> true | _ -> false)
+              | None -> false)
+          (2.0, 0.0)
+          (2.0, 2.0)
+
+      // ...and the other direction, which the check above alone does not cover:
+      // a harness that called everything frozen would satisfy it.
+      Verify.check "rain really is called rain"
+          (fun (total, rain) ->
+              match Weather.precipitation (total * 1.0<Weather.mm>) (rain * 1.0<Weather.mm>) with
+              | Some p -> (match Weather.falling p with Weather.Raining _ -> true | _ -> false)
+              | None -> false)
+          (2.0, 2.0)
+          (2.0, 0.0)
+
+      // Rain cannot exceed total precipitation. Every time this repo has seen
+      // that shape it has been a units mix-up.
+      Verify.check "a reading where rain exceeds precipitation is refused"
+          (fun (total, rain) ->
+              (Weather.precipitation (total * 1.0<Weather.mm>) (rain * 1.0<Weather.mm>)).IsNone)
+          (1.0, 5.0)
+          (5.0, 1.0)
+
+      // Production files loanDepot park as `isOutdoor: true`. It is retractable.
+      // A boolean has no third state, so the error had nowhere to be visible.
+      Verify.check "loanDepot park is retractable, not open air"
+          (fun (name, expected) ->
+              match Venues.tryFind name with
+              | Some v -> v.Roof = expected
+              | None -> false)
+          ("loanDepot park", Weather.Retractable)
+          ("loanDepot park", Weather.OpenAir)
+
+      // Nothing knows whether a retractable roof was closed. Playground says so
+      // in a title attribute; here there is no constructor that turns it into an
+      // open-air claim.
+      Verify.check "a retractable roof's state is unknown, never assumed open"
+          (fun (roof, expected) -> Weather.roofState roof = expected)
+          (Weather.Retractable, Weather.UnknownRoofState)
+          (Weather.Retractable, Weather.PlayedInTheOpen)
+
+      // Aliases are one place and must be one request. 98 venue keys, 95
+      // locations.
+      Verify.check "two names for one stadium collapse to a single fetch"
+          (fun (a, b) ->
+              match Venues.tryFind a, Venues.tryFind b with
+              | Some x, Some y -> Weather.coordKey x.Where = Weather.coordKey y.Where
+              | _ -> false)
+          ("Minute Maid Park", "Daikin Park")
+          ("Minute Maid Park", "Wrigley Field")
+
+      Verify.check "distinct locations dedupe aliases but keep real venues"
+          (fun names ->
+              let found, _ = Venues.weatherEligible names
+              List.length (Venues.distinctLocations found) = 2)
+          [ "Minute Maid Park"; "Daikin Park"; "Wrigley Field" ]
+          [ "Minute Maid Park"; "Wrigley Field"; "Fenway Park" ]
+
+      // The empty state that means four things. Playground throws to avoid it;
+      // a throw is swallowable and production's six undefined functions are what
+      // swallowing looks like.
+      Verify.check "an outage is EveryFetchFailed, not an empty slate"
+          (fun (eligible, readings) ->
+              Weather.slateWeather eligible readings [] = Weather.EveryFetchFailed eligible)
+          ([ "Fenway Park" ], [])
+          ([], [])
+
+      Verify.check "a slate with no locatable venue says so separately"
+          (fun (eligible, readings) -> Weather.slateWeather eligible readings [] = Weather.NoVenuesWithCoordinates)
+          ([], [])
+          ([ "Fenway Park" ], [])
+
+      // The verdict line ranks open venues only, because a covered venue's
+      // location weather is not necessarily what the game experiences.
+      Verify.check "the warmest venue is never a covered one"
+          (fun venues ->
+              match Weather.extremes venues with
+              | Some(warmest, _) -> Weather.roofState warmest.Roof = Weather.PlayedInTheOpen
+              | None -> false)
+          [ venue "Tropicana Field" Weather.Dome 99.0; venue "Fenway Park" Weather.OpenAir 70.0 ]
+          [ venue "Tropicana Field" Weather.Dome 99.0 ]
+
+      // Wraparound at 360 is where a chain of range comparisons loses a case.
+      Verify.check "the compass wraps rather than falling off the end"
+          (fun (degrees, expected) -> Weather.compass degrees = expected)
+          (350, "N")
+          (350, "NW")
+
+      // The cache takes an instant rather than reading one, so this is an
+      // assertion about the TTL and not about when the suite ran.
+      Verify.check "a reading older than the TTL is not served"
+          (fun (storedAt, askedAt) ->
+              let key =
+                  Weather.coordKey (match Weather.coordinates 40.0 -80.0 with
+                                    | Some c -> c
+                                    | None -> failwith "fixture")
+              let c = Weather.put key storedAt (reading 70.0 5.0 0.0 0.0) Weather.emptyCache
+              (Weather.tryGet key askedAt c).IsNone)
+          (0.0, Weather.CACHE_TTL_MS + 1.0)
+          (0.0, Weather.CACHE_TTL_MS - 1.0)
+
+      Verify.check "the venue table parses every entry"
+          (fun expected -> fst (Venues.venueTableIsSound ()) = expected)
+          Venues.count
+          (Venues.count - 1)
+
+      // --- the decoder and the URL ---------------------------------------
+      //
+      // TRANSCRIBED, not captured: this sandbox's egress blocks
+      // api.open-meteo.com — the same reason playground verified CORS from a
+      // GitHub Actions runner rather than from here. The field names and units
+      // come from FIELD's May 9 2026 integration log, which records the exact
+      // request FIELD makes. Meeting the real service is a runner's job and is
+      // not claimed here.
+      Verify.check "a real-shaped current block decodes"
+          (fun json ->
+              match Weather.decodeReading json with
+              | Ok r -> abs (float r.Temperature - 72.4) < 0.001 && r.WindFrom = Some 210
+              | Error _ -> false)
+          """{"current":{"time":"2026-08-11T17:00","temperature_2m":72.4,"apparent_temperature":74.1,"precipitation":0.0,"rain":0.0,"wind_speed_10m":8.1,"wind_direction_10m":210,"wind_gusts_10m":14.3}}"""
+          """{"current":{"time":"2026-08-11T17:00","apparent_temperature":74.1}}"""
+
+      // A payload where rain exceeds total precipitation is a decode FAILURE,
+      // not a reading that renders confidently and wrongly. The must-fail is the
+      // same payload made valid, so this cannot pass by rejecting everything.
+      Verify.check "an impossible reading is refused by the decoder"
+          (fun json -> (Weather.decodeReading json) |> Result.isError)
+          """{"current":{"temperature_2m":40.0,"precipitation":0.5,"rain":9.9,"wind_speed_10m":4.0}}"""
+          """{"current":{"temperature_2m":40.0,"precipitation":9.9,"rain":0.5,"wind_speed_10m":4.0}}"""
+
+      // The URL carries the unit parameters that the measures downstream assume.
+      // Changing `fahrenheit` here without changing `degF` is the drift this
+      // check exists to make loud — the must-fail is the metric request, which
+      // returns numbers that are still numbers and mean something else.
+      Verify.check "the request asks for the units the types assume"
+          (fun (c, wanted: string) -> (Weather.forecastUrl c).Contains(wanted))
+          ((match Weather.coordinates 42.3467 -71.0972 with
+            | Some c -> c
+            | None -> failwith "fixture"), "temperature_unit=fahrenheit")
+          ((match Weather.coordinates 42.3467 -71.0972 with
+            | Some c -> c
+            | None -> failwith "fixture"), "temperature_unit=celsius") ]
+
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state
+let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather

@@ -253,6 +253,13 @@ jobs:
       # api.github.com from the dev sandbox — and was docked for it. A runner has
       # the token and the egress, so it runs, and it runs in both directions: a
       # real token and a deliberately broken one, required to answer differently.
+      # Open-Meteo, for real. This sandbox's egress blocks api.open-meteo.com —
+      # the same wall playground hit, which is why it verified CORS from a runner
+      # rather than locally. Both directions: a real request and an out-of-range
+      # latitude, required to answer differently.
+      - name: Weather against the LIVE Open-Meteo API
+        run: npm run check:weather-live
+
       - name: Status read against the LIVE GitHub API
         run: npm run check:status-live
         env:

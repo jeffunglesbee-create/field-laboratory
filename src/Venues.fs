@@ -1,0 +1,152 @@
+module Venues
+
+open Weather
+
+// The venue table: name -> location and roof.
+//
+// WHY THIS IS ONE TABLE AND NOT TWO PREDICATES
+//
+// Production answers "does this venue get weather?" with `isOutdoorVenue`, which
+// fuzzy-matches the venue NAME against a keyword list — from FIELD's own May 9
+// integration log:
+//
+//   INDOOR_KEYWORDS:   ["arena","garden","center","centre","dome","domed",
+//                       "coliseum","fieldhouse","forum","palace","pavilion",
+//                       "theater","theatre","auditorium"]
+//   INDOOR_EXCEPTIONS: ["wembley","foro italico","olympic","stade de france",
+//                       "estadion","stade","stad"]
+//
+// The exceptions list is the tell: it exists because the keyword list was wrong
+// about real venues, and each new wrong answer adds a string rather than a fact.
+// "Madison Square Garden" and "Fenway Park" are distinguished by spelling.
+//
+// Here a venue's roof is DATA, sitting beside its coordinates in one entry, so
+// there is one place to be wrong and it is visible. That is also how
+// production's actual error becomes findable: loanDepot park is filed
+// `isOutdoor: true` and has a retractable roof. A boolean has no third state, so
+// there was nowhere for the truth to live.
+//
+// PROVENANCE. Coordinates and roof types come from playground's hand-reviewed
+// table, itself assembled from a Wikidata/Nominatim/Photon/Overpass probe
+// sequence. It is not derived live and can drift as venues are renamed or
+// rebuilt, which is why aliases are carried explicitly rather than guessed at by
+// substring match. This is a working subset, not playground's full 98 keys —
+// enough that every roof type and both alias cases are exercised by real
+// entries rather than by fixtures.
+
+type Venue =
+    { Name: string
+      Where: Coordinates
+      Roof: RoofType }
+
+/// `coordinates` returns an option because latitude has a valid range. A literal
+/// out of range here is a build-time crash rather than a venue that silently
+/// vanishes from the table — the entries below are checked by `venueTableIsSound`
+/// and by a gate row, so a typo cannot become a missing venue.
+let private at name lat lon roof =
+    match coordinates lat lon with
+    | Some c -> Some { Name = name; Where = c; Roof = roof }
+    | None -> None
+
+/// The table. Aliases are separate entries with the SAME coordinates, so they
+/// collapse to one `CoordKey` and therefore one fetch.
+let private entries =
+    [ // --- MLB, open air
+      at "Fenway Park" 42.3467 -71.0972 OpenAir
+      at "Wrigley Field" 41.9484 -87.6553 OpenAir
+      at "Dodger Stadium" 34.0739 -118.2400 OpenAir
+      at "Oracle Park" 37.7786 -122.3893 OpenAir
+      at "Coors Field" 39.7559 -104.9942 OpenAir
+      at "Yankee Stadium" 40.8296 -73.9262 OpenAir
+      at "Citi Field" 40.7571 -73.8458 OpenAir
+      at "Camden Yards" 39.2839 -76.6217 OpenAir
+      at "PNC Park" 40.4469 -80.0057 OpenAir
+      at "Petco Park" 32.7073 -117.1566 OpenAir
+      at "Progressive Field" 41.4962 -81.6852 OpenAir
+      at "Comerica Park" 42.3390 -83.0485 OpenAir
+      at "Kauffman Stadium" 39.0517 -94.4803 OpenAir
+      at "Target Field" 44.9817 -93.2776 OpenAir
+      at "Busch Stadium" 38.6226 -90.1928 OpenAir
+      at "Great American Ball Park" 39.0975 -84.5069 OpenAir
+      at "Angel Stadium" 33.8003 -117.8827 OpenAir
+      // Alias. Playground carries both spellings for exactly this reason: the
+      // venue has been written down each way and a substring match on one does
+      // not find the other.
+      at "Angels Stadium" 33.8003 -117.8827 OpenAir
+      at "Rate Field" 41.8299 -87.6338 OpenAir
+      at "Guaranteed Rate Field" 41.8299 -87.6338 OpenAir
+
+      // --- MLB, retractable. Production's `isOutdoor` boolean has no case for
+      //     these, so `getVenueCoords` returns null and they get no weather at
+      //     all — for a stadium whose roof decision is often MADE on the
+      //     weather at that location.
+      at "loanDepot park" 25.7781 -80.2197 Retractable
+      at "Minute Maid Park" 29.7572 -95.3556 Retractable
+      at "Daikin Park" 29.7572 -95.3556 Retractable
+      at "Globe Life Field" 32.7473 -97.0847 Retractable
+      at "American Family Field" 43.0280 -87.9712 Retractable
+      at "Rogers Centre" 43.6414 -79.3894 Retractable
+      at "T-Mobile Park" 47.5914 -122.3325 Retractable
+      at "Chase Field" 33.4455 -112.0667 Retractable
+
+      // --- MLB, fixed dome
+      at "Tropicana Field" 27.7683 -82.6534 Dome
+
+      // --- AFL. All open air, and the reason the zone work exists: these are
+      //     the fixtures whose day is not the American one.
+      at "Melbourne Cricket Ground" -37.8200 144.9834 OpenAir
+      at "Adelaide Oval" -34.9155 138.5960 OpenAir
+      at "The Gabba" -27.4858 153.0381 OpenAir
+      at "Optus Stadium" -31.9510 115.8890 OpenAir
+      at "GMHBA Stadium" -38.1580 144.3546 OpenAir
+      at "Marvel Stadium" -37.8165 144.9475 Retractable ]
+    |> List.choose id
+
+/// Lookup is EXACT, not fuzzy.
+///
+/// Production fuzzy-matches, which is what makes the keyword lists necessary and
+/// what makes a wrong answer silent. An exact miss here is a venue this table
+/// does not know, which is a fact worth having — `weatherEligible` reports the
+/// misses rather than dropping them.
+let tryFind (name: string) : Venue option =
+    entries |> List.tryFind (fun v -> v.Name = name)
+
+/// Venues on a slate that this table can locate, and the names it could not.
+///
+/// Returning BOTH is the point. A name that is not in the table is not the same
+/// as a venue with no weather, and collapsing them is how "no venues have
+/// coordinates" came to mean four different things.
+let weatherEligible (venueNames: string list) : Venue list * string list =
+    let found = venueNames |> List.choose tryFind
+    let missing = venueNames |> List.filter (fun n -> (tryFind n).IsNone)
+    found, missing
+
+/// Distinct locations to fetch, keyed by coordinate.
+///
+/// This is where the aliases collapse: "Minute Maid Park" and "Daikin Park" are
+/// one place and must be one request. Keyed by `CoordKey` rather than by name,
+/// which is not a convention here but a type — nothing else can key it.
+let distinctLocations (venues: Venue list) : (CoordKey * Venue) list =
+    venues
+    |> List.fold
+        (fun acc v ->
+            let key = coordKey v.Where
+            if acc |> List.exists (fun (k, _) -> k = key) then acc else acc @ [ key, v ])
+        []
+
+let all = entries
+let count = List.length entries
+
+/// Every entry parsed, and the alias pairs really do collapse.
+///
+/// A table is data, and data is where a silent wrong answer lives. This is the
+/// assertion the gate row runs.
+let venueTableIsSound () =
+    let parsed = List.length entries
+    let maid = tryFind "Minute Maid Park"
+    let daikin = tryFind "Daikin Park"
+    let aliasesShareOneFetch =
+        match maid, daikin with
+        | Some a, Some b -> coordKey a.Where = coordKey b.Where
+        | _ -> false
+    parsed, aliasesShareOneFetch

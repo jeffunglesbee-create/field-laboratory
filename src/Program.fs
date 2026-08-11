@@ -94,6 +94,12 @@ let private tryFetchText (url: string) =
 /// Disposal handle for the currently-rendered slate's Solid root. Date
 /// navigation re-renders into the same mount, so each pass must dispose the
 /// previous one or every day viewed leaves a live set of effects behind.
+/// The slate's venue names, recorded at render time and read when the Weather
+/// tab is first opened. Weather is the only surface with its own network call,
+/// so it is the only one that earns a lazy load.
+let mutable private weatherVenues : string list = []
+let mutable private weatherLoaded = false
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
@@ -240,6 +246,26 @@ let private start () =
             | null -> ()
             | mount -> PickemView.render mount payload.Date games None
 
+            // Weather. Its own fetch, to Open-Meteo directly — the relay's
+            // /weather/today route 403s and is dead in production, so there is
+            // nothing to hop through. Rendered when it resolves; the panel is
+            // never left blank, because every SlateWeather case has a rendering
+            // and the union has no fourth state to fall through.
+            // Weather does NOT fetch here. It records the slate's venues and
+            // waits for the tab to be opened.
+            //
+            // The first version fetched on every render. That put an
+            // unconditional third-party request on page load, and every render
+            // check in the repo failed on "no page or console errors" —
+            // correctly, because a viewer who never opens this tab was being
+            // charged 30-odd Open-Meteo requests on every date navigation.
+            //
+            // Playground runs its own 45s interval to prove two poll loops
+            // coexist. That is a different goal; this one is the cheaper and
+            // more honest behaviour, and it is why this is not a port.
+            weatherVenues <- games |> List.choose (fun g -> g.Venue) |> List.distinct
+            weatherLoaded <- false
+
             // Prove the units are live, not just declared: a real probability
             // formatted through the only sanctioned conversion.
             let openingWinProbability = 0.62<prob>
@@ -283,6 +309,18 @@ let private wireDateNav () =
     else
         report "viewed-date" (viewedDate ())
 
+/// Fetch the weather once, the first time the tab is shown.
+let private loadWeatherOnce () =
+    if not weatherLoaded then
+        weatherLoaded <- true
+        match document.getElementById "panel-weather" with
+        | null -> ()
+        | mount ->
+            WeatherView.renderIdle mount
+            WeatherView.fetchSlate weatherVenues
+            |> Promise.iter (fun (outcome, unlocated) -> WeatherView.render mount outcome unlocated)
+            |> ignore
+
 /// Wires the tablist.
 ///
 /// Follows the WAI-ARIA tabs pattern rather than approximating it: exactly one
@@ -291,7 +329,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
@@ -304,6 +342,7 @@ let private wireTabs () =
             let selected = tab.id = target.id
             tab.setAttribute ("aria-selected", (if selected then "true" else "false"))
             tab.setAttribute ("tabindex", (if selected then "0" else "-1"))
+            if selected && tab.id = "tab-weather" then loadWeatherOnce ()
             match document.getElementById (tab.getAttribute "aria-controls") with
             | null -> ()
             | panel ->

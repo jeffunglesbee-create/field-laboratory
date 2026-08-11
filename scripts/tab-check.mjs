@@ -48,8 +48,8 @@ const topTabs = () => page.$$(TABS)
 
 // --- the tablist -------------------------------------------------------------
 
-check('four top-level tabs exist', (await topTabs()).length === 4,
-  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em`)
+check('five top-level tabs exist', (await topTabs()).length === 5,
+  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em, Weather`)
 
 check('exactly one tab starts selected', (await selected()).length === 1,
   `selected: ${JSON.stringify(await selected())}`)
@@ -78,12 +78,16 @@ check('ArrowRight again reaches Pick\'em',
   (await selected())[0] === 'tab-pickem', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('ArrowRight')
+check('ArrowRight again reaches Weather',
+  (await selected())[0] === 'tab-weather', `selected: ${(await selected())[0]}`)
+
+await page.keyboard.press('ArrowRight')
 check('selection wraps rather than dead-ending',
   (await selected())[0] === 'tab-scoreboard', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('End')
 check('End jumps to the last tab',
-  (await selected())[0] === 'tab-pickem', `selected: ${(await selected())[0]}`)
+  (await selected())[0] === 'tab-weather', `selected: ${(await selected())[0]}`)
 
 // --- the two picks are told apart --------------------------------------------
 
