@@ -99,6 +99,17 @@ let private renderSparkline (zone: AmnestyZone) (g: Game) : HTMLElement option =
                 row.appendChild b |> ignore
             wrap.appendChild row |> ignore
             wrap.appendChild (el "div" "spark__caption" caption) |> ignore
+            // Named, never counted — and never silently clamped away. A sample
+            // outside the stated 0-100 domain is upstream drift, and
+            // `arcOutOfDomain` existed for a full day computing that answer with
+            // nothing reading it: a value set without proof, which is exactly
+            // what `unused-check` was written to find.
+            match arcOutOfDomain arc with
+            | [] -> ()
+            | rogue ->
+                let listed = rogue |> List.map string |> String.concat ", "
+                wrap.appendChild (el "div" "spark__caption"
+                                     (sprintf "outside the 0-100 domain: %s" listed)) |> ignore
             Some wrap
 
 /// The drama slot, for whatever state the game is currently in.

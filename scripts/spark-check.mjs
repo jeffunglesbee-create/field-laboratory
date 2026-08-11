@@ -165,6 +165,48 @@ check('the track is at least the 44px GLYPH minimum',
   trackHeight >= 44,
   `${trackHeight}px — production shipped 24px, at which a 30-point spread is ~7px`)
 
+// --- out-of-domain samples ---------------------------------------------------
+//
+// `arcOutOfDomain` was written to name samples outside 0-100 and then read by
+// nothing for a day — the "written but never read back" shape. It is wired to
+// the panel now, but neither committed capture contains an out-of-domain value,
+// so the branch would still never execute. A consumer that cannot run is not a
+// consumer.
+//
+// So the condition is forced: inject 150 and -5 into the real arc and require
+// both that they are NAMED and that the bar is CLAMPED. Without the second
+// half, a 150% tall bar would be a layout bug sitting under an honest caption.
+const rogue = JSON.parse(JSON.stringify(capture))
+const rogueArc = JSON.parse(arcGame.drama_arc)
+rogueArc[10] = 150
+rogueArc[11] = -5
+rogue.games.regular = [{ ...arcGame, drama_arc: JSON.stringify(rogueArc) }]
+rogue.games.postseason = []
+
+const probe = await browser.newPage()
+const probeErrors = []
+probe.on('pageerror', e => probeErrors.push(String(e)))
+await probe.route('**/context/date/**', r =>
+  r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rogue) }))
+await probe.route('**/analytics/newspaper/**', r =>
+  r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+await probe.goto(`http://localhost:8080/?date=${arcGame.date}`, { waitUntil: 'networkidle' })
+
+const probeCaptions = await probe.$$eval('.spark__caption', es => es.map(e => e.textContent))
+check('out-of-domain samples are named on the page',
+  probeCaptions.some(c => /outside the 0-100 domain: .*150.*-5/.test(c ?? '')),
+  `captions: ${JSON.stringify(probeCaptions)}`)
+
+const probeBars = await probe.$$eval('.spark__bar', es =>
+  es.map(e => Number(/height:\s*(\d+)%/.exec(e.getAttribute('style'))?.[1])))
+check('an out-of-domain sample is clamped, not drawn past the track',
+  Math.max(...probeBars) === 100,
+  `tallest bar ${Math.max(...probeBars)}% — a 150 rendered at full height`)
+
+check('no page errors on the out-of-domain probe', probeErrors.length === 0,
+  probeErrors.join(' | '))
+await probe.close()
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '))
 
 await browser.close()

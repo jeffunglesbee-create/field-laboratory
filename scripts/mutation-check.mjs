@@ -222,7 +222,7 @@ const MUTATIONS = [
   {
     id: 'outbox-stub',
     claim: 'an empty stub does not count as a write-up',
-    mutate: 'mkdir -p /tmp/mut-stub && cp outbox/cc-*$(TZ=America/New_York date +%F)*.md /tmp/mut-stub/ 2>/dev/null; for f in outbox/cc-*$(TZ=America/New_York date +%F)*.md; do echo stub > "$f"; done',
+    mutate: 'mkdir -p /tmp/mut-stub && cp outbox/cc-*$(TZ=America/New_York date +%F)*.md /tmp/mut-stub/ 2>/dev/null; for f in outbox/cc-*$(TZ=America/New_York date +%F)*.md; do [ -e "$f" ] || continue; echo stub > "$f"; done',
     restore: 'cp /tmp/mut-stub/*.md outbox/ 2>/dev/null || true; rm -rf /tmp/mut-stub',
     expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
   },
@@ -302,6 +302,15 @@ const MUTATIONS = [
     find: 'const score = (hasTeeth, hasClock) => (hasTeeth ? 70 : 0) + (hasClock ? 0 : 30)',
     replace: 'const score = () => 100',
     expect: 'node scripts/run-row.mjs "every gate row has teeth and is deterministic"',
+  },
+
+  {
+    id: 'value-never-read',
+    file: 'src/Units.fs',
+    claim: 'a public value nothing reads is caught',
+    find: 'let toProb (p: float<pct>) : float<prob> = p / 100.0<pct/prob>',
+    replace: 'let toProb (p: float<pct>) : float<prob> = p / 100.0<pct/prob>\n\nlet unreadValue (x: int) = x + 1',
+    expect: 'node scripts/run-row.mjs "no value is written without being read back"',
   },
 
   {

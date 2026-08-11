@@ -176,6 +176,12 @@ const rows = [
     run: () => ok('node scripts/row-confidence.mjs') &&
                ok('node scripts/row-confidence.mjs --self-test') },
 
+  // "Written but never read back" — jubilant-bassoon's own docking criterion,
+  // mechanised. A public value nothing reads has never been observed by
+  // anything; the compiler only says it is well-typed.
+  { name: 'no value is written without being read back', weight: 20,
+    run: () => ok('node scripts/unused-check.mjs') && ok('node scripts/units-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

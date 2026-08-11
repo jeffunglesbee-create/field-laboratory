@@ -188,6 +188,11 @@ jobs:
       # Per-row confidence: every gate row must have a mutation proving it can
       # fail, and must not consult the clock or the network. A row nothing has
       # shown can fail is a green light, not a guard.
+      # "Written but never read back": a public value nothing reads, and the
+      # unit conversions ODDS-PROOF makes claims about, now exercised.
+      - name: No value is written without being read back
+        run: npm run check:unused
+
       - name: Every gate row has teeth
         run: npm run check:rows
 

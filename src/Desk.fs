@@ -577,8 +577,6 @@ let notYetStartedAt (now: DateTimeOffset) (g: Game) =
     | Some start -> now < start
     | None -> false
 
-let notYetStarted (g: Game) = notYetStartedAt DateTimeOffset.UtcNow g
-
 /// The state of a game AT A NAMED INSTANT.
 ///
 /// This is the real function; `gameState` below just supplies "now".
