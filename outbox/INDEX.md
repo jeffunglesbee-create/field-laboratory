@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `69f02ef` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Take the clock out of gameState, and fix two half-working things |
 | `4c2935b` | 2026-08-11 | [cc-pickem-the-actual-one-2026-08-10.md](cc-pickem-the-actual-one-2026-08-10.md) | Pick'em: the pick that was actually meant, plus playground's latent bug |
 | `d1668aa` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Confirm the deployed tabs, and check the transcription against its source |
 | `4123040` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Record the live pick route result from the runner |
