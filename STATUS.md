@@ -9,11 +9,11 @@ not read from workflow history. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `23806be` (behind `main`) |
+| Cloudflare Workers | live | `2dfad28` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-08-10 — 18 games, 0 malformed (12 runs logged)
+`ok` on 2026-08-11 — 21 games, 0 malformed (13 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
