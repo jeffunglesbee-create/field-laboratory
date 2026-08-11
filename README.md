@@ -115,6 +115,60 @@ cleanly — the original defect straight past a type that only guarded the unwra
 Lifting the date at the decode boundary is what made the claim true. See
 `docs/ZONE-PROOF.md`.
 
+## The other half of the answer: where it does nothing
+
+Everything above is a data-shape or display-rule failure, and the type system
+prevented all of them. That is one half of FIELD's failure modes. The other half
+has dominated this repo's own history, and no type in any language would have
+caught a single instance of it.
+
+| Failure | Shape |
+| --- | --- |
+| The gate was an **average**, so each row added made the next failure cheaper — 10 of 17 rows could fail alone and still clear 95 | a check that passes in one direction |
+| `GATE_DAY` was read per-row, and a run that crossed midnight ET asked about a different day than it started in — CI run 31456294086 | a check that changes as the world moves under it |
+| A mutation's unquoted glob **created** the outbox file it then counted | a check that changes the world it measures |
+| A verdict check **clobbered `STATUS.md`** by importing the script that writes it | the same, one day later |
+| Four distinct API failures — no token, rejected token, refused scope, no network — rendered one identical sentence | a check that passes in one direction |
+| `live-check` fired after a *skipped* deploy and blamed the commit that fixed it | a check that answers about the wrong world |
+| `tab-check`'s bare `[role="tab"]` matched Pick'em's sport chips | a check that agrees for the wrong reason |
+| `spark-check`'s every-Nth sampling proved nothing on the one real arc | a check with no teeth |
+| I reported CI run 31456294086 **green when it was red**, and nothing in the repo could contradict me | a claim that outran its evidence |
+| `/actions/runs` reported a run `in_progress` for ninety minutes after it finished green; I called it stuck from one endpoint without asking the other | a claim confirmed by exactly one lookup |
+
+Two shapes account for all of it: **a check that passes in one direction**, and
+**a claim that outruns its evidence**.
+
+So the assertion this repo was built to test needs sharpening rather than
+defending:
+
+> F# structurally prevents FIELD's **data-shape and display-rule** failures. It
+> has no opinion whatsoever on FIELD's **verification** failures.
+
+That distinction is not academic for FIELD. Its gate has been overridden at least
+twice — 92/100 citing a 63/100 precedent — and a gate override is a verification
+failure, not a data one. The strongest work in this repo aimed at that half is
+written in JavaScript: mutation testing, a gate that is a conjunction rather than
+an average, `fetch-depth: 0`, and a status file that can contradict its author.
+
+**And that is a choice, not a limit.** `src/` is 2,757 lines of F#; `scripts/`
+is 4,871 lines of untyped JavaScript, and every failure in the table above
+happened in the untyped half. Nothing prevented the check harness being written
+in F#. It was written in JavaScript because that was faster — so the claim went
+unapplied precisely where it was most testable, by the hand of the person making
+it.
+
+The first draft of this paragraph said the experiment "has not tested its own
+claim on that territory," which is the reading to resist. It converts a negative
+result into a to-do and exempts the assertion from ground it lost. The same move
+appears twice more in this repo's history under different names — "cannot be
+tested" and "NOT claimed" — and it was corrected both times.
+
+So it stands as a result rather than a plan: **on verification, this repo's F#
+has no record, because its author reached for JavaScript every time verification
+was the problem.** What would change that is building the harness in F# and
+seeing whether the failures above become unwritable — not asserting in advance
+that they would.
+
 ## Layout
 
 | Path | What it is |
