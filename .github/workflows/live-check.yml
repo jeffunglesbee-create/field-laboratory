@@ -30,6 +30,21 @@ concurrency:
 
 jobs:
   live:
+    # Only when the triggering deploy actually DEPLOYED.
+    #
+    # `workflow_run` fires on completion, and a SKIPPED deploy completes. On
+    # 2026-08-11 that produced a false failure: deploy skipped at 531b0a8
+    # (its own trigger, a verify run, had been cancelled), live-check ran anyway
+    # against the artifact still live from 69f02ef, and reported an ADR-002
+    # violation against a commit whose whole purpose was fixing it. The code
+    # under test was never on the page.
+    #
+    # `deploy` already guards itself this way; this workflow inherited the
+    # trigger without the guard. Scheduled and manual runs are unaffected —
+    # there is no deploy conclusion to consult.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
