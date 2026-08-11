@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ba65230` | 2026-08-11 | [cc-the-harness-in-fsharp-2026-08-11.md](cc-the-harness-in-fsharp-2026-08-11.md) | The check harness, in F#, with the counterexample made compulsory |
 | `98d000f` | 2026-08-11 | [cc-the-other-half-of-the-answer-2026-08-11.md](cc-the-other-half-of-the-answer-2026-08-11.md) | The README carried only the wins, and then argued for them |
 | `f553bc7` | 2026-08-11 | [cc-the-run-was-not-stuck-2026-08-11.md](cc-the-run-was-not-stuck-2026-08-11.md) | The run was not stuck — the endpoint was stale |
 | `25d0f8b` | 2026-08-11 | [cc-what-the-runner-answered-2026-08-11.md](cc-what-the-runner-answered-2026-08-11.md) | What the runner answered: 401, 404, and a green main written by CI |
