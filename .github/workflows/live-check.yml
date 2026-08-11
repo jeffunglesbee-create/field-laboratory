@@ -68,6 +68,13 @@ jobs:
           # the feature this workflow exists to keep honest in production.
           node scripts/live-grouping-check.mjs
 
+      # Both pick tabs, on the DEPLOYED artifact. Structural assertions only —
+      # tab-check.mjs pins ?data= and checks for teams by name, none of which
+      # holds against tonight's real slate. No build import here on purpose:
+      # this job never builds.
+      - name: The deployed page serves both pick tabs
+        run: npm run check:live-tabs
+
       # The window simulation (npm run check:window) deliberately does NOT live
       # here. It imports the compiled `fieldDayAt` from build/, and this job has
       # no .NET and no build step by design — it tests the DEPLOYED artifact,

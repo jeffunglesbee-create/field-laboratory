@@ -184,3 +184,10 @@ jobs:
       # cannot read is fatal, which is the actual assertion.
       - name: Pick decoder against the LIVE analytics route
         run: npm run check:pick-live
+
+      # The transcription, checked against its own source. Requests the same
+      # date data/pick-2026-07-07.json was copied from and compares the two
+      # boards field by field — the only thing that can tell a faithful
+      # transcription from a plausible one.
+      - name: Pick shape — the transcription vs the real relay
+        run: npm run check:pick-shape

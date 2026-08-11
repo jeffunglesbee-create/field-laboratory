@@ -83,3 +83,43 @@ a transcribed capture and nothing more, which is what
 `data/pick-2026-07-07.json`'s `_provenance` block already says.
 
 No source changed in this entry. It records a result.
+
+---
+
+## Follow-on: confirming the deployed page and the transcription's shape
+
+Two things were still taken on trust, and both need a runner.
+
+**`scripts/live-tabs-check.mjs`** — do both pick tabs actually work on the
+deployed artifact? `tab-check.mjs` cannot answer that: it pins `?data=` and
+asserts on team names from a committed capture, none of which holds against
+tonight's real slate. So this asserts only what must hold on any day — three
+tabs, panels toggle, both panels render non-empty, the two captions still
+contradict each other on national broadcasts, and no bare composite decimal
+appears in either panel.
+
+It runs in `live-check.yml` and imports nothing from `build/`, deliberately:
+that job tests the deployed artifact and never builds one. Putting a
+build-importing script there is the mistake that cost two failed runs this
+morning, and `workflow-check.mjs` now refuses it.
+
+**`scripts/pick-shape-check.mjs`** — is the transcribed fixture faithful?
+
+Everything built on Field's Pick rests on `data/pick-2026-07-07.json`, which was
+copied out of a Drive document by hand. `SealedRank`, `Leadership`, the tie
+detection, the ranked list — all of it is designed against a transcription
+nobody has checked against its source.
+
+So this requests **the same date the fixture came from** and compares the two
+decoded boards field by field: leader game id, ranked length, every ranked id in
+order, the leader's reasons verbatim, whether the brief sits on the board, and —
+the claim the whole `Leadership` type rests on — whether the three-way tie is
+real or a transcription artefact.
+
+If 2026-07-07 no longer carries a board, it walks recent dates for any live
+`Picked` and asserts the shape there instead, saying explicitly that the
+transcription was *not* compared against its own source. Weaker, and labelled
+weaker. A decode error on any probed date fails regardless of which date carried
+the board.
+
+It runs in `verify.yml`, which builds and has egress.

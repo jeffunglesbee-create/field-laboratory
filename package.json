@@ -23,6 +23,8 @@
     "check:pick": "node scripts/pick-check.mjs",
     "check:tabs": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
     "check:pick-live": "node scripts/pick-live-check.mjs",
+    "check:pick-shape": "node scripts/pick-shape-check.mjs",
+    "check:live-tabs": "node scripts/live-tabs-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs"
   },
   "dependencies": {
