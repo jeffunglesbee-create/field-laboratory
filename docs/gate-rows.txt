@@ -1,37 +1,51 @@
 # The confidence gate's declared rows.  <weight> <name>
 #
-# scripts/confidence.mjs scores earned/possible, and `possible` is the sum of
-# whatever rows exist — so deleting a failing row RAISES the score. Measured:
-# 86/100 with a failing row present, 100/100 with that row removed and nothing
-# else changed.
+# THE GATE IS A CONJUNCTION. Every row must pass. The weight decides nothing —
+# it says what a failure COSTS, so the report reads worst-first.
 #
-# FIELD has paid for this shape before. "Resolve the standing confidence-gate CI
-# violation — 2026-07-12" records "100/100 (of 80 applicable points, per TASK 1's
-# N/A exclusion)" — an honest numerator over a moved denominator.
+# It was an average until 2026-08-10, and that rotted quietly as the suite grew:
+# the same 10-point failure scored 92 at 120 possible points and 96 at 225. Ten
+# of seventeen rows could fail alone and still clear 95, including "build is
+# clean" and "decoders still REJECT the corrupted fixture". Every row ADDED made
+# the next failure cheaper. No commit introduced that; it accumulated.
 #
-# The gate refuses to run unless its rows match this file exactly: same names,
-# same weights, no extras. Order is not compared; moving a row is not a
-# weakening.
+# THE RUBRIC, applied to every row at once rather than accreted one at a time:
 #
-# TO CHANGE THE GATE: edit both files. That is the whole point — a shrink shows
-# up as a docs/ change beside a scripts/ change, and the outbox row already
-# forces a written reason for the latter. This is not tamper-proof and does not
-# claim to be. It makes shrinking visible, not impossible.
+#   30  A USER IS TOLD SOMETHING UNTRUE, or shown nothing at all.
+#       Wrong day's slate, a live game marked Final, a pick graded on an
+#       unfinished game, a composite score displayed, a chart whose shape is a
+#       lie, a blank page. This project's history includes three blank artifacts
+#       shipped green, so "shown nothing" belongs here too.
+#
+#   20  DETECTION IS LOST. The product may be fine; the ability to notice it is
+#       not. A guard without teeth, a proof doc that has become prose, a CI job
+#       that cannot run what it invokes.
+#
+#   10  THE RECORD IS WRONG. Nothing breaks today; we misremember later.
+#
+# Most rows are 30, and that is the honest reading: this suite mostly defends
+# against telling the user something false.
+#
+# TO CHANGE THE GATE: edit this file and scripts/gate-checks.mjs together. The
+# gate refuses to run unless its rows match this file exactly — same names, same
+# weights, no extras. Order is not compared. Not tamper-proof; it makes a shrink
+# a docs/ change beside a scripts/ change.
 
-10  build is clean, zero F#/NuGet warnings
-10  decoders accept both real captures
-10  decoders still REJECT the corrupted fixture
-20  render checks pass on both captures
-15  grouping and date navigation pass
-25  doc claims are compiler-verified, not prose
-10  FIELD-zone day is correct at fixed instants
-10  workflow jobs can run the scripts they invoke
+20  build is clean, zero F#/NuGet warnings
+30  decoders accept both real captures
+20  decoders still REJECT the corrupted fixture
+30  render checks pass on both captures
+30  grouping and date navigation pass
+20  doc claims are compiler-verified, not prose
+30  FIELD-zone day is correct at fixed instants
+20  workflow jobs can run the scripts they invoke
 10  every governed commit paired source with outbox
-10  pick decoders match the recorded live response
-15  tabs work and the pick score never renders
-15  pick'em grades only finished games
-10  game state is correct at fixed instants
+30  pick decoders match the recorded live response
+30  tabs work and the pick score never renders
+30  pick'em grades only finished games
+30  game state is correct at fixed instants
 20  breaking each invariant makes a check fail
-15  the sparkline shows the value, not a silhouette
+30  the sparkline shows the value, not a silhouette
+20  every gate row has teeth and is deterministic
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry

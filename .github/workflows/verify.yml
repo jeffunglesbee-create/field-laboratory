@@ -185,6 +185,12 @@ jobs:
       # The confidence gate the CC-CMD ceremony asks for, mechanised. Every row
       # runs a real command and takes its score from the exit code, so the total
       # cannot be asserted, only earned. Below 95 fails the build.
+      # Per-row confidence: every gate row must have a mutation proving it can
+      # fail, and must not consult the clock or the network. A row nothing has
+      # shown can fail is a green light, not a guard.
+      - name: Every gate row has teeth
+        run: npm run check:rows
+
       - name: Confidence gate (>= 95)
         run: npm run gate
 

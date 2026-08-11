@@ -1,5 +1,30 @@
 // The confidence gate, mechanised.
 //
+// IT IS A CONJUNCTION, NOT AN AVERAGE. Every row must pass. The percentage is
+// reported because the CC-CMD ceremony asks for a number, and it decides
+// nothing.
+//
+// It was an average until 2026-08-10, and that was a real hole that grew
+// quietly. Scoring `earned / possible` means a failing row is affordable when
+// enough other rows pass, and every row ADDED makes the next failure cheaper:
+//
+//     the same 10-point row failing, at different suite sizes
+//     120 pts -> 92   blocked
+//     140 pts -> 93   blocked
+//     165 pts -> 94   blocked
+//     190 pts -> 95   PASSES
+//     225 pts -> 96   PASSES
+//
+// At 225 points, TEN of seventeen rows could fail alone and still clear 95 —
+// including "build is clean", "decoders still REJECT the corrupted fixture",
+// and both outbox rows. The gate crossed that line today, while being extended,
+// and no commit introduced it. Growing the suite weakened it.
+//
+// That is the session's recurring failure in its purest form: correct about
+// every row, wrong about how they combine. An average lets a passing majority
+// vote a real defect through, and none of these rows is a matter of degree —
+// each is an invariant that holds or does not.
+//
 // FIELD's CC-CMD ceremony ends "Do not commit unless confidence >= 95. If score
 // < 95, report verbatim and stop." Every CC-CMD in this repo carries a scoring
 // rubric. The 2026-08-10 session shipped five commits and scored none of them,
@@ -79,12 +104,40 @@ const total = possible === 0 ? 0 : Math.round((earned / possible) * 100)
 console.log(`\n  ${earned}/${possible} points = ${total}/100   (bar: ${BAR})`)
 
 if (QUICK) {
-  console.log('\n  --quick: browser and build rows skipped. NOT a gate result.\n')
+  // Quick mode cannot report a PASS — it skipped rows. It can and must report a
+  // FAILURE, because a row that actually ran and failed is a real failure
+  // whatever else was skipped. It used to exit 0 regardless, which made it a
+  // check that could only ever deliver good news.
+  const quickFailures = results.filter(r => r.state === 'FAIL')
+  console.log('\n  --quick: browser and build rows skipped. This is NOT a pass.')
+  if (quickFailures.length > 0) {
+    console.log(`\n  ${quickFailures.length} row(s) ran and FAILED:\n`)
+    for (const r of quickFailures) console.log(`    - ${r.name}`)
+    console.log('')
+    process.exit(1)
+  }
+  console.log('  No failures among the rows that ran.\n')
   process.exit(0)
 }
 
-if (total < BAR) {
-  console.log(`\n  BELOW THE BAR. Do not commit. Report the failing rows verbatim.\n`)
+const failedRows = results.filter(r => r.state === 'FAIL')
+
+// The conjunction. Stated before the score so nobody reads the number first.
+if (failedRows.length > 0) {
+  console.log(`\n  ${failedRows.length} FAILING ROW(S). Do not commit.\n`)
+  for (const r of failedRows) console.log(`    - ${r.name} (${r.weight} pts)`)
+  console.log(`\n  The score above is ${total}/100 and is NOT the pass condition —`)
+  console.log(`  every row must pass. Report the failing rows verbatim.\n`)
   process.exit(1)
 }
-console.log('\n  Gate passed.\n')
+
+// Unreachable while the conjunction holds, since every row passing scores 100.
+// Kept so that a future scoring change cannot quietly lower the bar without
+// this line objecting.
+if (total < BAR) {
+  console.log(`\n  Every row passed but the score is ${total}, below ${BAR}.`)
+  console.log(`  The scoring has changed shape — fix that before trusting this run.\n`)
+  process.exit(1)
+}
+
+console.log('\n  Gate passed — every row, not a passing average.\n')

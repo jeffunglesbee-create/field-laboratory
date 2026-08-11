@@ -98,39 +98,39 @@ const outboxAccompaniesSource = () => {
 }
 
 const rows = [
-  { name: 'build is clean, zero F#/NuGet warnings', weight: 10, skipQuick: true,
+  { name: 'build is clean, zero F#/NuGet warnings', weight: 20, skipQuick: true,
     run: () => ok('npm run build') &&
       !/warning (FS|NU)\d+/.test(
         execSync('dotnet build src/Laboratory.fsproj --no-restore', { encoding: 'utf8' })) },
 
-  { name: 'decoders accept both real captures', weight: 10,
+  { name: 'decoders accept both real captures', weight: 30,
     run: () => ok('node scripts/drift-check.mjs --file data/context-2026-05-15.json') &&
                ok('node scripts/drift-check.mjs --file data/games-2026-08-09.json') },
 
-  { name: 'decoders still REJECT the corrupted fixture', weight: 10,
+  { name: 'decoders still REJECT the corrupted fixture', weight: 20,
     run: () => fails('node scripts/drift-check.mjs --file test/malformed-nested.json') },
 
-  { name: 'render checks pass on both captures', weight: 20, skipQuick: true,
+  { name: 'render checks pass on both captures', weight: 30, skipQuick: true,
     run: () => ok('npm run check') && ok('npm run check:hard') },
 
-  { name: 'grouping and date navigation pass', weight: 15, skipQuick: true,
+  { name: 'grouping and date navigation pass', weight: 30, skipQuick: true,
     run: () => ok('npm run check:nav') },
 
   // The heaviest row, because this is the one that failed. Every claimed
   // compiler rejection in the proof doc is compiled for real.
-  { name: 'doc claims are compiler-verified, not prose', weight: 25, skipQuick: true,
+  { name: 'doc claims are compiler-verified, not prose', weight: 20, skipQuick: true,
     run: () => ok('node scripts/proof-check.mjs') },
 
   // Deterministic, so it runs at any hour. The zone fix is only observable
   // when ET and UTC disagree, and every scheduled job in this repo runs
   // outside that window.
-  { name: 'FIELD-zone day is correct at fixed instants', weight: 10,
+  { name: 'FIELD-zone day is correct at fixed instants', weight: 30,
     run: () => ok('node scripts/zone-check.mjs') },
 
   // A step whose script imports build/ from a job that never builds is valid
   // YAML, a valid script, and green everywhere locally. It cost two failed
   // runs. This is the only row that reads CI configuration rather than code.
-  { name: 'workflow jobs can run the scripts they invoke', weight: 10,
+  { name: 'workflow jobs can run the scripts they invoke', weight: 20,
     run: () => ok('node scripts/workflow-check.mjs') },
 
   // The retrospective half of the outbox rule. `outboxAccompaniesSource` below
@@ -142,25 +142,39 @@ const rows = [
 
   // Both picks. Separate rows because they are separate features that
   // contradict each other, and one passing tells you nothing about the other.
-  { name: 'pick decoders match the recorded live response', weight: 10,
+  { name: 'pick decoders match the recorded live response', weight: 30,
     run: () => ok('node scripts/pick-check.mjs') },
 
-  { name: 'tabs work and the pick score never renders', weight: 15, skipQuick: true,
+  { name: 'tabs work and the pick score never renders', weight: 30, skipQuick: true,
     run: () => ok("URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs") },
 
-  { name: "pick'em grades only finished games", weight: 15, skipQuick: true,
+  { name: "pick'em grades only finished games", weight: 30, skipQuick: true,
     run: () => ok('node scripts/pickem-check.mjs') },
 
-  { name: 'game state is correct at fixed instants', weight: 10,
+  { name: 'game state is correct at fixed instants', weight: 30,
     run: () => ok('node scripts/state-check.mjs') },
 
   // The slowest row by far — it rebuilds once per mutation — and the only one
   // that asks whether the OTHER rows are worth anything.
   { name: 'breaking each invariant makes a check fail', weight: 20, skipQuick: true,
-    run: () => ok('node scripts/mutation-check.mjs') },
+    // Two halves. The suite must pass, AND the harness must still be able to
+    // report a survivor — `known-survivor` is a mutation designed to survive,
+    // so `--only known-survivor` FAILING is the proof the harness can see.
+    // Without the second half, a harness that called everything caught would
+    // satisfy this row while proving nothing.
+    run: () => ok('node scripts/mutation-check.mjs') &&
+               fails('node scripts/mutation-check.mjs --only known-survivor') },
 
-  { name: 'the sparkline shows the value, not a silhouette', weight: 15, skipQuick: true,
+  { name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true,
     run: () => ok('node scripts/spark-check.mjs') },
+
+  // Per-ROW confidence, which the gate's own pass/fail cannot express: does
+  // anything prove each row can fail, and is its answer the same tomorrow?
+  { name: 'every gate row has teeth and is deterministic', weight: 20,
+    // Both halves, same shape as the mutation row: the scoring must pass, AND
+    // the scorer must still be able to mark a toothless row down.
+    run: () => ok('node scripts/row-confidence.mjs') &&
+               ok('node scripts/row-confidence.mjs --self-test') },
 
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 

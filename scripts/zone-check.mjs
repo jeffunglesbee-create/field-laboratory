@@ -37,6 +37,11 @@ const etHour = date => new Intl.DateTimeFormat('en-US', {
 const utcDay = date => date.toISOString().slice(0, 10)
 const at = iso => new Date(iso)
 
+// Captured ONCE. Two separate `new Date()` calls either side of midnight would
+// disagree for a reason that has nothing to do with the zone logic, and the
+// per-row confidence scorer flags repeated clock reads for exactly that.
+const NOW = new Date()
+
 const { check, summarize } = createChecks()
 
 // --- the wiring --------------------------------------------------------------
@@ -44,8 +49,8 @@ const { check, summarize } = createChecks()
 // same conversion computed here, not against a hardcoded date, so this holds on
 // any day the check runs.
 check('fieldToday() returns the FIELD-zone day',
-  fieldDayIso(fieldToday()) === etDay(new Date()),
-  `F# said ${fieldDayIso(fieldToday())}, JS said ${etDay(new Date())}`)
+  fieldDayIso(fieldToday()) === etDay(NOW),
+  `F# said ${fieldDayIso(fieldToday())}, JS said ${etDay(NOW)}`)
 
 // --- the real F# conversion, at fixed instants -------------------------------
 // These call `fieldDayAt` — the actual compiled F# — rather than the local
@@ -117,6 +122,6 @@ check('a well-formed date is accepted',
   fieldDayIso(fieldDayOfIso('2026-08-09')) === '2026-08-09',
   String(fieldDayOfIso('2026-08-09')))
 
-console.log(`\nnow: ${new Date().toISOString()}  ET day ${etDay(new Date())}  UTC day ${utcDay(new Date())}`)
+console.log(`\nnow: ${NOW.toISOString()}  ET day ${etDay(NOW)}  UTC day ${utcDay(NOW)}`)
 console.log(`(these agree outside 00:00-04:00 UTC, which is why this file tests fixed instants)\n`)
 process.exit(summarize() === 0 ? 0 : 1)

@@ -141,6 +141,169 @@ const MUTATIONS = [
     replace: '                source.[start] ]',
     expect: 'node scripts/spark-check.mjs',
   },
+  // --- the rows that had no teeth at all until row-confidence.mjs said so ----
+
+  {
+    id: 'decoder-rejects-real',
+    file: 'src/Desk.fs',
+    claim: 'the decoders actually accept the real captures',
+    find: '          Streams = get.Optional.Field "streams" Decode.string',
+    replace: '          Streams = get.Required.Field "streams" (Decode.int |> Decode.map string) |> Some',
+    expect: 'node scripts/run-row.mjs "decoders accept both real captures"',
+  },
+  {
+    // Inverted: this row passes when the command FAILS. Loosening the decoder
+    // makes the corrupted fixture decode, which is the survival condition.
+    id: 'decoder-loses-teeth',
+    file: 'src/Desk.fs',
+    claim: 'the decoders still refuse the corrupted fixture',
+    find: '                | Error err -> Malformed err)',
+    replace: '                | Error _ -> NotPresent)',
+    expect: 'node scripts/run-row.mjs "decoders still REJECT the corrupted fixture"',
+  },
+  {
+    id: 'render-wrong-score',
+    file: 'src/Scoreboard.fs',
+    claim: 'the rendered card shows the real score',
+    find: '    | Final(h, a, _) -> line h a',
+    replace: '    | Final(_, _, _) -> line 0 0',
+    expect: 'node scripts/run-row.mjs "render checks pass on both captures"',
+  },
+  {
+    id: 'grouping-collapsed',
+    file: 'src/Scoreboard.fs',
+    claim: 'the slate is grouped by sport',
+    find: '        |> List.groupBy (fun g -> g.Sport)',
+    replace: '        |> List.groupBy (fun _ -> Sport.MLB)',
+    expect: 'node scripts/run-row.mjs "grouping and date navigation pass"',
+  },
+  {
+    id: 'build-warning',
+    file: 'src/Scoreboard.fs',
+    claim: 'the build really is warning-free',
+    find: 'let private el (tag: string) (className: string) (text: string) : HTMLElement =',
+    replace: 'let private __warn (x: HTMLElement) = x :?> HTMLElement\n\nlet private el (tag: string) (className: string) (text: string) : HTMLElement =',
+    expect: 'node scripts/run-row.mjs "build is clean, zero F#/NuGet warnings"',
+  },
+  {
+    id: 'seal-goes-public',
+    file: 'src/Pick.fs',
+    claim: 'the proof docs are compiled, so an opened seal is caught',
+    find: 'type SealedRank = private SealedRank of float',
+    replace: 'type SealedRank = SealedRank of float',
+    expect: 'node scripts/run-row.mjs "doc claims are compiler-verified, not prose"',
+  },
+  {
+    id: 'workflow-cannot-run-step',
+    file: '.github/workflows/live-check.yml',
+    claim: 'a job that cannot run its own scripts is caught',
+    find: '      - name: The deployed page serves both pick tabs',
+    replace: '      - name: Window simulation in a job that never builds\n        run: npm run check:window\n\n      - name: The deployed page serves both pick tabs',
+    expect: 'node scripts/run-row.mjs "workflow jobs can run the scripts they invoke"',
+  },
+  {
+    id: 'zone-utc',
+    file: 'src/Desk.fs',
+    claim: 'the FIELD zone is real, not a fixed offset',
+    find: "timeZone: 'America/New_York',\n    year:",
+    replace: "timeZone: 'UTC',\n    year:",
+    expect: 'node scripts/run-row.mjs "FIELD-zone day is correct at fixed instants"',
+  },
+
+  // --- world mutations: these rows measure the repo, not the source ---------
+
+  {
+    id: 'outbox-missing',
+    claim: "a session that wrote no outbox is caught",
+    mutate: 'mkdir -p /tmp/mut-outbox && mv outbox/cc-*$(TZ=America/New_York date +%F)*.md /tmp/mut-outbox/ 2>/dev/null || true',
+    restore: 'mv /tmp/mut-outbox/*.md outbox/ 2>/dev/null || true; rmdir /tmp/mut-outbox 2>/dev/null || true',
+    expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
+  },
+  {
+    id: 'outbox-stub',
+    claim: 'an empty stub does not count as a write-up',
+    mutate: 'mkdir -p /tmp/mut-stub && cp outbox/cc-*$(TZ=America/New_York date +%F)*.md /tmp/mut-stub/ 2>/dev/null; for f in outbox/cc-*$(TZ=America/New_York date +%F)*.md; do echo stub > "$f"; done',
+    restore: 'cp /tmp/mut-stub/*.md outbox/ 2>/dev/null || true; rm -rf /tmp/mut-stub',
+    expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
+  },
+  // Targets the row's OWN predicate rather than the working tree.
+  //
+  // The first version appended a line to a source file and expected the row to
+  // fail. It survived — because this working tree already had outbox changes in
+  // it, so the row correctly said "source and outbox both changed". The
+  // mutation was measuring the state of my desk, not the rule.
+  //
+  // Moving the outbox aside first would work and is not worth the risk of a
+  // failed restore losing a session's write-ups. So this breaks the outbox half
+  // of the predicate directly, which forces the "no outbox entry" answer
+  // whatever the tree looks like.
+  //
+  // Stated plainly: this proves the row's verdict flows from that predicate. It
+  // does NOT prove the row gives the right answer on a clean tree — the world
+  // mutation would, and a dirty tree prevents it here.
+  {
+    id: 'outbox-pairing-blind',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the source/outbox pairing rule is what decides that row',
+    find: '  return changed.some(f => /^outbox\\//.test(f))',
+    replace: '  return false',
+    expect: 'node scripts/run-row.mjs "source changes arrive with an outbox entry"',
+  },
+
+  {
+    id: 'history-boundary-moved',
+    claim: 'moving the rule boundary without the count is caught',
+    mutate: "sed -i 's/^e9bc4ca[0-9a-f]*  17/543a64d4a0c1a5a53db7b8dbd3aab0f39a2b0a1a  17/' docs/history-boundary.txt",
+    restore: 'git checkout -- docs/history-boundary.txt',
+    expect: 'node scripts/run-row.mjs "every governed commit paired source with outbox"',
+  },
+
+  // --- the harness's own teeth --------------------------------------------
+  //
+  // Every other mutation here asks "is this invariant defended?". This one asks
+  // "can this harness still tell?" — and it is the only mutation that is
+  // SUPPOSED to survive.
+  //
+  // The danger for a mutation harness is not that it misses a bug. It is that
+  // it reports every mutation as caught: invert one comparison, or make `run()`
+  // always return false, and all 24 rows above turn green while proving
+  // nothing. That is this session's whole failure mode applied to the tool
+  // built to find it.
+  //
+  // So this breaks something deliberately UNDEFENDED — a line of prose in a
+  // doc — with an expectation that passes regardless. A working harness must
+  // report it as a survivor and exit 1. `--only known-survivor` FAILING is
+  // therefore the evidence, and the gate row asserts exactly that.
+  {
+    id: 'known-survivor',
+    selfTestOnly: true,
+    file: 'docs/gate-rows.txt',
+    claim: 'the harness can still detect a surviving mutation',
+    find: '# THE GATE IS A CONJUNCTION.',
+    replace: '# THE GATE IS A CONJUNCTION (mutated).',
+    expect: 'node -e "process.exit(0)"',
+  },
+  {
+    id: 'harness-blind',
+    file: 'scripts/mutation-check.mjs',
+    claim: 'a harness that calls everything caught is itself caught',
+    find: '  const survived = built && run(m.expect)',
+    replace: '  const survived = false',
+    // Inverted: the row passes when this command FAILS (a survivor is
+    // correctly reported). Blinding the harness makes it pass, which is the
+    // survival condition.
+    expect: `bash -c '! node scripts/mutation-check.mjs --only known-survivor'`,
+  },
+
+  {
+    id: 'scorer-blind',
+    file: 'scripts/row-confidence.mjs',
+    claim: 'a scorer that calls every row toothed is itself caught',
+    find: 'const score = (hasTeeth, hasClock) => (hasTeeth ? 70 : 0) + (hasClock ? 0 : 30)',
+    replace: 'const score = () => 100',
+    expect: 'node scripts/run-row.mjs "every gate row has teeth and is deterministic"',
+  },
+
   {
     id: 'button-order',
     file: 'src/PickemView.fs',
@@ -151,7 +314,35 @@ const MUTATIONS = [
   },
 ]
 
-const selected = ONLY ? MUTATIONS.filter(m => m.id === ONLY) : MUTATIONS
+// `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
+// teeth and must never run in the normal suite, where they would fail it.
+/**
+ * Apply a mutation to source text.
+ *
+ * SELF-MUTATION NEEDS A GUARD. When the harness mutates its own file, the
+ * `find` string it is looking for also exists inside the MUTATIONS table above
+ * — as the literal defining the mutation. A naive `replace` hits that first
+ * occurrence, rewrites the mutation's own definition, and leaves the logic it
+ * was aiming at untouched. The mutation then "survives" because it never
+ * happened, and the harness reports that its self-test has no teeth when in
+ * fact the test never ran.
+ *
+ * That cost about twenty minutes of looking in the wrong place, and it is
+ * exactly the class this file exists for: a result that is wrong for a reason
+ * unrelated to the thing being measured.
+ *
+ * So when the target is this file, only the region AFTER the table is mutated.
+ */
+const applyMutation = (source, m) => {
+  const guard = m.file === 'scripts/mutation-check.mjs'
+    ? source.indexOf('const selected = ONLY')
+    : 0
+  return source.slice(0, guard) + source.slice(guard).replace(m.find, m.replace)
+}
+
+const selected = ONLY
+  ? MUTATIONS.filter(m => m.id === ONLY)
+  : MUTATIONS.filter(m => !m.selfTestOnly)
 
 // --- restore safety ----------------------------------------------------------
 // Backups in tmp, never in src/, and handlers on every exit path. proof-check
@@ -188,8 +379,25 @@ check('the unmutated tree passes every expectation',
   'a check was already failing, so nothing below would mean anything')
 
 for (const m of selected) {
+  // A WORLD mutation changes something outside the source — a file the check
+  // reads, a workflow, an outbox entry. The outbox and history rows have their
+  // logic inside gate-checks.mjs, so a source mutation there would be circular:
+  // it would test the check by rewriting the check. Mutating what they MEASURE
+  // is the honest version.
+  if (m.mutate) {
+    run(m.mutate)
+    const passed = run(m.expect)
+    run(m.restore)
+    const caught = !passed
+    check(`[${m.id}] ${m.claim}`, caught,
+      `mutation SURVIVED — \`${m.expect}\` still passed. ` +
+      `Nothing defends this claim.`)
+    continue
+  }
+
   const original = readFileSync(m.file, 'utf8')
-  if (!original.includes(m.find)) {
+  const mutated = applyMutation(original, m)
+  if (mutated === original) {
     check(`[${m.id}] the mutation anchor still exists`, false,
       `not found in ${m.file}: ${m.find.trim()}`)
     continue
@@ -198,9 +406,15 @@ for (const m of selected) {
   const backupPath = join(backupDir, m.file.replace(/\//g, '_'))
   writeFileSync(backupPath, original)
   backups.set(m.file, backupPath)
-  writeFileSync(m.file, original.replace(m.find, m.replace))
+  writeFileSync(m.file, mutated)
 
-  const built = run('npm run build')
+  // Only source changes need recompiling. Mutating a workflow or a doc does
+  // not, and rebuilding for those added a minute each for nothing.
+  const built = m.file.startsWith('src/') ? run('npm run build') : true
+  // No inversion flag. A row that passes when its command fails already encodes
+  // that itself — `run-row.mjs` reports the ROW's verdict, and a shell `!` wraps
+  // anything else. An `inverted` option existed here briefly and was removed
+  // unused: a branch nothing exercises is precisely what this harness is for.
   const survived = built && run(m.expect)
 
   writeFileSync(m.file, original)

@@ -29,6 +29,7 @@
     "check:state": "node scripts/state-check.mjs",
     "check:spark": "node scripts/spark-check.mjs",
     "check:mutation": "node scripts/mutation-check.mjs",
+    "check:rows": "node scripts/row-confidence.mjs",
     "outbox:index": "node scripts/outbox-index.mjs"
   },
   "dependencies": {
