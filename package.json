@@ -31,6 +31,7 @@
     "check:mutation": "node scripts/mutation-check.mjs",
     "check:rows": "node scripts/row-confidence.mjs",
     "check:status": "node scripts/status-verdict-check.mjs",
+    "check:status-live": "node scripts/status-live-check.mjs",
     "check:unused": "node scripts/unused-check.mjs && node scripts/units-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs"
   },

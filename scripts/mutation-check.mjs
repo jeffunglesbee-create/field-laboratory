@@ -332,6 +332,30 @@ const MUTATIONS = [
   },
 
   {
+    // The softening that already happened once. A read that fails and reports
+    // no problem is indistinguishable from a read that found nothing wrong —
+    // which is the state STATUS.md sat in on commit 363dd93, saying "unknown"
+    // with nothing recording that the token had simply not been passed.
+    // The softening through the branch that looked harmless. A run stuck
+    // in_progress for an hour reads as "running", which reads as neutral.
+    id: 'stalled-run-reads-as-running',
+    file: 'scripts/status.mjs',
+    claim: 'a run stuck in progress is called stalled, not running',
+    find: '    if (idleMs > STALL_MINUTES * 60_000) {',
+    replace: '    if (false) {',
+    expect: 'node scripts/run-row.mjs "a red main is reported, not softened"',
+  },
+
+  {
+    id: 'unreadable-history-swallowed',
+    file: 'scripts/status.mjs',
+    claim: 'a workflow-history read that the API rejects is reported as a problem',
+    find: "    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: `HTTP ${res.status}` }",
+    replace: "    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: null }",
+    expect: 'node scripts/run-row.mjs "a red main is reported, not softened"',
+  },
+
+  {
     id: 'button-order',
     file: 'src/PickemView.fs',
     claim: 'the side buttons read in the same order as the matchup label',

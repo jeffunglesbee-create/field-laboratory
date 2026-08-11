@@ -52,13 +52,20 @@ jobs:
       # Which commit wrote which outbox entry, derived from git. It runs here
       # rather than in verify because it describes a commit and so can only be
       # written after that commit exists.
+      #
+      # `always()`: the step above now FAILS when verify's conclusion could not
+      # be read, and it writes the reason into STATUS.md before failing. If these
+      # two stopped on that failure, the reason would exist only in a run log —
+      # which is how a status file that cannot read history goes on looking fine.
       - name: Regenerate the outbox index
+        if: always()
         run: node scripts/outbox-index.mjs
 
       # Commits only when a real fact changed. STATUS.md carries no timestamp
       # precisely so this stays quiet — its git history should read as a log of
       # things happening, not one commit a day saying nothing.
       - name: Commit if anything changed
+        if: always()
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"

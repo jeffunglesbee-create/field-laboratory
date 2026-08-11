@@ -21,6 +21,13 @@ concurrency:
   group: verify-${{ github.ref }}
   cancel-in-progress: true
 
+# Read-only, and narrower than the default. `actions: read` is here for one
+# step: the live GitHub-API read, which asks this workflow's own history whether
+# main passed. Nothing in this job writes anything back.
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -234,3 +241,13 @@ jobs:
       # transcription from a plausible one.
       - name: Pick shape — the transcription vs the real relay
         run: npm run check:pick-shape
+
+      # The GitHub-API read behind STATUS.md's "did the suite pass on main?"
+      # section, executed for real. It shipped unexercised — no route to
+      # api.github.com from the dev sandbox — and was docked for it. A runner has
+      # the token and the egress, so it runs, and it runs in both directions: a
+      # real token and a deliberately broken one, required to answer differently.
+      - name: Status read against the LIVE GitHub API
+        run: npm run check:status-live
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
