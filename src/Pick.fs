@@ -112,9 +112,39 @@ type PickBoard =
 /// section means the analytics run has not happened, while a pass means it ran
 /// and declined. Collapsing those into "no pick" would hide a broken pipeline
 /// behind a normal-looking quiet night.
+/// The relay's explanation for passing — sealed, because it is not safe to
+/// render.
+///
+/// Found on the deployed page, not reasoned about. The live route returned:
+///
+///   "Passed on tonight — top game scored 1.0 — under the 3.0 watch-bar"
+///
+/// That is a raw composite score AND the threshold it was compared against,
+/// in free text, which is ADR-002 PROHIBITED #3 at severity CRITICAL — the
+/// prohibition the 2026-07-07 push/pull re-analysis explicitly did NOT relax.
+///
+/// `SealedRank` sealed the numbers on the ranked entries. This sentence carried
+/// the same number past that seal as a string, and the panel rendered it
+/// verbatim. A seal on one field is not a seal on the value.
+///
+/// So the reason is sealed too. The type deliberately lets a caller ASK whether
+/// the text is dangerous without letting it PRINT the text — detection without
+/// a rendering path, which is what a drift check needs and a view must not have.
+type PassReason = private PassReason of string
+
+/// Does the relay's reason smuggle a bare number? Used to report upstream drift,
+/// never to decide whether to render — the answer is always "not this text".
+let passReasonCarriesNumber (PassReason raw) =
+    raw |> Seq.exists System.Char.IsDigit
+
+/// The only renderable form. Fixed text: none of the relay's sentence survives,
+/// because there is no way to know which parts of a free-text field are safe.
+let passReasonText (_: PassReason) =
+    "Passed on tonight — no game cleared the bar."
+
 type PickOutcome =
     | NoPickSection
-    | Passed of reason: string
+    | Passed of PassReason
     | Picked of PickBoard
 
 // ---------------------------------------------------------------------------
@@ -151,8 +181,8 @@ let pickDecoder : Decoder<PickOutcome> =
         // board rather than an honest "no pick tonight".
         match get.Optional.Field "type" Decode.string with
         | Some "pass" ->
-            Passed(get.Optional.Field "reason" Decode.string
-                   |> Option.defaultValue "no reason given")
+            Passed(PassReason(get.Optional.Field "reason" Decode.string
+                              |> Option.defaultValue "no reason given"))
         | _ ->
             let ranked =
                 get.Optional.Field "ranked" (Decode.list entryDecoder)

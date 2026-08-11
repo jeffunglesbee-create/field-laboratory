@@ -111,6 +111,17 @@ const MUTATIONS = [
     replace: '        | LocalAvailable -> Unanswerable "streams"',
     expect: "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
   },
+  // The leak live-tabs-check found on the deployed page: the relay's pass
+  // reason carries a composite score and its threshold, and rendering it
+  // verbatim walks both past SealedRank as a string.
+  {
+    id: 'pass-reason-leak',
+    file: 'src/Pick.fs',
+    claim: 'the relay pass reason is never rendered, whatever it contains',
+    find: 'let passReasonText (_: PassReason) =\n    "Passed on tonight — no game cleared the bar."',
+    replace: 'let passReasonText (PassReason raw) = raw',
+    expect: 'node scripts/pick-check.mjs',
+  },
   {
     id: 'button-order',
     file: 'src/PickemView.fs',

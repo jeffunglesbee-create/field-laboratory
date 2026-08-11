@@ -161,3 +161,98 @@ and nothing about the ones they did not. It is a floor, not a proof.
 
 Cost is real: one Fable build per mutation. It is `skipQuick` in the gate and a
 separate step in `verify`.
+
+---
+
+## All four tabs are live — and the same run found an ADR-002 leak
+
+`live-check` on the deployed artifact, run `31448713152`, commit `69f02ef`:
+
+```
+PASS  the deployed page has all four tabs
+PASS  all three pick tabs are among them
+PASS  exactly one panel is visible on load
+PASS  the Field's Pick panel becomes visible and renders
+PASS  the Scout's Pick panel becomes visible and renders
+PASS  the two panels still contradict each other on national broadcasts
+PASS  each panel still names the other
+FAIL  no bare composite score renders in either pick panel
+PASS  the Pick'em panel renders and says whose opinion it is
+PASS  the Pick'em legend explains its two numbers
+PASS  no page errors on the deployed artifact
+```
+
+**The four tabs are confirmed on the live page.** That was the question, and the
+answer is yes.
+
+The failure is the more important result.
+
+### What the relay actually sent
+
+```
+Passed on tonight — top game scored 1.0 — under the 3.0 watch-bar
+```
+
+That is a raw composite score **and the threshold it was compared against**, in
+free text, rendered to the user. ADR-002 PROHIBITED #3, severity CRITICAL — the
+prohibition the 2026-07-07 push/pull re-analysis explicitly did *not* relax.
+
+`SealedRank` sealed the numbers on the ranked entries. This sentence carried the
+same class of value past that seal **as a string**, through a field I had typed
+as plain `string` because a "reason" sounded like prose. A seal on one field is
+not a seal on the value.
+
+### Why it was caught
+
+`docs/PICK-PROOF.md` says, under "What this does NOT prove":
+
+> It does not prove the number never reaches the DOM by another route. The seal
+> stops the F# path. … That is why `scripts/tab-check.mjs` asserts, in a real
+> browser, that the string `3.5` appears nowhere in `document.body`. Two
+> independent checks, because either alone is satisfiable while wrong.
+
+Written this evening, as a caveat. It found a real leak within hours, by a route
+I had not imagined — not a renderer reaching around the type, but upstream text
+containing the value. The caveat was right for the wrong reason, which is the
+best case for a caveat.
+
+Worth being exact about the credit: the compiler proof was intact the whole
+time and still is. It never claimed to cover this.
+
+### The fix
+
+`PassReason` is now a private single-case DU, and the type is shaped around the
+awkward truth that free text cannot be judged safe field by field:
+
+```fsharp
+type PassReason = private PassReason of string
+
+/// Report upstream drift. Never used to decide whether to render.
+let passReasonCarriesNumber (PassReason raw) = raw |> Seq.exists Char.IsDigit
+
+/// The only renderable form. None of the relay's sentence survives.
+let passReasonText (_: PassReason) = "Passed on tonight — no game cleared the bar."
+```
+
+A caller can **ask whether the text is dangerous without being able to print
+it** — detection without a rendering path, which is what a drift check needs and
+a view must not have.
+
+`passReasonText` ignores its argument entirely. That is deliberate and it is the
+whole design: any function that inspected the string to decide what was safe
+would be a filter, and a filter is a promise about text nobody controls.
+
+Checked in both directions on the live string: it is detectable as carrying a
+number, nothing of it is renderable, and a *harmless* reason renders identically
+— so the safe path never depends on judging which free text is safe.
+
+Mutation `pass-reason-leak` restores the old behaviour and dies to `pick-check`.
+12 mutations, all killed.
+
+### Still open, and it is not mine
+
+The relay is emitting a prohibited value. Sealing it here stops laboratory
+displaying it and does nothing about the source, or about any other client
+rendering `bundle.pick.reason` verbatim today. `passReasonCarriesNumber` exists
+so that can be reported rather than silently absorbed — wiring it into the drift
+sentinel is the obvious next step and is not done yet.

@@ -10,7 +10,8 @@
 
 import { readFileSync } from 'node:fs'
 import { createChecks, toArray } from './checks.mjs'
-import { decodePick, decodeBundle, leadershipNote, entryMatchup, compareRank } from '../build/Pick.js'
+import { decodePick, decodeBundle, leadershipNote, entryMatchup, compareRank,
+         passReasonCarriesNumber, passReasonText } from '../build/Pick.js'
 
 const { check, summarize } = createChecks()
 
@@ -80,9 +81,23 @@ const passed = decodePick(JSON.stringify({ type: 'pass', reason: 'no qualifying 
 check('the pass branch decodes as Passed, not an empty board',
   ok(passed) && value(passed).tag === OUTCOME.Passed,
   `got tag ${ok(passed) ? value(passed).tag : 'decode error'}`)
-check('the pass reason is carried',
-  ok(passed) && value(passed).fields[0] === 'no qualifying games',
-  'the reason was dropped')
+// THE LIVE STRING, verbatim from the deployed page on 2026-08-10. The relay's
+// pass reason carries a composite score AND its threshold, and this rendered
+// verbatim until live-tabs-check caught it.
+const leaky = decodePick(JSON.stringify({
+  type: 'pass', reason: 'top game scored 1.0 — under the 3.0 watch-bar',
+}))
+check('a pass reason carrying a composite is detectable',
+  ok(leaky) && passReasonCarriesNumber(value(leaky).fields[0]),
+  'the drift signal is gone — nothing could report that upstream is emitting a score')
+
+check('...and NOTHING of that sentence is renderable',
+  ok(leaky) && !/\d/.test(passReasonText(value(leaky).fields[0])),
+  `renderable text was: "${ok(leaky) ? passReasonText(value(leaky).fields[0]) : '?'}"`)
+
+check('a harmless pass reason is equally unrenderable',
+  ok(passed) && passReasonText(value(passed).fields[0]) === passReasonText(value(leaky).fields[0]),
+  'the safe path must not depend on judging which free text is safe')
 
 // A pick object predating the `ranked` field. Real: `ranked` was added
 // 2026-07-07, and stored bundles from before that date do not have it.

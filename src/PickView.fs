@@ -62,7 +62,10 @@ let renderFieldPick (mount: HTMLElement) (outcome: PickOutcome) =
         child panel (el "p" "pick-empty"
                         "No pick section in this payload. The analytics bundle either has not run for this date or predates the ranked field.") |> ignore
     | Passed reason ->
-        child panel (el "p" "pick-empty" (sprintf "Passed on tonight — %s" reason)) |> ignore
+        // `passReasonText`, never the relay's sentence. The live route returned
+        // "top game scored 1.0 — under the 3.0 watch-bar" on 2026-08-10, and
+        // this line rendered it verbatim until live-tabs-check caught it.
+        child panel (el "p" "pick-empty" (passReasonText reason)) |> ignore
     | Picked board ->
         let leader = child panel (el "div" "pick-leader" "")
         child leader (el "div" "pick-leader__matchup" (entryMatchup board.Leader)) |> ignore
