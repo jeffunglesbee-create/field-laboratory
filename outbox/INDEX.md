@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `73ffdd0` | 2026-08-11 | [cc-the-gate-was-an-average-2026-08-10.md](cc-the-gate-was-an-average-2026-08-10.md) | Cumulative, and it rotted as it grew: the gate is now a conjunction |
 | `bfddd4d` | 2026-08-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
 | `20cee99` | 2026-08-11 | [cc-drama-sparkline-2026-08-10.md](cc-drama-sparkline-2026-08-10.md) | Drama sparkline, with both of its bugs made unreachable |
 | `6d9a990` | 2026-08-11 | [cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md](cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md) | live-check inherited deploy's trigger without deploy's guard |
