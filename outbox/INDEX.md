@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4c2935b` | 2026-08-11 | [cc-pickem-the-actual-one-2026-08-10.md](cc-pickem-the-actual-one-2026-08-10.md) | Pick'em: the pick that was actually meant, plus playground's latent bug |
 | `d1668aa` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Confirm the deployed tabs, and check the transcription against its source |
 | `4123040` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Record the live pick route result from the runner |
 | `5d7a2c9` | 2026-08-11 | [cc-both-picks-in-a-tab-system-2026-08-10.md](cc-both-picks-in-a-tab-system-2026-08-10.md) | Both picks, in tabs — and they disagree with each other on purpose |
