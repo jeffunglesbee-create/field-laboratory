@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `531b0a8` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Seal the pass reason: the relay was sending a score and its threshold |
+| `ec0fe70` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Ask mechanically whether the checks are worth anything |
 | `69f02ef` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Take the clock out of gameState, and fix two half-working things |
 | `4c2935b` | 2026-08-11 | [cc-pickem-the-actual-one-2026-08-10.md](cc-pickem-the-actual-one-2026-08-10.md) | Pick'em: the pick that was actually meant, plus playground's latent bug |
 | `d1668aa` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Confirm the deployed tabs, and check the transcription against its source |
