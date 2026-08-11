@@ -234,6 +234,12 @@ let private start () =
                                 | Error _ -> Pick.NoPickSection
                     PickView.renderFieldPick mount outcome)
 
+            // Pick'em runs on the same slate, and needs the date for storage
+            // keying — the viewer's picks belong to the day they were made.
+            match document.getElementById "panel-pickem" with
+            | null -> ()
+            | mount -> PickemView.render mount payload.Date games None
+
             // Prove the units are live, not just declared: a real probability
             // formatted through the only sanctioned conversion.
             let openingWinProbability = 0.62<prob>
@@ -285,7 +291,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem" ]
 
     let tabs () =
         ids |> List.choose (fun id ->

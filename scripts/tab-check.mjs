@@ -31,17 +31,25 @@ page.on('pageerror', e => failures.push(String(e)))
 
 await page.goto(URL_BASE, { waitUntil: 'networkidle' })
 
+// Scoped to the TOP-LEVEL tablist. Pick'em's sport chips are a tablist too, so
+// a bare [role="tab"] query now matches both and reports five tabs and two
+// selected ones. Nesting a tablist inside a tabpanel is legitimate; a global
+// selector across them is not.
+const TABS = '.tabs [role="tab"]'
+
 const selected = async () =>
-  page.$$eval('[role="tab"]', ts =>
+  page.$$eval(TABS, ts =>
     ts.filter(t => t.getAttribute('aria-selected') === 'true').map(t => t.id))
 
 const visiblePanels = async () =>
   page.$$eval('[role="tabpanel"]', ps => ps.filter(p => !p.hasAttribute('hidden')).map(p => p.id))
 
+const topTabs = () => page.$$(TABS)
+
 // --- the tablist -------------------------------------------------------------
 
-check('three tabs exist', (await page.$$('[role="tab"]')).length === 3,
-  `${(await page.$$('[role="tab"]')).length} tabs`)
+check('four top-level tabs exist', (await topTabs()).length === 4,
+  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em`)
 
 check('exactly one tab starts selected', (await selected()).length === 1,
   `selected: ${JSON.stringify(await selected())}`)
@@ -49,9 +57,9 @@ check('exactly one tab starts selected', (await selected()).length === 1,
 check('exactly one panel starts visible', (await visiblePanels()).length === 1,
   `visible: ${JSON.stringify(await visiblePanels())}`)
 
-check('only one tab is in the tab order',
-  (await page.$$eval('[role="tab"]', ts => ts.filter(t => t.getAttribute('tabindex') === '0').length)) === 1,
-  'a roving tabindex is what makes a tablist one stop instead of three')
+check('only one top-level tab is in the tab order',
+  (await page.$$eval(TABS, ts => ts.filter(t => t.getAttribute('tabindex') === '0').length)) === 1,
+  'a roving tabindex is what makes a tablist one stop instead of four')
 
 // Keyboard, which is the half most likely to be skipped.
 await page.focus('#tab-scoreboard')
@@ -66,12 +74,16 @@ check('ArrowRight again reaches Scout\'s Pick',
   (await selected())[0] === 'tab-scout-pick', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('ArrowRight')
+check('ArrowRight again reaches Pick\'em',
+  (await selected())[0] === 'tab-pickem', `selected: ${(await selected())[0]}`)
+
+await page.keyboard.press('ArrowRight')
 check('selection wraps rather than dead-ending',
   (await selected())[0] === 'tab-scoreboard', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('End')
 check('End jumps to the last tab',
-  (await selected())[0] === 'tab-scout-pick', `selected: ${(await selected())[0]}`)
+  (await selected())[0] === 'tab-pickem', `selected: ${(await selected())[0]}`)
 
 // --- the two picks are told apart --------------------------------------------
 

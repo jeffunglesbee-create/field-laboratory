@@ -148,6 +148,9 @@ const rows = [
   { name: 'tabs work and the pick score never renders', weight: 15, skipQuick: true,
     run: () => ok("URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs") },
 
+  { name: "pick'em grades only finished games", weight: 15, skipQuick: true,
+    run: () => ok('node scripts/pickem-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

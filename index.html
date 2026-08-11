@@ -80,6 +80,66 @@
   .gate--unanswerable .gate__name { color: #d8a657; }
   .pick-empty { font-size: .88rem; opacity: .7; }
 
+  /* Pick'em. */
+  .pk-banner {
+    border: 1px solid #262a33; border-radius: 10px;
+    padding: .8rem 1rem; margin-bottom: 1rem;
+    background: #12151b; font-size: .92rem;
+  }
+  .pk-sports { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem; }
+  .pk-sport {
+    font: inherit; font-size: .78rem;
+    display: inline-flex; align-items: center; gap: .4rem;
+    color: #8a90a0; background: #12151b;
+    border: 1px solid #262a33; border-radius: 8px;
+    padding: .3rem .6rem; cursor: pointer;
+  }
+  .pk-sport--on { color: #e6e8ec; background: #1d212a; border-color: #3a4150; }
+  .pk-sport:focus-visible { outline: 2px solid #4a9d7e; outline-offset: -2px; }
+  .pk-sport__count { opacity: .6; font-variant-numeric: tabular-nums; }
+  .pk-legend { font-size: .74rem; opacity: .5; margin: 0 0 1rem; }
+
+  /* Fixed tracks, not flex. On the production screen a row with two long team
+     names ("Rockies @ Diamondbacks") pushed its status chip onto a second line
+     while every other row kept it inline — the chip was what gave way when the
+     names overflowed. A grid gives the chip its own column, so the longest
+     fixture on the slate cannot break the row it appears in. The matchup cell
+     is the one allowed to shrink, and it truncates instead. */
+  .pk-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 5.5rem;
+    align-items: center; gap: .75rem;
+    padding: .6rem 0; border-bottom: 1px solid #1c2027;
+  }
+  .pk-row__matchup { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pk-row__sides { display: flex; gap: .4rem; }
+  .pk-side {
+    font: inherit; font-size: .82rem;
+    color: #8a90a0; background: #12151b;
+    border: 1px solid #262a33; border-radius: 8px;
+    padding: .35rem .7rem; cursor: pointer; white-space: nowrap;
+  }
+  .pk-side:hover { color: #e6e8ec; border-color: #343a46; }
+  .pk-side--chosen { color: #7fd1ab; border-color: #2f6b52; background: #14211b; }
+  .pk-side:focus-visible { outline: 2px solid #4a9d7e; outline-offset: -2px; }
+  .pk-chip {
+    font-size: .68rem; letter-spacing: .06em; text-align: center;
+    padding: .25rem .4rem; border-radius: 6px; white-space: nowrap;
+  }
+  .pk-chip--none    { color: #5c6472; background: #14171d; }
+  .pk-chip--pending { color: #d8a657; background: #2a2113; }
+  .pk-chip--live    { color: #7fb3d1; background: #13212a; }
+  .pk-chip--drawn   { color: #9aa0ad; background: #1a1d23; }
+  .pk-chip--right   { color: #7fd1ab; background: #14211b; }
+  .pk-chip--wrong   { color: #d18f8f; background: #2a1616; }
+
+  /* Narrow screens: let the row become two lines DELIBERATELY, all rows at
+     once, rather than only the row that happens to have long names. */
+  @media (max-width: 34rem) {
+    .pk-row { grid-template-columns: minmax(0, 1fr) 5.5rem; }
+    .pk-row__sides { grid-column: 1 / -1; }
+  }
+
   /* Date navigation. Sticky because a full multi-sport slate is long and the
      controls are useless if you have to scroll back to the top to reach them. */
   .datenav {
@@ -145,6 +205,7 @@
     <button role="tab" id="tab-scoreboard" aria-controls="panel-scoreboard" aria-selected="true" tabindex="0">Scoreboard</button>
     <button role="tab" id="tab-field-pick" aria-controls="panel-field-pick" aria-selected="false" tabindex="-1">Field's Pick</button>
     <button role="tab" id="tab-scout-pick" aria-controls="panel-scout-pick" aria-selected="false" tabindex="-1">Scout's Pick</button>
+    <button role="tab" id="tab-pickem" aria-controls="panel-pickem" aria-selected="false" tabindex="-1">Pick'em</button>
   </div>
 
   <!-- Wired by Program.fs (wireDateNav). Navigation rewrites the URL with
@@ -166,6 +227,7 @@
   </div>
   <div role="tabpanel" id="panel-field-pick" aria-labelledby="tab-field-pick" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-scout-pick" aria-labelledby="tab-scout-pick" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-pickem" aria-labelledby="tab-pickem" tabindex="0" hidden></div>
 
   <!-- Fable emits bare module specifiers for npm packages — `import {
        createSignal } from "solid-js"` — which browsers cannot resolve natively.

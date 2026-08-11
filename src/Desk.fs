@@ -567,6 +567,16 @@ type GameState =
     | InProgress of home: int * away: int
     | Final of home: int * away: int * overtime: bool
 
+/// Has the game actually kicked off?
+///
+/// `start_time` is the only status signal this payload carries. Absent, this
+/// returns false rather than guessing — an unknown start time is not evidence
+/// that a game has not begun.
+let notYetStarted (g: Game) =
+    match g.StartTime with
+    | Some start -> DateTimeOffset.UtcNow < start
+    | None -> false
+
 let gameState (g: Game) : GameState =
     match g.HomeScore, g.AwayScore with
     | Some h, Some a ->
@@ -596,6 +606,23 @@ let gameState (g: Game) : GameState =
             | None -> false
         if g.FinalizedAt.IsSome || datePassed then
             Final(h, a, g.Overtime = WentToOvertime)
+        elif notYetStarted g then
+            // Scores present, but the game has not kicked off — so they are
+            // placeholders, not a live scoreline.
+            //
+            // Found in field-playground, which has the same shape written the
+            // other way round: `if (g.home_score === null) return 'pre'`. Its
+            // CFL route writes 0 for all 47 unplayed fixtures, so every
+            // unstarted CFL game reports as live, and a `disabled` bound to
+            // that status greys out both pick buttons on games that have not
+            // started — with no explanation to the user.
+            //
+            // That probe's recommended fix is the one applied here: gate on
+            // status, never on a score being present. This repo's version was
+            // latent rather than live — no route in either committed capture
+            // writes placeholder zeroes — which is exactly why it was worth
+            // fixing before one does.
+            Scheduled
         else
             InProgress(h, a)
     | _ -> Scheduled

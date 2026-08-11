@@ -108,6 +108,14 @@ jobs:
       - name: Tabs, both pick panels, and the ADR-002 display check
         run: npm run check:tabs
 
+      # Pick'em against a synthetic multi-sport slate served at the network
+      # layer: both committed captures are single-sport and two games long, so
+      # neither can reach the sport chips, a graded pick, a draw, or the row
+      # layout. Includes the "Rockies @ Diamondbacks" row whose status chip
+      # wraps onto a second line on the production screen.
+      - name: Pick'em — chips, grading, and the row that wraps in production
+        run: npm run check:pickem
+
       # Compiles every violation docs/AMNESTY-PROOF.md claims is rejected and
       # asserts the compiler really rejects it with the stated error. The doc
       # shipped an overstated claim once — that the drama seal was complete when

@@ -23,8 +23,10 @@
     <Compile Include="Desk.fs" />
     <Compile Include="Pick.fs" />
     <Compile Include="Scout.fs" />
+    <Compile Include="Pickem.fs" />
     <Compile Include="Scoreboard.fs" />
     <Compile Include="PickView.fs" />
+    <Compile Include="PickemView.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
