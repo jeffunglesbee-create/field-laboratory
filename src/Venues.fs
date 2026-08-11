@@ -78,7 +78,13 @@ let private entries =
       at "PNC Park" 40.4469 -80.0057 OpenAir "America/New_York"
       at "Petco Park" 32.7073 -117.1566 OpenAir "America/Los_Angeles"
       at "Progressive Field" 41.4962 -81.6852 OpenAir "America/New_York"
-      at "Comerica Park" 42.3390 -83.0485 OpenAir "America/New_York"
+      // America/Detroit, NOT America/New_York. Same UTC offset, different IANA
+      // zone — Michigan has its own DST history. This entry is the one the
+      // planet check caught on its first live run (run 31543404607), and it was
+      // MY declaration that was wrong, not the coordinates: a transcription
+      // error in the field added to catch transcription errors, in the subtlest
+      // form the check can detect.
+      at "Comerica Park" 42.3390 -83.0485 OpenAir "America/Detroit"
       at "Kauffman Stadium" 39.0517 -94.4803 OpenAir "America/Chicago"
       at "Target Field" 44.9817 -93.2776 OpenAir "America/Chicago"
       at "Busch Stadium" 38.6226 -90.1928 OpenAir "America/Chicago"
