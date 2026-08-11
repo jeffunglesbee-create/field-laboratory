@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `090397c` | 2026-08-11 | [cc-the-fetch-that-had-never-run-2026-08-11.md](cc-the-fetch-that-had-never-run-2026-08-11.md) | The fetch that had never run, and the two things running it showed |
 | `5d41454` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | "Not claimed" was a loophole, and I used it |
 | `03063ff` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | The gate failed a commit because the day rolled over mid-run |
 | `771cf8e` | 2026-08-11 | [cc-written-but-never-read-back-2026-08-11.md](cc-written-but-never-read-back-2026-08-11.md) | Written but never read back: four values nothing had ever observed |
