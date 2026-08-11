@@ -154,6 +154,11 @@ const rows = [
   { name: 'game state is correct at fixed instants', weight: 10,
     run: () => ok('node scripts/state-check.mjs') },
 
+  // The slowest row by far — it rebuilds once per mutation — and the only one
+  // that asks whether the OTHER rows are worth anything.
+  { name: 'breaking each invariant makes a check fail', weight: 20, skipQuick: true,
+    run: () => ok('node scripts/mutation-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

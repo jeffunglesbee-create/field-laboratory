@@ -132,13 +132,38 @@ check('the chasers render too, so "ranked" means something',
 
 // --- Scout's gates report what they need -------------------------------------
 
-check('Scout\'s gates distinguish "cannot tell" from "no"',
-  /cannot tell/i.test(scoutText),
-  'every gate reported a boolean, which is the production failure being tested')
+// Per gate, not "somewhere on the panel".
+//
+// The first version asserted /cannot tell/ against the whole panel text, and
+// mutation-check killed it: breaking Gate C to say "no stat anomaly" instead of
+// "cannot tell" SURVIVED, because Gates B and D still said it. The assertion
+// tested that SOME gate reported honestly, which is true of a panel where two
+// out of three lie.
+//
+// Each unanswerable gate is now named with the data it needs, so a gate that
+// starts claiming a real answer is caught individually.
+const gateSays = (gate, pattern) => {
+  const line = scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate))
+  return line !== undefined && pattern.test(line)
+}
 
-check('an unanswerable gate names the data it needs',
-  /needs .*(milestone|deviation|scenario|streams)/i.test(scoutText),
-  'a gate said "cannot tell" without saying what would change the answer')
+for (const [gate, needs] of [
+  ['Gate B', /milestone/i],
+  ['Gate C', /deviation/i],
+  ['Gate D', /scenario|WC/i],
+]) {
+  check(`${gate} says "cannot tell" and names what it needs`,
+    gateSays(gate, /cannot tell/i) && gateSays(gate, needs),
+    `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+}
+
+// And the other direction, so "everything is unanswerable" is not a way to pass:
+// the two gates this payload CAN answer must give a real answer.
+for (const gate of ['Gate 0', 'Gate A']) {
+  check(`${gate} gives a real answer, since this payload can answer it`,
+    gateSays(gate, /qualifies —|no —/) && !gateSays(gate, /cannot tell/i),
+    `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+}
 
 check('no page errors during any of this', failures.length === 0, failures.join(' | '))
 

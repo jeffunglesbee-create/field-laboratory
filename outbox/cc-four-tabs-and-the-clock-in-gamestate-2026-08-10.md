@@ -93,3 +93,71 @@ presses ArrowRight *and* End, because one press proves nothing about the second.
 Deployed-page confirmation runs on a runner after deploy — `live-check.yml`
 fires on `workflow_run` from `deploy`, and the sandbox cannot reach
 `*.workers.dev`. Reported when it lands rather than assumed here.
+
+---
+
+## The half-working class, found mechanically
+
+Every guard here has been mutation-tested by hand, in prose, one at a time. That
+found real holes — and it is exactly the practice that decays, because a
+hand-run mutation is a claim in an outbox and nothing re-runs it.
+
+The recurring failure this session always had one shape: **a check that passes in
+one direction.**
+
+| | how it was half-working |
+| --- | --- |
+| `outboxToday` | passed on any dated file, not on a documented commit |
+| `zone-check` | 16/16 while a broken `UTC-4` build also passed 11/11 |
+| `outboxAccompaniesSource` | the PASS direction was never run; it ate a character |
+| `gate-inventory` standalone | tested fixtures, never the real files |
+| sport chips | arrow keys worked once, then focus was destroyed |
+
+Each was found by someone noticing. `scripts/mutation-check.mjs` asks it
+mechanically: break the source on purpose, and see whether **any** check
+objects. A mutation that survives is a claim nothing defends — the general form
+of every row above.
+
+Eleven mutations, each naming an invariant and the check meant to catch it.
+Where the compiler refuses the mutation outright, that is reported as the
+stronger result: the invariant is enforced by the type system rather than by a
+test.
+
+### It found one on its first run
+
+`gate-unanswerable` **survived**. Rewriting Scout's Gate C to say
+`DoesNotQualify "no stat anomaly"` instead of `Unanswerable` — the exact bug the
+whole `GateAnswer` type exists to prevent — and every check still passed.
+
+The reason is the same shape as the rest of the table. `tab-check` asserted:
+
+```js
+/cannot tell/i.test(scoutText)
+```
+
+against the **whole panel**. Gates B and D still said "cannot tell", so the
+assertion held while Gate C lied. It tested that *some* gate reported honestly,
+which is true of a panel where two out of three do.
+
+Now each gate is asserted individually, by name, with the data it says it needs
+— and the other direction too: Gates 0 and A, which this payload *can* answer,
+must give a real answer and must not retreat to "cannot tell". Without that
+second half, "make everything unanswerable" would satisfy every assertion.
+
+### Killing one hole is not closing the class
+
+After fixing Gate C, mutations for **B and D** were added — the siblings the fix
+was not written against — plus `gate-goes-quiet` for the opposite direction. All
+three are killed by the same fix, which is the evidence that it was a fix rather
+than a patch.
+
+11/11.
+
+### What it does not do
+
+It is not a mutation testing framework. The mutations are hand-written and named,
+not generated, so it proves things about the invariants someone thought to list
+and nothing about the ones they did not. It is a floor, not a proof.
+
+Cost is real: one Fable build per mutation. It is `skipQuick` in the gate and a
+separate step in `verify`.

@@ -169,6 +169,12 @@ jobs:
       - name: The zone choice changes the slate (window simulation)
         run: npm run check:window
 
+      # Mutation testing over the whole suite: break each invariant on purpose
+      # and require some check to object. Slow — one Fable build per mutation —
+      # and the only step that asks whether the other steps are worth anything.
+      - name: Breaking each invariant makes a check fail
+        run: npm run check:mutation
+
       # The confidence gate the CC-CMD ceremony asks for, mechanised. Every row
       # runs a real command and takes its score from the exit code, so the total
       # cannot be asserted, only earned. Below 95 fails the build.

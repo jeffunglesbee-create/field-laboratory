@@ -27,6 +27,7 @@
     "check:live-tabs": "node scripts/live-tabs-check.mjs",
     "check:pickem": "node scripts/pickem-check.mjs",
     "check:state": "node scripts/state-check.mjs",
+    "check:mutation": "node scripts/mutation-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs"
   },
   "dependencies": {
