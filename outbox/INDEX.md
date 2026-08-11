@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6d9a990` | 2026-08-11 | [cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md](cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md) | live-check inherited deploy's trigger without deploy's guard |
 | `531b0a8` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Seal the pass reason: the relay was sending a score and its threshold |
 | `ec0fe70` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Ask mechanically whether the checks are worth anything |
 | `69f02ef` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Take the clock out of gameState, and fix two half-working things |
