@@ -22,6 +22,21 @@ import { execSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { fieldDay } from './checks.mjs'
 
+/**
+ * The FIELD day this gate run began, captured ONCE.
+ *
+ * `outboxToday` used to call `fieldDay()` at row-evaluation time. CI run
+ * 31456294086 started at 23:44 ET on 2026-08-10 and the outbox row evaluated at
+ * 00:01 ET on the 11th — the day rolled over mid-run, and the row failed a
+ * commit whose outbox was correctly dated for the day the run started.
+ *
+ * The row was right about its rule and wrong about which day it was asking
+ * about. Same fix as `gameStateAt` and `zone-check`'s NOW: capture the instant
+ * once, then be pure. A gate that answers differently depending on how long its
+ * own earlier rows took is not deciding about the work.
+ */
+const GATE_DAY = fieldDay()
+
 const ok = cmd => {
   try {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
@@ -53,7 +68,7 @@ const fails = cmd => !ok(cmd)
  * document per piece of work, so the date can sit anywhere in the name.
  */
 const outboxToday = () => {
-  const today = fieldDay()
+  const today = GATE_DAY
   const entries = readdirSync('outbox').filter(f => f.includes(today) && f.endsWith('.md'))
   // Length floor because an empty stub would otherwise satisfy the check.
   return entries.some(f => readFileSync(`outbox/${f}`, 'utf8').length > 1500)

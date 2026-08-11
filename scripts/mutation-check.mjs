@@ -314,6 +314,15 @@ const MUTATIONS = [
   },
 
   {
+    id: 'gate-day-per-row',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the gate pins its day once, so a run crossing midnight is consistent',
+    find: '  const today = GATE_DAY',
+    replace: '  const today = fieldDay()',
+    expect: 'node scripts/run-row.mjs "every gate row has teeth and is deterministic"',
+  },
+
+  {
     id: 'button-order',
     file: 'src/PickemView.fs',
     claim: 'the side buttons read in the same order as the matchup label',

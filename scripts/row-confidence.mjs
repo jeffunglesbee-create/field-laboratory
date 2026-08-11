@@ -52,7 +52,17 @@ const scriptsOf = rowName => {
   if (at === -1) return []
   const end = gateSource.indexOf('\n\n', at)
   const decl = gateSource.slice(at, end === -1 ? gateSource.length : end)
-  return [...decl.matchAll(/scripts\/([\w.-]+\.mjs)/g)].map(m => `scripts/${m[1]}`)
+  const named = [...decl.matchAll(/scripts\/([\w.-]+\.mjs)/g)].map(m => `scripts/${m[1]}`)
+  // A row whose `run` is a local function — the outbox and history rows — names
+  // no script, and its logic lives in gate-checks.mjs. Those rows were scanned
+  // for nondeterminism against an EMPTY file list, so they scored full marks for
+  // determinism without anything being read.
+  //
+  // That is how CI run 31456294086 failed: `outboxToday` called `fieldDay()` at
+  // row-evaluation time, the run crossed midnight ET, and the row asked about a
+  // different day than the one it started in. This scorer's own rule would have
+  // caught it, if it had been looking at the file.
+  return named.length > 0 ? named : ['scripts/gate-checks.mjs']
 }
 
 /**
@@ -108,8 +118,18 @@ const nondeterminism = scripts => {
       .split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n')
       .replace(/(['"`])(?:\\.|(?!\1)[\s\S])*\1/g, "''")
 
-    const captures = code.match(/const NOW = new Date\(\s*\)/g) ?? []
-    const clockReads = code.match(/Date\.now\(\)|new Date\(\s*\)/g) ?? []
+    // Clock reads BEHIND A HELPER count too. `fieldDay()` and `fieldToday()`
+    // are this repo's zone-aware readers, and the first version of this scan
+    // saw only literal `new Date()` — so it looked straight past
+    // `const today = fieldDay()` inside the outbox row, which is the exact call
+    // that failed CI run 31456294086 by crossing midnight mid-run.
+    // The rule, stated generally: a clock read must be captured into a
+    // top-level CONSTANT. Naming specific constants (NOW, GATE_DAY) made the
+    // rule about vocabulary; this makes it about shape, and zone-check's
+    // `fieldToday()` — the zero-argument production reader it exists to test —
+    // can satisfy it the same way everything else does.
+    const captures = code.match(/const [A-Z][A-Z0-9_]* = [^\n]*?(new Date\(\s*\)|fieldDay\(\s*\)|fieldToday\(\s*\))/g) ?? []
+    const clockReads = code.match(/Date\.now\(\)|new Date\(\s*\)|fieldDay\(\s*\)|fieldToday\(\s*\)/g) ?? []
     if (clockReads.length > captures.length) {
       flagged.push(`${s}: reads the clock ${clockReads.length}x (capture it once as NOW)`)
     }

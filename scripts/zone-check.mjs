@@ -42,6 +42,16 @@ const at = iso => new Date(iso)
 // per-row confidence scorer flags repeated clock reads for exactly that.
 const NOW = new Date()
 
+// The F# side's answer for the same instant, captured once beside it.
+//
+// `fieldToday()` takes no argument, so any test of it reads the clock — that is
+// inherent to the thing under test, not a defect. What was avoidable was calling
+// it twice, once per assertion, with the comparison value read separately: a run
+// crossing midnight between those lines disagrees for a reason that has nothing
+// to do with zones. Both are captured once now, adjacent, which is the smallest
+// window this can have.
+const TODAY_FROM_FSHARP = fieldDayIso(fieldToday())
+
 const { check, summarize } = createChecks()
 
 // --- the wiring --------------------------------------------------------------
@@ -49,8 +59,8 @@ const { check, summarize } = createChecks()
 // same conversion computed here, not against a hardcoded date, so this holds on
 // any day the check runs.
 check('fieldToday() returns the FIELD-zone day',
-  fieldDayIso(fieldToday()) === etDay(NOW),
-  `F# said ${fieldDayIso(fieldToday())}, JS said ${etDay(NOW)}`)
+  TODAY_FROM_FSHARP === etDay(NOW),
+  `F# said ${TODAY_FROM_FSHARP}, JS said ${etDay(NOW)}`)
 
 // --- the real F# conversion, at fixed instants -------------------------------
 // These call `fieldDayAt` — the actual compiled F# — rather than the local
