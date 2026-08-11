@@ -218,3 +218,48 @@ It is also a legal constraint rather than a correctness one, which is the more
 interesting claim: the boundary was being held by prose, process, and a
 follow-up reminder. Here it is held by the type checker, and no reviewer has to
 remember it.
+
+---
+
+## The sparkline is under the same gate
+
+A 30-bar chart of `drama_arc` is a rendering of the same composite the peak is,
+so it goes through the same witness. Both violations below were compiled for
+real and the errors copied verbatim.
+
+The interesting part is what could NOT be sealed. A bar's height **must** reach
+the DOM — there is no chart without it — so "no number escapes" is not
+implementable here. `barHeightStyle` returns the CSS length instead of the int,
+and requires the zone:
+
+```fsharp
+let barHeightStyle (_zone: AmnestyZone) (DramaBar value) : string =
+    sprintf "height: %d%%" value
+```
+
+The claim is therefore narrower than the peak's, and worth stating exactly: the
+number leaves this module only as a style string, and only post-game.
+
+**A — draw a bar with no amnesty witness:**
+
+<!-- proof: FS0001 -->
+```fsharp
+let bar : DramaBar = Unchecked.defaultof<_>
+barHeightStyle bar
+```
+```
+src/Scoreboard.fs(28,20): (28,23) error FSHARP: This expression was expected to
+have type    'AmnestyZone'    but here has type    'DramaBar' (code 1)
+```
+
+**B — unseal the bar and format the number directly:**
+
+<!-- proof: FS1093 -->
+```fsharp
+match (Unchecked.defaultof<DramaBar>) with
+| DramaBar v -> sprintf "height: %d%%" v
+```
+```
+src/Scoreboard.fs(28,7): (28,17) error FSHARP: The union cases or fields of the
+type 'DramaBar' are not accessible from this code location (code 1093)
+```

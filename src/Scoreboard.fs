@@ -69,6 +69,38 @@ let private postGameDramaText (zone: AmnestyZone) (g: Game) =
         | Some peak -> sprintf "arc %d pts, peak %s" (arcLength arc) (formatDramaPeak zone peak)
         | None -> sprintf "arc %d pts" (arcLength arc)
 
+/// The 30-bar sparkline. Post-game only, for the same reason the peak is.
+///
+/// `barHeightStyle` needs an `AmnestyZone`, so this cannot be called for a live
+/// game. Deleting the guard in `dramaText` would not leak a chart of a live
+/// composite; it would stop compiling.
+let private SPARK_BUCKETS = 30
+
+let private renderSparkline (zone: AmnestyZone) (g: Game) : HTMLElement option =
+    match g.DramaArc with
+    | NotPresent | Malformed _ -> None
+    | Decoded arc ->
+        let bars = sparklineBars SPARK_BUCKETS arc
+        if List.isEmpty bars then None
+        else
+            let wrap = el "div" "spark" ""
+            let caption =
+                match g.DramaPeak with
+                | Some peak -> sprintf "drama over time (peak %s)" (formatDramaPeak zone peak)
+                | None -> "drama over time"
+            let row = el "div" "spark__row" ""
+            // The chart is decorative on top of a caption that already states
+            // the peak, so it is hidden from assistive tech rather than read out
+            // as thirty unlabelled boxes.
+            row.setAttribute ("aria-hidden", "true")
+            for bar in bars do
+                let b = el "div" "spark__bar" ""
+                b.setAttribute ("style", barHeightStyle zone bar)
+                row.appendChild b |> ignore
+            wrap.appendChild row |> ignore
+            wrap.appendChild (el "div" "spark__caption" caption) |> ignore
+            Some wrap
+
 /// The drama slot, for whatever state the game is currently in.
 ///
 /// Live and scheduled games get no drama number — not by a conditional that
@@ -236,6 +268,23 @@ let render (mount: HTMLElement) (game: Game) =
     // drama, because ADR-002 makes its visibility a function of game state.
     for child in children do
         card.appendChild child |> ignore
+
+    // The sparkline is appended only when the game is already final AT RENDER
+    // TIME, which is deliberately narrower than the text drama slot.
+    //
+    // The text slot is a `stateNode`: it recomputes when the state signal
+    // changes, so a game finishing while the page is open starts showing its
+    // peak. The chart does not do that yet — a game that goes final in front of
+    // you gets its caption and no bars until the next render. Stated because it
+    // is a real gap, not a design: the honest fix is a reactive chart node, and
+    // that is more machinery than one row of divs deserves until someone has
+    // watched a game end on this page.
+    match amnestyZone (gameState game) with
+    | Some zone ->
+        match renderSparkline zone game with
+        | Some spark -> card.appendChild spark |> ignore
+        | None -> ()
+    | None -> ()
 
     mount.appendChild card |> ignore
 

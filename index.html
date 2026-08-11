@@ -80,6 +80,26 @@
   .gate--unanswerable .gate__name { color: #d8a657; }
   .pick-empty { font-size: .88rem; opacity: .7; }
 
+  /* Drama sparkline. 30 bars on a fixed 0-100 domain, so a bar's height in
+     percent IS the drama value — no scale factor, and no series maximum
+     anywhere in the CSS or the F#. */
+  .spark { margin-top: .6rem; }
+  .spark__row {
+    /* 44px, the GLYPH minimum. The production version used 24px, at which a
+       30-point spread is about seven pixels and every card looks the same. */
+    height: 44px;
+    display: flex; align-items: flex-end; gap: 1px;
+  }
+  .spark__bar {
+    flex: 1 1 0; min-width: 0;
+    background: #2f6b52;
+    border-radius: 1px 1px 0 0;
+  }
+  .spark__caption {
+    font-size: .7rem; opacity: .55; margin-top: .3rem;
+    font-variant-numeric: tabular-nums;
+  }
+
   /* Pick'em. */
   .pk-banner {
     border: 1px solid #262a33; border-radius: 10px;

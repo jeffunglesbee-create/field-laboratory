@@ -159,6 +159,9 @@ const rows = [
   { name: 'breaking each invariant makes a check fail', weight: 20, skipQuick: true,
     run: () => ok('node scripts/mutation-check.mjs') },
 
+  { name: 'the sparkline shows the value, not a silhouette', weight: 15, skipQuick: true,
+    run: () => ok('node scripts/spark-check.mjs') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

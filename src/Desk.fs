@@ -897,3 +897,84 @@ let amnestyZone (state: GameState) : AmnestyZone option =
 /// future notification path can be handed one without editing this file.
 let formatDramaPeak (_zone: AmnestyZone) (SealedDrama peak) : string =
     sprintf "%.0f" (float peak)
+
+// ---------------------------------------------------------------------------
+// The drama sparkline
+// ---------------------------------------------------------------------------
+//
+// A 30-bar row plotting `drama_arc`, captioned "drama over time (peak N)".
+//
+// Two bugs are being designed out rather than fixed, because both are the kind
+// that look correct in a screenshot.
+//
+// NORMALISING TO THE SERIES MAXIMUM. The production version scaled each bar
+// against that game's own tallest sample, so the tallest bar was always 100%.
+// A real 821-sample arc spanning 44-74 rendered as a 59-100% wall, and a game
+// peaking at 20 drew the same silhouette as one peaking at 95. The committed
+// capture here is the same shape: 504 samples spanning 51-81, which
+// max-normalisation would render as 63-100%.
+//
+// The fix is a fixed 0-100 domain, so a bar's height in percent IS the drama
+// value. Structurally, that means there is no function here that takes the
+// maximum of the series — not a rule to follow, an absent capability.
+//
+// EVERY-NTH DOWNSAMPLING. Taking every Nth sample can step straight over a
+// spike: with 504 samples in 30 buckets, 474 of them are never looked at. The
+// peak the caption names could be invisible in the chart beneath it.
+//
+// The fix is bucketed max, which carries a property worth asserting rather than
+// describing: THE MAXIMUM OF THE OUTPUT EQUALS THE MAXIMUM OF THE INPUT. That
+// is false for every-Nth and true here, and it is checked on the real arc.
+
+/// One bar. The percentage IS the value — there is no scale factor.
+type DramaBar = private DramaBar of int
+
+/// The drama score's stated domain. Named because the fixed domain is the whole
+/// point; a magic 100 in an expression would be the thing that drifts.
+let private DRAMA_DOMAIN_MAX = 100
+
+/// Values the relay sent outside the stated 0-100 domain.
+///
+/// Reported rather than silently clamped away: a 150 in a "0-100 closeness
+/// score" is upstream drift, and the sentinel should be able to name it. The
+/// bars themselves are clamped, because a 150% tall bar is a layout bug on top
+/// of a data bug.
+let arcOutOfDomain (SealedArc points) =
+    points |> List.filter (fun p -> p < 0 || p > DRAMA_DOMAIN_MAX)
+
+/// Downsample to `buckets` bars, taking the MAX of each bucket.
+///
+/// Max, not first and not mean: the sparkline exists to show where the game got
+/// close, and a summary that can hide the closest moment is not showing that.
+let private bucketMax (buckets: int) (points: int list) : int list =
+    match points with
+    | [] -> []
+    | _ ->
+        let total = List.length points
+        let source = Array.ofList points
+        if total <= buckets then points
+        else
+            [ for i in 0 .. buckets - 1 ->
+                // Boundaries computed from the index so the last bucket always
+                // ends exactly at `total` — no trailing samples dropped, which
+                // is another way a peak goes missing.
+                let start = i * total / buckets
+                let stop = (i + 1) * total / buckets
+                let stop = if i = buckets - 1 then total else max stop (start + 1)
+                source.[start .. stop - 1] |> Array.max ]
+
+/// The bars, ready to render. Clamped into the domain.
+let sparklineBars (buckets: int) (SealedArc points) : DramaBar list =
+    bucketMax buckets points
+    |> List.map (fun p -> DramaBar(max 0 (min DRAMA_DOMAIN_MAX p)))
+
+/// The only way a bar becomes anything renderable.
+///
+/// A bar height is a composite value that MUST reach the DOM — you cannot draw
+/// the chart without it. So the seal is not "no number escapes", which would be
+/// unimplementable; it is "the number escapes only as a CSS length, and only
+/// under amnesty". The int is never returned bare, and this needs the same
+/// `AmnestyZone` witness as `formatDramaPeak`, so a live game cannot have a
+/// sparkline any more than it can have a printed peak.
+let barHeightStyle (_zone: AmnestyZone) (DramaBar value) : string =
+    sprintf "height: %d%%" value

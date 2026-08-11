@@ -122,6 +122,25 @@ const MUTATIONS = [
     replace: 'let passReasonText (PassReason raw) = raw',
     expect: 'node scripts/pick-check.mjs',
   },
+  // The two sparkline bugs this replaces, each restored and required to fail.
+  {
+    id: 'spark-normalise',
+    file: 'src/Desk.fs',
+    claim: 'bars use a fixed 0-100 domain, not the series maximum',
+    find: '    |> List.map (fun p -> DramaBar(max 0 (min DRAMA_DOMAIN_MAX p)))',
+    replace: '    |> fun ps ->\n' +
+      '        let m = if List.isEmpty ps then 1 else List.max ps\n' +
+      '        ps |> List.map (fun p -> DramaBar(p * DRAMA_DOMAIN_MAX / (max 1 m)))',
+    expect: 'node scripts/spark-check.mjs',
+  },
+  {
+    id: 'spark-every-nth',
+    file: 'src/Desk.fs',
+    claim: 'downsampling takes the bucket max, so a spike cannot be stepped over',
+    find: '                source.[start .. stop - 1] |> Array.max ]',
+    replace: '                source.[start] ]',
+    expect: 'node scripts/spark-check.mjs',
+  },
   {
     id: 'button-order',
     file: 'src/PickemView.fs',

@@ -99,6 +99,13 @@ jobs:
       - name: Grouping and date-navigation checks
         run: npm run check:nav
 
+      # The drama sparkline: fixed 0-100 domain, bucketed-max downsampling, and
+      # the ADR-002 gate that keeps it off live games. The downsampling property
+      # is exercised over hundreds of real series, because the single committed
+      # arc cannot tell bucketed max from every-Nth.
+      - name: Drama sparkline
+        run: npm run check:spark
+
       # Both picks. The decoder check runs headless; the tab check drives a real
       # browser and asserts, among other things, that the composite pick score
       # appears nowhere in the rendered DOM.
@@ -143,9 +150,6 @@ jobs:
       - name: Source and outbox changed together, every commit
         run: npm run check:history
 
-      # Deterministic zone assertions. CI runs whenever a push lands, which is
-      # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
-      # so the zone logic would otherwise be exercised only by luck.
       # State transitions at named instants. `gameState` used to read the wall
       # clock twice, so every assertion about it was an assertion about when CI
       # happened to run. Includes four wrong implementations, run against the
@@ -153,6 +157,9 @@ jobs:
       - name: Game state at fixed instants
         run: npm run check:state
 
+      # Deterministic zone assertions. CI runs whenever a push lands, which is
+      # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
+      # so the zone logic would otherwise be exercised only by luck.
       - name: FIELD-zone day checks
         run: npm run check:zone
 

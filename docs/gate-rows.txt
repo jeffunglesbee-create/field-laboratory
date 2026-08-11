@@ -32,5 +32,6 @@
 15  pick'em grades only finished games
 10  game state is correct at fixed instants
 20  breaking each invariant makes a check fail
+15  the sparkline shows the value, not a silhouette
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry
