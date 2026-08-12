@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `40c6868`
+**FAILURE** on `40c6868` — [run 31616402291](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/31616402291)
 
 ## Is it published?
 
