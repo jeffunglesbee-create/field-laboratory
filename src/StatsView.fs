@@ -68,8 +68,14 @@ let private pitcherText =
 
 /// One game's report.
 let private renderReport (mount: HTMLElement) (report: ScoutingReport) (state: GameState) =
-    let card = child mount (el "div" "st-card" "")
-    card.setAttribute ("data-matchup", matchupText report.Sport report.Home report.Away)
+    // A `section` with an accessible name, not a `div`. Visual separation and
+    // announced separation are two different claims, and a border only makes
+    // the first. A screen reader reads seven games as one run of text unless
+    // each is a named region.
+    let card = child mount (el "section" "st-card" "")
+    let title = matchupText report.Sport report.Home report.Away
+    card.setAttribute ("data-matchup", title)
+    card.setAttribute ("aria-label", title)
 
     child card (el "div" "st-card__header" (matchupText report.Sport report.Home report.Away)) |> ignore
     child card (el "div" "st-card__title" "SCOUTING REPORT") |> ignore

@@ -31,6 +31,7 @@
     "check:mutation": "node scripts/mutation-check.mjs",
     "check:rows": "node scripts/row-confidence.mjs",
     "check:verify": "node build/VerifyMain.js",
+    "check:separation": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/separation-check.mjs",
     "check:status": "node scripts/status-verdict-check.mjs",
     "check:status-live": "node scripts/status-live-check.mjs",
     "check:weather-live": "node scripts/weather-live-check.mjs",

@@ -206,6 +206,12 @@ jobs:
       - name: The F# suite, on the F# harness
         run: npm run check:verify
 
+      # Measured, not asserted from the stylesheet: bounding boxes and computed
+      # styles on the real elements, plus the accessible-name half that no CSS
+      # can satisfy.
+      - name: Games are separated from each other
+        run: npm run check:separation
+
       - name: Every gate row has teeth
         run: npm run check:rows
 

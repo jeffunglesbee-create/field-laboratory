@@ -213,6 +213,62 @@
   .desk-card__score { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
   .desk-card__status { font-size: .8rem; opacity: .75; }
   .desk-card__drama, .desk-card__odds { font-size: .75rem; opacity: .55; margin-top: .3rem; }
+  .desk-card__wx { font-size: .75rem; opacity: .7; margin-top: .3rem; }
+
+  /* --- Stats and Weather panels ------------------------------------------
+     These shipped with NO styling at all, so every game ran together as one
+     column of text — the scoreboard had `.desk-card` and the two new panels
+     had nothing. Both now use the same boundary the scoreboard already
+     established: a border, a radius, a background one step off the page, and
+     a real gap between siblings.
+
+     The gap is what `separation-check.mjs` measures. A border alone does not
+     separate anything if the boxes are flush. */
+  .st-reports, .wx-rows {
+    display: grid;
+    gap: 1rem;
+  }
+  .st-card, .wx-row {
+    border: 1px solid #262a33;
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    background: #161920;
+  }
+  .st-card__header {
+    font-weight: 600; font-size: 1rem; margin-bottom: .15rem;
+  }
+  .st-card__title {
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .45;
+    margin-bottom: .6rem;
+  }
+  .st-rows { display: grid; gap: .3rem; }
+  .st-row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .6rem; align-items: baseline; }
+  .st-row__label { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; opacity: .45; }
+  .st-row__value { font-size: .85rem; }
+  /* An unresolved row is MARKED. Production renders a failed lookup as a bare
+     name, which looks like a complete row. */
+  .st-row--gap .st-row__value { opacity: .6; }
+  .st-row__flag {
+    font-size: .6rem; text-transform: uppercase; letter-spacing: .06em;
+    color: #c9a227; border: 1px solid #4a3f16; border-radius: 999px; padding: .05rem .4rem;
+  }
+  .st-badge {
+    display: inline-block; font-size: .68rem; margin-top: .4rem; padding: .1rem .5rem;
+    border-radius: 999px; border: 1px solid #2f3542;
+  }
+  .st-badge--watch { color: #c9a227; border-color: #4a3f16; }
+  .st-card__records { margin-top: .7rem; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  .st-card__comeback { margin-top: .15rem; font-size: .8rem; opacity: .75; }
+  .st-card__gaps { margin-top: .6rem; font-size: .7rem; opacity: .5; }
+  .st-panel__what, .wx-panel__what { font-size: .8rem; opacity: .6; max-width: 60ch; }
+
+  .wx-row { display: grid; grid-template-columns: 1fr auto; gap: .3rem 1rem; }
+  .wx-row__venue { font-weight: 600; font-size: .9rem; }
+  .wx-row__conditions { font-size: .85rem; text-align: right; }
+  .wx-row__roof { grid-column: 1 / -1; font-size: .7rem; opacity: .5; }
+  .wx-verdict { font-size: .85rem; margin: .6rem 0 1rem; }
+  .wx-error { color: #c9a227; }
+  .wx-partial, .wx-unlocated { font-size: .7rem; opacity: .5; margin-top: .8rem; }
 </style>
 </head>
 <body>

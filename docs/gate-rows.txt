@@ -50,5 +50,6 @@
 20  no value is written without being read back
 20  a red main is reported, not softened
 20  the F# harness refuses a check with no counterexample
+30  games on a panel are separated from each other
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry

@@ -257,6 +257,29 @@ const MUTATIONS = [
   },
 
   {
+    // The state both new panels actually shipped in: no card styling at all.
+    // Restores it by neutralising the one rule that draws the boundary.
+    id: 'cards-run-together',
+    file: 'index.html',
+    claim: 'games on a panel are drawn as separate cards',
+    find: '  .st-card, .wx-row {\n    border: 1px solid #262a33;\n    border-radius: 10px;\n    padding: 1rem 1.1rem;\n    background: #161920;\n  }',
+    replace: '  .st-card, .wx-row { border: 0; padding: 0; background: transparent; }',
+    expect: 'node scripts/run-row.mjs "games on a panel are separated from each other"',
+  },
+
+  {
+    // The half no stylesheet can satisfy. A screen reader reads seven games as
+    // one run of text unless each is a named region, and every visual assertion
+    // above stays green while that is true.
+    id: 'cards-lose-their-names',
+    file: 'src/StatsView.fs',
+    claim: 'each game is an individually named region',
+    find: '    card.setAttribute ("aria-label", title)',
+    replace: '    ignore title',
+    expect: 'node scripts/run-row.mjs "games on a panel are separated from each other"',
+  },
+
+  {
     id: 'zone-utc',
     file: 'src/Desk.fs',
     claim: 'the FIELD zone is real, not a fixed offset',
@@ -576,7 +599,13 @@ for (const m of selected) {
 
   // Only source changes need recompiling. Mutating a workflow or a doc does
   // not, and rebuilding for those added a minute each for nothing.
-  const built = m.file.startsWith('src/') ? run('npm run build') : true
+  //
+  // index.html counts as source: `build-site.mjs` COPIES it into public/, so a
+  // mutation to the stylesheet there is invisible to any browser check until the
+  // site is reassembled. Without this the CSS mutation below would survive for a
+  // reason that has nothing to do with the claim.
+  const needsRebuild = m.file.startsWith('src/') || m.file === 'index.html'
+  const built = needsRebuild ? run('npm run build') : true
   // No inversion flag. A row that passes when its command fails already encodes
   // that itself — `run-row.mjs` reports the ROW's verdict, and a shell `!` wraps
   // anything else. An `inverted` option existed here briefly and was removed

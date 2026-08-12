@@ -146,6 +146,14 @@ const rows = [
   { name: 'the F# harness refuses a check with no counterexample', weight: 20, skipQuick: true,
     run: () => ok('node build/VerifyMain.js') },
 
+  // Weight 30: rows from one game reading as another game's is telling the
+  // reader something untrue, not a cosmetic complaint. The Stats and Weather
+  // panels shipped with no stylesheet rules at all and every check stayed green
+  // — tab-check counts cards, nav-check checks they are not duplicated, and both
+  // are true of an undifferentiated wall of text.
+  { name: 'games on a panel are separated from each other', weight: 30, skipQuick: true,
+    run: () => ok("URL='http://localhost:8080/?data=games-2026-08-09' node scripts/separation-check.mjs") },
+
   // Deterministic, so it runs at any hour. The zone fix is only observable
   // when ET and UTC disagree, and every scheduled job in this repo runs
   // outside that window.
