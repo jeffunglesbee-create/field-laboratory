@@ -119,3 +119,47 @@ Docked four: the corrected `check:live` block has still never completed against
 real egress — this sandbox 403s Open-Meteo, and every unpinned assertion here
 failed for that reason rather than passing. The run this commit triggers is the
 first that can execute it.
+
+## The gate's speed, measured rather than guessed
+
+Jeff, mid-session: *"The gate needs to be faster while not sacrificing quality."*
+
+Nobody had measured it — "slow" was an impression. `docs/GATE-TIMING.md` now
+carries the numbers, and they are lopsided:
+
+```
+npm run build (full)      13,260 ms
+  dotnet fable            11,701 ms   88%
+  build-site.mjs             183 ms   1.4%
+```
+
+25 of 35 mutations target `src/` and pay a full build each, strictly serialized:
+**332 s — about 5.5 of the 11 minutes is `dotnet fable`, one whole-project
+compile at a time.**
+
+Two counter-intuitive consequences, both worth having in writing:
+
+- **Skipping `build-site.mjs` saves nothing.** 183 ms × 25 = 4.6 s. The obvious
+  micro-optimisation is noise, and I would have reached for it first.
+- **The expects are not the problem.** 35 of them at 2–4 s is under a fifth of
+  the build cost.
+
+And the instinctive fix — a worker pool — is only a **12%** win, because just 9
+of the 25 have a self-contained expect. Twelve go through `run-row.mjs`, which
+imports `gate-checks.mjs`, which reads `git diff` at module load; four drive a
+browser on a port baked into the expect string.
+
+The measurement makes the real choice obvious: a `dotnet fable watch` driver
+(~1–2 s incremental instead of 11.7 s) takes 292 s to ~40 s, and the gate from
+~11 min to ~5. A worktree pool is second best at ~7 min.
+
+**Not implemented on this pass, and that is a judgement rather than an oversight.**
+The watch design's whole risk is synchronisation: if the harness reads `build/`
+before the recompile lands, every mutation is tested against stale JS and the
+suite reports on a tree that no longer exists — a check that passes in one
+direction, inside the tool built to find those. Polling mtimes is not sound; the
+correct signal is Fable's own `Fable compilation finished` line consumed off the
+watcher's stdout. Landing that half-verified, at the centre of the gate, is
+precisely the trade this session has spent a day refusing.
+
+The missing piece was the measurement, and that is what shipped.

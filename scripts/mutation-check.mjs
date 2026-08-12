@@ -504,9 +504,21 @@ const { check, summarize } = createChecks()
 console.log(`\nMutation testing ${selected.length} invariant(s)\n`)
 
 // A green baseline, or every mutation "fails" for an unrelated reason.
+//
+// DEDUPED. Four mutations expect `run-row.mjs "the F# harness refuses a check
+// with no counterexample"`, four expect the same `tab-check` invocation, and so
+// on — 38 expects across the suite, 22 distinct. Running an identical command
+// sixteen extra times proves nothing it did not prove the first time; it was
+// costing about a minute of every gate run.
+//
+// This is the safe kind of speedup and worth naming as such: it removes
+// REPEATED work, not work. Every distinct expectation still runs, and the
+// per-mutation loop below is untouched.
+const distinctExpects = [...new Set(selected.map(m => m.expect))]
 check('the unmutated tree passes every expectation',
-  selected.every(m => run(m.expect)),
-  'a check was already failing, so nothing below would mean anything')
+  distinctExpects.every(cmd => run(cmd)),
+  `a check was already failing, so nothing below would mean anything ` +
+  `(${distinctExpects.length} distinct expectation(s) from ${selected.length} mutation(s))`)
 
 for (const m of selected) {
   // A WORLD mutation changes something outside the source — a file the check
