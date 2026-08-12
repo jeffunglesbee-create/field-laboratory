@@ -328,6 +328,45 @@ let private weather =
           (0.0, Weather.CACHE_TTL_MS + 1.0)
           (0.0, Weather.CACHE_TTL_MS - 1.0)
 
+      // The card chip. Short by design — the card already carries six lines —
+      // and the roof caveat must NOT be in it, because a caveat trimmed to fit
+      // is the display walking past the honest limit.
+      Verify.check "a dry card chip is temperature only"
+          (fun (roof, expected) ->
+              Weather.cardChip { Weather.Venue = "Fenway Park"
+                                 Weather.Where = (match Weather.coordinates 42.3467 -71.0972 with
+                                                  | Some c -> c
+                                                  | None -> failwith "fixture")
+                                 Weather.Roof = roof
+                                 Weather.Reading = reading 72.0 5.0 0.0 0.0 } = expected)
+          (Weather.OpenAir, "72°F")
+          (Weather.OpenAir, "72°F · rain")
+
+      Verify.check "a snowy chip says snow, not rain"
+          (fun (total, rain) ->
+              let vw = { Weather.Venue = "Wrigley Field"
+                         Weather.Where = (match Weather.coordinates 41.9484 -87.6553 with
+                                          | Some c -> c
+                                          | None -> failwith "fixture")
+                         Weather.Roof = Weather.OpenAir
+                         Weather.Reading = reading 28.0 12.0 total rain }
+              (Weather.cardChip vw).Contains "snow")
+          (2.0, 0.0)
+          (2.0, 2.0)
+
+      // The caveat rides with the chip and is never dropped.
+      Verify.check "a retractable venue's chip title says the roof is unknown"
+          (fun roof ->
+              let vw = { Weather.Venue = "Rogers Centre"
+                         Weather.Where = (match Weather.coordinates 43.6414 -79.3894 with
+                                          | Some c -> c
+                                          | None -> failwith "fixture")
+                         Weather.Roof = roof
+                         Weather.Reading = reading 70.0 5.0 0.0 0.0 }
+              (Weather.cardChipTitle vw).Contains "not known whether it was closed")
+          Weather.Retractable
+          Weather.OpenAir
+
       Verify.check "the venue table parses every entry"
           (fun expected -> fst (Venues.venueTableIsSound ()) = expected)
           Venues.count

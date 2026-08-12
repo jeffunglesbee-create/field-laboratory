@@ -131,6 +131,38 @@ let render (mount: HTMLElement) (outcome: SlateWeather) (unlocated: string list)
         child panel (el "p" "wx-unlocated"
                         (sprintf "Not in the location table: %s" (String.concat ", " unlocated))) |> ignore
 
+/// Fill each scoreboard card's weather slot from a resolved outcome.
+///
+/// Direct DOM writes rather than a signal per card. The cards are rebuilt on
+/// every slate render and the weather is refetched with them, so there is no
+/// window in which a card survives its reading — which is the stale-node bug
+/// this repo was founded on, and the reason this is written down rather than
+/// assumed.
+///
+/// Cards with no reading are left EMPTY, not filled with a dash or an "n/a".
+/// An empty slot says nothing; a dash says "we looked and there is nothing",
+/// which is a different claim and usually false. The panel is where the
+/// difference between "not in the table", "did not answer" and "outage" is
+/// stated, and that is one click away.
+let fillCards (outcome: SlateWeather) =
+    match outcome with
+    | NoVenuesWithCoordinates
+    | EveryFetchFailed _ -> ()
+    | Readings(readings, _) ->
+        for vw in readings do
+            let selector = sprintf ".desk-card[data-venue=\"%s\"] .desk-card__wx" vw.Venue
+            for i in 0 .. int (document.querySelectorAll selector).length - 1 do
+                match (document.querySelectorAll selector).[i] with
+                | null -> ()
+                | node ->
+                    let element = node :?> HTMLElement
+                    element.textContent <- cardChip vw
+                    // The caveat rides along and is never dropped to fit the
+                    // chip. `title` and `aria-label` both, because a title is
+                    // not announced by every reader.
+                    element.setAttribute ("title", cardChipTitle vw)
+                    element.setAttribute ("aria-label", cardChipTitle vw)
+
 // --- fetching ----------------------------------------------------------------
 
 /// One request per DISTINCT COORDINATE, never per venue.

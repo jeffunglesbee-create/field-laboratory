@@ -54,8 +54,23 @@ jobs:
           node-version: '22'
           cache: npm
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+
+      # render-check imports the compiled venue table (build/Venues.js) to derive
+      # how many weather chips this slate SHOULD carry. Without a build that is a
+      # module-not-found at step 4, and `check:workflows` caught it here before
+      # any run did — which is the whole reason that guard exists. The build is
+      # of THIS commit; the page under test is the deployed one, and the stamp
+      # check above is what keeps those the same commit.
+      - name: Build (the venue table this check derives its expectation from)
+        run: |
+          dotnet tool restore
+          npm run build
 
       - name: The deployed build stamp matches main
         id: stamp

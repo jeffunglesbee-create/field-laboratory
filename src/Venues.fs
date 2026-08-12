@@ -115,6 +115,16 @@ let private entries =
 
       // --- AFL. All open air, and the reason the zone work exists: these are
       //     the fixtures whose day is not the American one.
+      //
+      //     S.C.G. and Marrara Oval are here because they are the venues in
+      //     data/context-2026-05-15.json — the committed capture. Without them
+      //     nav-check's weather assertion has nothing to fill, which is how it
+      //     was found: the check reported "2 slots, 0 filled" and it was the
+      //     TABLE that was incomplete, not the fill. A venue table whose
+      //     coverage is never measured against the slates actually rendered is
+      //     a table that looks complete because nothing asked.
+      at "S.C.G." -33.8915 151.2245 OpenAir "Australia/Sydney"
+      at "Marrara Oval" -12.3990 130.8870 OpenAir "Australia/Darwin"
       at "Melbourne Cricket Ground" -37.8200 144.9834 OpenAir "Australia/Melbourne"
       at "Adelaide Oval" -34.9155 138.5960 OpenAir "Australia/Adelaide"
       at "The Gabba" -27.4858 153.0381 OpenAir "Australia/Brisbane"

@@ -215,6 +215,34 @@ type VenueWeather =
       Roof: RoofType
       Reading: Reading }
 
+/// The compact form for a scoreboard card.
+///
+/// Deliberately shorter than `describeConditions`: the card already carries a
+/// venue, a matchup, a score, a status, odds and a desk line, and a seventh
+/// full sentence would make the card a paragraph. Temperature and sky only.
+///
+/// The roof caveat does NOT go in this string. A card chip has no room for
+/// "not known whether the roof was closed", and dropping the caveat to fit
+/// would be the display walking past the honest limit — the exact move
+/// `RoofState` exists to prevent. It goes in `cardChipTitle`, which the view
+/// puts on the element's `title` and accessible name.
+let cardChip (vw: VenueWeather) : string =
+    let temp = int (Math.Round(float vw.Reading.Temperature))
+    match falling vw.Reading.Precip with
+    | Dry -> sprintf "%d°F" temp
+    | Raining _ -> sprintf "%d°F · rain" temp
+    | FrozenOrMixed _ -> sprintf "%d°F · snow or sleet" temp
+    | RainAndFrozen _ -> sprintf "%d°F · rain and ice" temp
+
+/// The caveat that rides with the chip, never dropped to fit.
+let cardChipTitle (vw: VenueWeather) : string =
+    let conditions = describeConditions vw.Reading
+    match roofState vw.Roof with
+    | PlayedInTheOpen -> sprintf "%s — open air" conditions
+    | Covered -> sprintf "%s — outside a fixed roof, not what the game experiences" conditions
+    | UnknownRoofState ->
+        sprintf "%s — retractable roof; not known whether it was closed" conditions
+
 /// A reading eligible for the warmest/coldest line.
 ///
 /// Private, and `rankable` is the only way to get one. Playground states the

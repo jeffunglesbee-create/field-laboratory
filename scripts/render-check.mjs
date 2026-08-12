@@ -8,6 +8,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
+import { all as weatherVenues } from '../build/Venues.js'
 import { createChecks } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
@@ -166,4 +167,45 @@ console.log(`transition:   ${transition.before?.score} [${transition.before?.sta
 console.log(`          ->  ${transition.after?.score} [${transition.after?.status}]`)
 console.log(`drama slot:   post-game "${transition.after?.drama}"`)
 console.log(`          ->  live      "${transition.live?.drama}"\n`)
+// --- the weather chip, against the REAL service ------------------------------
+//
+// Only meaningful unpinned: a `?data=` page renders a committed capture and
+// deliberately makes no third-party request, so there is nothing to assert.
+// `npm run check:live` is the unpinned invocation and it runs on a runner with
+// real egress, which is what makes this the automated closure of the docking on
+// the card work — the chip had only ever been seen filled against a stub.
+//
+// The expectation is DERIVED, not a constant: count the cards whose venue the
+// table actually carries, and require exactly that many chips. A slate with no
+// known venue expects zero and passes; a slate with twelve expects twelve. So
+// this cannot rot into "at least one", which would go green on a single lucky
+// card while eleven silently stayed blank.
+if (!URL.includes('data=')) {
+  const known = new Set(Array.from(weatherVenues).map(v => v.Name))
+  const cardVenues = await page.$$eval('.desk-card[data-venue]',
+    ns => ns.map(n => n.getAttribute('data-venue')))
+  const expected = cardVenues.filter(v => known.has(v)).length
+
+  if (expected > 0) {
+    await page.waitForFunction(
+      n => [...document.querySelectorAll('.desk-card__wx')]
+             .filter(e => (e.textContent || '').trim() !== '').length === n,
+      expected, { timeout: 20_000 }).catch(() => {})
+  }
+
+  const chips = await page.$$eval('.desk-card__wx',
+    ns => ns.map(n => ({ t: (n.textContent || '').trim(), title: n.getAttribute('title') })))
+  const filled = chips.filter(c => c.t !== '')
+
+  check('every card whose venue the table knows carries a live chip',
+    filled.length === expected,
+    `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled`)
+  check('every live chip reads as a temperature',
+    filled.every(c => /^-?\d+°F/.test(c.t)), JSON.stringify(filled.slice(0, 3)))
+  check('every live chip carries its roof caveat',
+    filled.every(c => c.title && c.title.length > 0),
+    'a chip without its caveat is the display walking past the honest limit')
+}
+
+
 process.exit(summarize() === 0 ? 0 : 1)

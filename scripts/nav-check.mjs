@@ -103,6 +103,29 @@ await page.route('**/analytics/newspaper/**', route =>
     body: JSON.stringify({ date: 'stub', pick: null }),
   }))
 
+// Open-Meteo, stubbed. The scoreboard now affixes a weather chip to each card,
+// which means an unpinned page reaches a THIRD party — and this probe is
+// deliberately offline. Stubbing it here rather than letting the product avoid
+// the network is the right split: the real service is exercised by
+// scripts/weather-live-check.mjs on a runner, in both directions.
+//
+// A fixed 61°F dry reading, so the assertion below is about the WIRING, not
+// about today's weather.
+await page.route(url => url.hostname === 'api.open-meteo.com', route =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      timezone: 'America/New_York',
+      elevation: 5,
+      current: {
+        temperature_2m: 61.0, apparent_temperature: 60.0,
+        precipitation: 0.0, rain: 0.0,
+        wind_speed_10m: 7.0, wind_direction_10m: 200, wind_gusts_10m: 11.0,
+      },
+    }),
+  }))
+
 await page.route('**/context/date/**', route => {
   const date = new global.URL(route.request().url()).pathname.split('/').pop()
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -152,6 +175,7 @@ const settleOn = async date => {
 const decodedCount = s => Number((s || '').match(/^decoded (\d+) game/)?.[1] ?? NaN)
 
 // --- initial load: multi-sport day ------------------------------------------
+
 await page.goto(URL_BASE, { waitUntil: 'networkidle' })
 await page.waitForFunction(() => {
   const el = document.getElementById('decode-status')
@@ -192,6 +216,21 @@ const home = await settleOn(browserToday)
 // popstate is handled explicitly, so this asserts the handler is real.
 await page.goBack()
 const back = await settleOn(YESTERDAY)
+
+// --- the weather chip on a card ---------------------------------------------
+//
+// The card is rendered synchronously and the reading arrives later, so this is
+// the one assertion that the async fill actually reaches the DOM. Without it,
+// `fillCards` could silently match nothing — a selector typo, a renamed class,
+// a venue the table does not carry — and every other check would stay green,
+// because an empty slot is indistinguishable from "no reading" by design.
+//
+// Read before the browser closes; asserted below, where `check` exists.
+await page.waitForFunction(
+  () => document.querySelectorAll('.desk-card__wx').length > 0, null, { timeout: 5000 })
+const chips = await page.$$eval('.desk-card__wx',
+  ns => ns.map(n => ({ text: n.textContent, title: n.getAttribute('title') })))
+const filledChips = chips.filter(c => c.text && c.text.trim() !== '')
 
 await browser.close()
 
@@ -257,4 +296,15 @@ for (const [label, snap] of [['initial', first], ['next', next], ['prev', prev],
   console.log(`           ${snap.groups.map(g => `${g.sport}(${g.cards})`).join(' ') || '—'}`)
 }
 console.log()
+check('at least one card carries a weather chip', filledChips.length > 0,
+  `${chips.length} slots, ${filledChips.length} filled — fillCards matched nothing`)
+check('the chip shows the stubbed temperature', filledChips.every(c => c.text.includes('61')),
+  JSON.stringify(filledChips.slice(0, 3)))
+check('the chip is dry, so it names no precipitation',
+  filledChips.every(c => !/rain|snow|ice/.test(c.text)), JSON.stringify(filledChips.slice(0, 3)))
+check('every filled chip carries the roof caveat in its title',
+  filledChips.every(c => c.title && c.title.length > 0),
+  'a chip without its caveat is the display walking past the honest limit')
+
+
 process.exit(summarize() === 0 ? 0 : 1)

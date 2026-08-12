@@ -100,6 +100,22 @@ let private tryFetchText (url: string) =
 let mutable private weatherVenues : string list = []
 let mutable private weatherLoaded = false
 
+/// Fetch the weather once, the first time the tab is shown.
+let private loadWeatherOnce () =
+    if not weatherLoaded then
+        weatherLoaded <- true
+        match document.getElementById "panel-weather" with
+        | null -> ()
+        | mount ->
+            WeatherView.renderIdle mount
+            WeatherView.fetchSlate weatherVenues
+            |> Promise.iter (fun (outcome, unlocated) ->
+                WeatherView.render mount outcome unlocated
+                // The same readings, affixed to the scoreboard cards. One fetch
+                // serves both surfaces; the panel explains, the chip glances.
+                WeatherView.fillCards outcome)
+            |> ignore
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
@@ -266,6 +282,17 @@ let private start () =
             weatherVenues <- games |> List.choose (fun g -> g.Venue) |> List.distinct
             weatherLoaded <- false
 
+            // Affixing weather to the CARD means loading it without waiting for
+            // the tab — otherwise the chip appears only for viewers who happen
+            // to click Weather, which is worse than not having it.
+            //
+            // But a page pinned to `?data=` is rendering a committed capture,
+            // and a fixture render must not reach the network. That distinction
+            // already exists in this file for the date controls, and it is the
+            // right one here: the render checks all pin a capture, so they stay
+            // free of a third-party request, while a real viewer gets the chips.
+            if (queryParam "data").IsNone then loadWeatherOnce ()
+
             // Prove the units are live, not just declared: a real probability
             // formatted through the only sanctioned conversion.
             let openingWinProbability = 0.62<prob>
@@ -308,18 +335,6 @@ let private wireDateNav () =
         report "viewed-date" "pinned to a committed capture"
     else
         report "viewed-date" (viewedDate ())
-
-/// Fetch the weather once, the first time the tab is shown.
-let private loadWeatherOnce () =
-    if not weatherLoaded then
-        weatherLoaded <- true
-        match document.getElementById "panel-weather" with
-        | null -> ()
-        | mount ->
-            WeatherView.renderIdle mount
-            WeatherView.fetchSlate weatherVenues
-            |> Promise.iter (fun (outcome, unlocated) -> WeatherView.render mount outcome unlocated)
-            |> ignore
 
 /// Wires the tablist.
 ///

@@ -261,6 +261,11 @@ let render (mount: HTMLElement) (game: Game) =
 
     let card = el "div" "desk-card" ""
     card.setAttribute("data-game-id", game.Id)
+    // The join key for weather. The card already shows the venue; this makes it
+    // machine-readable so the weather fill does not have to parse the header.
+    match game.Venue with
+    | Some v -> card.setAttribute("data-venue", v)
+    | None -> ()
 
     let children =
         // The sport is the group heading now, so the card header carries the
@@ -270,6 +275,12 @@ let render (mount: HTMLElement) (game: Game) =
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
           stateNode "desk-card__drama" "drama" drama
+          // Empty at render. Weather is asynchronous and the card is not, so
+          // this is a slot rather than a value — filled by WeatherView.fillCards
+          // when a reading arrives, and left empty when none does. An empty slot
+          // is the honest state for "not asked yet" and "no reading", and the
+          // panel is where the difference between those is stated.
+          staticNode "desk-card__wx" "weather" ""
           staticNode "desk-card__odds" "odds" (oddsText game)
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
