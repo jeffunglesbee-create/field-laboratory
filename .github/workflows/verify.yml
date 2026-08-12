@@ -257,8 +257,13 @@ jobs:
       # the same wall playground hit, which is why it verified CORS from a runner
       # rather than locally. Both directions: a real request and an out-of-range
       # latitude, required to answer differently.
+      # `--tolerate-unreachable`: api.open-meteo.com became unreachable from
+      # GitHub-hosted runners on 2026-08-12 and turned main red on three
+      # consecutive commits whose only fault was existing at the time. verify
+      # answers "is this commit correct"; drift-sentinel runs the SAME check
+      # without the flag, daily, and there an outage is the finding.
       - name: Weather against the LIVE Open-Meteo API
-        run: npm run check:weather-live
+        run: node scripts/weather-live-check.mjs --tolerate-unreachable
 
       - name: Status read against the LIVE GitHub API
         run: npm run check:status-live

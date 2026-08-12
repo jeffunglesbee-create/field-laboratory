@@ -34,6 +34,35 @@ const url = forecastUrl(where)
 console.log(`\n  GET ${url}\n`)
 
 // 1. The real request. This is the call that had never executed.
+// UNREACHABLE IS NOT THE SAME AS WRONG, and the split is deliberate.
+//
+// `--tolerate-unreachable` is passed by verify.yml and NOT by drift-sentinel.
+// The two jobs answer different questions:
+//
+//   verify           "is this commit correct?"  A third party being down is not
+//                    evidence about the commit, and turning main permanently red
+//                    on somebody else's outage is a check reporting the wrong
+//                    subject.
+//   drift-sentinel   "is the world still as we assumed?"  There, unreachable IS
+//                    the finding, and it stays fatal.
+//
+// This is `pick-live-check`'s existing rule — "an HTTP failure is reported and
+// not fatal; a 200 the decoder cannot read is fatal, which is the actual
+// assertion" — applied to a second service.
+//
+// THE HAZARD, named because this is one step from the softening this session has
+// spent two days refusing: if unreachable were tolerated everywhere, the check
+// could pass forever having never run. It is tolerated in exactly one job, the
+// daily sentinel cannot be silenced, and the toleration prints ::warning:: so it
+// is visible in the run rather than absent from it.
+//
+// WHY IT IS NEEDED: api.open-meteo.com became unreachable from GitHub-hosted
+// runners on 2026-08-12. Run 31543404607 read all 35 venues successfully at
+// 23:07 on the 11th — that is where the Comerica/Detroit error was caught. Runs
+// 31613671544, 31616402291 and 31632156907 all report `fetch failed` at the
+// connection level after ~10s. Nothing about this repo changed in between.
+const TOLERATE = process.argv.includes('--tolerate-unreachable')
+
 let body = null
 let status = null
 try {
@@ -41,8 +70,17 @@ try {
   status = res.status
   body = await res.text()
 } catch (e) {
+  if (TOLERATE) {
+    console.log(`::warning::Open-Meteo unreachable from this runner (${e.message}) — ` +
+      'weather assertions did not run. The daily drift-sentinel treats this as fatal.')
+    console.log(`\n  UNREACHABLE: ${e.message}`)
+    console.log('  Reported, not asserted. verify answers "is this commit correct",')
+    console.log('  and a third party being down is not evidence about the commit.\n')
+    process.exit(0)
+  }
   console.error(`  the request itself failed: ${e.message}`)
-  console.error('  This check is meant to run on a GitHub Actions runner, which has egress.')
+  console.error('  Open-Meteo did not answer. This is the sentinel, so that is the finding:')
+  console.error('  the venue table could not be checked against the planet today.')
   process.exit(1)
 }
 
@@ -121,9 +159,17 @@ const ELEVATION_BAND = { 'Coors Field': [1500, 1650] }
 
 let zoneMismatches = []
 for (const v of venues) {
-  const res = await fetch(forecastUrl(v.Where))
+  // Every failure becomes a NAMED mismatch, never a thrown exception. An
+  // unparseable body used to crash the script here, which produces no check
+  // results at all — the same shape as reading `page` after the browser closed.
+  let res, body
+  try {
+    res = await fetch(forecastUrl(v.Where))
+  } catch (e) { zoneMismatches.push(`${v.Name}: request failed — ${e.message}`); continue }
   if (!res.ok) { zoneMismatches.push(`${v.Name}: HTTP ${res.status}`); continue }
-  const body = await res.json()
+  try {
+    body = await res.json()
+  } catch (e) { zoneMismatches.push(`${v.Name}: body did not parse — ${e.message}`); continue }
   if (body.timezone !== v.Zone) {
     zoneMismatches.push(`${v.Name}: declared ${v.Zone}, resolved ${body.timezone}`)
     continue
@@ -140,10 +186,15 @@ check('every venue resolves to the IANA zone it declares', zoneMismatches.length
 // And the guard has to be shown able to fail, or its clean run means only that
 // it ran. A deliberately wrong coordinate must NOT resolve to Fenway's zone.
 const wrong = coordinates(-42.3467, 71.0972)
-const wrongRes = await fetch(forecastUrl(wrong))
-const wrongZone = (await wrongRes.json()).timezone
-console.log(`  sign-flipped Fenway resolves to ${wrongZone}`)
+let wrongZone = null
+let wrongErr = null
+try {
+  const wrongRes = await fetch(forecastUrl(wrong))
+  wrongZone = (await wrongRes.json()).timezone
+} catch (e) { wrongErr = e.message }
+console.log(`  sign-flipped Fenway resolves to ${wrongZone ?? `<${wrongErr}>`}`)
+check('the sign-flipped probe got an answer to compare', wrongErr === null, wrongErr)
 check('a sign-flipped coordinate does NOT resolve to the declared zone',
-  wrongZone !== 'America/New_York', `it resolved to ${wrongZone} anyway`)
+  wrongErr === null && wrongZone !== 'America/New_York', `it resolved to ${wrongZone} anyway`)
 
 process.exit(summarize() === 0 ? 0 : 1)
