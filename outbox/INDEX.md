@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ed701a6` | 2026-08-12 | [cc-weather-on-the-card-2026-08-11.md](cc-weather-on-the-card-2026-08-11.md) | Weather on the game card, with the expectation derived rather than guessed |
 | `f72e1fa` | 2026-08-11 | [cc-comerica-is-in-detroit-2026-08-11.md](cc-comerica-is-in-detroit-2026-08-11.md) | Comerica Park is in Detroit — the planet check caught its own author |
 | `6874f89` | 2026-08-11 | [cc-checked-against-the-planet-2026-08-11.md](cc-checked-against-the-planet-2026-08-11.md) | The venue table, checked against the planet — and the proof case CI caught |
 | `8fc40c3` | 2026-08-11 | [cc-weather-not-a-port-2026-08-11.md](cc-weather-not-a-port-2026-08-11.md) | Weather in F#, built from playground and from how it failed in production |
