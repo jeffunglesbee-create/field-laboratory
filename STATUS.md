@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `40c6868` — [run 31616402291](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/31616402291)
+**running** on `e36d326`
 
 ## Is it published?
 
@@ -14,7 +14,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `06525d2` |
+| Cloudflare Workers | live | `e36d326` |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
