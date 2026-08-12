@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a6a2948` | 2026-08-12 | [cc-games-ran-together-2026-08-12.md](cc-games-ran-together-2026-08-12.md) | The games ran together, because neither new panel had any CSS at all |
+| `afb0474` | 2026-08-12 | [cc-the-runner-lost-open-meteo-2026-08-12.md](cc-the-runner-lost-open-meteo-2026-08-12.md) | The runner lost Open-Meteo, and the check was crashing rather than failing |
 | `e36d326` | 2026-08-12 | [cc-stats-tab-in-fsharp-2026-08-12.md](cc-stats-tab-in-fsharp-2026-08-12.md) | The Stats tab in F#, with production's tie bug made unrepresentable |
 | `40c6868` | 2026-08-12 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | Measure where the gate's time goes, and remove the repeated work |
 | `201a20c` | 2026-08-12 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | The fix disarmed the guard that caught it, and check:live could not start |
