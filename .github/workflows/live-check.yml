@@ -100,14 +100,19 @@ jobs:
 
       # Both pick tabs, on the DEPLOYED artifact. Structural assertions only —
       # tab-check.mjs pins ?data= and checks for teams by name, none of which
-      # holds against tonight's real slate. No build import here on purpose:
-      # this job never builds.
+      # holds against tonight's real slate.
       - name: The deployed page serves both pick tabs
         run: npm run check:live-tabs
 
-      # The window simulation (npm run check:window) deliberately does NOT live
-      # here. It imports the compiled `fieldDayAt` from build/, and this job has
-      # no .NET and no build step by design — it tests the DEPLOYED artifact,
-      # not a local one. Putting it here failed two runs with ERR_MODULE_NOT_FOUND
-      # before the mistake was noticed. It runs in `verify`, which builds and
-      # also has relay egress.
+      # The window simulation (npm run check:window) does NOT live here. It runs
+      # in `verify`, which also has relay egress.
+      #
+      # This comment used to read "this job has no .NET and no build step by
+      # design". That stopped being true at ed701a6, when render-check began
+      # importing build/Venues.js to derive the weather-chip expectation and this
+      # job gained a build. The stale sentence is what made the consequence
+      # invisible: `workflow-check` keys on `npm run build` appearing anywhere in
+      # a job, so the moment this job built, the mutation guarding that rule went
+      # silent and SURVIVED (CI run 31551408060). It now lives on status.yml,
+      # which is build-free by nature. Recording why, because deleting a false
+      # premise without its reason invites the same rot.

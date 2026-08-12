@@ -226,11 +226,53 @@ const back = await settleOn(YESTERDAY)
 // because an empty slot is indistinguishable from "no reading" by design.
 //
 // Read before the browser closes; asserted below, where `check` exists.
+//
+// The wait is on FILLED chips, not on slots existing. Slots are rendered
+// synchronously by Scoreboard.fs, so waiting for one to exist waits for nothing
+// — the wait returned on the first poll and the assertions raced the fetch.
+// Under a 1.2s stub delay the old form went red with three of its four checks
+// vacuously green.
+//
+// The timeout is captured into a named check rather than swallowed. A
+// `.catch(() => {})` is how a check that cannot fail gets written.
+let chipWaitErr = null
 await page.waitForFunction(
-  () => document.querySelectorAll('.desk-card__wx').length > 0, null, { timeout: 5000 })
+  n => [...document.querySelectorAll('.desk-card__wx')]
+         .filter(e => (e.textContent || '').trim() !== '').length === n,
+  back.cards, { timeout: 5000 }).catch(e => { chipWaitErr = e.message })
 const chips = await page.$$eval('.desk-card__wx',
-  ns => ns.map(n => ({ text: n.textContent, title: n.getAttribute('title') })))
-const filledChips = chips.filter(c => c.text && c.text.trim() !== '')
+  ns => ns.map(n => ({ text: (n.textContent || '').trim(), title: n.getAttribute('title') })))
+const filledChips = chips.filter(c => c.text !== '')
+
+// The WET direction. The stub above serves a dry reading, so three of
+// `cardChip`'s four branches had never rendered — and "no precipitation named"
+// is a claim that passes trivially when nothing is falling. Re-route to a rainy
+// payload and navigate again; `weatherLoaded <- false` on every render means the
+// fetch really is repeated.
+const WET_DAY = shift(YESTERDAY, -1)
+await page.route(url => url.hostname === 'api.open-meteo.com', route =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({
+      timezone: 'America/New_York',
+      elevation: 5,
+      current: {
+        temperature_2m: 61.0, apparent_temperature: 60.0,
+        precipitation: 2.0, rain: 2.0,
+        wind_speed_10m: 7.0, wind_direction_10m: 200, wind_gusts_10m: 11.0,
+      },
+    }),
+  }))
+await page.click('#prev-day')
+const wet = await settleOn(WET_DAY)
+let wetWaitErr = null
+await page.waitForFunction(
+  n => [...document.querySelectorAll('.desk-card__wx')]
+         .filter(e => (e.textContent || '').trim() !== '').length === n,
+  wet.cards, { timeout: 5000 }).catch(e => { wetWaitErr = e.message })
+const wetChips = (await page.$$eval('.desk-card__wx',
+  ns => ns.map(n => (n.textContent || '').trim()))).filter(t => t !== '')
 
 await browser.close()
 
@@ -296,15 +338,28 @@ for (const [label, snap] of [['initial', first], ['next', next], ['prev', prev],
   console.log(`           ${snap.groups.map(g => `${g.sport}(${g.cards})`).join(' ') || '—'}`)
 }
 console.log()
-check('at least one card carries a weather chip', filledChips.length > 0,
-  `${chips.length} slots, ${filledChips.length} filled — fillCards matched nothing`)
-check('the chip shows the stubbed temperature', filledChips.every(c => c.text.includes('61')),
+check('every chip filled within the wait', chipWaitErr === null, chipWaitErr)
+// EVERY card, not "at least one". Blanking one of two chips passed the old
+// form; this turns it red.
+check('every card on the slate carries a weather chip',
+  filledChips.length === back.cards,
+  `${back.cards} card(s), ${chips.length} slot(s), ${filledChips.length} filled`)
+check('the chip shows the stubbed temperature',
+  filledChips.length === back.cards && filledChips.every(c => /^61°F/.test(c.text)),
   JSON.stringify(filledChips.slice(0, 3)))
-check('the chip is dry, so it names no precipitation',
-  filledChips.every(c => !/rain|snow|ice/.test(c.text)), JSON.stringify(filledChips.slice(0, 3)))
-check('every filled chip carries the roof caveat in its title',
-  filledChips.every(c => c.title && c.title.length > 0),
+check('a dry reading names no precipitation',
+  filledChips.length === back.cards && filledChips.every(c => !/rain|snow|ice/.test(c.text)),
+  JSON.stringify(filledChips.slice(0, 3)))
+check('every filled chip carries a real roof caveat',
+  filledChips.length === back.cards &&
+  filledChips.every(c => /open air|fixed roof|retractable roof/.test(c.title || '')),
   'a chip without its caveat is the display walking past the honest limit')
+// The other direction: a WET reading must say so. Without this, "names no
+// precipitation" is satisfied by a chip that can never name any.
+check('the chips refilled within the wait after re-routing', wetWaitErr === null, wetWaitErr)
+check('a wet reading names precipitation on the chip',
+  wetChips.length === wet.cards && wetChips.every(t => /^61°F · rain$/.test(t)),
+  `${wet.cards} card(s), ${wetChips.length} filled: ${JSON.stringify(wetChips)}`)
 
 
 process.exit(summarize() === 0 ? 0 : 1)

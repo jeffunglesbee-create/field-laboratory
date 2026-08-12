@@ -194,13 +194,44 @@ const MUTATIONS = [
     expect: 'node scripts/run-row.mjs "doc claims are compiler-verified, not prose"',
   },
   {
+    // RETARGETED from live-check.yml, and the reason is the finding.
+    //
+    // This mutation injects a build-dependent step into a job, and it only has
+    // teeth if that job has NO build. live-check.yml had none — until ed701a6
+    // gave it one, because render-check started importing build/Venues.js. The
+    // fix was correct and it silently disarmed this mutation: injecting a
+    // build-dependent step into a job that builds is not a violation, so
+    // workflow-check rightly passed and the mutation SURVIVED. CI run
+    // 31551408060 caught it.
+    //
+    // The lesson is not "pick a better line". It is that a mutation which
+    // depends on the ABSENCE of something is disarmed the moment that thing is
+    // added, silently, by an unrelated and correct change. So this now targets
+    // status.yml, which is build-free by nature — it probes live URLs and reads
+    // git, and there is no plausible future in which it compiles F#.
     id: 'workflow-cannot-run-step',
-    file: '.github/workflows/live-check.yml',
+    file: '.github/workflows/status.yml',
     claim: 'a job that cannot run its own scripts is caught',
-    find: '      - name: The deployed page serves both pick tabs',
-    replace: '      - name: Window simulation in a job that never builds\n        run: npm run check:window\n\n      - name: The deployed page serves both pick tabs',
+    find: '      - name: Regenerate the outbox index',
+    replace: '      - name: Window simulation in a job that never builds\n        run: npm run check:window\n\n      - name: Regenerate the outbox index',
     expect: 'node scripts/run-row.mjs "workflow jobs can run the scripts they invoke"',
   },
+  {
+    // The OTHER half of workflow-check, which had no mutation at all.
+    //
+    // `jobHasFullHistory` has been exercised only by the detector's own in-file
+    // self-test replays, never against a real workflow — so "the detector still
+    // catches a history reader on a shallow checkout" was a claim about a
+    // fixture. verify.yml runs check:history, which walks git log to the root;
+    // FIELD's production gate hit this and papered it with fetch-depth: 25.
+    id: 'workflow-shallow-history',
+    file: '.github/workflows/verify.yml',
+    claim: 'a job that reads git history on a shallow checkout is caught',
+    find: '          fetch-depth: 0',
+    replace: '          fetch-depth: 1',
+    expect: 'node scripts/run-row.mjs "workflow jobs can run the scripts they invoke"',
+  },
+
   {
     id: 'zone-utc',
     file: 'src/Desk.fs',

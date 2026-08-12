@@ -91,6 +91,45 @@ try {
   transition.error = e.message
 }
 
+// --- the weather chip, against the REAL service ------------------------------
+//
+// Read here, BEFORE the browser closes; asserted below, where `check` exists.
+// The first version read it after `browser.close()` and every unpinned run
+// crashed on `page.$$eval` — the same mistake made in nav-check an hour earlier
+// and written up, then repeated. It hid because `check()` only pushes and
+// `summarize()` prints, so the crash produced NO output at all, and because a
+// pinned run skips this block entirely: `npm run check` and `check:hard` were
+// green while `check:live` could not start.
+//
+// `new global.URL` because `URL` is shadowed by this file's own const at the
+// top — the bare constructor throws here.
+const pinned = new global.URL(URL).searchParams.has('data')
+
+let cardVenues = []
+let known = new Set()
+let expected = 0
+let chips = []
+let filled = []
+let waitErr = null
+
+if (!pinned) {
+  known = new Set(Array.from(weatherVenues).map(v => v.Name))
+  cardVenues = await page.$$eval('.desk-card[data-venue]',
+    ns => ns.map(n => n.getAttribute('data-venue')))
+  expected = cardVenues.filter(v => known.has(v)).length
+
+  // The wait is UNCONDITIONAL and its failure is NAMED. A swallowed timeout is
+  // a check that cannot fail, and `.catch(() => {})` is how one is written.
+  await page.waitForFunction(
+    n => [...document.querySelectorAll('.desk-card__wx')]
+           .filter(e => (e.textContent || '').trim() !== '').length === n,
+    expected, { timeout: 20_000 }).catch(e => { waitErr = e.message })
+
+  chips = await page.$$eval('.desk-card__wx',
+    ns => ns.map(n => ({ t: (n.textContent || '').trim(), title: n.getAttribute('title') })))
+  filled = chips.filter(c => c.t !== '')
+}
+
 await browser.close()
 
 const { check, summarize } = createChecks()
@@ -167,45 +206,32 @@ console.log(`transition:   ${transition.before?.score} [${transition.before?.sta
 console.log(`          ->  ${transition.after?.score} [${transition.after?.status}]`)
 console.log(`drama slot:   post-game "${transition.after?.drama}"`)
 console.log(`          ->  live      "${transition.live?.drama}"\n`)
-// --- the weather chip, against the REAL service ------------------------------
+// --- the weather chip, asserted ---------------------------------------------
 //
-// Only meaningful unpinned: a `?data=` page renders a committed capture and
-// deliberately makes no third-party request, so there is nothing to assert.
-// `npm run check:live` is the unpinned invocation and it runs on a runner with
-// real egress, which is what makes this the automated closure of the docking on
-// the card work — the chip had only ever been seen filled against a stub.
-//
-// The expectation is DERIVED, not a constant: count the cards whose venue the
-// table actually carries, and require exactly that many chips. A slate with no
-// known venue expects zero and passes; a slate with twelve expects twelve. So
-// this cannot rot into "at least one", which would go green on a single lucky
-// card while eleven silently stayed blank.
-if (!URL.includes('data=')) {
-  const known = new Set(Array.from(weatherVenues).map(v => v.Name))
-  const cardVenues = await page.$$eval('.desk-card[data-venue]',
-    ns => ns.map(n => n.getAttribute('data-venue')))
-  const expected = cardVenues.filter(v => known.has(v)).length
-
-  if (expected > 0) {
-    await page.waitForFunction(
-      n => [...document.querySelectorAll('.desk-card__wx')]
-             .filter(e => (e.textContent || '').trim() !== '').length === n,
-      expected, { timeout: 20_000 }).catch(() => {})
-  }
-
-  const chips = await page.$$eval('.desk-card__wx',
-    ns => ns.map(n => ({ t: (n.textContent || '').trim(), title: n.getAttribute('title') })))
-  const filled = chips.filter(c => c.t !== '')
-
+// `expected === 0` is a VACUOUS pass and is asserted against directly. With no
+// known venue on the slate, `filled.length === expected` is 0 === 0 and all
+// three checks below go green having proven nothing — and they fail together,
+// in agreement, because a chip can only ever fill for a venue the table
+// carries. That is the shape this repo keeps rediscovering, so the coverage of
+// the table is a check in its own right rather than a precondition nobody
+// states.
+if (!pinned) {
+  check('the venue table covers at least one venue on this slate', expected > 0,
+    `${[...new Set(cardVenues)].join(', ') || 'no cards with a venue'} — none of them in the ${known.size}-entry table`)
+  check('the chips all filled within the wait', waitErr === null, waitErr)
   check('every card whose venue the table knows carries a live chip',
-    filled.length === expected,
+    expected > 0 && filled.length === expected,
     `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled`)
-  check('every live chip reads as a temperature',
-    filled.every(c => /^-?\d+°F/.test(c.t)), JSON.stringify(filled.slice(0, 3)))
-  check('every live chip carries its roof caveat',
-    filled.every(c => c.title && c.title.length > 0),
-    'a chip without its caveat is the display walking past the honest limit')
+  // Anchored and whole-string: `includes('61')` would accept 161°F, and a bare
+  // prefix would accept a chip that had grown a stray suffix.
+  check('every live chip reads as a temperature and nothing else',
+    filled.length > 0 &&
+    filled.every(c => /^-?\d+°F( · (rain|snow or sleet|rain and ice))?$/.test(c.t)),
+    JSON.stringify(filled.slice(0, 3)))
+  check('every live chip carries a real roof caveat',
+    filled.length > 0 &&
+    filled.every(c => /open air|fixed roof|retractable roof/.test(c.title || '')),
+    JSON.stringify(filled.slice(0, 3)))
 }
-
 
 process.exit(summarize() === 0 ? 0 : 1)
