@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `40c6868` | 2026-08-12 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | Measure where the gate's time goes, and remove the repeated work |
 | `201a20c` | 2026-08-12 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | The fix disarmed the guard that caught it, and check:live could not start |
 | `66ec1f5` | 2026-08-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-12 [skip ci] |
 | `44c2206` | 2026-08-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-11 [skip ci] |
