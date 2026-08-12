@@ -1,0 +1,187 @@
+{
+  "source": "jubilant-bassoon index.html",
+  "symbol": "PARK_FACTORS",
+  "entries": 30,
+  "data": {
+    "COL": {
+      "runFactor": 128,
+      "hrFactor": 130,
+      "label": "Coors Field",
+      "tier": "extreme_hitter"
+    },
+    "OAK": {
+      "runFactor": 115,
+      "hrFactor": 113,
+      "label": "Sutter Health Park",
+      "tier": "hitter"
+    },
+    "BAL": {
+      "runFactor": 117,
+      "hrFactor": 121,
+      "label": "Camden Yards",
+      "tier": "hitter"
+    },
+    "CIN": {
+      "runFactor": 108,
+      "hrFactor": 123,
+      "label": "Great American Ball Park",
+      "tier": "hitter"
+    },
+    "BOS": {
+      "runFactor": 108,
+      "hrFactor": 89,
+      "label": "Fenway Park",
+      "tier": "neutral"
+    },
+    "CHC": {
+      "runFactor": 104,
+      "hrFactor": 108,
+      "label": "Wrigley Field",
+      "tier": "neutral"
+    },
+    "NYY": {
+      "runFactor": 104,
+      "hrFactor": 112,
+      "label": "Yankee Stadium",
+      "tier": "neutral"
+    },
+    "PHI": {
+      "runFactor": 104,
+      "hrFactor": 109,
+      "label": "Citizens Bank Park",
+      "tier": "neutral"
+    },
+    "MIN": {
+      "runFactor": 104,
+      "hrFactor": 105,
+      "label": "Target Field",
+      "tier": "neutral"
+    },
+    "WSH": {
+      "runFactor": 103,
+      "hrFactor": 106,
+      "label": "Nationals Park",
+      "tier": "neutral"
+    },
+    "KC": {
+      "runFactor": 103,
+      "hrFactor": 96,
+      "label": "Kauffman Stadium",
+      "tier": "neutral"
+    },
+    "LAD": {
+      "runFactor": 101,
+      "hrFactor": 97,
+      "label": "Dodger Stadium",
+      "tier": "neutral"
+    },
+    "MIA": {
+      "runFactor": 100,
+      "hrFactor": 98,
+      "label": "loanDepot park",
+      "tier": "neutral"
+    },
+    "ARI": {
+      "runFactor": 99,
+      "hrFactor": 95,
+      "label": "Chase Field",
+      "tier": "neutral"
+    },
+    "CLE": {
+      "runFactor": 99,
+      "hrFactor": 102,
+      "label": "Progressive Field",
+      "tier": "neutral"
+    },
+    "TOR": {
+      "runFactor": 99,
+      "hrFactor": 100,
+      "label": "Rogers Centre",
+      "tier": "neutral"
+    },
+    "HOU": {
+      "runFactor": 98,
+      "hrFactor": 96,
+      "label": "Minute Maid Park",
+      "tier": "neutral"
+    },
+    "ATL": {
+      "runFactor": 98,
+      "hrFactor": 100,
+      "label": "Truist Park",
+      "tier": "neutral"
+    },
+    "DET": {
+      "runFactor": 98,
+      "hrFactor": 99,
+      "label": "Comerica Park",
+      "tier": "neutral"
+    },
+    "MIL": {
+      "runFactor": 97,
+      "hrFactor": 97,
+      "label": "American Family Field",
+      "tier": "neutral"
+    },
+    "PIT": {
+      "runFactor": 96,
+      "hrFactor": 93,
+      "label": "PNC Park",
+      "tier": "pitcher"
+    },
+    "TB": {
+      "runFactor": 95,
+      "hrFactor": 95,
+      "label": "Tropicana Field",
+      "tier": "pitcher"
+    },
+    "NYM": {
+      "runFactor": 95,
+      "hrFactor": 94,
+      "label": "Citi Field",
+      "tier": "pitcher"
+    },
+    "CHW": {
+      "runFactor": 95,
+      "hrFactor": 98,
+      "label": "Rate Field",
+      "tier": "pitcher"
+    },
+    "LAA": {
+      "runFactor": 94,
+      "hrFactor": 92,
+      "label": "Angel Stadium",
+      "tier": "pitcher"
+    },
+    "STL": {
+      "runFactor": 94,
+      "hrFactor": 89,
+      "label": "Busch Stadium",
+      "tier": "pitcher"
+    },
+    "SD": {
+      "runFactor": 93,
+      "hrFactor": 91,
+      "label": "Petco Park",
+      "tier": "pitcher"
+    },
+    "TEX": {
+      "runFactor": 93,
+      "hrFactor": 90,
+      "label": "Globe Life Field",
+      "tier": "pitcher"
+    },
+    "SF": {
+      "runFactor": 91,
+      "hrFactor": 82,
+      "label": "Oracle Park",
+      "tier": "pitcher"
+    },
+    "SEA": {
+      "runFactor": 83,
+      "hrFactor": 85,
+      "label": "T-Mobile Park",
+      "tier": "extreme_pitcher"
+    }
+  }
+}

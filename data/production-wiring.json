@@ -1,0 +1,242 @@
+{
+  "MLB_STATS_BASE": [
+    {
+      "offset": 496793,
+      "excerpt": "tes and never reaches them. if(iso === TODAY_ISO) { maybePushFrenchOpen(allSections); maybePushWorldCup(allSections); maybePushAFLFinals(allSections); } setCached(\"espn_\"+iso, allSections); if(FIELD_DEBUG) console.debug(\"FIELD: ESPN fixtures for\",iso,\"→\",allSections.length,\"sections\"); return allSections; } // ── MLB Stats API — constants & lookups (TDZ-safe: declared before goToDate) ── const MLB_STATS_BASE = 'https://statsapi.mlb.com/api/v1'; // ── MLB WAVE 1 ANALYTICS LOOKUP TABLES ──────────────────────────────────────── // Source: Baseball Savant (baseballsavant.mlb.com) + ESPN ABS Tracker // Update schedule: WEEKLY (Mon morning) — see lookup maintenance doc // All tables keyed for fast O(1) lookup. Never combined into composite scores. // Last updated: 2026-05-27 // A1/A2/A3: ABS Umpire overturn ra"
+    },
+    {
+      "offset": 569293,
+      "excerpt": "MOMENTUM_TTL) return cached.data; const teamId=MLB_TEAM_IDS[abbr]; if(!teamId) return null; try{ const end=new Date(); end.setDate(end.getDate()-1); const start=new Date(); start.setDate(start.getDate()-21); // 21 days back ensures 10+ games // PM-19 retro: ET-anchored — MLB Stats API expects ET date params const endStr=fieldDateKey(end); const startStr=fieldDateKey(start); const url=`${MLB_STATS_BASE}/schedule?sportId=1&teamId=${teamId}&startDate=${startStr}&endDate=${endStr}&hydrate=linescore`; const r=await fetch(url,{signal:AbortSignal.timeout(7000)}); if(!r.ok) return null; const data=await r.json(); const results=[]; (data.dates||[]).forEach(day=>{ (day.games||[]).forEach(g=>{ if(g.status?.abstractGameState!=='Final') return; const homeId=g.teams.home."
+    },
+    {
+      "offset": 1289946,
+      "excerpt": "stat?.wins??null, losses: stat?.losses??null, whip: stat?.whip??null, kPer9: stat?.strikeoutsPer9Inn??null, ip: stat?.inningsPitched??null, handedness: p.pitchHand?.code??null, }; } async function fetchMLBSchedule(date) { // PM-19 retro: ET-anchored date — schedules published in ET, fetch keys must match const dateStr = fieldDateKey(date); const url = `${MLB_STATS_BASE}/schedule?sportId=1&date=${dateStr}&hydrate=broadcasts(all),team,linescore,probablePitcher(stats),officials`; try { const r = await fetch(url, {signal: AbortSignal.timeout(8000)}); if (!r.ok) throw new Error(`MLB Stats API ${r.status}`); const data = await r.json(); const games = data.dates?.[0]?.games ?? []; return games.map(g => normalizeMLBGame(g, date)); } catch (err) {"
+    },
+    {
+      "offset": 1293255,
+      "excerpt": "itches-per-atbat', _e, true); return null; } } // fetchMLBLiveGame — Heat Index inputs (baserunners, outs, count) + current matchup // currentPlay.matchup.{batter,pitcher}.fullName added 2026-05-30 // battingOrder/currentBatterId/playerNames/recentPitchPaceMs/avgPitchesPerAtBat // added 2026-07-10 (CC-CMD-2026-07-10-mlb-whos-up-next), for _mlbWhosUpNext(). async function fetchMLBLiveGame(gamePk) { const url = `${MLB_STATS_BASE.replace('v1','v1.1')}/game/${gamePk}/feed/live`; const r = await fetch(url); if (!r.ok) throw new Error(`MLB live game ${r.status}`); const data = await r.json(); const lp = data.liveData?.linescore ?? {}; const play = data.liveData?.plays?.currentPlay ?? {}; const homeBattingOrder = data.liveData?.boxscore?.teams?.home?.battingOrder || []; const awayBattingOrder = data.liveData?.box"
+    },
+    {
+      "offset": 1806880,
+      "excerpt": ". // // It also repairs `team.name`, which is what actually broke the Stats // tab's records line: the bare response names the Diamondbacks // \"D-backs\" while the schedule endpoint calls them \"Arizona // Diamondbacks\", so the nickname match could not hit and ONE unmatched // side suppresses BOTH teams' records. With hydration the same // predicate resolves 15 of 15. `${MLB_STATS_BASE}/standings?leagueId=103,104&season=${season}&standingsTypes=regularSeason&hydrate=team`, { signal: AbortSignal.timeout(6000) } ); if (!r.ok) return null; const data = await r.json(); const teams = []; (data.records || []).forEach(div => { (div.teamRecords || []).forEach(t => { teams.push({ team: t.team?.name || '', abbrev: t.team?.abbrevia"
+    },
+    {
+      "offset": 1859021,
+      "excerpt": "ta FIELD already holds — zero API calls function assembleNoteFromContext(game){ const parts=[]; const sport=_gameSport(game); if(game.seriesRecord) parts.push(game.seriesRecord); return parts.length?parts.join(' \\u00b7 '):null; } // P2A: MLB editorial + IL transactions async function fetchMLBGameNotes(gamePk,game){ if(!gamePk) return null; try{ const [cR,tR]=await Promise.allSettled([ fetch(`${MLB_STATS_BASE}/game/${gamePk}/content`,{signal:AbortSignal.timeout(4000)}), fetch(`${MLB_STATS_BASE}/transactions?sportId=1&date=${TODAY_ISO}`,{signal:AbortSignal.timeout(4000)}), ]); const content=cR.status==='fulfilled'&&cR.value.ok?await cR.value.json():null; const milestone=content?.media?.milestones?.items?.[0]?.description; if(milestone) return milestone.slice(0,150); if(tR.status==='"
+    }
+  ],
+  "MLB_STATS_RELAY": [
+    {
+      "offset": 539530,
+      "excerpt": "lf is // unchanged and correct. window._relayInitStatus = window._relayInitStatus || {}; function _recordRelayInit(name, ok, error) { window._relayInitStatus[name] = { ok: !!ok, at: new Date().toISOString(), error: error || null }; } async function mlbProbablePitcherInit() { if (_mlbPitcherInitPhase >= 1) return; try { const today = new Date().toISOString().slice(0,10); const r = await fetch( `${MLB_STATS_RELAY}/schedule?sportId=1&date=${today}&hydrate=probablePitcher`, { signal: AbortSignal.timeout(5000) } ); if (!r.ok) { _recordRelayInit('mlbProbablePitcherInit', false, `HTTP ${r.status}`); return; } const data = await r.json(); const games = data?.dates?.[0]?.games || []; for (const g of games) { const homeTeam = g.teams?.home?.team?.name || ''; const awayTeam = g.tea"
+    },
+    {
+      "offset": 541237,
+      "excerpt": "ames const ids = new Set(); for (const v of Object.values(_mlbPitcherIdCache)) { if (v.homeId) ids.add(v.homeId); if (v.awayId) ids.add(v.awayId); } if (!ids.size) return; const today = new Date().toISOString().slice(0,4); // \"2026\" // Fetch all pitcher stats in parallel const results = await Promise.allSettled([...ids].map(async id => { const r = await fetch( `${MLB_STATS_RELAY}/people/${id}/stats?stats=season&group=pitching&season=${today}`, { signal: AbortSignal.timeout(4000) } ); if (!r.ok) return; const data = await r.json(); const stat = data?.stats?.[0]?.splits?.[0]?.stat; const player = data?.stats?.[0]?.splits?.[0]?.player; if (!stat) return; _mlbPitcherStatsCache[id] = { fullName: player?.fullName ?? '',"
+    },
+    {
+      "offset": 1157356,
+      "excerpt": "mWinProbability 0-1) + Statcast exit velocity per play // Confirmed CORS-open: access-control-allow-origin: * (May 21 2026) const SAVANT_BASE = 'https://baseballsavant.mlb.com'; // ── Items 4-6: Journalism depth relay bases ────────────────────────────────── const BDL_RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev/bdl'; const NHL_RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev/nhl'; const MLB_STATS_RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev/mlb-stats'; const SQUIGGLE_RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev/squiggle'; // AFL Squiggle API proxy // Item 4 — BDL season averages for active playoff players // Cache: localStorage 24h per player (season stats don't change intraday) // Output: \"Brunson: 24.2 PPG / 6.7 APG this season\" — real facts for journalism const _bdlS"
+    },
+    {
+      "offset": 1175009,
+      "excerpt": "val, unit:'IP'} to espnScores[key].homeLeader / awayLeader. const _mlbLeaderCache = {}; // espnKey → {ts} const MLB_LEADER_TTL = 90000; async function fetchMLBLeader(gamePk, espnKey) { const cacheKey = `mlbl:${espnKey}`; const cached = _mlbLeaderCache[cacheKey]; if (cached && Date.now() - cached.ts < MLB_LEADER_TTL) return; _mlbLeaderCache[cacheKey] = { ts: Date.now() }; try { const r = await fetch(`${MLB_STATS_RELAY}/game/${gamePk}/boxscore`, { signal: AbortSignal.timeout(4000) }); if (!r.ok) return; const d = await r.json(); // Backfill raw data for fetchMLBBoxscoreContext cache sharing const boxCacheKey = `mlb_box_${gamePk}`; if (_mlbBoxscoreCache[boxCacheKey] && !_mlbBoxscoreCache[boxCacheKey].raw) _mlbBoxscoreCache[boxCacheKey].raw = d; const teams = d?.teams || {}; const pic"
+    },
+    {
+      "offset": 1176928,
+      "excerpt": "re: pitcher stats + team batting // Uses game.sourceId (gamePk) already stored on MLB game objects // Cache: 90s per gamePk const _mlbBoxscoreCache = {}; async function fetchMLBBoxscoreContext(gamePk) { if (!gamePk) return ''; const cacheKey = `mlb_box_${gamePk}`; const cached = _mlbBoxscoreCache[cacheKey]; if (cached && Date.now() - cached.ts < 90000) return cached.line; try { const r = await fetch(`${MLB_STATS_RELAY}/game/${gamePk}/boxscore`, { signal: AbortSignal.timeout(4000) }); if (!r.ok) return ''; const d = await r.json(); const teams = d.teams || {}; const parts = []; // Pitcher stats — current pitcher for each team for (const side of ['home','away']) { const pitchers = teams[side]?.pitchers || []; const curPitcherId = pitchers[pitchers.length - 1]; // current = last use"
+    },
+    {
+      "offset": 2176758,
+      "excerpt": "═══════════════════════════════════════════ const _mlbPlatoonCache = {}; // gamePk → {result, ts} const MLB_PLATOON_TTL = 45000; // 45s — one per at-bat roughly async function fetchMLBPlatoon(gamePk) { if (!gamePk) return null; const now = Date.now(); const cached = _mlbPlatoonCache[gamePk]; if (cached && now - cached.ts < MLB_PLATOON_TTL) return cached.result; try { const r = await fetch( `${MLB_STATS_RELAY}/game/${gamePk}/feed/live`, { signal: AbortSignal.timeout(4000) } ); if (!r.ok) return null; const d = await r.json(); const play = d?.liveData?.plays?.currentPlay; const matchup = play?.matchup; const count = play?.count; if (!matchup) return null; const batterName = matchup.batter?.fullName || ''; const pitcherName = matchup.pitcher?.fullName || '';"
+    }
+  ],
+  "fetchMLBStandingsParsed": [
+    {
+      "offset": 1805812,
+      "excerpt": "me = 'ws-pulse ws-dim'; dot.title = 'Live score — last update ' + Math.round(age/1000) + 's ago'; } else { dot.className = 'ws-pulse ws-stale'; dot.title = 'WebSocket stale — reconnecting'; // Self-heal: re-open the socket try { const gs = _gameSockets.get(key); if (gs && !gs._closed) { gs.disconnect(); gs.connect(); } } catch(_) {} } gtEl.appendChild(dot); } async function fetchMLBStandingsParsed() { const key = 'Baseball (MLB)'; if (_relayStandingsCache[key]) return _relayStandingsCache[key]; try { const season = new Date().getFullYear(); const r = await fetch( // hydrate=team (CC-CMD-2026-08-12-scouting-coverage-gaps). Without it // /standings returns a MINIMAL team object -- id, name, link, no // abbreviation -- so `abbrev` below has been an empty str"
+    },
+    {
+      "offset": 1818624,
+      "excerpt": "return teams.length ? teams : null; } catch(e) { if (FIELD_DEBUG) console.warn(\"[Standings] MLS error:\", e.message); captureFieldError('standings:mls-parsed', e, true); return null; } } // Dispatcher: routes to correct source per sport, populates _relayStandingsCache async function fetchStandingsForPrompt(sport) { if (!sport) return null; if (sport.includes('Baseball') || sport.includes('MLB')) return fetchMLBStandingsParsed(); if (sport.includes('Basketball') || sport.includes('NBA')) return fetchNBAStandingsParsed(); if (sport.includes('Hockey') || sport.includes('NHL')) return fetchNHLStandingsParsed(); if (sport.includes('MLS')) return fetchMLSStandingsParsed(); // Soccer: FD already populates fdStandingsCache — buildGameStandingsContext reads it directly //"
+    }
+  ],
+  "fetchMLBSchedule": [
+    {
+      "offset": 296301,
+      "excerpt": "nningOrd: null, inningHalf: null, outs: null }, venue: { name: 'Dodger Stadium' }, broadcasts: [{ name: 'MLB Network', type: 'TV' }] } ]}] }, empty: { dates: [{ games: [] }] }, malformed: { dates: [{ games: [{ gamePk: 'bad', status: null, teams: { home: null, away: { team: { abbreviation: 'NYY' } } }, linescore: 'invalid', broadcasts: 'not-array' }] }] } }; // Proof mode: override fetchMLBSchedule to return fixture (hoisted fn — safe to reassign here) if (_proofMode && _proofAdapter === 'mlb-stats-api') { fetchMLBSchedule = async (date) => { const fixture = _MLB_PROOF_FIXTURES[_proofFixture] || _MLB_PROOF_FIXTURES.ok; const games = fixture.dates?.[0]?.games ?? []; return games.map(g => { try { return normalizeMLBGame(g, date instanceof Date ? date : new Date(date)); }"
+    },
+    {
+      "offset": 296430,
+      "excerpt": "ork', type: 'TV' }] } ]}] }, empty: { dates: [{ games: [] }] }, malformed: { dates: [{ games: [{ gamePk: 'bad', status: null, teams: { home: null, away: { team: { abbreviation: 'NYY' } } }, linescore: 'invalid', broadcasts: 'not-array' }] }] } }; // Proof mode: override fetchMLBSchedule to return fixture (hoisted fn — safe to reassign here) if (_proofMode && _proofAdapter === 'mlb-stats-api') { fetchMLBSchedule = async (date) => { const fixture = _MLB_PROOF_FIXTURES[_proofFixture] || _MLB_PROOF_FIXTURES.ok; const games = fixture.dates?.[0]?.games ?? []; return games.map(g => { try { return normalizeMLBGame(g, date instanceof Date ? date : new Date(date)); } catch(e) { captureFieldError('proof:normalizeMLBGame', e); return null; } }).filter(Boolean); }; } const _MLS_PROOF_FIXTU"
+    },
+    {
+      "offset": 1288452,
+      "excerpt": "'Home Plate'|'First Base'|... } _hpUmpire: (g.officials ?? []).find(o => o.officialType === 'Home Plate')?.official?.fullName ?? null, // Abbreviation aliases used by park factor + analytics getters _homeAbbr: homeAbbr, _awayAbbr: awayAbbr, // PM-28b: Extract per-inning H/R/E from MLB Stats API linescore hydration. // g.linescore.innings[] is available via hydrate=linescore in fetchMLBSchedule. // Previously discarded — caused eData.innings to always be [], silently breaking // getStatisticalExtremes() no-hitter check (line ~18149) and comeback check (~18169). // Schema per inning: { num, home:{runs,hits,errors}, away:{runs,hits,errors} } innings: (g.linescore?.innings || []).map(i => ({ n: i.num ?? 0, hr: i.home?.runs ?? 0, hh: i.home?.hits ??"
+    },
+    {
+      "offset": 1289776,
+      "excerpt": "); const stat=season?.splits?.[0]?.stat; return { name: p.fullName||p.name||'TBD', id: p.id, era: stat?.era??null, wins: stat?.wins??null, losses: stat?.losses??null, whip: stat?.whip??null, kPer9: stat?.strikeoutsPer9Inn??null, ip: stat?.inningsPitched??null, handedness: p.pitchHand?.code??null, }; } async function fetchMLBSchedule(date) { // PM-19 retro: ET-anchored date — schedules published in ET, fetch keys must match const dateStr = fieldDateKey(date); const url = `${MLB_STATS_BASE}/schedule?sportId=1&date=${dateStr}&hydrate=broadcasts(all),team,linescore,probablePitcher(stats),officials`; try { const r = await fetch(url, {signal: AbortSignal.timeout(8000)}); if (!r.ok) throw new Error(`MLB Stats API ${"
+    },
+    {
+      "offset": 1297115,
+      "excerpt": "equent // session\" but no Heat Index aggregator was ever built. Confirmed // genuinely superseded, not just unadopted -- applyQW1SituationBonus's // real, live BASEBALL section already computes a more refined version // of the identical baserunner/outs/inning drama signal independently. // loadMLBSlate — main entry point; wired into fetchMLBFixtures below async function loadMLBSlate(date) { const mlbGames = await fetchMLBSchedule(date); if (mlbGames) { // CC-CMD-2026-07-16-broadcast-chip-durable-fix: this is the PRIMARY, // boot-time render path (fetchMLBFixtures -> loadMLBSlate -> // normalizeMLBGame/parseBroadcasts) -- it previously consulted ONLY // this file's own manual ESPN_GOTD_SCHEDULE table, never the server's // real structural GOTD detection (build-field-data.js's // fetchEspnMlbGotd, the"
+    }
+  ],
+  "probablePitcher": [
+    {
+      "offset": 539588,
+      "excerpt": "window._relayInitStatus || {}; function _recordRelayInit(name, ok, error) { window._relayInitStatus[name] = { ok: !!ok, at: new Date().toISOString(), error: error || null }; } async function mlbProbablePitcherInit() { if (_mlbPitcherInitPhase >= 1) return; try { const today = new Date().toISOString().slice(0,10); const r = await fetch( `${MLB_STATS_RELAY}/schedule?sportId=1&date=${today}&hydrate=probablePitcher`, { signal: AbortSignal.timeout(5000) } ); if (!r.ok) { _recordRelayInit('mlbProbablePitcherInit', false, `HTTP ${r.status}`); return; } const data = await r.json(); const games = data?.dates?.[0]?.games || []; for (const g of games) { const homeTeam = g.teams?.home?.team?.name || ''; const awayTeam = g.teams?.away?.team?.name || ''; if (!homeTeam) continue;"
+    },
+    {
+      "offset": 540044,
+      "excerpt": "ortSignal.timeout(5000) } ); if (!r.ok) { _recordRelayInit('mlbProbablePitcherInit', false, `HTTP ${r.status}`); return; } const data = await r.json(); const games = data?.dates?.[0]?.games || []; for (const g of games) { const homeTeam = g.teams?.home?.team?.name || ''; const awayTeam = g.teams?.away?.team?.name || ''; if (!homeTeam) continue; const homeP = g.teams?.home?.probablePitcher; const awayP = g.teams?.away?.probablePitcher; _mlbPitcherIdCache[homeTeam] = { homeId: homeP?.id ?? null, homeName: homeP?.fullName ?? null, awayId: awayP?.id ?? null, awayName: awayP?.fullName ?? null, awayTeam, }; } _mlbPitcherInitPhase = 1; _recordRelayInit('mlbProbablePitcherInit', true); if (FIELD_DEBUG) console.lo"
+    },
+    {
+      "offset": 540096,
+      "excerpt": "ecordRelayInit('mlbProbablePitcherInit', false, `HTTP ${r.status}`); return; } const data = await r.json(); const games = data?.dates?.[0]?.games || []; for (const g of games) { const homeTeam = g.teams?.home?.team?.name || ''; const awayTeam = g.teams?.away?.team?.name || ''; if (!homeTeam) continue; const homeP = g.teams?.home?.probablePitcher; const awayP = g.teams?.away?.probablePitcher; _mlbPitcherIdCache[homeTeam] = { homeId: homeP?.id ?? null, homeName: homeP?.fullName ?? null, awayId: awayP?.id ?? null, awayName: awayP?.fullName ?? null, awayTeam, }; } _mlbPitcherInitPhase = 1; _recordRelayInit('mlbProbablePitcherInit', true); if (FIELD_DEBUG) console.log('[FIELD] MLB pitcher IDs loaded:', Object.keys(_ml"
+    },
+    {
+      "offset": 1211994,
+      "excerpt": "· ${ump.challenged} challenged${zone}${watchFlag}` }); } else { rows.push({ lbl: 'Umpire', val: umpName }); } } // Probable pitchers const hp = game.homePitcher, ap = game.awayPitcher; if (hp || ap) { // CC-CMD-2026-08-12-mlb-pitcher-payload-audit. // // p.era / p.wins / p.losses come from normalizeMLBPitcher, which reads // them out of the schedule call's `probablePitcher(stats)` hydration. // That hydration serves NOTHING: measured 2026-08-12 across six hydrate // forms including this one, all 30 pitcher records came back with // `stats: []` -- empty, not mislabelled // (outbox/mlb-hydrate-variant-manifest-*.json). So every pitcher in the // Stats tab rendered as a bare name with no ERA and no record. // // The stats were alre"
+    },
+    {
+      "offset": 1287721,
+      "excerpt": "nescore?.inningHalf ?? '', outs: g.linescore?.outs ?? 0, venue: g.venue?.name ?? '', streams: broadcast.nationalBundle ? resolveBundle(broadcast.nationalBundle) : resolveBundle('MLB_LOCAL'), _sport: 'Baseball (MLB)', _postponed: normalizeMLBStatus(g.status?.statusCode) === 'postponed', // Probable pitchers (from probablePitcher(stats) hydration) homePitcher: normalizeMLBPitcher(home.probablePitcher), awayPitcher: normalizeMLBPitcher(away.probablePitcher), // HP umpire — from officials hydration (feeds UMP WATCH badge + J3 Brief) // officials[] each has: { official: { id, fullName }, officialType: 'Home Plate'|'First Base'|... } _hpUmpire: (g.officials ?? []).find(o => o.officialType === 'Home P"
+    },
+    {
+      "offset": 1287800,
+      "excerpt": "e: g.venue?.name ?? '', streams: broadcast.nationalBundle ? resolveBundle(broadcast.nationalBundle) : resolveBundle('MLB_LOCAL'), _sport: 'Baseball (MLB)', _postponed: normalizeMLBStatus(g.status?.statusCode) === 'postponed', // Probable pitchers (from probablePitcher(stats) hydration) homePitcher: normalizeMLBPitcher(home.probablePitcher), awayPitcher: normalizeMLBPitcher(away.probablePitcher), // HP umpire — from officials hydration (feeds UMP WATCH badge + J3 Brief) // officials[] each has: { official: { id, fullName }, officialType: 'Home Plate'|'First Base'|... } _hpUmpire: (g.officials ?? []).find(o => o.officialType === 'Home Plate')?.official?.fullName ?? null, // Abbreviation aliases used by park fa"
+    }
+  ],
+  "hydrate=": [
+    {
+      "offset": 515073,
+      "excerpt": "(it becomes a fallback only). // See: cors-probe confirmed CORS-open May 28 2026 (access-control-allow-origin: *) // // FALLBACK (TYPE C manual): update this table weekly from mlb.com/network/shows/regular-season-games // Page is JS-rendered — use cors-probe to fetch statsapi and grep for 'MLB Network' in broadcasts. // cors-probe pattern: url=https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=YYYY-MM-DD&hydrate=broadcasts%28all%29,team // // MLB Network Showcase (Vasgersian/Verducci crew) — announced multi-month block: // Source: mlb.com/network/shows/regular-season-games + tracker: tamirmoore.blogspot.com/2026/02/... const MLBN_SCHEDULE = { // FALLBACK ONLY — primary source is field-data-today.json (build-field-data.js broadcasts(all)) // When field-data-today.json is dated today, mlbnShowcase flags come from"
+    },
+    {
+      "offset": 539580,
+      "excerpt": "tatus = window._relayInitStatus || {}; function _recordRelayInit(name, ok, error) { window._relayInitStatus[name] = { ok: !!ok, at: new Date().toISOString(), error: error || null }; } async function mlbProbablePitcherInit() { if (_mlbPitcherInitPhase >= 1) return; try { const today = new Date().toISOString().slice(0,10); const r = await fetch( `${MLB_STATS_RELAY}/schedule?sportId=1&date=${today}&hydrate=probablePitcher`, { signal: AbortSignal.timeout(5000) } ); if (!r.ok) { _recordRelayInit('mlbProbablePitcherInit', false, `HTTP ${r.status}`); return; } const data = await r.json(); const games = data?.dates?.[0]?.games || []; for (const g of games) { const homeTeam = g.teams?.home?.team?.name || ''; const awayTeam = g.teams?.away?.team?.name || ''; if (!homeTeam) c"
+    },
+    {
+      "offset": 569385,
+      "excerpt": "ll; try{ const end=new Date(); end.setDate(end.getDate()-1); const start=new Date(); start.setDate(start.getDate()-21); // 21 days back ensures 10+ games // PM-19 retro: ET-anchored — MLB Stats API expects ET date params const endStr=fieldDateKey(end); const startStr=fieldDateKey(start); const url=`${MLB_STATS_BASE}/schedule?sportId=1&teamId=${teamId}&startDate=${startStr}&endDate=${endStr}&hydrate=linescore`; const r=await fetch(url,{signal:AbortSignal.timeout(7000)}); if(!r.ok) return null; const data=await r.json(); const results=[]; (data.dates||[]).forEach(day=>{ (day.games||[]).forEach(g=>{ if(g.status?.abstractGameState!=='Final') return; const homeId=g.teams.home.team.id; const teamIsHome=homeId===teamId; const myScore=teamIsHome?(g.teams"
+    },
+    {
+      "offset": 1288431,
+      "excerpt": "Name }, officialType: 'Home Plate'|'First Base'|... } _hpUmpire: (g.officials ?? []).find(o => o.officialType === 'Home Plate')?.official?.fullName ?? null, // Abbreviation aliases used by park factor + analytics getters _homeAbbr: homeAbbr, _awayAbbr: awayAbbr, // PM-28b: Extract per-inning H/R/E from MLB Stats API linescore hydration. // g.linescore.innings[] is available via hydrate=linescore in fetchMLBSchedule. // Previously discarded — caused eData.innings to always be [], silently breaking // getStatisticalExtremes() no-hitter check (line ~18149) and comeback check (~18169). // Schema per inning: { num, home:{runs,hits,errors}, away:{runs,hits,errors} } innings: (g.linescore?.innings || []).map(i => ({ n: i.num ?? 0, hr: i.home?.runs ?? 0,"
+    },
+    {
+      "offset": 1289997,
+      "excerpt": "null, whip: stat?.whip??null, kPer9: stat?.strikeoutsPer9Inn??null, ip: stat?.inningsPitched??null, handedness: p.pitchHand?.code??null, }; } async function fetchMLBSchedule(date) { // PM-19 retro: ET-anchored date — schedules published in ET, fetch keys must match const dateStr = fieldDateKey(date); const url = `${MLB_STATS_BASE}/schedule?sportId=1&date=${dateStr}&hydrate=broadcasts(all),team,linescore,probablePitcher(stats),officials`; try { const r = await fetch(url, {signal: AbortSignal.timeout(8000)}); if (!r.ok) throw new Error(`MLB Stats API ${r.status}`); const data = await r.json(); const games = data.dates?.[0]?.games ?? []; return games.map(g => normalizeMLBGame(g, date)); } catch (err) { if (FIELD_DEBUG) console.warn('[MLB Stats API] una"
+    },
+    {
+      "offset": 1806028,
+      "excerpt": "heal: re-open the socket try { const gs = _gameSockets.get(key); if (gs && !gs._closed) { gs.disconnect(); gs.connect(); } } catch(_) {} } gtEl.appendChild(dot); } async function fetchMLBStandingsParsed() { const key = 'Baseball (MLB)'; if (_relayStandingsCache[key]) return _relayStandingsCache[key]; try { const season = new Date().getFullYear(); const r = await fetch( // hydrate=team (CC-CMD-2026-08-12-scouting-coverage-gaps). Without it // /standings returns a MINIMAL team object -- id, name, link, no // abbreviation -- so `abbrev` below has been an empty string for all 30 // teams since this was written, a silent no-op for every consumer of it. // Measured 2026-08-12: bare 0/30 teams carry an abbreviation, hydrated // 30/30 (outbox/standings-match-mani"
+    }
+  ],
+  "/standings": [
+    {
+      "offset": 544087,
+      "excerpt": "onst _MLB_RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'; let _mlbStatsLoaded = false; // Savant expected stats per batter (lastName key, same as PITCHER_ARSENAL). // Loaded by mlbStatsInit; enables xwOBA divergence display in scouting report. const PLAYER_EXPECTED_STATS = {}; // MLB team Pythagorean expected W% (abbr key → {pythagWpct, wins, losses, rs, ra}). // Loaded by mlbPythagInit from /mlb-stats/standings relay proxy. const MLB_TEAM_PYTHAG = {}; // NFL NGS analytics keyed by player last name (suffix-stripped via _mlbPlayerKey). const NFL_NGS_PASSING = {}; // cpoe, aggressiveness, avgTimeToThrow, attempts, xCompPct const NFL_NGS_RECEIVING = {}; // avgYACAboveExp, avgSeparation, pctShareIntendedAirYards, targets // FPL per-player xG/xA/form/ICT analytics keyed by web_name. // Populated by fplLoadBootstr"
+    },
+    {
+      "offset": 546880,
+      "excerpt": "tXwobaDivergence(lastName) { const d = PLAYER_EXPECTED_STATS[_mlbPlayerKey(lastName)]; if (!d || d.woba == null || d.xwoba == null || (d.pa || 0) < 50) return null; return { divergence: +(d.woba - d.xwoba).toFixed(3), woba: d.woba, xwoba: d.xwoba, pa: d.pa }; } // ── mlbPythagInit: Pythagorean expected record from MLB Stats API standings ─── // Computes W% = RS^1.83 / (RS^1.83 + RA^1.83) per team. // Requires /standings added to relay allowlist (MLB_STATS_API_ALLOWED_PREFIXES). // Keyed by 2-3 char team abbreviation matching game._homeAbbr / game._awayAbbr. let _mlbPythagLoaded = false; async function mlbPythagInit() { if (_mlbPythagLoaded) return; try { const url = `${_MLB_RELAY}/mlb-stats/standings?leagueId=103,104&season=2026&standingsTypes=regularSeason&fields=records,teamRecords,team,abbreviation,wins,losses,"
+    },
+    {
+      "offset": 547174,
+      "excerpt": "agorean expected record from MLB Stats API standings ─── // Computes W% = RS^1.83 / (RS^1.83 + RA^1.83) per team. // Requires /standings added to relay allowlist (MLB_STATS_API_ALLOWED_PREFIXES). // Keyed by 2-3 char team abbreviation matching game._homeAbbr / game._awayAbbr. let _mlbPythagLoaded = false; async function mlbPythagInit() { if (_mlbPythagLoaded) return; try { const url = `${_MLB_RELAY}/mlb-stats/standings?leagueId=103,104&season=2026&standingsTypes=regularSeason&fields=records,teamRecords,team,abbreviation,wins,losses,runsScored,runsAllowed`; const r = await fetch(url, { signal: AbortSignal.timeout(8000) }); if (!r.ok) { _recordRelayInit('mlbPythagInit', false, `HTTP ${r.status}`); return; } const data = await r.json(); let count = 0; for (const record of (data.records || [])) { fo"
+    },
+    {
+      "offset": 975634,
+      "excerpt": "League\": \"PL\", \"EFL Championship\": \"ELC\", \"La Liga\": \"PD\", \"Serie A\": \"SA\", \"Bundesliga\": \"BL1\", \"Ligue 1\": \"FL1\", \"UEFA Champions League\": \"CL\", \"UEFA Europa League\": \"EL\", \"UEFA Conference League\": \"ECL\", }; // ESPN standings endpoints — sport→{sport,league} for site.api.espn.com/apis/site/v2/sports/{sport}/{league}/standings // Previously referenced in renderAll() and fetchESPNStandings() but never declared, causing // a ReferenceError on every renderAll() call that crashed the entire schedule render. // Fix: declare here so renderAll's ESPN_STANDINGS_MAP[sec.sport] lookup returns undefined (falsy) // instead of throwing. Add sport entries here to enable ▼ Table for that sport via ESPN. const ESPN_STANDINGS_MAP = { 'Baseball"
+    },
+    {
+      "offset": 1061439,
+      "excerpt": "red, already-cached call would be // over-engineering relative to the actual risk. What WAS a real, confirmed // gap: this catch had zero persistent telemetry, only a FIELD_DEBUG-gated // console.warn. Added captureFieldError, matching the established pattern. async function fdFetchStandings(code){ if(fdStandingsCache[code]) return fdStandingsCache[code]; try{ const data = await fdFetch(`/competitions/${code}/standings?season=2025`); const table = (data.standings||[]).find(s=>s.type===\"TOTAL\")?.table || []; const rows = table.map(r=>({ pos: r.position, team: r.team?.shortName || r.team?.name || \"?\", played:r.playedGames, won: r.won, draw: r.draw, lost: r.lost, gf: r.goalsFor, ga: r.goalsAgainst, gd: r.goalDifference >= 0 ? `+${r.goalDifference}"
+    },
+    {
+      "offset": 1066935,
+      "excerpt": "5e;margin:0 2px\"></span>W <span style=\"display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin:0 2px\"></span>D <span style=\"display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin:0 2px\"></span>L </div> <div style=\"font-size:.5rem;text-align:right;margin-top:.4rem;opacity:.4;letter-spacing:.03em\">data: football-data.org</div>`; } // ESPN_BASE's /standings now returns only {fullViewLink}; apis/v2 (no // \"site\") has real entries -- verified live across MLB/NBA/NHL/NFL. const ESPN_STANDINGS_BASE = \"https://site.api.espn.com/apis/v2/sports\"; async function fetchESPNStandings(sportName){ const map = ESPN_STANDINGS_MAP[sportName]; if(!map) return null; const cacheKey = map.sport+\"/\"+map.league; if(espnStandingsCache[cacheKey]) return espnStandingsCache[ca"
+    }
+  ],
+  "getUmpireABSRating": [
+    {
+      "offset": 524184,
+      "excerpt": "'The NFL playoffs are underway.', super_bowl: 'Super Bowl week.', nfl_season: null, // too broad to be useful in brief }; return m[ctx.flag]||null; } // ── MLB Team Momentum — last-10 game form ───────────────────────────────────── // Queries MLB Stats API with date range. Single call, cached 6 hours. // ── MLB WAVE 1 GETTER FUNCTIONS ─────────────────────────────────────────────── function getUmpireABSRating(umpireLastName) { if (!umpireLastName) return null; const key = umpireLastName.toLowerCase().replace(/\\s+/g,'_').replace(/['.]/g,''); const d = UMPIRE_ABS_RATINGS[key]; if (!d || d.challenged < 3) return null; const league = BASEBALL_CONST.MLB_AVG_ABS_OVERTURN; const above = d.rate > UMP_WATCH_THRESHOLD; const badge = above ? 'UMP WATCH' : null; const pct = Math.round(d.rate * 100);"
+    },
+    {
+      "offset": 531429,
+      "excerpt": ") function getMLBAnalyticsContext(game) { const lines = []; if (!(game?._sport||'').toLowerCase().includes('baseball')) return lines; try { // G1 Park factor const pf = getParkFactor(game._homeAbbr || game.homeTeam); if (pf?.badge) lines.push(` Park: [${pf.badge}] ${pf.context}`); // A1 HP umpire ABS const umpName = game._hpUmpire || game.umpire || ''; if (umpName) { const ump = getUmpireABSRating(umpName.split(' ').pop()); if (ump) lines.push(` Ump: ${ump.badge?'['+ump.badge+'] ':''}${umpName} ${ump.context}`); } // C1 Arsenal + C7 Tempo (home pitcher) for (const pitcher of [game.homePitcher, game.awayPitcher].filter(Boolean)) { const last = (pitcher.lastName||pitcher.fullName||'').split(' ').pop().toLowerCase(); const arsenal = getPitchArsenal(last); c"
+    },
+    {
+      "offset": 532817,
+      "excerpt": "kFactor(game._homeAbbr || game.homeTeam); if (!pf?.badge) return ''; return `<span class=\"mlb-park-badge mlb-park-${pf.badgeClass}\" title=\"${pf.context}\">${pf.badge}</span>`; } // Card badge HTML for ump watch function buildUmpWatchBadge(game) { if (!(game?._sport||'').toLowerCase().includes('baseball')) return ''; const umpName = game._hpUmpire || game.umpire || ''; if (!umpName) return ''; const ump = getUmpireABSRating(umpName.split(' ').pop()); if (!ump?.badge) return ''; return `<span class=\"mlb-ump-badge\" title=\"${ump.context}\">[${ump.badge}]</span>`; } // ── buildRoundBadge: round label + aggregate score for playoff/tournament games ── // Renders when game.round is a non-empty string (NBA \"Finals\", NHL \"Stanley Cup Final\", // UFL \"Playoff Eliminator\", MLS \"Quarterfinal\", soccer \"1st Leg\"/\"2nd Leg\", etc.)"
+    },
+    {
+      "offset": 1211236,
+      "excerpt": "}% runs</span> · ${hrDiff}% HR${pf.badgeClass === 'park-pitcher' || pf.badgeClass === 'park-pitcher-extreme' ? ' · 🛡 Pitcher\\'s Park' : ''}`; rows.push({ lbl: 'Park', val: `${pf.label || (game.venue ? game.venue.split(',')[0] : abbr)} · ${pfVal}` }); } // HP Umpire const umpName = game._hpUmpire || game.umpire || ''; if (umpName) { const last = umpName.split(' ').pop(); const ump = getUmpireABSRating?.(last); if (ump) { const rate = Math.round(ump.rate * 100); const watchFlag = ump.rate >= 0.65 ? ' · <span class=\"scout-warn\">⚠ UMP WATCH</span>' : ''; const zone = ump.weakness ? ` · weak: ${ump.weakness} zone` : ''; rows.push({ lbl: 'Umpire', val: `${last} · ${rate}% overturns · ${ump.challenged} challenged${zone}${watchFlag}` }); } else { rows"
+    },
+    {
+      "offset": 1242077,
+      "excerpt": "s(runDiff) >= 10) candidates.push({ deviation: Math.abs(runDiff) / 100, team: pf.label || game.home, abbr, val: runDiff, label: 'run factor', fmtVal: `${runDiff > 0 ? '+' : ''}${runDiff}%`, ctx: `${runDiff > 0 ? 'hitter-friendly' : 'pitcher-friendly'} park` }); } const umpName = game._hpUmpire || ''; if (umpName) { const last = umpName.split(' ').pop(); const ump = getUmpireABSRating?.(last); if (ump && ump.rate >= 0.55) candidates.push({ deviation: (ump.rate - 0.45) / 0.45, team: last, abbr: 'UMP', val: ump.rate, label: 'overturn rate', fmtVal: `${Math.round(ump.rate*100)}%`, ctx: 'calls challenged at the plate' }); } } // ── MLB probable pitcher signals ───────────────────────────────────────── // Three candidates: ERA edge (differ"
+    },
+    {
+      "offset": 1897527,
+      "excerpt": "games from blocking J3/Night Owl via shared budget exhaustion const cardBudget = cardBriefCallsToday(); if (!cardBudget.canCall()) return null; const abbr = (g._homeAbbr || g.homeTeam || '').toUpperCase(); const pf = abbr ? getParkFactor?.(abbr) : null; const ump = (() => { const name = g._hpUmpire || g.umpire || ''; if (!name) return ''; const last = name.split(' ').pop(); const u = getUmpireABSRating?.(last); return u ? `${last}: ${Math.round(u.rate*100)}% K-rate${u.weakness?' · weak '+u.weakness+' zone':''}` : last; })(); const umpLine = !!ump; // umpLine was referenced in prompt but never declared — caused ReferenceError → null // Park factor line const pfLine = pf ? (() => { const rd = pf.runFactor - 100; const hd = pf.hrFactor - 100; return `Park (${pf.label||abbr}"
+    }
+  ],
+  "getParkFactor": [
+    {
+      "offset": 526248,
+      "excerpt": "be worse than showing nothing (Rule 1): // OAK -> \"Sutter Health Park\" the Athletics' current park, already correct // ARI -> \"Chase Field\" // CHW -> \"Rate Field\" // This is one normalisation step, not a fallback chain -- Rule 76 caps the // chain at 2 and the call site's `game._homeAbbr || game.homeTeam` already // spends both levels. const PARK_ABBR_ALIASES = { ATH: 'OAK', AZ: 'ARI', CWS: 'CHW' }; function getParkFactor(teamAbbr) { if (!teamAbbr) return null; // Try direct abbr, also try stripping city from full team name const raw = (teamAbbr||'').toUpperCase().replace(/^THE /,''); const abbr = PARK_ABBR_ALIASES[raw] || raw; const d = PARK_FACTORS[abbr]; if (!d) return null; let badge = null, badgeClass = ''; const {PARK_EXTREME_HITTER_THRESHOLD:EH,PARK_HITTER_THRESHOLD:H, PARK_PITCHER_THRESHO"
+    },
+    {
+      "offset": 531192,
+      "excerpt": "const topWhiff = [...d.pitches].sort((a,b)=>(b.whiffRate??-1)-(a.whiffRate??-1))[0]; return { pitches:d.pitches, topWhiff, context:`Arsenal: ${parts.join(' · ')}` }; } // Compound prompt context for MLB games (injected into gameLines) function getMLBAnalyticsContext(game) { const lines = []; if (!(game?._sport||'').toLowerCase().includes('baseball')) return lines; try { // G1 Park factor const pf = getParkFactor(game._homeAbbr || game.homeTeam); if (pf?.badge) lines.push(` Park: [${pf.badge}] ${pf.context}`); // A1 HP umpire ABS const umpName = game._hpUmpire || game.umpire || ''; if (umpName) { const ump = getUmpireABSRating(umpName.split(' ').pop()); if (ump) lines.push(` Ump: ${ump.badge?'['+ump.badge+'] ':''}${umpName} ${ump.context}`); } // C1 Arsenal + C7 Tempo (hom"
+    },
+    {
+      "offset": 532391,
+      "excerpt": "rsenal.context.replace('Arsenal: ','')}`); if (tempo?.badge) lines.push(` ${who} pace: [${tempo.badge}] ${tempo.context}`); } } catch(e) { captureFieldError('mlb:analytics-context', e, true); } return lines.slice(0,4); // max 4 lines per game } // Card badge HTML for park factor function buildParkFactorBadge(game) { if (!(game?._sport||'').toLowerCase().includes('baseball')) return ''; const pf = getParkFactor(game._homeAbbr || game.homeTeam); if (!pf?.badge) return ''; return `<span class=\"mlb-park-badge mlb-park-${pf.badgeClass}\" title=\"${pf.context}\">${pf.badge}</span>`; } // Card badge HTML for ump watch function buildUmpWatchBadge(game) { if (!(game?._sport||'').toLowerCase().includes('baseball')) return ''; const umpName = game._hpUmpire || game.umpire || ''; if (!umpName) return ''; const"
+    },
+    {
+      "offset": 1210487,
+      "excerpt": "Returns HTML string or '' if no data available. function buildScoutingReport(game, sport) { if (!game) return ''; const sp = (sport || game._sport || '').toLowerCase(); const rows = []; // ── MLB ──────────────────────────────────────────────────────────────────── if (sp.includes('baseball') || sp.includes('mlb')) { // Park factor const abbr = game._homeAbbr || game.homeTeam; const pf = abbr ? getParkFactor?.(abbr) : null; if (pf) { const runDiff = pf.runFactor - 100; const hrDiff = pf.hrFactor - 100; const pfVal = runDiff > 0 ? `<em>+${runDiff}% runs</em> · +${hrDiff}% HR${pf.badgeClass === 'park-hitter-extreme' ? ' · 🚀 Launch Pad' : ''}` : `<span class=\"scout-warn\">${runDiff}% runs</span> · ${hrDiff}% HR${pf.badgeClass === 'park-pitcher' || pf.badgeClass === 'park"
+    },
+    {
+      "offset": 1241554,
+      "excerpt": "if (aG && aG.tier === 'elite') candidates.push({ deviation: (aG.sv - 0.9) / 0.9, team: game.away, abbr: aa, val: aG.sv, label: 'sv%', fmtVal: `.${Math.round(aG.sv*1000)}`, ctx: 'elite sv% this playoffs' }); } // ── MLB ────────────────────────────────────────────────────────────────── if (sp.includes('mlb') || sp.includes('baseball')) { const abbr = game._homeAbbr; const pf = abbr ? getParkFactor?.(abbr) : null; if (pf) { const runDiff = pf.runFactor - 100; if (Math.abs(runDiff) >= 10) candidates.push({ deviation: Math.abs(runDiff) / 100, team: pf.label || game.home, abbr, val: runDiff, label: 'run factor', fmtVal: `${runDiff > 0 ? '+' : ''}${runDiff}%`, ctx: `${runDiff > 0 ? 'hitter-friendly' : 'pitcher-friendly'} park` }); } const umpName = g"
+    },
+    {
+      "offset": 1897342,
+      "excerpt": "─────────────────── async function fetchMLBGameBriefFromClaude(g) { // Card briefs use a separate budget from compound/J3 (which share journalismCallsToday) // This prevents 15 MLB games from blocking J3/Night Owl via shared budget exhaustion const cardBudget = cardBriefCallsToday(); if (!cardBudget.canCall()) return null; const abbr = (g._homeAbbr || g.homeTeam || '').toUpperCase(); const pf = abbr ? getParkFactor?.(abbr) : null; const ump = (() => { const name = g._hpUmpire || g.umpire || ''; if (!name) return ''; const last = name.split(' ').pop(); const u = getUmpireABSRating?.(last); return u ? `${last}: ${Math.round(u.rate*100)}% K-rate${u.weakness?' · weak '+u.weakness+' zone':''}` : last; })(); const umpLine = !!ump; // umpLine was referenced in prompt but never declared — cau"
+    }
+  ],
+  "teamNick": [
+    {
+      "offset": 306567,
+      "excerpt": "]).filter(s => (s.sport||'').toLowerCase().includes('nhl')); if (nhlGames.length === 0) { rows.push(ok('NHL Analytics', 'No NHL games today')); } else { let nhlOk = 0, nhlMissing = []; nhlGames.forEach(sec => (sec.games||[]).forEach(g => { const ha = g._homeAbbr || getNHLAbbrev?.(g.home); const st = ha ? getNHLSpecialTeams?.(ha) : null; if (st) nhlOk++; else nhlMissing.push(`${teamNick(g.home||'')} (${ha||'?'})`); })); const total = nhlGames.reduce((n,s)=>n+(s.games||[]).length,0); if (nhlMissing.length === 0) rows.push(ok('NHL Analytics', `ST data for all ${nhlOk} game(s) · Sample: CAR PP ${getNHLSpecialTeams?.('CAR')?.pp}% PK ${getNHLSpecialTeams?.('CAR')?.pk}%`)); else rows.push(err('NHL Analytics', `Missing ST data for: ${nhlMissing.join(', ')} — badges won'"
+    },
+    {
+      "offset": 466956,
+      "excerpt": "mes -- this reads it. // // Matches by team nickname + sport, NOT any ID: confirmed live that // bundle.completed_games[].id embeds spaces/mixed case differently per // sport (not a reconstructable client-side key), and that the bundle's // home/away are short nicknames (\"Giants\") while allData.sports games // carry full names (\"San Francisco Giants\") -- a raw string compare would // never match. Reuses the existing teamNick() helper instead. // Sport comparison is substring-based, not exact-equality: confirmed live // that MLB's client _sport (\"Baseball (MLB)\") and the relay's sport // (\"MLB\") are different strings (though game.league === \"MLB\" does match // exactly) -- rather than hard-code every sport's exact relay-vs-client // pairing (unverifiable for sports with no live game to inspect right // now, e.g. WNBA), a substring"
+    },
+    {
+      "offset": 470176,
+      "excerpt": "werCase(); return spClient.includes(bs) || bs.includes(spClient) || spLeague === bs || spLeague.includes(bs); } function _bundleFinalizedAt(game) { try { const bundle = window._newspaperBundle; if (!bundle || !bundle.completed_games || !bundle.completed_games.length) return null; if (!bundle.recap_date || typeof TODAY_ISO === 'undefined' || bundle.recap_date !== TODAY_ISO) return null; const h = teamNick(game.home || '').toLowerCase().trim(); const a = teamNick(game.away || '').toLowerCase().trim(); if (!h || !a) return null; const spClient = _gameSport(game).toLowerCase(); const spLeague = (game.league || '').toLowerCase(); const sportOk = (bgSport) => _sportLabelMatches(spClient, spLeague, bgSport); const matches = bundle.completed_games.filter(bg => teamNick(bg.home || '').to"
+    },
+    {
+      "offset": 470238,
+      "excerpt": "ent) || spLeague === bs || spLeague.includes(bs); } function _bundleFinalizedAt(game) { try { const bundle = window._newspaperBundle; if (!bundle || !bundle.completed_games || !bundle.completed_games.length) return null; if (!bundle.recap_date || typeof TODAY_ISO === 'undefined' || bundle.recap_date !== TODAY_ISO) return null; const h = teamNick(game.home || '').toLowerCase().trim(); const a = teamNick(game.away || '').toLowerCase().trim(); if (!h || !a) return null; const spClient = _gameSport(game).toLowerCase(); const spLeague = (game.league || '').toLowerCase(); const sportOk = (bgSport) => _sportLabelMatches(spClient, spLeague, bgSport); const matches = bundle.completed_games.filter(bg => teamNick(bg.home || '').toLowerCase().trim() === h && teamNick(bg.away || '').toLo"
+    },
+    {
+      "offset": 470570,
+      "excerpt": "eturn null; const h = teamNick(game.home || '').toLowerCase().trim(); const a = teamNick(game.away || '').toLowerCase().trim(); if (!h || !a) return null; const spClient = _gameSport(game).toLowerCase(); const spLeague = (game.league || '').toLowerCase(); const sportOk = (bgSport) => _sportLabelMatches(spClient, spLeague, bgSport); const matches = bundle.completed_games.filter(bg => teamNick(bg.home || '').toLowerCase().trim() === h && teamNick(bg.away || '').toLowerCase().trim() === a && sportOk(bg.sport) ); // Doubleheader safety: the bundle carries no per-game hour, only a // whole-day recap_date -- if sport+home+away matches more than one // entry, this is genuinely ambiguous. Don't guess, fall back. if (matches.length !== 1) return null; const raw = match"
+    },
+    {
+      "offset": 470630,
+      "excerpt": "ase().trim(); const a = teamNick(game.away || '').toLowerCase().trim(); if (!h || !a) return null; const spClient = _gameSport(game).toLowerCase(); const spLeague = (game.league || '').toLowerCase(); const sportOk = (bgSport) => _sportLabelMatches(spClient, spLeague, bgSport); const matches = bundle.completed_games.filter(bg => teamNick(bg.home || '').toLowerCase().trim() === h && teamNick(bg.away || '').toLowerCase().trim() === a && sportOk(bg.sport) ); // Doubleheader safety: the bundle carries no per-game hour, only a // whole-day recap_date -- if sport+home+away matches more than one // entry, this is genuinely ambiguous. Don't guess, fall back. if (matches.length !== 1) return null; const raw = matches[0].finalizedAt; if (!raw) return null; // SQLite"
+    }
+  ]
+}

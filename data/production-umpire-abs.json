@@ -1,0 +1,313 @@
+{
+  "source": "jubilant-bassoon index.html",
+  "symbol": "UMPIRE_ABS_RATINGS",
+  "entries": 51,
+  "data": {
+    "neon": {
+      "challenged": 3,
+      "overturned": 0,
+      "rate": 0,
+      "weakness": null
+    },
+    "gibson": {
+      "challenged": 4,
+      "overturned": 0,
+      "rate": 0,
+      "weakness": "down-left"
+    },
+    "hamari": {
+      "challenged": 4,
+      "overturned": 0,
+      "rate": 0,
+      "weakness": "up-left"
+    },
+    "vondrak": {
+      "challenged": 6,
+      "overturned": 0,
+      "rate": 0,
+      "weakness": "down-left"
+    },
+    "mahrley": {
+      "challenged": 3,
+      "overturned": 0,
+      "rate": 0,
+      "weakness": null
+    },
+    "eddings": {
+      "challenged": 6,
+      "overturned": 1,
+      "rate": 0.167,
+      "weakness": "down-left"
+    },
+    "reyburn": {
+      "challenged": 5,
+      "overturned": 1,
+      "rate": 0.2,
+      "weakness": "up-right"
+    },
+    "parra": {
+      "challenged": 4,
+      "overturned": 1,
+      "rate": 0.25,
+      "weakness": "down-right"
+    },
+    "lentz": {
+      "challenged": 7,
+      "overturned": 2,
+      "rate": 0.286,
+      "weakness": "down-right"
+    },
+    "scheurwater": {
+      "challenged": 12,
+      "overturned": 4,
+      "rate": 0.333,
+      "weakness": "up-right"
+    },
+    "kelley": {
+      "challenged": 3,
+      "overturned": 1,
+      "rate": 0.333,
+      "weakness": null
+    },
+    "hanahan": {
+      "challenged": 3,
+      "overturned": 1,
+      "rate": 0.333,
+      "weakness": null
+    },
+    "jesus": {
+      "challenged": 3,
+      "overturned": 1,
+      "rate": 0.333,
+      "weakness": null
+    },
+    "ballou": {
+      "challenged": 3,
+      "overturned": 1,
+      "rate": 0.333,
+      "weakness": null
+    },
+    "krupa": {
+      "challenged": 8,
+      "overturned": 3,
+      "rate": 0.375,
+      "weakness": "down-left"
+    },
+    "kulpa": {
+      "challenged": 8,
+      "overturned": 3,
+      "rate": 0.375,
+      "weakness": "down-right"
+    },
+    "little": {
+      "challenged": 5,
+      "overturned": 2,
+      "rate": 0.4,
+      "weakness": "down-right"
+    },
+    "wegner": {
+      "challenged": 5,
+      "overturned": 2,
+      "rate": 0.4,
+      "weakness": "down"
+    },
+    "dreckman": {
+      "challenged": 5,
+      "overturned": 2,
+      "rate": 0.4,
+      "weakness": "down-left"
+    },
+    "beck": {
+      "challenged": 12,
+      "overturned": 5,
+      "rate": 0.417,
+      "weakness": "down-right"
+    },
+    "miller": {
+      "challenged": 16,
+      "overturned": 7,
+      "rate": 0.438,
+      "weakness": "up-left"
+    },
+    "ripperger": {
+      "challenged": 11,
+      "overturned": 5,
+      "rate": 0.455,
+      "weakness": "left"
+    },
+    "valentine": {
+      "challenged": 13,
+      "overturned": 6,
+      "rate": 0.462,
+      "weakness": "up"
+    },
+    "additon": {
+      "challenged": 21,
+      "overturned": 10,
+      "rate": 0.476,
+      "weakness": "up-left"
+    },
+    "visconti": {
+      "challenged": 6,
+      "overturned": 3,
+      "rate": 0.5,
+      "weakness": "down-left"
+    },
+    "diaz": {
+      "challenged": 12,
+      "overturned": 6,
+      "rate": 0.5,
+      "weakness": "up-left"
+    },
+    "jones": {
+      "challenged": 12,
+      "overturned": 6,
+      "rate": 0.5,
+      "weakness": "down-right"
+    },
+    "jimenez": {
+      "challenged": 10,
+      "overturned": 5,
+      "rate": 0.5,
+      "weakness": "down"
+    },
+    "wolcott": {
+      "challenged": 12,
+      "overturned": 6,
+      "rate": 0.5,
+      "weakness": "right"
+    },
+    "bacchus": {
+      "challenged": 4,
+      "overturned": 2,
+      "rate": 0.5,
+      "weakness": "up-right"
+    },
+    "moscoso": {
+      "challenged": 12,
+      "overturned": 6,
+      "rate": 0.5,
+      "weakness": "right"
+    },
+    "ramos": {
+      "challenged": 6,
+      "overturned": 3,
+      "rate": 0.5,
+      "weakness": "up-left"
+    },
+    "fairchild": {
+      "challenged": 13,
+      "overturned": 7,
+      "rate": 0.538,
+      "weakness": "up-left"
+    },
+    "moore": {
+      "challenged": 13,
+      "overturned": 7,
+      "rate": 0.538,
+      "weakness": "up-right"
+    },
+    "wolf": {
+      "challenged": 11,
+      "overturned": 6,
+      "rate": 0.545,
+      "weakness": "down-left"
+    },
+    "estabrook": {
+      "challenged": 9,
+      "overturned": 5,
+      "rate": 0.556,
+      "weakness": "down-right"
+    },
+    "clemons": {
+      "challenged": 7,
+      "overturned": 4,
+      "rate": 0.571,
+      "weakness": "down-left"
+    },
+    "jean": {
+      "challenged": 7,
+      "overturned": 4,
+      "rate": 0.571,
+      "weakness": "up-left"
+    },
+    "jaschinski": {
+      "challenged": 5,
+      "overturned": 3,
+      "rate": 0.6,
+      "weakness": "down-right"
+    },
+    "pawol": {
+      "challenged": 6,
+      "overturned": 4,
+      "rate": 0.667,
+      "weakness": "left"
+    },
+    "muchlinski": {
+      "challenged": 3,
+      "overturned": 2,
+      "rate": 0.667,
+      "weakness": "up-left"
+    },
+    "hoye": {
+      "challenged": 3,
+      "overturned": 2,
+      "rate": 0.667,
+      "weakness": null
+    },
+    "tumpane": {
+      "challenged": 7,
+      "overturned": 5,
+      "rate": 0.714,
+      "weakness": "down-left"
+    },
+    "tichenor": {
+      "challenged": 12,
+      "overturned": 9,
+      "rate": 0.75,
+      "weakness": "left"
+    },
+    "carapazza": {
+      "challenged": 4,
+      "overturned": 3,
+      "rate": 0.75,
+      "weakness": "up-right"
+    },
+    "barber": {
+      "challenged": 9,
+      "overturned": 7,
+      "rate": 0.778,
+      "weakness": "down-right"
+    },
+    "mackay": {
+      "challenged": 10,
+      "overturned": 8,
+      "rate": 0.8,
+      "weakness": "left"
+    },
+    "whitson": {
+      "challenged": 5,
+      "overturned": 4,
+      "rate": 0.8,
+      "weakness": "down-right"
+    },
+    "barksdale": {
+      "challenged": 6,
+      "overturned": 5,
+      "rate": 0.833,
+      "weakness": "down"
+    },
+    "tomlinson": {
+      "challenged": 3,
+      "overturned": 3,
+      "rate": 1,
+      "weakness": null
+    },
+    "ceja": {
+      "challenged": 4,
+      "overturned": 4,
+      "rate": 1,
+      "weakness": null
+    }
+  }
+}
