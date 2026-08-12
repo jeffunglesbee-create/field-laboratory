@@ -233,6 +233,30 @@ const MUTATIONS = [
   },
 
   {
+    // Production's exact bug, restored. buildComebackProbability guards `post`
+    // but not `pre`, so a scheduled game parses 0-0 and announces a tie
+    // directly beneath the win-loss records — a 47-73 team called even with a
+    // 73-46 team, on all seven pre-game cards.
+    id: 'comeback-on-a-scheduled-game',
+    file: 'src/Stats.fs',
+    claim: 'a scheduled game cannot reach the comeback line',
+    find: '    | Scheduled\n    | Final _ -> None',
+    replace: '    | Scheduled -> Some { Leader = 0; Trailer = 0 }\n    | Final _ -> None',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+
+  {
+    // The transposition visible in the screenshot: header "Orioles @ Twins",
+    // records line "Twins: 59-62 · Orioles: 58-62".
+    id: 'records-line-transposed',
+    file: 'src/Stats.fs',
+    claim: 'the records line orders through the same function as the header',
+    find: '        orderByMatchup r.Sport (r.Home, r.HomeRecord) (r.Away, r.AwayRecord)',
+    replace: '        (r.Home, r.HomeRecord), (r.Away, r.AwayRecord)',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+
+  {
     id: 'zone-utc',
     file: 'src/Desk.fs',
     claim: 'the FIELD zone is real, not a fixed offset',

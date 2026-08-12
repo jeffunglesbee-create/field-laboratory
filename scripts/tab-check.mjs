@@ -48,8 +48,8 @@ const topTabs = () => page.$$(TABS)
 
 // --- the tablist -------------------------------------------------------------
 
-check('five top-level tabs exist', (await topTabs()).length === 5,
-  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em, Weather`)
+check('six top-level tabs exist', (await topTabs()).length === 6,
+  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em, Weather, Stats`)
 
 check('exactly one tab starts selected', (await selected()).length === 1,
   `selected: ${JSON.stringify(await selected())}`)
@@ -82,12 +82,30 @@ check('ArrowRight again reaches Weather',
   (await selected())[0] === 'tab-weather', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('ArrowRight')
+check('ArrowRight again reaches Stats',
+  (await selected())[0] === 'tab-stats', `selected: ${(await selected())[0]}`)
+
+await page.keyboard.press('ArrowRight')
 check('selection wraps rather than dead-ending',
   (await selected())[0] === 'tab-scoreboard', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('End')
 check('End jumps to the last tab',
-  (await selected())[0] === 'tab-weather', `selected: ${(await selected())[0]}`)
+  (await selected())[0] === 'tab-stats', `selected: ${(await selected())[0]}`)
+
+// The Stats panel, and the bug it exists to not have. Production shows
+// "Tied — anyone's game" on every PRE-GAME card, beneath the win-loss records.
+// This capture is all Final, so no card may carry a comeback line at all.
+await page.click('#tab-stats')
+const comebacks = await page.$$eval('[data-comeback]', ns => ns.length)
+const stCards = await page.$$eval('.st-card', ns => ns.length)
+check('the Stats panel renders a report per game', stCards > 0, `${stCards} cards`)
+check('no comeback line on a slate with no game in progress', comebacks === 0,
+  `${comebacks} card(s) carry one — production shows it on every pre-game card`)
+// Rows this payload cannot fill are marked, not silently bare.
+const gaps = await page.$$eval('[data-gap]', ns => ns.length)
+check('unresolved rows are flagged rather than rendered as complete', gaps > 0,
+  'every row looked resolved, which is how four missing lookups render identically')
 
 // --- the two picks are told apart --------------------------------------------
 

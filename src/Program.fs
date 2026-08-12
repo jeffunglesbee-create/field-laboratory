@@ -279,6 +279,13 @@ let private start () =
             // Playground runs its own 45s interval to prove two poll loops
             // coexist. That is a different goal; this one is the cheaper and
             // more honest behaviour, and it is why this is not a port.
+            // Stats needs no fetch — every row it can fill comes from the slate
+            // already decoded, and every row it cannot is named rather than
+            // dropped. So it renders eagerly, unlike Weather.
+            match document.getElementById "panel-stats" with
+            | null -> ()
+            | mount -> StatsView.render mount games
+
             weatherVenues <- games |> List.choose (fun g -> g.Venue) |> List.distinct
             weatherLoaded <- false
 
@@ -344,7 +351,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats" ]
 
     let tabs () =
         ids |> List.choose (fun id ->

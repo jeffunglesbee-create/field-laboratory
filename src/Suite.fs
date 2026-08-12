@@ -409,5 +409,133 @@ let private weather =
             | Some c -> c
             | None -> failwith "fixture"), "temperature_unit=celsius") ]
 
+// ---------------------------------------------------------------------------
+// The Stats tab. Counterexamples are production's live bugs, quoted in
+// docs/STATS-PROOF.md and visible in the screenshot that prompted this build.
+// ---------------------------------------------------------------------------
+
+let private stats =
+    let report home away homeRec awayRec sport =
+        { Stats.Sport = sport
+          Stats.Home = home
+          Stats.Away = away
+          Stats.Park = Stats.ParkUnknown "Target Field"
+          Stats.Umpire = Stats.UmpireUnrated "Jones"
+          Stats.HomePitcher = Stats.PitcherUnenriched("Zebby Matthews", [ "ERA" ])
+          Stats.AwayPitcher = Stats.PitcherUnenriched("Shane Baz", [ "ERA" ])
+          Stats.HomeRecord = homeRec
+          Stats.AwayRecord = awayRec }
+
+    [ // THE headline bug. "Tied — anyone's game" on all seven pre-game cards,
+      // beneath the records, reading as a verdict on them: a 47-73 team called
+      // even with a 73-46 team.
+      Verify.check "a scheduled game has no margin at all — not a margin of zero"
+          (fun state -> (Stats.liveMargin state).IsNone)
+          Scheduled
+          (InProgress(0, 0))
+
+      // A finished game is refused too. Production's guard excluded `post` and
+      // forgot `pre`; a list of states to exclude is maintained by hand.
+      Verify.check "a finished game is refused as well, not just a scheduled one"
+          (fun state -> (Stats.liveMargin state).IsNone)
+          (Final(4, 2, false))
+          (InProgress(4, 2))
+
+      // ...and the affirmative direction, or "always None" would satisfy both.
+      Verify.check "a game in progress DOES yield a margin"
+          (fun state -> (Stats.liveMargin state).IsSome)
+          (InProgress(4, 2))
+          Scheduled
+
+      // The sentence itself is true exactly when it is reachable.
+      Verify.check "a real 0-0 in progress is genuinely tied"
+          (fun state ->
+              match Stats.liveMargin state with
+              | Some m -> Stats.comebackText m = "Tied — anyone's game"
+              | None -> false)
+          (InProgress(0, 0))
+          (InProgress(4, 2))
+
+      // The second bug, visible in the screenshot without reading any source:
+      // header "Orioles @ Twins", records line "Twins: 59-62 · Orioles: 58-62".
+      Verify.check "the records line leads with the same team as the header"
+          (fun (sport, expected) ->
+              Stats.recordsLine (report "Twins" "Orioles"
+                                        (Stats.RecordKnown(59, 62))
+                                        (Stats.RecordKnown(58, 62)) sport) = expected)
+          (Sport.MLB, "Orioles: 58–62 · Twins: 59–62")
+          (Sport.MLB, "Twins: 59–62 · Orioles: 58–62")
+
+      // AFL reads home first, so the same function must flip. Without this, a
+      // hardcoded "away first" would satisfy the check above.
+      Verify.check "...and flips for a sport that reads home first"
+          (fun (sport, expected) ->
+              Stats.recordsLine (report "Sydney" "Collingwood"
+                                        (Stats.RecordKnown(10, 4))
+                                        (Stats.RecordKnown(9, 5)) sport) = expected)
+          (Sport.AFL, "Sydney: 10–4 · Collingwood: 9–5")
+          (Sport.AFL, "Collingwood: 9–5 · Sydney: 10–4")
+
+      // The pitcher rows use the same order as the records line. Production has
+      // them "away first then home" while the records are home first — one card,
+      // two orders.
+      // Written first as "the two lines agree with each other", with a different
+      // SPORT as the counterexample. The harness returned NO TEETH, correctly:
+      // both orderings go through `orderByMatchup`, so no sport can make them
+      // disagree. That is the design working, and it means the property is true
+      // of everything and asserts nothing.
+      //
+      // The claim with content NAMES the team. "Twins" is what production's
+      // records line leads with under an "Orioles @ Twins" header, so it is a
+      // counterexample that exists.
+      Verify.check "both the pitcher rows and the records line lead with the away team"
+          (fun (sport, expectedFirst: string) ->
+              let r = report "Twins" "Orioles" (Stats.RecordKnown(59, 62))
+                                               (Stats.RecordKnown(58, 62)) sport
+              fst (List.head (Stats.pitcherRows r)) = expectedFirst
+              && (Stats.recordsLine r).StartsWith expectedFirst)
+          (Sport.MLB, "Orioles")
+          (Sport.MLB, "Twins")
+
+      // A missing record is stated, not rendered as an empty half-line.
+      Verify.check "an unresolved record says so rather than printing nothing"
+          (fun r -> (Stats.recordText r).Contains "unavailable")
+          Stats.RecordUnknown
+          (Stats.RecordKnown(59, 62))
+
+      // Four silent absences look like four ordinary rows. Counted, they are a
+      // number.
+      Verify.check "every unresolved row is counted"
+          (fun (expected: int) ->
+              List.length (Stats.gaps (report "Twins" "Orioles"
+                                              Stats.RecordUnknown Stats.RecordUnknown Sport.MLB)) = expected)
+          5
+          4
+
+      // Production's rows degrade to a bare name when enrichment fails. The name
+      // is the one thing that must survive that degradation — a row with neither
+      // stats nor a name is not a row.
+      Verify.check "an unenriched pitcher row still carries the name"
+          (fun p -> Stats.pitcherName p <> "")
+          (Stats.PitcherUnenriched("Shane Baz", [ "ERA"; "W–L" ]))
+          (Stats.PitcherUnenriched("", [ "ERA"; "W–L" ]))
+
+      Verify.check "...and so does an enriched one"
+          (fun p -> Stats.pitcherName p = "Zack Wheeler")
+          (Stats.PitcherEnriched("Zack Wheeler", 2.91, 11, 6, "sweeper"))
+          (Stats.PitcherEnriched("Kyle Leahy", 2.91, 11, 6, "sweeper"))
+
+      Verify.check "UMP WATCH fires at production's 0.65 threshold, not below"
+          (fun rate -> Stats.umpWatch (Stats.UmpireRated("Tomlinson", rate, 3, None)))
+          0.65
+          0.64
+
+      // The lean is derived from the runs figure, so badge and number cannot
+      // disagree — production stores badgeClass separately.
+      Verify.check "a pitcher's park is derived from its own runs figure"
+          (fun (runs, expected) -> Stats.parkLean (Stats.ParkKnown("Oracle Park", runs, -18)) = expected)
+          (-9, Stats.PitchersPark)
+          (-9, Stats.LaunchPad) ]
+
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather
+let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats

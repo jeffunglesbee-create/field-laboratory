@@ -30,10 +30,12 @@
     <Compile Include="Pick.fs" />
     <Compile Include="Scout.fs" />
     <Compile Include="Pickem.fs" />
+    <Compile Include="Stats.fs" />
     <Compile Include="Scoreboard.fs" />
     <Compile Include="PickView.fs" />
     <Compile Include="PickemView.fs" />
     <Compile Include="WeatherView.fs" />
+    <Compile Include="StatsView.fs" />
     <Compile Include="Program.fs" />
     <!-- The F# suite and its node entry point. Below Program.fs because nothing
          imports them; `node build/VerifyMain.js` is a second entry, and it must
