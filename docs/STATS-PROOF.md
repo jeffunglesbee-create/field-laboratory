@@ -67,51 +67,36 @@ sentence back.
     ""
 ```
 
-## An unresolved row cannot be rendered as a resolved one
+## A row cannot be built without its data
 
-`ParkUnknown` carries the venue instead of the numbers. Production's `if (pf)`
-drops the row entirely — two of seven games showed no PARK line and nothing said
-which two or why — so the type has no case that is both absent and printable as
-a figure.
+`Row` has no unresolved case. The first version of this file had `ParkUnknown`,
+`UmpireUnrated`, `PitcherUnenriched` and `RecordUnknown` — marking a gap, which
+is better than production dropping the row silently and still the wrong shape.
+A report that asserts five rows and can fill one is a report about the wrong
+subject. There is now no constructor for a row whose data is absent.
 
-<!-- proof: FS0001 -->
+<!-- proof: FS0039 -->
 
 ```fsharp
-    let runs: int =
-        match Stats.ParkUnknown "Chase Field" with
-        | Stats.ParkUnknown r -> r
-        | Stats.ParkKnown(_, r, _) -> r
-    ignore runs
+    let r = Stats.ParkUnknown "Target Field"
+    ignore r
     ""
 ```
 
-## A fourth park lean cannot be added silently
+## A sixth row kind cannot be added silently
 
-`FS0025` is an error here, so a new lean forces every reader to handle it —
-including the one that draws the badge.
+`FS0025` is an error here, so a new row forces every reader to handle it —
+including the one that gives it a label.
 
 <!-- proof: FS0025 -->
 
 ```fsharp
-    let badge (l: Stats.ParkLean) =
-        match l with
-        | Stats.PitchersPark -> "pitcher"
-        | Stats.LaunchPad -> "hitter"
-    ignore (badge Stats.NeutralPark)
-    ""
-```
-
-## A record cannot be printed without handling the missing case
-
-The audit: "Rockies @ Diamondbacks shows no line at all — one of the two lookups
-failed", matched by `.includes(nickname)` substring.
-
-<!-- proof: FS0025 -->
-
-```fsharp
-    let text (r: Stats.Record) =
+    let label (r: Stats.Row) =
         match r with
-        | Stats.RecordKnown(w, l) -> sprintf "%d-%d" w l
-    ignore (text Stats.RecordUnknown)
+        | Stats.VenueRow _ -> "VENUE"
+        | Stats.MarketRow _ -> "MARKET"
+        | Stats.DramaRow _ -> "DRAMA"
+        | Stats.BroadcastRow _ -> "BROADCAST"
+    ignore (label (Stats.MarketRow "x"))
     ""
 ```

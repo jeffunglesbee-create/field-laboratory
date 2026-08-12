@@ -415,17 +415,6 @@ let private weather =
 // ---------------------------------------------------------------------------
 
 let private stats =
-    let report home away homeRec awayRec sport =
-        { Stats.Sport = sport
-          Stats.Home = home
-          Stats.Away = away
-          Stats.Park = Stats.ParkUnknown "Target Field"
-          Stats.Umpire = Stats.UmpireUnrated "Jones"
-          Stats.HomePitcher = Stats.PitcherUnenriched("Zebby Matthews", [ "ERA" ])
-          Stats.AwayPitcher = Stats.PitcherUnenriched("Shane Baz", [ "ERA" ])
-          Stats.HomeRecord = homeRec
-          Stats.AwayRecord = awayRec }
-
     [ // THE headline bug. "Tied — anyone's game" on all seven pre-game cards,
       // beneath the records, reading as a verdict on them: a 47-73 team called
       // even with a 73-46 team.
@@ -457,85 +446,46 @@ let private stats =
           (InProgress(4, 2))
 
       // The second bug, visible in the screenshot without reading any source:
-      // header "Orioles @ Twins", records line "Twins: 59-62 · Orioles: 58-62".
-      Verify.check "the records line leads with the same team as the header"
-          (fun (sport, expected) ->
-              Stats.recordsLine (report "Twins" "Orioles"
-                                        (Stats.RecordKnown(59, 62))
-                                        (Stats.RecordKnown(58, 62)) sport) = expected)
-          (Sport.MLB, "Orioles: 58–62 · Twins: 59–62")
-          (Sport.MLB, "Twins: 59–62 · Orioles: 58–62")
-
-      // AFL reads home first, so the same function must flip. Without this, a
-      // hardcoded "away first" would satisfy the check above.
-      Verify.check "...and flips for a sport that reads home first"
-          (fun (sport, expected) ->
-              Stats.recordsLine (report "Sydney" "Collingwood"
-                                        (Stats.RecordKnown(10, 4))
-                                        (Stats.RecordKnown(9, 5)) sport) = expected)
-          (Sport.AFL, "Sydney: 10–4 · Collingwood: 9–5")
-          (Sport.AFL, "Collingwood: 9–5 · Sydney: 10–4")
-
-      // The pitcher rows use the same order as the records line. Production has
-      // them "away first then home" while the records are home first — one card,
-      // two orders.
-      // Written first as "the two lines agree with each other", with a different
-      // SPORT as the counterexample. The harness returned NO TEETH, correctly:
-      // both orderings go through `orderByMatchup`, so no sport can make them
-      // disagree. That is the design working, and it means the property is true
-      // of everything and asserts nothing.
-      //
-      // The claim with content NAMES the team. "Twins" is what production's
-      // records line leads with under an "Orioles @ Twins" header, so it is a
-      // counterexample that exists.
-      Verify.check "both the pitcher rows and the records line lead with the away team"
+      // header "Orioles @ Twins", and anything listing both sides beneath it
+      // must lead with the same team.
+      Verify.check "the sides lead with the same team as the header"
           (fun (sport, expectedFirst: string) ->
-              let r = report "Twins" "Orioles" (Stats.RecordKnown(59, 62))
-                                               (Stats.RecordKnown(58, 62)) sport
-              fst (List.head (Stats.pitcherRows r)) = expectedFirst
-              && (Stats.recordsLine r).StartsWith expectedFirst)
+              let r = { Stats.Sport = sport; Stats.Home = "Twins"; Stats.Away = "Orioles"; Stats.Rows = [] }
+              fst (Stats.sidesInHeaderOrder r) = expectedFirst
+              && (Stats.headerText r).StartsWith expectedFirst)
           (Sport.MLB, "Orioles")
           (Sport.MLB, "Twins")
 
-      // A missing record is stated, not rendered as an empty half-line.
-      Verify.check "an unresolved record says so rather than printing nothing"
-          (fun r -> (Stats.recordText r).Contains "unavailable")
-          Stats.RecordUnknown
-          (Stats.RecordKnown(59, 62))
+      // AFL reads home first, so the same function must flip. Without this a
+      // hardcoded "away first" would satisfy the check above.
+      Verify.check "...and flips for a sport that reads home first"
+          (fun (sport, expectedFirst: string) ->
+              let r = { Stats.Sport = sport; Stats.Home = "Sydney"; Stats.Away = "Collingwood"; Stats.Rows = [] }
+              fst (Stats.sidesInHeaderOrder r) = expectedFirst)
+          (Sport.AFL, "Sydney")
+          (Sport.AFL, "Collingwood")
 
-      // Four silent absences look like four ordinary rows. Counted, they are a
-      // number.
-      Verify.check "every unresolved row is counted"
-          (fun (expected: int) ->
-              List.length (Stats.gaps (report "Twins" "Orioles"
-                                              Stats.RecordUnknown Stats.RecordUnknown Sport.MLB)) = expected)
-          5
-          4
+      // Every row carries a label and a value. There is no unresolved case to
+      // render, which is the point of the rewrite.
+      Verify.check "a venue row names the venue and its cover"
+          (fun (roof, expected: string) ->
+              (Stats.rowValue (Stats.VenueRow("Rogers Centre", roof))).EndsWith expected)
+          (Weather.Retractable, "retractable roof")
+          (Weather.Retractable, "open air")
 
-      // Production's rows degrade to a bare name when enrichment fails. The name
-      // is the one thing that must survive that degradation — a row with neither
-      // stats nor a name is not a row.
-      Verify.check "an unenriched pitcher row still carries the name"
-          (fun p -> Stats.pitcherName p <> "")
-          (Stats.PitcherUnenriched("Shane Baz", [ "ERA"; "W–L" ]))
-          (Stats.PitcherUnenriched("", [ "ERA"; "W–L" ]))
-
-      Verify.check "...and so does an enriched one"
-          (fun p -> Stats.pitcherName p = "Zack Wheeler")
-          (Stats.PitcherEnriched("Zack Wheeler", 2.91, 11, 6, "sweeper"))
-          (Stats.PitcherEnriched("Kyle Leahy", 2.91, 11, 6, "sweeper"))
-
-      Verify.check "UMP WATCH fires at production's 0.65 threshold, not below"
-          (fun rate -> Stats.umpWatch (Stats.UmpireRated("Tomlinson", rate, 3, None)))
-          0.65
-          0.64
-
-      // The lean is derived from the runs figure, so badge and number cannot
-      // disagree — production stores badgeClass separately.
-      Verify.check "a pitcher's park is derived from its own runs figure"
-          (fun (runs, expected) -> Stats.parkLean (Stats.ParkKnown("Oracle Park", runs, -18)) = expected)
-          (-9, Stats.PitchersPark)
-          (-9, Stats.LaunchPad) ]
+      // Written first as "every row kind has a non-empty label", which the
+      // harness returned NO TEETH for — correctly. `rowLabel` is derived from
+      // the case, so it can never be empty and the property is true of
+      // anything. The claim with content is that the five kinds are told apart:
+      // two rows sharing a label is a card where the reader cannot tell which
+      // is which.
+      Verify.check "each row kind carries its own distinct label"
+          (fun (rows, expected) ->
+              (rows |> List.map Stats.rowLabel |> List.distinct |> List.length) = expected)
+          ([ Stats.VenueRow("Fenway Park", Weather.OpenAir); Stats.MarketRow "x"
+             Stats.DramaRow "y"; Stats.BroadcastRow "z"; Stats.OvertimeRow "w" ], 5)
+          ([ Stats.VenueRow("Fenway Park", Weather.OpenAir); Stats.MarketRow "x"
+             Stats.DramaRow "y"; Stats.BroadcastRow "z"; Stats.OvertimeRow "w" ], 4) ]
 
 /// Everything, in one list. Order is presentation only.
 let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats

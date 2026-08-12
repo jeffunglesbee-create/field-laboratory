@@ -17,9 +17,12 @@ open Stats
 //   2. The records line and the pitcher rows go through `orderByMatchup`, the
 //      same function as the header. Production's header reads "Orioles @ Twins"
 //      and its records line reads "Twins ... Orioles".
-//   3. A row that could not be resolved SAYS SO, and the report carries a
-//      count. Production drops the PARK row entirely when the lookup returns
-//      null, so two of seven games showed no park line and nothing said which.
+//   3. NOTHING IS UNRESOLVED. Production drops the PARK row entirely when the
+//      lookup returns null, so two of seven games showed no park line and
+//      nothing said which. The first version here marked such rows "unresolved",
+//      which was better and still wrong: a report that asserts five rows and can
+//      fill one is a report about the wrong subject. Every row is now built from
+//      a field this payload carries, and `Row` has no unresolved case to build.
 
 let private el (tag: string) (className: string) (text: string) : HTMLElement =
     let node = document.createElement tag
@@ -31,74 +34,30 @@ let private child (parent: HTMLElement) (node: HTMLElement) =
     parent.appendChild node |> ignore
     node
 
-/// A labelled row. `value` is what the row resolved to; `missing` is true when
-/// the row is present but unenriched, which gets a visible marker rather than
-/// looking like a complete row.
-let private row (mount: HTMLElement) (label: string) (value: string) (missing: bool) =
-    let r = child mount (el "div" (if missing then "st-row st-row--gap" else "st-row") "")
-    r.setAttribute ("data-row", label.ToLower())
-    child r (el "div" "st-row__label" label) |> ignore
-    child r (el "div" "st-row__value" value) |> ignore
-    if missing then
-        r.setAttribute ("data-gap", "true")
-        child r (el "span" "st-row__flag" "unresolved") |> ignore
-
-let private parkText =
-    function
-    | ParkUnknown venue -> sprintf "%s — no park factor on file" venue
-    | ParkKnown(venue, runs, hr) ->
-        let sign v = if v > 0 then sprintf "+%d%%" v else sprintf "%d%%" v
-        sprintf "%s · %s runs · %s HR" venue (sign runs) (sign hr)
-
-let private umpireText =
-    function
-    | UmpireUnrated name -> sprintf "%s — no rating on file" name
-    | UmpireRated(name, rate, challenged, weak) ->
-        let zone = match weak with
-                   | Some z -> sprintf " · weak: %s" z
-                   | None -> ""
-        sprintf "%s · %d%% overturns · %d challenged%s" name (int (rate * 100.0)) challenged zone
-
-let private pitcherText =
-    function
-    | PitcherUnenriched(name, missing) ->
-        sprintf "%s — missing %s" name (String.concat ", " missing)
-    | PitcherEnriched(name, era, w, l, top) ->
-        sprintf "%s · %.2f ERA · %d–%d · %s" name era w l top
+/// A labelled row. Every row here resolved, because `Row` has no case that did
+/// not.
+let private row (mount: HTMLElement) (r: Row) =
+    let node = child mount (el "div" "st-row" "")
+    node.setAttribute ("data-row", (rowLabel r).ToLower())
+    child node (el "div" "st-row__label" (rowLabel r)) |> ignore
+    child node (el "div" "st-row__value" (rowValue r)) |> ignore
 
 /// One game's report.
 let private renderReport (mount: HTMLElement) (report: ScoutingReport) (state: GameState) =
     // A `section` with an accessible name, not a `div`. Visual separation and
     // announced separation are two different claims, and a border only makes
-    // the first. A screen reader reads seven games as one run of text unless
-    // each is a named region.
+    // the first.
     let card = child mount (el "section" "st-card" "")
-    let title = matchupText report.Sport report.Home report.Away
+    let title = headerText report
     card.setAttribute ("data-matchup", title)
     card.setAttribute ("aria-label", title)
 
-    child card (el "div" "st-card__header" (matchupText report.Sport report.Home report.Away)) |> ignore
+    child card (el "div" "st-card__header" title) |> ignore
     child card (el "div" "st-card__title" "SCOUTING REPORT") |> ignore
 
     let rows = child card (el "div" "st-rows" "")
-    row rows "PARK" (parkText report.Park) (match report.Park with ParkUnknown _ -> true | _ -> false)
-    // The lean is derived from the runs number, so the badge cannot contradict
-    // the figure beside it.
-    match parkLean report.Park with
-    | PitchersPark -> child rows (el "div" "st-badge st-badge--pitcher" "Pitcher's Park") |> ignore
-    | LaunchPad -> child rows (el "div" "st-badge st-badge--hitter" "Launch Pad") |> ignore
-    | NeutralPark -> ()
-
-    row rows "UMPIRE" (umpireText report.Umpire)
-        (match report.Umpire with UmpireUnrated _ -> true | _ -> false)
-    if umpWatch report.Umpire then
-        child rows (el "div" "st-badge st-badge--watch" "UMP WATCH") |> ignore
-
-    for teamName, pitcher in pitcherRows report do
-        row rows (teamName.ToUpper()) (pitcherText pitcher)
-            (match pitcher with PitcherUnenriched _ -> true | _ -> false)
-
-    child card (el "div" "st-card__records" (recordsLine report)) |> ignore
+    for r in report.Rows do
+        row rows r
 
     // THE LINE THAT IS A BUG IN PRODUCTION. It appears only when `liveMargin`
     // yields one, which is only for a game in progress. On a scheduled game
@@ -109,44 +68,56 @@ let private renderReport (mount: HTMLElement) (report: ScoutingReport) (state: G
         line.setAttribute ("data-comeback", "true")
     | None -> ()
 
-    // Every gap on this card, counted. Row by row a missing park factor and a
-    // bare pitcher name look like ordinary rows; together they are a number.
-    match gaps report with
-    | [] -> ()
-    | gs ->
-        let note = child card (el "div" "st-card__gaps"
-                                  (sprintf "%d unresolved: %s" (List.length gs) (String.concat "; " gs)))
-        note.setAttribute ("data-gaps", string (List.length gs))
-
 /// Build a report from a decoded game.
 ///
-/// Everything production enriches from side tables is absent in `/context/date`,
-/// so every row resolves to its unenriched case and SAYS which fields are
-/// missing. That is the honest rendering of this payload, and it is what the
-/// panel will show until those lookups exist — not a bare name that reads as
-/// complete.
+/// Each row is added only when its data is there. A game with no broadcast
+/// listed gets no broadcast row — nothing claims one and fails.
 let reportFor (game: Game) : ScoutingReport =
-    { Sport = game.Sport
-      Home = game.Home
-      Away = game.Away
-      Park =
-        match game.Venue with
-        | Some v -> ParkUnknown v
-        | None -> ParkUnknown "venue not given"
-      Umpire = UmpireUnrated "not in /context/date"
-      HomePitcher = PitcherUnenriched(game.Home + " starter", [ "name"; "ERA"; "W–L"; "arsenal" ])
-      AwayPitcher = PitcherUnenriched(game.Away + " starter", [ "name"; "ERA"; "W–L"; "arsenal" ])
-      HomeRecord = RecordUnknown
-      AwayRecord = RecordUnknown }
+    let state = gameState game
+    let rows =
+        [ // The venue table is hand-reviewed and checked against Open-Meteo's
+          // resolved timezone daily, so a venue it carries is a fact.
+          match game.Venue |> Option.bind Venues.tryFind with
+          | Some v -> yield VenueRow(v.Name, v.Roof)
+          | None -> ()
+
+          // The odds pair. NotASequence is the real finding — closing_odds is
+          // not a closing line — and NoPrices is genuinely no row.
+          match oddsStory game.OpeningOdds game.ClosingOdds with
+          | NoPrices -> ()
+          | SingleSnapshot _ -> yield MarketRow "one snapshot only — nothing to compare"
+          | NotASequence _ -> yield MarketRow "open/close not sequenced — one snapshot written twice"
+          | Unmoved _ -> yield MarketRow "priced twice, unmoved"
+          | Moved(_, _, shift) ->
+              yield MarketRow(sprintf "line moved %.1f%% in implied terms" (abs (float shift) * 100.0))
+
+          // Drama, behind the ADR-002 amnesty witness: only a finished game may
+          // show the peak, and `formatDramaPeak` demands the witness.
+          match amnestyZone state, game.DramaPeak with
+          | Some zone, Some peak -> yield DramaRow(formatDramaPeak zone peak)
+          | _ -> ()
+
+          match Scout.broadcastOf game.Streams with
+          | Scout.NoBroadcastListed -> ()
+          | Scout.NationalOnly outlet -> yield BroadcastRow(sprintf "national only — %s" outlet)
+          | Scout.LocalAvailable -> yield BroadcastRow "a local or team outlet is listed"
+          | Scout.UnrecognisedOutlets raw -> yield BroadcastRow(sprintf "listed, unrecognised — %s" raw)
+
+          match game.Overtime with
+          | RegulationOnly -> yield OvertimeRow "regulation"
+          | WentToOvertime -> yield OvertimeRow "went to overtime"
+          | OvertimeUnknown -> () ]
+
+    { Sport = game.Sport; Home = game.Home; Away = game.Away; Rows = rows }
 
 let render (mount: HTMLElement) (games: Game list) =
     mount.innerHTML <- ""
     let panel = child mount (el "div" "st-panel" "")
     child panel (el "h2" "" "Stats") |> ignore
     child panel (el "p" "st-panel__what"
-                    ("One scouting report per game. Rows this payload cannot fill say so — "
-                     + "a bare name reads as a complete row, and that is how four separate "
-                     + "missing lookups render identically.")) |> ignore
+                    ("One scouting report per game, built from what this payload actually "
+                     + "carries. A row exists only when its data does — nothing here claims "
+                     + "a field and then reports it unresolved.")) |> ignore
 
     match games with
     | [] -> child panel (el "p" "st-empty" "No games on this slate.") |> ignore

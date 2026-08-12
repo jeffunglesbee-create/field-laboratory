@@ -102,10 +102,14 @@ const stCards = await page.$$eval('.st-card', ns => ns.length)
 check('the Stats panel renders a report per game', stCards > 0, `${stCards} cards`)
 check('no comeback line on a slate with no game in progress', comebacks === 0,
   `${comebacks} card(s) carry one — production shows it on every pre-game card`)
-// Rows this payload cannot fill are marked, not silently bare.
+// NOTHING is unresolved. A row exists only when its data does, so an
+// `unresolved` marker anywhere means a row was claimed and not filled.
 const gaps = await page.$$eval('[data-gap]', ns => ns.length)
-check('unresolved rows are flagged rather than rendered as complete', gaps > 0,
-  'every row looked resolved, which is how four missing lookups render identically')
+check('no row on any card is unresolved', gaps === 0,
+  `${gaps} unresolved row(s) — a row should not exist unless its data does`)
+const stRows = await page.$$eval('.st-row', ns => ns.length)
+check('every card carries at least one real row', stRows >= stCards,
+  `${stRows} rows across ${stCards} cards`)
 
 // --- the two picks are told apart --------------------------------------------
 

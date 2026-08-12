@@ -23,7 +23,7 @@
 //         node scripts/mutation-check.mjs --only draw
 
 import { execSync } from 'node:child_process'
-import { readFileSync, writeFileSync, mkdtempSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createChecks } from './checks.mjs'
@@ -250,9 +250,9 @@ const MUTATIONS = [
     // records line "Twins: 59-62 · Orioles: 58-62".
     id: 'records-line-transposed',
     file: 'src/Stats.fs',
-    claim: 'the records line orders through the same function as the header',
-    find: '        orderByMatchup r.Sport (r.Home, r.HomeRecord) (r.Away, r.AwayRecord)',
-    replace: '        (r.Home, r.HomeRecord), (r.Away, r.AwayRecord)',
+    claim: 'anything listing both sides orders through the same function as the header',
+    find: '    orderByMatchup r.Sport r.Home r.Away',
+    replace: '    r.Home, r.Away',
     expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
   },
 
@@ -522,16 +522,44 @@ const selected = ONLY
   : MUTATIONS.filter(m => !m.selfTestOnly)
 
 // --- restore safety ----------------------------------------------------------
-// Backups in tmp, never in src/, and handlers on every exit path. proof-check
-// learned this the hard way: a SIGTERM mid-run left a mutated working tree.
-const backupDir = mkdtempSync(join(tmpdir(), 'mutation-'))
+// Backups outside src/, and handlers on every exit path. proof-check learned
+// that much the hard way: a SIGTERM mid-run left a mutated working tree.
+//
+// THE HANDLERS ARE NOT ENOUGH, and this session is the proof. A container
+// restart SIGKILLs the process — no handler runs, that is what SIGKILL means —
+// and the backups used to live in `mkdtempSync(tmpdir())`, which the same
+// restart wipes. So the tree kept the mutation, the backup was gone, and
+// nothing anywhere recorded that either thing had happened.
+//
+// What that cost: the next gate run scored a deliberately-broken `Verify.fs`
+// as two failing rows — "the F# harness refuses a check with no counterexample"
+// and "breaking each invariant makes a check fail" — and both were true
+// statements about a tree nobody had meant to create. The gate was right and
+// its report pointed at the product. This is the repo's own recurring failure
+// wearing new clothes: an answer that is wrong for a reason unrelated to the
+// thing being measured.
+//
+// Worse than the twenty minutes: had the stranded mutation landed in a file
+// whose checks all still passed, the gate would have gone green and the commit
+// would have shipped a deliberately broken invariant.
+//
+// So the backup is durable, in-repo (gitignored), and carries a marker naming
+// what is applied right now. SIGKILL cannot stop a file already on disk from
+// still being there afterwards. The next run finds the marker, restores from
+// the backup, and says so out loud.
+const stateDir = '.mutation-state'
+const marker = join(stateDir, 'active.json')
 const backups = new Map()
+
+/** Drop the marker and its backups — the tree is known-good from here. */
+const clearActive = () => rmSync(stateDir, { recursive: true, force: true })
 
 const restore = () => {
   for (const [file, path] of backups) {
     if (existsSync(path)) writeFileSync(file, readFileSync(path))
   }
   backups.clear()
+  clearActive()
 }
 for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {
   process.on(signal, () => { restore(); if (signal !== 'exit') process.exit(1) })
@@ -546,7 +574,87 @@ const run = cmd => {
   }
 }
 
+/**
+ * Undo a mutation a previous run was killed before it could undo itself.
+ *
+ * Returns true if there was something to heal. Runs BEFORE the baseline, so
+ * the baseline measures the tree as its author left it rather than as a dead
+ * process left it.
+ *
+ * A world mutation carries a shell restore instead of a backup, so the marker
+ * carries whichever applies and this heals both kinds.
+ */
+const heal = ({ rebuild = true } = {}) => {
+  if (!existsSync(marker)) return false
+
+  const { id, file, backup, restoreCmd } = JSON.parse(readFileSync(marker, 'utf8'))
+  console.log(`\n  HEALED: a previous run was killed with [${id}] still applied.`)
+
+  if (restoreCmd) {
+    run(restoreCmd)
+    console.log(`  Ran its restore command before measuring anything.`)
+  } else if (existsSync(backup)) {
+    writeFileSync(file, readFileSync(backup))
+    console.log(`  Restored ${file} from its backup before measuring anything.`)
+    // The stranded file is source more often than not, and every check below
+    // reads build/ rather than src/. Healing the source and leaving the stale
+    // build in place would reproduce the exact failure this is fixing.
+    if (rebuild) run('npm run build')
+  } else {
+    // Naming it and stopping beats guessing. `git diff` will show the damage
+    // and the id says which mutation to look for.
+    console.log(`::error::${marker} names [${id}] on ${file}, but its backup is gone — restore that file by hand`)
+    process.exit(1)
+  }
+
+  clearActive()
+  return true
+}
+
 const { check, summarize } = createChecks()
+
+// `--self-test` proves the heal path itself, and nothing else. It is a third
+// half of the gate's mutation row for the same reason the row already has a
+// second: a harness that cannot recover from being killed will one day report
+// something untrue about a tree nobody meant to create, and that is not
+// something the normal suite would ever notice about itself.
+//
+// Deliberately operates on a throwaway file in tmp, never on real source. The
+// bug being guarded against is one that damages the working tree; a self-test
+// that damaged the working tree to prove it would be its own worst example.
+if (process.argv.includes('--self-test')) {
+  console.log('\nHeal self-test\n')
+
+  const victim = join(tmpdir(), 'mutation-selftest-victim.txt')
+  const backup = join(tmpdir(), 'mutation-selftest-backup.txt')
+  writeFileSync(backup, 'ORIGINAL')
+  writeFileSync(victim, 'MUTATED')
+  mkdirSync(stateDir, { recursive: true })
+  writeFileSync(marker, JSON.stringify({ id: 'self-test', file: victim, backup }))
+
+  // No rebuild: the victim is a text file in tmp, and a `npm run build` here
+  // would make a self-test of the recovery path cost as much as a real run.
+  const healed = heal({ rebuild: false })
+  const content = existsSync(victim) ? readFileSync(victim, 'utf8') : '<missing>'
+
+  check('an abandoned mutation is detected', healed,
+    'the marker was on disk and heal() reported nothing to do')
+  check('the abandoned file is restored from its backup', content === 'ORIGINAL',
+    `the file still reads ${JSON.stringify(content)}`)
+  check('the marker is cleared, so the next run does not heal twice',
+    !existsSync(marker), 'the marker is still on disk after healing')
+  check('a clean tree reports nothing to heal', heal({ rebuild: false }) === false,
+    'heal() claimed to heal a tree with no marker — it would fire on every run')
+
+  rmSync(victim, { force: true })
+  rmSync(backup, { force: true })
+  clearActive()
+  process.exit(summarize() === 0 ? 0 : 1)
+}
+
+// Before the baseline, not after: a stranded mutation would otherwise be
+// measured as a product failure, which is precisely what happened today.
+heal()
 
 console.log(`\nMutation testing ${selected.length} invariant(s)\n`)
 
@@ -574,9 +682,16 @@ for (const m of selected) {
   // it would test the check by rewriting the check. Mutating what they MEASURE
   // is the honest version.
   if (m.mutate) {
+    // Marker first. A world mutation moves real files around — the outbox one
+    // moves this session's write-ups into /tmp — so being killed between
+    // `mutate` and `restore` is the most expensive interruption here, not the
+    // cheapest.
+    mkdirSync(stateDir, { recursive: true })
+    writeFileSync(marker, JSON.stringify({ id: m.id, restoreCmd: m.restore }))
     run(m.mutate)
     const passed = run(m.expect)
     run(m.restore)
+    clearActive()
     const caught = !passed
     check(`[${m.id}] ${m.claim}`, caught,
       `mutation SURVIVED — \`${m.expect}\` still passed. ` +
@@ -592,8 +707,13 @@ for (const m of selected) {
     continue
   }
 
-  const backupPath = join(backupDir, m.file.replace(/\//g, '_'))
+  // Backup and marker land BEFORE the file is touched. The window this closes
+  // is the one that actually opened today: the process died holding a mutated
+  // file with its only backup in a tmpdir that died with it.
+  mkdirSync(stateDir, { recursive: true })
+  const backupPath = join(stateDir, m.file.replace(/\//g, '_'))
   writeFileSync(backupPath, original)
+  writeFileSync(marker, JSON.stringify({ id: m.id, file: m.file, backup: backupPath }))
   backups.set(m.file, backupPath)
   writeFileSync(m.file, mutated)
 
@@ -614,6 +734,7 @@ for (const m of selected) {
 
   writeFileSync(m.file, original)
   backups.delete(m.file)
+  clearActive()
 
   if (!built) {
     // The compiler refusing the mutation is a stronger result than a check

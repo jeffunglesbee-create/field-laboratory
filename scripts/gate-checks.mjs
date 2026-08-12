@@ -190,12 +190,22 @@ const rows = [
   // The slowest row by far — it rebuilds once per mutation — and the only one
   // that asks whether the OTHER rows are worth anything.
   { name: 'breaking each invariant makes a check fail', weight: 20, skipQuick: true,
-    // Two halves. The suite must pass, AND the harness must still be able to
+    // Three halves. The suite must pass; the harness must still be able to
     // report a survivor — `known-survivor` is a mutation designed to survive,
-    // so `--only known-survivor` FAILING is the proof the harness can see.
-    // Without the second half, a harness that called everything caught would
-    // satisfy this row while proving nothing.
-    run: () => ok('node scripts/mutation-check.mjs') &&
+    // so `--only known-survivor` FAILING is the proof the harness can see, and
+    // without it a harness that called everything caught would satisfy this
+    // row while proving nothing; and the harness must recover a tree that a
+    // KILLED run left mutated.
+    //
+    // The third arrived the expensive way. A container restart SIGKILLed this
+    // script mid-mutation, which no exit handler can catch, and the backup
+    // lived in a tmpdir the restart wiped. `src/Verify.fs` kept the mutation.
+    // The next gate scored it as two failing product rows, both statements
+    // about a tree nobody had meant to create — and if the stranded mutation
+    // had landed somewhere every check still passed, the gate would have gone
+    // GREEN on a deliberately broken invariant.
+    run: () => ok('node scripts/mutation-check.mjs --self-test') &&
+               ok('node scripts/mutation-check.mjs') &&
                fails('node scripts/mutation-check.mjs --only known-survivor') },
 
   { name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true,

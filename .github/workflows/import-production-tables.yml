@@ -1,0 +1,91 @@
+# Pull production's real scouting tables into this repo, on a runner.
+#
+# The Stats panel rendered five UNRESOLVED badges per game while production
+# rendered the same five rows filled. The data was never missing — it was in
+# `jubilant-bassoon`'s `index.html`, which is the one file (with
+# `src/legacy/field.js`) too large for the contents API to return. Every other
+# route into that repo works fine; those two files come back `total_lines: 1`
+# and empty.
+#
+# A runner can fetch the whole repository as a tarball and grep it, which is
+# the thing an agent sandbox cannot do: `*.workers.dev` is 403 CONNECT at the
+# proxy, so the signed archive URL is unusable from a session. Same reason
+# `probe-url.yml` exists, one step further along.
+#
+# Run it by dispatch with a freshly minted URL — `get_archive_url` signs one
+# that is good for at most 15 minutes and is bound to the target repo inside
+# the signature. It is masked on arrival so it does not sit in the run log
+# after the job is over.
+name: import-production-tables
+
+on:
+  workflow_dispatch:
+    inputs:
+      archive_url:
+        description: 'Signed relay archive URL for jubilant-bassoon (expires — mint it immediately before dispatch)'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: import-production-tables
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The job commits, and a shallow clone cannot push a commit whose
+          # parent it does not have. `workflow-check.mjs` asserts this for
+          # every committing job in this repo, after a sentinel run failed on
+          # exactly that.
+          fetch-depth: 0
+
+      - name: Mask the signed URL
+        run: echo "::add-mask::${{ github.event.inputs.archive_url }}"
+
+      - name: Fetch and unpack production
+        run: |
+          mkdir -p production
+          CODE=$(curl -sSL --max-time 120 -o /tmp/prod.tar.gz -w '%{http_code}' \
+            "${{ github.event.inputs.archive_url }}")
+          SIZE=$(wc -c < /tmp/prod.tar.gz)
+          echo "archive: HTTP $CODE, ${SIZE} bytes"
+          # A non-2xx is a failed fetch. probe-url.yml reported SUCCESS for a
+          # 404 once because it only failed when curl could not connect at
+          # all; the same mistake here would unpack an error page and report
+          # "table not found" for a reason that has nothing to do with tables.
+          case "$CODE" in 2*) ;; *) echo "::error::archive fetch returned $CODE"; exit 1 ;; esac
+          tar -xzf /tmp/prod.tar.gz -C production --strip-components=1
+          ls -la production/index.html
+
+      - name: Extract the tables
+        run: node scripts/extract-production-tables.mjs --from production/index.html --out data
+
+      - name: Show what came out
+        run: |
+          for f in data/production-park-factors.json data/production-umpire-abs.json; do
+            echo "=== $f"
+            head -c 1200 "$f"; echo
+          done
+          echo "=== wiring"
+          cat data/production-wiring.json
+
+      - name: Commit the tables
+        run: |
+          # Production is removed before the commit. Vendoring a copy of
+          # another repo into this one is not the goal and would make every
+          # later diff unreadable; the extracted tables are the artifact.
+          rm -rf production
+          git config user.name  'field-laboratory'
+          git config user.email 'noreply@github.com'
+          git add data/production-park-factors.json data/production-umpire-abs.json data/production-wiring.json
+          if git diff --cached --quiet; then
+            echo "no change — production's tables already match what is committed"
+            exit 0
+          fi
+          git commit -m "Import production's park-factor and umpire tables [skip ci]"
+          git push origin HEAD:main

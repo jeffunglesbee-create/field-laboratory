@@ -7,3 +7,8 @@ obj/
 
 fable_modules/
 public/
+
+# Durable backups written by scripts/mutation-check.mjs while a mutation is
+# applied. Present only mid-run, or after a run was killed — see the heal path
+# in that file. Never committed.
+.mutation-state/

@@ -85,73 +85,67 @@ let comebackText (m: LiveMargin) : string =
     | d when d <= 5 -> sprintf "%d-run gap" d
     | d -> sprintf "%d down — needs an inning" d
 
-// --- rows that can be missing ------------------------------------------------
+// --- rows that cannot be missing --------------------------------------------
+//
+// THE CORRECTION. The first version of this file copied production's row list
+// wholesale — PARK, UMPIRE, two pitchers, records — and then rendered four of
+// the five as "unresolved", because /context/date carries none of what
+// production enriches from side tables. Marking the gap was better than
+// production's silence, and it was still the wrong shape: a report that asserts
+// five rows and can fill one is a report about the wrong subject.
+//
+// A row here is CONSTRUCTED FROM DATA THAT EXISTS. `Row` has no unresolved case,
+// so "unresolved" is not something to avoid rendering — it cannot be built. A
+// game with no broadcast listed simply has no broadcast row; nothing claims one
+// and fails.
+//
+// Every variant below is backed by a field this payload actually carries and by
+// a type this repo already proved:
+//
+//   Venue      Venues.fs, hand-reviewed, and checked against the planet daily
+//   Market     Desk.oddsStory — including NotASequence, the finding that
+//              closing_odds is not a closing line
+//   Drama      Desk.formatDramaPeak, behind the ADR-002 amnesty witness
+//   Broadcast  Scout.broadcastOf, which refuses to guess at an unknown outlet
+//   Overtime   Desk.OvertimeStatus
+//
+// No park factors: production has a numeric table, this repo does not, and
+// inventing MLB park factors to fill a row would be exactly the fabrication the
+// unresolved case was honest about.
 
-/// Park factor, expressed as deviation from 100.
-///
-/// `Unknown` carries the venue name rather than being absent. Production's
-/// `if (pf)` drops the row entirely, so two of seven games showed no PARK line
-/// and nothing said which two or why.
-type ParkFactor =
-    | ParkUnknown of venue: string
-    | ParkKnown of venue: string * runs: int * hr: int
+type Row =
+    /// The venue and its roof, from the checked table.
+    | VenueRow of name: string * roof: Weather.RoofType
+    /// What the two odds snapshots do or do not say.
+    | MarketRow of summary: string
+    /// The drama peak, which only a finished game may show.
+    | DramaRow of text: string
+    /// Where it can be watched, in the vocabulary Scout already refuses to guess with.
+    | BroadcastRow of summary: string
+    /// Regulation or overtime, once that is settled.
+    | OvertimeRow of text: string
 
-/// Whether a park favours the pitcher or the hitter. Derived from the runs
-/// deviation rather than stored beside it, so the badge and the number cannot
-/// disagree — production keeps `badgeClass` as its own field.
-type ParkLean =
-    | PitchersPark
-    | LaunchPad
-    | NeutralPark
-
-let parkLean =
+let rowLabel =
     function
-    | ParkUnknown _ -> NeutralPark
-    | ParkKnown(_, runs, _) ->
-        if runs <= -5 then PitchersPark
-        elif runs >= 5 then LaunchPad
-        else NeutralPark
+    | VenueRow _ -> "VENUE"
+    | MarketRow _ -> "MARKET"
+    | DramaRow _ -> "DRAMA"
+    | BroadcastRow _ -> "BROADCAST"
+    | OvertimeRow _ -> "OVERTIME"
 
-/// An umpire, with or without a rating.
-///
-/// Production renders Iassogna, Adrian Johnson and Márquez as bare names — the
-/// else branch, no rating entry. A bare name looks like a complete row.
-type Umpire =
-    | UmpireUnrated of name: string
-    | UmpireRated of name: string * overturnRate: float * challenges: int * weakZone: string option
-
-/// UMP WATCH at an overturn rate of 0.65 or higher, per production's threshold.
-let umpWatch =
+let rowValue =
     function
-    | UmpireUnrated _ -> false
-    | UmpireRated(_, rate, _, _) -> rate >= 0.65
-
-/// A probable pitcher.
-///
-/// `Unenriched` NAMES what is missing. Every pitcher in the audited screenshot
-/// is a bare name, "meaning era/wins were null and both the tempo and arsenal
-/// lookups missed" — four separate absences rendering identically to a pitcher
-/// with no data at all, and identically to each other.
-type Pitcher =
-    | PitcherUnenriched of name: string * missing: string list
-    | PitcherEnriched of name: string * era: float * wins: int * losses: int * topPitch: string
-
-let pitcherName =
-    function
-    | PitcherUnenriched(n, _) -> n
-    | PitcherEnriched(n, _, _, _, _) -> n
-
-/// A team's record. Absent is a case, not an empty string — the audit records
-/// that "Rockies @ Diamondbacks shows no line at all — one of the two lookups
-/// failed", matched `.includes(nickname)` by substring.
-type Record =
-    | RecordUnknown
-    | RecordKnown of wins: int * losses: int
-
-let recordText =
-    function
-    | RecordUnknown -> "record unavailable"
-    | RecordKnown(w, l) -> sprintf "%d–%d" w l
+    | VenueRow(name, roof) ->
+        let cover =
+            match Weather.roofState roof with
+            | Weather.PlayedInTheOpen -> "open air"
+            | Weather.Covered -> "fixed roof"
+            | Weather.UnknownRoofState -> "retractable roof"
+        sprintf "%s · %s" name cover
+    | MarketRow s -> s
+    | DramaRow t -> t
+    | BroadcastRow s -> s
+    | OvertimeRow t -> t
 
 // --- the report --------------------------------------------------------------
 
@@ -159,51 +153,16 @@ type ScoutingReport =
     { Sport: Sport
       Home: string
       Away: string
-      Park: ParkFactor
-      Umpire: Umpire
-      HomePitcher: Pitcher
-      AwayPitcher: Pitcher
-      HomeRecord: Record
-      AwayRecord: Record }
+      Rows: Row list }
 
-/// The records line, ordered by the SAME function as the card header.
+/// The header, and the only ordering anything beside it may use.
 ///
-/// This is the bug the screenshot shows: "Orioles @ Twins" as the header and
-/// "Twins: 59-62 · Orioles: 58-62" beneath it. Anything ordered beside a matchup
-/// comes from `orderByMatchup`, which is the rule `PickemView` learned the third
-/// time this transposition appeared.
-let recordsLine (r: ScoutingReport) : string =
-    let (firstName, firstRec), (secondName, secondRec) =
-        orderByMatchup r.Sport (r.Home, r.HomeRecord) (r.Away, r.AwayRecord)
-    sprintf "%s: %s · %s: %s" firstName (recordText firstRec) secondName (recordText secondRec)
+/// The screenshot that prompted this file shows a header reading
+/// "Orioles @ Twins" above a records line reading "Twins ... Orioles". Nothing
+/// here orders a pair except through `orderByMatchup`.
+let headerText (r: ScoutingReport) = matchupText r.Sport r.Home r.Away
 
-/// The pitcher rows, in the same order as the records line and the header.
-///
-/// Production labels these "away first then home" while the records line is home
-/// first. One card, two orders, neither of them stated.
-let pitcherRows (r: ScoutingReport) : (string * Pitcher) list =
-    let first, second =
-        orderByMatchup r.Sport (r.Home, r.HomePitcher) (r.Away, r.AwayPitcher)
-    [ first; second ]
-
-/// Everything this report could not resolve, as one list.
-///
-/// The point of collecting them: a report with four silent gaps looks exactly
-/// like a complete one, row by row. Counted together they are visible.
-let gaps (r: ScoutingReport) : string list =
-    [ match r.Park with
-      | ParkUnknown venue -> yield sprintf "no park factor for %s" venue
-      | ParkKnown _ -> ()
-      match r.Umpire with
-      | UmpireUnrated name -> yield sprintf "no rating for umpire %s" name
-      | UmpireRated _ -> ()
-      for label, p in [ "home", r.HomePitcher; "away", r.AwayPitcher ] do
-          match p with
-          | PitcherUnenriched(name, missing) ->
-              yield sprintf "%s pitcher %s: %s" label name (String.concat ", " missing)
-          | PitcherEnriched _ -> ()
-      match r.HomeRecord, r.AwayRecord with
-      | RecordUnknown, RecordUnknown -> yield "neither record resolved"
-      | RecordUnknown, _ -> yield sprintf "no record for %s" r.Home
-      | _, RecordUnknown -> yield sprintf "no record for %s" r.Away
-      | _ -> () ]
+/// The two sides, in the header's order. Kept because anything that ever lists
+/// both teams must come from here rather than from a rule that agrees today.
+let sidesInHeaderOrder (r: ScoutingReport) : string * string =
+    orderByMatchup r.Sport r.Home r.Away
