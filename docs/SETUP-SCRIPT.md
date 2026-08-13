@@ -70,6 +70,46 @@ apt reports them as warnings, still exits 0, and the Ubuntu archives it actually
 needs are reachable. Recorded so the noise in the setup log is not mistaken for
 the cause of a failure.
 
+### How to tell whether it actually ran
+
+A working `dotnet --version` proves nothing about the setup script, because the
+SessionStart fallback produces exactly the same result. The two are
+distinguishable from inside any session, because `apt` records the command line
+it was invoked with — options included — in `/var/log/apt/history.log`:
+
+```bash
+grep -B1 -A1 'Commandline.*dotnet-sdk-10.0' /var/log/apt/history.log
+```
+
+- `apt-get -o DPkg::Lock::Timeout=60 install ...` → the **setup script** ran.
+- `apt-get install ...` (no `-o`) → `scripts/install_dotnet.sh` ran, i.e. the
+  setup-script field is not in effect and the fallback covered for it.
+- **No 2026 entry at all** → the SDK came from the environment's cached
+  snapshot, which is the fully-working steady state.
+
+That `-o` flag was added as a hang guard, but it doubles as a fingerprint. Keep
+it on the `install` line, not just `update`, so the distinction stays readable.
+
+Corroborate with the clock. `/proc/uptime` gives the boot time; the setup script
+runs to completion *before* the session starts, so a `history.log` entry that
+begins fewer than ~30 seconds after boot cannot be the setup script — a cold run
+of it measures 31.6s on its own.
+
+**Measured 2026-08-09, session `dotnet-sdk-setup-bvtxkh`:** boot 23:15:30,
+dotnet install `23:15:56 → 23:16:05`, command line recorded with no `-o` flag.
+Both signals agree: the setup-script field was **not** in effect, and the
+SessionStart fallback installed the SDK 26 seconds after boot. The session was
+fully functional — `dotnet 10.0.110`, `fable 5.13.0` restored, `npm run build`
+compiled 13 source files in 14.8s, `npm run check` 6/6 — so the fallback did its
+job. The ~30s cold-start cost is the thing still being paid, and pasting the
+script into the field is still what removes it.
+
+The method was verified rather than assumed: installing an unrelated package
+*with* the flag (`apt-get -o DPkg::Lock::Timeout=60 install -y tree`) and
+reading it back out of `history.log` confirms apt preserves `-o` options
+verbatim, so their absence on the dotnet entry is real evidence and not a
+logging artifact.
+
 ## Why it belongs there and not in the repo
 
 Claude Code's cloud-environments documentation draws the line explicitly:

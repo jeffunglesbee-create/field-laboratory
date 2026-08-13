@@ -203,3 +203,53 @@ rather than described.
 The mutation row was downstream of the other three, as its baseline runs the
 rows it depends on. I said that once today about a different pair and was wrong,
 so it is stated here as what the next run showed rather than as a diagnosis.
+
+---
+
+## Branch audit: one thing was worth bringing over, and it was not code
+
+Three stale remote branches were checked for work main lacks. The question is
+not "does the branch differ from main" — of course it does, main has moved — but
+"is there content here that main does not have".
+
+**`claude/venue-aliases`** — the two commits squashed into main earlier today.
+All four imported data files byte-identical, no files dropped, the 18 differing
+lines are the edits themselves. Nothing to push.
+
+**`claude/laboratory-desk-scoreboard-q9wmin`** — 4 commits, and this is the one
+worth naming, because a careless merge would have been a **regression**:
+
+```
+-          staticNode "desk-card__teams" "" (sprintf "%s @ %s" game.Away game.Home)
+-    | Final(h, a, _) -> sprintf "%d–%d" a h
+-      Sport: string
+-      Date: string
+```
+
+Hardcoded away-at-home ordering, and `Sport`/`Date` as raw strings. Those are
+precisely the primitives the `Sport` union and `FieldDay` replaced — which *is*
+the AFL home/away fix and the timezone fix. Pushing that branch would have
+reverted the two bugs this repo exists to have eliminated. Its local ref was an
+ancestor of main and carried nothing unique; `git branch -d` refused only
+because the ref was *behind* its remote, which is a different fact.
+
+**`claude/dotnet-sdk-setup-bvtxkh`** — the exception. Its code lines are
+superseded like the others, but `docs/SETUP-SCRIPT.md` carries a section main
+never received: **"How to tell whether it actually ran"**. Main's copy does not
+mention `history.log` at all.
+
+It answers a question that otherwise cannot be answered from inside a session — a
+working `dotnet --version` proves nothing, because the SessionStart fallback
+produces exactly the same result. The setup script and the fallback are
+distinguishable because `apt` records its command line verbatim, and the
+`-o DPkg::Lock::Timeout=60` hang guard doubles as a fingerprint.
+
+Kept because it is *verified rather than asserted*: the method was confirmed by
+installing an unrelated package with the flag and reading it back out of
+`history.log`, so the flag's absence on the dotnet entry is evidence and not a
+logging artifact. It also corroborates against `/proc/uptime`, and records a
+measured run. That is the standard this repo asks for, and it was sitting on a
+branch nobody would have read again.
+
+Brought across verbatim — the file is now byte-identical to the branch's version
+and the heading order matches.
