@@ -61,6 +61,26 @@ jobs:
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
           set -e
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
+
+          # Which venue names in today's real slate fail to find their park.
+          #
+          # NOT a failure condition, deliberately. Every park in the table is
+          # already proven reachable at generation time; what this catches is
+          # the open half — a name no imported source used, from a new stadium,
+          # a rename, or a vocabulary this repo has not met. An unresolved name
+          # already behaves correctly (the row stays absent rather than showing
+          # another stadium's numbers), so this is a discovery signal, and
+          # failing the sentinel on news about the world would train everyone
+          # to ignore it.
+          #
+          # It lands in the drift log because that is the one file anyone reads
+          # afterwards. A warning in a run log is a warning nobody sees.
+          set +e
+          node scripts/venue-coverage-check.mjs --report --url "$URL" | tee /tmp/venues.txt
+          set -e
+          VC=$(grep '^VENUE_COVERAGE ' /tmp/venues.txt | tail -1 || true)
+          echo "venues=$(echo "$VC" | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+          echo "unresolved=$(echo "$VC" | awk '{print $3}')" >> "$GITHUB_OUTPUT"
           # RESULT|source|status|games|malformed|note
           grep '^RESULT|' /tmp/out.txt | tail -1 > /tmp/result.txt || echo "RESULT|$URL|no-result|0|0|sentinel produced no RESULT line" > /tmp/result.txt
 
@@ -103,6 +123,13 @@ jobs:
               echo "| run (UTC) | payload date | games | status | malformed | note |"
               echo "| --- | --- | --- | --- | --- | --- |"
             } > outbox/drift-log.md
+          fi
+          # Unresolved venues ride in the note column rather than as a new
+          # column: the log has history, and widening the table would leave
+          # every earlier row misaligned to carry a fact that is usually zero.
+          VU="${{ steps.sentinel.outputs.unresolved }}"
+          if [ -n "$VU" ] && [ "$VU" != "[]" ]; then
+            NOTE="${NOTE:+$NOTE; }unresolved venues: $VU"
           fi
           printf '| %s | %s | %s | %s | %s | %s |\n' \
             "$(date -u +'%Y-%m-%d %H:%M')" "${{ steps.sentinel.outputs.date }}" \

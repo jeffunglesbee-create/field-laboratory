@@ -400,6 +400,41 @@ const MUTATIONS = [
     // 128 -> 999 rather than a plausible number on purpose. A mutation that
     // could pass for real data would make a survivor hard to tell from a
     // legitimate table update.
+    // The regression this whole alias table exists to prevent: exact-label-only
+    // matching, which silently drops the PARK row for every payload that uses a
+    // different name for the same stadium. It shipped that way, and the
+    // counterexample was already sitting in a fixture this repo had read.
+    id: 'alias-table-bypassed',
+    file: 'src/Scouting.fs',
+    claim: 'a venue name that differs from the park table label still finds its park',
+    find: '    parkAliases\n    |> List.tryFind (fun (alias, _) -> alias = venue)\n    |> Option.bind (fun (_, label) -> parkFactors |> List.tryFind (fun p -> p.Venue = label))',
+    replace: '    parkFactors |> List.tryFind (fun p -> p.Venue = venue)',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    // The other direction, and the more dangerous one. Substring resolution
+    // would make every alias check above pass while putting one stadium's run
+    // factor on another stadium's game. Exactness is the claim, so exactness
+    // needs its own mutation.
+    id: 'alias-resolution-becomes-substring',
+    file: 'src/Scouting.fs',
+    claim: 'venue resolution is exact, never a contains',
+    find: '    |> List.tryFind (fun (alias, _) -> alias = venue)',
+    replace: '    |> List.tryFind (fun (alias, _) -> venue.Contains alias)',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    // The generator's own guard against a known-gaps list that has quietly
+    // stopped being true. Listing a park that IS reachable must stop the build,
+    // or the list decays into a comment that lies.
+    id: 'stale-gap-list-tolerated',
+    file: 'scripts/generate-scouting.mjs',
+    claim: 'a known-gaps entry that is no longer true stops the build',
+    find: "  'Truist Park': 'not in production\\'s VENUE_COORDS at all',",
+    replace: "  'Truist Park': 'not in production\\'s VENUE_COORDS at all',\n  'Fenway Park': 'deliberately wrong, to prove the stale check fires',",
+    expect: 'node scripts/run-row.mjs "generated source matches its generator and data"',
+  },
+  {
     id: 'generated-table-hand-edited',
     file: 'src/Scouting.fs',
     claim: "a hand edit to generated source is caught, not silently carried",
@@ -519,11 +554,16 @@ const MUTATIONS = [
     // Rule 1, mechanised. Production's own CC-CMD: "Do not invent a park factor
     // to fill a row. If the venue genuinely has no published factor, the honest
     // outcome is that the row stays absent."
+    // RETARGETED. The anchor was the old one-line body of `tryParkByVenue`,
+    // which the alias table replaced — and the harness failed the row with "the
+    // mutation anchor still exists" rather than quietly skipping a mutation it
+    // could no longer apply. That distinction is the only reason this was
+    // noticed: a skipped mutation reads as a passing suite.
     id: 'missing-park-factor-invented',
     file: 'src/Scouting.fs',
     claim: 'a venue with no published factor keeps no row rather than gaining an invented one',
-    find: '    parkFactors |> List.tryFind (fun p -> p.Venue = venue)',
-    replace: '    parkFactors |> List.tryFind (fun p -> p.Venue = venue) |> Option.orElse (List.tryHead parkFactors)',
+    find: '    |> Option.bind (fun (_, label) -> parkFactors |> List.tryFind (fun p -> p.Venue = label))',
+    replace: '    |> Option.bind (fun (_, label) -> parkFactors |> List.tryFind (fun p -> p.Venue = label))\n    |> Option.orElse (List.tryHead parkFactors)',
     expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
   },
   {

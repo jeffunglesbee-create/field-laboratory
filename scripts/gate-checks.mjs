@@ -118,9 +118,17 @@ const rows = [
       !/warning (FS|NU)\d+/.test(
         execSync('dotnet build src/Laboratory.fsproj --no-restore', { encoding: 'utf8' })) },
 
+  // Third conjunct: every MLB venue named in those captures must actually find
+  // its park. Decoding a capture and rendering it are different claims, and the
+  // gap between them is where the PARK row was lost — the lookup was verified
+  // on two venues out of thirty while a counterexample ("Oriole Park at Camden
+  // Yards" against a table that says "Camden Yards") sat in a production
+  // fixture this repo had already read. Same captures, so no new fixture and no
+  // new row; the claim is just no longer half-checked.
   { name: 'decoders accept both real captures', weight: 30,
     run: () => ok('node scripts/drift-check.mjs --file data/context-2026-05-15.json') &&
-               ok('node scripts/drift-check.mjs --file data/games-2026-08-09.json') },
+               ok('node scripts/drift-check.mjs --file data/games-2026-08-09.json') &&
+               ok('node scripts/venue-coverage-check.mjs') },
 
   { name: 'decoders still REJECT the corrupted fixture', weight: 20,
     run: () => fails('node scripts/drift-check.mjs --file test/malformed-nested.json') },

@@ -39,6 +39,118 @@ const OUT = 'src/Scouting.fs'
 
 const park = JSON.parse(readFileSync('data/production-park-factors.json', 'utf8'))
 const ump = JSON.parse(readFileSync('data/production-umpire-abs.json', 'utf8'))
+const venueNames = JSON.parse(readFileSync('data/production-venue-names.json', 'utf8'))
+
+// ── venue aliases ───────────────────────────────────────────────────────────
+//
+// The park table and the payloads do not agree on what venues are called. Four
+// confirmed disagreements out of thirty, and one of them was found in a fixture
+// this repo had already read: the table says "Camden Yards", statsapi says
+// "Oriole Park at Camden Yards", production's venue map says "Oriole Park,
+// Baltimore".
+//
+// THE RULE THIS FILE OBEYS: fuzzy matching may raise an alarm, never decide a
+// result. Every alias below resolves by EXACT string equality at run time. The
+// mechanical rules only propose candidates here, at generation time, where an
+// ambiguity is a build failure rather than a silently wrong row.
+//
+// The reason is not squeamishness. Substring resolution has cost this project
+// three separate bugs: production's `teamNick()` drops a whole records line on
+// it; a check written in this repo to catch a "+0%" rendering bug was defeated
+// because "+0% runs" contains "0% runs"; and a grep for consumers of `tryPark`
+// found one only because `tryParkByVenue` contains it.
+//
+// Renames and genuinely different vocabularies. Each is a fact about the world,
+// not a guess, and each says where it came from.
+const OVERRIDES = {
+  // statsapi's full formal name; the fixture this repo already had.
+  'Oriole Park at Camden Yards': 'Camden Yards',
+  // production's venue map uses the short formal name + city.
+  'Oriole Park, Baltimore': 'Camden Yards',
+  'Oriole Park': 'Camden Yards',
+  // Guaranteed Rate Field was renamed Rate Field; production's venue map still
+  // carries the old name, which is exactly why the old name needs to resolve.
+  'Guaranteed Rate Field': 'Rate Field',
+  'Guaranteed Rate Field, Chicago': 'Rate Field',
+  // The venue map pluralises it; the park table does not. One character, and
+  // no rule short of an explicit statement should be trusted to bridge it.
+  'Angels Stadium': 'Angel Stadium',
+}
+
+// Parks that no imported name reaches, acknowledged rather than discovered
+// later. The check below FAILS on any park not listed here and not reachable,
+// which is what makes this list the complete statement it looks like.
+const NO_IMPORTED_ALIAS = {
+  // Confirmed absent from production's venue map, which is also why the
+  // Weather tab has no reading for them — recorded already as an open gap.
+  'Truist Park': 'not in production\'s VENUE_COORDS at all',
+  'Sutter Health Park': 'not in production\'s VENUE_COORDS at all',
+  'Target Field': 'not in production\'s VENUE_COORDS at all',
+  'PNC Park': 'not in production\'s VENUE_COORDS at all',
+  'Citi Field': 'not in production\'s VENUE_COORDS at all',
+}
+
+const labels = new Set(Object.values(park.data).map(v => v.label))
+
+/** alias -> park label. Seeded with every label mapping to itself. */
+const aliases = new Map([...labels].map(l => [l, l]))
+const importedFor = new Map([...labels].map(l => [l, 0]))
+
+const claim = (alias, label, why) => {
+  const existing = aliases.get(alias)
+  if (existing && existing !== label) {
+    console.log(`::error::venue name ${JSON.stringify(alias)} maps to BOTH ` +
+      `${JSON.stringify(existing)} and ${JSON.stringify(label)} (${why}). ` +
+      `An ambiguous alias would silently pick one park for another's game.`)
+    process.exit(1)
+  }
+  aliases.set(alias, label)
+}
+
+for (const name of venueNames.names) {
+  if (OVERRIDES[name]) {
+    if (!labels.has(OVERRIDES[name]))
+      fail(`override ${JSON.stringify(name)} points at ${JSON.stringify(OVERRIDES[name])}, which is not a park label`)
+    claim(name, OVERRIDES[name], 'override')
+    importedFor.set(OVERRIDES[name], importedFor.get(OVERRIDES[name]) + 1)
+    continue
+  }
+  // Exact, or exact on the segment before the comma — production's venue map
+  // carries both "Oracle Park" and "Oracle Park, San Francisco" because both
+  // forms appear in real payloads. That is a suffix, not a similarity.
+  const stem = name.split(',')[0].trim()
+  if (labels.has(name) || labels.has(stem)) {
+    const label = labels.has(name) ? name : stem
+    claim(name, label, 'exact or city-suffixed')
+    importedFor.set(label, importedFor.get(label) + 1)
+  }
+  // Anything else is not an MLB park — production's venue map also holds
+  // soccer, AFL, tennis and golf venues. Unmapped names are not an error, and
+  // they are not the risk either: the risk is a PARK with no name reaching it,
+  // which is what the check below enumerates.
+}
+
+// The invariant, inverted so it is bounded and enumerable. "Did I miss a name?"
+// is unanswerable — the set of names payloads may use is open. "Is every one of
+// these thirty parks reachable from an imported name?" is a question with
+// exactly thirty answers, and it fails loudly on the ones that disagree.
+const unreachable = [...labels].filter(l => importedFor.get(l) === 0 && !NO_IMPORTED_ALIAS[l])
+if (unreachable.length) {
+  for (const l of unreachable) {
+    console.log(`::error::no imported venue name reaches ${JSON.stringify(l)} — ` +
+      `either add an OVERRIDES entry naming the real-world form, or list it in ` +
+      `NO_IMPORTED_ALIAS with the reason it is genuinely absent upstream`)
+  }
+  process.exit(1)
+}
+const stale = Object.keys(NO_IMPORTED_ALIAS).filter(l => (importedFor.get(l) ?? 0) > 0)
+if (stale.length) {
+  // A list of known gaps that has quietly stopped being true is a comment that
+  // lies. If production adds the venue, this says so instead of ageing.
+  for (const l of stale)
+    console.log(`::error::${JSON.stringify(l)} is listed in NO_IMPORTED_ALIAS but an imported name now reaches it — remove the entry`)
+  process.exit(1)
+}
 
 const TIERS = {
   extreme_pitcher: 'ExtremePitchersPark',
@@ -93,6 +205,10 @@ const umpRows = Object.entries(ump.data)
         : fail(`unknown weak zone ${JSON.stringify(v.weakness)} for ${name}`)
     return `      umpire ${fsStr(name)} ${v.challenged} ${v.overturned} (${zone})`
   })
+
+const aliasRows = [...aliases.entries()]
+  .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+  .map(([alias, label]) => `      ${fsStr(alias)}, ${fsStr(label)}`)
 
 const out = `// GENERATED by scripts/generate-scouting.mjs. Do not edit by hand.
 //
@@ -232,8 +348,37 @@ ${umpRows.join('\n')}
 /// the answer to the open half of that CC-CMD's Gap 1 — the entry exists, the
 /// key does not match, and that is an aliasing fix rather than a missing
 /// number to invent.
+/// Every name a payload is known to use for a park, mapped to that park's label.
+///
+/// Imported, not invented — built at generation time from production's own
+/// \`VENUE_COORDS\` keys and its recorded statsapi fixture. Ambiguity is a build
+/// failure, and every park is required to be reachable or explicitly recorded
+/// as absent upstream.
+let private parkAliases : (string * string) list =
+    [
+${aliasRows.join('\n')}
+    ]
+
+/// Look up a park by venue name — which is what the payload actually carries.
+///
+/// Production reads \`game._homeAbbr || game.homeTeam\` and its own
+/// CC-CMD-2026-08-12-scouting-coverage-gaps records two games losing the PARK
+/// row to that chain. \`/context/date\` has no abbreviation field at all, but it
+/// does carry \`venue\`, so the row keys on the thing the payload has.
+///
+/// EXACT equality against the alias table, never a prefix or a contains. An
+/// unknown name yields None and the row stays absent — production's Rule 1, and
+/// the reason this is not a normaliser.
+///
+/// Worth recording while looking at this: the table has no \`ATH\` key. The
+/// Athletics' factors sit under \`OAK\` against "Sutter Health Park", which is
+/// the answer to the open half of that CC-CMD's Gap 1 — the entry exists, the
+/// key does not match, and that is an aliasing fix rather than a missing
+/// number to invent.
 let tryParkByVenue (venue: string) : ParkFactor option =
-    parkFactors |> List.tryFind (fun p -> p.Venue = venue)
+    parkAliases
+    |> List.tryFind (fun (alias, _) -> alias = venue)
+    |> Option.bind (fun (_, label) -> parkFactors |> List.tryFind (fun p -> p.Venue = label))
 
 /// Look up an umpire by last name, lowercased — the pipeline's own key shape.
 ///
@@ -256,7 +401,7 @@ let tryUmpire (lastName: string) : UmpireRating option =
 if (process.argv.includes('--check')) {
   const current = existsSync(OUT) ? readFileSync(OUT, 'utf8') : null
   if (current === out) {
-    console.log(`${OUT} matches its generator (${parkRows.length} parks, ${umpRows.length} umpires)`)
+    console.log(`${OUT} matches its generator (${parkRows.length} parks, ${umpRows.length} umpires, ${aliasRows.length} aliases)`)
     process.exit(0)
   }
   console.log(`::error::${OUT} does not match what scripts/generate-scouting.mjs produces from ` +
@@ -267,4 +412,5 @@ if (process.argv.includes('--check')) {
 }
 
 writeFileSync(OUT, out)
-console.log(`${OUT}: ${parkRows.length} parks, ${umpRows.length} umpires`)
+console.log(`${OUT}: ${parkRows.length} parks, ${umpRows.length} umpires, ${aliasRows.length} venue aliases`)
+console.log(`  every park reachable by an imported name, except ${Object.keys(NO_IMPORTED_ALIAS).length} recorded as absent upstream`)

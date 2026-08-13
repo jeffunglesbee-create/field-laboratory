@@ -215,8 +215,84 @@ let umpireRatings : UmpireRating list =
 /// the answer to the open half of that CC-CMD's Gap 1 — the entry exists, the
 /// key does not match, and that is an aliasing fix rather than a missing
 /// number to invent.
+/// Every name a payload is known to use for a park, mapped to that park's label.
+///
+/// Imported, not invented — built at generation time from production's own
+/// `VENUE_COORDS` keys and its recorded statsapi fixture. Ambiguity is a build
+/// failure, and every park is required to be reachable or explicitly recorded
+/// as absent upstream.
+let private parkAliases : (string * string) list =
+    [
+      "American Family Field", "American Family Field"
+      "American Family Field, Milwaukee", "American Family Field"
+      "Angel Stadium", "Angel Stadium"
+      "Angels Stadium", "Angel Stadium"
+      "Busch Stadium", "Busch Stadium"
+      "Camden Yards", "Camden Yards"
+      "Chase Field", "Chase Field"
+      "Chase Field, Phoenix", "Chase Field"
+      "Citi Field", "Citi Field"
+      "Citizens Bank Park", "Citizens Bank Park"
+      "Citizens Bank Park, Philadelphia", "Citizens Bank Park"
+      "Comerica Park", "Comerica Park"
+      "Coors Field", "Coors Field"
+      "Dodger Stadium", "Dodger Stadium"
+      "Dodger Stadium, Los Angeles", "Dodger Stadium"
+      "Fenway Park", "Fenway Park"
+      "Fenway Park, Boston", "Fenway Park"
+      "Globe Life Field", "Globe Life Field"
+      "Globe Life Field, Arlington", "Globe Life Field"
+      "Great American Ball Park", "Great American Ball Park"
+      "Great American Ball Park, Cincinnati", "Great American Ball Park"
+      "Guaranteed Rate Field", "Rate Field"
+      "Guaranteed Rate Field, Chicago", "Rate Field"
+      "Kauffman Stadium", "Kauffman Stadium"
+      "Kauffman Stadium, Kansas City", "Kauffman Stadium"
+      "Minute Maid Park", "Minute Maid Park"
+      "Nationals Park", "Nationals Park"
+      "Oracle Park", "Oracle Park"
+      "Oracle Park, San Francisco", "Oracle Park"
+      "Oriole Park at Camden Yards", "Camden Yards"
+      "Oriole Park, Baltimore", "Camden Yards"
+      "PNC Park", "PNC Park"
+      "Petco Park", "Petco Park"
+      "Petco Park, San Diego", "Petco Park"
+      "Progressive Field", "Progressive Field"
+      "Progressive Field, Cleveland", "Progressive Field"
+      "Rate Field", "Rate Field"
+      "Rogers Centre", "Rogers Centre"
+      "Rogers Centre, Toronto", "Rogers Centre"
+      "Sutter Health Park", "Sutter Health Park"
+      "T-Mobile Park", "T-Mobile Park"
+      "Target Field", "Target Field"
+      "Tropicana Field", "Tropicana Field"
+      "Truist Park", "Truist Park"
+      "Wrigley Field", "Wrigley Field"
+      "Yankee Stadium", "Yankee Stadium"
+      "loanDepot park", "loanDepot park"
+      "loanDepot park, Miami", "loanDepot park"
+    ]
+
+/// Look up a park by venue name — which is what the payload actually carries.
+///
+/// Production reads `game._homeAbbr || game.homeTeam` and its own
+/// CC-CMD-2026-08-12-scouting-coverage-gaps records two games losing the PARK
+/// row to that chain. `/context/date` has no abbreviation field at all, but it
+/// does carry `venue`, so the row keys on the thing the payload has.
+///
+/// EXACT equality against the alias table, never a prefix or a contains. An
+/// unknown name yields None and the row stays absent — production's Rule 1, and
+/// the reason this is not a normaliser.
+///
+/// Worth recording while looking at this: the table has no `ATH` key. The
+/// Athletics' factors sit under `OAK` against "Sutter Health Park", which is
+/// the answer to the open half of that CC-CMD's Gap 1 — the entry exists, the
+/// key does not match, and that is an aliasing fix rather than a missing
+/// number to invent.
 let tryParkByVenue (venue: string) : ParkFactor option =
-    parkFactors |> List.tryFind (fun p -> p.Venue = venue)
+    parkAliases
+    |> List.tryFind (fun (alias, _) -> alias = venue)
+    |> Option.bind (fun (_, label) -> parkFactors |> List.tryFind (fun p -> p.Venue = label))
 
 /// Look up an umpire by last name, lowercased — the pipeline's own key shape.
 ///

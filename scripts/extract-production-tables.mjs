@@ -38,6 +38,13 @@ const arg = name => {
 const SRC = arg('from') || 'production/index.html'
 const OUT = arg('out') || 'data'
 
+// The venue-name sources. Both REQUIRED, not optional-with-a-skip: the whole
+// point is that the alias set is imported rather than typed, and a run that
+// quietly produced no aliases would leave the park lookup exactly as fragile as
+// it was while looking like it had been fixed.
+const VENUES = arg('venues') || 'production/src/utils/venues.js'
+const FIXTURE = arg('fixture') || 'production/docs/adapter-fixtures-mlb-ok.json'
+
 /**
  * Read one JS object literal by brace-matching from its declaration.
  *
@@ -172,6 +179,59 @@ for (const symbol of WIRING) {
   console.log(`  wiring ${symbol}: ${hits.length} occurrence(s)`)
 }
 writeFileSync(`${OUT}/production-wiring.json`, JSON.stringify(wiring, null, 2) + '\n')
+
+// --- venue-name variants ----------------------------------------------------
+//
+// The park lookup keys on the venue name the payload carries, and the payload
+// does not agree with production's park table about what venues are called.
+// Four confirmed disagreements out of thirty: the table says "Camden Yards"
+// while statsapi says "Oriole Park at Camden Yards" and production's own venue
+// map says "Oriole Park, Baltimore"; "Rate Field" vs "Guaranteed Rate Field";
+// "Angel Stadium" vs "Angels Stadium"; "Progressive Field" vs
+// "Progressive Field, Cleveland".
+//
+// The tempting fix is to normalise — strip the suffix, fuzzy-match the stem.
+// That is substring matching, which is the single failure this project keeps
+// paying for: production's `teamNick()` drops a records line on it, and a check
+// written HERE to catch a "+0%" bug was itself defeated by "+0% runs"
+// containing "0% runs".
+//
+// So the alias set is IMPORTED instead of inferred. `VENUE_COORDS` in
+// production's venue map is an empirically collected list — it carries both
+// "Oracle Park" and "Oracle Park, San Francisco" precisely because both forms
+// turn up in real payloads. That is field-collected evidence about what venues
+// are actually called, and it already exists.
+{
+  const venueSrc = readFileSync(VENUES, 'utf8')
+  const found = objectLiteralAfter(venueSrc, 'export const VENUE_COORDS = {')
+  if (found.error) failures.push(`venue map: ${found.error}`)
+  else {
+    const evaluated = evaluate(found.literal, 'VENUE_COORDS')
+    if (evaluated.error) failures.push(`venue map: ${evaluated.error}`)
+    else {
+      const fromMap = Object.keys(evaluated.value)
+
+      // The statsapi shape, which is a different vocabulary again — this is
+      // where "Oriole Park at Camden Yards" comes from, and it is the form
+      // laboratory will meet the moment it reads the schedule endpoint for the
+      // pitcher and records rows.
+      const fixture = JSON.parse(readFileSync(FIXTURE, 'utf8'))
+      const fromFixture = (fixture.games || [])
+        .map(g => g?.venue?.name)
+        .filter(Boolean)
+
+      const names = [...new Set([...fromMap, ...fromFixture])].sort()
+      writeFileSync(`${OUT}/production-venue-names.json`, JSON.stringify({
+        source: 'jubilant-bassoon src/utils/venues.js VENUE_COORDS keys + docs/adapter-fixtures-mlb-ok.json venue names',
+        fromVenueMap: fromMap.length,
+        fromStatsApiFixture: fromFixture.length,
+        names,
+      }, null, 2) + '\n')
+      console.log(`  venue names: ${names.length} distinct ` +
+        `(${fromMap.length} from the venue map, ${fromFixture.length} from the statsapi fixture)`)
+    }
+  }
+}
 
 if (failures.length) {
   console.log('')

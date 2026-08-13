@@ -559,6 +559,83 @@ let private stats =
           "jimenez"
           "parra"
 
+      // --- the venue vocabularies disagree, and that used to lose rows -----
+      //
+      // This is the check whose absence set a confidence docking. The park
+      // lookup was verified on TWO venues out of thirty — both from the one
+      // capture in this repo — while a confirmed counterexample sat in a
+      // production fixture already read: statsapi calls Camden Yards "Oriole
+      // Park at Camden Yards", and an exact match against the park table's
+      // label would have silently dropped Baltimore's PARK row.
+      Verify.check "the statsapi name for a park resolves to that park"
+          (fun (venue: string) ->
+              match Scouting.tryParkByVenue venue with
+              | Some f -> Scouting.venueOf f = "Camden Yards"
+              | None -> false)
+          "Oriole Park at Camden Yards"
+          "Oriole Park at Wrigley Field"
+
+      // Production's venue map still carries the pre-rename name, which is
+      // exactly why the pre-rename name has to resolve.
+      Verify.check "a renamed park resolves under its former name"
+          (fun (venue: string) ->
+              match Scouting.tryParkByVenue venue with
+              | Some f -> Scouting.venueOf f = "Rate Field"
+              | None -> false)
+          "Guaranteed Rate Field"
+          "Rate Stadium"
+
+      // One character apart, and no rule short of an explicit statement should
+      // be trusted to bridge it.
+      Verify.check "a park whose map entry is pluralised still resolves"
+          (fun (venue: string) ->
+              (Scouting.tryParkByVenue venue).IsSome)
+          "Angels Stadium"
+          "Angel Field"
+
+      // The city-suffixed form, which is most of the imported variants.
+      Verify.check "the city-suffixed form of a venue resolves to the same park"
+          (fun (a: string, b: string) ->
+              Scouting.tryParkByVenue a = Scouting.tryParkByVenue b)
+          ("Oracle Park", "Oracle Park, San Francisco")
+          ("Oracle Park", "Petco Park, San Diego")
+
+      // EXACT, never a prefix or a contains. The whole alias table exists so
+      // that resolution never has to be similar to anything — a name that
+      // merely contains a known one must NOT resolve, or the table has bought
+      // nothing over the substring matching it replaced.
+      Verify.check "a name that merely contains a known venue does not resolve"
+          (fun (venue: string) -> (Scouting.tryParkByVenue venue).IsNone)
+          "Old Yankee Stadium Site"
+          "Yankee Stadium"
+
+      // Written first as "no venue name resolves to two different parks", which
+      // the harness returned NO TEETH for — correctly, and it is the better
+      // catch of the two. `tryParkByVenue` returns an OPTION, so resolving to
+      // two parks is not merely false, it is unrepresentable. The claim was
+      // guaranteed by the return type and therefore said nothing, and the
+      // empty-list counterexample passed vacuously through `List.forall` on top
+      // of that. Six of these now, all found by the harness rather than by me.
+      //
+      // The claim with content is that each alias lands on the park it names —
+      // an alias pointing at the WRONG park is the failure that would put one
+      // stadium's run factor on another stadium's game.
+      Verify.check "every alias lands on the park it names"
+          (fun (pairs: (string * string) list) ->
+              pairs
+              |> List.forall (fun (alias, expected) ->
+                  match Scouting.tryParkByVenue alias with
+                  | Some f -> Scouting.venueOf f = expected
+                  | None -> false))
+          [ "Oriole Park at Camden Yards", "Camden Yards"
+            "Oriole Park, Baltimore", "Camden Yards"
+            "Guaranteed Rate Field", "Rate Field"
+            "Angels Stadium", "Angel Stadium"
+            "Oracle Park, San Francisco", "Oracle Park"
+            "Progressive Field, Cleveland", "Progressive Field" ]
+          [ "Oriole Park at Camden Yards", "Camden Yards"
+            "Guaranteed Rate Field", "Wrigley Field" ]
+
       // A bare name is production's real output for an unrated umpire, and a
       // complete answer rather than a missing one.
       Verify.check "an unrated umpire renders as a bare name"
