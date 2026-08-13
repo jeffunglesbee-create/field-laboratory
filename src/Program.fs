@@ -282,9 +282,42 @@ let private start () =
             // Stats needs no fetch — every row it can fill comes from the slate
             // already decoded, and every row it cannot is named rather than
             // dropped. So it renders eagerly, unlike Weather.
-            match document.getElementById "panel-stats" with
-            | null -> ()
-            | mount -> StatsView.render mount games
+            // Stats renders EAGERLY with an empty schedule, then again when the
+            // schedule resolves. Not "wait for the fetch then render once": a
+            // slow or dead third-party call would leave the panel blank, and a
+            // blank panel is one of the three failure shapes this repo has
+            // already shipped green.
+            //
+            // Every row that comes from the slate is there immediately; the two
+            // that need the schedule appear when it lands, and never appear at
+            // all if it does not. Absent, never invented.
+            let renderStats (schedule: Schedule.ScheduledGame list) =
+                match document.getElementById "panel-stats" with
+                | null -> ()
+                | mount -> StatsView.render mount schedule games
+
+            renderStats []
+
+            // statsapi is CORS-open — production's own source registry records
+            // `corsAvailable: true` for it, and production calls it from the
+            // client directly. So there is no relay hop to add.
+            //
+            // Same rule as the weather chip, for the same reason: a page pinned
+            // to `?data=` is rendering a committed capture and must not reach
+            // the network, which is what keeps every render check free of a
+            // third-party request.
+            if (queryParam "data").IsNone && payload.Date <> "" then
+                Schedule.fetchSlate payload.Date
+                |> Promise.iter (fun outcome ->
+                    match outcome with
+                    | Ok [] -> report "schedule" "no MLB games scheduled for this date"
+                    | Ok scheduled ->
+                        report "schedule" (sprintf "%d scheduled game(s) decoded" (List.length scheduled))
+                        renderStats scheduled
+                    // Named, not swallowed. The six undefined weather functions
+                    // were invisible for three days because a try/catch ate the
+                    // error; a schedule that cannot be read says so.
+                    | Error e -> report "schedule" (sprintf "schedule unavailable — %s" e))
 
             weatherVenues <- games |> List.choose (fun g -> g.Venue) |> List.distinct
             weatherLoaded <- false

@@ -1,0 +1,106 @@
+{
+  "sourceId": "mlb-stats-api-official",
+  "date": "2026-06-29",
+  "note": "Real data from statsapi.mlb.com — confirmed via CF Worker html_probe 2026-06-29. NOT invented.",
+  "probeTimestamp": "2026-06-29",
+  "apiUrl": "https://statsapi.mlb.com/api/v1/schedule?sportId=1&date=2026-06-29&hydrate=broadcasts(all),team,linescore,probablePitcher(stats),officials",
+  "gameCount": 13,
+  "games": [
+    {
+      "gamePk": 824822,
+      "gameDate": "2026-06-29T22:35:00Z",
+      "officialDate": "2026-06-29",
+      "gameType": "R",
+      "season": "2026",
+      "status": {
+        "abstractGameState": "Preview",
+        "codedGameState": "S",
+        "detailedState": "Scheduled",
+        "statusCode": "S",
+        "startTimeTBD": false
+      },
+      "teams": {
+        "away": {
+          "team": {
+            "id": 145,
+            "name": "Chicago White Sox",
+            "abbreviation": "CWS",
+            "teamName": "White Sox",
+            "locationName": "Chicago",
+            "shortName": "Chi White Sox",
+            "link": "/api/v1/teams/145",
+            "active": true
+          },
+          "leagueRecord": { "wins": 43, "losses": 39, "ties": 0, "pct": ".524" },
+          "probablePitcher": { "id": 680732, "fullName": "Sean Burke", "link": "/api/v1/people/680732" },
+          "splitSquad": false,
+          "seriesNumber": 28
+        },
+        "home": {
+          "team": {
+            "id": 110,
+            "name": "Baltimore Orioles",
+            "abbreviation": "BAL",
+            "teamName": "Orioles",
+            "locationName": "Baltimore",
+            "shortName": "Baltimore",
+            "link": "/api/v1/teams/110",
+            "active": true
+          },
+          "leagueRecord": { "wins": 39, "losses": 46, "ties": 0, "pct": ".459" },
+          "probablePitcher": { "id": 669358, "fullName": "Shane Baz", "link": "/api/v1/people/669358" },
+          "splitSquad": false,
+          "seriesNumber": 28
+        }
+      },
+      "linescore": {
+        "scheduledInnings": 9,
+        "innings": [],
+        "teams": { "home": {}, "away": {} },
+        "defense": { "team": { "id": 110, "name": "Baltimore Orioles" } },
+        "offense": { "team": { "id": 145, "name": "Chicago White Sox" } }
+      },
+      "venue": { "id": 2, "name": "Oriole Park at Camden Yards", "link": "/api/v1/venues/2" },
+      "officials": [],
+      "broadcasts": [
+        {
+          "id": 581,
+          "name": "MASN",
+          "type": "TV",
+          "language": "en",
+          "isNational": false,
+          "callSign": "MASN",
+          "homeAway": "home",
+          "freeGame": false,
+          "availableForStreaming": true,
+          "broadcastDate": "2026-06-29"
+        },
+        {
+          "id": 6240,
+          "name": "Chicago Sports Network",
+          "type": "TV",
+          "language": "en",
+          "isNational": false,
+          "callSign": "CHSN",
+          "homeAway": "away",
+          "freeGame": false,
+          "availableForStreaming": true,
+          "broadcastDate": "2026-06-29"
+        }
+      ],
+      "doubleHeader": "N",
+      "dayNight": "night",
+      "gamesInSeries": 3,
+      "seriesGameNumber": 1,
+      "scheduledInnings": 9
+    }
+  ],
+  "fieldNotes": {
+    "score": "teams.home.score and teams.away.score are absent for Scheduled games — normalizeMLBGame handles with ?? 0",
+    "linescore_live_fields": "currentInning/inningHalf/outs absent for Scheduled games — present only for In Progress/Final games",
+    "probablePitcher_stats": "probablePitcher in schedule response has id/fullName/link only — stats NOT embedded even with probablePitcher(stats) hydration; normalizeMLBPitcher returns null for stats fields",
+    "officials": "officials[] is empty for Scheduled games — present (with umpire objects) for In Progress/Final games",
+    "abbreviation": "teams.home.team.abbreviation REQUIRES the 'team' hydration parameter — not present with just 'teams' hydration",
+    "d_bug": "FIXED 2026-06-29: fetchMLBSchedule L19665 was normalizeMLBGame(g, d) — d was undefined. Fixed to normalizeMLBGame(g, date)."
+  }
+}

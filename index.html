@@ -299,6 +299,10 @@
   <div class="meta">
     <div id="decode-status">decoding…</div>
     <div id="units-demo"></div>
+    <!-- What the MLB schedule fetch did. `report` writes by element id, so an id
+         nothing renders is a silent no-op — which is how a status line comes to
+         report nothing while looking like it reports something. -->
+    <div id="schedule"></div>
   </div>
   <div role="tabpanel" id="panel-scoreboard" aria-labelledby="tab-scoreboard" tabindex="0">
     <div id="desk"></div>

@@ -17,10 +17,31 @@
 
 import { chromium } from 'playwright'
 import { existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, fieldDay } from './checks.mjs'
 
 const { check, summarize } = createChecks()
-const DATE = '2026-08-12'
+// The slate's date, which MUST be in the future.
+//
+// A past date sweeps every fixture to Final through the date-passed rule, and
+// then "in progress reads LIVE" gets CORRECT, "a 0-0 fixture that has not
+// kicked off reads PENDING" gets DRAWN, and the banner counts a slate that no
+// longer exists. All three assert about game states the page can no longer be
+// in.
+//
+// This was the literal '2026-08-12', with a comment saying it was "deliberately
+// a future date". That was true when it was written and stopped being true at
+// midnight ET on the 13th — at which point main went red, for a reason nothing
+// in the diff explains, because no diff caused it.
+//
+// Third time this repo has found that shape: `GATE_DAY` in the gate's outbox
+// row, `NOW` in zone-check, and now this. Derived from the FIELD day rather
+// than pinned, so it cannot expire again. Noon UTC to stay clear of the DST
+// boundary when adding a day.
+const DATE = (() => {
+  const d = new Date(`${fieldDay()}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + 1)
+  return d.toISOString().slice(0, 10)
+})()
 
 const game = (id, sport, home, away, extra = {}) => ({
   id, sport, league: sport, date: DATE, home, away,

@@ -1,0 +1,105 @@
+// Do the pitcher and records rows actually appear on a real page?
+//
+// Everything else about these two rows is proven offline against a recorded
+// capture: the decoder, the venue join, the record formatting, the refusal of a
+// blank pitcher name. None of that shows the rows on a screen. The gap between
+// "the decoder is correct" and "the reader sees it" is where this repo has lost
+// rows before — the PARK row was decoded fine and rendered nowhere for two
+// games, because the lookup key never matched.
+//
+// So this loads the page with NO `?data=` pin, which is the only configuration
+// where the schedule fetch runs at all, and asserts the rows are in the DOM
+// with real values in them. It needs live statsapi and the live relay, and the
+// agent sandbox is 403 at the proxy for both, so it runs on a runner.
+//
+// WHAT IT DOES NOT DO: fail because tonight has no MLB games. A slate with no
+// baseball is a fact about the day, not a regression, and failing on it would
+// make this red on a Tuesday in February and trained-ignored by March. The BSD
+// probe next door learned the same thing the same week — its first run reported
+// three broken routes because it happened to probe a fixture that had not
+// kicked off, and only 2 of 48 events were playable.
+
+import { existsSync } from 'node:fs'
+import { chromium } from 'playwright'
+import { createChecks } from './checks.mjs'
+
+const URL = process.env.URL || 'http://localhost:8080/'
+
+const sessionChromium = '/opt/pw-browsers/chromium'
+const browser = await chromium.launch(
+  existsSync(sessionChromium) ? { executablePath: sessionChromium } : {})
+const page = await browser.newPage()
+
+const errors = []
+page.on('pageerror', e => errors.push(e.message))
+page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
+
+await page.goto(URL, { waitUntil: 'networkidle' })
+await page.click('#tab-stats')
+
+// The schedule lands after the first render, on purpose — the panel is drawn
+// immediately from the slate and redrawn when the fetch resolves. So the rows
+// cannot be read synchronously, and waiting for a selector that may legitimately
+// never appear needs a bounded wait rather than a hard one.
+await page.waitForSelector('.st-card [data-row="records"]', { timeout: 20_000 })
+  .catch(() => {})
+
+const seen = await page.evaluate(() => {
+  const cards = [...document.querySelectorAll('.st-card')]
+  return {
+    cards: cards.length,
+    // Every row rendered, by label, with its text — so a row that is present
+    // but empty is distinguishable from one that is absent. "Present" alone was
+    // the check that let an empty R2 object read as healthy in production.
+    records: cards.flatMap(c => [...c.querySelectorAll('[data-row="records"] .st-row__value')]
+      .map(v => v.textContent.trim())),
+    pitchers: cards.flatMap(c => [...c.querySelectorAll('.st-row')]
+      .filter(r => !['records', 'park', 'umpire', 'venue', 'market', 'drama', 'broadcast', 'overtime']
+        .includes(r.getAttribute('data-row')))
+      .map(r => r.querySelector('.st-row__value')?.textContent.trim())),
+    // The status line the page reports for the fetch, whatever it says.
+    note: document.querySelector('#schedule')?.textContent?.trim() || '(none)',
+  }
+})
+
+await browser.close()
+
+const { check, summarize } = createChecks()
+
+console.log(`\n${seen.cards} stats card(s); schedule note: ${seen.note}`)
+console.log(`records rows: ${JSON.stringify(seen.records)}`)
+console.log(`pitcher rows: ${JSON.stringify(seen.pitchers)}\n`)
+
+check('the page rendered stats cards at all', seen.cards > 0,
+  'no .st-card on the page, so nothing below could be true')
+
+check('no page errors during the schedule fetch', errors.length === 0, errors.join('\n      → '))
+
+if (seen.records.length === 0) {
+  // Not a failure. Reported loudly so a green run cannot be mistaken for a run
+  // that saw the rows.
+  console.log('NOTE  no records row rendered. That is correct when the slate has no MLB game')
+  console.log('      whose venue resolves to a park — this asserts nothing about the rows today.')
+} else {
+  // A record must look like a record. "39–46", en dash, digits both sides.
+  const shaped = seen.records.every(t => /\d+–\d+(–\d+)?/.test(t))
+  check('every records row carries real W–L numbers', shaped,
+    `not W–L shaped: ${JSON.stringify(seen.records.filter(t => !/\d+–\d+(–\d+)?/.test(t)))}`)
+
+  // Both teams in one line, which is the shape that makes production's
+  // drop-both-when-one-misses bug unrepresentable here.
+  const bothSides = seen.records.every(t => (t.match(/:/g) || []).length === 2)
+  check('a records row names BOTH teams, never half a line', bothSides,
+    `half-populated: ${JSON.stringify(seen.records.filter(t => (t.match(/:/g) || []).length !== 2))}`)
+}
+
+if (seen.pitchers.length === 0) {
+  console.log('NOTE  no pitcher row rendered. Correct when no starter has been announced')
+  console.log('      for any resolvable game — this asserts nothing about the rows today.')
+} else {
+  const named = seen.pitchers.every(t => t && t.length > 1)
+  check('every pitcher row carries a name', named,
+    `blank or one-character: ${JSON.stringify(seen.pitchers.filter(t => !t || t.length <= 1))}`)
+}
+
+process.exit(summarize() === 0 ? 0 : 1)

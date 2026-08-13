@@ -404,6 +404,55 @@ const MUTATIONS = [
     // matching, which silently drops the PARK row for every payload that uses a
     // different name for the same stadium. It shipped that way, and the
     // counterexample was already sitting in a fixture this repo had read.
+    // Production's Gap 2 as a mutation. `if (hT && aT)` drops BOTH records when
+    // one team's lookup misses; the F# shape makes a half-populated line
+    // unbuildable because RecordsRow carries both sides in one case. This makes
+    // the record optional, which is the door that bug came through.
+    // The expiring-fixture bug, restored. pickem-check pinned its slate to the
+    // literal '2026-08-12' with a comment calling it "deliberately a future
+    // date" — true when written, false at midnight ET on the 13th, at which
+    // point three of its checks began asserting about game states the page can
+    // no longer be in and main went red with nothing in the diff to explain it.
+    //
+    // A fixed past date is what the mutation puts back, so the derivation from
+    // the FIELD day is defended rather than merely described.
+    id: 'pickem-date-pinned-to-the-past',
+    file: 'scripts/pickem-check.mjs',
+    claim: "the pick'em slate is always in the future, so nothing is swept to Final",
+    find: 'const DATE = (() => {',
+    replace: "const DATE = '2026-08-12'\nconst _unusedDate = (() => {",
+    expect: 'node scripts/run-row.mjs "pick\'em grades only finished games"',
+  },
+  {
+    id: 'record-becomes-optional',
+    file: 'src/Schedule.fs',
+    claim: 'a side without a record does not decode, so no half-line can be built',
+    find: '          Record = get.Required.Field "leagueRecord" recordDecoder',
+    replace: '          Record = get.Optional.Field "leagueRecord" recordDecoder |> Option.defaultValue { Wins = 0; Losses = 0; Ties = 0 }',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    // The wire shape. A decoder proven only against the flattened fixture
+    // passes every offline check and fails on the first live call — the venue
+    // lookup's exact failure, one file later.
+    id: 'live-envelope-unhandled',
+    file: 'src/Schedule.fs',
+    claim: "the live dates[].games envelope decodes, not just the recorded fixture's flat shape",
+    find: '          Decode.field "dates" (Decode.list (Decode.field "games" (Decode.list gameDecoder)))\n          |> Decode.map List.concat ]',
+    replace: '          Decode.fail "nested envelope not handled" ]',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    // A blank starter renders as a labelled row with nothing in it, which a
+    // reader cannot tell from a real one.
+    id: 'blank-pitcher-name-accepted',
+    file: 'src/Schedule.fs',
+    claim: 'an empty probable-pitcher name is refused rather than rendered blank',
+    find: '        if name.Trim() = "" then Decode.fail "probablePitcher.fullName is empty"',
+    replace: '        if false then Decode.fail "probablePitcher.fullName is empty"',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
     id: 'alias-table-bypassed',
     file: 'src/Scouting.fs',
     claim: 'a venue name that differs from the park table label still finds its park',

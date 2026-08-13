@@ -125,6 +125,20 @@ type Row =
     | ParkRow of factor: Scouting.ParkFactor
     /// The plate umpire, with a rating only if one exists for them.
     | UmpireRow of name: string * rating: Scouting.UmpireRating option
+    /// A probable starter. A NAME, because a name is all the payload has —
+    /// see `Schedule.fs`. The side is carried so the row can be labelled with
+    /// the team rather than "HOME"/"AWAY".
+    | PitcherRow of side: string * pitcher: Schedule.ProbablePitcher
+    /// Both teams' records, in one row and from one payload.
+    ///
+    /// A single case carrying BOTH sides, not two independent rows — production
+    /// renders "Home: 64–57 · Away: 47–73" as one line, and it drops the whole
+    /// line when either team's standings lookup misses. Here the records travel
+    /// with the game, so there is no lookup to miss; making it one case means
+    /// there is also no half-populated line to render.
+    | RecordsRow of
+        home: string * homeRecord: Schedule.TeamRecord *
+        away: string * awayRecord: Schedule.TeamRecord
     /// The venue and its roof, from the checked table.
     | VenueRow of name: string * roof: Weather.RoofType
     /// What the two odds snapshots do or do not say.
@@ -140,6 +154,11 @@ let rowLabel =
     function
     | ParkRow _ -> "PARK"
     | UmpireRow _ -> "UMPIRE"
+    // The team's own name, the way production labels these rows — "ROCKIES",
+    // "DIAMONDBACKS" — rather than a generic PITCHER. Two pitcher rows on one
+    // card sharing a label is a card the reader cannot read.
+    | PitcherRow(side, _) -> side.ToUpper()
+    | RecordsRow _ -> "RECORDS"
     | VenueRow _ -> "VENUE"
     | MarketRow _ -> "MARKET"
     | DramaRow _ -> "DRAMA"
@@ -183,6 +202,12 @@ let rowValue =
                 name
                 (int (System.Math.Round(Scouting.overturnRate r * 100.0)))
                 (Scouting.challengesOf r) weak
+    | PitcherRow(_, p) -> Schedule.pitcherName p
+    | RecordsRow(home, hr, away, ar) ->
+        // Home first, matching the header's own ordering rule rather than the
+        // payload's. Production renders "Diamondbacks: 64–57 · Rockies: 47–73"
+        // with the home side leading.
+        sprintf "%s: %s · %s: %s" home (Schedule.recordText hr) away (Schedule.recordText ar)
     | VenueRow(name, roof) ->
         let cover =
             match Weather.roofState roof with

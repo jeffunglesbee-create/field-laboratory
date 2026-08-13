@@ -72,7 +72,11 @@ let private renderReport (mount: HTMLElement) (report: ScoutingReport) (state: G
 ///
 /// Each row is added only when its data is there. A game with no broadcast
 /// listed gets no broadcast row — nothing claims one and fails.
-let reportFor (game: Game) : ScoutingReport =
+/// `schedule` is the MLB schedule slate, empty until it has been fetched (and
+/// permanently empty for a page pinned to a capture, which must not reach the
+/// network). An empty list yields no pitcher and no records rows — the same
+/// Rule 1 shape as everything else here: absent, never invented.
+let reportFor (schedule: Schedule.ScheduledGame list) (game: Game) : ScoutingReport =
     let state = gameState game
     let rows =
         [ // Production's park factors, keyed on the venue NAME rather than on a
@@ -98,6 +102,31 @@ let reportFor (game: Game) : ScoutingReport =
               let key = (official.Split(' ') |> Array.last).ToLower()
               yield UmpireRow(official, Scouting.tryUmpire key)
           | _ -> ()
+
+          // Probable starters and both records, from the schedule payload,
+          // joined on venue identity rather than on team names — see
+          // `Schedule.tryFindAtVenue` for why names cannot do that job.
+          //
+          // Both rows come from ONE lookup. Production reads records from a
+          // standings array and pitchers from the game, so the two can disagree
+          // about which game they describe; here they are the same object.
+          match game.Venue |> Option.bind (fun v -> Schedule.tryFindAtVenue v schedule) with
+          | None -> ()
+          | Some scheduled ->
+              let home = Schedule.homeOf scheduled
+              let away = Schedule.awayOf scheduled
+              // Away pitcher first, then home — production's own order for
+              // these two rows, and the order the header reads in.
+              match Schedule.pitcherOf away with
+              | Some p -> yield PitcherRow(Schedule.teamOf away, p)
+              | None -> ()
+              match Schedule.pitcherOf home with
+              | Some p -> yield PitcherRow(Schedule.teamOf home, p)
+              | None -> ()
+              // One row, both sides, home first — matching the header's
+              // ordering rule rather than the payload's.
+              yield RecordsRow(Schedule.teamOf home, Schedule.recordOf home,
+                               Schedule.teamOf away, Schedule.recordOf away)
 
           // The venue table is hand-reviewed and checked against Open-Meteo's
           // resolved timezone daily, so a venue it carries is a fact.
@@ -134,7 +163,7 @@ let reportFor (game: Game) : ScoutingReport =
 
     { Sport = game.Sport; Home = game.Home; Away = game.Away; Rows = rows }
 
-let render (mount: HTMLElement) (games: Game list) =
+let render (mount: HTMLElement) (schedule: Schedule.ScheduledGame list) (games: Game list) =
     mount.innerHTML <- ""
     let panel = child mount (el "div" "st-panel" "")
     child panel (el "h2" "" "Stats") |> ignore
@@ -148,4 +177,4 @@ let render (mount: HTMLElement) (games: Game list) =
     | _ ->
         let reports = child panel (el "div" "st-reports" "")
         for game in games |> List.sortBy (fun g -> g.Id) do
-            renderReport reports (reportFor game) (gameState game)
+            renderReport reports (reportFor schedule game) (gameState game)

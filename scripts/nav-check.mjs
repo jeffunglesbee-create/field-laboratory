@@ -111,6 +111,29 @@ await page.route('**/analytics/newspaper/**', route =>
 //
 // A fixed 61°F dry reading, so the assertion below is about the WIRING, not
 // about today's weather.
+// statsapi, stubbed for the same reason and with the same shape rule.
+//
+// The Stats tab fetches the MLB schedule for the pitcher and records rows, and
+// this probe navigates by `?date=` rather than pinning `?data=`, which is
+// exactly the configuration where that fetch runs. Left unrouted it escapes to
+// the real network, and in the agent sandbox that is a proxy 403 —
+// ERR_TUNNEL_CONNECTION_FAILED on the console, and the "no page or console
+// errors" check red for a reason that has nothing to do with navigation.
+//
+// A real recorded response, not an invented one: the same capture the F# suite
+// decodes, byte-verified against production's blob sha. The stub therefore
+// asserts the WIRING, not today's schedule — and its venue is Camden Yards,
+// which no date in this probe's slate plays at, so the rows correctly do not
+// appear and nothing here depends on them.
+const recordedSchedule = JSON.parse(
+  readFileSync('data/statsapi-schedule-2026-06-29.json', 'utf8'))
+await page.route(url => url.hostname === 'statsapi.mlb.com', route =>
+  route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ dates: [ { games: recordedSchedule.games } ] }),
+  }))
+
 await page.route(url => url.hostname === 'api.open-meteo.com', route =>
   route.fulfill({
     status: 200,

@@ -636,6 +636,71 @@ let private stats =
           [ "Oriole Park at Camden Yards", "Camden Yards"
             "Guaranteed Rate Field", "Wrigley Field" ]
 
+      // --- pitchers and records, from the real statsapi capture -------------
+      //
+      // `data/statsapi-schedule-2026-06-29.json` is production's own recorded
+      // response, verified BYTE-IDENTICAL against the upstream blob sha
+      // (aba791bd…) rather than trusted as transcribed. Every value below is
+      // that file's, not one I chose.
+
+      Verify.check "a record renders as W–L"
+          (fun (json: string) ->
+              match Schedule.decodeSchedule json with
+              | Ok [ g ] -> Schedule.recordText (Schedule.recordOf (Schedule.homeOf g)) = "39–46"
+              | _ -> false)
+          Fixtures.statsapiSchedule
+          (Fixtures.statsapiSchedule.Replace("\"wins\": 39", "\"wins\": 40"))
+
+      // The nested wire shape. A decoder proven only against the flattened
+      // fixture would pass everything here and fail on the first live call.
+      Verify.check "the live dates[].games envelope decodes to the same thing"
+          (fun (json: string) ->
+              Schedule.decodeSchedule json = Schedule.decodeSchedule Fixtures.statsapiSchedule)
+          Fixtures.statsapiNested
+          Fixtures.statsapiNestedAltered
+
+      // Production's Gap 2, which cannot be expressed here: `if (hT && aT)`
+      // drops BOTH records when one nickname fails to match. The record is a
+      // required field of a side, so a side that decodes has one.
+      //
+      // The counterexample removes the WHOLE `leagueRecord`, not a field inside
+      // it. Written first as `.Replace("\"losses\": 46,", "")`, which exercises
+      // the record decoder's own strictness and says nothing about whether the
+      // field is required — so `record-becomes-optional` SURVIVED it. A
+      // counterexample has to remove the thing the claim is about.
+      Verify.check "a side with no record does not decode at all"
+          (fun (json: string) -> (Schedule.decodeSchedule json).IsOk)
+          Fixtures.statsapiSchedule
+          (Fixtures.statsapiSchedule.Replace(
+              "\"leagueRecord\": { \"wins\": 39, \"losses\": 46, \"ties\": 0, \"pct\": \".459\" },", ""))
+
+      // And the field inside it, which is a different claim and needs its own
+      // input: a record missing a number must not decode as a record.
+      Verify.check "a record missing one of its numbers does not decode"
+          (fun (json: string) -> (Schedule.decodeSchedule json).IsOk)
+          Fixtures.statsapiSchedule
+          (Fixtures.statsapiSchedule.Replace("\"losses\": 46,", ""))
+
+      // A blank name would render as a labelled row with nothing in it —
+      // indistinguishable from a real pitcher to a reader.
+      Verify.check "an empty pitcher name is refused, not rendered blank"
+          (fun (json: string) -> (Schedule.decodeSchedule json).IsOk)
+          Fixtures.statsapiSchedule
+          (Fixtures.statsapiSchedule.Replace("\"fullName\": \"Shane Baz\"", "\"fullName\": \"   \""))
+
+      // The join. statsapi says "Oriole Park at Camden Yards" and the slate
+      // says something else entirely; both go through the alias table.
+      Verify.check "a game is found by the venue name the OTHER payload uses"
+          (fun (venue: string) ->
+              match Schedule.decodeSchedule Fixtures.statsapiSchedule with
+              | Ok games ->
+                  match Schedule.tryFindAtVenue venue games with
+                  | Some g -> Schedule.teamOf (Schedule.homeOf g) = "Baltimore Orioles"
+                  | None -> false
+              | Error _ -> false)
+          "Camden Yards"
+          "Fenway Park"
+
       // A bare name is production's real output for an unrated umpire, and a
       // complete answer rather than a missing one.
       Verify.check "an unrated umpire renders as a bare name"

@@ -140,3 +140,34 @@ is no stored field to drift away from the counts.
     ignore stored
     ""
 ```
+
+## A pitcher cannot be conjured from an empty string
+
+`ProbablePitcher` is a private single-case union, so the decoder is the only
+door in — and the decoder refuses a blank name. Production renders every starter
+as a bare name because a bare name is all the payload has; a bare *empty* name
+would render as a labelled row with nothing in it, which a reader cannot tell
+from a real one.
+
+<!-- proof: FS1093 -->
+
+```fsharp
+    let p = Schedule.ProbablePitcher ""
+    ignore (Schedule.pitcherName p)
+    ""
+```
+
+## A record cannot be assembled by hand
+
+`TeamRecord`'s fields are private. Production builds its records line by looking
+both teams up in a standings array by substring and dropping the whole line when
+either misses; here the record arrives as a required field of the side that owns
+it, and there is no constructor for one that did not.
+
+<!-- proof: FS1093 -->
+
+```fsharp
+    let r: Schedule.TeamRecord = { Wins = 39; Losses = 46; Ties = 0 }
+    ignore (Schedule.recordText r)
+    ""
+```

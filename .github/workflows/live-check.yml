@@ -104,6 +104,20 @@ jobs:
       - name: The deployed page serves both pick tabs
         run: npm run check:live-tabs
 
+      - name: The pitcher and records rows appear on the deployed page
+        # Against the DEPLOYED page, not a local server: this is the only
+        # configuration where the schedule fetch runs at all — a page pinned to
+        # `?data=` renders a committed capture and must never reach the network,
+        # which is what keeps every offline render check free of a third-party
+        # request.
+        #
+        # Needs live statsapi, which the agent sandbox is 403 at the proxy for.
+        # That is the whole reason this step exists here rather than in the gate.
+        #
+        # Does NOT fail on a slate with no MLB games — it reports and asserts
+        # nothing, because "no baseball today" is a fact about the day.
+        run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/schedule-live-check.mjs
+
       # The window simulation (npm run check:window) does NOT live here. It runs
       # in `verify`, which also has relay egress.
       #
