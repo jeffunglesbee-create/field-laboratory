@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3dcbe89` | 2026-08-13 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | Recover the one section three stale branches were still holding |
 | `3a27eef` | 2026-08-13 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | Build the pitcher and records rows, and unpin a fixture date that expired |
 | `0883c9e` | 2026-08-13 | [cc-venue-aliases-2026-08-12.md](cc-venue-aliases-2026-08-12.md) | Venue aliases: the park lookup was verified on 2 of 30 |
 | `327fee3` | 2026-08-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-12 [skip ci] |
