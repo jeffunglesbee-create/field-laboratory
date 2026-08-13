@@ -14,11 +14,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `c1eca7d` (behind `main`) |
+| Cloudflare Workers | live | `3dcbe89` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-08-12 — 26 games, 0 malformed (16 runs logged)
+`decode-failed` on 2026-08-13 — 0 games, 0 malformed (17 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
