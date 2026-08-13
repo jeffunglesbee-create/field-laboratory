@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `327fee3` | 2026-08-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-12 [skip ci] |
 | `df1cbf8` | 2026-08-13 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | The Stats rows are production's real numbers, not invented ones |
 | `0b5dd96` | 2026-08-12 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | Two mutations were sitting in the tree, and the gate blamed the product |
 | `a6a2948` | 2026-08-12 | [cc-games-ran-together-2026-08-12.md](cc-games-ran-together-2026-08-12.md) | The games ran together, because neither new panel had any CSS at all |
