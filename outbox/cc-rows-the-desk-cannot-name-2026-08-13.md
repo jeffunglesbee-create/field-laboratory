@@ -100,3 +100,38 @@ on the page and therefore never read.
 - **Whether a golf event should render at all.** Counting it as un-drawable is
   correct for a scoreboard keyed on two teams. Whether the desk should grow a
   representation for field events is a design question, not a regression.
+
+## Correction — the check's exit code was inverted
+
+The first push of this work took `verify` red on `bd62427`, and the cause was in
+the check, not the decoder.
+
+`createChecks()`'s `summarize()` returns the **failure count** — 0 means
+everything passed — and takes no arguments. The last line of
+`unnamed-check.mjs` read:
+
+```js
+process.exit(summarize('Rows this desk cannot name') ? 0 : 1)
+```
+
+`0 ? 0 : 1` is 1. So the script exited **1 on a clean run and 0 on a broken
+one**: it would have failed the build while the code was fine, and passed it
+while the code was broken. It printed `9/9 checks passed` on the line directly
+above the non-zero exit.
+
+That is the same defect class this file's own header is about — a check that
+returns a confident answer without testing what it claims — arriving in the exit
+line while every assertion above it was sound. It also means the teeth
+measurement recorded earlier (3/9 vs 9/9) was reading printed counts, which were
+correct, while the pass/fail semantics underneath them were inverted.
+
+Fixed to `summarize() === 0 ? 0 : 1`, matching `state-check.mjs` and
+`zone-check.mjs`, and re-proven on the exit code rather than the output:
+
+```
+exit on GOOD code:    0
+exit on BROKEN code:  1
+exit after restore:   0
+```
+
+The passing count is not the contract. The exit code is.

@@ -103,4 +103,14 @@ check('postseason rows are counted in the same total',
   !post.failed && post.games === 2 && post.unnamed === 1,
   `${post.games} game(s), ${post.unnamed} unnamed across both lists`)
 
-process.exit(summarize('Rows this desk cannot name') ? 0 : 1)
+// `summarize()` returns the FAILURE COUNT, so 0 means everything passed. The
+// first version of this line read `summarize(...) ? 0 : 1`, which exits 1 on a
+// clean run and 0 on a broken one — a check that fails the build when the code
+// is fine and passes it when the code is not. It took `verify` red on bd62427
+// while printing "9/9 checks passed" directly above the failure.
+//
+// Left as a comment rather than quietly corrected: this file's own header is
+// about checks that report a confident answer without testing what they claim,
+// and the exit line had exactly that defect while the assertions above it were
+// sound. The passing count is not the contract; the exit code is.
+process.exit(summarize() === 0 ? 0 : 1)
