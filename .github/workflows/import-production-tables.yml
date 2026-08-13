@@ -63,7 +63,12 @@ jobs:
           ls -la production/index.html
 
       - name: Extract the tables
-        run: node scripts/extract-production-tables.mjs --from production/index.html --out data
+        run: |
+          node scripts/extract-production-tables.mjs \
+            --from production/index.html \
+            --venues production/src/utils/venues.js \
+            --fixture production/docs/adapter-fixtures-mlb-ok.json \
+            --out data
 
       - name: Show what came out
         run: |
@@ -82,10 +87,18 @@ jobs:
           rm -rf production
           git config user.name  'field-laboratory'
           git config user.email 'noreply@github.com'
-          git add data/production-park-factors.json data/production-umpire-abs.json data/production-wiring.json
+          git add data/production-park-factors.json data/production-umpire-abs.json \
+                  data/production-wiring.json data/production-venue-names.json
           if git diff --cached --quiet; then
             echo "no change — production's tables already match what is committed"
             exit 0
           fi
-          git commit -m "Import production's park-factor and umpire tables [skip ci]"
-          git push origin HEAD:main
+          git commit -m "Import production's scouting tables and venue-name variants [skip ci]"
+          # The ref this run was dispatched against, NOT a hardcoded `main`.
+          #
+          # It said `HEAD:main` originally, which was right for the only way it
+          # had ever been run and wrong the first time it was dispatched from a
+          # branch: it would have pushed that branch's un-gated commits straight
+          # onto main as a side effect of importing a data file. Nothing would
+          # have reported that, because the import itself would have succeeded.
+          git push origin "HEAD:${{ github.ref_name }}"
