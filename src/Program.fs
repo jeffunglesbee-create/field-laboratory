@@ -186,8 +186,17 @@ let private start () =
         | Ok payload ->
             let games = payload.Regular @ payload.Postseason
 
+            // The unnamed count is APPENDED, never folded into the game count.
+            // `decoded N` is what every check parses, and a payload where one
+            // row could not be drawn must still report the number that were —
+            // otherwise the fix for a blank page becomes a wrong number, which
+            // is harder to notice than the blank page was.
+            let unnamed =
+                if payload.Unnamed = 0 then ""
+                else sprintf " · %d row(s) not drawn — sides not named" payload.Unnamed
+
             report "decode-status"
-                (sprintf "decoded %d game(s) for %s%s" (List.length games) payload.Date note)
+                (sprintf "decoded %d game(s) for %s%s%s" (List.length games) payload.Date note unnamed)
             if (queryParam "data").IsNone then report "viewed-date" (viewedDate ())
 
             match document.getElementById "desk" with

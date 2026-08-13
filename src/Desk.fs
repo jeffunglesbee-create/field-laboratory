@@ -379,6 +379,15 @@ type DeskPayload =
       Date: string
       Regular: Game list
       Postseason: Game list
+      /// How many rows arrived that this desk could not name both sides of.
+      ///
+      /// Not an error count and not a silence. A row with `away: null` is a
+      /// real thing the relay serves — PGA Tour rows carry NULL for both sides,
+      /// because a golf event has no two teams — and it is not a game this
+      /// scoreboard can draw. The number exists so that "18 cards from 19 rows"
+      /// is a statement the page can make, rather than something a reader would
+      /// have to notice.
+      Unnamed: int
       Briefs: Section<Brief>
       /// `series` and `standings` are decoded as raw key sets rather than
       /// typed rows. The relay selects them with `SELECT * FROM
@@ -541,14 +550,54 @@ let keySetDecoder : Decoder<Section<string list>> =
     Decode.list (Decode.oneOf [ Decode.keys |> Decode.map List.ofSeq; Decode.succeed [] ])
     |> Decode.map (fun rows -> if List.isEmpty rows then EmptyOrFailed else Present rows)
 
+/// Every row that names both sides, plus a COUNT of the rows that do not.
+///
+/// WHY THIS IS NOT `Decode.list gameDecoder`
+///
+/// It was, until 2026-08-13, when `live-check` went red on the deployed page:
+///
+///     Error at: `$.games.regular.[18].away`
+///     Expecting a string but instead got: null
+///     FAIL  card count matches decoded game count → decoded NaN, rendered 0
+///
+/// `Decode.list` is all-or-nothing. One PGA Tour row — which carries NULL for
+/// both sides, correctly, because a golf event has no two teams — took the
+/// whole slate down. Nineteen games rendered as a blank page, and the five
+/// checks that followed failed against a page with nothing on it.
+///
+/// There are two wrong fixes and this is neither.
+///
+///   CRASH-ON-ONE is what was there. A payload is a set of independent rows;
+///   one row this desk cannot draw is not a reason to draw none of them.
+///
+///   INVENT A NAME is what `Pick.fs` does — `Optional |> defaultValue "—"`.
+///   That renders a card for a matchup that does not exist, with a dash where
+///   a team should be, and nothing anywhere records that it was made up. It is
+///   the fabrication this repo exists to refuse, and it is worse than the crash
+///   because it looks like it worked.
+///
+/// So: decode what can be decoded, and count what cannot. `Decode.succeed None`
+/// is the branch that accepts a row without understanding it — deliberately
+/// total, because the purpose is to keep going, not to enumerate every way a
+/// row can be un-drawable. The count is what stops that being a silent skip:
+/// `Unnamed` travels with the payload and is rendered whenever it is non-zero,
+/// so a dropped row is a number on the page rather than an absence a reader has
+/// to detect.
+let private gamesIn (path: string list) (get: Decode.IGetters) : Game list * int =
+    get.Optional.At path (Decode.list (Decode.oneOf [ gameDecoder |> Decode.map Some
+                                                      Decode.succeed None ]))
+    |> Option.defaultValue []
+    |> fun rows -> List.choose id rows, rows |> List.filter Option.isNone |> List.length
+
 let payloadDecoder : Decoder<DeskPayload> =
     Decode.object (fun get ->
+        let regular, regularUnnamed = gamesIn [ "games"; "regular" ] get
+        let postseason, postseasonUnnamed = gamesIn [ "games"; "postseason" ] get
         { Ok = get.Optional.Field "ok" Decode.bool |> Option.defaultValue false
           Date = get.Optional.Field "date" Decode.string |> Option.defaultValue ""
-          Regular = get.Optional.At [ "games"; "regular" ] (Decode.list gameDecoder)
-                    |> Option.defaultValue []
-          Postseason = get.Optional.At [ "games"; "postseason" ] (Decode.list gameDecoder)
-                       |> Option.defaultValue []
+          Regular = regular
+          Postseason = postseason
+          Unnamed = regularUnnamed + postseasonUnnamed
           Briefs = get.Optional.Field "briefs" (section briefDecoder) |> Option.defaultValue Absent
           Series = get.Optional.Field "series" keySetDecoder |> Option.defaultValue Absent
           Standings = get.Optional.Field "standings" keySetDecoder |> Option.defaultValue Absent })

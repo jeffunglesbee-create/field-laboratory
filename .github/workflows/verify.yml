@@ -164,6 +164,16 @@ jobs:
       - name: Game state at fixed instants
         run: npm run check:state
 
+      # A row the desk cannot name both sides of must cost exactly that row.
+      # `Decode.list` is all-or-nothing, so on 2026-08-13 one PGA Tour row with
+      # NULL sides took the whole deployed slate down and live-check reported
+      # "decoded NaN, rendered 0" against a blank page. The assertion is the
+      # conservation law — rows in === games out + rows counted unnamed — because
+      # the failure mode of the fix is a silent skip that looks healthy. Proven
+      # to have teeth: 3/9 against the pre-fix decoder, 9/9 after.
+      - name: Rows the desk cannot name
+        run: npm run check:unnamed
+
       # Deterministic zone assertions. CI runs whenever a push lands, which is
       # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
       # so the zone logic would otherwise be exercised only by luck.

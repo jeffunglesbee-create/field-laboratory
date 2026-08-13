@@ -2,7 +2,7 @@
   "name": "field-laboratory",
   "version": "0.0.0",
   "private": true,
-  "description": "FIELD Laboratory \u2014 F# compiled to JavaScript via Fable.",
+  "description": "FIELD Laboratory — F# compiled to JavaScript via Fable.",
   "type": "module",
   "scripts": {
     "build": "dotnet fable src/Laboratory.fsproj --outDir build && node scripts/build-site.mjs",
@@ -36,7 +36,8 @@
     "check:status-live": "node scripts/status-live-check.mjs",
     "check:weather-live": "node scripts/weather-live-check.mjs",
     "check:unused": "node scripts/unused-check.mjs && node scripts/units-check.mjs",
-    "outbox:index": "node scripts/outbox-index.mjs"
+    "outbox:index": "node scripts/outbox-index.mjs",
+    "check:unnamed": "node scripts/unnamed-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
