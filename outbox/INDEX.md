@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0b5dd96` | 2026-08-12 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | Two mutations were sitting in the tree, and the gate blamed the product |
 | `a6a2948` | 2026-08-12 | [cc-games-ran-together-2026-08-12.md](cc-games-ran-together-2026-08-12.md) | The games ran together, because neither new panel had any CSS at all |
 | `afb0474` | 2026-08-12 | [cc-the-runner-lost-open-meteo-2026-08-12.md](cc-the-runner-lost-open-meteo-2026-08-12.md) | The runner lost Open-Meteo, and the check was crashing rather than failing |
 | `e36d326` | 2026-08-12 | [cc-stats-tab-in-fsharp-2026-08-12.md](cc-stats-tab-in-fsharp-2026-08-12.md) | The Stats tab in F#, with production's tie bug made unrepresentable |
