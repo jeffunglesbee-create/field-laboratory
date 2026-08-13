@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `df1cbf8` | 2026-08-13 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | The Stats rows are production's real numbers, not invented ones |
 | `0b5dd96` | 2026-08-12 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | Two mutations were sitting in the tree, and the gate blamed the product |
 | `a6a2948` | 2026-08-12 | [cc-games-ran-together-2026-08-12.md](cc-games-ran-together-2026-08-12.md) | The games ran together, because neither new panel had any CSS at all |
 | `afb0474` | 2026-08-12 | [cc-the-runner-lost-open-meteo-2026-08-12.md](cc-the-runner-lost-open-meteo-2026-08-12.md) | The runner lost Open-Meteo, and the check was crashing rather than failing |
