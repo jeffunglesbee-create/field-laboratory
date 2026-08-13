@@ -109,11 +109,22 @@ let comebackText (m: LiveMargin) : string =
 //   Broadcast  Scout.broadcastOf, which refuses to guess at an unknown outlet
 //   Overtime   Desk.OvertimeStatus
 //
-// No park factors: production has a numeric table, this repo does not, and
-// inventing MLB park factors to fill a row would be exactly the fabrication the
-// unresolved case was honest about.
+// PARK AND UMPIRE ARRIVED THE HONEST WAY. The paragraph that stood here said
+// this repo had no park-factor table and that inventing one would be the exact
+// fabrication the unresolved case was honest about. The first half was wrong.
+// Production has carried both tables all along, in the one file too large for
+// the contents API to return — so `Scouting.fs` is generated from production's
+// real numbers, cross-checked value by value against a live production render
+// before being carried. Nothing here is invented; it is imported.
+//
+// What is still absent stays absent, and for production's own Rule 1 reason:
+// a venue with no published factor gets no row rather than a neutral one.
 
 type Row =
+    /// How the park plays, from production's own table.
+    | ParkRow of factor: Scouting.ParkFactor
+    /// The plate umpire, with a rating only if one exists for them.
+    | UmpireRow of name: string * rating: Scouting.UmpireRating option
     /// The venue and its roof, from the checked table.
     | VenueRow of name: string * roof: Weather.RoofType
     /// What the two odds snapshots do or do not say.
@@ -127,14 +138,51 @@ type Row =
 
 let rowLabel =
     function
+    | ParkRow _ -> "PARK"
+    | UmpireRow _ -> "UMPIRE"
     | VenueRow _ -> "VENUE"
     | MarketRow _ -> "MARKET"
     | DramaRow _ -> "DRAMA"
     | BroadcastRow _ -> "BROADCAST"
     | OvertimeRow _ -> "OVERTIME"
 
+/// A signed percentage, in production's own punctuation.
+///
+/// Not `sprintf "%+d"`, which renders zero as "+0". loanDepot park is exactly
+/// league average for runs and production shows it as "0% runs" — a real value
+/// on the live page, and the one a naive format gets wrong.
+let private signedPct (n: int) : string =
+    if n = 0 then "0%" else sprintf "%+d%%" n
+
 let rowValue =
     function
+    | ParkRow f ->
+        // The composite index never appears — `runsDeviation` is the only way
+        // out of the type, so ADR-002 PROHIBITED #3 is closed by construction
+        // rather than by remembering not to print `Runs`.
+        let badge =
+            match Scouting.parkBadge f with
+            | Some b -> sprintf " · %s" b
+            | None -> ""
+        sprintf "%s · %s runs · %s HR%s"
+            (Scouting.venueOf f) (signedPct (Scouting.runsDeviation f))
+            (signedPct (Scouting.hrDeviation f)) badge
+    | UmpireRow(name, rating) ->
+        // A bare name is production's real output for an unrated umpire, and it
+        // is the correct one: Márquez, Libka and Wendelstedt genuinely have no
+        // entry. The row is complete either way, which is why neither branch
+        // needs an "unresolved" marker.
+        match rating with
+        | None -> name
+        | Some r ->
+            let weak =
+                match Scouting.weakZoneOf r with
+                | Some z -> sprintf " · weak: %s zone" (Scouting.zoneText z)
+                | None -> ""
+            sprintf "%s · %d%% overturns · %d challenged%s"
+                name
+                (int (System.Math.Round(Scouting.overturnRate r * 100.0)))
+                (Scouting.challengesOf r) weak
     | VenueRow(name, roof) ->
         let cover =
             match Weather.roofState roof with

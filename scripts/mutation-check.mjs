@@ -383,6 +383,39 @@ const MUTATIONS = [
   },
 
   {
+    // The same claim, aimed at GENERATED source, because that is where it
+    // stopped being true. `unused-check.mjs` treats every .mjs in scripts/ as a
+    // possible reader, and `generate-scouting.mjs` contains the F# it emits as
+    // a string literal — so the generator credited itself with reading every
+    // value it wrote, and the row went green over five real orphans in
+    // Scouting.fs (`abbrOf`, `tierOf`, `nameOf`, `umpWatch`, `tryPark`).
+    //
+    // Without this mutation the fix is a claim. With it, deleting the exclusion
+    // makes a row fail.
+    // The teeth for the `generated source matches its generator` row. A hand
+    // edit to a park factor is the failure that row exists for: the compiler
+    // accepts it, every other row stays green, and the page shows a number that
+    // is no longer production's.
+    //
+    // 128 -> 999 rather than a plausible number on purpose. A mutation that
+    // could pass for real data would make a survivor hard to tell from a
+    // legitimate table update.
+    id: 'generated-table-hand-edited',
+    file: 'src/Scouting.fs',
+    claim: "a hand edit to generated source is caught, not silently carried",
+    find: 'park "Coors Field" 128 130 ExtremeHittersPark',
+    replace: 'park "Coors Field" 999 130 ExtremeHittersPark',
+    expect: 'node scripts/run-row.mjs "generated source matches its generator and data"',
+  },
+  {
+    id: 'generated-value-never-read',
+    file: 'src/Scouting.fs',
+    claim: 'a public value nothing reads is caught even in generated source',
+    find: 'let venueOf (p: ParkFactor) : string = p.Venue',
+    replace: 'let venueOf (p: ParkFactor) : string = p.Venue\n\nlet unreadGeneratedValue (x: int) = x + 1',
+    expect: 'node scripts/run-row.mjs "no value is written without being read back"',
+  },
+  {
     id: 'value-never-read',
     file: 'src/Units.fs',
     claim: 'a public value nothing reads is caught',
@@ -447,6 +480,53 @@ const MUTATIONS = [
     // Blind the F# harness the way every other detector here could be blinded:
     // make a toothless check report as a pass. Its own self-test must object,
     // and if it does not, 16/16 means only that the suite ran.
+    // --- production's tables, once carried, must stay honest ----------------
+    id: 'park-average-reads-plus-zero',
+    file: 'src/Stats.fs',
+    claim: 'a park exactly at league average reads 0%, not +0%',
+    find: '    if n = 0 then "0%" else sprintf "%+d%%" n',
+    replace: '    sprintf "%+d%%" n',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    id: 'unrated-umpire-gains-a-rating',
+    file: 'src/Stats.fs',
+    claim: 'an umpire with no entry renders as a bare name, not as a zeroed rating',
+    find: '        | None -> name\n        | Some r ->',
+    replace: '        | None -> name + " · 0% overturns · 0 challenged"\n        | Some r ->',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    // Scouting.fs is generated, and mutating generated source is the right
+    // target anyway: the claim is about what the compiled table DOES, and the
+    // generator's own guards are a separate matter tested by its refusals.
+    id: 'umpire-rate-stops-tracking-its-counts',
+    file: 'src/Scouting.fs',
+    claim: "an umpire's overturn rate is computed from that umpire's own counts",
+    find: '    float u.Overturned / float u.Challenged',
+    replace: '    0.5',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    id: 'park-badge-ignores-its-tier',
+    file: 'src/Scouting.fs',
+    claim: 'the park badge is derived from the tier and cannot contradict it',
+    find: '    | NeutralPark -> None',
+    replace: '    | NeutralPark -> Some "Pitcher\'s Park"',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
+    // Rule 1, mechanised. Production's own CC-CMD: "Do not invent a park factor
+    // to fill a row. If the venue genuinely has no published factor, the honest
+    // outcome is that the row stays absent."
+    id: 'missing-park-factor-invented',
+    file: 'src/Scouting.fs',
+    claim: 'a venue with no published factor keeps no row rather than gaining an invented one',
+    find: '    parkFactors |> List.tryFind (fun p -> p.Venue = venue)',
+    replace: '    parkFactors |> List.tryFind (fun p -> p.Venue = venue) |> Option.orElse (List.tryHead parkFactors)',
+    expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
+  },
+  {
     id: 'harness-accepts-toothless',
     file: 'src/Verify.fs',
     claim: 'a check whose counterexample also passes is reported as having no teeth',

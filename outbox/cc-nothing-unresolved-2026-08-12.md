@@ -225,3 +225,136 @@ That makes four times in two days I have taken a limitation of the one route I
 happened to try for a limitation of the world — Open-Meteo "unreachable from
 runners", this data "not in the payload", production "unreadable", and now the
 gate's own report "about the product".
+
+---
+
+## The rows are filled, from production's own tables
+
+The import ran on a runner (run 31652166750) and committed three files:
+`data/production-park-factors.json` (30 parks), `data/production-umpire-abs.json`
+(51 umpires), and a wiring dump. `scripts/generate-scouting.mjs` turns the two
+tables into `src/Scouting.fs`.
+
+**The extraction was verified against a live render before anything was carried.**
+Every value in the production screenshot matches the imported table exactly:
+
+```
+ARI  -1% runs  -5% HR  neutral   Chase Field      → "Chase Field · −1% runs · −5% HR"
+SD   -7% runs  -9% HR  pitcher   Petco Park       → "… · 🛡 Pitcher's Park"
+MIA   0% runs  -2% HR  neutral   loanDepot park   → "loanDepot park · 0% runs · −2% HR"
+NYY  +4% runs +12% HR  neutral   Yankee Stadium   → "Yankee Stadium · +4% runs · +12% HR"
+jimenez  10 challenged, rate .5  weak down        → "Jimenez · 50% overturns · 10 challenged · weak: down zone"
+parra     4 challenged, rate .25 weak down-right  → "Parra · 25% overturns · 4 challenged · weak: down-right zone"
+```
+
+Laboratory now renders `Yankee Stadium · +4% runs · +12% HR` — the same string,
+from the same numbers. No UNRESOLVED badge is reachable, because there is no
+unresolved case to construct.
+
+### What the types buy, specifically
+
+- **`ParkFactor`'s fields are private.** The run factor is the integer 128 for
+  Coors; ADR-002 PROHIBITED #3 makes displaying a raw composite a CRITICAL. The
+  index is not reachable outside `Scouting.fs` — `p.Runs` is **FS1093**, now a
+  proof case. The only exits return the signed deviation.
+- **No stored rate.** Production carries `challenged`, `overturned` *and* `rate`
+  — three fields, two facts, free to drift. Verified across all 51 umpires that
+  `rate` is exactly `round(overturned/challenged, 3)`, so it is a function here
+  and `u.Overturned` is FS1093 from outside. Second proof case.
+- **The badge is a function of the tier.** Production keeps `badgeClass` beside
+  `tier` as its own field.
+- **The park lookup is keyed on venue name**, which the payload carries, rather
+  than on `_homeAbbr || homeTeam`. Production's own CC-CMD blames that chain for
+  two games losing the PARK row; there is no chain here to fail.
+
+### Two things I did NOT do, both for production's Rule 1
+
+- **The tier is carried, not derived.** I tried to derive it from the two
+  factors and got two counterexamples — CHW 95/98 is `pitcher`, SEA 83/85 is
+  `extreme_pitcher`, a fifth tier I had not seen. Fitting a rule to 28 of 30
+  points and shipping it is how a park factor gets invented.
+- **A venue with no published factor still gets no row.** `missing-park-factor-invented`
+  is a mutation that adds a fallback; it is caught.
+
+### The ATH/OAK finding, for production
+
+The imported table has **no `ATH` key**. The Athletics' factors sit under `OAK`
+against "Sutter Health Park". That answers the open half of Gap 1 in
+`CC-CMD-2026-08-12-scouting-coverage-gaps`: for that game the abbreviation
+resolves and the table lookup misses, and the entry *exists* under the old key.
+An aliasing fix, not a missing number to invent.
+
+### The pitcher and records rows: production has no more than laboratory does
+
+Worth stating plainly because it corrects what the UNRESOLVED badges claimed.
+`probablePitcher` is `{id, fullName, link}` — production's own fixture note says
+stats are not embedded even with `probablePitcher(stats)` hydration. Records
+arrive as `leagueRecord` per team inside the schedule call. So a pitcher row is
+a bare name in production too, and the "missing ERA, W–L, arsenal" badge was
+laboratory inventing a requirement and then failing it. Those two rows need the
+statsapi schedule endpoint wired, which is a separate piece of work with a real
+capture already identified (`docs/adapter-fixtures-mlb-ok.json`); they are named
+here rather than half-built.
+
+## `unused-check.mjs` was passing in one direction
+
+Adding `Scouting.fs` exposed it. Five public values had **zero** consumers —
+`abbrOf`, `tierOf`, `nameOf`, `umpWatch`, `tryPark` — and the row stayed green.
+
+The cause: `unused-check` treats every `.mjs` in `scripts/` as a possible
+reader, and `generate-scouting.mjs` contains the F# it emits as a string
+literal. **The generator credited itself with reading every value it wrote.**
+That file already documents this exact shape twice, for itself and for
+`mutation-check.mjs` — "neither contains code that RUNS the values it names" —
+and a generator is the sharpest case of it. Added to `SELF`; the five orphans
+appeared immediately and were removed, along with the now-unread `Abbr` field.
+
+`generated-value-never-read` is a new mutation that injects a dead value into
+generated source, so the fix is a mechanism rather than a claim.
+
+## A new gate row: generated source matches its generator
+
+Generated source is still editable source. Nothing stopped a hand edit to a park
+factor in `Scouting.fs` — the compiler would accept it, every row would stay
+green, and the page would show a number that was no longer production's until
+the next regeneration silently wiped it. `--check` regenerates in memory and
+compares. Proven in both directions: it passes on the real file and refuses a
+one-digit hand edit.
+
+Weight 20, not 30: the numbers on screen may be fine. What is lost is the
+guarantee that they came from production, which is the entire claim the import
+makes.
+
+## The substring trap, three times in one session
+
+1. `park-average-reads-plus-zero` **SURVIVED** its first check, because the
+   check asked whether the row contained `"0% runs"` and `"+0% runs"` contains
+   `"0% runs"`. Fixed to an exact comparison. This is the same flaw production's
+   CC-CMD names in its `teamNick()` matching — and I walked into it inside the
+   check written to catch it.
+2. Grepping for consumers of `tryPark` "found" one, because `tryParkByVenue`
+   contains it.
+3. `unused-check` already guards against exactly this with `\b` word
+   boundaries, which is why its comment about `notYetStarted` /
+   `notYetStartedAt` exists.
+
+## Found and NOT closed
+
+`Venues.fs` has no entry for **Citizens Bank Park, Nationals Park, Truist Park
+or Sutter Health Park** — four MLB parks that therefore get no weather reading
+at all. Two of the four have coordinates in production's `src/utils/venues.js`;
+the other two are in no field repo I can read. Not added here: this repo's venue
+discipline is that every coordinate is checked against Open-Meteo's resolved
+timezone (the check that caught my Comerica error), and Open-Meteo has been
+unreachable from runners since 2026-08-12. Adding four unverified rows to buy a
+fuller Weather tab is the trade this repo exists to refuse.
+
+CONFIDENCE: 96.
+
+Artifacts: gate 530/530 across 23 rows; `VerifyMain` 50/50 with seven new checks
+and no NO TEETH; `proof-check` 42/42 including two new FS1093 cases; six new
+mutations all caught; `tab-check` 29/29; `separation-check` 10/10; the rendered
+Stats card read back out of a real browser and compared string-for-string with
+production's own render.
+
+Docked four: the pitcher and records rows are named, not built.

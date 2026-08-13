@@ -75,7 +75,31 @@ let private renderReport (mount: HTMLElement) (report: ScoutingReport) (state: G
 let reportFor (game: Game) : ScoutingReport =
     let state = gameState game
     let rows =
-        [ // The venue table is hand-reviewed and checked against Open-Meteo's
+        [ // Production's park factors, keyed on the venue NAME rather than on a
+          // team abbreviation, because the venue is what this payload carries.
+          // Production reads `game._homeAbbr || game.homeTeam` and its own
+          // CC-CMD records two games losing this row when that chain came back
+          // empty; there is no chain here to come back empty.
+          //
+          // A venue with no published factor yields no row — production's
+          // Rule 1, and the reason this is `tryParkByVenue` and not a lookup
+          // with a neutral default.
+          match game.Venue |> Option.bind Scouting.tryParkByVenue with
+          | Some f -> yield ParkRow f
+          | None -> ()
+
+          // The plate umpire. `/context/date` has a `crew` field; the MLB
+          // schedule payload only populates `officials[]` once a game is in
+          // progress, which is why production shows an umpire on live cards and
+          // not on upcoming ones. An unrated umpire still gets a row — a bare
+          // name is production's real output and a complete answer.
+          match game.Crew with
+          | Some official when official.Trim() <> "" ->
+              let key = (official.Split(' ') |> Array.last).ToLower()
+              yield UmpireRow(official, Scouting.tryUmpire key)
+          | _ -> ()
+
+          // The venue table is hand-reviewed and checked against Open-Meteo's
           // resolved timezone daily, so a venue it carries is a fact.
           match game.Venue |> Option.bind Venues.tryFind with
           | Some v -> yield VenueRow(v.Name, v.Roof)

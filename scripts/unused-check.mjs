@@ -51,7 +51,21 @@ const sources = new Map(files.map(f => [`${SRC}/${f}`, readFileSync(`${SRC}/${f}
 // Fourth appearance of this shape today. The other three were comments; this one
 // is a string literal that is deliberately source code. Excluding both files is
 // the honest rule: neither contains code that RUNS the values it names.
-const SELF = ['scripts/unused-check.mjs', 'scripts/mutation-check.mjs']
+//
+// generate-scouting.mjs is the third, and the sharpest: it is a GENERATOR, so
+// its template contains the definition of every value it emits. That made it
+// count as a reader of all of them, and this check went green over five real
+// orphans in `Scouting.fs` — `abbrOf`, `tierOf`, `nameOf`, `umpWatch` and
+// `umpireRatings`, none of which had a single consumer anywhere.
+//
+// So a generator credits its own output, which is the same rule as the other
+// two stated once more: a file counts as a reader only if it contains code that
+// RUNS the value. A template does not run anything.
+const SELF = [
+  'scripts/unused-check.mjs',
+  'scripts/mutation-check.mjs',
+  'scripts/generate-scouting.mjs',
+]
 const scripts = readdirSync('scripts').filter(f => f.endsWith('.mjs'))
   .filter(f => !SELF.includes(`scripts/${f}`))
   .map(f => readFileSync(`scripts/${f}`, 'utf8')).join('\n')

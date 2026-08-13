@@ -51,5 +51,6 @@
 20  a red main is reported, not softened
 20  the F# harness refuses a check with no counterexample
 30  games on a panel are separated from each other
+20  generated source matches its generator and data
 10  this session wrote its outbox
 10  source changes arrive with an outbox entry

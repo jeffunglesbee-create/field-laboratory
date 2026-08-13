@@ -100,3 +100,43 @@ including the one that gives it a label.
     ignore (label (Stats.MarketRow "x"))
     ""
 ```
+
+## The composite park index cannot be displayed
+
+ADR-002 PROHIBITED #3 makes displaying a raw composite a CRITICAL. Coors Field's
+run factor is the integer `128`, and production renders `+28% runs` because
+`128` on its own tells a reader nothing.
+
+`ParkFactor`'s fields are private, so this is not a rule anyone has to remember.
+The index is not reachable from outside `Scouting.fs` at all — the only exits
+are `runsDeviation` and `hrDeviation`, which return the signed percentage. The
+prohibited render is unavailable rather than discouraged.
+
+<!-- proof: FS1093 -->
+
+```fsharp
+    let raw =
+        match Scouting.tryParkByVenue "Coors Field" with
+        | Some p -> p.Runs
+        | None -> 0
+    ignore raw
+    ""
+```
+
+## An umpire's overturn rate cannot disagree with their counts
+
+Production's table carries `challenged`, `overturned` **and** `rate` — three
+fields holding two facts. Verified across all 51 imported umpires that `rate` is
+exactly `round(overturned / challenged, 3)`, so here it is a function and there
+is no stored field to drift away from the counts.
+
+<!-- proof: FS1093 -->
+
+```fsharp
+    let stored =
+        match Scouting.tryUmpire "jimenez" with
+        | Some u -> u.Overturned
+        | None -> 0
+    ignore stored
+    ""
+```

@@ -230,6 +230,18 @@ const rows = [
   { name: 'a red main is reported, not softened', weight: 20,
     run: () => ok('node scripts/status-verdict-check.mjs') },
 
+  // Generated source is still editable source. `src/Scouting.fs` carries
+  // production's real park factors and umpire ratings, and nothing stops a hand
+  // edit to one of those numbers: the compiler would accept it, every other row
+  // would stay green, and the page would show a figure that is no longer
+  // production's — until the next regeneration silently wiped it.
+  //
+  // Weight 20 rather than 30: the numbers on screen may well be fine. What is
+  // lost is the guarantee that they came from production at all, which is the
+  // entire claim the import makes.
+  { name: 'generated source matches its generator and data', weight: 20,
+    run: () => ok('node scripts/generate-scouting.mjs --check') },
+
   { name: 'this session wrote its outbox', weight: 10, run: outboxToday },
 
   { name: 'source changes arrive with an outbox entry', weight: 10,

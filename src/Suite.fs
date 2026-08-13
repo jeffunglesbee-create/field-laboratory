@@ -485,7 +485,87 @@ let private stats =
           ([ Stats.VenueRow("Fenway Park", Weather.OpenAir); Stats.MarketRow "x"
              Stats.DramaRow "y"; Stats.BroadcastRow "z"; Stats.OvertimeRow "w" ], 5)
           ([ Stats.VenueRow("Fenway Park", Weather.OpenAir); Stats.MarketRow "x"
-             Stats.DramaRow "y"; Stats.BroadcastRow "z"; Stats.OvertimeRow "w" ], 4) ]
+             Stats.DramaRow "y"; Stats.BroadcastRow "z"; Stats.OvertimeRow "w" ], 4)
+
+      // --- production's tables, carried ------------------------------------
+      //
+      // Each of these names a value cross-checked against a live production
+      // render before it was imported, so a failure here means the import
+      // drifted from what the page shows — not that a threshold was retuned.
+
+      // The zero case is real and is the one a naive format gets wrong.
+      // loanDepot park is exactly league average for runs, and production
+      // renders "0% runs"; `sprintf "%+d"` would render "+0%".
+      //
+      // EXACT, not `Contains`. The first version asked whether the row
+      // contained "0% runs" and the mutation that renders "+0% runs" SURVIVED
+      // it — because "+0% runs" contains "0% runs". That is the same substring
+      // trap production's own CC-CMD names in its `teamNick()` matching, and I
+      // walked into it in the check written to catch it.
+      Verify.check "a park exactly at league average reads 0%, not +0%"
+          (fun (venue: string, expected: string) ->
+              match Scouting.tryParkByVenue venue with
+              | Some f -> Stats.rowValue (Stats.ParkRow f) = expected
+              | None -> false)
+          ("loanDepot park", "loanDepot park · 0% runs · -2% HR")
+          ("loanDepot park", "loanDepot park · +0% runs · -2% HR")
+
+      // ADR-002 PROHIBITED #3. The composite index is 128 for Coors; the
+      // reader is shown +28%. `Runs` is private, so the prohibited render is
+      // not merely avoided here — outside Scouting.fs it is FS1093.
+      Verify.check "the park row shows the deviation, never the raw index"
+          (fun (venue: string, raw: string) ->
+              match Scouting.tryParkByVenue venue with
+              | Some f ->
+                  let text = Stats.rowValue (Stats.ParkRow f)
+                  text.Contains "+28% runs" && not (text.Contains raw)
+              | None -> false)
+          ("Coors Field", "128")
+          ("Coors Field", "+28")
+
+      // The badge is a function of the tier, so the two cannot disagree.
+      // Production keeps `badgeClass` as its own field beside `tier`.
+      Verify.check "the park badge follows the tier it is derived from"
+          (fun (venue: string) ->
+              match Scouting.tryParkByVenue venue with
+              | Some f -> Scouting.parkBadge f = Some "Pitcher's Park"
+              | None -> false)
+          "Petco Park"
+          "Yankee Stadium"
+
+      // Rule 1, as a type. A venue with no published factor yields no row —
+      // not a neutral one.
+      Verify.check "a venue with no published factor yields no park row at all"
+          (fun (venue: string) -> (Scouting.tryParkByVenue venue).IsNone)
+          "Sahlen Field"
+          "Fenway Park"
+
+      // `tryParkByVenue` is only unambiguous while the labels are unique, and
+      // nothing else would notice two parks sharing one.
+      Verify.check "no two parks share a venue label"
+          (fun (parks: Scouting.ParkFactor list) ->
+              (parks |> List.map Scouting.venueOf |> List.distinct |> List.length) = parks.Length)
+          Scouting.parkFactors
+          (List.head Scouting.parkFactors :: Scouting.parkFactors)
+
+      // The rate is COMPUTED from the counts. Production stores it as a third
+      // field beside them, where it can drift; verified across all 51 imported
+      // umpires that it never had.
+      Verify.check "an umpire's overturn rate comes from their own counts"
+          (fun (lastName: string) ->
+              match Scouting.tryUmpire lastName with
+              | Some r -> (Stats.rowValue (Stats.UmpireRow("Jimenez", Some r))).Contains "50% overturns"
+              | None -> false)
+          "jimenez"
+          "parra"
+
+      // A bare name is production's real output for an unrated umpire, and a
+      // complete answer rather than a missing one.
+      Verify.check "an unrated umpire renders as a bare name"
+          (fun (rating: Scouting.UmpireRating option) ->
+              Stats.rowValue (Stats.UmpireRow("Márquez", rating)) = "Márquez")
+          None
+          (Scouting.tryUmpire "jimenez") ]
 
 /// Everything, in one list. Order is presentation only.
 let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats
