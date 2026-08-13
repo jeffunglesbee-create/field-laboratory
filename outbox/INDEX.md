@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a5ac5a3` | 2026-08-13 | [cc-jq-density-census-2026-08-13.md](cc-jq-density-census-2026-08-13.md) | Census the mlb_game brief corpus either side of the JQ scoring redesign |
 | `e855dad` | 2026-08-13 | [drift-log.md](drift-log.md) | drift-sentinel: decode-failed on 2026-08-13 [skip ci] |
 | `3dcbe89` | 2026-08-13 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | Recover the one section three stale branches were still holding |
 | `3a27eef` | 2026-08-13 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | Build the pitcher and records rows, and unpin a fixture date that expired |
