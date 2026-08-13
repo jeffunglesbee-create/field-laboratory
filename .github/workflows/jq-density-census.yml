@@ -1,0 +1,76 @@
+# Census production's mlb_game brief corpus either side of the JQ scoring
+# redesign, and commit the corpus so a full rescore can run locally.
+#
+# WHY A RUNNER
+#
+# `*.workers.dev` is 403 CONNECT at the agent proxy, so a session cannot fetch
+# `/archive/query` directly — same constraint that produced `probe-url.yml` and
+# `import-production-tables.yml`. The relay MCP's `probe_relay_route` CAN reach
+# it, but every byte comes back into the model's context, and this corpus is
+# ~270 briefs. A runner fetches it for free and hands back a summary plus a
+# committed data file.
+#
+# WHAT IT ANSWERS
+#
+# Whether the ~96-point drop in stored `mlb_game` quality_score across
+# `6aed3bb` is the formula or the prose, at full corpus size rather than the
+# 12-brief sample that first located it. And whether Dim 1 and Dim 4 are
+# saturated at their floor across the whole corpus — a dimension that returns
+# the same value for every real input is not measuring anything, which is the
+# claim that decides whether the fix is a threshold or a unit.
+#
+# It does NOT rescore. `scoreProse` lives in `field-relay-nba`, which this
+# runner holds no credential for; it also calls Datamuse. The tokenizer in the
+# script is copied verbatim and checked against four hand-verified fixtures on
+# every run, so a silent drift between the copy and the original fails the job
+# rather than producing a confident wrong census.
+name: jq-density-census
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'First date to fetch (YYYY-MM-DD)'
+        required: false
+        default: '2026-06-10'
+      to:
+        description: 'Last date to fetch (YYYY-MM-DD, blank = today)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: jq-density-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Census
+        env:
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+        run: node scripts/jq-density-census.mjs
+
+      - name: Commit the corpus
+        run: |
+          git config user.name  'field-laboratory'
+          git config user.email 'noreply@github.com'
+          git add data/jq-mlb-game-corpus.json
+          if git diff --cached --quiet; then
+            echo "no change — the corpus already matches what is committed"
+            exit 0
+          fi
+          git commit -m "Capture production's mlb_game brief corpus for JQ rescoring [skip ci]"
+          # The dispatched ref, not a hardcoded main — see the same note in
+          # import-production-tables.yml for what that mistake costs.
+          git push origin "HEAD:${{ github.ref_name }}"
