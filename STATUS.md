@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `5ca7194`
+**green** on `5ca7194` — but that is not `main` HEAD
 
 ## Is it published?
 
