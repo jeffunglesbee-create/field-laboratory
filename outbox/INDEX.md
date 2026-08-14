@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5ca7194` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Wait for the page, not for the network, in schedule-live-check |
+| `59927f8` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Restore the teeth the tolerant decoder took from drift-check |
 | `bd6ed5d` | 2026-08-13 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Fix the inverted exit code that took verify red |
 | `bd62427` | 2026-08-13 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | One null side no longer blanks the whole slate |
 | `a5ac5a3` | 2026-08-13 | [cc-jq-density-census-2026-08-13.md](cc-jq-density-census-2026-08-13.md) | Census the mlb_game brief corpus either side of the JQ scoring redesign |
