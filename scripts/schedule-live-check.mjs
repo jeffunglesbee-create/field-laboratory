@@ -34,7 +34,27 @@ const errors = []
 page.on('pageerror', e => errors.push(e.message))
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 
-await page.goto(URL, { waitUntil: 'networkidle' })
+// `domcontentloaded`, NOT `networkidle`.
+//
+// This step timed out at 30s on 2026-08-14, and it did so the first time it was
+// ever reached: every earlier live-check run failed upstream, on a page that
+// decoded to zero cards. A blank page issues no per-card requests, so
+// `networkidle` settled instantly and nothing here was exercised. With the
+// decoder fixed the slate renders in full and every card with a known venue
+// fires its own weather fetch, so "500ms with no connections" is a much harder
+// condition to reach — and it is not the condition this check cares about.
+//
+// The bounded `waitForSelector` below is what this script actually needs, and
+// the comment under it already made that argument for the rows; the `goto` was
+// left waiting on the network anyway.
+//
+// Scope held deliberately: `render-check.mjs:32` and `live-grouping-check.mjs:24`
+// use `networkidle` against the same URL and both PASSED in the same run, which
+// is evidence the page does reach idle rather than polling forever. That is
+// evidence, not proof — whether the live page is ever reliably network-idle now
+// that it fetches per card is a real question, and it is recorded in the outbox
+// rather than settled by this change.
+await page.goto(URL, { waitUntil: 'domcontentloaded' })
 await page.click('#tab-stats')
 
 // The schedule lands after the first render, on purpose — the panel is drawn

@@ -189,3 +189,40 @@ This is the third time in one change that the check, not the code, was the
 defect: an inverted exit code, a weakened existing assertion, and a
 counterexample that crashed instead of failing. The code change itself was
 right the first time.
+
+## Third correction — the fix reached a step that had never run
+
+With the decoder fixed, `live-check` got past render, grouping and the tab
+checks for the first time, and failed at the last step instead:
+
+```
+page.goto: Timeout 30000ms exceeded.
+  - navigating to "https://field-laboratory.jeffunglesbee.workers.dev/",
+    waiting until "networkidle"
+  at scripts/schedule-live-check.mjs:37
+```
+
+`schedule-live-check` had **never actually run against a rendered page**. Every
+earlier live-check failed upstream, on a slate that decoded to zero cards, and
+the job never reached this step. A blank page issues no per-card requests, so
+`networkidle` would have settled instantly had it ever been reached.
+
+Now the slate renders in full and every card with a known venue fires its own
+weather fetch, so "500ms with no connections" became a much harder condition —
+and it was never the condition this script cares about. It already does a
+bounded `waitForSelector` for the records row, with a comment arguing exactly
+that; the `goto` was left waiting on the network anyway. Changed to
+`domcontentloaded`.
+
+**Left open rather than declared benign.** `render-check.mjs:32` and
+`live-grouping-check.mjs:24` use `networkidle` against the same URL and both
+passed in the same run, which is evidence the page does reach idle rather than
+polling forever. Evidence, not proof. Whether the live page reliably reaches
+network-idle now that it fetches per card is a real question about the page, not
+about the check, and this change does not answer it. If those two steps start
+flaking, that is the answer arriving.
+
+This is the fourth thing in one change where the check, not the code, was the
+defect — an inverted exit code, a weakened existing assertion, a counterexample
+that crashed instead of failing, and a wait condition that only ever held
+because the page was empty. The decoder change itself has needed no revision.
