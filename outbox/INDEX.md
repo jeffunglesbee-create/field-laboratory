@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2cc73ea` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-13 [skip ci] |
 | `5ca7194` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Wait for the page, not for the network, in schedule-live-check |
 | `59927f8` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Restore the teeth the tolerant decoder took from drift-check |
 | `bd6ed5d` | 2026-08-13 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Fix the inverted exit code that took verify red |

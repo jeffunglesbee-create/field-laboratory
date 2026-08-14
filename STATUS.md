@@ -19,6 +19,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`decode-failed` on 2026-08-13 — 0 games, 0 malformed (17 runs logged)
+`unmodelled-sport` on 2026-08-13 — 25 games, 0 malformed (18 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
