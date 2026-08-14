@@ -75,6 +75,35 @@ let keyingExamples = []
 if (decoded) {
   games = [...toArray(payload.Regular), ...toArray(payload.Postseason)]
 
+  // ACCEPTED, not merely survived.
+  //
+  // `payload decodes` stopped being a real assertion the moment the game list
+  // became fault-tolerant. `Decode.oneOf [ gameDecoder |> Decode.map Some;
+  // Decode.succeed None ]` means a wholly broken `gameDecoder` still produces a
+  // payload — one with zero games in it — and every count below then reports
+  // cheerfully over an empty set.
+  //
+  // The mutation harness caught exactly that within one run of the change:
+  // `[decoder-rejects-real]` SURVIVED, meaning `Desk.fs` was deliberately broken
+  // and this script still passed. The gate row is named "decoders accept both
+  // real captures", so accept has to mean all of them.
+  //
+  // The conservation law alone is NOT enough here and it is worth saying why:
+  // a broken decoder maps every row to `None`, so `games + unnamed === rows`
+  // still balances perfectly at zero games. Both captures are hand-checked to
+  // contain no null-sided rows, so the assertion is the strict one.
+  const rawGameRows = (() => {
+    try {
+      const j = JSON.parse(body)
+      const n = a => (Array.isArray(a) ? a.length : 0)
+      return n(j?.games?.regular) + n(j?.games?.postseason)
+    } catch { return -1 }
+  })()
+
+  check('every game row in the capture is accepted as a game',
+    rawGameRows > 0 && games.length === rawGameRows && payload.Unnamed === 0,
+    `${rawGameRows} row(s) in the file, ${games.length} decoded, ${payload.Unnamed} un-nameable`)
+
   // The three fields the relay serves as strings containing JSON. Tag 2 means
   // the outer string was present and the inner JSON did not decode — a real
   // shape change, which is exactly what this sentinel is watching for.

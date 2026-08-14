@@ -135,3 +135,57 @@ exit after restore:   0
 ```
 
 The passing count is not the contract. The exit code is.
+
+## Second correction — the fix removed teeth from an existing check
+
+`verify` failed again on `bd6ed5d`, and this one was a real regression the
+mutation harness caught within a single run of the change:
+
+```
+FAIL  [decoder-rejects-real] the decoders actually accept the real captures
+      → mutation SURVIVED — src/Desk.fs was broken and
+        `run-row.mjs "decoders accept both real captures"` still passed.
+        Nothing defends this claim.
+```
+
+Making the game list fault-tolerant made `payload decodes` a much weaker claim
+than it used to be. Before, breaking `gameDecoder` failed the whole
+`Decode.list` and `drift-check` reported it. After, every row maps to `None`,
+the payload decodes fine with **zero games**, and every count downstream reports
+cheerfully over an empty set. Demonstrated directly:
+
+```
+PASS  payload decodes                                  <- with a wholly broken decoder
+FAIL  every game row in the capture is accepted as a game
+      → 2 row(s) in the file, 0 decoded, 2 un-nameable
+```
+
+`payload decodes` still passes. That is precisely why the mutation survived.
+
+**The conservation law is not enough here, and it is worth stating why.** A
+broken decoder maps every row to `None`, so `games + unnamed === rows` balances
+perfectly at zero games. Both captures were hand-checked (2 rows each, none
+null-sided) so the assertion added to `drift-check.mjs` is the strict form: every
+row accepted as a game, none counted un-nameable.
+
+It also un-vacuums the rest of that script. `every spread is a balanced
+handicap`, `no malformed nested payloads` and six others all PASSED over the
+empty set above. They are only meaningful because something now guarantees the
+set is non-empty.
+
+### A counterexample that proved nothing, caught before it was recorded
+
+The first attempt at the teeth measurement mutated `Id` to
+`Decode.int |> string`. It gave exit 1 — and for the wrong reason: Fable's
+`int32ToString` threw a `TypeError` on null and the process crashed before any
+assertion ran. Had that been recorded as the measurement, it would have "proven"
+the teeth of a check that never executed.
+
+Redone with `Required.Field "id_absent"`, which makes rows reject cleanly and
+actually exercises the `Decode.oneOf` fallthrough. Exit 1 from the assertion,
+exit 0 restored.
+
+This is the third time in one change that the check, not the code, was the
+defect: an inverted exit code, a weakened existing assertion, and a
+counterexample that crashed instead of failing. The code change itself was
+right the first time.
