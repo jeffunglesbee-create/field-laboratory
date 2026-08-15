@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `8fd151e` — but that is not `main` HEAD
+**FAILURE** on `217282b` — [run 31858108449](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/31858108449)
 
 ## Is it published?
 
