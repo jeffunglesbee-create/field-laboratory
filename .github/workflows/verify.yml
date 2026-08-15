@@ -40,6 +40,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      # FIRST, before the toolchain is even installed. `proof-check` proves its
+      # claims by injecting code into a real source file; on 2026-08-15 a
+      # foreground timeout killed it mid-run and `let private __proof23` was
+      # committed to src/Scoreboard.fs in 217282b.
+      #
+      # That injection COMPILED. It passed the build, passed "fail on any F#
+      # compiler warning", and passed fifteen further steps — the only thing
+      # that noticed was proof-check's own marker guard at step 17, ninety
+      # seconds in, and by then it could only refuse: its backup lives in
+      # tmpdir(), so on a fresh runner repair is impossible by construction.
+      #
+      # A stranded injection was silent everywhere except the one place that
+      # could not fix it. This is the cheap half — no build, no browser, no
+      # network — so a mutated tree costs seconds instead of a job.
+      - name: No source file carries injected proof code
+        run: npm run check:clean-source
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'

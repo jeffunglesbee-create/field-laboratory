@@ -40,7 +40,8 @@
     "check:unnamed": "node scripts/unnamed-check.mjs",
     "check:prose": "node scripts/prose-check.mjs",
     "check:census": "node scripts/jq-density-census.mjs --verify-tokenizer --from-disk",
-    "check:weather-burst": "node scripts/weather-burst-check.mjs"
+    "check:weather-burst": "node scripts/weather-burst-check.mjs",
+    "check:clean-source": "node scripts/clean-source-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
