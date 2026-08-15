@@ -12,7 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
-| `c17de34` | 2026-08-15 | [cc-outlet-false-positive-2026-08-15.md](cc-outlet-false-positive-2026-08-15.md) | A broadcast channel number was read as a leaked pick score |
+| `ddd32f6` | 2026-08-15 | [cc-outlet-false-positive-2026-08-15.md](cc-outlet-false-positive-2026-08-15.md) | A broadcast channel number was read as a leaked pick score |
 | `817b451` | 2026-08-15 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-15 [skip ci] |
 | `70e59f8` | 2026-08-15 | [cc-stranded-injection-2026-08-15.md](cc-stranded-injection-2026-08-15.md) | Catch a stranded proof injection before it costs a job |
 | `2f42fc6` | 2026-08-15 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-14 [skip ci] |
