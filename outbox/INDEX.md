@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8fd151e` | 2026-08-15 | [cc-prose-units-2026-08-14.md](cc-prose-units-2026-08-14.md) | Phase 1: the JQ unit error, refused by the compiler |
 | `a1aed79` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-14 [skip ci] |
 | `2cc73ea` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-13 [skip ci] |
 | `5ca7194` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Wait for the page, not for the network, in schedule-live-check |
