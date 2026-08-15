@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `d729c35`
+**running** on `7779ba8`
 
 ## Is it published?
 
