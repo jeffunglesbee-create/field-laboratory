@@ -1,0 +1,56 @@
+# Derive the home/away convention from ESPN and check laboratory against it.
+#
+# WHY A RUNNER
+#
+# `site.api.espn.com` is HTTP 000 at the agent proxy, so the dev sandbox cannot
+# reach it — the same wall that produced `probe-url.yml`,
+# `import-production-tables.yml` and `jq-density-census.yml`. NFL and CFL were
+# added to `sportMeta` from a STATED convention because of that, and a stated
+# convention is exactly the kind of assertion this repository exists to replace
+# with a measurement. A runner has egress, so the claim is testable — it just
+# is not testable in the place it was written.
+#
+# Dispatch-only for now, deliberately. It has never run against the real payload
+# and its derivation depends on ESPN's `shortName`/`competitors` shape. Wiring
+# an unproven network check straight into `verify` is how main goes red for a
+# reason that has nothing to do with the commit. Once a dispatch confirms the
+# shape, it moves into `verify` alongside the other live checks.
+name: sport-convention
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sport-convention
+  cancel-in-progress: false
+
+jobs:
+  convention:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          dotnet tool restore
+
+      # It imports from build/, so it needs a build — the check
+      # `workflow-check.mjs` exists to catch when a job forgets this.
+      - name: Build
+        run: npm run build
+
+      - name: Convention, derived from ESPN
+        run: node scripts/sport-convention-live-check.mjs

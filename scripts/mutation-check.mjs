@@ -156,6 +156,18 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // NFL's convention must be exercised, not just recorded. Flipping it to
+    // home-first is a change no compiler objects to — the registry still has an
+    // entry and every match is still exhaustive — so if this survives, the
+    // registry's CONTENT is unguarded and only its shape was ever checked.
+    id: 'nfl-convention-flipped',
+    file: 'src/Desk.fs',
+    claim: 'the sport registry is checked for what it says, not just that it has an entry',
+    find: '| Sport.NFL -> { Label = "NFL"; Matchup = AwayAtHome;',
+    replace: '| Sport.NFL -> { Label = "NFL"; Matchup = HomeVersusAway;',
+    expect: 'node scripts/sport-registry-check.mjs',
+  },
+  {
     // The composite-score scan is narrowed by PROVENANCE — it subtracts the
     // element PickView marks `pick-outlets`. Drop the class and the marker is
     // gone, the outlet text is scanned again, and the false positive that

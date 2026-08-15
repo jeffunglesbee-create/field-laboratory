@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `718e161` | 2026-08-15 | [cc-nfl-sport-registry-2026-08-15.md](cc-nfl-sport-registry-2026-08-15.md) | Model NFL and CFL; derive the convention on a runner, not by assertion |
 | `ddd32f6` | 2026-08-15 | [cc-outlet-false-positive-2026-08-15.md](cc-outlet-false-positive-2026-08-15.md) | A broadcast channel number was read as a leaked pick score |
 | `817b451` | 2026-08-15 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-15 [skip ci] |
 | `70e59f8` | 2026-08-15 | [cc-stranded-injection-2026-08-15.md](cc-stranded-injection-2026-08-15.md) | Catch a stranded proof injection before it costs a job |

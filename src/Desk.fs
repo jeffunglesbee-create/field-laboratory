@@ -183,6 +183,8 @@ type Sport =
     | MLS
     | WNBA
     | EFLCup
+    | NFL
+    | CFL
     | Unrecognised of raw: string
 
 /// Everything the renderer is allowed to know about a sport. One record, one
@@ -210,6 +212,18 @@ let sportMeta (sport: Sport) : SportMeta =
     | Sport.MLS -> { Label = "MLS"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true }
     | Sport.EFLCup -> { Label = "EFL Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true }
     | Sport.WNBA -> { Label = "WNBA"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    // Gridiron, North American convention: the visiting side is named first,
+    // "Cowboys at Eagles". Same convention already encoded above for MLB and
+    // WNBA, and the basis is stated rather than derived — ESPN is unreachable
+    // from this sandbox (HTTP 000 at the proxy), so this is a convention
+    // judgement recorded for review, exactly like the soccer entries below it.
+    //
+    // Added because production has NFL as a first-class sport while laboratory
+    // rendered it `Unrecognised` — drift-sentinel reported `unmodelled: NFL,
+    // CFL, golf` on 2026-08-14 and again on 2026-08-15, and an unmodelled sport
+    // renders "Home vs Away" regardless of which side the relay calls home.
+    | Sport.NFL -> { Label = "NFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    | Sport.CFL -> { Label = "CFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
     | Sport.Unrecognised raw ->
         { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false }
 
@@ -224,6 +238,21 @@ let sportOfString (raw: string) : Sport =
     // normalised: a normaliser is a place for two spellings to silently become
     // one sport, which is the failure Rule 53 records for team names.
     | "EFL Cup" -> Sport.EFLCup
+    | "NFL" -> Sport.NFL
+    | "CFL" -> Sport.CFL
+    // `golf` is deliberately NOT matched here, and that is a decision rather
+    // than an omission. The relay packs a tournament and a round into `home`
+    // and `away` — `golf_2026-08-14_fedexstjudechampionship_r2` renders as
+    // "FedEx St. Jude Championship vs R2" — so those two fields are not
+    // opponents. Every `Matchup` case this type has asserts a contest between
+    // two sides, and modelling golf under one would make the desk state, in its
+    // own voice, that a tournament played a round.
+    //
+    // Leaving it `Unrecognised` keeps `Modelled = false` and surfaces it as
+    // unmodelled, which is true. Adding a fourth `Matchup` case for events that
+    // are not two-sided is the actual fix and is its own change: inventing a
+    // convention in a hurry is precisely what produced the AFL/MLB transposition
+    // recorded above `orderByMatchup`.
     | other -> Sport.Unrecognised other
 
 /// Orders a home/away pair the way the sport names them.

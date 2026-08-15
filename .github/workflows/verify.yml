@@ -205,6 +205,19 @@ jobs:
       - name: Rows the desk cannot name
         run: npm run check:unnamed
 
+      # The sport registry against the sports production actually serves.
+      # drift-sentinel reported `unmodelled: NFL, CFL, golf` two days running,
+      # and an unmodelled sport is not cosmetic: it gets UnknownConvention, so
+      # the desk named the visiting side second on every NFL card.
+      #
+      # Exercises both halves — matchupText AND orderByMatchup — because those
+      # are the two that once disagreed and printed a scoreline transposed
+      # against the names. Also pins golf as deliberately unmodelled, so a check
+      # reading "everything is modelled" cannot push someone to model a
+      # tournament as a two-sided contest to get green.
+      - name: The sport registry matches what production serves
+        run: npm run check:sports
+
       # src/Prose.fs against the relay's real tokeniser, over all 592 briefs in
       # data/jq-mlb-game-corpus.json. Agreement is the test: a port that quietly
       # computed something more sensible than the thing it claims to reproduce
