@@ -72,12 +72,58 @@ check('each panel still names the other',
 // ADR-002 on the live artifact. Any bare decimal in the pick panels is
 // suspicious: the reasons carry numbers like "tight line (1.5)" inside
 // parentheses, but a naked score would render on its own.
-const pickPanels = `${fieldText} ${scoutText}`
-const strayScore = pickPanels.match(/(?<![\d(.])\b\d\.\d\b(?![\d)])/)
+//
+// SCOPE, and why it is narrowed the way it is.
+//
+// One paragraph in the panel renders VERBATIM THIRD-PARTY DATA: the list of
+// broadcast outlets not in the registry. Outlet names legitimately contain
+// numbers — on 2026-08-15 the slate carried "KFMB 8.1 (CBS)", a real ATSC
+// channel number, and this scan matched it and turned main red on a false
+// positive.
+//
+// The fix excludes that ELEMENT, by its `pick-outlets` class, rather than
+// loosening the pattern. Loosening would let a genuine 8.1 through everywhere
+// else, which is precisely the leak this check exists to catch. Narrowing by
+// provenance keeps the pattern strict over every byte laboratory computed.
+const SCORE_RE = /(?<![\d(.])\b\d\.\d\b(?![\d)])/
+
+const outletText = (await page.$$eval('.pick-outlets', ns => ns.map(n => n.textContent ?? ''))).join(' ')
+
+// Subtract by exact string, not by regex: an outlet name is arbitrary text and
+// must not be compiled into a pattern.
+const scanned = [fieldText, scoutText]
+  .map(t => (outletText ? t.split(outletText).join(' ') : t))
+  .join(' ')
+
+const strayScore = scanned.match(SCORE_RE)
 check('no bare composite score renders in either pick panel',
   strayScore === null,
   `possible score in the DOM: "${strayScore?.[0]}" near: ${
-    pickPanels.slice(Math.max(0, (strayScore?.index ?? 0) - 60), (strayScore?.index ?? 0) + 60)}`)
+    scanned.slice(Math.max(0, (strayScore?.index ?? 0) - 60), (strayScore?.index ?? 0) + 60)}`)
+
+// The exclusion must not have neutered the scan. Run the same pattern over a
+// control that carries BOTH an outlet-style channel number and a leaked score:
+// the outlet must be excluded and the score must still be caught. Without this,
+// "exclude everything" would satisfy the check above on every slate.
+const controlOutlet = 'Broadcast outlets not in the registry: KFMB 8.1 (CBS)'
+const controlLeak = `composite 8.7 tonight ${controlOutlet}`
+const controlScanned = controlLeak.split(controlOutlet).join(' ')
+check('the scan still catches a leaked score after the outlet exclusion',
+  SCORE_RE.test(controlLeak) &&
+  controlOutlet.match(SCORE_RE)?.[0] === '8.1' &&
+  controlScanned.match(SCORE_RE)?.[0] === '8.7',
+  `control: outlet alone matches ${JSON.stringify(controlOutlet.match(SCORE_RE)?.[0])}, ` +
+  `after exclusion ${JSON.stringify(controlScanned.match(SCORE_RE)?.[0])} (want "8.1" then "8.7")`)
+
+// And the exclusion must be REAL on this page — if the outlet paragraph stopped
+// rendering, the check above would pass for the wrong reason. Reported rather
+// than asserted, because a slate where every outlet is in the registry is a
+// legitimate state with no paragraph to exclude.
+check('the outlet exclusion is reported, not silent',
+  true,
+  outletText
+    ? `excluded ${outletText.length} char(s) of verbatim outlet text`
+    : 'no unmodelled outlets on this slate — nothing excluded')
 
 // Whatever the panel says, it must be one of the modelled states rather than
 // a blank. A silently empty panel is this project's recorded failure shape.

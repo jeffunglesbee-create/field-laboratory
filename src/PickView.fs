@@ -148,8 +148,20 @@ let renderScoutPick (mount: HTMLElement) (games: Game list) (seriesEntries: int)
             child row (el "div" "gate__answer" (gateAnswerText gate.Answer)) |> ignore
 
         // Named, never counted. A count says a problem exists and nothing else.
+        //
+        // Carries `pick-outlets` as well as `pick-empty`. The extra class is not
+        // styling — it marks this paragraph as the one place in the panel whose
+        // text is VERBATIM THIRD-PARTY DATA rather than anything laboratory
+        // computed. Outlet names legitimately contain numbers: on 2026-08-15 the
+        // slate carried "KFMB 8.1 (CBS)", a real ATSC channel number, and
+        // live-tabs-check's bare-decimal scan for a leaked composite score
+        // matched it and turned main red.
+        //
+        // The scan is narrowed by PROVENANCE — exclude the element that renders
+        // data we did not compute — rather than by loosening the pattern, which
+        // would let a genuine 8.1 through everywhere else.
         let unmodelled = games |> List.collect (fun g -> unmodelledOutlets g.Streams) |> List.distinct
         if not unmodelled.IsEmpty then
-            child panel (el "p" "pick-empty"
+            child panel (el "p" "pick-empty pick-outlets"
                             (sprintf "Broadcast outlets not in the registry: %s"
                                      (String.concat ", " unmodelled))) |> ignore

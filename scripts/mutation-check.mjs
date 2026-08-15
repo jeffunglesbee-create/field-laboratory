@@ -156,6 +156,19 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // The composite-score scan is narrowed by PROVENANCE — it subtracts the
+    // element PickView marks `pick-outlets`. Drop the class and the marker is
+    // gone, the outlet text is scanned again, and the false positive that
+    // turned main red on 2026-08-15 comes back. If this survives, the exclusion
+    // is not actually keyed to the class and the fix is somewhere else.
+    id: 'outlet-class-dropped',
+    file: 'src/PickView.fs',
+    claim: 'the score scan really excludes the outlet paragraph by its class',
+    find: 'el "p" "pick-empty pick-outlets"',
+    replace: 'el "p" "pick-empty"',
+    expect: 'node scripts/outlet-scan-check.mjs',
+  },
+  {
     // The weather fan-out must stay bounded. Unbounded, it fired one request
     // per venue simultaneously and Open-Meteo 429'd a twelve-venue slate on
     // 2026-08-15, turning live-check red on three assertions at once. Raising

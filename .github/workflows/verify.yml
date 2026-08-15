@@ -147,6 +147,20 @@ jobs:
       - name: Pick'em — chips, grading, and the row that wraps in production
         run: npm run check:pickem
 
+      # ADR-002's composite-score scan, and the outlet exclusion that keeps it
+      # from firing on broadcast data. live-check went red on 2026-08-15 because
+      # the slate carried "KFMB 8.1 (CBS)" — a real ATSC channel number — and a
+      # scan meant for leaked pick scores matched it.
+      #
+      # This needs its own fixture: games-2026-08-09.json renders ZERO
+      # .pick-outlets elements, so on the committed capture the exclusion is
+      # never exercised and live-tabs-check's outlet assertions pass vacuously
+      # (verified: 0 elements). A synthetic slate carrying the outlet proves the
+      # chain on a real DOM — including that the OLD scan really did flag it, so
+      # the bug is reproduced rather than assumed.
+      - name: The composite-score scan skips outlets and nothing else
+        run: npm run check:outlet-scan
+
       # Compiles every violation docs/AMNESTY-PROOF.md claims is rejected and
       # asserts the compiler really rejects it with the stated error. The doc
       # shipped an overstated claim once — that the drama seal was complete when
