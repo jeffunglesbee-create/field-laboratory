@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `05f4549` | 2026-08-15 | [cc-weather-burst-2026-08-15.md](cc-weather-burst-2026-08-15.md) | Bound the weather fan-out; it was bursting and earning a 429 |
+| `40f442c` | 2026-08-15 | [cc-oracle-provenance-2026-08-15.md](cc-oracle-provenance-2026-08-15.md) | Close Phase 1's soft links; measure what Phase 2 is blocked on |
 | `8fd151e` | 2026-08-15 | [cc-prose-units-2026-08-14.md](cc-prose-units-2026-08-14.md) | Phase 1: the JQ unit error, refused by the compiler |
 | `a1aed79` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-14 [skip ci] |
 | `2cc73ea` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-13 [skip ci] |

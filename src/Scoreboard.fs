@@ -118,6 +118,11 @@ let private renderSparkline (zone: AmnestyZone) (g: Game) : HTMLElement option =
 /// could be flipped, but because this branch holds no `AmnestyZone` and so
 /// literally cannot reach `postGameDramaText`. Deleting the guard does not
 /// leak the number; it stops compiling.
+let private __proof23 (g: Game) =
+    match g.Sport with
+    | Sport.AFL -> "afl"
+    | Sport.MLB -> "mlb"
+
 let private dramaText (g: Game) (state: GameState) =
     match amnestyZone state with
     | Some zone -> postGameDramaText zone g

@@ -194,6 +194,16 @@ jobs:
       - name: The census script runs, against the corpus it captured
         run: npm run check:census
 
+      # The weather fan-out, measured as runtime concurrency rather than read
+      # off a constant. It was unbounded — one request per venue, all at once —
+      # and on 2026-08-15 a twelve-venue slate earned a 429 from Open-Meteo that
+      # took three live-check assertions red from one cause. Drives the real
+      # compiled F# with a stubbed `fetch` that resolves on a later macrotask,
+      # so requests genuinely overlap and the peak is meaningful; a stub that
+      # resolved synchronously would report a peak of 1 for the broken code too.
+      - name: The weather fan-out stays inside its burst bound
+        run: npm run check:weather-burst
+
       # Deterministic zone assertions. CI runs whenever a push lands, which is
       # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
       # so the zone logic would otherwise be exercised only by luck.

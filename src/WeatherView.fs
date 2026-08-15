@@ -188,6 +188,36 @@ let private fetchOne (venue: Venues.Venue) : JS.Promise<Result<VenueWeather, str
             return Error(sprintf "%s: %s" venue.Name e.Message)
     }
 
+/// How many Open-Meteo requests may be in flight at once.
+///
+/// This was unbounded — `targets |> List.map fetchOne |> Promise.all` — which
+/// fires one request per distinct coordinate SIMULTANEOUSLY. On 2026-08-15 a
+/// twelve-venue slate did exactly that and Open-Meteo answered one of them with
+/// `429 Too Many Requests`, costing that venue its chip and turning live-check
+/// red on three assertions at once ("no page or console errors", "the chips all
+/// filled within the wait", "every card whose venue the table knows carries a
+/// live chip" — 11 of 12).
+///
+/// That is this page's own doing, not an outage, and it is why the fix is a
+/// bound rather than tolerating the 429. A 429 is the server saying the client
+/// is asking too fast; swallowing it would leave the page still asking too fast
+/// and merely stop reporting the consequence.
+///
+/// Four is not tuned to a published quota — Open-Meteo documents per-minute and
+/// per-day ceilings, and neither is what twelve-at-once trips. It is chosen to
+/// keep the burst small while leaving the whole slate well inside live-check's
+/// 20s chip wait: twelve venues become three waves, not twelve.
+let private maxInFlight = 4
+
+/// Split into bounded waves. Deliberately not a general utility — nothing else
+/// in this repo fans out to a third party, and a shared helper would invite one.
+let private waves (size: int) (xs: 'a list) : 'a list list =
+    let rec go acc rest =
+        match rest with
+        | [] -> List.rev acc
+        | _ -> go (List.truncate size rest :: acc) (List.skip (min size (List.length rest)) rest)
+    go [] xs
+
 /// Fetch the slate's weather and build the outcome.
 ///
 /// The outcome is built by `slateWeather`, which is the only constructor — so
@@ -200,8 +230,13 @@ let fetchSlate (venueNames: string list) : JS.Promise<SlateWeather * string list
         if List.isEmpty targets then
             return slateWeather [] [] [], unlocated
         else
-            let! settled = targets |> List.map fetchOne |> Promise.all
-            let results = List.ofSeq settled
+            // Waves run in sequence; each wave's requests run together. Order is
+            // preserved so a failure still names the venue it belongs to.
+            let mutable settledAll : Result<VenueWeather, string> list = []
+            for wave in waves maxInFlight targets do
+                let! settled = wave |> List.map fetchOne |> Promise.all
+                settledAll <- settledAll @ List.ofSeq settled
+            let results = settledAll
             let readings = results |> List.choose (function Ok r -> Some r | Error _ -> None)
             let failed = results |> List.choose (function Error e -> Some e | Ok _ -> None)
             let attempted = targets |> List.map (fun v -> v.Name)

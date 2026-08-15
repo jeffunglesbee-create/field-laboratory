@@ -156,6 +156,20 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // The weather fan-out must stay bounded. Unbounded, it fired one request
+    // per venue simultaneously and Open-Meteo 429'd a twelve-venue slate on
+    // 2026-08-15, turning live-check red on three assertions at once. Raising
+    // the bound past the slate size restores exactly that shape, so the burst
+    // check must object — otherwise it is reading the constant rather than
+    // measuring the concurrency.
+    id: 'weather-bursts-unbounded',
+    file: 'src/WeatherView.fs',
+    claim: 'the weather fan-out is really bounded at runtime, not just in a constant',
+    find: 'let private maxInFlight = 4',
+    replace: 'let private maxInFlight = 999',
+    expect: 'node scripts/weather-burst-check.mjs',
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',
