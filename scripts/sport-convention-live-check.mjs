@@ -22,7 +22,11 @@
 // anything — the ORDER is measured, and the order is the claim `Matchup` makes.
 //
 // Then it asks the real compiled `orderByMatchup` which side laboratory names
-// first, and requires the two to agree.
+// first, and requires the two to agree — but only where ESPN actually sets the
+// convention. See the `authority` note on LEAGUES: the first real run falsified
+// the assumption that `shortName` encodes per-sport convention at all, and the
+// scoping below is the consequence of that measurement, not a concession to
+// make the check pass.
 //
 // FAILURE MODES IT REFUSES TO HIDE
 //
@@ -44,33 +48,60 @@ const { check, summarize } = createChecks()
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
 
 // ESPN's own slugs, paired with the sport string production serves.
+//
+// `authority` records whether ESPN is an EDITORIAL authority for that sport's
+// naming convention, or merely a publisher of it. That distinction is not a
+// convenience — it was forced by the first real run, on 2026-08-15:
+//
+//   NFL   16 events  away-first  PHI @ BAL
+//   CFL    1 event   away-first  TAT @ WBB
+//   MLB   15 events  away-first  CHW @ DET
+//   WNBA   3 events  away-first  NY @ CON
+//   MLS   11 events  away-first  RBNY @ ATL
+//   AFL    9 events  away-first  COLL @ HAW
+//
+// Away-first for ALL SIX — including Australian football, where the local
+// convention is demonstrably home-first ("Collingwood v Hawthorn" is how
+// AFL.com.au writes it), and association football, where home-first is the norm
+// everywhere the game is played.
+//
+// That result falsifies this check's original hypothesis. `shortName` does not
+// encode each sport's editorial convention; it is ESPN's own uniform scoreboard
+// format. A source that returns the identical answer for six different sports
+// carries no per-sport information — the UNIFORMITY is the tell, and treating
+// it as authority would have "corrected" AFL into naming the away side first on
+// the strength of an American scoreboard's house style.
+//
+// So agreement is asserted only where ESPN is a primary editorial source for
+// the league. Elsewhere the divergence is reported, not enforced.
 const LEAGUES = [
-  { sport: 'NFL', path: 'football/nfl' },
-  { sport: 'CFL', path: 'football/cfl' },
-  { sport: 'MLB', path: 'baseball/mlb' },
-  { sport: 'WNBA', path: 'basketball/wnba' },
-  { sport: 'MLS', path: 'soccer/usa.1' },
-  { sport: 'AFL', path: 'australian-football/afl' },
+  { sport: 'NFL', path: 'football/nfl', authority: true },
+  { sport: 'CFL', path: 'football/cfl', authority: true },
+  { sport: 'MLB', path: 'baseball/mlb', authority: true },
+  { sport: 'WNBA', path: 'basketball/wnba', authority: true },
+  // ESPN publishes these; it does not set how they are written.
+  { sport: 'MLS', path: 'soccer/usa.1', authority: false },
+  { sport: 'AFL', path: 'australian-football/afl', authority: false },
 ]
 
 const results = []
 let unreachable = 0
 
-for (const { sport, path } of LEAGUES) {
+for (const { sport, path, authority } of LEAGUES) {
   const url = `https://site.api.espn.com/apis/site/v2/sports/${path}/scoreboard`
   let payload
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(20000) })
-    if (!r.ok) { results.push({ sport, status: `HTTP ${r.status}` }); unreachable++; continue }
+    if (!r.ok) { results.push({ sport, authority, status: `HTTP ${r.status}` }); unreachable++; continue }
     payload = await r.json()
   } catch (e) {
-    results.push({ sport, status: `unreachable: ${String(e).slice(0, 60)}` })
+    results.push({ sport, authority, status: `unreachable: ${String(e).slice(0, 60)}` })
     unreachable++
     continue
   }
 
   const events = payload?.events ?? []
-  if (!events.length) { results.push({ sport, status: 'no events today' }); continue }
+  if (!events.length) { results.push({ sport, authority, status: 'no events today' }); continue }
 
   // Derive the order ESPN uses, event by event, and require the events to agree
   // with each other before comparing to laboratory. A league whose own events
@@ -92,6 +123,7 @@ for (const { sport, path } of LEAGUES) {
   const distinct = [...new Set(orders)]
   results.push({
     sport,
+    authority,
     status: orders.length ? `${orders.length} event(s)` : 'no usable events',
     espn: distinct.length === 1 ? distinct[0] : (distinct.length ? `INCONSISTENT ${distinct.join('/')}` : null),
     malformed,
@@ -126,31 +158,71 @@ check('no league contradicts itself across its own events',
   results.filter(r => String(r.espn ?? '').startsWith('INCONSISTENT'))
     .map(r => `${r.sport}: ${r.espn}`).join('; ') || 'each league is internally consistent')
 
-// The comparison. `orderByMatchup` returns the pair in display order, so its
-// first element names the side laboratory writes first.
-const disagree = derived.filter(r => {
+for (const r of derived) {
   const [first] = orderByMatchup(sportOfString(r.sport), 'HOME', 'AWAY')
-  const lab = first === 'AWAY' ? 'away-first' : 'home-first'
-  r.lab = lab
-  return lab !== r.espn
-})
+  r.lab = first === 'AWAY' ? 'away-first' : 'home-first'
+}
 
-check('laboratory names the same side first as ESPN, for every derivable sport',
+// THE INSTRUMENT CHECK, and the reason this file is worth running.
+//
+// The comparison below is only meaningful if ESPN's order actually varies by
+// sport. On 2026-08-15 it did not — six leagues, one answer — which is what
+// demoted it from authority to publisher for MLS and AFL. If ESPN ever DOES
+// start distinguishing, that assumption is dead and this must say so loudly
+// rather than keep quietly scoping itself down.
+// Guarded on having derived anything at all: an empty set has one distinct
+// value in neither direction, and reporting "ESPN now VARIES ()" off zero
+// leagues would be a claim made from no data — the thing this file is about.
+const espnOrders = [...new Set(derived.map(r => r.espn))]
+check('ESPN is still uniform, so it still cannot adjudicate per-sport convention',
+  derived.length === 0 || espnOrders.length === 1,
+  derived.length === 0
+    ? 'nothing derivable this run — uniformity neither confirmed nor refuted'
+    : espnOrders.length === 1
+      ? `every derivable league is ${espnOrders[0]} — a source with no variance carries no per-sport signal`
+      : `ESPN now VARIES by sport (${derived.map(r => `${r.sport}=${r.espn}`).join(' ')}) — ` +
+        'it may be an authority after all; revisit the authority flags')
+
+// Where ESPN IS an editorial authority, agreement is required.
+const authoritative = derived.filter(r => r.authority)
+const disagree = authoritative.filter(r => r.lab !== r.espn)
+
+check('at least one authoritative league was derivable',
+  authoritative.length > 0,
+  `${authoritative.length} authoritative league(s) derived`)
+
+check('laboratory agrees with ESPN where ESPN sets the convention',
   disagree.length === 0,
   disagree.length
     ? disagree.map(r => `${r.sport}: laboratory ${r.lab}, ESPN ${r.espn} (e.g. "${r.sample}")`).join('; ')
-    : derived.map(r => `${r.sport}=${r.espn}`).join(' '))
+    : authoritative.map(r => `${r.sport}=${r.espn}`).join(' '))
 
-// And the rendered text must follow the same order it just agreed on — the two
-// halves that once disagreed and transposed a scoreline.
+// Where it is not, the divergence is REPORTED. Not asserted either way: this
+// check has no instrument for the editorial convention of a sport ESPN merely
+// republishes, and pretending otherwise is how "COLL @ HAW" would have become
+// laboratory's house style for Australian football.
+const published = derived.filter(r => !r.authority)
+check('divergence on non-authoritative leagues is reported, not enforced',
+  true,
+  published.length
+    ? published.map(r =>
+        `${r.sport}: laboratory ${r.lab}, ESPN ${r.espn}${r.lab === r.espn ? '' : ' (UNVERIFIED — ESPN house style, not a ruling)'}`).join('; ')
+    : 'no non-authoritative league was derivable this run')
+
+// The rendered text must follow whatever order laboratory itself claims — the
+// two halves that once disagreed and transposed a scoreline. This holds for
+// every sport, authoritative or not, because it is internal consistency.
 const textWrong = derived.filter(r => {
   const text = matchupText(sportOfString(r.sport), 'Cowboys', 'Eagles')
   const cowboysFirst = text.indexOf('Cowboys') < text.indexOf('Eagles')
-  return r.espn === 'away-first' ? cowboysFirst : !cowboysFirst
+  // `matchupText(sport, home, away)` with home='Cowboys': an away-first sport
+  // must NOT put Cowboys first. Getting this backwards is the transposition
+  // this check exists to catch, and I wrote it backwards once here.
+  return r.lab === 'away-first' ? cowboysFirst : !cowboysFirst
 })
-check('the rendered matchup text follows the order it agreed on',
+check('rendered text and score ordering agree, for every sport',
   textWrong.length === 0,
-  textWrong.map(r => `${r.sport}: "${matchupText(sportOfString(r.sport), 'Cowboys', 'Eagles')}" vs ESPN ${r.espn}`)
+  textWrong.map(r => `${r.sport}: "${matchupText(sportOfString(r.sport), 'Cowboys', 'Eagles')}" but order ${r.lab}`)
     .join('; ') || 'text and order agree everywhere')
 
 process.exit(summarize() === 0 ? 0 : 1)
