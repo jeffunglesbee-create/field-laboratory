@@ -40,10 +40,21 @@
 // this also writes the corpus to disk for a local run against the real import.
 //
 // Reading a copied tokenizer as "the real one" is exactly the assumption this
-// project keeps getting burned by, so `--verify-tokenizer` re-derives the
-// twelve hand-checked briefs from the sample run and fails if any count moved.
+// project keeps getting burned by, so `--verify-tokenizer` re-derives the four
+// hand-verified briefs and fails if any count moved.
+//
+// `--from-disk` reads the committed corpus instead of the relay. The relay is
+// 403 CONNECT at the agent proxy, so without it this file is only ever executed
+// on a runner — and an unrunnable script is one nobody notices has broken. With
+// it, `--verify-tokenizer --from-disk` runs in `verify` on every commit and
+// covers everything the network path covers except `fetchDate` itself: that the
+// import resolves, that `tokens` and `FIXTURES` are the names this file expects,
+// and that the fixture block still holds against 592 real briefs.
+
+import { readFileSync, writeFileSync } from 'node:fs'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
+const CORPUS_PATH = 'data/jq-mlb-game-corpus.json'
 
 // The deploy commit's timestamp, not the date it was specced. `created_at` is
 // when the score was computed, so it is the correct partition key — a brief
@@ -53,15 +64,15 @@ const CUTOFF = '2026-07-16 01:36:49'
 
 const args = new Set(process.argv.slice(2))
 const VERIFY_ONLY = args.has('--verify-tokenizer')
+const FROM_DISK = args.has('--from-disk')
 
-// ── the tokenizer, verbatim from scoreProse ─────────────────────────────────
-// Do not "clean this up". Any edit here silently decouples this census from the
-// thing it claims to measure, and nothing downstream would notice.
-
-// The tokeniser and the hand-verified fixtures now live in one place, imported
-// by both this census and `prose-check`. Two verbatim copies of an original
-// neither can see is two things to keep in sync — the failure this repo keeps
-// finding in other people's code.
+// ── the tokenizer ───────────────────────────────────────────────────────────
+// `scoreProse`'s body, verbatim, now lives in ONE place — imported by both this
+// census and `prose-check` rather than copied into each. Two reproductions of
+// an original neither can see is two things to keep in sync, which is the
+// failure this repo keeps finding in other people's code. Do not "clean up"
+// what is in there: any edit silently decouples this census from the thing it
+// claims to measure, and nothing downstream would notice.
 import { tokens, FIXTURES } from './jq-tokenizer.mjs'
 
 // ── fetch ────────────────────────────────────────────────────────────────────
@@ -138,20 +149,34 @@ console.log(`cutoff (6aed3bb deploy): ${CUTOFF} UTC`)
 const dates = dateRange(FROM, TO)
 const all = []
 let failed = 0
-for (const d of dates) {
-  const r = await fetchDate(d).catch(e => ({ date: d, ok: false, status: String(e), results: [] }))
-  if (!r.ok) {
-    failed++
-    console.log(`   ${d}: FETCH FAILED (${r.status})`)
-    continue
+
+if (FROM_DISK) {
+  // The committed capture, not a fresh fetch. Loud about which it is, because a
+  // census silently reporting on a stale snapshot is the same class of quiet
+  // wrongness as a truncated one.
+  const disk = JSON.parse(readFileSync(CORPUS_PATH, 'utf8'))
+  if (!Array.isArray(disk) || disk.length === 0) {
+    console.log(`=== RESULT: FAIL — ${CORPUS_PATH} is empty or not an array ===`)
+    process.exit(1)
   }
-  for (const row of r.results) all.push(row)
+  for (const row of disk) all.push(row)
+  console.log(`reading ${CORPUS_PATH} (${all.length} rows) — NOT fetching the relay`)
+} else {
+  for (const d of dates) {
+    const r = await fetchDate(d).catch(e => ({ date: d, ok: false, status: String(e), results: [] }))
+    if (!r.ok) {
+      failed++
+      console.log(`   ${d}: FETCH FAILED (${r.status})`)
+      continue
+    }
+    for (const row of r.results) all.push(row)
+  }
 }
 
 // A truncated corpus must be loud, not quiet — every silent cap in this repo's
 // history looked exactly like a clean run.
 if (failed) console.log(`::warning::${failed}/${dates.length} dates failed to fetch; corpus is incomplete`)
-const atCap = all.length && dates.some(d => all.filter(r => r.date === d).length >= 100)
+const atCap = !FROM_DISK && all.length && dates.some(d => all.filter(r => r.date === d).length >= 100)
 if (atCap) console.log('::warning::at least one date returned 100 rows — the limit may have truncated it')
 
 const rows = all
@@ -209,10 +234,18 @@ console.log('   FIELD_PROSE_STYLE actually specifies.')
 // The corpus itself, so a local run can import the real scoreProse rather than
 // re-deriving it here. The runner cannot: journalism-quality.js lives in a repo
 // it holds no credential for.
-const { writeFileSync } = await import('node:fs')
-const out = rows.map(({ id, date, created_at, quality_score, word_count, source, brief_text }) => ({
-  id, date, created_at, quality_score, word_count, source, brief_text,
-}))
-writeFileSync('data/jq-mlb-game-corpus.json', JSON.stringify(out, null, 1) + '\n')
-console.log('')
-console.log(`wrote data/jq-mlb-game-corpus.json (${out.length} briefs)`)
+//
+// Not written under `--from-disk`. Re-emitting the capture from itself would
+// look like a fresh capture in the git history while carrying no new evidence,
+// and `prose-check` pins this file's contents.
+if (FROM_DISK) {
+  console.log('')
+  console.log(`--from-disk: leaving ${CORPUS_PATH} untouched (it is the input)`)
+} else {
+  const out = rows.map(({ id, date, created_at, quality_score, word_count, source, brief_text }) => ({
+    id, date, created_at, quality_score, word_count, source, brief_text,
+  }))
+  writeFileSync(CORPUS_PATH, JSON.stringify(out, null, 1) + '\n')
+  console.log('')
+  console.log(`wrote ${CORPUS_PATH} (${out.length} briefs)`)
+}

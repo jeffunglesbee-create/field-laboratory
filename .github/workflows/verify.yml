@@ -183,6 +183,17 @@ jobs:
       - name: JQ prose dimensions agree with production
         run: npm run check:prose
 
+      # The census that produced that corpus, executed rather than assumed.
+      # `jq-density-census.mjs` only ever ran on a dispatched runner — the relay
+      # is 403 CONNECT at the agent proxy — so when its tokenizer was extracted
+      # into `jq-tokenizer.mjs`, the refactor shipped with `node --check` as its
+      # only evidence, which is syntax and not execution. `--from-disk` reads the
+      # committed corpus instead of the relay, so the import, the shared fixture
+      # names, and the fixture block all run here on every push. It cannot cover
+      # `fetchDate`; the dispatched workflow is still the only thing that does.
+      - name: The census script runs, against the corpus it captured
+        run: npm run check:census
+
       # Deterministic zone assertions. CI runs whenever a push lands, which is
       # almost never inside the 00:00-04:00 UTC window where ET and UTC differ,
       # so the zone logic would otherwise be exercised only by luck.

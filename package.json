@@ -38,7 +38,8 @@
     "check:unused": "node scripts/unused-check.mjs && node scripts/units-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs",
     "check:unnamed": "node scripts/unnamed-check.mjs",
-    "check:prose": "node scripts/prose-check.mjs"
+    "check:prose": "node scripts/prose-check.mjs",
+    "check:census": "node scripts/jq-density-census.mjs --verify-tokenizer --from-disk"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

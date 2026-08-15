@@ -15,6 +15,37 @@
 // that imported the real `scoreProse`. If this copy ever drifts from the
 // original, those four move and every consumer fails rather than reporting a
 // confident wrong census.
+//
+// ── PROVENANCE, RE-CHECKED DIRECTLY 2026-08-15 ──────────────────────────────
+//
+// The fixtures above are a PROXY for the original. On 2026-08-15 the original
+// itself was read — `field-relay-nba/src/journalism-quality.js` at sha
+// `9d8151d44f32890b818dc03b7d8565ac06b8c452`, 975 lines — and compared line by
+// line. See docs/ORACLE-PROVENANCE.md for the full table. Result:
+//
+//   IDENTICAL AS EXPRESSIONS, token for token, at relay lines 420-424, 443-450,
+//   451-458 and 524: `words`, `sentences`, `nSent`, `sentStarts`, `numbersAll`,
+//   `factsPerSentence`, the Dim 1 `specificity` reduce, and the density clamp.
+//   Weights confirmed at relay line 531: `{ spec:30, ..., density:16 }`.
+//
+//   NOT byte-identical: the relay terminates statements with semicolons and
+//   aligns `const numbersAll  =` against a neighbour that has since been
+//   deleted. Neither is observable — but it does mean this copy can never be
+//   checked by hashing, only by reading, which is why the table exists.
+//
+//   TWO DELIBERATE DIVERGENCES, both of which are the finding rather than drift:
+//
+//   1. `properNouns` no longer EXISTS in the relay. It was deleted as dead code
+//      by the 2026-08-13 unit fix. So `rawDensity` below is not reproducible
+//      from current source at all — it is the PRE-fix formula, retained because
+//      the 592 stored scores in the corpus were produced by it. That history is
+//      now pinned by the four fixtures and by nothing else, which is precisely
+//      why they are asserted before anything downstream is trusted.
+//
+//   2. `densityNumsOnly` was written here as a PROPOSAL. It is no longer one:
+//      relay line 523 is now `const rawDensity = numbersAll.length / nSent`,
+//      character-identical to `numsPerSent`. What this file computes as the
+//      correction is what production computes as Dim 4.
 
 export function tokens(text) {
   const words = text.split(/\s+/).filter(Boolean)
