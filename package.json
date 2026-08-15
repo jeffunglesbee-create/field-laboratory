@@ -37,7 +37,8 @@
     "check:weather-live": "node scripts/weather-live-check.mjs",
     "check:unused": "node scripts/unused-check.mjs && node scripts/units-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs",
-    "check:unnamed": "node scripts/unnamed-check.mjs"
+    "check:unnamed": "node scripts/unnamed-check.mjs",
+    "check:prose": "node scripts/prose-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

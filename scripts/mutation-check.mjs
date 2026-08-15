@@ -144,6 +144,18 @@ const MUTATIONS = [
   // --- the rows that had no teeth at all until row-confidence.mjs said so ----
 
   {
+    // The agreement check must compare against the ORACLE, not against itself.
+    // Widening what counts as a name changes every count in Prose.fs and
+    // nothing in jq-tokenizer.mjs, so the two must diverge and prose-check must
+    // say so. If this survives, the check is measuring F# against F#.
+    id: 'prose-drifts-from-oracle',
+    file: 'src/Prose.fs',
+    claim: 'the F# prose dimensions really are checked against the relay tokeniser',
+    find: '    w.Length > 1 && System.Char.IsUpper w.[0]',
+    replace: '    w.Length > 0 && System.Char.IsUpper w.[0]',
+    expect: 'node scripts/prose-check.mjs',
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',

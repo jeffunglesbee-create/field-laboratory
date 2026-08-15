@@ -23,6 +23,7 @@
          in docs/CHECK-PROOF.md is injected into a file below it. -->
     <Compile Include="Verify.fs" />
     <Compile Include="Units.fs" />
+    <Compile Include="Prose.fs" />
     <!-- Venue weather. Above Desk.fs because it is self-contained. -->
     <Compile Include="Weather.fs" />
     <Compile Include="Venues.fs" />
