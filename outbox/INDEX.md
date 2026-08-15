@@ -12,7 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
-| `460f7a1` | 2026-08-15 | [cc-stranded-injection-2026-08-15.md](cc-stranded-injection-2026-08-15.md) | Catch a stranded proof injection before it costs a job |
+| `70e59f8` | 2026-08-15 | [cc-stranded-injection-2026-08-15.md](cc-stranded-injection-2026-08-15.md) | Catch a stranded proof injection before it costs a job |
 | `2f42fc6` | 2026-08-15 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-14 [skip ci] |
 | `217282b` | 2026-08-15 | [cc-weather-burst-2026-08-15.md](cc-weather-burst-2026-08-15.md) | Bound the weather fan-out; it was bursting and earning a 429 |
 | `40f442c` | 2026-08-15 | [cc-oracle-provenance-2026-08-15.md](cc-oracle-provenance-2026-08-15.md) | Close Phase 1's soft links; measure what Phase 2 is blocked on |
