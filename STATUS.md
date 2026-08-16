@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `3760c7e`
+**STALLED** on `3760c7e` — no update for 47 minutes — [run 31924086784](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/31924086784)
 
 ## Is it published?
 
@@ -14,7 +14,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `41f0b33` |
+| Cloudflare Workers | live | `41f0b33` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
