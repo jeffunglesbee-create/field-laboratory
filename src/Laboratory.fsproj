@@ -25,6 +25,7 @@
     <Compile Include="Units.fs" />
     <Compile Include="Prose.fs" />
     <Compile Include="Ceiling.fs" />
+    <Compile Include="Journalism.fs" />
     <!-- Venue weather. Above Desk.fs because it is self-contained. -->
     <Compile Include="Weather.fs" />
     <Compile Include="Venues.fs" />

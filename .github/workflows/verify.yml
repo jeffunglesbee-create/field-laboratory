@@ -239,6 +239,17 @@ jobs:
       - name: The quality bar is on the scale the scorer can reach
         run: npm run check:ceiling
 
+      # Phase 3's two acceptance tests. The first reaches the Haiku fallback
+      # branch, which production has NEVER exercised — six of six sampled proxy
+      # calls answered from Gemini with X-FIELD-Gemini-Error empty — and proves
+      # the selection logic names the model we declared, surfaces the fallback
+      # rather than the primary, and reports UNKNOWN rather than false when both
+      # paths fail. The second runs the time-anchoring extractor over all 592
+      # briefs against a verbatim copy of the relay's _temporalPrecision, so
+      # agreement means it reproduces production rather than something tidier.
+      - name: J-layer provenance, time anchoring, and the unexercised fallback
+        run: npm run check:journalism
+
       # The census that produced that corpus, executed rather than assumed.
       # `jq-density-census.mjs` only ever ran on a dispatched runner — the relay
       # is 403 CONNECT at the agent proxy — so when its tokenizer was extracted

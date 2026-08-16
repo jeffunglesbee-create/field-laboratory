@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0168ed6` | 2026-08-16 | [cc-phase3-journalism-2026-08-16.md](cc-phase3-journalism-2026-08-16.md) | Phase 3: the J-layer types, and the plan out of the chat log |
 | `4195acb` | 2026-08-16 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-15 [skip ci] |
 | `906bdef` | 2026-08-16 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | Run the CC-CMD's falsifying test instead of only shipping it |
 | `9d66cf6` | 2026-08-16 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | The quality bar is 98% of what the scorer can reach |

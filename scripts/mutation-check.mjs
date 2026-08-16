@@ -156,6 +156,31 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // "We cannot tell" must not collapse into "no". Making ProxySilent report
+    // `Some false` is the single most tempting simplification in the module —
+    // it removes an option from every call site — and it is exactly the defect:
+    // an absent provenance header would then read as "the fallback did not run",
+    // which is a claim about production that nothing supports.
+    id: 'proxy-silent-becomes-false',
+    file: 'src/Journalism.fs',
+    claim: 'absent provenance stays UNKNOWN rather than being reported as a negative',
+    find: '    | ProxySilent -> None\n    | Unusable _ -> None',
+    replace: '    | ProxySilent -> Some false\n    | Unusable _ -> Some false',
+    expect: 'node scripts/journalism-check.mjs',
+  },
+  {
+    // The time-anchoring extractor must be checked against the RELAY's oracle,
+    // not against itself. Widening what counts as an anchor changes every count
+    // in Journalism.fs and nothing in the verbatim JS copy inside
+    // journalism-check, so the two must diverge.
+    id: 'anchor-drifts-from-oracle',
+    file: 'src/Journalism.fs',
+    claim: 'the anchoring extractor really is measured against the relay original',
+    find: 'if stat = 0 then 10',
+    replace: 'if stat = 0 then 20',
+    expect: 'node scripts/journalism-check.mjs',
+  },
+  {
     // The reachable ceiling must be the measured one. Restating it as 300 makes
     // the flat 240 bar look like a reasonable four-fifths threshold — which is
     // exactly the mistake, so ceiling-check must object. If this survives, the
