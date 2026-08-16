@@ -37,11 +37,40 @@ import { fieldDay } from './checks.mjs'
  */
 const GATE_DAY = fieldDay()
 
+/**
+ * Why the most recent failures failed, newest last.
+ *
+ * `ok` used to be `catch { return false }`, discarding `e.stdout` and
+ * `e.stderr` entirely. A row could then fail after fourteen minutes and the
+ * gate would print `FAIL 0/20 breaking each invariant makes a check fail` and
+ * nothing else — no survivor named, no output, no command.
+ *
+ * That happened on `906bdef` (2026-08-16) and cost twenty minutes of guessing
+ * to narrow, ending in "unreproduced". A row that can fail but cannot say why
+ * makes every failure an investigation, and this repository's whole subject is
+ * the difference between a signal and a shrug.
+ *
+ * Bounded on purpose: these commands emit hundreds of lines, and a gate that
+ * dumps all of them is as unreadable as one that dumps none. Salient lines
+ * first — that is where `SURVIVED` lives — and the tail otherwise.
+ */
+const failures = []
+
 const ok = cmd => {
   try {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
     return true
-  } catch {
+  } catch (e) {
+    const out = `${e.stdout ?? ''}\n${e.stderr ?? ''}`
+    const lines = out.split('\n').map(l => l.trimEnd()).filter(Boolean)
+    const salient = lines.filter(l => /SURVIVED|^\s*FAIL|→|Error|error [A-Z]/.test(l))
+    failures.push({
+      cmd,
+      why: (salient.length ? salient : lines).slice(-12),
+      // A command that produced nothing at all is a different failure from one
+      // that failed loudly, and saying so beats an empty block.
+      silent: lines.length === 0,
+    })
     return false
   }
 }
@@ -256,4 +285,4 @@ const rows = [
     run: outboxAccompaniesSource },
 ]
 
-export { rows, ok, fails }
+export { rows, ok, fails, failures }

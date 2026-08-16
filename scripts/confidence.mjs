@@ -44,7 +44,7 @@
 import { execSync, spawn } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
-import { rows, ok } from './gate-checks.mjs'
+import { rows, ok, failures } from './gate-checks.mjs'
 
 const QUICK = process.argv.includes('--quick')
 const BAR = 95
@@ -126,6 +126,19 @@ const failedRows = results.filter(r => r.state === 'FAIL')
 if (failedRows.length > 0) {
   console.log(`\n  ${failedRows.length} FAILING ROW(S). Do not commit.\n`)
   for (const r of failedRows) console.log(`    - ${r.name} (${r.weight} pts)`)
+
+  // WHY, not just WHICH. Without this a fourteen-minute row failed on 906bdef
+  // and reported nothing but its own name, which is a shrug rather than a
+  // signal — see the note above `ok` in gate-checks.mjs.
+  if (failures.length) {
+    console.log('\n  What the failing command(s) said:\n')
+    for (const f of failures) {
+      console.log(`    $ ${f.cmd}`)
+      if (f.silent) console.log('      (no output at all — the command failed silently)')
+      for (const line of f.why) console.log(`      ${line}`)
+      console.log('')
+    }
+  }
   console.log(`\n  The score above is ${total}/100 and is NOT the pass condition —`)
   console.log(`  every row must pass. Report the failing rows verbatim.\n`)
   process.exit(1)
