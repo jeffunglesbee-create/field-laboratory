@@ -12,7 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
-| `ed9822d` | 2026-08-16 | [cc-actions-budget-2026-08-16.md](cc-actions-budget-2026-08-16.md) | Cut Actions spend: delete the duplicate mutation run, slow the status backstop |
+| `893faa1` | 2026-08-16 | [cc-actions-budget-2026-08-16.md](cc-actions-budget-2026-08-16.md) | Cut Actions spend: delete the duplicate mutation run, slow the status backstop |
 | `14cf45a` | 2026-08-16 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-16 [skip ci] |
 | `4608884` | 2026-08-16 | [cc-gate-explains-itself-2026-08-16.md](cc-gate-explains-itself-2026-08-16.md) | Make a failing gate row say why, not just which |
 | `3760c7e` | 2026-08-16 | [cc-phase3-journalism-2026-08-16.md](cc-phase3-journalism-2026-08-16.md) | Phase 3: the J-layer types, and the plan out of the chat log |
