@@ -8,6 +8,19 @@
 # Runs after either deploy workflow finishes, so the file is current within a
 # minute of anything actually changing, plus a slow schedule as a backstop for
 # changes made outside CI (a secret added, Pages switched on).
+#
+# CADENCE CUT 2026-08-16, from `33 */3 * * *` to daily.
+#
+# The backstop was firing eight times a day. It is a BACKSTOP — the event
+# triggers below are what keep STATUS.md current within a minute of a real
+# change, and the schedule exists only for changes made outside CI, which are
+# rare and not urgent. Eight runs a day to catch "someone added a secret" is
+# paying a subscription for a doorbell.
+#
+# 263 status runs at ~1 minute each is the second-largest line in this repo's
+# Actions spend after `verify`, against a budget that was 90% consumed with two
+# weeks of the month left. Daily costs ~30 runs a month instead of ~240, and
+# costs the event-driven freshness nothing at all.
 name: status
 
 on:
@@ -15,7 +28,7 @@ on:
     workflows: [deploy, pages, drift-sentinel]
     types: [completed]
   schedule:
-    - cron: '33 */3 * * *'
+    - cron: '33 6 * * *'
   workflow_dispatch:
 
 permissions:

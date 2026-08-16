@@ -290,11 +290,25 @@ jobs:
       - name: The zone choice changes the slate (window simulation)
         run: npm run check:window
 
-      # Mutation testing over the whole suite: break each invariant on purpose
-      # and require some check to object. Slow — one Fable build per mutation —
-      # and the only step that asks whether the other steps are worth anything.
-      - name: Breaking each invariant makes a check fail
-        run: npm run check:mutation
+      # The mutation suite USED to run here as its own step. It was deleted on
+      # 2026-08-16: it is the identical command to the second conjunct of the
+      # confidence gate's `breaking each invariant makes a check fail` row —
+      #
+      #   ok('node scripts/mutation-check.mjs --self-test') &&
+      #   ok('node scripts/mutation-check.mjs') &&          <- this step, exactly
+      #   fails('node scripts/mutation-check.mjs --only known-survivor')
+      #
+      # so every push paid for it twice. Measured on 9d66cf6: this step took
+      # 13m53s and the gate a further 17m14s, of a 36-minute job. Roughly 780
+      # runner-minutes went to `verify` in the first sixteen days of August, and
+      # about half of a green run was this one command executed twice.
+      #
+      # Nothing is lost in coverage — the gate still runs it, plus the two halves
+      # this step never ran. What is lost is EARLINESS: a surviving mutation now
+      # surfaces at the gate rather than ~14 minutes sooner. That trade only
+      # became reasonable at 4608884, when the gate started reporting WHY a row
+      # failed instead of only its name; before that, this step was the only
+      # place a survivor was ever named.
 
       # The confidence gate the CC-CMD ceremony asks for, mechanised. Every row
       # runs a real command and takes its score from the exit code, so the total
