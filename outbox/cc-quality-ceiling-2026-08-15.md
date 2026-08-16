@@ -101,6 +101,40 @@ exported and read by nothing. Rather than delete them I made the check read them
 a magic number. There is now an assertion that each scale says why it is the size
 it is.
 
+## The CC-CMD's falsifying test, run before anyone acted on it
+
+The CC-CMD filed to `field-relay-nba/docs/` shipped with a query designed to kill
+its own recommendation. Then I noticed most of it was answerable here, with no D1
+access, from `/quality/report`'s own `max_score` column.
+
+The logic that makes a maximum enough: **if a row's max is below a bar, no brief
+in that row cleared it** — exact, not an estimate. The 25 per-row maxima from the
+2026-08-15 window:
+
+```
+122 125 130 130 148 132 171 135 179 156 148 148 153
+172 205 200 173 173 230 211 209 185 209 189 221
+```
+
+| test | result |
+|---|---|
+| rows reaching **240** | **0 of 25** — so `cleared = 0`, exactly |
+| rows reaching **196** | **7 of 25** — `230, 221, 211, 209, 209, 205, 200` |
+
+**196 separates rows; 240 separates none.** The recommendation survived the test
+built to destroy it.
+
+What a maximum cannot give is a **count**. It proves at least one brief clears
+196, never how many — so if `cleared_196` turns out to be a tiny fraction of `n`,
+196 is technically discriminating and practically another unreachable bar, and
+the recommendation should be revisited rather than adopted. That caveat is now in
+the CC-CMD rather than left for someone to notice.
+
+These three assertions live in `ceiling-check.mjs` and run on every commit. A
+discriminator that ran once and then became a sentence in a document is the exact
+failure this repo keeps filing against other people's work; writing it down here
+and not executing it again would have been the same mistake in a nicer typeface.
+
 ## What is NOT claimed
 
 - **What the bar should be.** Whether 80% of reachable — 196 — is the right

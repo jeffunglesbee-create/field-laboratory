@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `26609aa` | 2026-08-16 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | Run the CC-CMD's falsifying test instead of only shipping it |
 | `9d66cf6` | 2026-08-16 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | The quality bar is 98% of what the scorer can reach |
 | `7779ba8` | 2026-08-15 | [cc-espn-not-an-authority-2026-08-15.md](cc-espn-not-an-authority-2026-08-15.md) | ESPN confirmed NFL/CFL and falsified the instrument that confirmed them |
 | `d729c35` | 2026-08-15 | [cc-nfl-sport-registry-2026-08-15.md](cc-nfl-sport-registry-2026-08-15.md) | Model NFL and CFL; derive the convention on a runner, not by assertion |

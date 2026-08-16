@@ -45,6 +45,20 @@ const OBSERVED_2026_08_15 = {
   alerts: 10,
   alertsAtBelowFlat240Pct100: 10,
   bestBriefInWindow: 230,
+  // `max_score`, one per brief_type/sport row, verbatim from that response.
+  //
+  // A per-row MAXIMUM answers more than it looks like it does. If a row's max is
+  // below a bar, then NO brief in that row cleared it — exact, not an estimate.
+  // If a row's max is at or above a bar, then AT LEAST ONE did. So this settles
+  // "does anything clear 240" (no) and "does anything clear 196" (yes) without
+  // D1 access, which this repo does not have and should not be given.
+  //
+  // What it cannot give is a COUNT. "How many briefs clear 196" needs the row
+  // data, and that stays an open question for the relay's own query.
+  maxScorePerRow: [
+    122, 125, 130, 130, 148, 132, 171, 135, 179, 156, 148, 148, 153,
+    172, 205, 200, 173, 173, 230, 211, 209, 185, 209, 189, 221,
+  ],
 }
 
 check('the corpus is present and the expected size',
@@ -126,6 +140,35 @@ check('the old unclamped formula produced scores above the documented ceiling',
   `max ${Math.max(...pre.map(r => r.quality_score))} — an unbounded dimension, not better writing`)
 
 // ── the dated observation ───────────────────────────────────────────────────
+
+// ── the CC-CMD's own falsifying test, answered ──────────────────────────────
+//
+// CC-CMD-2026-08-15-quality-bar-scale ships with a query designed to kill its
+// own recommendation: if any brief clears 240, the flat bar is a bar and the
+// recommendation is wrong; if nothing clears 196 either, a four-fifths bar
+// merely relocates the problem and the CC-CMD is answering the wrong question.
+//
+// Both halves are settled by the per-row maxima above. Asserted here rather
+// than left as arithmetic in a chat log, because a discriminator that only ever
+// ran once is the failure this repo keeps filing against other people's work.
+
+const maxima = OBSERVED_2026_08_15.maxScorePerRow
+
+check('the recorded maxima cover every row in the observation',
+  maxima.length === OBSERVED_2026_08_15.rows,
+  `${maxima.length} maxima for ${OBSERVED_2026_08_15.rows} row(s)`)
+
+const clearing240 = maxima.filter(m => m >= 240)
+check('nothing clears the flat bar — exactly, since a row max below it settles the row',
+  clearing240.length === 0,
+  `0 of ${maxima.length} rows reach 240; best row max ${Math.max(...maxima)}`)
+
+// The discriminator. If this were also zero, the bar is not the problem.
+const clearing196 = maxima.filter(m => m >= 196)
+check('a four-fifths-of-reachable bar would discriminate, not merely relocate',
+  clearing196.length > 0,
+  `${clearing196.length} of ${maxima.length} rows reach 196 ` +
+  `(${clearing196.sort((a, b) => b - a).join(', ')}) — so 196 separates rows and 240 separates none`)
 
 check('the recorded /quality/report observation is internally consistent',
   OBSERVED_2026_08_15.rowsWithAnyAbove240 === 0 &&
