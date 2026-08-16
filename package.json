@@ -43,7 +43,8 @@
     "check:weather-burst": "node scripts/weather-burst-check.mjs",
     "check:clean-source": "node scripts/clean-source-check.mjs",
     "check:outlet-scan": "node scripts/outlet-scan-check.mjs",
-    "check:sports": "node scripts/sport-registry-check.mjs"
+    "check:sports": "node scripts/sport-registry-check.mjs",
+    "check:ceiling": "node scripts/ceiling-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

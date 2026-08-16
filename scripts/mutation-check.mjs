@@ -156,6 +156,18 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // The reachable ceiling must be the measured one. Restating it as 300 makes
+    // the flat 240 bar look like a reasonable four-fifths threshold — which is
+    // exactly the mistake, so ceiling-check must object. If this survives, the
+    // check is reading the bar rather than the scale it is applied to.
+    id: 'ceiling-restated-as-nominal',
+    file: 'src/Ceiling.fs',
+    claim: 'the quality bar is measured against what the scorer can reach, not the rubric total',
+    find: '    { Max = 245<point>; Name = "relay',
+    replace: '    { Max = 300<point>; Name = "relay',
+    expect: 'node scripts/ceiling-check.mjs',
+  },
+  {
     // NFL's convention must be exercised, not just recorded. Flipping it to
     // home-first is a change no compiler objects to — the registry still has an
     // entry and every match is still exhaustive — so if this survives, the

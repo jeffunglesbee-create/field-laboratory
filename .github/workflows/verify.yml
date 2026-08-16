@@ -227,6 +227,18 @@ jobs:
       - name: JQ prose dimensions agree with production
         run: npm run check:prose
 
+      # The flat 240 quality bar against the scale the relay can actually reach.
+      # journalism-quality.js documents its own ceiling as 245 — the worker has
+      # no game object, so Dim 7 (25) and Dim 10 (30) are structurally zero. So
+      # 240 is 80% of the rubric and 97.96% of what any brief can score, and on
+      # 2026-08-15 `above_240` was 0 on all 25 brief_type/sport rows.
+      #
+      # Offline: the corpus assertions run against the 592 committed briefs, and
+      # the /quality/report figures are a dated observation rather than a fetch,
+      # because a check that skips when the relay is unreachable is not a check.
+      - name: The quality bar is on the scale the scorer can reach
+        run: npm run check:ceiling
+
       # The census that produced that corpus, executed rather than assumed.
       # `jq-density-census.mjs` only ever ran on a dispatched runner — the relay
       # is 403 CONNECT at the agent proxy — so when its tokenizer was extracted
