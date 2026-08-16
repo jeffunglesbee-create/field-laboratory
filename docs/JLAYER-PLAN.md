@@ -14,8 +14,8 @@ have *caught the specific defects this project has shipped*.
 |---|---|---|
 | 1 | `src/Prose.fs`, `PROSE-PROOF.md`, `prose-check.mjs` | **done**, `verify` green |
 | 2 | `src/Corpus.fs` | **not started** — acceptance criterion since found unreachable |
-| 3 | `src/Journalism.fs` | **in progress** |
-| 4 | `Proxy` / `Replay` | **not started** — needs a decision on token spend |
+| 3 | `src/Journalism.fs`, `JOURNALISM-PROOF.md`, `journalism-check.mjs` | **done** `3760c7e` |
+| 4 | `src/Replay.fs` | **not started** — needs captures produced relay-side; scope corrected 2026-08-16 |
 | 5 | `scripts/docs-check.mjs` | **not started** — needs a decision on gate-row status |
 
 Unplanned work that came out of the same line of investigation and is not a
@@ -101,25 +101,107 @@ Two acceptance tests, both offline:
    forbids bare numbers; nobody has ever counted the violations. One run, two
    findings — production's compliance, and the extractor's correctness.
 
-## Phase 4 — the live generator and record/replay
+## Phase 4 — replay. Laboratory generates nothing.
 
-`Proxy` posting to `field-claude-proxy`, secret from a repo secret,
-**dispatch-only, never on push**. `Replay` reads committed captures; `verify`
-uses it exclusively.
+**Corrected 2026-08-16.** As first written this phase said: *"`Proxy` posting to
+`field-claude-proxy`, secret from a repo secret, dispatch-only, never on push."*
+That contradicted this document's own constraints two sections down, and the
+contradiction was caught by the user rather than by me. The correction and its
+reasoning are recorded below the design, because a plan that quietly rewrites
+itself is worth less than one that shows where it was wrong.
 
-The same split laboratory already has — `verify` offline, `live-check` against
-the deployed page. The LLM is to `verify` what the live relay is to `live-check`;
-no new idea needed.
+### What it builds
 
-**Why it is worth the tokens:** every capture records **prompt + response**, the
-input half the corpus lacks. That is what makes hallucination and fabricated-stat
-checks possible, and it is the defect that forced the degenerate
-`Score this sports brief for journalism quality:` fallback in the first place.
+| | |
+|---|---|
+| `src/Replay.fs` | `Generator` over committed captures — the only implementation laboratory ships |
+| `data/llm-captures/*.json` | produced **once, where the credential already lives**, committed as data |
+| `scripts/replay-check.mjs` | replay determinism, and the fabricated-stat check |
 
-Out of scope deliberately: the direct-to-Anthropic Sonnet call. No reason for an
-`ANTHROPIC_API_KEY` in a third repo.
+Laboratory holds no secret, makes no model call, spends no tokens, and generates
+no text. It reads a committed corpus, exactly as it already does with the 592
+briefs.
 
-**Blocked on a decision:** token spend against the live proxy.
+### The capture format
+
+```jsonc
+{
+  "capturedAt": "…", "briefType": "mlb_game",
+  "promptHash": "sha256:…",            // the Replay key
+  "request":  { "model": "…", "maxTokens": 300, "messages": [ … ] },
+  "response": { "status": 200, "body": "…" },
+  "provenance": { "xFieldModel": "…", "xFieldLatencyMs": "…", "xFieldGeminiError": null }
+}
+```
+
+`promptHash` is load-bearing. `Replay` must fail loudly on a prompt it holds no
+capture for — a replay that quietly returns *something* for an unknown prompt is
+this repository's recurring failure shape in its most dangerous form.
+
+### Why it is the highest-value phase left
+
+Phase 3 established that **every archived brief is `ProxySilent`**: nothing reads
+`X-FIELD-Model`, so `AnsweringModel` is unconstructible from stored data and the
+`By` case is unreachable. A capture records the provenance headers at generation
+time, which makes `By` constructible for the first time.
+
+The larger payoff is the **input half**. The 592-brief corpus has outputs and no
+prompts, so one question cannot currently be asked at all:
+
+> Does every number in the brief appear in the data the model was given?
+
+Numerals in the draft, numerals in the prompt's context, and anything in the
+output that is not in the input is either derived or **fabricated**. That check
+is impossible today and straightforward with captures. It needs the prompt, not
+a live connection — which is the whole reason this phase does not require
+laboratory to call anything.
+
+### The fallback branch, and why it stays blocked
+
+`X-FIELD-Test-Model` forces a specific model, so the Haiku fallback looks
+exercisable for real rather than only against Phase 3's stub. It is not: the
+relay's own round-3 probe records that forcing `gemini-3.5-flash` returns
+**HTTP 500, 3/3, against 3/3 unforced controls at 200**, gated by
+`CC-CMD-2026-08-14-gemini-35-flash-route-500`, cause in the proxy worker.
+
+Capture the 500 anyway. A captured failure is evidence, and the test becomes
+available with no further work here once that CC-CMD is executed.
+
+### Acceptance
+
+1. Replay is deterministic and **honest about gaps** — same prompt, byte-identical
+   draft; an unknown prompt is a named failure, never a plausible answer.
+2. Captured provenance constructs a real `AnsweringModel` — the `By` case, reached
+   for the first time.
+3. The fabricated-stat check runs over every capture: one run, two findings —
+   production's rate, and the extractor's correctness.
+
+### What changed, and why
+
+Three things were wrong with the original:
+
+- **It had laboratory calling the proxy.** Whatever the credential is called,
+  that makes laboratory a producer of model output rather than an observer of it,
+  which is the line "What laboratory will not do" exists to hold.
+- **The credential is write-capable.** `X-FIELD-Relay: field-relay-cron-2026` is
+  the same value that gates `POST /d1/execute` — a write path to the production
+  briefs table. "Secret from a repo secret" understated that to the point of
+  being misleading.
+- **`src/Proxy.fs` had no consumer.** Under the corrected design laboratory never
+  executes it, and a public value nothing reads is what `unused-check` exists to
+  reject. It is dropped rather than shipped unused.
+
+What is lost: the "two interchangeable implementations" demonstration. Nothing,
+in practice — Phase 3 already ships a stub `Generator`, so the type still has two
+implementations and both are offline. Interchangeability was never an argument
+about one of them being live.
+
+Out of scope, unchanged: the direct-to-Anthropic Sonnet call at
+`src/index.js:4846`. No reason for an `ANTHROPIC_API_KEY` in a third repo.
+
+**Needs from outside laboratory:** the captures, produced once on the relay side.
+Not a decision about token spend — that framing is also withdrawn, since
+laboratory now spends none.
 
 ## Phase 5 — `scripts/docs-check.mjs`: executable claims
 
@@ -158,9 +240,21 @@ Earned the hard way, and every line is a real incident:
 
 ## What laboratory will not do
 
-Generate production briefs. Judge whether prose is good — that is the voice
-judge, and no type gets you there. Hold an Anthropic key. Fix the write path, the
-id schemes, or the archive gaps.
+Judge whether prose is good — that is the voice judge, and no type gets you
+there. Fix the write path, the id schemes, or the archive gaps.
+
+**Generate text. Any text, by any route.** This was originally written as
+"generate production briefs" and "hold an Anthropic key", and both were narrower
+than intended — narrow enough that Phase 4 was drafted with laboratory posting to
+`field-claude-proxy` and read as compliant, because the credential is not an
+Anthropic key and a capture is not a production brief. It took a challenge to
+notice. The line is now the plain one:
+
+> Laboratory holds no credential that can spend model tokens, makes no model
+> call, and produces no model output. It reads committed corpora.
+
+A stub generator in a test is not a model call and stays permitted — Phase 3
+depends on one to reach the fallback branch at all.
 
 **The deliverable is evidence that the types earn their keep**, not a replacement
 J-layer. FIELD's journalism works. What it could not do was tell you which
@@ -174,5 +268,13 @@ no new capture. Phase 2 next because it is the finding I would have got wrong.
 Phase 3 because the fallback test is the one thing production genuinely cannot
 do. 4 and 5 after, since both need a decision.
 
-That order held except for Phase 2, which the relay's own data reordered: its
-acceptance criterion turned out to be unreachable, so Phase 3 moved ahead of it.
+Two corrections since:
+
+- **Phase 2 slipped behind Phase 3.** The relay's own data reordered it — its
+  acceptance criterion turned out to be unreachable.
+- **Phase 4 no longer needs a decision.** It needed one only because it was
+  scoped around laboratory holding a credential. Corrected, it needs an artefact
+  — the captures — and artefacts are asked for, not decided.
+
+So the only phase still gated on a judgement call is **5**: whether `docs-check`
+becomes a gate row.
