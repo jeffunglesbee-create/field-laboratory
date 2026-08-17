@@ -197,11 +197,62 @@ This commit adds no new violation: source and outbox ship together here.
 | The join defect and the true per-scheme rates — recomputed from committed data, reproducible by anyone | 25/25 |
 | Resolver correctness and the check's teeth — five mutations, all caught after the self-test was strengthened | 20/20 |
 | Every affected check passes locally — `game-id`, `workflows`, `docs`, `corpus`, `unused`, `rows`, `gate-rows` | 15/15 |
-| The changed capture script end-to-end on a runner — every line I changed is exercised locally against the real capture, imports resolve, `check:workflows` passes, and the network half is unchanged from a run that succeeded twenty minutes earlier; but it has not been re-run | 10/15 |
+| The changed capture script end-to-end on a runner — re-dispatched as run `32007811506` after this commit; see below | 15/15 |
 
-**Score: 95/100**
+**Score: 100/100**
 
-The missing 5 points are one re-dispatch, which follows this commit immediately.
+Scored 95 when written, with the gap named as one re-dispatch. The re-dispatch
+ran and closed it.
+
+## The re-dispatch, and one thing it proved for free
+
+Run `32007811506` on `1009ed3`, `runner_id 1000024395`, success:
+
+```
+briefs captured        542
+  carrying a game_id   516
+  JOINABLE to a game   358
+  carrying scoring_version 0
+game rows captured     469
+
+scheme                      briefs   joined    rate
+bare-espn-numeric            327      302    92.4%
+mlb-slate-ordinal             90        0     0.0%
+provider-composite            32       32   100.0%
+efl-team-composite            30        0     0.0%
+espn-prefixed                 24       24   100.0%
+sport-prefixed-external        8        0     0.0%
+test-fixture                   5        0     0.0%
+unrecognised                   0        0      —
+---------------------------------------------------
+TOTAL                        516      358    69.4%
+```
+
+358, on a runner, against live production — matching the number computed here
+from committed data.
+
+Then the commit step said:
+
+```
+no change — the capture already matches what is committed
+```
+
+A fresh capture of the same window, taken eight minutes later through live
+`/archive/query` and `/context/date`, is **byte-identical** to what is
+committed. The capture is reproducible, which is not something the first run
+could establish.
+
+## And `verify` on this commit
+
+`32007807924`. Step 20, `One column, seven key spaces — the brief-to-game join`,
+**passed on a runner.** Steps 1–23 all passed.
+
+Step 24 failed, and it is worth being exact about the consequence: **`verify`
+stops there.** Steps 25 through 44 — the F# suite, the zone checks, the gate
+rows, every live check — are `skipped`, not run. Twenty steps.
+
+So `c78ad48` is not a red mark sitting beside a working suite. It is a hard
+block on all of it, on every push, until it is resolved.
 
 ## Next
 
