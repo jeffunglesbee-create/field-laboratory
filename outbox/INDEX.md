@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `646e925` | 2026-08-17 | [cc-the-gate-caught-three-2026-08-17.md](cc-the-gate-caught-three-2026-08-17.md) | Fix three gate failures, and the tail -1 bypass I rebuilt inside the check |
+| `0aadf8c` | 2026-08-17 | [cc-a-score-must-be-measured-2026-08-17.md](cc-a-score-must-be-measured-2026-08-17.md) | A confidence score must be measured, not typed |
+| `0aadf8c` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | A confidence score must be measured, not typed |
+| `0aadf8c` | 2026-08-17 | [cc-the-boundary-moved-2026-08-17.md](cc-the-boundary-moved-2026-08-17.md) | A confidence score must be measured, not typed |
+| `0aadf8c` | 2026-08-17 | [cc-the-runner-never-arrived-2026-08-17.md](cc-the-runner-never-arrived-2026-08-17.md) | A confidence score must be measured, not typed |
 | `0ce952f` | 2026-08-17 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
 | `ee441b6` | 2026-08-17 | [cc-the-boundary-moved-2026-08-17.md](cc-the-boundary-moved-2026-08-17.md) | Move the history boundary to 829f2ac/18, and stop it masking twenty steps |
 | `653a399` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | Record the re-dispatch: 358 joined on a runner, and verify halts at step 24 |
