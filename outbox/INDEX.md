@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ee441b6` | 2026-08-17 | [cc-the-boundary-moved-2026-08-17.md](cc-the-boundary-moved-2026-08-17.md) | Move the history boundary to 829f2ac/18, and stop it masking twenty steps |
 | `653a399` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | Record the re-dispatch: 358 joined on a runner, and verify halts at step 24 |
 | `1009ed3` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | One column, seven key spaces: the brief-to-game join was 6.2% because it was wrong |
 | `829f2ac` | 2026-08-17 | [cc-the-runner-never-arrived-2026-08-17.md](cc-the-runner-never-arrived-2026-08-17.md) | Report: the capture did not fail, the runner never arrived |
