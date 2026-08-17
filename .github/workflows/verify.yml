@@ -161,13 +161,11 @@ jobs:
       - name: The composite-score scan skips outlets and nothing else
         run: npm run check:outlet-scan
 
-      # Compiles every violation docs/AMNESTY-PROOF.md claims is rejected and
-      # asserts the compiler really rejects it with the stated error. The doc
-      # shipped an overstated claim once — that the drama seal was complete when
-      # the arc was still open — and every check in the repo stayed green
-      # through it, because prose is not executable. Now it is.
-      - name: Proof-doc claims are compiler-verified
-        run: npm run check:proof
+      # `check:proof` and the confidence gate MOVED to verify-full.yml on
+      # 2026-08-17. Measured on 9d66cf6: proof 2m29s and the gate 17m14s, of a
+      # 36-minute job whose every other step totalled about 1m45s. Those two
+      # were the job. Everything cheap stays here and runs on every push;
+      # the two expensive ones run weekly and on demand.
 
       # Cheap and early: does every workflow job actually satisfy the imports of
       # the scripts it invokes? Added after two live-check runs failed on a step
@@ -340,8 +338,6 @@ jobs:
       - name: A red main is reported, not softened
         run: npm run check:status
 
-      - name: Confidence gate (>= 95)
-        run: npm run gate
 
       # The two checks above are pinned to committed captures so their
       # assertions are deterministic. This one exercises the path the DEPLOYED

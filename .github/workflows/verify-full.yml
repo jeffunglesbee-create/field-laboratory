@@ -1,0 +1,114 @@
+# The two expensive halves of `verify`, split out on 2026-08-17.
+#
+# WHY
+#
+# 90% of the month's Actions budget was consumed with roughly fifteen days left,
+# and `verify` was about three quarters of the spend — ~782 runner-minutes over
+# thirty runs in the first sixteen days of August, and that figure is a floor
+# because the API caps each query at thirty runs.
+#
+# Measured on 9d66cf6, step by step:
+#
+#   setup, build, decoders, browser checks, all pure-JS checks   1m45s
+#   check:proof                                                  2m29s
+#   the confidence gate (which runs the mutation suite inside)   17m14s
+#
+# Two steps were the entire job. They stay here and run weekly; everything else
+# stays in `verify.yml` and runs on every push in about two minutes.
+#
+# WHAT IS LOST, STATED PLAINLY
+#
+# The confidence gate no longer runs per commit. That is a real reduction: the
+# gate is this repository's central ceremony, and "every row must pass" was
+# previously asserted against every push. It is now asserted weekly and on
+# demand. A gate failure can therefore land on main and sit there for up to a
+# week unless someone dispatches this.
+#
+# The mitigation is that the gate is a conjunction of commands that all run
+# locally — the working practice in this repo is already to run the offline
+# suite before pushing, and this workflow is the independent confirmation of
+# that rather than the only place it happens.
+#
+# WHEN TO DISPATCH RATHER THAN WAIT
+#
+# Before declaring a phase complete, before anything that will be cited as
+# evidence, and after any change to `scripts/mutation-check.mjs`,
+# `scripts/gate-checks.mjs` or `scripts/confidence.mjs`.
+name: verify-full
+
+on:
+  schedule:
+    # Weekly, not daily. Daily would cost ~20 minutes x 15 days = 300 minutes,
+    # which is roughly the entire remaining budget. Weekly costs ~40.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: verify-full
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: the gate's history rows walk to the root, and a shallow
+      # clone would silently make them pass on one commit.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Same reason it is first in verify.yml: proof-check injects into real
+      # source, and a stranded injection is silent everywhere except the one
+      # place that cannot repair it. Costs seconds; runs before the toolchain.
+      - name: No source file carries injected proof code
+        run: npm run check:clean-source
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          dotnet tool restore
+
+      - name: Build (F# -> JS, then assemble public/)
+        run: npm run build
+
+      # The gate drives real browsers through several of its rows, and those
+      # rows fetch from the local server. Started here, before anything needs it.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Serve the built site
+        run: |
+          node scripts/serve.mjs &
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+
+      # Compiles every violation the proof docs claim is rejected and asserts the
+      # compiler really rejects it with the stated error code. A passing proof
+      # case is a failing check.
+      - name: Proof-doc claims are compiler-verified
+        run: npm run check:proof
+
+      # Every row runs a real command and takes its score from the exit code, so
+      # the total cannot be asserted, only earned. Below 95 fails the build, and
+      # the score is NOT the pass condition — every row must pass.
+      #
+      # This is also the only place the mutation suite now runs: the gate's
+      # `breaking each invariant makes a check fail` row is
+      #   --self-test && the full suite && --only known-survivor must FAIL.
+      - name: Confidence gate (>= 95)
+        run: npm run gate
