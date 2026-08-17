@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `ee441b6`
+**green** on `ee441b6` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -14,11 +14,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `d94290d` (behind `main`) |
+| Cloudflare Workers | live | `ee441b6` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`unmodelled-sport` on 2026-08-16 — 34 games, 0 malformed (24 runs logged)
+`unmodelled-sport` on 2026-08-17 — 15 games, 0 malformed (25 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
