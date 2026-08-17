@@ -389,6 +389,29 @@ jobs:
       - name: Source and outbox changed together, every commit
         run: npm run check:history
 
+      # A confidence score in an outbox entry must be a measurement, not a claim.
+      #
+      # confidence.mjs already says of its ROWS that "a self-reported number is
+      # not evidence of anything" and takes every one from an exit code. The
+      # SCORE then left that process as console output and was re-typed into
+      # markdown by hand, where it was free again. On 2026-08-17 three entries
+      # carried scores — 85, 95, 95 — that no gate run produced, two of them
+      # landing on the bar with the missing points described as "the runner has
+      # not confirmed yet", which is an unfinished task, not doubt.
+      #
+      # An entry may state no score at all; most are reports rather than commits
+      # of source, and forcing a number onto them would manufacture exactly the
+      # free numbers this refuses. If it states one, it must cite a full gate run
+      # in docs/confidence-log.jsonl and agree with it — including on the
+      # denominator, on the absence of failing rows, and on not rounding up to
+      # the bar (95% of 530 is 503.5, and Math.round hands 503 the bar).
+      #
+      # Beside check:history deliberately: both are about whether the record can
+      # be trusted, and neither can be answered by anything the steps above
+      # measure.
+      - name: A confidence score is measured, not asserted
+        run: npm run check:confidence-record
+
 
       # The two checks above are pinned to committed captures so their
       # assertions are deterministic. This one exercises the path the DEPLOYED

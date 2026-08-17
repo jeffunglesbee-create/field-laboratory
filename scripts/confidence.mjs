@@ -42,12 +42,32 @@
 //         --quick skips the rows that need a browser or the .NET build.
 
 import { execSync, spawn } from 'node:child_process'
-import { readdirSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, appendFileSync } from 'node:fs'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
 import { rows, ok, failures } from './gate-checks.mjs'
 
 const QUICK = process.argv.includes('--quick')
 const BAR = 95
+
+// Where a run's measured result is written, so an outbox entry can cite it
+// instead of asserting a number.
+//
+// The comment forty lines up already says why: "a self-reported number is not
+// evidence of anything: a model asked to score its own work will produce a
+// number, and the number is free." That was written about the ROWS, and the
+// rows obey it. The SCORE then left this process as console output and was
+// re-typed into markdown by hand, where it became free again.
+//
+// On 2026-08-17 four outbox entries carried scores — 85, 95, 95, 100 — and not
+// one of them came from a gate run. Two were 95 with the missing five points
+// described as "the runner has not confirmed yet", which is not a confidence
+// measurement at all; it is an unfinished task, priced at exactly the distance
+// to the bar.
+//
+// Append-only, and a full log rather than a latest-value file, because an entry
+// written last week cites the run that backed it and must keep matching after
+// the gate runs again.
+const RECORD_PATH = 'docs/confidence-log.jsonl'
 
 
 // The denominator is `possible`, summed from the rows above — which means the
@@ -102,6 +122,25 @@ for (const r of results) {
 
 const total = possible === 0 ? 0 : Math.round((earned / possible) * 100)
 console.log(`\n  ${earned}/${possible} points = ${total}/100   (bar: ${BAR})`)
+
+// Recorded BEFORE the exit branches below, so a FAILING run is written down
+// too. A record that only ever captures passes is a record that cannot be used
+// to refuse a claim, which is the one thing it is for.
+const runSha = (() => {
+  try { return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim() } catch { return null }
+})()
+appendFileSync(RECORD_PATH, JSON.stringify({
+  sha: runSha,
+  mode: QUICK ? 'quick' : 'full',
+  earned,
+  possible,
+  total,
+  // Names, not a count. `confidence-record-check.mjs` refuses a passing claim
+  // when this is non-empty, and a count could not say which invariant was off.
+  failing: results.filter(r => r.state === 'FAIL').map(r => r.name),
+  skipped: results.filter(r => r.state === 'SKIP').map(r => r.name),
+}) + '\n')
+console.log(`  recorded in ${RECORD_PATH} (${runSha ? runSha.slice(0, 7) : 'no sha'}, ${QUICK ? 'quick' : 'full'})`)
 
 if (QUICK) {
   // Quick mode cannot report a PASS — it skipped rows. It can and must report a

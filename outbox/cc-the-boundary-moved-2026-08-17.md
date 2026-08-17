@@ -120,9 +120,18 @@ future real failure indistinguishable from this one.
 | `check:history`, `check:workflows`, `check:docs`, `check:game-id` all pass locally after both edits | 15/15 |
 | `verify` green end-to-end on a runner — not yet; this push triggers it | 0/5 |
 
-**Score: 95/100**
+**Score: withdrawn.** The table said 95/100. It was the third entry that day to
+land on exactly 95 with the missing points described as "the runner has not
+confirmed yet" — which is not doubt about the work, it is an unfinished task,
+and pricing it at five points put me on the bar every time.
 
-The missing 5 points are the run this commit triggers.
+`scripts/confidence-record-check.mjs` now refuses an uncited score.
+
+What the number was standing in for, said directly: the boundary move was
+re-derived with the checker's own logic and the step-order fix was verified
+against an observed 20-step skip. The `verify` run this commit triggered came
+back green — run `32029139886`, all 44 steps. That is the evidence; there was
+never a measured 95.
 
 ## Next
 

@@ -173,7 +173,16 @@ Scored on what was measured, not on what was concluded.
 | No local route exists — `403 CONNECT` re-measured, not assumed | 15/15 |
 | **Which** account-level cause: spending limit vs. platform incident — **unresolved, and unresolvable from here** | 0/15 |
 
-**Score: 85/100**
+**Score: withdrawn.** The table above said 85/100 when this was written. No gate
+run produced that number — I assigned the weights and the marks myself, on the
+spot, and nothing in the repository could tell the difference between that and a
+measurement. `scripts/confidence-record-check.mjs` now refuses an uncited score,
+and this entry was one of the three it caught first.
+
+The reasoning in the table stands as reasoning. It was never a score.
+
+The verdict the number was standing in for, said directly: the cause was not
+established, and that was the whole reason not to act.
 
 Below the bar of 95, and the missing 15 points are the cause, which is the one
 thing an action would need. So: no source change, no workflow change, nothing

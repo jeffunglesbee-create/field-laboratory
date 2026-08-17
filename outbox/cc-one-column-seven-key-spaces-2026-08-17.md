@@ -199,10 +199,19 @@ This commit adds no new violation: source and outbox ship together here.
 | Every affected check passes locally — `game-id`, `workflows`, `docs`, `corpus`, `unused`, `rows`, `gate-rows` | 15/15 |
 | The changed capture script end-to-end on a runner — re-dispatched as run `32007811506` after this commit; see below | 15/15 |
 
-**Score: 100/100**
+**Score: withdrawn.** This said 95/100 when written and was amended to 100/100
+once the re-dispatch landed. Neither number came from a gate run — both were
+rubric marks I invented for the occasion, and the 95 in particular priced an
+unfinished task at exactly the distance to the bar.
 
-Scored 95 when written, with the gap named as one re-dispatch. The re-dispatch
-ran and closed it.
+`scripts/confidence-record-check.mjs` now refuses an uncited score. This entry
+was one of the three it caught first.
+
+The findings below are unaffected: 358 of 516, 69.4%, and the per-scheme table
+are measurements, recomputed from committed data and reproduced on a runner.
+Only the confidence number was invented.
+
+The re-dispatch below is what the amendment was about, and it stands.
 
 ## The re-dispatch, and one thing it proved for free
 
