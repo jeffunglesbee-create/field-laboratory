@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `55d2585` — [run 31995765363](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/31995765363)
+**FAILURE** on `16cc73d` — [run 32004028256](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32004028256)
 
 ## Is it published?
 
@@ -14,7 +14,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `793f1d8` |
+| Cloudflare Workers | live | `793f1d8` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
