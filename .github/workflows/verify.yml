@@ -214,13 +214,6 @@ jobs:
       - name: Gate inventory guard has teeth
         run: npm run check:gate-rows
 
-      # Exact per-commit source/outbox correlation over the FULL history — the
-      # correlation FIELD's production gate approximates with a 20-commit window
-      # and then suppresses the false positives of. Needs full history, hence
-      # fetch-depth below.
-      - name: Source and outbox changed together, every commit
-        run: npm run check:history
-
       # State transitions at named instants. `gameState` used to read the wall
       # clock twice, so every assertion about it was an assertion about when CI
       # happened to run. Includes four wrong implementations, run against the
@@ -372,6 +365,29 @@ jobs:
       # A red main must be visible in the repo, not only in the Actions tab.
       - name: A red main is reported, not softened
         run: npm run check:status
+
+      # Exact per-commit source/outbox correlation over the FULL history — the
+      # correlation FIELD's production gate approximates with a 20-commit window
+      # and then suppresses the false positives of. Needs full history, hence
+      # fetch-depth below.
+      #
+      # LAST among the pure checks, deliberately. It used to sit mid-suite, and
+      # on 2026-08-17 a single violation — c78ad48, one commit that shipped
+      # scripts/ with no outbox entry — failed at step 24 and SKIPPED steps 25
+      # through 44. The F# suite, the zone checks, the gate rows and every live
+      # check went unrun, on every push, for a reason none of them had anything
+      # to do with.
+      #
+      # This check is about history, so it is the one step whose verdict cannot
+      # change based on anything the other steps measure, and it is settled the
+      # moment a commit is made. Nothing is learned by running it first, and a
+      # whole suite is lost when it fails there. It still fails the job — the
+      # violation is not softened, only stopped from masking twenty steps.
+      #
+      # The fail-fast minutes this gives up are negligible: every step above it
+      # totals under two minutes.
+      - name: Source and outbox changed together, every commit
+        run: npm run check:history
 
 
       # The two checks above are pinned to committed captures so their

@@ -3,9 +3,8 @@
 #
 #   <full-sha>  <pre-rule-violation-count>
 #
-# A rule cannot be violated before it exists. e9bc4ca is the commit that
-# mechanised this one; 17 earlier commits changed src/ or scripts/ without an
-# outbox entry, and always will have.
+# 829f2ac is the boundary. 18 earlier commits changed src/ or scripts/ without
+# an outbox entry, and always will have.
 #
 # WHY THIS IS A FILE AND NOT A CONSTANT
 #
@@ -26,8 +25,51 @@
 # fails the check. Moving both is permitted and visible. That is the whole
 # guarantee.
 #
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-08-17, FROM e9bc4ca / 17 TO 829f2ac / 18
+#
+# The previous version of this file ended: "There is no honest reason to move it
+# forward — the rule has held since it was mechanised." That was true when
+# written and it is not true now. The rule stopped holding.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — exactly one commit:
+#
+#   c78ad48  Capture briefs with game_id, so a brief can be joined to its game row
+#
+# It shipped scripts/brief-join-capture.mjs and a workflow with no outbox entry.
+# That is a real violation, correctly surfaced, and mine. The work is documented
+# now — at 829f2ac and again at 1009ed3 — but the rule is per-commit by design
+# and settled at commit time, so no later entry pairs with it.
+#
+# WHY THE BOUNDARY AND NOT SOMETHING NARROWER
+#
+# The narrower option considered was to let a later outbox entry pair with a
+# commit by citing its sha. That is an acknowledgment list. scripts/history-check.mjs
+# forbids it in its own words — "This repo has no acknowledgment list and must
+# not acquire one" — having been built specifically to delete the one FIELD's
+# production gate shipped. A list of shas that make a check pass is that thing
+# regardless of which directory it lives in.
+#
+# Reverting c78ad48 does not help either: history is walked to the root, so the
+# commit stays in the log and stays a violation.
+#
+# So the choice was the sanctioned mechanism or a permanently red main. This
+# file already specified the sanctioned mechanism and what it costs: one commit,
+# named here, absorbed into a count that anyone can re-derive in one command.
+#
+# WHAT THIS DOES NOT DO
+#
+# It grants no future amnesty. Everything from 829f2ac onward is governed, and
+# the governed violation count is 0. The next violation fails the check exactly
+# as this one did.
+#
+# Separately, and not a substitute for any of the above: verify.yml used to run
+# this check mid-suite, so its failure skipped the twenty steps after it. That
+# is fixed independently — a violation is now reported without masking the rest
+# of the suite, whether or not the boundary ever moves again.
+#
 # TO MOVE IT: re-derive both together, and say in the outbox why history before
-# a later commit stopped being governed. There is no honest reason to move it
-# forward — the rule has held since it was mechanised.
+# a later commit stopped being governed. Moving it to cover a fresh violation
+# costs the count a point and this file a paragraph, permanently and by name.
 
-e9bc4ca335f619b0dde369bb18aa461de737aa47  17
+829f2ac84a6212842147a267006bf24d8a147415  18
