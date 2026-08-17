@@ -35,6 +35,7 @@
 // capture would add later.
 
 import { writeFileSync } from 'node:fs'
+import { joinCensus, formatCensus } from './game-id-scheme.mjs'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const OUT = 'data/brief-join-corpus.json'
@@ -97,25 +98,33 @@ for (const d of dates) {
 if (failedBrief) console.log(`::warning::${failedBrief}/${dates.length} archive dates failed`)
 if (failedGames) console.log(`::warning::${failedGames}/${dates.length} context dates failed`)
 
-const gameIds = new Set(games.map(g => g.id))
-const withGameId = briefs.filter(b => b.game_id)
-const joinable = withGameId.filter(b => gameIds.has(b.game_id))
 const stamped = briefs.filter(b => b.scoring_version !== null)
+const census = joinCensus(briefs, games)
 
 console.log('')
 console.log(`briefs captured        ${briefs.length}`)
-console.log(`  carrying a game_id   ${withGameId.length}`)
-console.log(`  JOINABLE to a game   ${joinable.length}`)
+console.log(`  carrying a game_id   ${census.withGameId}`)
+console.log(`  JOINABLE to a game   ${census.joined}`)
 console.log(`  carrying scoring_version ${stamped.length}`)
 console.log(`game rows captured     ${games.length}`)
+console.log('')
 
-// The join rate is the finding. A capture that joins nothing is a capture that
-// cannot answer the question it was taken for, and saying so here beats
-// discovering it in a check later.
-if (joinable.length === 0) {
+// Per scheme, not one aggregate. The first run of this script reported a single
+// "6.2%" — true, and useless: it read as a weak signal when the real shape was
+// one scheme joining at 92% and three others at zero. `game_id` holds seven key
+// spaces with no column saying which, so one rate averages incomparable things.
+console.log(formatCensus(census))
+
+if (census.joined === 0) {
   console.log('::warning::ZERO briefs joined to a game row — the capture cannot support a scoreline check')
-} else {
-  console.log(`join rate ${((joinable.length / Math.max(1, withGameId.length)) * 100).toFixed(1)}% of briefs that carry a game_id`)
+}
+
+// A scheme nothing recognises is the signal that production started writing a
+// key space this repo has never seen. Louder than a moved rate, because the
+// rate can absorb it silently.
+const unrec = census.census.find(r => r.scheme === 'unrecognised')
+if (unrec && unrec.briefs > 0) {
+  console.log(`::warning::${unrec.briefs} game_id(s) match no known scheme — scripts/game-id-scheme.mjs needs a new case`)
 }
 
 writeFileSync(OUT, JSON.stringify({

@@ -174,6 +174,19 @@ jobs:
       - name: A score cannot say which rubric produced it
         run: npm run check:corpus
 
+      # `briefs.game_id` holds seven key spaces in one column with nothing
+      # recording which. The first successful capture joined on `games.id`
+      # alone and reported 6.2%; resolving each scheme to the key space it is
+      # actually in gives 69.4% over the same data.
+      #
+      # Pinned per scheme rather than as one rate, because the aggregate is what
+      # hid the bug — "6.2%" reads as a weak signal, while "92.4% of one scheme
+      # and 0% of three others" names it. Self-test first: it carries game rows
+      # whose ids collide with the schemes that must resolve to nothing, so the
+      # refusals are load-bearing instead of true by absence.
+      - name: One column, seven key spaces — the brief-to-game join
+        run: npm run check:game-id
+
       # Phase 5. `proof-check` keeps COMPILER claims honest; this keeps the
       # PRODUCTION numbers honest — the corpus minimums, the percentages, the
       # scales that documents quote and nothing re-derives. Every claim is a
