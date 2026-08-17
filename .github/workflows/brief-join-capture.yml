@@ -1,0 +1,71 @@
+# Capture briefs WITH their game_id, plus the game rows they were written from.
+#
+# WHY A RUNNER
+#
+# `*.workers.dev` is 403 CONNECT at the agent proxy, so a session cannot fetch
+# `/archive/query` or `/context/date` directly — the same constraint behind
+# `probe-url.yml`, `jq-density-census.yml` and `sport-convention.yml`. Neither
+# route needs a credential; the runner is here for egress, not for a secret.
+#
+# WHAT IT UNBLOCKS
+#
+# Phase 4 was described as blocked on LLM captures produced where X-FIELD-Relay
+# lives. It is not. The input half already exists in a different table: a brief
+# carries a `game_id`, and `/context/date` carries that game's scoreline. The
+# committed 592-brief corpus simply does not project `game_id`, which is why the
+# join has never been possible.
+#
+# The exact check this supports has no false positives: a brief saying
+# "Orioles lead 4-2" must match `home_score`/`away_score` on its game row.
+name: brief-join-capture
+
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'First date (YYYY-MM-DD)'
+        required: false
+        default: '2026-08-01'
+      to:
+        description: 'Last date (YYYY-MM-DD, blank = today)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: brief-join-capture
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Capture
+        env:
+          FROM: ${{ inputs.from }}
+          TO: ${{ inputs.to }}
+        run: node scripts/brief-join-capture.mjs
+
+      # Deliberately a NEW file. data/jq-mlb-game-corpus.json is pinned at 592
+      # rows by prose-check, ceiling-check, corpus-check and two docs-check
+      # claims; re-capturing it would move the count the moment production wrote
+      # another brief and turn a data refresh into six failing checks.
+      - name: Commit the capture
+        run: |
+          git config user.name  'field-laboratory'
+          git config user.email 'noreply@github.com'
+          git add data/brief-join-corpus.json
+          if git diff --cached --quiet; then
+            echo "no change — the capture already matches what is committed"
+            exit 0
+          fi
+          git commit -m "Capture briefs joined to their game rows [skip ci]"
+          git push origin "HEAD:${{ github.ref_name }}"
