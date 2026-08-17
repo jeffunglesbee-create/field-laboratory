@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `55d2585` | 2026-08-17 | [cc-stub-generator-2026-08-17.md](cc-stub-generator-2026-08-17.md) | Add the stub Generator Phase 3 was supposed to have |
 | `1d9d063` | 2026-08-17 | [cc-verify-split-2026-08-17.md](cc-verify-split-2026-08-17.md) | Split verify: two steps were the whole job |
 | `d8317d3` | 2026-08-17 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-16 [skip ci] |
 | `893faa1` | 2026-08-16 | [cc-actions-budget-2026-08-16.md](cc-actions-budget-2026-08-16.md) | Cut Actions spend: delete the duplicate mutation run, slow the status backstop |
