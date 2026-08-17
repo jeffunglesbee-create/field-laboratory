@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8069f83` | 2026-08-17 | [cc-phase2-rubric-2026-08-17.md](cc-phase2-rubric-2026-08-17.md) | Phase 2: a score cannot say which rubric produced it |
 | `16cc73d` | 2026-08-17 | [cc-phase5-docs-check-2026-08-17.md](cc-phase5-docs-check-2026-08-17.md) | Phase 5: documents that stop being true stop the build |
 | `55d2585` | 2026-08-17 | [cc-stub-generator-2026-08-17.md](cc-stub-generator-2026-08-17.md) | Add the stub Generator Phase 3 was supposed to have |
 | `1d9d063` | 2026-08-17 | [cc-verify-split-2026-08-17.md](cc-verify-split-2026-08-17.md) | Split verify: two steps were the whole job |

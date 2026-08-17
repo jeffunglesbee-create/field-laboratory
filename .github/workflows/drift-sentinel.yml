@@ -106,6 +106,22 @@ jobs:
         if: always()
         run: npm run check:weather-live
 
+      # Did the CC-CMDs this repo filed actually land?
+      #
+      # Five have been filed into field-relay-nba/docs/ from here; two carry open
+      # asks. Nothing checked whether any were acted on, which makes a CC-CMD a
+      # wish with a commit sha. This probes for the OBSERVABLE CONSEQUENCE of
+      # each ask — a route either projects a field or it does not — rather than
+      # for the document, which can be read, agreed with, and never implemented.
+      #
+      # Non-fatal on "not yet": that is someone else's backlog, and turning it
+      # into a red build here is how a check gets deleted. Fatal only when NO
+      # probe could run, because "could not tell" reported as "not landed" is a
+      # claim from no data.
+      - name: Did the filed CC-CMDs land?
+        if: always()
+        run: node scripts/cc-cmd-followup.mjs
+
       - name: Append to the drift log
         if: always()
         run: |
