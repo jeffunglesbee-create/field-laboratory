@@ -167,6 +167,13 @@ jobs:
       # were the job. Everything cheap stays here and runs on every push;
       # the two expensive ones run weekly and on demand.
 
+      # Phase 2. The set difference that is actually non-empty: every row in the
+      # corpus carries a quality_score and NOT ONE carries a scoring_version, so
+      # {stored} minus {attributed} is all 592. Same shape as AnsweringModel — a
+      # stored value whose provenance the store does not record.
+      - name: A score cannot say which rubric produced it
+        run: npm run check:corpus
+
       # Phase 5. `proof-check` keeps COMPILER claims honest; this keeps the
       # PRODUCTION numbers honest — the corpus minimums, the percentages, the
       # scales that documents quote and nothing re-derives. Every claim is a

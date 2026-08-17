@@ -70,6 +70,11 @@ const BRIEF_TYPES = ['game_recap', 'pre_game', 'game_brief', 'slate', 'night_owl
  */
 const CLAIMS = {
   'corpus.size': { value: () => CORPUS.length, tolerance: 0 },
+  // Every row is unattributed, because none carries `scoring_version`. Computed
+  // rather than asserted so the day the relay projects it, this claim moves.
+  'corpus.unattributed': {
+    value: () => CORPUS.filter(r => !('scoring_version' in r)).length, tolerance: 0,
+  },
 
   'prose.minRawDensity': {
     value: () => Math.min(...tokenised.map(shippedRawDensity)), tolerance: 5e-3,

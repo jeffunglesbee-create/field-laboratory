@@ -156,6 +156,18 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // The promotion rule is the module. Letting an INFERRED score promote to a
+    // typed one erases the distinction between "the data says era 2" and "a
+    // timestamp comparison in two scripts suggests era 2" — which is exactly the
+    // guess that -67.8 rested on.
+    id: 'inferred-score-promotes',
+    file: 'src/Corpus.fs',
+    claim: 'a guessed rubric cannot become a known one',
+    find: '    | Stamped 2 -> Some(Score s.Value)\n    | _ -> None',
+    replace: '    | Stamped 2 -> Some(Score s.Value)\n    | Inferred _ -> Some(Score s.Value)\n    | _ -> None',
+    expect: 'node scripts/corpus-check.mjs',
+  },
+  {
     // A document claim that has stopped being true must fail the build. This
     // mutates the DOCUMENT rather than the source — the thing docs-check
     // measures — because mutating the checker to test the checker is circular.

@@ -16,7 +16,7 @@ have *caught the specific defects this project has shipped*.
 | phase | artefact | state |
 |---|---|---|
 | 1 | `src/Prose.fs`, `PROSE-PROOF.md`, `prose-check.mjs` | **done**, `verify` green |
-| 2 | `src/Corpus.fs` | **not started** — acceptance criterion since found unreachable |
+| 2 | `src/Corpus.fs`, `CORPUS-PROOF.md`, `corpus-check.mjs` | **done** — different set difference than planned |
 | 3 | `src/Journalism.fs`, `JOURNALISM-PROOF.md`, `journalism-check.mjs` | **done** `3760c7e` |
 | 4 | `src/Replay.fs` | **not started** — needs captures produced relay-side; scope corrected 2026-08-16 |
 | 5 | `scripts/docs-check.mjs` | **done** — a `verify` step, not a gate row |
