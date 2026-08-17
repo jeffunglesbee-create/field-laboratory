@@ -325,6 +325,55 @@ type GenerationFailure =
 
 type Generator = Prompt -> Async<Result<Draft, GenerationFailure>>
 
+/// A recorded proxy response — the three things the real call comes back with.
+///
+/// This is what a Phase 4 capture will hold. It exists now so the generator has
+/// something to answer from that is not a live call.
+type ProxyResponse =
+    { Body: string
+      XFieldModel: string option
+      XFieldGeminiError: string option }
+
+/// The ONLY implementation of `Generator` in this repository.
+///
+/// It answers from a recorded response. Laboratory makes no model call, holds no
+/// credential that could spend tokens, and produces no model output — see
+/// docs/JLAYER-PLAN.md, "What laboratory will not do".
+///
+/// It exists because the alternative is worse. Until now the fallback acceptance
+/// test called `answeredFrom` directly, which tested the provenance rule while
+/// leaving `Generator` an unimplemented type abbreviation — and I twice claimed
+/// in writing that "Phase 3 already ships a stub Generator" when it did not.
+/// A type with no implementation cannot be gotten wrong, and cannot be right
+/// either.
+///
+/// The failure branch is the point. When the primary errored and no body came
+/// back, both paths are gone and that MUST NOT be expressible as a `Draft` —
+/// `Result` is what forces the caller to say which happened.
+let stubGenerator (declaredFallback: FallbackModel) (response: ProxyResponse) : Generator =
+    fun p ->
+        async {
+            let answered =
+                answeredFrom declaredFallback response.XFieldModel response.XFieldGeminiError
+
+            match response.Body, response.XFieldGeminiError with
+            // Primary failed AND nothing usable came back.
+            | "", Some e -> return Error(BothPathsFailed(e, "fallback returned no body"))
+            | "", None -> return Error EmptyBody
+            | body, _ -> return Ok(draft p answered body)
+        }
+
+// `Generator` stays ASYNC because real generation is. There is deliberately no
+// F# helper here that converts it to a promise for the benefit of a test:
+// `Async.StartAsPromise` does not exist in real .NET F#, and this project is
+// compiled by `dotnet build` as well as Fable, so such a helper would only
+// build half the time. `scripts/journalism-check.mjs` drives it through Fable's
+// own `startAsPromise` runtime function instead — the same approach already
+// used for `ofArray` in `weather-burst-check.mjs`.
+//
+// Simplifying `Generator` to a synchronous function would have made the test
+// easier and the type a worse description of the thing.
+
 // --- judging -----------------------------------------------------------------
 
 type Verdict =

@@ -156,6 +156,19 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // The silent success the acceptance criterion forbids. When the primary
+    // errored and no body came back, both paths are gone; returning an empty
+    // Draft instead of an Error makes that indistinguishable from a brief that
+    // simply had nothing to say. `Result` is the only thing standing between
+    // those two, so the check must object when it is bypassed.
+    id: 'both-paths-failed-becomes-a-draft',
+    file: 'src/Journalism.fs',
+    claim: 'a generation where both paths failed cannot be reported as a Draft',
+    find: '            | "", Some e -> return Error(BothPathsFailed(e, "fallback returned no body"))',
+    replace: '            | "", Some _ -> return Ok(draft p answered "")',
+    expect: 'node scripts/journalism-check.mjs',
+  },
+  {
     // "We cannot tell" must not collapse into "no". Making ProxySilent report
     // `Some false` is the single most tempting simplification in the module —
     // it removes an option from every call site — and it is exactly the defect:

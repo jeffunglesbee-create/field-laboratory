@@ -24,7 +24,9 @@
 
 import { readFileSync } from 'node:fs'
 import { createChecks } from './checks.mjs'
+import { startAsPromise } from '../build/fable_modules/fable-library-js.5.13.0/Async.js'
 import {
+  ProxyResponse, stubGenerator,
   briefTypeOfString, briefTypeName, isModelled,
   fallbackModel, answeringModelFromHeader, answeringName, fallbackName,
   answeredFrom, fallbackRan,
@@ -93,6 +95,64 @@ const asStored = answeredFrom(DECLARED, undefined, undefined)
 check('every archived brief is ProxySilent, because nothing reads the header',
   asStored.tag === 1 && fallbackRan(DECLARED, asStored) === undefined,
   'the stored `model` column is a per-call-site constant and cannot build an AnsweringModel')
+
+// ── 1b. the same three claims, driven THROUGH the Generator ─────────────────
+//
+// Everything above calls `answeredFrom` directly, which tests the provenance
+// rule while leaving `Generator` an unimplemented type abbreviation. I twice
+// wrote that "Phase 3 already ships a stub Generator" when it did not. A type
+// with no implementation cannot be gotten wrong, and cannot be right either.
+//
+// `stubGenerator` answers from a RECORDED proxy response. No network, no
+// credential, no model call — it is the shape a Phase 4 capture will have.
+
+const ctxG = briefContext(briefTypeOfString('mlb_game'), 'Orioles at Rays')
+const promptG = prompt(ctxG, 'write the recap')
+const BRIEF = 'Kyle Bradish carries a 3.69 ERA this season.'
+
+const respond = (body, xFieldModel, geminiError) =>
+  new ProxyResponse(body, xFieldModel, geminiError)
+
+// Fable UNCURRIES `stubGenerator` to `(fallback, response, prompt)`, so the
+// intermediate `Generator` value is not visible from JS even though the F# type
+// is still `Prompt -> Async<...>`. That is a compiler artefact, not a change to
+// the type — noted because calling it curried is the obvious first attempt and
+// fails with an unhelpful cancellation-token error.
+const generate = (body, xFieldModel, geminiError) =>
+  startAsPromise(stubGenerator(DECLARED, respond(body, xFieldModel, geminiError), promptG))
+
+// (b) the fallback branch, reached for the first time through the real type.
+const viaFallback = await generate(BRIEF, HAIKU, 'gemini 503')
+check('the generator returns a Draft when the fallback answers',
+  viaFallback.tag === 0 && bodyOf(viaFallback.fields[0]) === BRIEF,
+  `Result tag ${viaFallback.tag} (0 = Ok)`)
+
+// (a) and it carries the fallback's provenance, not the primary's.
+const prov = provenanceOf(viaFallback.fields[0])
+check('the Draft carries the fallback as its answering model',
+  prov.tag === 0 && answeringName(prov.fields[0]) === HAIKU &&
+  fallbackRan(DECLARED, prov) === true,
+  `provenance tag ${prov.tag}, model ${prov.fields?.[0] ? answeringName(prov.fields[0]) : '—'}`)
+
+// (c) both paths failing must NOT be a Draft. This is the branch that makes
+// `Result` worth having: a generator returning a plausible empty draft here is
+// exactly the silent success the acceptance criterion forbids.
+const bothFailed = await generate('', undefined, 'gemini 503')
+check('both paths failing is an Error, not an empty Draft',
+  bothFailed.tag === 1 && bothFailed.fields[0].tag === 0,
+  `Result tag ${bothFailed.tag} (1 = Error), failure tag ${bothFailed.fields[0]?.tag} (0 = BothPathsFailed)`)
+
+// An empty body with no upstream error is a different failure and says so.
+const empty = await generate('', GEMINI, undefined)
+check('an empty body with no primary error is EmptyBody, a distinct failure',
+  empty.tag === 1 && empty.fields[0].tag === 2,
+  `failure tag ${empty.fields[0]?.tag} (2 = EmptyBody)`)
+
+// The production case, through the generator: text arrives, provenance does not.
+const silentProv = await generate(BRIEF, undefined, undefined)
+check('a Draft with no provenance header is Ok but ProxySilent',
+  silentProv.tag === 0 && provenanceOf(silentProv.fields[0]).tag === 1,
+  'text without provenance is still text — the type refuses to invent who wrote it')
 
 // ── 2. anchoring over the corpus ────────────────────────────────────────────
 //
