@@ -45,7 +45,8 @@
     "check:outlet-scan": "node scripts/outlet-scan-check.mjs",
     "check:sports": "node scripts/sport-registry-check.mjs",
     "check:ceiling": "node scripts/ceiling-check.mjs",
-    "check:journalism": "node scripts/journalism-check.mjs"
+    "check:journalism": "node scripts/journalism-check.mjs",
+    "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

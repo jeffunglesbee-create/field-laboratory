@@ -8,6 +8,10 @@ Every case below is injected into a real source file and built by
 stated error code. If the guard is ever weakened, these start passing — and a
 passing proof case is a failing check.
 
+<!-- claim: corpus.size = 592 -->
+<!-- claim: prose.minRawDensity = 1.75 -->
+<!-- claim: prose.flooredPct = 91.2 -->
+
 ## The defect, stated once
 
 `field-relay-nba/src/journalism-quality.js` computes

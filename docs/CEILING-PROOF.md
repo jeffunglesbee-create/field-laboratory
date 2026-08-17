@@ -8,6 +8,11 @@ Every case below is injected into a real source file and built by
 `scripts/proof-check.mjs`. A case passes only if the build **fails** with the
 stated error code.
 
+<!-- claim: ceiling.nominal = 300 -->
+<!-- claim: ceiling.relayReachable = 245 -->
+<!-- claim: ceiling.unreachable = 55 -->
+<!-- claim: ceiling.flatBarPctOfReachable = 97.96 -->
+
 ## The defect, stated once
 
 `field-relay-nba/src/journalism-quality.js` documents its own reachable total:

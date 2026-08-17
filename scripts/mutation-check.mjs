@@ -156,6 +156,17 @@ const MUTATIONS = [
     expect: 'node scripts/prose-check.mjs',
   },
   {
+    // A document claim that has stopped being true must fail the build. This
+    // mutates the DOCUMENT rather than the source — the thing docs-check
+    // measures — because mutating the checker to test the checker is circular.
+    id: 'doc-claim-goes-stale',
+    file: 'docs/PROSE-PROOF.md',
+    claim: 'a document that stops being true stops the build',
+    find: '<!-- claim: prose.flooredPct = 91.2 -->',
+    replace: '<!-- claim: prose.flooredPct = 50.0 -->',
+    expect: 'node scripts/docs-check.mjs',
+  },
+  {
     // The silent success the acceptance criterion forbids. When the primary
     // errored and no body came back, both paths are gone; returning an empty
     // Draft instead of an Error makes that indistinguishable from a brief that

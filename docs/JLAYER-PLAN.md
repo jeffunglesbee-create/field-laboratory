@@ -8,6 +8,9 @@ intent — a plan that does not record what happened to it is a wish.
 against FIELD's actual failure modes? Not "would types be nice" — would they
 have *caught the specific defects this project has shipped*.
 
+<!-- claim: sports.modelled = 7 -->
+<!-- claim: briefTypes.modelled = 9 -->
+
 ## Status at a glance
 
 | phase | artefact | state |
@@ -16,7 +19,7 @@ have *caught the specific defects this project has shipped*.
 | 2 | `src/Corpus.fs` | **not started** — acceptance criterion since found unreachable |
 | 3 | `src/Journalism.fs`, `JOURNALISM-PROOF.md`, `journalism-check.mjs` | **done** `3760c7e` |
 | 4 | `src/Replay.fs` | **not started** — needs captures produced relay-side; scope corrected 2026-08-16 |
-| 5 | `scripts/docs-check.mjs` | **not started** — needs a decision on gate-row status |
+| 5 | `scripts/docs-check.mjs` | **done** — a `verify` step, not a gate row |
 
 Unplanned work that came out of the same line of investigation and is not a
 numbered phase: `src/Ceiling.fs` + `CEILING-PROOF.md` + `ceiling-check.mjs`, and

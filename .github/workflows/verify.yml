@@ -167,6 +167,21 @@ jobs:
       # were the job. Everything cheap stays here and runs on every push;
       # the two expensive ones run weekly and on demand.
 
+      # Phase 5. `proof-check` keeps COMPILER claims honest; this keeps the
+      # PRODUCTION numbers honest — the corpus minimums, the percentages, the
+      # scales that documents quote and nothing re-derives. Every claim is a
+      # `<!-- claim: id = value -->` marker whose id names a registry entry
+      # computed from committed data.
+      #
+      # Deliberately a plain verify step rather than a gate row: gate rows moved
+      # to verify-full and run weekly, and a stale document caught seven days
+      # late is most of the way to not catching it. This costs under a second.
+      #
+      # Self-test first, in the same command: a docs checker that cannot detect a
+      # stale claim would report every document true forever.
+      - name: Every claim a document makes is still true
+        run: npm run check:docs
+
       # Cheap and early: does every workflow job actually satisfy the imports of
       # the scripts it invokes? Added after two live-check runs failed on a step
       # that imported build/ from a job with no build.

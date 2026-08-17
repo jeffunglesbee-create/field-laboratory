@@ -9,6 +9,10 @@ Every case below is injected into a real source file and built by
 `scripts/proof-check.mjs`. A case passes only if the build **fails** with the
 stated error code.
 
+<!-- claim: journalism.statSentences = 627 -->
+<!-- claim: journalism.unanchoredSentences = 285 -->
+<!-- claim: journalism.unanchoredPct = 45.5 -->
+
 ## The defects, stated once
 
 **Provenance.** The relay posts to `field-claude-proxy` with an Anthropic
