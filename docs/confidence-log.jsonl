@@ -1,0 +1,3 @@
+{"sha":"1264e6feb0f03343a221175f4336039aa5d8bef7","mode":"full","earned":480,"possible":530,"total":91,"failing":["breaking each invariant makes a check fail","generated source matches its generator and data","source changes arrive with an outbox entry"],"skipped":[]}
+{"sha":"1264e6feb0f03343a221175f4336039aa5d8bef7","mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
+{"id":"1264e6feb0f0-2334a9865ae2","sha":"1264e6feb0f03343a221175f4336039aa5d8bef7","dirty":true,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}

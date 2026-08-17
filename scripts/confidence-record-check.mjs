@@ -86,8 +86,14 @@ const RECORD_PATH = 'docs/confidence-log.jsonl'
 const ROWS_PATH = 'docs/gate-rows.txt'
 const BAR = 95
 
-/** `<!-- confidence: run=<40-char sha> -->` — the run an entry cites. */
-const CITE_RE = /<!--\s*confidence:\s*run=([0-9a-f]{40})\s*-->/g
+/**
+ * `<!-- confidence: run=<12hex>-<12hex> -->` — the run an entry cites.
+ *
+ * A RUN ID, not a sha. The gate scores the working tree, and HEAD does not
+ * change when uncommitted work does, so a sha does not identify what was
+ * measured — see `parseLog` for the collision that proved it.
+ */
+const CITE_RE = /<!--\s*confidence:\s*run=([0-9a-f]{12}-[0-9a-f]{12})\s*-->/g
 
 /** `**Score: N/100**`, the stated total. */
 const SCORE_RE = /\*\*Score:\s*(\d+)\/100\*\*/g
@@ -143,7 +149,7 @@ export function verdictsFor({ file, scores, cites }, runsBySha, weight) {
   const stated = distinct[0]
 
   if (cites.length === 0) {
-    p.push(`${file}: states ${stated}/100 but cites no gate run — add <!-- confidence: run=<sha> --> naming a run in ${RECORD_PATH}`)
+    p.push(`${file}: states ${stated}/100 but cites no gate run — add <!-- confidence: run=<id> --> naming a run in ${RECORD_PATH}`)
     return p
   }
   if (new Set(cites).size > 1) {
@@ -153,8 +159,21 @@ export function verdictsFor({ file, scores, cites }, runsBySha, weight) {
 
   const run = runsBySha.get(cites[0])
   if (!run) {
-    p.push(`${file}: cites run ${cites[0].slice(0, 7)}, which is not in ${RECORD_PATH}`)
+    p.push(`${file}: cites run ${cites[0]}, which is not in ${RECORD_PATH}`)
     return p
+  }
+  // A DIRTY RUN DESCRIBES A TREE NO COMMIT CONTAINS.
+  //
+  // The gate scores the working tree. If that tree had uncommitted changes, the
+  // thing measured is not the thing anyone can check out, and a citation would
+  // point at a state that exists only in the log. Worse, it makes "run the gate,
+  // then edit, then cite" indistinguishable from "run the gate on what shipped".
+  //
+  // So the workflow a citable score requires is: commit, run the gate on the
+  // clean tree, cite that run from the next entry. That is also what the
+  // standing instruction describes — score the thing you are shipping.
+  if (run.dirty) {
+    p.push(`${file}: cites a run taken against a DIRTY tree — it measured a state no commit contains`)
   }
   if (run.mode !== 'full') {
     p.push(`${file}: cites a '${run.mode}' run, which skipped ${run.skipped.length} row(s) — only a full run can back a score`)
@@ -183,27 +202,87 @@ export function verdictsFor({ file, scores, cites }, runsBySha, weight) {
   return p
 }
 
-const parseLog = text =>
-  new Map(text.split('\n').filter(Boolean).map(l => {
-    const r = JSON.parse(l)
-    return [r.sha, r]
-  }))
+/**
+ * The run log, keyed by RUN ID — never by sha.
+ *
+ * This was `new Map(lines.map(r => [r.sha, r]))`, and it was wrong in the most
+ * embarrassing way available: the first two records written both carried sha
+ * `1264e6f` — one scoring 91 with three failing rows, one scoring 100 — because
+ * HEAD did not move while the working tree was fixed between them. A Map keyed
+ * by sha lets the LAST record win, so a failing run followed by a passing run
+ * silently resolved to the passing one.
+ *
+ * That is the `tail -1` bypass this file was written to refuse, rebuilt inside
+ * it, in under three hours. Keying on an id that includes a digest of the
+ * uncommitted tree removes the collision; `duplicateIds` below refuses the
+ * remaining case rather than picking a winner.
+ */
+export function parseLog(text) {
+  const rows = text.split('\n').filter(Boolean).map(l => JSON.parse(l))
+  const byId = new Map()
+  const duplicates = []
+  const legacy = []
+  for (const r of rows) {
+    if (!r.id) { legacy.push(r.sha ?? '(no sha)'); continue }
+    if (byId.has(r.id)) duplicates.push(r.id)
+    byId.set(r.id, r)
+  }
+  return { byId, duplicates, legacy }
+}
 
 // ── the self-test: can this refuse anything? ────────────────────────────────
 
 if (SELF_TEST) {
-  const SHA = 'a'.repeat(40)
-  const OTHER = 'b'.repeat(40)
-  const runs = parseLog([
-    JSON.stringify({ sha: SHA, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
-    JSON.stringify({ sha: OTHER, mode: 'full', earned: 500, possible: 530, total: 94, failing: ['a row'], skipped: [] }),
-    JSON.stringify({ sha: 'c'.repeat(40), mode: 'quick', earned: 300, possible: 300, total: 100, failing: [], skipped: ['x', 'y'] }),
-    JSON.stringify({ sha: 'd'.repeat(40), mode: 'full', earned: 400, possible: 400, total: 100, failing: [], skipped: [] }),
-    // 503/530 = 94.906%, which Math.round displays as 95. The rounding case.
-    JSON.stringify({ sha: 'e'.repeat(40), mode: 'full', earned: 503, possible: 530, total: 95, failing: [], skipped: [] }),
+  const ID = 'a'.repeat(12) + '-' + 'a'.repeat(12)
+  const FAILING = 'b'.repeat(12) + '-' + 'b'.repeat(12)
+  const QUICKRUN = 'c'.repeat(12) + '-' + 'c'.repeat(12)
+  const SHRUNK = 'd'.repeat(12) + '-' + 'd'.repeat(12)
+  const ROUNDED = 'e'.repeat(12) + '-' + 'e'.repeat(12)
+  const ATBAR = 'f'.repeat(12) + '-' + 'f'.repeat(12)
+  const SHA = '9'.repeat(40)
+
+  const line = o => JSON.stringify(o)
+  const log = parseLog([
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
+    line({ id: FAILING, sha: SHA, dirty: false, mode: 'full', earned: 500, possible: 530, total: 94, failing: ['a row'], skipped: [] }),
+    line({ id: QUICKRUN, sha: SHA, dirty: false, mode: 'quick', earned: 300, possible: 300, total: 100, failing: [], skipped: ['x', 'y'] }),
+    line({ id: SHRUNK, sha: SHA, dirty: false, mode: 'full', earned: 400, possible: 400, total: 100, failing: [], skipped: [] }),
+    // 503/530 = 94.906%, which Math.round displays as 95.
+    line({ id: ROUNDED, sha: SHA, dirty: false, mode: 'full', earned: 503, possible: 530, total: 95, failing: [], skipped: [] }),
     // 504/530 = 95.094%, genuinely at the bar.
-    JSON.stringify({ sha: 'f'.repeat(40), mode: 'full', earned: 504, possible: 530, total: 95, failing: [], skipped: [] }),
+    line({ id: ATBAR, sha: SHA, dirty: false, mode: 'full', earned: 504, possible: 530, total: 95, failing: [], skipped: [] }),
   ].join('\n'))
+  const runs = log.byId
+
+  // THE COLLISION THAT ACTUALLY HAPPENED, replayed.
+  //
+  // Two records, same sha, different totals — 91 with three failing rows, then
+  // 100 — because HEAD did not move while the working tree was fixed. Keyed by
+  // sha, the later record won and a failing run resolved to a passing one.
+  const collided = parseLog([
+    line({ id: 'aaaaaaaaaaaa-111111111111', sha: SHA, dirty: true, mode: 'full', earned: 480, possible: 530, total: 91, failing: ['x'], skipped: [] }),
+    line({ id: 'aaaaaaaaaaaa-222222222222', sha: SHA, dirty: true, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
+  ].join('\n'))
+  check('two runs on the SAME sha stay distinct records',
+    collided.byId.size === 2 && collided.duplicates.length === 0,
+    `${collided.byId.size} record(s), ${collided.duplicates.length} duplicate(s) — a sha-keyed map collapsed these to 1`)
+
+  check('a failing run on that sha is still reachable and still failing',
+    collided.byId.get('aaaaaaaaaaaa-111111111111').total === 91,
+    'the failing run was overwritten by the passing one')
+
+  const dup = parseLog([
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 400, possible: 530, total: 75, failing: ['y'], skipped: [] }),
+  ].join('\n'))
+  check('two records claiming the SAME id are refused, not resolved',
+    dup.duplicates.length === 1,
+    `${dup.duplicates.length} duplicate(s) reported — picking a winner is the bypass`)
+
+  const legacy = parseLog(line({ sha: SHA, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }))
+  check('a pre-id record is retained but NOT citable',
+    legacy.byId.size === 0 && legacy.legacy.length === 1,
+    `byId ${legacy.byId.size}, legacy ${legacy.legacy.length}`)
 
   const v = (body, w = 530) =>
     verdictsFor({ file: 'f.md', ...scoreClaimsIn(body) }, runs, w)
@@ -213,8 +292,8 @@ if (SELF_TEST) {
     JSON.stringify(v('A report with no number in it.\n')))
 
   check('a correct citation passes',
-    v(`<!-- confidence: run=${SHA} -->\n**Score: 100/100**\n`).length === 0,
-    JSON.stringify(v(`<!-- confidence: run=${SHA} -->\n**Score: 100/100**\n`)))
+    v(`<!-- confidence: run=${ID} -->\n**Score: 100/100**\n`).length === 0,
+    JSON.stringify(v(`<!-- confidence: run=${ID} -->\n**Score: 100/100**\n`)))
 
   // 1. a number nobody computed
   check('a score with NO citation is refused',
@@ -222,46 +301,55 @@ if (SELF_TEST) {
     JSON.stringify(v('**Score: 95/100**\n')))
 
   check('a score citing an unknown run is refused',
-    v(`<!-- confidence: run=${'9'.repeat(40)} -->\n**Score: 100/100**\n`).length === 1,
-    JSON.stringify(v(`<!-- confidence: run=${'9'.repeat(40)} -->\n**Score: 100/100**\n`)))
+    v(`<!-- confidence: run=${'0'.repeat(12)}-${'0'.repeat(12)} -->\n**Score: 100/100**\n`).length === 1,
+    JSON.stringify(v(`<!-- confidence: run=${'0'.repeat(12)}-${'0'.repeat(12)} -->\n**Score: 100/100**\n`)))
 
   check('a score that disagrees with the cited run is refused',
-    v(`<!-- confidence: run=${SHA} -->\n**Score: 95/100**\n`)
+    v(`<!-- confidence: run=${ID} -->\n**Score: 95/100**\n`)
       .some(x => x.includes('measured 100/100')),
-    JSON.stringify(v(`<!-- confidence: run=${SHA} -->\n**Score: 95/100**\n`)))
+    JSON.stringify(v(`<!-- confidence: run=${ID} -->\n**Score: 95/100**\n`)))
 
   // 2. the tail -1 bypass, replayed exactly
   check('TWO scores in one entry is a conflict, not an override',
-    v(`<!-- confidence: run=${SHA} -->\n**Score: 75/100**\nlater\n**Score: 100/100**\n`)
+    v(`<!-- confidence: run=${ID} -->\n**Score: 75/100**\nlater\n**Score: 100/100**\n`)
       .some(x => x.includes('conflict')),
-    JSON.stringify(v(`<!-- confidence: run=${SHA} -->\n**Score: 75/100**\nlater\n**Score: 100/100**\n`)))
+    JSON.stringify(v(`<!-- confidence: run=${ID} -->\n**Score: 75/100**\nlater\n**Score: 100/100**\n`)))
 
   // 3. a passing average over a failing row
   check('a passing claim over a FAILING row is refused',
-    v(`<!-- confidence: run=${OTHER} -->\n**Score: 94/100**\n`).length === 0 &&
-    v(`<!-- confidence: run=${OTHER} -->\n**Score: 95/100**\n`).length > 0,
+    v(`<!-- confidence: run=${FAILING} -->\n**Score: 94/100**\n`).length === 0 &&
+    v(`<!-- confidence: run=${FAILING} -->\n**Score: 95/100**\n`).length > 0,
     'a run with failures backed a claim at the bar')
 
   // 4. the moving denominator
   check('a run scored out of a SHRUNKEN denominator is refused',
-    v(`<!-- confidence: run=${'d'.repeat(40)} -->\n**Score: 100/100**\n`)
+    v(`<!-- confidence: run=${SHRUNK} -->\n**Score: 100/100**\n`)
       .some(x => x.includes('denominator moved')),
-    JSON.stringify(v(`<!-- confidence: run=${'d'.repeat(40)} -->\n**Score: 100/100**\n`)))
+    JSON.stringify(v(`<!-- confidence: run=${SHRUNK} -->\n**Score: 100/100**\n`)))
+
+  const dirtyLog = parseLog(JSON.stringify(
+    { id: '1'.repeat(12) + '-' + '1'.repeat(12), sha: SHA, dirty: true, mode: 'full',
+      earned: 530, possible: 530, total: 100, failing: [], skipped: [] }))
+  check('a run taken against a DIRTY tree cannot back a score',
+    verdictsFor({ file: 'f.md', ...scoreClaimsIn(
+      `<!-- confidence: run=${'1'.repeat(12)}-${'1'.repeat(12)} --></br>\n**Score: 100/100**\n`) },
+      dirtyLog.byId, 530).some(x => x.includes('DIRTY')),
+    'a dirty run backed a score')
 
   check('a QUICK run cannot back a score',
-    v(`<!-- confidence: run=${'c'.repeat(40)} -->\n**Score: 100/100**\n`)
+    v(`<!-- confidence: run=${QUICKRUN} -->\n**Score: 100/100**\n`)
       .some(x => x.includes('quick')),
-    JSON.stringify(v(`<!-- confidence: run=${'c'.repeat(40)} -->\n**Score: 100/100**\n`)))
+    JSON.stringify(v(`<!-- confidence: run=${QUICKRUN} -->\n**Score: 100/100**\n`)))
 
   // The bar is a percentage of a 530-point scale, not a point count.
   check('a score ROUNDED UP to the bar is refused (503/530 = 94.906%)',
-    v(`<!-- confidence: run=${'e'.repeat(40)} -->\n**Score: 95/100**\n`)
+    v(`<!-- confidence: run=${ROUNDED} -->\n**Score: 95/100**\n`)
       .some(x => x.includes('rounded up')),
-    JSON.stringify(v(`<!-- confidence: run=${'e'.repeat(40)} -->\n**Score: 95/100**\n`)))
+    JSON.stringify(v(`<!-- confidence: run=${ROUNDED} -->\n**Score: 95/100**\n`)))
 
   check('one point higher genuinely meets it (504/530 = 95.094%)',
-    v(`<!-- confidence: run=${'f'.repeat(40)} -->\n**Score: 95/100**\n`).length === 0,
-    JSON.stringify(v(`<!-- confidence: run=${'f'.repeat(40)} -->\n**Score: 95/100**\n`)))
+    v(`<!-- confidence: run=${ATBAR} -->\n**Score: 95/100**\n`).length === 0,
+    JSON.stringify(v(`<!-- confidence: run=${ATBAR} -->\n**Score: 95/100**\n`)))
 
   // The reason stripFences is the first thing that happens.
   check('gate output quoted in a code fence is not read as a claim',
@@ -269,8 +357,8 @@ if (SELF_TEST) {
     JSON.stringify(v('```\n  510/530 points = 96/100\n**Score: 96/100**\n```\n')))
 
   check('a citation with no score is refused as a dangling reference',
-    v(`<!-- confidence: run=${SHA} -->\nno score here\n`).length === 1,
-    JSON.stringify(v(`<!-- confidence: run=${SHA} -->\nno score here\n`)))
+    v(`<!-- confidence: run=${ID} -->\nno score here\n`).length === 1,
+    JSON.stringify(v(`<!-- confidence: run=${ID} -->\nno score here\n`)))
 
   // The denominator reader, against the real file's shape.
   const dir = join(tmpdir(), `conf-rec-${process.pid}`)
@@ -289,12 +377,13 @@ if (SELF_TEST) {
 
 // ── the real outbox ─────────────────────────────────────────────────────────
 
-let runs
+let log
 try {
-  runs = parseLog(readFileSync(RECORD_PATH, 'utf8'))
+  log = parseLog(readFileSync(RECORD_PATH, 'utf8'))
 } catch {
-  runs = new Map()
+  log = { byId: new Map(), duplicates: [], legacy: [] }
 }
+const runs = log.byId
 
 const weight = declaredWeight(readFileSync(ROWS_PATH, 'utf8'))
 
@@ -305,9 +394,21 @@ const entries = readdirSync('outbox')
 const scored = entries.filter(e => e.scores.length > 0)
 
 console.log(`\n${scored.length} of ${entries.length} outbox entries state a confidence score`)
-console.log(`${runs.size} gate run(s) recorded in ${RECORD_PATH}, denominator ${weight}\n`)
+console.log(`${runs.size} citable gate run(s) recorded in ${RECORD_PATH}, denominator ${weight}`)
+if (log.legacy.length > 0) {
+  // Records written before run ids existed. Not citable, and not deleted: they
+  // are the evidence for why the id exists.
+  console.log(`${log.legacy.length} pre-id record(s) retained and NOT citable: ${log.legacy.map(s => String(s).slice(0, 7)).join(', ')}`)
+}
+console.log('')
 
 const problems = entries.flatMap(e => verdictsFor(e, runs, weight))
+
+// Refused, never resolved. Picking a winner among records sharing an id is
+// exactly the behaviour that made the sha-keyed version a bypass.
+check('no two records claim the same run id',
+  log.duplicates.length === 0,
+  `${[...new Set(log.duplicates)].join(', ')} — the log is inconsistent; a citation could not say which run it means`)
 
 check('every stated confidence score is backed by a recorded gate run',
   problems.length === 0,

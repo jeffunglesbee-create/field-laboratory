@@ -42,6 +42,7 @@
 //         --quick skips the rows that need a browser or the .NET build.
 
 import { execSync, spawn } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { readdirSync, readFileSync, appendFileSync } from 'node:fs'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
 import { rows, ok, failures } from './gate-checks.mjs'
@@ -126,11 +127,34 @@ console.log(`\n  ${earned}/${possible} points = ${total}/100   (bar: ${BAR})`)
 // Recorded BEFORE the exit branches below, so a FAILING run is written down
 // too. A record that only ever captures passes is a record that cannot be used
 // to refuse a claim, which is the one thing it is for.
-const runSha = (() => {
-  try { return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim() } catch { return null }
-})()
+const gitOut = cmd => {
+  try { return execSync(cmd, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }) } catch { return '' }
+}
+const runSha = gitOut('git rev-parse HEAD').trim() || null
+
+// THE SHA IS NOT THE RUN.
+//
+// The first two records written by this file both said `1264e6f` — one scoring
+// 91 with three failing rows, one scoring 100 — because HEAD was unchanged
+// while the WORKING TREE was fixed between them. `git rev-parse HEAD` says
+// nothing about uncommitted work, and the gate scores the tree, not the commit.
+//
+// That made a citation ambiguous, and `confidence-record-check.mjs` keyed its
+// lookup by sha, so the LAST record for a sha won. A failing run followed by a
+// passing run on the same sha resolved silently to the passing one: the exact
+// `tail -1` bypass that check was written to refuse, rebuilt inside it.
+//
+// So the identity of a run is HEAD plus a digest of everything not in HEAD.
+const dirt = gitOut('git status --porcelain') + gitOut('git diff HEAD')
+const treeDigest = createHash('sha256').update(dirt).digest('hex')
+const runId = `${(runSha ?? 'nohead').slice(0, 12)}-${treeDigest.slice(0, 12)}`
+
 appendFileSync(RECORD_PATH, JSON.stringify({
+  id: runId,
   sha: runSha,
+  // Whether the scored tree was the committed one. A clean run is the only kind
+  // whose sha alone describes what was measured.
+  dirty: dirt.length > 0,
   mode: QUICK ? 'quick' : 'full',
   earned,
   possible,
@@ -140,7 +164,7 @@ appendFileSync(RECORD_PATH, JSON.stringify({
   failing: results.filter(r => r.state === 'FAIL').map(r => r.name),
   skipped: results.filter(r => r.state === 'SKIP').map(r => r.name),
 }) + '\n')
-console.log(`  recorded in ${RECORD_PATH} (${runSha ? runSha.slice(0, 7) : 'no sha'}, ${QUICK ? 'quick' : 'full'})`)
+console.log(`  recorded in ${RECORD_PATH} as run ${runId}${dirt.length > 0 ? " (tree dirty)" : ""}`)
 
 if (QUICK) {
   // Quick mode cannot report a PASS — it skipped rows. It can and must report a

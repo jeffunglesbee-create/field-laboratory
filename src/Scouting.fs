@@ -236,6 +236,7 @@ let private parkAliases : (string * string) list =
       "Citizens Bank Park, Philadelphia", "Citizens Bank Park"
       "Comerica Park", "Comerica Park"
       "Coors Field", "Coors Field"
+      "Daikin Park", "Minute Maid Park"
       "Dodger Stadium", "Dodger Stadium"
       "Dodger Stadium, Los Angeles", "Dodger Stadium"
       "Fenway Park", "Fenway Park"
@@ -301,3 +302,22 @@ let tryParkByVenue (venue: string) : ParkFactor option =
 /// not a missing one, and the caller has to handle it as such.
 let tryUmpire (lastName: string) : UmpireRating option =
     umpireRatings |> List.tryFind (fun u -> u.Name = lastName.ToLower())
+
+/// MLB venues that have NO park factors, and are not expected to.
+///
+/// `tryParkByVenue` returning None has meant two different things with nothing
+/// to tell them apart: "this repo failed to cover a park it should know" and
+/// "no park factors exist for this venue". The first is a gap. The second is
+/// the world, and it is the same distinction `tryUmpire` makes above.
+///
+/// Membership is a claim that the venue OCCURS and has no run environment, and
+/// the generator fails if a name here appears in no recorded capture.
+let venuesWithoutParkFactors : string list =
+    [
+      // neutral site, no established run environment
+      "Field of Dreams"
+    ]
+
+/// Whether a venue is known to have no park factors, as opposed to unresolved.
+let isKnownUnfactored (venue: string) : bool =
+    venuesWithoutParkFactors |> List.exists (fun v -> v = venue)

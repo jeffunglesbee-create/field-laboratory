@@ -455,7 +455,26 @@ const MUTATIONS = [
   {
     id: 'history-boundary-moved',
     claim: 'moving the rule boundary without the count is caught',
-    mutate: "sed -i 's/^e9bc4ca[0-9a-f]*  17/543a64d4a0c1a5a53db7b8dbd3aab0f39a2b0a1a  17/' docs/history-boundary.txt",
+    // Derives the CURRENT boundary from the file rather than matching a literal.
+    //
+    // It used to be `sed -i 's/^e9bc4ca[0-9a-f]*  17/…/'`, which hardcoded the
+    // boundary's value into the mutation that defends it. When the boundary
+    // legitimately moved to `829f2ac … 18` on 2026-08-17 the pattern stopped
+    // matching, sed became a no-op, and the harness reported the claim as
+    // undefended. A guard coupled to the value it guards is disarmed by every
+    // legitimate change to that value.
+    //
+    // Replaces the sha and keeps the count, which is exactly the edit the
+    // boundary file says must fail the check. Exits non-zero if the line is not
+    // found, so a malformed boundary file is a loud failure here too.
+    mutate: 'node -e "' +
+      'const fs=require(\'fs\'),f=\'docs/history-boundary.txt\';' +
+      'const t=fs.readFileSync(f,\'utf8\');' +
+      'const m=/^([0-9a-f]{40})(\\s+)(\\d+)\\s*$/m.exec(t);' +
+      'if(!m)process.exit(1);' +
+      'const other=m[1][0]===\'a\'?\'b\':\'a\';' +
+      'fs.writeFileSync(f,t.replace(m[0],other.repeat(40)+m[2]+m[3]))' +
+      '"',
     restore: 'git checkout -- docs/history-boundary.txt',
     expect: 'node scripts/run-row.mjs "every governed commit paired source with outbox"',
   },
@@ -868,6 +887,22 @@ const run = cmd => {
 }
 
 /**
+ * A command's stdout, or '' if it fails.
+ *
+ * Used to snapshot the working tree either side of a world mutation, so a
+ * mutation that changes nothing is reported as broken rather than as a claim
+ * nothing defends. Pre-existing dirt cancels out: the comparison is between
+ * two states, not against a clean tree.
+ */
+const capture = cmd => {
+  try {
+    return execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
+  } catch {
+    return ''
+  }
+}
+
+/**
  * Undo a mutation a previous run was killed before it could undo itself.
  *
  * Returns true if there was something to heal. Runs BEFORE the baseline, so
@@ -981,7 +1016,41 @@ for (const m of selected) {
     // cheapest.
     mkdirSync(stateDir, { recursive: true })
     writeFileSync(marker, JSON.stringify({ id: m.id, restoreCmd: m.restore }))
+
+    // A WORLD MUTATION MUST PROVE IT APPLIED.
+    //
+    // Source mutations already do — `mutated === original` below fails as "the
+    // mutation anchor still exists". World mutations had no equivalent, and the
+    // gap is not theoretical: `history-boundary-moved` ran
+    //
+    //     sed -i 's/^e9bc4ca[0-9a-f]*  17/543a64d…  17/' docs/history-boundary.txt
+    //
+    // and on 2026-08-17 the boundary legitimately moved to `829f2ac … 18`. The
+    // pattern then matched nothing, sed changed nothing, the check passed
+    // unchanged, and this harness reported "mutation SURVIVED — nothing defends
+    // this claim."
+    //
+    // That reading was WRONG in the most dangerous direction available to a
+    // mutation harness. A mutation that cannot apply proves nothing about the
+    // claim, and reporting it as an undefended invariant is a false alarm that
+    // looks exactly like a true one — while the inverse, a mutation silently
+    // no-oping and being counted as CAUGHT, is how a suite turns green while
+    // proving nothing.
+    //
+    // The tree state before and after is the general test, so it holds for
+    // mutations that edit a file, move files to /tmp, or overwrite them.
+    const treeBefore = capture('git status --porcelain')
     run(m.mutate)
+    const treeAfter = capture('git status --porcelain')
+    if (treeBefore === treeAfter) {
+      run(m.restore)
+      clearActive()
+      check(`[${m.id}] the mutation actually applies`, false,
+        `\`${m.mutate.slice(0, 90)}${m.mutate.length > 90 ? '…' : ''}\` left the tree unchanged. ` +
+        `Nothing was tested — this is a broken mutation, NOT an undefended claim.`)
+      continue
+    }
+
     const passed = run(m.expect)
     run(m.restore)
     clearActive()

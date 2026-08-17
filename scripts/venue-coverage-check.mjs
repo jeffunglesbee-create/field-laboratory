@@ -29,7 +29,7 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { createChecks } from './checks.mjs'
-import { tryParkByVenue } from '../build/Scouting.js'
+import { tryParkByVenue, isKnownUnfactored, venuesWithoutParkFactors } from '../build/Scouting.js'
 
 const args = process.argv.slice(2)
 const REPORT = args.includes('--report')
@@ -90,10 +90,18 @@ const { check, summarize } = createChecks()
 const captures = readdirSync('data').filter(f => f.endsWith('.json') && !f.startsWith('production-'))
 let total = 0
 const misses = []
+// Venues the source declares as having no park factors — a fact about baseball,
+// not a suppression. Counted and printed rather than skipped silently, because
+// a list that grows unnoticed is the thing it must not become.
+const unfactored = []
 for (const f of captures) {
   const venues = venuesIn(JSON.parse(readFileSync(`data/${f}`, 'utf8')))
   total += venues.length
-  for (const v of venues) if (!resolve(v)) misses.push(`${f}: ${JSON.stringify(v)}`)
+  for (const v of venues) {
+    if (resolve(v)) continue
+    if (isKnownUnfactored(v)) { unfactored.push(`${f}: ${JSON.stringify(v)}`); continue }
+    misses.push(`${f}: ${JSON.stringify(v)}`)
+  }
 }
 
 console.log(`\nChecked ${total} MLB venue name(s) across ${captures.length} recorded capture(s)\n`)
@@ -104,8 +112,25 @@ console.log(`\nChecked ${total} MLB venue name(s) across ${captures.length} reco
 check('the captures actually contain MLB venues to check', total > 0,
   'no MLB game with a venue was found in any capture, so the check below proves nothing')
 
-check('every venue in a recorded capture resolves to a park', misses.length === 0,
+if (unfactored.length > 0) {
+  console.log(`${unfactored.length} venue(s) declared as having no park factors:`)
+  for (const u of unfactored) console.log(`  ${u}`)
+  console.log('')
+}
+
+check('every venue in a recorded capture resolves to a park, or is declared unfactored',
+  misses.length === 0,
   misses.join('\n      → '))
+
+// The declared list must stay a claim about the world, not a growing bucket.
+// Every name on it has to actually turn up, or it is covering for nothing and
+// should be deleted — the same reason `unused-check.mjs` exists.
+const declared = Array.from(venuesWithoutParkFactors)
+const seen = new Set(unfactored.map(u => JSON.parse(u.slice(u.indexOf(': ') + 2))))
+const idle = declared.filter(v => !seen.has(v))
+check('every venue declared unfactored actually appears in a capture',
+  idle.length === 0,
+  `${idle.join(', ')} — declared as having no park factors but present in no capture`)
 
 // The statsapi vocabulary, which no capture in this repo uses yet and which is
 // the one laboratory will meet first when the pitcher and records rows are

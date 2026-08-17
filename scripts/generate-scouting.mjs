@@ -33,7 +33,7 @@
 //             fit 28 of 30 points, which is production's own Rule 1 failure
 //             wearing a different hat. It is data, so it is carried as data.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs'
 
 const OUT = 'src/Scouting.fs'
 
@@ -75,6 +75,39 @@ const OVERRIDES = {
   // The venue map pluralises it; the park table does not. One character, and
   // no rule short of an explicit statement should be trusted to bridge it.
   'Angels Stadium': 'Angel Stadium',
+}
+
+// Names that appear in RECORDED CAPTURES but not in production's venue map.
+//
+// OVERRIDES above only fires for names in `venueNames.names` — production's own
+// VENUE_COORDS keys. A venue production has never had coordinates for is
+// therefore invisible to it, and `data/brief-join-corpus.json` contains two:
+// "Daikin Park" (8 games) and "Field of Dreams" (1).
+//
+// Same rule as everything else here: a fact about the world, sourced, never a
+// guess. Each is asserted against the captures below, so an entry that stops
+// occurring is a build failure rather than a line nobody revisits.
+const CAPTURE_ONLY = {
+  // Houston renamed Minute Maid Park to Daikin Park. Same physical stadium, so
+  // the same park factors — the identical case to Guaranteed Rate -> Rate Field
+  // above, and an aliasing fix rather than a number to invent.
+  'Daikin Park': 'Minute Maid Park',
+}
+
+// Venues with NO park factors, which is different from a venue this repo failed
+// to cover.
+//
+// `tryParkByVenue` returning None has meant both things and nothing could tell
+// them apart. This names the second kind, the way `tryUmpire` already does for
+// umpires ("a real answer, not a missing one") and `Desk.Unmodelled` does for
+// sports.
+//
+// Putting a fabricated 100/100 into the park table to silence a check would be
+// inventing exactly the number the alias note refuses to invent.
+const NO_PARK_FACTORS = {
+  // Dyersville, Iowa. A neutral site MLB has used for a handful of
+  // regular-season games; no established park factors exist for it.
+  'Field of Dreams': 'neutral site, no established run environment',
 }
 
 // Parks that no imported name reaches, acknowledged rather than discovered
@@ -205,6 +238,39 @@ const umpRows = Object.entries(ump.data)
         : fail(`unknown weak zone ${JSON.stringify(v.weakness)} for ${name}`)
     return `      umpire ${fsStr(name)} ${v.challenged} ${v.overturned} (${zone})`
   })
+
+// Capture-only names enter the alias table the same way overrides do, through
+// `claim`, so an ambiguity is still a build failure.
+for (const [name, label] of Object.entries(CAPTURE_ONLY)) {
+  if (!labels.has(label))
+    fail(`capture-only alias ${JSON.stringify(name)} points at ${JSON.stringify(label)}, which is not a park label`)
+  claim(name, label, 'capture-only')
+}
+
+// Both lists are claims that these names OCCUR. Verified against the recorded
+// captures, so a name that stops appearing is a build failure instead of a line
+// that quietly covers for nothing.
+{
+  const seen = new Set()
+  for (const f of readdirSync('data').filter(f => f.endsWith('.json') && !f.startsWith('production-'))) {
+    const payload = JSON.parse(readFileSync(`data/${f}`, 'utf8'))
+    const groups = payload?.games ?? {}
+    const games = Array.isArray(groups) ? groups : Object.values(groups).flat()
+    for (const g of games) {
+      if (g && g.sport === 'MLB' && typeof g.venue === 'string') seen.add(g.venue)
+    }
+  }
+  for (const name of [...Object.keys(CAPTURE_ONLY), ...Object.keys(NO_PARK_FACTORS)]) {
+    if (!seen.has(name)) {
+      fail(`${JSON.stringify(name)} is declared here but appears in no recorded capture — ` +
+        `delete it, or it is covering for nothing`)
+    }
+  }
+}
+
+const noFactorRows = Object.entries(NO_PARK_FACTORS)
+  .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+  .map(([name, why]) => `      // ${why}\n      ${fsStr(name)}`)
 
 const aliasRows = [...aliases.entries()]
   .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
@@ -387,6 +453,24 @@ let tryParkByVenue (venue: string) : ParkFactor option =
 /// not a missing one, and the caller has to handle it as such.
 let tryUmpire (lastName: string) : UmpireRating option =
     umpireRatings |> List.tryFind (fun u -> u.Name = lastName.ToLower())
+
+/// MLB venues that have NO park factors, and are not expected to.
+///
+/// \`tryParkByVenue\` returning None has meant two different things with nothing
+/// to tell them apart: "this repo failed to cover a park it should know" and
+/// "no park factors exist for this venue". The first is a gap. The second is
+/// the world, and it is the same distinction \`tryUmpire\` makes above.
+///
+/// Membership is a claim that the venue OCCURS and has no run environment, and
+/// the generator fails if a name here appears in no recorded capture.
+let venuesWithoutParkFactors : string list =
+    [
+${noFactorRows.join('\n')}
+    ]
+
+/// Whether a venue is known to have no park factors, as opposed to unresolved.
+let isKnownUnfactored (venue: string) : bool =
+    venuesWithoutParkFactors |> List.exists (fun v -> v = venue)
 `
 
 // `--check` regenerates in memory and compares, changing nothing.
