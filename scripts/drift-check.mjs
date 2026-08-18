@@ -63,6 +63,7 @@ check('payload decodes', decoded, decodeError)
 let games = []
 let malformed = []
 let unmodelled = []
+let declaredUnmodelled = []
 let vocabulary = []
 let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0, none: 0 }
 let lineShape = { spreads: 0, unbalanced: 0, totals: 0, split: 0, compared: 0, mismatched: 0 }
@@ -122,12 +123,28 @@ if (decoded) {
   const byLabel = new Map()
   for (const g of games) {
     const meta = sportMeta(g.Sport)
-    const seen = byLabel.get(meta.Label) || { label: meta.Label, modelled: meta.Modelled, n: 0 }
+    // `Omission` is `Some reason` when leaving a sport unmodelled is a recorded
+    // decision rather than a gap. Fable compiles an F# option to the value or
+    // undefined, so a truthy check is the whole test.
+    const seen = byLabel.get(meta.Label) ||
+      { label: meta.Label, modelled: meta.Modelled, declared: Boolean(meta.Omission), n: 0 }
     seen.n += 1
     byLabel.set(meta.Label, seen)
   }
   vocabulary = [...byLabel.values()].sort((a, b) => b.n - a.n || a.label.localeCompare(b.label))
-  unmodelled = vocabulary.filter(v => !v.modelled)
+  // Only sports that are unmodelled AND undeclared are an alarm.
+  //
+  // golf has been on this list since 2026-08-14 and will never leave it: the
+  // relay packs a tournament and a round into home/away, so no Matchup case
+  // fits, and `src/Desk.fs` records that as the correct answer. Reporting it
+  // twice a day forever is an alarm that cannot be cleared, which the
+  // sentinel's own issue-closing step already argues against — "an issue that
+  // outlives its cause trains people to ignore the next one".
+  //
+  // Declared omissions still ride in the vocabulary string, marked, so they
+  // stay visible without being actionable.
+  unmodelled = vocabulary.filter(v => !v.modelled && !v.declared)
+  declaredUnmodelled = vocabulary.filter(v => !v.modelled && v.declared)
 
   // The Odds Story's own shape, measured across the whole live slate rather
   // than inferred from two committed games. ODDS_STORY tags follow declaration
@@ -255,8 +272,17 @@ if (decoded) {
   // is incomplete and its fixtures are rendering under an unknown convention —
   // the same class of defect as a malformed payload, and it stays loud until
   // someone adds the case.
-  check('every observed sport is in the registry', unmodelled.length === 0,
+  check('every observed sport is in the registry, or declared absent on purpose',
+    unmodelled.length === 0,
     unmodelled.map(v => `${v.label} (${v.n})`).join(', '))
+
+  // Non-vacuity, and a guard against the escape this just opened. If EVERY
+  // observed sport were declared, the check above would pass while the desk
+  // rendered nothing under a real convention — "all of it is fine on purpose"
+  // is exactly how an exemption mechanism rots into a suppression list.
+  check('the declared omissions are not the whole slate',
+    vocabulary.length === 0 || declaredUnmodelled.length < vocabulary.length,
+    `${declaredUnmodelled.length} of ${vocabulary.length} observed sport(s) are declared unmodelled`)
   check('every game has an id and both teams',
     games.every(g => g.Id && g.Home && g.Away),
     'a game decoded without id/home/away')
@@ -301,7 +327,10 @@ const note = decoded
   : decodeError
 // The observed vocabulary rides along on every run, so the log answers "which
 // sports has this relay ever served" without needing a separate probe.
-const sports = vocabulary.map(v => `${v.label}${v.modelled ? '' : '*'}:${v.n}`).join(' ')
+// `*` is an alarm, `~` is a recorded decision. Both stay in the log, because a
+// declared omission that stops being declared should be visible as a change.
+const sports = vocabulary
+  .map(v => `${v.label}${v.modelled ? '' : v.declared ? '~' : '*'}:${v.n}`).join(' ')
 // Odds shape rides along too. Whether closing_odds is ever a real closing line
 // is a question about the relay that only accumulates with observation — the
 // committed capture says no, on a sample of two.

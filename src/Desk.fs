@@ -185,6 +185,13 @@ type Sport =
     | EFLCup
     | NFL
     | CFL
+    /// Spanish top-flight association football. The relay labels it "La Liga",
+    /// with the space, and the drift sentinel reported it unmodelled from
+    /// 2026-08-16.
+    | LaLiga
+    /// Modelled as a case so it can be DECLARED unmodelled rather than merely
+    /// unrecognised — see `Omission` below. Golf itself stays unmodelled.
+    | Golf
     | Unrecognised of raw: string
 
 /// Everything the renderer is allowed to know about a sport. One record, one
@@ -196,22 +203,42 @@ type SportMeta =
       /// Rule 50 names `isSoccer` explicitly, and lists `sportName.includes("MLS")`
       /// among the prohibited patterns it exists to eliminate.
       IsSoccer: bool
-      /// False only for `Unrecognised`. Surfaced in the UI so an unmodelled
-      /// sport is visible rather than silently rendered under a guess.
-      Modelled: bool }
+      /// False for anything the desk will not render under a convention.
+      /// Surfaced in the UI so an unmodelled sport is visible rather than
+      /// silently rendered under a guess.
+      Modelled: bool
+      /// Why this sport is deliberately NOT modelled, when that is a decision
+      /// rather than a gap.
+      ///
+      /// `Modelled = false` used to mean two different things with nothing to
+      /// tell them apart: "nobody has looked at this yet" and "we looked, and
+      /// leaving it unmodelled is the correct answer". The drift sentinel
+      /// alarms on the first and must not alarm on the second, or it reports
+      /// the same permanent finding twice a day forever — and an alarm that can
+      /// never be cleared trains people to ignore the next one, which is the
+      /// exact reasoning the sentinel's own issue-closing step already uses.
+      ///
+      /// Same device as `Scouting.venuesWithoutParkFactors` for venues with no
+      /// park factors, and `tryUmpire` returning None for umpires production
+      /// genuinely has no entry for: naming the known-absent case is what makes
+      /// the remaining alarms mean something.
+      ///
+      /// `Some reason` is a recorded decision. `None` on an unmodelled sport is
+      /// a real alarm.
+      Omission: string option }
 
 /// THE registry. Adding a case to `Sport` without adding it here does not
 /// compile — see docs/SPORT-PROOF.md for the compiler refusing exactly that.
 let sportMeta (sport: Sport) : SportMeta =
     match sport with
-    | Sport.AFL -> { Label = "AFL"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true }
-    | Sport.MLB -> { Label = "MLB"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    | Sport.AFL -> { Label = "AFL"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true; Omission = None }
+    | Sport.MLB -> { Label = "MLB"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     // Association football names the home side first, everywhere. Both of these
     // are `IsSoccer = true`, which is the field Rule 50 names explicitly and
     // whose absence produced `sportName.includes("MLS")` in production.
-    | Sport.MLS -> { Label = "MLS"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true }
-    | Sport.EFLCup -> { Label = "EFL Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true }
-    | Sport.WNBA -> { Label = "WNBA"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    | Sport.MLS -> { Label = "MLS"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.EFLCup -> { Label = "EFL Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.WNBA -> { Label = "WNBA"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     // Gridiron, North American convention: the visiting side is named first,
     // "Cowboys at Eagles". Same convention already encoded above for MLB and
     // WNBA, and the basis is stated rather than derived — ESPN is unreachable
@@ -222,10 +249,27 @@ let sportMeta (sport: Sport) : SportMeta =
     // rendered it `Unrecognised` — drift-sentinel reported `unmodelled: NFL,
     // CFL, golf` on 2026-08-14 and again on 2026-08-15, and an unmodelled sport
     // renders "Home vs Away" regardless of which side the relay calls home.
-    | Sport.NFL -> { Label = "NFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
-    | Sport.CFL -> { Label = "CFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true }
+    | Sport.NFL -> { Label = "NFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
+    | Sport.CFL -> { Label = "CFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
+    // Association football, so the same convention as MLS and EFL Cup above.
+    // This is read off the data rather than assumed: `data/brief-join-corpus.json`
+    // carries four fixtures whose ids list the home side first and agree with
+    // the `home` field — `La Liga_2026-08-15_alavs_getafe` with home Alavés,
+    // away Getafe. Guessing a convention is what produced the AFL transposition,
+    // so the evidence is named here.
+    | Sport.LaLiga -> { Label = "La Liga"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    // DECLARED unmodelled. Every field is what `Unrecognised` would produce —
+    // the desk still refuses to claim a two-sided contest — and the only thing
+    // that changes is that the sentinel can tell this apart from a sport nobody
+    // has looked at.
+    | Sport.Golf ->
+        { Label = "golf"
+          Matchup = UnknownConvention
+          IsSoccer = false
+          Modelled = false
+          Omission = Some "the relay packs a tournament and a round into home/away — golf_2026-08-14_fedexstjudechampionship_r2 renders \"FedEx St. Jude Championship vs R2\" — so they are not opponents. Every Matchup case asserts a contest between two sides. Modelling golf under one would have the desk state that a tournament played a round; a non-contest Matchup case is the real fix and is its own change." }
     | Sport.Unrecognised raw ->
-        { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false }
+        { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false; Omission = None }
 
 /// The only place a sport string becomes a `Sport`.
 let sportOfString (raw: string) : Sport =
@@ -240,19 +284,26 @@ let sportOfString (raw: string) : Sport =
     | "EFL Cup" -> Sport.EFLCup
     | "NFL" -> Sport.NFL
     | "CFL" -> Sport.CFL
-    // `golf` is deliberately NOT matched here, and that is a decision rather
-    // than an omission. The relay packs a tournament and a round into `home`
+    // The relay's own label, with the space, matched verbatim for the same
+    // reason "EFL Cup" is.
+    | "La Liga" -> Sport.LaLiga
+    // `golf` maps to a case that DECLARES itself unmodelled, and that is a
+    // decision rather than an omission. The relay packs a tournament and a round into `home`
     // and `away` — `golf_2026-08-14_fedexstjudechampionship_r2` renders as
     // "FedEx St. Jude Championship vs R2" — so those two fields are not
     // opponents. Every `Matchup` case this type has asserts a contest between
     // two sides, and modelling golf under one would make the desk state, in its
     // own voice, that a tournament played a round.
     //
-    // Leaving it `Unrecognised` keeps `Modelled = false` and surfaces it as
-    // unmodelled, which is true. Adding a fourth `Matchup` case for events that
-    // are not two-sided is the actual fix and is its own change: inventing a
-    // convention in a hurry is precisely what produced the AFL/MLB transposition
-    // recorded above `orderByMatchup`.
+    // `Sport.Golf` keeps `Modelled = false` and `UnknownConvention`, exactly as
+    // `Unrecognised` did, so nothing about how golf renders changes. What it
+    // adds is `Omission = Some ...`, which lets the drift sentinel report a
+    // recorded decision instead of raising the same alarm twice a day forever.
+    // Adding a fourth `Matchup` case for events that are not two-sided is the
+    // actual fix and is still its own change: inventing a convention in a hurry
+    // is precisely what produced the AFL/MLB transposition recorded above
+    // `orderByMatchup`.
+    | "golf" -> Sport.Golf
     | other -> Sport.Unrecognised other
 
 /// Orders a home/away pair the way the sport names them.

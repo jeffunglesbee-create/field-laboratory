@@ -118,9 +118,13 @@ jobs:
       # into a red build here is how a check gets deleted. Fatal only when NO
       # probe could run, because "could not tell" reported as "not landed" is a
       # claim from no data.
+      # Self-test first: the predicates only ever ran against the live relay,
+      # where a working predicate and `landed: () => true` are indistinguishable.
       - name: Did the filed CC-CMDs land?
         if: always()
-        run: node scripts/cc-cmd-followup.mjs
+        run: |
+          node scripts/cc-cmd-followup.mjs --self-test
+          node scripts/cc-cmd-followup.mjs
 
       - name: Append to the drift log
         if: always()

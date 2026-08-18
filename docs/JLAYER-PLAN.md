@@ -19,11 +19,33 @@ have *caught the specific defects this project has shipped*.
 | 2 | `src/Corpus.fs`, `CORPUS-PROOF.md`, `corpus-check.mjs` | **done** — different set difference than planned |
 | 3 | `src/Journalism.fs`, `JOURNALISM-PROOF.md`, `journalism-check.mjs` | **done** `3760c7e` |
 | 4 | `src/Replay.fs` | **not started** — needs captures produced relay-side; scope corrected 2026-08-16 |
-| 5 | `scripts/docs-check.mjs` | **done** — a `verify` step, not a gate row |
+| 5 | `scripts/docs-check.mjs` | **done** — a `verify` step, not a gate row (decided, see Order) |
 
 Unplanned work that came out of the same line of investigation and is not a
 numbered phase: `src/Ceiling.fs` + `CEILING-PROOF.md` + `ceiling-check.mjs`, and
 `docs/ORACLE-PROVENANCE.md`.
+
+### Asks filed against the relay, and where they stand
+
+Probed by `scripts/cc-cmd-followup.mjs` on a runner, because `*.workers.dev` is
+403 at the agent proxy. Last measured 2026-08-18, run `32094556326`.
+
+| ask | state |
+|---|---|
+| `quality-bar-scale` — name the scale wherever the flat 240 bar is reported | **landed** 2026-08-18 |
+| `quality-coverage-route` — expose `jq-scoring-coverage` on a GET route | 403 **from the runner too**, so not the proxy: the route is not there |
+| `scoring_version` in the `/archive/query` projection | **not yet** — a real negative from a reachable route |
+| LLM captures with prompts, produced relay-side | not asked for yet; Phase 4's remaining half |
+
+The bar-scale ask landing is why `/quality/report` now carries a denominator.
+It is tracked as a **landed** ask rather than deleted, so that a field this
+repository now depends on disappearing is a regression rather than a silence —
+`Ceiling.relayReachable` is 245, and the whole finding was that the flat 240 bar
+is 80% of the nominal 300 but 97.96% of what the relay can actually reach.
+
+`scoring_version` remains the highest-leverage of the three. It is the one that
+makes `Corpus.asEra2` and `asEra3` constructible: today 0 of 592 committed rows
+carry a rubric, and a fresh 542-row capture on 2026-08-17 confirmed the same.
 
 ---
 
@@ -285,5 +307,11 @@ Two corrections since:
   scoped around laboratory holding a credential. Corrected, it needs an artefact
   — the captures — and artefacts are asked for, not decided.
 
-So the only phase still gated on a judgement call is **5**: whether `docs-check`
-becomes a gate row.
+That judgement was made and this document did not record it. **Phase 5 shipped
+as a `verify` step, not a gate row**, and the reason is in `docs-check.mjs`:
+gate rows moved to `verify-full` and run weekly, so a stale claim caught seven
+days late is most of the way to not catching it. The status table above said
+"done" while this section still called it open — the contradiction stood from
+2026-08-17 until it was noticed on 2026-08-18.
+
+No phase is now gated on a judgement call. Phase 4 is gated on an artefact.

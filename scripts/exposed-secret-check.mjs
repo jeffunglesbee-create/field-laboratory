@@ -54,10 +54,15 @@ const sha256 = s => createHash('sha256').update(s).digest('hex')
 /**
  * Candidate tokens in a blob of text.
  *
- * Split on anything a credential does not contain. `field-relay-cron-2026`
- * survives as one token out of `X-FIELD-Relay: field-relay-cron-2026`, and so
- * do hex API keys out of JSON. The floor of 12 keeps the hash count sane
- * without excluding anything credential-shaped.
+ * Split on anything a credential does not contain, so a value survives as one
+ * token out of `X-Some-Header: the-value-here` and hex API keys survive out of
+ * JSON. The floor of 12 keeps the hash count sane without excluding anything
+ * credential-shaped.
+ *
+ * This paragraph used to demonstrate that with the REAL relay value, and `37f1daf`
+ * — subject "Redact the relay credential, and make the refusal mechanical" —
+ * committed it. Third time in this project that the credential entered the repo
+ * inside an explanation of why it must not. Examples here are fictional now.
  *
  * Also emits each token with surrounding punctuation trimmed differently — a
  * value pasted as `"secret"` or `secret,` tokenises identically here, but one
@@ -107,6 +112,30 @@ export function hitsIn(text, pins) {
   return hits
 }
 
+/**
+ * Every file this check is responsible for — tracked AND untracked-but-not-ignored.
+ *
+ * This was `git ls-files`, which lists only what is ALREADY COMMITTED, and that
+ * is exactly backwards for a guard meant to run before a commit. A new file
+ * carrying a secret was invisible until after it landed.
+ *
+ * Measured, not theorised: this file was untracked when it was first run against
+ * the repository, so it did not scan itself, and it did not notice that its own
+ * docstring demonstrated the tokeniser using the real relay value. `37f1daf`
+ * committed it. The next run — with the file now tracked — failed immediately,
+ * which is the right answer arriving one commit too late.
+ *
+ * `--exclude-standard` keeps .gitignore honoured, so build output and
+ * node_modules stay out; `--others` is the half that was missing.
+ */
+export function filesToScan() {
+  const out = execSync('git ls-files --cached --others --exclude-standard',
+    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  return [...new Set(out.split('\n').filter(Boolean))]
+    // The pin file holds the hashes; scanning it would be scanning the answer key.
+    .filter(f => f !== PINS_PATH)
+}
+
 // ── the self-test ───────────────────────────────────────────────────────────
 //
 // A scanner that cannot find a planted secret would report this repository
@@ -147,6 +176,19 @@ if (SELF_TEST) {
   check('the committed pin file parses to at least one pin',
     real.size > 0, `${real.size} pin(s) in ${PINS_PATH}`)
 
+  // THE BLIND SPOT THAT LET 37f1daf THROUGH: an uncommitted file must be in
+  // scope. Asserted against this repository, where scripts/ is tracked and the
+  // listing must still be a superset of what `git ls-files` alone returns.
+  const tracked = execSync('git ls-files', { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+    .split('\n').filter(Boolean).filter(f => f !== PINS_PATH)
+  const scanned = filesToScan()
+  check('the scan covers every tracked file',
+    tracked.every(f => scanned.includes(f)),
+    `${tracked.filter(f => !scanned.includes(f)).length} tracked file(s) would go unscanned`)
+  check('the scan is not limited to tracked files',
+    /--others/.test(filesToScan.toString()),
+    'the listing dropped --others, so a new file is invisible until it is committed')
+
   // End to end, on a real file in a temp dir.
   const dir = join(tmpdir(), `exposed-secret-${process.pid}`)
   mkdirSync(dir, { recursive: true })
@@ -174,10 +216,7 @@ check('there are pinned secrets to look for',
   pins.size > 0,
   `${PINS_PATH} parsed to no pins — a scanner with nothing to find reports every tree clean`)
 
-const files = execSync('git ls-files', { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
-  .split('\n').filter(Boolean)
-  // The pin file holds the hashes; scanning it would be scanning the answer key.
-  .filter(f => f !== PINS_PATH)
+const files = filesToScan()
 
 const found = []
 let scanned = 0
@@ -188,11 +227,11 @@ for (const f of files) {
   for (const [, why] of hitsIn(text, pins)) found.push(`${f}: ${why}`)
 }
 
-console.log(`\nScanned ${scanned} tracked file(s) against ${pins.size} pinned hash(es)\n`)
+console.log(`\nScanned ${scanned} file(s) in the working tree against ${pins.size} pinned hash(es)\n`)
 
 // Named by DESCRIPTION, never by value or by hash. A failure message that
 // printed the secret would be the leak it is reporting.
-check('no tracked file contains a known-exposed credential',
+check('no file in the working tree contains a known-exposed credential',
   found.length === 0,
   found.join('\n      → '))
 
