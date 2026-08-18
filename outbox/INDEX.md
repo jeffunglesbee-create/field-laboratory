@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `60c84a4` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-18 [skip ci] |
+| `7eca209` | 2026-08-18 | [cc-an-alarm-that-cannot-clear-2026-08-18.md](cc-an-alarm-that-cannot-clear-2026-08-18.md) | Declare golf unmodelled, model La Liga, retire a landed ask, scan the whole tree |
 | `0f235f7` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
 | `9f8628d` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
 | `37f1daf` | 2026-08-18 | [cc-a-promise-does-not-scan-files-2026-08-18.md](cc-a-promise-does-not-scan-files-2026-08-18.md) | Redact the relay credential, and make the refusal mechanical |

@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `37f1daf` — [run 32088913290](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32088913290)
+**running** on `7eca209`
 
 ## Is it published?
 
@@ -14,11 +14,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `bb95a1d` |
+| Cloudflare Workers | live | `bb95a1d` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`unmodelled-sport` on 2026-08-17 — 15 games, 0 malformed (27 runs logged)
+`unmodelled-sport` on 2026-08-18 — 25 games, 0 malformed (28 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
