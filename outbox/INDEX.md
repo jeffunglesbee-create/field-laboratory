@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0f235f7` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
 | `9f8628d` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
 | `37f1daf` | 2026-08-18 | [cc-a-promise-does-not-scan-files-2026-08-18.md](cc-a-promise-does-not-scan-files-2026-08-18.md) | Redact the relay credential, and make the refusal mechanical |
 | `646e925` | 2026-08-17 | [cc-the-gate-caught-three-2026-08-17.md](cc-the-gate-caught-three-2026-08-17.md) | Fix three gate failures, and the tail -1 bypass I rebuilt inside the check |
