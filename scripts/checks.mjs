@@ -1,3 +1,5 @@
+import { pathToFileURL } from 'node:url'
+
 // Shared check harness.
 //
 // This exists because of a specific, recorded complaint. The FIELD codex entry
@@ -66,4 +68,24 @@ export const fieldDay = (date = new Date()) => {
   }).formatToParts(date)
   const g = t => p.find(x => x.type === t).value
   return `${g('year')}-${g('month')}-${g('day')}`
+}
+
+/**
+ * Is this module the one node was asked to run, rather than one it imported?
+ *
+ * Three scripts in this directory used to do their real work — and call
+ * `process.exit` — at import time. On 2026-08-17 that silently swallowed a
+ * probe: `await import('./confidence-record-check.mjs')` ran the whole check,
+ * exited 0, and the code after the import never executed. The output looked
+ * like a successful run of something it had not run, which is the failure mode
+ * this whole project keeps circling.
+ *
+ * A module that exports functions is a module something will eventually import.
+ * Guarding the executable half behind this makes "importable" and "runnable"
+ * both true at once. `import-purity-check.mjs` enforces it.
+ */
+export const isMain = url => {
+  const entry = process.argv[1]
+  if (!entry) return false
+  return url === pathToFileURL(entry).href
 }

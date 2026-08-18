@@ -186,10 +186,16 @@ Three things were wrong with the original:
 - **It had laboratory calling the proxy.** Whatever the credential is called,
   that makes laboratory a producer of model output rather than an observer of it,
   which is the line "What laboratory will not do" exists to hold.
-- **The credential is write-capable.** `X-FIELD-Relay: field-relay-cron-2026` is
-  the same value that gates `POST /d1/execute` — a write path to the production
-  briefs table. "Secret from a repo secret" understated that to the point of
-  being misleading.
+- **The credential is write-capable.** The `X-FIELD-Relay` header value gates
+  `POST /d1/execute` as well as the proxy — a write path to the production briefs
+  table. "Secret from a repo secret" understated that to the point of being
+  misleading.
+
+  The value itself was written out here in full on 2026-08-16, in this very
+  paragraph, by the commit that argued laboratory must never hold it. Redacted
+  2026-08-18; see `docs/exposed-secrets.sha256`, which now fails the build if it
+  reappears. It remains in this repository's history at `41f0b33` and rotation
+  is the only thing that ends that.
 - **`src/Proxy.fs` had no consumer.** Under the corrected design laboratory never
   executes it, and a public value nothing reads is what `unused-check` exists to
   reject. It is dropped rather than shipped unused.

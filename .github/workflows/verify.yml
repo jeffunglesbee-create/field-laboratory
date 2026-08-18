@@ -412,6 +412,33 @@ jobs:
       - name: A confidence score is measured, not asserted
         run: npm run check:confidence-record
 
+      # Hash-pinned tripwire for credentials known to be exposed. It exists
+      # because a refusal is a promise and a promise does not scan files: across
+      # this project I said repeatedly that the relay's X-FIELD-Relay value would
+      # not be copied into laboratory, while 41f0b33 had already written it out
+      # in full inside docs/JLAYER-PLAN.md — in the sentence explaining that it
+      # is write-capable against the production briefs table.
+      #
+      # docs/exposed-secrets.sha256 holds hashes only. This hashes candidate
+      # tokens from every tracked file and compares, so the pinned list never
+      # needs the plaintext and a failure names the credential by description.
+      #
+      # It does NOT purge history and does not pretend to: the value is still
+      # readable at 41f0b33, and only rotation ends that.
+      - name: No tracked file carries a known-exposed credential
+        run: npm run check:secrets
+
+      # Importing a module must not run it. Three scripts here did their real
+      # work and called process.exit at import time, which silently swallowed a
+      # probe on 2026-08-17: the import ran the checker, exited 0, and every line
+      # after it never executed. The output was plausible and measured nothing.
+      #
+      # Tested with a sentinel printed AFTER the import rather than by checking
+      # for output, because a module that exits 0 silently is indistinguishable
+      # from a clean import — and that was the actual case.
+      - name: Importing a module never runs it
+        run: npm run check:import-purity
+
 
       # The two checks above are pinned to committed captures so their
       # assertions are deterministic. This one exercises the path the DEPLOYED

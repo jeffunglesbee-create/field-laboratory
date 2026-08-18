@@ -77,9 +77,9 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { createChecks } from './checks.mjs'
+import { createChecks, isMain } from './checks.mjs'
 
-const SELF_TEST = process.argv.includes('--self-test')
+const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 const { check, summarize } = createChecks()
 
 const RECORD_PATH = 'docs/confidence-log.jsonl'
@@ -220,15 +220,45 @@ export function verdictsFor({ file, scores, cites }, runsBySha, weight) {
 export function parseLog(text) {
   const rows = text.split('\n').filter(Boolean).map(l => JSON.parse(l))
   const byId = new Map()
-  const duplicates = []
+  const conflicts = []
+  const corroborated = []
   const legacy = []
   for (const r of rows) {
     if (!r.id) { legacy.push(r.sha ?? '(no sha)'); continue }
-    if (byId.has(r.id)) duplicates.push(r.id)
+    const prior = byId.get(r.id)
+    if (prior) {
+      // A CLEAN RUN'S ID IS A FUNCTION OF THE TREE, so two runs of the same
+      // committed tree — mine and CI's, say — produce the SAME id. That is not
+      // a collision to refuse; it is the only chance this project has to check
+      // that the gate is deterministic with respect to what it scores.
+      //
+      // Agreeing: corroboration, and worth more than either run alone, because
+      // the second was a different machine with a different build directory.
+      //
+      // Disagreeing: the gate is not a function of the tree. Something outside
+      // it — a stale build/, a cached artifact, the network, the clock — moved
+      // the score. That is a worse finding than any single failing row, because
+      // every other guarantee here assumes the score describes the tree.
+      if (sameResult(prior, r)) corroborated.push(r.id)
+      else conflicts.push({ id: r.id, a: summarise(prior), b: summarise(r) })
+      continue
+    }
     byId.set(r.id, r)
   }
-  return { byId, duplicates, legacy }
+  return { byId, conflicts, corroborated, legacy }
 }
+
+/** Two records of the same run agree if every measured field agrees. */
+export const sameResult = (a, b) =>
+  a.earned === b.earned &&
+  a.possible === b.possible &&
+  a.total === b.total &&
+  a.mode === b.mode &&
+  a.dirty === b.dirty &&
+  [...a.failing].sort().join('|') === [...b.failing].sort().join('|')
+
+const summarise = r =>
+  `${r.earned}/${r.possible}=${r.total}${r.failing.length ? ` failing:[${r.failing.join(', ')}]` : ''}`
 
 // ── the self-test: can this refuse anything? ────────────────────────────────
 
@@ -264,20 +294,43 @@ if (SELF_TEST) {
     line({ id: 'aaaaaaaaaaaa-222222222222', sha: SHA, dirty: true, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
   ].join('\n'))
   check('two runs on the SAME sha stay distinct records',
-    collided.byId.size === 2 && collided.duplicates.length === 0,
-    `${collided.byId.size} record(s), ${collided.duplicates.length} duplicate(s) — a sha-keyed map collapsed these to 1`)
+    collided.byId.size === 2 && collided.conflicts.length === 0,
+    `${collided.byId.size} record(s), ${collided.conflicts.length} conflict(s) — a sha-keyed map collapsed these to 1`)
 
   check('a failing run on that sha is still reachable and still failing',
     collided.byId.get('aaaaaaaaaaaa-111111111111').total === 91,
     'the failing run was overwritten by the passing one')
 
-  const dup = parseLog([
+  // Same id, DISAGREEING: the gate is not a function of the tree.
+  const conflicting = parseLog([
     line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
     line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 400, possible: 530, total: 75, failing: ['y'], skipped: [] }),
   ].join('\n'))
-  check('two records claiming the SAME id are refused, not resolved',
-    dup.duplicates.length === 1,
-    `${dup.duplicates.length} duplicate(s) reported — picking a winner is the bypass`)
+  check('two records of one run that DISAGREE are a conflict, not resolved',
+    conflicting.conflicts.length === 1 && conflicting.corroborated.length === 0,
+    `${conflicting.conflicts.length} conflict(s) — picking a winner is the bypass`)
+
+  check('the conflict names both measurements, not just that one exists',
+    conflicting.conflicts[0].a.includes('530/530') && conflicting.conflicts[0].b.includes('400/530'),
+    JSON.stringify(conflicting.conflicts[0]))
+
+  // Same id, AGREEING: an independent re-measurement. Evidence, not a fault.
+  const agreeing = parseLog([
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
+  ].join('\n'))
+  check('two records of one run that AGREE are corroboration, not a fault',
+    agreeing.conflicts.length === 0 && agreeing.corroborated.length === 1 && agreeing.byId.size === 1,
+    `conflicts ${agreeing.conflicts.length}, corroborated ${agreeing.corroborated.length}`)
+
+  // Failing-row sets are compared as sets, so ordering is not a conflict.
+  const reordered = parseLog([
+    line({ id: FAILING, sha: SHA, dirty: false, mode: 'full', earned: 500, possible: 530, total: 94, failing: ['a', 'b'], skipped: [] }),
+    line({ id: FAILING, sha: SHA, dirty: false, mode: 'full', earned: 500, possible: 530, total: 94, failing: ['b', 'a'], skipped: [] }),
+  ].join('\n'))
+  check('the same failing rows in a different order is corroboration',
+    reordered.conflicts.length === 0 && reordered.corroborated.length === 1,
+    `conflicts ${reordered.conflicts.length}`)
 
   const legacy = parseLog(line({ sha: SHA, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }))
   check('a pre-id record is retained but NOT citable',
@@ -376,12 +429,16 @@ if (SELF_TEST) {
 }
 
 // ── the real outbox ─────────────────────────────────────────────────────────
+//
+// Guarded, so importing this module for its exported helpers does not run the
+// check and exit the importing process. See `isMain` in checks.mjs.
+if (isMain(import.meta.url)) {
 
 let log
 try {
   log = parseLog(readFileSync(RECORD_PATH, 'utf8'))
 } catch {
-  log = { byId: new Map(), duplicates: [], legacy: [] }
+  log = { byId: new Map(), conflicts: [], corroborated: [], legacy: [] }
 }
 const runs = log.byId
 
@@ -404,11 +461,19 @@ console.log('')
 
 const problems = entries.flatMap(e => verdictsFor(e, runs, weight))
 
-// Refused, never resolved. Picking a winner among records sharing an id is
-// exactly the behaviour that made the sha-keyed version a bypass.
-check('no two records claim the same run id',
-  log.duplicates.length === 0,
-  `${[...new Set(log.duplicates)].join(', ')} — the log is inconsistent; a citation could not say which run it means`)
+// Never resolved by picking a winner — that is what made the sha-keyed version
+// a bypass. Two records of one run either agree, in which case the second is
+// evidence, or they do not, in which case the score is not a property of the
+// tree and nothing else here means what it says.
+check('the gate is a function of the tree it scores',
+  log.conflicts.length === 0,
+  log.conflicts.map(c => `run ${c.id} was measured twice and disagreed: ${c.a} vs ${c.b}`).join('\n      → '))
+
+if (log.corroborated.length > 0) {
+  console.log(`${log.corroborated.length} run(s) independently re-measured and agreeing:`)
+  for (const id of [...new Set(log.corroborated)]) console.log(`  ${id}`)
+  console.log('')
+}
 
 check('every stated confidence score is backed by a recorded gate run',
   problems.length === 0,
@@ -438,3 +503,4 @@ if (scored.length === 0) {
 }
 
 process.exit(summarize() === 0 ? 0 : 1)
+}

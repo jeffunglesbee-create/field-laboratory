@@ -74,7 +74,7 @@
 
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, isMain } from './checks.mjs'
 
 // Read, not hardcoded — see docs/history-boundary.txt for why the pair lives
 // outside this file.
@@ -144,7 +144,7 @@ const audit = () => {
   }
 }
 
-if (process.argv.includes('--self-test')) {
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const { check, summarize } = createChecks()
 
   check('source without outbox is a violation',
@@ -182,6 +182,8 @@ if (process.argv.includes('--self-test')) {
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
+// Guarded, so importing `isViolation` does not walk 400 commits and exit.
+if (isMain(import.meta.url)) {
 const { live, predatingCount, scanned } = audit()
 
 console.log(`\nPer-commit source/outbox correlation over ${scanned} commits`)
@@ -210,3 +212,4 @@ if (live.length > 0) {
 
 console.log()
 process.exit(failed ? 1 : 0)
+}

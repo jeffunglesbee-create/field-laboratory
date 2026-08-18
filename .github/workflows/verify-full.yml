@@ -48,7 +48,8 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  # write, because the gate's record is committed back — see the last step.
+  contents: write
   actions: read
 
 jobs:
@@ -112,3 +113,44 @@ jobs:
       #   --self-test && the full suite && --only known-survivor must FAIL.
       - name: Confidence gate (>= 95)
         run: npm run gate
+
+      # THE POINT OF RECORDING A CI RUN IS NOT MORE RECORDS.
+      #
+      # A CI run can never back a citation written before it existed, so this is
+      # not about supplying numbers for outbox entries — local runs do that.
+      #
+      # It is that a CLEAN run's id is `<sha>-<digest of everything not in HEAD>`,
+      # and for a clean checkout that digest is the SHA-256 of the empty string.
+      # So CI scoring commit X produces the SAME id as a local run of commit X,
+      # and `confidence-record-check.mjs` then has two independent measurements
+      # of one tree to compare:
+      #
+      #   agreeing    -> corroboration, from a different machine with a different
+      #                  build directory and no local state
+      #   disagreeing -> the gate is not a function of the tree, and something
+      #                  outside it moved the score
+      #
+      # The second is a worse finding than any single failing row, because every
+      # other guarantee in this repository assumes the score describes the tree.
+      # Nothing could detect it until run ids existed.
+      #
+      # Runs even when the gate fails: a failing measurement is exactly what a
+      # record has to be able to hold, and a log of passes only cannot refuse
+      # anything.
+      - name: Record this measurement
+        if: always()
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/confidence-log.jsonl; then
+            echo "the gate wrote no record — nothing to commit"
+            exit 0
+          fi
+          git config user.name  'field-laboratory'
+          git config user.email 'noreply@github.com'
+          git add docs/confidence-log.jsonl
+          git commit -m "Record CI gate measurement of ${GITHUB_SHA:0:7} [skip ci]"
+          # The scored tree must be the committed one, so rebase rather than
+          # merge: a merge commit would mean this record describes a tree that
+          # no longer exists at HEAD.
+          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
