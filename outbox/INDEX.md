@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `37f1daf` | 2026-08-18 | [cc-a-promise-does-not-scan-files-2026-08-18.md](cc-a-promise-does-not-scan-files-2026-08-18.md) | Redact the relay credential, and make the refusal mechanical |
 | `646e925` | 2026-08-17 | [cc-the-gate-caught-three-2026-08-17.md](cc-the-gate-caught-three-2026-08-17.md) | Fix three gate failures, and the tail -1 bypass I rebuilt inside the check |
 | `0aadf8c` | 2026-08-17 | [cc-a-score-must-be-measured-2026-08-17.md](cc-a-score-must-be-measured-2026-08-17.md) | A confidence score must be measured, not typed |
 | `0aadf8c` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | A confidence score must be measured, not typed |
