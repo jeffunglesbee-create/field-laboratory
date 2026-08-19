@@ -212,9 +212,18 @@ let private start () =
                 disposePrevious ()
                 mount.innerHTML <- ""
 
+                // Briefs travel in the same payload the slate came from. The
+                // Section three-state matters only for an aggregate view (a
+                // later stage); a card join needs the rows or nothing, and
+                // Absent / EmptyOrFailed both mean "no brief to reveal here".
+                let briefs =
+                    match payload.Briefs with
+                    | Present rows -> rows
+                    | Absent | EmptyOrFailed -> []
+
                 Solid.createRoot (fun dispose ->
                     disposeRoot <- Some(fun () -> dispose.Invoke())
-                    let setters = Scoreboard.renderSlate mount games
+                    let setters = Scoreboard.renderSlate mount games briefs
                     if window.location.search.Contains "simulate=1" then
                         exposeForTesting setters)
 

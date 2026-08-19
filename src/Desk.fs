@@ -430,6 +430,49 @@ type Brief =
       GameId: string option
       Date: string option }
 
+/// Which game a brief belongs to, for the two key spaces the briefs table
+/// actually uses to address a game row on this desk.
+///
+/// `brief.game_id` is not one identifier — `scripts/game-id-scheme.mjs` measured
+/// seven schemes in that one column. Only two of them resolve to a game row:
+/// the game's own id (provider-composite briefs, `MLS_MLS-COM-…`) and its ESPN
+/// event id (bare-numeric `761703` and `espn:`-prefixed briefs). The rest are
+/// ordinals (`g32`) or external provider ids (`afl_38670`) that address nothing
+/// here, and returning no match for them is the honest "no brief on this card"
+/// state rather than a wrong pairing — the one failure mode the scoreline work
+/// exists to rule out.
+///
+/// The full census lives in that script; this covers exactly the resolving two,
+/// and a comment there and here is the only link the F#/JS boundary allows.
+let briefKeyMatches (game: Game) (brief: Brief) : bool =
+    match brief.GameId with
+    | None -> false
+    | Some raw ->
+        let stripped = if raw.StartsWith "espn:" then raw.Substring 5 else raw
+        raw = game.Id
+        || (match game.EspnEventId with
+            | Some espn -> espn = stripped
+            | None -> false)
+
+/// `game.Id -> the brief that joins to it`, at most one per game.
+///
+/// A brief with no text is not a brief to reveal: `Text = None` or whitespace
+/// yields no entry, so a card becomes flippable only when there is prose behind
+/// it. That keeps the flip affordance honest — it never promises a back face
+/// that turns out empty.
+let briefsByGame (games: Game list) (briefs: Brief list) : Map<string, Brief> =
+    let hasText (b: Brief) =
+        match b.Text with
+        | Some t when t.Trim() <> "" -> true
+        | _ -> false
+    let usable = briefs |> List.filter hasText
+    games
+    |> List.choose (fun g ->
+        usable
+        |> List.tryFind (briefKeyMatches g)
+        |> Option.map (fun b -> g.Id, b))
+    |> Map.ofList
+
 /// A section of the Context Graph response.
 ///
 /// Three states, and the middle one is the finding. The relay assembles

@@ -139,6 +139,22 @@ jobs:
       - name: Tabs, both pick panels, and the ADR-002 display check
         run: npm run check:tabs
 
+      # Stage 1 of surfacing the journalism work: a game card with a joined
+      # brief turns to reveal the prose. Driven in a real browser against a
+      # fixture built from REAL captured briefs, because both committed render
+      # fixtures carry `briefs: []` and could never exercise it. Asserts the
+      # disclosure semantics (role=button, aria-expanded, keyboard), that only
+      # cards with a brief are flippable, and that the flip wrapper does not hide
+      # the score/teams nodes the weather fill and score setters query.
+      - name: A card with a brief flips to reveal it
+        run: |
+          node scripts/serve.mjs &
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+          npm run check:brief-flip
+
       # Pick'em against a synthetic multi-sport slate served at the network
       # layer: both committed captures are single-sport and two games long, so
       # neither can reach the sport chips, a graded pick, a draw, or the row

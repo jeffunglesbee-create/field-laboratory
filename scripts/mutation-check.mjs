@@ -288,6 +288,30 @@ const MUTATIONS = [
     expect: 'node scripts/outlet-scan-check.mjs',
   },
   {
+    // The brief flip is a disclosure, not a decorative turn. Downgrading the
+    // role to a non-interactive one leaves the card looking flippable while a
+    // screen reader hears nothing actionable — the exact gap between "it looks
+    // like it works" and "it works" this repo keeps filing against production.
+    id: 'brief-flip-not-a-button',
+    file: 'src/Scoreboard.fs',
+    claim: 'a flippable card is an accessible disclosure button, not just a visual flip',
+    find: 'card.setAttribute("role", "button")',
+    replace: 'card.setAttribute("role", "group")',
+    expect: 'node scripts/brief-flip-check.mjs',
+  },
+  {
+    // Only cards WITH a brief may be flippable. Filtering on presence rather
+    // than on TEXT would make a brief that decoded to an empty string flippable
+    // — a card that turns to reveal nothing, which is the dishonest empty state
+    // the text filter exists to prevent.
+    id: 'brief-flip-ignores-empty-text',
+    file: 'src/Desk.fs',
+    claim: 'a brief with no text does not make its card flippable',
+    find: '        | Some t when t.Trim() <> "" -> true\n        | _ -> false',
+    replace: '        | Some _ -> true\n        | _ -> false',
+    expect: 'node scripts/brief-flip-check.mjs',
+  },
+  {
     // The weather fan-out must stay bounded. Unbounded, it fired one request
     // per venue simultaneously and Open-Meteo 429'd a twelve-venue slate on
     // 2026-08-15, turning live-check red on three assertions at once. Raising

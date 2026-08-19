@@ -247,7 +247,7 @@ let private staticNode (className: string) (testId: string) (text: string) =
 /// Builds the card and mounts it. Returns the state setter so scores can be
 /// pushed reactively without re-rendering the card — the whole point of an
 /// island.
-let render (mount: HTMLElement) (game: Game) =
+let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
     let state, setState = Solid.createSignal (gameState game)
 
     // Derived values that recompute reactively rather than being baked in at
@@ -284,12 +284,28 @@ let render (mount: HTMLElement) (game: Game) =
           staticNode "desk-card__odds" "odds" (oddsText game)
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
+    // Where the front-face children are hosted. For a card with no brief this is
+    // the card itself, byte-for-byte the old structure so nothing that queries a
+    // `.desk-card__*` descendant changes. For a flippable card it is the front
+    // face of a flip container, one level deeper — still a descendant of
+    // `.desk-card`, so those same queries, the weather fill, and the score
+    // setters all keep resolving.
+    // The join is the single authority on "is there a brief to show": `briefsByGame`
+    // only ever yields a brief with non-whitespace text, so a `Some` here already
+    // means there is prose to reveal. Re-checking the text at this layer would be
+    // a second guard defending the same claim, which lets a mutation break one
+    // and survive on the other — exactly what the gate caught when this had two.
+    let flippable = briefOpt.IsSome
+
+    let contentHost =
+        if flippable then el "div" "desk-card__front" "" else card
+
     // odds is a staticNode deliberately, not by omission: it derives from the
     // immutable Game record, not from GameState, so it cannot go stale.
     // Anything that reads `state ()` must be a stateNode — which now includes
     // drama, because ADR-002 makes its visibility a function of game state.
     for child in children do
-        card.appendChild child |> ignore
+        contentHost.appendChild child |> ignore
 
     // The sparkline is appended only when the game is already final AT RENDER
     // TIME, which is deliberately narrower than the text drama slot.
@@ -304,9 +320,75 @@ let render (mount: HTMLElement) (game: Game) =
     match amnestyZone (gameState game) with
     | Some zone ->
         match renderSparkline zone game with
-        | Some spark -> card.appendChild spark |> ignore
+        | Some spark -> contentHost.appendChild spark |> ignore
         | None -> ()
     | None -> ()
+
+    // The flip. A card with a joined brief becomes a disclosure that turns to
+    // reveal the prose production wrote for this game — the first place any of
+    // the journalism work is visible, and it renders text the desk was already
+    // decoding and throwing away (`payload.Briefs`, read once, in the decoder).
+    //
+    // Semantically this is the WAI-ARIA disclosure pattern, not a decorative
+    // effect: the card is a `button` with `aria-expanded`, the brief a region it
+    // controls. The rotateY is how it looks; `aria-expanded` is what it means,
+    // so a screen reader announces "expanded/collapsed" rather than "flipped".
+    //
+    // Nothing is generated. The desk shows the brief that arrived or no brief at
+    // all — a card with no joined prose is not a button and offers no affordance,
+    // which is the honest state, not a disabled-looking one.
+    match briefOpt with
+    | Some brief when flippable ->
+        let text = (defaultArg brief.Text "").Trim()
+        // id must be a valid token and must match aria-controls exactly. game.Id
+        // can carry spaces ("La Liga_…"), so both sides read from one sanitised
+        // value rather than two that could drift.
+        let safeId =
+            game.Id
+            |> Seq.map (fun c -> if System.Char.IsLetterOrDigit c then c else '-')
+            |> Seq.toArray
+            |> System.String
+        let panelId = "brief-" + safeId
+
+        let front = contentHost
+        // A quiet marker on the front face so a reader knows the card turns.
+        // Not a control of its own — the whole card is the control — just a hint.
+        front.appendChild (staticNode "desk-card__flip-hint" "" "brief ›") |> ignore
+
+        let back = el "div" "desk-card__brief" ""
+        back.id <- panelId
+        (match brief.BriefType with
+         | Some t when t.Trim() <> "" ->
+             back.appendChild (el "div" "desk-card__brief-kind" (t.Trim())) |> ignore
+         | _ -> ())
+        back.appendChild (el "p" "desk-card__brief-text" text) |> ignore
+
+        let flip = el "div" "desk-card__flip" ""
+        flip.appendChild front |> ignore
+        flip.appendChild back |> ignore
+        card.appendChild flip |> ignore
+
+        card.classList.add "desk-card--flippable"
+        card.setAttribute("role", "button")
+        card.setAttribute("tabindex", "0")
+        card.setAttribute("aria-expanded", "false")
+        card.setAttribute("aria-controls", panelId)
+
+        let toggle () =
+            let open_ = card.classList.contains "is-flipped"
+            if open_ then card.classList.remove "is-flipped"
+            else card.classList.add "is-flipped"
+            card.setAttribute("aria-expanded", if open_ then "false" else "true")
+
+        card.addEventListener("click", fun _ -> toggle ())
+        card.addEventListener("keydown", fun (e: Event) ->
+            let ke = e :?> KeyboardEvent
+            match ke.key with
+            // Enter and Space are the button-activation keys the disclosure
+            // pattern requires; Space would otherwise scroll the page.
+            | "Enter" | " " -> e.preventDefault (); toggle ()
+            | _ -> ())
+    | _ -> ()
 
     mount.appendChild card |> ignore
 
@@ -322,8 +404,13 @@ let render (mount: HTMLElement) (game: Game) =
 /// Cards keep their `.desk-card` class and are merely nested one level deeper,
 /// so every existing check that counts or queries cards is unaffected by the
 /// grouping.
-let renderSlate (mount: HTMLElement) (games: Game list) =
+let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) =
     let setters = ResizeArray<GameState -> unit>()
+
+    // game.Id -> its brief, resolved once for the whole slate. Empty when the
+    // payload carried no briefs, which is the common case on a scheduled slate
+    // and leaves every card in its old flat form.
+    let byGame = briefsByGame games briefs
 
     // Ordering is by the registry's label, not by the raw relay string, so it
     // stays stable even if the relay renames a competition it already serves.
@@ -352,7 +439,7 @@ let renderSlate (mount: HTMLElement) (games: Game list) =
 
         let grid = el "div" "sport-group__grid" ""
         for game in gs do
-            setters.Add(render grid game)
+            setters.Add(render grid game (Map.tryFind game.Id byGame))
         section.appendChild grid |> ignore
 
         mount.appendChild section |> ignore
