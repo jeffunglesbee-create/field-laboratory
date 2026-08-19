@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9ec8f38` | 2026-08-19 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-19 [skip ci] |
 | `ba4a541` | 2026-08-19 | [cc-scores-do-not-decrease-2026-08-19.md](cc-scores-do-not-decrease-2026-08-19.md) | Scores do not decrease: check briefs against the games they describe |
 | `f9e1422` | 2026-08-19 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-18 [skip ci] |
 | `60c84a4` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-18 [skip ci] |
