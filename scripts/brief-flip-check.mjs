@@ -47,6 +47,13 @@ const shape = await page.$$eval('.desk-card', cards => cards.map(c => ({
   controls: c.getAttribute('aria-controls'),
   hasBriefFace: !!c.querySelector('.desk-card__brief'),
   briefText: c.querySelector('.desk-card__brief-text')?.textContent ?? '',
+  // The stage-2 scoreline verdict badge, by its state class.
+  verdict:
+    c.querySelector('.desk-card__verdict--ok') ? 'ok'
+    : c.querySelector('.desk-card__verdict--bad') ? 'bad'
+    : c.querySelector('.desk-card__verdict--wait') ? 'wait'
+    : c.querySelector('.desk-card__verdict') ? 'unclassed'
+    : 'none',
   // Front-face selectors the rest of the app depends on, through the wrapper.
   reachesScore: !!c.querySelector('.desk-card__score'),
   reachesTeams: !!c.querySelector('.desk-card__teams'),
@@ -58,18 +65,40 @@ const shape = await page.$$eval('.desk-card', cards => cards.map(c => ({
 const flippable = shape.filter(c => c.flippable)
 const plain = shape.filter(c => !c.flippable)
 
-check('the fixture rendered its cards', shape.length === 5,
-  `${shape.length} card(s), expected 5 (3 with text, 1 empty-text brief, 1 no brief)`)
+check('the fixture rendered its cards', shape.length === 6,
+  `${shape.length} card(s), expected 6 (3 real briefs, 1 impossible probe, 1 empty, 1 none)`)
 
-// Exactly the three with real prose. The empty-text brief and the no-brief game
-// are both non-flippable, for different reasons the join collapses to one honest
-// outcome: a card only turns when there is something to read.
-check('exactly the games with readable prose are flippable', flippable.length === 3,
-  `${flippable.length} flippable, expected 3`)
+// Exactly the four with readable prose (three real, one impossible probe). The
+// empty-text brief and the no-brief game are both non-flippable, for reasons the
+// join collapses to one honest outcome: a card only turns when there is prose.
+check('exactly the games with readable prose are flippable', flippable.length === 4,
+  `${flippable.length} flippable, expected 4`)
 
 check('a game with no brief, and a game whose brief is empty, are both plain',
   plain.length === 2 && plain.every(c => c.role !== 'button' && !c.hasBriefFace),
   JSON.stringify(plain.map(c => ({ teams: c.teams, role: c.role }))))
+
+// Stage 2: the scoreline verdict badge. The three real briefs make mid-game
+// scoreline claims consistent with their finals; the probe claims 40-0, which no
+// final can reach.
+const verdicts = flippable.map(c => c.verdict)
+check('every flippable card carries a classed verdict badge',
+  flippable.every(c => c.verdict === 'ok' || c.verdict === 'bad' || c.verdict === 'wait'),
+  JSON.stringify(verdicts))
+check('the three real briefs read as consistent, the probe as impossible',
+  verdicts.filter(v => v === 'ok').length === 3 && verdicts.filter(v => v === 'bad').length === 1,
+  JSON.stringify(flippable.map(c => ({ teams: c.teams, verdict: c.verdict }))))
+
+// The CSS-in-the-source guard. Stage 1 put the flip CSS in the gitignored build
+// COPY, so it never shipped and the flip was visually dead while every
+// behavioural check still passed. A computed style is the only thing that would
+// have caught it: if this reads anything but preserve-3d, the flip CSS is not in
+// index.html at the repo root.
+const transformStyle = await page.$eval('.desk-card--flippable .desk-card__flip',
+  n => getComputedStyle(n).transformStyle)
+check('the flip CSS is actually applied (transform-style: preserve-3d)',
+  transformStyle === 'preserve-3d',
+  `transform-style is ${transformStyle} — the flip CSS is missing from the source index.html`)
 
 check('every flippable card is a disclosure button, collapsed at first',
   flippable.every(c => c.role === 'button' && c.expanded === 'false' && c.controls),

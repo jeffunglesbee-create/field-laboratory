@@ -363,6 +363,28 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
          | _ -> ())
         back.appendChild (el "p" "desk-card__brief-text" text) |> ignore
 
+        // Stage 2: the scoreline verdict, on the brief that made the claim.
+        //
+        // A scoreline in the prose is checked against the one fact the game row
+        // settles — the final — by dominance, not equality: a mid-game "leads
+        // 4-2" is CONSISTENT with a final of 8-6 because scores do not decrease.
+        // The whole relation and the extractor are in `Scoreline.fs`; this reads
+        // its verdict and says nothing when the brief makes no scoreline claim.
+        //
+        // `Unsettled` is the honest state for a game with no final yet — the
+        // common case on a live scheduled slate — and it is NOT dressed up as a
+        // pass. `verdictFor` uses the immutable final from the game row, so the
+        // badge does not depend on the reactive score signal.
+        match Scoreline.verdictFor (Scoreline.final game.HomeScore game.AwayScore) text with
+        | Some verdict ->
+            let cls, label =
+                match verdict with
+                | Scoreline.Consistent -> "desk-card__verdict desk-card__verdict--ok", "scoreline checks out"
+                | Scoreline.Impossible -> "desk-card__verdict desk-card__verdict--bad", "scoreline exceeds the final"
+                | Scoreline.Unsettled -> "desk-card__verdict desk-card__verdict--wait", "scoreline — final not in yet"
+            back.appendChild (el "div" cls label) |> ignore
+        | None -> ()
+
         let flip = el "div" "desk-card__flip" ""
         flip.appendChild front |> ignore
         flip.appendChild back |> ignore

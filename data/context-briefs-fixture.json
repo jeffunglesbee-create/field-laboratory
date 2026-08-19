@@ -127,6 +127,31 @@
     "went_to_ot": null,
     "finalized_at": null,
     "start_time": null
+   },
+   {
+    "id": "MLB_2026-08-01_mets_marlins",
+    "sport": "MLB",
+    "league": "MLB",
+    "date": "2026-08-01",
+    "home": "Mets",
+    "away": "Marlins",
+    "home_score": 2,
+    "away_score": 6,
+    "venue": "Citi Field",
+    "streams": null,
+    "note": null,
+    "tags": null,
+    "crew": null,
+    "local_note": null,
+    "created_at": "2026-07-03 15:41:42",
+    "opening_odds": null,
+    "closing_odds": null,
+    "drama_peak": null,
+    "drama_arc": null,
+    "espn_event_id": "401816349",
+    "went_to_ot": null,
+    "finalized_at": null,
+    "start_time": null
    }
   ],
   "postseason": []
@@ -145,7 +170,7 @@
   {
    "id": "game_recap_mlb_401816357",
    "brief_type": "game_recap",
-   "brief_text": "Dodger Stadium hosts this 2-2 tie through three innings, broadcast on ESPN Unlmtd. Ceddanne Rafaela’s 2-for-2 night features two home runs and two RBIs this game, while Teoscar Hernandez’s 1-for-1 performance includes one home run and two RBIs tonight. Yoshinobu Yamamoto carries an 11-6 record and 2.72 ERA this season.",
+   "brief_text": "Dodger Stadium hosts this 2-2 tie through three innings, broadcast on ESPN Unlmtd. Ceddanne Rafaela\u2019s 2-for-2 night features two home runs and two RBIs this game, while Teoscar Hernandez\u2019s 1-for-1 performance includes one home run and two RBIs tonight. Yoshinobu Yamamoto carries an 11-6 record and 2.72 ERA this season.",
    "quality_score": 171,
    "source": "cron",
    "model": "claude-haiku-4-5-20251001",
@@ -155,11 +180,22 @@
   {
    "id": "game_recap_mlb_401816359",
    "brief_type": "game_recap",
-   "brief_text": "Angel Stadium hosts a tight 1-1 deadlock between the Brewers and Angels through four innings. Milwaukee’s Jake Bauers provided the offense with a solo home run tonight, while Los Angeles countered behind Mike Trout’s 2-for-2 performance and Jorge Soler’s RBI double. Starters Brent Suter and Robert Gasser remain in the contest.",
+   "brief_text": "Angel Stadium hosts a tight 1-1 deadlock between the Brewers and Angels through four innings. Milwaukee\u2019s Jake Bauers provided the offense with a solo home run tonight, while Los Angeles countered behind Mike Trout\u2019s 2-for-2 performance and Jorge Soler\u2019s RBI double. Starters Brent Suter and Robert Gasser remain in the contest.",
    "quality_score": 156,
    "source": "cron",
    "model": "claude-haiku-4-5-20251001",
    "game_id": "401816359",
+   "date": "2026-08-01"
+  },
+  {
+   "id": "impossible-scoreline-probe",
+   "brief_type": "game_recap",
+   "brief_text": "In a fixture exercising the verdict, the home side leads 2-1 in a frame it could reach, then is shown leading 40-0, which no final on this game can reach.",
+   "quality_score": null,
+   "source": null,
+   "model": null,
+   "word_count": 0,
+   "game_id": "401816352",
    "date": "2026-08-01"
   },
   {
@@ -170,7 +206,7 @@
    "source": null,
    "model": null,
    "word_count": 0,
-   "game_id": "401816352",
+   "game_id": "401816348",
    "date": "2026-08-01"
   }
  ],

@@ -1,5 +1,7 @@
 module Scoreline
 
+open System.Text.RegularExpressions
+
 // A score seen during a game and the score a game ended on are not the same
 // kind of thing, and this repository's own plan got that wrong.
 //
@@ -110,3 +112,76 @@ let wasChecked (v: Verdict) : bool =
     match v with
     | Consistent | Impossible -> true
     | Unsettled -> false
+
+// --- the extractor ----------------------------------------------------------
+//
+// This was JavaScript, in `scripts/scoreline-check.mjs`, while the relation
+// above was F#. The card cannot render a per-brief verdict without running the
+// extractor at render time, and two implementations of "what counts as a
+// scoreline" is exactly the F#/JS split that this repo keeps finding rots. So
+// the extractor moves here and the check now imports it: one definition, in the
+// language the UI compiles from, consumed by both.
+//
+// FABLE-SAFE BY CONSTRUCTION. The JS version used a lookbehind to keep `5-5` out
+// of `5-5-7`; Fable emits regexes with the `u` flag, under which some patterns
+// that are valid in .NET stop compiling, and lookaround is the fragile kind. So
+// there is no lookaround here: a maximal run of hyphen-joined numbers is matched
+// whole, and only a run of EXACTLY TWO numbers is a candidate. A three-part run
+// is a record (`6-5-6`) and is dropped by having three parts, which is the same
+// outcome the lookbehind produced and needs no lookbehind to get.
+
+/// One scoreline claim, with the surrounding text that justified reading it as
+/// one. The window is what a finding quotes.
+type ScorelineClaim = { A: int; B: int; Window: string }
+
+// A run of two-or-more numbers joined by a hyphen or en dash. `[0-9]` not `\d`,
+// non-capturing group, literal dashes in a class — nothing the `u` flag rejects.
+let private RUN = Regex(@"[0-9]{1,3}(?:[-–][0-9]{1,3})+")
+
+// Words that make a number a scoreline rather than a statistic, and words that
+// make it a record however scoreline-shaped it looks. Ported verbatim.
+let private CUE =
+    Regex(@"\b(leads?|leading|trails?|trailing|tie|tied|deadlock(?:ed)?|won|win|beat|defeat(?:ed)?|ahead|edge[ds]?|up)\b",
+          RegexOptions.IgnoreCase)
+let private RECORD = Regex(@"\b(record|mark|standings?)\b", RegexOptions.IgnoreCase)
+
+let private WINDOW_BEFORE = 55
+let private WINDOW_AFTER = 25
+
+/// A zero-padded component is a calendar date, not a score — `on 08-08`. No one
+/// writes a score as "08"; a range would have to guess how large a score can be,
+/// and this corpus holds both 1-1 and 96-79.
+let private zeroPadded (s: string) = s.Length >= 2 && s.[0] = '0'
+
+/// Every scoreline claim in a brief. Mirrors `scorelinesIn` in the JS check it
+/// replaced, string for string on the filters, so the corpus census is
+/// unchanged (147 claims, 0 impossible) after the move.
+let scorelinesIn (text: string) : ScorelineClaim list =
+    [ for m in RUN.Matches text do
+        let parts = m.Value.Split([| '-'; '–' |])
+        // Exactly two numbers. Three or more is a record, dropped here rather
+        // than by a lookbehind.
+        if parts.Length = 2 then
+            let s = max 0 (m.Index - WINDOW_BEFORE)
+            let e = min text.Length (m.Index + m.Length + WINDOW_AFTER)
+            let window = text.Substring(s, e - s)
+            let parenthesised = m.Index > 0 && text.[m.Index - 1] = '('
+            if CUE.IsMatch window
+               && not (RECORD.IsMatch window)
+               && not (zeroPadded parts.[0]) && not (zeroPadded parts.[1])
+               && not parenthesised then
+                let collapsed = Regex.Replace(window, @"\s+", " ").Trim()
+                yield { A = int parts.[0]; B = int parts.[1]; Window = collapsed } ]
+
+/// The one verdict a card shows for a brief, or `None` when the brief makes no
+/// scoreline claim at all — which is not a pass and not a finding, just nothing
+/// to say. `Impossible` wins over `Consistent` (one bad claim taints the brief);
+/// `Consistent` wins over `Unsettled` (a checked claim beats an unfinished one).
+let verdictFor (f: Final option) (text: string) : Verdict option =
+    let verdicts =
+        scorelinesIn text
+        |> List.choose (fun c -> observed c.A c.B |> Option.map (judge f))
+    if List.isEmpty verdicts then None
+    elif List.contains Impossible verdicts then Some Impossible
+    elif List.contains Consistent verdicts then Some Consistent
+    else Some Unsettled

@@ -312,6 +312,18 @@ const MUTATIONS = [
     expect: 'node scripts/brief-flip-check.mjs',
   },
   {
+    // Impossible must win the per-brief verdict. If Consistent takes precedence,
+    // a brief that makes one impossible scoreline claim alongside a consistent
+    // one reads as fine — a fabrication badged as checked-out, which is the whole
+    // thing the verdict exists to surface.
+    id: 'verdict-consistent-beats-impossible',
+    file: 'src/Scoreline.fs',
+    claim: 'one impossible scoreline taints the brief, beating a consistent one',
+    find: '    elif List.contains Impossible verdicts then Some Impossible\n    elif List.contains Consistent verdicts then Some Consistent',
+    replace: '    elif List.contains Consistent verdicts then Some Consistent\n    elif List.contains Impossible verdicts then Some Impossible',
+    expect: 'node scripts/brief-flip-check.mjs',
+  },
+  {
     // The weather fan-out must stay bounded. Unbounded, it fired one request
     // per venue simultaneously and Open-Meteo 429'd a twelve-venue slate on
     // 2026-08-15, turning live-check red on three assertions at once. Raising

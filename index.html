@@ -215,6 +215,49 @@
   .desk-card__drama, .desk-card__odds { font-size: .75rem; opacity: .55; margin-top: .3rem; }
   .desk-card__wx { font-size: .75rem; opacity: .7; margin-top: .3rem; }
 
+  /* --- The brief flip -----------------------------------------------------
+     A card with a joined brief turns to reveal the prose. Only flippable cards
+     get any of this; a plain card is untouched and keeps its old box exactly.
+
+     THIS CSS WAS LOST ONCE. Stage 1 added it to public/index.html — which is
+     gitignored build output that `scripts/build-site.mjs` overwrites from THIS
+     file on every build. So the flip shipped behaviourally correct and visually
+     unstyled: the behaviour is F#, the look is here, and editing the copy
+     instead of the source dropped the look. The source is index.html at the
+     repo root; public/ is generated.
+
+     Height: the two faces share one grid cell, so the flip container is always
+     as tall as the TALLER face and a multi-sentence brief is never clipped. A
+     fixed-height 3D flip would have had to crop the prose or pad every
+     scoreline; the grid-stack sizes to content and still flips in 3D. */
+  .desk-card--flippable { cursor: pointer; perspective: 1000px; }
+  .desk-card--flippable:focus-visible { outline: 2px solid #4a9d7e; outline-offset: 2px; }
+  .desk-card__flip {
+    display: grid; transition: transform .5s ease; transform-style: preserve-3d;
+  }
+  .desk-card__flip > * { grid-area: 1 / 1; backface-visibility: hidden; }
+  .desk-card__brief { transform: rotateY(180deg); }
+  .desk-card.is-flipped .desk-card__flip { transform: rotateY(180deg); }
+  .desk-card__flip-hint {
+    font-size: .7rem; letter-spacing: .04em; text-transform: uppercase;
+    opacity: .5; margin-top: .5rem;
+  }
+  .desk-card__brief-kind {
+    font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
+    opacity: .5; margin-bottom: .4rem;
+  }
+  .desk-card__brief-text { margin: 0; font-size: .85rem; line-height: 1.45; }
+
+  /* Stage 2: the scoreline verdict. Same colour vocabulary the pick'em chips
+     use — green confirmed, red wrong, amber cannot-tell-yet. */
+  .desk-card__verdict {
+    margin-top: .6rem; font-size: .72rem; letter-spacing: .04em;
+    padding: .2rem .5rem; border-radius: 6px; display: inline-block;
+  }
+  .desk-card__verdict--ok   { color: #7fd1ab; background: #14211b; }
+  .desk-card__verdict--bad  { color: #d18f8f; background: #2a1616; }
+  .desk-card__verdict--wait { color: #d8a657; background: #2a2113; }
+
   /* --- Stats and Weather panels ------------------------------------------
      These shipped with NO styling at all, so every game ran together as one
      column of text — the scoreboard had `.desk-card` and the two new panels

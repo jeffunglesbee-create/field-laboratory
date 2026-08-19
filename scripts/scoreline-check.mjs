@@ -14,7 +14,8 @@
 // `src/Scoreline.fs` carries the correction and the three disproving rows.
 //
 // The relation that holds is DOMINANCE, per side, in either assignment — scores
-// do not decrease. See that module; this file is the extractor and the census.
+// do not decrease. Both the relation AND the extractor now live in that module;
+// this file is the census over the corpus and the self-test that guards them.
 //
 // THE EXTRACTOR IS THE HARD PART, AND IT WAS WRONG FOUR TIMES
 //
@@ -52,77 +53,23 @@
 // Usage:  node scripts/scoreline-check.mjs [--self-test]
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
-import { observed, final, judge, isFinding, wasChecked, finalPair } from '../build/Scoreline.js'
+import { createChecks, isMain, toArray } from './checks.mjs'
+import { observed, final, judge, isFinding, wasChecked, finalPair, scorelinesIn } from '../build/Scoreline.js'
 import { resolveGame, indexGames } from './game-id-scheme.mjs'
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 const CORPUS = 'data/brief-join-corpus.json'
 
-/**
- * A pair of numbers that is not part of a longer hyphenated run.
- *
- * The lookbehind and lookahead are what keep `5-5` from being harvested out of
- * `5-5-7`. That single case accounted for most of the first measurement's
- * apparent fabrications.
- */
-const PAIR = /(?<![\d–-])(\d{1,3})\s*[-–]\s*(\d{1,3})(?![\s]*[-–]\s*\d)/g
-
-/** Words that make a number a scoreline rather than a statistic. */
-const CUE = /\b(leads?|leading|trails?|trailing|tie|tied|deadlock(?:ed)?|won|win|beat|defeat(?:ed)?|ahead|edge[ds]?|up)\b/i
-
-/**
- * Words that make it a record instead, however scoreline-shaped it looks.
- *
- * The alternation was `/\brecord|mark\b/i`, which binds as `(\brecord)|(mark\b)`
- * — right by accident, and only for one of the two words. Grouped now.
- */
-const RECORD = /\b(record|mark|standings?)\b/i
-
-/**
- * A date, not a score: `on 08-08`.
- *
- * Found by this check's first real run, which reported "claims 8-8, final
- * Yankees 5 / Braves 4" from the sentence "The Yankees edged the Braves 5-4 on
- * 08-08" — the true scoreline 5-4 was extracted correctly, and the DATE beside
- * it was extracted as a second one.
- *
- * The discriminator is the leading zero. No one writes a score as "08"; a
- * zero-padded pair is a calendar date. Stated as a rule about notation rather
- * than a range, because a range would have to guess how large a score can be
- * and this corpus holds both 1-1 and 96-79.
- */
-const ZERO_PADDED = /^0\d/
-
-/**
- * A parenthesised pair is a record, not a scoreline: `The Valkyries (23-9)`.
- *
- * Caught by the self-test rather than the corpus. The cue word that admitted it
- * — "trail" — is real and refers to the game; the number in parentheses is the
- * season record beside the team name, and the word "record" sat just outside
- * the window. Parentheses are the reliable signal, so they are the rule.
- */
-const PARENTHESISED = /\(\s*$/
-
-/** How far either side of a number to look for a cue. */
-const WINDOW_BEFORE = 55
-const WINDOW_AFTER = 25
-
-/** Every scoreline claim in a brief, with the window that justified it. */
-export function scorelinesIn(text) {
-  const out = []
-  for (const m of text.matchAll(PAIR)) {
-    const s = Math.max(0, m.index - WINDOW_BEFORE)
-    const e = Math.min(text.length, m.index + m[0].length + WINDOW_AFTER)
-    const window = text.slice(s, e)
-    if (!CUE.test(window)) continue
-    if (RECORD.test(window)) continue
-    if (ZERO_PADDED.test(m[1]) || ZERO_PADDED.test(m[2])) continue
-    if (PARENTHESISED.test(text.slice(Math.max(0, m.index - 2), m.index))) continue
-    out.push({ a: Number(m[1]), b: Number(m[2]), window: window.replace(/\s+/g, ' ').trim() })
-  }
-  return out
-}
+// The extractor MOVED to F# (`src/Scoreline.fs`) on 2026-08-19, so the card can
+// run it at render time and there is one definition of "what counts as a
+// scoreline" rather than two that drift. This file imports it and is now the
+// census over the corpus plus the self-test that keeps the shared extractor
+// honest — the regexes it used to carry are gone. Parity was measured across the
+// move: 358 joined / 147 claims / 0 impossible, unchanged.
+//
+// The F# `scorelinesIn` returns a Fable list of `{ A, B, Window }`; `toArray`
+// and the capitalised fields are the only interop seam.
+const claimsIn = text => toArray(scorelinesIn(text))
 
 // ── the self-test ───────────────────────────────────────────────────────────
 //
@@ -133,7 +80,7 @@ export function scorelinesIn(text) {
 if (SELF_TEST) {
   const { check, summarize } = createChecks()
 
-  const found = t => scorelinesIn(t).map(x => `${x.a}-${x.b}`)
+  const found = t => claimsIn(t).map(x => `${x.A}-${x.B}`)
 
   check('a plain scoreline is extracted',
     found('Detroit currently leads 4-2.').join() === '4-2', JSON.stringify(found('Detroit currently leads 4-2.')))
@@ -222,9 +169,9 @@ if (isMain(import.meta.url)) {
     if (!row) continue
     joined++
     const f = final(row.home_score ?? undefined, row.away_score ?? undefined)
-    for (const s of scorelinesIn(b.brief_text)) {
+    for (const s of claimsIn(b.brief_text)) {
       claims++
-      const o = observed(s.a, s.b)
+      const o = observed(s.A, s.B)
       if (!o) continue
       const verdict = judge(f, o)
       if (wasChecked(verdict)) checked++
@@ -233,8 +180,8 @@ if (isMain(import.meta.url)) {
         // reported is the one that was actually judged. A finding quoting the
         // row while the comparison used something else would be unfalsifiable.
         const [h, a] = Array.from(finalPair(f))
-        findings.push(`${b.id} (${b.brief_type}, ${row.sport}): claims ${s.a}-${s.b}, ` +
-          `final ${row.home} ${h} / ${row.away} ${a} — …${s.window}…`)
+        findings.push(`${b.id} (${b.brief_type}, ${row.sport}): claims ${s.A}-${s.B}, ` +
+          `final ${row.home} ${h} / ${row.away} ${a} — …${s.Window}…`)
       }
     }
   }
