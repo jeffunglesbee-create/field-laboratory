@@ -4,3 +4,5 @@
 {"id":"646e925b7cb5-e3b0c44298fc","sha":"646e925b7cb540f22071d5bcda9b1e583d2708a3","dirty":false,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
 {"id":"de3a49654a0b-1bd920fdecbe","sha":"de3a49654a0b5216e449cc23c29b7a402367c835","dirty":true,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
 {"id":"b90761d36ec6-1e0c446c318b","sha":"b90761d36ec679b0ac534b5f2e01fb7ff1ede6db","dirty":true,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
+{"id":"7eca209b0811-d5c6af7a91da","sha":"7eca209b08110519f0d1543972e1b94b4b9ab7a4","dirty":true,"mode":"full","earned":480,"possible":530,"total":91,"failing":["breaking each invariant makes a check fail","no value is written without being read back","this session wrote its outbox"],"skipped":[]}
+{"id":"7eca209b0811-6b1f0c35c09f","sha":"7eca209b08110519f0d1543972e1b94b4b9ab7a4","dirty":true,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}

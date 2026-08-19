@@ -199,6 +199,20 @@ jobs:
       #
       # Self-test first, in the same command: a docs checker that cannot detect a
       # stale claim would report every document true forever.
+      # The first check here that tests a claim in GENERATED PROSE against the
+      # data it was generated from. Narrow on purpose: scorelines only.
+      #
+      # The plan's acceptance criterion for this was wrong and the data said so
+      # — briefs are written mid-game, rows carry finals, and requiring a match
+      # would flag almost every brief. The relation that holds is dominance per
+      # side, because scores do not decrease. src/Scoreline.fs makes a mid-game
+      # score and a final different types so the mistake cannot be rewritten.
+      #
+      # Self-test first: the extractor discards 554 candidates down to 147, and a
+      # filter that aggressive has to be shown to still catch a fabrication.
+      - name: No brief claims a scoreline its game could not have reached
+        run: npm run check:scoreline
+
       - name: Every claim a document makes is still true
         run: npm run check:docs
 

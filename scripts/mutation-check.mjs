@@ -23,6 +23,7 @@
 //         node scripts/mutation-check.mjs --only draw
 
 import { execSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -203,6 +204,39 @@ const MUTATIONS = [
     find: '    | ProxySilent -> None\n    | Unusable _ -> None',
     replace: '    | ProxySilent -> Some false\n    | Unusable _ -> Some false',
     expect: 'node scripts/journalism-check.mjs',
+  },
+  {
+    // Dominance is the whole relation. Turning it into EQUALITY reproduces the
+    // acceptance criterion the plan actually shipped — "must match
+    // home_score/away_score" — and every mid-game brief becomes a fabrication.
+    id: 'scoreline-dominance-becomes-equality',
+    file: 'src/Scoreline.fs',
+    claim: 'a mid-game score is judged by dominance, not equality',
+    find: 'if (x <= h && y <= a) || (x <= a && y <= h) then Consistent else Impossible',
+    replace: 'if (x = h && y = a) || (x = a && y = h) then Consistent else Impossible',
+    expect: 'node scripts/scoreline-check.mjs',
+  },
+  {
+    // Only one assignment tried. A brief naming the away side first would be
+    // reported as fabricating — the false accusation the unordered comparison
+    // exists to prevent.
+    id: 'scoreline-tries-one-assignment',
+    file: 'src/Scoreline.fs',
+    claim: 'a scoreline claim is compared in both assignments, since it is unordered',
+    find: 'if (x <= h && y <= a) || (x <= a && y <= h) then Consistent else Impossible',
+    replace: 'if (x <= h && y <= a) then Consistent else Impossible',
+    expect: 'node scripts/scoreline-check.mjs --self-test',
+  },
+  {
+    // `Unsettled` absorbed into a pass. A game with no final would read as a
+    // checked, clean brief — the claim-from-no-data this repo keeps filing
+    // against other people's work.
+    id: 'scoreline-unsettled-counts-as-checked',
+    file: 'src/Scoreline.fs',
+    claim: 'a game with no final is not counted as a claim that was checked',
+    find: '    | Consistent | Impossible -> true\n    | Unsettled -> false',
+    replace: '    | Consistent | Impossible -> true\n    | Unsettled -> true',
+    expect: 'node scripts/scoreline-check.mjs --self-test',
   },
   {
     // The time-anchoring extractor must be checked against the RELAY's oracle,
@@ -903,6 +937,38 @@ const capture = cmd => {
 }
 
 /**
+ * A digest of the working tree, INCLUDING the contents of untracked files.
+ *
+ * The no-op detector compared `git status --porcelain` alone, which misses one
+ * case exactly: a mutation that REWRITES an untracked file. Porcelain prints
+ * `?? path` before and after, `git diff` never sees an untracked file at all,
+ * and the comparison concludes nothing happened.
+ *
+ * Measured rather than theorised. `outbox-stub` overwrites today's outbox entry
+ * with the word "stub". On 2026-08-19 that entry was untracked — newly written,
+ * not yet committed — and the mutation was reported as broken rather than run:
+ *
+ *   FAIL  [outbox-stub] the mutation actually applies
+ *         → … left the tree unchanged. Nothing was tested …
+ *
+ * It had applied perfectly. The detector could not see it, which is the detector
+ * committing the error it was built to report.
+ *
+ * Same root cause as the exposed-secret scanner missing untracked files one day
+ * earlier: a git-based view of "the tree" that only covers what git already
+ * tracks. Hashing rather than concatenating keeps this cheap on a repo carrying
+ * a 13k-line capture.
+ */
+const treeDigest = () => {
+  const h = createHash('sha256').update(capture('git status --porcelain'))
+  for (const f of capture('git ls-files --others --exclude-standard').split('\n').filter(Boolean)) {
+    h.update(f)
+    try { h.update(readFileSync(f)) } catch { h.update('<unreadable>') }
+  }
+  return h.digest('hex')
+}
+
+/**
  * Undo a mutation a previous run was killed before it could undo itself.
  *
  * Returns true if there was something to heal. Runs BEFORE the baseline, so
@@ -1039,9 +1105,9 @@ for (const m of selected) {
     //
     // The tree state before and after is the general test, so it holds for
     // mutations that edit a file, move files to /tmp, or overwrite them.
-    const treeBefore = capture('git status --porcelain')
+    const treeBefore = treeDigest()
     run(m.mutate)
-    const treeAfter = capture('git status --porcelain')
+    const treeAfter = treeDigest()
     if (treeBefore === treeAfter) {
       run(m.restore)
       clearActive()
