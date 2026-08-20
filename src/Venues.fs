@@ -130,7 +130,32 @@ let private entries =
       at "The Gabba" -27.4858 153.0381 OpenAir "Australia/Brisbane"
       at "Optus Stadium" -31.9510 115.8890 OpenAir "Australia/Perth"
       at "GMHBA Stadium" -38.1580 144.3546 OpenAir "Australia/Melbourne"
-      at "Marvel Stadium" -37.8165 144.9475 Retractable "Australia/Melbourne" ]
+      at "Marvel Stadium" -37.8165 144.9475 Retractable "Australia/Melbourne"
+
+      // --- MLS. The names are the EXACT strings the relay's `venue` field
+      //     carries on this slate (probed from /context/date/2026-08-20), not
+      //     the longer "Stadium, City" forms in data/production-venue-names.json
+      //     — the payload writes "Sporting Park" where the reference list has
+      //     "Children's Mercy Park", and an exact-match table must key on what
+      //     the payload actually says. Coordinates and roofs are transcribed
+      //     from public stadium facts rather than from playground's table, which
+      //     carries no soccer venues; the zone each declares is checked against
+      //     Open-Meteo's resolved zone by weather-live-check, the same
+      //     independent source every other row here passes.
+      //
+      //     Added because an all-MLS slate (2026-08-20) put zero covered venues
+      //     on the desk, and render-check's "the venue table covers at least one
+      //     venue on this slate" is a deliberate anti-vacuous failure, not a
+      //     precondition — the table's coverage is measured against the slates
+      //     actually rendered, and this is the coverage that was missing.
+      at "BC Place" 49.2767 -123.1119 Retractable "America/Vancouver"
+      at "Lumen Field" 47.5952 -122.3316 OpenAir "America/Los_Angeles"
+      at "America First Field" 40.5829 -111.8933 OpenAir "America/Denver"
+      at "Providence Park" 45.5215 -122.6919 OpenAir "America/Los_Angeles"
+      at "Allianz Field" 44.9530 -93.1655 OpenAir "America/Chicago"
+      at "Dignity Health Sports Park" 33.8644 -118.2611 OpenAir "America/Los_Angeles"
+      at "Sporting Park" 39.1217 -94.8236 OpenAir "America/Chicago"
+      at "DICK'S Sporting Goods Park" 39.8058 -104.8919 OpenAir "America/Denver" ]
     |> List.choose id
 
 /// Lookup is EXACT, not fuzzy.
