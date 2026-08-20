@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e3c2056` | 2026-08-20 | [cc-the-table-had-no-soccer-2026-08-20.md](cc-the-table-had-no-soccer-2026-08-20.md) | Add the eight MLS venues an all-soccer slate left uncovered |
 | `c0de801` | 2026-08-20 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-19 [skip ci] |
 | `eeab035` | 2026-08-20 | [cc-the-flip-that-did-not-flip-2026-08-20.md](cc-the-flip-that-did-not-flip-2026-08-20.md) | Fix the flip: a grid never held the preserve-3d it was handed |
 | `c615b27` | 2026-08-20 | [cc-the-briefs-tab-2026-08-20.md](cc-the-briefs-tab-2026-08-20.md) | Journalism in the UI, stage 4: the Briefs tab |
