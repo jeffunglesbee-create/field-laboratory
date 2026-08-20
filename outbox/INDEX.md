@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ef46c2a` | 2026-08-20 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Brief data-quality CC-CMD rev 2; correct the espn_event_id claim |
+| `dd7d751` | 2026-08-20 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Differentiation note + brief data-quality CC-CMD, from an ESPN/AP side-by-side |
 | `55ea1eb` | 2026-08-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | Correct the UEFA ask: stale premise, wrong probe, confirmed labels |
 | `ed8451d` | 2026-08-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-20 [skip ci] |
 | `483a05d` | 2026-08-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | File the ask for UEFA club competitions; defer modelling on evidence |
