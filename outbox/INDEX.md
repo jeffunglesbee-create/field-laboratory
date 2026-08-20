@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `55ea1eb` | 2026-08-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | Correct the UEFA ask: stale premise, wrong probe, confirmed labels |
 | `ed8451d` | 2026-08-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-20 [skip ci] |
 | `483a05d` | 2026-08-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | File the ask for UEFA club competitions; defer modelling on evidence |
 | `e3c2056` | 2026-08-20 | [cc-the-table-had-no-soccer-2026-08-20.md](cc-the-table-had-no-soccer-2026-08-20.md) | Add the eight MLS venues an all-soccer slate left uncovered |
