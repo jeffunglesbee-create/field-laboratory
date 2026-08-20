@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `eeab035` | 2026-08-20 | [cc-the-flip-that-did-not-flip-2026-08-20.md](cc-the-flip-that-did-not-flip-2026-08-20.md) | Fix the flip: a grid never held the preserve-3d it was handed |
 | `c615b27` | 2026-08-20 | [cc-the-briefs-tab-2026-08-20.md](cc-the-briefs-tab-2026-08-20.md) | Journalism in the UI, stage 4: the Briefs tab |
 | `6731f7d` | 2026-08-20 | [cc-provenance-and-anchoring-on-the-card-2026-08-20.md](cc-provenance-and-anchoring-on-the-card-2026-08-20.md) | Journalism in the UI, stage 3: provenance and anchoring on the brief |
 | `42a742a` | 2026-08-19 | [cc-the-verdict-on-the-brief-2026-08-19.md](cc-the-verdict-on-the-brief-2026-08-19.md) | Journalism in the UI, stage 2: the scoreline verdict, and the flip CSS that never shipped |
