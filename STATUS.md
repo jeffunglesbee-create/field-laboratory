@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `ca10f76` — but that is not `main` HEAD
+**FAILURE** on `42a742a` — [run 32315563259](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32315563259)
 
 ## Is it published?
 
@@ -14,7 +14,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `6caf125` (behind `main`) |
+| Cloudflare Workers | live | `f693ec3` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
