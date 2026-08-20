@@ -65,12 +65,16 @@ watch.
 
 Two facts sit under this:
 
-1. **FIELD stores the event feed it isn't using.** Every row carries
-   `espn_event_id`. ESPN's summary off that id returns `keyEvents` — scoring
-   plays, athletes involved, field coordinates — and BSD returns `incidents`
-   (goal / card / substitution with minute and score). The AP texture is one
-   join away: the same `espn_event_id` join that has been the answer repeatedly
-   this week. FIELD templates season stats instead.
+1. **FIELD stores the event feed it isn't using — where it stores it at all.**
+   MLB and cron-written soccer rows carry `espn_event_id`; ESPN's summary off
+   that id returns `keyEvents` (scoring plays, athletes, coordinates) and BSD
+   returns `incidents` (goal / card / substitution with minute and score) — the
+   raw material for AP texture, one join away. But **MLS rows carry
+   `espn_event_id: null`** (checked in `/context/date/2026-08-20`), and MLS
+   produced most of the defective recaps. So for the worst-affected sport the id
+   must be *populated first* — a prerequisite, not a join. Corrected from an
+   earlier draft of this note that claimed "every row carries `espn_event_id`";
+   it does not. Either way, FIELD templates season stats instead of events.
 
 2. **`quality_score` rewards fluency over truth.** The highest-scored recap on
    the slate is a frozen, event-free, mislabeled mid-game snapshot (761736, 191).
