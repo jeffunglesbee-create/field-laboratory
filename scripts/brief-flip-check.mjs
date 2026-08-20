@@ -103,16 +103,21 @@ check('every flippable card carries a time-anchoring line',
   flippable.every(c => /stat sentence|no stat sentences/i.test(c.anchor)),
   JSON.stringify(flippable.map(c => c.anchor)))
 
-// The CSS-in-the-source guard. Stage 1 put the flip CSS in the gitignored build
-// COPY, so it never shipped and the flip was visually dead while every
-// behavioural check still passed. A computed style is the only thing that would
-// have caught it: if this reads anything but preserve-3d, the flip CSS is not in
-// index.html at the repo root.
-const transformStyle = await page.$eval('.desk-card--flippable .desk-card__flip',
-  n => getComputedStyle(n).transformStyle)
-check('the flip CSS is actually applied (transform-style: preserve-3d)',
-  transformStyle === 'preserve-3d',
-  `transform-style is ${transformStyle} — the flip CSS is missing from the source index.html`)
+// The CSS guard, corrected. Stage 1 put the flip CSS in the gitignored build
+// copy; stage 2 moved it here but used grid + preserve-3d, which a real browser
+// flattens, so BOTH faces rendered at once and every card dumped the brief and
+// its footnotes onto the front. A check that preserve-3d was SET passed while
+// the rendered flip did nothing.
+//
+// So the test is now the rendered fact that was broken: on a collapsed card the
+// brief back face must NOT be visible. `offsetParent === null` is true for a
+// display:none element, which is exactly what "the footnotes are hidden until
+// you ask" means — and false for the flattened stack the user saw shipped.
+const collapsedBriefHidden = await page.$eval('.desk-card--flippable .desk-card__brief',
+  n => n.offsetParent === null && getComputedStyle(n).display === 'none')
+check('a collapsed card hides its brief face (not dumped onto the front)',
+  collapsedBriefHidden,
+  'the brief back face renders while the card is collapsed — the flip is flattened')
 
 check('every flippable card is a disclosure button, collapsed at first',
   flippable.every(c => c.role === 'button' && c.expanded === 'false' && c.controls),
@@ -136,9 +141,14 @@ await first.click()
 const afterClick = await first.evaluate(c => ({
   expanded: c.getAttribute('aria-expanded'),
   flipped: c.classList.contains('is-flipped'),
+  // The rendered swap the disclosure is for: brief now shown, front now hidden.
+  briefShown: c.querySelector('.desk-card__brief').offsetParent !== null,
+  frontHidden: getComputedStyle(c.querySelector('.desk-card__front')).display === 'none',
 }))
-check('a click opens the card (aria-expanded true, is-flipped set)',
-  afterClick.expanded === 'true' && afterClick.flipped, JSON.stringify(afterClick))
+check('a click opens the card — brief revealed, front hidden',
+  afterClick.expanded === 'true' && afterClick.flipped &&
+  afterClick.briefShown && afterClick.frontHidden,
+  JSON.stringify(afterClick))
 
 await first.click()
 const afterSecond = await first.evaluate(c => c.getAttribute('aria-expanded'))

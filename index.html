@@ -219,25 +219,27 @@
      A card with a joined brief turns to reveal the prose. Only flippable cards
      get any of this; a plain card is untouched and keeps its old box exactly.
 
-     THIS CSS WAS LOST ONCE. Stage 1 added it to public/index.html — which is
-     gitignored build output that `scripts/build-site.mjs` overwrites from THIS
-     file on every build. So the flip shipped behaviourally correct and visually
-     unstyled: the behaviour is F#, the look is here, and editing the copy
-     instead of the source dropped the look. The source is index.html at the
-     repo root; public/ is generated.
+     THIS CSS WAS WRONG TWICE. Stage 1 put it in public/index.html — gitignored
+     build output that build-site.mjs overwrites from THIS file — so it never
+     shipped. Stage 2 moved it here but used a grid-stack with
+     transform-style: preserve-3d, and a real browser FLATTENS preserve-3d on a
+     grid container: both faces rendered at once, so every card dumped the brief
+     and its footnotes onto the front. A computed-style check that preserve-3d
+     was SET passed while the rendered flip did nothing — the property was there,
+     its effect was not. The guard now asserts the back face is actually hidden
+     when collapsed, which is the thing that was broken.
 
-     Height: the two faces share one grid cell, so the flip container is always
-     as tall as the TALLER face and a multi-sentence brief is never clipped. A
-     fixed-height 3D flip would have had to crop the prose or pad every
-     scoreline; the grid-stack sizes to content and still flips in 3D. */
-  .desk-card--flippable { cursor: pointer; perspective: 1000px; }
+     So this is a disclosure, not a 3D flip: the back face is display:none until
+     the card is toggled, then it swaps for the front. It sizes to content (no
+     clipping), works in every engine, and hides the footnotes until you ask for
+     them — which is the actual requirement. `aria-expanded` was always the real
+     semantics; the rotateY was a flourish that did not survive contact with a
+     grid. */
+  .desk-card--flippable { cursor: pointer; }
   .desk-card--flippable:focus-visible { outline: 2px solid #4a9d7e; outline-offset: 2px; }
-  .desk-card__flip {
-    display: grid; transition: transform .5s ease; transform-style: preserve-3d;
-  }
-  .desk-card__flip > * { grid-area: 1 / 1; backface-visibility: hidden; }
-  .desk-card__brief { transform: rotateY(180deg); }
-  .desk-card.is-flipped .desk-card__flip { transform: rotateY(180deg); }
+  .desk-card__brief { display: none; }
+  .desk-card.is-flipped .desk-card__front { display: none; }
+  .desk-card.is-flipped .desk-card__brief { display: block; }
   .desk-card__flip-hint {
     font-size: .7rem; letter-spacing: .04em; text-transform: uppercase;
     opacity: .5; margin-top: .5rem;
