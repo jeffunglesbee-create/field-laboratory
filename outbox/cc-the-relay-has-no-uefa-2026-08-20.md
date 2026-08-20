@@ -75,3 +75,36 @@ The ask, filed with the exact config and — the part the laboratory actually ne
 — a request that the relay declare the emit label. Applying it to the relay's
 config (and placing the CC-CMD in `field-relay-nba/docs/`) is relay-repo work,
 outside this session's scope.
+
+## Correction — what the relay session found at HEAD
+
+The relay session (jubilant-bassoon) probed HEAD before acting and corrected two
+things in this entry. Recorded here rather than quietly edited away.
+
+- **"The relay has no UEFA" was half wrong.** The three competitions have been in
+  `V2_LEAGUES` since the June 26 migration, with the exact slugs and BSD lids,
+  plus qualifying variants. `/v2/games?sport=ucl` fetched them on demand the
+  whole time. The real gap was a *third* table: `/context/date` reads only
+  `ARCHIVE_DB`, the archive is written by the journalism cron iterating a
+  `LEAGUES` table, and that table had no UEFA row — so nothing was ever
+  persisted. The title's "no UEFA" is true only of the archive, not the fetch.
+
+- **The archive `count: 0` evidence probed the wrong table.** `/archive/query?
+  sport=…` reads the *briefs* table, not `regular_season_games`; `count: 0` there
+  proves no journalism brief exists, not that no game rows do. The `/context/date`
+  measurements in this entry are the sound half; the archive-query line was
+  measuring the wrong thing. The correct probe is a `/d1/execute` count against
+  `regular_season_games WHERE sport LIKE 'UEFA%'`.
+
+- **The no-guess decision was vindicated exactly.** The real labels are
+  `"UEFA Champions League"` / `"UEFA Europa League"` / `"UEFA Europa Conference
+  League"` (sport and league carry the same string), plus `… Qualifying`
+  variants. The label this ask *suggested* — no `UEFA` prefix — appears nowhere
+  in the relay. Had the laboratory modelled on that guess, it would have been
+  wrong. And August is the qualifying round, so the three main entries alone
+  would have rendered zero games on the cited date.
+
+Relay session shipped six `LEAGUES` rows and a pre-deploy label-contract guard.
+Open, tracked relay-side: whether the rows actually land live (~60% at hand-off).
+The laboratory modelling stays deferred to first observation, now against the
+confirmed labels. Full correction in `docs/CC-CMD-2026-08-20-uefa-club-competitions.md`.
