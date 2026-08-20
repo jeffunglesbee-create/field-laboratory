@@ -55,6 +55,13 @@ permissions:
 jobs:
   full:
     runs-on: ubuntu-latest
+    # The confidence gate runs the whole mutation suite, and the suite grows as
+    # invariants are added — measured drift from ~17 min to ~22 as the journalism
+    # UI landed. A runaway (a hung browser mutation, a serve that never answers)
+    # would otherwise burn the full six-hour default on a metered runner. This
+    # bounds it: 45 minutes is roughly twice the current run, so it fails loud on
+    # a genuine hang without tripping on normal growth.
+    timeout-minutes: 45
     steps:
       # Full history: the gate's history rows walk to the root, and a shallow
       # clone would silently make them pass on one commit.

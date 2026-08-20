@@ -312,6 +312,18 @@ const MUTATIONS = [
     expect: 'node scripts/brief-flip-check.mjs',
   },
   {
+    // A stored brief is ProxySilent, and the card must SAY so rather than name
+    // the request-body model as though it answered. Rendering the fallback name
+    // as the answering model is the exact silent substitution the J-layer types
+    // refuse — a provenance the data does not support, shown as fact.
+    id: 'card-claims-provenance-it-lacks',
+    file: 'src/Scoreboard.fs',
+    claim: 'a ProxySilent brief is shown as not-recorded, not as answered by the fallback',
+    find: '            | Journalism.ProxySilent -> "answering model not recorded (proxy silent)"',
+    replace: '            | Journalism.ProxySilent -> "answered by " + defaultArg brief.Model "?"',
+    expect: 'node scripts/brief-flip-check.mjs',
+  },
+  {
     // Impossible must win the per-brief verdict. If Consistent takes precedence,
     // a brief that makes one impossible scoreline claim alongside a consistent
     // one reads as fine — a fabrication badged as checked-out, which is the whole

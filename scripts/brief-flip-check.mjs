@@ -47,6 +47,8 @@ const shape = await page.$$eval('.desk-card', cards => cards.map(c => ({
   controls: c.getAttribute('aria-controls'),
   hasBriefFace: !!c.querySelector('.desk-card__brief'),
   briefText: c.querySelector('.desk-card__brief-text')?.textContent ?? '',
+  prov: c.querySelector('.desk-card__brief-prov')?.textContent ?? '',
+  anchor: c.querySelector('.desk-card__brief-anchor')?.textContent ?? '',
   // The stage-2 scoreline verdict badge, by its state class.
   verdict:
     c.querySelector('.desk-card__verdict--ok') ? 'ok'
@@ -88,6 +90,18 @@ check('every flippable card carries a classed verdict badge',
 check('the three real briefs read as consistent, the probe as impossible',
   verdicts.filter(v => v === 'ok').length === 3 && verdicts.filter(v => v === 'bad').length === 1,
   JSON.stringify(flippable.map(c => ({ teams: c.teams, verdict: c.verdict }))))
+
+// Stage 3: provenance and anchoring, per brief. Every stored brief is
+// ProxySilent — nothing writes X-FIELD-Model — so the card must say the
+// answering model is not recorded, never name the request-body model as though
+// it answered.
+check('every flippable card states provenance as proxy-silent',
+  flippable.every(c => /proxy silent/i.test(c.prov)),
+  JSON.stringify(flippable.map(c => c.prov)))
+
+check('every flippable card carries a time-anchoring line',
+  flippable.every(c => /stat sentence|no stat sentences/i.test(c.anchor)),
+  JSON.stringify(flippable.map(c => c.anchor)))
 
 // The CSS-in-the-source guard. Stage 1 put the flip CSS in the gitignored build
 // COPY, so it never shipped and the flip was visually dead while every

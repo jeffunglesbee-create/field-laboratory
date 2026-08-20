@@ -258,6 +258,14 @@
   .desk-card__verdict--bad  { color: #d18f8f; background: #2a1616; }
   .desk-card__verdict--wait { color: #d8a657; background: #2a2113; }
 
+  /* Stage 3: provenance and anchoring. Quiet metadata under the prose — the
+     brief is the content, these are footnotes about where it came from and how
+     well it anchors its numbers in time. */
+  .desk-card__brief-prov, .desk-card__brief-fallback, .desk-card__brief-anchor {
+    font-size: .7rem; opacity: .55; margin-top: .35rem; line-height: 1.35;
+  }
+  .desk-card__brief-prov { margin-top: .6rem; opacity: .65; }
+
   /* --- Stats and Weather panels ------------------------------------------
      These shipped with NO styling at all, so every game ran together as one
      column of text — the scoreboard had `.desk-card` and the two new panels

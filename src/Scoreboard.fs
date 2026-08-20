@@ -385,6 +385,41 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
             back.appendChild (el "div" cls label) |> ignore
         | None -> ()
 
+        // Stage 3: provenance and time-anchoring, per brief.
+        //
+        // PROVENANCE. A stored brief carries no `X-FIELD-Model` header — nothing
+        // in the write path reads it — so `answeredFrom` returns `ProxySilent`
+        // for every archived brief, and that is not a bug to hide: it is the
+        // finding that `AnsweringModel` is unconstructible from stored data. The
+        // card says "not recorded" rather than naming the request-body model as
+        // though it answered, which is the exact silent-substitution the J-layer
+        // types exist to refuse.
+        let provenance =
+            Journalism.answeredFrom
+                (Journalism.fallbackModel (defaultArg brief.Model "unknown"))
+                None
+                None
+        let provText =
+            match provenance with
+            | Journalism.ProxySilent -> "answering model not recorded (proxy silent)"
+            | Journalism.By m -> "answered by " + Journalism.answeringName m
+            | Journalism.Unexpected(_, m) -> "answered by an unexpected model: " + Journalism.answeringName m
+            | Journalism.Unusable(_, detail) -> "provenance unusable: " + detail
+        back.appendChild (el "div" "desk-card__brief-prov" provText) |> ignore
+        (match brief.Model with
+         | Some m when m.Trim() <> "" ->
+             back.appendChild (el "div" "desk-card__brief-fallback" ("declared fallback: " + m.Trim())) |> ignore
+         | _ -> ())
+
+        // ANCHORING. How many of the brief's stat sentences carry a time window,
+        // by the relay's own Dim 8 rule. 45.5% of the corpus's stat sentences
+        // carry none; this is that measure on the one brief in front of you.
+        let stat, anchored = Journalism.anchoring text
+        let anchorText =
+            if stat = 0 then "no stat sentences to anchor"
+            else sprintf "%d of %d stat sentence(s) carry a time window" anchored stat
+        back.appendChild (el "div" "desk-card__brief-anchor" anchorText) |> ignore
+
         let flip = el "div" "desk-card__flip" ""
         flip.appendChild front |> ignore
         flip.appendChild back |> ignore
