@@ -150,6 +150,32 @@ await page.keyboard.press('Enter')
 const afterEnter = await first.evaluate(c => c.getAttribute('aria-expanded'))
 check('Enter toggles the flip from the keyboard', afterEnter === 'true', afterEnter)
 
+// Stage 4: the Briefs tab. The aggregate over the same briefs, one level up.
+// The fixture carries four briefs with text (three real + the impossible probe);
+// the empty-text and no-brief games do not count.
+await page.click('#tab-briefs')
+const briefsTab = await page.$eval('#panel-briefs', panel => ({
+  hidden: panel.hasAttribute('hidden'),
+  title: panel.querySelector('.briefs-panel__title')?.textContent ?? '',
+  rows: [...panel.querySelectorAll('.briefs-stat')].map(r => ({
+    value: r.querySelector('.briefs-stat__value')?.textContent ?? '',
+    label: r.querySelector('.briefs-stat__label')?.textContent ?? '',
+  })),
+  empty: !!panel.querySelector('.briefs-panel__empty'),
+}))
+check('the Briefs tab reveals its panel', !briefsTab.hidden && briefsTab.title.length > 0,
+  JSON.stringify({ hidden: briefsTab.hidden, title: briefsTab.title }))
+check('the Briefs tab aggregates the four text briefs, not the empty or none',
+  briefsTab.rows.some(r => r.value.trim() === '4 / 4' && /proxy silent/i.test(r.label)),
+  JSON.stringify(briefsTab.rows))
+check('the tab restates the scoring_version finding for the whole slate',
+  briefsTab.rows.some(r => r.value.trim() === '4 / 4' && /scoring_version/i.test(r.label)),
+  JSON.stringify(briefsTab.rows))
+check('the tab carries an anchoring aggregate and a quality-vs-245 line',
+  briefsTab.rows.some(r => /unanchored/i.test(r.label)) &&
+  briefsTab.rows.some(r => /245|reachable/i.test(r.label)),
+  JSON.stringify(briefsTab.rows.map(r => r.label)))
+
 check('no page or console errors', errors.length === 0, errors.join(' | '))
 
 await browser.close()

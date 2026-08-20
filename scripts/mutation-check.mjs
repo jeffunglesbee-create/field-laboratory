@@ -312,6 +312,19 @@ const MUTATIONS = [
     expect: 'node scripts/brief-flip-check.mjs',
   },
   {
+    // The Briefs tab aggregates only briefs that HAVE text. Counting a brief
+    // that decoded to an empty string inflates every aggregate — the ProxySilent
+    // count, the scoring_version count, the anchoring denominator — with a brief
+    // that shows nothing, which is the same dishonest inclusion the card's flip
+    // filter refuses one level down.
+    id: 'briefs-tab-counts-empty',
+    file: 'src/BriefsView.fs',
+    claim: 'the Briefs tab aggregates only text-bearing briefs',
+    find: '    | Some t when t.Trim() <> "" -> true\n    | _ -> false',
+    replace: '    | Some _ -> true\n    | _ -> false',
+    expect: 'node scripts/brief-flip-check.mjs',
+  },
+  {
     // A stored brief is ProxySilent, and the card must SAY so rather than name
     // the request-body model as though it answered. Rendering the fallback name
     // as the answering model is the exact silent substitution the J-layer types

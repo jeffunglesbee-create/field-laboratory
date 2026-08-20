@@ -266,6 +266,21 @@
   }
   .desk-card__brief-prov { margin-top: .6rem; opacity: .65; }
 
+  /* Stage 4: the Briefs tab. One aggregate statement per row — a big number and
+     the finding it restates. */
+  .briefs-panel { max-width: 46rem; }
+  .briefs-panel__title { font-size: .95rem; margin: 0 0 1rem; }
+  .briefs-panel__empty { font-size: .88rem; opacity: .7; }
+  .briefs-stat {
+    display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; align-items: baseline;
+    padding: .7rem 0; border-bottom: 1px solid #1c2027;
+  }
+  .briefs-stat__value {
+    font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: #b9c0cd; text-align: right;
+  }
+  .briefs-stat__label { font-size: .82rem; opacity: .7; line-height: 1.4; }
+
   /* --- Stats and Weather panels ------------------------------------------
      These shipped with NO styling at all, so every game ran together as one
      column of text — the scoreboard had `.desk-card` and the two new panels
@@ -335,6 +350,7 @@
     <button role="tab" id="tab-pickem" aria-controls="panel-pickem" aria-selected="false" tabindex="-1">Pick'em</button>
     <button role="tab" id="tab-weather" aria-controls="panel-weather" aria-selected="false" tabindex="-1">Weather</button>
     <button role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
+    <button role="tab" id="tab-briefs" aria-controls="panel-briefs" aria-selected="false" tabindex="-1">Briefs</button>
   </div>
 
   <!-- Wired by Program.fs (wireDateNav). Navigation rewrites the URL with
@@ -363,6 +379,7 @@
   <div role="tabpanel" id="panel-pickem" aria-labelledby="tab-pickem" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-weather" aria-labelledby="tab-weather" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-briefs" aria-labelledby="tab-briefs" tabindex="0" hidden></div>
 
   <!-- Fable emits bare module specifiers for npm packages — `import {
        createSignal } from "solid-js"` — which browsers cannot resolve natively.

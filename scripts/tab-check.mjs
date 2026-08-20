@@ -48,8 +48,8 @@ const topTabs = () => page.$$(TABS)
 
 // --- the tablist -------------------------------------------------------------
 
-check('six top-level tabs exist', (await topTabs()).length === 6,
-  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em, Weather, Stats`)
+check('seven top-level tabs exist', (await topTabs()).length === 7,
+  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em, Weather, Stats, Briefs`)
 
 check('exactly one tab starts selected', (await selected()).length === 1,
   `selected: ${JSON.stringify(await selected())}`)
@@ -86,12 +86,16 @@ check('ArrowRight again reaches Stats',
   (await selected())[0] === 'tab-stats', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('ArrowRight')
+check('ArrowRight again reaches Briefs',
+  (await selected())[0] === 'tab-briefs', `selected: ${(await selected())[0]}`)
+
+await page.keyboard.press('ArrowRight')
 check('selection wraps rather than dead-ending',
   (await selected())[0] === 'tab-scoreboard', `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('End')
 check('End jumps to the last tab',
-  (await selected())[0] === 'tab-stats', `selected: ${(await selected())[0]}`)
+  (await selected())[0] === 'tab-briefs', `selected: ${(await selected())[0]}`)
 
 // The Stats panel, and the bug it exists to not have. Production shows
 // "Tied — anyone's game" on every PRE-GAME card, beneath the win-loss records.

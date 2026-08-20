@@ -212,10 +212,10 @@ let private start () =
                 disposePrevious ()
                 mount.innerHTML <- ""
 
-                // Briefs travel in the same payload the slate came from. The
-                // Section three-state matters only for an aggregate view (a
-                // later stage); a card join needs the rows or nothing, and
-                // Absent / EmptyOrFailed both mean "no brief to reveal here".
+                // Briefs travel in the same payload the slate came from. A card
+                // join needs the rows or nothing, and Absent / EmptyOrFailed both
+                // mean "no brief to reveal here"; the Briefs tab collapses them
+                // the same way, since at the tab level both read as "none".
                 let briefs =
                     match payload.Briefs with
                     | Present rows -> rows
@@ -316,6 +316,20 @@ let private start () =
 
             renderStats []
 
+            // Briefs tab: the aggregate over the same briefs the cards flip to
+            // reveal. Renders eagerly from the payload — no fetch, same source as
+            // the flip — and states "no briefs on this slate" when the payload
+            // carried none, which is the usual live case. Re-derived from
+            // `payload.Briefs` here because the desk's `briefs` binding is scoped
+            // to the desk mount above.
+            let slateBriefs =
+                match payload.Briefs with
+                | Present rows -> rows
+                | Absent | EmptyOrFailed -> []
+            match document.getElementById "panel-briefs" with
+            | null -> ()
+            | mount -> BriefsView.render mount slateBriefs games
+
             // statsapi is CORS-open — production's own source registry records
             // `corsAvailable: true` for it, and production calls it from the
             // client directly. So there is no relay hop to add.
@@ -402,7 +416,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-briefs" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
