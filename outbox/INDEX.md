@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b1a0948` | 2026-08-21 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-21 [skip ci] |
 | `3c668d0` | 2026-08-21 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Brief data-quality CC-CMD rev 3; re-correct the join claim to measured |
 | `8b2e991` | 2026-08-21 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-20 [skip ci] |
 | `ef46c2a` | 2026-08-20 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Brief data-quality CC-CMD rev 2; correct the espn_event_id claim |
