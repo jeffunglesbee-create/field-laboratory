@@ -4,7 +4,9 @@
 **Ask to:** field-relay-nba (journalism cron) **and** jubilant-bassoon (client
 archive writer) — see ask 4, this is a paired cross-repo change per Rule 70
 **Status:** open
-**Revision 2 (2026-08-20)** — see "What changed in rev 2" at the end.
+**Revision 3 (2026-08-21)** — see "What changed in rev 3" at the end. Rev 3
+corrects two rev-2 claims that measurement falsified; the corrections make ask 5
+*less* blocked, not more.
 
 One-liner:
 ```
@@ -100,23 +102,57 @@ sports source can ship, and FIELD ships it under the word "recap."
 text: "New England Revolution travel to face D.C. United tonight **in an MLS
 matchup**." Labelled EPL, is MLS, and is a pregame preview filed as a match.
 
-### 4. Un-joinable game-ids — from TWO different writers, not one
+### 4. Un-joinable game-ids — measured
 
-This is three key-spaces, not "ordinals vs `espn_event_id`":
+Brief `game_id` shapes across the whole `briefs` table:
 
-| rows | `game_id` form | `source` | `model` | writer |
-| -- | -- | -- | -- | -- |
-| `mlb_game_…_g16` / `g18` / `g19` | ordinal `gNN` | **`client`** | `null` | jubilant-bassoon → `POST /archive/game` |
-| `game_recap_mls_761736` etc. | 6-digit `761736` | `cron` | haiku | journalism cycle |
-| `game_recap_efl trophy_401906265`, `game_recap_la liga_401882925` | 9-digit ESPN event id | `cron` | haiku | journalism cycle |
+| shape | count |
+| -- | -- |
+| 9-digit ESPN-like | 2,243 |
+| 6-digit numeric | 586 |
+| **ordinal `gNN`** | **535** |
+| other (e.g. `golf_401811962_R4`) | 1 |
 
-**The ordinal ids are not the cron's.** They are `source: 'client'`. A relay-only
-fix enforces but does not cure. And the 6-digit MLS ids mean that even after the
-ordinals are gone, cron-written MLS recaps still will not join.
+**The ordinal ids are not the cron's, and there are 535 of them.** They are
+`source: 'client'`, `model: null` — written by jubilant-bassoon via
+`POST /archive/game`, not by `handleJournalismCycle`. Rev 1 cited four
+(`g16`–`g19`) and addressed them to the journalism cron; both were wrong. A
+relay-only fix enforces but does not cure.
+
+**Corrected `game_recap` join rate: 82% (1,196 / 1,452)** — both game tables
+unioned, golf excluded. The misses are NOT evenly spread, and NOT where rev 2
+guessed:
+
+| sport | joined / total | |
+| -- | -- | -- |
+| MLS | 83 / 83 | **100%** |
+| EFL Cup | 31 / 31 | 100% |
+| UEFA Europa Conference League Qualifying | 24 / 24 | 100% |
+| UEFA Europa League Qualifying | 12 / 12 | 100% |
+| La Liga | 7 / 7 | 100% |
+| EFL Trophy | 7 / 7 | 100% |
+| NFL | 18 / 18 | 100% |
+| MLB | 665 / 791 | 84% |
+| WNBA | 132 / 155 | 85% |
+| FIFA World Cup | 217 / 299 | 73% |
+| **`football`** | **0 / 21** | **0%** |
+| **`mlb`** | **0 / 4** | **0%** |
+
+Two of those rows are a **label-variant** failure, not an id failure:
+`sport: 'football'` (21 rows) and `sport: 'mlb'` (4 rows) — lowercase / wrong-
+level strings that match no declared label and join at exactly 0%. This is the
+brief-side instance of the same fragmentation the relay just closed in the games
+table (`UEFA Conference League` vs `UEFA Europa Conference League`, fixed
+2026-08-20). See ask 3 — it is worth 25 rows, not one.
+
+A fourth id shape exists and is by design un-joinable: PGA rows keyed
+`golf_<eventId>_R<round>` (per-round composite). Excluded from the rate above
+rather than counted as a defect; if golf recaps should join to something, that is
+its own decision.
 
 Also note the id prefix embeds the sport label lowercased with spaces preserved
 (`game_recap_efl trophy_…`, `game_recap_la liga_…`) — the same id-namespace
-hygiene the relay just closed for UEFA in `check-leagues-label-contract.mjs`.
+hygiene issue, in the id rather than the column.
 
 ### 5. `quality_score` rewards fluency over truth
 
@@ -192,13 +228,24 @@ one of them today.
 
 ### Ask 3 — Fix the sport label, and extend the label contract to briefs
 
-The relay just shipped `scripts/check-leagues-label-contract.mjs` for the
-`LEAGUES` / `SOCCER_LEAGUE_LABELS` / `V2_LEAGUES` triangle. The same
-verbatim-label discipline must cover a brief's `sport` field against its content.
+This is worth more than the single EPL row it was filed on. Measured: `sport`
+values `football` (21 rows) and `mlb` (4 rows) exist in `briefs` and join to a
+game row **0% of the time** — 25 rows silently orphaned by a label string rather
+than by a bad id. A brief whose `sport` matches no declared label is
+unreachable by every sport-filtered read, including `/archive/query?sport=`.
 
-**Artifact:** no brief whose `sport` is `EPL` while its `brief_text` names an MLS
-club, and vice versa — an enumerated club-list check, not a judgement call.
-Must flag `epl_match_2026-08-19_espn:761725` as it stands today.
+**Artifact, two parts:**
+
+1. No brief whose `sport` is outside the declared label set. Today that must
+   flag the 21 `football` and 4 `mlb` rows.
+2. No brief whose `sport` is `EPL` while its `brief_text` names an MLS club, and
+   vice versa — an enumerated club-list check, not a judgement call. Must flag
+   `epl_match_2026-08-19_espn:761725` as it stands today.
+
+The relay's `scripts/check-leagues-label-contract.mjs` is the working precedent
+for part 1: it asserts every soccer `LEAGUES` label is a declared
+`SOCCER_LEAGUE_LABELS` value, and is negative-tested to fail by name. The same
+shape applied to `briefs.sport` closes this.
 
 ### Ask 4 — Key briefs on a joinable id (PAIRED, two repos — Rule 70)
 
@@ -210,12 +257,31 @@ ones.
 the real event id, not its loop ordinal. This is where the `gNN` ids originate;
 without 4b, 4a converts a bad write into a rejected write.
 
-**4c — cron soccer.** MLS recaps key on 6-digit ids while EFL Trophy / La Liga
-key on 9-digit ESPN event ids. Converge on one space, or state explicitly which
-id each sport is keyed by and why.
+**4c — cron soccer: NO ACTION NEEDED. Rev 2 was wrong here.**
 
-**Artifact:** no archived brief `game_id` matches `^g\d+$`, AND every
-`game_recap` row's `game_id` resolves to a row in `regular_season_games`.
+Rev 2 claimed "the 6-digit MLS ids mean that even after the ordinals are gone,
+cron-written MLS recaps still will not join." **They join at 100%** (83/83).
+Measured directly:
+
+```
+mls_recaps: 83   match_espn_event_id: 83   match_row_id: 0
+```
+
+The 6-digit values *are* `espn_event_id` — that is simply what ESPN uses for MLS.
+Six digits versus nine is a format difference, not a key-space difference. Do not
+"converge" them; there is nothing to converge, and renaming them would break a
+join that currently works.
+
+**4d — the real remaining misses.** MLB (126), FIFA World Cup (82), WNBA (23).
+Out of scope for this CC-CMD, which is soccer-led; recorded so the 82% figure is
+not mistaken for a soccer problem. Worth its own probe before anyone acts on it.
+
+**Artifact:** no archived brief `game_id` matches `^g\d+$` (today: 535 do), AND
+the `game_recap` join rate does not regress below its measured 2026-08-21
+baseline of 82% overall / 100% for every soccer competition. The join must union
+`regular_season_games` **and** `postseason_games` and exclude golf — joining only
+the former, as the first version of this probe did, undercounts by treating
+postseason MLB and per-round golf ids as failures.
 
 ### Ask 5 — Ground recaps in `keyEvents` / `incidents`
 
@@ -224,14 +290,29 @@ plays, athletes, coordinates; BSD `incidents`: goal/card/sub with minute) rather
 than season-stat templates. This is what makes a claim checkable, and therefore
 what makes a provenance/confidence layer possible at all.
 
-> **VERIFY THE PREMISE BEFORE SCOPING THIS (Rule 72).** The companion
-> positioning note asserts *"Every row carries `espn_event_id`."* That is
-> **unverified and looks false for MLS**: the MLS rows in
-> `/context/date/2026-08-20` carried `"espn_event_id": null`. If MLS genuinely
-> lacks the id, this ask has no join target for the sport that produced most of
-> the defective recaps, and the real first step is populating the id — a
-> different, larger piece of work. Run the last probe in the block above and
-> resolve this before costing ask 5.
+> **PREMISE TESTED 2026-08-21 — ask 5 is UNBLOCKED for soccer.** Rev 2 flagged
+> this ask as possibly having no join target, on the grounds that MLS rows in
+> `/context/date/2026-08-20` carried `espn_event_id: null`. **That flag was
+> wrong**, and the probe that tested it says so:
+>
+> ```
+> MLS game_recap briefs:  83 / 83 join   (100%)
+> EFL Cup 31/31 · UECL Qual 24/24 · UEL Qual 12/12 · La Liga 7/7 · EFL Trophy 7/7
+> ```
+>
+> Every soccer competition is at 100%. The null ids I saw belong to *future*
+> fixtures (Sep–Nov 2026) in the hand-seeded schedule import, which have no ESPN
+> event id yet because the event does not exist yet. That is correct behaviour,
+> not a gap.
+>
+> The misleading number was MLS espn_event_id coverage of **17% (93/548)** across
+> the whole table — which counts ~279 future-dated rows. **Coverage of the table
+> is not coverage of the rows that have briefs.** The rows that matter are fully
+> covered. Anyone re-deriving this should measure the join, not the column.
+>
+> Ask 5 can be built on the `espn_event_id` join today for MLS and every other
+> soccer competition. MLB (84%), WNBA (85%) and FIFA World Cup (73%) have real
+> gaps — scope those separately rather than letting them hold soccer back.
 
 **Artifact (conditional on the premise holding):** every `game_recap` names at
 least one athlete who appears in the joined `keyEvents` / `incidents` payload.
@@ -283,3 +364,30 @@ re-scored 2026-08-19 slate no frozen-snapshot row outranks any real final.
 Retained from rev 1 unchanged: the evidence, the verbatim quotes, and the use of
 `/archive/query` — which correctly reads the briefs table, the distinction that
 matters here.
+
+## What changed in rev 3 (2026-08-21)
+
+Rev 2's two scoping flags were tested and **both were wrong**. Recording that
+here rather than quietly editing, because the corrections change what gets built.
+
+1. **Ask 5 unblocked.** Rev 2 warned ask 5 might have no join target for MLS.
+   Measured: MLS `game_recap` briefs join **83/83, 100%**, and every soccer
+   competition is at 100%. The evidence for the flag was future-dated schedule
+   rows with legitimately-null ids.
+2. **Ask 4c withdrawn.** Rev 2 claimed 6-digit MLS ids "will not join." They are
+   `espn_event_id` values; six-vs-nine digits is a format difference, not a key
+   space. Converging them would break a working join.
+3. **Ask 4 sized properly.** 535 ordinal `gNN` briefs, not 4. Corrected join rate
+   82% (1,196/1,452) with both game tables unioned and golf excluded — the first
+   version of the probe joined only `regular_season_games` and reported a floor.
+4. **Ask 3 strengthened.** `sport: 'football'` (21) and `sport: 'mlb'` (4) join
+   at 0% — 25 rows orphaned by a label string. The ask was filed on one EPL row.
+5. **Misses attributed.** MLB 84%, WNBA 85%, FIFA World Cup 73% — recorded as
+   4d, explicitly out of scope, so the 82% headline is not read as a soccer
+   problem.
+
+**Method note, since it caused both wrong flags:** the first two readings came
+from `/context/date` responses truncated by a self-probe, and from a join query
+that omitted `postseason_games`. Neither is a substitute for a `GROUP BY` over
+the real tables. The probe now in the relay is the reusable answer —
+`workflow_dispatch` only, no `schedule:`.
