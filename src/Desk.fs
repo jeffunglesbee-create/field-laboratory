@@ -189,6 +189,14 @@ type Sport =
     /// with the space, and the drift sentinel reported it unmodelled from
     /// 2026-08-16.
     | LaLiga
+    /// English top-flight association football. First observed live on
+    /// 2026-08-21 — Arsenal v Coventry at the Emirates rendered on the desk
+    /// under "EPL · UNMODELLED SPORT". The relay's archive labels it "EPL" (the
+    /// `sport` on game_live_epl_401879301 and on the game row — game rows and
+    /// briefs share one vocabulary, the way "La Liga"/"EFL Trophy" appear
+    /// identically in both). The fetch layer uses the lowercase slug "epl"; the
+    /// archive canonicalises to "EPL", which is what /context/date serves.
+    | EPL
     /// Modelled as a case so it can be DECLARED unmodelled rather than merely
     /// unrecognised — see `Omission` below. Golf itself stays unmodelled.
     | Golf
@@ -258,6 +266,11 @@ let sportMeta (sport: Sport) : SportMeta =
     // away Getafe. Guessing a convention is what produced the AFL transposition,
     // so the evidence is named here.
     | Sport.LaLiga -> { Label = "La Liga"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    // Association football, home first — same convention as MLS / EFL Cup / La
+    // Liga above. Read off the live desk, not assumed: Arsenal (home, at the
+    // Emirates) was named first on the card, matching ESPN's `homeAway`, so the
+    // relay did not transpose the sides. First served 2026-08-21.
+    | Sport.EPL -> { Label = "EPL"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     // DECLARED unmodelled. Every field is what `Unrecognised` would produce —
     // the desk still refuses to claim a two-sided contest — and the only thing
     // that changes is that the sentinel can tell this apart from a sport nobody
@@ -287,6 +300,12 @@ let sportOfString (raw: string) : Sport =
     // The relay's own label, with the space, matched verbatim for the same
     // reason "EFL Cup" is.
     | "La Liga" -> Sport.LaLiga
+    // The Premier League. The archive serves "EPL"; the fetch layer's slug is
+    // "epl". Both accepted — they are one competition, and a case difference is
+    // not a second sport. This is the one place a case fold is warranted, and
+    // it is spelled out rather than applied blanket, so it cannot silently
+    // merge two genuinely different labels.
+    | "EPL" | "epl" -> Sport.EPL
     // `golf` maps to a case that DECLARES itself unmodelled, and that is a
     // decision rather than an omission. The relay packs a tournament and a round into `home`
     // and `away` — `golf_2026-08-14_fedexstjudechampionship_r2` renders as
