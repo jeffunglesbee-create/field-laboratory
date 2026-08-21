@@ -14,6 +14,11 @@ several of this doc's own claims (ask 2 overcount, ask 5 container, ask 6
 "inverted") — folded in below; see "What changed in rev 4". Session doc:
 `field-relay-nba/outbox/cc-session-2026-08-21-brief-data-quality-asks-3-4-6.md`;
 the per-sport event contract now lives in `CONTRACTS.md` (both repos).
+**Revision 5 (2026-08-21).** A follow-up census fully mapped the residual D1
+mutations §5 carried as "needs authorization" — see "What changed in rev 5". Rev
+4 was the execution report; rev 5 is the residual worked out to row-level maps,
+kept a separate marker rather than merged into rev 4 so "shipped on execution"
+and "clarified afterward by census" stay distinguishable.
 
 One-liner:
 ```
@@ -522,3 +527,27 @@ guards (`check-game-recap-classification`, `check-brief-sport-label`,
 `CONTRACTS.md` itself had silently drifted 173 lines between the repos since
 2026-06-30 — the file that exists to prevent divergence had diverged — now gated
 by `contracts-identity-check.yml` from both sides.
+
+## What changed in rev 5 (2026-08-21)
+
+A follow-up census turned the §5 residual from "roughly 601, some maps known"
+into row-level maps. No content shipped; this is the authorization packet worked
+out. Recorded as its own revision because it arrived after the execution report
+(rev 4) and refines its figures.
+
+1. **601 non-conforming `briefs.sport` fully classed** — A (235, recover the
+   label from the row's own id), B (324 `inferSport` display strings), C (10
+   `PGA TOUR`), D (10 context strings, label is the prefix), E (22 `football`/`wc`
+   → World Cup by reading the rows). One lossy judgment call flagged: `NBA
+   Playoffs` → `NBA`.
+2. **A "do not sweep lowercase" guard added** — `wnba` (34) and `golf` (9) are
+   lowercase but conforming (the games table carries those forms); a blanket fix
+   would break working joins. This is the trap the census exists to prevent.
+3. **Ordinal count corrected to the census figure, 539** (rev-3's 535 was a
+   narrower slice), and confirmed not recoverable — render-order counter, no game
+   identity.
+4. **41 mislabelled `game_recap` reframed as reclassify, not rewrite** — retype
+   to `game_live`, prose intact.
+5. **New §5.6** — the 82% join rate's missing 18% is a seeding gap (MLB game rows
+   absent from D1) plus an `espn:` prefix format, tied to
+   `CC-CMD-2026-08-21-archive-seed-coverage`, not a defect of asks 3–4.
