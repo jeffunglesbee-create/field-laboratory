@@ -247,6 +247,42 @@ for part 1: it asserts every soccer `LEAGUES` label is a declared
 `SOCCER_LEAGUE_LABELS` value, and is negative-tested to fail by name. The same
 shape applied to `briefs.sport` closes this.
 
+**EPL readiness — the first Premier League matchday is 2026-08-22 (laboratory-added
+2026-08-21).** The 2026-27 Premier League opens tomorrow, and this ask must cover
+its label *before* the first game, not after the first orphaned brief. Verified
+against ESPN, not assumed — an earlier read of this called Arsenal v Coventry a
+cup tie on the stale belief that Coventry are Championship; they were promoted, so
+these are genuine league fixtures:
+
+- **The fixtures exist and FIELD is not carrying them.** ESPN
+  `soccer/eng.1/scoreboard?dates=20260822` returns league id 700, *"English
+  Premier League" / "2026-27 English Premier League"*, with Arsenal v Coventry
+  City (event `401879301`, Emirates) and Manchester United at Hull City
+  (`401879322`), among others. FIELD's `/context/date/2026-08-22` is 15 games,
+  **all MLS**, and `/archive/query?date=2026-08-22` is `count: 0`. Same
+  archive-seed gap the UEFA competitions had: the `LEAGUES` table is not emitting
+  EPL into the archive `/context/date` serves, even though the `epl → eng.1`
+  fetch config exists.
+- **The emit label is unproven and at risk — this is ask 3's whole point.** ESPN
+  names it `English Premier League` (abbr `Premier League`, slug `eng.1`). The
+  only existing `epl_match` brief (`epl_match_2026-08-19_espn:761725`) is
+  mislabelled — its text is MLS — and the orphan class in §4 shows soccer already
+  arriving as `sport: 'football'` and joining at 0%. So without the declared-label
+  contract in place, real EPL can land under `football`, `EPL`, or a mislabel and
+  silently orphan on day one. The contract must declare the chosen EPL label and
+  assert real EPL writes under it.
+- **Home/away, ESPN-verified: Arsenal is home** (`homeAway: "home"`, Emirates).
+  The ESPN URL slug reads `coventry-city-arsenal` — home listed second. If the
+  relay ingests from the slug order rather than the `homeAway` field, it
+  transposes the sides, and soccer is home-first — the AFL-transposition failure
+  the `Sport` registry exists to prevent. Verify the relay carries Arsenal home.
+- **Laboratory side (not this repo's ask, recorded for sequencing):** the `Sport`
+  registry models `EFL Cup` and `La Liga` but **not** EPL, so EPL renders
+  `UnknownConvention` (home-first, flagged `UNMODELLED`) until observed-and-
+  modelled on the confirmed label. Correct-but-flagged, same posture as UEFA. The
+  clean order is: ship this label contract → relay emits EPL under a declared
+  label → laboratory models that exact label.
+
 ### Ask 4 — Key briefs on a joinable id (PAIRED, two repos — Rule 70)
 
 **4a — relay (enforce).** `POST /archive/game` rejects a `game_id` matching
