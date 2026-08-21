@@ -117,10 +117,10 @@ Brief `game_id` shapes across the whole `briefs` table:
 | -- | -- |
 | 9-digit ESPN-like | 2,243 |
 | 6-digit numeric | 586 |
-| **ordinal `gNN`** | **535** |
+| **ordinal `gNN`** | **539** (census; an earlier narrower slice read 535) |
 | other (e.g. `golf_401811962_R4`) | 1 |
 
-**The ordinal ids are not the cron's, and there are 535 of them.** They are
+**The ordinal ids are not the cron's, and there are 539 of them** (census figure). They are
 `source: 'client'`, `model: null` — written by jubilant-bassoon via
 `POST /archive/game`, not by `handleJournalismCycle`. Rev 1 cited four
 (`g16`–`g19`) and addressed them to the journalism cron; both were wrong. A
@@ -325,7 +325,7 @@ join that currently works.
 Out of scope for this CC-CMD, which is soccer-led; recorded so the 82% figure is
 not mistaken for a soccer problem. Worth its own probe before anyone acts on it.
 
-**Artifact:** no archived brief `game_id` matches `^g\d+$` (today: 535 do), AND
+**Artifact:** no archived brief `game_id` matches `^g\d+$` (today: 539 do), AND
 the `game_recap` join rate does not regress below its measured 2026-08-21
 baseline of 82% overall / 100% for every soccer competition. The join must union
 `regular_season_games` **and** `postseason_games` and exclude golf — joining only
@@ -484,12 +484,38 @@ guards (`check-game-recap-classification`, `check-brief-sport-label`,
    `check-brief-sport-label`; root cause was `inferSport()` emitting display
    strings (`"Baseball (MLB)"`) — fixed at call sites, not in `inferSport` (Rule
    69). The EPL-readiness clause in ask 3 rides this fix.
-5. **Residual needs Jeff's authorization** — live D1 mutations, none executed:
-   ~601 non-conforming `briefs.sport` values (safe maps known: `mlb`→`MLB`,
-   `football`→`FIFA World Cup`; ambiguous: `NBA Playoffs`, `CFL … Week 7`), 535
-   ordinal `gNN` ids (new writes already blocked by 4a/4b), 41 mislabelled
-   `game_recap` rows. Backfilling existing rows is a separate, authorized step.
-6. **Still unprobed (flagged, not assumed):** whether every `keyEvents` item
+5. **Residual — needs Jeff's authorization (live D1 mutations), now fully mapped.**
+   None executed. Census 2026-08-21 (`query_ok`):
+   - **601 non-conforming `briefs.sport` across 20 variants** — all mechanical
+     except one call. **Class A** (235, the ask-3 lowercasing): recover the label
+     from each row's own id, which kept its casing (`pre_game_La Liga_…` →
+     `La Liga`) — verifiable row by row, no hand map. **Class B** (324
+     `inferSport` display strings): `Baseball (MLB)`→`MLB`, `MLS Soccer`→`MLS`,
+     `Australian Football (AFL)`→`AFL`. **Class C** (10): `PGA TOUR`→`PGA Tour`.
+     **Class D** (10 context strings, label is the prefix): `CFL – 2026 Season ·
+     Week 7`→`CFL` (declared label confirmed at `src/index.js:8034`). **Class E**
+     (22): `football`×21 + `wc`×1 → `FIFA World Cup`, determined by reading the
+     rows (all World Cup group-stage), which rules out `NFL`. The single judgment
+     call: `NBA Playoffs` (2) → `NBA` drops the postseason distinction, but that
+     lives in `postseason_games`, so it is safe — flagged only because it is the
+     one lossy map.
+   - **Do NOT sweep all lowercase.** `wnba` (34) and `golf` (9) are lowercase but
+     the games table carries those forms — they conform, and a
+     "fix-all-lowercase" pass would break working joins.
+   - **539 ordinal `gNN` ids (census; the earlier 535 was a narrower slice) —
+     NOT recoverable.** From a client render-order counter (`"g"+(++_gid)`), so
+     the id carries no game identity, unlike Class A. New writes already blocked
+     (4a/4b); the rows are inert. Options: leave them (suggested), text-match
+     re-identify (heuristic, partial), or delete (loses the prose).
+   - **41 mislabelled `game_recap` = reclassify, not rewrite.** Correct *live*
+     briefs wearing the wrong type; retype to `game_live`, prose intact.
+6. **The 82% join rate exposes a seeding gap, not a brief defect (§5.6).** The
+   unjoinable 18% is (a) well-formed 9-digit MLB ids whose game rows are simply
+   not in D1 — a seeding gap, the subject of
+   `CC-CMD-2026-08-21-archive-seed-coverage`, not this doc — and (b) a prefix
+   format, `espn:760516`, that cannot match a bare numeric column. Neither is a
+   label or id defect; recorded so 82% is not read as evidence against asks 3–4.
+7. **Still unprobed (flagged, not assumed):** whether every `keyEvents` item
    appears in `commentary` beyond goals (goals confirmed, rest sampled over 6
    fixtures); a real soccer league-slug source for non-UEFA competitions.
 
