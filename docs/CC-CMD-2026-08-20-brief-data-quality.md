@@ -7,6 +7,13 @@ archive writer) — see ask 4, this is a paired cross-repo change per Rule 70
 **Revision 3 (2026-08-21)** — see "What changed in rev 3" at the end. Rev 3
 corrects two rev-2 claims that measurement falsified; the corrections make ask 5
 *less* blocked, not more.
+**Revision 4 (2026-08-21) — EXECUTED.** The relay/client session shipped asks 1,
+2, 3, 4a, 4b, 6a and deployed four deploy-gating guards (client smoke 985/0); ask
+5 is unblocked and fully specified; ask 6b needs a rescope. Execution corrected
+several of this doc's own claims (ask 2 overcount, ask 5 container, ask 6
+"inverted") — folded in below; see "What changed in rev 4". Session doc:
+`field-relay-nba/outbox/cc-session-2026-08-21-brief-data-quality-asks-3-4-6.md`;
+the per-sport event contract now lives in `CONTRACTS.md` (both repos).
 
 One-liner:
 ```
@@ -194,10 +201,16 @@ A brief may not carry `brief_type: game_recap` unless the joined game is final
 at write time. In-progress states are a different type (`game_live` /
 `game_update`) or are not written.
 
-**Primary artifact (structural, sport-agnostic, cannot be evaded by rephrasing):**
-no `game_recap` row whose `created_at` precedes its game's `start_time`. All five
-rows in §2 are `created_at 10:02` against evening kickoffs, so this catches every
-one of them today.
+**Primary artifact (CORRECTED rev 4 — `created_at` alone overcounts).** Measured
+at execution: `briefs` has no `updated_at`, and every write site's `ON CONFLICT DO
+UPDATE` refreshes `brief_text` without touching `created_at`. So a row seeded
+pre-game and later refreshed with the real recap still reads `created_at` before
+`start_time` — `created_at < start_time` flags **513**, of which **472 are
+merely-updated rows, not defects**. The real defect set is the INTERSECTION with
+in-progress *language*: **41 rows**. SHIPPED as a `game_recap` / `game_live` /
+`narrative_context` classifier keyed on real finality, gated by
+`check-game-recap-classification.mjs`. The text net below is not a fallback — it
+is the discriminator that separates the 41 from the 472.
 
 **Secondary artifact (text net, broadened):** no `game_recap` whose text matches
 `/scoreless|at halftime|through \d+ minutes|in the \d+(st|nd|rd|th) minute|(first|second)[- ]half action/i`.
@@ -319,40 +332,48 @@ baseline of 82% overall / 100% for every soccer competition. The join must union
 the former, as the first version of this probe did, undercounts by treating
 postseason MLB and per-round golf ids as failures.
 
-### Ask 5 — Ground recaps in `keyEvents` / `incidents`
+### Ask 5 — Ground recaps in the per-sport scoring-event feed
 
-Generate from the structured event feed (ESPN summary `keyEvents`: scoring
-plays, athletes, coordinates; BSD `incidents`: goal/card/sub with minute) rather
-than season-stat templates. This is what makes a claim checkable, and therefore
-what makes a provenance/confidence layer possible at all.
+Generate from the structured event feed rather than season-stat templates — this
+is what makes a claim checkable, and what makes a provenance/confidence layer
+possible at all. Unblocked and fully specified at execution; not yet built.
 
-> **PREMISE TESTED 2026-08-21 — ask 5 is UNBLOCKED for soccer.** Rev 2 flagged
-> this ask as possibly having no join target, on the grounds that MLS rows in
-> `/context/date/2026-08-20` carried `espn_event_id: null`. **That flag was
-> wrong**, and the probe that tested it says so:
+> **CONTAINER CORRECTED rev 4 — `keyEvents` is soccer-only.** The rev-3 scoping on
+> `keyEvents` is wrong for four of five sports. Measured 2026-08-21 against real
+> finalized events; the prose field is `text` everywhere, filtered to scoring:
 >
-> ```
-> MLS game_recap briefs:  83 / 83 join   (100%)
-> EFL Cup 31/31 · UECL Qual 24/24 · UEL Qual 12/12 · La Liga 7/7 · EFL Trophy 7/7
-> ```
+> | sport | container | filter |
+> | -- | -- | -- |
+> | soccer | `keyEvents` | `scoringPlay === true` |
+> | MLB / NBA / NHL | `plays` | `scoringPlay === true` |
+> | NFL | `scoringPlays` | (all items are scoring) |
 >
-> Every soccer competition is at 100%. The null ids I saw belong to *future*
-> fixtures (Sep–Nov 2026) in the hand-seeded schedule import, which have no ESPN
-> event id yet because the event does not exist yet. That is correct behaviour,
-> not a gap.
+> The prose is exactly what this ask promised — e.g. MLB *"Walker homered to
+> center (407 feet), Wetherholt scored…"*, NFL *"Woody Marks 20 Yd Run…"*. It now
+> lives in `CONTRACTS.md` (both repos); the build reads it from there.
 >
-> The misleading number was MLS espn_event_id coverage of **17% (93/548)** across
-> the whole table — which counts ~279 future-dated rows. **Coverage of the table
-> is not coverage of the rows that have briefs.** The rows that matter are fully
-> covered. Anyone re-deriving this should measure the join, not the column.
->
-> Ask 5 can be built on the `espn_event_id` join today for MLS and every other
-> soccer competition. MLB (84%), WNBA (85%) and FIFA World Cup (73%) have real
-> gaps — scope those separately rather than letting them hold soccer back.
+> **Generate from `text`, not the structured participant fields.** Soccer
+> `participants[]` has no role field (positional: `[0]` scorer, `[1]` assister),
+> the assister is present on only 8/14 assisted goals while `text` carried 14/14,
+> and structured names disagree with the prose ("Dali" vs "Dalisson De Almeida").
+> Use participant ids for joins only. Soccer near-miss enrichment (`commentary`:
+> off-target / woodwork / fouls, absent from `keyEvents`) is IN at ~60%
+> availability, degrading to goals-only on sparse fixtures.
 
-**Artifact (conditional on the premise holding):** every `game_recap` names at
-least one athlete who appears in the joined `keyEvents` / `incidents` payload.
-An enumerated pass/fail per row, not a prose quality judgement.
+> **NBA volume trap.** Scoring items per completed game: NFL 8, NHL 8, soccer 2–4,
+> MLB 11, **NBA 119** (every made basket). A generator that concatenates scoring
+> items is a paragraph for four sports and an unusable wall for basketball — NBA
+> needs selection, not enumeration.
+
+> **Cost was never the blocker.** Once per game at finalization is ~28 calls/day
+> (14-day mean of 28 games/day), not a Rule 78 concern. Per-cron-tick would be
+> 2,688 calls / 790 MB/day — *that* is the thing to avoid. Rule 78 applies only to
+> the extent the fetch replicates the existing `cacheEverything` + TTL pattern.
+
+**Artifact:** every `game_recap` names at least one athlete who appears in the
+joined per-sport scoring-event payload — an enumerated pass/fail per row, not a
+prose quality judgement. (The rev-3 "conditional on the premise holding" hedge is
+removed; the join premise holds — MLS `game_recap` briefs join 83/83.)
 
 ### Ask 6 — Recalibrate `quality_score` and stamp `scoring_version`
 
@@ -365,8 +386,20 @@ CLAUDE.md), and note the derived `SCALE` / `REACHABLE_CEILING` work from
 `CC-CMD-2026-08-15-quality-bar-scale` — recalibration must move those constants,
 not add a parallel copy.
 
-**Artifact:** `scoring_version` non-null on all `game_recap` rows, AND on a
-re-scored 2026-08-19 slate no frozen-snapshot row outranks any real final.
+> **PREMISE CORRECTED rev 4 — the metric is not inverted, it under-penalises.**
+> Rev 1–3 read a single 191-scoring frozen row as "quality_score is pointed the
+> wrong way." The aggregate says otherwise: in-progress-language briefs mean
+> **184.3** (n=94), reads-as-final briefs mean **190.1** (n=1381). Finals already
+> score *higher* — the defect is that the 5.8-point gap is far too small, not a
+> sign flip. Ask 6b is therefore a WEIGHTING change needing a before/after
+> re-score to produce a real `measuredEffect` for the `SCORING_ERAS` entry —
+> different work than "flip the sign," and not yet built. Ask 6a (stamp
+> `scoring_version` on every INSERT) SHIPPED; coverage today: ver 1 = 716,
+> ver 2 = 518, null = 241.
+
+**Artifact:** `scoring_version` non-null on all new `game_recap` rows (6a, done),
+AND on a re-scored 2026-08-19 slate the in-progress/final gap widens materially
+from its measured 5.8-point baseline (6b, pending the rescope above).
 
 ---
 
@@ -427,3 +460,39 @@ from `/context/date` responses truncated by a self-probe, and from a join query
 that omitted `postseason_games`. Neither is a substitute for a `GROUP BY` over
 the real tables. The probe now in the relay is the reusable answer —
 `workflow_dispatch` only, no `schedule:`.
+
+## What changed in rev 4 (2026-08-21) — executed, and corrected against execution
+
+The relay/client session built this CC-CMD and measured several of its premises
+false in the process. Shipped: asks 1, 2, 3, 4a, 4b, 6a, plus four deploy-gating
+guards (`check-game-recap-classification`, `check-brief-sport-label`,
+`check-no-drama-number-in-prompts`, `contracts-identity-check`) and client smoke
+985/0. Corrections folded into the asks above:
+
+1. **Ask 2 was an upper bound, not a count.** `created_at < start_time` flags 513;
+   472 are merely-updated rows (`ON CONFLICT DO UPDATE` refreshes `brief_text`, no
+   `updated_at`). Real defects: 41, via the intersection with in-progress language.
+2. **Ask 5's container was wrong for 4/5 sports.** `keyEvents` is soccer-only; MLB
+   /NBA/NHL use `plays`, NFL uses `scoringPlays`; prose field `text` throughout.
+   Now in `CONTRACTS.md`. Cost was never the blocker (~28 calls/day at
+   finalization). Generate from `text`, not structured participant fields. NBA's
+   119 scoring items/game need selection, not enumeration.
+3. **Ask 6 was not inverted.** Finals score *higher* (190.1 vs 184.3); the metric
+   under-penalises in-progress by 5.8 points. 6b is a weighting change needing a
+   before/after re-score, not a sign flip. 6a (stamp `scoring_version`) shipped.
+4. **Ask 3 shipped** via `canonicalizeWC26Sport(label)` at the pre-game writer +
+   `check-brief-sport-label`; root cause was `inferSport()` emitting display
+   strings (`"Baseball (MLB)"`) — fixed at call sites, not in `inferSport` (Rule
+   69). The EPL-readiness clause in ask 3 rides this fix.
+5. **Residual needs Jeff's authorization** — live D1 mutations, none executed:
+   ~601 non-conforming `briefs.sport` values (safe maps known: `mlb`→`MLB`,
+   `football`→`FIFA World Cup`; ambiguous: `NBA Playoffs`, `CFL … Week 7`), 535
+   ordinal `gNN` ids (new writes already blocked by 4a/4b), 41 mislabelled
+   `game_recap` rows. Backfilling existing rows is a separate, authorized step.
+6. **Still unprobed (flagged, not assumed):** whether every `keyEvents` item
+   appears in `commentary` beyond goals (goals confirmed, rest sampled over 6
+   fixtures); a real soccer league-slug source for non-UEFA competitions.
+
+`CONTRACTS.md` itself had silently drifted 173 lines between the repos since
+2026-06-30 — the file that exists to prevent divergence had diverged — now gated
+by `contracts-identity-check.yml` from both sides.
