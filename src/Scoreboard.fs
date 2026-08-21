@@ -209,7 +209,15 @@ let private oddsText (g: Game) =
     | _ ->
         match oddsStory g.OpeningOdds g.ClosingOdds with
         | NoPrices -> "no odds"
-        | SingleSnapshot o -> sprintf "%s ML %s%s (one snapshot)" o.Source (priceText o) (linesText o)
+        // One capture only, so there is no pair to compare — but the price still
+        // states WHEN it was taken, the same context the NOT SEQUENCED line
+        // carries. A bare moneyline with no timestamp reads as a live or settled
+        // price; on a finished game it is a single pre-kickoff capture, and the
+        // timestamp is what says so. No open/close label is claimed, because with
+        // one snapshot there is no sequence to name.
+        | SingleSnapshot o ->
+            sprintf "%s ML %s%s (one snapshot, %s)"
+                o.Source (priceText o) (linesText o) (defaultArg o.RawCapturedAt "?")
         // Stated on the card, not swallowed. The relay labels these open and
         // close; the timestamps say they are not.
         | NotASequence(o, c) ->
