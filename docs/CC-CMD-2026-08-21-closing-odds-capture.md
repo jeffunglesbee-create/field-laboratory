@@ -2,15 +2,63 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (AmbientDO — the pre→live game-state hook)
-**Status:** open
+**Status:** ORIGINAL ASK WITHDRAWN — the hook was already landed and firing. The
+real defect was elsewhere and is FIXED (relay `887c843`). A different, narrower
+blocker remains; see the correction. Original text kept below for the record.
 
-One-liner:
+One-liner (as filed):
 ```
 The laboratory's line-movement rendering (OddsStory.Moved) is built and dormant:
 it never fires because closing_odds is a same-instant backfill, not a real
 post-open capture. Capture closing odds when a game transitions pre→live so the
 open→close pair is a genuine sequence — then movement narrates itself.
 ```
+
+---
+
+## CORRECTION — what HEAD showed (relay/client execution, 2026-08-21)
+
+The relay session probed HEAD before building and found this ask's premise stale.
+Recorded here rather than quietly deleted.
+
+**Wrong: "land (or re-activate) the pre→live hook."** It is already landed and
+firing — `_captureClosingOdds` (`src/ambient-do.js:718`), wired from
+`pendingStarts` (`:498–500`), deduped by `_gameStarts` (`:394–397`). **18 real
+captures, 2026-07-04 → 2026-08-21**, the last two being the very cards on the desk
+(Betis `19:03:03Z`, Arsenal `19:01:36Z`). Carry-forward #1 (`closing_odds_capture`
+in `_ODDS_SOURCES`) was also already done (`src/brief-freshness.js:12`).
+
+**The real defect (FIXED, `887c843`).** `.github/scripts/odds-backfill.js` wrote
+one historical snapshot into **both** `opening_odds` and `closing_odds`, even for
+un-kicked-off games. `_captureClosingOdds` updates `WHERE closing_odds IS NULL`,
+so the batch won that race permanently and the kickoff capture could never land —
+which is exactly the `NOT SEQUENCED (10:00:54Z vs 10:00:37Z)` the WNBA cards show.
+Fixed with a date gate (a played game legitimately keeps the one-snapshot-in-both
+behaviour; today and later, `closing_odds` stays NULL for the hook to own), guarded
+by `scripts/check-closing-odds-not-prefilled.mjs`, negative-tested.
+
+**A second defect, and a correction to THIS doc's own reading.** I filed from the
+"one snapshot" text on the Arsenal/Betis cards and inferred their `closing_odds`
+was NULL and the hook had not fired. Both halves were wrong. Measured: EPL and La
+Liga carry the **closing** line and **no opening** one — the mirror of my
+assumption. So `Moved` is blocked two independent ways:
+
+- **MLB / WNBA** — defect 1, now unblocked (opening from the `odds_api` ~10:00
+  poll, closing from the hook at kickoff = a genuine sequence).
+- **EPL / La Liga** — blocked by a missing **opening** capture, which `887c843`
+  does nothing about. Not patched blind: it needs its own probe into why the
+  `odds_api` opening writes cover MLB/WNBA/Ligue 1 but not those two.
+
+**The remaining real ask (re-filed):** capture `opening_odds` for EPL and La Liga.
+That — not the hook — is the actual blocker for `Moved` on the marquee soccer.
+Carry-forwards #2 (team-name aliasing) and #3 (non-AmbientDO sports) survive
+unchanged.
+
+**Staged verification (Rule 74).** That the `887c843` fix yields a real sequence
+is *staged*, blocked by needing one MLB/WNBA pre→live transition after that deploy;
+verify `closing_odds.captured_at > opening_odds.captured_at` and the desk rendering
+`ML X -> Y (home ±N.N implied)` instead of `NOT SEQUENCED`. Unblocks on the next
+slate. The laboratory side (the `Moved` render) is shipped and unchanged.
 
 ---
 
