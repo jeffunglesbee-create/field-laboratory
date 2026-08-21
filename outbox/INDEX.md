@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9b30e83` | 2026-08-21 | [cc-one-snapshot-states-its-time-2026-08-21.md](cc-one-snapshot-states-its-time-2026-08-21.md) | Odds: a one-snapshot line states when it was captured |
 | `2628ca2` | 2026-08-21 | [cc-the-desk-models-the-premier-league-2026-08-21.md](cc-the-desk-models-the-premier-league-2026-08-21.md) | Model the Premier League: Sport.EPL, added the day it first rendered |
 | `b1a0948` | 2026-08-21 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-21 [skip ci] |
 | `3c668d0` | 2026-08-21 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Brief data-quality CC-CMD rev 3; re-correct the join claim to measured |
