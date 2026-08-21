@@ -59,12 +59,33 @@ stats:
 1. **Resolve the gameweek** from `/fpl/bootstrap-static` (`events[].is_current`),
    then pull `/fpl/event/{gw}/live/` and `/fpl/fixtures?event={gw}`.
 2. **Join FPL → the game.** FPL fixtures key on `team_h`/`team_a` FPL ids;
-   `bootstrap-static` maps id → team name, and the client already carries
-   `FPL_SHORT_NAME_MAP` (Spurs→Tottenham Hotspur, Wolves→Wolverhampton, …) —
-   reuse it so the join does not silently drop the ambiguous names.
+   `bootstrap-static` maps id → team name. Resolve that name through the relay's
+   `resolveTeamKey` (`src/identity-resolver.js`), NOT through a second alias table
+   — see the Rule 60 note below; the identity resolver already carries the EPL
+   section and the promoted-club aliases (Coventry/Ipswich/Hull) and is covered by
+   the collision guard.
 3. **Name the events in the brief** — goalscorers with minute, assists, cards —
    so an EPL recap reads "Saka opened the scoring in the 34th, Ødegaard assisting"
    instead of "0 goals through 0 games played."
+
+## Rule 60 — one identity resolver, not two (relay/client flag, 2026-08-21)
+
+The original draft said to "reuse the client's `FPL_SHORT_NAME_MAP` (Spurs →
+Tottenham Hotspur, Wolves → Wolverhampton) so the join does not drop the ambiguous
+names." The relay session flagged that as a Rule 60 problem: `FPL_SHORT_NAME_MAP`
+is a **second** club-alias table, in the other repo, for the same clubs
+`src/identity-resolver.js` now covers (it gained a La Liga section, the Spanish
+short-form convention, and the promoted 2026-27 EPL clubs today, all under the
+`check-team-identity-collisions.mjs` guard). Two tables that can disagree is
+exactly the divergence `CONTRACTS.md` exists to prevent — the same shape as the
+173-line drift found earlier today.
+
+**The relay owns team identity.** The FPL → game join should resolve through
+`resolveTeamKey` like every other join, and `FPL_SHORT_NAME_MAP` should be treated
+as a *source of variants to fold into `identity-resolver.js`* — not stood up as a
+parallel resolver. Any FPL spelling that is missing belongs in the identity
+resolver, where the collision guard covers it. Do this before the join is written,
+or the second table ossifies.
 
 ## Relationship to brief-data-quality ask 5
 

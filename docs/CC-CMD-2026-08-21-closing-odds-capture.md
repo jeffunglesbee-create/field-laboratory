@@ -62,6 +62,55 @@ slate. The laboratory side (the `Moved` render) is shipped and unchanged.
 
 ---
 
+## UPDATE — the EPL/La Liga opening blocker was an alias gap, and it is FIXED (relay/client, 2026-08-21)
+
+The re-filed ask ("capture `opening_odds` for EPL and La Liga") assumed the
+opening line was never *written* for those two. Probed from source, the real
+cause was narrower and the ask as I framed it was still slightly wrong: the
+opening line was written, it just never *joined*. The odds join keys on
+`resolveTeamKey(home)|resolveTeamKey(away)`, and `src/identity-resolver.js` had
+alias sections for WC/International, EPL, MLS, WNBA, MLB, NBA and Ligue 1 — **and
+none at all for La Liga**. A club stored one way in D1 and another by the feed
+never matches, so the row keeps a NULL opening line permanently.
+
+**Coverage, past dates only (the honest denominator — future fixtures have no
+opening line yet and must be excluded):**
+
+| sport | played rows | with opening | rate |
+|-------|-------------|--------------|------|
+| MLB | 807 | 704 | 87.2% |
+| WNBA | 183 | 138 | 75.4% |
+| MLS | 222 | 108 | 48.6% |
+| **EPL** | 26 | 6 | **23.1%** |
+| **La Liga** | 17 | 2 | **11.8%** |
+
+This also **corrects an earlier laboratory number**: I had called MLS "the volume
+case" at ~20% (108/548). That 548 included 326 future fixtures; past-dates-only
+MLS is 48.6%. The real gaps are La Liga and EPL, not MLS.
+
+**Shipped (relay `e4ad440`, `0faf37f`, `bb04fc8`):** a La Liga alias section; the
+Spanish short-form convention (unqualified "Real" = Real Madrid, "Sociedad" = Real
+Sociedad, "Betis" = Real Betis); all three promoted 2026-27 clubs (Coventry,
+Ipswich, Hull); and Spanish nicknames. Guarded by
+`scripts/check-team-identity-collisions.mjs` (7th deploy gate), negative-tested
+three ways — a missing alias is a miss, but a *collision* attaches one club's line
+to another club's game, which is why bare "Real" must never resolve to Betis.
+
+**Still open (one decision, flagged not silently included):** `La Real` (a common
+Real Sociedad form) is deliberately NOT aliased — under this convention any future
+article-stripping turns `La Real` → `Real` → Real Madrid. If the feeds use it, it
+needs an explicit entry *plus* a guard that it never resolves to Real Madrid.
+
+**Staged verification (Rule 74).** That the alias fix raises soccer opening
+coverage is *staged*, blocked by a soccer slate running after the `bb04fc8`
+deploy; verify `opening_odds IS NOT NULL` on the next La Liga/EPL matchday and the
+desk rendering `ML X -> Y` instead of `one snapshot`. **Laboratory side: nothing to
+build** — the `oddsStory` builder already yields `SingleSnapshot` on a lone
+capture and `Moved`/`Unmoved` on a real pair; feeding it a joined opening line is
+the whole fix.
+
+---
+
 ## Probe block — run first, from HEAD (Rule 87)
 
 ```bash
