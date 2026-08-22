@@ -126,6 +126,15 @@ jobs:
           node scripts/cc-cmd-followup.mjs --self-test
           node scripts/cc-cmd-followup.mjs
 
+      # The i-have-adhd skill must stay BYTE-IDENTICAL to its published source —
+      # a hand-edit or a partial reconstruction is the failure the installer
+      # exists to rule out. `--check` re-verifies the match on every sentinel run;
+      # if raw.githubusercontent is unreachable it warns and passes (a CDN blip
+      # is not this repo's drift), so the step is honest without being flaky.
+      - name: The i-have-adhd skill is still verbatim
+        if: always()
+        run: npm run check:adhd-skill
+
       - name: Append to the drift log
         if: always()
         run: |
