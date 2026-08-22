@@ -81,15 +81,29 @@ model — and fixing only (1) leaves the card still wrong.
    ask 5, `CC-CMD-2026-08-21-fpl-event-grounding-epl`) showing as a contradiction,
    not just an omission.
 
+   **The deeper fix is the stat model, not the contradiction.** For European
+   soccer a won-drawn-lost record is not the headline season stat; **table
+   position (points, rank) and competition advancement** (European qualification,
+   relegation battle, cup round) are what carry meaning. The "0-0-0 records this
+   season" line is wrong on two counts: it reaches for the wrong stat, and on this
+   slate — 2026-08-22, opening weeks — *every* side's record is 0-0-0, so it is
+   vacuous even before it contradicts the 3-0. Table position is not vacuous in
+   August; a side can already sit top or bottom on goal difference after two
+   games. The soccer season-stat template should ground briefs in the table and
+   in what the club is playing for, and only cite record where it actually
+   discriminates (mid-season, and even then behind points/position).
+
 3. **Do not compare across time windows in one sentence.** "3 shots this match"
    vs "37 goals this season" is not a comparison. This is a `FIELD_PROSE_STYLE`
    question — the Dim 8 rule already forbids a bare number; it does not yet forbid
    a two-window comparison.
 
 **Artifact:** a soccer `game_live`/`game_recap` brief on the next EPL/La Liga/MLS
-slate contains zero of the tokens `DRTG|ORTG|NBA|NHL|NFL|MLB|WNBA`, and does not
-describe a game with a non-0-0 scoreline as a stalemate — enumerated pass/fail per
-row, not a prose judgement.
+slate contains zero of the tokens `DRTG|ORTG|NBA|NHL|NFL|MLB|WNBA`, does not
+describe a game with a non-0-0 scoreline as a stalemate, and — where it cites
+season context at all — leads with table position or competition stakes rather
+than a bare W-D-L record (and never cites a 0-0-0 record as though it
+discriminated) — enumerated pass/fail per row, not a prose judgement.
 
 ## What the laboratory already does (do not re-file)
 
