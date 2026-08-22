@@ -14,11 +14,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `2c03599` (behind `main`) |
+| Cloudflare Workers | live | `fdca158` (behind `main`) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`unmodelled-sport` on 2026-08-22 — 75 games, 0 malformed (36 runs logged)
+`unmodelled-sport` on 2026-08-22 — 75 games, 0 malformed (37 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)

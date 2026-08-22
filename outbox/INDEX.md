@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9504353` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
 | `cf9a930` | 2026-08-22 | [cc-the-stalemate-that-led-three-nil-2026-08-22.md](cc-the-stalemate-that-led-three-nil-2026-08-22.md) | Briefs: catch a stated lead called a stalemate (the Brentford card) |
 | `972d665` | 2026-08-22 | [cc-the-tab-count-that-said-six-2026-08-22.md](cc-the-tab-count-that-said-six-2026-08-22.md) | live-tabs-check: assert seven tabs by name, not a stale count of six |
 | `73cee8c` | 2026-08-22 | [cc-the-brief-that-played-the-wrong-sport-2026-08-22.md](cc-the-brief-that-played-the-wrong-sport-2026-08-22.md) | Briefs: catch cross-sport contamination (a soccer brief naming the NBA/DRTG) |
