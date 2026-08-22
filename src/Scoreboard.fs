@@ -428,6 +428,24 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
             else sprintf "%d of %d stat sentence(s) carry a time window" anchored stat
         back.appendChild (el "div" "desk-card__brief-anchor" anchorText) |> ignore
 
+        // Stage 4: cross-sport contamination.
+        //
+        // A brief for one sport that names another sport's league or a metric
+        // that only exists there is a falsehood the desk should catch, not
+        // relay. Observed on EPL: "107.7 DRTG, best in the NBA, despite playing
+        // soccer tonight" — every earlier verdict passed it because none of them
+        // asked whether the brief was about the right sport. `crossSportTokens`
+        // reads the game's own `IsSoccer` from the registry, so the check moves
+        // with the model rather than a hard-coded league list here.
+        match Journalism.crossSportTokens (sportMeta game.Sport).IsSoccer text with
+        | [] -> ()
+        | tokens ->
+            let label =
+                sprintf "cross-sport reference — this soccer brief names %s"
+                    (String.concat ", " tokens)
+            back.appendChild (el "div" "desk-card__verdict desk-card__verdict--bad" label)
+            |> ignore
+
         let flip = el "div" "desk-card__flip" ""
         flip.appendChild front |> ignore
         flip.appendChild back |> ignore

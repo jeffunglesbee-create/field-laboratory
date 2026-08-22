@@ -30,7 +30,7 @@ import {
   briefTypeOfString, briefTypeName, isModelled,
   fallbackModel, answeringModelFromHeader, answeringName, fallbackName,
   answeredFrom, fallbackRan,
-  anchoring, temporalPrecision, unanchoredStatSentences,
+  anchoring, temporalPrecision, unanchoredStatSentences, crossSportTokens,
   briefContext, prompt, draft, judge, bodyOf, provenanceOf, promptContext, draftPrompt,
   fact, claimOf, windowOf, windowLabel, contextKind, contextSubject, instructionOf,
   TimeWindow,
@@ -206,6 +206,40 @@ check('production compliance with the one-time-window rule is measured, not assu
   `${totalAnchored}/${totalStat} stat sentences carry a time window (${compliance.toFixed(1)}%); ` +
   `${briefsWithViolation}/${CORPUS.length} briefs contain at least one unanchored stat sentence ` +
   `(${violationSentences} sentence(s) total)`)
+
+// ── cross-sport contamination ───────────────────────────────────────────────
+//
+// The observed defect verbatim: an EPL (soccer) game_live brief claiming a
+// basketball rating in a basketball league. Every earlier verdict passed it.
+const EVERTON = 'Everton secured a 2-0 win at Hill Dickinson Stadium, moving to ' +
+  '1-0-0 this season while holding Crystal Palace to 0 points through this match. ' +
+  'Everton maintains a 107.7 DRTG, best in the NBA, despite playing soccer tonight.'
+
+const evertonForeign = Array.from(crossSportTokens(true, EVERTON))
+check('a soccer brief naming a basketball league and metric is caught',
+  evertonForeign.includes('NBA') && evertonForeign.includes('DRTG'),
+  `flagged: ${evertonForeign.join(', ') || 'nothing'}`)
+
+// A clean soccer recap must not be flagged — the check earns its keep only if it
+// is silent on legitimate prose.
+const CLEAN_SOCCER = 'Arsenal beat Coventry 3-0 at the Emirates this season, ' +
+  'Saka scoring in the 34th minute with 2 goals on the year.'
+check('a clean soccer brief flags nothing',
+  Array.from(crossSportTokens(true, CLEAN_SOCCER)).length === 0,
+  `flagged: ${Array.from(crossSportTokens(true, CLEAN_SOCCER)).join(', ') || 'nothing'}`)
+
+// The word boundary matters: "MLS" (a soccer league, and the game's own family)
+// must not trip the "MLB" token.
+check('a soccer brief mentioning MLS is not caught as MLB',
+  Array.from(crossSportTokens(true, 'The MLS side pressed high all match this season.')).length === 0,
+  'word-boundary matching keeps MLB from firing on MLS')
+
+// Only the observed direction is modelled: a non-soccer brief is not scanned for
+// soccer leagues, because that defect has not been seen and inventing it is the
+// thing this module refuses.
+check('a non-soccer brief is not scanned (the inverse is unmodelled until observed)',
+  Array.from(crossSportTokens(false, EVERTON)).length === 0,
+  'isSoccer=false short-circuits to no findings')
 
 // ── the types, exercised ────────────────────────────────────────────────────
 

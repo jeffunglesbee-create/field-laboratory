@@ -280,6 +280,47 @@ let unanchoredStatSentences (text: string) : string list =
     |> Array.filter (fun s -> STAT_RE.IsMatch s && not (TEMPORAL_RE.IsMatch s))
     |> List.ofArray
 
+// --- cross-sport contamination -----------------------------------------------
+//
+// A brief for one sport that names ANOTHER sport's league, or a metric that only
+// exists there, is not commentary — it is a fact the desk should refuse to
+// render as true. Observed on EPL, 2026-08-22, a `game_live` brief for Everton v
+// Crystal Palace:
+//
+//   "Everton maintains a 107.7 DRTG, best in the NBA, despite playing soccer
+//    tonight."
+//
+// DRTG (Defensive Rating, points allowed per 100 possessions) is a basketball
+// metric; the NBA is a basketball league; the game is association football. The
+// model even flags its own confusion ("despite playing soccer tonight") and the
+// existing verdicts all pass: the scoreline "2-0" checks out, the one stat
+// sentence carries a time window. Nothing was looking at whether the brief was
+// about the right sport at all. This is that check.
+//
+// Grounded, not invented. The tokens are the non-soccer league labels the desk's
+// own `Desk.Sport` registry already carries (MLB, WNBA, AFL, NFL, CFL) plus the
+// two North-American majors the borrowed vocabulary comes from (NBA, NHL) and the
+// basketball-only rating metrics (DRTG, ORTG). A soccer recap has no legitimate
+// reason to name any of them, so a match is contamination, not a false positive.
+let private soccerForeignTokens =
+    [ "NBA"; "NHL"; "NFL"; "MLB"; "WNBA"; "AFL"; "CFL"; "DRTG"; "ORTG" ]
+
+/// Foreign-sport tokens the brief names, given whether the game is association
+/// football. Word-boundary matched, so "MLB" does not fire on "MLS" and a league
+/// acronym is never caught inside a longer word.
+///
+/// Only the soccer direction is modelled, because it is the one observed. The
+/// inverse — a soccer league named in a basketball or baseball brief — is a real
+/// possibility, but writing it before seeing it would be exactly the invention
+/// this module refuses elsewhere. It is added when a brief exhibits it, following
+/// `BriefType.Unmodelled` and `Sport.Unrecognised`.
+let crossSportTokens (isSoccer: bool) (text: string) : string list =
+    if not isSoccer then []
+    else
+        soccerForeignTokens
+        |> List.filter (fun tok ->
+            Regex.IsMatch(text, @"\b" + Regex.Escape tok + @"\b", RegexOptions.IgnoreCase))
+
 // --- generation --------------------------------------------------------------
 
 /// What a brief is about. Private so a prompt cannot be re-pointed after it is
