@@ -3,9 +3,10 @@
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba **and** jubilant-bassoon — the same independent change
 in each repo, not a paired cross-repo change
-**Status:** open — filed because this session cannot write to those repos'
-`.claude/skills/` directory; field-laboratory and field-playground already carry
-the skill.
+**Status:** open — the install is automated on a runner
+(`.github/workflows/adhd-skill-sync.yml`); it is one repository secret away from
+running with no manual command. field-laboratory and field-playground already
+carry the skill.
 
 One-liner:
 ```
@@ -44,42 +45,45 @@ repos lag only because this session's write-allowlist does not cover
 ## The ask
 
 Add `.claude/skills/i-have-adhd/SKILL.md` to each repo, **byte-verbatim from the
-source, not reconstructed**.
+source, not reconstructed**. There is now no manual step for the maintainer of
+these repos — the install runs on a runner.
 
-**Automated path (one command, self-verifying).** field-laboratory ships a
-portable installer that fetches the source, writes the file, and reads it back to
-confirm the on-disk copy is byte-identical — refusing to install anything that
-fails the skill front-matter invariant. It writes relative to the current
-directory and has no repo-specific paths, so it installs correctly when run from
-any repo root, including straight from its raw URL with no copy step. From each
-target repo's root:
+**Automated path (a runner installs it — nothing to run by hand).**
+field-laboratory ships `.github/workflows/adhd-skill-sync.yml`, dispatch-only,
+which installs the skill into both target repos through the GitHub Contents API
+and commits only when the file is absent or has drifted. The runner cannot
+self-provision a credential for another repo, so the one setup step is a
+repository secret on field-laboratory:
+
+1. Add secret `SIBLING_REPO_TOKEN` — a token with `contents:write` on
+   field-relay-nba and jubilant-bassoon.
+2. Run the **adhd-skill-sync** workflow (dry-run first; it reports what it would
+   do). Re-run with dry-run off to install.
+
+It is idempotent — a second run reports `skip … already byte-identical`.
+
+**Per-repo alternative (one self-verifying command),** if you would rather run it
+in the repo than from a runner. From the target repo's root:
 
 ```bash
 curl -sS https://raw.githubusercontent.com/jeffunglesbee-create/field-laboratory/main/scripts/install-adhd-skill.mjs | node -
 ```
 
-It is idempotent (a no-op when the copy already matches) and needs Node 22+.
+Same installer the runner path is built on: fetch, write, read back, confirm
+byte-identical, refuse malformed front-matter. Node 22+.
 
-**To keep it verbatim, not just install it once,** copy that script into the repo
-and wire its `--check` mode into an existing scheduled workflow — no new CI. That
-is what field-laboratory does: `check:adhd-skill` runs
-`install-adhd-skill.mjs --self-test && install-adhd-skill.mjs --check` on every
-drift-sentinel run, and `--check` re-verifies the byte match (warning, not
-failing, if the source CDN is briefly unreachable).
-
-**Manual fallback,** if Node is not available:
-
-```bash
-mkdir -p .claude/skills/i-have-adhd
-curl -sS https://raw.githubusercontent.com/ayghri/i-have-adhd/main/skills/i-have-adhd/SKILL.md \
-  -o .claude/skills/i-have-adhd/SKILL.md
-```
+**To keep it verbatim, not just install it once,** copy `install-adhd-skill.mjs`
+into the repo and wire its `--check` mode into an existing scheduled workflow — no
+new CI. field-laboratory does this: `check:adhd-skill` re-verifies the byte match
+on every drift-sentinel run (warning, not failing, if the source CDN is briefly
+unreachable).
 
 Source of truth: `skills/i-have-adhd/SKILL.md` on `ayghri/i-have-adhd@main`. As
 fetched 2026-08-22 it is **6813 bytes, 140 lines**, front-matter
 `name: i-have-adhd`, `disable-model-invocation: true`, `license: MIT`. It is a
 single file — no `references/`, scripts, or assets (probed and 404). Do not
-retype it; download it, so "verbatim" is a `diff`, not a transcription.
+retype it; the tooling downloads it, so "verbatim" is a `diff`, not a
+transcription.
 
 ## Artifact
 
@@ -106,17 +110,20 @@ Per repo, enumerable, not a judgement:
 - **No CI cost.** `SKILL.md` is a `.md` file; both repos' `verify` path ignores
   `**/*.md`, so this deploys nothing and gates nothing.
 
-## The automation that does and does not exist
+## The automation, and its one irreducible manual step
 
-**Does:** in field-laboratory, `check:adhd-skill` verifies the byte match on every
-drift-sentinel run, so this repo's copy cannot silently drift from source. Any
-sibling that copies the installer gets the same guard for free in its own
-sentinel — that is the "keep it verbatim" half of the ask.
+**Install:** `adhd-skill-sync.yml` installs the skill into both target repos from
+a runner — no command run by hand. **Verify-forever (this repo):**
+`check:adhd-skill` re-checks the byte match on every drift-sentinel run, so
+field-laboratory's copy cannot silently drift; a sibling that copies the
+installer gets the same guard in its own sentinel.
 
-**Does not:** `scripts/cc-cmd-followup.mjs` probes the relay's HTTP routes for the
-observable consequence of an ask, and a skill file in another repo's working tree
-is not visible on any relay route. The cross-repo install cannot be driven from
-here without write access to those repos — which this session does not have, and
-which is why this is a CC-CMD rather than a commit. The automation stops exactly
-at the access boundary: one self-verifying command for whoever runs it there, and
-a drift guard that travels with the script.
+The single thing a runner cannot do for itself is mint a credential for another
+repo — the built-in `GITHUB_TOKEN` is scoped to its own repo. So one manual step
+remains: add the `SIBLING_REPO_TOKEN` secret once. That is the true access
+boundary, and it is a secret to paste, not a command to run. After it, the
+install is a button, re-runnable and idempotent.
+
+Not wired into `scripts/cc-cmd-followup.mjs`: that probes the relay's HTTP routes,
+and a skill file in another repo's tree is on no relay route. The sync workflow's
+own dry-run is the observable check for this ask instead.

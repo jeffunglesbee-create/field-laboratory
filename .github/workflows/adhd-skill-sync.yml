@@ -1,0 +1,53 @@
+# Install the i-have-adhd skill into sibling repos, on a runner.
+#
+# This is the automated form of "run one command in field-relay-nba and
+# jubilant-bassoon". It exists because this session cannot push to those repos —
+# and leaving the install as a command for a human to run is un-automated
+# terminal work. The runner does it instead, through the GitHub Contents API.
+#
+# The one thing a runner cannot self-provision is a credential for ANOTHER repo:
+# the built-in GITHUB_TOKEN is scoped to this repo only. So this workflow needs a
+# repository secret `SIBLING_REPO_TOKEN` — a token with contents:write on every
+# target repo. Add it once (Settings → Secrets → Actions), then this runs itself.
+#
+# Dispatch-only: it never fires on push or schedule, so it costs no CI until you
+# ask for it. The first run defaults to dry_run=true — GET-only, it reports what
+# it WOULD do without writing. Re-run with dry_run unchecked to actually install.
+name: adhd-skill-sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Report only, write nothing'
+        type: boolean
+        default: true
+      targets:
+        description: 'Comma-separated owner/repo to install into'
+        default: 'jeffunglesbee-create/field-relay-nba,jeffunglesbee-create/jubilant-bassoon'
+
+concurrency:
+  group: adhd-skill-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The pure logic (base64, the create/update/skip decision, the front-matter
+      # gate) is proven here before any network call — the same self-test-first
+      # discipline every check in this repo uses.
+      - name: Self-test the sync logic
+        run: node scripts/sync-adhd-skill.mjs --self-test
+
+      - name: Install the skill into the target repos
+        env:
+          GH_TOKEN: ${{ secrets.SIBLING_REPO_TOKEN }}
+          TARGET_REPOS: ${{ inputs.targets }}
+        run: node scripts/sync-adhd-skill.mjs ${{ inputs.dry_run && '--dry-run' || '' }}
