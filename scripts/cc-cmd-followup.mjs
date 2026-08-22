@@ -19,52 +19,19 @@
 // means "not verified", and reporting that as "not landed" would be a claim from
 // no data, which is the failure this repo keeps finding.
 
+import { soccerBriefDefect } from './soccer-brief-defect.mjs'
+
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
 const SELF_TEST = process.argv.includes('--self-test')
 
-// ── the soccer-brief defect scanner ─────────────────────────────────────────
-//
-// `CC-CMD-2026-08-22-brief-sport-contamination` is a STOP-GENERATING ask, not a
-// field-appearance one. Its observable consequence is a defect DISAPPEARING from
-// the relay's soccer briefs, so its predicate scans `brief_text` for the three
-// mechanical defects the CC-CMD names. These regexes mirror what the F# desk
-// already catches on the card (`Journalism.crossSportTokens`,
-// `Scoreline.contradictoryLevelClaim`) — re-expressed here in plain JS so the
-// follow-up stays standalone and needs no build.
-
-/// A strict-lead scoreline is present, AFTER won-drawn-lost records are removed.
-///
-/// The distinction the Brentford card turned on: `0-0-0` is a record, not a
-/// score, so any run of three-or-more hyphenated numbers is stripped before a
-/// two-part scoreline is read. Without this, `0-0-0` would read as a 0-0 score
-/// and the check would fire on the record it is supposed to ignore.
-const hasStrictLeadScore = t => {
-  const withoutRecords = t.replace(/\b\d+(?:-\d+){2,}\b/g, ' ')
-  const scores = withoutRecords.match(/\b\d+\s*-\s*\d+\b/g) || []
-  return scores.some(s => {
-    const [a, b] = s.split(/\s*-\s*/).map(Number)
-    return a !== b
-  })
-}
-
-/// The defect a single soccer `brief_text` carries, or null if it is clean.
-/// Named so the state is a reason, not a bare boolean, in both the report and
-/// the self-test.
-const soccerBriefDefect = t => {
-  if (!t || !t.trim()) return null
-  // Defect 1: a soccer brief naming a non-soccer league or a basketball metric.
-  // Word-boundaried so "MLS" never trips "MLB".
-  if (/\b(DRTG|ORTG|NBA|NHL|NFL|MLB|WNBA)\b/.test(t)) return 'cross-sport vocabulary'
-  // Defect 2, the wrong-stat-model symptom: a 0-0-0 won-drawn-lost record cited
-  // as season context. Vacuous in the opening weeks (every side is 0-0-0) and
-  // the wrong stat for European soccer regardless — the table, not the record,
-  // is the season context. A discriminating record (e.g. 5-2-1) is NOT flagged.
-  if (/\b0-0-0\b/.test(t)) return 'vacuous 0-0-0 record cited as season context'
-  // Defect 2's contradiction form: a stated lead called a stalemate.
-  if (/\bstalemate\b/i.test(t) && hasStrictLeadScore(t)) return 'stalemate beside a stated lead'
-  return null
-}
+// The soccer-brief defect scanner (cross-sport vocabulary, a vacuous 0-0-0
+// record, a stalemate beside a stated lead) lives in ./soccer-brief-defect.mjs
+// so the CC-CMD follow-up and the cross-repo evidence runner share one copy.
+// `CC-CMD-2026-08-22-brief-sport-contamination` is a STOP-GENERATING ask: its
+// observable consequence is those defects DISAPPEARING from the relay's soccer
+// briefs, so the predicate below scans returned briefs and reports `still gen`
+// until every one is clean.
 
 /**
  * Asks that have LANDED, and the same predicate that showed they did.

@@ -25,6 +25,7 @@
     "check:import-purity": "node scripts/import-purity-check.mjs --self-test && node scripts/import-purity-check.mjs",
     "check:adhd-skill": "node scripts/install-adhd-skill.mjs --self-test && node scripts/install-adhd-skill.mjs --check",
     "sync:adhd-skill": "node scripts/sync-adhd-skill.mjs --self-test && node scripts/sync-adhd-skill.mjs",
+    "watch:relay-briefs": "node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs",
     "check:pick": "node scripts/pick-check.mjs",
     "check:tabs": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
     "check:brief-flip": "node scripts/brief-flip-check.mjs",
