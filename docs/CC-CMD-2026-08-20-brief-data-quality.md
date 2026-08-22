@@ -380,6 +380,16 @@ joined per-sport scoring-event payload — an enumerated pass/fail per row, not 
 prose quality judgement. (The rev-3 "conditional on the premise holding" hedge is
 removed; the join premise holds — MLS `game_recap` briefs join 83/83.)
 
+**Season-context fallback — right stat per sport.** When a brief falls back to
+season context rather than events, the stat must fit the sport. For European
+soccer that is **table position and competition advancement** (points, rank,
+European/relegation stakes), not a won-drawn-lost record — the §1 "0 points
+through the season" / "0-0-0 records" lines are the wrong stat model, and vacuous
+in the opening weeks when every record is 0-0-0 but the table already separates
+sides on goal difference. Carried in full as defect 2 of
+`CC-CMD-2026-08-22-brief-sport-contamination`; recorded here because ask 5 is
+where the season-stat template is replaced.
+
 ### Ask 6 — Recalibrate `quality_score` and stamp `scoring_version`
 
 Weight event density, freshness (a recap of an unfinished game scores low, not

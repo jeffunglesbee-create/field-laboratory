@@ -23,6 +23,49 @@ const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
 const SELF_TEST = process.argv.includes('--self-test')
 
+// ── the soccer-brief defect scanner ─────────────────────────────────────────
+//
+// `CC-CMD-2026-08-22-brief-sport-contamination` is a STOP-GENERATING ask, not a
+// field-appearance one. Its observable consequence is a defect DISAPPEARING from
+// the relay's soccer briefs, so its predicate scans `brief_text` for the three
+// mechanical defects the CC-CMD names. These regexes mirror what the F# desk
+// already catches on the card (`Journalism.crossSportTokens`,
+// `Scoreline.contradictoryLevelClaim`) — re-expressed here in plain JS so the
+// follow-up stays standalone and needs no build.
+
+/// A strict-lead scoreline is present, AFTER won-drawn-lost records are removed.
+///
+/// The distinction the Brentford card turned on: `0-0-0` is a record, not a
+/// score, so any run of three-or-more hyphenated numbers is stripped before a
+/// two-part scoreline is read. Without this, `0-0-0` would read as a 0-0 score
+/// and the check would fire on the record it is supposed to ignore.
+const hasStrictLeadScore = t => {
+  const withoutRecords = t.replace(/\b\d+(?:-\d+){2,}\b/g, ' ')
+  const scores = withoutRecords.match(/\b\d+\s*-\s*\d+\b/g) || []
+  return scores.some(s => {
+    const [a, b] = s.split(/\s*-\s*/).map(Number)
+    return a !== b
+  })
+}
+
+/// The defect a single soccer `brief_text` carries, or null if it is clean.
+/// Named so the state is a reason, not a bare boolean, in both the report and
+/// the self-test.
+const soccerBriefDefect = t => {
+  if (!t || !t.trim()) return null
+  // Defect 1: a soccer brief naming a non-soccer league or a basketball metric.
+  // Word-boundaried so "MLS" never trips "MLB".
+  if (/\b(DRTG|ORTG|NBA|NHL|NFL|MLB|WNBA)\b/.test(t)) return 'cross-sport vocabulary'
+  // Defect 2, the wrong-stat-model symptom: a 0-0-0 won-drawn-lost record cited
+  // as season context. Vacuous in the opening weeks (every side is 0-0-0) and
+  // the wrong stat for European soccer regardless — the table, not the record,
+  // is the season context. A discriminating record (e.g. 5-2-1) is NOT flagged.
+  if (/\b0-0-0\b/.test(t)) return 'vacuous 0-0-0 record cited as season context'
+  // Defect 2's contradiction form: a stated lead called a stalemate.
+  if (/\bstalemate\b/i.test(t) && hasStrictLeadScore(t)) return 'stalemate beside a stated lead'
+  return null
+}
+
 /**
  * Asks that have LANDED, and the same predicate that showed they did.
  *
@@ -80,6 +123,24 @@ const ASKS = [
       'scoring_version' in j.results[0],
     note: 'Phase 2 unblocks the day this is true — every stored score gains a rubric',
   },
+  {
+    // A STOP-GENERATING ask — see `cessation` below and the scanner above.
+    cmd: 'CC-CMD-2026-08-22-brief-sport-contamination',
+    ask: 'soccer briefs carry no cross-sport vocabulary, no 0-0-0 record cited as season context, and no stalemate beside a stated lead',
+    route: '/archive/query?sport=EPL&limit=40',
+    cessation: true,
+    // Three states, not two. `null` means "no EPL briefs came back this run" —
+    // observable-but-empty, which is neither confirmation nor a defect and must
+    // not read as "still generating". `true` = every returned brief is clean;
+    // `false` = at least one still carries a flagged defect.
+    landed: j => {
+      const rows = Array.isArray(j?.results) ? j.results : []
+      const withText = rows.filter(r => (r.brief_text || '').trim() !== '')
+      if (withText.length === 0) return null
+      return withText.every(r => soccerBriefDefect(r.brief_text) === null)
+    },
+    note: 'route assumes /archive/query?sport=EPL returns recent EPL briefs; if the relay pins a date, adjust the route. As of filing (2026-08-22) the defect is live — Everton/Brentford cards — so this reads "still generating" until the relay grounds soccer briefs in soccer stats and the table',
+  },
 ]
 
 // ── the self-test: do the predicates discriminate? ──────────────────────────
@@ -122,6 +183,37 @@ if (SELF_TEST) {
     !ASKS.some(a => LANDED.some(l => l.cmd === a.cmd)),
     'an ask is being reported twice, in two different states')
 
+  // ── the contamination scanner discriminates ───────────────────────────────
+  //
+  // A stop-generating predicate that returned `true` on the defect would confirm
+  // the ask landed while the relay still ships the falsehood — the exact
+  // false-confidence this file exists to refuse. Exercised against the two real
+  // cards the CC-CMD was filed on, plus clean prose that must not be flagged.
+  const contam = ASKS.find(a => a.cmd.includes('brief-sport-contamination'))
+  const EVERTON = 'Everton secured a 2-0 win, maintaining a 107.7 DRTG, best in the NBA, despite playing soccer tonight.'
+  const BRENTFORD = 'Brentford leads Spurs 3-0 in the 58th minute. Both teams hold 0-0-0 records this season. The game remains a 0-0-0 stalemate in league standings.'
+  const CLEAN = 'Arsenal beat Coventry 3-0 at the Emirates, Saka scoring in the 34th; Arsenal sit top of the table on goal difference.'
+  const MID_SEASON = 'City are 5-2-1 and sit second, chasing the Champions League places.'
+
+  check('the contamination probe flags a soccer brief naming NBA/DRTG (not landed)',
+    contam.landed({ results: [{ brief_text: EVERTON }] }) === false,
+    'cross-sport vocabulary passes as clean')
+  check('it flags a stated lead called a stalemate, and reads 0-0-0 as a record not a 0-0 score',
+    contam.landed({ results: [{ brief_text: BRENTFORD }] }) === false,
+    'the Brentford card passes, or 0-0-0 is misread as a level score')
+  check('it is silent on a clean soccer brief that leads with table position',
+    contam.landed({ results: [{ brief_text: CLEAN }] }) === true,
+    'a clean brief is flagged — the check would nag the relay over nothing')
+  check('a discriminating mid-season record (5-2-1) is NOT flagged — only the vacuous 0-0-0 is',
+    contam.landed({ results: [{ brief_text: MID_SEASON }] }) === true,
+    'the probe flags records generally rather than the wrong-stat 0-0-0 line')
+  check('no EPL briefs this run reports null (not observable), never "still generating"',
+    contam.landed({ results: [] }) === null,
+    'an empty slate reads as a defect instead of as nothing to observe')
+  check('a mixed batch with one contaminated brief is not landed',
+    contam.landed({ results: [{ brief_text: CLEAN }, { brief_text: EVERTON }] }) === false,
+    'one clean brief masks a contaminated one')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -139,12 +231,22 @@ for (const a of LANDED) {
   } catch { landedUnverified++ }
 }
 
+// Field-appearance asks read LANDED / not yet. A cessation ask reads stopped /
+// still gen, and has a third truth its predicate returns as `null`: the route
+// answered but carried nothing to observe this run — not a confirmation and not
+// a defect, so it must never masquerade as either.
+const stateFor = (a, ok) => {
+  if (ok === null || ok === undefined) return 'no rows'
+  if (a.cessation) return ok ? 'stopped' : 'still gen'
+  return ok ? 'LANDED' : 'not yet'
+}
+
 for (const a of ASKS) {
   try {
     const r = await fetch(`${RELAY}${a.route}`, { signal: AbortSignal.timeout(20000) })
     if (!r.ok) { rows.push({ ...a, state: `HTTP ${r.status}` }); unreachable++; continue }
     const j = await r.json()
-    rows.push({ ...a, state: a.landed(j) ? 'LANDED' : 'not yet' })
+    rows.push({ ...a, state: stateFor(a, a.landed(j)) })
   } catch (e) {
     rows.push({ ...a, state: `unreachable: ${String(e).slice(0, 50)}` })
     unreachable++
@@ -170,14 +272,32 @@ for (const r of rows) {
 }
 
 const landed = rows.filter(r => r.state === 'LANDED')
+const stopped = rows.filter(r => r.state === 'stopped')
+const stillGen = rows.filter(r => r.state === 'still gen')
+const noRows = rows.filter(r => r.state === 'no rows')
 const pending = rows.filter(r => r.state === 'not yet')
 
-console.log(`  ${landed.length} landed, ${pending.length} pending, ${unreachable} unverifiable\n`)
+console.log(`  ${landed.length} landed, ${stopped.length} stopped, ` +
+  `${pending.length + stillGen.length} pending, ${noRows.length} not observable this run, ` +
+  `${unreachable} unverifiable\n`)
 
 if (landed.length) {
   console.log('::notice::A filed CC-CMD has landed — the laboratory-side work it unblocks is now available.')
   for (const r of landed) console.log(`::notice::LANDED ${r.cmd}: ${r.ask}`)
   console.log('::notice::Move it to LANDED in this file so it stops being reported as news.')
+}
+
+// A cessation ask that now reads clean is reported, but NOT with the "promote to
+// the fatal LANDED list" instruction. A field that appeared can be relied on and
+// its disappearance is a regression; a defect that stopped appearing on one
+// slate is not a fact to build on, and making its return a red build here would
+// be turning the relay's backlog into laboratory pressure — the thing this file
+// opens by refusing to do. So it stays in the open ASKS list, monitored, either way.
+if (stopped.length) {
+  for (const r of stopped) {
+    console.log(`::notice::CLEAN THIS RUN ${r.cmd}: the returned soccer briefs carried none of the flagged defects.`)
+  }
+  console.log('::notice::A cessation ask stays in the open ASKS list — one clean slate is not a landed fact. Do NOT promote it to the fatal LANDED list.')
 }
 
 // Fatal, and reported before the unreachable case, because a regression is a

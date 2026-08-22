@@ -51,6 +51,16 @@ The session doc's own words: *"Not wired yet — buildable in a future journalis
 session. Relay endpoint: already available, no additional worker changes
 needed."* This is that session.
 
+**The season-stat fallback must be the right stat, too.** Event grounding is the
+fix; where a brief still cites season context (a fixture with no events yet, an
+early-match `game_live`), that context for European soccer is **table position
+and competition advancement** — points, rank, European/relegation stakes — not a
+won-drawn-lost record. The observed "0 points through 0 matches" / "0-0-0
+records" lines are the wrong stat *and* vacuous in the opening weeks, when every
+side's record is 0-0-0 but the table already separates them on goal difference.
+Cite record only where it discriminates (mid-season, behind points/position).
+Carried in full as defect 2 of `CC-CMD-2026-08-22-brief-sport-contamination`.
+
 ## The ask
 
 For EPL games, ground the brief in the FPL per-player events rather than season
