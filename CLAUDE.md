@@ -37,6 +37,9 @@ fake-profound endings.
 ## Standing instructions
 
 - Push to `main`.
+- No PRs. A PR waits on a human merge, which is not automated — land changes as
+  direct commits (to `main` here, to the target's default branch cross-repo via a
+  runner). Applies to cross-repo asks too: automate the commit, do not open a PR.
 - No fallbacks, only fixes.
 - Automate follow-ups.
 - If something cannot run here, use a GitHub Actions runner. "Cannot be tested"
