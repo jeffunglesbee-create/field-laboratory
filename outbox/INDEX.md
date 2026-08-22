@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5e4bb17` | 2026-08-22 | [cc-the-stalemate-that-led-three-nil-2026-08-22.md](cc-the-stalemate-that-led-three-nil-2026-08-22.md) | Briefs: catch a stated lead called a stalemate (the Brentford card) |
 | `73cee8c` | 2026-08-22 | [cc-the-brief-that-played-the-wrong-sport-2026-08-22.md](cc-the-brief-that-played-the-wrong-sport-2026-08-22.md) | Briefs: catch cross-sport contamination (a soccer brief naming the NBA/DRTG) |
 | `eeb2e23` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
 | `b1ec662` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-21 [skip ci] |
