@@ -185,3 +185,46 @@ let verdictFor (f: Final option) (text: string) : Verdict option =
     elif List.contains Impossible verdicts then Some Impossible
     elif List.contains Consistent verdicts then Some Consistent
     else Some Unsettled
+
+// --- level-claim contradiction ----------------------------------------------
+//
+// A brief can state a decisive scoreline and, in the same breath, call the game
+// a stalemate. Observed on EPL 2026-08-22, Brentford v Spurs, live:
+//
+//   "Brentford leads Spurs 3-0 in the 58th minute … The game remains a 0-0-0
+//    stalemate in league standings."
+//
+// A side cannot lead 3-0 in a stalemate. This is decidable from the brief ALONE:
+// it needs no final, which is the whole point, because the game was live and its
+// row carried none — so `verdictFor` above returned `Unsettled` and the scoreline
+// verdict said only "final not in yet". The contradiction is between two claims
+// in the same brief, not between a claim and the row.
+//
+// The "0-0-0" in that sentence is a RECORD (won-drawn-lost), not a 0-0 game
+// score, and the detector must never read it as one — a naive "the brief says 0-0
+// AND 3-0, contradiction" would be exactly that mistake. It does not: the RUN
+// extractor above drops any three-part run as a record (that is why `6-5-6` and
+// `0-0-0` are not scorelines), so the ONLY scoreline read from this brief is the
+// 3-0 lead. The contradiction reported here is the WORD "stalemate" against that
+// real 3-0, never a record parsed as a score.
+//
+// BOTH signals are required: a stated scoreline with a strict leader (A <> B,
+// from the extractor above — so a genuine "1-1 deadlock" is level and does not
+// qualify) AND the word "stalemate". The word is deliberately the only one in the
+// set. "tie/tied/level/draw" are excluded because they read correctly in a
+// progression ("level at the half, now 3-0") and in the table ("level on
+// points"); "scoreless/goalless" are excluded because "leads 3-0 after a
+// scoreless first half" is legitimate. "stalemate" is not a scoreline cue and
+// does not describe a half or a table, so it never sits beside a stated lead by
+// accident. Others join the set only when a brief exhibits them with a
+// disambiguation as clean as this one.
+let private STALEMATE = Regex(@"\bstalemate\b", RegexOptions.IgnoreCase)
+
+/// The no-separation word(s) a brief uses while also stating a scoreline with a
+/// clear leader — an internal contradiction, returned as the quotable token(s).
+/// Empty when either signal is absent, so a clean "leads 3-0" and a genuine
+/// "1-1 deadlock" both pass.
+let contradictoryLevelClaim (text: string) : string list =
+    let hasStrictLead = scorelinesIn text |> List.exists (fun c -> c.A <> c.B)
+    if not hasStrictLead then []
+    else [ for m in STALEMATE.Matches text -> m.Value.ToLower() ] |> List.distinct

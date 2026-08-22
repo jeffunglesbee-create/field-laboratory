@@ -93,15 +93,30 @@ row, not a prose judgement.
 
 ## What the laboratory already does (do not re-file)
 
-The desk now **catches** this rather than rendering it as true. `Journalism.crossSportTokens`
-reads the game's own `IsSoccer` from the `Sport` registry and flags any foreign
-league/metric token; `src/Scoreboard.fs` renders a red verdict chip
-("cross-sport reference — this soccer brief names NBA, DRTG") beside the existing
-scoreline/provenance/anchoring verdicts. Negative-tested in
-`scripts/journalism-check.mjs` (the Everton brief is caught; a clean soccer brief
-and an "MLS" mention are not). That is the trust-wedge working: a false claim is
-visible as caught, not laundered into the card. But catching is not curing — the
-relay should not be *writing* the falsehood, which is this ask.
+The desk now **catches** two of these rather than rendering them as true — the
+trust wedge working: a false claim is visible as caught, not laundered into the
+card. But catching is not curing; the relay should not be *writing* the
+falsehoods, which is this ask.
+
+- **Defect 1 (cross-sport).** `Journalism.crossSportTokens` reads the game's own
+  `IsSoccer` from the `Sport` registry and flags any foreign league/metric token;
+  `src/Scoreboard.fs` renders "cross-sport reference — this soccer brief names
+  NBA, DRTG". Negative-tested in `scripts/journalism-check.mjs` (the Everton brief
+  is caught; a clean soccer brief and an "MLS" mention are not).
+
+- **Defect 2 (stalemate vs a stated lead).** `Scoreline.contradictoryLevelClaim`
+  flags a brief that states a scoreline with a strict leader AND calls the game a
+  "stalemate"; `Scoreboard.fs` renders "contradiction — states a lead yet calls
+  the game a stalemate". It reads the brief alone (the live game had no final, so
+  the scoreline verdict could only say "final not in yet"). Crucially it does NOT
+  read "0-0-0" as a 0-0 score — that is a won-drawn-lost record, dropped as a
+  three-part run; the only scoreline is the 3-0, and the flag is the word
+  "stalemate" against it. Negative-tested in `scripts/scoreline-check.mjs`
+  (a clean lead, a genuine "1-1 deadlock", a "level at the half" progression, and
+  a bare 0-0-0 record are all NOT flagged).
+
+Defect 3 (the two-window comparison) has no laboratory guard yet — it is a
+`FIELD_PROSE_STYLE` question and is the relay's to fix.
 
 ## Scope boundary
 

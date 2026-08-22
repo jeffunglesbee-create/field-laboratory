@@ -446,6 +446,21 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
             back.appendChild (el "div" "desk-card__verdict desk-card__verdict--bad" label)
             |> ignore
 
+        // Stage 5: internal contradiction — a stated lead and a "stalemate" in
+        // one brief. Decidable from the brief alone, so it fires on a live game
+        // whose final is not in and the scoreline verdict above could only say
+        // "final not in yet". Observed on Brentford v Spurs: "leads 3-0 … remains
+        // a 0-0-0 stalemate" — where 0-0-0 is a record, not a score, and the 3-0
+        // is the only real scoreline.
+        match Scoreline.contradictoryLevelClaim text with
+        | [] -> ()
+        | words ->
+            let label =
+                sprintf "contradiction — states a lead yet calls the game a %s"
+                    (String.concat ", " words)
+            back.appendChild (el "div" "desk-card__verdict desk-card__verdict--bad" label)
+            |> ignore
+
         let flip = el "div" "desk-card__flip" ""
         flip.appendChild front |> ignore
         flip.appendChild back |> ignore

@@ -54,7 +54,7 @@
 
 import { readFileSync } from 'node:fs'
 import { createChecks, isMain, toArray } from './checks.mjs'
-import { observed, final, judge, isFinding, wasChecked, finalPair, scorelinesIn } from '../build/Scoreline.js'
+import { observed, final, judge, isFinding, wasChecked, finalPair, scorelinesIn, contradictoryLevelClaim } from '../build/Scoreline.js'
 import { resolveGame, indexGames } from './game-id-scheme.mjs'
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
@@ -118,6 +118,42 @@ if (SELF_TEST) {
   check('a basketball-sized scoreline survives',
     found('securing a 96-79 win over Tempo').join() === '96-79',
     JSON.stringify(found('securing a 96-79 win over Tempo')))
+
+  // ── the level-claim contradiction ──────────────────────────────────────────
+  //
+  // A brief that states a lead and calls the game a stalemate is contradictory,
+  // and the check must read it from the brief alone (the live game had no final).
+  const level = t => Array.from(contradictoryLevelClaim(t))
+
+  // The observed defect verbatim. Note "0-0-0" is a RECORD; the only scoreline
+  // is 3-0, and the flag is the WORD "stalemate", not a 0-0 parsed from 0-0-0.
+  check('a stated lead plus "stalemate" is flagged (the Brentford card)',
+    level('Brentford leads Spurs 3-0 in the 58th minute. Both teams hold 0-0-0 ' +
+      'records this season. The game remains a 0-0-0 stalemate in league standings.')
+      .join() === 'stalemate',
+    JSON.stringify(level('Brentford leads Spurs 3-0 … remains a 0-0-0 stalemate in league standings.')))
+
+  // A clean lead with no stalemate word is not a contradiction.
+  check('a clean lead alone is not flagged',
+    level('Detroit currently leads 4-2.').length === 0,
+    JSON.stringify(level('Detroit currently leads 4-2.')))
+
+  // A genuine level game ("1-1 deadlock") has no strict leader, so a level word
+  // near it is not a contradiction — both signals are required.
+  check('a genuine 1-1 deadlock is not a contradiction',
+    level('Angel Stadium hosts a tight 1-1 deadlock, a real stalemate tonight.').length === 0,
+    JSON.stringify(level('a tight 1-1 deadlock, a real stalemate tonight.')))
+
+  // The excluded words: "level"/"tied" in a legitimate progression must not fire.
+  check('a lead after a level first half is not a contradiction',
+    level('Level at the half, Brentford now leads 3-0.').length === 0,
+    JSON.stringify(level('Level at the half, Brentford now leads 3-0.')))
+
+  // "0-0-0" alone (a record) with no two-part scoreline yields no strict lead,
+  // so even beside "stalemate" it is not flagged — a record is not a score.
+  check('a 0-0-0 record with no real scoreline is not a contradiction',
+    level('Both teams hold 0-0-0 records — a stalemate in the table.').length === 0,
+    JSON.stringify(level('Both teams hold 0-0-0 records — a stalemate in the table.')))
 
   // ── the relation ──────────────────────────────────────────────────────────
   const v = (a, b, h, aw) => judge(final(h, aw), observed(a, b))
