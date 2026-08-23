@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a615617` | 2026-08-23 | [cc-typography-as-types-2026-08-23.md](cc-typography-as-types-2026-08-23.md) | Typography: FIELD's type system as types, with proofs |
 | `0632704` | 2026-08-23 | [cc-the-palette-as-types-2026-08-23.md](cc-the-palette-as-types-2026-08-23.md) | Palette: FIELD's semantic color system as types, with proofs |
 | `9504353` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
 | `cf9a930` | 2026-08-22 | [cc-the-stalemate-that-led-three-nil-2026-08-22.md](cc-the-stalemate-that-led-three-nil-2026-08-22.md) | Briefs: catch a stated lead called a stalemate (the Brentford card) |
