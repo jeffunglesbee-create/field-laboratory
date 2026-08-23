@@ -34,3 +34,30 @@ export const newestDeployableCommit = (limit = 100) => {
   }
   return null
 }
+
+/// Does `descendant`'s tree already contain `ancestor`'s changes — i.e. is
+/// `ancestor` an ancestor of, or equal to, `descendant`?
+///
+/// This exists because "published !== newestDeployable" was being read as "the
+/// deploy did not land", and that is false whenever a non-deployable commit
+/// lands on top: the deploy stamps the commit it RAN on, so version.txt can name
+/// a docs commit whose tree still contains every deployable change. Measured
+/// 2026-08-23: published 765549e (`status: refresh [skip ci]`, touching only
+/// STATUS.md and outbox/INDEX.md) against newest-deployable 06c37db, which is
+/// its parent. The site was correct and live-check called it DEPLOY NOT LANDED.
+///
+/// Returns true / false, or null when the comparison cannot be made at all
+/// (either sha unknown to this clone — a shallow checkout, or a stamp from a
+/// history that was rewritten). null must not be reported as "behind": not
+/// knowing is not the same as being stale.
+export const containsCommit = (ancestor, descendant) => {
+  if (!ancestor || !descendant) return null
+  try {
+    execSync(`git cat-file -e ${ancestor}^{commit}`, { stdio: 'ignore' })
+    execSync(`git cat-file -e ${descendant}^{commit}`, { stdio: 'ignore' })
+  } catch { return null }
+  try {
+    execSync(`git merge-base --is-ancestor ${ancestor} ${descendant}`, { stdio: 'ignore' })
+    return true
+  } catch { return false }
+}

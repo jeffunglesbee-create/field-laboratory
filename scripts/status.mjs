@@ -10,7 +10,7 @@
 // real fact changes, so its git history is a log of things actually happening.
 
 import { readFile, writeFile } from 'node:fs/promises'
-import { newestDeployableCommit } from './deployable.mjs'
+import { newestDeployableCommit, containsCommit } from './deployable.mjs'
 
 /// The "Serving commit" cell for a live target. The old text said only "(behind
 /// `main`)" whenever the published commit differed from HEAD — which is the
@@ -21,6 +21,12 @@ export const deployedCell = (published, deployable, head) => {
   const short = s => s.slice(0, 7)
   if (deployable && published === deployable) return `\`${short(published)}\` — newest deployable ✓`
   if (deployable && published !== deployable) {
+    // Equality is not the test — see containsCommit. A docs commit on top of a
+    // landed deploy is a correct site, and calling it "deploy not landed"
+    // trains people to ignore the cell.
+    const contains = containsCommit(deployable, published)
+    if (contains === true) return `\`${short(published)}\` — newest deployable \`${short(deployable)}\` is live ✓ (docs on top)`
+    if (contains === null) return `\`${short(published)}\` — cannot compare against \`${short(deployable)}\``
     return `\`${short(published)}\` — behind newest deployable \`${short(deployable)}\` (deploy not landed)`
   }
   // No deployable commit found in reach (shallow history) — fall back to the

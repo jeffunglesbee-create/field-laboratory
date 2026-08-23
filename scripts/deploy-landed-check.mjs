@@ -24,7 +24,7 @@
 
 import { execSync } from 'node:child_process'
 import { createChecks } from './checks.mjs'
-import { isDeployable, newestDeployable, newestDeployableCommit } from './deployable.mjs'
+import { isDeployable, newestDeployable, newestDeployableCommit, containsCommit } from './deployable.mjs'
 
 const SITE = process.env.SITE || 'https://field-laboratory.jeffunglesbee.workers.dev'
 const SELF_TEST = process.argv.includes('--self-test')
@@ -36,10 +36,20 @@ const STRICT = process.argv.includes('--strict')
 
 /// The verdict, given the published sha, the newest deployable sha, and whether
 /// that deployable commit is reachable in the walked history.
-const verdict = (published, deployable) => {
+/// `contains` answers: does the published commit's tree already include the
+/// newest deployable commit? true / false / null (cannot tell).
+///
+/// Equality is NOT the test. The deploy stamps the commit it ran on, so
+/// version.txt routinely names a non-deployable commit sitting on top of the
+/// deployable one — and that site is correct, not stale. Only a published
+/// commit that does NOT contain the newest deployable change is behind.
+const verdict = (published, deployable, contains) => {
   if (!published) return 'unknown'      // site down or no stamp
   if (!deployable) return 'nothing-to-deploy'
-  return published === deployable ? 'landed' : 'behind'
+  if (published === deployable) return 'landed'
+  if (contains === true) return 'landed-newer'
+  if (contains === null) return 'unknown'   // shas not comparable — say so, do not accuse
+  return 'behind'
 }
 
 if (SELF_TEST) {
@@ -60,11 +70,22 @@ if (SELF_TEST) {
     ]) === 'c',
     'the newest deployable commit is not found past docs commits')
   check('verdict: published IS the newest deployable → landed',
-    verdict('c', 'c') === 'landed', 'a correct landing is not recognised')
-  check('verdict: published is behind the newest deployable → behind',
-    verdict('a', 'c') === 'behind', 'a stale deploy is not caught')
+    verdict('c', 'c', true) === 'landed', 'a correct landing is not recognised')
+  // The case the previous version of this self-test got backwards. It asserted
+  // verdict('a','c') === 'behind' where 'a' is the NEWEST commit in its own
+  // fixture and 'c' an older deployable one — a descendant reported as stale.
+  // The assertion encoded the bug, which is why it passed 6/6 while live-check
+  // went red on a correct site.
+  check('verdict: published is a docs commit ON TOP of the newest deployable → landed-newer',
+    verdict('a', 'c', true) === 'landed-newer',
+    'a docs commit on top of a landed deploy is reported as a failed deploy')
+  check('verdict: published does NOT contain the newest deployable → behind',
+    verdict('a', 'c', false) === 'behind', 'a genuinely stale deploy is not caught')
+  check('verdict: shas not comparable → unknown, never behind',
+    verdict('a', 'c', null) === 'unknown',
+    'an uncomparable stamp is reported as a failed deploy')
   check('verdict: no stamp → unknown, no deployable commit → nothing-to-deploy',
-    verdict(null, 'c') === 'unknown' && verdict('c', null) === 'nothing-to-deploy',
+    verdict(null, 'c', true) === 'unknown' && verdict('c', null, true) === 'nothing-to-deploy',
     'the empty cases are misclassified')
   process.exit(summarize() === 0 ? 0 : 1)
 }
@@ -82,7 +103,7 @@ try {
   if (r.ok) published = (await r.text()).trim()
 } catch { /* site unreachable — verdict handles null */ }
 
-const v = verdict(published, deployable)
+const v = verdict(published, deployable, containsCommit(deployable, published))
 const short = s => (s ? s.slice(0, 7) : '—')
 
 console.log(`\ndeploy-landed — is the published artifact the newest deployable commit?\n`)
@@ -93,6 +114,10 @@ console.log(`  HEAD:               ${short(headSha)}\n`)
 switch (v) {
   case 'landed':
     console.log('  ✓ LANDED — the live site serves the newest deployable commit.')
+    process.exit(0)
+  case 'landed-newer':
+    console.log(`  ✓ LANDED — published ${short(published)} is a non-deployable commit on top of ` +
+                `${short(deployable)}; its tree contains every deployable change.`)
     process.exit(0)
   case 'nothing-to-deploy':
     console.log('  · nothing deployable in the walked history — no assertion to make.')
