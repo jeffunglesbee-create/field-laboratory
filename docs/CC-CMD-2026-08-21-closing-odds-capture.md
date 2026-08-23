@@ -2,11 +2,15 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (AmbientDO — the pre→live game-state hook)
-**Status:** WITHDRAWN AND SUPERSEDED. The original ask is closed — the hook was
-already landed and firing, and the real defect (a third `closing_odds` writer in
-`/archive/game`) is FIXED by relay `887c843`, `f6fa820` and `a1937eb`. What
-survives is a **different ask about OPENING captures**, restated below. Original
-text kept for the record.
+**Status:** WITHDRAWN AND SUPERSEDED, and the surviving ask is now HALF VERIFIED.
+The original ask is closed — the hook was already landed and firing, and the real
+defect (a third `closing_odds` writer in `/archive/game`) is FIXED by relay
+`887c843`, `f6fa820` and `a1937eb`. **Verified 2026-08-23: 8 of 8 games carrying
+both prices are a real sequence, all 8 show movement, and `OddsStory.Moved` is
+reachable from production data for the first time since it shipped in June.** The
+soccer half — that EPL and La Liga now carry an opening line — is NOT closed by
+that aggregate and needs a per-sport split to settle; see the staged block below.
+Original text kept for the record.
 
 > **Re-file, not a status edit.** Two sessions have now flagged that this
 > document should be withdrawn and re-filed as an opening-capture ask rather
@@ -84,11 +88,29 @@ That — not the hook — is the actual blocker for `Moved` on the marquee socce
 Carry-forwards #2 (team-name aliasing) and #3 (non-AmbientDO sports) survive
 unchanged.
 
-**Staged verification (Rule 74).** That the `887c843` fix yields a real sequence
-is *staged*, blocked by needing one MLB/WNBA pre→live transition after that deploy;
-verify `closing_odds.captured_at > opening_odds.captured_at` and the desk rendering
-`ML X -> Y (home ±N.N implied)` instead of `NOT SEQUENCED`. Unblocks on the next
-slate. The laboratory side (the `Moved` render) is shipped and unchanged.
+**VERIFIED 2026-08-23** (was staged). Drift-sentinel runs 41 and 42 both read:
+
+```
+games with both prices: 8, not sequenced: 0
+8 of 8 games showed a real open/close sequence.
+✓ Closed issue #2 (closing_odds is not a closing line)
+```
+
+Drift-log row, same run: `both=8 notseq=0 moved=8 unmoved=0`.
+
+Every game carrying both prices is now a genuine sequence, and all eight show
+**movement** rather than a repeated snapshot. `887c843` + `f6fa820` + `a1937eb`
+did what they claimed.
+
+**`OddsStory.Moved` has been reachable from production data since 2026-08-23,
+and was not before.** It shipped in June and every branch except `Moved` and
+`Unmoved` had fired on real data; this is the first day the desk could narrate a
+line movement without inventing one. Nothing in the laboratory changed to make
+it true — the relay's kickoff capture reached a slate.
+
+The sentinel closed issue #2 itself, which is the mechanism working as designed:
+the issue was filed by a run and retired by a run, with no human deciding when
+the claim stopped holding.
 
 ---
 
@@ -131,13 +153,27 @@ Real Sociedad form) is deliberately NOT aliased — under this convention any fu
 article-stripping turns `La Real` → `Real` → Real Madrid. If the feeds use it, it
 needs an explicit entry *plus* a guard that it never resolves to Real Madrid.
 
-**Staged verification (Rule 74).** That the alias fix raises soccer opening
-coverage is *staged*, blocked by a soccer slate running after the `bb04fc8`
-deploy; verify `opening_odds IS NOT NULL` on the next La Liga/EPL matchday and the
-desk rendering `ML X -> Y` instead of `one snapshot`. **Laboratory side: nothing to
-build** — the `oddsStory` builder already yields `SingleSnapshot` on a lone
-capture and `Moved`/`Unmoved` on a real pair; feeding it a joined opening line is
-the whole fix.
+**Still staged (Rule 74), and NOT closed by the 2026-08-23 sequence result.**
+That result is an aggregate — `both=8` across a slate carrying MLB, MLS, Serie A,
+WNBA, EPL, La Liga, Ligue 1, CFL, golf and NFL — and the drift log does not break
+the odds shape down by sport. So it proves *a* sequence exists; it does not prove
+the eight include a La Liga or EPL fixture, which is the claim this item makes.
+Reading it as closed would be the aggregate-hides-the-case error this document
+already made once, when "one snapshot" on the Arsenal/Betis cards was read as
+"the hook never fired".
+
+- *Blocked by:* the sentinel reporting odds shape per sport rather than as one
+  total.
+- *Unblocks:* a one-line change in `scripts/drift-check.mjs` to split
+  `both/notseq/moved/unmoved` by `sportMeta(g.Sport).Label`, the way the sport
+  vocabulary is already reported. Then a single run answers it.
+- *Verify:* on the next La Liga/EPL matchday, that split shows a non-zero `both`
+  for a soccer label, and the desk renders `ML X -> Y` rather than
+  `one snapshot`.
+
+**Laboratory side of the render: nothing to build** — `oddsStory` already yields
+`SingleSnapshot` on a lone capture and `Moved`/`Unmoved` on a real pair. Only the
+measurement needs sharpening.
 
 ---
 
