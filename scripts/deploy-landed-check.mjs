@@ -24,18 +24,15 @@
 
 import { execSync } from 'node:child_process'
 import { createChecks } from './checks.mjs'
+import { isDeployable, newestDeployable, newestDeployableCommit } from './deployable.mjs'
 
 const SITE = process.env.SITE || 'https://field-laboratory.jeffunglesbee.workers.dev'
 const SELF_TEST = process.argv.includes('--self-test')
 const STRICT = process.argv.includes('--strict')
 
-// The deploy-ignore set, kept identical to verify.yml's paths-ignore. A commit
-// is DEPLOYABLE if it changes anything outside these.
-const isIgnored = f => f.startsWith('docs/') || f.startsWith('outbox/') || f.endsWith('.md')
-const isDeployable = files => files.some(f => !isIgnored(f))
-
-/// The newest deployable commit, given commits newest-first as {sha, files}.
-const newestDeployable = commits => (commits.find(c => isDeployable(c.files)) || null)?.sha ?? null
+// isDeployable / newestDeployable live in ./deployable.mjs so this check and
+// STATUS.md share one definition of "deployable" (and one that tracks
+// verify.yml's paths-ignore).
 
 /// The verdict, given the published sha, the newest deployable sha, and whether
 /// that deployable commit is reachable in the walked history.
@@ -74,18 +71,9 @@ if (SELF_TEST) {
 
 // ── live ─────────────────────────────────────────────────────────────────────
 
-// Walk recent history newest-first, collecting each commit's changed files, and
-// stop as soon as a deployable one is found — usually HEAD or a commit or two
-// back, so this rarely reads more than a handful.
-const shas = execSync('git log -100 --format=%H', { encoding: 'utf8' }).trim().split('\n').filter(Boolean)
-const commits = []
-let deployable = null
-for (const sha of shas) {
-  const files = execSync(`git diff-tree --no-commit-id --name-only -r ${sha}`, { encoding: 'utf8' })
-    .trim().split('\n').filter(Boolean)
-  commits.push({ sha, files })
-  if (isDeployable(files)) { deployable = sha; break }
-}
+// The newest deployable commit — usually HEAD or a commit or two back.
+const deployable = newestDeployableCommit()
+const headSha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim()
 
 let published = null
 try {
@@ -100,7 +88,7 @@ const short = s => (s ? s.slice(0, 7) : '—')
 console.log(`\ndeploy-landed — is the published artifact the newest deployable commit?\n`)
 console.log(`  published:          ${short(published)}`)
 console.log(`  newest deployable:  ${short(deployable)}`)
-console.log(`  HEAD:               ${short(shas[0])}\n`)
+console.log(`  HEAD:               ${short(headSha)}\n`)
 
 switch (v) {
   case 'landed':

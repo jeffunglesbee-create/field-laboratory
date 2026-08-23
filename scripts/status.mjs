@@ -10,6 +10,23 @@
 // real fact changes, so its git history is a log of things actually happening.
 
 import { readFile, writeFile } from 'node:fs/promises'
+import { newestDeployableCommit } from './deployable.mjs'
+
+/// The "Serving commit" cell for a live target. The old text said only "(behind
+/// `main`)" whenever the published commit differed from HEAD — which is the
+/// EXPECTED state when docs/[skip ci] commits sit on top, so it could not tell a
+/// correct deploy from a failed one. This answers the real question: is the
+/// published artifact the newest DEPLOYABLE commit?
+export const deployedCell = (published, deployable, head) => {
+  const short = s => s.slice(0, 7)
+  if (deployable && published === deployable) return `\`${short(published)}\` — newest deployable ✓`
+  if (deployable && published !== deployable) {
+    return `\`${short(published)}\` — behind newest deployable \`${short(deployable)}\` (deploy not landed)`
+  }
+  // No deployable commit found in reach (shallow history) — fall back to the
+  // plain HEAD comparison rather than assert something unproven.
+  return `\`${short(published)}\`${head && published !== head ? ' (behind `main`)' : ''}`
+}
 
 const ROOT = new URL('..', import.meta.url).pathname
 const HEAD = (process.env.GITHUB_SHA || '').trim()
@@ -214,6 +231,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 
   const liveOnes = results.filter(r => r.live)
 
+  // The newest deployable commit — computed once, so the table can say whether a
+  // published artifact that is behind HEAD is correctly behind (docs on top) or
+  // a deploy that did not land.
+  const deployable = newestDeployableCommit()
+
   const lines = [
     '# Status',
     '',
@@ -238,7 +260,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         ? 'live'
         : `not published — ${r.blocked}`
       const commit = r.live
-        ? (r.commit ? `\`${r.commit.slice(0, 7)}\`${HEAD && r.commit !== HEAD ? ' (behind `main`)' : ''}` : 'unknown')
+        ? (r.commit ? deployedCell(r.commit, deployable, HEAD) : 'unknown')
         : '—'
       return `| ${r.name} | ${state} | ${commit} |`
     }),
