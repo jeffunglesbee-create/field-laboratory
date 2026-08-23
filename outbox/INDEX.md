@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `428d200` | 2026-08-23 | [cc-surface-live-check-in-status-2026-08-23.md](cc-surface-live-check-in-status-2026-08-23.md) | status: surface live-check health in STATUS.md so a red cannot hide for a day |
+| `c1d341d` | 2026-08-23 | [cc-live-tabs-render-wait-2026-08-23.md](cc-live-tabs-render-wait-2026-08-23.md) | live-tabs-check: wait for the SPA to render before reading the pick panels |
 | `3c051e5` | 2026-08-23 | [cc-soccer-three-way-odds-2026-08-23.md](cc-soccer-three-way-odds-2026-08-23.md) | File the soccer three-way odds CC-CMD and wire its automated follow-up |
 | `514644f` | 2026-08-23 | [cc-mutation-anchor-drift-2026-08-23.md](cc-mutation-anchor-drift-2026-08-23.md) | Mutation check: repoint the cards-run-together anchor at the tokenised CSS |
 | `de63a93` | 2026-08-23 | [cc-live-page-networkidle-2026-08-23.md](cc-live-page-networkidle-2026-08-23.md) | live-check: wait for what the check needs, not for a page that never idles |
