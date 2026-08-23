@@ -72,4 +72,65 @@
 # a later commit stopped being governed. Moving it to cover a fresh violation
 # costs the count a point and this file a paragraph, permanently and by name.
 
-829f2ac84a6212842147a267006bf24d8a147415  18
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-08-23, FROM 829f2ac / 18 TO ac33623110c306a5cab56e47082c994490bf680f / 19
+#
+# The previous entry said "It grants no future amnesty ... The next violation
+# fails the check exactly as this one did." It did. Six days later, same shape.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — exactly one commit:
+#
+#   1db425b  fix: live-check called a correct deploy "NOT LANDED", and its
+#            self-test agreed
+#
+# It changed scripts/deployable.mjs, scripts/deploy-landed-check.mjs and
+# scripts/status.mjs with no outbox entry, and check:history failed verify run
+# 115 by name. A real violation, correctly surfaced, and mine.
+#
+# The work IS documented — outbox/cc-live-check-verdict-2026-08-23.md, written
+# once the failure was read. The rule is per-commit and settled at commit time
+# by design, so that entry does not pair with it, exactly as the 08-17 move
+# recorded for c78ad48. Writing the entry afterwards is the right thing to do
+# and it is not a substitute for the boundary.
+#
+# WHY NOT REWRITE HISTORY INSTEAD
+#
+# The 08-17 entry considered reverting (does not help — history is walked to the
+# root) but not rewriting. Amending 1db425b would remove the violation outright.
+# It was rejected because main is shared and actively written: ac33623 landed
+# from another session minutes before this move, and a force-push would clobber
+# a live clone to make a check pass. That is a worse habit than a named boundary
+# move, which is the whole reason this mechanism is written down.
+#
+# WHY ac33623 IS THE BOUNDARY
+#
+# It is the first commit after the violation, and it is itself clean — src/,
+# scripts/wp-check.mjs and docs/WP-PROOF.md shipped beside
+# outbox/cc-market-shape-2026-08-23.md. The boundary lands on a commit that
+# obeys the rule rather than on one that needed it relaxed.
+#
+# HOW 19 WAS DERIVED, AND WHY NOT LOCALLY
+#
+# 18 + 1. CI run 115 reported "predating the rule: 18" against boundary 829f2ac
+# over 645 commits, and named exactly one governed violation, 1db425b. Moving the
+# boundary past that commit moves it from governed to predating: 18 + 1 = 19.
+#
+# It was NOT re-derived by running check:history locally, because that number
+# would have been wrong. A cloud session's clone of this repo is shallow — 69
+# commits against CI's 645 — and 829f2ac is not in it at all, so a local audit
+# silently counts violations over a fraction of history and reports a smaller
+# number with no indication anything is missing. Running the check here first
+# returned "predating: 1" and that figure is meaningless.
+#
+# For the next session: check:history is only meaningful on a full clone. If the
+# count it prints disagrees with this file, confirm `git log --oneline | wc -l`
+# is in the hundreds before believing either number.
+#
+# The governed violation count is 0 again. The next violation fails exactly as
+# this one did — and that sentence has now been written twice, which is itself
+# the thing to watch: a boundary moved twice in seven days is a mechanism being
+# leaned on. If it moves a third time, the question stops being "absorb it" and
+# starts being "why does source keep shipping without its entry".
+
+ac33623110c306a5cab56e47082c994490bf680f  19
