@@ -61,7 +61,8 @@
     "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs",
     "check:corpus": "node scripts/corpus-check.mjs",
     "check:game-id": "node scripts/game-id-check.mjs --self-test && node scripts/game-id-check.mjs",
-    "check:scoreline": "node scripts/scoreline-check.mjs --self-test && node scripts/scoreline-check.mjs"
+    "check:scoreline": "node scripts/scoreline-check.mjs --self-test && node scripts/scoreline-check.mjs",
+    "check:sport-vocabulary": "node scripts/sport-vocabulary-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

@@ -149,6 +149,24 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs
 
+      # Is the registry about to be surprised?
+      #
+      # The drift check above fails on an unmodelled sport, and it is right to.
+      # But it learns the vocabulary from ONE DAY'S SLATE, so it can only find a
+      # competition on the day that competition next plays. The drift log shows
+      # what that costs: ten days, a red run each time a new competition first
+      # appeared -- NFL, CFL, golf, La Liga, wnba, EFL Trophy, two UEFA
+      # qualifying comps, Ligue 1, Serie A. Every one of those labels was
+      # already in the relay's games table before it reached a slate.
+      #
+      # continue-on-error while the registry catches up: the gap it reports is
+      # real and pre-existing, and failing the sentinel for it today would bury
+      # the signal the sentinel exists to carry. It becomes blocking in the same
+      # commit that closes the gap.
+      - name: Sport registry covers the relay's whole vocabulary
+        continue-on-error: true
+        run: npm run check:sport-vocabulary
+
       - name: Append to the drift log
         if: always()
         run: |
