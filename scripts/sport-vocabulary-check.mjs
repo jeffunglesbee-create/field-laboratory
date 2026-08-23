@@ -28,6 +28,19 @@ import { sportMeta, sportOfString } from '../build/Desk.js'
 import { writeFileSync, mkdirSync } from 'node:fs'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
+
+// Read, never literal. This file carried the value inline until 2026-08-23,
+// when check:secrets caught it against docs/exposed-secrets.sha256 and failed
+// verify -- correctly. It gates POST /d1/execute, which is a write path to
+// production briefs.
+//
+// No fallback. A default would make an unset secret indistinguishable from a
+// set one until the relay rejected the request, and the relay's rejection is a
+// 401 that this script would have reported as "the probe failed" -- the same
+// silence this repo keeps deleting. Missing credential is its own state, named
+// below and fatal, because a vocabulary check that cannot read the vocabulary
+// has not checked anything.
+const RELAY_SECRET = process.env.RELAY_SHARED_SECRET || ''
 const UA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
 
 // The relay owns the vocabulary (Rule 60), and its games tables are where that
@@ -43,9 +56,14 @@ const out = {
 }
 
 try {
+  if (!RELAY_SECRET) throw new Error(
+    'RELAY_SHARED_SECRET is not set. This check reads the relay\'s games tables through ' +
+    'POST /d1/execute, which is credentialled. Set it as a repository secret and pass it ' +
+    'in .github/workflows/drift-sentinel.yml. Until then the registry gap this check ' +
+    'exists to find is unobserved, which is a failure and not a skip.')
   const r = await fetch(`${RELAY}/d1/execute`, {
     method: 'POST',
-    headers: { 'X-FIELD-Relay': 'field-relay-cron-2026', 'Content-Type': 'application/json', 'User-Agent': UA },
+    headers: { 'X-FIELD-Relay': RELAY_SECRET, 'Content-Type': 'application/json', 'User-Agent': UA },
     body: JSON.stringify({ sql: SQL }),
   })
   const t = await r.text()
@@ -76,7 +94,7 @@ try {
   for (const label of out.missing) {
     const q = await fetch(`${RELAY}/d1/execute`, {
       method: 'POST',
-      headers: { 'X-FIELD-Relay': 'field-relay-cron-2026', 'Content-Type': 'application/json', 'User-Agent': UA },
+      headers: { 'X-FIELD-Relay': RELAY_SECRET, 'Content-Type': 'application/json', 'User-Agent': UA },
       body: JSON.stringify({
         sql: `SELECT id, home, away, date, home_score, away_score FROM regular_season_games
               WHERE sport = ? ORDER BY date DESC LIMIT 3`, params: [label] }),

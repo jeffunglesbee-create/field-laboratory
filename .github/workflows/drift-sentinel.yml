@@ -165,6 +165,17 @@ jobs:
       # should stop the run on the day it becomes true rather than on the
       # morning that competition first plays.
       - name: Sport registry covers the relay's whole vocabulary
+        env:
+          # The value moved out of scripts/sport-vocabulary-check.mjs on
+          # 2026-08-23: check:secrets matched it against
+          # docs/exposed-secrets.sha256 and failed verify. It gates POST
+          # /d1/execute, a write path to production briefs.
+          #
+          # The script has no fallback and fails loudly when this is empty. A
+          # vocabulary check that cannot read the vocabulary has not checked
+          # anything, and reporting that as a skip is the silence this repo
+          # keeps deleting.
+          RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
         run: npm run check:sport-vocabulary
 
       - name: Append to the drift log

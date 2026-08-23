@@ -29,7 +29,7 @@ grep -n "note" src/index.js | grep -i "regular_season_games\|INSERT INTO"
 ```bash
 # The gap, re-measured rather than trusted (Rule 72 — the 2.8% below is from
 # 2026-08-23 and this doc's own claims expire like any other).
-curl -s -X POST "$RELAY/d1/execute" -H 'X-FIELD-Relay: field-relay-cron-2026' \
+curl -s -X POST "$RELAY/d1/execute" -H "X-FIELD-Relay: $RELAY_SHARED_SECRET" \
   -H 'Content-Type: application/json' \
   -d '{"sql":"SELECT sport, COUNT(*) AS total, SUM(CASE WHEN note IS NOT NULL AND LENGTH(TRIM(note))>10 THEN 1 ELSE 0 END) AS with_note FROM regular_season_games WHERE finalized_at IS NOT NULL GROUP BY sport ORDER BY total DESC"}' \
   | node -e 'const d=JSON.parse(require("fs").readFileSync(0,"utf8"));
