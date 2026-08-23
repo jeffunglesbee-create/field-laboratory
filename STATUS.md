@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `ed5d6b9`
+**green** on `ed5d6b9` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -19,6 +19,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`unmodelled-sport` on 2026-08-22 — 75 games, 0 malformed (38 runs logged)
+`ok` on 2026-08-22 — 75 games, 0 malformed (39 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
