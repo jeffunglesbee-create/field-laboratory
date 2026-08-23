@@ -45,6 +45,39 @@ console.log(`\n${URL_BASE}\n`)
 await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
 await page.waitForSelector('.tabs [role="tab"]', { timeout: 15_000 })
 
+// The tabs live in the SERVED HTML, so waiting for them says nothing about
+// whether the SPA has run. Its panels are rendered by init AFTER the slate
+// fetch, and Field's Pick after a SECOND, async newspaper fetch. de63a93 moved
+// this file's goto from networkidle to domcontentloaded to escape a timeout
+// (every card fires its own weather fetch, so the page never idles) but left the
+// only wait pointed at a static element — so every dynamically-rendered panel
+// was read blank, and this check went red across a full day of commits.
+//
+// The fix is the sibling render-check's own precondition: wait for the concrete
+// thing each assertion needs. First #decode-status settling, which means init
+// ran and the tab handlers are wired; then, per panel, its own non-empty
+// content. A panel renders even "No pick section" as text, so non-empty IS the
+// honest readiness signal — this waits for what the check needs, not for a page
+// that never idles.
+await page.waitForFunction(
+  () => {
+    const el = document.getElementById('decode-status')
+    return el && el.textContent && el.textContent !== 'decoding…'
+  },
+  { timeout: 15_000 },
+).catch(() => {}) // fall through: the panel assertions below report a blank with its text
+
+// Wait for a panel to carry rendered content. Bounded; on timeout it returns and
+// the assertion that follows reports the blank panel verbatim rather than the
+// generic waitForFunction throw.
+const waitPanel = async (panelId) => {
+  await page.waitForFunction(
+    id => ((document.getElementById(id)?.textContent) ?? '').trim().length > 0,
+    panelId,
+    { timeout: 15_000 },
+  ).catch(() => {})
+}
+
 // Scoped to the TOP-LEVEL tablist. Pick'em's sport chips are a tablist too, so
 // a bare [role="tab"] query matches both lists and would sweep in those. Nesting
 // a tablist inside a tabpanel is legitimate; querying across them is not.
@@ -72,12 +105,14 @@ check('exactly one panel is visible on load', (await visible()).length === 1,
   `visible: ${JSON.stringify(await visible())}`)
 
 await page.click('#tab-field-pick')
+await waitPanel('panel-field-pick')
 const fieldText = (await page.textContent('#panel-field-pick')) ?? ''
 check('the Field\'s Pick panel becomes visible and renders',
   (await visible())[0] === 'panel-field-pick' && fieldText.trim().length > 0,
   `visible: ${(await visible())[0]}, length ${fieldText.trim().length}`)
 
 await page.click('#tab-scout-pick')
+await waitPanel('panel-scout-pick')
 const scoutText = (await page.textContent('#panel-scout-pick')) ?? ''
 check('the Scout\'s Pick panel becomes visible and renders',
   (await visible())[0] === 'panel-scout-pick' && scoutText.trim().length > 0,
@@ -163,6 +198,7 @@ check('the Scout\'s Pick panel reports gates',
 // Pick'em on the deployed artifact. Structural only — whether tonight's slate
 // has games at all is not this check's business.
 await page.click('#tab-pickem')
+await waitPanel('panel-pickem')
 const pickemText = (await page.textContent('#panel-pickem')) ?? ''
 check('the Pick\'em panel renders and says whose opinion it is',
   /your own pick/i.test(pickemText) && /not an editorial recommendation/i.test(pickemText),
