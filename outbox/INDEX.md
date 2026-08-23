@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b642808` | 2026-08-23 | [2026-08-23-relay-credential-out-of-source.md](2026-08-23-relay-credential-out-of-source.md) | fix: the relay credential leaves this repo's source |
 | `d4aabb6` | 2026-08-23 | [2026-08-23-boundary-orphaned.md](2026-08-23-boundary-orphaned.md) | fix: the boundary named a commit its own push deleted |
 | `a5c7510` | 2026-08-23 | [2026-08-23-falsifiable-verifiers.md](2026-08-23-falsifiable-verifiers.md) | feat: every verifier must reject a known-bad payload |
 | `3226819` | 2026-08-23 | [2026-08-23-staged-verifier.md](2026-08-23-staged-verifier.md) | feat: a staged claim must name a verifier that exists and runs |
