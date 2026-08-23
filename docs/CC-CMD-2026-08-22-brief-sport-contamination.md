@@ -2,7 +2,28 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (journalism cron — the brief-generation prompt/context)
-**Status:** open — laboratory-side detector shipped (catches it on the card); this
+**Status:** PARTIALLY DONE 2026-08-23 — defects 1 and 3 shipped and deployed on the
+relay; defect 2 remains open and is the whole of what is left here.
+
+- **Defect 1 (cross-sport vocabulary) — DONE.** `2ed34c7` sport-gates the style
+  block, so `CITE NBA ANALYTICS` and its "107.7 DRTG, best in the NBA" example no
+  longer reach a soccer prompt. `9bf12b0` sport-gates the voice register, so a
+  soccer brief sees exemplars D and E instead of all seven. Both kept layer 2f
+  alive under gating — a gated block is a SUBSET, and the leak detector
+  subtracted the joined string, so 10 of 16 tracked literals would have become
+  undetectable in the same commit that reduced the leaks. Locked by
+  `scripts/prose-style-scope-check.mjs` (23) and `voice-register-scope-check.mjs` (34).
+- **Defect 3 (cross-window comparison) — DONE.** `812bb5c` adds the
+  ONE WINDOW PER COMPARISON style rule, `crossWindowComparisons()`, and retry
+  layer 2g. `scripts/cross-window-check.mjs`, 24 assertions, 8 of them negative.
+- **Defect 2 (a live 3-0 called a "0-0-0 stalemate") — OPEN.** Untouched. Its
+  real fix is the soccer season-stat model — table position and competition
+  stakes rather than a W-D-L record — which needs standings in the prompt, so it
+  overlaps `CC-CMD-2026-08-21-fpl-event-grounding-epl` and should be planned with it.
+- **Residual, filed separately:** `CC-CMD-2026-08-23-prompt-numeral-mining` (the
+  anti-exemplar's own figures still reach every sport) and
+  `CC-CMD-2026-08-23-dim2-figure-cliff` (the scale pays 58.3 points for a brief's
+  first figure and never asks whether it is real).
 ask is the source fix (stop generating it).
 
 One-liner:

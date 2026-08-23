@@ -3,7 +3,10 @@
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba **and** jubilant-bassoon — the same independent change
 in each repo, not a paired cross-repo change
-**Status:** open — the install is automated on a runner
+**Status:** DONE, verified 2026-08-23. `.claude/skills/i-have-adhd/SKILL.md` is
+installed in all four repos at 6813 bytes, byte-identical; `npm run check:adhd-skill`
+passes 4/4 including its negative case ("it rejects a different skill wearing
+valid-looking front-matter").
 (`.github/workflows/adhd-skill-sync.yml`); it is one repository secret away from
 running with no manual command. field-laboratory and field-playground already
 carry the skill.
