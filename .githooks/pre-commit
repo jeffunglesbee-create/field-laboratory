@@ -23,5 +23,10 @@ node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))" \
 
 npm run --silent check:clean-source
 npm run --silent check:workflows
+# Added 2026-08-23. check:history asks this same question of history, but it is
+# settled at commit time, so by the time CI reports it the only remedy left is
+# moving docs/history-boundary.txt -- which had moved twice in seven days and
+# was about to move a third time. Asked here, it is still answerable.
+npm run --silent check:staged-outbox
 
 echo "pre-commit: ok"

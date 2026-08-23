@@ -159,12 +159,12 @@ jobs:
       # qualifying comps, Ligue 1, Serie A. Every one of those labels was
       # already in the relay's games table before it reached a slate.
       #
-      # continue-on-error while the registry catches up: the gap it reports is
-      # real and pre-existing, and failing the sentinel for it today would bury
-      # the signal the sentinel exists to carry. It becomes blocking in the same
-      # commit that closes the gap.
+      # BLOCKING as of 44d8e5d, which closed the gap: all 26 relay labels are
+      # now either modelled or a recorded Omission. From here a failure means
+      # the relay started carrying a competition nobody has looked at, and that
+      # should stop the run on the day it becomes true rather than on the
+      # morning that competition first plays.
       - name: Sport registry covers the relay's whole vocabulary
-        continue-on-error: true
         run: npm run check:sport-vocabulary
 
       - name: Append to the drift log

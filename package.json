@@ -62,7 +62,8 @@
     "check:corpus": "node scripts/corpus-check.mjs",
     "check:game-id": "node scripts/game-id-check.mjs --self-test && node scripts/game-id-check.mjs",
     "check:scoreline": "node scripts/scoreline-check.mjs --self-test && node scripts/scoreline-check.mjs",
-    "check:sport-vocabulary": "node scripts/sport-vocabulary-check.mjs"
+    "check:sport-vocabulary": "node scripts/sport-vocabulary-check.mjs",
+    "check:staged-outbox": "node scripts/staged-outbox-check.mjs --self-test && node scripts/staged-outbox-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
