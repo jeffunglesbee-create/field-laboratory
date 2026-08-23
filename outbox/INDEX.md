@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `de63a93` | 2026-08-23 | [cc-live-page-networkidle-2026-08-23.md](cc-live-page-networkidle-2026-08-23.md) | live-check: wait for what the check needs, not for a page that never idles |
 | `0b47a38` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-22 [skip ci] |
 | `ed5d6b9` | 2026-08-23 | [cc-ligue1-seriea-modelled-2026-08-23.md](cc-ligue1-seriea-modelled-2026-08-23.md) | Model Ligue 1 and Serie A: the sentinel asked for them by name |
 | `58d7a45` | 2026-08-23 | [cc-winprob-on-the-card-2026-08-23.md](cc-winprob-on-the-card-2026-08-23.md) | Render a real per-card win probability through Market |
