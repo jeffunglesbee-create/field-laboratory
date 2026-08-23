@@ -130,6 +130,16 @@ jobs:
       - name: Drama sparkline
         run: npm run check:spark
 
+      # The semantic color system, over the real compiled Palette.fs: tokenOf is
+      # total and injective, the drama/advancement scales partition 0-100 at the
+      # spec boundaries, QUIET has no accent, and every token clears a contrast
+      # ratio on the background. The compiler claims (sealed hex, exhaustive
+      # registry, un-crossable scales) are in docs/PALETTE-PROOF.md and run under
+      # check:proof in verify-full. Self-test first: the contrast math must be
+      # shown to discriminate.
+      - name: The semantic palette holds
+        run: npm run check:palette
+
       # Both picks. The decoder check runs headless; the tab check drives a real
       # browser and asserts, among other things, that the composite pick score
       # appears nowhere in the rendered DOM.

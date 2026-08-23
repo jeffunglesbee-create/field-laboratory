@@ -23,6 +23,9 @@
          in docs/CHECK-PROOF.md is injected into a file below it. -->
     <Compile Include="Verify.fs" />
     <Compile Include="Units.fs" />
+    <!-- FIELD's semantic color system as types. Above Desk.fs, which adds the
+         amnesty-gated drama->color bridge on top of it. Depends only on Units. -->
+    <Compile Include="Palette.fs" />
     <Compile Include="Prose.fs" />
     <Compile Include="Ceiling.fs" />
     <Compile Include="Journalism.fs" />

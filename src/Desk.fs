@@ -1087,6 +1087,19 @@ let amnestyZone (state: GameState) : AmnestyZone option =
 let formatDramaPeak (_zone: AmnestyZone) (SealedDrama peak) : string =
     sprintf "%.0f" (float peak)
 
+/// The semantic color for a game's drama — available ONLY post-game.
+///
+/// The FIELD spec calls its palette "drama-keyed" and enforces "gold = ≥80
+/// drama" by convention. Colouring a live card that way would display the drama
+/// level the desk otherwise seals, which is the ADR-002 line. So this bridge
+/// carries the same `AmnestyZone` witness `formatDramaPeak` and `barHeightStyle`
+/// require: a live game cannot produce the witness, so it cannot be coloured by
+/// drama. The seal is what makes `Palette.dramaScale` safe to be public — the
+/// only real `float<drama>` in the program is the one unsealed right here, under
+/// amnesty. Live cards are coloured by state and access instead.
+let dramaSemantic (_zone: AmnestyZone) (SealedDrama peak) : Palette.Semantic =
+    Palette.dramaScale peak
+
 // ---------------------------------------------------------------------------
 // The drama sparkline
 // ---------------------------------------------------------------------------
