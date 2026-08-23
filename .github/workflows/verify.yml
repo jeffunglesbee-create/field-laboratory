@@ -148,6 +148,14 @@ jobs:
       - name: The typography system holds
         run: npm run check:typography
 
+      # The deployed page's colours and fonts ARE the typed modules: build-site
+      # injects a #design-tokens block generated from Palette.fs / Typography.fs,
+      # and this asserts every value in it equals the module it came from, plus
+      # that the self-hosted fonts ship and no font CDN is hotlinked. Runs after
+      # the build, which is where the injection happens.
+      - name: The page's design tokens match the modules
+        run: npm run check:design-tokens
+
       # Both picks. The decoder check runs headless; the tab check drives a real
       # browser and asserts, among other things, that the composite pick score
       # appears nowhere in the rendered DOM.
