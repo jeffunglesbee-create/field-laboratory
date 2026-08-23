@@ -3,15 +3,39 @@
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (journalism cron) — wire the already-available FPL
 per-player endpoint into EPL brief generation
-**Status:** open
+**Status:** BUILT 2026-08-22 by relay `5c3f4d5` + `eb02ac7`
+(`buildFPLMatchEventsContext`, context source `fpl_match_events`, priority 5).
+Table context added 2026-08-23. Two premises below were stale or wrong when
+filed; both are corrected in place rather than left to mislead a reader.
 
-One-liner:
+> **This status line was wrong for a day and cost a rebuild.** It read "open"
+> on 2026-08-23, sixteen hours after the relay closed it, and a session took it
+> at face value and wrote a second implementation of the same builder — one
+> that reintroduced two defects `eb02ac7` had already fixed. A laboratory
+> CC-CMD's status is not the relay's state. Anyone acting on one should run
+> `git log --oneline --all | grep -i <topic>` in the target repo first.
+
+**CORRECTION 1 — "not wired yet" was stale when filed.** `buildFPLPlayerContext`
+already existed as a registered live context builder (`priority: 8, budget:
+150`), and FPL bootstrap data had been flowing into EPL briefs since 2026-07-15.
+This was a new data read into an existing slot, not a new integration.
+
+**CORRECTION 2 — the goal-minute example is not obtainable.** FPL carries **no
+goal timings anywhere**: not in `event/{gw}/live/` `stats`, not in `explain[]`,
+not in `fixtures[].stats`. `minutes` is minutes played. The one-liner's "Saka
+scored in the 34th" cannot be produced from this feed, and the shipped builder
+deliberately does not pretend otherwise — it emits who and how many, never a
+timestamp, and closes its block telling the generator not to infer one. Minutes
+are ESPN `keyEvents`' job, which `CONTRACTS.md` already makes authoritative for
+match narrative.
+
+One-liner (corrected):
 ```
 EPL is now modelled and on the desk, but its briefs are season-stat templates
 ("both sides holding 0 points through 0 matches"). The relay already proxies the
-FPL per-player live endpoint (goals, assists, cards, bonus) and it is "not wired
-yet". Wire it so EPL recaps name what happened — "Saka scored in the 34th" — not
-what the table says.
+FPL per-player live endpoint (goals, assists, cards, bonus). Read it into EPL
+brief generation so recaps name WHO did what — "Saka and Ødegaard scored,
+Calafiori assisting" — not what the table says. No minute: FPL has none.
 ```
 
 ---

@@ -2,9 +2,39 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (AmbientDO — the pre→live game-state hook)
-**Status:** ORIGINAL ASK WITHDRAWN — the hook was already landed and firing. The
-real defect was elsewhere and is FIXED (relay `887c843`). A different, narrower
-blocker remains; see the correction. Original text kept below for the record.
+**Status:** WITHDRAWN AND SUPERSEDED. The original ask is closed — the hook was
+already landed and firing, and the real defect (a third `closing_odds` writer in
+`/archive/game`) is FIXED by relay `887c843`, `f6fa820` and `a1937eb`. What
+survives is a **different ask about OPENING captures**, restated below. Original
+text kept for the record.
+
+> **Re-file, not a status edit.** Two sessions have now flagged that this
+> document should be withdrawn and re-filed as an opening-capture ask rather
+> than left as a closing-odds ask with a correction stapled on — a reader who
+> stops at the title acts on the wrong thing. This edit does the withdrawal;
+> the surviving ask is stated in full here so nothing needs reconstructing from
+> the original text below.
+
+## THE SURVIVING ASK — capture `opening_odds` for EPL and La Liga
+
+`Moved` is blocked two independent ways, and only one of them was the original
+ask's subject:
+
+- **MLB / WNBA — UNBLOCKED.** `887c843` produced a real open→close sequence.
+  Verify on the next pre→live transition: `closing_odds.captured_at >
+  opening_odds.captured_at`, and the card reads `ML X -> Y (home ±N.N implied)`
+  rather than `NOT SEQUENCED`.
+- **EPL / La Liga — STILL BLOCKED, and on the mirror of the original
+  assumption.** Measured 2026-08-21: both carry the **closing** line and **no
+  opening** one. The ask as filed assumed the opposite.
+
+**Probe before patching.** `odds_api` opening writes cover MLB, WNBA and Ligue 1
+but not EPL or La Liga. Find out why that split exists before changing a writer —
+a fix aimed at the wrong half of the pair is how this document came to need a
+withdrawal in the first place.
+
+Carry-forward #1 (`_ODDS_SOURCES`) is done. #2 (team aliasing) and #3
+(non-AmbientDO sports) survive.
 
 One-liner (as filed):
 ```
