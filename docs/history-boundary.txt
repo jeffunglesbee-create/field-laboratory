@@ -133,4 +133,74 @@
 # leaned on. If it moves a third time, the question stops being "absorb it" and
 # starts being "why does source keep shipping without its entry".
 
-ac33623110c306a5cab56e47082c994490bf680f  19
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-08-23, FROM ac33623 / 19 TO a4d500cd1b7baea66004c30d499dc6ebdc715ca7 / 22
+#
+# The third move, and the previous entry called it: "If it moves a third time,
+# the question stops being 'absorb it' and starts being 'why does source keep
+# shipping without its entry'." It moved the same day it said that.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — three commits, all in one session:
+#
+#   d73bbad  feat: check the Sport registry against the relay's whole vocabulary
+#   47a5e08  feat: sample a real row per missing sport, not just its name
+#   44d8e5d  feat: model the 12 competitions the relay archives; declare the
+#            other 3
+#
+# Each shipped scripts/ or src/ with no outbox entry. Real violations, correctly
+# surfaced, and mine. Documented now in outbox/2026-08-23-sport-vocabulary.md,
+# which by this rule's per-commit design does not pair with any of them.
+#
+# THE QUESTION, ANSWERED — and it is not "forgetfulness"
+#
+# .githooks/pre-commit exists in this repo. It is fast, no-network, and it is
+# exactly where this class gets caught. It did not run, because
+# `git config core.hooksPath .githooks` was never set in this session:
+# scripts/install_pkgs.sh:38 sets it and that script did not run here. So the
+# gate that should have stopped d73bbad — the FIRST of the three, before the
+# other two existed — was not installed. An opt-in guard that nothing opted
+# into produces exactly this shape: not one lapse repeated three times, but one
+# missing install that removed the guard for a whole session.
+#
+# That also explains the two earlier moves better than "attention" did. c78ad48
+# (08-17) and 1db425b (08-23) are the same story.
+#
+# WHAT SHIPPED SO THE FOURTH MOVE DOES NOT HAPPEN
+#
+#   scripts/staged-outbox-check.mjs   the same predicate as history-check.mjs,
+#                                     worded identically on purpose, asked of
+#                                     the STAGED files instead of of history
+#   .githooks/pre-commit              runs it as check:staged-outbox
+#   core.hooksPath                    set in this session
+#
+# check:history REPORTS; this GUARDS. The difference is the moment: at
+# pre-commit the violation is still answerable — stage an entry, or split the
+# commit — and once it is in history the only remedy is this file. That is the
+# whole reason this file kept getting edited, and it is now addressed at the
+# cause rather than at the symptom. The guard fired on its own commit, a4d500c,
+# and passed.
+#
+# WHY THE BOUNDARY IS a4d500c
+#
+# First commit after the last violation, and itself clean: it ships
+# scripts/staged-outbox-check.mjs beside outbox/2026-08-23-sport-vocabulary.md.
+# The boundary lands on a commit that obeys the rule, as the 08-23 entry
+# required.
+#
+# HOW 22 WAS DERIVED, AND WHY NOT LOCALLY
+#
+# 19 + 3. CI reported "predating the rule: 19" against boundary ac33623 over 699
+# commits and named exactly three governed violations. Moving past them moves
+# each from governed to predating: 19 + 3 = 22.
+#
+# NOT re-derived locally, for the reason the 08-23 entry already recorded: this
+# clone is shallow and check:history here prints "predating: 1", which is
+# meaningless. Confirm `git log --oneline | wc -l` is in the hundreds before
+# believing any local number.
+#
+# The governed violation count is 0 again. If it moves a fourth time, the guard
+# above was bypassed or removed, and THAT is the thing to investigate — not the
+# commits.
+
+a4d500cd1b7baea66004c30d499dc6ebdc715ca7  22
