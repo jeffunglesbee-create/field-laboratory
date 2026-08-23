@@ -28,7 +28,22 @@ const pageErrors = []
 page.on('pageerror', e => pageErrors.push(String(e)))
 
 console.log(`\n${URL_BASE}\n`)
-await page.goto(URL_BASE, { waitUntil: 'networkidle' })
+// `domcontentloaded`, not `networkidle`. schedule-live-check.mjs made this same
+// change and left the general question open in its own words: "whether the live
+// page is ever reliably network-idle now that it fetches per card is a real
+// question, and it is recorded in the outbox rather than settled by this
+// change." live-check run 32614377552 settles it — page.goto timed out at 30s
+// on `networkidle` against the deployed URL, in a run where deploy-landed had
+// just passed 9/9, so the site was up and answering. A page whose every card
+// fires its own weather fetch does not reach "500ms with no connections", and
+// waiting for it is waiting for a condition this check does not need.
+//
+// This script had no bounded wait of its own — it went straight to $$eval —
+// so the goto was doing double duty as both navigation and readiness. The
+// tablist is the actual precondition for every assertion below, so wait for
+// that instead. It fails with a named selector rather than a generic timeout.
+await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+await page.waitForSelector('.tabs [role="tab"]', { timeout: 15_000 })
 
 // Scoped to the TOP-LEVEL tablist. Pick'em's sport chips are a tablist too, so
 // a bare [role="tab"] query matches both lists and would sweep in those. Nesting

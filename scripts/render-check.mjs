@@ -29,7 +29,20 @@ const page = await browser.newPage()
 page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
 page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
 
-await page.goto(URL, { waitUntil: 'networkidle' })
+// `domcontentloaded`, not `networkidle`. schedule-live-check.mjs made this same
+// change and left the general question open in its own words: "whether the live
+// page is ever reliably network-idle now that it fetches per card is a real
+// question, and it is recorded in the outbox rather than settled by this
+// change." live-check run 32614377552 settles it — page.goto timed out at 30s
+// on `networkidle` against the deployed URL, in a run where deploy-landed had
+// just passed 9/9, so the site was up and answering. A page whose every card
+// fires its own weather fetch does not reach "500ms with no connections", and
+// waiting for it is waiting for a condition this check does not need.
+//
+// The bounded waitForFunction on #decode-status directly below is this
+// script's real precondition and is unchanged, so dropping networkidle
+// removes a redundant wait rather than weakening the check.
+await page.goto(URL, { waitUntil: 'domcontentloaded' })
 // Wait for the status line to be filled, NOT for a card. A card may legitimately
 // not exist on an empty live slate, and waiting for one would throw before a
 // single assertion ran — turning "no games today" into an unexplained crash.
@@ -67,7 +80,10 @@ try {
   }
   const sim = await browser.newPage()
   sim.on('pageerror', e => errors.push(`pageerror(sim): ${e.message}`))
-  await sim.goto(`${URL}${URL.includes('?') ? '&' : '?'}simulate=1`, { waitUntil: 'networkidle' })
+  // Same URL as the goto above, so the same reasoning applies — and the
+  // bounded waitForSelector on .desk-card directly below is already the real
+  // precondition here.
+  await sim.goto(`${URL}${URL.includes('?') ? '&' : '?'}simulate=1`, { waitUntil: 'domcontentloaded' })
   await sim.waitForSelector('.desk-card', { timeout: 10_000 })
 
   const sample = () => sim.$eval('.desk-card', n => ({

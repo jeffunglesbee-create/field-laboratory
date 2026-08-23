@@ -21,7 +21,20 @@ const page = await browser.newPage()
 page.on('pageerror', e => errors.push(`pageerror: ${e.message}`))
 page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.text()}`) })
 
-await page.goto(URL, { waitUntil: 'networkidle' })
+// `domcontentloaded`, not `networkidle`. schedule-live-check.mjs made this same
+// change and left the general question open in its own words: "whether the live
+// page is ever reliably network-idle now that it fetches per card is a real
+// question, and it is recorded in the outbox rather than settled by this
+// change." live-check run 32614377552 settles it — page.goto timed out at 30s
+// on `networkidle` against the deployed URL, in a run where deploy-landed had
+// just passed 9/9, so the site was up and answering. A page whose every card
+// fires its own weather fetch does not reach "500ms with no connections", and
+// waiting for it is waiting for a condition this check does not need.
+//
+// The bounded waitForFunction on #decode-status directly below is this
+// script's real precondition and is unchanged, so dropping networkidle
+// removes a redundant wait rather than weakening the check.
+await page.goto(URL, { waitUntil: 'domcontentloaded' })
 await page.waitForFunction(
   () => {
     const el = document.getElementById('decode-status')
