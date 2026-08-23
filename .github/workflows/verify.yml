@@ -140,6 +140,14 @@ jobs:
       - name: The semantic palette holds
         run: npm run check:palette
 
+      # The typography system, over the real compiled Typography.fs: two faces
+      # only and both used, one style per role, Chakra Petch as the identity face,
+      # Data carries tabular numerals, every font stack ends in a real fallback.
+      # The compiler claims (sealed style, exhaustive role registry, two-fonts-
+      # only) are in docs/TYPOGRAPHY-PROOF.md under check:proof in verify-full.
+      - name: The typography system holds
+        run: npm run check:typography
+
       # Both picks. The decoder check runs headless; the tab check drives a real
       # browser and asserts, among other things, that the composite pick score
       # appears nowhere in the rendered DOM.

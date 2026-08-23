@@ -26,6 +26,9 @@
     <!-- FIELD's semantic color system as types. Above Desk.fs, which adds the
          amnesty-gated drama->color bridge on top of it. Depends only on Units. -->
     <Compile Include="Palette.fs" />
+    <!-- FIELD's typography as types: two fonts only, one style per role, sealed
+         so no component spells a font literal. Depends on nothing. -->
+    <Compile Include="Typography.fs" />
     <Compile Include="Prose.fs" />
     <Compile Include="Ceiling.fs" />
     <Compile Include="Journalism.fs" />
