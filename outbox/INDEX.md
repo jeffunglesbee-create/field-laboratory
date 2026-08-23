@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `58d7a45` | 2026-08-23 | [cc-winprob-on-the-card-2026-08-23.md](cc-winprob-on-the-card-2026-08-23.md) | Render a real per-card win probability through Market |
+| `3e974c6` | 2026-08-23 | [cc-live-check-verdict-2026-08-23.md](cc-live-check-verdict-2026-08-23.md) | docs: outbox entry for the live-check verdict fix |
 | `ebc28db` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
 | `ac33623` | 2026-08-23 | [cc-market-shape-2026-08-23.md](cc-market-shape-2026-08-23.md) | Market shape as a type: a two-way complement cannot be taken on a three-way market |
 | `06c37db` | 2026-08-23 | [cc-status-deploy-landed-2026-08-23.md](cc-status-deploy-landed-2026-08-23.md) | STATUS answers 'did the deploy land?'; share the deployable rule; fix an import-purity bug |

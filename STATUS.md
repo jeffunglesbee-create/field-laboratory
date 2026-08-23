@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `ac33623` — [run 32613393612](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32613393612)
+**FAILURE** on `58d7a45` — [run 32614085182](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32614085182)
 
 ## Is it published?
 
@@ -14,7 +14,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `765549e` — behind newest deployable `ac33623` (deploy not landed) |
+| Cloudflare Workers | live | `765549e` — behind newest deployable `58d7a45` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
