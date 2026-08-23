@@ -145,6 +145,15 @@ export const verifyVerdict = (run, head, now = null) => {
 export const verifyRunsUrl = repo =>
   `https://api.github.com/repos/${repo}/actions/workflows/verify.yml/runs?branch=main&per_page=1`
 
+// live-check is the post-deploy check against the DEPLOYED artifact. It went red
+// on every commit for over a day (the pick panels read before the SPA rendered
+// them) and nothing surfaced it, because this file reported verify and the
+// serving commit but never live-check. A red post-deploy check that hides for a
+// day is the same "cannot contradict a false green" gap verify's row was written
+// to close, one surface over. So it is read and rendered too.
+export const liveCheckRunsUrl = repo =>
+  `https://api.github.com/repos/${repo}/actions/workflows/live-check.yml/runs?branch=main&per_page=1`
+
 /**
  * Read verify's latest conclusion for main, and say WHY when it cannot be read.
  *
@@ -173,7 +182,16 @@ export const verifyRunsUrl = repo =>
  * each shape; the call itself is exercised for real against api.github.com by
  * scripts/status-live-check.mjs, on a runner, in both directions.
  */
-export const readVerify = async ({ token, repo, head, inCI, now = null, fetchImpl = fetch }) => {
+export const readVerify = async (opts) =>
+  readWorkflowConclusion({ ...opts, runsUrl: verifyRunsUrl, noun: 'verify' })
+
+// The same read for live-check. Shares the classification so a new failure shape
+// cannot be handled one way here and another way there — the split that let
+// readVerify answer in one direction before it was made to name every cause.
+export const readLiveCheck = async (opts) =>
+  readWorkflowConclusion({ ...opts, runsUrl: liveCheckRunsUrl, noun: 'live-check' })
+
+const readWorkflowConclusion = async ({ token, repo, head, inCI, now = null, fetchImpl = fetch, runsUrl, noun }) => {
   if (!token || !repo) {
     // On a runner this is a misconfigured step, not a missing fact — and it is
     // exactly what happened above. Outside CI there is no history to read and
@@ -187,7 +205,7 @@ export const readVerify = async ({ token, repo, head, inCI, now = null, fetchImp
 
   let res
   try {
-    res = await fetchImpl(verifyRunsUrl(repo),
+    res = await fetchImpl(runsUrl(repo),
       { headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' } })
   } catch (e) {
     return { text: `unreadable — the workflow-history request failed: ${e.message}`, problem: e.message }
@@ -202,8 +220,8 @@ export const readVerify = async ({ token, repo, head, inCI, now = null, fetchImp
   } catch (e) {
     return { text: `unreadable — the workflow-history response did not parse: ${e.message}`, problem: e.message }
   }
-  // An empty list is an answer, not a failure: a repo with no verify run yet.
-  if (!run) return { text: 'no verify run has been recorded for `main` yet', problem: null }
+  // An empty list is an answer, not a failure: a repo with no run of this kind yet.
+  if (!run) return { text: `no ${noun} run has been recorded for \`main\` yet`, problem: null }
   return { text: verifyVerdict(run, head, now), problem: null }
 }
 
@@ -235,6 +253,18 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     now: NOW,
   })
 
+  // live-check, read the same way and rendered whether green or red. NOT wired to
+  // exit the status job: verify's conclusion is the gate on "is main green", and
+  // a red post-deploy check should be visible on main, not turn a second workflow
+  // red on top of the first. Surfacing is the whole fix — it hid for a day.
+  const { text: liveCheck } = await readLiveCheck({
+    token: process.env.GITHUB_TOKEN,
+    repo: process.env.GITHUB_REPOSITORY,
+    head: HEAD,
+    inCI: process.env.GITHUB_ACTIONS === 'true',
+    now: NOW,
+  })
+
   const liveOnes = results.filter(r => r.live)
 
   // The newest deployable commit — computed once, so the table can say whether a
@@ -252,6 +282,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     '## Did the suite pass on main?',
     '',
     verify,
+    '',
+    '## Is the live artifact healthy?',
+    '',
+    `\`live-check\` (post-deploy, against the deployed page): ${liveCheck}`,
     '',
     '## Is it published?',
     '',

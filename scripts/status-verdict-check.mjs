@@ -7,7 +7,7 @@
 //
 // So the fetch stays unexercised and everything downstream of it does not. These
 // are the actual shapes this session saw, transcribed from the runs named below.
-import { verifyVerdict, readVerify } from './status.mjs'
+import { verifyVerdict, readVerify, readLiveCheck, verifyRunsUrl, liveCheckRunsUrl } from './status.mjs'
 import { createChecks } from './checks.mjs'
 
 const { check, summarize } = createChecks()
@@ -130,5 +130,33 @@ check('no two outcomes render the same line', new Set(texts).size === texts.leng
 check('every problem line says it is unreadable',
   [r1, r3, r4, r5].every(r => /unreadable/.test(r.text)),
   [r1, r3, r4, r5].map(r => r.text).join('\n      '))
+
+// --- live-check reads the same way, on its own workflow ---------------------
+//
+// The surfacing that was missing while live-check sat red for a day. It shares
+// readVerify's classification (via readWorkflowConclusion), so the only things
+// that need their own evidence are: it reads the live-check workflow, not
+// verify's; and its "no run yet" line names live-check, not verify.
+check('live-check reads a different workflow than verify',
+  verifyRunsUrl('x/y').includes('verify.yml') &&
+  liveCheckRunsUrl('x/y').includes('live-check.yml') &&
+  verifyRunsUrl('x/y') !== liveCheckRunsUrl('x/y'),
+  `${verifyRunsUrl('x/y')} vs ${liveCheckRunsUrl('x/y')}`)
+
+const lc1 = await readLiveCheck({ token: 't', repo: 'x/y', head: HEAD, inCI: true,
+  fetchImpl: async () => reply(200, { workflow_runs: [failed] }) })
+check('a FAILED live-check run reads as failed, named and linked',
+  /\*\*FAILURE\*\*/.test(lc1.text) && /31456294086/.test(lc1.text) && lc1.problem === null,
+  JSON.stringify(lc1))
+
+const lc2 = await readLiveCheck({ token: 't', repo: 'x/y', head: HEAD, inCI: true,
+  fetchImpl: async () => reply(200, { workflow_runs: [] }) })
+check('an empty live-check list says live-check, not verify',
+  /no live-check run/.test(lc2.text) && lc2.problem === null,
+  JSON.stringify(lc2))
+
+const lc3 = await readLiveCheck({ token: '', repo: '', head: HEAD, inCI: false, fetchImpl: never })
+check('live-check outside CI is not a problem, same as verify',
+  lc3.problem === null && /outside CI/.test(lc3.text), JSON.stringify(lc3))
 
 process.exit(summarize() === 0 ? 0 : 1)
