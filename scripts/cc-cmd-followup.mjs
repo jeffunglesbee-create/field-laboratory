@@ -73,6 +73,27 @@ const soccerOpeningCoverage = j => {
   return { soccer: soccer.length, withOpen: withOpen.length }
 }
 
+/// The deploy this ask is measured against: the latest of the fixes it covers.
+/// Defects 1 and 3 shipped 2026-08-23 02:20 (relay 812bb5c); defect 2's enabler,
+/// the EPL league-table line, shipped 05:33 (f2faa50). The later one governs,
+/// because a brief written between them saw only half the fix.
+const CONTAMINATION_FIX = '2026-08-23T05:33:54Z'
+const CONTAINMENT_NOTE = 'relay f2faa50, 2026-08-23 05:33 UTC — the EPL table line, the last of the three fixes this ask covers'
+
+/// When a brief was last WRITTEN, not when its row was created.
+///
+/// Three relay brief writers use `ON CONFLICT(id) DO UPDATE`, so `brief_text` is
+/// rewritten in place while `created_at` never moves — the relay recorded a
+/// brief carrying a fabricated figure at 19:09, clean at 21:14, still reporting
+/// created_at 18:30:53. Reading created_at here would discard precisely the
+/// regenerations that prove a fix landed.
+///
+/// Returns null when neither field is present, and the caller treats that as
+/// NOT OBSERVABLE rather than falling back to an ungated scan. A silent fallback
+/// would restore the unbounded behaviour this gate exists to remove, and would
+/// do it invisibly the day the relay changes its projection.
+const writtenAt = r => r?.updated_at || r?.created_at || null
+
 // The soccer-brief defect scanner (cross-sport vocabulary, a vacuous 0-0-0
 // record, a stalemate beside a stated lead) lives in ./soccer-brief-defect.mjs
 // so the CC-CMD follow-up and the cross-repo evidence runner share one copy.
@@ -204,9 +225,22 @@ const ASKS = [
       const rows = Array.isArray(j?.results) ? j.results : []
       const withText = rows.filter(r => (r.brief_text || '').trim() !== '')
       if (withText.length === 0) return null
-      return withText.every(r => soccerBriefDefect(r.brief_text) === null)
+      // Only briefs written since the fixes deployed can testify about them.
+      // Without this gate the predicate was `withText.every(clean)` over
+      // whatever 40 briefs came back, so ONE pre-fix brief never regenerated
+      // pinned this at "still generating" permanently and the fix could never
+      // be observed. The relay's own verify-staged-items.mjs made this exact
+      // error three times on 2026-08-22 and corrected it three times the same
+      // way: a fix cannot be judged by rows it never touched.
+      const testify = withText.filter(r => writtenAt(r) && writtenAt(r) > CONTAMINATION_FIX)
+      // Not observable is not the same as not fixed. `null` covers both "no EPL
+      // briefs came back" and "none of them post-dates the fix" — the second is
+      // an off-day for this question, and reporting it as `false` would read as
+      // a live defect on every quiet run.
+      if (testify.length === 0) return null
+      return testify.every(r => soccerBriefDefect(r.brief_text) === null)
     },
-    note: 'route assumes /archive/query?sport=EPL returns recent EPL briefs; if the relay pins a date, adjust the route. As of filing (2026-08-22) the defect is live — Everton/Brentford cards — so this reads "still generating" until the relay grounds soccer briefs in soccer stats and the table',
+    note: `gated on ${CONTAINMENT_NOTE}; briefs written before it are history, not evidence. Requires updated_at on /archive/query (relay 7bde535) — created_at cannot serve here, because three brief writers use ON CONFLICT DO UPDATE and a brief regenerated clean keeps its original created_at, which would discard exactly the rewrites that prove the fix`,
   },
 ]
 
@@ -232,6 +266,46 @@ if (SELF_TEST) {
   // The closing-odds surviving ask. Its three states matter more than most:
   // this predicate replaced a staged note whose unblock condition was a future
   // event, and the whole point is that an off-day must not read as a regression.
+  // The contamination gate. Every one of these would have passed before the
+  // gate existed, which is the point: the old predicate could not distinguish
+  // any of them.
+  const cn = ASKS.find(a => a.cmd.includes('brief-sport-contamination'))
+  const CN_DIRTY = 'Everton maintains a 107.7 DRTG, best in the NBA, despite playing soccer tonight.'
+  const CN_CLEAN = 'Arsenal sit second on goal difference after three matches.'
+  const cnBrief = (text, written) => ({ brief_text: text, updated_at: written })
+
+  check('contamination: a pre-fix dirty brief no longer pins it red',
+    cn.landed({ results: [cnBrief(CN_DIRTY, '2026-08-22T10:00:00Z')] }) === null,
+    'one never-regenerated brief keeps the ask "still generating" forever')
+
+  check('contamination: a post-fix dirty brief IS still a defect',
+    cn.landed({ results: [cnBrief(CN_DIRTY, '2026-08-23T09:00:00Z')] }) === false,
+    'the gate softened the check into uselessness')
+
+  check('contamination: a post-fix clean brief reads landed',
+    cn.landed({ results: [cnBrief(CN_CLEAN, '2026-08-23T09:00:00Z')] }) === true,
+    'a real cessation cannot be observed')
+
+  check('contamination: pre-fix dirt beside post-fix clean reads landed',
+    cn.landed({ results: [cnBrief(CN_DIRTY, '2026-08-22T10:00:00Z'),
+                          cnBrief(CN_CLEAN, '2026-08-23T09:00:00Z')] }) === true,
+    'history outvotes evidence — the exact shape that was stuck')
+
+  check('contamination: one post-fix defect among post-fix clean is not landed',
+    cn.landed({ results: [cnBrief(CN_CLEAN, '2026-08-23T09:00:00Z'),
+                          cnBrief(CN_DIRTY, '2026-08-23T11:00:00Z')] }) === false,
+    'a live defect hides behind clean siblings')
+
+  check('contamination: a row with no timestamp cannot testify',
+    cn.landed({ results: [cnBrief(CN_DIRTY, undefined)] }) === null,
+    'a missing projection silently restores the ungated scan')
+
+  check('contamination: updated_at beats created_at on a regenerated brief',
+    cn.landed({ results: [{ brief_text: CN_CLEAN,
+                            created_at: '2026-08-22T18:30:53Z',
+                            updated_at: '2026-08-23T09:00:00Z' }] }) === true,
+    'a brief regenerated clean after the fix is discarded by its stale created_at')
+
   const co = ASKS.find(a => a.cmd.includes('closing-odds-capture'))
   const gm = (sport, opening) => ({ sport, opening_odds: opening })
   const payload = games => ({ games: { regular: games } })
@@ -325,24 +399,31 @@ if (SELF_TEST) {
   const BRENTFORD = 'Brentford leads Spurs 3-0 in the 58th minute. Both teams hold 0-0-0 records this season. The game remains a 0-0-0 stalemate in league standings.'
   const CLEAN = 'Arsenal beat Coventry 3-0 at the Emirates, Saka scoring in the 34th; Arsenal sit top of the table on goal difference.'
   const MID_SEASON = 'City are 5-2-1 and sit second, chasing the Champions League places.'
+  // These fixtures gained a timestamp on 2026-08-23. The predicate now gates on
+  // when a brief was WRITTEN, so a brief with no timestamp cannot testify about
+  // a fix — that is asserted separately above. Here the subject is whether
+  // soccerBriefDefect DISCRIMINATES, so every fixture is dated after the fix and
+  // the gate is held constant.
+  const POST = '2026-08-23T09:00:00Z'
+  const dated = text => ({ brief_text: text, updated_at: POST })
 
   check('the contamination probe flags a soccer brief naming NBA/DRTG (not landed)',
-    contam.landed({ results: [{ brief_text: EVERTON }] }) === false,
+    contam.landed({ results: [dated(EVERTON)] }) === false,
     'cross-sport vocabulary passes as clean')
   check('it flags a stated lead called a stalemate, and reads 0-0-0 as a record not a 0-0 score',
-    contam.landed({ results: [{ brief_text: BRENTFORD }] }) === false,
+    contam.landed({ results: [dated(BRENTFORD)] }) === false,
     'the Brentford card passes, or 0-0-0 is misread as a level score')
   check('it is silent on a clean soccer brief that leads with table position',
-    contam.landed({ results: [{ brief_text: CLEAN }] }) === true,
+    contam.landed({ results: [dated(CLEAN)] }) === true,
     'a clean brief is flagged — the check would nag the relay over nothing')
   check('a discriminating mid-season record (5-2-1) is NOT flagged — only the vacuous 0-0-0 is',
-    contam.landed({ results: [{ brief_text: MID_SEASON }] }) === true,
+    contam.landed({ results: [dated(MID_SEASON)] }) === true,
     'the probe flags records generally rather than the wrong-stat 0-0-0 line')
   check('no EPL briefs this run reports null (not observable), never "still generating"',
     contam.landed({ results: [] }) === null,
     'an empty slate reads as a defect instead of as nothing to observe')
   check('a mixed batch with one contaminated brief is not landed',
-    contam.landed({ results: [{ brief_text: CLEAN }, { brief_text: EVERTON }] }) === false,
+    contam.landed({ results: [dated(CLEAN), dated(EVERTON)] }) === false,
     'one clean brief masks a contaminated one')
 
   process.exit(summarize() === 0 ? 0 : 1)
