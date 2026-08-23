@@ -25,6 +25,34 @@ const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
 const SELF_TEST = process.argv.includes('--self-test')
 
+// The soccer three-way ask (CC-CMD-2026-08-23) must look at CURRENT data, not a
+// frozen date. The odds-api adapter change it asks for applies to newly captured
+// odds going forward, so a historical date would never show it landing. Yesterday
+// (UTC) is used because opening odds are captured ~10:01Z on the game date, so
+// yesterday's slate is always fully populated whatever time the sentinel runs.
+const yesterdayUTC = () => new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
+
+// The sports the laboratory marks `IsSoccer = true` in `src/Desk.fs` sportMeta,
+// by the label /context/date serves. It bounds only the DENOMINATOR of the draw
+// probe: a soccer league missing here makes that game "not observable", never a
+// false "landed" — the safe direction. Keep in sync as new soccer leagues are
+// modelled desk-side.
+const SOCCER_SPORTS = new Set(['MLS', 'EPL', 'La Liga', 'EFL Cup'])
+
+// The soccer moneylines on a /context/date payload, parsed from opening_odds.
+// Shared by the live predicate and the self-test so both read the shape one way.
+const soccerMoneylines = j => {
+  const games = Array.isArray(j?.games?.regular) ? j.games.regular : []
+  const lines = []
+  for (const g of games) {
+    if (!SOCCER_SPORTS.has(g?.sport) || !g?.opening_odds) continue
+    let ml
+    try { ml = JSON.parse(g.opening_odds).moneyline } catch { continue }
+    if (ml && typeof ml === 'object') lines.push(ml)
+  }
+  return lines
+}
+
 // The soccer-brief defect scanner (cross-sport vocabulary, a vacuous 0-0-0
 // record, a stalemate beside a stated lead) lives in ./soccer-brief-defect.mjs
 // so the CC-CMD follow-up and the cross-repo evidence runner share one copy.
@@ -91,6 +119,23 @@ const ASKS = [
     note: 'Phase 2 unblocks the day this is true — every stored score gains a rubric',
   },
   {
+    cmd: 'CC-CMD-2026-08-23-soccer-three-way-odds',
+    ask: 'project the draw price into opening_odds.moneyline for soccer markets',
+    route: `/context/date/${yesterdayUTC()}`,
+    // Three states. `null` = no soccer game carried a moneyline this run
+    // (off-day / not yet captured) — observable-but-empty, neither confirmation
+    // nor defect. `true` = at least one soccer moneyline now carries a `draw`
+    // key — the ask landed. `false` = soccer moneylines are served but every one
+    // is still two-way {home, away}. A draw key is unambiguous: only three-way
+    // (soccer) markets have one, so its appearance IS the landed signal.
+    landed: j => {
+      const lines = soccerMoneylines(j)
+      if (lines.length === 0) return null
+      return lines.some(ml => 'draw' in ml)
+    },
+    note: 'as of filing (2026-08-23) every MLS moneyline is {home, away} with no draw, so winProbability yields ThreeWayDrawMissing and the card says "no draw price served". Reads LANDED the day a soccer moneyline carries a draw — no laboratory change needed, the three-way render is shipped',
+  },
+  {
     // A STOP-GENERATING ask — see `cessation` below and the scanner above.
     cmd: 'CC-CMD-2026-08-22-brief-sport-contamination',
     ask: 'soccer briefs carry no cross-sport vocabulary, no 0-0-0 record cited as season context, and no stalemate beside a stated lead',
@@ -149,6 +194,39 @@ if (SELF_TEST) {
   check('no ask appears in both the open and landed lists',
     !ASKS.some(a => LANDED.some(l => l.cmd === a.cmd)),
     'an ask is being reported twice, in two different states')
+
+  // ── the soccer three-way draw probe discriminates ──────────────────────────
+  //
+  // The ask lands when a soccer moneyline carries a `draw` key. A predicate that
+  // returned `true` on the two-way {home, away} the relay serves today would
+  // report the ask landed while soccer win probability is still un-renderable —
+  // the false confidence this file exists to refuse. Exercised against the real
+  // MLS shape, a with-draw shape, and an MLB-only slate that must read "no rows".
+  const draw = ASKS.find(a => a.cmd.includes('soccer-three-way-odds'))
+  const soccerGame = (sport, moneyline) =>
+    ({ sport, opening_odds: JSON.stringify({ moneyline }) })
+  const MLS_TWO_WAY = { games: { regular: [soccerGame('MLS', { home: 125, away: 180 })] } }
+  const MLS_THREE_WAY = { games: { regular: [soccerGame('MLS', { home: 125, draw: 240, away: 180 })] } }
+  const MLB_ONLY = { games: { regular: [soccerGame('MLB', { home: -104, away: -103 })] } }
+
+  check('the draw probe reads the live two-way MLS moneyline as NOT landed',
+    draw.landed(MLS_TWO_WAY) === false,
+    'a {home, away} soccer line passes as though a draw were served')
+  check('it reads a soccer moneyline carrying a draw key as landed',
+    draw.landed(MLS_THREE_WAY) === true,
+    'the with-draw shape the ask is for is not recognised as landed')
+  check('an MLB-only slate is "no rows", not "not landed"',
+    draw.landed(MLB_ONLY) === null,
+    "a two-way sport that cannot draw drags the ask to 'not yet' from nothing to observe")
+  check('an empty slate reports null (not observable), never a false not-landed',
+    draw.landed({ games: { regular: [] } }) === null && draw.landed(null) === null,
+    'an empty or missing payload reads as a defect instead of nothing to observe')
+  check('one soccer game with a draw among two-way lines counts as landed',
+    draw.landed({ games: { regular: [
+      soccerGame('MLS', { home: 125, away: 180 }),
+      soccerGame('La Liga', { home: -110, draw: 240, away: 260 }),
+    ] } }) === true,
+    'a single with-draw line is masked by the two-way ones around it')
 
   // ── the contamination scanner discriminates ───────────────────────────────
   //
