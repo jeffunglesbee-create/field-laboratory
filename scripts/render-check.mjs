@@ -9,9 +9,21 @@
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { all as weatherVenues } from '../build/Venues.js'
+import { forecastUrl, coordinates } from '../build/Weather.js'
 import { createChecks } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
+
+// The weather chips fill from a LIVE Open-Meteo call. api.open-meteo.com has gone
+// unreachable from GitHub-hosted runners for stretches (weather-live-check names
+// the runs), and when it does, the chips cannot fill through no fault of the page
+// — yet these assertions would fail hard and turn main red, blocking the deploy
+// on a third-party outage. `weather-live-check` already resolved this exact split:
+// tolerate unreachability in verify, nowhere else, and only ever for a probe that
+// actually failed to reach the service. `--tolerate-unreachable` is passed by
+// verify.yml's live render step and by no other job, so a broken chip while
+// Open-Meteo IS reachable stays a hard failure everywhere.
+const TOLERATE = process.argv.includes('--tolerate-unreachable')
 
 const errors = []
 // Chromium lives in two different places depending on where this runs. The
@@ -146,6 +158,21 @@ if (!pinned) {
   filled = chips.filter(c => c.t !== '')
 }
 
+// Attribute empty chips: if they did not fill, was Open-Meteo reachable at all?
+// A direct probe — Fenway Park, the same coordinate weather-live-check uses — so
+// "the service is down" is DISTINGUISHED from "the page rendered no chip while the
+// service was up". Only the former is tolerated, and only when the flag is set;
+// the latter is a real regression and stays a failure. The probe runs solely when
+// there is an empty-chip failure to explain, so a healthy slate pays nothing.
+let openMeteoDown = false
+if (!pinned && (waitErr !== null || filled.length < expected)) {
+  const probe = coordinates(42.3467, -71.0972)
+  try {
+    const r = await fetch(forecastUrl(probe), { signal: AbortSignal.timeout(15_000) })
+    openMeteoDown = !r.ok
+  } catch { openMeteoDown = true }
+}
+
 await browser.close()
 
 const { check, summarize } = createChecks()
@@ -232,22 +259,36 @@ console.log(`          ->  live      "${transition.live?.drama}"\n`)
 // the table is a check in its own right rather than a precondition nobody
 // states.
 if (!pinned) {
+  // The venue-table coverage is independent of Open-Meteo — it is about the table,
+  // not the service — so it is asserted whether or not the service answered.
   check('the venue table covers at least one venue on this slate', expected > 0,
     `${[...new Set(cardVenues)].join(', ') || 'no cards with a venue'} — none of them in the ${known.size}-entry table`)
-  check('the chips all filled within the wait', waitErr === null, waitErr)
-  check('every card whose venue the table knows carries a live chip',
-    expected > 0 && filled.length === expected,
-    `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled`)
-  // Anchored and whole-string: `includes('61')` would accept 161°F, and a bare
-  // prefix would accept a chip that had grown a stray suffix.
-  check('every live chip reads as a temperature and nothing else',
-    filled.length > 0 &&
-    filled.every(c => /^-?\d+°F( · (rain|snow or sleet|rain and ice))?$/.test(c.t)),
-    JSON.stringify(filled.slice(0, 3)))
-  check('every live chip carries a real roof caveat',
-    filled.length > 0 &&
-    filled.every(c => /open air|fixed roof|retractable roof/.test(c.title || '')),
-    JSON.stringify(filled.slice(0, 3)))
+
+  if (TOLERATE && openMeteoDown) {
+    // Open-Meteo unreachable from this runner. The chips could not fill through no
+    // fault of the page, so the four live-weather assertions are SKIPPED — loudly,
+    // as a warning, never a silent pass. Tolerated here only because verify passes
+    // the flag; every other job asserts, and a broken chip with the service UP is
+    // never reached by this branch (openMeteoDown is set only on a failed probe).
+    console.log('::warning::Open-Meteo unreachable from this runner — the four live weather-chip ' +
+      `checks are skipped (${expected} known venue(s) on this slate, ${filled.length} chip(s) filled). ` +
+      'This is a third-party outage, not a page defect; verify is not gated on it.')
+  } else {
+    check('the chips all filled within the wait', waitErr === null, waitErr)
+    check('every card whose venue the table knows carries a live chip',
+      expected > 0 && filled.length === expected,
+      `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled`)
+    // Anchored and whole-string: `includes('61')` would accept 161°F, and a bare
+    // prefix would accept a chip that had grown a stray suffix.
+    check('every live chip reads as a temperature and nothing else',
+      filled.length > 0 &&
+      filled.every(c => /^-?\d+°F( · (rain|snow or sleet|rain and ice))?$/.test(c.t)),
+      JSON.stringify(filled.slice(0, 3)))
+    check('every live chip carries a real roof caveat',
+      filled.length > 0 &&
+      filled.every(c => /open air|fixed roof|retractable roof/.test(c.title || '')),
+      JSON.stringify(filled.slice(0, 3)))
+  }
 }
 
 process.exit(summarize() === 0 ? 0 : 1)

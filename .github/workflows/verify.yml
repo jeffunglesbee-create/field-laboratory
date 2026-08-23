@@ -528,7 +528,7 @@ jobs:
             curl -sf -o /dev/null http://localhost:8080/ && break
             sleep 1
           done
-          npm run check:live
+          npm run check:live -- --tolerate-unreachable
 
       # data/pick-2026-07-07.json was TRANSCRIBED from a Drive document rather
       # than fetched — the dev sandbox has no route to the relay. This is where
