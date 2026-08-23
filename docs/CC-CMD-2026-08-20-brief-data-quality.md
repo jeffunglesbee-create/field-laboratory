@@ -533,7 +533,10 @@ game brief.
 
 That matters because a conclusion was already drawn from it. Against the
 game-shape ceiling of 270, the 240 bar is **88.89%** of what a game brief can
-earn, not 97.96%. "No brief has ever cleared 240 in 523" then reads as a
+earn, not 97.96%. (Figures as of `74dc759`. Era 4 moved the weights an hour
+later, so the live numbers are ceiling **276** and **86.96%** — derived from
+`SCALE`, confirmed 11/11 against the deployed relay. The verdict is unchanged;
+the arithmetic follows the weights.) "No brief has ever cleared 240 in 523" then reads as a
 demanding editorial bar that is never met, rather than a near-perfect-score
 requirement that is arithmetically unmeetable — and those call for different
 responses. Corrected additively in relay `74dc759`; no existing consumer of
