@@ -47,7 +47,12 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      # Full history: deploy-landed-check walks commits back to the newest
+      # DEPLOYABLE one, which may be behind HEAD when docs/[skip ci] commits sit
+      # on top. A shallow clone would see one commit and misjudge.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -87,6 +92,16 @@ jobs:
             echo "::warning::Deployed stamp is not main HEAD; checks below describe $DEPLOYED"
           fi
           echo "sha=$DEPLOYED" >> "$GITHUB_OUTPUT"
+
+      # The deploy landed: the published artifact is the newest DEPLOYABLE commit.
+      # This is the assertion the laboratory lacked — it could report the stamp
+      # was "not main HEAD" but not tell whether that was correct (a docs commit
+      # on top) or a failed deploy. --strict, because by the time live-check runs
+      # the triggering deploy has completed, so "behind" is a real failure, not a
+      # mid-flight transient. On the daily schedule and manual runs it is equally
+      # true that the newest deployable commit should be live.
+      - name: The deploy landed (published is the newest deployable commit)
+        run: SITE=https://field-laboratory.jeffunglesbee.workers.dev node scripts/deploy-landed-check.mjs --strict
 
       - name: Render the deployed page and assert on it
         run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs

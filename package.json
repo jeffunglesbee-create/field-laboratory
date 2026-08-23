@@ -38,6 +38,7 @@
     "check:palette": "node scripts/palette-check.mjs --self-test && node scripts/palette-check.mjs",
     "check:typography": "node scripts/typography-check.mjs --self-test && node scripts/typography-check.mjs",
     "check:design-tokens": "node scripts/design-tokens-check.mjs --self-test && node scripts/design-tokens-check.mjs",
+    "check:deploy-landed": "node scripts/deploy-landed-check.mjs --self-test && node scripts/deploy-landed-check.mjs",
     "check:mutation": "node scripts/mutation-check.mjs",
     "check:rows": "node scripts/row-confidence.mjs",
     "check:verify": "node build/VerifyMain.js",

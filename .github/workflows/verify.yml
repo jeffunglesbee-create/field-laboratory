@@ -264,6 +264,13 @@ jobs:
       - name: Workflow jobs can run what they invoke
         run: npm run check:workflows
 
+      # The deploy-landed classifier — is the published artifact the newest
+      # DEPLOYABLE commit, not merely main HEAD (docs/[skip ci] commits correctly
+      # do not deploy). Only the self-test runs here; the live assertion runs in
+      # live-check, post-deploy, where the site can be reached.
+      - name: The deploy-landed classifier discriminates
+        run: node scripts/deploy-landed-check.mjs --self-test
+
       # The gate's row inventory guard, self-tested. Its own assertions run here
       # rather than only inside the gate, so a broken guard is a named failure
       # instead of a gate that quietly stops comparing.
