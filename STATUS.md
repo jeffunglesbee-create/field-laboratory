@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `d73bbad` — [run 32652255650](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32652255650)
+**running** on `47a5e08`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `d73bbad`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `d73bbad` — [run 32652340716](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32652340716)
 
 ## Is it published?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `57d8bcd` — behind newest deployable `d73bbad` (deploy not landed) |
+| Cloudflare Workers | live | `57d8bcd` — behind newest deployable `47a5e08` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-08-23 — 46 games, 0 malformed (40 runs logged)
+`ok` on 2026-08-23 — 46 games, 0 malformed (41 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)

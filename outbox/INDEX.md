@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2059a30` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
 | `bb716aa` | 2026-08-23 | [cc-render-check-tolerate-open-meteo-2026-08-23.md](cc-render-check-tolerate-open-meteo-2026-08-23.md) | render-check: tolerate an Open-Meteo outage in verify, with teeth intact |
 | `1ef7f20` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
 | `428d200` | 2026-08-23 | [cc-surface-live-check-in-status-2026-08-23.md](cc-surface-live-check-in-status-2026-08-23.md) | status: surface live-check health in STATUS.md so a red cannot hide for a day |
