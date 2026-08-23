@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2038387` | 2026-08-23 | [cc-pre-commit-gate-2026-08-23.md](cc-pre-commit-gate-2026-08-23.md) | Add a pre-commit gate: cheap checks before the commit exists |
+| `0bb76f8` | 2026-08-23 | [cc-deploy-landed-2026-08-23.md](cc-deploy-landed-2026-08-23.md) | deploy-landed: prove the published artifact is the newest deployable commit |
 | `0844b04` | 2026-08-23 | [cc-wire-the-desk-2026-08-23.md](cc-wire-the-desk-2026-08-23.md) | Wire the desk to the typed palette and type system |
 | `a615617` | 2026-08-23 | [cc-typography-as-types-2026-08-23.md](cc-typography-as-types-2026-08-23.md) | Typography: FIELD's type system as types, with proofs |
 | `0632704` | 2026-08-23 | [cc-the-palette-as-types-2026-08-23.md](cc-the-palette-as-types-2026-08-23.md) | Palette: FIELD's semantic color system as types, with proofs |
