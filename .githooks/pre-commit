@@ -28,5 +28,9 @@ npm run --silent check:workflows
 # moving docs/history-boundary.txt -- which had moved twice in seven days and
 # was about to move a third time. Asked here, it is still answerable.
 npm run --silent check:staged-outbox
+# Added 2026-08-23. A staged claim with no executor can only be cleared by a
+# human remembering to look -- which is how closing-odds sat two days past its
+# own passing result. Docs-only scan, no network, so it belongs at the door.
+npm run --silent check:staged-verifier
 
 echo "pre-commit: ok"

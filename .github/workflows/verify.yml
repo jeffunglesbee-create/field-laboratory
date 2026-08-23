@@ -462,6 +462,25 @@ jobs:
       - name: Source and outbox changed together, every commit
         run: npm run check:history
 
+      # Beside check:history for the same reason it sits here: both ask whether
+      # the written record can be trusted, and neither depends on anything the
+      # other steps measure.
+      #
+      # Rule 74 requires a staged item to state its unblock condition and verify
+      # commands. That is a document discipline: it produces a verification a
+      # human then has to remember to run. Measured 2026-08-23 -- 55 files across
+      # the two repos say STAGED; four things check anything. The gap produced
+      # two distinct failures this month, patched separately before anyone saw
+      # they were one: a claim whose unblock was a future event nothing
+      # re-evaluated (closing-odds sat two days past its own PASS), and a
+      # verification written and never run for six days.
+      #
+      # This makes a staged claim name an executor that exists and is scheduled.
+      # It does NOT make that executor honest -- a probe can run and still lie,
+      # which is a different defect with a different fix (baselines).
+      - name: A staged claim names a verifier that exists and runs
+        run: npm run check:staged-verifier
+
       # A confidence score in an outbox entry must be a measurement, not a claim.
       #
       # confidence.mjs already says of its ROWS that "a self-reported number is
