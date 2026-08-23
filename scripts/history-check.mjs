@@ -125,13 +125,53 @@ const walk = () => {
   return commits
 }
 
+/**
+ * Why the boundary is missing, given what git knows about the sha. Pure, so the
+ * self-test can exercise both branches without a rewritten repo.
+ *
+ * The two causes need different actions and the original error named neither.
+ * `known && !ancestor` is an ORPHAN: the object is right here, so nothing was
+ * lost -- the same change was replayed onto a different base and got a new sha.
+ * `!known` is ambiguous between a shallow clone, a wrong repo, and a typo, and
+ * a shallow clone is the common case in a cloud session (this repo's own
+ * boundary file records a local audit printing "predating: 1" against CI's 699
+ * commits).
+ *
+ * Written 2026-08-23 because the undifferentiated error cost five consecutive
+ * red verify runs. a4d500c was rebased into c31b94e 42 seconds after it was
+ * written -- by the very push that recorded a4d500c as the boundary -- and the
+ * message said only "is not in this history", which reads like the shallow-clone
+ * case and sends you to check fetch-depth, which was already 0.
+ */
+export const explainMissingBoundary = ({ sha, known, ancestor, path }) => {
+  const short = sha.slice(0, 7)
+  if (known && !ancestor) {
+    return `RULE_EFFECTIVE ${short} exists but is NOT an ancestor of HEAD -- it was ` +
+      `orphaned, almost certainly by a rebase or amend that replayed the same change ` +
+      `onto a different base. The content is not lost: find the commit with the same ` +
+      `subject that IS in history (git log --all --format='%h %s' | grep) and point ` +
+      `${path} at it. The count does not change when a commit is only renamed.`
+  }
+  return `RULE_EFFECTIVE ${short} is unknown to this clone. Either the clone is shallow ` +
+    `(check \`git log --oneline | wc -l\` is in the hundreds -- checkout needs fetch-depth: 0), ` +
+    `or history was rewritten and the commit is gone. If it was rewritten, re-derive the ` +
+    `boundary and the count together in ${path}.`
+}
+
+const gitOk = (cmd) => {
+  try { execSync(cmd, { stdio: 'ignore' }); return true } catch { return false }
+}
+
 const audit = () => {
   const commits = walk()
   const effectiveIdx = commits.findIndex(c => c.sha === RULE_EFFECTIVE)
   if (effectiveIdx === -1) {
-    throw new Error(
-      `RULE_EFFECTIVE ${RULE_EFFECTIVE.slice(0, 7)} is not in this history. ` +
-      `If history was rewritten, re-derive the boundary and the count together in ${BOUNDARY_PATH}.`)
+    throw new Error(explainMissingBoundary({
+      sha: RULE_EFFECTIVE,
+      known: gitOk(`git cat-file -e ${RULE_EFFECTIVE}^{commit}`),
+      ancestor: gitOk(`git merge-base --is-ancestor ${RULE_EFFECTIVE} HEAD`),
+      path: BOUNDARY_PATH,
+    }))
   }
   // `git log` is newest-first, so anything at a LOWER index than the boundary
   // is newer than it — i.e. governed by the rule.
@@ -178,6 +218,25 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
 
   check('a merge commit (no files) is exempt',
     !isViolation([]), 'merges would fail on someone else\'s history')
+
+  // The two missing-boundary causes must not render the same line. They were
+  // one line until 2026-08-23, and that line pointed at the wrong one.
+  const orphan = explainMissingBoundary(
+    { sha: 'a4d500cd1b7baea66004c30d499dc6ebdc715ca7', known: true, ancestor: false, path: 'docs/history-boundary.txt' })
+  const unknown = explainMissingBoundary(
+    { sha: 'a4d500cd1b7baea66004c30d499dc6ebdc715ca7', known: false, ancestor: false, path: 'docs/history-boundary.txt' })
+
+  check('an orphaned boundary is named as orphaned, not as missing',
+    /orphaned/.test(orphan) && !/shallow/.test(orphan),
+    'the orphan case must not send anyone to check fetch-depth — it was already 0')
+  check('...and says the content still exists under another sha',
+    /same subject/.test(orphan) && /count does not change/.test(orphan),
+    'an orphan needs a re-point, not a re-derived count')
+  check('an unknown boundary names the shallow clone first',
+    /shallow/.test(unknown) && /fetch-depth/.test(unknown),
+    'the common cause in a cloud session')
+  check('the two causes do not render the same line',
+    orphan !== unknown, 'one message for two actions is the defect being fixed')
 
   process.exit(summarize() === 0 ? 0 : 1)
 }

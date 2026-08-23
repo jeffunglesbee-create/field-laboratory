@@ -203,4 +203,59 @@
 # above was bypassed or removed, and THAT is the thing to investigate — not the
 # commits.
 
-a4d500cd1b7baea66004c30d499dc6ebdc715ca7  22
+
+# ─────────────────────────────────────────────────────────────────────────────
+# RE-POINTED ON 2026-08-23, FROM a4d500c TO c31b94e — SAME COMMIT, COUNT UNCHANGED
+#
+# This is NOT a fourth move. The count stays 22 and no commit changed sides.
+# The boundary named a sha that stopped existing in main's history 42 seconds
+# after it was written.
+#
+# WHAT HAPPENED
+#
+#   a4d500c  17:01:03  feat: guard the outbox rule at commit time, ...
+#   c31b94e  17:01:45  feat: guard the outbox rule at commit time, ...   ← in history
+#   7c8021d  17:01:45  docs: move the history boundary a third time, ...
+#
+# `git diff --stat` is byte-identical between the two: same five files, same
+# 252 insertions. c31b94e is the parent of 7c8021d — the entry above, which set
+# this boundary. The push that recorded a4d500c as the boundary is the push that
+# rebased a4d500c into c31b94e. The file named the pre-rebase sha and shipped in
+# the same operation that invalidated it.
+#
+# Every property the entry above requires still holds, of c31b94e: first commit
+# after the last violation, and itself clean — scripts/staged-outbox-check.mjs
+# shipped beside outbox/2026-08-23-sport-vocabulary.md.
+#
+# WHY THE COUNT DOES NOT MOVE
+#
+# A rebase renamed one commit. It did not add, remove, or reorder any commit
+# relative to the boundary, so the set of commits predating it is the same set.
+# 22 stands. If CI disagrees, CI is the authority — this clone is shallow and
+# its local count is meaningless, as the entry above already records.
+#
+# THE COST, AND WHAT SHIPPED SO IT DOES NOT RECUR
+#
+# Five consecutive red verify runs — 7c8021d, 80f2e12, 1bba8a9, 3226819,
+# a5c7510 — all with the same undifferentiated error:
+#
+#   RULE_EFFECTIVE a4d500c is not in this history. If history was rewritten,
+#   re-derive the boundary and the count together in docs/history-boundary.txt.
+#
+# That message reads as the shallow-clone case, which sends you to check
+# fetch-depth — already 0, so a full clone, so the error appeared to contradict
+# itself. It also says "re-derive the boundary AND THE COUNT", which is wrong
+# advice for an orphan and would have moved a number that had not changed.
+#
+# scripts/history-check.mjs now asks git which case it is and says so:
+# `known && !ancestor` is an orphan (find the same subject at its new sha, the
+# count does not change); `!known` is a shallow clone or a rewrite. Four
+# self-test cases cover both branches and require the two to render differently.
+#
+# .githooks/pre-commit now refuses a commit whose boundary sha is known to git
+# but is not an ancestor of HEAD. It stays SILENT when the sha is unknown,
+# because that is ambiguous — a shallow clone is the ordinary case here and must
+# not block a commit. An orphan is unambiguous, and is the one this cost a
+# red main for.
+
+c31b94e075ee098c2248c9fa3b3d2c59f2b22ae4  22

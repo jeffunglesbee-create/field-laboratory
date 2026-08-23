@@ -25,6 +25,7 @@
 // --self-test runs the classifier against fixtures and touches no git state.
 
 import { execSync } from 'node:child_process'
+import { isMain } from './checks.mjs'
 
 const SOURCE = /^(src\/|scripts\/)/
 const OUTBOX = /^outbox\//
@@ -34,7 +35,7 @@ const OUTBOX = /^outbox\//
 export const isViolation = (files) =>
   files.some(f => SOURCE.test(f)) && !files.some(f => OUTBOX.test(f))
 
-if (process.argv.includes('--self-test')) {
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   let pass = 0, fail = 0
   const t = (name, got, want) => {
     const ok = got === want
@@ -56,6 +57,12 @@ if (process.argv.includes('--self-test')) {
   process.exit(fail ? 1 : 0)
 }
 
+// Guarded 2026-08-23. This ran at module scope and called process.exit, so
+// importing the module terminated the importing process -- which is precisely
+// what check:import-purity exists to catch, and it caught it here, in the file
+// shipped this morning to guard a different rule at the door.
+if (isMain(import.meta.url)) {
+
 const staged = execSync('git diff --cached --name-only', { encoding: 'utf8' })
   .split('\n').map(s => s.trim()).filter(Boolean)
 
@@ -76,3 +83,5 @@ Stage an outbox/ entry describing the change, or split the source out of this
 commit. To override deliberately: git commit --no-verify, and say why in the
 message.`)
 process.exit(1)
+
+}

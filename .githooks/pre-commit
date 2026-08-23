@@ -32,5 +32,12 @@ npm run --silent check:staged-outbox
 # human remembering to look -- which is how closing-odds sat two days past its
 # own passing result. Docs-only scan, no network, so it belongs at the door.
 npm run --silent check:staged-verifier
+# Added 2026-08-23. docs/history-boundary.txt names a commit by sha, and a
+# rebase renames commits. a4d500c was orphaned 42 seconds after being written as
+# the boundary -- by the same push -- and check:history then failed five
+# consecutive CI runs on a repo where nothing was wrong but one stale sha. Asked
+# here, right after the rebase, the answer is one edit away. Silent when the sha
+# is unknown: a shallow clone is the ordinary case in a cloud session.
+npm run --silent check:boundary
 
 echo "pre-commit: ok"
