@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3226819` | 2026-08-23 | [2026-08-23-staged-verifier.md](2026-08-23-staged-verifier.md) | feat: a staged claim must name a verifier that exists and runs |
 | `1bba8a9` | 2026-08-23 | [2026-08-23-contamination-baseline.md](2026-08-23-contamination-baseline.md) | fix: the cessation probe could never have observed a cessation |
 | `80f2e12` | 2026-08-23 | [2026-08-23-closing-odds-followup.md](2026-08-23-closing-odds-followup.md) | feat: register the closing-odds ask with the follow-up probe |
 | `f4cac61` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
