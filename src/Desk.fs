@@ -203,6 +203,14 @@ type Sport =
     /// identically in both). The fetch layer uses the lowercase slug "epl"; the
     /// archive canonicalises to "EPL", which is what /context/date serves.
     | EPL
+    /// French top-flight association football. The relay labels it "Ligue 1",
+    /// with the space. First served 2026-08-21; the drift sentinel reported it
+    /// unmodelled on 2026-08-22 and every run since.
+    | Ligue1
+    /// Italian top-flight association football. The relay labels it "Serie A",
+    /// with the space. First served 2026-08-22, reported unmodelled the same
+    /// day.
+    | SerieA
     /// Modelled as a case so it can be DECLARED unmodelled rather than merely
     /// unrecognised — see `Omission` below. Golf itself stays unmodelled.
     | Golf
@@ -277,6 +285,23 @@ let sportMeta (sport: Sport) : SportMeta =
     // Emirates) was named first on the card, matching ESPN's `homeAway`, so the
     // relay did not transpose the sides. First served 2026-08-21.
     | Sport.EPL -> { Label = "EPL"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    // Association football, home first — the convention every soccer entry
+    // above already uses. Applying the SOCCER convention to a soccer
+    // competition is not the AFL mistake; that was applying an AMERICAN
+    // convention to a non-American sport.
+    //
+    // What still needed evidence is whether the relay's own home/away is
+    // correct for these two, and it is. Read off live briefs 2026-08-22:
+    //   Ligue 1 — "Lyon secured a 2-0 win at Stadium Municipal de Toulouse",
+    //     with "Toulouse ... +145 home underdogs" and "Lyon ... +185 away
+    //     odds". Home is the ground's owner and the odds agree.
+    //   Serie A — "Cagliari opened their season ... at Ennio Tardini, holding
+    //     Parma", Cagliari named "the visitors" and Ennio Tardini being Parma's
+    //     ground; and "Napoli ... 2-0 win against Genoa at Stadio Luigi
+    //     Ferraris", Ferraris being Genoa's. Home is the ground's owner in both.
+    // The sides are not transposed, so the desk can name them.
+    | Sport.Ligue1 -> { Label = "Ligue 1"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.SerieA -> { Label = "Serie A"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     // DECLARED unmodelled. Every field is what `Unrecognised` would produce —
     // the desk still refuses to claim a two-sided contest — and the only thing
     // that changes is that the sentinel can tell this apart from a sport nobody
@@ -312,6 +337,13 @@ let sportOfString (raw: string) : Sport =
     // it is spelled out rather than applied blanket, so it cannot silently
     // merge two genuinely different labels.
     | "EPL" | "epl" -> Sport.EPL
+    // The relay's own labels, with the space, matched verbatim for the same
+    // reason "EFL Cup" and "La Liga" are. No case fold here: unlike EPL, no
+    // lowercase slug for these has been observed reaching the archive, and
+    // accepting a spelling that has never been served is how a normaliser
+    // quietly merges two sports.
+    | "Ligue 1" -> Sport.Ligue1
+    | "Serie A" -> Sport.SerieA
     // `golf` maps to a case that DECLARES itself unmodelled, and that is a
     // decision rather than an omission. The relay packs a tournament and a round into `home`
     // and `away` — `golf_2026-08-14_fedexstjudechampionship_r2` renders as
