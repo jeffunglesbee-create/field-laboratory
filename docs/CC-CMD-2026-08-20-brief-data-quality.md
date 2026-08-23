@@ -3,7 +3,8 @@
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (journalism cron) **and** jubilant-bassoon (client
 archive writer) — see ask 4, this is a paired cross-repo change per Rule 70
-**Status:** open
+**Status:** open — asks 1, 2, 3, 4a, 4b, 5, 6a BUILT; ask 6b needs a rescope
+and §5's residual D1 mutations await authorization. See revision 6.
 **Revision 3 (2026-08-21)** — see "What changed in rev 3" at the end. Rev 3
 corrects two rev-2 claims that measurement falsified; the corrections make ask 5
 *less* blocked, not more.
@@ -14,6 +15,15 @@ several of this doc's own claims (ask 2 overcount, ask 5 container, ask 6
 "inverted") — folded in below; see "What changed in rev 4". Session doc:
 `field-relay-nba/outbox/cc-session-2026-08-21-brief-data-quality-asks-3-4-6.md`;
 the per-sport event contract now lives in `CONTRACTS.md` (both repos).
+**Revision 6 (2026-08-23) — ASK 5 BUILT** by relay `644d7f6`
+(`buildMatchEventsContext` / `formatMatchEvents` / `selectScoringPlays`, context
+source `match_events`, priority 4, budget 200). Verification is automated, not a
+note: check 4 of `scripts/verify-staged-items.mjs`, on the daily
+`staged-verification` schedule. Three of this doc's own ask-5 claims were
+corrected by measurement — see "What changed in rev 6". One piece of ask 5's
+stated scope was **not** built and is filed as its own CC-CMD rather than left as
+a carry-forward (Rule 87): `CC-CMD-2026-08-23-soccer-near-miss-enrichment`.
+Session doc: `field-relay-nba/outbox/cc-session-2026-08-23-match-events.md`.
 **Revision 5 (2026-08-21).** A follow-up census fully mapped the residual D1
 mutations §5 carried as "needs authorization" — see "What changed in rev 5". Rev
 4 was the execution report; rev 5 is the residual worked out to row-level maps,
@@ -341,7 +351,50 @@ postseason MLB and per-round golf ids as failures.
 
 Generate from the structured event feed rather than season-stat templates — this
 is what makes a claim checkable, and what makes a provenance/confidence layer
-possible at all. Unblocked and fully specified at execution; not yet built.
+possible at all.
+
+> **BUILT 2026-08-23, relay `644d7f6`.** Context source `match_events`
+> (priority 4, budget 200) emits a `[MATCH EVENTS]` block into the generation
+> prompt. Guarded by `scripts/match-events-check.mjs` (25 assertions, blocking
+> at the deploy gate). Verified on a schedule, not by a note: check 4
+> `recap_names_a_scoring_play` in `scripts/verify-staged-items.mjs`, which runs
+> daily and performs the enumerated per-row join this ask asked for.
+>
+> **Three of the claims below were corrected by measurement 2026-08-23.** They
+> are left in place with the corrections beside them, because a reader who acts
+> on the uncorrected version builds the wrong thing.
+>
+> 1. **The volume trap is not NBA's alone, and it is not a winter problem.**
+>    WNBA measured **112** scoring items on a real finalized game — the same
+>    wall as NBA's 119, and WNBA is in season. The selection rule is exercised
+>    by live data today. "NBA needs selection" was wrong by one sport.
+> 2. **The soccer slug is per-competition.** `_ESPN_SPORT_SLUG` maps every
+>    soccer key to `fifa.world`, which is the World Cup. EPL needs
+>    `sports/soccer/eng.1`, verified reachable. Other domestic slugs are NOT
+>    verified and were deliberately left unmapped, so an unlisted competition
+>    emits nothing rather than fetching a plausible-looking URL.
+> 3. **NFL is reachable although absent from `_ESPN_SPORT_SLUG`.**
+>    `sports/football/nfl` works through `/espn-summary`.
+>
+> **The selection rule, and what makes it possible.** `homeScore`/`awayScore`
+> are present on **every** scoring item for MLB, WNBA and NFL — checked across
+> the whole array, not element 0. So lead changes are computable, and above 12
+> items the block is lead changes plus the closing period, capped at 8. EPL
+> `keyEvents` carries no running score and needs none at three items; a missing
+> or partial running score takes the chronological tail instead of ranking on
+> `NaN` margins.
+>
+> **The block never states a scoreline.** Running scores are read for ranking
+> and discarded, because a block printing them invites the generator to report
+> the score as of the 8th-from-last scoring play as final — the shape of the
+> 2026-08-22 EPL brief that invented "a 2-1 result".
+
+> **NOT BUILT: soccer near-miss enrichment.** The `commentary` layer
+> (off-target, woodwork, fouls) described below is real and measured, and it is
+> not in `644d7f6` — that ships `keyEvents` scoring plays only. Filed as
+> `CC-CMD-2026-08-23-soccer-near-miss-enrichment` rather than carried as a
+> follow-up line here, per Rule 87: deferred work needs a second CC-CMD, not a
+> sentence.
 
 > **CONTAINER CORRECTED rev 4 — `keyEvents` is soccer-only.** The rev-3 scoping on
 > `keyEvents` is wrong for four of five sports. Measured 2026-08-21 against real
