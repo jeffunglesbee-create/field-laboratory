@@ -140,6 +140,16 @@ jobs:
       - name: The semantic palette holds
         run: npm run check:palette
 
+      # The win-probability market-shape model, over the real compiled Market.fs:
+      # constructors validate the sum, the two-way complement is correct where
+      # allowed, and on a real de-vigged three-way market the two-way complement
+      # folds the draw into away — the jubilant-bassoon defect, in arithmetic. The
+      # compiler claims (two-way complement / accessor can't touch a three-way
+      # market; a bare number can't become one) are in docs/WP-PROOF.md under
+      # check:proof.
+      - name: The market-shape model holds
+        run: npm run check:wp
+
       # The typography system, over the real compiled Typography.fs: two faces
       # only and both used, one style per role, Chakra Petch as the identity face,
       # Data carries tabular numerals, every font stack ends in a real fallback.
