@@ -211,9 +211,42 @@ type Sport =
     /// with the space. First served 2026-08-22, reported unmodelled the same
     /// day.
     | SerieA
+    /// The UEFA club competitions and the other association-football
+    /// competitions the relay archives. Added 2026-08-23 once
+    /// `sport-vocabulary-check` measured real two-sided rows for each — Celtic
+    /// 3-0 LASK Linz, Crystal Palace 1-0 Rayo Vallecano, Spain 1-0 Argentina,
+    /// Mansfield 1-4 Man City U21. `CC-CMD-2026-08-20-uefa-club-competitions`
+    /// said not to model them while the archive showed zero rows, and that was
+    /// right at the time; the rows exist now, so the same rule says model them.
+    | UEFAChampionsLeague
+    | UEFAChampionsLeagueQualifying
+    | UEFAEuropaLeague
+    | UEFAEuropaLeagueQualifying
+    | UEFAEuropaConferenceLeague
+    | UEFAEuropaConferenceLeagueQualifying
+    | FIFAWorldCup
+    | EFLTrophy
+    /// North American basketball and ice hockey. The `Matchup` type's own
+    /// documentation names both as "Away @ Home" — a statement already made in
+    /// this file, not a convention imported from outside it.
+    | NBA
+    | NHL
     /// Modelled as a case so it can be DECLARED unmodelled rather than merely
     /// unrecognised — see `Omission` below. Golf itself stays unmodelled.
     | Golf
+    /// The relay's other label for golf. Measured 2026-08-23: PGA Tour rows
+    /// carry `home = null` AND `away = null` — not even the packed
+    /// tournament/round string golf rows carry. Its own case so the desk can
+    /// render the label it was served rather than showing "golf".
+    | PGATour
+    /// Twenty20 cricket. A real two-sided contest — Delhi Capitals v Lucknow
+    /// Super Giants — unlike golf. Declared unmodelled because its home/away
+    /// convention has not been DERIVED here.
+    | IPL
+    /// Present in the relay's label vocabulary with no row this repo has ever
+    /// sampled. Declared rather than modelled, because a case with no observed
+    /// fixture is a guess wearing a type.
+    | UFL
     | Unrecognised of raw: string
 
 /// Everything the renderer is allowed to know about a sport. One record, one
@@ -306,6 +339,34 @@ let sportMeta (sport: Sport) : SportMeta =
     // the desk still refuses to claim a two-sided contest — and the only thing
     // that changes is that the sentinel can tell this apart from a sport nobody
     // has looked at.
+    | Sport.UEFAChampionsLeague -> { Label = "UEFA Champions League"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.UEFAChampionsLeagueQualifying -> { Label = "UEFA Champions League Qualifying"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.UEFAEuropaLeague -> { Label = "UEFA Europa League"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.UEFAEuropaLeagueQualifying -> { Label = "UEFA Europa League Qualifying"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.UEFAEuropaConferenceLeague -> { Label = "UEFA Europa Conference League"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.UEFAEuropaConferenceLeagueQualifying -> { Label = "UEFA Europa Conference League Qualifying"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.FIFAWorldCup -> { Label = "FIFA World Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.EFLTrophy -> { Label = "EFL Trophy"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.NBA -> { Label = "NBA"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
+    | Sport.NHL -> { Label = "NHL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
+    | Sport.PGATour ->
+        { Label = "PGA Tour"
+          Matchup = UnknownConvention
+          IsSoccer = false
+          Modelled = false
+          Omission = Some "the same non-contest golf is, and measured worse: PGA Tour rows carry home = null AND away = null (2026-08-20, 2026-08-13, 2026-08-08), so there are not two sides to order at all. Golf's entry below explains the rest; a non-contest Matchup case is the fix both share." }
+    | Sport.IPL ->
+        { Label = "IPL"
+          Matchup = UnknownConvention
+          IsSoccer = false
+          Modelled = false
+          Omission = Some "unlike golf this IS a two-sided contest -- Delhi Capitals v Lucknow Super Giants, 2026-05-11 -- so the obstacle is the convention, not the shape. Cricket's home/away naming has not been derived here, and every Matchup in this file was added from a measurement rather than from general knowledge; asserting one is how the AFL transposition happened. Scores are also null on both observed rows, so the relay is not capturing IPL results yet." }
+    | Sport.UFL ->
+        { Label = "UFL"
+          Matchup = UnknownConvention
+          IsSoccer = false
+          Modelled = false
+          Omission = Some "the label is in the relay's vocabulary but sport-vocabulary-check sampled no regular_season_games row for it on 2026-08-23, so nothing here has ever seen a UFL fixture. Modelling it from the NFL/CFL family would be an inference about a competition this repo has no observation of -- the same move CC-CMD-2026-08-20-uefa-club-competitions declined for the UEFA labels while their archive count was zero. Unblocks the day a row appears: re-run check:sport-vocabulary and read the sample." }
     | Sport.Golf ->
         { Label = "golf"
           Matchup = UnknownConvention
@@ -360,6 +421,29 @@ let sportOfString (raw: string) : Sport =
     // actual fix and is still its own change: inventing a convention in a hurry
     // is precisely what produced the AFL/MLB transposition recorded above
     // `orderByMatchup`.
+    // The relay's own labels, verbatim, measured 2026-08-23 by
+    // scripts/sport-vocabulary-check.mjs against the games tables.
+    | "UEFA Champions League" -> Sport.UEFAChampionsLeague
+    | "UEFA Champions League Qualifying" -> Sport.UEFAChampionsLeagueQualifying
+    | "UEFA Europa League" -> Sport.UEFAEuropaLeague
+    | "UEFA Europa League Qualifying" -> Sport.UEFAEuropaLeagueQualifying
+    | "UEFA Europa Conference League" -> Sport.UEFAEuropaConferenceLeague
+    | "UEFA Europa Conference League Qualifying" -> Sport.UEFAEuropaConferenceLeagueQualifying
+    | "FIFA World Cup" -> Sport.FIFAWorldCup
+    | "EFL Trophy" -> Sport.EFLTrophy
+    | "NBA" -> Sport.NBA
+    | "NHL" -> Sport.NHL
+    // Two labels, one competition. The relay's games table carries BOTH "WNBA"
+    // and "wnba" -- measured, not assumed: the lowercase rows are real WNBA
+    // games (Connecticut Sun v New York Liberty, 2026-08-15). Second place a
+    // case fold is warranted, and like "epl" it is spelled out rather than
+    // applied blanket, so it cannot silently merge two different labels. The
+    // 2026-08-23 relay migration deliberately left both forms alive because the
+    // games table carries both.
+    | "wnba" -> Sport.WNBA
+    | "PGA Tour" -> Sport.PGATour
+    | "IPL" -> Sport.IPL
+    | "UFL" -> Sport.UFL
     | "golf" -> Sport.Golf
     | other -> Sport.Unrecognised other
 
