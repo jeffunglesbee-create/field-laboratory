@@ -32,4 +32,9 @@ dotnet tool restore || true
 
 npm install || true
 
+# Enable the fast pre-commit gate (.githooks/pre-commit). Scoped to cloud
+# sessions by the CLAUDE_CODE_REMOTE guard above, so a contributor's local git is
+# never reconfigured behind their back — they opt in with the same one line.
+git config core.hooksPath .githooks || true
+
 exit 0

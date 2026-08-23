@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# A fast, no-network, no-build gate that runs BEFORE the commit exists.
+#
+# The client has a pre-commit gate; the laboratory did not, so every check ran
+# only in CI, after the bad commit was already in history. That is not
+# hypothetical here: an injected proof body was once committed to a source file
+# for exactly that reason, and verify.yml's check:clean-source exists to catch it
+# ninety seconds into CI — this catches the same class at the door instead.
+#
+# Kept to seconds on purpose: package.json validity, the injected-proof guard,
+# and workflow sanity. The full suite — build, browser, mutation, the confidence
+# gate — stays in verify; a pre-commit that ran all of it is one nobody keeps
+# enabled, and a disabled gate guards nothing.
+#
+# Enabled per session by scripts/install_pkgs.sh (git config core.hooksPath
+# .githooks), scoped to cloud sessions; a local machine is left to opt in.
+set -euo pipefail
+
+echo "pre-commit: fast gate…"
+
+node -e "JSON.parse(require('fs').readFileSync('package.json','utf8'))" \
+  || { echo "pre-commit: package.json is not valid JSON"; exit 1; }
+
+npm run --silent check:clean-source
+npm run --silent check:workflows
+
+echo "pre-commit: ok"
