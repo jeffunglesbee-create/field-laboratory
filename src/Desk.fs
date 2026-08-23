@@ -130,6 +130,12 @@ type Odds =
     { Source: string
       MoneylineHome: int option
       MoneylineAway: int option
+      /// The draw price, present only in a three-way (association-football)
+      /// market. Absent in every committed capture — all MLB, a two-way sport —
+      /// so it decodes to None there. Its presence is what lets a soccer card
+      /// form a real three-way win probability rather than the two-way complement
+      /// that folds the draw into the away side.
+      MoneylineDraw: int option
       /// When this snapshot was taken. Decoded because it is the only way to
       /// check that an "opening" and a "closing" price are actually a sequence
       /// — and in the committed capture, they are not.
@@ -615,6 +621,7 @@ let oddsDecoder : Decoder<Odds> =
         { Source = get.Optional.Field "source" Decode.string |> Option.defaultValue "unknown"
           MoneylineHome = get.Optional.At [ "moneyline"; "home" ] Decode.int
           MoneylineAway = get.Optional.At [ "moneyline"; "away" ] Decode.int
+          MoneylineDraw = get.Optional.At [ "moneyline"; "draw" ] Decode.int
           // Full ISO-8601 with milliseconds here, unlike `start_time`, which
           // arrives with no seconds component at all. Two timestamp formats in
           // one payload; both are parsed explicitly and both keep their raw
@@ -984,6 +991,96 @@ let oddsStory (opening: Nested<Odds>) (closing: Nested<Odds>) : OddsStory =
     | Decoded o, _ -> SingleSnapshot o
     | _, Decoded c -> SingleSnapshot c
     | _ -> NoPrices
+
+// ---------------------------------------------------------------------------
+// Per-card win probability, through the market-shape type
+// ---------------------------------------------------------------------------
+//
+// This is where `Market.fs` earns its keep on the laboratory's OWN surface. The
+// FIELD app computes a win-probability away side as `1 - homeWP` — the two-way
+// complement — which on a three-way (soccer) market folds the draw into away.
+// Here that mistake is unrepresentable: a soccer game with no draw price does
+// not fall back to a two-way market, it reports the draw as MISSING. The only
+// way to a soccer away probability is `Market.ThreeWay`, which cannot be built
+// without the draw.
+
+/// A card's win probability, in the shape its market actually has.
+type WinProbability =
+    /// A two-way market (everything but association football).
+    | TwoWayWP of Market.TwoWay
+    /// A three-way market with all three prices (soccer, draw served).
+    | ThreeWayWP of Market.ThreeWay
+    /// A three-way market whose draw price the relay did not serve. NOT a
+    /// two-way market — the distinction the client erased. No away probability
+    /// can be stated, and that is the honest output, not `1 - home`.
+    | ThreeWayDrawMissing
+    /// No usable prices.
+    | NoWinProbability
+
+/// Derive the win probability from the raw moneylines and the market's shape.
+/// `isSoccer` chooses the shape; a soccer market without a draw price yields
+/// `ThreeWayDrawMissing` rather than a two-way complement.
+let winProbabilityFrom (isSoccer: bool) (homeML: int option) (drawML: int option) (awayML: int option) : WinProbability =
+    match homeML, awayML with
+    | Some h, Some a ->
+        match impliedOfMoneyline h, impliedOfMoneyline a with
+        | Some hi, Some ai ->
+            if isSoccer then
+                match drawML |> Option.bind impliedOfMoneyline with
+                | Some di ->
+                    match Market.devigThreeWay hi di ai with
+                    | Some m -> ThreeWayWP m
+                    | None -> NoWinProbability
+                | None -> ThreeWayDrawMissing
+            else
+                match Market.devigTwoWay hi ai with
+                | Some tw -> TwoWayWP tw
+                | None -> NoWinProbability
+        | _ -> NoWinProbability
+    | _ -> NoWinProbability
+
+/// The best available odds snapshot for a game — closing preferred over opening,
+/// and only a decoded one.
+let private bestOdds (g: Game) : Odds option =
+    match g.ClosingOdds, g.OpeningOdds with
+    | Decoded c, _ -> Some c
+    | _, Decoded o -> Some o
+    | _ -> None
+
+/// A game's win probability, chosen by its sport's market shape.
+let winProbability (g: Game) : WinProbability =
+    match bestOdds g with
+    | Some o -> winProbabilityFrom (sportMeta g.Sport).IsSoccer o.MoneylineHome o.MoneylineDraw o.MoneylineAway
+    | None -> NoWinProbability
+
+/// A short tag for the shape, for tests to read without knowing the DU layout.
+let winProbabilityKind (wp: WinProbability) : string =
+    match wp with
+    | TwoWayWP _ -> "two-way"
+    | ThreeWayWP _ -> "three-way"
+    | ThreeWayDrawMissing -> "draw-missing"
+    | NoWinProbability -> "none"
+
+/// Test-facing derivation: 0 stands for an absent price (0 is not a valid
+/// moneyline, so it cannot collide with a real one).
+let winProbabilityKindFor (isSoccer: bool) (homeML: int) (drawML: int) (awayML: int) : string =
+    let opt m = if m = 0 then None else Some m
+    winProbabilityKind (winProbabilityFrom isSoccer (opt homeML) (opt drawML) (opt awayML))
+
+/// The card line. Every probability reaches the string through a `Market`
+/// accessor and `Units.toPct`, so there is no bare-number path from a market to
+/// the screen.
+let winProbabilityText (g: Game) : string =
+    let pc (p: float<prob>) = float (toPct p)
+    match winProbability g with
+    | TwoWayWP tw ->
+        sprintf "win prob — %s %.0f%% · %s %.0f%%"
+            g.Home (pc (Market.twoWayHome tw)) g.Away (pc (Market.twoWayAway tw))
+    | ThreeWayWP m ->
+        sprintf "win prob — %s %.0f%% · draw %.0f%% · %s %.0f%%"
+            g.Home (pc (Market.threeWayHome m)) (pc (Market.threeWayDraw m)) g.Away (pc (Market.threeWayAway m))
+    | ThreeWayDrawMissing -> "win prob — three-way market; no draw price served"
+    | NoWinProbability -> ""
 
 // ---------------------------------------------------------------------------
 // Which day is a game's `date`?

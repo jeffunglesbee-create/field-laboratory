@@ -15,6 +15,8 @@ import {
   threeWayHome, threeWayDraw, threeWayAway,
   awayComplement, devigTwoWay, devigThreeWay,
 } from '../build/Market.js'
+// The per-card derivation that wires Market onto the desk (0 = absent price).
+import { winProbabilityKindFor } from '../build/Desk.js'
 
 const SELF_TEST = process.argv.includes('--self-test')
 const approx = (a, b, eps = 1e-9) => Math.abs(a - b) <= eps
@@ -74,5 +76,26 @@ const t2 = devigTwoWay(0.587, 0.431)
 check('devigTwoWay normalises a vigged pair into a two-way market summing to 1',
   t2 !== undefined && approx(twoWayHome(t2) + twoWayAway(t2), 1),
   t2 === undefined ? 'refused a valid pair' : `sum ${twoWayHome(t2) + twoWayAway(t2)}`)
+
+// ── the per-card derivation the desk renders ─────────────────────────────────
+
+check('a non-soccer market resolves to a two-way win probability',
+  winProbabilityKindFor(false, -142, 0, 132) === 'two-way',
+  `got ${winProbabilityKindFor(false, -142, 0, 132)}`)
+
+// THE guarantee: a soccer market with no draw price does NOT fall back to a
+// two-way complement — it reports the draw as missing. This is the client defect
+// made unrepresentable on the laboratory's own card.
+check('a soccer market WITHOUT a draw price refuses two-way and reports draw-missing',
+  winProbabilityKindFor(true, -110, 0, 130) === 'draw-missing',
+  `got ${winProbabilityKindFor(true, -110, 0, 130)} — a two-way fallback would fold the draw into away`)
+
+check('a soccer market WITH a draw price resolves to a three-way win probability',
+  winProbabilityKindFor(true, -110, 240, 260) === 'three-way',
+  `got ${winProbabilityKindFor(true, -110, 240, 260)}`)
+
+check('no usable prices resolves to none',
+  winProbabilityKindFor(false, 0, 0, 0) === 'none',
+  `got ${winProbabilityKindFor(false, 0, 0, 0)}`)
 
 process.exit(summarize() === 0 ? 0 : 1)

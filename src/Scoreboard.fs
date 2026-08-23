@@ -290,6 +290,11 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
           // panel is where the difference between those is stated.
           staticNode "desk-card__wx" "weather" ""
           staticNode "desk-card__odds" "odds" (oddsText game)
+          // Win probability in the shape the market actually has, through
+          // Market.fs — two-way for most sports, three-way for soccer, and an
+          // explicit "no draw price served" rather than a two-way complement
+          // when a soccer market lacks the draw.
+          staticNode "desk-card__winprob" "winprob" (winProbabilityText game)
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
     // Where the front-face children are hosted. For a card with no brief this is
