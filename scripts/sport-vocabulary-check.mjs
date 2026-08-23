@@ -39,7 +39,7 @@ const SQL = `SELECT DISTINCT sport FROM regular_season_games WHERE sport IS NOT 
 
 const out = {
   probed_at: new Date().toISOString(),
-  relay_vocabulary: null, modelled: [], declared_unmodelled: [], missing: [], error: null,
+  relay_vocabulary: null, modelled: [], declared_unmodelled: [], missing: [], samples: null, error: null,
 }
 
 try {
@@ -64,6 +64,29 @@ try {
     else if (meta.Omission) out.declared_unmodelled.push({ label, why: String(meta.Omission).slice(0, 120) })
     else out.missing.push(label)
   }
+
+  // A sample row per missing label, because the Matchup convention is not the
+  // only question a new Sport case has to answer. Golf is the precedent: the
+  // relay packs a tournament and a round into home/away
+  // (`golf_..._fedexstjudechampionship_r2`), so those two fields are NOT
+  // opponents, and every Matchup case asserts a contest between two sides.
+  // Modelling golf under one would have had the desk state that a tournament
+  // played a round. So before adding a case, look at what home/away actually
+  // hold for that competition.
+  for (const label of out.missing) {
+    const q = await fetch(`${RELAY}/d1/execute`, {
+      method: 'POST',
+      headers: { 'X-FIELD-Relay': 'field-relay-cron-2026', 'Content-Type': 'application/json', 'User-Agent': UA },
+      body: JSON.stringify({
+        sql: `SELECT id, home, away, date, home_score, away_score FROM regular_season_games
+              WHERE sport = ? ORDER BY date DESC LIMIT 3`, params: [label] }),
+    }).then(r => r.json()).catch(() => null)
+    out.samples ??= {}
+    out.samples[label] = (q?.results || []).map(r => ({
+      id: r.id, home: r.home, away: r.away, date: r.date,
+      score: (r.home_score == null && r.away_score == null) ? null : `${r.home_score}-${r.away_score}`,
+    }))
+  }
 } catch (e) { out.error = String(e.message || e) }
 
 mkdirSync('outbox', { recursive: true })
@@ -74,6 +97,11 @@ console.log(`relay vocabulary: ${out.relay_vocabulary?.length ?? '?'} label(s)`)
 console.log(`  modelled            ${out.modelled.length}: ${out.modelled.join(', ')}`)
 console.log(`  declared unmodelled ${out.declared_unmodelled.length}: ${out.declared_unmodelled.map(d => d.label).join(', ')}`)
 console.log(`  MISSING             ${out.missing.length}: ${out.missing.join(', ')}`)
+for (const [label, rows] of Object.entries(out.samples || {})) {
+  console.log(`\n  ${label}`)
+  for (const r of rows) console.log(`    ${r.date}  home=${JSON.stringify(r.home)}  away=${JSON.stringify(r.away)}  score=${r.score ?? '—'}`)
+  if (!rows.length) console.log('    (no regular_season_games rows — postseason or brief-only label)')
+}
 
 if (out.error) { console.error(`\nPROBE FAILED — this says nothing about the registry.\n${out.error}`); process.exit(1) }
 if (out.missing.length) {
