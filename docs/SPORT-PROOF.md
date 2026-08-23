@@ -60,6 +60,9 @@ type Sport =
 
 type SportMeta =
     { Label: string; Matchup: Matchup; IsSoccer: bool; Modelled: bool }
+    // The live record also carries `Omission: string option` — a reason, when
+    // leaving a sport unmodelled is a decision rather than a gap. golf, PGA
+    // Tour, IPL and UFL each carry one. Abridged here; see src/Desk.fs.
 
 let sportMeta (sport: Sport) : SportMeta =
     match sport with
@@ -86,8 +89,26 @@ either drop games or take the slate down. `Unrecognised` is the same device as
   guess at the convention, a refusal to make one. Guessing is what produced the
   AFL bug above.
 - The drift sentinel reports the sport vocabulary it observes and flags
-  unmodelled sports daily, so the registry's incompleteness surfaces as an alarm
-  within a day.
+  unmodelled sports daily.
+
+**"Within a day" was the claim here until 2026-08-23, and it was wrong.** The
+sentinel reads ONE DAY'S SLATE, so it cannot see a competition until that
+competition next plays — not within a day of the relay starting to carry it.
+Measured cost: ten separate red runs in one month, one per competition, each on
+the morning that competition first appeared.
+
+  ```
+  08-14  NFL            08-18  EFL Trophy
+  08-15  CFL, golf      08-21  two UEFA qualifying comps
+  08-16  La Liga, wnba  08-22  Ligue 1, Serie A
+  ```
+
+  Every one of those labels was already in the relay's games table before it
+  reached a slate. `npm run check:sport-vocabulary` asks the games table
+  directly and fails the moment the relay carries a label the registry does not
+  resolve, which is the claim this paragraph used to make and could not keep.
+  The sentinel's own check stays — it proves the desk renders today's games;
+  the vocabulary check proves the registry is not about to be surprised.
 
 The fix when it fires is to add the case — and the compiler then forces it
 through every function in the registry. That is the difference between a
