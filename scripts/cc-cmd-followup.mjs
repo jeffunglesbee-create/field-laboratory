@@ -53,6 +53,26 @@ const soccerMoneylines = j => {
   return lines
 }
 
+/// Soccer games in a /context/date payload, split by whether they carry an
+/// OPENING line. Distinct from soccerMoneylines above, which reads the shape of
+/// a line that exists; this counts whether one exists at all.
+///
+/// Added 2026-08-23 for the closing-odds ask, and the reason is worth stating:
+/// that ask sat "staged, blocked by a soccer slate running after bb04fc8" for
+/// two days AFTER soccer had played. A staged item whose unblock condition is a
+/// FUTURE EVENT goes stale silently, because nothing re-evaluates whether the
+/// event happened — a human has to notice. Everything in this file re-evaluates
+/// every sentinel run, which is the property that ask was missing.
+const soccerOpeningCoverage = j => {
+  const games = Array.isArray(j?.games?.regular) ? j.games.regular : []
+  const soccer = games.filter(g => SOCCER_SPORTS.has(g?.sport))
+  const withOpen = soccer.filter(g => {
+    if (!g?.opening_odds) return false
+    try { return !!JSON.parse(g.opening_odds) } catch { return false }
+  })
+  return { soccer: soccer.length, withOpen: withOpen.length }
+}
+
 // The soccer-brief defect scanner (cross-sport vocabulary, a vacuous 0-0-0
 // record, a stalemate beside a stated lead) lives in ./soccer-brief-defect.mjs
 // so the CC-CMD follow-up and the cross-repo evidence runner share one copy.
@@ -119,6 +139,41 @@ const ASKS = [
     note: 'Phase 2 unblocks the day this is true — every stored score gains a rubric',
   },
   {
+    cmd: 'CC-CMD-2026-08-21-closing-odds-capture (surviving ask)',
+    ask: 'capture opening_odds for EPL and La Liga, so the open/close pair is a real sequence',
+    route: `/context/date/${yesterdayUTC()}`,
+    // Three states, same discipline as the three-way ask below.
+    //
+    // `null` = no soccer game in the payload at all. An off-day proves nothing,
+    // and reporting it as `false` would read as "the fix regressed" every
+    // Monday.
+    //
+    // `true`  = at least one soccer game carries an opening line. That IS the
+    // surviving ask: the relay's own probe measured EPL 4/5 and La Liga 2/3 on
+    // 2026-08-23 against a 23.1% / 11.8% pre-fix baseline.
+    //
+    // `false` = soccer games are served and NONE carries an opening line, which
+    // is the pre-fix condition returning.
+    //
+    // WHY THIS ROUTE AND NOT A NEW SPLIT IN drift-check.mjs. The first plan was
+    // to break the sentinel's `both/notseq/moved/unmoved` aggregate down by
+    // sport. That would have measured ONE DAY'S SLATE — the same limitation the
+    // sport-vocabulary check was built this morning to escape, reintroduced one
+    // item later. Coverage is a property of a population, and the relay already
+    // measures it properly: verify-staged-items.mjs check 2 is past-dates-only,
+    // per-sport, against the measured baseline, with a min-games floor that
+    // flags "La Liga (2/3)" rather than reporting 66.7% as settled. Duplicating
+    // that here would be a second measurement free to disagree with it. This
+    // predicate answers the narrower daily question — is the relay still doing
+    // it — and the relay's own probe remains authoritative for the rate.
+    landed: j => {
+      const { soccer, withOpen } = soccerOpeningCoverage(j)
+      if (soccer === 0) return null
+      return withOpen > 0
+    },
+    note: 'the rate lives in the relay\'s own staged-verification probe (EPL 4/5, La Liga 2/3 on 2026-08-23, baselines 23.1% / 11.8%); this reads LANDED while any soccer game still carries an opening line, and turns false if that stops',
+  },
+  {
     cmd: 'CC-CMD-2026-08-23-soccer-three-way-odds',
     ask: 'project the draw price into opening_odds.moneyline for soccer markets',
     route: `/context/date/${yesterdayUTC()}`,
@@ -173,6 +228,37 @@ if (SELF_TEST) {
   check('and rejects one that reports the bar with no denominator',
     !bar.holds({ below_240: 25, above_240: 0, below_flat_240_pct: 100 }),
     'a bare count passes as though the scale were named — the ask is the denominator')
+
+  // The closing-odds surviving ask. Its three states matter more than most:
+  // this predicate replaced a staged note whose unblock condition was a future
+  // event, and the whole point is that an off-day must not read as a regression.
+  const co = ASKS.find(a => a.cmd.includes('closing-odds-capture'))
+  const gm = (sport, opening) => ({ sport, opening_odds: opening })
+  const payload = games => ({ games: { regular: games } })
+
+  check('closing-odds: a soccer game with an opening line reads LANDED',
+    co.landed(payload([gm('EPL', '{"moneyline":{"home":-142}}')])) === true,
+    'the condition the relay measured at EPL 4/5 does not read as landed')
+
+  check('closing-odds: soccer served with NO opening line reads not-landed',
+    co.landed(payload([gm('EPL', null), gm('La Liga', null)])) === false,
+    'the pre-fix condition returning would pass unnoticed')
+
+  check('closing-odds: an off-day is null, not a regression',
+    co.landed(payload([gm('MLB', '{"moneyline":{"home":-110}}')])) === null,
+    'a Monday with no soccer would report the fix as broken every week')
+
+  check('closing-odds: an empty payload is null, not a regression',
+    co.landed(payload([])) === null && co.landed({}) === null,
+    'an unobservable run reads as a defect')
+
+  check('closing-odds: unparseable opening_odds does not count as coverage',
+    co.landed(payload([gm('EPL', 'not json')])) === false,
+    'a corrupt column passes as a captured line')
+
+  check('closing-odds: one covered soccer game among uncovered ones is enough',
+    co.landed(payload([gm('EPL', null), gm('La Liga', '{"moneyline":{}}')])) === true,
+    'partial coverage reads as total failure — EPL measured 4 of 5, not 5 of 5')
 
   const cov = ASKS.find(a => a.route.startsWith('/quality/coverage'))
   check('the coverage predicate needs the route to actually answer',

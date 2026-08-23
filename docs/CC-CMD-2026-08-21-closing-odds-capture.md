@@ -153,23 +153,51 @@ Real Sociedad form) is deliberately NOT aliased — under this convention any fu
 article-stripping turns `La Real` → `Real` → Real Madrid. If the feeds use it, it
 needs an explicit entry *plus* a guard that it never resolves to Real Madrid.
 
-**Still staged (Rule 74), and NOT closed by the 2026-08-23 sequence result.**
-That result is an aggregate — `both=8` across a slate carrying MLB, MLS, Serie A,
-WNBA, EPL, La Liga, Ligue 1, CFL, golf and NFL — and the drift log does not break
-the odds shape down by sport. So it proves *a* sequence exists; it does not prove
-the eight include a La Liga or EPL fixture, which is the claim this item makes.
-Reading it as closed would be the aggregate-hides-the-case error this document
-already made once, when "one snapshot" on the Arsenal/Betis cards was read as
-"the hook never fired".
+**VERIFIED 2026-08-23 — and it had been verified for six hours before anyone
+read it.** The relay's own probe (`scripts/verify-staged-items.mjs` check 2,
+artifact `outbox/staged-verification-20260823T063649Z.json`) measured, past-dates
+only:
 
-- *Blocked by:* the sentinel reporting odds shape per sport rather than as one
-  total.
-- *Unblocks:* a one-line change in `scripts/drift-check.mjs` to split
-  `both/notseq/moved/unmoved` by `sportMeta(g.Sport).Label`, the way the sport
-  vocabulary is already reported. Then a single run answers it.
-- *Verify:* on the next La Liga/EPL matchday, that split shows a non-zero `both`
-  for a soccer label, and the desk renders `ML X -> Y` rather than
-  `one snapshot`.
+| sport | played | with opening | rate | pre-fix baseline |
+|-------|--------|--------------|------|------------------|
+| EPL | 5 | 4 | **80.0%** | 23.1% |
+| La Liga | 3 | 2 | **66.7%** | 11.8% |
+| Ligue 1 | 5 | 3 | 60.0% | — |
+| MLS | 8 | 6 | 75.0% | — |
+
+`status: PASS — improved for EPL`. La Liga is flagged `below_floor (2/3)` — the
+probe's `min_games_for_rate: 4` refusing to call 66.7% settled on three games,
+which is the right answer and one a coarser check would have missed.
+
+## Why this sat stale, and what changed so the next one cannot
+
+**The blocker expired and nothing re-read it.** "Blocked by a soccer slate
+running after `bb04fc8`" was true when written on 08-21. Soccer played on 08-22
+and 08-23 — EPL, La Liga, Ligue 1 and Serie A were all on the slate. A Rule 74
+staged item whose unblock condition is a **future event** goes stale silently:
+nothing re-evaluates whether the event happened, so it can only be corrected by a
+human noticing.
+
+**The first plan to close it was the wrong instrument, and repeated a mistake
+made the same morning.** That plan was to split the drift sentinel's
+`both/notseq/moved/unmoved` aggregate by sport. The sentinel reads ONE DAY'S
+SLATE. Coverage is a property of a population, so it is a table question — and
+`check:sport-vocabulary`, built hours earlier that day, exists precisely because
+slate-based measurement cannot answer population questions. Proposing it again
+one item later is the error worth recording, not the fix.
+
+**The measurement already existed and was better.** The relay's check is
+past-dates-only, per-sport, against the measured baseline, with a min-games
+floor. A second measurement in the laboratory would have been free to disagree
+with it — the divergence class `CONTRACTS.md` exists to prevent.
+
+**What shipped instead:** the ask is registered in `scripts/cc-cmd-followup.mjs`,
+which re-evaluates every sentinel run and prints landed / not-yet. Three states,
+six self-tests: a soccer game carrying an opening line reads LANDED; soccer
+served with none reads NOT-LANDED (the pre-fix condition returning); an off-day
+or empty slate reads `null`, so a Monday cannot report the fix as broken. The
+relay's probe stays authoritative for the *rate*; this answers the daily question
+of whether the relay is still doing it.
 
 **Laboratory side of the render: nothing to build** — `oddsStory` already yields
 `SingleSnapshot` on a lone capture and `Moved`/`Unmoved` on a real pair. Only the
