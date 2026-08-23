@@ -3,8 +3,9 @@
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (journalism cron) **and** jubilant-bassoon (client
 archive writer) — see ask 4, this is a paired cross-repo change per Rule 70
-**Status:** open — asks 1, 2, 3, 4a, 4b, 5, 6a BUILT; ask 6b needs a rescope
-and §5's residual D1 mutations await authorization. See revision 6.
+**Status:** CLOSED for build — asks 1, 2, 3, 4a, 4b, 5, 6a and 6b are all BUILT.
+§5's residual D1 mutations still await authorization and are the only thing left
+in this document. See revisions 6 and 7.
 **Revision 3 (2026-08-21)** — see "What changed in rev 3" at the end. Rev 3
 corrects two rev-2 claims that measurement falsified; the corrections make ask 5
 *less* blocked, not more.
@@ -15,6 +16,16 @@ several of this doc's own claims (ask 2 overcount, ask 5 container, ask 6
 "inverted") — folded in below; see "What changed in rev 4". Session doc:
 `field-relay-nba/outbox/cc-session-2026-08-21-brief-data-quality-asks-3-4-6.md`;
 the per-sport event contract now lives in `CONTRACTS.md` (both repos).
+**Revision 7 (2026-08-23) — ASK 6b BUILT** as relay era 4 (`95bf3c0`): SCALE
+reweighted toward the three dimensions that measurably separate finished prose
+from in-progress prose, funded from the two that ran backwards. Gap 6.4 → 11.5
+points, 2.8× → 4.2× the standard error, measured on the same 190 rows before and
+after. Guarded by `scripts/check-scoring-era-recorded.mjs` at the deploy gate, so
+a future SCALE edit without a recorded era stops the deploy. Two findings from
+the measurement are filed as their own commands rather than carried here:
+`CC-CMD-2026-08-23-finality-dimension` and
+`CC-CMD-2026-08-23-matchup-note-starvation`. Relay `74dc759` separately corrected
+a false constant this ask's measurement exposed — see "What changed in rev 7".
 **Revision 6 (2026-08-23) — ASK 5 BUILT** by relay `644d7f6`
 (`buildMatchEventsContext` / `formatMatchEvents` / `selectScoringPlays`, context
 source `match_events`, priority 4, budget 200). Verification is automated, not a
@@ -454,6 +465,45 @@ CLAUDE.md), and note the derived `SCALE` / `REACHABLE_CEILING` work from
 `CC-CMD-2026-08-15-quality-bar-scale` — recalibration must move those constants,
 not add a parallel copy.
 
+> **BUILT 2026-08-23 as era 4, relay `95bf3c0`.** SCALE: arc 45→55, ctx 25→32,
+> temporal 20→25, funded by voice 30→20, density 16→10, matchup 30→24. Nominal
+> total held at 300 so the 240/196/110 thresholds keep their meaning.
+>
+> **Rev 4's correction survived re-measurement; an intermediate reading did not.**
+> Re-scored under one rubric, n=95 per class: in-progress **175.2** (sd 18.1),
+> reads-as-final **181.7** (sd 13.9) — gap **+6.5**, at 2.8× the standard error.
+> Finals do score higher. A first pass over the most recent 160 rows appeared to
+> show the reverse, but that sample was 144 finals to 16 in-progress and the
+> apparent reversal was the small class, not a finding. The era-mixing worry also
+> came to nothing here: re-scored 6.5 against 5.8 stored.
+>
+> **Only three dimensions could do the work, and two were working against it.**
+> Separation, normalised, final minus in-progress:
+>
+> | dimension | separation | in points |
+> |---|---|---|
+> | arcScore | +0.146 | +6.6 |
+> | contextAnchoring | +0.144 | +3.6 |
+> | temporalScore | +0.111 | +2.2 |
+> | voiceScore | −0.134 | −4.0 |
+> | density | −0.120 | −1.9 |
+> | variety, freshness, specificity, statDepth, matchupDepth | ~0 | ~0 |
+>
+> Weight on voice and density was narrowing the gap this ask exists to widen.
+> The other five are inert on the question, so spreading the change across the
+> table would have moved scores without moving the answer.
+>
+> **The ceiling of this approach is known, not guessed.** All 300 points on the
+> three forward dimensions measures at gap 41.6 — and zeroes every dimension
+> that makes the score mean anything else. Era 4 takes ~13% of that bound while
+> leaving the rubric intact. Going further needs a dimension that reads
+> `finalized_at` rather than language correlated with it:
+> `CC-CMD-2026-08-23-finality-dimension`.
+>
+> **Dim 10 scored zero on 190 of 190 rows** — `regular_season_games.note` is
+> populated on 36 of 1284 finalized games. Filed as
+> `CC-CMD-2026-08-23-matchup-note-starvation`.
+
 > **PREMISE CORRECTED rev 4 — the metric is not inverted, it under-penalises.**
 > Rev 1–3 read a single 191-scoring frozen row as "quality_score is pointed the
 > wrong way." The aggregate says otherwise: in-progress-language briefs mean
@@ -466,8 +516,28 @@ not add a parallel copy.
 > ver 2 = 518, null = 241.
 
 **Artifact:** `scoring_version` non-null on all new `game_recap` rows (6a, done),
-AND on a re-scored 2026-08-19 slate the in-progress/final gap widens materially
-from its measured 5.8-point baseline (6b, pending the rescope above).
+AND the in-progress/final gap widens materially from its measured baseline
+(6b, done — 6.4 → 11.5 points on the same 190 rows, 2.8× → 4.2× the standard
+error, `outbox/rescore-quality-6b-2026-08-23T1447*.json`). Re-runnable any time
+via `rescore-quality-6b.yml`.
+
+## What changed in rev 7
+
+**A constant that was false, and a conclusion built on it.** `UNREACHABLE_DIMS`
+listed both `ctx` and `matchup`, and its comment said they "have no game object
+in the Worker runtime" — 55 of 300 points gone by construction. Measured on 190
+real rows, Dim 7 scored **above zero on 181 of them**. It is reachable: eight of
+the ten `runQualityChain` call sites pass `game`. The 245 ceiling is correct for
+a *slate* brief, which covers many games and has no single one, and wrong for a
+game brief.
+
+That matters because a conclusion was already drawn from it. Against the
+game-shape ceiling of 270, the 240 bar is **88.89%** of what a game brief can
+earn, not 97.96%. "No brief has ever cleared 240 in 523" then reads as a
+demanding editorial bar that is never met, rather than a near-perfect-score
+requirement that is arithmetically unmeetable — and those call for different
+responses. Corrected additively in relay `74dc759`; no existing consumer of
+`/quality/report` moved.
 
 ---
 
