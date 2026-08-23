@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d4aabb6` | 2026-08-23 | [2026-08-23-boundary-orphaned.md](2026-08-23-boundary-orphaned.md) | fix: the boundary named a commit its own push deleted |
 | `a5c7510` | 2026-08-23 | [2026-08-23-falsifiable-verifiers.md](2026-08-23-falsifiable-verifiers.md) | feat: every verifier must reject a known-bad payload |
 | `3226819` | 2026-08-23 | [2026-08-23-staged-verifier.md](2026-08-23-staged-verifier.md) | feat: a staged claim must name a verifier that exists and runs |
 | `1bba8a9` | 2026-08-23 | [2026-08-23-contamination-baseline.md](2026-08-23-contamination-baseline.md) | fix: the cessation probe could never have observed a cessation |
