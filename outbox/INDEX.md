@@ -12,12 +12,21 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
-| `2038387` | 2026-08-23 | [cc-pre-commit-gate-2026-08-23.md](cc-pre-commit-gate-2026-08-23.md) | Add a pre-commit gate: cheap checks before the commit exists |
-| `0bb76f8` | 2026-08-23 | [cc-deploy-landed-2026-08-23.md](cc-deploy-landed-2026-08-23.md) | deploy-landed: prove the published artifact is the newest deployable commit |
-| `0844b04` | 2026-08-23 | [cc-wire-the-desk-2026-08-23.md](cc-wire-the-desk-2026-08-23.md) | Wire the desk to the typed palette and type system |
-| `a615617` | 2026-08-23 | [cc-typography-as-types-2026-08-23.md](cc-typography-as-types-2026-08-23.md) | Typography: FIELD's type system as types, with proofs |
-| `0632704` | 2026-08-23 | [cc-the-palette-as-types-2026-08-23.md](cc-the-palette-as-types-2026-08-23.md) | Palette: FIELD's semantic color system as types, with proofs |
-| `9504353` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
+| `06c37db` | 2026-08-23 | [cc-status-deploy-landed-2026-08-23.md](cc-status-deploy-landed-2026-08-23.md) | STATUS answers 'did the deploy land?'; share the deployable rule; fix an import-purity bug |
+| `7998656` | 2026-08-23 | [cc-pre-commit-gate-2026-08-23.md](cc-pre-commit-gate-2026-08-23.md) | Add a pre-commit gate: cheap checks before the commit exists |
+| `91f1727` | 2026-08-23 | [cc-deploy-landed-2026-08-23.md](cc-deploy-landed-2026-08-23.md) | deploy-landed: prove the published artifact is the newest deployable commit |
+| `37f2ae6` | 2026-08-23 | [cc-wire-the-desk-2026-08-23.md](cc-wire-the-desk-2026-08-23.md) | Wire the desk to the typed palette and type system |
+| `9f884d1` | 2026-08-23 | [cc-typography-as-types-2026-08-23.md](cc-typography-as-types-2026-08-23.md) | Typography: FIELD's type system as types, with proofs |
+| `6dd5444` | 2026-08-23 | [cc-relay-brief-watch-runner-2026-08-22.md](cc-relay-brief-watch-runner-2026-08-22.md) | Palette: FIELD's semantic color system as types, with proofs |
+| `6dd5444` | 2026-08-23 | [cc-the-palette-as-types-2026-08-23.md](cc-the-palette-as-types-2026-08-23.md) | Palette: FIELD's semantic color system as types, with proofs |
+| `e9ddf18` | 2026-08-22 | [cc-relay-brief-watch-runner-2026-08-22.md](cc-relay-brief-watch-runner-2026-08-22.md) | Runner: self-closing brief-defect ticket on the relay, cross-repo, no PR [skip ci] |
+| `51f0488` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
+| `3cd248c` | 2026-08-22 | [cc-adhd-skill-sync-runner-2026-08-22.md](cc-adhd-skill-sync-runner-2026-08-22.md) | status: refresh [skip ci] |
+| `6e325e0` | 2026-08-22 | [cc-adhd-skill-install-automation-2026-08-22.md](cc-adhd-skill-install-automation-2026-08-22.md) | Automate cross-repo skill install on a runner (adhd-skill-sync) [skip ci] |
+| `6e325e0` | 2026-08-22 | [cc-adhd-skill-sync-runner-2026-08-22.md](cc-adhd-skill-sync-runner-2026-08-22.md) | Automate cross-repo skill install on a runner (adhd-skill-sync) [skip ci] |
+| `dd58bee` | 2026-08-22 | [cc-adhd-skill-install-automation-2026-08-22.md](cc-adhd-skill-install-automation-2026-08-22.md) | Automate i-have-adhd skill install + drift-verify; file CC-CMD for sibling repos [skip ci] |
+| `606c22d` | 2026-08-22 | [cc-automate-contamination-followup-2026-08-22.md](cc-automate-contamination-followup-2026-08-22.md) | Add i-have-adhd skill (verbatim from ayghri/i-have-adhd) |
+| `ab17013` | 2026-08-22 | [cc-automate-contamination-followup-2026-08-22.md](cc-automate-contamination-followup-2026-08-22.md) | cc-cmd-followup: automate the brief-sport-contamination follow-up; fold soccer stat-model framing into upstream asks [skip ci] |
 | `cf9a930` | 2026-08-22 | [cc-the-stalemate-that-led-three-nil-2026-08-22.md](cc-the-stalemate-that-led-three-nil-2026-08-22.md) | Briefs: catch a stated lead called a stalemate (the Brentford card) |
 | `972d665` | 2026-08-22 | [cc-the-tab-count-that-said-six-2026-08-22.md](cc-the-tab-count-that-said-six-2026-08-22.md) | live-tabs-check: assert seven tabs by name, not a stale count of six |
 | `73cee8c` | 2026-08-22 | [cc-the-brief-that-played-the-wrong-sport-2026-08-22.md](cc-the-brief-that-played-the-wrong-sport-2026-08-22.md) | Briefs: catch cross-sport contamination (a soccer brief naming the NBA/DRTG) |
