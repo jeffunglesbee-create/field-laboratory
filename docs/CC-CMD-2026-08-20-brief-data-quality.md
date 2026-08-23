@@ -3,9 +3,10 @@
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (journalism cron) **and** jubilant-bassoon (client
 archive writer) — see ask 4, this is a paired cross-repo change per Rule 70
-**Status:** CLOSED for build — asks 1, 2, 3, 4a, 4b, 5, 6a and 6b are all BUILT.
-§5's residual D1 mutations still await authorization and are the only thing left
-in this document. See revisions 6 and 7.
+**Status:** CLOSED. Asks 1, 2, 3, 4a, 4b, 5, 6a and 6b are BUILT, and §5's
+residual D1 mutations were authorized and EXECUTED on 2026-08-23 — 604 sport
+labels corrected, 15 recaps reclassified, verify clean, zero rows skipped. See
+revisions 6, 7 and 8. Nothing in this document is outstanding.
 **Revision 3 (2026-08-21)** — see "What changed in rev 3" at the end. Rev 3
 corrects two rev-2 claims that measurement falsified; the corrections make ask 5
 *less* blocked, not more.
@@ -16,6 +17,15 @@ several of this doc's own claims (ask 2 overcount, ask 5 container, ask 6
 "inverted") — folded in below; see "What changed in rev 4". Session doc:
 `field-relay-nba/outbox/cc-session-2026-08-21-brief-data-quality-asks-3-4-6.md`;
 the per-sport event contract now lives in `CONTRACTS.md` (both repos).
+**Revision 8 (2026-08-23) — §5 RESIDUAL EXECUTED.** Authorized by Jeff and run
+through the slate/scope/apply/verify sequence that
+`CC-CMD-2026-08-06-apply-soccer-league-label-fix-v2` proved out on this same
+table. **604 sport values corrected across 21 mappings, 0 skipped, 0 scope
+drift; 15 `game_recap` rows reclassified to `game_live`; verification clean.**
+Two of this section's own instructions were measured to be unsafe and were
+replaced — see "What changed in rev 8". The 539 ordinal `gNN` ids were
+deliberately NOT touched, per §5's own recommendation. A weekly `verify` now
+guards the result.
 **Revision 7 (2026-08-23) — ASK 6b BUILT** as relay era 4 (`95bf3c0`): SCALE
 reweighted toward the three dimensions that measurably separate finished prose
 from in-progress prose, funded from the two that ran backwards. Gap 6.4 → 11.5
@@ -521,6 +531,70 @@ AND the in-progress/final gap widens materially from its measured baseline
 error, `outbox/rescore-quality-6b-2026-08-23T1447*.json`). Re-runnable any time
 via `rescore-quality-6b.yml`.
 
+## What changed in rev 8 (2026-08-23) — the §5 execution
+
+Ran as `slate` → `scope` → `apply` → `verify`
+(`.github/workflows/brief-label-migration.yml`,
+`scripts/brief-label-migration.mjs`), the sequence
+`CC-CMD-2026-08-06-apply-soccer-league-label-fix-v2` used to correct 52
+mislabelled soccer rows in this table with zero mismatches. Its two load-bearing
+requirements were carried over rather than rediscovered: **scope by a measured id
+list, never a bare predicate**, and **answer the slate question before writing**.
+
+**Result:** 604 sport values across 21 mappings, `rows_changed` equal to
+`measured` on every one, `skipped_value_moved: 0`, `appeared_since_scope: 0`.
+15 recaps reclassified. `verify`: `non_conforming_remaining: []`,
+`mislabelled_recaps_remaining: 0`.
+
+**Slate, answered from source rather than from timing.** Every
+`INSERT INTO briefs … ON CONFLICT(id) DO UPDATE` in `src/index.js` (5975, 8618,
+12036, 12492, 18962) sets only `brief_text`, `quality_score`, `context_hash`,
+`word_count` and `source`. **`sport` and `brief_type` are insert-only**, so the
+journalism cron cannot revert either column and there was no unsafe moment to
+schedule around.
+
+**Two of §5's own instructions were unsafe, and both fixes go the other way.**
+
+1. **"Recover the label from each row's own id, which kept its casing" — the id
+   is not authoritative.** 77 rows carry `sport = 'mls'` with ids like
+   `pre_game_FIFA World Cup 2026_2026-07-22_austin_seattle`. Austin v Seattle is
+   an MLS fixture: the **column is right and the id is wrong**. Following the
+   instruction would have relabelled 77 MLS briefs as World Cup. Replaced with
+   casing recovery against the games table, referencing the id not at all — a
+   value is corrected only when **exactly one** authority label matches it
+   case-insensitively. Exactly-one is load-bearing: `wnba` and `WNBA` are both in
+   the games table, so `wnba` is ambiguous and refused, which turns §5's "do not
+   sweep lowercase" warning into a property of the algorithm instead of a
+   special case.
+2. **"41 mislabelled `game_recap`" was measured by prose alone.** That predicate
+   returns **95** today, and a finished 1-0 game whose recap reads "scoreless
+   through 60 minutes" is legitimate retrospective prose — retyping it creates a
+   new defect while fixing an old one. This is ask 2's own lesson (gate on real
+   finality, not a proxy) applied to ask 2's residual. Gated on positive evidence
+   the game is unfinished — the game row exists **and** `finalized_at IS NULL` —
+   which yields **15**. The other 80 are finished or unjoinable and were left
+   alone: "we cannot tell" is not "it is live".
+
+**Also corrected:** the conformance set is now read from
+`regular_season_games` ∪ `postseason_games` at run time. A hand-written set had
+omitted `EFL Cup`, `EFL Trophy`, `UEFA Europa League` and both UEFA qualifying
+labels, reporting **106 correctly-labelled rows as broken**. §5's own conformance
+test is "the games table carries this form", so the set is now read from there
+rather than kept as a second copy.
+
+**The 539 ordinal `gNN` ids were not touched**, per §5's own recommendation:
+render-order counter, no identity to recover, cannot grow (asks 4a/4b block new
+writes), and deleting would destroy real prose to tidy a key.
+
+**Reversible.** 619 revert statements were generated from the observed
+before-state *before* any write, so undoing never depends on re-deriving what a
+value used to be.
+
+**Guarded.** `brief-label-migration.yml` runs `verify` weekly (Mondays 06:17
+UTC). A non-conforming label reappearing means the code started emitting one
+again, and that is now a failed run rather than silent re-accumulation — the same
+standing-detector pattern the 2026-08-06 fix left behind.
+
 ## What changed in rev 7
 
 **A constant that was false, and a conclusion built on it.** `UNREACHABLE_DIMS`
@@ -625,8 +699,10 @@ guards (`check-game-recap-classification`, `check-brief-sport-label`,
    `check-brief-sport-label`; root cause was `inferSport()` emitting display
    strings (`"Baseball (MLB)"`) — fixed at call sites, not in `inferSport` (Rule
    69). The EPL-readiness clause in ask 3 rides this fix.
-5. **Residual — needs Jeff's authorization (live D1 mutations), now fully mapped.**
-   None executed. Census 2026-08-21 (`query_ok`):
+5. **Residual — EXECUTED 2026-08-23.** ~~needs Jeff's authorization~~. The
+   census below is kept as filed; the two places measurement contradicted it are
+   recorded in "What changed in rev 8" rather than edited away. Census 2026-08-21
+   (`query_ok`):
    - **601 non-conforming `briefs.sport` across 20 variants** — all mechanical
      except one call. **Class A** (235, the ask-3 lowercasing): recover the label
      from each row's own id, which kept its casing (`pre_game_La Liga_…` →
