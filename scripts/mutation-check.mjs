@@ -481,7 +481,7 @@ const MUTATIONS = [
     id: 'cards-run-together',
     file: 'index.html',
     claim: 'games on a panel are drawn as separate cards',
-    find: '  .st-card, .wx-row {\n    border: 1px solid #262a33;\n    border-radius: 10px;\n    padding: 1rem 1.1rem;\n    background: #161920;\n  }',
+    find: '  .st-card, .wx-row {\n    border: 1px solid var(--edge);\n    border-radius: 10px;\n    padding: 1rem 1.1rem;\n    background: var(--card);\n  }',
     replace: '  .st-card, .wx-row { border: 0; padding: 0; background: transparent; }',
     expect: 'node scripts/run-row.mjs "games on a panel are separated from each other"',
   },
