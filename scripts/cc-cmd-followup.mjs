@@ -138,6 +138,7 @@ const LANDED = [
       const s = JSON.stringify(j)
       return /reachable_ceiling|of_300|_of_245/.test(s)
     },
+    mustFailOn: { below_240: 25, above_240: 0 },
     note: 'a denominator on below_240 / above_240 / below_flat_240_pct — the 240 bar is 80% of the nominal 300 but 97.96% of the 245 the relay can reach',
   },
 ]
@@ -149,6 +150,11 @@ const ASKS = [
     ask: 'expose jq-scoring-coverage on a GET route',
     route: '/quality/coverage?days=7',
     landed: j => j && j.ok === true && ('byDay' in j || 'era3ByType' in j),
+    // A payload the predicate MUST reject. Every entry carries one, and the
+    // self-test runs it: a predicate that accepts its own known-bad input has
+    // no teeth, and `landed: () => true` would otherwise report every ask as
+    // landed with nothing objecting.
+    mustFailOn: { ok: false, error: 'route not found' },
     note: 'the route itself existing is the whole ask',
   },
   {
@@ -157,6 +163,7 @@ const ASKS = [
     route: '/archive/query?date=2026-08-14&limit=1',
     landed: j => Array.isArray(j?.results) && j.results.length > 0 &&
       'scoring_version' in j.results[0],
+    mustFailOn: { results: [{ id: 1, quality_score: 191 }] },
     note: 'Phase 2 unblocks the day this is true — every stored score gains a rubric',
   },
   {
@@ -192,6 +199,8 @@ const ASKS = [
       if (soccer === 0) return null
       return withOpen > 0
     },
+    // Soccer served, none carrying an opening line: the pre-fix condition.
+    mustFailOn: { games: { regular: [{ sport: 'EPL', opening_odds: null }] } },
     note: 'the rate lives in the relay\'s own staged-verification probe (EPL 4/5, La Liga 2/3 on 2026-08-23, baselines 23.1% / 11.8%); this reads LANDED while any soccer game still carries an opening line, and turns false if that stops',
   },
   {
@@ -209,6 +218,8 @@ const ASKS = [
       if (lines.length === 0) return null
       return lines.some(ml => 'draw' in ml)
     },
+    // A two-way soccer moneyline -- exactly what the relay serves today.
+    mustFailOn: { games: { regular: [{ sport: 'MLS', opening_odds: '{"moneyline":{"home":-120,"away":260}}' }] } },
     note: 'as of filing (2026-08-23) every MLS moneyline is {home, away} with no draw, so winProbability yields ThreeWayDrawMissing and the card says "no draw price served". Reads LANDED the day a soccer moneyline carries a draw — no laboratory change needed, the three-way render is shipped',
   },
   {
@@ -240,6 +251,10 @@ const ASKS = [
       if (testify.length === 0) return null
       return testify.every(r => soccerBriefDefect(r.brief_text) === null)
     },
+    // A post-baseline brief carrying the defect. Pre-baseline would read null,
+    // so the timestamp is after the fix on purpose: the control must exercise
+    // the DEFECT path, not the gate.
+    mustFailOn: { results: [{ brief_text: 'Everton maintains a 107.7 DRTG, best in the NBA, despite playing soccer tonight.', updated_at: '2026-08-23T09:00:00Z' }] },
     note: `gated on ${CONTAINMENT_NOTE}; briefs written before it are history, not evidence. Requires updated_at on /archive/query (relay 7bde535) — created_at cannot serve here, because three brief writers use ON CONFLICT DO UPDATE and a brief regenerated clean keeps its original created_at, which would discard exactly the rewrites that prove the fix`,
   },
 ]
@@ -305,6 +320,38 @@ if (SELF_TEST) {
                             created_at: '2026-08-22T18:30:53Z',
                             updated_at: '2026-08-23T09:00:00Z' }] }) === true,
     'a brief regenerated clean after the fix is discarded by its stale created_at')
+
+  // ── every verifier must prove it can fail ────────────────────────────────
+  //
+  // This closes the one failure the other guards leave standing: a probe that
+  // RUNS and cannot discriminate. Four instances this month, and every one
+  // shared a single property — IT HAD NEVER BEEN SHOWN TO FAIL:
+  //
+  //   an n=2 "CONFIRMED" reaching an outbox;
+  //   a 5.4-point gap reported on n=16 and reversed at n=95;
+  //   the contamination predicate that could never observe a cessation;
+  //   a staged-claim scanner finding zero claims because it matched an
+  //   invented convention instead of the observed one.
+  //
+  // That property is mechanical, so the gate is mechanical rather than a
+  // doctrine about writing good tests. Each entry declares `mustFailOn` — a
+  // known-bad payload — and this asserts the predicate does NOT return true for
+  // it. A predicate that accepts its own negative control is vacuous, and every
+  // green it has printed was uninformative.
+  //
+  // A MISSING `mustFailOn` IS ITSELF A FAILURE. Optional would make it the
+  // field nobody fills in, which is exactly how Rule 74's "exact verify
+  // commands" became prose nobody executed.
+  for (const a of [...ASKS, ...LANDED]) {
+    const predicate = a.landed ?? a.holds
+    const has = Object.prototype.hasOwnProperty.call(a, 'mustFailOn')
+    check(`${a.cmd}: declares a negative control`, has,
+      'no mustFailOn — the predicate has never been shown to fail, so a pass proves nothing')
+    if (!has) continue
+    check(`${a.cmd}: rejects its own negative control`,
+      predicate(a.mustFailOn) !== true,
+      'the predicate ACCEPTS a known-bad payload — it is vacuous')
+  }
 
   const co = ASKS.find(a => a.cmd.includes('closing-odds-capture'))
   const gm = (sport, opening) => ({ sport, opening_odds: opening })
