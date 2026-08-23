@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ebc28db` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
+| `ac33623` | 2026-08-23 | [cc-market-shape-2026-08-23.md](cc-market-shape-2026-08-23.md) | Market shape as a type: a two-way complement cannot be taken on a three-way market |
 | `06c37db` | 2026-08-23 | [cc-status-deploy-landed-2026-08-23.md](cc-status-deploy-landed-2026-08-23.md) | STATUS answers 'did the deploy land?'; share the deployable rule; fix an import-purity bug |
 | `7998656` | 2026-08-23 | [cc-pre-commit-gate-2026-08-23.md](cc-pre-commit-gate-2026-08-23.md) | Add a pre-commit gate: cheap checks before the commit exists |
 | `91f1727` | 2026-08-23 | [cc-deploy-landed-2026-08-23.md](cc-deploy-landed-2026-08-23.md) | deploy-landed: prove the published artifact is the newest deployable commit |
