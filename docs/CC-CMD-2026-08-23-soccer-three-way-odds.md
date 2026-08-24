@@ -2,8 +2,35 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (the `odds-api` adapter — the moneyline projection)
-**Status:** OPEN. Laboratory side is built and shipped; this is purely an
-upstream data-shape ask. Automated follow-up wired (see below).
+**Status:** BUILT 2026-08-24, relay `5a2bacc`. Awaiting the artifact, which the
+follow-up below reports on its own.
+
+**Where the draw was going.** `extractOddsForGame` (relay `src/index.js`) matched
+h2h outcomes against `home` and `away` and nothing else, so soccer's third
+selection matched neither predicate. It was never dropped — no code path ever
+referred to it.
+
+**Identified by POSITION, not by name.** `o.name === 'Draw'` is the obvious fix
+and the wrong one: an unverifiable string literal, and a renamed selection would
+silently drop the price again. On a three-outcome market the entry that is
+neither team IS the draw, by construction. Asserted against `Tie`, `Empate`, `X`,
+`DRAW` and `""`.
+
+**No sport check, deliberately.** The ask requires non-soccer markets not to gain
+a null draw. A branch on sport could be wrong about which competitions draw; a
+two-outcome h2h has no third entry, so the SHAPE enforces it. Four outcomes, a
+null third price, a missing team and an empty array all yield nothing.
+
+Rule 78: zero new requests — the draw was already in the payload. The rule lives
+in `src/odds-shape.js` so a deploy gate can exercise it without the worker's
+puppeteer dependency; `scripts/three-way-odds-check.mjs`, 15 assertions, is that
+gate. Laboratory side unchanged, as scoped.
+
+**The artifact is not yet observable** and this is not a partial build: the draw
+appears on `/context/date` only after the opening-odds cron next captures a
+soccer game against the deployed adapter. The follow-up below reports LANDED the
+day it does, and distinguishes "no rows" from "not yet" so a quiet slate is never
+read as a failure.
 
 One-liner:
 ```
