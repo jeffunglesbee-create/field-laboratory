@@ -2,8 +2,27 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (journalism cron — the brief-generation prompt/context)
-**Status:** PARTIALLY DONE 2026-08-23 — defects 1 and 3 shipped and deployed on the
-relay; defect 2 remains open and is the whole of what is left here.
+**Status:** CLOSED 2026-08-24. Defect 2's residual --
+`CC-CMD-2026-08-23-prompt-numeral-mining` -- is built, and the gating defect 1
+established was extended to the STYLE lines and to every sport.
+
+**What 2026-08-24 added, and one figure below that was wrong.** Defect 1's fix
+gated the style block and the voice exemplars but left three things: a rule's
+EXAMPLE reached every sport even when the rule was scoped; a sport with no voice
+segment of its own received ALL of them; and a sport `detectSportClass` did not
+recognise took the mixed-slate path. Measured, the last two put basketball and
+hockey exemplars into **905 of 1322 finalized games (68.5%)**, MLB alone 830.
+
+Closed by scoping the example rather than the rule, by making an unrecognised
+NAMED sport safe by default, and by authoring exemplars **H (baseball),
+I (football), J (golf), K (tennis)** so no sport takes the keep-everything
+fallback. EPL and golf now carry **0** foreign figures. One check covers every
+source: `check-no-foreign-league-in-prompt.mjs`.
+
+The counts cited below are stale: `prose-style-scope-check` is 44 and
+`voice-register-scope-check` 45, and the "(34)" recorded for the latter never
+matched either the session that wrote it or a measurement at HEAD.
+Relay `9b6faa2`, `fed8a06`, `15f1d69`, `65f3b7f`, `198577b`.
 
 - **Defect 1 (cross-sport vocabulary) — DONE.** `2ed34c7` sport-gates the style
   block, so `CITE NBA ANALYTICS` and its "107.7 DRTG, best in the NBA" example no

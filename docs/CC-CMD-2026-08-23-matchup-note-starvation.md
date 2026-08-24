@@ -2,7 +2,19 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (whatever writes `regular_season_games.note`)
-**Status:** open
+**Status:** BUILT 2026-08-24 as relay **scoring era 6**, and the ask's premise was
+answered rather than executed. Populating `regular_season_games.note` would have
+made Dim 10 **worse**: the note is injected into the prompt, so counting its
+words in the prose pays 30 points for repeating an input. The per-sport split
+also showed the 2.8% headline is **0.54% (7/1292)** once golf -- the one sport
+with full coverage and no matchup at all -- is set aside, and five of those seven
+are broadcast carriage.
+
+Dim 10 now scores **margin agreement**: a relation between two numbers, present
+on ~100% of finalized rows and impossible to copy from the prompt. Rows judged
+**0/190 -> 17/128 (13.3%)**, repeated byte-identical across two runs, first real
+defect caught. Relay `5e0f066`, `a06c288`, `7e01eac`, `a50e0bb`, `a27e741`.
+Doc: `outbox/cc-session-2026-08-24-era-6-margin-agreement.md`.
 **Parent:** `CC-CMD-2026-08-20-brief-data-quality` ask 6b. Found while measuring
 that ask's baseline; separate from it, so it is a separate command (Rule 87).
 

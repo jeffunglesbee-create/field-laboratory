@@ -2,7 +2,20 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (`src/journalism-quality.js`, `scoreProse`)
-**Status:** open
+**Status:** BUILT 2026-08-24 as relay **scoring era 5**. `finalityAgreement(text,
+isFinal)` scores prose-vs-fact agreement in both directions, 20 points, funded
+from arc 45->33 and ctx 25->17 with the nominal total held at 294. Measured on
+128 fact-stratified rows, one instrument across both runs: the LIVE_LANG prose
+gap collapsed **-14.1 (4.4x the standard error) -> -0.2 (0.1x)**.
+
+Two corrections this ask forced, both recorded in `SCORING_ERAS`:
+its parent era 4's `+11.5` was a **simulation** -- the live gap is 4.5 and is
+noise, because half the SCALE table was documentation rather than weights; and
+era 5's own first recorded headline cited `-11.1` from the AFTER run's
+`candidates` block, which was rebuilding a 244-point rubric and reporting 294.
+Relay: `00c4b7f`, `40baf4c`, `e00693b`, `4942c1b`, `b1d91d9`, `79da673`,
+`297b60a`, `9ac0c8b`, `487ccf4`, `40c19b2`, `29d8623`, `46e7727`.
+Doc: `outbox/cc-session-2026-08-24-scale-declared-vs-implemented.md`.
 **Parent:** `CC-CMD-2026-08-20-brief-data-quality` ask 6b, shipped 2026-08-23 as
 relay era 4. That ask specified a *weighting* change and got one. This is the
 lever it could not reach, filed as its own command rather than as a line in the

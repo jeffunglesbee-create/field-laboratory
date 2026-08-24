@@ -3,7 +3,22 @@
 **Filed from:** field-relay-nba session 2026-08-23, as the named residual of
 `CC-CMD-2026-08-22-brief-sport-contamination`.
 **Ask to:** field-relay-nba (`src/journalism-quality.js`)
-**Status:** open — the leak is DETECTED and retried today; it is still GENERATED.
+**Status:** CLOSED 2026-08-24, and this document pointed at the wrong file. The
+universal voice-register segments it targets carried **no mineable figure at
+HEAD** -- an earlier session had already converted them to `##`. Measured, 11 of
+17 tracked literals reached a gated EPL prompt and **10 of the 11 came from
+`proseStyleFor`**, whose blocks the model is told to *emulate* rather than avoid.
+
+The measured leak was the instruction quoting itself: *"Spurs' 3 shots this match
+trail Brentford's 37 goals this season"* is verbatim the counter-example inside
+ONE WINDOW PER COMPARISON, the rule shipped to stop cross-window comparisons.
+Fixed by making every forbidden example non-instantiable, then -- separately
+authorised, beyond this ask's scope boundary -- by extending the gating to the
+STYLE lines. EPL now carries **0** foreign figures; golf, which had carried all
+six because `detectSportClass` had no branch for it, also 0.
+Relay `9b6faa2`, `fed8a06`, `15f1d69`, `65f3b7f`, `198577b`.
+Docs: `outbox/cc-session-2026-08-24-negative-examples.md`, `-style-gating.md`,
+`-cite-golf-analytics.md`, `-voice-exemplars.md`.
 
 One-liner:
 ```

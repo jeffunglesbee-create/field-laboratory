@@ -2,7 +2,22 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (`src/context-assembler.js`, source `match_events`)
-**Status:** open
+**Status:** BUILT 2026-08-24, with one correction to the ask's framing. ESPN has a
+single type for a shot that missed -- `Shot Off Target` -- covering a skied
+tap-in and a 35-yard punt identically, so **only `Shot Hit Woodwork` is a genuine
+near miss**. Pooling them would license "they came close again and again" as a
+description of wild shooting: a Rule 1 invention produced by the label. The block
+emits two labelled groups and says so in its own text.
+
+The ask's literal instruction -- read them into the same block -- would have made
+recaps *worse*: attempts carry no running score, so `selectScoringPlays` bails to
+the last 8 items and **drops the opening goal**. They are a separate appended
+section, which makes the five-sport byte-identity structural. Cap 3 measured
+against the silent 300-token drop ceiling; raising the declared budget was the
+wrong lever. Done conditions: **44 assertions** (was 25, none removed),
+CONTRACTS.md byte-identical both repos (md5 `66a139bc`), check 4 **PASS 9/9**.
+Relay `727640f`, client `e129eff`.
+Doc: `outbox/cc-session-2026-08-24-soccer-attempt-enrichment.md`.
 **Parent:** `CC-CMD-2026-08-20-brief-data-quality` ask 5, which shipped as relay
 `644d7f6` covering scoring plays only. This is the one piece of ask 5's stated
 scope that was not built. Filed as its own command rather than left as a line in
