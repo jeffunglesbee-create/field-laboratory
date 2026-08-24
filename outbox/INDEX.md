@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0ee7c6b` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
 | `b642808` | 2026-08-23 | [2026-08-23-relay-credential-out-of-source.md](2026-08-23-relay-credential-out-of-source.md) | fix: the relay credential leaves this repo's source |
 | `d4aabb6` | 2026-08-23 | [2026-08-23-boundary-orphaned.md](2026-08-23-boundary-orphaned.md) | fix: the boundary named a commit its own push deleted |
 | `a5c7510` | 2026-08-23 | [2026-08-23-falsifiable-verifiers.md](2026-08-23-falsifiable-verifiers.md) | feat: every verifier must reject a known-bad payload |
