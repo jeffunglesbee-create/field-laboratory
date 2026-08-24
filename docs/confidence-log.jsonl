@@ -12,3 +12,4 @@
 {"id":"e3c20560c9e0-e3b0c44298fc","sha":"e3c20560c9e0337b35d61cfd8fddb3a64c6e67b9","dirty":false,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
 {"id":"2628ca25e456-e3b0c44298fc","sha":"2628ca25e4563891e75a55a3539dc61da41eccf4","dirty":false,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
 {"id":"9b30e8327ab9-e3b0c44298fc","sha":"9b30e8327ab98ab830b63a1968b91dd014720a16","dirty":false,"mode":"full","earned":530,"possible":530,"total":100,"failing":[],"skipped":[]}
+{"id":"f9ce6e438e5d-e3b0c44298fc","sha":"f9ce6e438e5d1927567883471db1b15712c5f002","dirty":false,"mode":"full","earned":510,"possible":530,"total":96,"failing":["breaking each invariant makes a check fail"],"skipped":[]}
