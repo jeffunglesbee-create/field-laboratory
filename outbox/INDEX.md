@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `94de698` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
+| `94de698` | 2026-08-24 | [sport-vocabulary-2026-08-24T03-02-29-986Z.json](sport-vocabulary-2026-08-24T03-02-29-986Z.json) | drift-sentinel: ok on 2026-08-23 [skip ci] |
 | `992fa55` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
 | `992fa55` | 2026-08-24 | [sport-vocabulary-2026-08-24T02-41-25-435Z.json](sport-vocabulary-2026-08-24T02-41-25-435Z.json) | drift-sentinel: ok on 2026-08-23 [skip ci] |
 | `2835350` | 2026-08-24 | [2026-08-24-vocabulary-artifact-staged.md](2026-08-24-vocabulary-artifact-staged.md) | ci: the vocabulary check's own measurement is committed, not discarded |
