@@ -210,6 +210,18 @@ jobs:
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
           git add outbox/drift-log.md
+          # The vocabulary probe writes outbox/sport-vocabulary-{ts}.json with
+          # the relay's full label list and a sample row per missing label. It
+          # was never staged, so every run computed that and threw it away with
+          # the runner -- the third time in one day a measurement was produced
+          # and discarded (the relay's health-sources readout and its `entries`
+          # count were the other two). A count nobody can read afterwards is the
+          # same as no count.
+          #
+          # Separate `git add`, guarded: `git add` is atomic across pathspecs
+          # under `bash -e`, so folding an unmatched glob into the line above
+          # would abort the step before the drift-log commit ever ran.
+          git add outbox/sport-vocabulary-*.json || echo "(no vocabulary artifact this run)"
           git diff --staged --quiet || git commit -m "drift-sentinel: $STATUS on ${{ steps.sentinel.outputs.date }} [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
