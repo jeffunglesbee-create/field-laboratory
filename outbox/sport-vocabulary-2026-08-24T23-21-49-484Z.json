@@ -1,0 +1,76 @@
+{
+  "probed_at": "2026-08-24T23:21:49.484Z",
+  "relay_vocabulary": [
+    "AFL",
+    "CFL",
+    "EFL Cup",
+    "EFL Trophy",
+    "EPL",
+    "FIFA World Cup",
+    "IPL",
+    "La Liga",
+    "Ligue 1",
+    "MLB",
+    "MLS",
+    "NBA",
+    "NFL",
+    "NHL",
+    "PGA Tour",
+    "Serie A",
+    "UEFA Champions League",
+    "UEFA Champions League Qualifying",
+    "UEFA Europa Conference League",
+    "UEFA Europa Conference League Qualifying",
+    "UEFA Europa League",
+    "UEFA Europa League Qualifying",
+    "UFL",
+    "WNBA",
+    "golf",
+    "wnba"
+  ],
+  "modelled": [
+    "AFL",
+    "CFL",
+    "EFL Cup",
+    "EFL Trophy",
+    "EPL",
+    "FIFA World Cup",
+    "La Liga",
+    "Ligue 1",
+    "MLB",
+    "MLS",
+    "NBA",
+    "NFL",
+    "NHL",
+    "Serie A",
+    "UEFA Champions League",
+    "UEFA Champions League Qualifying",
+    "UEFA Europa Conference League",
+    "UEFA Europa Conference League Qualifying",
+    "UEFA Europa League",
+    "UEFA Europa League Qualifying",
+    "WNBA",
+    "wnba"
+  ],
+  "declared_unmodelled": [
+    {
+      "label": "IPL",
+      "why": "unlike golf this IS a two-sided contest -- Delhi Capitals v Lucknow Super Giants, 2026-05-11 -- so the obstacle is the c"
+    },
+    {
+      "label": "PGA Tour",
+      "why": "the same non-contest golf is, and measured worse: PGA Tour rows carry home = null AND away = null (2026-08-20, 2026-08-1"
+    },
+    {
+      "label": "UFL",
+      "why": "the label is in the relay's vocabulary but sport-vocabulary-check sampled no regular_season_games row for it on 2026-08-"
+    },
+    {
+      "label": "golf",
+      "why": "the relay packs a tournament and a round into home/away — golf_2026-08-14_fedexstjudechampionship_r2 renders \"FedEx St. "
+    }
+  ],
+  "missing": [],
+  "samples": null,
+  "error": null
+}
