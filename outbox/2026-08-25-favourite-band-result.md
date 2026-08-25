@@ -122,6 +122,9 @@ holding `+1.5`. It still cannot be adjudicated without the spread price;
 
 ## 2. Three rows on 2026-06-28 carry odds that are not baseball
 
+> **Wrong on both counts. Corrected by run 3 — see the end of this file.**
+> The text below is kept verbatim because the way it was wrong is the finding.
+
 ```
 2026-06-28  MLB_2026-06-28_cardinals_marlins   ML -1940/+780   H +1.5  ratio 12.96
 2026-06-28  MLB_2026-06-28_giants_braves       ML -1320/+640   H +1.5  ratio 12.28
@@ -164,3 +167,118 @@ Filed as `field-relay-nba docs/CC-CMD-2026-08-25-misjoined-opening-odds.md`.
   0/80. Blocked on the spread price.
 - **Open, new:** three rows whose `opening_odds` are from another sport and
   another moment. Blocked on the relay identifying the join.
+
+---
+
+# Run 3 — 90 days. Section 2 above is wrong on both of its counts.
+
+```
+90 date(s) read, 0 unavailable, 789 game(s)
+shadow validated against favouriteAgreement on 643 judged game(s): 0 drift
+
+THE BAND                146 game(s), 18.5%   agrees 47.3%
+WHAT THE GATE JUDGES    643 game(s), 13 disagree (2.0%)
+
+THE ASYMMETRY TEST
+  home favourite    144 game(s), 10 disagree (6.9%)
+  away favourite     81 game(s),  0 disagree (0.0%)
+
+ODDS PLAUSIBILITY
+  totals outside their sport's range      1 of 789
+  opening odds captured at finalisation 156 of 789   (19.8%)
+```
+
+## 1. What holds
+
+The band is still a coin flip — 47.3% over 146 games, third measurement.
+`favouriteAgreement`'s blind spot is empty and that stays closed.
+
+The asymmetry is still one-sided and got stronger with more data: **10 of 144
+home-favourite games, 0 of 81 away-favourite.** Eighty-one away-favourite games
+with zero disagreements is not a market behaving symmetrically at the boundary.
+Still blocked on the spread price.
+
+## 2. The correction: not another sport, and not three rows
+
+Section 2 above claimed two things. The 90-day census disproves both.
+
+**"A 3.5 total is a soccer or hockey market."** No. Across 789 games, exactly
+**one** total falls outside its own sport's `[median/2, median×2]` range:
+
+```
+BY SPORT      n    median   min    max   outside
+  MLB       652     8.5     3.5   13.5      1
+  WNBA      136   176.5   145.5  245.5      0
+  CFL         1    45.5    45.5   45.5      0
+```
+
+That one outlier is `cardinals_marlins` itself. If another sport's odds were
+being joined onto MLB rows, WNBA totals near 176 would be landing on baseball
+games and the count would not be one.
+
+**"Three rows."** No. **156 of 789 — 19.8%** — carry `opening_odds` whose
+`captured_at` is within a minute of `finalized_at`. The three I found were the
+three with prices extreme enough to trip a rubric built for something else.
+
+### What is actually happening
+
+`MLB_2026-06-28_angels_athletics`, probed directly:
+
+```
+final:  Angels 4, Athletics 1        home won by 3; 5 runs total
+odds:   moneyline  home -10000 / away +1360
+        spread     home -2.5  / away +2.5
+        total      5.5
+        captured_at 2026-06-28T21:50:25.898Z
+        finalized_at 2026-06-28 21:50:24
+```
+
+Every number describes the finished game. `-10000` is the price of a settled
+winner. A `2.5` handicap matches a three-run margin — and an MLB run line is
+`±1.5` pre-game, never `2.5`. A `5.5` total matches five runs scored.
+
+**These are in-play or settled odds stored in a column named `opening_odds`.**
+The `3.5` total is a live total late in a game that finished 2-1. Same
+explanation for every row; no cross-sport contamination anywhere.
+
+### The shape in time
+
+Flagged rows appear on **14 dates spanning 2026-06-23 → 2026-07-11** (of 19
+calendar dates in that span), plus one CFL row on 2026-08-15 and nothing else
+in 90 days. Per-date counts rise from 1 → 2 → 5 → 10 and then sit at 9–17:
+
+```
+06-23  1    06-28 10    07-04 16    07-08 10
+06-24  2    07-02 12    07-05 15    07-09 14
+06-27  5    07-03 14    07-06  9    07-10 15
+                        07-07 15    07-11 17
+```
+
+**Nothing on 06-25, 06-26, 06-29, 06-30 or 07-01.** Whether those dates were
+clean or simply absent from the corpus is NOT established by this run — the
+census only reads games that already have a comparable moneyline and handicap,
+so an empty date is ambiguous. The in-window denominator is the same open
+question, and it belongs to the relay.
+
+## 3. The class, restated correctly
+
+The earlier write-up called this "a value whose name and measurement disagree"
+and got the right class for the wrong reason. It is that — `opening_odds` holds
+odds that are not opening — but the disagreement is about **when**, not about
+**which sport**. Ten instances of this class now, and the tenth was found inside
+my own account of the ninth.
+
+The guard changes with it. A total-range check would have caught 1 of 156. The
+test with teeth needs no range and no threshold to argue about: **refuse to
+write `opening_odds` when the row already has a `finalized_at`.**
+
+## What closes and what stays open
+
+- **Closed:** the band's blind spot. 47.3% over 146 games, three measurements.
+- **Closed:** "another sport's odds". One total outlier in 789 says no.
+- **Open, evidenced:** the one-sided slim-favourite pattern, 10/144 vs 0/81.
+  Blocked on the spread price.
+- **Open, rescoped:** 156 rows of in-play odds under an opening-odds name.
+  Blocked on the relay naming the writer and the in-window denominator. The 156
+  rows are not to be corrected or deleted — see the scope boundary in
+  `field-relay-nba docs/CC-CMD-2026-08-25-misjoined-opening-odds.md`.
