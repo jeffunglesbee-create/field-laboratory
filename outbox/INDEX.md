@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `068ca6f` | 2026-08-25 | [favourite-band-census-20260825T215041Z.txt](favourite-band-census-20260825T215041Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
+| `a23ee68` | 2026-08-25 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census: the band is empty at 49.1%, and the disagreements are one-sided |
 | `cf6c173` | 2026-08-25 | [favourite-band-census-20260825T214523Z.txt](favourite-band-census-20260825T214523Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
 | `1724cc8` | 2026-08-25 | [2026-08-25-favourite-band.md](2026-08-25-favourite-band.md) | feat: census the band favouriteAgreement declines to judge |
 | `89136fa` | 2026-08-25 | [2026-08-25-citation-check.md](2026-08-25-citation-check.md) | feat: a doc citation must be anchored, because line numbers rot |
