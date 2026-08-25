@@ -1,0 +1,150 @@
+{
+  "probed_at": "2026-08-25T01:24:34.105Z",
+  "relay_vocabulary": [
+    "AFL",
+    "CFL",
+    "EFL Cup",
+    "EFL Trophy",
+    "EPL",
+    "FIFA World Cup",
+    "IPL",
+    "La Liga",
+    "Ligue 1",
+    "MLB",
+    "MLS",
+    "NBA",
+    "NFL",
+    "NHL",
+    "PGA Tour",
+    "Serie A",
+    "UEFA Champions League",
+    "UEFA Champions League Qualifying",
+    "UEFA Europa Conference League",
+    "UEFA Europa Conference League Qualifying",
+    "UEFA Europa League",
+    "UEFA Europa League Qualifying",
+    "UFL",
+    "WNBA",
+    "golf",
+    "wnba"
+  ],
+  "modelled": [
+    "AFL",
+    "CFL",
+    "EFL Cup",
+    "EFL Trophy",
+    "EPL",
+    "FIFA World Cup",
+    "La Liga",
+    "Ligue 1",
+    "MLB",
+    "MLS",
+    "NBA",
+    "NFL",
+    "NHL",
+    "Serie A",
+    "UEFA Champions League",
+    "UEFA Champions League Qualifying",
+    "UEFA Europa Conference League",
+    "UEFA Europa Conference League Qualifying",
+    "UEFA Europa League",
+    "UEFA Europa League Qualifying",
+    "WNBA",
+    "wnba"
+  ],
+  "declared_unmodelled": [
+    {
+      "label": "IPL",
+      "why": "unlike golf this IS a two-sided contest -- Delhi Capitals v Lucknow Super Giants, 2026-05-11 -- so the obstacle is the c"
+    },
+    {
+      "label": "PGA Tour",
+      "why": "the same non-contest golf is, and measured worse: PGA Tour rows carry home = null AND away = null (2026-08-20, 2026-08-1"
+    },
+    {
+      "label": "UFL",
+      "why": "the label is in the relay's vocabulary but sport-vocabulary-check sampled no regular_season_games row for it on 2026-08-"
+    },
+    {
+      "label": "golf",
+      "why": "the relay packs a tournament and a round into home/away — golf_2026-08-14_fedexstjudechampionship_r2 renders \"FedEx St. "
+    }
+  ],
+  "missing": [],
+  "samples": {
+    "IPL": [
+      {
+        "id": "2026-05-11-ipl-delhi-luckno",
+        "sport": "IPL",
+        "league": "IPL 2026 — Match 53",
+        "date": "2026-05-11",
+        "home": "Delhi Capitals",
+        "away": "Lucknow Super Giants",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Arun Jaitley Stadium, Delhi",
+        "streams": "resolveBundle:IPL",
+        "note": null,
+        "tags": "[]",
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-06-15 16:04:12",
+        "drama_peak": null,
+        "espn_event_id": null,
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": null
+      }
+    ],
+    "PGA Tour": [
+      {
+        "id": "PGA Tour_2026-08-20_src401811963",
+        "sport": "PGA Tour",
+        "league": "PGA Tour",
+        "date": "2026-08-20",
+        "home": null,
+        "away": null,
+        "home_score": -6,
+        "away_score": -6,
+        "venue": null,
+        "streams": "ESPN, ESPN+, CBS, Golf Chnl, Paramount+",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-08-20 10:01:04",
+        "drama_peak": 0,
+        "espn_event_id": "401811963",
+        "went_to_ot": null,
+        "finalized_at": "2026-08-20 23:00:32",
+        "start_time": "2026-08-20T04:00Z"
+      }
+    ],
+    "UFL": [],
+    "golf": [
+      {
+        "id": "golf_2026-08-24_bmwchampionship_r4",
+        "sport": "golf",
+        "league": "PGA Tour",
+        "date": "2026-08-24",
+        "home": "BMW Championship",
+        "away": "R4",
+        "home_score": -17,
+        "away_score": null,
+        "venue": "Bellerive Country Club",
+        "streams": null,
+        "note": "Wyndham Clark -17",
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-08-24 12:39:06",
+        "drama_peak": 0,
+        "espn_event_id": "golf_401811963",
+        "went_to_ot": null,
+        "finalized_at": "2026-08-24 12:39:06",
+        "start_time": null
+      }
+    ]
+  },
+  "error": null
+}
