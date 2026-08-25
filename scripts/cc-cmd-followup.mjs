@@ -143,6 +143,27 @@ const LANDED = [
   },
 ]
 
+/// Golf rows and mislabelled-tour rows on a /context/date payload.
+///
+/// `sport = 'PGA Tour'` rows are the relay's generic ESPN scoreboard walker
+/// writing a TOUR into the sport column: its home/away derivation falls back to
+/// `teams[0]`/`teams[1]` on a field of players, so the row carries home=null,
+/// away=null and the top two players' scores. The same event is already
+/// archived correctly as `sport = 'golf'` -- measured 2026-08-25, ESPN event
+/// 401811963 on both rows.
+///
+/// The golf count is the DENOMINATOR and it is the whole design of this probe.
+/// "No PGA Tour row today" proves nothing on a week with no tournament, which
+/// is most weeks. A `sport = 'golf'` row is the evidence that a tournament ran
+/// and the walker had something to mislabel.
+const golfRowCounts = j => {
+  const games = Array.isArray(j?.games?.regular) ? j.games.regular : []
+  return {
+    golf: games.filter(g => g?.sport === 'golf').length,
+    tour: games.filter(g => g?.sport === 'PGA Tour').length,
+  }
+}
+
 /** Each OPEN ask, and the observable fact that would show it landed. */
 const ASKS = [
   {
@@ -256,6 +277,43 @@ const ASKS = [
     // the DEFECT path, not the gate.
     mustFailOn: { results: [{ brief_text: 'Everton maintains a 107.7 DRTG, best in the NBA, despite playing soccer tonight.', updated_at: '2026-08-23T09:00:00Z' }] },
     note: `gated on ${CONTAINMENT_NOTE}; briefs written before it are history, not evidence. Requires updated_at on /archive/query (relay 7bde535) — created_at cannot serve here, because three brief writers use ON CONFLICT DO UPDATE and a brief regenerated clean keeps its original created_at, which would discard exactly the rewrites that prove the fix`,
+  },
+  {
+    // A STOP-GENERATING ask, same family as the contamination one above: its
+    // observable consequence is a row type DISAPPEARING.
+    cmd: 'CC-CMD-2026-08-25-golf-sport-label',
+    ask: "stop the archive catch-up writing sport='PGA Tour' — a tour is not a sport",
+    route: `/context/date/${yesterdayUTC()}`,
+    cessation: true,
+    // Three states, and the null is doing real work.
+    //
+    // `null` = no golf row on this date, so no tournament ran and the walker
+    // had nothing to mislabel. Reporting that as "stopped" would let this read
+    // green through the entire off-season, which is most of the year — the
+    // claim-from-no-data this file exists to refuse.
+    // `true`  = a tournament ran AND no mislabelled row was written.
+    // `false` = a tournament ran and one was.
+    landed: j => {
+      const { golf, tour } = golfRowCounts(j)
+      // A mislabelled row is ITSELF proof a tournament ran, so it is read
+      // before the denominator, not after it. The first version of this
+      // predicate gated on `golf === 0` first and returned null for a payload
+      // carrying the walker's row and no golf row beside it -- the defect
+      // hiding behind its own missing denominator. Caught by the self-test case
+      // below, which exists because that is the shape nobody would think to
+      // check by hand.
+      if (tour > 0) return false
+      if (golf === 0) return null
+      return true
+    },
+    // A payload where a tournament ran and the walker still wrote its row. The
+    // denominator is present on purpose: a control with no golf row would
+    // exercise the null gate, not the defect path.
+    mustFailOn: { games: { regular: [
+      { sport: 'golf', home: 'BMW Championship', away: 'R4', home_score: -17 },
+      { sport: 'PGA Tour', home: null, away: null, home_score: -6, away_score: -6 },
+    ] } },
+    note: "relay 218ede4 flags the LEAGUES entry individual:true and gates the catch-up write. Reads `no rows` on any date with no golf row, which is correct and expected off-season — only a date carrying a sport='golf' row can testify. The historical sport='PGA Tour' rows are NOT covered here: deleting archive rows needs explicit human approval and is step 4 of the filed CC-CMD",
   },
 ]
 
@@ -434,6 +492,34 @@ if (SELF_TEST) {
       soccerGame('La Liga', { home: -110, draw: 240, away: 260 }),
     ] } }) === true,
     'a single with-draw line is masked by the two-way ones around it')
+
+  // ── the golf/tour ask ─────────────────────────────────────────────────────
+  //
+  // The null gate is the one that matters here. A PGA tournament runs roughly
+  // 40 weeks a year and a given DATE carries a golf row far less often than
+  // that, so without a denominator this ask would read "stopped" on almost
+  // every run whether or not the relay had changed anything — green from
+  // absence, which is the failure mode this whole file was written against.
+  const tour = ASKS.find(a => a.cmd === 'CC-CMD-2026-08-25-golf-sport-label')
+  const golfRow = { sport: 'golf', home: 'BMW Championship', away: 'R4', home_score: -17 }
+  const tourRow = { sport: 'PGA Tour', home: null, away: null, home_score: -6, away_score: -6 }
+
+  check('a date with a tournament and no mislabelled row reads stopped',
+    tour.landed({ games: { regular: [golfRow] } }) === true,
+    'the fixed state is not recognised')
+  check('a date with a tournament AND a mislabelled row reads still generating',
+    tour.landed({ games: { regular: [golfRow, tourRow] } }) === false,
+    'the defect passes as fixed')
+  check('a slate with no golf row is null, never a false stopped',
+    tour.landed({ games: { regular: [{ sport: 'MLB', home: 'Reds', away: 'Cardinals' }] } }) === null &&
+    tour.landed({ games: { regular: [] } }) === null && tour.landed(null) === null,
+    'an off-week reads as evidence the fix landed, which is green from absence')
+  // The pathological case: the walker's row present with NO golf row beside it.
+  // It must NOT read null just because the denominator is missing -- a
+  // mislabelled row is itself proof a tournament ran.
+  check('a mislabelled row alone still reads as still generating',
+    tour.landed({ games: { regular: [tourRow] } }) === false,
+    'the defect hides behind its own missing denominator')
 
   // ── the contamination scanner discriminates ───────────────────────────────
   //

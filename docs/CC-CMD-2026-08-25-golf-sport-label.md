@@ -2,7 +2,14 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (`handleJournalismCycle`'s `[ARCHIVE-CATCHUP]` path)
-**Status:** OPEN, filed 2026-08-25.
+**Status:** BUILT 2026-08-25, relay `218ede4`, same day it was filed. Steps 1-3
+done; **step 4 (the archive DELETE) is untouched and still needs human approval.**
+
+The done condition is not yet observable — it needs one journalism cycle past a
+live tournament day. That is not a carry-forward: field-laboratory's
+`scripts/cc-cmd-followup.mjs` probes it twice daily on the drift sentinel and
+reports `stopped` the day it holds. See the corrections at the foot of this
+document.
 
 **PGA Tour is a league, not a sport.** Golf is the sport; PGA Tour, Korn Ferry
 Tour, Champions Tour, LPGA Tour and DP World Tour are tours within it. The
@@ -111,10 +118,19 @@ tell a neutral site from a leaderboard.
    skipped by this path and left to the golf-aware writer that already covers
    it. Do not change `sport: gm.league` for any other entry.
 
+   **DONE** as `individual:true` on the entry rather than a `sport === 'golf'`
+   test at the use site, so the next individual-competitor league added carries
+   the fact with it instead of needing the gate widened.
+
 3. **Guard it.** A deploy gate asserting that no `LEAGUES` entry whose ESPN
-   `sport` is not a team sport reaches the catch-up write. Enumerate the 22
-   entries; assert 21 reach it and golf does not. A sampled assertion does not
-   satisfy this.
+   `sport` is not a team sport reaches the catch-up write. Enumerate the
+   entries rather than sampling.
+
+   **DONE** — `scripts/check-individual-sports-not-archived.mjs`, six live
+   assertions and five self-test mutations. It is a THREE-LINK chain (flag on
+   the table, `individual` destructured from the row, `individual` carried into
+   `gameMeta`) and the gate reads `undefined` and passes everything if any one
+   link is missing, so each is mutated independently.
 
 4. **The existing rows are a separate decision and need explicit approval.**
    Three dates are known (2026-08-08, 2026-08-13, 2026-08-20); step 1's count
@@ -149,3 +165,30 @@ day in between is NOT the done condition — say so and schedule the re-check.
 Commit hash, deploy run ID, both done-condition probe outputs verbatim, the
 step-1 row count, and — if step 4 was approved — the DELETE's affected-row
 count. Any residual must be a genuine proxy failure, not deferred work.
+
+
+---
+
+## Corrections to this document, made while building it
+
+**"21 of 22 entries."** Parsed from HEAD: the `LEAGUES` table has **21** entries
+— 20 team-sport, 1 golf. Written here from an estimate rather than a parse,
+which is the thing Rule 87 §1's probe block exists to prevent, in a document
+that opens by telling its reader not to write from it. The guard pins the count
+at 21 so a silently dropped entry fails.
+
+**A second CC-CMD now exists** — `field-relay-nba docs/CC-CMD-2026-08-25-golf-slate-line.md`,
+per Rule 87 §4. Two things this change deliberately did not touch:
+
+1. `buildGameLine` has the same broken side-derivation one line earlier, and its
+   output goes into the **journalism prompt**. The gate sits at the archive
+   write and not at `gameLines.push` because removing golf there removes golf
+   from the prompt entirely.
+2. `buildGolfCronContext` (relay `src/index.js:6903`) **has no caller** —
+   measured, `grep -an` returns one line, its own definition. It builds exactly
+   the right block and has never run. A Rule 63 violation in the slate path's
+   own file.
+
+That CC-CMD's first task is a probe, and it says explicitly: if the probe shows
+the generic golf line is harmless, close it WITHDRAWN. The defect is read from
+source and has not been observed in output.
