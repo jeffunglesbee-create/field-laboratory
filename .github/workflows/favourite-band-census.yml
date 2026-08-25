@@ -1,0 +1,68 @@
+# What is hiding in the band `favouriteAgreement` declines to judge?
+#
+# The gate refuses to name a favourite when the two moneyline prices separate by
+# less than the book's own overround. That is correct — a market that does not
+# separate its sides by more than its margin has not named a favourite. It also
+# means a slice of every slate goes unjudged: 3 of 14 MLB games with odds on
+# 2026-08-25, 21%.
+#
+# A handicap orientation that was systematically wrong for CLOSE games would
+# live in that slice permanently, because nothing looks. This looks.
+#
+# Dispatch-only. It reads dozens of /context/date payloads, which the sandbox
+# cannot reach (workers.dev is 403 at the agent proxy) and which there is no
+# reason to run on a schedule — the question is answered by a census, not
+# monitored.
+name: favourite-band-census
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'How many past days to read'
+        required: false
+        default: '45'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: favourite-band-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the decoders
+        run: |
+          dotnet tool restore
+          dotnet fable src/Laboratory.fsproj --outDir build
+
+      # The shadow calculation is validated against the real rubric before any
+      # number is reported, and the script exits non-zero if they have drifted.
+      - name: The shadow verdict discriminates
+        run: node scripts/favourite-band-census.mjs --self-test
+
+      - name: Census
+        run: |
+          node scripts/favourite-band-census.mjs --days "${{ github.event.inputs.days || 45 }}" \
+            | tee outbox/favourite-band-census-$(date -u +%Y%m%dT%H%M%SZ).txt
+
+      - name: Commit the census
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/favourite-band-census-*.txt
+          git diff --staged --quiet || git commit -m "census: the band favouriteAgreement declines to judge [skip ci]"
+          git push
