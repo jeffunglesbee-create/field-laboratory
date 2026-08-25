@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `60ba8d6` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
+| `60ba8d6` | 2026-08-25 | [sport-vocabulary-2026-08-25T01-24-34-105Z.json](sport-vocabulary-2026-08-25T01-24-34-105Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
+| `4ea140f` | 2026-08-25 | [2026-08-25-non-contest-probe.md](2026-08-25-non-contest-probe.md) | probe: sample the declared-unmodelled labels too, and read the whole row |
 | `9a852ae` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
 | `9a852ae` | 2026-08-24 | [sport-vocabulary-2026-08-24T23-21-49-484Z.json](sport-vocabulary-2026-08-24T23-21-49-484Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
 | `3fb2f1a` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
