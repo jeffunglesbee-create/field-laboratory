@@ -83,27 +83,54 @@ try {
     else out.missing.push(label)
   }
 
-  // A sample row per missing label, because the Matchup convention is not the
-  // only question a new Sport case has to answer. Golf is the precedent: the
-  // relay packs a tournament and a round into home/away
-  // (`golf_..._fedexstjudechampionship_r2`), so those two fields are NOT
-  // opponents, and every Matchup case asserts a contest between two sides.
+  // A sample row per UNMODELLED label — missing AND declared alike, because the
+  // Matchup convention is not the only question a new Sport case has to answer.
+  // Golf is the precedent: the relay packs a tournament and a round into
+  // home/away (`golf_..._fedexstjudechampionship_r2`), so those two fields are
+  // NOT opponents, and every Matchup case asserts a contest between two sides.
   // Modelling golf under one would have had the desk state that a tournament
   // played a round. So before adding a case, look at what home/away actually
   // hold for that competition.
-  for (const label of out.missing) {
+  //
+  // WHY `declared` IS SAMPLED TOO (added 2026-08-25). Until now this loop ran
+  // over `out.missing` alone, which is exactly backwards. A `missing` label is
+  // one nobody has looked at; a `declared` label is one whose entry already
+  // states, per Rule 74, what would unblock it — and the row IS that evidence.
+  // The consequence was measured: every run since 2026-08-23 has reported
+  // `missing: []` and therefore `samples: null`, so the four labels actually
+  // waiting on evidence (golf, PGA Tour, IPL, UFL) produced none, twice a day,
+  // for as long as they stay declared. A probe that goes quiet precisely when
+  // its subject stops being new is not a probe.
+  //
+  // SELECT * rather than the six columns this once named. The golf row is why:
+  // `note` carries "Scottie Scheffler -11" and `home_score` carries -11, so the
+  // columns that answer "what IS this row" were the ones not being read. Capped
+  // at one row per declared label to keep the artifact readable; missing labels
+  // keep three, since an unexamined label needs the spread more than the depth.
+  for (const [label, limit] of [
+    ...out.missing.map(l => [l, 3]),
+    ...out.declared_unmodelled.map(d => [d.label, 1]),
+  ]) {
     const q = await fetch(`${RELAY}/d1/execute`, {
       method: 'POST',
       headers: { 'X-FIELD-Relay': RELAY_SECRET, 'Content-Type': 'application/json', 'User-Agent': UA },
       body: JSON.stringify({
-        sql: `SELECT id, home, away, date, home_score, away_score FROM regular_season_games
-              WHERE sport = ? ORDER BY date DESC LIMIT 3`, params: [label] }),
+        sql: `SELECT * FROM regular_season_games
+              WHERE sport = ? ORDER BY date DESC LIMIT ?`, params: [label, limit] }),
     }).then(r => r.json()).catch(() => null)
     out.samples ??= {}
-    out.samples[label] = (q?.results || []).map(r => ({
-      id: r.id, home: r.home, away: r.away, date: r.date,
-      score: (r.home_score == null && r.away_score == null) ? null : `${r.home_score}-${r.away_score}`,
-    }))
+    // Whole row, minus the two columns that are neither small nor informative
+    // here. `drama_arc` is hundreds of integers and is a SEALED value in this
+    // repo besides; `opening_odds`/`closing_odds` are double-encoded JSON blobs
+    // with their own decoder. Dropping them is a size decision, stated, not a
+    // claim that they are empty.
+    out.samples[label] = (q?.results || []).map(r => {
+      const { drama_arc, opening_odds, closing_odds, ...rest } = r
+      return rest
+    })
+    // An empty array is a real answer and a different one from "not asked":
+    // UFL's entry says it unblocks "the day a row appears", and [] is the
+    // observation that the day has not come.
   }
 } catch (e) { out.error = String(e.message || e) }
 
@@ -115,9 +142,19 @@ console.log(`relay vocabulary: ${out.relay_vocabulary?.length ?? '?'} label(s)`)
 console.log(`  modelled            ${out.modelled.length}: ${out.modelled.join(', ')}`)
 console.log(`  declared unmodelled ${out.declared_unmodelled.length}: ${out.declared_unmodelled.map(d => d.label).join(', ')}`)
 console.log(`  MISSING             ${out.missing.length}: ${out.missing.join(', ')}`)
+// Every non-null column, because the point of the sample is to see what the row
+// actually holds -- and the columns that answered that for golf (`note`,
+// `home_score`) were the ones the six-column projection did not select. Nulls
+// are dropped from the LINE, not from the artifact: the JSON keeps the whole
+// row, and a line listing twenty nulls hides the three values that matter.
 for (const [label, rows] of Object.entries(out.samples || {})) {
   console.log(`\n  ${label}`)
-  for (const r of rows) console.log(`    ${r.date}  home=${JSON.stringify(r.home)}  away=${JSON.stringify(r.away)}  score=${r.score ?? '—'}`)
+  for (const r of rows) {
+    const filled = Object.entries(r).filter(([, v]) => v !== null && v !== '')
+    console.log(`    ${filled.map(([k, v]) => `${k}=${JSON.stringify(v)}`).join('  ')}`)
+    const empty = Object.keys(r).length - filled.length
+    if (empty) console.log(`      (${empty} column(s) null)`)
+  }
   if (!rows.length) console.log('    (no regular_season_games rows — postseason or brief-only label)')
 }
 
