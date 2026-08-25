@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `574fb97` | 2026-08-25 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | docs: recommend against the PGA Tour archive DELETE, with the reasoning |
 | `f486ce4` | 2026-08-25 | [2026-08-25-tbc-venue.md](2026-08-25-tbc-venue.md) | fix: a slate with no venue is not a venue-table coverage gap |
 | `53a0a7e` | 2026-08-25 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | probe: the golf/tour ask reports its own cessation, twice a day |
 | `393d601` | 2026-08-25 | [cc-session-2026-08-25-non-contest.md](cc-session-2026-08-25-non-contest.md) | fix: an event card called a finished round scheduled, and the score gate said so |
