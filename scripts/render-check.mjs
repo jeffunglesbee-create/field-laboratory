@@ -144,6 +144,21 @@ let chips = []
 let filled = []
 let waitErr = null
 
+// Relay values that occupy the `venue` column without naming a venue.
+//
+// Measured 2026-08-25: `/context/date/2026-08-25` at 05:25 UTC served exactly
+// one game — an MLS Leagues Cup quarterfinal, `games.regular` empty — carrying
+// `venue: "TBC"`. A weather chip for TBC is impossible in PRINCIPLE, not
+// missing from the table: there is no such place, and the fixture's venue has
+// not been decided.
+//
+// Treating that as a coverage gap failed verify 137 on a change that touched
+// no venue code, and would fail again on every thin early-morning slate. The
+// three states below are the same discipline this repo applies everywhere
+// else: covered, genuinely uncovered, and nothing to observe.
+const PLACEHOLDER_VENUES = new Set(['TBC', 'TBD', '—', '-', ''])
+const realVenues = vs => [...new Set(vs)].filter(v => !PLACEHOLDER_VENUES.has((v || '').trim()))
+
 if (!pinned) {
   known = new Set(Array.from(weatherVenues).map(v => v.Name))
   cardVenues = await page.$$eval('.desk-card[data-venue]',
@@ -180,6 +195,26 @@ if (!pinned && (waitErr !== null || filled.length < expected)) {
 await browser.close()
 
 const { check, summarize } = createChecks()
+
+// The venue predicate, enumerated, BEFORE anything is decided through it.
+//
+// A skip that is wrong in the loosening direction is invisible: it prints a
+// warning and passes. So the case that must keep FAILING is asserted here
+// explicitly — a real venue absent from the table is a coverage gap and stays
+// one. These are pure and cost nothing; they run on every slate, including the
+// ones where the skip never fires.
+const VENUE_CASES = [
+  [['TBC'], 0, 'the 2026-08-25 slate: one Leagues Cup fixture, venue TBC'],
+  [['TBC', 'Fenway Park'], 1, 'a placeholder beside a real venue is still observable'],
+  [[], 0, 'an empty slate'],
+  [['Some Unlisted Park'], 1, 'a real venue absent from the table IS a coverage gap'],
+  [[null, '  TBD  '], 0, 'null and surrounding whitespace are placeholders too'],
+]
+const venueWrong = VENUE_CASES.filter(([vs, want]) => realVenues(vs).length !== want)
+check('the placeholder-venue predicate holds on every enumerated case',
+  venueWrong.length === 0,
+  venueWrong.map(([vs, want, why]) => `${why}: ${realVenues(vs).length} real, want ${want}`).join('; ')
+    || `${VENUE_CASES.length} cases`)
 
 check('decode status reports success', /^decoded \d+ game/.test(status || ''), status)
 // Stronger than "at least one card", and correct on a genuinely empty day:
@@ -302,10 +337,24 @@ console.log(`          ->  live      "${transition.live?.drama}"\n`)
 // the table is a check in its own right rather than a precondition nobody
 // states.
 if (!pinned) {
+  // A slate can carry venues that are not venues. `real` is the denominator:
+  // without it, "no venue on this slate is in the table" and "this slate names
+  // no venue at all" are the same failure, and only the first is one.
+  const real = realVenues(cardVenues)
+  const observable = real.length > 0
+
   // The venue-table coverage is independent of Open-Meteo — it is about the table,
   // not the service — so it is asserted whether or not the service answered.
+  if (!observable) {
+    // Loud, and never a silent pass. The count is printed so a slate that is
+    // quietly ALL placeholders for days is visible rather than inferred.
+    console.log('::warning::no card on this slate names a real venue ' +
+      `(${cardVenues.length} card(s): ${[...new Set(cardVenues)].join(', ') || 'none with a venue'}) — ` +
+      'the venue-table and weather-chip checks are skipped. A placeholder venue has no ' +
+      'weather reading in principle, so this is nothing to observe, not a coverage gap.')
+  } else {
   check('the venue table covers at least one venue on this slate', expected > 0,
-    `${[...new Set(cardVenues)].join(', ') || 'no cards with a venue'} — none of them in the ${known.size}-entry table`)
+    `${real.join(', ')} — none of them in the ${known.size}-entry table`)
 
   if (TOLERATE && openMeteoDown) {
     // Open-Meteo unreachable from this runner. The chips could not fill through no
@@ -332,6 +381,7 @@ if (!pinned) {
       filled.every(c => /open air|fixed roof|retractable roof/.test(c.title || '')),
       JSON.stringify(filled.slice(0, 3)))
   }
+  } // end: this slate names at least one real venue
 }
 
 process.exit(summarize() === 0 ? 0 : 1)
