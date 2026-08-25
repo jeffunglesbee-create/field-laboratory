@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `20e36ec` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
+| `20e36ec` | 2026-08-25 | [sport-vocabulary-2026-08-25T12-58-57-174Z.json](sport-vocabulary-2026-08-25T12-58-57-174Z.json) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
 | `574fb97` | 2026-08-25 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | docs: recommend against the PGA Tour archive DELETE, with the reasoning |
 | `f486ce4` | 2026-08-25 | [2026-08-25-tbc-venue.md](2026-08-25-tbc-venue.md) | fix: a slate with no venue is not a venue-table coverage gap |
 | `53a0a7e` | 2026-08-25 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | probe: the golf/tour ask reports its own cessation, twice a day |
