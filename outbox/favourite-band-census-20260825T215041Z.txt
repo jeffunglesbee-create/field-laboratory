@@ -1,0 +1,41 @@
+
+60 date(s) read, 0 unavailable, 779 game(s) with a comparable moneyline+handicap pair
+
+shadow validated against favouriteAgreement on 636 judged game(s): 0 drift
+
+THE BAND favouriteAgreement DECLINES TO JUDGE
+  143 game(s), 18.4% of the corpus
+  shadow agrees    68  (47.6%)
+  shadow disagrees 69
+
+  ~50% means the handicap carries no information there, which is what a
+  true pick’em looks like. Far below 50% would mean a systematic
+  inversion living inside the band, invisible to the gate.
+
+WHAT THE GATE DOES JUDGE
+  636 game(s): 624 agree, 12 disagree (1.9%)
+
+BY SPORT                          band   band-agree   judged  judged-disagree
+  CFL                               0           —        1             0.0%
+  MLB                             134       44.8%      512             2.3%
+  WNBA                              9       88.9%      123             0.0%
+
+THE ASYMMETRY TEST — judged games inside 3x the vig, by which side is favoured
+  home favourite    143 game(s), 9 disagree (6.3%)
+  away favourite     80 game(s), 0 disagree (0.0%)
+  A one-sided rate is a feed or adapter artefact. A matching rate is the
+  market behaving the same way on both sides near the boundary.
+
+EVERY DISAGREEMENT, widest separation first
+  2026-06-28  MLB_2026-06-28_cardinals_marlins             ML -1940/  780  H   1.5  ratio 12.96  Disagrees
+  2026-06-28  MLB_2026-06-28_giants_braves                 ML -1320/  640  H   1.5  ratio 12.28  Disagrees
+  2026-06-28  MLB_2026-06-28_twins_rockies                 ML  -780/  462  H   1.5  ratio 11.02  Disagrees
+  2026-08-09  MLB_2026-08-09_mariners_rays                 ML  -114/  106  H   1.5  ratio 2.61  Disagrees
+  2026-07-03  MLB_2026-07-03_braves_mets                   ML  -126/  104  H   1.5  ratio 1.41  Disagrees
+  2026-07-10  MLB_2026-07-10_tigers_phillies               ML  -120/  102  H   1.5  ratio 1.24  Disagrees
+  2026-07-07  MLB_2026-07-07_nationals_astros              ML  -122/  102  H   1.5  ratio 1.22  Disagrees
+  2026-07-07  MLB_2026-07-07_twins_guardians               ML  -122/  102  H   1.5  ratio 1.22  Disagrees
+  2026-07-05  MLB_2026-07-05_braves_mets                   ML  -122/  102  H   1.5  ratio 1.22  Disagrees
+  2026-08-08  MLB_2026-08-08_mariners_rays                 ML  -121/  101  H   1.5  ratio 1.11  Disagrees
+  2026-07-25  MLB_2026-07-25_redsox_bluejays               ML  -122/  101  H   1.5  ratio 1.11  Disagrees
+  2026-07-19  MLB_2026-07-19_astros_orioles                ML  -122/  101  H   1.5  ratio 1.11  Disagrees
