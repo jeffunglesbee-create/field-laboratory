@@ -61,8 +61,15 @@ type Sport =
 type SportMeta =
     { Label: string; Matchup: Matchup; IsSoccer: bool; Modelled: bool }
     // The live record also carries `Omission: string option` — a reason, when
-    // leaving a sport unmodelled is a decision rather than a gap. golf, PGA
-    // Tour, IPL and UFL each carry one. Abridged here; see src/Desk.fs.
+    // leaving a sport unmodelled is a decision rather than a gap. PGA Tour,
+    // IPL and UFL each carry one. Abridged here; see src/Desk.fs.
+    //
+    // `Matchup` also has a fourth case the abridgement above omits:
+    // `NotAContest of EventShape`, added 2026-08-25 for golf. Every other case
+    // asserts a contest between two sides, which is what kept golf unmodelled
+    // for as long as it was — the relay packs an event and a round into
+    // home/away, so the desk rendered "BMW Championship vs R4" and stated that
+    // a tournament played a round.
 
 let sportMeta (sport: Sport) : SportMeta =
     match sport with

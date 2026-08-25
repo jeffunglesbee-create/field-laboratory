@@ -72,9 +72,48 @@ let private matchup =
       // The transposition that arrived WITH the fix: names in one order and
       // numbers in the other, internally consistent before and after.
       Verify.check "the score orders through the same function as the names"
-          (fun (sport, expected) -> orderByMatchup sport 75 81 = expected)
-          (Sport.AFL, (75, 81))
-          (Sport.AFL, (81, 75)) ]
+          (fun (sport, expected) -> presentByMatchup sport 75 81 = expected)
+          (Sport.AFL, Contest(75, 81))
+          (Sport.AFL, Contest(81, 75))
+
+      // The sentence this case exists to stop the desk from saying.
+      Verify.check "golf renders an event, never a contest"
+          (fun (sport, expected) -> matchupText sport "BMW Championship" "R4" = expected)
+          (Sport.Golf, "BMW Championship · R4")
+          (Sport.Golf, "BMW Championship v R4")
+
+      // A non-contest yields no pair AT ALL, which is the whole point of
+      // returning a decision rather than two values.
+      Verify.check "a non-contest yields no pair to order"
+          (fun (sport, expected) -> presentByMatchup sport "BMW Championship" "R4" = expected)
+          (Sport.Golf, Event LeaderboardSnapshot)
+          (Sport.Golf, Contest("BMW Championship", "R4"))
+
+      // The event score line, over every input it can be handed. Enumerated
+      // rather than sampled: the fallback branches are the ones no live row
+      // has exercised, so nothing else would notice them going wrong.
+      Verify.check "the leader is named when the row names them"
+          (fun (input, expected) -> (fun (n, f) -> eventScoreText n f) input = expected)
+          ((Some "Wyndham Clark -17", Some -17), "Wyndham Clark -17")
+          ((Some "Wyndham Clark -17", Some -17), "-17")
+
+      Verify.check "the bare figure stands in when no note names a leader"
+          (fun (input, expected) -> (fun (n, f) -> eventScoreText n f) input = expected)
+          ((None, Some -17), "-17")
+          ((None, Some -17), "—")
+
+      Verify.check "an event with neither is a dash, not a fabricated zero"
+          (fun (input, expected) -> (fun (n, f) -> eventScoreText n f) input = expected)
+          ((None, None), "—")
+          ((None, None), "0")
+
+      // The two disagreeing is the case that decides which column is the
+      // source of truth, and it is asserted rather than left to whoever reads
+      // the match order.
+      Verify.check "the note wins when the note and the figure disagree"
+          (fun (input, expected) -> (fun (n, f) -> eventScoreText n f) input = expected)
+          ((Some "Wyndham Clark -17", Some -6), "Wyndham Clark -17")
+          ((Some "Wyndham Clark -17", Some -6), "-6") ]
 
 // ---------------------------------------------------------------------------
 // Grading. A draw is neither correct nor wrong, and an unfinished game is not
@@ -451,7 +490,7 @@ let private stats =
       Verify.check "the sides lead with the same team as the header"
           (fun (sport, expectedFirst: string) ->
               let r = { Stats.Sport = sport; Stats.Home = "Twins"; Stats.Away = "Orioles"; Stats.Rows = [] }
-              fst (Stats.sidesInHeaderOrder r) = expectedFirst
+              (match Stats.sidesInHeaderOrder r with Contest(f, _) -> f | Event _ -> "") = expectedFirst
               && (Stats.headerText r).StartsWith expectedFirst)
           (Sport.MLB, "Orioles")
           (Sport.MLB, "Twins")
@@ -461,7 +500,7 @@ let private stats =
       Verify.check "...and flips for a sport that reads home first"
           (fun (sport, expectedFirst: string) ->
               let r = { Stats.Sport = sport; Stats.Home = "Sydney"; Stats.Away = "Collingwood"; Stats.Rows = [] }
-              fst (Stats.sidesInHeaderOrder r) = expectedFirst)
+              (match Stats.sidesInHeaderOrder r with Contest(f, _) -> f | Event _ -> "") = expectedFirst)
           (Sport.AFL, "Sydney")
           (Sport.AFL, "Collingwood")
 

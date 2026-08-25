@@ -150,6 +150,30 @@ type Odds =
       TotalOver: float option
       TotalUnder: float option }
 
+/// What the relay's two side-columns hold for a sport that stages an EVENT
+/// rather than a contest between two sides.
+///
+/// Measured per sport, never inferred. A statement about what the relay
+/// WRITES, not about how the sport is played.
+type EventShape =
+    /// `home` names the event, `away` names the stage within it, `home_score`
+    /// carries the figure the leader carries — not a side's score — and `note`
+    /// carries that leader by name.
+    ///
+    /// Measured 2026-08-24, BMW Championship R4
+    /// (`outbox/sport-vocabulary-2026-08-25T01-24-34-105Z.json`):
+    ///
+    ///     home = "BMW Championship"    away = "R4"
+    ///     home_score = -17             away_score = null
+    ///     note = "Wyndham Clark -17"   league = "PGA Tour"
+    ///
+    /// `-17` is called the figure the leader carries, not "the score to par".
+    /// What was OBSERVED is that `home_score` and the number inside `note`
+    /// agree. "To par" is golf knowledge, and a convention here is derived
+    /// from a measurement or not asserted — the same rule that keeps
+    /// `Sport.IPL` unmodelled.
+    | LeaderboardSnapshot
+
 /// How a sport names a fixture.
 ///
 /// Not cosmetic. FIELD's Rule 50 (SPORT-DISPLAY-A) lists home/away order as the
@@ -167,6 +191,18 @@ type Matchup =
     /// Rendered home-first with a neutral separator and flagged in the UI —
     /// guessing at a convention is how the bug above happened.
     | UnknownConvention
+    /// Not a contest. There are not two sides, so there is no pair to order
+    /// and no separator between them that would be honest.
+    ///
+    /// ONE `EventShape` case, deliberately. The obvious second is a `NoSides`
+    /// for `sport = "PGA Tour"` rows, whose side-columns are both null. It
+    /// would be wrong: those rows are DUPLICATES of a golf row — same ESPN
+    /// event 401811963 on both, measured 2026-08-25 — produced by the relay's
+    /// generic scoreboard walker writing a tour into the sport column. Giving
+    /// them an `EventShape` would enshrine a category error as a thing this
+    /// laboratory understands. See `docs/CC-CMD-2026-08-25-golf-sport-label.md`.
+    /// A second case arrives when a second non-contest sport is measured.
+    | NotAContest of EventShape
 
 /// The sports this laboratory models.
 ///
@@ -354,7 +390,7 @@ let sportMeta (sport: Sport) : SportMeta =
           Matchup = UnknownConvention
           IsSoccer = false
           Modelled = false
-          Omission = Some "the same non-contest golf is, and measured worse: PGA Tour rows carry home = null AND away = null (2026-08-20, 2026-08-13, 2026-08-08), so there are not two sides to order at all. Golf's entry below explains the rest; a non-contest Matchup case is the fix both share." }
+          Omission = Some "NOT A SPORT. PGA Tour is a LEAGUE within golf, alongside the Korn Ferry, Champions, LPGA and DP World tours, and these rows are the relay's generic ESPN walker writing that tour into the sport column. Measured 2026-08-25: sport='PGA Tour' id='PGA Tour_2026-08-20_src401811963' carries espn_event_id 401811963, and sport='golf' id='golf_2026-08-24_bmwchampionship_r4' carries golf_401811963 -- the same BMW Championship, archived twice. home and away are null because relay src/index.js:7750 falls back to teams[0]/teams[1] on a field of players, whose competitors carry athlete and not team; home_score=away_score=-6 is the top two players of round one with their names stripped by that same lookup. This entry's PREVIOUS text said a non-contest Matchup case was the fix it shared with golf. That is disproved: golf needed the case and has it; this needs the relay to stop writing a tour into the sport column, per Rule 60. Unblocks when docs/CC-CMD-2026-08-25-golf-sport-label.md lands and no sport='PGA Tour' row appears for a date after that deploy -- at which point this Sport case is deleted, not modelled." }
     | Sport.IPL ->
         { Label = "IPL"
           Matchup = UnknownConvention
@@ -367,12 +403,13 @@ let sportMeta (sport: Sport) : SportMeta =
           IsSoccer = false
           Modelled = false
           Omission = Some "the label is in the relay's vocabulary but sport-vocabulary-check sampled no regular_season_games row for it on 2026-08-23, so nothing here has ever seen a UFL fixture. Modelling it from the NFL/CFL family would be an inference about a competition this repo has no observation of -- the same move CC-CMD-2026-08-20-uefa-club-competitions declined for the UEFA labels while their archive count was zero. Unblocks the day a row appears: re-run check:sport-vocabulary and read the sample." }
-    | Sport.Golf ->
-        { Label = "golf"
-          Matchup = UnknownConvention
-          IsSoccer = false
-          Modelled = false
-          Omission = Some "the relay packs a tournament and a round into home/away — golf_2026-08-14_fedexstjudechampionship_r2 renders \"FedEx St. Jude Championship vs R2\" — so they are not opponents. Every Matchup case asserts a contest between two sides. Modelling golf under one would have the desk state that a tournament played a round; a non-contest Matchup case is the real fix and is its own change." }
+    // MODELLED 2026-08-25. The obstacle was never that golf could not be
+    // modelled -- it was that every `Matchup` case asserted a contest, so the
+    // desk rendered "BMW Championship vs R4" and stated that a tournament
+    // played a round. `NotAContest` is that case. Golf is now rendered as the
+    // event it is, and the leaderboard the row already carries -- `home_score`
+    // and `note` -- is rendered instead of discarded.
+    | Sport.Golf -> { Label = "golf"; Matchup = NotAContest LeaderboardSnapshot; IsSoccer = false; Modelled = true; Omission = None }
     | Sport.Unrecognised raw ->
         { Label = raw; Matchup = UnknownConvention; IsSoccer = false; Modelled = false; Omission = None }
 
@@ -405,22 +442,16 @@ let sportOfString (raw: string) : Sport =
     // quietly merges two sports.
     | "Ligue 1" -> Sport.Ligue1
     | "Serie A" -> Sport.SerieA
-    // `golf` maps to a case that DECLARES itself unmodelled, and that is a
-    // decision rather than an omission. The relay packs a tournament and a round into `home`
-    // and `away` — `golf_2026-08-14_fedexstjudechampionship_r2` renders as
-    // "FedEx St. Jude Championship vs R2" — so those two fields are not
-    // opponents. Every `Matchup` case this type has asserts a contest between
-    // two sides, and modelling golf under one would make the desk state, in its
-    // own voice, that a tournament played a round.
+    // `golf` maps to a MODELLED case as of 2026-08-25. The relay packs an event
+    // and a round into `home` and `away` —
+    // `golf_2026-08-24_bmwchampionship_r4` carries "BMW Championship" and "R4"
+    // — so those two fields are not opponents, and for a year every `Matchup`
+    // case asserted a contest between two sides. That is what kept golf
+    // unmodelled, and `NotAContest` is the case that ends it.
     //
-    // `Sport.Golf` keeps `Modelled = false` and `UnknownConvention`, exactly as
-    // `Unrecognised` did, so nothing about how golf renders changes. What it
-    // adds is `Omission = Some ...`, which lets the drift sentinel report a
-    // recorded decision instead of raising the same alarm twice a day forever.
-    // Adding a fourth `Matchup` case for events that are not two-sided is the
-    // actual fix and is still its own change: inventing a convention in a hurry
-    // is precisely what produced the AFL/MLB transposition recorded above
-    // `orderByMatchup`.
+    // What it renders now is more, not less: the row also carries
+    // `home_score = -17` and `note = "Wyndham Clark -17"`, a named leader that
+    // the desk used to discard while stating that a tournament played a round.
     // The relay's own labels, verbatim, measured 2026-08-23 by
     // scripts/sport-vocabulary-check.mjs against the games tables.
     | "UEFA Champions League" -> Sport.UEFAChampionsLeague
@@ -447,28 +478,83 @@ let sportOfString (raw: string) : Sport =
     | "golf" -> Sport.Golf
     | other -> Sport.Unrecognised other
 
-/// Orders a home/away pair the way the sport names them.
+/// The two ways a fixture can be presented.
+///
+/// A renderer must choose between them, and the compiler makes it choose:
+/// there is no branch of `presentByMatchup` that yields a pair for a
+/// non-contest.
+type Presentation<'a> =
+    /// Two sides, already in the order the sport names them.
+    | Contest of first: 'a * second: 'a
+    /// Not two sides. Carries what the side-columns actually hold, so the
+    /// caller reads them as the event they are.
+    | Event of EventShape
+
+/// Decides how a home/away pair is presented, in its sport's own convention.
 ///
 /// Rule 50 lists "score format" in the same registry entry as home/away order,
 /// and this is why: the two are one decision. Fixing the matchup text alone
 /// produced `Sydney v Collingwood  75–81` where 75 was Collingwood's — names in
 /// one order, numbers in the other. Internally consistent before the fix and
-/// transposed after it, which is worse than either. Both now read from here.
-let orderByMatchup (sport: Sport) (home: 'a) (away: 'a) : 'a * 'a =
+/// transposed after it, which is worse than either. Both read from here.
+///
+/// WHY THIS RETURNS A DECISION AND NOT A PAIR
+///
+/// It was `orderByMatchup : Sport -> 'a -> 'a -> 'a * 'a` until 2026-08-25,
+/// when golf gained a `NotAContest` case. Adding `| NotAContest _ -> home, away`
+/// compiles, renders nothing visibly wrong on any slate today, and is the
+/// silent-wrong this repository keeps deleting: the caller asked which of two
+/// things comes first, and for a non-contest there are not two things. Handing
+/// back a pair answers a question nobody asked — the same shape as the failure
+/// in the paragraph above, reached from a fourth direction.
+///
+/// Returning `Presentation` costs four call sites the obligation to say what an
+/// event renders as. That obligation IS the fix.
+let presentByMatchup (sport: Sport) (home: 'a) (away: 'a) : Presentation<'a> =
     match (sportMeta sport).Matchup with
-    | AwayAtHome -> away, home
+    | AwayAtHome -> Contest(away, home)
     | HomeVersusAway
-    | UnknownConvention -> home, away
+    | UnknownConvention -> Contest(home, away)
+    | NotAContest shape -> Event shape
 
 /// Renders a fixture in its sport's own convention.
 let matchupText (sport: Sport) (home: string) (away: string) =
-    let first, second = orderByMatchup sport home away
-    match (sportMeta sport).Matchup with
-    | AwayAtHome -> sprintf "%s @ %s" first second
-    | HomeVersusAway -> sprintf "%s v %s" first second
-    // Home first, neutral separator. Not a guess at the convention — a refusal
-    // to make one.
-    | UnknownConvention -> sprintf "%s vs %s" first second
+    match presentByMatchup sport home away with
+    | Contest(first, second) ->
+        match (sportMeta sport).Matchup with
+        | AwayAtHome -> sprintf "%s @ %s" first second
+        | HomeVersusAway -> sprintf "%s v %s" first second
+        // Home first, neutral separator. Not a guess at the convention — a
+        // refusal to make one.
+        | UnknownConvention
+        | NotAContest _ -> sprintf "%s vs %s" first second
+    | Event LeaderboardSnapshot ->
+        // The event and the stage within it, in the column order the relay
+        // wrote them. Never a separator that reads as a versus: "BMW
+        // Championship v R4" is the sentence this case exists to stop the desk
+        // from saying.
+        sprintf "%s · %s" home away
+
+/// The score line for an event, from the two columns that actually carry one.
+///
+/// Beside `matchupText` because it is the same decision: a `LeaderboardSnapshot`
+/// row's `home_score`/`away_score` are NOT a pair — golf's `away_score` is null
+/// and `home_score` belongs to a single player — so the scoreline cannot be
+/// built the way a contest's is.
+///
+/// `note` carries the leader NAMED ("Wyndham Clark -17"), which is strictly
+/// more than the bare figure, so it wins. Two levels, inside Rule 76's cap.
+///
+/// NOT rendered as "E" when the figure is zero. That is the universal golf
+/// notation and it is general knowledge, not something measured here; both
+/// sampled golf rows carried `note`, so the branch is barely reachable. It
+/// stays the plain integer until a row with `home_score = 0` and no `note` is
+/// actually observed.
+let eventScoreText (note: string option) (figure: int option) =
+    match note, figure with
+    | Some n, _ -> n
+    | None, Some f -> string f
+    | None, None -> "—"
 
 /// A drama score, sealed at decode time so the raw number cannot leave this
 /// module.

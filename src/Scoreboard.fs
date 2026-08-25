@@ -21,14 +21,33 @@ let private el (tag: string) (className: string) (text: string) : HTMLElement =
     if text <> "" then node.textContent <- text
     node
 
-/// The scoreline, in the same order as the team names. Both orders come from
-/// `orderByMatchup`, so they cannot drift apart — see the note there.
-let private scoreText (sport: Sport) (state: GameState) =
+/// The scoreline, in the same order as the team names. Both come from
+/// `presentByMatchup`, so they cannot drift apart — see the note there.
+///
+/// Takes the whole row rather than its sport, because an event's score line is
+/// not built from the two side-columns. `Game` was already in scope here.
+let private scoreText (g: Game) (state: GameState) =
+    // `Desk.eventScoreText`, not a second copy: the rule for reading these two
+    // columns belongs beside `matchupText`, which makes the same decision about
+    // the other two.
+    let event () = eventScoreText g.Note g.HomeScore
     let line h a =
-        let first, second = orderByMatchup sport h a
-        sprintf "%d–%d" first second
+        match presentByMatchup g.Sport h a with
+        | Contest(first, second) -> sprintf "%d–%d" first second
+        // The state's two integers are a home/away pair, and for an event they
+        // are not one: golf's `away_score` is null and `home_score` belongs to
+        // a single player. So they are dropped here and the line is built from
+        // the row instead.
+        | Event LeaderboardSnapshot -> event ()
     match state with
-    | Scheduled -> "—"
+    | Scheduled ->
+        // An event with no score yet is still "—", but a FINALIZED event whose
+        // scores never reached `GameState` must not be: golf's `away_score` is
+        // null, so `gameState` cannot produce `Final` for it and every golf row
+        // arrives here.
+        (match (sportMeta g.Sport).Matchup with
+         | NotAContest _ -> event ()
+         | _ -> "—")
     | InProgress(h, a) -> line h a
     | Final(h, a, _) -> line h a
 
@@ -260,7 +279,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
 
     // Derived values that recompute reactively rather than being baked in at
     // render time.
-    let display = Solid.createMemo (fun () -> scoreText game.Sport (state ()))
+    let display = Solid.createMemo (fun () -> scoreText game (state ()))
     let status = Solid.createMemo (fun () -> statusText game (state ()))
     // Drama is state-derived now, not immutable: the number is permitted only
     // once the game is final, so the slot has to appear at the moment the game

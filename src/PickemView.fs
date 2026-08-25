@@ -63,24 +63,29 @@ let private renderRow (mount: HTMLElement) (game: Game) (status: PickStatus) (on
     //
     // The first version re-derived the order with its own `if`, and got it
     // backwards: the label read "Rockies @ Diamondbacks" while the left button
-    // was Diamondbacks. That is precisely the failure `orderByMatchup`'s own
+    // was Diamondbacks. That is precisely the failure `presentByMatchup`'s own
     // comment was written about — "names in one order, numbers in the other ...
     // internally consistent before the fix and transposed after it" — reached
     // from a third direction. Anything ordered beside a matchup has to come
     // from this function, not from a rule that agrees with it today.
-    let firstSide, secondSide =
-        orderByMatchup game.Sport (Home, game.Home) (Away, game.Away)
-    let ordered = [ firstSide; secondSide ]
-
-    for side, name in ordered do
-        let button = child sides (el "button" "pk-side" name)
-        button.setAttribute ("type", "button")
-        let chosen = pickedSide status = Some side
-        if chosen then button.classList.add "pk-side--chosen"
-        // The pressed state is the whole meaning of this control, so it is
-        // announced rather than only coloured.
-        button.setAttribute ("aria-pressed", (if chosen then "true" else "false"))
-        button.addEventListener ("click", fun _ -> onPick side)
+    match presentByMatchup game.Sport (Home, game.Home) (Away, game.Away) with
+    | Contest(firstSide, secondSide) ->
+        for side, name in [ firstSide; secondSide ] do
+            let button = child sides (el "button" "pk-side" name)
+            button.setAttribute ("type", "button")
+            let chosen = pickedSide status = Some side
+            if chosen then button.classList.add "pk-side--chosen"
+            // The pressed state is the whole meaning of this control, so it is
+            // announced rather than only coloured.
+            button.setAttribute ("aria-pressed", (if chosen then "true" else "false"))
+            button.addEventListener ("click", fun _ -> onPick side)
+    | Event _ ->
+        // No buttons, and the reason stated rather than an empty cell. A pick
+        // is a choice between two sides; an event has none, so there is nothing
+        // here that could be picked and no `Side` value that would mean
+        // anything. Rendering two disabled buttons would be worse — it would
+        // draw the contest this case exists to deny.
+        child sides (el "span" "pk-side--none" "no sides to pick — this is an event") |> ignore
 
     child row (statusChip status) |> ignore
 

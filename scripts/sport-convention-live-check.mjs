@@ -21,7 +21,7 @@
 // that sport visitor-first. Nothing here hardcodes "@" or "vs" as meaning
 // anything — the ORDER is measured, and the order is the claim `Matchup` makes.
 //
-// Then it asks the real compiled `orderByMatchup` which side laboratory names
+// Then it asks the real compiled `presentByMatchup` which side laboratory names
 // first, and requires the two to agree — but only where ESPN actually sets the
 // convention. See the `authority` note on LEAGUES: the first real run falsified
 // the assumption that `shortName` encodes per-sport convention at all, and the
@@ -41,7 +41,7 @@
 // Usage:  node scripts/sport-convention-live-check.mjs
 //         node scripts/sport-convention-live-check.mjs --tolerate-unreachable
 
-import { sportOfString, orderByMatchup, matchupText } from '../build/Desk.js'
+import { sportOfString, presentByMatchup, matchupText } from '../build/Desk.js'
 import { createChecks } from './checks.mjs'
 
 const { check, summarize } = createChecks()
@@ -158,10 +158,22 @@ check('no league contradicts itself across its own events',
   results.filter(r => String(r.espn ?? '').startsWith('INCONSISTENT'))
     .map(r => `${r.sport}: ${r.espn}`).join('; ') || 'each league is internally consistent')
 
+// `presentByMatchup` returns a decision, not a pair — a non-contest sport has
+// no first side, and reading `fields[0]` off an `Event` would silently compare
+// an EventShape against the string 'AWAY'. Named as its own outcome instead.
+// None of the six leagues above is a non-contest today; this exists so that
+// stops being true loudly rather than quietly.
 for (const r of derived) {
-  const [first] = orderByMatchup(sportOfString(r.sport), 'HOME', 'AWAY')
-  r.lab = first === 'AWAY' ? 'away-first' : 'home-first'
+  const pres = presentByMatchup(sportOfString(r.sport), 'HOME', 'AWAY')
+  r.lab = pres.cases()[pres.tag] !== 'Contest' ? 'not-a-contest'
+        : pres.fields[0] === 'AWAY' ? 'away-first'
+        : 'home-first'
 }
+
+check('every league probed here is a contest with two sides to order',
+  derived.every(r => r.lab !== 'not-a-contest'),
+  derived.filter(r => r.lab === 'not-a-contest').map(r => r.sport).join('; ')
+    || `${derived.length} league(s), all two-sided`)
 
 // THE INSTRUMENT CHECK, and the reason this file is worth running.
 //

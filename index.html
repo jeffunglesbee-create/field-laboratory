@@ -149,6 +149,11 @@
   .pk-side:hover { color: var(--text); border-color: var(--edge); }
   .pk-side--chosen { color: var(--discovery); border-color: var(--must); background: var(--card2); }
   .pk-side:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
+  /* An event has no sides to pick between. Deliberately NOT styled as a
+     disabled button: a greyed-out control still draws the contest this case
+     exists to deny, and the field-playground probe recorded exactly that
+     failure mode -- both pick buttons greyed with no explanation. */
+  .pk-side--none { font-size: .78rem; color: var(--dim); font-style: italic; white-space: nowrap; }
   .pk-chip {
     font-size: .68rem; letter-spacing: .06em; text-align: center;
     padding: .25rem .4rem; border-radius: 6px; white-space: nowrap;

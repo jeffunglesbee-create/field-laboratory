@@ -35,7 +35,7 @@ open Desk
 // "Twins: 59-62 · Orioles: 58-62". Home first, under an away-first header. The
 // audit notes the pitcher rows are "away first then home" — so two adjacent
 // lines in one card use opposite orders. That is the transposition
-// `orderByMatchup` was written for, arriving in a third place.
+// `presentByMatchup` was written for, arriving in a third place.
 //
 // THE THIRD is silence. From the audit: "Two games have no PARK row at all —
 // that's `if (pf)` skipping a null lookup"; umpires "render as bare names:
@@ -232,10 +232,15 @@ type ScoutingReport =
 ///
 /// The screenshot that prompted this file shows a header reading
 /// "Orioles @ Twins" above a records line reading "Twins ... Orioles". Nothing
-/// here orders a pair except through `orderByMatchup`.
+/// here orders a pair except through `presentByMatchup`.
 let headerText (r: ScoutingReport) = matchupText r.Sport r.Home r.Away
 
 /// The two sides, in the header's order. Kept because anything that ever lists
 /// both teams must come from here rather than from a rule that agrees today.
-let sidesInHeaderOrder (r: ScoutingReport) : string * string =
-    orderByMatchup r.Sport r.Home r.Away
+///
+/// Returns the decision, not a pair: a scouting report on a non-contest has no
+/// two sides to list, and a caller that wants them has to say what it does
+/// instead. No golf row has been observed reaching a `ScoutingReport` — this is
+/// the branch existing so it cannot arrive unnoticed.
+let sidesInHeaderOrder (r: ScoutingReport) : Presentation<string> =
+    presentByMatchup r.Sport r.Home r.Away

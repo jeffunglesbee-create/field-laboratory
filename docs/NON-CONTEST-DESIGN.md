@@ -3,8 +3,17 @@
 **Filed 2026-08-25.** Design for the fourth `Matchup` case that `Sport.Golf`'s
 own `Omission` has been asking for since it was written.
 
-**Status:** DESIGNED, not built. Every measurement below is from a probe run on
-2026-08-25; nothing here is inferred from general knowledge about golf.
+**Status:** BUILT 2026-08-25, same day. Option A was taken. Every measurement
+below is from a probe run that day; nothing here is inferred from general
+knowledge about golf. Session doc:
+`outbox/cc-session-2026-08-25-non-contest.md`.
+
+Two things the build found that this design did not predict, both recorded in
+the session doc: golf never reaches `Final` (`gameStateAt` needs both scores and
+`away_score` is null), so `scoreText`'s `Scheduled` branch had to check the
+`Matchup` case or the whole feature was a no-op with green tests; and a Fable
+union field is not a string, so guard 3 had to read `cases()[tag]` at both
+levels.
 
 ---
 

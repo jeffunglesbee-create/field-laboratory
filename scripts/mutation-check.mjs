@@ -470,8 +470,8 @@ const MUTATIONS = [
     id: 'records-line-transposed',
     file: 'src/Stats.fs',
     claim: 'anything listing both sides orders through the same function as the header',
-    find: '    orderByMatchup r.Sport r.Home r.Away',
-    replace: '    r.Home, r.Away',
+    find: '    presentByMatchup r.Sport r.Home r.Away',
+    replace: '    Contest(r.Home, r.Away)',
     expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
   },
 
@@ -892,8 +892,10 @@ const MUTATIONS = [
     id: 'button-order',
     file: 'src/PickemView.fs',
     claim: 'the side buttons read in the same order as the matchup label',
-    find: '        orderByMatchup game.Sport (Home, game.Home) (Away, game.Away)',
-    replace: '        (Home, game.Home), (Away, game.Away)',
+    // Renamed with `orderByMatchup` on 2026-08-25. The mutation is the same
+    // one: bypass the ordering function and hand back the columns as written.
+    find: '    match presentByMatchup game.Sport (Home, game.Home) (Away, game.Away) with',
+    replace: '    match Contest((Home, game.Home), (Away, game.Away)) with',
     expect: 'node scripts/pickem-check.mjs',
   },
 ]

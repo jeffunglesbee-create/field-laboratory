@@ -14,7 +14,7 @@ open Stats
 //   1. The comeback line renders ONLY for a game in progress, because it takes
 //      a `LiveMargin` and there is no way to make one from a scheduled game.
 //      Production shows "Tied — anyone's game" on all seven pre-game cards.
-//   2. The records line and the pitcher rows go through `orderByMatchup`, the
+//   2. The records line and the pitcher rows go through `presentByMatchup`, the
 //      same function as the header. Production's header reads "Orioles @ Twins"
 //      and its records line reads "Twins ... Orioles".
 //   3. NOTHING IS UNRESOLVED. Production drops the PARK row entirely when the
