@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b131aa6` | 2026-08-25 | [cc-session-2026-08-25-non-contest.md](cc-session-2026-08-25-non-contest.md) | feat: model golf as a non-contest, and stop handing out a pair that is not one |
 | `3fe77fa` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
 | `3fe77fa` | 2026-08-25 | [sport-vocabulary-2026-08-25T02-34-39-865Z.json](sport-vocabulary-2026-08-25T02-34-39-865Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
 | `60ba8d6` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
