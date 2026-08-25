@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e1345d5` | 2026-08-25 | [favourite-band-census-20260825T232152Z.txt](favourite-band-census-20260825T232152Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
+| `4cc746e` | 2026-08-25 | [2026-08-25-odds-plausibility.md](2026-08-25-odds-plausibility.md) | census: the misjoined-odds ask did not need D1 after all |
 | `a36339d` | 2026-08-25 | [2026-08-25-literal-secret-writes.md](2026-08-25-literal-secret-writes.md) | feat: no workflow may install a credential from a literal |
 | `3dbee71` | 2026-08-25 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census run 2: the disagreements are one-sided, and three rows hold the wrong sport's odds |
 | `068ca6f` | 2026-08-25 | [favourite-band-census-20260825T215041Z.txt](favourite-band-census-20260825T215041Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
