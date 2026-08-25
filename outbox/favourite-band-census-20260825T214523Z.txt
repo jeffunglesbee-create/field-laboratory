@@ -1,0 +1,35 @@
+
+45 date(s) read, 0 unavailable, 621 game(s) with a comparable moneyline+handicap pair
+
+shadow validated against favouriteAgreement on 507 judged game(s): 0 drift
+
+THE BAND favouriteAgreement DECLINES TO JUDGE
+  114 game(s), 18.4% of the corpus
+  shadow agrees    56  (49.1%)
+  shadow disagrees 55
+
+  ~50% means the handicap carries no information there, which is what a
+  true pick’em looks like. Far below 50% would mean a systematic
+  inversion living inside the band, invisible to the gate.
+
+WHAT THE GATE DOES JUDGE
+  507 game(s): 503 agree, 4 disagree (0.8%)
+
+BY SPORT                          band   band-agree   judged  judged-disagree
+  CFL                               0           —        1             0.0%
+  MLB                             106       46.2%      407             1.0%
+  WNBA                              8       87.5%       99             0.0%
+
+EVERY DISAGREEMENT, widest separation first
+  2026-08-09  MLB_2026-08-09_mariners_rays                 ML  -114/  106  H   1.5  ratio 2.61  Disagrees
+  2026-08-08  MLB_2026-08-08_mariners_rays                 ML  -121/  101  H   1.5  ratio 1.11  Disagrees
+  2026-07-25  MLB_2026-07-25_redsox_bluejays               ML  -122/  101  H   1.5  ratio 1.11  Disagrees
+  2026-07-19  MLB_2026-07-19_astros_orioles                ML  -122/  101  H   1.5  ratio 1.11  Disagrees
+  2026-08-22  MLB_2026-08-22_mariners_cubs                 ML  -120/  100  H   1.5  ratio 1.00  NotComparable
+  2026-08-17  MLB_2026-08-17_mets_padres                   ML  -120/  100  H   1.5  ratio 1.00  NotComparable
+  2026-08-15  MLB_2026-08-15_guardians_padres              ML  -121/  100  H   1.5  ratio 1.00  NotComparable
+  2026-07-30  MLB_2026-07-30_cardinals_cubs                ML  -120/  100  H   1.5  ratio 1.00  NotComparable
+  2026-07-28  MLB_2026-07-28_pirates_diamondbacks          ML  -120/  100  H   1.5  ratio 1.00  NotComparable
+  2026-07-22  MLB_2026-07-22_angels_cardinals              ML  -120/  100  H   1.5  ratio 1.00  NotComparable
+  2026-07-22  MLB_2026-07-22_astros_marlins                ML  -120/  100  H   1.5  ratio 1.00  NotComparable
+  2026-07-20  MLB_2026-07-20_angels_cardinals              ML  -120/  100  H   1.5  ratio 1.00  NotComparable
