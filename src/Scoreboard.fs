@@ -52,6 +52,12 @@ let private scoreText (g: Game) (state: GameState) =
     | Final(h, a, _) -> line h a
 
 let private statusText (g: Game) (state: GameState) =
+    match (sportMeta g.Sport).Matchup with
+    // Before the contest state machine, not after it: that machine reports
+    // every event as `Scheduled`, so reading `state` first would render a
+    // finished round as scheduled. See `Desk.eventStatusText`.
+    | NotAContest _ -> eventStatusText g.FinalizedAt
+    | _ ->
     match state with
     | Scheduled ->
         match g.RawStartTime, g.StartTime with

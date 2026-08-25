@@ -72,6 +72,10 @@ const cards = await page.$$eval('.desk-card', nodes => nodes.map(n => ({
   id: n.getAttribute('data-game-id'),
   teams: n.querySelector('.desk-card__teams')?.textContent,
   score: n.querySelector('[data-testid="score"]')?.textContent,
+  // The section heading carries the registry label. Read here so the score
+  // assertion below can hold each card to the rule for ITS class rather than
+  // to one rule that has to be loose enough for both.
+  sport: n.closest('.sport-group')?.getAttribute('data-sport'),
   status: n.querySelector('[data-testid="status"]')?.textContent,
   drama: n.querySelector('[data-testid="drama"]')?.textContent,
   odds: n.querySelector('.desk-card__odds')?.textContent,
@@ -191,9 +195,48 @@ check('units demo rendered as a percentage', /\d+%/.test(units || ''), units)
 check('no card shows a malformed nested payload',
   !cards.some(c => /MALFORMED/.test(`${c.drama} ${c.odds}`)),
   cards.map(c => c.drama).join(' | '))
-check('every card has a real score or an explicit scheduled dash',
-  cards.every(c => /\d+–\d+/.test(c.score) || c.score === '—'),
-  cards.map(c => c.score).join(' | '))
+// A CONTEST card's score slot. Unchanged rule, narrowed subject.
+//
+// This assertion used to cover every card, and verify run 135 failed it on
+// `BMW Championship · R4  Wyndham Clark -17` — correctly. A non-contest card's
+// score slot carries a leaderboard line, not a scoreline, and the old rule
+// encoded the premise the `NotAContest` Matchup case exists to break. Widening
+// it to `|| anything` would have deleted the check; splitting it keeps both
+// halves strict.
+const NON_CONTEST = new Set(['golf'])
+const contestCards = cards.filter(c => !NON_CONTEST.has(c.sport))
+const eventCards = cards.filter(c => NON_CONTEST.has(c.sport))
+
+// The classification itself, asserted before anything is asserted THROUGH it.
+// `closest('.sport-group')` returning null would give every card an undefined
+// sport, which `NON_CONTEST.has` reports as false — so a golf card would be
+// silently reclassified as a contest and the split below would prove nothing.
+// `renderSlate` is the only path that mounts a `.desk-card` and it always nests
+// them in a `.sport-group`; this is that fact under test rather than assumed.
+check('every card resolved the sport of its section',
+  cards.every(c => typeof c.sport === 'string' && c.sport !== ''),
+  `${cards.filter(c => !c.sport).length} of ${cards.length} card(s) with no resolvable section`)
+
+check('every contest card has a real score or an explicit scheduled dash',
+  contestCards.every(c => /\d+–\d+/.test(c.score) || c.score === '—'),
+  contestCards.map(c => c.score).join(' | ') || 'no contest cards on this slate')
+
+// The NEGATIVE half, and the one that matters. An event card must never show a
+// contest scoreline: `home_score`/`away_score` on a PGA Tour row are the top
+// two players of a leaderboard, so an `N–N` in this slot would be a fabricated
+// tie between two sides that do not exist.
+check('no event card shows a contest scoreline',
+  eventCards.every(c => c.score && c.score.trim() !== '' && !/\d+–\d+/.test(c.score)),
+  eventCards.map(c => `${c.sport}: ${JSON.stringify(c.score)}`).join(' | ')
+    || 'no event cards on this slate')
+
+// And it must not claim to be scheduled once the row records completion. A
+// non-contest never reaches Final through the contest state machine, so this
+// read "Scheduled — no start time" on a finished round until 2026-08-25.
+check('no event card calls a completed round scheduled',
+  eventCards.every(c => !/Scheduled/i.test(c.status || '')),
+  eventCards.map(c => `${c.sport}: ${JSON.stringify(c.status)}`).join(' | ')
+    || 'no event cards on this slate')
 check('state transition ran', transition.ran || transition.skipped,
   transition.skipped ? 'skipped — empty slate' : (transition.error || 'ok'))
 check('score updates on state change',

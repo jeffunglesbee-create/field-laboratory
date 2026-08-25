@@ -556,6 +556,27 @@ let eventScoreText (note: string option) (figure: int option) =
     | None, Some f -> string f
     | None, None -> "—"
 
+/// The status line for an event.
+///
+/// A non-contest NEVER reaches `Final`: `gameStateAt` needs both scores and an
+/// event carries one. So the contest state machine reports every golf row as
+/// `Scheduled`, and a COMPLETED round rendered "Scheduled — no start time" on
+/// the live desk — caught by `render-check` in verify run 135 on 2026-08-25,
+/// after the non-contest case shipped without it.
+///
+/// `finalized_at` is the only thing here that can settle it. Golf rows carry no
+/// `start_time` at all (measured on both sampled rows), so there is no clock to
+/// compare against and the date comparison `gameStateAt` uses has nothing to
+/// work with either.
+///
+/// `None` is NOT "scheduled". Absent completion is absent knowledge — the row
+/// may be mid-round or may not have started, and this says so rather than
+/// picking one.
+let eventStatusText (finalizedAt: string option) =
+    match finalizedAt with
+    | Some _ -> "Final"
+    | None -> "No completion recorded"
+
 /// A drama score, sealed at decode time so the raw number cannot leave this
 /// module.
 ///

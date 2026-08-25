@@ -116,3 +116,61 @@ One, and it has its own CC-CMD as Rule 87 requires:
 `docs/CC-CMD-2026-08-25-golf-sport-label.md`, with a probe block, a done
 condition that is a D1 count rather than a green deploy, and step 4 explicitly
 withholding the archive DELETE pending human approval.
+
+---
+
+## Follow-up: verify run 135 went red, and it was right to
+
+`b131aa6` failed `check:live`. **The feature worked** — the live desk rendered
+the card exactly as designed:
+
+```
+golf_2026-08-24_bmwchampionship_r4
+  BMW Championship · R4   Wyndham Clark -17   [Scheduled — no start time]
+```
+
+The failing assertion was `render-check.mjs`'s *every card has a real score or
+an explicit scheduled dash*, whose test is `/\d+–\d+/.test(score) || score ===
+'—'`. `Wyndham Clark -17` is neither. That check encoded the exact premise the
+`NotAContest` case exists to break, and it caught the change the moment it
+shipped. A correct gate, on a premise that moved.
+
+**Widening it to `|| anything` would have deleted the check.** It is split
+instead, and the half that matters is the negative one:
+
+- *every contest card has a real score or an explicit scheduled dash* — the old
+  rule, unchanged, on the cards it was written for.
+- *no event card shows a contest scoreline* — an `N–N` in an event's score slot
+  would be a fabricated tie between two sides that do not exist, since
+  `home_score`/`away_score` on a PGA Tour row are the top two players of a
+  leaderboard.
+- *every card resolved the sport of its section* — the classification under
+  test before anything is asserted through it. `closest('.sport-group')`
+  returning null would give every card an undefined sport, which
+  `NON_CONTEST.has` reports as false, silently reclassifying the golf card as a
+  contest and making the split prove nothing.
+
+## And a second defect the same run exposed
+
+`[Scheduled — no start time]` on a round that finished. **A non-contest never
+reaches `Final`** — `gameStateAt` needs both scores and an event carries one —
+so the contest state machine reports every golf row as `Scheduled` and
+`statusText` read that faithfully.
+
+The session doc above already recorded "golf never reaches Final" as a finding.
+It was acted on for the SCORE line and not for the STATUS line, and nothing in
+the first round of guards would have noticed: every one of them asserted on the
+score. The card was half-fixed and fully green.
+
+`Desk.eventStatusText` settles it from `finalized_at`, which is the only column
+that can — golf rows carry no `start_time` at all, so there is no clock to
+compare and the date comparison `gameStateAt` uses has nothing to work with
+either. `None` renders "No completion recorded", not "Scheduled": absent
+completion is absent knowledge, and the row may be mid-round or may not have
+started.
+
+`statusText` now branches on the `Matchup` case BEFORE reading `state`, because
+reading `state` first is what produced the bug.
+
+**VerifyMain 70/70** (was 68). The two added enumerate both `eventStatusText`
+inputs, each with the wrong answer as its counterexample.

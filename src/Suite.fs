@@ -113,7 +113,22 @@ let private matchup =
       Verify.check "the note wins when the note and the figure disagree"
           (fun (input, expected) -> (fun (n, f) -> eventScoreText n f) input = expected)
           ((Some "Wyndham Clark -17", Some -6), "Wyndham Clark -17")
-          ((Some "Wyndham Clark -17", Some -6), "-6") ]
+          ((Some "Wyndham Clark -17", Some -6), "-6")
+
+      // A finished round rendered "Scheduled — no start time" on the live desk
+      // until 2026-08-25: an event never reaches Final through the contest
+      // state machine, which needs both scores.
+      Verify.check "a completed event is Final, not scheduled"
+          (fun (input, expected) -> eventStatusText input = expected)
+          (Some "2026-08-24 12:39:06", "Final")
+          (Some "2026-08-24 12:39:06", "Scheduled — no start time")
+
+      // Absent completion is absent knowledge, not "scheduled". The row may be
+      // mid-round or may not have started, and nothing here can tell.
+      Verify.check "an event with no completion recorded does not claim to be scheduled"
+          (fun (input, expected) -> eventStatusText input = expected)
+          (None, "No completion recorded")
+          (None, "Scheduled") ]
 
 // ---------------------------------------------------------------------------
 // Grading. A draw is neither correct nor wrong, and an unfinished game is not
