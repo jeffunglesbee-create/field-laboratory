@@ -69,3 +69,28 @@ stops following up.
 - **Then:** `Sport.PGATour` can be deleted from `src/Desk.fs` and
   `Program.fs:195`'s "sides not named" wording revisited — both gated on the
   rows actually stopping, both named in that case's own `Omission` text.
+
+---
+
+## The archive DELETE: recommendation is against
+
+Step 4 of the filed CC-CMD proposed deleting the historical
+`sport='PGA Tour'` rows and waited for approval. Recommending **no**.
+
+The rows are inert. They carry `home = null`, so `gameDecoder`'s
+`Required.Field "home"` refuses them and they land in `DeskPayload.Unnamed` —
+counted on the page, never rendered as a game. They are the reason `Unnamed`
+exists at all: `Desk.fs`'s own comment cites the 2026-08-13 live-check failure
+where one of these rows took a nineteen-game slate down, and the counter built
+in response is doing its job.
+
+Against that: a DELETE on `regular_season_games` is irreversible, has no dry-run
+in that path, and its only benefit is a tidier `Unnamed` figure. The archive is
+the record of what the relay actually did, and these rows are part of that
+record — including the record of the defect. Deleting them removes the evidence
+that the CC-CMD was ever needed.
+
+The proposal stays in the document with the exact narrow predicate, in case the
+call goes the other way. Note it must be `sport = 'PGA Tour'` and not
+`LIKE '%PGA%'`: the `league` column carries a legitimate `'PGA Tour'` on every
+correct golf row, so the loose form would delete the good data and leave the bad.

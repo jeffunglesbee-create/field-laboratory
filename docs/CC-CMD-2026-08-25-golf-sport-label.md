@@ -132,7 +132,35 @@ tell a neutral site from a leaderboard.
    `gameMeta`) and the gate reads `undefined` and passes everything if any one
    link is missing, so each is mutated independently.
 
-4. **The existing rows are a separate decision and need explicit approval.**
+4. **RECOMMENDATION 2026-08-25: do NOT delete them.** Left here as a proposal
+   rather than executed, and the recommendation is against.
+
+   The rows are inert now that the writer is gated. They carry `home = null`,
+   so `gameDecoder`'s `Required.Field "home"` refuses them and they land in
+   `DeskPayload.Unnamed` — counted on the page, never rendered as a game. They
+   were the reason `Unnamed` exists (`Desk.fs`'s own comment cites the
+   2026-08-13 live-check failure), and that counter is doing its job.
+
+   Against that: a DELETE against `regular_season_games` is irreversible, has no
+   dry-run in this path, and its only benefit is a tidier `Unnamed` figure. The
+   archive is the record of what the relay actually did, and these rows are part
+   of that record — including the record of this defect. Deleting them removes
+   the evidence that `docs/CC-CMD-2026-08-25-golf-sport-label.md` was ever
+   needed.
+
+   **If it is done anyway**, the safe form is the narrowest possible predicate,
+   run after a SELECT of the same rows is captured to the outbox:
+
+   ```sql
+   SELECT id, date, espn_event_id FROM regular_season_games WHERE sport = 'PGA Tour';
+   -- capture that output FIRST, then:
+   DELETE FROM regular_season_games WHERE sport = 'PGA Tour';
+   ```
+
+   Not `LIKE '%PGA%'`, which would also match the `league` column's legitimate
+   `'PGA Tour'` on every correct golf row.
+
+   **The original ask, kept for the record:**
    Three dates are known (2026-08-08, 2026-08-13, 2026-08-20); step 1's count
    gives the real figure. They are duplicates whose golf counterparts carry the
    same `espn_event_id` with a `golf_` prefix. **Do not delete archive rows
