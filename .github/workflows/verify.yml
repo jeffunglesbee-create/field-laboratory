@@ -317,6 +317,20 @@ jobs:
       - name: The sport registry matches what production serves
         run: npm run check:sports
 
+      # Line numbers rot. Six citations were published into CC-CMDs on the
+      # morning of 2026-08-25 and five were wrong by the afternoon, because the
+      # same session then edited the file it had cited. A stale citation is
+      # worse than none: it points confidently at unrelated code and is trusted
+      # because it is specific.
+      #
+      # FATAL when an anchored citation's quoted fragment is not in the file --
+      # a specific checkable claim that is false. A RATCHET on bare
+      # `path:line` citations, which cannot be verified and may not grow.
+      # Missing files are reported and never fatal: this repo cites relay paths
+      # constantly, 98 of them.
+      - name: Doc citations are anchored, not just numbered
+        run: npm run check:citations
+
       # src/Prose.fs against the relay's real tokeniser, over all 592 briefs in
       # data/jq-mlb-game-corpus.json. Agreement is the test: a port that quietly
       # computed something more sensible than the thing it claims to reproduce
