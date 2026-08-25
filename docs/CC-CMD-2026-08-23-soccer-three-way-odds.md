@@ -32,6 +32,39 @@ soccer game against the deployed adapter. The follow-up below reports LANDED the
 day it does, and distinguishes "no rows" from "not yet" so a quiet slate is never
 read as a failure.
 
+**PREMISE VERIFIED 2026-08-24T23:48Z**, which it had not been when the fix
+shipped. This document asserts the feed prices all three outcomes and the relay
+change was built on that sentence — an inherited claim (Rule 72), and the
+sandbox 403s `*.workers.dev`, so it went to CI:
+`.github/workflows/odds-h2h-shape-probe.yml`, artifact
+`outbox/odds-h2h-shape-20260824T234850Z.json` in field-relay-nba.
+
+```
+PREMISE HOLDS — every one of 10 sampled soccer h2h markets prices three outcomes.
+
+soccer_usa_mls  30 games  Chicago Fire @ Seattle Sounders  {home 170, away 120, Draw 285}
+soccer_epl      20 games  Man City @ Crystal Palace        {home 400, away -165, Draw 320}
+```
+
+Ten of ten: `outcome_count: 3`, `third_selection: "Draw"`. So the draw was
+genuinely being dropped downstream — by `extractOddsForGame` matching two names
+and nothing else — and `drawPriceFrom` will fire on real data rather than being
+correct and inert.
+
+The feed **does** call it `"Draw"` today, so a name match would have worked. The
+position rule costs nothing extra and survives a rename; the probe records the
+name so a reader learns it without the code depending on it.
+
+This narrows what a `false` from the follow-up would mean. The premise is no
+longer a candidate explanation: if a slate whose odds were captured post-deploy
+still shows no draw key, the fault is between the adapter and `/context/date`,
+not upstream of it.
+
+Cost (Rule 78): routed through the relay's own `/odds` proxy and its 3600s edge
+cache rather than `api.the-odds-api.com` directly — at most two credits, zero on
+a cache hit. This repo burned 19,999 of 20,000 credits in one June sitting on
+two uncached helpers.
+
 One-liner:
 ```
 The relay serves soccer (MLS/EPL/La Liga) moneyline as a TWO-WAY {home, away}
