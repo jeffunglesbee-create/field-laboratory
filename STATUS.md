@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `e1345d5` — [run 32910532095](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32910532095)
+`live-check` (post-deploy, against the deployed page): **running** on `5a8eeaa`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `d1f88bd` — behind newest deployable `4cc746e` (deploy not landed) |
+| Cloudflare Workers | live | `5a8eeaa` — newest deployable `4cc746e` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
