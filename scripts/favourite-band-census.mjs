@@ -153,6 +153,29 @@ for (const s of sports) {
   console.log(`  ${s.padEnd(30)} ${String(b.length).padStart(4)}   ${pct(agree(b), b.length).padStart(9)}   ${String(j.length).padStart(6)}   ${pct(j.filter(r => r.shadow === 'disagree').length, j.length).padStart(14)}`);
 }
 
+// ── the asymmetry test ──────────────────────────────────────────────────────
+//
+// The first run's four judged disagreements were ALL home-favourite, all in a
+// narrow price band (-114 to -122), all holding +1.5. Zero were away-favourite.
+//
+// If that is a feed or adapter artefact -- a handicap that defaults to
+// `home: +1.5` when the market is near even -- then away-side slim favourites
+// should show the mirror and they do not. If it is market behaviour at the
+// boundary, both sides should behave alike. This is the number that separates
+// them, and it is why the census reports by SIDE rather than only in total.
+const slim = rows.filter(r => r.real !== 'NotComparable' && r.ratio < 3);
+const bySide = side => {
+  const xs = slim.filter(r => (implied(r.mh) > implied(r.ma)) === (side === 'home'));
+  const dis = xs.filter(r => r.shadow === 'disagree').length;
+  return { n: xs.length, dis, pct: pct(dis, xs.length) };
+};
+const H = bySide('home'), A = bySide('away');
+console.log('\nTHE ASYMMETRY TEST — judged games inside 3x the vig, by which side is favoured');
+console.log(`  home favourite   ${String(H.n).padStart(4)} game(s), ${H.dis} disagree (${H.pct})`);
+console.log(`  away favourite   ${String(A.n).padStart(4)} game(s), ${A.dis} disagree (${A.pct})`);
+console.log('  A one-sided rate is a feed or adapter artefact. A matching rate is the');
+console.log('  market behaving the same way on both sides near the boundary.');
+
 const worst = rows.filter(r => r.shadow === 'disagree').sort((a, b) => b.ratio - a.ratio).slice(0, 12);
 if (worst.length) {
   console.log('\nEVERY DISAGREEMENT, widest separation first');
