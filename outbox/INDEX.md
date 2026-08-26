@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d968c59` | 2026-08-26 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census: the asymmetry test came back 10-0 |
+| `d968c59` | 2026-08-26 | [2026-08-26-the-asymmetry-is-total.md](2026-08-26-the-asymmetry-is-total.md) | census: the asymmetry test came back 10-0 |
 | `961e3be` | 2026-08-26 | [favourite-band-census-20260826T185716Z.txt](favourite-band-census-20260826T185716Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
 | `f52cca6` | 2026-08-26 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | feat: UNREADABLE was two states wearing one name |
 | `e6464e8` | 2026-08-26 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | ci: guards.yml — the guard set's trigger did not cover its inputs |
