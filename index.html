@@ -63,8 +63,15 @@
   .pick-panel { max-width: 46rem; }
   .pick-panel h2 { font-size: .95rem; margin: 0 0 .35rem; }
   .pick-panel__what { font-size: .82rem; opacity: .65; margin: 0 0 1.25rem; }
+  /* No accent rail. `border-left: 3px solid var(--discovery)` with
+     `border-radius: 10px` is the rounded-corner-with-a-coloured-bar shape the
+     unslop-ui checklist names by hand, and the rail was decoration: this is the
+     only boxed item in the panel — the chasers below it are bare rows with a
+     bottom rule — so the card boundary already says which one is the leader,
+     and .pick-leader__matchup is 1.05rem against their .86rem. Now it carries
+     the same boundary as every other card in this file. */
   .pick-leader {
-    border: 1px solid var(--edge); border-left: 3px solid var(--discovery); border-radius: 10px;
+    border: 1px solid var(--edge); border-radius: 10px;
     padding: .9rem 1rem; margin-bottom: 1rem; background: var(--card2);
   }
   .pick-leader__matchup { font-size: 1.05rem; margin-bottom: .3rem; }
@@ -121,7 +128,13 @@
     border: 1px solid var(--edge); border-radius: 8px;
     padding: .3rem .6rem; cursor: pointer;
   }
-  .pk-sport--on { color: var(--text); background: var(--card2); border-color: var(--edge); }
+  /* The selected state must actually differ. This set `background: var(--card2)`
+     and `border-color: var(--edge)` — the exact values .pk-sport already
+     declares — so a filter that was ON was distinguished by nothing but
+     dim -> text, while the CSS read as though three properties changed. The
+     accent border is the vocabulary .pk-side--chosen already uses for the same
+     idea. */
+  .pk-sport--on { color: var(--text); border-color: var(--must); }
   .pk-sport:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
   .pk-sport__count { opacity: .6; font-variant-numeric: tabular-nums; }
   .pk-legend { font-size: .74rem; opacity: .5; margin: 0 0 1rem; }
@@ -146,8 +159,8 @@
     border: 1px solid var(--edge); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer; white-space: nowrap;
   }
-  .pk-side:hover { color: var(--text); border-color: var(--edge); }
-  .pk-side--chosen { color: var(--discovery); border-color: var(--must); background: var(--card2); }
+  .pk-side:hover { color: var(--text); }
+  .pk-side--chosen { color: var(--discovery); border-color: var(--must); }
   .pk-side:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
   /* An event has no sides to pick between. Deliberately NOT styled as a
      disabled button: a greyed-out control still draws the contest this case
@@ -333,11 +346,6 @@
     font-size: .6rem; text-transform: uppercase; letter-spacing: .06em;
     color: var(--caution); border: 1px solid var(--edge); border-radius: 999px; padding: .05rem .4rem;
   }
-  .st-badge {
-    display: inline-block; font-size: .68rem; margin-top: .4rem; padding: .1rem .5rem;
-    border-radius: 999px; border: 1px solid var(--edge);
-  }
-  .st-badge--watch { color: var(--caution); border-color: var(--edge); }
   .st-card__records { margin-top: .7rem; font-size: .85rem; font-variant-numeric: tabular-nums; }
   .st-card__comeback { margin-top: .15rem; font-size: .8rem; opacity: .75; }
   .st-card__gaps { margin-top: .6rem; font-size: .7rem; opacity: .5; }

@@ -75,7 +75,7 @@ let renderFieldPick (mount: HTMLElement) (outcome: PickOutcome) =
         // by sort stability; calling that "tonight's pick" without qualification
         // is a claim the data does not support.
         match leadershipNote board.Leadership with
-        | Some note -> child leader (el "div" "pick-leader__tie" (sprintf "⚖ %s" note)) |> ignore
+        | Some note -> child leader (el "div" "pick-leader__tie" note) |> ignore
         | None -> ()
 
         child leader (reasonChips board.Leader.Reasons) |> ignore

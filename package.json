@@ -66,7 +66,8 @@
     "check:sport-vocabulary": "node scripts/sport-vocabulary-check.mjs",
     "check:staged-outbox": "node scripts/staged-outbox-check.mjs --self-test && node scripts/staged-outbox-check.mjs",
     "check:staged-verifier": "node scripts/staged-verifier-check.mjs --self-test && node scripts/staged-verifier-check.mjs",
-    "check:boundary": "node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs"
+    "check:boundary": "node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs",
+    "check:chrome": "node scripts/chrome-check.mjs --self-test && node scripts/chrome-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

@@ -166,6 +166,22 @@ jobs:
       - name: The page's design tokens match the modules
         run: npm run check:design-tokens
 
+      # Chrome, not tokens. design-tokens-check asserts the page's colours ARE
+      # Palette.fs; this asserts the SHAPES those colours are painted on. Three
+      # defects it found on its first run, all of which had been shipped for
+      # weeks: a 3px accent rail on a 10px-rounded card (the ends get cut by the
+      # radius); `.pk-sport--on` declaring a background and a border-colour that
+      # were the exact values `.pk-sport` already sets, so a filter that was ON
+      # differed by text colour alone while reading as though three properties
+      # changed; and `⚖` prefixed to the tie note in PickView.fs, restating what
+      # the note already said. It also found `.st-badge` and `.st-badge--watch`,
+      # which no view has ever emitted.
+      #
+      # Runs BEFORE the browser checks: it reads source, needs no server, and a
+      # failure here is cheaper to read than a screenshot diff.
+      - name: The chrome on those colours
+        run: npm run check:chrome
+
       # Both picks. The decoder check runs headless; the tab check drives a real
       # browser and asserts, among other things, that the composite pick score
       # appears nowhere in the rendered DOM.
