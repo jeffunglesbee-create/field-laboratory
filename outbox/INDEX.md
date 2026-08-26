@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8035663` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | feat: delete the container outlines, and make separation-check measure instead of count |
 | `ec07af0` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
 | `ec07af0` | 2026-08-26 | [sport-vocabulary-2026-08-26T02-42-52-050Z.json](sport-vocabulary-2026-08-26T02-42-52-050Z.json) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
 | `bbd3034` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | docs: the container outline contributes 15/255 on 0.5% of pixels — measured, not argued |
