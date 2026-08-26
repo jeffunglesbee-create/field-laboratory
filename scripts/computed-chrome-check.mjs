@@ -423,6 +423,55 @@ check('every co-applied state modifier makes the change it declares',
 const unobserved = result.states.filter(s => s.verdict === 'inert-unobserved')
 if (unobserved.length)
   console.log(`      note: ${unobserved.length} modifier(s) restate their base but were never seen applied — ${unobserved.map(s => '.' + s.name).join(', ')}`)
+
+// ── 1c. What this run could NOT see is a number, not a note ────────────────
+//
+// Three assertions above run against elements this fixture does not render, or
+// renders only once. Each reported that honestly — `not observable`,
+// `0 rendered`, `via a cloned sibling` — and reporting it honestly is where it
+// stopped. A line of prose on an otherwise-green run costs nothing, so it never
+// got fixed, and the three-state discipline this repo insists on (`true` /
+// `false` / `null`, never conflated) became two states plus a shrug.
+//
+// `null` is a number here. Every gap the run finds must be declared in
+// docs/not-observable.txt with the corpus that would close it. A NEW gap fails.
+// A gap that CLOSES also fails, until its line is deleted in the commit that
+// closed it — an entry nobody removes is how a ledger becomes decoration.
+//
+// A CLONED SIBLING IS A GAP, which is the entry that would otherwise have been
+// missed. `.pk-sport--on` is compared against a clone of itself with the
+// modifier stripped, because this slate renders one sport. That is a sound
+// fallback and it is not an observation: it proves the CSS differs, not that a
+// reader ever sees the two side by side. It passes the assertion and it belongs
+// in this file.
+const LEDGER = 'docs/not-observable.txt'
+const gaps = [
+  ...contrasts.filter(c => c.how === 'a cloned sibling')
+    .map(c => ({ id: `contrast:${c.label}`, why: 'compared against a clone, not a second real element' })),
+  ...(result.rows || []).filter(r => r.verdict === 'not observable')
+    .map(r => ({ id: `rows:${r.sel}`, why: `${r.count} rendered` })),
+  ...unobserved.map(s => ({ id: `state:.${s.name}`, why: 'never seen co-applied with its base' })),
+]
+const declaredGaps = new Map()
+for (const line of readFileSync(LEDGER, 'utf8').split('\n')) {
+  const t = line.replace(/^\s*#.*$/, '').trim()
+  if (!t) continue
+  const m = t.match(/^(\S+(?:\s\S+)*?)\s{2,}(.+)$/)
+  if (m) declaredGaps.set(m[1].trim(), m[2].trim())
+}
+const undeclared = gaps.filter(g => !declaredGaps.has(g.id))
+check(`every gap this run found is declared in ${LEDGER}`,
+  undeclared.length === 0,
+  undeclared.map(g => `${g.id} (${g.why}) — add a line naming the corpus that would close it`).join('; '))
+
+const closed = [...declaredGaps.keys()].filter(id => !gaps.some(g => g.id === id))
+check(`every gap declared in ${LEDGER} is still a gap`,
+  closed.length === 0,
+  closed.map(id => `${id} is observable now — delete its line in the commit that closed it`).join('; '))
+
+console.log(`      ${gaps.length} assertion(s) could not be exercised on this fixture:`)
+for (const g of gaps)
+  console.log(`        ${g.id.padEnd(26)} ${g.why}\n          needs: ${declaredGaps.get(g.id) || '(undeclared)'}`)
 const standalone = result.states.filter(s => s.verdict === 'standalone')
 if (standalone.length)
   console.log(`      observed standalone: ${standalone.map(s => '.' + s.name).join(', ')}`)
