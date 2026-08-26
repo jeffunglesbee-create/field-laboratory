@@ -256,6 +256,15 @@ const result = await page.evaluate(() => {
       // One list, because the question is "is there a perceptible edge", not
       // "which property draws it".
       edges: [...borders.map(b => b.color), ...shadowColors],
+      // WHAT ELSE THE BOX IS DOING, so the report can name BOTH remedies rather
+      // than only the one it can score. See the note at the assertion.
+      pad: Math.max(...SIDES.map(d => parseFloat(s[`padding${d}`]) || 0)),
+      radius: parseFloat(s.borderTopLeftRadius) || 0,
+      // A STICKY OR FIXED ELEMENT'S FILL IS NOT REDUNDANT even when it matches
+      // what is behind it: the fill is what stops scrolled content showing
+      // through as the element detaches. Identical at rest, not identical while
+      // scrolling — so the subtractive remedy does not apply to these.
+      pos: s.position,
     })
   }
 
@@ -444,13 +453,59 @@ const ratio2 = (edge, fill) => {
 // ANY ONE side clearing the bar is enough — a sticky bar separated by a single
 // `border-bottom` is properly separated, and demanding four sides would be a
 // stricter rule than the one being tested.
+// TWO PASSING ANSWERS, AND ONLY ONE OF THEM USED TO BE NAMED.
+//
+// This assertion asked "is there a boundary at 3:1?" A question in that form has
+// exactly one remedy: add a boundary. The unslop-ui checklist's remedy for most
+// of these is the opposite one — remove the box — and item 7 asks of every
+// container boundary, "what does this boundary help the user understand?"
+//
+// The additive fix got applied nine times on 2026-08-26 because it was the one
+// the metric could score, and three of the nine were wrong: `.pick-reason`,
+// `.pick-leader` and `.pk-banner` got a stronger edge when what they needed was
+// no edge. A check whose failure message names one remedy will get that remedy.
+//
+// THE SUBTRACTIVE REMEDY IS AVAILABLE FOR MOST OF THESE, and provably so. Every
+// element in `merged` paints a fill IDENTICAL to the fill behind it, so deleting
+// its `background` is pixel-identical. The honest phrasing is: a box in this
+// list either earns a visible boundary or should stop claiming to be a box.
+//
+// WITH ONE MEASURED EXCEPTION, and it was found by mutation-testing this very
+// message rather than by reasoning about it. Forcing the threshold to 20:1 made
+// the check name `.tabs` and `.datenav`, and both are STICKY. A sticky element's
+// fill is what stops scrolled content showing through once it detaches — it is
+// identical to its backdrop at rest and not identical while scrolling. The
+// blanket claim "removing the fill is pixel-identical" was false for exactly the
+// elements the check would have printed it beside. `position` is now read, and
+// static elements get the subtractive remedy; sticky and fixed ones do not.
+//
+// The check already ACCEPTED the subtractive fix — an element that stops
+// painting drops out of `merged` — but it accepted it silently, and silence is
+// how a remedy stops being considered. Both are now named, and the one that is
+// cheaper for each element is named first.
 const best = m => m.edges.reduce((hi, c) => Math.max(hi, ratio2(c, m.bg)), 1)
+// A box with no padding and no corner radius is not shaping anything either. For
+// those, removal is not merely available — it is the recommendation.
+const detaches = m => m.pos === 'sticky' || m.pos === 'fixed'
+const shapesNothing = m => !detaches(m) && (m.pad || 0) === 0 && (m.radius || 0) === 0
 const invisible = (result.merged || []).filter(m => best(m) < 3.0)
-check('no box shares its backdrop\'s fill without a boundary at 3:1',
+check('every box sharing its backdrop\'s fill either has a boundary at 3:1 or no fill of its own',
   invisible.length === 0,
-  invisible.map(m => `.${m.cls} on ${m.backdrop}: same fill ${m.bg}, best boundary ${m.edges.length ? best(m).toFixed(2) + ':1' : 'none'}`).join('; '))
-if (result.merged?.length)
-  console.log(`      ${result.merged.length} element(s) share their backdrop's fill; ${result.merged.length - invisible.length} carry a boundary at 3:1`)
+  invisible.map(m => {
+    const edge = m.edges.length ? `${best(m).toFixed(2)}:1` : 'none'
+    const remedy = detaches(m)
+      ? `raise its boundary to 3:1 (${m.pos} — its fill is load-bearing while scrolling, so deleting it is not the other answer here)`
+      : shapesNothing(m)
+        ? 'delete its background (no padding, no radius — the box shapes nothing)'
+        : 'delete its background, or raise its boundary to 3:1'
+    return `.${m.cls} on ${m.backdrop}: same fill ${m.bg}, best boundary ${edge} — ${remedy}`
+  }).join('; '))
+if (result.merged?.length) {
+  const ok = result.merged.filter(m => best(m) >= 3.0)
+  const sub = result.merged.filter(m => !detaches(m))
+  console.log(`      ${result.merged.length} element(s) share their backdrop's fill; carried by: boundary ${ok.length}/${result.merged.length}`)
+  console.log(`      removing the fill is pixel-identical for ${sub.length}/${result.merged.length} — the other passing answer. The remaining ${result.merged.length - sub.length} are sticky or fixed and need the boundary.`)
+}
 
 // ── 2c. Borderless rows are still separated ────────────────────────────────
 const flush = (result.rows || []).filter(r => r.verdict === 'flush')
