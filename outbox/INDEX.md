@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `961e3be` | 2026-08-26 | [favourite-band-census-20260826T185716Z.txt](favourite-band-census-20260826T185716Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
+| `f52cca6` | 2026-08-26 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | feat: UNREADABLE was two states wearing one name |
 | `e6464e8` | 2026-08-26 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | ci: guards.yml — the guard set's trigger did not cover its inputs |
 | `13a384b` | 2026-08-26 | [2026-08-26-not-observable-is-a-number.md](2026-08-26-not-observable-is-a-number.md) | feat: 'not observable' is a counted gap, not a note |
 | `bc4fe0c` | 2026-08-26 | [2026-08-26-one-passing-answer.md](2026-08-26-one-passing-answer.md) | fix: the boundary assertion had one passing answer, and it was the wrong one |
