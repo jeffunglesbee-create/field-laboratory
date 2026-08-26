@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `38d185b` | 2026-08-26 | [2026-08-26-invisible-boxes.md](2026-08-26-invisible-boxes.md) | feat: find boxes that share their backdrop's fill — four were invisible |
 | `cebc64f` | 2026-08-26 | [2026-08-26-soccer-draw-landed.md](2026-08-26-soccer-draw-landed.md) | docs: the soccer draw price landed — close the ask and promote it to fatal |
 | `8035663` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | feat: delete the container outlines, and make separation-check measure instead of count |
 | `ec07af0` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |

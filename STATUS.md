@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `cebc64f`
+**green** on `38d185b`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `cebc64f`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `38d185b` — [run 32926576286](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/32926576286)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `cebc64f` — newest deployable ✓ |
+| Cloudflare Workers | live | `cebc64f` — behind newest deployable `38d185b` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
