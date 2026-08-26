@@ -1,0 +1,207 @@
+
+60 date(s) read, 0 unavailable, 796 game(s) with a comparable moneyline+handicap pair
+
+shadow validated against favouriteAgreement on 650 judged game(s): 0 drift
+
+THE BAND favouriteAgreement DECLINES TO JUDGE
+  146 game(s), 18.3% of the corpus
+  shadow agrees    69  (47.3%)
+  shadow disagrees 71
+
+  ~50% means the handicap carries no information there, which is what a
+  true pick’em looks like. Far below 50% would mean a systematic
+  inversion living inside the band, invisible to the gate.
+
+WHAT THE GATE DOES JUDGE
+  650 game(s): 637 agree, 13 disagree (2.0%)
+
+BY SPORT                          band   band-agree   judged  judged-disagree
+  CFL                               0           —        1             0.0%
+  MLB                             137       44.5%      523             2.5%
+  WNBA                              9       88.9%      126             0.0%
+
+THE ASYMMETRY TEST — judged games inside 3x the vig, by which side is favoured
+  home favourite    146 game(s), 10 disagree (6.8%)
+  away favourite     82 game(s), 0 disagree (0.0%)
+  A one-sided rate is a feed or adapter artefact. A matching rate is the
+  market behaving the same way on both sides near the boundary.
+
+EVERY DISAGREEMENT, widest separation first
+  2026-06-28  MLB_2026-06-28_cardinals_marlins             ML -1940/  780  H   1.5  ratio 12.96  Disagrees
+  2026-06-28  MLB_2026-06-28_giants_braves                 ML -1320/  640  H   1.5  ratio 12.28  Disagrees
+  2026-06-28  MLB_2026-06-28_twins_rockies                 ML  -780/  462  H   1.5  ratio 11.02  Disagrees
+  2026-08-09  MLB_2026-08-09_mariners_rays                 ML  -114/  106  H   1.5  ratio 2.61  Disagrees
+  2026-07-03  MLB_2026-07-03_braves_mets                   ML  -126/  104  H   1.5  ratio 1.41  Disagrees
+  2026-08-25  MLB_2026-08-25_padres_pirates                ML  -124/  103  H   1.5  ratio 1.32  Disagrees
+  2026-07-10  MLB_2026-07-10_tigers_phillies               ML  -120/  102  H   1.5  ratio 1.24  Disagrees
+  2026-07-07  MLB_2026-07-07_nationals_astros              ML  -122/  102  H   1.5  ratio 1.22  Disagrees
+  2026-07-07  MLB_2026-07-07_twins_guardians               ML  -122/  102  H   1.5  ratio 1.22  Disagrees
+  2026-07-05  MLB_2026-07-05_braves_mets                   ML  -122/  102  H   1.5  ratio 1.22  Disagrees
+  2026-08-08  MLB_2026-08-08_mariners_rays                 ML  -121/  101  H   1.5  ratio 1.11  Disagrees
+  2026-07-25  MLB_2026-07-25_redsox_bluejays               ML  -122/  101  H   1.5  ratio 1.11  Disagrees
+
+
+ODDS PLAUSIBILITY — the same payloads, a different question
+
+BY SPORT                            n   median   min    max   outside [med/2, med*2]
+  CFL                               1    45.5   45.5   45.5       0
+  MLB                             660     8.5    3.5     13       1
+  WNBA                            135   176.5  145.5  245.5       0
+
+  totals outside their sport's range   1 of 796
+  opening odds captured at finalisation 153 of 796
+
+EVERY FLAGGED ROW
+  2026-06-27  MLB_2026-06-27_redsox_yankees                ML  -118/  100  captured at finalisation
+  2026-06-27  MLB_2026-06-27_tigers_astros                 ML   106/ -124  captured at finalisation
+  2026-06-27  MLB_2026-06-27_bluejays_rangers              ML  -131/  109  captured at finalisation
+  2026-06-27  MLB_2026-06-27_whitesox_royals               ML  -136/  113  captured at finalisation
+  2026-06-27  MLB_2026-06-27_pirates_reds                  ML  -136/  113  captured at finalisation
+  2026-06-28  MLB_2026-06-28_cardinals_marlins             ML -1940/  780  total 3.5 + captured at finalisation
+  2026-06-28  MLB_2026-06-28_orioles_nationals             ML  1260/-10000  captured at finalisation
+  2026-06-28  MLB_2026-06-28_twins_rockies                 ML  -780/  462  captured at finalisation
+  2026-06-28  MLB_2026-06-28_guardians_mariners            ML  -720/  436  captured at finalisation
+  2026-06-28  MLB_2026-06-28_whitesox_royals               ML   495/ -860  captured at finalisation
+  2026-06-28  MLB_2026-06-28_tigers_astros                 ML   477/ -820  captured at finalisation
+  2026-06-28  MLB_2026-06-28_angels_athletics              ML -10000/ 1360  captured at finalisation
+  2026-06-28  MLB_2026-06-28_giants_braves                 ML -1320/  640  captured at finalisation
+  2026-06-28  WNBA_2026-06-28_mystics_fire                 ML   100/ -130  captured at finalisation
+  2026-06-28  MLB_2026-06-28_padres_dodgers                ML   700/-1580  captured at finalisation
+  2026-07-02  MLB_2026-07-02_phillies_pirates              ML  -131/  109  captured at finalisation
+  2026-07-02  MLB_2026-07-02_brewers_reds                  ML  -199/  163  captured at finalisation
+  2026-07-02  MLB_2026-07-02_rockies_marlins               ML   108/ -126  captured at finalisation
+  2026-07-02  MLB_2026-07-02_guardians_whitesox            ML   102/ -122  captured at finalisation
+  2026-07-02  MLB_2026-07-02_braves_cardinals              ML  -112/ -104  captured at finalisation
+  2026-07-02  MLB_2026-07-02_royals_rays                   ML   234/ -325  captured at finalisation
+  2026-07-02  MLB_2026-07-02_rangers_tigers                ML  -131/  109  captured at finalisation
+  2026-07-02  MLB_2026-07-02_mariners_angels               ML  -207/  169  captured at finalisation
+  2026-07-02  MLB_2026-07-02_dodgers_padres                ML  -198/  166  captured at finalisation
+  2026-07-02  WNBA_2026-07-02_mystics_dream                ML   235/ -290  captured at finalisation
+  2026-07-02  WNBA_2026-07-02_sun_wings                    ML   295/ -375  captured at finalisation
+  2026-07-02  WNBA_2026-07-02_mercury_storm                ML  -162/  136  captured at finalisation
+  2026-07-03  MLB_2026-07-03_nationals_pirates             ML  -143/  119  captured at finalisation
+  2026-07-03  MLB_2026-07-03_yankees_twins                 ML  -186/  153  captured at finalisation
+  2026-07-03  MLB_2026-07-03_reds_orioles                  ML   104/ -125  captured at finalisation
+  2026-07-03  MLB_2026-07-03_guardians_whitesox            ML  -136/  113  captured at finalisation
+  2026-07-03  MLB_2026-07-03_braves_mets                   ML  -126/  104  captured at finalisation
+  2026-07-03  MLB_2026-07-03_rockies_giants                ML   132/ -156  captured at finalisation
+  2026-07-03  MLB_2026-07-03_astros_rays                   ML  -108/ -108  captured at finalisation
+  2026-07-03  MLB_2026-07-03_angels_redsox                 ML  -116/ -102  captured at finalisation
+  2026-07-03  MLB_2026-07-03_athletics_marlins             ML  -131/  109  captured at finalisation
+  2026-07-03  MLB_2026-07-03_diamondbacks_brewers          ML   141/ -171  captured at finalisation
+  2026-07-03  MLB_2026-07-03_dodgers_padres                ML  -240/  195  captured at finalisation
+  2026-07-03  MLB_2026-07-03_mariners_bluejays             ML   106/ -124  captured at finalisation
+  2026-07-03  WNBA_2026-07-03_liberty_lynx                 ML   120/ -142  captured at finalisation
+  2026-07-03  WNBA_2026-07-03_aces_sky                     ML  -380/  300  captured at finalisation
+  2026-07-04  MLB_2026-07-04_nationals_pirates             ML   129/ -156  captured at finalisation
+  2026-07-04  MLB_2026-07-04_yankees_twins                 ML  -158/  134  captured at finalisation
+  2026-07-04  MLB_2026-07-04_rangers_tigers                ML  -104/ -115  captured at finalisation
+  2026-07-04  MLB_2026-07-04_mariners_bluejays             ML  -163/  135  captured at finalisation
+  2026-07-04  MLB_2026-07-04_reds_orioles                  ML  -126/  104  captured at finalisation
+  2026-07-04  MLB_2026-07-04_guardians_whitesox            ML  -143/  119  captured at finalisation
+  2026-07-04  MLB_2026-07-04_astros_rays                   ML  -110/ -110  captured at finalisation
+  2026-07-04  MLB_2026-07-04_braves_mets                   ML  -175/  144  captured at finalisation
+  2026-07-04  MLB_2026-07-04_royals_phillies               ML   125/ -150  captured at finalisation
+  2026-07-04  MLB_2026-07-04_rockies_giants                ML   108/ -126  captured at finalisation
+  2026-07-04  MLB_2026-07-04_angels_redsox                 ML   135/ -163  captured at finalisation
+  2026-07-04  MLB_2026-07-04_athletics_marlins             ML  -101/ -120  captured at finalisation
+  2026-07-04  MLB_2026-07-04_diamondbacks_brewers          ML   123/ -149  captured at finalisation
+  2026-07-04  MLB_2026-07-04_dodgers_padres                ML  -271/  218  captured at finalisation
+  2026-07-04  WNBA_2026-07-04_dream_valkyries              ML  -148/  124  captured at finalisation
+  2026-07-04  WNBA_2026-07-04_storm_fire                   ML  -155/  130  captured at finalisation
+  2026-07-05  MLB_2026-07-05_braves_mets                   ML  -122/  102  captured at finalisation
+  2026-07-05  MLB_2026-07-05_nationals_pirates             ML  -134/  116  captured at finalisation
+  2026-07-05  MLB_2026-07-05_reds_orioles                  ML  -110/ -110  captured at finalisation
+  2026-07-05  MLB_2026-07-05_yankees_twins                 ML  -136/  113  captured at finalisation
+  2026-07-05  MLB_2026-07-05_guardians_whitesox            ML  -156/  129  captured at finalisation
+  2026-07-05  MLB_2026-07-05_royals_phillies               ML   113/ -136  captured at finalisation
+  2026-07-05  MLB_2026-07-05_rangers_tigers                ML  -105/ -115  captured at finalisation
+  2026-07-05  MLB_2026-07-05_astros_rays                   ML   376/ -585  captured at finalisation
+  2026-07-05  MLB_2026-07-05_diamondbacks_brewers          ML   102/ -122  captured at finalisation
+  2026-07-05  MLB_2026-07-05_athletics_marlins             ML  -126/  104  captured at finalisation
+  2026-07-05  MLB_2026-07-05_mariners_bluejays             ML  -143/  119  captured at finalisation
+  2026-07-05  MLB_2026-07-05_dodgers_padres                ML  -219/  179  captured at finalisation
+  2026-07-05  MLB_2026-07-05_angels_redsox                 ML   129/ -156  captured at finalisation
+  2026-07-05  WNBA_2026-07-05_tempo_wings                  ML   170/ -205  captured at finalisation
+  2026-07-05  WNBA_2026-07-05_aces_fever                   ML  -218/  180  captured at finalisation
+  2026-07-06  MLB_2026-07-06_royals_phillies               ML   144/ -175  captured at finalisation
+  2026-07-06  MLB_2026-07-06_rays_yankees                  ML  -120/  100  captured at finalisation
+  2026-07-06  MLB_2026-07-06_nationals_astros              ML  -137/  114  captured at finalisation
+  2026-07-06  MLB_2026-07-06_braves_mets                   ML  -126/  105  captured at finalisation
+  2026-07-06  MLB_2026-07-06_cardinals_brewers             ML  -104/ -115  captured at finalisation
+  2026-07-06  MLB_2026-07-06_giants_bluejays               ML  -105/ -114  captured at finalisation
+  2026-07-06  WNBA_2026-07-06_mystics_valkyries            ML   160/ -192  captured at finalisation
+  2026-07-06  WNBA_2026-07-06_lynx_sun                     ML -1350/  800  captured at finalisation
+  2026-07-06  WNBA_2026-07-06_sparks_storm                 ML  -170/  142  captured at finalisation
+  2026-07-07  MLB_2026-07-07_cardinals_brewers             ML   160/ -190  captured at finalisation
+  2026-07-07  MLB_2026-07-07_orioles_cubs                  ML   100/ -120  captured at finalisation
+  2026-07-07  MLB_2026-07-07_tigers_athletics              ML  -194/  159  captured at finalisation
+  2026-07-07  MLB_2026-07-07_pirates_braves                ML  -188/  158  captured at finalisation
+  2026-07-07  MLB_2026-07-07_rays_yankees                  ML  -118/  100  captured at finalisation
+  2026-07-07  MLB_2026-07-07_marlins_mariners              ML  -106/ -110  captured at finalisation
+  2026-07-07  MLB_2026-07-07_nationals_astros              ML  -122/  102  captured at finalisation
+  2026-07-07  MLB_2026-07-07_mets_royals                   ML  -152/  128  captured at finalisation
+  2026-07-07  MLB_2026-07-07_whitesox_redsox               ML   104/ -126  captured at finalisation
+  2026-07-07  MLB_2026-07-07_twins_guardians               ML  -122/  102  captured at finalisation
+  2026-07-07  MLB_2026-07-07_rangers_angels                ML  -168/  139  captured at finalisation
+  2026-07-07  MLB_2026-07-07_padres_diamondbacks           ML  -131/  108  captured at finalisation
+  2026-07-07  MLB_2026-07-07_giants_bluejays               ML  -104/ -112  captured at finalisation
+  2026-07-07  MLB_2026-07-07_dodgers_rockies               ML  -267/  214  captured at finalisation
+  2026-07-07  WNBA_2026-07-07_mercury_sky                  ML  -155/  130  captured at finalisation
+  2026-07-08  MLB_2026-07-08_giants_bluejays               ML  -112/ -108  captured at finalisation
+  2026-07-08  MLB_2026-07-08_orioles_cubs                  ML  -120/  100  captured at finalisation
+  2026-07-08  MLB_2026-07-08_tigers_athletics              ML  -163/  135  captured at finalisation
+  2026-07-08  MLB_2026-07-08_rays_yankees                  ML  -126/  104  captured at finalisation
+  2026-07-08  MLB_2026-07-08_marlins_mariners              ML   118/ -138  captured at finalisation
+  2026-07-08  MLB_2026-07-08_reds_phillies                 ML   518/ -920  captured at finalisation
+  2026-07-08  MLB_2026-07-08_mets_royals                   ML -1120/  585  captured at finalisation
+  2026-07-08  WNBA_2026-07-08_tempo_valkyries              ML   250/ -310  captured at finalisation
+  2026-07-08  WNBA_2026-07-08_sun_lynx                     ML   285/ -360  captured at finalisation
+  2026-07-08  WNBA_2026-07-08_sparks_fever                 ML   230/ -285  captured at finalisation
+  2026-07-09  MLB_2026-07-09_pirates_braves                ML  -102/ -118  captured at finalisation
+  2026-07-09  MLB_2026-07-09_mets_royals                   ML  -149/  123  captured at finalisation
+  2026-07-09  MLB_2026-07-09_rays_yankees                  ML  -670/  415  captured at finalisation
+  2026-07-09  MLB_2026-07-09_twins_guardians               ML   108/ -131  captured at finalisation
+  2026-07-09  MLB_2026-07-09_whitesox_redsox               ML  -117/ -103  captured at finalisation
+  2026-07-09  MLB_2026-07-09_orioles_cubs                  ML  -131/  109  captured at finalisation
+  2026-07-09  MLB_2026-07-09_tigers_athletics              ML  -143/  119  captured at finalisation
+  2026-07-09  MLB_2026-07-09_marlins_mariners              ML   123/ -149  captured at finalisation
+  2026-07-09  MLB_2026-07-09_reds_phillies                 ML   139/ -168  captured at finalisation
+  2026-07-09  MLB_2026-07-09_cardinals_brewers             ML   104/ -126  captured at finalisation
+  2026-07-09  MLB_2026-07-09_rangers_angels                ML  -148/  123  captured at finalisation
+  2026-07-09  MLB_2026-07-09_padres_diamondbacks           ML  -126/  104  captured at finalisation
+  2026-07-09  WNBA_2026-07-09_dream_storm                  ML  -600/  440  captured at finalisation
+  2026-07-09  WNBA_2026-07-09_fire_aces                    ML   300/ -380  captured at finalisation
+  2026-07-10  MLB_2026-07-10_nationals_yankees             ML   135/ -163  captured at finalisation
+  2026-07-10  MLB_2026-07-10_reds_cubs                     ML  -112/ -108  captured at finalisation
+  2026-07-10  MLB_2026-07-10_marlins_guardians             ML  -112/ -108  captured at finalisation
+  2026-07-10  MLB_2026-07-10_rays_mariners                 ML  -112/ -108  captured at finalisation
+  2026-07-10  MLB_2026-07-10_mets_redsox                   ML  -136/  113  captured at finalisation
+  2026-07-10  MLB_2026-07-10_whitesox_athletics            ML  -146/  124  captured at finalisation
+  2026-07-10  MLB_2026-07-10_rangers_astros                ML   114/ -134  captured at finalisation
+  2026-07-10  MLB_2026-07-10_twins_angels                  ML  -124/  106  captured at finalisation
+  2026-07-10  MLB_2026-07-10_cardinals_braves              ML   139/ -168  captured at finalisation
+  2026-07-10  MLB_2026-07-10_padres_bluejays               ML  -112/ -104  captured at finalisation
+  2026-07-10  MLB_2026-07-10_dodgers_diamondbacks          ML  -255/  210  captured at finalisation
+  2026-07-10  MLB_2026-07-10_giants_rockies                ML  -158/  134  captured at finalisation
+  2026-07-10  WNBA_2026-07-10_sun_valkyries                ML   270/ -340  captured at finalisation
+  2026-07-10  WNBA_2026-07-10_tempo_wings                  ML   220/ -270  captured at finalisation
+  2026-07-10  WNBA_2026-07-10_sparks_sky                   ML  -122/  102  captured at finalisation
+  2026-07-11  MLB_2026-07-11_twins_angels                  ML  -163/  135  captured at finalisation
+  2026-07-11  MLB_2026-07-11_whitesox_athletics            ML  -105/ -115  captured at finalisation
+  2026-07-11  MLB_2026-07-11_nationals_yankees             ML   163/ -199  captured at finalisation
+  2026-07-11  MLB_2026-07-11_giants_rockies                ML  -156/  129  captured at finalisation
+  2026-07-11  MLB_2026-07-11_mets_redsox                   ML  -143/  109  captured at finalisation
+  2026-07-11  MLB_2026-07-11_marlins_guardians             ML  -149/  123  captured at finalisation
+  2026-07-11  MLB_2026-07-11_rays_mariners                 ML  -115/ -105  captured at finalisation
+  2026-07-11  MLB_2026-07-11_tigers_phillies               ML   119/ -143  captured at finalisation
+  2026-07-11  MLB_2026-07-11_orioles_royals                ML  -156/  129  captured at finalisation
+  2026-07-11  MLB_2026-07-11_rangers_astros                ML  -126/  104  captured at finalisation
+  2026-07-11  MLB_2026-07-11_reds_cubs                     ML   100/ -120  captured at finalisation
+  2026-07-11  MLB_2026-07-11_cardinals_braves              ML   100/ -120  captured at finalisation
+  2026-07-11  MLB_2026-07-11_padres_bluejays               ML  -126/  104  captured at finalisation
+  2026-07-11  MLB_2026-07-11_dodgers_diamondbacks          ML  -277/  222  captured at finalisation
+  2026-07-11  WNBA_2026-07-11_lynx_liberty                 ML  -205/  170  captured at finalisation
+  2026-07-11  WNBA_2026-07-11_dream_fire                   ML  -600/  440  captured at finalisation
+  2026-07-11  WNBA_2026-07-11_aces_mercury                 ML  -440/  340  captured at finalisation
+  2026-08-15  CFL_2026-08-15_hamiltontigercats_saskatchewa ML -4800/ 1600  captured at finalisation
