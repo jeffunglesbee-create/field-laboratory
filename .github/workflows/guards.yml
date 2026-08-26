@@ -1,0 +1,124 @@
+name: guards
+
+# WHY THIS EXISTS, and why it is not more steps in verify.yml.
+#
+# verify.yml fires on every push EXCEPT `docs/**`, `outbox/**` and `**/*.md`.
+# That exclusion is deliberate and it is load-bearing: the Actions budget was
+# 90% consumed with two weeks of the month left, and the session-doc and status
+# commits that land in `outbox/` several times a day would otherwise each pay
+# for a full build, a Chromium install and sixty checks.
+#
+# But the guard set's trigger stopped covering the guard set's INPUTS. Six
+# ratchets and ledgers this repository relies on live under `docs/`:
+#
+#   docs/exposed-secrets.sha256     exposed-secret-check.mjs
+#   docs/history-boundary.txt       history-check.mjs, boundary-reachable-check.mjs
+#   docs/citation-budget.txt        check-doc-citations.mjs
+#   docs/gate-rows.txt              gate-inventory.mjs, row-confidence.mjs
+#   docs/confidence-log.jsonl       confidence-record-check.mjs
+#   docs/not-observable.txt         not-observable.mjs, computed-chrome-check.mjs
+#
+# Every one of them could be edited — a hash removed, a count lowered, a gap
+# quietly declared closed — in a commit that no workflow read.
+#
+# THE PRECEDENT IS NOT HYPOTHETICAL. field-relay-nba shipped
+# check-no-literal-secret-writes.mjs with the real (exhausted) Odds API key
+# pasted twice into its own self-test fixture, in the script whose only purpose
+# is to stop credentials being written from literals. It touched `scripts/` and
+# `.github/workflows/` only, deploy.yml's `paths` did not cover either, and the
+# exposed-secrets ratchet that would have failed it never fired. It was found by
+# running the checks by hand two commits later. guards.yml was written there for
+# exactly this; this is that workflow, for this repo.
+#
+# `paths` here is the COMPLEMENT of verify.yml's `paths-ignore`, so a
+# source-only push runs verify and not this, a docs-only push runs this and not
+# verify, and a mixed push runs both. Nothing here builds, installs a browser,
+# or reaches the network, so the docs-only case costs well under a minute.
+#
+# WHAT THIS DELIBERATELY CANNOT RUN: `check:docs`. It verifies that the numbers
+# documents quote about production still match what the decoders produce, so it
+# imports `build/` — the compiled F#. Building costs dotnet plus Fable, which is
+# most of verify.yml's runtime and the whole reason this workflow exists. It was
+# in the first draft of this file and `check:workflows` rejected it by name,
+# which is the guard doing exactly its job. A docs-only commit that introduces a
+# false production claim is caught on the next source push, not at the moment it
+# lands.
+#
+# WHAT THIS DELIBERATELY CANNOT CHECK: whether a declared gap in
+# docs/not-observable.txt has CLOSED. That needs the rendered page, which needs
+# the build and Chromium this workflow exists to avoid. It runs in verify.yml,
+# on source pushes — which is the same commit that would close a gap. A stale
+# entry added in a docs-only commit survives until the next source push. Said
+# here rather than left to be discovered.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'outbox/**'
+      - '**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: guards-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # fetch-depth 0, not the default shallow clone. history-check.mjs walks to
+      # the root pairing every source commit with an outbox entry, and
+      # boundary-reachable-check.mjs resolves a sha by name. On a shallow clone
+      # "the boundary is unreachable" and "the boundary was never fetched" are
+      # indistinguishable, which is a check that reports a fact it did not read.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # No `npm ci`. Every script below imports only node: builtins and
+      # ./checks.mjs — verified before this workflow was written, and
+      # check:workflows asserts that no job runs a build-dependent script
+      # without building.
+
+      - name: No tracked file carries a known-exposed credential
+        run: npm run check:secrets
+
+      - name: No workflow installs a credential from a literal
+        run: node scripts/check-no-literal-secret-writes.mjs --self-test && node scripts/check-no-literal-secret-writes.mjs
+
+      - name: Doc citations are anchored, not just numbered
+        run: npm run check:citations
+
+      - name: Source and outbox changed together, every commit
+        run: npm run check:history
+
+      - name: The history boundary still resolves
+        run: node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs
+
+      - name: A staged claim names a verifier that exists and runs
+        run: npm run check:staged-verifier
+
+      - name: A confidence score is measured, not asserted
+        run: npm run check:confidence-record
+
+      - name: Gate inventory guard has teeth
+        run: npm run check:gate-rows
+
+      - name: Every gate row has teeth
+        run: npm run check:rows
+
+      - name: Every unexercised assertion names the corpus that would close it
+        run: node scripts/not-observable.mjs --self-test && node scripts/not-observable.mjs
+
+      - name: Workflow jobs can run what they invoke
+        run: npm run check:workflows

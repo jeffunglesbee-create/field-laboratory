@@ -41,6 +41,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium } from 'playwright'
 import { createChecks, isMain } from './checks.mjs'
+import { LEDGER, parseLedger } from './not-observable.mjs'
 
 const sessionChromium = '/opt/pw-browsers/chromium'
 const URL = process.env.URL || 'http://localhost:8080/?data=games-2026-08-09'
@@ -444,7 +445,6 @@ if (unobserved.length)
 // fallback and it is not an observation: it proves the CSS differs, not that a
 // reader ever sees the two side by side. It passes the assertion and it belongs
 // in this file.
-const LEDGER = 'docs/not-observable.txt'
 const gaps = [
   ...contrasts.filter(c => c.how === 'a cloned sibling')
     .map(c => ({ id: `contrast:${c.label}`, why: 'compared against a clone, not a second real element' })),
@@ -452,13 +452,11 @@ const gaps = [
     .map(r => ({ id: `rows:${r.sel}`, why: `${r.count} rendered` })),
   ...unobserved.map(s => ({ id: `state:.${s.name}`, why: 'never seen co-applied with its base' })),
 ]
-const declaredGaps = new Map()
-for (const line of readFileSync(LEDGER, 'utf8').split('\n')) {
-  const t = line.replace(/^\s*#.*$/, '').trim()
-  if (!t) continue
-  const m = t.match(/^(\S+(?:\s\S+)*?)\s{2,}(.+)$/)
-  if (m) declaredGaps.set(m[1].trim(), m[2].trim())
-}
+// ONE PARSER, TWO CALLERS. It lives in not-observable.mjs because that module
+// is cheap enough to run on a docs-only push, where this one — Chromium, a
+// built site — is not. A second copy of the format that drifted from the first
+// is precisely the defect this whole file exists to catch.
+const declaredGaps = parseLedger(readFileSync(LEDGER, 'utf8')).entries
 const undeclared = gaps.filter(g => !declaredGaps.has(g.id))
 check(`every gap this run found is declared in ${LEDGER}`,
   undeclared.length === 0,
