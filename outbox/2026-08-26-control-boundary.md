@@ -156,3 +156,104 @@ the human's.
   gap to fall back on and no standard to hold them to. Naming a number here
   without one would be inventing the threshold this document declined to invent
   for the surfaces.
+
+---
+
+# Follow-up: the container outlines are gone, and the check now measures
+
+**Same night.** `.desk-card`, `.st-card`, `.wx-row` lose `border` and
+`border-radius`; `separation-check`'s two border assertions are replaced by a
+measured disjunction.
+
+## The reflow objection was mine and it was wrong
+
+I held this back saying removal "reflows the layout, because cards are
+content-box — a box-model change across every card." Two things were wrong with
+that.
+
+`box-sizing` does not enter into it. A card's height is content-driven either
+way, so removing 2px of border removes 2px of height under **either** box model.
+There is no version of this change that leaves every pixel where it was, short of
+compensating with `padding: calc(1rem + 1px)` — a magic number to preserve an
+invisible line, which is worse than the line.
+
+And a 2px shift per card is not a redesign. It looked like one only because the
+pixel diff that measured it was dominated by text moving: **3.257% of pixels at a
+max delta of 225**. Held constant, the outline itself was **0.501% at a max delta
+of 15**. I let the confounded number set the confidence.
+
+## What carries the grouping now
+
+```
+2 cards, gaps: 16.0
+page background rgb(6, 5, 20); card background rgb(11, 9, 32)
+boundary contrast: 1.00, 1.00 (bar 3)
+carried by: gap 2/2, boundary 0/2
+```
+
+A 16px gap and an `aria-label`led `<section>` per card — both asserted, and both
+were already doing the whole job. The radius went with the border: no border, no
+`overflow` clip and a 1.03:1 fill leave a 10px corner nothing to round.
+
+## Two assertions that measured presence and claimed visibility
+
+```js
+check('every card has a visible border of its own', b.borderWidth > 0)
+check('...and the border is not transparent',       !/rgba\(.*,\s*0\)$/)
+```
+
+The first passed on a border rendering at 1.09:1 — present, opaque, and thirty
+times below the threshold at which anyone could see it.
+
+**The second passed with the border removed entirely.** `borderTopColor` on a
+zero-width border is a normal colour string, so the rgba-zero regex never
+matched. An assertion about a border that holds when there is no border.
+
+The replacement states the real property as a disjunction, because separation
+genuinely has two mechanisms and either suffices:
+
+> a real gap between consecutive cards **OR** a boundary at 3.0:1
+
+3.0 is not invented here — it is the same WCAG 1.4.11 figure `palette-check`
+holds `controlEdge` to. The log names which arm is carrying it, so a page that
+quietly loses its gap and falls back on an invisible border shows up instead of
+passing in silence.
+
+## Both arms proven, not just the one in use
+
+```
+gap 0, boundary 1.00   FAIL   every card is separated by a gap OR a boundary at 3:1
+gap 0, boundary 3.40   PASS   carried by: gap 0/2, boundary 2/2
+gap 16, boundary 1.00  PASS   carried by: gap 2/2, boundary 0/2   <- shipped
+```
+
+The middle case matters most: without it the disjunction would be a gap check
+wearing a longer name. And the measured 3.40 matches the 3.39 computed from
+`Palette.fs` — the token and the render agree.
+
+Seven gates green: separation, computed-chrome, design-tokens, palette, glyph,
+unused, typography.
+
+## Still invisible, and NOT fixed here
+
+Three boundaries have no gap to fall back on and still render at ~1.09:1:
+
+- **`.pick-leader`** and **`.pk-banner`** — single blocks, not siblings in a
+  grid. Removing their outline would erase the box entirely; leaving it keeps an
+  outline nobody can see. Neither is right, and the fix is a hierarchy decision
+  (does the leader need a box, or is 1.05rem against .86rem enough?), not a
+  contrast one.
+- **`.pick-reason`** — a pill with `background: var(--card2)` sitting **inside**
+  `.pick-leader`, which is also `card2`. Its background delimits nothing, so the
+  chip is defined **only** by a 1.09:1 border. An invisible chip.
+
+All three route back to the same root: **the three surfaces are within 1.03:1 of
+each other**, so no combination of them can delimit anything. That is a palette
+decision, not a rule cleanup.
+
+## Unblock criteria (Rule 74)
+
+- **Closed:** container outlines, and the two assertions that could not see them.
+- **Open, one decision:** `.pick-leader` / `.pk-banner` / `.pick-reason`. Verify
+  any fix with `npm run check:separation`'s boundary-contrast line, which now
+  prints the real ratio per card.

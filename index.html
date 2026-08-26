@@ -230,8 +230,17 @@
   .sport-group__grid {
     display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   }
+  /* NO BORDER, AND NO RADIUS. Measured 2026-08-26: `--edge` renders at 1.09:1
+     against `--card`, and holding layout constant (`var(--edge)` ->
+     `transparent`, same box, no reflow) the outline's entire visual contribution
+     was 5766 of 1152000 pixels at a max channel delta of 15 of 255 — half a
+     percent of the page at under 6% of one channel.
+     The 1rem grid gap and the per-card `aria-label`led `<section>` carry the
+     grouping, and `separation-check` asserts both. The radius went with the
+     border: with no border, no overflow clip and a 1.03:1 fill, a 10px corner
+     had nothing to round. */
   .desk-card {
-    border: 1px solid var(--edge); border-radius: 10px; padding: 1rem 1.1rem; background: var(--card);
+    padding: 1rem 1.1rem; background: var(--card);
   }
   .desk-card__header { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; opacity: .5; }
   .desk-card__teams { font-weight: 600; margin: .4rem 0 .1rem; }
@@ -322,9 +331,10 @@
     display: grid;
     gap: 1rem;
   }
+  /* Same removal as `.desk-card`, same measurement, same two mechanisms left
+     doing the work: a 1rem gap in `.st-reports` / `.wx-rows`, and a landmark
+     region per card. */
   .st-card, .wx-row {
-    border: 1px solid var(--edge);
-    border-radius: 10px;
     padding: 1rem 1.1rem;
     background: var(--card);
   }

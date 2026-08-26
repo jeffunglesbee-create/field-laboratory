@@ -98,11 +98,57 @@ check('every card has a non-zero height', boxes.every(b => b.height > 0),
 check('consecutive cards have a real gap between them', gaps.length > 0 && gaps.every(g => g >= 4),
   `gaps: ${JSON.stringify(gaps.map(g => Math.round(g * 10) / 10))}`)
 
-check('every card has a visible border of its own', boxes.every(b => b.borderWidth > 0),
-  JSON.stringify(boxes.map(b => b.borderWidth)))
+// ── WHAT THESE TWO ASSERTIONS USED TO BE, AND WHY THEY WERE REPLACED ────────
+//
+//   check('every card has a visible border of its own', b.borderWidth > 0)
+//   check('...and the border is not transparent',       !/rgba\(.*,\s*0\)$/)
+//
+// Both measured PRESENCE and claimed VISIBILITY, and the gap between the two was
+// not small. Measured 2026-08-26: `--edge` rendered at 1.09:1 against `--card`.
+// A border present, opaque, and thirty times below the threshold at which anyone
+// could see it passed both — on a page where the only thing separating cards was
+// the 1rem gap.
+//
+// The second was worse. With the border removed entirely it STILL PASSED:
+// `borderTopColor` on a zero-width border is a normal colour string, so the
+// rgba-zero regex never matched. An assertion about a border that holds when
+// there is no border.
+//
+// The replacement states the real property as a DISJUNCTION, because separation
+// genuinely has two mechanisms and either one suffices:
+//
+//   a real gap between consecutive cards   OR   a boundary at 3.0:1
+//
+// 3.0 is not invented here — it is the WCAG 1.4.11 figure for visual information
+// required to identify a component, the same bar `palette-check` holds
+// `controlEdge` to. The gap arm is what these cards actually rely on, and the
+// contrast arm is what would let a future card drop the gap and keep a real
+// outline instead.
+const RGB = c => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number)
+const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+const ratio = (a, b) => { const [x, y] = [lum(RGB(a)), lum(RGB(b))].sort((p, q) => q - p)
+  return (x + 0.05) / (y + 0.05) }
+const MIN_BOUNDARY = 3.0
 
-check('...and the border is not transparent', boxes.every(b => !/rgba\(.*,\s*0\)$/.test(b.borderColor)),
-  JSON.stringify(boxes.map(b => b.borderColor)))
+const separation = boxes.map((b, i) => {
+  const gap = i === 0 ? (gaps[0] ?? 0) : gaps[i - 1]
+  // A zero-width border contributes nothing whatever colour it reports.
+  const border = b.borderWidth > 0 ? ratio(b.borderColor, b.background) : 1
+  return { gap, border, ok: gap >= 4 || border >= MIN_BOUNDARY }
+})
+
+console.log(`  boundary contrast: ${separation.map(s => s.border.toFixed(2)).join(', ')} (bar ${MIN_BOUNDARY})`)
+
+check(`every card is separated by a real gap OR a boundary at ${MIN_BOUNDARY}:1`,
+  separation.every(s => s.ok),
+  separation.map((s, i) => `card ${i}: gap ${s.gap.toFixed(1)}px, boundary ${s.border.toFixed(2)}:1`).join('; '))
+
+// And say which arm is carrying it, so a page that quietly loses its gap and
+// falls back on an invisible border is visible in the log rather than silent.
+const byGap = separation.filter(s => s.gap >= 4).length
+const byBorder = separation.filter(s => s.border >= MIN_BOUNDARY).length
+console.log(`  carried by: gap ${byGap}/${separation.length}, boundary ${byBorder}/${separation.length}`)
 
 // A background identical to the page separates nothing, which is exactly what
 // an unstyled card looks like.
