@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `30a91da` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
+| `30a91da` | 2026-08-26 | [sport-vocabulary-2026-08-26T13-04-42-108Z.json](sport-vocabulary-2026-08-26T13-04-42-108Z.json) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
 | `370bb8d` | 2026-08-26 | [2026-08-26-more-ai-not-less.md](2026-08-26-more-ai-not-less.md) | fix: take the boxes back off — the check could only ever say 'add a border' |
 | `38d185b` | 2026-08-26 | [2026-08-26-invisible-boxes.md](2026-08-26-invisible-boxes.md) | feat: find boxes that share their backdrop's fill — four were invisible |
 | `cebc64f` | 2026-08-26 | [2026-08-26-soccer-draw-landed.md](2026-08-26-soccer-draw-landed.md) | docs: the soccer draw price landed — close the ask and promote it to fatal |
