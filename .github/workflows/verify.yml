@@ -166,27 +166,40 @@ jobs:
       - name: The page's design tokens match the modules
         run: npm run check:design-tokens
 
-      # Chrome, not tokens. design-tokens-check asserts the page's colours ARE
-      # Palette.fs; this asserts the SHAPES those colours are painted on. Three
-      # defects it found on its first run, all of which had been shipped for
-      # weeks: a 3px accent rail on a 10px-rounded card (the ends get cut by the
-      # radius); `.pk-sport--on` declaring a background and a border-colour that
-      # were the exact values `.pk-sport` already sets, so a filter that was ON
-      # differed by text colour alone while reading as though three properties
-      # changed; and `⚖` prefixed to the tie note in PickView.fs, restating what
-      # the note already said. It also found `.st-badge` and `.st-badge--watch`,
-      # which no view has ever emitted.
+      # A pictograph used as a visual asset, caught in SOURCE before the build.
+      # PickView.fs prefixed the tie note with a scales glyph, restating what the
+      # note already said in whatever font the OS substituted. Arrows are
+      # deliberately allowed: the date-nav buttons' glyphs ARE their content.
       #
-      # Runs BEFORE the browser checks: it reads source, needs no server, and a
-      # failure here is cheaper to read than a screenshot diff.
-      - name: The chrome on those colours
-        run: npm run check:chrome
+      # This used to check two more things — a coloured rail on a rounded box,
+      # and a state modifier declaring a change it does not make. Both needed to
+      # know how the cascade resolves, which no source-level check can, and it
+      # got `.pk-side--none` wrong on its first live run. They moved to
+      # check:computed-chrome below.
+      - name: No pictograph is a visual asset
+        run: npm run check:glyph
 
       # Both picks. The decoder check runs headless; the tab check drives a real
       # browser and asserts, among other things, that the composite pick score
       # appears nowhere in the rendered DOM.
       - name: Pick decoders
         run: npm run check:pick
+
+      # The chrome, MEASURED on the rendered page. Three claims a stylesheet
+      # can make and fail to keep, none of which source text can settle:
+      #
+      #   a state that declares a change and does not make it — `.pk-sport--on`
+      #   set a background and a border-colour identical to `.pk-sport`'s own;
+      #   a one-sided border on a rounded box, on an element that really renders;
+      #   a class the stylesheet defines that nothing anywhere emits — five of
+      #   those, including two dangling references a rules-only scan had missed.
+      #
+      # It also carries the assertion that would have caught its OWN first run:
+      # that the stylesheet parsed into classes at all. `if (r.cssRules)` is
+      # truthy for the empty list modern Chromium gives every style rule, so the
+      # first version read zero classes and passed everything vacuously.
+      - name: The chrome, measured on the rendered page
+        run: npm run check:computed-chrome
 
       - name: Tabs, both pick panels, and the ADR-002 display check
         run: npm run check:tabs

@@ -139,3 +139,122 @@ citations, docs, workflows, state, unnamed, gate-rows.
   hand, not by a check — nothing asserts that every class in the stylesheet has
   an emitter. Verify by grepping a class name across `src/` and `build/`; a
   real check needs the built bundle and belongs with `check:unused`.
+
+---
+
+# Follow-up: the check that found four defects was itself on the wrong rung
+
+**Same night.** `scripts/computed-chrome-check.mjs` added; `chrome-check.mjs`
+narrowed to one claim and renamed `glyph-check.mjs`.
+
+## The argument
+
+`chrome-check.mjs` read the stylesheet as text. To decide whether `.pk-sport--on`
+restates `.pk-sport`, a source-level check has to **model the cascade** — which
+classes land on the same element, in what order, at what specificity. It modelled
+it from the F# and got `.pk-side--none` wrong.
+
+This repo had already written the principle down, in `separation-check.mjs`'s
+header, one day earlier:
+
+> "I added CSS" is not evidence. A stylesheet can be present, loaded, and do
+> nothing — a typo'd selector, a class renamed in F# and not in the CSS, a rule
+> overridden later in the cascade. So this measures the rendered result.
+
+So the two cascade-dependent assertions moved to a browser check, and **the
+machinery that had to model the runtime was deleted, not patched** —
+`baseSelectorOf`, `deadDeclarations`, `coAppliedModifiers` are gone. Co-application
+is now a fact read off a rendered element.
+
+## Four defects the rendered check found that the source check could not
+
+```
+.st-row--gap  .st-row__flag  .st-card__records  .st-card__gaps
+```
+
+No emitter in any `src/*.fs`, no render on any of the seven panels. Plus **two
+dangling `.st-badge` / `.st-row__flag` references in the typography-roles
+selector list**, left behind when I deleted those rules earlier tonight — a
+rules-only scan never looked at them.
+
+`.st-row--gap`'s intent is real and is recorded in place, not dropped: an
+unresolved row should be marked, because production renders a failed lookup as a
+bare name that looks like a complete row. That is a `StatsView.fs` change with
+its own prompt, not four lines of CSS waiting for it.
+
+## Three times this check was wrong before it was right
+
+Each is in the file's comments at the point it happened.
+
+**1. It read zero classes and passed 5/5.** `if (r.cssRules)` is the obvious
+grouping-rule test and it is wrong: modern Chromium gives every `CSSStyleRule` a
+`cssRules` list for nested CSS, and an empty `CSSRuleList` is truthy — so it
+matched every style rule, recursed into nothing, and skipped every selector. Now
+carries the assertion that would have caught it: *the stylesheet parsed into
+classes*, `> 20`, plus *there are state modifiers to exercise*.
+
+**2. It measured detachment, not styling.** The state probe held a handle to a
+`.pk-sport`, clicked it, and diffed computed style. All six properties "moved" on
+every run — because the click re-renders the panel and the handle's node is left
+disconnected, and `getComputedStyle` on a detached element returns `''` for
+everything. Measured directly: `isConnected` false after the click, every
+property `''`. **The check passed for a reason unrelated to the CSS.**
+
+Replaced with a comparison of two elements on screen **at the same moment**, one
+in each state. No before/after to get wrong. Where the fixture renders only one
+(no `data/` fixture carries more than one sport, so the filter row has exactly
+one chip, on by default) it clones the live element, strips the modifier, and
+inserts the clone as a real sibling — sound **only because co-application is
+observed**: the element really does carry both classes.
+
+**3. One assertion could not see the defect it was written for.** Restoring
+`.pk-sport--on`'s dead `background` and `border-color` left the state still
+*visible* — the text colour moves — so the contrast passed.
+
+That is the honest limit of the bottom rung, and it split the check in two:
+
+| | question | evidence |
+|---|---|---|
+| contrast | is the state **visible**? | two live siblings, one per state |
+| claim | does it **make every change it declares**? | declared properties vs measured delta, only for modifiers **observed** co-applied |
+
+`.pk-side--none` fails the second question and is **correctly not a failure** —
+it is observed standalone, so it is reported and skipped. That is the original
+false positive, resolved by observation instead of exemption.
+
+## Why `chrome-check.mjs` became `glyph-check.mjs`
+
+What survived is one genuinely textual claim: a pictograph in a source string,
+catchable before the build. A checker called "chrome-check" that checks one glyph
+is a name that disagrees with its own measurement — the defect class this session
+kept finding. The name moved with the scope.
+
+## Proof
+
+Four mutations, each restoring a defect and each caught:
+
+```
+dead state declarations restored  FAIL  .pk-sport--on declares background-color,
+                                        border-*-color — none of which moves
+rail restored                     FAIL  pick-leader (left)
+a rule nothing emits added        FAIL  .st-ghost — in no rendered page and no view source
+the cssRules walk broken          FAIL  0 class(es) — everything below would pass vacuously
+```
+
+The fourth is this check's own first bug, reproduced faithfully and now caught.
+
+Sixteen gates green locally, including both browser checks: glyph,
+computed-chrome, import-purity, secrets, citations, palette, typography,
+clean-source, sports, docs, workflows, state, unnamed, gate-rows, design-tokens,
+separation.
+
+## Unblock criteria (Rule 74)
+
+- **Closed:** the cascade-dependent assertions are measured, not modelled.
+- **Open, blocked on nothing:** the sport-filter contrast uses a cloned sibling
+  because no fixture has two sports. Verify when one exists:
+  `check:computed-chrome` should report `distinguishable via two rendered
+  siblings` for both controls instead of one.
+- **Open, needs a prompt:** `.st-row--gap`'s intent — marking an unresolved
+  row — is now unimplemented in both CSS and F#. It was unimplemented in F#
+  before tonight; only the dead CSS is new.
