@@ -26,8 +26,8 @@ Measured cold, from a container with no .NET at all: **31.6 seconds**, exit 0,
 
 The obvious version — `apt-get update && apt-get install ... || true` — is what
 was tried first, and a real session reported **"Setup script failed"** with it.
-That failure was never reproduced, and the cause is still unknown. What was
-ruled out by direct test:
+That failure was never reproduced when this was written. **It is reproducible
+now — see "Reproduced on demand" below.** What was ruled out by direct test:
 
 - **Not the exit code.** That one-liner exits 0 in every case tested: normal
   run, `apt-get` returning 100, and under both `set -e` and `set -eo pipefail`.
@@ -178,3 +178,71 @@ Nothing breaks. `scripts/install_dotnet.sh` runs from the SessionStart hook and
 performs the same install as a fallback, and it is written to exit 0 even on
 failure so it can never block a session. You just pay ~30 seconds on cold
 sessions instead of zero, forever.
+
+**That paragraph is about an ABSENT setup script, and it does not extend to a
+FAILING one.** The distinction was implicit here and it is the difference
+between a 30-second cost and no sessions at all:
+
+- **Field empty** → no setup script runs → the container comes up → SessionStart
+  fires → the fallback installs the SDK. This is the case above.
+- **Field non-empty and exiting non-zero** → the worker reports
+  `error_kind: init_script`, `"Setup script failed"`, `recoverable: false`, and
+  **the container never comes up**. SessionStart never fires, so the fallback
+  cannot run. It is not a slower session; it is no session.
+
+The fallback covers a setup script that succeeds without installing. Nothing
+covers one that fails.
+
+---
+
+## Reproduced on demand, 2026-08-26
+
+The section above says the original `"Setup script failed"` was never
+reproduced. It is now, three times in one afternoon, and the failure is
+deterministic rather than intermittent.
+
+```
+07:11:22Z  scheduled     field-playground comparison refresh   died 07:11:27Z   5s
+18:53:00Z  fire_trigger  same routine, forced by hand          died 18:53:05Z   5s
+20:01:14Z  create_session, NO REPOS ATTACHED                   died 20:01:19Z   5s
+```
+
+Each one: `error_kind: "init_script"`, `error_type: "init_script"`,
+`message: "Setup script failed"`, `recoverable: "false"`, `worker_epoch: 1`.
+
+**The third sample is the one that matters.** It was created with no sources at
+all, so it rules out every repository-side explanation in one shot: not the
+routine's prompt, not any of the four repos, not `field-laboratory`'s or
+`jubilant-bassoon`'s `SessionStart` hooks, not `jubilant-bassoon/.devcontainer`.
+Nothing repo-shaped is in the path of a session with no repos.
+
+Five seconds is also evidence. A cold run of the script in this file measures
+**31.6s**. Whatever is in the field now is not timing out at 240s and is not
+completing an apt install — it is exiting non-zero almost immediately.
+
+### Why this was not noticed for days
+
+The environment's snapshot cache. A session created before the field changed
+keeps running on the container it already has: `session_017FXC1oRxRstzY2xGJBFu2k`
+was created **2026-08-23** and has been working normally throughout, which is the
+only reason any of this could be measured at all. Every session created since is
+dead on arrival. The symptom a person sees is not "sessions are broken" — it is
+"my daily routine stopped producing anything", which is what
+`field-playground comparison refresh` had been reporting since 2026-08-25.
+
+### The remedy, in order
+
+1. Open the failed session at claude.ai/code and **expand the "Ran setup script"
+   step**. That log is the evidence; everything else here is inference. This
+   file already said so and it is still the first move.
+2. Replace the field's contents with the block at the top of this file verbatim,
+   including the trailing `exit 0` on its own line.
+3. Confirm with a throwaway session. A container that comes up at all is the
+   pass condition — no further check is needed for this specific failure.
+4. Then, and only then, `dotnet --version` and the `history.log` fingerprint
+   above distinguish "the setup script ran" from "the fallback covered for it".
+
+Do NOT clear the field to work around this. An empty field is the ~30-second
+fallback, which works, but it discards the one artefact that explains what went
+wrong — and this failure has now recurred twice across seventeen days
+(2026-08-09, 2026-08-25) without its log ever being read.
