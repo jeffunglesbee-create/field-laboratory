@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a703211` | 2026-08-26 | [2026-08-26-secret-guard-three-repos.md](2026-08-26-secret-guard-three-repos.md) | fix: the literal-secret guard carried the real Odds API key here too |
 | `9380b70` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | fix: five chrome defects the unslop-ui checklist found, and a guard for three of them |
 | `314d68a` | 2026-08-26 | [2026-08-26-skill-drift-check.md](2026-08-26-skill-drift-check.md) | feat: compare the shared skills across repos — nothing did |
 | `4b7d1b6` | 2026-08-26 | [2026-08-26-spread-price-capture.md](2026-08-26-spread-price-capture.md) | feat: the sentinel follows up the spread-price ask, gated on capture time |
