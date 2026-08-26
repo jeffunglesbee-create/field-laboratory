@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ec07af0` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
+| `ec07af0` | 2026-08-26 | [sport-vocabulary-2026-08-26T02-42-52-050Z.json](sport-vocabulary-2026-08-26T02-42-52-050Z.json) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
 | `bbd3034` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | docs: the container outline contributes 15/255 on 0.5% of pixels — measured, not argued |
 | `ce108da` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | feat: a control boundary you can actually see, at the one contrast bar with a standard behind it |
 | `2d1ebce` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | docs: withdraw last night's '.st-row--gap needs a prompt' — the design was deliberately replaced |
