@@ -2,8 +2,33 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (the `odds-api` adapter — the moneyline projection)
-**Status:** BUILT 2026-08-24, relay `5a2bacc`. Awaiting the artifact, which the
-follow-up below reports on its own.
+**Status:** **CLOSED 2026-08-26.** Built 2026-08-24 (relay `5a2bacc`, deploy run
+874), observed live 2026-08-26.
+
+**The artifact, which the follow-up produced on its own without a human asking:**
+
+```
+drift-sentinel run 32923712900, 2026-08-26T02:42:51Z, probing /context/date/2026-08-25
+
+  ##[notice]LANDED CC-CMD-2026-08-23-soccer-three-way-odds:
+           project the draw price into opening_odds.moneyline for soccer markets
+```
+
+That slate — 2026-08-25, carrying EFL Cup 17, UEFA Champions League Qualifying 3,
+EFL Trophy 2, La Liga 1, MLS 1 — is the **first** one captured against the
+deployed adapter. `opening_odds` freeze at capture (~10:01Z on the game date), so
+runs #46 and #47 on the 24th read pre-deploy rows and could not have shown it.
+Neither was a failure; both were the ask not yet being observable.
+
+**Promoted from open to landed** in `scripts/cc-cmd-followup.mjs`, which changes
+what a future false reading means. As an open ask, "not landed" was someone
+else's backlog and non-fatal. As a landed fact, a soccer moneyline that STOPS
+carrying a draw is a regression against something this repository was told it
+could rely on — `winProbability` renders a three-way market, and without the draw
+it falls back to `ThreeWayDrawMissing` and the card reads "no draw price served".
+
+`null` is preserved for a slate with no soccer moneyline at all. An off-day is
+not a regression, and the fatal list must not fire on a Monday.
 
 **Where the draw was going.** `extractOddsForGame` (relay `src/index.js`) matched
 h2h outcomes against `home` and `away` and nothing else, so soccer's third

@@ -174,6 +174,30 @@ const LANDED = [
     mustFailOn: { below_240: 25, above_240: 0 },
     note: 'a denominator on below_240 / above_240 / below_flat_240_pct — the 240 bar is 80% of the nominal 300 but 97.96% of the 245 the relay can reach',
   },
+  {
+    cmd: 'CC-CMD-2026-08-23-soccer-three-way-odds',
+    ask: 'project the draw price into opening_odds.moneyline for soccer markets',
+    route: `/context/date/${yesterdayUTC()}`,
+    landedOn: '2026-08-26',
+    landedIn: 'drift-sentinel run 32923712900, probing /context/date/2026-08-25',
+    // PROMOTED FROM THE OPEN LIST, which changes what a false reading MEANS.
+    // As an open ask, "not landed" was someone else's backlog and non-fatal. As
+    // a landed fact, a soccer moneyline that STOPS carrying a draw is a
+    // regression against something this repository was told it could rely on:
+    // `winProbability` renders a three-way market, and without the draw it falls
+    // back to ThreeWayDrawMissing and the card reads "no draw price served".
+    //
+    // Three states are preserved. `null` when no soccer moneyline was served at
+    // all — an off-day is not a regression, and the fatal list must not fire on
+    // a Monday.
+    holds: j => {
+      const lines = soccerMoneylines(j)
+      if (lines.length === 0) return null
+      return lines.some(ml => 'draw' in ml)
+    },
+    mustFailOn: { games: { regular: [{ sport: 'MLS', opening_odds: '{"moneyline":{"home":-120,"away":260}}' }] } },
+    note: 'the relay adapter (5a2bacc, drawPriceFrom in src/odds-shape.js) identifies the draw by POSITION — the h2h outcome that is neither team — so a renamed selection cannot silently drop it again. First observed 2026-08-26 on the 2026-08-25 slate, the first slate captured against the deployed adapter',
+  },
 ]
 
 /// Golf rows and mislabelled-tour rows on a /context/date payload.
@@ -256,25 +280,6 @@ const ASKS = [
     // Soccer served, none carrying an opening line: the pre-fix condition.
     mustFailOn: { games: { regular: [{ sport: 'EPL', opening_odds: null }] } },
     note: 'the rate lives in the relay\'s own staged-verification probe (EPL 4/5, La Liga 2/3 on 2026-08-23, baselines 23.1% / 11.8%); this reads LANDED while any soccer game still carries an opening line, and turns false if that stops',
-  },
-  {
-    cmd: 'CC-CMD-2026-08-23-soccer-three-way-odds',
-    ask: 'project the draw price into opening_odds.moneyline for soccer markets',
-    route: `/context/date/${yesterdayUTC()}`,
-    // Three states. `null` = no soccer game carried a moneyline this run
-    // (off-day / not yet captured) — observable-but-empty, neither confirmation
-    // nor defect. `true` = at least one soccer moneyline now carries a `draw`
-    // key — the ask landed. `false` = soccer moneylines are served but every one
-    // is still two-way {home, away}. A draw key is unambiguous: only three-way
-    // (soccer) markets have one, so its appearance IS the landed signal.
-    landed: j => {
-      const lines = soccerMoneylines(j)
-      if (lines.length === 0) return null
-      return lines.some(ml => 'draw' in ml)
-    },
-    // A two-way soccer moneyline -- exactly what the relay serves today.
-    mustFailOn: { games: { regular: [{ sport: 'MLS', opening_odds: '{"moneyline":{"home":-120,"away":260}}' }] } },
-    note: 'as of filing (2026-08-23) every MLS moneyline is {home, away} with no draw, so winProbability yields ThreeWayDrawMissing and the card says "no draw price served". Reads LANDED the day a soccer moneyline carries a draw — no laboratory change needed, the three-way render is shipped',
   },
   {
     cmd: 'CC-CMD-2026-08-25-spread-price-capture',
@@ -535,7 +540,13 @@ if (SELF_TEST) {
   // report the ask landed while soccer win probability is still un-renderable —
   // the false confidence this file exists to refuse. Exercised against the real
   // MLS shape, a with-draw shape, and an MLB-only slate that must read "no rows".
-  const draw = ASKS.find(a => a.cmd.includes('soccer-three-way-odds'))
+  // Looked up in BOTH lists, because this ask MOVED. It landed 2026-08-26 and
+  // was promoted from ASKS to LANDED, and a self-test that hard-codes which list
+  // an entry lives in stops exercising it the moment it is promoted — silently,
+  // since `ASKS.find` simply returns undefined. The predicate is named `landed`
+  // in one list and `holds` in the other; the question it answers is identical.
+  const drawEntry = [...ASKS, ...LANDED].find(a => a.cmd.includes('soccer-three-way-odds'))
+  const draw = drawEntry && { landed: drawEntry.landed || drawEntry.holds }
   const soccerGame = (sport, moneyline) =>
     ({ sport, opening_odds: JSON.stringify({ moneyline }) })
   const MLS_TWO_WAY = { games: { regular: [soccerGame('MLS', { home: 125, away: 180 })] } }
