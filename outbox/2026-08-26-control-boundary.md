@@ -106,12 +106,52 @@ exactly that area: the Stats and Weather panels once shipped with no styling and
 ran together as one column. That failure had no gap, no border and no background;
 this would have the gap. Different, but adjacent enough to be the human's call.
 
+## The container question, now measured instead of argued
+
+I was about to leave "delete the container outlines" as a taste call. It is not —
+if a border renders as nothing, deleting it is a no-op, and that is testable.
+
+**First attempt measured the wrong thing.** Removing `border: 1px solid` and
+screenshotting gave 3.257% of pixels changed at a **max channel delta of 225**.
+That is not a hairline vanishing. `.desk-card` and `.st-card` are **content-box**
+— only `.tabs` and `.datenav` set `box-sizing: border-box` — so dropping a 1px
+border shrinks every card by 2px and reflows the grid. The diff was text moving.
+Third time tonight a measurement measured something other than its claim.
+
+**Held constant** — `var(--edge)` → `transparent`, same box, no reflow — the
+border's actual visual contribution is:
+
+```
+1280x900
+pixels changed:    5766 of 1152000   (0.501%)
+max channel delta:   15 of 255       (5.9%)
+```
+
+Half a percent of the page, at under 6% of one channel. That is the whole of what
+17 declarations of `--edge` buy on a container.
+
+**Three facts for the decision, none of them available this morning:**
+
+1. The outline contributes **≤15/255 on 0.5% of pixels**. Decoration, measured.
+2. Removing it **reflows the layout**, because cards are content-box. It is not a
+   pure colour change; it needs `box-sizing: border-box` first.
+3. The grouping is already carried twice over — a 16px gap and an
+   `aria-label`led `<section>` per card, both asserted by `separation-check`.
+
+So it is deletable and it is not free. Point 2 turns a one-line removal into a
+box-model change across every card, and that is a redesign, not slop removal —
+below the confidence bar this repo commits at. The numbers are here; the call is
+the human's.
+
 ## Unblock criteria (Rule 74)
 
 - **Closed:** control boundaries. 3.32:1 minimum, gated, mutation-proven.
-- **Open, needs a decision:** the eight container outlines. Verify either way
-  with `npm run check:separation`, which currently asserts border presence and
-  would need the threshold rewrite if they go.
+- **Open, needs a decision, now with numbers:** the eight container outlines
+  contribute ≤15/255 on 0.501% of pixels, and removing them reflows the grid
+  because cards are content-box. Deleting needs `box-sizing: border-box` on the
+  cards first, and a rewrite of `separation-check`'s three border assertions into
+  a gap-or-contrast threshold. Verify the contribution again with the
+  `var(--edge)` → `transparent` screenshot diff, which holds layout constant.
 - **Open, no anchor:** the six separator rules between list rows. They have no
   gap to fall back on and no standard to hold them to. Naming a number here
   without one would be inventing the threshold this document declined to invent
