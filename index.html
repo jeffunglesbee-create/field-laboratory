@@ -70,9 +70,15 @@
      bottom rule — so the card boundary already says which one is the leader,
      and .pick-leader__matchup is 1.05rem against their .86rem. Now it carries
      the same boundary as every other card in this file. */
+  /* NO BOX. It carried the invisible `--edge` until 2026-08-26, and when that
+     token was deleted the choice was a VISIBLE box or none. A visible one was
+     tried and rejected on the rendered page: an outlined rounded card with three
+     outlined pills inside it is card-in-card, and the panel already names its own
+     hierarchy in words — "Field's Pick" above, "Also ranked" below. Rule 7:
+     hierarchy comes from type, not containers. The matchup line is 1.05rem
+     against the chasers' .86rem and that is the whole of what distinguishes it. */
   .pick-leader {
-    border: 1px solid var(--edge); border-radius: 10px;
-    padding: .9rem 1rem; margin-bottom: 1rem; background: var(--card2);
+    padding: .9rem 0; margin-bottom: 1rem;
   }
   .pick-leader__matchup { font-size: 1.05rem; margin-bottom: .3rem; }
   .pick-leader__tie { font-size: .8rem; color: var(--caution); margin-bottom: .5rem; }
@@ -82,12 +88,23 @@
     background: var(--card2); border: 1px solid var(--edge-strong); color: var(--text);
   }
   .pick-brief { font-size: .88rem; margin-top: .6rem; opacity: .85; }
+  /* NO ROW SEPARATORS ANYWHERE BELOW. `.pick-chaser`, `.gate`, `.pk-row` and
+     `.briefs-stat` each carried `border-bottom: 1px solid var(--edge)`, which
+     renders at 1.08:1 — measured, not estimated. What actually separates the
+     rows is their own padding, and that was measured too, on the rendered page:
+
+       .pick-chaser  16.0px      .pk-row       19.2px
+       .gate         16.0px      .briefs-stat  22.4px   (context-briefs-fixture)
+
+     Every one of those is above the 4px bar `separation-check` already accepts
+     as sufficient for the scoreboard cards. Same mechanism, same measurement,
+     same conclusion: the whitespace carries it and the hairline carried nothing. */
   .pick-chaser {
     display: flex; justify-content: space-between; gap: 1rem;
-    padding: .5rem 0; border-bottom: 1px solid var(--edge); font-size: .86rem;
+    padding: .5rem 0; font-size: .86rem;
   }
   .pick-chaser__reasons { font-size: .74rem; opacity: .6; text-align: right; }
-  .gate { padding: .5rem 0; border-bottom: 1px solid var(--edge); font-size: .84rem; }
+  .gate { padding: .5rem 0; font-size: .84rem; }
   .gate__name { color: var(--text); }
   .gate__answer { font-size: .78rem; opacity: .7; }
   .gate--qualifies .gate__name { color: var(--discovery); }
@@ -115,10 +132,11 @@
   }
 
   /* Pick'em. */
+  /* No box, for the same reason as `.pick-leader`. A one-line status statement
+     does not need an outline to be read as a one-line status statement. */
   .pk-banner {
-    border: 1px solid var(--edge); border-radius: 10px;
-    padding: .8rem 1rem; margin-bottom: 1rem;
-    background: var(--card2); font-size: .92rem;
+    padding: .8rem 0; margin-bottom: 1rem;
+    font-size: .92rem;
   }
   .pk-sports { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .5rem; }
   .pk-sport {
@@ -149,7 +167,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto 5.5rem;
     align-items: center; gap: .75rem;
-    padding: .6rem 0; border-bottom: 1px solid var(--edge);
+    padding: .6rem 0;
   }
   .pk-row__matchup { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pk-row__sides { display: flex; gap: .4rem; }
@@ -310,7 +328,7 @@
   .briefs-panel__empty { font-size: .88rem; opacity: .7; }
   .briefs-stat {
     display: grid; grid-template-columns: 5.5rem 1fr; gap: 1rem; align-items: baseline;
-    padding: .7rem 0; border-bottom: 1px solid var(--edge);
+    padding: .7rem 0;
   }
   .briefs-stat__value {
     font-size: 1.3rem; font-weight: 700; font-variant-numeric: tabular-nums;

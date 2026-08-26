@@ -57,7 +57,7 @@ ${fontFace('DM Sans', 400, 'dm-sans-400.woff2')}
 :root{
   --must:${must};--watch:${watch};--discovery:${discovery};--caution:${caution};--quiet:${quiet};
   --bg:${Palette.cssValue(Palette.bg)};--card:${Palette.cssValue(Palette.card)};--card2:${Palette.cssValue(Palette.card2)};
-  --edge:${Palette.cssValue(Palette.edge)};--edge-strong:${Palette.cssValue(Palette.edgeStrong)};--text:${Palette.cssValue(Palette.text)};--dim:${Palette.cssValue(Palette.dim)};
+  --edge-strong:${Palette.cssValue(Palette.edgeStrong)};--text:${Palette.cssValue(Palette.text)};--dim:${Palette.cssValue(Palette.dim)};
   --red:${Palette.cssValue(Palette.red)};--violet:${Palette.cssValue(Palette.violet)};
   --font-identity:${identityFont};--font-body:${bodyFont};
 }

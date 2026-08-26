@@ -20,7 +20,7 @@ import { createChecks } from './checks.mjs'
 import {
   allSemantics, tokenOf, cssValue, accentOf, accentCss,
   dramaScale, advancementScale,
-  bg, card, card2, edge, edgeStrong, text, dim, red, violet,
+  bg, card, card2, edgeStrong, text, dim, red, violet,
 } from '../build/Palette.js'
 
 const SELF_TEST = process.argv.includes('--self-test')
@@ -181,11 +181,11 @@ check('edgeStrong is not a semantic borrowed for chrome',
   ![...allSemantics].map(sem => cssValue(tokenOf(sem))).includes(cssValue(edgeStrong)),
   'a meaning token used as structure is the role conflation this token exists to end')
 
-// The edge is a translucent hairline, not a text color — it is rgba, and the
-// contrast test correctly declines to score it.
-check('edge is a translucent hairline (rgba), not a solid ink',
-  /^rgba\(/.test(cssValue(edge)) && luminance(cssValue(edge)) === null,
-  `edge = ${cssValue(edge)}`)
+// `edge is a translucent hairline (rgba), not a solid ink` was asserted here and
+// was DELETED with the token on 2026-08-26. It described the shape of a value
+// that rendered at 1.08:1 — true, and beside the point. Every one of its
+// seventeen uses either moved to `edgeStrong` or was removed, so there is no
+// faint hairline left in this palette to describe.
 
 // The two non-drama accents (red = elimination, violet = rivalry) are real
 // accents and must clear the same bar the semantic accents do.

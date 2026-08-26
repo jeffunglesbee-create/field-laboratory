@@ -259,6 +259,28 @@ const result = await page.evaluate(() => {
     })
   }
 
+  // ── A borderless list row must still be separated, by its own padding ────
+  //
+  // Four row types lost `border-bottom: 1px solid var(--edge)` on 2026-08-26,
+  // on the strength of a measurement — their padding separates consecutive row
+  // CONTENT by 16.0 / 16.0 / 19.2 / 22.4 px, all above the 4px bar
+  // separation-check accepts for the scoreboard cards. Nothing enforced that
+  // measurement, which is how a padding change becomes a wall of text with no
+  // check objecting. The boxes are flush by design; the CONTENT gap is the
+  // property, and it is what this reads.
+  const ROWS = ['.pick-chaser', '.gate', '.pk-row', '.briefs-stat']
+  const rows = []
+  for (const sel of ROWS) {
+    const els = [...document.querySelectorAll(sel)]
+    if (els.length < 2) { rows.push({ sel, verdict: 'not observable', count: els.length }); continue }
+    const a = getComputedStyle(els[0]), b = getComputedStyle(els[1])
+    const contentGap = (parseFloat(a.paddingBottom) || 0) + (parseFloat(b.paddingTop) || 0)
+    // A row that kept a real boundary is separated whether or not it has padding.
+    const edge = ['Top', 'Right', 'Bottom', 'Left']
+      .some(d => (parseFloat(a[`border${d}Width`]) || 0) > 0)
+    rows.push({ sel, count: els.length, contentGap, edge, verdict: contentGap >= 4 || edge ? 'separated' : 'flush' })
+  }
+
   // ── Does each state modifier actually change the rendered element? ────────
   const PROPS = ['color', 'backgroundColor', 'borderTopColor', 'borderRightColor',
                  'borderBottomColor', 'borderLeftColor', 'borderTopWidth', 'borderLeftWidth',
@@ -326,7 +348,7 @@ const result = await page.evaluate(() => {
   }
 
   return {
-    merged,
+    merged, rows,
     declared: [...declared.keys()],
     modifiers: [...declared.keys()].filter(n => n.lastIndexOf('--') > 0),
     rails, states,
@@ -429,6 +451,14 @@ check('no box shares its backdrop\'s fill without a boundary at 3:1',
   invisible.map(m => `.${m.cls} on ${m.backdrop}: same fill ${m.bg}, best boundary ${m.edges.length ? best(m).toFixed(2) + ':1' : 'none'}`).join('; '))
 if (result.merged?.length)
   console.log(`      ${result.merged.length} element(s) share their backdrop's fill; ${result.merged.length - invisible.length} carry a boundary at 3:1`)
+
+// ── 2c. Borderless rows are still separated ────────────────────────────────
+const flush = (result.rows || []).filter(r => r.verdict === 'flush')
+check('every borderless list row is separated by its own padding',
+  flush.length === 0,
+  flush.map(r => `${r.sel}: ${r.contentGap}px of content gap and no boundary`).join('; '))
+for (const r of result.rows || [])
+  console.log(`      ${r.sel.padEnd(15)} ${r.verdict}${r.contentGap !== undefined ? ` — ${r.contentGap}px content gap` : ` (${r.count} rendered)`}`)
 
 // ── 3. Nothing in the stylesheet is unreachable ─────────────────────────────
 //

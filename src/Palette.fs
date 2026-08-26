@@ -85,10 +85,30 @@ let tokenOf (s: Semantic) : Token =
 let bg = Token "#060514"
 let card = Token "#0b0920"
 let card2 = Token "#0e0c24"
-let edge = Token "rgba(180,160,255,0.07)"
+// `edge = Token "rgba(180,160,255,0.07)"` lived here and was DELETED 2026-08-26.
+//
+// It rendered at 1.08:1 against every surface it was painted on, and it had
+// seventeen uses. Each one was measured and each one resolved:
+//
+//   3 control outlines        -> edgeStrong (WCAG 1.4.11, a component's edge)
+//   4 same-fill boundaries    -> edgeStrong (the sticky bars, the reason pill)
+//   2 single boxes            -> edgeStrong (.pick-leader, .pk-banner — their
+//                                outline IS their definition, so it must be seen)
+//   3 container outlines      -> DELETED; a 1rem grid gap and a landmark region
+//                                per card already carried the grouping
+//   4 row separators          -> DELETED; the rows' own padding separates them by
+//                                16.0 / 16.0 / 19.2 / 22.4 px, measured on the
+//                                rendered page, all above the 4px bar
+//                                separation-check accepts for the cards
+//   1 dead rule (.st-badge)   -> DELETED; nothing had ever emitted it
+//
+// Nothing needed a hairline that cannot be seen. The token is gone rather than
+// left available, because a name meaning "an edge" that measures 1.08:1 is the
+// defect this session kept finding, and leaving it in the palette is leaving it
+// there to be reached for.
 
-/// An edge that must actually be SEEN, as distinct from `edge`, which is a
-/// decorative hairline at 1.08:1.
+/// An edge that must actually be SEEN. The only edge token there is, since
+/// the 1.08:1 `edge` it was introduced beside was deleted the same day.
 ///
 /// RENAMED from `controlEdge` 2026-08-26. It was introduced for three buttons,
 /// and a rendered check then found four more elements needing exactly the same
