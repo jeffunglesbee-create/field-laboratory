@@ -341,10 +341,25 @@
   .st-row__value { font-size: .85rem; }
   /* `.st-row--gap` and `.st-row__flag` lived here and were removed 2026-08-26:
      nothing in src/ has ever emitted either, and nothing rendered them on any
-     panel. The intent they encoded is real and is NOT lost — an unresolved row
-     should be marked, because production renders a failed lookup as a bare name
-     that looks like a complete row. That is a StatsView.fs change with its own
-     prompt, not four lines of CSS waiting for it. */
+     panel.
+
+     CORRECTED the same night. The first version of this comment said the intent
+     was "real and NOT lost" and called it a pending StatsView.fs change. That
+     was an inherited claim, taken from the CSS comment these rules carried and
+     never checked against the F# (Rule 72). StatsView.fs's own header supersedes
+     it:
+
+       NOTHING IS UNRESOLVED. Production drops the PARK row entirely when the
+       lookup returns null ... The first version here marked such rows
+       "unresolved", which was better and still wrong: a report that asserts five
+       rows and can fill one is a report about the wrong subject. Every row is
+       now built from a field this payload carries, and `Row` has no unresolved
+       case to build.
+
+     `Row` is a four-case DU — ParkRow, UmpireRow, PitcherRow, RecordsRow — with
+     no unresolved case. The state is unrepresentable, which is a stronger answer
+     than marking it. These rules were not waiting for a feature; they outlived a
+     design that was deliberately replaced. */
   .st-card__comeback { margin-top: .15rem; font-size: .8rem; opacity: .75; }
   .st-panel__what, .wx-panel__what { font-size: .8rem; opacity: .6; max-width: 60ch; }
 

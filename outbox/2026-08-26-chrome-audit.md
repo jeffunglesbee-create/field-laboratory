@@ -177,10 +177,27 @@ dangling `.st-badge` / `.st-row__flag` references in the typography-roles
 selector list**, left behind when I deleted those rules earlier tonight — a
 rules-only scan never looked at them.
 
-`.st-row--gap`'s intent is real and is recorded in place, not dropped: an
-unresolved row should be marked, because production renders a failed lookup as a
-bare name that looks like a complete row. That is a `StatsView.fs` change with
-its own prompt, not four lines of CSS waiting for it.
+**A claim I made here and had to withdraw the same night.** This section first
+said `.st-row--gap`'s intent was "real and not dropped" and called it a pending
+`StatsView.fs` change. I took that from the CSS comment the rules carried and
+never checked it against the F# — Rule 72, an inherited claim acted on as fact.
+
+`StatsView.fs`'s own header says the opposite, and has since it was written:
+
+> **NOTHING IS UNRESOLVED.** Production drops the PARK row entirely when the
+> lookup returns null, so two of seven games showed no park line and nothing said
+> which. The first version here marked such rows "unresolved", which was better
+> and still wrong: a report that asserts five rows and can fill one is a report
+> about the wrong subject. **Every row is now built from a field this payload
+> carries, and `Row` has no unresolved case to build.**
+
+`Row` is a four-case DU — `ParkRow`, `UmpireRow`, `PitcherRow`, `RecordsRow` —
+with no unresolved case. The state is **unrepresentable**, which is a stronger
+answer than marking it.
+
+So the rules were not waiting for a feature. They **outlived a design that was
+deliberately replaced**, and deleting them was more correct than I knew when I
+did it.
 
 ## Three times this check was wrong before it was right
 
@@ -255,6 +272,7 @@ separation.
   because no fixture has two sports. Verify when one exists:
   `check:computed-chrome` should report `distinguishable via two rendered
   siblings` for both controls instead of one.
-- **Open, needs a prompt:** `.st-row--gap`'s intent — marking an unresolved
-  row — is now unimplemented in both CSS and F#. It was unimplemented in F#
-  before tonight; only the dead CSS is new.
+- **Closed, and it was never open.** `.st-row--gap`'s intent was recorded above
+  as needing a prompt. It does not: `StatsView.fs` deliberately replaced marking
+  with a `Row` DU that cannot represent an unresolved row. Verify:
+  `grep -n 'type Row' -A 12 src/Stats.fs` shows four cases, none unresolved.
