@@ -45,9 +45,16 @@
 // which goes stale; drift needs no roster at all.
 
 import { readFileSync, existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, isMain } from './checks.mjs'
 
-const SELF_TEST = process.argv.includes('--self-test')
+
+// IMPORT PURITY (import-purity-check.mjs). This module exports functions, which
+// is a declaration that something else may import it — so it must not run, and
+// must not exit, at import time. `isMain` gates both the self-test and the live
+// section. Written without it, an importer got this module's output and exit
+// code instead of its own, silently.
+const IS_MAIN = isMain(import.meta.url)
+const SELF_TEST = IS_MAIN && process.argv.includes('--self-test')
 
 const SKILLS = [
   { name: 'i-have-adhd', path: '.claude/skills/i-have-adhd/SKILL.md' },
@@ -111,6 +118,10 @@ if (SELF_TEST) {
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
+// Not the entry point? Then the CLI below must not run. Wrapped rather than
+// re-indented so the body stays byte-identical to what was reviewed.
+if (IS_MAIN) await (async () => {
+
 // ── live ────────────────────────────────────────────────────────────────────
 
 const raw = async (repo, path) => {
@@ -155,3 +166,4 @@ if (drifted) {
   console.log('hand) so every repo carries the same bytes — do not edit only one.')
 }
 process.exit(drifted ? 1 : 0)
+})()

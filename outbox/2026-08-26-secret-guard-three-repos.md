@@ -58,3 +58,45 @@ account holder.
   the relay's `guards.yml`, so a script-only push there runs no gate at all.
   Verify by pushing a `scripts/`-only change and checking whether any workflow
   fires.
+
+---
+
+# Second failure in the same run: five of my scripts were not import-pure
+
+With the secrets ratchet green, `verify` 147 failed one step later:
+
+```
+FAIL  importing a module never runs it or exits the process
+      → scripts/check-doc-citations.mjs
+      → scripts/check-no-literal-secret-writes.mjs
+      → scripts/chrome-check.mjs
+      → scripts/favourite-band-census.mjs
+      → scripts/skill-drift-check.mjs
+```
+
+**All five are mine, and two were written tonight.** Each exports functions —
+which is the declaration that something else may import it — while doing its
+real work at module scope and calling `process.exit()`. An importer gets this
+module's output and exit code instead of its own, silently.
+
+That is precisely the bug `import-purity-check.mjs` was written for on
+2026-08-17, in its own words: *"It printed the checker's own output and nothing
+of mine … I nearly reported the results of a probe that had not executed."* I
+then reproduced it five times.
+
+**Fixed** with the convention the gate expects: `IS_MAIN = isMain(import.meta.url)`
+gates both the self-test and the CLI. The live section is **wrapped, not
+re-indented**, so the body stays byte-identical to what was reviewed.
+
+Thirteen offline gates now green: secrets, import-purity, chrome, citations,
+palette, typography, clean-source, sports, docs, workflows, state, unnamed,
+gate-rows. Both modes of all five scripts still work — `--self-test` and live.
+
+## What this run cost, and the pattern
+
+`verify` was red for runs 143–147 and every failure was mine. Two of them —
+the credential in the guard, and import purity — were caught by gates this
+repository already had, which had been saying so for hours.
+
+Nothing was wrong with the gates. The failure was not reading them before
+pushing the next commit.

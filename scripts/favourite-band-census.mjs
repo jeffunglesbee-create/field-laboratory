@@ -34,7 +34,15 @@ const arg = (n, d) => {
 };
 const DAYS = Number(arg('--days', '45'));
 const RELAY = arg('--relay', 'https://field-relay-nba.jeffunglesbee.workers.dev');
-const SELF_TEST = process.argv.includes('--self-test');
+import { isMain } from './checks.mjs';
+
+// IMPORT PURITY (import-purity-check.mjs). This module exports functions, which
+// is a declaration that something else may import it — so it must not run, and
+// must not exit, at import time. `isMain` gates both the self-test and the live
+// section. Written without it, an importer got this module's output and exit
+// code instead of its own, silently.
+const IS_MAIN = isMain(import.meta.url);
+const SELF_TEST = IS_MAIN && process.argv.includes('--self-test');
 
 /** American odds → implied probability. */
 const implied = a => (a < 0 ? -a / (-a + 100) : 100 / (a + 100));
@@ -145,6 +153,10 @@ if (SELF_TEST) {
     Math.abs(b.ratio - 1.32) < 0.01, `ratio ${b.ratio.toFixed(3)}`);
   process.exit(bad === 0 ? 0 : 1);
 }
+
+// Not the entry point? Then the CLI below must not run. Wrapped rather than
+// re-indented so the body stays byte-identical to what was reviewed.
+if (IS_MAIN) await (async () => {
 
 const iso = d => d.toISOString().slice(0, 10);
 const dates = [];
@@ -306,3 +318,4 @@ if (flagged.length) {
 }
 
 process.exit(0);
+})()

@@ -34,7 +34,15 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DIR = '.github/workflows';
-const SELF_TEST = process.argv.includes('--self-test');
+import { isMain } from './checks.mjs';
+
+// IMPORT PURITY (import-purity-check.mjs). This module exports functions, which
+// is a declaration that something else may import it — so it must not run, and
+// must not exit, at import time. `isMain` gates both the self-test and the live
+// section. Written without it, an importer got this module's output and exit
+// code instead of its own, silently.
+const IS_MAIN = isMain(import.meta.url);
+const SELF_TEST = IS_MAIN && process.argv.includes('--self-test');
 
 let failed = 0;
 const check = (name, ok, detail) => {
@@ -94,6 +102,10 @@ if (SELF_TEST) {
   process.exit(failed === 0 ? 0 : 1);
 }
 
+// Not the entry point? Then the CLI below must not run. Wrapped rather than
+// re-indented so the body stays byte-identical to what was reviewed.
+if (IS_MAIN) await (async () => {
+
 if (!existsSync(DIR)) { console.log(`no ${DIR} — nothing to check`); process.exit(0); }
 
 const found = [];
@@ -111,3 +123,4 @@ check('no workflow installs a credential from a literal', found.length === 0,
   'A literal cannot be rotated, cannot be audited, and is in git history the moment it is written.');
 
 process.exit(failed === 0 ? 0 : 1);
+})()

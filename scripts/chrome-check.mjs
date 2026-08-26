@@ -35,9 +35,16 @@
 // and the emoji planes are not.
 
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, isMain } from './checks.mjs'
 
-const SELF_TEST = process.argv.includes('--self-test')
+
+// IMPORT PURITY (import-purity-check.mjs). This module exports functions, which
+// is a declaration that something else may import it — so it must not run, and
+// must not exit, at import time. `isMain` gates both the self-test and the live
+// section. Written without it, an importer got this module's output and exit
+// code instead of its own, silently.
+const IS_MAIN = isMain(import.meta.url)
+const SELF_TEST = IS_MAIN && process.argv.includes('--self-test')
 
 /// Every `selector { declarations }` rule in a stylesheet, comments stripped.
 ///
@@ -200,6 +207,10 @@ if (SELF_TEST) {
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
+// Not the entry point? Then the CLI below must not run. Wrapped rather than
+// re-indented so the body stays byte-identical to what was reviewed.
+if (IS_MAIN) await (async () => {
+
 // ── live ────────────────────────────────────────────────────────────────────
 
 const { check, summarize } = createChecks()
@@ -258,3 +269,4 @@ check('no pictograph is used as a visual asset in a rendered view',
   glyphs.length === 0, glyphs.join('; '))
 
 process.exit(summarize() === 0 ? 0 : 1)
+})()

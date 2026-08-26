@@ -38,7 +38,15 @@
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const SELF_TEST = process.argv.includes('--self-test');
+import { isMain } from './checks.mjs';
+
+// IMPORT PURITY (import-purity-check.mjs). This module exports functions, which
+// is a declaration that something else may import it — so it must not run, and
+// must not exit, at import time. `isMain` gates both the self-test and the live
+// section. Written without it, an importer got this module's output and exit
+// code instead of its own, silently.
+const IS_MAIN = isMain(import.meta.url);
+const SELF_TEST = IS_MAIN && process.argv.includes('--self-test');
 const BUDGET = 'docs/citation-budget.txt';
 const SKIP = new Set(['.git', 'node_modules', '.wrangler', 'dist', 'build']);
 // Repo-relative paths only. A bare word with a colon and digits is not a
@@ -147,6 +155,10 @@ if (SELF_TEST) {
   process.exit(failed === 0 ? 0 : 1);
 }
 
+// Not the entry point? Then the CLI below must not run. Wrapped rather than
+// re-indented so the body stays byte-identical to what was reviewed.
+if (IS_MAIN) await (async () => {
+
 const docs = [];
 (function walk(d) {
   for (const n of readdirSync(d)) {
@@ -205,3 +217,4 @@ check(`bare citations do not grow (budget ${budget})`,
   `they cite. If you REDUCED the count, lower the number in ${BUDGET} in this commit.`);
 
 process.exit(failed === 0 ? 0 : 1);
+})()
