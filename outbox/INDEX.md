@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `314d68a` | 2026-08-26 | [2026-08-26-skill-drift-check.md](2026-08-26-skill-drift-check.md) | feat: compare the shared skills across repos — nothing did |
 | `4b7d1b6` | 2026-08-26 | [2026-08-26-spread-price-capture.md](2026-08-26-spread-price-capture.md) | feat: the sentinel follows up the spread-price ask, gated on capture time |
 | `5a8eeaa` | 2026-08-25 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | docs: run 3 disproves my own 'another sport's odds' finding |
 | `e1345d5` | 2026-08-25 | [favourite-band-census-20260825T232152Z.txt](favourite-band-census-20260825T232152Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
