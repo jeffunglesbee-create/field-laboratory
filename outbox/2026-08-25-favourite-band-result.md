@@ -82,7 +82,11 @@ for capturing it that "it would be useful" was not. Filed as
 ## Unblock criteria (Rule 74)
 
 - **Closed:** the band's blind spot. 49.1% over 114 games.
-- **Open, blocked on nothing:** the by-side rate. Re-dispatch the census.
+- **CLOSED 2026-08-26:** the by-side rate. Run 4, 60 days: home favourite
+  6.8% disagree over 146 games, away favourite 0.0% over 82. One-sided, so the
+  artefact explanation stands and the market-behaviour one does not. Three rows
+  at ML -1940/-1320/-780 holding +1.5 settle it without needing the price at
+  all. See `outbox/2026-08-26-the-asymmetry-is-total.md`.
 - **Open, blocked on the relay:** the four anomalies cannot be adjudicated
   without the spread price. Verify with `curl` for a `price` key beside `point`
   in `opening_odds.spread` on any `/context/date` game after that CC-CMD lands.
