@@ -1,0 +1,68 @@
+name: skill drift
+
+# Are the shared skills the same document in every repo that carries them?
+#
+# `unslop-ui` lives in field-laboratory AND jubilant-bassoon by request;
+# `i-have-adhd` lives in four repos. Nothing compared the copies. Edit one and
+# the rest keep the old text silently — one document with several versions, the
+# defect shape this project keeps finding.
+#
+# WHY A SEPARATE WORKFLOW AND NOT A verify.yml STEP. verify.yml carries
+# `paths-ignore: '**/*.md'`, and every skill IS a .md file, so a skill edit is
+# precisely the push verify never sees. Wiring the check there would produce a
+# guard that cannot fire on the change it guards against — the shape named in
+# verify.yml's own header comment ("a regression guard nobody executes is
+# documentation"), and the same gap that let a credential reach
+# field-relay-nba's scripts/ behind a deploy filter that did not cover it.
+#
+# WHY IT RUNS HERE. field-laboratory is PRIVATE (verified 2026-08-26: anonymous
+# raw returns 404 for CLAUDE.md, HANDOFF.md and STATUS.md, all committed on
+# main); the three siblings are public. So this is the only repo that can read
+# all four copies — its own from the checkout, theirs from raw.githubusercontent
+# with no credential at all.
+#
+# COST, against a nearly exhausted Actions budget. The push trigger is scoped to
+# `.claude/skills/**`, so it fires only when a skill actually changes here —
+# most weeks, never. The weekly schedule is the part that catches drift
+# introduced in a SIBLING, which no push to this repo would reveal; it is one
+# job of a few seconds, four or five runs a month.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.claude/skills/**'
+      - 'scripts/skill-drift-check.mjs'
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: skill-drift
+  cancel-in-progress: true
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The pure logic first, the way every check in this repo is wired: the
+      # verdict function is proven against all three states — including the two
+      # a live run on a good day never reaches — before any network call.
+      - name: Self-test the verdict logic
+        run: node scripts/skill-drift-check.mjs --self-test
+
+      # NOT continue-on-error. A drifted copy is a real finding and the only
+      # fatal state; an unreadable sibling (404, private, unreachable) is
+      # reported and passes, because "this repo does not carry the skill" and
+      # "this repo has the wrong version" are different facts.
+      - name: Compare every sibling copy
+        run: node scripts/skill-drift-check.mjs
