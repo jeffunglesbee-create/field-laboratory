@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d4d4628` | 2026-08-26 | [2026-08-26-two-runs-is-one-observation.md](2026-08-26-two-runs-is-one-observation.md) | docs: two consecutive sentinel runs read the same slate — not promoting |
 | `30a91da` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
 | `30a91da` | 2026-08-26 | [sport-vocabulary-2026-08-26T13-04-42-108Z.json](sport-vocabulary-2026-08-26T13-04-42-108Z.json) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
 | `370bb8d` | 2026-08-26 | [2026-08-26-more-ai-not-less.md](2026-08-26-more-ai-not-less.md) | fix: take the boxes back off — the check could only ever say 'add a border' |
