@@ -33,6 +33,11 @@ on:
     paths:
       - '.claude/skills/**'
       - 'scripts/skill-drift-check.mjs'
+      # The reachability roster is an INPUT to that script, so it belongs in the
+      # trigger. A line deleted from it turns a WENT DARK back into a silent
+      # UNREADABLE, which is exactly the transition this file exists to make
+      # visible — it must not be possible to make it in a commit nothing reads.
+      - 'docs/skill-reachability.txt'
   schedule:
     - cron: '17 6 * * 1'
   workflow_dispatch:

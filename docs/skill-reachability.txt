@@ -1,0 +1,35 @@
+# Sibling copies this repo has OBSERVED readable at least once.
+#
+# FORMAT:  <skill>  <repo>
+#
+# WHY THIS FILE EXISTS. skill-drift-check.mjs reports UNREADABLE for a 404, a
+# private repo, or a failed fetch, and that is deliberately NOT fatal: from
+# outside, "this repo never carried the skill" and "this repo went private" look
+# identical, and calling the first a defect would fail the build for a repo that
+# simply opted out.
+#
+# The cost was that the second case became invisible. A sibling going private,
+# or a skill being deleted from one, degrades this check from "the copies agree"
+# to "the copies I can still see agree" — with no line saying so. Drift stops
+# being detected and the run stays green. That is the same shape as every other
+# defect this session has been chasing: a value whose name and its measurement
+# disagree.
+#
+# Observation splits the two. A pair listed here HAS been readable, so a later
+# UNREADABLE is an event — WENT DARK — and is fatal. A pair not listed here has
+# never been seen, so UNREADABLE stays silent.
+#
+# AND THIS IS THE ROSTER THE SCOPE BOUNDARY SAID IT COULD NOT HAVE. The check's
+# header says coverage "needs a declared roster, which goes stale". A roster
+# built from observation does not go stale: a line only ever gets here by a real
+# 200, and it only leaves when someone deletes it on purpose and says why.
+#
+# TO ADD A LINE: run the check. A pair that reads MATCHES or DRIFTED while
+# undeclared is printed with the exact line to paste.
+# TO REMOVE ONE: only when a sibling has deliberately dropped the skill. Say so
+# in the outbox — this is the file that would otherwise hide it.
+
+i-have-adhd    field-relay-nba
+i-have-adhd    jubilant-bassoon
+i-have-adhd    field-playground
+unslop-ui      jubilant-bassoon

@@ -31,18 +31,34 @@
 //
 //   MATCHES        200, bytes identical.
 //   DRIFTED        200, bytes differ.        <- the only fatal state
-//   UNREADABLE     404 or any non-200. Absent file, private repo, or a bad
-//                  fetch — indistinguishable from outside, so it is reported as
-//                  one state and is NOT fatal. Calling this "drifted" would
-//                  report a repo that simply does not carry the skill as a
-//                  defect, and calling it "matches" would hide a real one.
+//   UNREADABLE     404 or any non-200 for a pair never yet observed readable.
+//                  Absent file, private repo, or a bad fetch — indistinguishable
+//                  from outside, so it is reported as one state and is NOT
+//                  fatal. Calling this "drifted" would report a repo that simply
+//                  does not carry the skill as a defect, and calling it
+//                  "matches" would hide a real one.
+//   WENT DARK      the same non-200, for a pair docs/skill-reachability.txt
+//                  records as having been readable. THAT is an event: a repo
+//                  went private, or the skill was deleted from it. Fatal.
 //   NOT INSTALLED  no local copy in THIS repo, so there is no reference to
 //                  compare against and the skill is skipped entirely.
 //
-// SCOPE BOUNDARY. This answers "do the copies agree", not "does every repo have
-// one". A skill deleted from a sibling reads UNREADABLE, same as never having
-// been installed. Coverage is a different question and needs a declared roster,
-// which goes stale; drift needs no roster at all.
+// WHY WENT DARK WAS ADDED (2026-08-26). The scope boundary here used to read:
+// "A skill deleted from a sibling reads UNREADABLE, same as never having been
+// installed. Coverage is a different question and needs a declared roster, which
+// goes stale; drift needs no roster at all."
+//
+// Both halves were true and together they left a hole. Without a roster, a
+// sibling going private silently degrades this check from "the copies agree" to
+// "the copies I can still see agree", and the run stays green while measuring
+// less. Same shape as every other defect this session has chased: a value whose
+// name and its measurement disagree.
+//
+// The resolution is that the roster is OBSERVED rather than declared, so the
+// objection to having one does not apply. A line reaches
+// docs/skill-reachability.txt only by a real 200, and leaves only when someone
+// deletes it deliberately and says why. Coverage is now derivable from it as a
+// side effect — but drift is still the question this check answers.
 
 import { readFileSync, existsSync } from 'node:fs'
 import { createChecks, isMain } from './checks.mjs'
@@ -72,6 +88,28 @@ const SIBLINGS = ['field-relay-nba', 'jubilant-bassoon', 'field-playground']
 export function verdictFor(reference, status, remote) {
   if (status !== 200 || remote === null) return 'UNREADABLE'
   return remote === reference ? 'MATCHES' : 'DRIFTED'
+}
+
+/// UNREADABLE splits in two once it is known whether the pair was EVER readable.
+/// Kept separate from `verdictFor` so the fetch result and the history are
+/// scored independently — conflating them is what hid the case this exists for.
+export function withHistory(verdict, wasReadable) {
+  return verdict === 'UNREADABLE' && wasReadable ? 'WENT DARK' : verdict
+}
+
+/// `<skill>  <repo>` per line, comments and blanks ignored. Keyed as one string
+/// because a pair is the unit: `unslop-ui` being readable in one sibling says
+/// nothing about another.
+export const pairKey = (skill, repo) => `${skill}\t${repo}`
+export function parseReachability(text) {
+  const out = new Set()
+  for (const line of text.split('\n')) {
+    const t = line.replace(/^\s*#.*$/, '').trim()
+    if (!t) continue
+    const [skill, repo] = t.split(/\s+/)
+    if (skill && repo) out.add(pairKey(skill, repo))
+  }
+  return out
 }
 
 /// Byte identity, stated as a function so there is one definition of "same".
@@ -104,12 +142,37 @@ if (SELF_TEST) {
 
   // The detector must be able to fail. A verdictFor that returned 'MATCHES'
   // unconditionally would pass every check above except this one.
-  check('the three states are distinguishable from one another',
+  check('the three fetch states are distinguishable from one another',
     new Set([
       verdictFor('a', 200, 'a'),
       verdictFor('a', 200, 'b'),
       verdictFor('a', 404, null),
     ]).size === 3)
+
+  // ── the reachability split ────────────────────────────────────────────────
+  check('a 404 for a pair never seen readable stays UNREADABLE',
+    withHistory('UNREADABLE', false) === 'UNREADABLE',
+    'a repo that never carried the skill would fail the build')
+  check('a 404 for a pair that WAS readable is WENT DARK',
+    withHistory('UNREADABLE', true) === 'WENT DARK',
+    'a sibling going private would silently stop being compared')
+  check('history never changes a verdict that actually read bytes',
+    withHistory('MATCHES', true) === 'MATCHES' && withHistory('DRIFTED', true) === 'DRIFTED',
+    'a 200 must be scored on its bytes, not on its history')
+  check('all four states are distinguishable',
+    new Set([
+      withHistory(verdictFor('a', 200, 'a'), true),
+      withHistory(verdictFor('a', 200, 'b'), true),
+      withHistory(verdictFor('a', 404, null), true),
+      withHistory(verdictFor('a', 404, null), false),
+    ]).size === 4)
+
+  const R = parseReachability('# note\n\ni-have-adhd    field-relay-nba\nunslop-ui  jubilant-bassoon\n')
+  check('the reachability file parses to pairs, ignoring comments and blanks',
+    R.size === 2 && R.has(pairKey('i-have-adhd', 'field-relay-nba')))
+  check('a pair is skill AND repo, never either alone',
+    R.has(pairKey('unslop-ui', 'field-relay-nba')) === false,
+    'unslop-ui being readable in one sibling would vouch for another')
 
   check('every declared skill names a path under .claude/skills/',
     SKILLS.every(s => s.path === `.claude/skills/${s.name}/SKILL.md`),
@@ -134,8 +197,13 @@ const raw = async (repo, path) => {
   }
 }
 
+const REACH_PATH = 'docs/skill-reachability.txt'
+const reachable = parseReachability(readFileSync(REACH_PATH, 'utf8'))
+
 let drifted = 0
 let compared = 0
+let dark = 0
+const undeclared = []
 
 for (const skill of SKILLS) {
   if (!existsSync(skill.path)) {
@@ -147,23 +215,45 @@ for (const skill of SKILLS) {
 
   for (const repo of SIBLINGS) {
     const { status, body, error } = await raw(repo, skill.path)
-    const verdict = verdictFor(reference, status, body)
-    const detail = verdict === 'UNREADABLE'
-      ? `HTTP ${status}${error ? ` — ${error}` : ''} (absent, private, or unreachable — not a finding)`
-      : verdict === 'DRIFTED'
-        ? `${body.length} bytes there vs ${reference.length} here`
-        : ''
+    const wasReadable = reachable.has(pairKey(skill.name, repo))
+    const verdict = withHistory(verdictFor(reference, status, body), wasReadable)
+    const detail = verdict === 'WENT DARK'
+      ? `HTTP ${status}${error ? ` — ${error}` : ''} — ${REACH_PATH} records this copy as readable, so it is gone, not absent`
+      : verdict === 'UNREADABLE'
+        ? `HTTP ${status}${error ? ` — ${error}` : ''} (never observed readable — absent, private, or unreachable, not a finding)`
+        : verdict === 'DRIFTED'
+          ? `${body.length} bytes there vs ${reference.length} here`
+          : ''
     console.log(`  ${verdict.padEnd(11)} ${repo.padEnd(18)} ${detail}`)
     if (verdict === 'DRIFTED') drifted++
-    if (verdict !== 'UNREADABLE') compared++
+    if (verdict === 'WENT DARK') dark++
+    if (verdict !== 'UNREADABLE' && verdict !== 'WENT DARK') {
+      compared++
+      // A pair that read bytes and is not on the roster is a NEW observation.
+      // Not fatal — a sibling installing a skill must not fail this build — but
+      // printed with the exact line, because a roster nobody updates is the
+      // stale one the scope boundary warned about.
+      if (!wasReadable) undeclared.push(`${skill.name.padEnd(14)} ${repo}`)
+    }
   }
 }
 
-console.log(`\n${compared} copy/copies compared, ${drifted} drifted`)
+console.log(`\n${compared} copy/copies compared, ${drifted} drifted, ${dark} went dark`)
+if (undeclared.length) {
+  console.log(`\n${undeclared.length} copy/copies read cleanly but are not in ${REACH_PATH}.`)
+  console.log('Paste these lines in, so a later disappearance is an event rather than silence:\n')
+  for (const l of undeclared) console.log(`  ${l}`)
+}
+if (dark) {
+  console.log(`\nA copy that WENT DARK was readable when ${REACH_PATH} was written and is not now.`)
+  console.log('Either the repo went private, or the skill was deleted from it. Neither is')
+  console.log('drift, and both stop this check from comparing that copy at all. Restore it,')
+  console.log(`or delete its line from ${REACH_PATH} in a commit that says which happened.`)
+}
 if (drifted) {
   console.log('\nA drifted copy means one repo was edited and the others were not.')
   console.log('Decide which text is right, then run adhd-skill-sync.yml (or copy by')
   console.log('hand) so every repo carries the same bytes — do not edit only one.')
 }
-process.exit(drifted ? 1 : 0)
+process.exit(drifted || dark ? 1 : 0)
 })()

@@ -91,3 +91,57 @@ trap twice in its own history — *"check:history is only meaningful on a full
 clone. If the count it prints disagrees with this file, confirm
 `git log --oneline | wc -l` is in the hundreds before believing either number."*
 `guards.yml` checks out with `fetch-depth: 0`.
+
+---
+
+## Addendum: UNREADABLE was two states wearing one name
+
+**Same day.** `scripts/skill-drift-check.mjs`, `docs/skill-reachability.txt`.
+
+`skill-drift-check.mjs` reports `UNREADABLE` for a 404, a private repo, or a
+failed fetch, and deliberately does not fail on it. From outside, "this sibling
+never carried the skill" and "this sibling went private" are identical.
+
+The cost was that the second case became invisible. A sibling going private
+degrades the check from *the copies agree* to *the copies I can still see
+agree*, and the run stays green while measuring less.
+
+Its own scope boundary said the fix was unavailable:
+
+> Coverage is a different question and needs a declared roster, which goes
+> stale; drift needs no roster at all.
+
+Both halves true, and together a hole. **The resolution is that the roster is
+observed, not declared** — a line reaches `docs/skill-reachability.txt` only by
+a real 200, and leaves only when someone deletes it on purpose and says why. An
+observed roster does not go stale, so the objection to having one does not
+apply.
+
+Four states now:
+
+```
+MATCHES      200, bytes identical
+DRIFTED      200, bytes differ                                    fatal
+WENT DARK    non-200 for a pair the roster records as readable    fatal
+UNREADABLE   non-200 for a pair never observed readable           silent
+```
+
+A pair that reads bytes while undeclared prints the exact line to paste — not
+fatal, because a sibling installing a skill must not fail this build, but loud,
+because a roster nobody updates is the stale one the scope boundary warned about.
+
+All three paths verified by exit code:
+
+```
+WENT DARK    exit=1   (fabricated: unslop-ui/field-relay-nba added to the roster)
+undeclared   exit=0   prints "i-have-adhd    field-playground"
+clean        exit=0   4 compared, 0 drifted, 0 went dark
+```
+
+Self-test 8 → 15, including that a pair is skill AND repo: `unslop-ui` being
+readable in one sibling must not vouch for another.
+
+`docs/skill-reachability.txt` is added to `skill-drift.yml`'s `paths`. It is an
+input to the script, and deleting a line from it turns a WENT DARK back into a
+silent UNREADABLE — the exact transition this file exists to make visible. Same
+reasoning as the workflow above, one file over.
