@@ -20,7 +20,7 @@ import { createChecks } from './checks.mjs'
 import {
   allSemantics, tokenOf, cssValue, accentOf, accentCss,
   dramaScale, advancementScale,
-  bg, card, card2, edge, text, dim, red, violet,
+  bg, card, card2, edge, controlEdge, text, dim, red, violet,
 } from '../build/Palette.js'
 
 const SELF_TEST = process.argv.includes('--self-test')
@@ -148,6 +148,38 @@ for (const [name, tok] of surfaces) {
 check('the three surfaces are distinct shades',
   new Set(surfaces.map(([, t]) => cssValue(t))).size === 3,
   surfaces.map(([, t]) => cssValue(t)).join(', '))
+
+// THIS ASSERTION MEASURES PRESENCE, NOT SUFFICIENCY, AND SAYS SO.
+//
+// "distinct shades" above compares three hex STRINGS. Measured 2026-08-26,
+// bg -> card is 1.03:1 and card -> card2 is 1.02:1, so the surfaces are distinct
+// and indistinguishable at the same time — the check passes on a page where the
+// elevation does nothing. It is left in place because a page whose surfaces are
+// literally the same hex is worse still; it is simply not the whole claim.
+//
+// The whole claim needs a threshold and there is no external standard for the
+// contrast of one large dark fill against another. Where there IS one — a
+// control's boundary, WCAG 1.4.11 — it is enforced below, at 3.0:1, rather than
+// invented for the surfaces.
+const surfaceRatios = [['bg->card', bg, card], ['card->card2', card, card2]]
+  .map(([n, a, b]) => `${n} ${contrast(cssValue(a), cssValue(b)).toFixed(2)}:1`)
+console.log(`      note: surface elevation is ${surfaceRatios.join(', ')} — present, not perceptible`)
+
+// ── The control boundary, which DOES have an external standard ──────────────
+//
+// WCAG 1.4.11 sets 3.0:1 for "visual information required to identify user
+// interface components and states". `edge` renders at 1.09:1, so every button
+// outline in this page was thirty times short of it. `controlEdge` exists for
+// exactly those three controls and must clear the bar on every surface one of
+// them can sit on.
+for (const [name, surf] of surfaces) {
+  const r = contrast(cssValue(controlEdge), cssValue(surf))
+  check(`controlEdge clears ${MIN_CONTRAST}:1 on ${name} (WCAG 1.4.11)`,
+    r >= MIN_CONTRAST, `${r.toFixed(2)}:1 — a control boundary this faint cannot identify the control`)
+}
+check('controlEdge is not a semantic borrowed for chrome',
+  ![...allSemantics].map(sem => cssValue(tokenOf(sem))).includes(cssValue(controlEdge)),
+  'a meaning token used as structure is the role conflation this token exists to end')
 
 // The edge is a translucent hairline, not a text color — it is rgba, and the
 // contrast test correctly declines to score it.

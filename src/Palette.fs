@@ -86,6 +86,32 @@ let bg = Token "#060514"
 let card = Token "#0b0920"
 let card2 = Token "#0e0c24"
 let edge = Token "rgba(180,160,255,0.07)"
+
+/// The boundary of an INTERACTIVE control, as distinct from `edge`, which
+/// outlines containers and rules off list rows.
+///
+/// WHY A SECOND TOKEN AND NOT A BRIGHTER `edge`. Measured 2026-08-26: `edge`
+/// renders at 1.09:1 against `card` and 1.10:1 against `card2` — every boundary
+/// in the system, container and control alike, roughly thirty times short of the
+/// 3.0:1 WCAG 1.4.11 sets for "visual information required to identify user
+/// interface components and states". A button whose edge is invisible is not a
+/// button you can find.
+///
+/// Raising `edge` itself would brighten seventeen uses to fix three, and the
+/// three have an external standard behind them while the rest are a taste call.
+/// So the token splits by ROLE, the same way `Semantic` does for meaning.
+///
+/// THE VALUE IS DERIVED, NOT PICKED. It is the darkest point on the existing
+/// `dim` -> `quiet` line that clears 3.0 on all three surfaces, so it is the
+/// least loud option that passes rather than the first one that looked right:
+///
+///   #5a5878 (dim)     2.83 / 2.89 / 2.98   fails on card2
+///   #646383            3.32 / 3.39 / 3.50   <- this
+///   #6a6a8a (quiet)    3.68 / 3.76 / 3.89   passes, and louder than needed
+///
+/// NOT `quiet`, which also passes: `quiet` is a SEMANTIC — "low stakes" — and
+/// borrowing it for chrome is the role conflation this token exists to end.
+let controlEdge = Token "#646383"
 let text = Token "#ece8f8"
 let dim = Token "#5a5878"
 let red = Token "#ef4444"      // live dot / elimination

@@ -125,7 +125,7 @@
     font: inherit; font-size: .78rem;
     display: inline-flex; align-items: center; gap: .4rem;
     color: var(--dim); background: var(--card2);
-    border: 1px solid var(--edge); border-radius: 8px;
+    border: 1px solid var(--control-edge); border-radius: 8px;
     padding: .3rem .6rem; cursor: pointer;
   }
   /* The selected state must actually differ. This set `background: var(--card2)`
@@ -156,7 +156,7 @@
   .pk-side {
     font: inherit; font-size: .82rem;
     color: var(--dim); background: var(--card2);
-    border: 1px solid var(--edge); border-radius: 8px;
+    border: 1px solid var(--control-edge); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer; white-space: nowrap;
   }
   .pk-side:hover { color: var(--text); }
@@ -198,10 +198,10 @@
   .datenav button {
     font: inherit; font-size: .8rem;
     color: var(--text); background: var(--card);
-    border: 1px solid var(--edge); border-radius: 8px;
+    border: 1px solid var(--control-edge); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer;
   }
-  .datenav button:hover:not([disabled]) { background: var(--card2); border-color: var(--edge); }
+  .datenav button:hover:not([disabled]) { background: var(--card2); }
   /* Pinning to a committed capture disables navigation — the capture is one
      fixed day, so stepping off it would silently show a different date's data
      under a URL that claims to be pinned. Disabled controls say so visually. */
