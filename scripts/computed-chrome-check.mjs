@@ -193,6 +193,72 @@ const result = await page.evaluate(() => {
                    side: oddWidth || oddColour, widths, colours })
   }
 
+  // ── An element whose fill matches its parent's must have a real boundary ──
+  //
+  // `.pick-reason` is the case that prompted this: a pill with
+  // `background: var(--card2)` sitting INSIDE `.pick-leader`, which is also
+  // `card2`. Its background delimits nothing, so the chip exists only as a
+  // 1.09:1 border — an invisible chip. Found by hand; nothing looked for it.
+  //
+  // The bar is 3.0:1, and it is not invented here. WCAG 1.4.11 covers "graphical
+  // objects required to understand content", and a chip's boundary is what tells
+  // a reader where one reason ends and the next begins. Same figure
+  // `palette-check` holds the boundary token to.
+  //
+  // Only elements that PAINT a background are considered. An element with no
+  // fill of its own is not claiming to be a box, and text inside a card is not a
+  // finding.
+  // TWO BUGS IN THE FIRST VERSION OF THIS, both caught by not trusting its pass.
+  //
+  // It compared against `el.parentElement`. `.pick-reason`'s parent is
+  // `.pick-reasons`, a flex wrapper that paints NOTHING, so the comparison was
+  // against `rgba(0, 0, 0, 0)` and the pill it was written for never appeared.
+  // What matters is the nearest ancestor that actually paints — the backdrop a
+  // reader sees behind the element.
+  //
+  // And it took `Math.max` of all four border widths while reading
+  // `borderTopColor`. On `.tabs`, whose only boundary is a `border-bottom`, that
+  // found the 1px from the bottom and scored the colour of a zero-width top
+  // border — which resolves to the text colour and passes at ~16:1. It reported
+  // a real boundary where there was none. Each side is now measured on its own.
+  const paints = c => c && c !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(c)
+  const backdropOf = el => {
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const c = getComputedStyle(p).backgroundColor
+      if (paints(c)) return { el: p, bg: c }
+    }
+    return null
+  }
+  const SIDES = ['Top', 'Right', 'Bottom', 'Left']
+  const merged = []
+  for (const el of document.querySelectorAll('*')) {
+    const s = getComputedStyle(el)
+    const bg = s.backgroundColor
+    if (!paints(bg)) continue
+    const back = backdropOf(el)
+    if (!back || back.bg !== bg) continue          // its own fill already separates it
+    // Its fill does NOT separate it from what is behind it. Does a border?
+    const borders = SIDES
+      .map(d => ({ side: d, width: parseFloat(s[`border${d}Width`]) || 0, color: s[`border${d}Color`] }))
+      .filter(b => b.width > 0 && paints(b.color))
+    // A BOX-SHADOW IS A BOUNDARY TOO, and ignoring it made this check fail on
+    // `.sport-group__title` — a sticky heading whose hairline is
+    // `0 -1px 0 var(--bg), 0 1px 0 var(--edge)`, a shadow rather than a border
+    // precisely so it does not affect layout. Reporting that as "no boundary"
+    // was a false positive about a deliberate choice. The colours are pulled out
+    // and scored exactly like a border's.
+    const shadow = s.boxShadow && s.boxShadow !== 'none' ? s.boxShadow : ''
+    const shadowColors = [...shadow.matchAll(/rgba?\([^)]*\)/g)].map(m => m[0]).filter(paints)
+    merged.push({
+      cls: el.className || el.tagName.toLowerCase(),
+      backdrop: back.el.className || back.el.tagName.toLowerCase() || 'body',
+      bg,
+      // One list, because the question is "is there a perceptible edge", not
+      // "which property draws it".
+      edges: [...borders.map(b => b.color), ...shadowColors],
+    })
+  }
+
   // ── Does each state modifier actually change the rendered element? ────────
   const PROPS = ['color', 'backgroundColor', 'borderTopColor', 'borderRightColor',
                  'borderBottomColor', 'borderLeftColor', 'borderTopWidth', 'borderLeftWidth',
@@ -260,6 +326,7 @@ const result = await page.evaluate(() => {
   }
 
   return {
+    merged,
     declared: [...declared.keys()],
     modifiers: [...declared.keys()].filter(n => n.lastIndexOf('--') > 0),
     rails, states,
@@ -333,6 +400,35 @@ if (standalone.length)
 check('no rendered element has a one-sided border on a rounded box',
   result.rails.length === 0,
   result.rails.map(r => `${r.cls} (${r.side})`).join('; '))
+
+// ── 2b. A box whose fill matches its parent needs a real boundary ──────────
+const RGB2 = c => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number)
+const ALPHA = c => { const n = c.match(/[\d.]+/g) || []; return n.length > 3 ? Number(n[3]) : 1 }
+const lin2 = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }
+const lum2 = ([r, g, b]) => 0.2126 * lin2(r) + 0.7152 * lin2(g) + 0.0722 * lin2(b)
+// ALPHA IS COMPOSITED, and it was not before. `--edge` computes to
+// `rgba(180, 160, 255, 0.07)`; scoring its raw channels against a near-black
+// fill gave a very high ratio and every hairline in the page passed. What a
+// reader sees is that lavender at 7% OVER the fill — 1.09:1. Ignoring alpha did
+// not approximate the answer, it inverted it.
+const overFill = (c, fill) => { const a = ALPHA(c), f = RGB2(fill)
+  return RGB2(c).map((v, i) => v * a + f[i] * (1 - a)) }
+const lumOf = (c, fill) => lum2(overFill(c, fill))
+const ratio2 = (edge, fill) => {
+  const [x, y] = [lumOf(edge, fill), lum2(RGB2(fill))].sort((p, q) => q - p)
+  return (x + 0.05) / (y + 0.05)
+}
+
+// ANY ONE side clearing the bar is enough — a sticky bar separated by a single
+// `border-bottom` is properly separated, and demanding four sides would be a
+// stricter rule than the one being tested.
+const best = m => m.edges.reduce((hi, c) => Math.max(hi, ratio2(c, m.bg)), 1)
+const invisible = (result.merged || []).filter(m => best(m) < 3.0)
+check('no box shares its backdrop\'s fill without a boundary at 3:1',
+  invisible.length === 0,
+  invisible.map(m => `.${m.cls} on ${m.backdrop}: same fill ${m.bg}, best boundary ${m.edges.length ? best(m).toFixed(2) + ':1' : 'none'}`).join('; '))
+if (result.merged?.length)
+  console.log(`      ${result.merged.length} element(s) share their backdrop's fill; ${result.merged.length - invisible.length} carry a boundary at 3:1`)
 
 // ── 3. Nothing in the stylesheet is unreachable ─────────────────────────────
 //

@@ -87,8 +87,16 @@ let card = Token "#0b0920"
 let card2 = Token "#0e0c24"
 let edge = Token "rgba(180,160,255,0.07)"
 
-/// The boundary of an INTERACTIVE control, as distinct from `edge`, which
-/// outlines containers and rules off list rows.
+/// An edge that must actually be SEEN, as distinct from `edge`, which is a
+/// decorative hairline at 1.08:1.
+///
+/// RENAMED from `controlEdge` 2026-08-26. It was introduced for three buttons,
+/// and a rendered check then found four more elements needing exactly the same
+/// thing and none of them a control: the sticky tab bar, the sticky date nav,
+/// the sticky sport heading — each sharing the page fill with only an invisible
+/// hairline marking where it ends and scrolling content begins — and the reason
+/// pills, which sit on a panel of their own colour. A token called `controlEdge`
+/// on a heading is a name that disagrees with its measurement.
 ///
 /// WHY A SECOND TOKEN AND NOT A BRIGHTER `edge`. Measured 2026-08-26: `edge`
 /// renders at 1.09:1 against `card` and 1.10:1 against `card2` — every boundary
@@ -111,7 +119,7 @@ let edge = Token "rgba(180,160,255,0.07)"
 ///
 /// NOT `quiet`, which also passes: `quiet` is a SEMANTIC — "low stakes" — and
 /// borrowing it for chrome is the role conflation this token exists to end.
-let controlEdge = Token "#646383"
+let edgeStrong = Token "#646383"
 let text = Token "#ece8f8"
 let dim = Token "#5a5878"
 let red = Token "#ef4444"      // live dot / elimination

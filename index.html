@@ -45,7 +45,7 @@
     display: flex; gap: .25rem;
     height: var(--tab-h); box-sizing: border-box; align-items: stretch;
     margin: 0; background: var(--bg);
-    border-bottom: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge-strong);
   }
   .tabs button {
     font: inherit; font-size: .8rem; letter-spacing: .04em;
@@ -79,7 +79,7 @@
   .pick-reasons { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .5rem; }
   .pick-reason {
     font-size: .74rem; padding: .2rem .5rem; border-radius: 999px;
-    background: var(--card2); border: 1px solid var(--edge); color: var(--text);
+    background: var(--card2); border: 1px solid var(--edge-strong); color: var(--text);
   }
   .pick-brief { font-size: .88rem; margin-top: .6rem; opacity: .85; }
   .pick-chaser {
@@ -125,7 +125,7 @@
     font: inherit; font-size: .78rem;
     display: inline-flex; align-items: center; gap: .4rem;
     color: var(--dim); background: var(--card2);
-    border: 1px solid var(--control-edge); border-radius: 8px;
+    border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .3rem .6rem; cursor: pointer;
   }
   /* The selected state must actually differ. This set `background: var(--card2)`
@@ -156,7 +156,7 @@
   .pk-side {
     font: inherit; font-size: .82rem;
     color: var(--dim); background: var(--card2);
-    border: 1px solid var(--control-edge); border-radius: 8px;
+    border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer; white-space: nowrap;
   }
   .pk-side:hover { color: var(--text); }
@@ -193,12 +193,12 @@
     height: var(--nav-h); box-sizing: border-box;
     margin: 0 0 1.5rem;
     background: var(--bg);
-    border-bottom: 1px solid var(--edge);
+    border-bottom: 1px solid var(--edge-strong);
   }
   .datenav button {
     font: inherit; font-size: .8rem;
     color: var(--text); background: var(--card);
-    border: 1px solid var(--control-edge); border-radius: 8px;
+    border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer;
   }
   .datenav button:hover:not([disabled]) { background: var(--card2); }
@@ -225,7 +225,7 @@
     font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
     font-weight: 600; color: var(--dim); margin: 0 0 .75rem;
     padding: .55rem 0; background: var(--bg);
-    box-shadow: 0 -1px 0 var(--bg), 0 1px 0 var(--edge);
+    box-shadow: 0 -1px 0 var(--bg), 0 1px 0 var(--edge-strong);
   }
   .sport-group__grid {
     display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

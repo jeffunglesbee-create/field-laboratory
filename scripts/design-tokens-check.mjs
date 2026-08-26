@@ -58,7 +58,7 @@ semNames.forEach((name, i) => {
 // The foundation tokens, each against its exported value.
 const foundation = {
   bg: Palette.bg, card: Palette.card, card2: Palette.card2, edge: Palette.edge,
-  'control-edge': Palette.controlEdge,
+  'edge-strong': Palette.edgeStrong,
   text: Palette.text, dim: Palette.dim, red: Palette.red, violet: Palette.violet,
 }
 for (const [name, tok] of Object.entries(foundation)) {

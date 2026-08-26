@@ -20,7 +20,7 @@ import { createChecks } from './checks.mjs'
 import {
   allSemantics, tokenOf, cssValue, accentOf, accentCss,
   dramaScale, advancementScale,
-  bg, card, card2, edge, controlEdge, text, dim, red, violet,
+  bg, card, card2, edge, edgeStrong, text, dim, red, violet,
 } from '../build/Palette.js'
 
 const SELF_TEST = process.argv.includes('--self-test')
@@ -173,12 +173,12 @@ console.log(`      note: surface elevation is ${surfaceRatios.join(', ')} — pr
 // exactly those three controls and must clear the bar on every surface one of
 // them can sit on.
 for (const [name, surf] of surfaces) {
-  const r = contrast(cssValue(controlEdge), cssValue(surf))
-  check(`controlEdge clears ${MIN_CONTRAST}:1 on ${name} (WCAG 1.4.11)`,
+  const r = contrast(cssValue(edgeStrong), cssValue(surf))
+  check(`edgeStrong clears ${MIN_CONTRAST}:1 on ${name} (WCAG 1.4.11)`,
     r >= MIN_CONTRAST, `${r.toFixed(2)}:1 — a control boundary this faint cannot identify the control`)
 }
-check('controlEdge is not a semantic borrowed for chrome',
-  ![...allSemantics].map(sem => cssValue(tokenOf(sem))).includes(cssValue(controlEdge)),
+check('edgeStrong is not a semantic borrowed for chrome',
+  ![...allSemantics].map(sem => cssValue(tokenOf(sem))).includes(cssValue(edgeStrong)),
   'a meaning token used as structure is the role conflation this token exists to end')
 
 // The edge is a translucent hairline, not a text color — it is rgba, and the
