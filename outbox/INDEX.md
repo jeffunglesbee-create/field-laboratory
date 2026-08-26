@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7a85068` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | feat: measure the chrome on the rendered page; delete the code that modelled the cascade |
 | `f540050` | 2026-08-26 | [2026-08-26-secret-guard-three-repos.md](2026-08-26-secret-guard-three-repos.md) | fix: five of my scripts ran and exited at import time |
 | `a703211` | 2026-08-26 | [2026-08-26-secret-guard-three-repos.md](2026-08-26-secret-guard-three-repos.md) | fix: the literal-secret guard carried the real Odds API key here too |
 | `9380b70` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | fix: five chrome defects the unslop-ui checklist found, and a guard for three of them |
