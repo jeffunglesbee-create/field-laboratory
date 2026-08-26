@@ -233,16 +233,43 @@ dead on arrival. The symptom a person sees is not "sessions are broken" — it i
 ### The remedy, in order
 
 1. Open the failed session at claude.ai/code and **expand the "Ran setup script"
-   step**. That log is the evidence; everything else here is inference. This
-   file already said so and it is still the first move.
-2. Replace the field's contents with the block at the top of this file verbatim,
-   including the trailing `exit 0` on its own line.
+   step**. That log is the evidence; everything else in this file is inference.
+   No session can read it — `get_session` returns only `error_kind:
+   "init_script"` and there is no events or logs tool — so if a human does not
+   look, nobody ever will, which is how this reached its second occurrence
+   undiagnosed. One click, and it is the only click that produces knowledge.
+2. **Then clear the field, or replace it with the block at the top of this file
+   verbatim.** Either ends the outage. See the trade below before choosing.
 3. Confirm with a throwaway session. A container that comes up at all is the
-   pass condition — no further check is needed for this specific failure.
-4. Then, and only then, `dotnet --version` and the `history.log` fingerprint
-   above distinguish "the setup script ran" from "the fallback covered for it".
+   pass condition for this failure.
+4. `dotnet --version` and the `history.log` fingerprint above then distinguish
+   "the setup script ran" from "the fallback covered for it".
 
-Do NOT clear the field to work around this. An empty field is the ~30-second
-fallback, which works, but it discards the one artefact that explains what went
-wrong — and this failure has now recurred twice across seventeen days
-(2026-08-09, 2026-08-25) without its log ever being read.
+### Clearing the field is a legitimate answer, and an earlier draft of this
+### section said it was not
+
+That draft read: *"Do NOT clear the field to work around this."* It was written
+before the two sides were put next to each other, and it conflates clearing the
+field **instead of** reading the log with clearing it **after**. Only the first
+is a mistake. The numbers:
+
+| | benefit | cost when it breaks |
+| --- | --- | --- |
+| field populated | ~30s saved on a cold VM | **every new session, indefinitely** |
+| field empty | none | none — `scripts/install_dotnet.sh` runs from SessionStart |
+
+A mechanism whose entire upside is thirty seconds should never be able to cost
+100% of new sessions. That is not a close call, and the ~30s is paid only on a
+cold VM — the steady state is the environment's cached snapshot, where neither
+path runs at all.
+
+**This is not choosing a fallback over a fix.** The fix — `scripts/install_dotnet.sh`
+and the `SessionStart` hook that calls it — is committed, in this repository,
+under version control, and was measured working end to end on 2026-08-09
+(`dotnet 10.0.110`, `fable 5.13.0` restored, `npm run build` 13 files in 14.8s,
+`npm run check` 6/6). The setup-script field is the part that is *not* in the
+repo, cannot be reviewed, cannot be tested before it runs, and takes the whole
+environment down when it is wrong. Emptying it moves provisioning to the copy
+that is version-controlled.
+
+Populate the field again once its log has been read and the cause is known.
