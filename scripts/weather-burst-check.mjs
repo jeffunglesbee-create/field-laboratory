@@ -116,4 +116,65 @@ check('the slate resolved with a reading for every coordinate, none failed',
   readings.length === targetCount && failed.length === 0,
   `${readings.length} reading(s) and ${failed.length} failure(s) for ${targetCount} coordinate(s)`)
 
+// ── the retry, and what it must NOT retry ───────────────────────────────────
+//
+// Two scenarios, because the retry has two halves and only one of them is the
+// feature. Recovering a request that never answered is the fix; asking a host
+// that said 429 to say it again is the 2026-08-15 burst bug with a new name,
+// and the check that would have caught THAT is the one worth having.
+//
+// Both drive the real compiled `fetchSlate`, same as above. The stub decides
+// per call what the host does, so the scenario is a property of the host and
+// not of a flag threaded through the code under test.
+
+const runWith = async (respond) => {
+  let n = 0
+  const perUrl = new Map()
+  globalThis.fetch = (url) => {
+    n++
+    const k = String(url)
+    perUrl.set(k, (perUrl.get(k) || 0) + 1)
+    return respond(perUrl.get(k), k)
+  }
+  const [oc] = await fetchSlate(venueNames)
+  return { outcome: oc, calls: n, perUrl }
+}
+
+const answer = () => Promise.resolve(
+  { Ok: true, ok: true, status: 200, text: () => Promise.resolve(JSON.stringify(READING)) })
+// An abort, spelled the way the real one arrives: a rejected promise. The
+// message deliberately is NOT "signal timed out" — the production classifier
+// keys on the elapsed budget, not on the browser's wording, and this is what
+// asserts that.
+const neverAnswer = () => new Promise((_, reject) =>
+  setTimeout(() => reject(new Error('the network went away')), 5))
+
+// 1. Every first attempt never answers; every second one does.
+const first = await runWith(attempt => attempt === 1 ? neverAnswer() : answer())
+const firstReadings = first.outcome.tag === 1 ? Array.from(first.outcome.fields[0]) : []
+check('a venue that never answered is asked again, and its reading is recovered',
+  first.outcome.tag === 1 && firstReadings.length === targetCount,
+  `tag ${first.outcome.tag}, ${firstReadings.length} reading(s) of ${targetCount} — ` +
+  'without the retry this is 0 readings and EveryFetchFailed (tag 2)')
+
+check('...and it is asked exactly twice, never more',
+  first.calls === targetCount * 2 &&
+  Array.from(first.perUrl.values()).every(c => c === 2),
+  `${first.calls} call(s) for ${targetCount} coordinate(s) — ` +
+  `per-URL counts ${[...new Set(first.perUrl.values())].join(',')}`)
+
+// 2. The host REFUSES with 429. Retrying is the thing maxInFlight exists to
+//    prevent, so each URL must be asked exactly once and the slate must fail.
+const refused = await runWith(() => Promise.resolve(
+  { Ok: false, ok: false, status: 429, text: () => Promise.resolve('') }))
+check('a 429 is NOT retried — the host said stop asking',
+  refused.calls === targetCount &&
+  Array.from(refused.perUrl.values()).every(c => c === 1),
+  `${refused.calls} call(s) for ${targetCount} coordinate(s) — ` +
+  `a retry here would be the 2026-08-15 burst bug under a new name`)
+
+check('...and a slate that was refused everywhere is EveryFetchFailed, not empty Readings',
+  refused.outcome.tag === 2,
+  `tag ${refused.outcome.tag} (2 is EveryFetchFailed)`)
+
 process.exit(summarize() === 0 ? 0 : 1)

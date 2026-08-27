@@ -219,7 +219,30 @@ let private nowMs () : float = jsNative
 let private slateDeadlineMs = 14000.0
 let private requestCapMs = 8000.0
 
-let private fetchOne (deadlineAt: float) (venue: Venues.Venue) : JS.Promise<Result<VenueWeather, string>> =
+/// What one attempt turned out to be.
+///
+/// A `Result<_, string>` collapsed two failures that must be told apart before
+/// anything can decide whether to ask again. The host answering `429` and the
+/// host not answering at all are opposite instructions: one says stop asking,
+/// the other says the question never arrived.
+type private Attempt =
+    /// The host answered and the body decoded.
+    | Answered of VenueWeather
+    /// The host answered something this will not ask again. An HTTP status, or
+    /// a body that did not decode. Retrying a 429 would make the exact thing it
+    /// is complaining about worse — that is the 2026-08-15 lesson that produced
+    /// `maxInFlight`, and it is not being unlearned here.
+    | Refused of why: string
+    /// Nothing came back inside the budget. The only retryable case.
+    | NeverAnswered of why: string
+
+let private whyOf =
+    function
+    | Answered _ -> None
+    | Refused w
+    | NeverAnswered w -> Some w
+
+let private fetchOne (deadlineAt: float) (venue: Venues.Venue) : JS.Promise<Attempt> =
     promise {
         let startedAt = nowMs ()
         let remaining = deadlineAt - startedAt
@@ -228,22 +251,48 @@ let private fetchOne (deadlineAt: float) (venue: Venues.Venue) : JS.Promise<Resu
             // Named separately from a timeout. This request never ran; an
             // earlier one spent the slate's budget, and "did not answer" would
             // blame the wrong thing.
-            return Error(sprintf "%s: not attempted, the slate's %dms budget was already spent"
-                                 venue.Name (int slateDeadlineMs))
+            return NeverAnswered(sprintf "%s: not attempted, the slate's %dms budget was already spent"
+                                         venue.Name (int slateDeadlineMs))
         else
         try
             let budget = int (min requestCapMs remaining)
-            let! response = fetch (forecastUrl venue.Where) [ Signal(timeoutSignal budget) ]
+            // `fetchUnsafe`, not `fetch`. Fable.Fetch's `fetch` REJECTS on a
+            // non-ok response, with `429 undefined for URL undefined` — so the
+            // status branch directly below has never once executed since it was
+            // written, and every HTTP status has been arriving in the `with`
+            // clause dressed as a network failure.
+            //
+            // That was invisible while both paths produced the same string. It
+            // stopped being invisible the moment they had to mean different
+            // things: `weather-burst-check`'s "a 429 is NOT retried" measured 84
+            // calls for 42 coordinates, because a 429 was reaching the retryable
+            // branch. The dead code was found by a check written to protect a
+            // different property.
+            let! response = fetchUnsafe (forecastUrl venue.Where) [ Signal(timeoutSignal budget) ]
             if not response.Ok then
-                return Error(sprintf "%s: HTTP %d after %dms" venue.Name response.Status (took ()))
+                return Refused(sprintf "%s: HTTP %d after %dms" venue.Name response.Status (took ()))
             else
                 let! body = response.text ()
                 match decodeReading body with
                 | Ok reading ->
-                    return Ok { Venue = venue.Name; Where = venue.Where; Roof = venue.Roof; Reading = reading }
-                | Error why -> return Error(sprintf "%s: %s after %dms" venue.Name why (took ()))
+                    return Answered { Venue = venue.Name; Where = venue.Where; Roof = venue.Roof; Reading = reading }
+                | Error why -> return Refused(sprintf "%s: %s after %dms" venue.Name why (took ()))
         with e ->
-            return Error(sprintf "%s: %s after %dms" venue.Name e.Message (took ()))
+            // Reaching here means NOTHING CAME BACK — an abort at the budget, a
+            // DNS failure, a reset connection. The distinguishing axis is not
+            // how long it took and not what the exception says; it is whether
+            // the host answered at all. Both other cases above are the host
+            // answering: a status line, or a body that did not decode.
+            //
+            // The first version of this classified by elapsed time against the
+            // budget, with a 50ms fudge. That is a heuristic standing in for a
+            // fact, and it was wrong in the direction that matters — a
+            // connection that dies in 5ms never answered either, and it was
+            // being filed as though the host had spoken. `e.Message` is worse
+            // still: "signal timed out" is Chromium's current wording and a
+            // classifier keyed to a vendor string stops classifying, silently,
+            // the day the vendor rewords it.
+            return NeverAnswered(sprintf "%s: %s after %dms" venue.Name e.Message (took ()))
     }
 
 /// How many Open-Meteo requests may be in flight at once.
@@ -294,13 +343,57 @@ let fetchSlate (venueNames: string list) : JS.Promise<SlateWeather * string list
             // Every request measures its own budget against this instant, so
             // the total is bounded no matter how many waves the slate needs.
             let deadlineAt = nowMs () + slateDeadlineMs
-            let mutable settledAll : Result<VenueWeather, string> list = []
+            let mutable settledAll : Attempt list = []
             for wave in waves maxInFlight targets do
                 let! settled = wave |> List.map (fetchOne deadlineAt) |> Promise.all
                 settledAll <- settledAll @ List.ofSeq settled
-            let results = settledAll
-            let readings = results |> List.choose (function Ok r -> Some r | Error _ -> None)
-            let failed = results |> List.choose (function Error e -> Some e | Ok _ -> None)
+
+            // ONE retry, for the ones that never answered, inside the same
+            // slate budget.
+            //
+            // This is not optimism. Across three runs the requests issued AFTER
+            // the first wave gave up have always answered, and quickly:
+            // 33076823553 measured `674+8000ms` four times over — the whole
+            // first wave aborted at its cap — and then `8675+468ms`,
+            // `8675+470ms` for the wave that started the instant they did. Same
+            // page, same connection, half a second. 33076011728 and
+            // 33034815620 have the identical shape at two other slate sizes.
+            //
+            // The repo already knew the host does this. `cc-the-runner-lost-
+            // open-meteo-2026-08-12.md` recorded api.open-meteo.com going
+            // unreachable from GitHub runners with `fetch failed` "after about
+            // ten seconds", intermittently, with nothing changed on our side.
+            // What was not known then is that it recovers WITHIN one page load,
+            // which is what makes a retry the fix rather than a fallback: it is
+            // the same request down the same path, and the measurement says the
+            // second one lands.
+            //
+            // Only `NeverAnswered`. A `Refused` is the host talking, and asking
+            // a 429 again is the burst bug wearing a different hat.
+            let retryTargets =
+                List.zip targets settledAll
+                |> List.choose (function (v, NeverAnswered _) -> Some v | _ -> None)
+            let mutable recovered : (string * Attempt) list = []
+            if not (List.isEmpty retryTargets) && nowMs () < deadlineAt then
+                for wave in waves maxInFlight retryTargets do
+                    let! again = wave |> List.map (fetchOne deadlineAt) |> Promise.all
+                    recovered <- recovered @ (List.zip (wave |> List.map (fun v -> v.Name))
+                                                       (List.ofSeq again))
+            // Splice by venue name: a retry that answered replaces its original,
+            // a retry that failed again leaves the FIRST failure in place, so
+            // the panel reports the original cause rather than the echo.
+            let results =
+                List.zip targets settledAll
+                |> List.map (fun (v, first) ->
+                    match first with
+                    | NeverAnswered _ ->
+                        match recovered |> List.tryFind (fun (n, _) -> n = v.Name) with
+                        | Some(_, Answered r) -> Answered r
+                        | _ -> first
+                    | other -> other)
+
+            let readings = results |> List.choose (function Answered r -> Some r | _ -> None)
+            let failed = results |> List.choose whyOf
             let attempted = targets |> List.map (fun v -> v.Name)
             return slateWeather attempted readings failed, unlocated
     }
