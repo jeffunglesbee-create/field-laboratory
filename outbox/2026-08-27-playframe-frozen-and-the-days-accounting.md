@@ -57,10 +57,23 @@ change nil. The refutation was worth having; shipping before measuring was not.
 cost nothing. Source changes cost a verify run each and today they landed one at
 a time. From here they batch: several related edits, one push, one run.
 
-`[skip ci]` is **not** the way to make an outbox commit cheap here — it also
-suppresses `status.yml`, which regenerates `outbox/INDEX.md`, so the index goes
-stale until the next unskipped commit. Two of today's outbox commits carried it
-(`f6e8d3a`, `2a58138`) and should not have.
+**Correction, same day.** This section originally said `[skip ci]` on an outbox
+commit suppresses `status.yml` and stales `outbox/INDEX.md`, and named `f6e8d3a`
+and `2a58138` as mistakes. That is wrong. `status.yml` triggers on
+`workflow_run` after deploy/pages/drift-sentinel, a `33 6 * * *` cron, and
+dispatch — **not on push**. An outbox commit does not deploy, so status was never
+going to run either way and `[skip ci]` suppresses nothing. Both commits were
+fine.
+
+The rule was imported from field-relay-nba's CLAUDE.md, where it is true because
+that repo has `drive-upload-outbox.yml`. field-laboratory has no such workflow. A
+rule carried across repos without checking it against this one's workflow list —
+Rule 72, in a document about checking things.
+
+Confirmed by `ed7095e`, the commit that added this file: it fired **zero**
+workflows. Not guards (its `paths` is the complement of verify's `paths-ignore`),
+not status, not verify. An outbox-only commit here is free, with or without the
+marker.
 
 ## What is actually open
 
