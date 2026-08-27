@@ -190,6 +190,25 @@ let inline playId (v: DataView) (i: int) : float =
 let inline playIdIsExact (v: DataView) (i: int) : bool =
     u32be v (i * RecordBytes + Offset.PlayId) <= 2097151.0
 
+/// Whether a float field carries a measurement at all.
+///
+/// A float32 has no spare value for "not measured": 0.0 is a real EPA and a real
+/// win probability. NaN is the one bit pattern that cannot be mistaken for one,
+/// and — the reason it was chosen over a presence bitfield in the spare bytes
+/// 21-23 — it PROPAGATES. A sum across a slate that includes an absent value is
+/// NaN, so absence cannot be quietly averaged into a number. A flag can be
+/// ignored; a NaN cannot.
+///
+/// This exists because the layout asks for more than FIELD produces. Verified
+/// live against the relay's own `/espn-summary` route (field-relay-nba
+/// `scripts/nfl-epa-shape-probe.mjs`, artifact
+/// `outbox/nfl-epa-shape-probe-20260815T013003Z.log`, 14/14): an ESPN NFL play
+/// carries `start.{down,distance,yardsToEndzone}`, `type.text`, `scoringPlay`,
+/// `end.{...}` and `isTurnover`. It carries no win probability and no leverage
+/// index. Writing 0.0 into those fields would put this session's own defect —
+/// a value whose name and measurement disagree — into the wire format itself.
+let inline isPresent (x: float) : bool = not (System.Double.IsNaN x)
+
 let inline winProbability (v: DataView) (i: int) : float =
     f32be v (i * RecordBytes + Offset.WinProbability)
 
@@ -262,10 +281,18 @@ module Wire =
     /// direction it serves.
     type Outgoing =
         { PlayId: float
-          WinProbability: float
+          /// `None` when nothing measured it. Written as NaN, read back by
+          /// `isPresent` as absent — never as 0.0, which is a real probability.
+          WinProbability: float option
           ExpectedPointsAdded: float
-          LeverageIndex: float
+          /// `None` always, today: nothing in any FIELD repository computes a
+          /// leverage index. The field is in the layout because the layout came
+          /// with it.
+          LeverageIndex: float option
           IsScoringPlay: bool }
+
+    /// `None` becomes NaN on the wire. The only place absence is encoded.
+    let private orAbsent = function Some x -> x | None -> nan
 
     /// Write one play at record index `i`.
     ///
@@ -278,9 +305,9 @@ module Wire =
         let hi = floor (r.PlayId / 4294967296.0)
         putUint32 v (at i Offset.PlayId) hi
         putUint32 v (at i Offset.PlayId + 4) (r.PlayId - hi * 4294967296.0)
-        putFloat32 v (at i Offset.WinProbability) r.WinProbability
+        putFloat32 v (at i Offset.WinProbability) (orAbsent r.WinProbability)
         putFloat32 v (at i Offset.ExpectedPointsAdded) r.ExpectedPointsAdded
-        putFloat32 v (at i Offset.LeverageIndex) r.LeverageIndex
+        putFloat32 v (at i Offset.LeverageIndex) (orAbsent r.LeverageIndex)
         putByte v (at i Offset.ScoringFlag) (if r.IsScoringPlay then 1 else 0)
 
     /// A whole frame. The producer's counterpart to `frame`.

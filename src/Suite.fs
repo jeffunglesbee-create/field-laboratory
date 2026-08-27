@@ -463,26 +463,59 @@ let private weather =
                   plays
                   |> List.mapi (fun i p ->
                       PlayFrame.playId v i = p.PlayId
-                      && PlayFrame.winProbability v i = p.WinProbability
+                      && PlayFrame.winProbability v i = (match p.WinProbability with Some x -> x | None -> nan)
                       && PlayFrame.expectedPointsAdded v i = p.ExpectedPointsAdded
-                      && PlayFrame.leverageIndex v i = p.LeverageIndex
+                      && PlayFrame.leverageIndex v i = (match p.LeverageIndex with Some x -> x | None -> nan)
                       && PlayFrame.isScoringPlay v i = p.IsScoringPlay)
                   |> List.forall id
               | _ -> false)
           // Three records, so a stride error has somewhere to show. Values exact
           // in float32 and distinct per field, so a field reading its neighbour
           // fails rather than coincidentally matching.
-          [ { PlayId = 4242.0; WinProbability = 0.5; ExpectedPointsAdded = 2.0
-              LeverageIndex = 1.5; IsScoringPlay = true }
-            { PlayId = 4243.0; WinProbability = -3.25; ExpectedPointsAdded = -0.75
-              LeverageIndex = 0.25; IsScoringPlay = false }
-            { PlayId = 4244.0; WinProbability = 1.0; ExpectedPointsAdded = 0.0
-              LeverageIndex = 8.0; IsScoringPlay = true } ]
+          [ { PlayId = 4242.0; WinProbability = Some 0.5; ExpectedPointsAdded = 2.0
+              LeverageIndex = Some 1.5; IsScoringPlay = true }
+            { PlayId = 4243.0; WinProbability = Some -3.25; ExpectedPointsAdded = -0.75
+              LeverageIndex = Some 0.25; IsScoringPlay = false }
+            { PlayId = 4244.0; WinProbability = Some 1.0; ExpectedPointsAdded = 0.0
+              LeverageIndex = Some 8.0; IsScoringPlay = true } ]
           // The counterexample is a value float32 cannot hold. It fails on
           // precision, not on plumbing — the plumbing is what the case above
           // proves, and a counterexample that broke both would prove neither.
-          [ { PlayId = 1.0; WinProbability = 0.1; ExpectedPointsAdded = 0.0
-              LeverageIndex = 0.0; IsScoringPlay = false } ]
+          [ { PlayId = 1.0; WinProbability = Some 0.1; ExpectedPointsAdded = 0.0
+              LeverageIndex = Some 0.0; IsScoringPlay = false } ]
+
+      // Absence, and its mirror. Two checks because one alone proves half of it:
+      // "absent reads as absent" is satisfiable by a reader that calls
+      // everything absent, and "zero reads as a value" by one that calls
+      // everything present. Each is the other's counterexample.
+      //
+      // This matters because the layout asks for two fields nothing in FIELD
+      // produces. The ESPN NFL play the EPA path reads carries no win
+      // probability and no leverage index — verified live, field-relay-nba
+      // outbox/nfl-epa-shape-probe-20260815T013003Z.log, 14/14. Writing 0.0
+      // there would put a value whose name and measurement disagree into the
+      // wire format itself.
+      Verify.check "an absent optional field reads as absent, never as zero"
+          (fun (wp: float option) ->
+              let b = PlayFrame.Wire.encode
+                        [ { PlayId = 1.0; WinProbability = wp; ExpectedPointsAdded = 1.0
+                            LeverageIndex = None; IsScoringPlay = false } ]
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) -> not (PlayFrame.isPresent (PlayFrame.winProbability v 0))
+              | _ -> false)
+          None (Some 0.0)
+
+      Verify.check "...and a measured zero is a value, not an absence"
+          (fun (wp: float option) ->
+              let b = PlayFrame.Wire.encode
+                        [ { PlayId = 1.0; WinProbability = wp; ExpectedPointsAdded = 1.0
+                            LeverageIndex = None; IsScoringPlay = false } ]
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) ->
+                  PlayFrame.isPresent (PlayFrame.winProbability v 0)
+                  && PlayFrame.winProbability v 0 = 0.0
+              | _ -> false)
+          (Some 0.0) None
 
       // The empty state that means four things. Playground throws to avoid it;
       // a throw is swallowable and production's six undefined functions are what
