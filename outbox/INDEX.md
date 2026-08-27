@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `145f74d` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-27 [skip ci] |
+| `145f74d` | 2026-08-27 | [sport-vocabulary-2026-08-27T22-07-49-625Z.json](sport-vocabulary-2026-08-27T22-07-49-625Z.json) | drift-sentinel: ok on 2026-08-27 [skip ci] |
 | `7796a98` | 2026-08-27 | [2026-08-27-playframe-frozen-and-the-days-accounting.md](2026-08-27-playframe-frozen-and-the-days-accounting.md) | docs: correct the [skip ci] claim — status.yml does not run on push |
 | `ed7095e` | 2026-08-27 | [2026-08-27-playframe-frozen-and-the-days-accounting.md](2026-08-27-playframe-frozen-and-the-days-accounting.md) | docs: freeze PlayFrame, and account for the day |
 | `6f23c76` | 2026-08-27 | [2026-08-27-the-frame-says-which-frame-it-is.md](2026-08-27-the-frame-says-which-frame-it-is.md) | feat: the frame says which frame it is — a versioned layout that refuses |
