@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e479727` | 2026-08-27 | [2026-08-27-weather-fetch-had-no-deadline.md](2026-08-27-weather-fetch-had-no-deadline.md) | fix: give the weather fetch a deadline; a hung request stalled the whole slate |
 | `2d3f54d` | 2026-08-27 | [2026-08-27-verify-159-weather-attribution.md](2026-08-27-verify-159-weather-attribution.md) | fix: a total weather failure carries what each request reported |
 | `7f9c78a` | 2026-08-27 | [2026-08-27-adjudication-by-price.md](2026-08-27-adjudication-by-price.md) | feat: the spread price reaches the census; 0 of 13 can be settled with it |
 | `944722f` | 2026-08-27 | [2026-08-27-the-ledger-found-its-own-answer.md](2026-08-27-the-ledger-found-its-own-answer.md) | fix: point the chrome check at the fixture that was already there |
