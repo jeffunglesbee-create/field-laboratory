@@ -27,17 +27,36 @@ workflow, doing exactly what this morning's confusion needed. verify's render
 step had no equivalent, which is why the preconnect run was misread — the
 capability was one workflow over the whole time.
 
-## What was not read
+## The timing line, read
 
-The per-request `open-meteo (start+duration)` line from the 10-second run. It
-prints before the PASS block and sits above the log tail window the API returns;
-three attempts at widening the window did not reach it, and continuing to spend
-calls on a confirmatory line was not worth it.
+Retrieved from run 33078924162 on a wider log tail. It is no longer an
+inference:
 
-So the retry's recovery is inferred from the step duration and the verdict, not
-read off the request timings. The inference is tight — 10s is not a shape either
-the fast path or the old failing path can produce — but it is an inference, and
-this session has already been wrong once by treating one of those as proof.
+```
+open-meteo (start+duration):
+  635+7999ms  635+8000ms  636+8000ms  636+8001ms      wave 1  — four, all hung to the cap
+  8636+625ms  8636+647ms                              wave 2  — the two remaining originals
+  9285+163ms  9285+158ms  9285+315ms  9286+325ms      THE RETRY — the four that never answered
+```
+
+Ten requests for six distinct coordinates: six originals, then exactly four
+retried. Reading it in order:
+
+1. **t=635ms** — four requests go out and every one is aborted at its 8000ms
+   cap. This is the hang, in the shape it has held all day.
+2. **t=8636ms** — wave 2 starts the instant wave 1 gives up, and both answer in
+   about 630ms.
+3. **t=9285ms** — the four that never answered are asked again and all four
+   land, in **158–325ms**. Faster than wave 2, on a path that keeps warming.
+
+Total 9.6 seconds, inside the 14s slate budget and inside the 20s chip wait, and
+the run reports `PASS the chips all filled within the wait` with every one of the
+six chips present.
+
+That is the whole mechanism, measured end to end: four requests lost, four
+recovered, nothing left to infer. It also confirms `weather-burst-check`'s "asked
+exactly twice, never more" against production rather than a stub — six
+coordinates, ten requests, four of them second asks.
 
 ## Also unreported until now
 
