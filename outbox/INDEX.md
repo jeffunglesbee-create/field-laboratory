@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f6caae3` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-27 [skip ci] |
+| `f6caae3` | 2026-08-27 | [sport-vocabulary-2026-08-27T11-37-23-914Z.json](sport-vocabulary-2026-08-27T11-37-23-914Z.json) | drift-sentinel: ok on 2026-08-27 [skip ci] |
 | `005e515` | 2026-08-27 | [2026-08-27-playframe-binary-ingest.md](2026-08-27-playframe-binary-ingest.md) | feat: PlayFrame — binary frame ingest, with the suite as its only consumer |
 | `b4815c7` | 2026-08-27 | [2026-08-27-closing-odds-promoted-on-a-second-date.md](2026-08-27-closing-odds-promoted-on-a-second-date.md) | docs: close closing-odds; promoted on the second DISTINCT probe date |
 | `4ad24cc` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
