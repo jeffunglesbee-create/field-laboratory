@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a8dbd51` | 2026-08-27 | [2026-08-27-preconnect-removed.md](2026-08-27-preconnect-removed.md) | fix: remove the preconnect tag — the reading that added it was refuted |
+| `2a58138` | 2026-08-27 | [2026-08-27-the-retry-verified-on-the-hang-path.md](2026-08-27-the-retry-verified-on-the-hang-path.md) | docs: the timing line, read — the retry measured end to end [skip ci] |
+| `f6e8d3a` | 2026-08-27 | [2026-08-27-the-retry-verified-on-the-hang-path.md](2026-08-27-the-retry-verified-on-the-hang-path.md) | docs: the retry verified on a run that actually hung [skip ci] |
 | `f606aee` | 2026-08-27 | [2026-08-27-the-first-wave-recovers-on-the-second-ask.md](2026-08-27-the-first-wave-recovers-on-the-second-ask.md) | fix: retry what never answered — the host recovers inside one page load |
 | `2408ed3` | 2026-08-27 | [2026-08-27-i-read-the-wrong-build.md](2026-08-27-i-read-the-wrong-build.md) | fix: report which build the render check measured — I read the wrong one |
 | `c6ceb27` | 2026-08-27 | [2026-08-27-the-arbiter-went-silent-when-it-worked.md](2026-08-27-the-arbiter-went-silent-when-it-worked.md) | fix: print the open-meteo timings on every run, not only on a failing one |
