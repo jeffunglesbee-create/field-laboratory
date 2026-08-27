@@ -288,13 +288,22 @@ type SlateWeather =
     /// not answer — a partial result stays partial rather than becoming whole.
     | Readings of readings: VenueWeather list * failed: string list
     /// Venues had coordinates and NONE answered. An outage, not an empty slate.
-    | EveryFetchFailed of attempted: string list
+    ///
+    /// `why` carries what each request reported — `fetchOne` writes "Fenway
+    /// Park: HTTP 429" and the like. This case used to carry the names alone,
+    /// which meant the moment EVERY request failed was the moment the reason
+    /// was discarded. verify 159 (2026-08-27) is the cost: 13 venues, 0 chips,
+    /// and nothing on the page or in the log that could say whether the service
+    /// was down, refusing the burst, or unreachable from that runner — three
+    /// failures with three different fixes, collapsed into one integer. A count
+    /// is not an attribution.
+    | EveryFetchFailed of attempted: string list * why: string list
 
 /// Assemble the outcome. The only constructor for `SlateWeather`, so the
 /// distinction above cannot be lost by a caller building the wrong case.
 let slateWeather (eligible: string list) (readings: VenueWeather list) (failed: string list) : SlateWeather =
     if List.isEmpty eligible then NoVenuesWithCoordinates
-    elif List.isEmpty readings then EveryFetchFailed eligible
+    elif List.isEmpty readings then EveryFetchFailed(eligible, failed)
     else Readings(readings, failed)
 
 // --- the cache ---------------------------------------------------------------

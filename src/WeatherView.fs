@@ -108,12 +108,21 @@ let render (mount: HTMLElement) (outcome: SlateWeather) (unlocated: string list)
                         "No venue on this slate is in the location table, so there is nothing to ask about.")
         |> ignore
 
-    | EveryFetchFailed attempted ->
+    | EveryFetchFailed(attempted, why) ->
         // Not the empty state. This is an outage and says so.
         let box = child panel (el "p" "wx-error"
                                   (sprintf "Weather is unavailable: all %d venue requests failed."
                                            (List.length attempted)))
         box.setAttribute ("role", "status")
+        // ...and says WHAT each one reported. `Readings` has printed its
+        // failures since it was written; this case printed a count and dropped
+        // the reasons, so the one outcome where the reason is the whole story
+        // was the one that threw it away. "HTTP 429" and "Failed to fetch" are
+        // different failures with different fixes and this line is where they
+        // become distinguishable — on the page, and to any check that reads it.
+        if not (List.isEmpty why) then
+            child panel (el "p" "wx-error__why" (sprintf "Reported: %s" (String.concat "; " why)))
+            |> ignore
 
     | Readings(readings, failed) ->
         verdictLine panel readings

@@ -143,6 +143,7 @@ let expected = 0
 let chips = []
 let filled = []
 let waitErr = null
+let pageAccount = ''
 
 // Relay values that occupy the `venue` column without naming a venue.
 //
@@ -175,6 +176,20 @@ if (!pinned) {
   chips = await page.$$eval('.desk-card__wx',
     ns => ns.map(n => ({ t: (n.textContent || '').trim(), title: n.getAttribute('title') })))
   filled = chips.filter(c => c.t !== '')
+
+  // The page's OWN account of why, read before the browser closes.
+  //
+  // verify 159 (2026-08-27) reported "13 known venue(s) on this slate, 0
+  // chip(s) filled" and could say nothing further, because that is all this
+  // script measured. The page knew more: `fetchOne` writes "Fenway Park: HTTP
+  // 429" per request. `EveryFetchFailed` used to drop those on the floor and
+  // now carries them into `.wx-error__why`, so the failure can name its own
+  // cause instead of leaving the next session to guess at it.
+  if (filled.length < expected) {
+    pageAccount = (await page.$$eval('#panel-weather .wx-error, #panel-weather .wx-error__why, ' +
+      '#panel-weather .wx-partial, #panel-weather .wx-empty, #panel-weather .wx-idle',
+      ns => ns.map(n => (n.textContent || '').trim()).filter(Boolean))).join(' | ')
+  }
 }
 
 // Attribute empty chips: if they did not fill, was Open-Meteo reachable at all?
@@ -184,12 +199,20 @@ if (!pinned) {
 // the latter is a real regression and stays a failure. The probe runs solely when
 // there is an empty-chip failure to explain, so a healthy slate pays nothing.
 let openMeteoDown = false
+// The probe's STATUS, not just its verdict. `!r.ok` collapses 429, 503 and a
+// thrown connection error into one boolean, and those are the three things the
+// probe exists to tell apart. It is also worth reading literally: this probe is
+// one request from node, after the 20s wait has already elapsed, and a service
+// that refused a burst can answer a single late request perfectly well. So it
+// reports what it saw and does not pretend to have measured the page's fate.
+let probeSaw = 'not probed'
 if (!pinned && (waitErr !== null || filled.length < expected)) {
   const probe = coordinates(42.3467, -71.0972)
   try {
     const r = await fetch(forecastUrl(probe), { signal: AbortSignal.timeout(15_000) })
     openMeteoDown = !r.ok
-  } catch { openMeteoDown = true }
+    probeSaw = `HTTP ${r.status}`
+  } catch (e) { openMeteoDown = true; probeSaw = `unreachable — ${e.message}` }
 }
 
 await browser.close()
@@ -363,13 +386,16 @@ if (!pinned) {
     // the flag; every other job asserts, and a broken chip with the service UP is
     // never reached by this branch (openMeteoDown is set only on a failed probe).
     console.log('::warning::Open-Meteo unreachable from this runner — the four live weather-chip ' +
-      `checks are skipped (${expected} known venue(s) on this slate, ${filled.length} chip(s) filled). ` +
+      `checks are skipped (${expected} known venue(s) on this slate, ${filled.length} chip(s) filled; ` +
+      `probe saw ${probeSaw}; the page reported: ${pageAccount || 'nothing'}). ` +
       'This is a third-party outage, not a page defect; verify is not gated on it.')
   } else {
     check('the chips all filled within the wait', waitErr === null, waitErr)
     check('every card whose venue the table knows carries a live chip',
       expected > 0 && filled.length === expected,
-      `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled`)
+      `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled. ` +
+      `Open-Meteo answered this runner: ${probeSaw}. ` +
+      `The page reported: ${pageAccount || '(nothing — the panel said nothing at all)'}`)
     // Anchored and whole-string: `includes('61')` would accept 161°F, and a bare
     // prefix would accept a chip that had grown a stray suffix.
     check('every live chip reads as a temperature and nothing else',

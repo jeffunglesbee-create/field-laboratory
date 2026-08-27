@@ -344,9 +344,22 @@ let private weather =
       // swallowing looks like.
       Verify.check "an outage is EveryFetchFailed, not an empty slate"
           (fun (eligible, readings) ->
-              Weather.slateWeather eligible readings [] = Weather.EveryFetchFailed eligible)
+              Weather.slateWeather eligible readings [] = Weather.EveryFetchFailed(eligible, []))
           ([ "Fenway Park" ], [])
           ([], [])
+
+      // The reasons survive the total failure. Until 2026-08-27 this case
+      // carried the venue NAMES alone, so "all 13 requests failed", "all 13
+      // were refused with HTTP 429" and "all 13 could not reach the host" were
+      // one value. verify 159 hit exactly this and could report only the count,
+      // which is why WHICH of the three it was is still unknown.
+      Verify.check "a total failure carries what each request reported"
+          (fun (eligible, failed) ->
+              match Weather.slateWeather eligible [] failed with
+              | Weather.EveryFetchFailed(_, why) -> why = failed && not (List.isEmpty why)
+              | _ -> false)
+          ([ "Fenway Park" ], [ "Fenway Park: HTTP 429" ])
+          ([ "Fenway Park" ], [])
 
       Verify.check "a slate with no locatable venue says so separately"
           (fun (eligible, readings) -> Weather.slateWeather eligible readings [] = Weather.NoVenuesWithCoordinates)

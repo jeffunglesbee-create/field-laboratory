@@ -793,7 +793,7 @@ const MUTATIONS = [
     id: 'outage-reads-as-empty',
     file: 'src/Weather.fs',
     claim: 'an outage is distinguishable from a slate with no locatable venue',
-    find: '    elif List.isEmpty readings then EveryFetchFailed eligible',
+    find: '    elif List.isEmpty readings then EveryFetchFailed(eligible, failed)',
     replace: '    elif List.isEmpty readings then NoVenuesWithCoordinates',
     expect: 'node scripts/run-row.mjs "the F# harness refuses a check with no counterexample"',
   },
