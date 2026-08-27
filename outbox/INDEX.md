@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b4815c7` | 2026-08-27 | [2026-08-27-closing-odds-promoted-on-a-second-date.md](2026-08-27-closing-odds-promoted-on-a-second-date.md) | docs: close closing-odds; promoted on the second DISTINCT probe date |
 | `4ad24cc` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
 | `4ad24cc` | 2026-08-27 | [sport-vocabulary-2026-08-27T03-04-16-848Z.json](sport-vocabulary-2026-08-27T03-04-16-848Z.json) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
 | `82ce843` | 2026-08-27 | [2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md](2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md) | fix: bound the slate, not each wave; the deadline was a quotient of maxInFlight |
