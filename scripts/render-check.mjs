@@ -385,6 +385,17 @@ console.log(`          ->  live      "${transition.live?.drama}"\n`)
 // the table is a check in its own right rather than a precondition nobody
 // states.
 if (!pinned) {
+  // The timings, printed on EVERY live run and not only on a failing one.
+  //
+  // They were first shipped inside the chip failure's detail string, which meant
+  // the arbiter went silent exactly when the thing it was built to attribute
+  // started working: run 33076464112 passed 22/22 with the render step down from
+  // 23s to 2s, and the only evidence that preconnect was the cause was the step
+  // DURATION — an inference, not the measurement. That is the silent-success
+  // shape this repo keeps finding, committed inside the instrument meant to
+  // catch it. A measurement that only speaks on failure cannot confirm a fix.
+  console.log(`open-meteo (start+duration): ${wxTiming || 'no request recorded'}\n`)
+
   // A slate can carry venues that are not venues. `real` is the denominator:
   // without it, "no venue on this slate is in the table" and "this slate names
   // no venue at all" are the same failure, and only the first is one.
