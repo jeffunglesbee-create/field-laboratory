@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f606aee` | 2026-08-27 | [2026-08-27-the-first-wave-recovers-on-the-second-ask.md](2026-08-27-the-first-wave-recovers-on-the-second-ask.md) | fix: retry what never answered — the host recovers inside one page load |
 | `2408ed3` | 2026-08-27 | [2026-08-27-i-read-the-wrong-build.md](2026-08-27-i-read-the-wrong-build.md) | fix: report which build the render check measured — I read the wrong one |
 | `c6ceb27` | 2026-08-27 | [2026-08-27-the-arbiter-went-silent-when-it-worked.md](2026-08-27-the-arbiter-went-silent-when-it-worked.md) | fix: print the open-meteo timings on every run, not only on a failing one |
 | `f7c0248` | 2026-08-27 | [2026-08-27-the-first-wave-pays-for-everyone.md](2026-08-27-the-first-wave-pays-for-everyone.md) | fix: preconnect Open-Meteo — the first wave was paying DNS+TCP+TLS for the slate |
