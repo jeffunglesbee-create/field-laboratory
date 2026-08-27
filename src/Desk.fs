@@ -147,6 +147,15 @@ type Odds =
       // to be interesting.
       SpreadHome: float option
       SpreadAway: float option
+      // The PRICE beside the handicap, served by the relay since 2026-08-26
+      // (field-relay-nba b3aae99, `spreadFrom` in src/odds-shape.js). Reading
+      // `point` alone made thirteen games over sixty days look like the
+      // moneyline and the handicap disagreed; `+1.5 at -240` is a favourite's
+      // ordinary alternate line and `+1.5 at +130` is a contradiction, and the
+      // point cannot tell them apart. Optional because every capture before
+      // that date has none and always will.
+      SpreadHomePrice: float option
+      SpreadAwayPrice: float option
       TotalOver: float option
       TotalUnder: float option }
 
@@ -854,6 +863,8 @@ let oddsDecoder : Decoder<Odds> =
           RawCapturedAt = rawCaptured
           SpreadHome = get.Optional.At [ "spread"; "home" ] Decode.float
           SpreadAway = get.Optional.At [ "spread"; "away" ] Decode.float
+          SpreadHomePrice = get.Optional.At [ "spread"; "homePrice" ] Decode.float
+          SpreadAwayPrice = get.Optional.At [ "spread"; "awayPrice" ] Decode.float
           TotalOver = get.Optional.At [ "total"; "over" ] Decode.float
           TotalUnder = get.Optional.At [ "total"; "under" ] Decode.float })
 

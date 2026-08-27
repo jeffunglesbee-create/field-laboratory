@@ -104,9 +104,53 @@ export function bandOf(mh, ma) {
   return { sep: Math.abs(ih - ia), vig, ratio: vig === 0 ? Infinity : Math.abs(ih - ia) / vig };
 }
 
+// ── ADJUDICATION BY PRICE ───────────────────────────────────────────────────
+//
+// Reading `point` alone made thirteen games over sixty days look as though the
+// moneyline and the handicap disagreed, all of them home, all of them holding
+// +1.5. `+1.5 at -240` is a favourite's ordinary alternate line; `+1.5 at +130`
+// is a contradiction. The point cannot tell them apart and the price can.
+//
+// NO THRESHOLD IS INVENTED. Both sides are converted to implied probability and
+// compared to each other, which is the same comparison `favouriteAgreement`
+// already makes on the moneyline. If the handicap's own prices favour the side
+// the moneyline favours, the two agree after all and the disagreement was an
+// artefact of reading one number instead of two.
+export const impliedProb = american =>
+  american == null ? null : american < 0 ? -american / (-american + 100) : 100 / (american + 100);
+
+export function adjudicate(mh, ma, shp, sap) {
+  if (shp == null || sap == null) return 'no price';           // pre-2026-08-26 capture
+  const ph = impliedProb(shp), pa = impliedProb(sap);
+  if (ph === pa) return 'price is even';
+  const mlHomeFavoured = mh < ma, spHomeFavoured = ph > pa;
+  return mlHomeFavoured === spHomeFavoured ? 'agrees on price' : 'contradicted by price';
+}
+
+
 if (SELF_TEST) {
   let bad = 0;
   const t = (name, ok, d) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) { console.log('      → ' + d); bad++; } };
+
+  // ── adjudication by price ────────────────────────────────────────────────
+  // Reading `point` alone made thirteen games look as though the moneyline and
+  // the handicap disagreed. `+1.5 at -240` is a favourite's ordinary alternate
+  // line; `+1.5 at +130` is a contradiction. No threshold is invented — both
+  // sides become implied probabilities and are compared to each other, the same
+  // comparison favouriteAgreement already makes on the moneyline.
+  t('a home ML favourite whose spread price also favours home AGREES',
+    adjudicate(-140, 120, -240, 190) === 'agrees on price');
+  t('a home ML favourite taking plus money on the handicap is CONTRADICTED',
+    adjudicate(-140, 120, 130, -160) === 'contradicted by price');
+  t('a capture with no price says so rather than guessing',
+    adjudicate(-140, 120, null, null) === 'no price',
+    'every capture before 2026-08-26 has none, and guessing would invent data');
+  t('one price missing is still no price',
+    adjudicate(-140, 120, -240, null) === 'no price');
+  t('implied probability is the standard conversion',
+    Math.abs(impliedProb(-200) - 2 / 3) < 1e-9 && Math.abs(impliedProb(100) - 0.5) < 1e-9);
+  t('an even price on both sides is named, not forced to a side',
+    adjudicate(-140, 120, -110, -110) === 'price is even');
   t('a home ML favourite holding the negative handicap agrees',
     shadowVerdict(-156, 129, -1.5, 1.5) === 'agree', shadowVerdict(-156, 129, -1.5, 1.5));
   t('the 2026-08-25 Padres row disagrees',
@@ -187,6 +231,9 @@ for (const d of dates) {
       real: fa.cases()[fa.tag],
       shadow: shadowVerdict(mh, ma, sh, sa),
       ...bandOf(mh, ma), mh, ma, sh,
+      // The prices beside the handicap. Absent on every capture before
+      // 2026-08-26, which is most of the corpus and always will be.
+      shp: o.SpreadHomePrice ?? null, sap: o.SpreadAwayPrice ?? null,
       // For the plausibility pass below. `RawCapturedAt` is the string the
       // relay stored, not a reparse, so a comparison against `FinalizedAt` is
       // between two values the relay itself wrote.
@@ -261,9 +308,17 @@ console.log('  market behaving the same way on both sides near the boundary.');
 
 const worst = rows.filter(r => r.shadow === 'disagree').sort((a, b) => b.ratio - a.ratio).slice(0, 12);
 if (worst.length) {
+  const adj = worst.map(r => adjudicate(r.mh, r.ma, r.shp, r.sap));
+  const withPrice = adj.filter(v => v !== 'no price').length;
+  console.log(`\nADJUDICABLE BY PRICE: ${withPrice} of ${worst.length}`);
+  if (withPrice === 0)
+    console.log('  Every disagreement here predates the 2026-08-26 spread-price capture,');
+    console.log('  so none can be settled yet. This number rises as new ones accrue.');
   console.log('\nEVERY DISAGREEMENT, widest separation first');
   for (const r of worst) {
-    console.log(`  ${r.date}  ${r.id.slice(0, 44).padEnd(44)} ML ${String(r.mh).padStart(5)}/${String(r.ma).padStart(5)}  H ${String(r.sh).padStart(5)}  ratio ${r.ratio.toFixed(2)}  ${r.real}`);
+    const verdict = adjudicate(r.mh, r.ma, r.shp, r.sap);
+    const priced = r.shp == null ? '' : ` @ ${String(r.shp).padStart(5)}/${String(r.sap).padStart(5)}`;
+    console.log(`  ${r.date}  ${r.id.slice(0, 44).padEnd(44)} ML ${String(r.mh).padStart(5)}/${String(r.ma).padStart(5)}  H ${String(r.sh).padStart(5)}${priced}  ratio ${r.ratio.toFixed(2)}  ${r.real}  ${verdict}`);
   }
 }
 // ── ODDS PLAUSIBILITY ───────────────────────────────────────────────────────
