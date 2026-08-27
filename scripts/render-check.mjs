@@ -144,6 +144,7 @@ let chips = []
 let filled = []
 let waitErr = null
 let pageAccount = ''
+let wxTiming = ''
 
 // Relay values that occupy the `venue` column without naming a venue.
 //
@@ -190,6 +191,30 @@ if (!pinned) {
       '#panel-weather .wx-partial, #panel-weather .wx-empty, #panel-weather .wx-idle',
       ns => ns.map(n => (n.textContent || '').trim()).filter(Boolean))).join(' | ')
   }
+
+  // The browser's own timing for every Open-Meteo request, which is the arbiter
+  // for why chips go missing.
+  //
+  // The page's failure reasons say a request timed out; they cannot say whether
+  // the ones that SUCCEEDED were fast or slow, and that difference is the whole
+  // diagnosis. Two runs lost exactly one wave's worth of chips — the first —
+  // while later waves answered comfortably (33034815620: 13 venues in waves of
+  // 4/4/4/1, four lost; 33076011728: 6 venues in waves of 4/2, four lost).
+  // Raising the cap 4s -> 8s moved the failures from 4001ms to 8000ms and fixed
+  // none, which is the shape of a connection-setup cost rather than a slow
+  // service. This line is what confirms or refutes that on the next run.
+  //
+  // `startTime` and `duration` only. The connection phases (domainLookupStart,
+  // connectEnd, secureConnectionStart) read ZERO for a cross-origin resource
+  // unless the server sends `Timing-Allow-Origin`, and Open-Meteo does not — so
+  // reporting them would be reporting zeroes as measurements. Start time
+  // separates the waves and duration is what each one cost, which is enough to
+  // tell "wave 1 was slow" from "everything was slow".
+  wxTiming = await page.evaluate(() =>
+    performance.getEntriesByType('resource')
+      .filter(e => e.name.includes('open-meteo'))
+      .map(e => `${Math.round(e.startTime)}+${Math.round(e.duration)}ms`)
+      .join(' '))
 }
 
 // Attribute empty chips: if they did not fill, was Open-Meteo reachable at all?
@@ -395,7 +420,8 @@ if (!pinned) {
       expected > 0 && filled.length === expected,
       `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled. ` +
       `Open-Meteo answered this runner: ${probeSaw}. ` +
-      `The page reported: ${pageAccount || '(nothing — the panel said nothing at all)'}`)
+      `The page reported: ${pageAccount || '(nothing — the panel said nothing at all)'}. ` +
+      `Request timings (start+duration): ${wxTiming || '(no Open-Meteo request was made at all)'}`)
     // Anchored and whole-string: `includes('61')` would accept 161°F, and a bare
     // prefix would accept a chip that had grown a stray suffix.
     check('every live chip reads as a temperature and nothing else',
