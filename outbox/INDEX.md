@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `944722f` | 2026-08-27 | [2026-08-27-the-ledger-found-its-own-answer.md](2026-08-27-the-ledger-found-its-own-answer.md) | fix: point the chrome check at the fixture that was already there |
 | `d968c59` | 2026-08-26 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census: the asymmetry test came back 10-0 |
 | `d968c59` | 2026-08-26 | [2026-08-26-the-asymmetry-is-total.md](2026-08-26-the-asymmetry-is-total.md) | census: the asymmetry test came back 10-0 |
 | `961e3be` | 2026-08-26 | [favourite-band-census-20260826T185716Z.txt](favourite-band-census-20260826T185716Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
