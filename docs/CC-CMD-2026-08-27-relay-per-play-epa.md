@@ -94,11 +94,36 @@ Response shape, per play, and no more than this:
 carried through **as ESPN gives it** — a string. That matters downstream: see the
 open question below.
 
+> **CORRECTED 2026-08-27, at execution.** The shape above was written without
+> reading the renderer. `_buildUFLEpaHTML` prints `lp.situation`, so a route
+> serving only these five fields is one its only consumer cannot render from —
+> the switch was blocked on it. The line "belongs to whoever displays it" is
+> still right and the shape was still wrong: the relay now serves the three
+> numbers the label is built from (`down`, `distance`, `yardsToEndzone`, under
+> ESPN's own names) and the client formats them in `_epaSituation`. Both the
+> transcription check and the live probe assert the label rebuilds from those
+> numbers byte for byte, so the string's absence is measured lossless rather
+> than asserted to be. Also added: `drive`, `currentDrive`, `driveCount` — the
+> client renders ONE drive and could not otherwise tell which plays are in it.
+
 **Client.** `jubilant-bassoon` switches `_fetchNFLGameEpa` to read this route
 instead of computing. `_computeESPNPlayEPA`, `_epLookup` and `_epTableLoad` are
 then dead and must be deleted in the same change, not left beside the new path —
 two models is the thing this ask exists to prevent, and leaving the old one
 "just in case" recreates it.
+
+> **CORRECTED 2026-08-27, at execution. Only `_computeESPNPlayEPA` was dead.**
+> `_epLookup` has six call sites, not three: `_computeESPNPlayEPA` (6894, 6905,
+> 6910) **and `_computeSRPlayEPA`** (6762, 6771, 6778), the UFL/SportRadar
+> model. This route is NFL-only. Deleting `_epLookup`, `_epTable` and
+> `_epTableLoad` as instructed would have taken the UFL EPA panel with it, and
+> the instruction was written without grepping for the second caller — the
+> Rule 71 step this document's own probe block demands.
+>
+> The end state is one model per sport, not two models of one quantity, which
+> is what the ask actually wanted. `_computeSRPlayEPA` stays a browser-side
+> model until a relay route covers UFL too; that is a separate ask and is not
+> filed, because nothing needs it yet.
 
 ## Open question this ask does NOT decide
 
@@ -128,3 +153,46 @@ Not "the route deploys". All three, as probe output:
 
 Do not touch: `wrangler.toml` bindings, cron frequencies, any existing route,
 `PlayFrame.fs` (frozen), the drama or volatility paths.
+
+## CLOSED 2026-08-27 — all three done conditions met
+
+| # | condition | result |
+|---|---|---|
+| 1 | non-empty `plays`, finite `epa`/`ep_start`/`ep_end`, boolean `scoringPlay` | **PASS** — live probe run 33123265487, `outbox/nfl-epa-route-probe-2026-08-27T22-37-58-947Z.json` in field-relay-nba |
+| 2 | relay `epa` equals the client's to 2dp, ≥10 enumerated pairs | **PASS** — Seahawks at Titans, 149 route plays / 149 client plays / **0 disagreements**, 12 pairs enumerated in that artifact, all non-zero (`-0.17, 1.08, -0.47, 0.8, 0.1, 0.18, 1.31, 3.43, 0.86, -0.02, 0.06, -0.65`) |
+| 3 | `grep -c "_computeESPNPlayEPA"` in the client returns 0 | **PASS** — jubilant-bassoon `7f6fab4`, and smoke assertion **A-NFLEPA-2** now asserts the absence on every build, so the grep is a blocking check rather than a one-off |
+
+Commits: field-relay-nba `7d95d2f` (situation inputs, truthful `currentDrive`),
+`fca3665` (daily heartbeat, named checks in the artifact); jubilant-bassoon
+`7f6fab4` (the switch, smoke 986/0, SW_VERSION `2026-08-27a`).
+
+### Three defects the execution found, all the same shape
+
+**The route passed the whole `epa_table.json` document to the lookup.** The 1120
+entries live under `.ep`. Every key missed, `?? 0` came back, and the live probe
+reported "ROUTE MATCHES CLIENT — 0 disagreements" — both sides agreeing on a
+field of zeros, because only the client had unwrapped. The tell was a touchdown
+scoring exactly 6.96.
+
+**`currentDrive` was named for one thing and measured another.** Its two ternary
+arms were the same expression: it meant "the drive in progress" and computed
+"the index of the last drive".
+
+**Both "verbatim" copies of the client reference had silently dropped its
+`downs`/`sit` lines.** Nothing compared `situation`, so the omission cost nothing
+and stayed invisible until a new check read it and got the string `"undefined"`
+for all 305 plays. A reference pruned to what is currently checked agrees with
+whatever it was pruned to match.
+
+### Follow-up, automated (no carry-forward, Rule 87)
+
+`nfl-epa-route-probe.yml` reverses its own "NO SCHEDULE" and adds a daily cron,
+because the client became a live consumer of this route today: an upstream ESPN
+shape change needs no push from either repo to break it, and the transcription
+check is offline. `NOT OBSERVABLE` stays fatal on a deploy and is neutral on the
+heartbeat. Each run now records its assertions by name in the committed manifest.
+
+**PlayFrame stays frozen** at `6f23c76`. This ask was meant to unfreeze it by
+giving it a producer, and it has one now — but wiring the frame to this route is
+the open question above (`PlayId` is a 64-bit numeric field; ESPN's `id` is a
+string), and that decision is not this ask's.
