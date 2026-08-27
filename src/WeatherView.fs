@@ -3,6 +3,7 @@ module WeatherView
 open Browser.Types
 open Browser
 open Fable.Core
+open Fable.Core.JsInterop
 open Fetch
 open Weather
 
@@ -181,10 +182,35 @@ let fillCards (outcome: SlateWeather) =
 /// `Promise.allSettled`, and for the same reason playground gives: one bad venue
 /// should degrade to that venue missing, not hide every success behind one
 /// transient error.
+/// A deadline on every request.
+///
+/// verify run 33034386499 (2026-08-27) reported `0 chip(s) filled ... The page
+/// reported: Loading conditions…`. That string is `.wx-idle`, which `renderIdle`
+/// writes and `render` REPLACES. So the panel was not showing an outage twenty
+/// seconds in — it was still waiting. `fetchOne` catches every rejection, which
+/// makes a failure safe; it had no deadline, which makes a request that simply
+/// never answers fatal. Its wave's `Promise.all` stays pending forever, and the
+/// waves below run in SEQUENCE, so one silent socket stalls all four and the
+/// weather surface never resolves at all — no chips, no outage line, no reason.
+///
+/// The node-side `weather-live-check.mjs` has always passed
+/// `AbortSignal.timeout(15_000)` on its probe. The page asking the same service
+/// had nothing.
+///
+/// 4000ms is arithmetic, not taste: the waves are sequential, so the slate's
+/// worst case is waves x timeout = 4 x 4s = 16s, inside live-check's 20s chip
+/// wait. For scale, the whole thirteen-venue slate answered in about three
+/// seconds on run 33032652416 — this is roughly four times that, applied to
+/// each single request rather than to all of them.
+[<Emit("AbortSignal.timeout($0)")>]
+let private timeoutSignal (ms: int) : AbortSignal = jsNative
+
+let private requestTimeoutMs = 4000
+
 let private fetchOne (venue: Venues.Venue) : JS.Promise<Result<VenueWeather, string>> =
     promise {
         try
-            let! response = fetch (forecastUrl venue.Where) []
+            let! response = fetch (forecastUrl venue.Where) [ Signal(timeoutSignal requestTimeoutMs) ]
             if not response.Ok then
                 return Error(sprintf "%s: HTTP %d" venue.Name response.Status)
             else
