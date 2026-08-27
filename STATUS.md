@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `e479727` — [run 33034815620](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33034815620)
+**running** on `82ce843`
 
 ## Is the live artifact healthy?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `944722f` — behind newest deployable `e479727` (deploy not landed) |
+| Cloudflare Workers | live | `944722f` — behind newest deployable `82ce843` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`favourite-mismatch` on 2026-08-26 — 30 games, 0 malformed (52 runs logged)
+`favourite-mismatch` on 2026-08-26 — 30 games, 0 malformed (53 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)

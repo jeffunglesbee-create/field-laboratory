@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4ad24cc` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
+| `4ad24cc` | 2026-08-27 | [sport-vocabulary-2026-08-27T03-04-16-848Z.json](sport-vocabulary-2026-08-27T03-04-16-848Z.json) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
+| `82ce843` | 2026-08-27 | [2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md](2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md) | fix: bound the slate, not each wave; the deadline was a quotient of maxInFlight |
 | `e479727` | 2026-08-27 | [2026-08-27-weather-fetch-had-no-deadline.md](2026-08-27-weather-fetch-had-no-deadline.md) | fix: give the weather fetch a deadline; a hung request stalled the whole slate |
 | `2d3f54d` | 2026-08-27 | [2026-08-27-verify-159-weather-attribution.md](2026-08-27-verify-159-weather-attribution.md) | fix: a total weather failure carries what each request reported |
 | `7f9c78a` | 2026-08-27 | [2026-08-27-adjudication-by-price.md](2026-08-27-adjudication-by-price.md) | feat: the spread price reaches the census; 0 of 13 can be settled with it |
