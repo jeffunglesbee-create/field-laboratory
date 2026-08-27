@@ -7,16 +7,16 @@
 <!-- Suppresses the browser's automatic /favicon.ico request, which would
      otherwise be the only 404 in the render check. -->
 <link rel="icon" href="data:,">
-<!-- The weather chips fetch api.open-meteo.com directly from the page. Without
-     this, the FIRST fan-out wave pays DNS + TCP + TLS for the whole slate, and
-     that cost is measured, not assumed: verify 33034815620 (13 venues, waves of
-     4/4/4/1) and 33076011728 (6 venues, waves of 4/2) each lost EXACTLY four
-     chips — one wave's worth, the first — while every later wave answered well
-     inside the same budget. Raising the per-request cap from 4s to 8s moved the
-     failures from 4001ms to 8000ms and fixed none of them, which is what a
-     connection-setup cost looks like and not what a slow service looks like.
-     preconnect pays it once, during page load, before any fetch is issued. -->
-<link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+<!-- A preconnect to api.open-meteo.com was here from f7c0248 and is REMOVED.
+     It was added on the reading that the first weather fan-out wave was paying
+     DNS + TCP + TLS for the whole slate. Run 33078924162 measured that page and
+     refuted it: with the preconnect live, the first wave still hung to its cap —
+     `635+7999ms 635+8000ms 636+8000ms 636+8001ms` — and the connection was
+     already warm. The hang is not connection setup. It is the intermittent
+     reachability recorded in outbox/cc-the-runner-lost-open-meteo-2026-08-12.md,
+     and what handles it is the retry in WeatherView.fetchSlate, measured on the
+     same run recovering all four in 158-325ms. A tag kept for a reason that has
+     been disproved is a comment that lies, so it goes. -->
 <!--DESIGN-TOKENS-->
 <style>
   :root {
