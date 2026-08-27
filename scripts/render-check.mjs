@@ -54,6 +54,28 @@ page.on('console', m => { if (m.type() === 'error') errors.push(`console: ${m.te
 // The bounded waitForFunction on #decode-status directly below is this
 // script's real precondition and is unchanged, so dropping networkidle
 // removes a redundant wait rather than weakening the check.
+// WHICH BUILD IS THIS. `build-site.mjs` writes the commit to `public/version.txt`
+// and the deployed worker serves it, so the answer is one fetch away and was
+// never asked.
+//
+// It cost a wrong conclusion today. verify tests the DEPLOYED site, and deploy
+// is a separate workflow that runs AFTER verify: run 33076464112 passed at
+// 13:24:12 and `f7c0248`'s deploy did not start until 13:24:29, so the run that
+// was read as "preconnect works, 22/22" had measured the build from BEFORE
+// preconnect. The first run that provably tested it, 33076823553 at 13:28:41,
+// failed. The same confound produced the false start of this session's weather
+// investigation at run 159.
+//
+// Printed on every run and carried into the chip failure, so no future reading
+// of these numbers has to reconstruct which bytes produced them.
+let builtFrom = 'unreadable'
+try {
+  const r = await fetch(new global.URL(URL).origin + '/version.txt',
+                        { signal: AbortSignal.timeout(10_000) })
+  if (r.ok) builtFrom = (await r.text()).trim().slice(0, 7)
+  else builtFrom = `version.txt -> HTTP ${r.status}`
+} catch (e) { builtFrom = `version.txt unreachable — ${e.message}` }
+
 await page.goto(URL, { waitUntil: 'domcontentloaded' })
 // Wait for the status line to be filled, NOT for a card. A card may legitimately
 // not exist on an empty live slate, and waiting for one would throw before a
@@ -363,6 +385,7 @@ check('every NOT SEQUENCED card really is out of sequence',
 check('no page or console errors', errors.length === 0, errors.join('; ') || 'none')
 
 console.log(`\nURL: ${URL}`)
+console.log(`built from:    ${builtFrom}`)
 console.log(`decode-status: ${status}`)
 console.log(`units-demo:    ${units}\n`)
 for (const c of cards) {
@@ -432,7 +455,8 @@ if (!pinned) {
       `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled. ` +
       `Open-Meteo answered this runner: ${probeSaw}. ` +
       `The page reported: ${pageAccount || '(nothing — the panel said nothing at all)'}. ` +
-      `Request timings (start+duration): ${wxTiming || '(no Open-Meteo request was made at all)'}`)
+      `Request timings (start+duration): ${wxTiming || '(no Open-Meteo request was made at all)'}. ` +
+      `Page built from: ${builtFrom}`)
     // Anchored and whole-string: `includes('61')` would accept 161°F, and a bare
     // prefix would accept a chip that had grown a stray suffix.
     check('every live chip reads as a temperature and nothing else',
