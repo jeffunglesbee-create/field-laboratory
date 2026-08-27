@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `c6ceb27` — [run 33076823553](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33076823553)
+**FAILURE** on `2408ed3` — [run 33077324005](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33077324005)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `c6ceb27` — [run 33077032038](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33077032038)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `2408ed3` — [run 33077563301](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33077563301)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `f7c0248` — behind newest deployable `c6ceb27` (deploy not landed) |
+| Cloudflare Workers | live | `f7c0248` — behind newest deployable `2408ed3` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
