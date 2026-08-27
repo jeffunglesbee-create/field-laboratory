@@ -339,6 +339,118 @@ let private weather =
           [ "Minute Maid Park"; "Daikin Park"; "Wrigley Field" ]
           [ "Minute Maid Park"; "Wrigley Field"; "Fenway Park" ]
 
+      // --- binary frame ingest ------------------------------------------------
+      //
+      // This block is the ONLY consumer of PlayFrame, and `unused-check` is what
+      // enforces that it stays one. Every round trip is against bytes written
+      // here through `PlayFrame.Wire`, so no assertion can be satisfied by the
+      // reader agreeing with itself.
+      //
+      // Every counterexample below fails for a reason specific to its property.
+      // A shared "obviously wrong" input would make the whole block one
+      // assertion written eight times.
+
+      // Truncation is what MemoryMarshal.Cast does SILENTLY: 25 bytes casts to
+      // one record and the trailing byte vanishes. 24 is the counterexample
+      // because it is the nearest input that really is whole.
+      Verify.check "bytes that are not a whole number of records are refused"
+          (fun n ->
+              match PlayFrame.frame (PlayFrame.Wire.allocateBytes n) with
+              | PlayFrame.PartialRecord(len, rem) -> len = n && rem = n % PlayFrame.RecordBytes
+              | _ -> false)
+          25 24
+
+      Verify.check "an empty payload is NoRecords, not a truncation"
+          (fun n ->
+              match PlayFrame.frame (PlayFrame.Wire.allocateBytes n) with
+              | PlayFrame.NoRecords -> true
+              | _ -> false)
+          0 24
+
+      Verify.check "a whole payload reports the record count it really holds"
+          (fun n ->
+              match PlayFrame.frame (PlayFrame.Wire.allocate n) with
+              | PlayFrame.Records(_, count) -> count = n
+              | _ -> false)
+          3 0
+
+      // float32 round-trip. 0.5 is exact in float32; 0.1 is NOT, and that is the
+      // counterexample — it fails for the real reason, a 24-bit significand,
+      // which also records where the precision boundary sits.
+      Verify.check "a float32 field round-trips through the wire layout"
+          (fun x ->
+              let b = PlayFrame.Wire.allocate 1
+              let w = PlayFrame.Wire.viewOver b
+              PlayFrame.Wire.putFloat32 w (PlayFrame.Wire.at 0 PlayFrame.Offset.WinProbability) x
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) -> PlayFrame.winProbability v 0 = x
+              | _ -> false)
+          0.5 0.1
+
+      // Big-endianness, proved from raw bytes rather than from the writer's own
+      // flag. 3F 00 00 00 is 0.5 read big-endian and 8.99e-44 read little-endian,
+      // so the counterexample is the little-endian interpretation of the very
+      // same four bytes — the value a flipped flag would produce.
+      Verify.check "the reader is big-endian: 3F 00 00 00 is 0.5, not a denormal"
+          (fun expected ->
+              let b = PlayFrame.Wire.allocate 1
+              let w = PlayFrame.Wire.viewOver b
+              let o = PlayFrame.Wire.at 0 PlayFrame.Offset.WinProbability
+              PlayFrame.Wire.putByte w o 0x3F
+              PlayFrame.Wire.putByte w (o + 1) 0
+              PlayFrame.Wire.putByte w (o + 2) 0
+              PlayFrame.Wire.putByte w (o + 3) 0
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) -> PlayFrame.winProbability v 0 = expected
+              | _ -> false)
+          0.5 8.968310171676393e-44
+
+      // Each field reads its own offset. The counterexample writes to
+      // LeverageIndex and expects WinProbability to have changed, which is
+      // exactly what an off-by-one in the offset table would produce.
+      Verify.check "each field reads its own offset, not its neighbour's"
+          (fun (writeField, readField) ->
+              let b = PlayFrame.Wire.allocate 1
+              let w = PlayFrame.Wire.viewOver b
+              PlayFrame.Wire.putFloat32 w (PlayFrame.Wire.at 0 writeField) 7.5
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) ->
+                  (if readField = PlayFrame.Offset.WinProbability then PlayFrame.winProbability v 0
+                   elif readField = PlayFrame.Offset.ExpectedPointsAdded then PlayFrame.expectedPointsAdded v 0
+                   else PlayFrame.leverageIndex v 0) = 7.5
+              | _ -> false)
+          (PlayFrame.Offset.LeverageIndex, PlayFrame.Offset.LeverageIndex)
+          (PlayFrame.Offset.LeverageIndex, PlayFrame.Offset.WinProbability)
+
+      // A wire byte of 2 is legal on the wire and an INVALID bool instance under
+      // MemoryMarshal.Cast, where the CLR may take either branch. Here the byte
+      // is the storage and the comparison is explicit, so 2 reads true and 0
+      // reads false — every value in 0-255 has exactly one meaning.
+      Verify.check "the scoring flag is a byte comparison, so a wire byte of 2 is not undefined"
+          (fun flag ->
+              let b = PlayFrame.Wire.allocate 1
+              let w = PlayFrame.Wire.viewOver b
+              PlayFrame.Wire.putByte w (PlayFrame.Wire.at 0 PlayFrame.Offset.ScoringFlag) flag
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) -> PlayFrame.isScoringPlay v 0
+              | _ -> false)
+          2 0
+
+      // hi * 2^32 + lo <= 2^53 - 1 with lo at most 2^32 - 1 gives hi <= 2^21 - 1.
+      // 2097152 is the first high word that does not survive a double, and it
+      // must be REFUSED rather than silently rounded.
+      Verify.check "an id past 2^53 is flagged rather than silently rounded"
+          (fun hi ->
+              let b = PlayFrame.Wire.allocate 1
+              let w = PlayFrame.Wire.viewOver b
+              let o = PlayFrame.Wire.at 0 PlayFrame.Offset.PlayId
+              PlayFrame.Wire.putUint32 w o hi
+              PlayFrame.Wire.putUint32 w (o + 4) 4294967295.0
+              match PlayFrame.frame b with
+              | PlayFrame.Records(v, _) -> PlayFrame.playIdIsExact v 0
+              | _ -> false)
+          2097151.0 2097152.0
+
       // The empty state that means four things. Playground throws to avoid it;
       // a throw is swallowable and production's six undefined functions are what
       // swallowing looks like.

@@ -61,6 +61,9 @@
     <!-- The F# suite and its node entry point. Below Program.fs because nothing
          imports them; `node build/VerifyMain.js` is a second entry, and it must
          not pull in Program's browser side effects. -->
+    <!-- Binary frame ingest. Depends on nothing and is read only by Suite.fs,
+         which is where every one of its public bindings is exercised. -->
+    <Compile Include="PlayFrame.fs" />
     <!-- Real captures read from disk, for the suite only. Above Suite.fs. -->
     <Compile Include="Fixtures.fs" />
     <Compile Include="Suite.fs" />
