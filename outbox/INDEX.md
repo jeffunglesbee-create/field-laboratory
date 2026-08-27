@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6f23c76` | 2026-08-27 | [2026-08-27-the-frame-says-which-frame-it-is.md](2026-08-27-the-frame-says-which-frame-it-is.md) | feat: the frame says which frame it is — a versioned layout that refuses |
 | `498999e` | 2026-08-27 | [2026-08-27-epa-as-producer-fills-two-of-five.md](2026-08-27-epa-as-producer-fills-two-of-five.md) | feat: the frame can say "absent" — epa.js fills two of its five fields |
 | `a8dbd51` | 2026-08-27 | [2026-08-27-preconnect-removed.md](2026-08-27-preconnect-removed.md) | fix: remove the preconnect tag — the reading that added it was refuted |
 | `2a58138` | 2026-08-27 | [2026-08-27-the-retry-verified-on-the-hang-path.md](2026-08-27-the-retry-verified-on-the-hang-path.md) | docs: the timing line, read — the retry measured end to end [skip ci] |
