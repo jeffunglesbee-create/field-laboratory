@@ -182,45 +182,68 @@ let fillCards (outcome: SlateWeather) =
 /// `Promise.allSettled`, and for the same reason playground gives: one bad venue
 /// should degrade to that venue missing, not hide every success behind one
 /// transient error.
-/// A deadline on every request.
+/// Two deadlines, because one of them was measuring the wrong thing.
 ///
-/// verify run 33034386499 (2026-08-27) reported `0 chip(s) filled ... The page
-/// reported: Loading conditions…`. That string is `.wx-idle`, which `renderIdle`
-/// writes and `render` REPLACES. So the panel was not showing an outage twenty
-/// seconds in — it was still waiting. `fetchOne` catches every rejection, which
-/// makes a failure safe; it had no deadline, which makes a request that simply
-/// never answers fatal. Its wave's `Promise.all` stays pending forever, and the
-/// waves below run in SEQUENCE, so one silent socket stalls all four and the
-/// weather surface never resolves at all — no chips, no outage line, no reason.
+/// The first attempt (e479727) gave each request `AbortSignal.timeout 4000` and
+/// took the slate from 0 chips to 9 of 13. The four that missed said so —
+/// `Comerica Park: signal timed out`, and three more — which is the point of
+/// the reasons landing on the page. But 4000 was not chosen for what a request
+/// costs. It was chosen because the waves run in SEQUENCE, so the slate's worst
+/// case is `waves x timeout`, and 4 x 4s was what fitted inside render-check's
+/// 20s chip wait. The per-request budget was being squeezed by the wave count.
 ///
-/// The node-side `weather-live-check.mjs` has always passed
-/// `AbortSignal.timeout(15_000)` on its probe. The page asking the same service
-/// had nothing.
+/// That coupling is the defect, not the number. It gets worse as the slate
+/// grows: twenty-five venues is seven waves, and 7 x 4s = 28s breaks the same
+/// check again on a page nobody touched.
 ///
-/// 4000ms is arithmetic, not taste: the waves are sequential, so the slate's
-/// worst case is waves x timeout = 4 x 4s = 16s, inside live-check's 20s chip
-/// wait. For scale, the whole thirteen-venue slate answered in about three
-/// seconds on run 33032652416 — this is roughly four times that, applied to
-/// each single request rather than to all of them.
+/// So the SLATE gets the deadline that has to hold, and each request gets
+/// whatever is left of it, capped. `min(perRequest, remaining)`:
+///
+///   * total wall clock is bounded by `slateDeadlineMs` whatever the slate
+///     size — the wave count no longer enters the arithmetic;
+///   * one request that never answers costs `requestCapMs`, not the budget;
+///   * a request cannot start against a deadline that has already passed.
+///
+/// The numbers: 14s for the slate, inside the 20s wait with room for page load.
+/// 8s per request, which is twice what just failed and no longer has to divide
+/// into anything. Neither is a guess about what Open-Meteo costs — that is
+/// still unmeasured, which is why the elapsed time now rides in the failure
+/// reason. The next run that misses a chip reports how long it actually waited,
+/// and the number after this one will be an observation.
 [<Emit("AbortSignal.timeout($0)")>]
 let private timeoutSignal (ms: int) : AbortSignal = jsNative
 
-let private requestTimeoutMs = 4000
+[<Emit("Date.now()")>]
+let private nowMs () : float = jsNative
 
-let private fetchOne (venue: Venues.Venue) : JS.Promise<Result<VenueWeather, string>> =
+let private slateDeadlineMs = 14000.0
+let private requestCapMs = 8000.0
+
+let private fetchOne (deadlineAt: float) (venue: Venues.Venue) : JS.Promise<Result<VenueWeather, string>> =
     promise {
+        let startedAt = nowMs ()
+        let remaining = deadlineAt - startedAt
+        let took () = int (nowMs () - startedAt)
+        if remaining <= 0.0 then
+            // Named separately from a timeout. This request never ran; an
+            // earlier one spent the slate's budget, and "did not answer" would
+            // blame the wrong thing.
+            return Error(sprintf "%s: not attempted, the slate's %dms budget was already spent"
+                                 venue.Name (int slateDeadlineMs))
+        else
         try
-            let! response = fetch (forecastUrl venue.Where) [ Signal(timeoutSignal requestTimeoutMs) ]
+            let budget = int (min requestCapMs remaining)
+            let! response = fetch (forecastUrl venue.Where) [ Signal(timeoutSignal budget) ]
             if not response.Ok then
-                return Error(sprintf "%s: HTTP %d" venue.Name response.Status)
+                return Error(sprintf "%s: HTTP %d after %dms" venue.Name response.Status (took ()))
             else
                 let! body = response.text ()
                 match decodeReading body with
                 | Ok reading ->
                     return Ok { Venue = venue.Name; Where = venue.Where; Roof = venue.Roof; Reading = reading }
-                | Error why -> return Error(sprintf "%s: %s" venue.Name why)
+                | Error why -> return Error(sprintf "%s: %s after %dms" venue.Name why (took ()))
         with e ->
-            return Error(sprintf "%s: %s" venue.Name e.Message)
+            return Error(sprintf "%s: %s after %dms" venue.Name e.Message (took ()))
     }
 
 /// How many Open-Meteo requests may be in flight at once.
@@ -267,9 +290,13 @@ let fetchSlate (venueNames: string list) : JS.Promise<SlateWeather * string list
         else
             // Waves run in sequence; each wave's requests run together. Order is
             // preserved so a failure still names the venue it belongs to.
+            // One deadline for the whole slate, fixed before the first wave starts.
+            // Every request measures its own budget against this instant, so
+            // the total is bounded no matter how many waves the slate needs.
+            let deadlineAt = nowMs () + slateDeadlineMs
             let mutable settledAll : Result<VenueWeather, string> list = []
             for wave in waves maxInFlight targets do
-                let! settled = wave |> List.map fetchOne |> Promise.all
+                let! settled = wave |> List.map (fetchOne deadlineAt) |> Promise.all
                 settledAll <- settledAll @ List.ofSeq settled
             let results = settledAll
             let readings = results |> List.choose (function Ok r -> Some r | Error _ -> None)
