@@ -97,12 +97,30 @@ open Fable.Core.JsInterop
 
 let [<Literal>] RecordBytes = 24
 
+/// The layout this reader understands.
+///
+/// A binary format has one failure mode JSON does not: a reader given bytes some
+/// other build wrote does not fail, it MISREADS. No exception, no missing key —
+/// just numbers off by an offset, arriving as though measured. This session
+/// spent a day on the softer version of that (a check measuring a build that
+/// predated the change it was testing) and the fix there was to make the run
+/// state which bytes it read. Same fix, one layer down: every record says which
+/// layout it is, and a reader that does not know that layout REFUSES instead of
+/// interpreting.
+///
+/// It costs nothing. Byte 21 was padding — the record is 24 bytes for the
+/// int64's alignment either way, so the version and the two reserved bytes are
+/// free.
+let [<Literal>] FormatVersion = 1
+
 module Offset =
     let [<Literal>] PlayId = 0               // int64, bytes 0-7
     let [<Literal>] WinProbability = 8       // float32, bytes 8-11
     let [<Literal>] ExpectedPointsAdded = 12 // float32, bytes 12-15
     let [<Literal>] LeverageIndex = 16       // float32, bytes 16-19
     let [<Literal>] ScoringFlag = 20         // uint8,   byte 20
+    let [<Literal>] FormatVersion = 21       // uint8,   byte 21
+    let [<Literal>] Reserved = 22            // bytes 22-23, must be zero
 
 // --- bindings ----------------------------------------------------------------
 //
@@ -155,6 +173,15 @@ type Frame =
     /// Bytes that are not a whole number of records. Named with the remainder,
     /// because "how much is left over" is the first thing anyone asks.
     | PartialRecord of byteLength: int * remainder: int
+    /// A record declares a layout this reader does not know. Carries the version
+    /// it found and where, so the report names the mismatch rather than the
+    /// symptom.
+    | UnknownLayout of version: int * atRecord: int
+    /// A byte this version defines as zero is not zero: the writer knew about a
+    /// field this reader does not. Distinct from `UnknownLayout` because it is a
+    /// different mistake — an undeclared extension rather than a declared bump —
+    /// and they are fixed differently.
+    | ReservedInUse of atRecord: int
 
 /// Classify a payload. The only constructor for `Frame`, so a caller cannot
 /// build `Records` over a buffer that does not divide.
@@ -162,7 +189,27 @@ let frame (buffer: ArrayBuffer) : Frame =
     let n = byteLength buffer
     if n = 0 then NoRecords
     elif n % RecordBytes <> 0 then PartialRecord(n, n % RecordBytes)
-    else Records(viewOf buffer, n / RecordBytes)
+    else
+        let v = viewOf buffer
+        let count = n / RecordBytes
+        // EVERY record, not the first one.
+        //
+        // Sampling would be cheaper and would be a check that passes on the
+        // bytes it did not look at — the vacuity this repo keeps finding. The
+        // cost is one byte read per 24, which is nothing beside what any
+        // consumer then does with the record, and it makes the guarantee total:
+        // if this returns `Records`, every record in it is this layout.
+        let mutable bad = -1
+        let mutable reserved = -1
+        let mutable i = 0
+        while i < count && bad < 0 && reserved < 0 do
+            if u8 v (i * RecordBytes + Offset.FormatVersion) <> FormatVersion then bad <- i
+            elif u8 v (i * RecordBytes + Offset.Reserved) <> 0
+                 || u8 v (i * RecordBytes + Offset.Reserved + 1) <> 0 then reserved <- i
+            i <- i + 1
+        if bad >= 0 then UnknownLayout(u8 v (bad * RecordBytes + Offset.FormatVersion), bad)
+        elif reserved >= 0 then ReservedInUse reserved
+        else Records(v, count)
 
 // --- field access ------------------------------------------------------------
 //
@@ -248,8 +295,30 @@ module Wire =
     [<Emit("new ArrayBuffer($0)")>]
     let private buffer (bytes: int) : ArrayBuffer = jsNative
 
-    /// A buffer sized for exactly `records` whole records.
-    let allocate (records: int) : ArrayBuffer = buffer (records * RecordBytes)
+    [<Emit("new DataView($0)")>]
+    let private viewOverRaw (b: ArrayBuffer) : DataView = jsNative
+
+    [<Emit("$0.setUint8($1, $2)")>]
+    let private putByteRaw (v: DataView) (offset: int) (x: int) : unit = jsNative
+
+    /// A buffer sized for exactly `records` whole records, every one of them
+    /// already stamped with `FormatVersion`.
+    ///
+    /// Stamped here rather than left to the caller because the alternative was
+    /// measured: adding the version byte turned six existing checks red at once,
+    /// all of them hand-building a buffer and hand-writing two fields into it.
+    /// They were not wrong — a raw `ArrayBuffer` is zeroed, so every record
+    /// declared layout 0 and was correctly refused. Making the allocator stamp
+    /// gives the invariant a name: a buffer from `allocate` IS a valid frame of
+    /// this layout, and a caller cannot forget the one byte that makes it
+    /// readable. `allocateBytes` stays raw, because its whole job is producing
+    /// lengths that are not whole records.
+    let allocate (records: int) : ArrayBuffer =
+        let b = buffer (records * RecordBytes)
+        let v = viewOverRaw b
+        for i in 0 .. records - 1 do
+            putByteRaw v (i * RecordBytes + Offset.FormatVersion) FormatVersion
+        b
 
     /// A buffer of an arbitrary byte length — for exercising the lengths that
     /// are NOT a whole number of records, which is the case `frame` exists for.
@@ -309,6 +378,7 @@ module Wire =
         putFloat32 v (at i Offset.ExpectedPointsAdded) r.ExpectedPointsAdded
         putFloat32 v (at i Offset.LeverageIndex) (orAbsent r.LeverageIndex)
         putByte v (at i Offset.ScoringFlag) (if r.IsScoringPlay then 1 else 0)
+        putByte v (at i Offset.FormatVersion) FormatVersion
 
     /// A whole frame. The producer's counterpart to `frame`.
     let encode (plays: Outgoing list) : ArrayBuffer =

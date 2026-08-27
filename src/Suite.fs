@@ -517,6 +517,67 @@ let private weather =
               | _ -> false)
           (Some 0.0) None
 
+      // The layout says which layout it is.
+      //
+      // These two are the reason the version exists. Without them a reader given
+      // a future record does not fail — it reads the old offsets out of new
+      // bytes and returns numbers, which is the worst outcome a binary format
+      // has and the one JSON cannot produce.
+      Verify.check "a record declaring an unknown layout is refused, and names the version"
+          (fun (version: int) ->
+              let b = PlayFrame.Wire.encode
+                        [ { PlayId = 1.0; WinProbability = None; ExpectedPointsAdded = 1.0
+                            LeverageIndex = None; IsScoringPlay = false } ]
+              PlayFrame.Wire.putByte (PlayFrame.Wire.viewOver b)
+                  (PlayFrame.Wire.at 0 PlayFrame.Offset.FormatVersion) version
+              match PlayFrame.frame b with
+              | PlayFrame.UnknownLayout(found, at) -> found = version && at = 0
+              | _ -> false)
+          // 2 is a layout from the future; 1 is this one and must read normally.
+          2 PlayFrame.FormatVersion
+
+      Verify.check "a reserved byte in use is refused separately from a version bump"
+          (fun (reserved: int) ->
+              let b = PlayFrame.Wire.encode
+                        [ { PlayId = 1.0; WinProbability = None; ExpectedPointsAdded = 1.0
+                            LeverageIndex = None; IsScoringPlay = false } ]
+              PlayFrame.Wire.putByte (PlayFrame.Wire.viewOver b)
+                  (PlayFrame.Wire.at 0 PlayFrame.Offset.Reserved) reserved
+              match PlayFrame.frame b with
+              | PlayFrame.ReservedInUse at -> at = 0
+              | _ -> false)
+          // A writer that used byte 22 knew about a field this reader does not;
+          // zero is the counterexample and must still read as Records.
+          1 0
+
+      // Not the first record. A sampled check is one that passes on the bytes it
+      // did not look at, so the guarantee has to be total or it is decoration.
+      //
+      // The counterexample is where the FIRST attempt at this check went wrong:
+      // it corrupted record `n` and asserted the refusal named record `n`, with
+      // 0 as the counterexample — and corrupting record 0 is detected too, so
+      // the harness reported NO TEETH. Correctly: nothing about a record INDEX
+      // can be a counterexample here. The counterexample has to be a wrong
+      // ANSWER, so the input carries both the record corrupted and the record
+      // the refusal is expected to name.
+      Verify.check "the version is checked on every record, not just the first"
+          (fun (corruptAt: int, expectAt: int) ->
+              let one : PlayFrame.Wire.Outgoing =
+                  { PlayId = 1.0; WinProbability = None; ExpectedPointsAdded = 1.0
+                    LeverageIndex = None; IsScoringPlay = false }
+              let b = PlayFrame.Wire.encode [ one; one; one ]
+              PlayFrame.Wire.putByte (PlayFrame.Wire.viewOver b)
+                  (PlayFrame.Wire.at corruptAt PlayFrame.Offset.FormatVersion) 9
+              match PlayFrame.frame b with
+              | PlayFrame.UnknownLayout(9, at) -> at = expectAt
+              | _ -> false)
+          // Corrupt the LAST record and expect it named there: a first-record-
+          // only reader returns `Records` and never gets here at all.
+          (2, 2)
+          // Corrupt the last record and expect record 0 named: true only for a
+          // reader that reports a fixed location instead of the one it found.
+          (2, 0)
+
       // The empty state that means four things. Playground throws to avoid it;
       // a throw is swallowable and production's six undefined functions are what
       // swallowing looks like.
