@@ -198,6 +198,65 @@ const LANDED = [
     mustFailOn: { games: { regular: [{ sport: 'MLS', opening_odds: '{"moneyline":{"home":-120,"away":260}}' }] } },
     note: 'the relay adapter (5a2bacc, drawPriceFrom in src/odds-shape.js) identifies the draw by POSITION — the h2h outcome that is neither team — so a renamed selection cannot silently drop it again. First observed 2026-08-26 on the 2026-08-25 slate, the first slate captured against the deployed adapter',
   },
+  {
+    cmd: 'CC-CMD-2026-08-21-closing-odds-capture (surviving ask)',
+    ask: 'capture opening_odds for EPL and La Liga, so the open/close pair is a real sequence',
+    route: `/context/date/${yesterdayUTC()}`,
+    // Three states, same discipline as the three-way ask below.
+    //
+    // `null` = no soccer game in the payload at all. An off-day proves nothing,
+    // and reporting it as `false` would read as "the fix regressed" every
+    // Monday.
+    //
+    // `true`  = at least one soccer game carries an opening line. That IS the
+    // surviving ask: the relay's own probe measured EPL 4/5 and La Liga 2/3 on
+    // 2026-08-23 against a 23.1% / 11.8% pre-fix baseline.
+    //
+    // `false` = soccer games are served and NONE carries an opening line, which
+    // is the pre-fix condition returning.
+    //
+    // WHY THIS ROUTE AND NOT A NEW SPLIT IN drift-check.mjs. The first plan was
+    // to break the sentinel's `both/notseq/moved/unmoved` aggregate down by
+    // sport. That would have measured ONE DAY'S SLATE — the same limitation the
+    // sport-vocabulary check was built this morning to escape, reintroduced one
+    // item later. Coverage is a property of a population, and the relay already
+    // measures it properly: verify-staged-items.mjs check 2 is past-dates-only,
+    // per-sport, against the measured baseline, with a min-games floor that
+    // flags "La Liga (2/3)" rather than reporting 66.7% as settled. Duplicating
+    // that here would be a second measurement free to disagree with it. This
+    // predicate answers the narrower daily question — is the relay still doing
+    // it — and the relay's own probe remains authoritative for the rate.
+    landedOn: '2026-08-27',
+    landedIn: 'drift-sentinel run 33035197618, probing /context/date/2026-08-26',
+    // PROMOTED FROM THE OPEN LIST on the SECOND DISTINCT PROBE DATE, which is
+    // not the same criterion the first check-in wrote down. That one asked for
+    // "two consecutive runs" and got them: runs 32923712900 and 32972020175
+    // both read LANDED, and both probed /context/date/2026-08-25, because
+    // `yesterdayUTC()` resolves the same for a 01:30Z and a 12:00Z run.
+    // `opening_odds` freeze at capture, so a second read of a frozen snapshot
+    // is not a second observation — the criterion's name and its measurement
+    // disagreed (outbox/2026-08-26-two-runs-is-one-observation.md, d4d4628).
+    // The second sample is 2026-08-26, read by run 33035197618.
+    //
+    // What a false reading MEANS changes here. As an open ask, "not landed" was
+    // the relay's backlog and non-fatal. As a landed fact, soccer games served
+    // with NO opening line is the pre-fix condition returning, against
+    // something this repository was told it could rely on: without an opening
+    // price the open/close pair is not a sequence, and the Odds Story layer
+    // falls back to NotASequence rather than narrating movement.
+    //
+    // The three states below are unchanged and are why this is safe on the
+    // fatal list: `null` for a slate with no soccer game at all, so an off-day
+    // never reads as a regression.
+    holds: j => {
+      const { soccer, withOpen } = soccerOpeningCoverage(j)
+      if (soccer === 0) return null
+      return withOpen > 0
+    },
+    // Soccer served, none carrying an opening line: the pre-fix condition.
+    mustFailOn: { games: { regular: [{ sport: 'EPL', opening_odds: null }] } },
+    note: 'the rate lives in the relay\'s own staged-verification probe (EPL 4/5, La Liga 2/3 on 2026-08-23, baselines 23.1% / 11.8%); this reads LANDED while any soccer game still carries an opening line, and turns false if that stops',
+  },
 ]
 
 /// Golf rows and mislabelled-tour rows on a /context/date payload.
@@ -243,43 +302,6 @@ const ASKS = [
       'scoring_version' in j.results[0],
     mustFailOn: { results: [{ id: 1, quality_score: 191 }] },
     note: 'Phase 2 unblocks the day this is true — every stored score gains a rubric',
-  },
-  {
-    cmd: 'CC-CMD-2026-08-21-closing-odds-capture (surviving ask)',
-    ask: 'capture opening_odds for EPL and La Liga, so the open/close pair is a real sequence',
-    route: `/context/date/${yesterdayUTC()}`,
-    // Three states, same discipline as the three-way ask below.
-    //
-    // `null` = no soccer game in the payload at all. An off-day proves nothing,
-    // and reporting it as `false` would read as "the fix regressed" every
-    // Monday.
-    //
-    // `true`  = at least one soccer game carries an opening line. That IS the
-    // surviving ask: the relay's own probe measured EPL 4/5 and La Liga 2/3 on
-    // 2026-08-23 against a 23.1% / 11.8% pre-fix baseline.
-    //
-    // `false` = soccer games are served and NONE carries an opening line, which
-    // is the pre-fix condition returning.
-    //
-    // WHY THIS ROUTE AND NOT A NEW SPLIT IN drift-check.mjs. The first plan was
-    // to break the sentinel's `both/notseq/moved/unmoved` aggregate down by
-    // sport. That would have measured ONE DAY'S SLATE — the same limitation the
-    // sport-vocabulary check was built this morning to escape, reintroduced one
-    // item later. Coverage is a property of a population, and the relay already
-    // measures it properly: verify-staged-items.mjs check 2 is past-dates-only,
-    // per-sport, against the measured baseline, with a min-games floor that
-    // flags "La Liga (2/3)" rather than reporting 66.7% as settled. Duplicating
-    // that here would be a second measurement free to disagree with it. This
-    // predicate answers the narrower daily question — is the relay still doing
-    // it — and the relay's own probe remains authoritative for the rate.
-    landed: j => {
-      const { soccer, withOpen } = soccerOpeningCoverage(j)
-      if (soccer === 0) return null
-      return withOpen > 0
-    },
-    // Soccer served, none carrying an opening line: the pre-fix condition.
-    mustFailOn: { games: { regular: [{ sport: 'EPL', opening_odds: null }] } },
-    note: 'the rate lives in the relay\'s own staged-verification probe (EPL 4/5, La Liga 2/3 on 2026-08-23, baselines 23.1% / 11.8%); this reads LANDED while any soccer game still carries an opening line, and turns false if that stops',
   },
   {
     cmd: 'CC-CMD-2026-08-25-spread-price-capture',
@@ -484,7 +506,13 @@ if (SELF_TEST) {
       'the predicate ACCEPTS a known-bad payload — it is vacuous')
   }
 
-  const co = ASKS.find(a => a.cmd.includes('closing-odds-capture'))
+  // BOTH lists, for the reason the soccer ask records below: this entry MOVED
+  // to LANDED on 2026-08-27, and `ASKS.find` returns undefined rather than
+  // failing, so a hard-coded list would have stopped exercising it silently at
+  // the moment it mattered most. The predicate is `landed` in one list and
+  // `holds` in the other; the question is identical.
+  const coEntry = [...ASKS, ...LANDED].find(a => a.cmd.includes('closing-odds-capture'))
+  const co = { landed: coEntry.landed ?? coEntry.holds }
   const gm = (sport, opening) => ({ sport, opening_odds: opening })
   const payload = games => ({ games: { regular: games } })
 

@@ -2,7 +2,34 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (AmbientDO — the pre→live game-state hook)
-**Status:** WITHDRAWN AND SUPERSEDED, and the surviving ask is now HALF VERIFIED.
+**Status:** CLOSED 2026-08-27. The original ask was withdrawn and superseded; the
+surviving ask — that EPL and La Liga carry an `opening_odds` — is now VERIFIED and
+promoted to the fatal LANDED list in `scripts/cc-cmd-followup.mjs`.
+
+**What closed it, and why the first criterion did not.** The check-in asked for
+two consecutive sentinel runs reading LANDED. Runs `32923712900` and
+`32972020175` both did — and both probed `/context/date/2026-08-25`, because
+`cc-cmd-followup.mjs` uses `yesterdayUTC()` and the 01:30Z and 12:00Z runs
+resolve to the same yesterday. `opening_odds` freeze at capture, so re-reading a
+frozen snapshot is not a second observation; the criterion's name and its
+measurement disagreed
+(`outbox/2026-08-26-two-runs-is-one-observation.md`, `d4d4628`). The corrected
+criterion is **two distinct probe DATES**, and the second sample is
+`/context/date/2026-08-26`, read LANDED by drift-sentinel run `33035197618` on
+2026-08-27. That run also recorded `both=13 notseq=0 moved=7 unmoved=6` — 13 of
+13 games a real open/close sequence — and closed the standing
+`closing_odds is not a closing line` issue.
+
+**What a false reading means now.** On the open list, "not landed" was the
+relay's backlog and non-fatal. On the LANDED list it is a regression: soccer
+served with no opening line is the pre-fix condition returning, and without an
+opening price the pair is not a sequence, so `OddsStory` falls back to
+`NotASequence` instead of narrating movement. `null` is preserved for a slate
+with no soccer game, so an off-day still cannot read as a regression.
+
+Historical status line, kept for the record:
+
+> **Status (superseded):** WITHDRAWN AND SUPERSEDED, and the surviving ask is now HALF VERIFIED.
 The original ask is closed — the hook was already landed and firing, and the real
 defect (a third `closing_odds` writer in `/archive/game`) is FIXED by relay
 `887c843`, `f6fa820` and `a1937eb`. **Verified 2026-08-23: 8 of 8 games carrying
