@@ -451,6 +451,39 @@ let private weather =
               | _ -> false)
           2097151.0 2097152.0
 
+      // The producer, round-tripped against the reader. Until this check the
+      // suite exercised fields one at a time through hand-placed bytes; this
+      // drives `Wire.encode` — the actual producer surface — and reads every
+      // field of every record back. A stride error that the single-record
+      // checks cannot see (record 2 landing at the wrong offset) fails here.
+      Verify.check "a frame the producer encoded reads back exactly, every field"
+          (fun (plays: PlayFrame.Wire.Outgoing list) ->
+              match PlayFrame.frame (PlayFrame.Wire.encode plays) with
+              | PlayFrame.Records(v, count) when count = List.length plays ->
+                  plays
+                  |> List.mapi (fun i p ->
+                      PlayFrame.playId v i = p.PlayId
+                      && PlayFrame.winProbability v i = p.WinProbability
+                      && PlayFrame.expectedPointsAdded v i = p.ExpectedPointsAdded
+                      && PlayFrame.leverageIndex v i = p.LeverageIndex
+                      && PlayFrame.isScoringPlay v i = p.IsScoringPlay)
+                  |> List.forall id
+              | _ -> false)
+          // Three records, so a stride error has somewhere to show. Values exact
+          // in float32 and distinct per field, so a field reading its neighbour
+          // fails rather than coincidentally matching.
+          [ { PlayId = 4242.0; WinProbability = 0.5; ExpectedPointsAdded = 2.0
+              LeverageIndex = 1.5; IsScoringPlay = true }
+            { PlayId = 4243.0; WinProbability = -3.25; ExpectedPointsAdded = -0.75
+              LeverageIndex = 0.25; IsScoringPlay = false }
+            { PlayId = 4244.0; WinProbability = 1.0; ExpectedPointsAdded = 0.0
+              LeverageIndex = 8.0; IsScoringPlay = true } ]
+          // The counterexample is a value float32 cannot hold. It fails on
+          // precision, not on plumbing — the plumbing is what the case above
+          // proves, and a counterexample that broke both would prove neither.
+          [ { PlayId = 1.0; WinProbability = 0.1; ExpectedPointsAdded = 0.0
+              LeverageIndex = 0.0; IsScoringPlay = false } ]
+
       // The empty state that means four things. Playground throws to avoid it;
       // a throw is swallowable and production's six undefined functions are what
       // swallowing looks like.

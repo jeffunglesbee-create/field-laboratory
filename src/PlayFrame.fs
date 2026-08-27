@@ -35,6 +35,54 @@ open Fable.Core.JsInterop
 // together — there is no window in which the value is garbage, because the
 // value is never materialised until it is correct.
 
+// WHICH OF THESE FIELDS MAY BE PRODUCED RELAY-SIDE.
+//
+// Checked against `jubilant-bassoon/docs/ADR-002-CONTEXT.md` at HEAD and against
+// the newest governing Drive read, not assumed — because the architecture brief
+// this layout came from named a third metric, "Win Probability Volatility",
+// that does not exist in any FIELD repository.
+//
+// The thing it most resembles is `getVolatilityIndex`
+// (`jubilant-bassoon/src/legacy/field.js:6986`), and that computes the variance
+// of the DRAMA SCORE, not of win probability. Its build spec (Drive
+// 1FS71I5gJV0OJVY6i6IKKxLrmIvHX_mu4XO_gZfZ7q98, 2026-05-19) says so in one
+// line: "Volatility = variance in drama score samples over recent polling
+// window." The implementation matches the spec's formula; it narrows the spec's
+// three tiers to two labels and returns null in between.
+//
+// The spec is 2026-05-19 and was therefore re-verified forward rather than
+// cited as-is (Rule 73). Two later documents bear on it:
+//
+//   * `CC-CMD-2026-08-02-ruwt-baseline-audit` (Drive 1Jo9jHPPBqf3..., 2026-08-03)
+//     is the newest governing read. It states the two-part test explicitly —
+//     "Both tests (Rule F content, Rule A delivery) must independently hold —
+//     passing one doesn't clear the other" — and confirms by grep that
+//     `dramaScoreLive` / `computeWatchValue` / `preGameScore` are NOT computed
+//     or served by any production relay route today. A future relay-side
+//     migration of them is permitted under Rule C, subject to A and B.
+//   * `FIELD — Wow Features: CFB + NFL` (Drive 1h5YPOiXt1Qz..., 2026-08-02)
+//     proposes a "RANKING VOLATILITY FLAG" for CFB poll churn. Unbuilt, and an
+//     entirely different quantity. Named here only so the collision is on the
+//     record before someone wires the wrong one into this layout.
+//
+// So, precisely:
+//
+//   * WinProbability and ExpectedPointsAdded are commodity. ESPN and nflfastR
+//     publish both; Rule F's own worked example is `soccer-wp.js` running
+//     Poisson + Dixon-Coles relay-side. Relay-safe, on pull.
+//   * A volatility INDEX — a bare variance — is a scalar of the same class as
+//     the drama score it derives from. Rules B and C permit that relay-side
+//     subject to Rule A: served on pull, never wired to an autonomous push.
+//     It is not automatically barred, and saying it was would be wrong.
+//   * A volatility LABEL is barred. `getVolatilityLabel` returns "chaotic" or
+//     "locked in" only when volatility and smoothed drama clear thresholds
+//     together, which is a value whose receipt answers "should I watch this
+//     game?" — Rule F, regardless of how the field is named.
+//
+// LeverageIndex is commodity (Tango's index is published) but nothing in any
+// FIELD repository computes it. The field is in the layout because the layout
+// came with it; its producer does not exist.
+
 // --- the wire layout ---------------------------------------------------------
 //
 // 24 bytes, big-endian. Bytes 21-23 are unused: the record is padded to a
@@ -204,3 +252,40 @@ module Wire =
     /// rather than computing `i * 24 + k` themselves, so the stride lives in one
     /// place for writers as well as readers.
     let at (i: int) (field: int) : int = i * RecordBytes + field
+
+    /// One play, as a producer supplies it.
+    ///
+    /// A record, and it allocates — deliberately. Producing is not the hot path;
+    /// a frame is built once and read many times, and the zero-allocation posture
+    /// is a claim about the READ side. Using this type to hold decoded values
+    /// would undo the whole point of the accessors above, so it is named for the
+    /// direction it serves.
+    type Outgoing =
+        { PlayId: float
+          WinProbability: float
+          ExpectedPointsAdded: float
+          LeverageIndex: float
+          IsScoringPlay: bool }
+
+    /// Write one play at record index `i`.
+    ///
+    /// The id splits into two 32-bit halves, the inverse of what `playId` does
+    /// when reading. A value above 2^53-1 is already imprecise as an F# `float`
+    /// before it arrives here, so this cannot detect that case and does not
+    /// pretend to — `playIdIsExact` is the counterpart, and it is on the read
+    /// side because that is where the bytes are authoritative.
+    let writeRecord (v: DataView) (i: int) (r: Outgoing) : unit =
+        let hi = floor (r.PlayId / 4294967296.0)
+        putUint32 v (at i Offset.PlayId) hi
+        putUint32 v (at i Offset.PlayId + 4) (r.PlayId - hi * 4294967296.0)
+        putFloat32 v (at i Offset.WinProbability) r.WinProbability
+        putFloat32 v (at i Offset.ExpectedPointsAdded) r.ExpectedPointsAdded
+        putFloat32 v (at i Offset.LeverageIndex) r.LeverageIndex
+        putByte v (at i Offset.ScoringFlag) (if r.IsScoringPlay then 1 else 0)
+
+    /// A whole frame. The producer's counterpart to `frame`.
+    let encode (plays: Outgoing list) : ArrayBuffer =
+        let b = allocate (List.length plays)
+        let v = viewOver b
+        plays |> List.iteri (fun i r -> writeRecord v i r)
+        b
