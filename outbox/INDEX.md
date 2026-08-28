@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b2d3599` | 2026-08-28 | [2026-08-28-fetch-silently-empty-probe.md](2026-08-28-fetch-silently-empty-probe.md) | probe: where else does a failed fetch read as an empty answer |
 | `7550233` | 2026-08-28 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
 | `854dde6` | 2026-08-28 | [2026-08-28-spread-price-landed-and-two-regressions.md](2026-08-28-spread-price-landed-and-two-regressions.md) | census: name the verdict, and stop a lost push race discarding it |
 | `9604e77` | 2026-08-28 | [2026-08-28-spread-price-landed-and-two-regressions.md](2026-08-28-spread-price-landed-and-two-regressions.md) | docs: promote spread-price on a second DATE, and record two regressions |
