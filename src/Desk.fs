@@ -236,6 +236,10 @@ type Sport =
     | EFLCup
     | NFL
     | CFL
+    /// FBS college football. Modelled on the same day the relay seeded it
+    /// (field-relay-nba `c52f496`) rather than on first observation, which is
+    /// the exception this comment exists to justify -- see the registry entry.
+    | CFB
     /// Spanish top-flight association football. The relay labels it "La Liga",
     /// with the space, and the drift sentinel reported it unmodelled from
     /// 2026-08-16.
@@ -351,6 +355,34 @@ let sportMeta (sport: Sport) : SportMeta =
     // renders "Home vs Away" regardless of which side the relay calls home.
     | Sport.NFL -> { Label = "NFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     | Sport.CFL -> { Label = "CFL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
+    // College football. Gridiron, so the same AwayAtHome convention as NFL and
+    // CFL directly above -- not a guess: the client renders CFB through the same
+    // generic path as NFL (`injectV2SportSection`), and the relay's own
+    // `adaptESPNFootball` handles both leagues with one adapter.
+    //
+    // MODELLED AHEAD OF FIRST OBSERVATION, which every other entry here refuses
+    // to do. UFL's `Omission` states the rule: modelling from a family
+    // resemblance "would be an inference about a competition this repo has no
+    // observation of". CFB is the case that rule was not written for, and the
+    // difference is not that CFB feels safer -- it is that the observation is
+    // scheduled rather than hypothetical:
+    //
+    //   * The relay seeds it as of `c52f496` (2026-08-27), label 'CFB',
+    //     declared in that commit BEFORE any row was written.
+    //   * The first FBS slate is 2026-08-29 -- two days out, 8 games, already
+    //     measured on ESPN by `scripts/cfb-volume-probe.mjs`.
+    //   * UFL had no such date. Its blocker was "the day a row appears", with
+    //     nothing scheduled to make one appear.
+    //
+    // Waiting would mean rendering a real 2026-08-29 slate as "UNMODELLED
+    // SPORT" for the sake of a rule whose purpose -- not inventing a convention
+    // for a competition nobody has seen -- is already satisfied by the client's
+    // shipped CFB rendering and the relay's own football adapter.
+    //
+    // The drift sentinel is the check either way: if 'CFB' is not the label the
+    // archive serves, it reports `unmodelled: CFB` within a day, exactly as it
+    // reported NFL, CFL and golf on 2026-08-14.
+    | Sport.CFB -> { Label = "CFB"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     // Association football, so the same convention as MLS and EFL Cup above.
     // This is read off the data rather than assumed: `data/brief-join-corpus.json`
     // carries four fixtures whose ids list the home side first and agree with
@@ -435,6 +467,11 @@ let sportOfString (raw: string) : Sport =
     | "EFL Cup" -> Sport.EFLCup
     | "NFL" -> Sport.NFL
     | "CFL" -> Sport.CFL
+    // The relay's own label, chosen in field-relay-nba `c52f496` and matched
+    // verbatim. No case fold and no "College Football" alias: that string is a
+    // section HEADING in the client, never a sport key, and accepting a
+    // spelling the archive has never served is how a normaliser starts.
+    | "CFB" -> Sport.CFB
     // The relay's own label, with the space, matched verbatim for the same
     // reason "EFL Cup" is.
     | "La Liga" -> Sport.LaLiga
