@@ -2,21 +2,19 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (the journalism cron / archive seed path)
-**Status:** **PARTIAL — asks 1 and 2 are OPEN and unbuilt.** Ask 3 is WITHDRAWN:
-EPL was already in the seed table and already seeded, so there was no gap. Asks
-1–2 (declared seed manifest + a check that fails when a configured competition
-with fixtures is silently absent) survive and are the valuable part, and ask 2's
-artifact must be rewritten against the game-day model. See the correction;
-original text kept below for the record.
+**Status:** **CLOSED 2026-08-27.** Asks 1 and 2 are BUILT in field-relay-nba
+`d026968` — `src/seed-manifest.js`, `scripts/check-seed-coverage.mjs` (blocking in
+`deploy.yml`), `.github/workflows/seed-coverage.yml` (daily live half). Ask 3 was
+WITHDRAWN at filing: EPL was already in the seed table and already seeded, so
+there was no gap. See the correction below, and the CLOSED section at the end.
 
-> **Status line corrected 2026-08-27.** It previously opened "ASK 3 WITHDRAWN",
-> which is true of ask 3 and false of the document: a reader scanning status
-> lines saw a withdrawal and moved on, while two unbuilt asks sat underneath it.
-> Re-verified the same day against field-relay-nba HEAD — no seed manifest and
-> no seed-coverage check exist there (`ls scripts/ | grep -i seed` returns only
-> `probe-epl-seed-premise.mjs` and two CFL backfill scripts). A multi-ask
-> document's status is the status of the DOCUMENT, with the per-ask detail after
-> it.
+> **This status line was corrected twice on 2026-08-27, and both corrections are
+> the point of the audit that found them.** It first read `ASK 3 WITHDRAWN` — true
+> of ask 3 and false of the document, so a reader scanning status lines saw a
+> withdrawal and moved on while two unbuilt asks sat underneath it in the same
+> sentence. Corrected to `PARTIAL`, then to this once the two were built. A
+> multi-ask document's status is the status of the DOCUMENT, with the per-ask
+> detail after it. `scripts/cc-cmd-status-check.mjs` now enforces the form.
 
 One-liner (as filed):
 ```
@@ -198,3 +196,57 @@ field (Arsenal home at the Emirates), not the URL slug order.
 - `CC-CMD-2026-08-20-brief-data-quality` ask 3 owns the *label* EPL arrives under.
   This ask owns whether EPL arrives at all. Both must land before tomorrow's
   matchday renders correctly; label-first, then seed.
+
+## CLOSED 2026-08-27 — asks 1 and 2 built, ask 3 withdrawn at filing
+
+Relay commit `d026968`. Outbox: `field-relay-nba/outbox/2026-08-27-seed-coverage-manifest.md`.
+
+### Ask 1 — the declared manifest
+
+`src/seed-manifest.js`. Seven competitions were in the silent state this ask
+names — fetchable, unseeded, undeclared. All seven are now declared:
+
+| key | ESPN slug | state |
+|---|---|---|
+| `atp`, `wta` | `atp`, `wta` | **excluded** — individual sport, with the golf `-6/-6` corruption as the in-repo evidence |
+| `cfb` | `college-football` | **undecided**, question written down |
+| `afl` | `afl` | **undecided** |
+| `eflchamp`, `eflone`, `efltwo` | `eng.2/3/4` | **undecided** — the EFL *cups* are seeded, the tiers are not |
+
+`UNDECIDED` is a declaration, not a fallback. This ask names the bug as absence
+from both lists, not indecision; five visible coverage questions beat five
+invisible ones. `pga` is seeded AND individual — archived through the golf-aware
+path — and is named explicitly so the ATP entry does not read as "every
+individual sport is excluded".
+
+### Ask 2 — the check, with its artifact rewritten as this document instructed
+
+`scripts/check-seed-coverage.mjs`. Offline half blocking in `deploy.yml` (8
+assertions, 3 of them non-vacuity, running first); live half daily in
+`seed-coverage.yml`. Nine self-tests in both, including a fixture carrying a
+competition in no list that must classify as `undeclared` — a detector that
+cannot fail is not one.
+
+**The rewritten artifact.** The original — "on 2026-08-22 the check flags EPL" —
+would have fired every day forever. The live half now refuses a future or
+same-day date outright and defaults to three days back, because a future-dated
+query returning only MLS is the system working, not a gap.
+
+### What the build found: the gap-detector had the gap
+
+`/integrity/games` carries `LEAGUES_LOCAL`, commented "Mirror
+handleJournalismCycle's LEAGUES list". It covers **7 of 21** — blind to all six
+UEFA competitions added by `CC-CMD-2026-08-20-uefa-club-competitions`, all four
+second-tier leagues, and NFL mid-season. An integrity endpoint reporting no gaps
+about competitions it never looked at.
+
+Reported and not failed by the new check, because nothing could act on it while
+unfiled. Filed as `CC-CMD-2026-08-27-integrity-leagues-drift`, whose done
+condition ends the leniency. Rule 87 #4 — a second CC-CMD, not a carry-forward.
+
+### One residual, and it is a decision, not work
+
+The five `UNDECIDED` competitions need a human coverage decision. They are not
+blocked on code: seeding any of them is a row in the cron's `LEAGUES` table.
+Until then the check reports them by name every run, which is the state this ask
+existed to create.
