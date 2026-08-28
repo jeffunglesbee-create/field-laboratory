@@ -111,14 +111,38 @@ try {
     ...out.missing.map(l => [l, 3]),
     ...out.declared_unmodelled.map(d => [d.label, 1]),
   ]) {
-    const q = await fetch(`${RELAY}/d1/execute`, {
+    const res = await fetch(`${RELAY}/d1/execute`, {
       method: 'POST',
       headers: { 'X-FIELD-Relay': RELAY_SECRET, 'Content-Type': 'application/json', 'User-Agent': UA },
       body: JSON.stringify({
         sql: `SELECT * FROM regular_season_games
               WHERE sport = ? ORDER BY date DESC LIMIT ?`, params: [label, limit] }),
-    }).then(r => r.json()).catch(() => null)
+    })
+    // `.then(r => r.json()).catch(() => null)` until 2026-08-28, which merged
+    // three states into one: a network failure, a non-200 from /d1/execute (a
+    // wrong or missing RELAY_SECRET returns one), and a genuine zero-row answer
+    // all became `null` and then `[]`.
+    //
+    // The comment fifteen lines below already knew this mattered -- "an empty
+    // array is a real answer and a different one from 'not asked'" -- and the
+    // code merged them anyway. A sample of `[]` for UFL means "the day has not
+    // come"; a sample of `[]` because the secret rotated means nothing, and the
+    // artifact could not tell you which it was looking at.
+    //
+    // Found by scripts/fetch-silently-empty-probe.mjs, which swept 265 scripts
+    // across three repos and returned exactly two sites. This was one.
+    let q = null, qErr = null
+    if (!res.ok) qErr = `HTTP ${res.status}`
+    else { try { q = await res.json() } catch (e) { qErr = `unparseable body: ${e.message}` } }
     out.samples ??= {}
+    out.sample_errors ??= {}
+    if (qErr) {
+      // Recorded by label, never folded into the sample array. A query that did
+      // not run is not a competition with no rows.
+      out.sample_errors[label] = qErr
+      out.samples[label] = null
+      continue
+    }
     // Whole row, minus the two columns that are neither small nor informative
     // here. `drama_arc` is hundreds of integers and is a SEALED value in this
     // repo besides; `opening_odds`/`closing_odds` are double-encoded JSON blobs
