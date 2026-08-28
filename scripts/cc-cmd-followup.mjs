@@ -257,6 +257,56 @@ const LANDED = [
     mustFailOn: { games: { regular: [{ sport: 'EPL', opening_odds: null }] } },
     note: 'the rate lives in the relay\'s own staged-verification probe (EPL 4/5, La Liga 2/3 on 2026-08-23, baselines 23.1% / 11.8%); this reads LANDED while any soccer game still carries an opening line, and turns false if that stops',
   },
+  {
+    cmd: 'CC-CMD-2026-08-25-spread-price-capture',
+    ask: 'store the spread price beside its point, so the handicap says who is favoured',
+    route: `/context/date/${yesterdayUTC()}`,
+    landedOn: '2026-08-28',
+    landedIn: 'drift-sentinel run 33173538945, probing /context/date/2026-08-27',
+    // PROMOTED ON A SECOND DISTINCT PROBE DATE, which is the whole criterion.
+    //
+    // It first read LANDED on 2026-08-27 (run 33035197618, probing
+    // /context/date/2026-08-26) and was deliberately LEFT OPEN. 2026-08-26 is
+    // the first date the relay could serve homePrice/awayPrice at all
+    // (b3aae99), so that was one observation of a fact one day old.
+    //
+    // TWO RUNS IS NOT TWO OBSERVATIONS. `yesterdayUTC()` resolves identically
+    // for the 01:30Z and 12:00Z runs on the same day, so both re-read one
+    // frozen snapshot -- recorded in
+    // outbox/2026-08-26-two-runs-is-one-observation.md. The second observation
+    // had to be a second DATE, and this is it: run 33173538945 on 2026-08-28
+    // probing /context/date/2026-08-27.
+    // WHY THE POINT ALONE IS NOT ENOUGH, measured rather than argued. The relay
+    // probed DraftKings MLB on 2026-08-26 (field-relay-nba
+    // scripts/odds-spread-shape-probe.mjs, artifact
+    // outbox/odds-spread-shape-20260826T002201Z.json):
+    //
+    //   Red Sox @ Marlins   home +1.5 at -371   home is the FAVOURITE
+    //   Brewers @ Mets      home +1.5 at  +101  home is the UNDERDOG
+    //
+    // Same handicap, opposite meaning. favouriteAgreement found ten one-sided
+    // disagreements it could not adjudicate because the relay had stored the
+    // half of the market carrying no answer.
+    //
+    // Three states, gated on capture time.
+    //
+    // `null` = no spread captured since the deploy yet. Every historical row
+    // predates the fix and can never gain the keys, so an ungated predicate
+    // would print `false` forever and read as a regression.
+    //
+    // `true`  = a post-deploy spread carries finite prices on both sides.
+    //
+    // `false` = post-deploy spreads are being captured and none carries a
+    // price, which is the pre-fix condition surviving the deploy.
+    holds: j => {
+      const spreads = spreadsCapturedAfter(j, SPREAD_PRICE_DEPLOY)
+      if (spreads.length === 0) return null
+      return spreads.some(sp => Number.isFinite(sp.homePrice) && Number.isFinite(sp.awayPrice))
+    },
+    // A post-deploy capture with the pre-fix shape — point, no price.
+    mustFailOn: { games: { regular: [{ sport: 'MLB', opening_odds: '{"captured_at":"2026-08-27T10:01:00Z","spread":{"home":1.5,"away":-1.5}}' }] } },
+    note: 'reads LANDED once one post-deploy spread carries homePrice and awayPrice as finite numbers. Until then NOT OBSERVABLE, never false — pre-deploy rows are excluded by captured_at, not counted as failures. When it lands, re-run favourite-band-census: the ten home-favourite disagreements become either a favourite\'s normal alternate line or a real defect, and CC-CMD-2026-08-25-spread-price-capture closes by naming which',
+  },
 ]
 
 /// Golf rows and mislabelled-tour rows on a /context/date payload.
@@ -302,41 +352,6 @@ const ASKS = [
       'scoring_version' in j.results[0],
     mustFailOn: { results: [{ id: 1, quality_score: 191 }] },
     note: 'Phase 2 unblocks the day this is true — every stored score gains a rubric',
-  },
-  {
-    cmd: 'CC-CMD-2026-08-25-spread-price-capture',
-    ask: 'store the spread price beside its point, so the handicap says who is favoured',
-    route: `/context/date/${yesterdayUTC()}`,
-    // WHY THE POINT ALONE IS NOT ENOUGH, measured rather than argued. The relay
-    // probed DraftKings MLB on 2026-08-26 (field-relay-nba
-    // scripts/odds-spread-shape-probe.mjs, artifact
-    // outbox/odds-spread-shape-20260826T002201Z.json):
-    //
-    //   Red Sox @ Marlins   home +1.5 at -371   home is the FAVOURITE
-    //   Brewers @ Mets      home +1.5 at  +101  home is the UNDERDOG
-    //
-    // Same handicap, opposite meaning. favouriteAgreement found ten one-sided
-    // disagreements it could not adjudicate because the relay had stored the
-    // half of the market carrying no answer.
-    //
-    // Three states, gated on capture time.
-    //
-    // `null` = no spread captured since the deploy yet. Every historical row
-    // predates the fix and can never gain the keys, so an ungated predicate
-    // would print `false` forever and read as a regression.
-    //
-    // `true`  = a post-deploy spread carries finite prices on both sides.
-    //
-    // `false` = post-deploy spreads are being captured and none carries a
-    // price, which is the pre-fix condition surviving the deploy.
-    landed: j => {
-      const spreads = spreadsCapturedAfter(j, SPREAD_PRICE_DEPLOY)
-      if (spreads.length === 0) return null
-      return spreads.some(sp => Number.isFinite(sp.homePrice) && Number.isFinite(sp.awayPrice))
-    },
-    // A post-deploy capture with the pre-fix shape — point, no price.
-    mustFailOn: { games: { regular: [{ sport: 'MLB', opening_odds: '{"captured_at":"2026-08-27T10:01:00Z","spread":{"home":1.5,"away":-1.5}}' }] } },
-    note: 'reads LANDED once one post-deploy spread carries homePrice and awayPrice as finite numbers. Until then NOT OBSERVABLE, never false — pre-deploy rows are excluded by captured_at, not counted as failures. When it lands, re-run favourite-band-census: the ten home-favourite disagreements become either a favourite\'s normal alternate line or a real defect, and CC-CMD-2026-08-25-spread-price-capture closes by naming which',
   },
   {
     // A STOP-GENERATING ask — see `cessation` below and the scanner above.
