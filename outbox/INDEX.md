@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9604e77` | 2026-08-28 | [2026-08-28-spread-price-landed-and-two-regressions.md](2026-08-28-spread-price-landed-and-two-regressions.md) | docs: promote spread-price on a second DATE, and record two regressions |
 | `a20b7a4` | 2026-08-28 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
 | `cb1c051` | 2026-08-28 | [2026-08-27-cfb-modelled.md](2026-08-27-cfb-modelled.md) | feat: model CFB — the sport the registry could never have observed |
 | `c98b915` | 2026-08-28 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: close the seed-coverage ask, and file the drift it uncovered |
