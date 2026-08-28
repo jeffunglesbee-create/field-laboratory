@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a20b7a4` | 2026-08-28 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
 | `cb1c051` | 2026-08-28 | [2026-08-27-cfb-modelled.md](2026-08-27-cfb-modelled.md) | feat: model CFB — the sport the registry could never have observed |
 | `c98b915` | 2026-08-28 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: close the seed-coverage ask, and file the drift it uncovered |
 | `eb016ee` | 2026-08-28 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: audit every CC-CMD's status, and make the marker greppable |
