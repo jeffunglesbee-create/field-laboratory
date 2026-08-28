@@ -2,6 +2,22 @@
 
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR
+**Status:** **BUILT, both halves.** Verified 2026-08-27 against repo state (Rule 72).
+
+- Task 2, the sentinel: `.github/workflows/drift-sentinel.yml` runs daily and has
+  logged 57 rows in `outbox/drift-log.md`; latest `ok` on 2026-08-27, 55 games,
+  0 malformed.
+- Task 3, the staleness: fixed as this document's own Option 1. `stateNode` in
+  `src/Scoreboard.fs:267` wraps every state-derived node in `Solid.createEffect`,
+  and `staticNode` beside it carries the comment explaining which nodes are safe
+  to set once. A stale status line cannot recur without removing that effect.
+
+Session doc: `outbox/cc-session-2026-08-09-drift-sentinel-and-reactive-staleness.md`.
+
+**Residual, for a human, restated from the section below.** The cloud environment's **setup-script field is still unpasted** — a human step at
+claude.ai/code that no session has tool access to, and explicitly out of scope in
+the original ask. Every cold session pays ~30s installing the .NET SDK through the
+fallback SessionStart hook. Speed cost only; nothing is broken without it.
 
 One-liner:
 ```

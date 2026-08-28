@@ -2,7 +2,10 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba, then jubilant-bassoon — one change, two repos, per Rule 70
-**Status:** FILED, not started.
+**Status:** **CLOSED 2026-08-27**, same day it was filed. All three done
+conditions met with named artifacts — see the CLOSED section at the end of this
+document. Two of this document's own instructions were wrong and are corrected
+inline where they appear, not silently edited away.
 
 ## Why this exists
 

@@ -105,6 +105,14 @@ jobs:
       - name: The history boundary still resolves
         run: node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs
 
+      - name: A CC-CMD's status is greppable and does not contradict its own body
+        # Costs no additional run: this workflow already fires on docs/**, which
+        # is where CC-CMDs live. On 2026-08-27 a grep for closing HEADINGS
+        # reported ten open asks when three were open, because fifteen documents
+        # carry their status on a LINE — and the same grep missed a document
+        # whose status read "FILED, not started" above its own ## CLOSED section.
+        run: node scripts/cc-cmd-status-check.mjs --self-test && node scripts/cc-cmd-status-check.mjs
+
       - name: A staged claim names a verifier that exists and runs
         run: npm run check:staged-verifier
 

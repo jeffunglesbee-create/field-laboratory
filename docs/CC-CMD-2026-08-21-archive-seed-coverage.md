@@ -2,10 +2,21 @@
 
 **Filed from:** field-laboratory
 **Ask to:** field-relay-nba (the journalism cron / archive seed path)
-**Status:** ASK 3 WITHDRAWN — EPL was already in the seed table and already
-seeded; there was no gap. Asks 1–2 (declared manifest + check) survive and are the
-valuable part, but ask 2's artifact must be rewritten against the game-day model.
-See the correction; original text kept below for the record.
+**Status:** **PARTIAL — asks 1 and 2 are OPEN and unbuilt.** Ask 3 is WITHDRAWN:
+EPL was already in the seed table and already seeded, so there was no gap. Asks
+1–2 (declared seed manifest + a check that fails when a configured competition
+with fixtures is silently absent) survive and are the valuable part, and ask 2's
+artifact must be rewritten against the game-day model. See the correction;
+original text kept below for the record.
+
+> **Status line corrected 2026-08-27.** It previously opened "ASK 3 WITHDRAWN",
+> which is true of ask 3 and false of the document: a reader scanning status
+> lines saw a withdrawal and moved on, while two unbuilt asks sat underneath it.
+> Re-verified the same day against field-relay-nba HEAD — no seed manifest and
+> no seed-coverage check exist there (`ls scripts/ | grep -i seed` returns only
+> `probe-epl-seed-premise.mjs` and two CFL backfill scripts). A multi-ask
+> document's status is the status of the DOCUMENT, with the per-ask detail after
+> it.
 
 One-liner (as filed):
 ```

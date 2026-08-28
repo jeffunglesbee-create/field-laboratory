@@ -2,6 +2,15 @@
 
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR
+**Status:** **BUILT.** Verified 2026-08-27 against repo state, not against this
+document's prose (Rule 72). `src/Laboratory.fsproj` and 20+ `src/*.fs` exist and
+compile — `npm run check:proof` runs the real F# compiler, and `verify` is green.
+Session doc: `outbox/cc-session-2026-08-09-fix-cloud-setup-and-scaffold-fable.md`.
+
+**Residual, for a human, unchanged since filing.** The cloud environment's **setup-script field is still unpasted** — a human step at
+claude.ai/code that no session has tool access to, and explicitly out of scope in
+the original ask. Every cold session pays ~30s installing the .NET SDK through the
+fallback SessionStart hook. Speed cost only; nothing is broken without it.
 
 One-liner:
 ```
