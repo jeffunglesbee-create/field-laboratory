@@ -86,3 +86,66 @@ candidate 1 from candidates 2 and 3 by itself.
 
 Until then the two entries stay fatal and stay red. Downgrading them to make the
 run green would be the exact move Rule 77 forbids.
+
+---
+
+## Step 4: the census answered, and the ask closes by naming which
+
+`favourite-band-census` run `33175050237`:
+
+```
+ADJUDICABLE BY PRICE: 1 of 12
+
+EVERY DISAGREEMENT, widest separation first
+  2026-08-09  MLB_2026-08-09_mariners_rays      ML -114/ 106  H 1.5                ratio 2.61  Disagrees      no price
+  2026-08-26  MLB_2026-08-26_giants_reds        ML -111/ 103  H 1.5 @ -197/ 162    ratio 1.79  Disagrees      agrees on price
+  2026-08-25  MLB_2026-08-25_padres_pirates     ML -124/ 103  H 1.5                ratio 1.32  Disagrees      no price
+  ...nine more, all `no price`
+```
+
+**One post-capture disagreement exists, it is adjudicable, and it agrees.**
+
+Giants @ Reds, 2026-08-26: moneyline `-111/+103` makes home the slim favourite;
+the handicap is home `+1.5` **at `-197`**. A `+1.5` priced at `-197` is a
+favourite's normal alternate line — the first of the two explanations
+`CC-CMD-2026-08-25-spread-price-capture` named, and the one that means **no
+defect**.
+
+That is the ask closing on its own terms. Its note read: *"the ten home-favourite
+disagreements become either a favourite's normal alternate line or a real defect,
+and the ask closes by naming which."* Named: **a favourite's normal alternate
+line**, on the only row that can testify.
+
+The other eleven stay unadjudicable forever — every one predates the capture and
+can never gain the keys. The honest count is 1 of 12, and it rises only as new
+disagreements accrue.
+
+Incidental, from the same run's second pass: `opening odds captured at
+finalisation: 1 of 625` — `CFL_2026-08-15_hamiltontigercats_saskatchewan`,
+`ML -4800/+1600`. An opening line written at the instant the row was finalised is
+not an opening line. One row, already flagged by the existing plausibility pass,
+recorded here rather than opened as new work.
+
+## An infrastructure defect the census run exposed
+
+**Run `33175050237` reported FAILURE having measured everything correctly.** It
+committed `outbox/favourite-band-census-20260828T132311Z.txt` on the runner and
+then lost a `git push` race with a concurrent commit:
+
+```
+! [rejected]  main -> main (fetch first)
+##[error]Process completed with exit code 1.
+```
+
+The artifact was produced and discarded. The numbers above were recovered from
+the job log, not from the file.
+
+Fixed: rebase-and-retry, three attempts, exiting non-zero only if the artifact
+genuinely cannot land. **Same defect and same fix as field-relay-nba `7f51bdd`**,
+which recorded three false alarms in one session and why it matters — a run that
+reports failure for an infrastructure race trains people to read failure as
+noise, which is a Rule 77 hazard living in the CI itself.
+
+This repository has many concurrent writers: the sentinel's drift-log, status
+refreshes, probe workflows, sessions. A bare `git push` in any of them is the
+same bug waiting.

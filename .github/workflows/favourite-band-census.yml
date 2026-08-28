@@ -65,4 +65,21 @@ jobs:
           git config user.name "FIELD CI"
           git add outbox/favourite-band-census-*.txt
           git diff --staged --quiet || git commit -m "census: the band favouriteAgreement declines to judge [skip ci]"
-          git push
+          # Rebase-and-retry, not a bare push. Run 33175050237 measured the
+          # census correctly, committed the artifact on the runner, then lost a
+          # push race with a concurrent commit and reported the whole run as a
+          # FAILURE -- discarding the artifact it had just produced. This repo
+          # has many concurrent writers (the sentinel's drift-log, status
+          # refreshes, probe workflows, sessions), so any push landing between
+          # checkout and push does that.
+          #
+          # Same defect and same fix as field-relay-nba 7f51bdd, which recorded
+          # three false alarms in one session and the reason it matters: a run
+          # that reports failure for an infrastructure race trains people to
+          # read failure as noise, which is a Rule 77 hazard in the CI itself.
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          echo "::error::census artifact could not be pushed after 3 attempts"
+          exit 1
