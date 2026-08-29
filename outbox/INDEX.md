@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0a017ca` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
+| `0a017ca` | 2026-08-29 | [sport-vocabulary-2026-08-29T16-35-10-556Z.json](sport-vocabulary-2026-08-29T16-35-10-556Z.json) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
 | `44a61b9` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-29 [skip ci] |
 | `44a61b9` | 2026-08-29 | [sport-vocabulary-2026-08-29T07-58-07-674Z.json](sport-vocabulary-2026-08-29T07-58-07-674Z.json) | drift-sentinel: ok on 2026-08-29 [skip ci] |
 | `fbc7c56` | 2026-08-29 | [2026-08-28-bundesliga-modelled.md](2026-08-28-bundesliga-modelled.md) | feat: model Bundesliga — the last of the big five |
