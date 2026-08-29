@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5790c36` | 2026-08-29 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | fix: model game_live and bracket_delta, and read the observed set instead of a copy |
 | `39461f6` | 2026-08-29 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | capture: project updated_at, and let the capture choose its destination |
 | `17b8977` | 2026-08-29 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | fix: three new modules ran and exited on import; guard them with isMain |
 | `12b80e7` | 2026-08-29 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | ci: catch the clobber — a script a workflow depended on going unreachable |
