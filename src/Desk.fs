@@ -244,6 +244,10 @@ type Sport =
     /// with the space, and the drift sentinel reported it unmodelled from
     /// 2026-08-16.
     | LaLiga
+    /// German top flight. First observed live on 2026-08-28 — Bayern 5-1
+    /// Stuttgart at the Allianz Arena rendered under "Bundesliga · UNMODELLED
+    /// SPORT", and the sentinel filed issue #5 the same day.
+    | Bundesliga
     /// English top-flight association football. First observed live on
     /// 2026-08-21 — Arsenal v Coventry at the Emirates rendered on the desk
     /// under "EPL · UNMODELLED SPORT". The relay's archive labels it "EPL" (the
@@ -412,6 +416,21 @@ let sportMeta (sport: Sport) : SportMeta =
     // The sides are not transposed, so the desk can name them.
     | Sport.Ligue1 -> { Label = "Ligue 1"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     | Sport.SerieA -> { Label = "Serie A"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    // The last of the big five, and modelled on the same terms as the two
+    // above: the soccer convention is not a guess for a soccer competition,
+    // and what needed evidence was whether the relay transposes the sides.
+    //
+    // It does not. Sampled from the archive 2026-08-28 by
+    // scripts/sport-vocabulary-check.mjs (artifact
+    // outbox/sport-vocabulary-2026-08-29T00-47-21-350Z.json):
+    //
+    //   Bundesliga_2026-08-28_bayern_stuttgart
+    //   home Bayern, away Stuttgart, 5-1, venue Allianz Arena
+    //
+    // Allianz Arena is Bayern's ground, so home is the ground's owner — the
+    // same test the Ligue 1 and Serie A entries above are read off, and the
+    // same one the AFL transposition failed.
+    | Sport.Bundesliga -> { Label = "Bundesliga"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     // DECLARED unmodelled. Every field is what `Unrecognised` would produce —
     // the desk still refuses to claim a two-sided contest — and the only thing
     // that changes is that the sentinel can tell this apart from a sport nobody
@@ -488,6 +507,8 @@ let sportOfString (raw: string) : Sport =
     // quietly merges two sports.
     | "Ligue 1" -> Sport.Ligue1
     | "Serie A" -> Sport.SerieA
+    // The relay's own label, matched verbatim like every other soccer entry.
+    | "Bundesliga" -> Sport.Bundesliga
     // `golf` maps to a MODELLED case as of 2026-08-25. The relay packs an event
     // and a round into `home` and `away` —
     // `golf_2026-08-24_bmwchampionship_r4` carries "BMW Championship" and "R4"
