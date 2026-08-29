@@ -71,8 +71,30 @@ let failedBrief = 0, failedGames = 0
 
 for (const d of dates) {
   try {
-    const j = await get(`${RELAY}/archive/query?date=${d}&limit=100`)
-    for (const r of j.results || []) {
+    // PAGED, not one call with limit=100. The relay clamps limit to 50 and used
+    // to have no way past it, so this line sent 100, received 50 and reported it
+    // as a day's briefs. Six of seven dates in the 2026-08-23..29 capture came
+    // back at exactly 50 and nothing said so. /archive/query serves offset,
+    // total and hasMore since relay e1b7ed1 (deployed 2026-08-29).
+    const rows = []
+    let offset = 0, total = null, guard = 0
+    while (guard++ < 40) {
+      const page = await get(`${RELAY}/archive/query?date=${d}&limit=50&offset=${offset}`)
+      rows.push(...(page.results || []))
+      total = page.total ?? null
+      if (!page.hasMore) break
+      offset += (page.results || []).length
+      // A page that returns nothing while claiming hasMore would spin forever.
+      if (!(page.results || []).length) break
+    }
+    // The guard is not a silent cap. If it ever trips, the capture is short and
+    // must say so rather than look complete -- which is the whole defect this
+    // paging replaced.
+    if (guard >= 40) console.log(`::warning::${d}: paging guard tripped at ${rows.length} rows`)
+    if (total !== null && rows.length !== total) {
+      console.log(`::warning::${d}: paged ${rows.length} of ${total} briefs`)
+    }
+    for (const r of rows) {
       briefs.push({
         id: r.id, date: r.date, brief_type: r.brief_type, sport: r.sport,
         game_id: r.game_id, brief_text: r.brief_text, model: r.model,
