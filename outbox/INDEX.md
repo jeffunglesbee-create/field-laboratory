@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `17b8977` | 2026-08-29 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | fix: three new modules ran and exited on import; guard them with isMain |
 | `12b80e7` | 2026-08-29 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | ci: catch the clobber — a script a workflow depended on going unreachable |
 | `12b80e7` | 2026-08-29 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | ci: catch the clobber — a script a workflow depended on going unreachable |
 | `5359445` | 2026-08-29 | [2026-08-29-reading-is-a-simulation-of-execution.md](2026-08-29-reading-is-a-simulation-of-execution.md) | docs: reading is a simulation of execution — the rule, and a fifth instance |
