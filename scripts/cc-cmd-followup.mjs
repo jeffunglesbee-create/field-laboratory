@@ -20,6 +20,7 @@
 // no data, which is the failure this repo keeps finding.
 
 import { soccerBriefDefect } from './soccer-brief-defect.mjs'
+import { sportMeta, sportOfString } from '../build/Desk.js'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
@@ -37,7 +38,29 @@ const yesterdayUTC = () => new Date(Date.now() - 86_400_000).toISOString().slice
 // probe: a soccer league missing here makes that game "not observable", never a
 // false "landed" — the safe direction. Keep in sync as new soccer leagues are
 // modelled desk-side.
-const SOCCER_SPORTS = new Set(['MLS', 'EPL', 'La Liga', 'EFL Cup'])
+// SOCCER IS ASKED OF THE REGISTRY, NOT LISTED HERE.
+//
+// This was `new Set(['MLS', 'EPL', 'La Liga', 'EFL Cup'])` -- four competitions,
+// transcribed once from a slate that happened to hold those four. The
+// 2026-08-29 slate serves EIGHT: Serie A, Bundesliga and Ligue 1 were invisible
+// to every predicate below, and so were both UEFA qualifying competitions.
+//
+// That is what produced the 2026-08-27 REGRESSED verdict on the soccer
+// three-way ask. The sentinel's own line for that slate read "55 games — UEFA
+// Europa Conference League Qualifying:23, UEFA Europa League Qualifying:12,
+// MLB:7, NFL:4, MLS:3, EFL Cup:2, La Liga:2, WNBA:2" -- 42 soccer games, of
+// which this set could see 7. The ask had not regressed. Measured on the
+// 2026-08-29 fixture (data/context-2026-08-29.json, a real /context/date
+// payload): 50 soccer games, 40 carry an opening moneyline, and 40 of 40 carry
+// a draw. Zero two-way. The relay is doing exactly what the ask promised.
+//
+// `Desk.sportMeta` carries `IsSoccer` for every competition, and adding a Sport
+// case without a registry entry does not COMPILE (check:proof asserts it). So
+// asking the registry cannot drift the way a literal here silently did -- and
+// an unrecognised competition answers `false`, which is the same conservative
+// default this list gave, arrived at honestly.
+const isSoccerSport = name => sportMeta(sportOfString(String(name ?? ''))).IsSoccer
+const SOCCER_SPORTS = { has: isSoccerSport }
 
 // The soccer moneylines on a /context/date payload, parsed from opening_odds.
 // Shared by the live predicate and the self-test so both read the shape one way.
