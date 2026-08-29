@@ -27,7 +27,7 @@ jobs:
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
-          git add public/data/context-*.json
+          git add data/context-*.json data/PROVENANCE.md
           git diff --cached --quiet && echo "no change" && exit 0
           git commit -m "fixture: capture a real multi-sport /context/date payload [skip ci]"
           for i in 1 2 3; do

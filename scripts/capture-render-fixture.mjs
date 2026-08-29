@@ -45,6 +45,26 @@ if (sports.length < 5) {
   process.exit(1)
 }
 
-const out = `public/data/context-${date}.json`
+// `data/`, not `public/data/`. The first version of this script wrote to the
+// latter and failed on a fresh checkout with ENOENT, because `public/` is
+// GITIGNORED: it is build output. scripts/build-site.mjs copies data/ -> public/data/
+// (`cp(`${ROOT}data`, `${OUT}/data`)`), so the tracked source of every fixture
+// is data/ and writing to the copy would have produced a file that existed only
+// on the runner and was staged by nothing.
+//
+// Written against an assumed path rather than a checked one — the same mistake
+// this session has now made four times in different clothes.
+const out = `data/context-${date}.json`
 writeFileSync(out, JSON.stringify(payload, null, 1) + '\n')
 console.log(`  wrote ${out}\n`)
+
+// data/PROVENANCE.md exists so a reader can ask where any file in this directory
+// came from. A capture that does not answer that question is the kind of
+// unsourced fixture it exists to prevent.
+const { appendFileSync } = await import('node:fs')
+appendFileSync('data/PROVENANCE.md',
+  `\n- \`context-${date}.json\` — captured ${new Date().toISOString().slice(0, 10)} from ` +
+  `\`${RELAY}/context/date/${date}\` by \`scripts/capture-render-fixture.mjs\`. ` +
+  `${rows.length} rows, ${sports.length} sports: ${sports.join(', ')}. ` +
+  `Unedited — a hand-modified fixture is an invented one.\n`)
+console.log('  appended provenance\n')

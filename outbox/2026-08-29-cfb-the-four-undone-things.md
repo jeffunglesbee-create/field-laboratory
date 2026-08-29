@@ -76,3 +76,53 @@ fail rather than quietly shrink the corpus.
 
 **This closes the same gap for Bundesliga and every UEFA competition**, which is
 why it was worth more than a CFB-only fixture.
+
+---
+
+## Results
+
+### 1. Twelve briefs were written unscoped
+
+`cfb-brief-contamination-probe.mjs`, run against the live archive:
+
+```
+/archive/query?sport=CFB returned 14 brief(s)
+
+  written BEFORE the fix (unscoped):  12
+  written AFTER  the fix (scoped):     2
+
+PASS  no CFB brief carries another sport's vocabulary
+```
+
+**The two post-fix briefs are the control.** They prove the classifier fix is
+live in the deployed worker, not merely committed — nothing else this session
+established that.
+
+**Zero cross-sport vocabulary in all fourteen, and that clears less than it
+looks.** An exemplar governs register — connective sentences, numbers
+subordinated into claims — and a brief drafted against a tennis exemplar can use
+no tennis word at all. The one detector available found nothing; that is the
+whole claim. Regenerating twelve briefs costs LLM calls and is a decision for a
+human, not a consequence this probe is entitled to draw.
+
+### 4. The capture failed, on a path I assumed
+
+```
+ENOENT: open 'public/data/context-2026-08-29.json'
+```
+
+**`public/` is gitignored.** It is build output: `scripts/build-site.mjs` copies
+`data/` → `public/data/`, so the tracked source of every fixture is `data/`, and
+writing to the copy produces a file that exists only on the runner and is staged
+by nothing.
+
+I read the fixtures at `public/data/` — where they exist locally, after a build —
+and wrote the capture against that path without checking whether it was the
+source or the output. **Fourth time this session in different clothes: a path,
+a payload shape, a marker convention, an upstream status, each assumed rather
+than read.**
+
+Retargeted to `data/`, and it now appends to `data/PROVENANCE.md` — that file
+exists so a reader can ask where anything in the directory came from, and a
+capture that does not answer the question is exactly the unsourced fixture it was
+written to prevent.
