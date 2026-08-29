@@ -71,3 +71,5 @@ Re-probe the same routes and replace the files. If a field's shape has changed,
 the decoders in `src/Desk.fs` should fail loudly rather than silently — that is
 what they are for, and a decode failure on a refresh is a genuine finding worth
 reporting, not a test to fix.
+
+- `context-2026-08-29.json` — captured 2026-08-29 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-08-29` by `scripts/capture-render-fixture.mjs`. 78 rows, 11 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NFL, Serie A, WNBA. Unedited — a hand-modified fixture is an invented one.
