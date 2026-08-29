@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `64ac887` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | capture: page /archive/query instead of asking for 100 and taking 50 |
+| `dbcbb0b` | 2026-08-29 | [cc-the-soccer-set-was-four-2026-08-29.md](cc-the-soccer-set-was-four-2026-08-29.md) | fix: ask the registry which competitions are soccer, not a four-element literal |
 | `5790c36` | 2026-08-29 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | fix: model game_live and bracket_delta, and read the observed set instead of a copy |
 | `39461f6` | 2026-08-29 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | capture: project updated_at, and let the capture choose its destination |
 | `17b8977` | 2026-08-29 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | fix: three new modules ran and exited on import; guard them with isMain |
