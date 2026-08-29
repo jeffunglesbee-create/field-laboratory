@@ -35,6 +35,7 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { isMain } from './checks.mjs'
 
 const WF = '.github/workflows'
 
@@ -67,7 +68,7 @@ export function stripJsComments (t) {
   return t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1')
 }
 
-if (process.argv.includes('--self-test')) {
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const T = (l, ok) => check(l, ok)
   T('npm run names are extracted', npmRunNames('run: npm run check:sports\n npm run check').join(',') === 'check:sports,check')
   T('a whole-line YAML comment is not code',
@@ -94,131 +95,140 @@ if (process.argv.includes('--self-test')) {
   process.exit(fail === 0 ? 0 : 1)
 }
 
-const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
-const scripts = pkg.scripts ?? {}
-// COMMENT LINES ARE STRIPPED. The first run flagged a missing script named `X`,
-// harvested from this file's own explanatory comment inside guards.yml -- "does
-// `npm run X` resolve?". A checker that reads prose as code is the same defect
-// scripts/fetch-silently-empty-probe.mjs was narrowed for, and it is the fourth
-// time this session that a detector's name and its measurement disagreed.
-//
-// Only whole-line comments are dropped: a trailing `#` inside a run: block can
-// be part of a shell command, and stripping those would silently stop seeing
-// real invocations.
-const stripComments = t => t.split('\n').filter(l => !/^\s*#/.test(l)).join('\n')
-const wfText = stripComments(readdirSync(WF).filter(f => /\.ya?ml$/.test(f))
-  .map(f => readFileSync(join(WF, f), 'utf8')).join('\n'))
 
-// FORWARD
-const missing = [...new Set(npmRunNames(wfText))].filter(n => !(n in scripts))
+// EXECUTABLE HALF, GUARDED. This module exports functions, so something will
+// eventually import it -- and an unguarded module does its work at import time
+// and calls process.exit, so the importer's own code never runs and the command
+// still exits 0. That is the exact failure import-purity-check.mjs was written
+// for; see its header. Everything below runs only when this file IS the entry
+// point.
+if (isMain(import.meta.url)) {
+  const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+  const scripts = pkg.scripts ?? {}
+  // COMMENT LINES ARE STRIPPED. The first run flagged a missing script named `X`,
+  // harvested from this file's own explanatory comment inside guards.yml -- "does
+  // `npm run X` resolve?". A checker that reads prose as code is the same defect
+  // scripts/fetch-silently-empty-probe.mjs was narrowed for, and it is the fourth
+  // time this session that a detector's name and its measurement disagreed.
+  //
+  // Only whole-line comments are dropped: a trailing `#` inside a run: block can
+  // be part of a shell command, and stripping those would silently stop seeing
+  // real invocations.
+  const stripComments = t => t.split('\n').filter(l => !/^\s*#/.test(l)).join('\n')
+  const wfText = stripComments(readdirSync(WF).filter(f => /\.ya?ml$/.test(f))
+    .map(f => readFileSync(join(WF, f), 'utf8')).join('\n'))
 
-// BACKWARD. Reachability is one hop through package.json: a script command may
-// name another npm script (`npm run a && npm run b`), so follow those too.
-const reached = new Set()
-const seen = new Set()
-const walk = name => {
-  if (seen.has(name) || !(name in scripts)) return
-  seen.add(name)
-  for (const f of scriptFiles(scripts[name])) reached.add(f)
-  for (const n of npmRunNames(scripts[name])) walk(n)
+  // FORWARD
+  const missing = [...new Set(npmRunNames(wfText))].filter(n => !(n in scripts))
+
+  // BACKWARD. Reachability is one hop through package.json: a script command may
+  // name another npm script (`npm run a && npm run b`), so follow those too.
+  const reached = new Set()
+  const seen = new Set()
+  const walk = name => {
+    if (seen.has(name) || !(name in scripts)) return
+    seen.add(name)
+    for (const f of scriptFiles(scripts[name])) reached.add(f)
+    for (const n of npmRunNames(scripts[name])) walk(n)
+  }
+  for (const n of npmRunNames(wfText)) walk(n)
+  // A workflow may also invoke a script DIRECTLY -- `node scripts/serve.mjs &`,
+  // `node scripts/drift-check.mjs` -- without going through package.json at all.
+  // The first version of this check walked only `npm run` and reported 33
+  // unreachable files, most of them called directly by a workflow step three
+  // lines from where it was looking. Its name said "reachable from a workflow"
+  // and it measured "reachable from a workflow's npm scripts", which is the same
+  // defect this file exists to catch, in the file itself, on its first run.
+  for (const f of scriptFiles(wfText)) reached.add(f)
+
+  // A module IMPORTED by a reachable script is reachable. Without this the ledger
+  // fills with libraries -- jq-tokenizer.mjs, checks.mjs, game-id-scheme.mjs are
+  // never invoked and are imported by scripts that are -- and a ledger that is
+  // mostly noise is one nobody reads when the real entry appears. Transitive, so
+  // a helper imported by a helper still counts.
+  const importsOf = f => {
+    const path = join('scripts', f)
+    if (!existsSync(path)) return []
+    const t = readFileSync(path, 'utf8')
+    return [...t.matchAll(/from\s+['"]\.\/([A-Za-z0-9._-]+\.m?js)['"]|import\(['"]\.\/([A-Za-z0-9._-]+\.m?js)['"]/g)]
+      .map(m => m[1] || m[2]).filter(Boolean)
+  }
+  // A reachable script may SHELL OUT to another -- gate-checks.mjs:244 runs
+  // `ok('node scripts/mutation-check.mjs')`, which in turn runs run-row.mjs. That
+  // is a real edge and no import or npm script records it, so the file's own
+  // source is harvested for `scripts/X.mjs` alongside its imports. Without this,
+  // mutation-check.mjs read as an orphan while the gate ran it on every row.
+  const edgesOf = f => {
+    const path = join('scripts', f)
+    if (!existsSync(path)) return []
+    const t = readFileSync(path, 'utf8')
+    // Only edges to files that EXIST. This file's own self-test fixtures name
+    // scripts/a-b.mjs and friends as string literals, and harvesting its source
+    // walked them into the reachable set -- five names that are not files. They
+    // could never mask a real orphan, but a count that overshoots the directory
+    // is a count nobody can check against `ls`.
+    return [...importsOf(f), ...scriptFiles(stripJsComments(t))]
+      .filter(d => existsSync(join('scripts', d)))
+  }
+  let grew = true
+  while (grew) {
+    grew = false
+    for (const f of [...reached]) for (const dep of edgesOf(f)) if (!reached.has(dep)) { reached.add(dep); grew = true }
+  }
+  // The pre-commit hook is a real entry point too.
+  // Both forms, because the hook uses both: `node scripts/x.mjs` AND `npm run y`.
+  // Harvesting only the first left staged-outbox-check.mjs reported unreachable
+  // while the pre-commit gate was running it on every commit -- including the
+  // commit that added this check.
+  // The hook path is READ, not guessed. `git config core.hooksPath` says
+  // `.githooks`; I wrote `scripts/pre-commit` from memory, existsSync returned
+  // false, and the whole branch silently did nothing -- so the hook's scripts
+  // looked unreachable and the check had no idea it was blind.
+  //
+  // A missing optional file and a missing REQUIRED one are different, so this
+  // says which it found.
+  const HOOK = ['.githooks/pre-commit', 'scripts/pre-commit'].find(existsSync)
+  if (!HOOK) console.log('  note: no pre-commit hook found; its scripts are not counted as reachable')
+  if (HOOK) {
+    const hook = readFileSync(HOOK, 'utf8')
+    for (const f of scriptFiles(hook)) reached.add(f)
+    for (const n of npmRunNames(hook)) walk(n)
+  }
+
+  const onDisk = readdirSync('scripts').filter(f => /\.m?js$/.test(f))
+  const unreachable = onDisk.filter(f => !reached.has(f))
+
+  console.log(`\n  ${Object.keys(scripts).length} npm script(s), ${onDisk.length} file(s) in scripts/`)
+  console.log(`  ${reached.size} reachable from a workflow or the pre-commit hook\n`)
+
+  check('every `npm run` in a workflow resolves to a script', missing.length === 0, missing.join(', '))
+
+  // NOT a hard failure on every unreachable file: probes and one-off censuses are
+  // deliberately dispatch-only or manual, and forbidding those would push real
+  // tools into fake workflows. The ratchet is what matters -- the number must not
+  // GROW, which is what a clobber does.
+  const LEDGER = 'docs/unreachable-scripts.txt'
+  const declared = existsSync(LEDGER)
+    ? readFileSync(LEDGER, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'))
+    : []
+  const undeclared = unreachable.filter(f => !declared.includes(f))
+  const stale = declared.filter(f => !unreachable.includes(f))
+
+  if (unreachable.length) {
+    console.log(`  unreachable (${unreachable.length}), all declared in ${LEDGER}:`)
+    for (const f of unreachable) console.log(`    ${f}${declared.includes(f) ? '' : '   <- NOT DECLARED'}`)
+    console.log('')
+  }
+
+  check('no script became unreachable without being declared',
+    undeclared.length === 0,
+    `${undeclared.join(', ')} — if this is a deliberate retirement, add it to ${LEDGER} ` +
+    `with a reason in the same commit. If it is a clobber, a workflow step is now ` +
+    `measuring something other than what its name says.`)
+  check('the ledger carries no script that is reachable again',
+    stale.length === 0,
+    `${stale.join(', ')} — reachable now; delete the line in the commit that rewired it`)
+
+  console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} checks passed`)
+  process.exit(fail === 0 ? 0 : 1)
 }
-for (const n of npmRunNames(wfText)) walk(n)
-// A workflow may also invoke a script DIRECTLY -- `node scripts/serve.mjs &`,
-// `node scripts/drift-check.mjs` -- without going through package.json at all.
-// The first version of this check walked only `npm run` and reported 33
-// unreachable files, most of them called directly by a workflow step three
-// lines from where it was looking. Its name said "reachable from a workflow"
-// and it measured "reachable from a workflow's npm scripts", which is the same
-// defect this file exists to catch, in the file itself, on its first run.
-for (const f of scriptFiles(wfText)) reached.add(f)
-
-// A module IMPORTED by a reachable script is reachable. Without this the ledger
-// fills with libraries -- jq-tokenizer.mjs, checks.mjs, game-id-scheme.mjs are
-// never invoked and are imported by scripts that are -- and a ledger that is
-// mostly noise is one nobody reads when the real entry appears. Transitive, so
-// a helper imported by a helper still counts.
-const importsOf = f => {
-  const path = join('scripts', f)
-  if (!existsSync(path)) return []
-  const t = readFileSync(path, 'utf8')
-  return [...t.matchAll(/from\s+['"]\.\/([A-Za-z0-9._-]+\.m?js)['"]|import\(['"]\.\/([A-Za-z0-9._-]+\.m?js)['"]/g)]
-    .map(m => m[1] || m[2]).filter(Boolean)
-}
-// A reachable script may SHELL OUT to another -- gate-checks.mjs:244 runs
-// `ok('node scripts/mutation-check.mjs')`, which in turn runs run-row.mjs. That
-// is a real edge and no import or npm script records it, so the file's own
-// source is harvested for `scripts/X.mjs` alongside its imports. Without this,
-// mutation-check.mjs read as an orphan while the gate ran it on every row.
-const edgesOf = f => {
-  const path = join('scripts', f)
-  if (!existsSync(path)) return []
-  const t = readFileSync(path, 'utf8')
-  // Only edges to files that EXIST. This file's own self-test fixtures name
-  // scripts/a-b.mjs and friends as string literals, and harvesting its source
-  // walked them into the reachable set -- five names that are not files. They
-  // could never mask a real orphan, but a count that overshoots the directory
-  // is a count nobody can check against `ls`.
-  return [...importsOf(f), ...scriptFiles(stripJsComments(t))]
-    .filter(d => existsSync(join('scripts', d)))
-}
-let grew = true
-while (grew) {
-  grew = false
-  for (const f of [...reached]) for (const dep of edgesOf(f)) if (!reached.has(dep)) { reached.add(dep); grew = true }
-}
-// The pre-commit hook is a real entry point too.
-// Both forms, because the hook uses both: `node scripts/x.mjs` AND `npm run y`.
-// Harvesting only the first left staged-outbox-check.mjs reported unreachable
-// while the pre-commit gate was running it on every commit -- including the
-// commit that added this check.
-// The hook path is READ, not guessed. `git config core.hooksPath` says
-// `.githooks`; I wrote `scripts/pre-commit` from memory, existsSync returned
-// false, and the whole branch silently did nothing -- so the hook's scripts
-// looked unreachable and the check had no idea it was blind.
-//
-// A missing optional file and a missing REQUIRED one are different, so this
-// says which it found.
-const HOOK = ['.githooks/pre-commit', 'scripts/pre-commit'].find(existsSync)
-if (!HOOK) console.log('  note: no pre-commit hook found; its scripts are not counted as reachable')
-if (HOOK) {
-  const hook = readFileSync(HOOK, 'utf8')
-  for (const f of scriptFiles(hook)) reached.add(f)
-  for (const n of npmRunNames(hook)) walk(n)
-}
-
-const onDisk = readdirSync('scripts').filter(f => /\.m?js$/.test(f))
-const unreachable = onDisk.filter(f => !reached.has(f))
-
-console.log(`\n  ${Object.keys(scripts).length} npm script(s), ${onDisk.length} file(s) in scripts/`)
-console.log(`  ${reached.size} reachable from a workflow or the pre-commit hook\n`)
-
-check('every `npm run` in a workflow resolves to a script', missing.length === 0, missing.join(', '))
-
-// NOT a hard failure on every unreachable file: probes and one-off censuses are
-// deliberately dispatch-only or manual, and forbidding those would push real
-// tools into fake workflows. The ratchet is what matters -- the number must not
-// GROW, which is what a clobber does.
-const LEDGER = 'docs/unreachable-scripts.txt'
-const declared = existsSync(LEDGER)
-  ? readFileSync(LEDGER, 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'))
-  : []
-const undeclared = unreachable.filter(f => !declared.includes(f))
-const stale = declared.filter(f => !unreachable.includes(f))
-
-if (unreachable.length) {
-  console.log(`  unreachable (${unreachable.length}), all declared in ${LEDGER}:`)
-  for (const f of unreachable) console.log(`    ${f}${declared.includes(f) ? '' : '   <- NOT DECLARED'}`)
-  console.log('')
-}
-
-check('no script became unreachable without being declared',
-  undeclared.length === 0,
-  `${undeclared.join(', ')} — if this is a deliberate retirement, add it to ${LEDGER} ` +
-  `with a reason in the same commit. If it is a clobber, a workflow step is now ` +
-  `measuring something other than what its name says.`)
-check('the ledger carries no script that is reachable again',
-  stale.length === 0,
-  `${stale.join(', ')} — reachable now; delete the line in the commit that rewired it`)
-
-console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} checks passed`)
-process.exit(fail === 0 ? 0 : 1)

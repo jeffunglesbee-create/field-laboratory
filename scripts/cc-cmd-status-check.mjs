@@ -39,6 +39,7 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { isMain } from './checks.mjs'
 
 const DIR = 'docs'
 
@@ -75,7 +76,7 @@ export function contradicts (text) {
 }
 
 // ── self-test, so a broken detector fails HERE rather than passing there ─────
-if (process.argv.includes('--self-test')) {
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const T = (label, ok) => check(label, ok)
   T('a single Status line is read', readStatus('**Status:** CLOSED 2026-01-01\nbody').word === 'CLOSED')
   T('bold inside the status does not defeat the vocabulary',
@@ -101,44 +102,53 @@ if (process.argv.includes('--self-test')) {
   process.exit(fail === 0 ? 0 : 1)
 }
 
-// ── the real run ────────────────────────────────────────────────────────────
-const files = readdirSync(DIR).filter(f => /^CC-CMD-.*\.md$/.test(f)).sort()
 
-const missing = [], multiple = [], unknown = [], conflicted = []
-const terminal = [], open = []
+// EXECUTABLE HALF, GUARDED. This module exports functions, so something will
+// eventually import it -- and an unguarded module does its work at import time
+// and calls process.exit, so the importer's own code never runs and the command
+// still exits 0. That is the exact failure import-purity-check.mjs was written
+// for; see its header. Everything below runs only when this file IS the entry
+// point.
+if (isMain(import.meta.url)) {
+  // ── the real run ────────────────────────────────────────────────────────────
+  const files = readdirSync(DIR).filter(f => /^CC-CMD-.*\.md$/.test(f)).sort()
 
-for (const f of files) {
-  const text = readFileSync(join(DIR, f), 'utf8')
-  const s = readStatus(text)
-  if (s.count === 0) { missing.push(f); continue }
-  if (s.count > 1) { multiple.push(`${f}: ${s.count} Status lines`); continue }
-  if (!s.word) { unknown.push(`${f}: "${s.body.slice(0, 60)}"`); continue }
-  if (s.terminal) terminal.push(f)
-  else {
-    open.push(`${f} — ${s.word}`)
-    if (CLOSING_SECTION.test(text)) {
-      const heading = text.match(CLOSING_SECTION)[0].trim()
-      conflicted.push(`${f}: status says ${s.word}, but the document carries "${heading}"`)
+  const missing = [], multiple = [], unknown = [], conflicted = []
+  const terminal = [], open = []
+
+  for (const f of files) {
+    const text = readFileSync(join(DIR, f), 'utf8')
+    const s = readStatus(text)
+    if (s.count === 0) { missing.push(f); continue }
+    if (s.count > 1) { multiple.push(`${f}: ${s.count} Status lines`); continue }
+    if (!s.word) { unknown.push(`${f}: "${s.body.slice(0, 60)}"`); continue }
+    if (s.terminal) terminal.push(f)
+    else {
+      open.push(`${f} — ${s.word}`)
+      if (CLOSING_SECTION.test(text)) {
+        const heading = text.match(CLOSING_SECTION)[0].trim()
+        conflicted.push(`${f}: status says ${s.word}, but the document carries "${heading}"`)
+      }
     }
   }
+
+  console.log(`\n  ${files.length} CC-CMD(s): ${terminal.length} terminal, ${open.length} open\n`)
+  for (const o of open) console.log(`    OPEN  ${o}`)
+  if (open.length) console.log('')
+
+  check('every CC-CMD carries a Status line', missing.length === 0,
+    `${missing.length} without one: ${missing.join(', ')}`)
+  check('...exactly one, so a second cannot override the first', multiple.length === 0,
+    multiple.join('\n        → '))
+  check('every status opens with a word from the closed vocabulary', unknown.length === 0,
+    `a grep for the terminal words is only exhaustive if this holds\n        → ${unknown.join('\n        → ')}`)
+  check('no document is open at the top and closed further down', conflicted.length === 0,
+    conflicted.join('\n        → '))
+
+  // NON-VACUITY. "Every status is well-formed" is free over an empty directory,
+  // and this check would then pass on a repo whose docs/ had been emptied.
+  check('there are CC-CMDs to check at all', files.length > 0, `${files.length} found`)
+
+  console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} checks passed`)
+  process.exit(fail === 0 ? 0 : 1)
 }
-
-console.log(`\n  ${files.length} CC-CMD(s): ${terminal.length} terminal, ${open.length} open\n`)
-for (const o of open) console.log(`    OPEN  ${o}`)
-if (open.length) console.log('')
-
-check('every CC-CMD carries a Status line', missing.length === 0,
-  `${missing.length} without one: ${missing.join(', ')}`)
-check('...exactly one, so a second cannot override the first', multiple.length === 0,
-  multiple.join('\n        → '))
-check('every status opens with a word from the closed vocabulary', unknown.length === 0,
-  `a grep for the terminal words is only exhaustive if this holds\n        → ${unknown.join('\n        → ')}`)
-check('no document is open at the top and closed further down', conflicted.length === 0,
-  conflicted.join('\n        → '))
-
-// NON-VACUITY. "Every status is well-formed" is free over an empty directory,
-// and this check would then pass on a repo whose docs/ had been emptied.
-check('there are CC-CMDs to check at all', files.length > 0, `${files.length} found`)
-
-console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} checks passed`)
-process.exit(fail === 0 ? 0 : 1)

@@ -31,6 +31,7 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
+import { isMain } from './checks.mjs'
 
 const REPOS = process.argv.slice(2).filter(a => !a.startsWith('--'))
 const repos = REPOS.length ? REPOS : ['.', '../field-relay-nba', '../jubilant-bassoon']
@@ -79,7 +80,7 @@ export function classify (lines, i) {
   return STATUS.test(window) ? 'safe' : 'unsafe'
 }
 
-if (process.argv.includes('--self-test')) {
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const T = (l, ok) => check(l, ok)
   const c = src => classify(src.split('\n'), src.split('\n').findIndex(l => SWALLOW.test(l)))
   T('a swallow with the status kept in the same expression is safe',
@@ -109,45 +110,54 @@ if (process.argv.includes('--self-test')) {
   process.exit(fail === 0 ? 0 : 1)
 }
 
-const findings = { safe: [], unsafe: [] }
-let scanned = 0
-for (const repo of repos) {
-  const dir = join(repo, 'scripts')
-  if (!existsSync(dir)) continue
-  // Skip this file. Its self-test fixtures are swallow sites written on purpose
-  // as strings, and every one of them is already exercised by --self-test. A
-  // detector reporting its own fixtures is noise that hides the real rows.
-  const SELF = 'fetch-silently-empty-probe.mjs'
-  for (const f of readdirSync(dir).filter(n => /\.(mjs|js)$/.test(n) && n !== SELF)) {
-    const path = join(dir, f)
-    const lines = readFileSync(path, 'utf8').split('\n')
-    scanned++
-    for (let i = 0; i < lines.length; i++) {
-      const v = classify(lines, i)
-      if (v) findings[v].push(`${repo}/scripts/${f}:${i + 1}  ${lines[i].trim().slice(0, 96)}`)
+
+// EXECUTABLE HALF, GUARDED. This module exports functions, so something will
+// eventually import it -- and an unguarded module does its work at import time
+// and calls process.exit, so the importer's own code never runs and the command
+// still exits 0. That is the exact failure import-purity-check.mjs was written
+// for; see its header. Everything below runs only when this file IS the entry
+// point.
+if (isMain(import.meta.url)) {
+  const findings = { safe: [], unsafe: [] }
+  let scanned = 0
+  for (const repo of repos) {
+    const dir = join(repo, 'scripts')
+    if (!existsSync(dir)) continue
+    // Skip this file. Its self-test fixtures are swallow sites written on purpose
+    // as strings, and every one of them is already exercised by --self-test. A
+    // detector reporting its own fixtures is noise that hides the real rows.
+    const SELF = 'fetch-silently-empty-probe.mjs'
+    for (const f of readdirSync(dir).filter(n => /\.(mjs|js)$/.test(n) && n !== SELF)) {
+      const path = join(dir, f)
+      const lines = readFileSync(path, 'utf8').split('\n')
+      scanned++
+      for (let i = 0; i < lines.length; i++) {
+        const v = classify(lines, i)
+        if (v) findings[v].push(`${repo}/scripts/${f}:${i + 1}  ${lines[i].trim().slice(0, 96)}`)
+      }
     }
   }
-}
 
-console.log(`\n  ${scanned} script(s) scanned across ${repos.length} repo(s)`)
-console.log(`  ${findings.safe.length} swallow(s) with the status preserved, ${findings.unsafe.length} without\n`)
-if (findings.unsafe.length) {
-  console.log('  UNSAFE — a failed fetch is indistinguishable from an empty answer here:\n')
-  for (const u of findings.unsafe) console.log(`    ${u}`)
+  console.log(`\n  ${scanned} script(s) scanned across ${repos.length} repo(s)`)
+  console.log(`  ${findings.safe.length} swallow(s) with the status preserved, ${findings.unsafe.length} without\n`)
+  if (findings.unsafe.length) {
+    console.log('  UNSAFE — a failed fetch is indistinguishable from an empty answer here:\n')
+    for (const u of findings.unsafe) console.log(`    ${u}`)
+    console.log('')
+  }
+  console.log('  safe, for the record:\n')
+  for (const s of findings.safe) console.log(`    ${s}`)
+
+  // Non-vacuity: a regex that stopped matching would report zero of both and read
+  // as a clean codebase.
   console.log('')
+  check('the scan found swallow sites at all — otherwise this proves nothing',
+    findings.safe.length + findings.unsafe.length > 0,
+    'the pattern matched nothing in any repo, which is more likely a broken regex than a clean tree')
+  check('no fetch failure reads as an empty answer',
+    findings.unsafe.length === 0,
+    `${findings.unsafe.length} site(s) — each needs the status read before the value is used as data`)
+
+  console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} checks passed`)
+  process.exit(fail === 0 ? 0 : 1)
 }
-console.log('  safe, for the record:\n')
-for (const s of findings.safe) console.log(`    ${s}`)
-
-// Non-vacuity: a regex that stopped matching would report zero of both and read
-// as a clean codebase.
-console.log('')
-check('the scan found swallow sites at all — otherwise this proves nothing',
-  findings.safe.length + findings.unsafe.length > 0,
-  'the pattern matched nothing in any repo, which is more likely a broken regex than a clean tree')
-check('no fetch failure reads as an empty answer',
-  findings.unsafe.length === 0,
-  `${findings.unsafe.length} site(s) — each needs the status read before the value is used as data`)
-
-console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} checks passed`)
-process.exit(fail === 0 ? 0 : 1)

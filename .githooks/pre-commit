@@ -39,5 +39,13 @@ npm run --silent check:staged-verifier
 # here, right after the rebase, the answer is one edit away. Silent when the sha
 # is unknown: a shallow clone is the ordinary case in a cloud session.
 npm run --silent check:boundary
+# Added 2026-08-29. Three modules written in one session -- cc-cmd-status-check,
+# check-script-orphans, fetch-silently-empty-probe -- each exported functions and
+# each did its work at import time, so importing any of them ran the checker and
+# exited the process. verify.yml caught all three, but only after the commits had
+# landed, and it was red for three consecutive commits before anyone read the
+# log. The probe imports 25 modules in fresh processes and takes about a second,
+# no network and no build, so the door is where it belongs.
+npm run --silent check:import-purity
 
 echo "pre-commit: ok"

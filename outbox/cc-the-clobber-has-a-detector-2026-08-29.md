@@ -138,3 +138,61 @@ node scripts/check-script-orphans.mjs               # 3/3, 84 reachable, 1 decla
 npm run check:sports                                # 12/12 — restored, not the render check
 npm run check:workflows                             # 6/6
 ```
+
+---
+
+## Addendum: the eighth instance, caught by CI on the commit above
+
+`verify` failed on `12b80e7` at `check:import-purity`:
+
+```
+Probed 25 exporting module(s) in scripts/
+PASS  there are exporting modules to check
+FAIL  importing a module never runs it or exits the process
+      → scripts/cc-cmd-status-check.mjs: the import terminated the process (exit 0)
+      → scripts/check-script-orphans.mjs: the import terminated the process (exit 0)
+      → scripts/fetch-silently-empty-probe.mjs: the import terminated the process (exit 1)
+```
+
+All three were written this session. All three export functions — which is the
+declaration that something may import them — and all three did their real work
+at module top level and then called `process.exit`. An importer's code after the
+import line never runs, and the command still exits 0.
+
+That is verbatim the failure `import-purity-check.mjs` exists for. Its own
+header records the original: a probe of `confidence-record-check.mjs` that
+printed the checker's output and none of the probe's, and was nearly reported as
+a result. The repo has a convention for it — `isMain(import.meta.url)` from
+`checks.mjs`, used by `history-check.mjs` and `confidence-record-check.mjs` —
+and none of the three new modules used it.
+
+Fixed: both the self-test trigger and the executable body of each are now
+guarded by `isMain`. 2/2, 25 modules probed.
+
+### Why it reached CI at all
+
+`verify` was red on **three consecutive commits** — `c031a81`, `5359445`,
+`12b80e7` — and the redness was not noticed, because the check that fails is
+step 55 of 60 and nothing reported it back. `guards` was separately red on
+`5359445` for the citation budget, fixed in the commit above.
+
+The pre-commit hook runs `check:clean-source`, `check:workflows`,
+`check:staged-outbox`, `check:staged-verifier` and `check:boundary` — all cheap,
+no network, no build. `check:import-purity` has exactly that profile: it imports
+25 modules in fresh processes and takes about a second. It is now the sixth
+step at the door.
+
+The pattern across all eight instances in this session is unchanged and it is
+the one already written into CLAUDE.md: a fact about something outside the file
+being edited, asserted from reading it. Here the outside fact was "this repo has
+a rule about modules that export," and it was answerable by one command:
+`npm run check:import-purity`.
+
+### Verify
+
+```
+npm run check:import-purity        # 5/5 self-test, 2/2, 25 modules probed
+node scripts/check-script-orphans.mjs        # 9/9 self-test, 3/3
+node scripts/cc-cmd-status-check.mjs         # 11/11 self-test, 5/5
+node scripts/fetch-silently-empty-probe.mjs --self-test   # 11/11
+```
