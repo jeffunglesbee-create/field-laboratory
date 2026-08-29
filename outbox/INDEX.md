@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5359445` | 2026-08-29 | [2026-08-29-reading-is-a-simulation-of-execution.md](2026-08-29-reading-is-a-simulation-of-execution.md) | docs: reading is a simulation of execution — the rule, and a fifth instance |
 | `c031a81` | 2026-08-29 | [2026-08-29-cfb-the-four-undone-things.md](2026-08-29-cfb-the-four-undone-things.md) | fix: the fixture capture wrote to build output, not the tracked source |
 | `3015b09` | 2026-08-29 | [2026-08-29-cfb-the-four-undone-things.md](2026-08-29-cfb-the-four-undone-things.md) | feat: capture a real multi-sport render fixture; probe the unscoped briefs |
 | `0a017ca` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
