@@ -1,0 +1,36 @@
+name: capture render fixture
+
+# Dispatch-only, NO schedule. A fixture is captured when a new sport needs
+# rendering, not on a timer. CI because the sandbox 403s *.workers.dev.
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'YYYY-MM-DD to capture. Default 2026-08-29 (first CFB slate, 11 sports).'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: Capture
+        run: node scripts/capture-render-fixture.mjs ${{ inputs.date }}
+      - name: Commit the fixture
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add public/data/context-*.json
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "fixture: capture a real multi-sport /context/date payload [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && break
+            sleep $((i * 5))
+          done
