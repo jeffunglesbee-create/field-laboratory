@@ -38,7 +38,13 @@ import { writeFileSync } from 'node:fs'
 import { joinCensus, formatCensus } from './game-id-scheme.mjs'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
-const OUT = 'data/brief-join-corpus.json'
+// The output path is an INPUT. `data/brief-join-corpus.json` is pinned at
+// `briefs.length === 542 && games.length === 469` by game-id-check.mjs:117, and
+// at 97 games with no espn_event_id by :167 -- so re-capturing over it turns a
+// data refresh into three failing assertions. That is the same reasoning this
+// script's own header gives for not re-capturing jq-mlb-game-corpus.json; it
+// simply had one hardcoded destination and so could only obey it once.
+const OUT = process.env.OUT || 'data/brief-join-corpus.json'
 
 const FROM = process.env.FROM || '2026-08-01'
 const TO = process.env.TO || new Date().toISOString().slice(0, 10)
@@ -71,6 +77,21 @@ for (const d of dates) {
         id: r.id, date: r.date, brief_type: r.brief_type, sport: r.sport,
         game_id: r.game_id, brief_text: r.brief_text, model: r.model,
         quality_score: r.quality_score, source: r.source, created_at: r.created_at,
+        // created_at DOES NOT MOVE ON REWRITE. Three of the relay's brief
+        // writers use ON CONFLICT(id) DO UPDATE (field-relay-nba/src/index.js
+        // 5975, 12036, 12492), so brief_text is replaced in place while
+        // created_at keeps its original value forever -- recorded in that repo
+        // at index.js:5445 with a measured case, a brief carrying a fabricated
+        // figure at 19:09 that was clean at 21:14 and still reported
+        // created_at 18:30:53.
+        //
+        // Measured here on the committed corpus, on the 10 final games carrying
+        // both a live-state and a finished-state brief: ordering by created_at
+        // picks the finished brief 4 times and the live one 6. It is not an
+        // ordering key. /archive/query has served updated_at since 2026-08-23
+        // (index.js:12000, "additive so no consumer moves") and this projection
+        // simply never asked for it.
+        updated_at: r.updated_at ?? null,
         // Captured on purpose even though it is expected to be absent: recording
         // that a field is missing is evidence, and the day it appears this file
         // shows it without anyone editing the capture.

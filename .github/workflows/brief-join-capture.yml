@@ -30,6 +30,10 @@ on:
         description: 'Last date (YYYY-MM-DD, blank = today)'
         required: false
         default: ''
+      out:
+        description: 'Output path. The default is pinned at 542 briefs / 469 games by game-id-check.mjs:117 — capture a different range to a different file.'
+        required: false
+        default: 'data/brief-join-corpus.json'
 
 permissions:
   contents: write
@@ -52,6 +56,7 @@ jobs:
         env:
           FROM: ${{ inputs.from }}
           TO: ${{ inputs.to }}
+          OUT: ${{ inputs.out }}
         run: node scripts/brief-join-capture.mjs
 
       # Deliberately a NEW file. data/jq-mlb-game-corpus.json is pinned at 592
@@ -62,7 +67,7 @@ jobs:
         run: |
           git config user.name  'field-laboratory'
           git config user.email 'noreply@github.com'
-          git add data/brief-join-corpus.json
+          git add "${{ inputs.out }}"
           if git diff --cached --quiet; then
             echo "no change — the capture already matches what is committed"
             exit 0
