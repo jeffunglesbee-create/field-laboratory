@@ -27,5 +27,20 @@ The guard is loud rather than silent. A cap that trips quietly is the defect
 being replaced, so tripping it emits a `::warning::`, and so does any run whose
 row count disagrees with the `total` the relay served.
 
-`jq-density-census.mjs:94` still sends `limit=100` and is still truncated. It is
-a different census with its own consumers and is not in this commit's scope.
+`jq-density-census.mjs:94` also sends `limit=100`. Whether it is truncated is a
+question, not an observation, and it is left for its own commit.
+
+**CORRECTION, same day.** The sentence above originally read "and is still
+truncated." That was asserted from reading the `100`, not from counting rows,
+and it is false. The census filters to one `brief_type`, and no date has ever
+come close to the cap:
+
+```
+committed jq-mlb-game-corpus.json : 51 dates, max 25 mlb_game briefs on any date
+untruncated 2026-08-23..29 window : max 19 on any date
+dates at or above the cap of 50   : 0
+```
+
+Exactly the defect this document is about, committed in the document about it.
+The census now pages anyway — a no-op against those counts, which is what makes
+it safe to add while five checks pin that corpus at 592 rows.

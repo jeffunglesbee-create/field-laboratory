@@ -90,12 +90,39 @@ function dateRange(fromISO, toISO) {
   return out
 }
 
+// PAGED, and it is a no-op today by measurement rather than by hope.
+//
+// This sent `limit=100` to a route that clamps at 50, which is the same shape as
+// the bug that cost brief-join-capture half its rows. It was written up as
+// "still truncated" on the strength of reading that `100`. It is not: this query
+// filters to ONE brief_type, and the counts say so. The committed corpus holds
+// 51 dates with a maximum of 25 mlb_game briefs on any of them, and the
+// untruncated 2026-08-23..29 window peaks at 19. Zero dates have ever reached
+// the cap.
+//
+// So paging changes no result today and the 592-row corpus five checks pin
+// (ceiling-check, corpus-check, docs-check, journalism-check, prose-check) is
+// unmoved. What it buys is that the day MLB volume does cross 50, this returns
+// the rest instead of quietly returning the first 50 -- and says so either way.
 async function fetchDate(date) {
-  const url = `${RELAY}/archive/query?date=${date}&brief_type=mlb_game&limit=100`
-  const r = await fetch(url, { signal: AbortSignal.timeout(20000) })
-  if (!r.ok) return { date, ok: false, status: r.status, results: [] }
-  const j = await r.json()
-  return { date, ok: true, status: 200, results: j.results || [] }
+  const results = []
+  let offset = 0, total = null, guard = 0
+  while (guard++ < 20) {
+    const url = `${RELAY}/archive/query?date=${date}&brief_type=mlb_game&limit=50&offset=${offset}`
+    const r = await fetch(url, { signal: AbortSignal.timeout(20000) })
+    if (!r.ok) return { date, ok: false, status: r.status, results: [] }
+    const j = await r.json()
+    const page = j.results || []
+    results.push(...page)
+    total = j.total ?? null
+    if (!j.hasMore || page.length === 0) break
+    offset += page.length
+  }
+  if (guard >= 20) console.log(`::warning::${date}: paging guard tripped at ${results.length} rows`)
+  if (total !== null && results.length !== total) {
+    console.log(`::warning::${date}: paged ${results.length} of ${total} mlb_game briefs`)
+  }
+  return { date, ok: true, status: 200, results }
 }
 
 // ── report helpers ───────────────────────────────────────────────────────────
