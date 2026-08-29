@@ -58,8 +58,15 @@ const anchored = CORPUS.reduce(
   { stat: 0, anchored: 0 })
 
 const SPORTS = ['MLB', 'MLS', 'WNBA', 'EFL Cup', 'NFL', 'CFL', 'AFL']
-const BRIEF_TYPES = ['game_recap', 'pre_game', 'game_brief', 'slate', 'night_owl',
-  'mlb_game', 'epl_match', 'narrative_context', 'compound']
+// Read from the capture, not transcribed. See journalism-check.mjs for the full
+// reasoning: the literal that used to be here was a copy of the registry's own
+// vintage, so the claim it fed could not move when production wrote a new type.
+const BRIEF_TYPES = [...new Set([
+  'game_recap', 'pre_game', 'game_brief', 'slate', 'night_owl',
+  'mlb_game', 'epl_match', 'narrative_context', 'compound',
+  ...JSON.parse(readFileSync('data/brief-recency-corpus.json', 'utf8'))
+    .briefs.map(b => b.brief_type).filter(Boolean),
+])].sort()
 
 /**
  * Every claim a document is allowed to make, and how to re-derive it.

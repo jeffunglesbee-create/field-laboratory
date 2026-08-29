@@ -70,6 +70,12 @@ type BriefType =
     | EplMatch
     | NarrativeContext
     | Compound
+    /// ADDED 2026-08-29. Not in the 2026-08-15 observation, and 59 rows of it
+    /// were captured over 2026-08-23..29 -- the type production writes while a
+    /// game is in progress, which is what the desk renders as GAME_LIVE.
+    | GameLive
+    /// ADDED 2026-08-29. One row in the same window, written by BracketDO.
+    | BracketDelta
     | Unmodelled of raw: string
 
 /// THE registry. Adding a case without adding it here does not compile.
@@ -84,6 +90,8 @@ let briefTypeName (t: BriefType) : string =
     | EplMatch -> "epl_match"
     | NarrativeContext -> "narrative_context"
     | Compound -> "compound"
+    | GameLive -> "game_live"
+    | BracketDelta -> "bracket_delta"
     | Unmodelled raw -> raw
 
 let briefTypeOfString (raw: string) : BriefType =
@@ -97,6 +105,8 @@ let briefTypeOfString (raw: string) : BriefType =
     | "epl_match" -> EplMatch
     | "narrative_context" -> NarrativeContext
     | "compound" -> Compound
+    | "game_live" -> GameLive
+    | "bracket_delta" -> BracketDelta
     | other -> Unmodelled other
 
 let isModelled (t: BriefType) =

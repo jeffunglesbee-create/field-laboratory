@@ -302,16 +302,35 @@ check('a draft carries the prompt that made it and the provenance of its model',
 
 // ── the brief-type registry ─────────────────────────────────────────────────
 
-const SEEN = ['game_recap', 'pre_game', 'game_brief', 'slate', 'night_owl',
-  'mlb_game', 'epl_match', 'narrative_context', 'compound']
+// THE OBSERVED SET IS READ, NOT TRANSCRIBED.
+//
+// This was a nine-element array literal, described in the assertion below as
+// "every brief_type observed in /quality/report" -- and it was a transcription
+// of what that route served ONCE, on 2026-08-15. Production has written
+// `game_live` 59 times and `bracket_delta` once in the 2026-08-23..29 capture,
+// and this check passed 9/9 throughout, because the thing it compared the
+// registry against was a copy of the registry's own vintage. A check whose
+// input can never contain a surprise cannot report one.
+//
+// The corpus is capped at 50 briefs/day by the relay (/archive/query clamps
+// limit to 50, field-relay-nba/src/index.js:11990), so a type PRESENT here is
+// proven and a type absent is not proven absent. Union with the transcribed
+// nine for exactly that reason: the capture can add a type, never silently
+// retire one.
+const CAPTURED = JSON.parse(readFileSync('data/brief-recency-corpus.json', 'utf8'))
+const SEEN = [...new Set([
+  'game_recap', 'pre_game', 'game_brief', 'slate', 'night_owl',
+  'mlb_game', 'epl_match', 'narrative_context', 'compound',
+  ...CAPTURED.briefs.map(b => b.brief_type).filter(Boolean),
+])].sort()
 const unmodelled = SEEN.filter(s => !isModelled(briefTypeOfString(s)))
-check('every brief_type observed in /quality/report is modelled',
+check(`every brief_type production actually writes is modelled (${SEEN.length} seen)`,
   unmodelled.length === 0,
   unmodelled.length ? `unmodelled: ${unmodelled.join(', ')}` : SEEN.join(', '))
 
 check('brief types round-trip through the registry',
   SEEN.every(s => briefTypeName(briefTypeOfString(s)) === s),
-  'name(of(x)) === x for all nine')
+  `name(of(x)) === x for all ${SEEN.length}`)
 
 check('an unknown brief_type is reported unmodelled, not guessed',
   !isModelled(briefTypeOfString('wc_match')) &&

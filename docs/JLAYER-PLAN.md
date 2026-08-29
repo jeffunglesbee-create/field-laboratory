@@ -9,7 +9,7 @@ against FIELD's actual failure modes? Not "would types be nice" — would they
 have *caught the specific defects this project has shipped*.
 
 <!-- claim: sports.modelled = 7 -->
-<!-- claim: briefTypes.modelled = 9 -->
+<!-- claim: briefTypes.modelled = 11 -->
 
 ## Status at a glance
 
