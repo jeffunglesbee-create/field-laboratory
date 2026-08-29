@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3015b09` | 2026-08-29 | [2026-08-29-cfb-the-four-undone-things.md](2026-08-29-cfb-the-four-undone-things.md) | feat: capture a real multi-sport render fixture; probe the unscoped briefs |
 | `0a017ca` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
 | `0a017ca` | 2026-08-29 | [sport-vocabulary-2026-08-29T16-35-10-556Z.json](sport-vocabulary-2026-08-29T16-35-10-556Z.json) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
 | `44a61b9` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-29 [skip ci] |
