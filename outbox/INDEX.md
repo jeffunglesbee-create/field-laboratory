@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c338742` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | census: page jq-density-census, and correct the claim that it was truncated |
 | `4b00a5b` | 2026-08-29 | [cc-the-recap-on-a-finished-game-2026-08-29.md](cc-the-recap-on-a-finished-game-2026-08-29.md) | fix: on a finished game, show the brief written after it finished |
 | `64ac887` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | capture: page /archive/query instead of asking for 100 and taking 50 |
 | `dbcbb0b` | 2026-08-29 | [cc-the-soccer-set-was-four-2026-08-29.md](cc-the-soccer-set-was-four-2026-08-29.md) | fix: ask the registry which competitions are soccer, not a four-element literal |
