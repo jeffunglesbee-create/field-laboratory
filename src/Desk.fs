@@ -781,11 +781,38 @@ let briefsByGame (games: Game list) (briefs: Brief list) : Map<string, Brief> =
         | Some t when t.Trim() <> "" -> true
         | _ -> false
     let usable = briefs |> List.filter hasText
+    // ON A FINISHED GAME, PREFER THE BRIEF WRITTEN AFTER IT FINISHED.
+    //
+    // `List.tryFind` alone takes the first brief in payload order, which on the
+    // untruncated 2026-08-23..29 capture is the after-brief 188 times out of the
+    // 199 final games that carry both phases. The other 11 show a `game_live` or
+    // `game_brief` first and hide a recap that is sitting right behind it.
+    //
+    // This is a rule, not an ordering key, and the numbers are why: sorting by
+    // `updated_at` picks the after-brief 0 times of 199, because a `game_live`
+    // row is rewritten on every cron tick while play continues and its
+    // last-written time overtakes the recap's. `created_at` manages 190. Every
+    // one of the 199 carries exactly ONE after-brief, so preferring it is total
+    // and never has a tie to break.
+    //
+    // Unfinished game, or no phased brief among the matches: unchanged. An
+    // unphased type is neither preferred nor demoted.
+    let pick (g: Game) =
+        let matches = usable |> List.filter (briefKeyMatches g)
+        let finished = g.FinalizedAt |> Option.isSome
+        let afterPlay =
+            if finished then
+                matches
+                |> List.tryFind (fun b ->
+                    match b.BriefType with
+                    | Some t -> Journalism.briefPhase (Journalism.briefTypeOfString (t.Trim())) = Journalism.AfterPlay
+                    | None -> false)
+            else None
+        match afterPlay with
+        | Some b -> Some b
+        | None -> List.tryHead matches
     games
-    |> List.choose (fun g ->
-        usable
-        |> List.tryFind (briefKeyMatches g)
-        |> Option.map (fun b -> g.Id, b))
+    |> List.choose (fun g -> pick g |> Option.map (fun b -> g.Id, b))
     |> Map.ofList
 
 /// A section of the Context Graph response.

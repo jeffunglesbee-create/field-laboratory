@@ -109,6 +109,51 @@ let briefTypeOfString (raw: string) : BriefType =
     | "bracket_delta" -> BracketDelta
     | other -> Unmodelled other
 
+/// WHICH PHASE OF A GAME A BRIEF DESCRIBES.
+///
+/// Added 2026-08-29, from a measurement rather than a guess. On the untruncated
+/// 2026-08-23..29 capture, 199 final games carry both a before/during brief and
+/// an after one -- and every one of the 199 carries EXACTLY ONE after-brief. So
+/// "on a finished game, show the after-brief" is total and has no tie to break.
+///
+/// This is not an ordering key, and the measurement is why. Ordering by
+/// `updated_at` picks the after-brief 0 times out of 199: a `game_live` row is
+/// rewritten in place on every cron tick while the game runs, so its
+/// last-written time runs past the recap's and stays there. `created_at` gets
+/// 190 and payload order 188. A timestamp cannot answer this question; the
+/// brief's own type already does.
+type BriefPhase =
+    /// Written before or during play. Its scoreline is a snapshot, not a result.
+    | DuringPlay
+    /// Written after the final whistle.
+    | AfterPlay
+    /// Not about one game's phase at all -- a slate, a bracket delta, a
+    /// standing narrative. Never selected against a game's state.
+    | NotPhased
+
+/// ONLY THE THREE TYPES THE MEASUREMENT COVERED ARE PHASED.
+///
+/// `mlb_game` and `night_owl` look like obvious AfterPlay types and are not
+/// classified, because on the 2026-08-23..29 capture neither carries a
+/// `game_id` that joins to a game row at all -- they never reach this
+/// selection, and assigning them a phase would be a guess dressed as a fact.
+/// `game_brief` appears 9 times on final games and its prose does not separate
+/// cleanly, so it stays unphased too.
+///
+/// NotPhased is the safe answer, not the ignorant one: an unphased brief is
+/// neither preferred nor demoted, so behaviour for those types is exactly what
+/// it is today. Widening this needs the same thing that produced the three
+/// below -- a count, on a corpus that is not truncated.
+let briefPhase (t: BriefType) : BriefPhase =
+    match t with
+    | PreGame | GameLive -> DuringPlay
+    | GameRecap -> AfterPlay
+    | GameBrief | NightOwl | MlbGame | EplMatch
+    | Slate | NarrativeContext | Compound | BracketDelta -> NotPhased
+    // An unrecognised type is not guessed into a phase. It stays selectable by
+    // payload order and never displaces a brief whose phase is known.
+    | Unmodelled _ -> NotPhased
+
 let isModelled (t: BriefType) =
     match t with
     | Unmodelled _ -> false
