@@ -105,6 +105,26 @@ jobs:
       - name: The history boundary still resolves
         run: node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs
 
+      # Here for ONE of its two inputs: docs/unreachable-scripts.txt, the ledger
+      # of scripts deliberately not wired. This workflow's paths are docs/,
+      # outbox/ and **/*.md — it does NOT fire on scripts/ or package.json, and
+      # an earlier version of this comment claimed it did. That claim was written
+      # from memory rather than from the `paths:` block eleven lines above it,
+      # and it mattered: the clobber below edits package.json, so this workflow
+      # would not have run on the very commit the check exists to catch. The
+      # check now runs in verify.yml as well, which fires on everything this one
+      # ignores. Neither placement alone covers both inputs.
+      #
+      # On 2026-08-29 a package.json key was reassigned without checking whether
+      # it existed, so verify.yml's "The sport registry matches what production
+      # serves" step kept its name, kept passing, and began running a different
+      # check entirely — while sport-registry-check.mjs and its 12 assertions
+      # became referenced by nothing. The forward direction (does `npm run X`
+      # resolve?) would not have caught it: the key survived. Only reachability
+      # backwards does.
+      - name: No script a workflow depends on became unreachable
+        run: node scripts/check-script-orphans.mjs --self-test && node scripts/check-script-orphans.mjs
+
       - name: A CC-CMD's status is greppable and does not contradict its own body
         # Costs no additional run: this workflow already fires on docs/**, which
         # is where CC-CMDs live. On 2026-08-27 a grep for closing HEADINGS

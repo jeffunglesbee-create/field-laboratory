@@ -1,0 +1,33 @@
+# Scripts under scripts/ that no workflow, npm script chain, pre-commit hook or
+# import reaches. Enforced by scripts/check-script-orphans.mjs.
+#
+# A LEDGER, NOT A BAN. Probes and one-off censuses are deliberately manual or
+# dispatch-only, and forbidding those outright would push real tools into fake
+# workflows to satisfy a checker. What the check enforces is that this list does
+# not GROW silently — which is exactly what a clobber does.
+#
+# WHY THIS EXISTS. On 2026-08-29 `package.json` carried
+# `"check:sports": "node scripts/sport-registry-check.mjs"`, run by
+# verify.yml:347 under the name "The sport registry matches what production
+# serves" — 12 blocking assertions. A new render check was assigned to the same
+# key without checking whether it existed. The step kept its name, kept passing,
+# and started measuring something else; sport-registry-check.mjs became
+# referenced by nothing. Nothing caught it: unused-check.mjs was the obvious
+# candidate and it checks F# public values, confirmed by running it against the
+# clobbered tree, where it reported 1/1 PASS.
+#
+# A line here is a claim that the file is deliberately not wired. Delete the line
+# in the commit that wires it.
+
+# Swept on demand, not on a timer. Two sites in 265 scripts does not carry a
+# cron's standing cost; a third unprompted instance would.
+fetch-silently-empty-probe.mjs
+
+# REMOVED 2026-08-29: generate-scouting.mjs and run-row.mjs. Both were listed as
+# unreachable-on-paper because the only thing that runs them is a command STRING
+# -- gate-checks.mjs:280 runs `node scripts/generate-scouting.mjs --check`, and
+# mutation-check.mjs builds `node scripts/run-row.mjs "<row>"` forty-one times.
+# run-row.mjs's own entry argued that saying so here was more honest than
+# widening the walker. It was not: the walker now harvests `scripts/X.mjs` from
+# the source of every reachable script, which sees both edges exactly, and the
+# ledger's second assertion is what forced the deletion of these two lines.

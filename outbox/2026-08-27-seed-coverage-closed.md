@@ -50,9 +50,12 @@ next session would have inherited "six competitions are not being archived" as a
 fact.
 
 Two things fixed it. The shape is now read from two existing consumers rather
-than guessed a second time — `scripts/brief-join-capture.mjs:84` and
-`scripts/drift-check.mjs:100` both destructure `games.regular` /
-`games.postseason`. And the shape is now **asserted**, before the gap list, so a
+than guessed a second time. `scripts/brief-join-capture.mjs:84` reads
+`const rows = [...(j.games?.regular ?? []), ...(j.games?.postseason ?? [])]` and
+`scripts/drift-check.mjs:100` reads
+`return n(j?.games?.regular) + n(j?.games?.postseason)` — both destructure
+`games.regular` / `games.postseason`. And the shape is now **asserted**, before
+the gap list, so a
 payload change fails by name instead of arriving as every competition
 simultaneously going missing.
 

@@ -114,6 +114,21 @@ jobs:
           done
           npm run check
           npm run check:hard
+          # Added 2026-08-29. The two captures above are SINGLE-SPORT — AFL and
+          # MLB — as the comment below already says. So every Sport case added
+          # since AFL (CFB, Bundesliga, EPL, La Liga, Ligue 1, Serie A, the six
+          # UEFA competitions, NFL, CFL, PGA Tour) was verified by check:proof,
+          # which asserts a case without a registry entry does not COMPILE, and
+          # by nothing that renders one.
+          #
+          # data/context-2026-08-29.json is a real captured payload — 78 rows,
+          # 11 sports — so this asserts on the same run that no section reads
+          # UNMODELLED SPORT and that each convention produces its own separator
+          # ("@" for AwayAtHome, "v" for HomeVersusAway). That distinction is
+          # not cosmetic: a stale build rendered Bundesliga as "vs"
+          # (UnknownConvention) while the label itself looked correct, and any
+          # check asserting only that the label appears would have passed on it.
+          npm run check:render-sports
 
       # Grouping and date navigation, which the two checks above structurally
       # cannot reach: both captures are single-sport, and both pin `?data=`,
@@ -302,6 +317,19 @@ jobs:
       # that imported build/ from a job with no build.
       - name: Workflow jobs can run what they invoke
         run: npm run check:workflows
+
+      # The BACKWARD half of the question above. `check:workflows` asks whether
+      # every `npm run X` resolves; this asks whether every script a workflow
+      # depended on is still reached. It runs in guards.yml too, and the split
+      # is not redundancy — it is the two trigger sets. This workflow's
+      # paths-ignore excludes docs/, so a commit that edits ONLY
+      # docs/unreachable-scripts.txt never reaches here; guards.yml fires on
+      # exactly that. guards.yml's paths are docs/, outbox/ and **/*.md, so a
+      # commit that edits ONLY package.json or scripts/ never reaches THERE --
+      # which is precisely the shape of the clobber this check was written for.
+      # Either workflow alone leaves one of the check's two inputs unguarded.
+      - name: No script a workflow depends on became unreachable
+        run: node scripts/check-script-orphans.mjs --self-test && node scripts/check-script-orphans.mjs
 
       # The deploy-landed classifier — is the published artifact the newest
       # DEPLOYABLE commit, not merely main HEAD (docs/[skip ci] commits correctly
