@@ -405,27 +405,39 @@
      of thumb, and 68 quietly overran it. */
   .desk-card__brief-text { max-width: 65ch; }
   .desk-card__brief { display: none; }
-  /* A FLIPPED CARD TAKES TWO COLUMNS, because the brief is prose and the card
-     is not sized for prose.
-     Measured 2026-08-29 across three viewports, with every flippable card
-     flipped: the brief ran 24.4ch on desktop, 36.8 on tablet, 31.3 on phone,
-     against taste.md's 45-75ch band. Desktop was the WORST, which is the tell:
-     `repeat(auto-fill, minmax(260px, 1fr))` packs more columns as the viewport
-     grows, so a 1440px monitor gave the journalism 227px and a 390px phone gave
-     it 291px. The desk read worst on the machine built to read it.
-     Two columns rather than a wider minmax: raising the floor to 400px would
-     fix measure everywhere and cut the desktop slate from five columns to
-     three, and seeing the whole slate at once is what this grid is for. This
-     only widens a card someone deliberately opened.
-     GATED to 34rem and up. The first version of this rule was unconditional,
-     with a comment claiming `span 2` on a single-column grid "is clamped by the
-     spec, so the phone is unaffected — measured below, not assumed." That was
-     asserted, not measured: at 360px the grid computes to a single 324px track
-     unflipped, and flipping manufactured a SECOND track. Below 34rem there is
-     no second column to span into. */
-  @media (min-width: 34rem) {
-    .desk-card.is-flipped { grid-column: span 2; }
-  }
+  /* NO `span 2` ON A FLIPPED CARD. Removed 2026-08-30: reported as "double
+     wide, renders weird", and A/B measured before removing.
+
+       viewport      cols   briefCh          cardW           cards moved
+       P1 phone        1    31 -> 31       324 -> 324        62 -> 62
+       T tablet        2    64.9 -> 36.7   770 -> 377        63 -> 62
+       D3 desktop      5    54.3 -> 24.4   541 -> 262         2 -> 58
+
+     THE DEFECT IS THE TABLET ROW. At two columns, spanning two is the whole
+     grid: a 770px card among 377px siblings is not a wider card, it is a
+     full-bleed panel, and it stops reading as a member of the grid it is in.
+     Desktop's 541px among 262px siblings is the milder version of the same
+     thing -- one card visibly unlike every other, which is what "double wide"
+     names.
+
+     I FIRST WROTE THAT IT REFLOWED THE SLATE. It does not. The measurement says
+     the opposite on desktop: 2 cards moved WITH the rule and 58 without, because
+     a card wide enough to absorb the brief's height keeps it inside one row.
+     Flipping reflows either way -- the front face swaps for the brief and the
+     height changes -- so reflow never discriminated between the two versions,
+     and the argument was reasoning, not evidence.
+
+     SO THE REMOVAL HAS A REAL COST, stated rather than buried: the brief loses
+     28ch on tablet and 30ch on desktop, landing at 24.4ch against taste.md's
+     45-75ch band, and desktop reflow goes from 2 cards to 58. Desktop is worst
+     because `repeat(auto-fill, minmax(260px, 1fr))` packs more columns as the
+     viewport grows -- the desk reads worst on the machine built to read it.
+     `.desk-card__brief-text`'s 65ch cap is a ceiling and a 262px column never
+     approaches it.
+     The remaining lever is the grid floor: `minmax(400px, 1fr)` fixes measure
+     everywhere and costs the desktop slate two of its five columns. That is a
+     trade about what the desk is FOR, not a bug fix, so it is not being made
+     here by implication. Do not re-add `span 2` without looking at a tablet. */
   .desk-card.is-flipped .desk-card__front { display: none; }
   .desk-card.is-flipped .desk-card__brief { display: block; }
   .desk-card__flip-hint {
