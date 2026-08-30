@@ -37,7 +37,14 @@ jobs:
   drift:
     runs-on: ubuntu-latest
     steps:
+      # fetch-depth: 0 added with the red-main rehearsal step below.
+      # check:workflows walks each job's import graph and this job now reaches
+      # deployable.mjs, a history reader, through red-main-issue.mjs. The job
+      # also rebases and pushes at the end, which a shallow clone makes more
+      # fragile, so the full history is the right default here regardless.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -134,6 +141,52 @@ jobs:
       - name: The i-have-adhd skill is still verbatim
         if: always()
         run: npm run check:adhd-skill
+
+      # THE RED-MAIN SENTINEL'S WRITE PATHS, once a week.
+      #
+      # scripts/red-main-issue.mjs opens an issue when main goes red and closes
+      # it when main recovers. Only its `none` branch runs in normal operation;
+      # `open`, `comment` and `close` need a red main, so without this they are
+      # exercised for the first time during the incident they exist to report.
+      # .github/workflows/red-main-rehearsal.yml proves them on demand, and a
+      # dispatch-only proof rots quietly -- a change to `run()` breaks the write
+      # paths and nothing notices until someone remembers to dispatch it.
+      #
+      # SUNDAY, ON THE 12:00 CRON, AND NO NEW RUN. No third cron: a weekly one
+      # on this workflow would start a whole extra drift-sentinel job (dotnet
+      # restore, Fable build, four live probes) to run twenty seconds of
+      # rehearsal. This rides the 12:00 run that already happens and costs
+      # nothing on the other six days.
+      #
+      # PINNED TO ONE CRON. This workflow has two — 12:00 and 01:30, both daily
+      # — and a day-of-week test alone would fire on both, so Sundays would have
+      # rehearsed twice and opened two issues. `github.event.schedule` carries
+      # the literal cron string that triggered the run, which distinguishes them.
+      #
+      # Skipped on workflow_dispatch. A manual drift-sentinel run is about
+      # drift; red-main-rehearsal.yml is the dispatch surface for this, and
+      # every rehearsal writes a real issue.
+      #
+      # FATAL, unlike the cross-repo steps above. Those report on someone
+      # else's backlog. This one tests this repo's own code, and the GitHub
+      # issues API is the delivery channel the whole notification depends on --
+      # if it is unreachable, that is the finding, not the noise.
+      - name: The red-main sentinel's write paths still work (Sundays)
+        if: always() && github.event.schedule == '0 12 * * *'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          # %u is 1..7 with Sunday == 7. Verified against 2026-08-30 (Sunday,
+          # %u=7), 2026-08-31 (Monday, 1) and 2026-09-05 (Saturday, 6) rather
+          # than recalled — an off-by-one here rehearses on the wrong day and
+          # nobody would notice, because the rehearsal passes either way.
+          if [ "$(date -u +%u)" != "7" ]; then
+            echo "not Sunday ($(date -u +%A)) — the rehearsal runs weekly."
+            echo "Dispatch .github/workflows/red-main-rehearsal.yml to run it now."
+            exit 0
+          fi
+          node scripts/red-main-rehearsal.mjs --self-test
+          node scripts/red-main-rehearsal.mjs
 
       # Cross-repo, no PR: when the relay's soccer briefs still carry the
       # CC-CMD-2026-08-22 defects, file/update a self-closing evidence issue ON

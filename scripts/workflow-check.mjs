@@ -15,7 +15,7 @@
 // Usage:  node scripts/workflow-check.mjs
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, isMain } from './checks.mjs'
 
 const WORKFLOWS = '.github/workflows'
 
@@ -108,6 +108,35 @@ const jobBuilds = jobText =>
 /** A job has full history only with an explicit `fetch-depth: 0`. */
 const jobHasFullHistory = jobText => /fetch-depth:\s*0\b/.test(jobText)
 
+/**
+ * Every cron literal a workflow declares, from its `on: schedule:` block.
+ *
+ * Same indentation reading as `jobsOf` — no YAML parser in this repo — and the
+ * assertion below fails if a file that plainly has crons yields none.
+ */
+export const cronsOf = text =>
+  [...text.matchAll(/^\s*-\s*cron:\s*['"]([^'"]+)['"]/gm)].map(m => m[1])
+
+/** Every cron string a step's `if:` compares `github.event.schedule` against. */
+export const scheduleGuardsOf = text =>
+  [...text.matchAll(/github\.event\.schedule\s*==\s*['"]([^'"]+)['"]/g)].map(m => m[1])
+
+/**
+ * A step gated on `github.event.schedule == 'X'` where X is not one of the
+ * workflow's own crons.
+ *
+ * THE FAILURE IS SILENCE. drift-sentinel has two daily crons and the red-main
+ * rehearsal is pinned to one of them, so it runs weekly instead of twice a
+ * Sunday. Change the cron -- retime it, add a minute offset -- and the guard
+ * stops matching anything. The step then never runs again, the workflow stays
+ * green, and the only symptom is a rehearsal that quietly stopped happening.
+ * That is precisely the rot the rehearsal was scheduled to prevent.
+ */
+export const danglingScheduleGuards = (text) => {
+  const crons = cronsOf(text)
+  return scheduleGuardsOf(text).filter(g => !crons.includes(g))
+}
+
 const audit = () => {
   const problems = []
   let jobCount = 0
@@ -125,9 +154,29 @@ const audit = () => {
         problems.push(`${file}:${job.name} runs ${needsHistory.join(', ')} — which read git history — without fetch-depth: 0`)
       }
     }
+    for (const dangling of danglingScheduleGuards(text)) {
+      problems.push(`${file} gates a step on github.event.schedule == '${dangling}', which is not one of its crons (${cronsOf(text).map(c => `'${c}'`).join(', ') || 'none'}) — that step can never run`)
+    }
   }
   return { problems, jobCount }
 }
+
+// EXECUTABLE HALF, GUARDED, and NOT REINDENTED.
+//
+// This file gained exports (`cronsOf`, `scheduleGuardsOf`,
+// `danglingScheduleGuards`) with the schedule-guard detector, and an exporting
+// module that does its work at import time terminates whatever imports it --
+// caught by check:import-purity at the pre-commit door, the third file this
+// session.
+//
+// The first attempt wrapped the block AND indented it by two spaces, which is
+// normally cosmetic. Here it broke two detector fixtures: they are YAML inside
+// template literals, and `jobsOf` identifies a job as a key at EXACTLY two
+// spaces under `jobs:`. Adding two spaces made every fixture job invisible and
+// the teeth tests went green-by-vacuity in the direction that matters --
+// "the detector still catches the original mistake" started failing because the
+// detector was handed nothing to catch. Braces, no reindent.
+if (isMain(import.meta.url)) {
 
 const { problems, jobCount } = audit()
 const { check, summarize } = createChecks()
@@ -180,4 +229,30 @@ check('the detector does not flag fetch-depth: 0',
     .some(j => historyReaders(scriptsReachedBy(j.text)).length > 0 && !jobHasFullHistory(j.text)),
   'the same job WITH fetch-depth: 0 was still flagged')
 
+// The schedule-guard detector, both directions. Added with the weekly red-main
+// rehearsal, whose gate is a string that has to keep matching a cron literal
+// four lines away in the same file.
+const scheduled = `
+on:
+  schedule:
+    - cron: '0 12 * * *'
+    - cron: '30 1 * * *'
+jobs:
+  x:
+    steps:
+      - if: github.event.schedule == '0 12 * * *'
+        run: echo hi
+`
+check('a guard matching a declared cron is not flagged',
+  danglingScheduleGuards(scheduled).length === 0,
+  'the detector flags a correct gate — it would fail every scheduled step')
+check('THE DETECTOR CATCHES A GUARD THAT MATCHES NO CRON',
+  danglingScheduleGuards(scheduled.replace("- cron: '0 12 * * *'", "- cron: '0 13 * * *'"))
+    .join() === '0 12 * * *',
+  'retiming the cron leaves the step permanently skipped, and green')
+check('a workflow with crons yields them',
+  cronsOf(scheduled).length === 2, cronsOf(scheduled).join(', '))
+
 process.exit(summarize() === 0 ? 0 : 1)
+
+}
