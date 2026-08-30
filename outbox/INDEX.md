@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5e53284` | 2026-08-30 | [cc-the-catalog-corrects-my-press-feedback-2026-08-29.md](cc-the-catalog-corrects-my-press-feedback-2026-08-29.md) | chrome: finish the press feedback to ITEM 4, including the card I excluded |
 | `d630a9f` | 2026-08-30 | [cc-my-contrast-pass-could-not-see-opacity-2026-08-29.md](cc-my-contrast-pass-could-not-see-opacity-2026-08-29.md) | chrome: grade contrast with opacity composited, not just the colour token |
 | `16c3980` | 2026-08-30 | [cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md](cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md) | chrome: press with the spec's scale(0.98), and grade the value not its presence |
 | `55d850f` | 2026-08-30 | [cc-the-five-words-match-the-spec-2026-08-29.md](cc-the-five-words-match-the-spec-2026-08-29.md) | palette: pin the five semantic colours to the spec that defines them |
