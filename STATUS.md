@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `1b14f81` — but that is not `main` HEAD
+**green** on `10f6187`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **green** on `fc422c9` — but that is not `main` HEAD
+`live-check` (post-deploy, against the deployed page): **running** on `10f6187`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `fc422c9` — newest deployable `1b14f81` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `10f6187` — newest deployable ✓ |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
