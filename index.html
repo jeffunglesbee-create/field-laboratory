@@ -225,6 +225,8 @@
     color: var(--dim); background: var(--card2);
     border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .3rem .6rem; cursor: pointer;
+    /* 44px floor, same as the date nav. Measured 30px tall before. */
+    min-height: 44px;
   }
   /* The selected state must actually differ. This set `background: var(--card2)`
      and `border-color: var(--edge)` — the exact values .pk-sport already
@@ -256,6 +258,9 @@
     color: var(--dim); background: var(--card2);
     border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer; white-space: nowrap;
+    /* 44px floor. Measured 33px tall before -- and these are the pick'em
+       controls, the most-tapped things on the page after the tabs. */
+    min-height: 44px;
   }
   @media (hover: hover) and (pointer: fine) {
     .pk-side:hover { color: var(--text); }
@@ -300,6 +305,17 @@
     color: var(--text); background: var(--card);
     border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer;
+    /* 44px, the Apple HIG floor. Measured 2026-08-29 at P2 (393x852): these
+       three rendered 32px tall and 35px wide -- the only tap targets on the
+       page below the floor, out of 33.
+       "Viewport v4 CSS Audit" (Drive, June 14 2026) flags the same selector in
+       the sibling product under item #7: "Apple HIG floor breached for primary
+       tap targets", naming .date-nav-btn among them. Same control, same miss,
+       found here by measuring rather than by reading that audit -- but the
+       audit is why it was measured.
+       min-width too: a 35px-wide arrow is as hard to hit as a short one. */
+    min-height: 44px; min-width: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
   }
   @media (hover: hover) and (pointer: fine) {
     .datenav button:hover:not([disabled]) { background: var(--card2); }

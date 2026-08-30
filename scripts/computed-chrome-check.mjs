@@ -413,6 +413,54 @@ check('every pressable control acknowledges a press',
   interaction.activeRules > 0,
   `${interaction.activeRules} :active rule(s) — a page with only a resting state is half-built`)
 
+// TWO FINDINGS FROM THE SIBLING'S CSS AUDIT, asserted here because they are
+// live failure modes rather than style opinions.
+// "Viewport v4 CSS Audit — index.html" (Drive, June 14 2026) records both
+// against jubilant-bassoon.
+const audit = await page.evaluate(() => {
+  const text = [...document.styleSheets]
+    .flatMap(s => { try { return [...s.cssRules].map(r => r.cssText) } catch { return [] } }).join('\n')
+
+  // 1. A custom property USED but never DECLARED.
+  //
+  // The audit calls this "a live broken style": index.html:13343 uses
+  // var(--caution) with no fallback, the token is never declared in :root, and
+  // it "silently resolves to nothing, so the styled element is missing its
+  // intended color". Nothing errors. Nothing logs. The colour is just absent.
+  //
+  // design-tokens-check asserts that DECLARED tokens match Palette.fs. That is
+  // the other direction, and it cannot see a var() that resolves to nothing.
+  const used = [...new Set([...text.matchAll(/var\((--[a-z0-9-]+)/g)].map(m => m[1]))]
+  const declared = new Set([...text.matchAll(/(--[a-z0-9-]+)\s*:/g)].map(m => m[1]))
+  const root = getComputedStyle(document.documentElement)
+  const undeclared = used.filter(v => !declared.has(v) && !root.getPropertyValue(v).trim())
+
+  // 2. Tap targets below the 44px Apple HIG floor.
+  //
+  // Audit item #7, PARTIAL: "Apple HIG floor breached for primary tap targets",
+  // naming .date-nav-btn among them. Measured here at P2 on 2026-08-29: this
+  // desk's three date-nav buttons rendered 32x35px, the only three below the
+  // floor out of 33 controls. Same control, same miss.
+  const small = []
+  for (const el of document.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')) {
+    const r = el.getBoundingClientRect()
+    if (!r.width || !el.getClientRects().length) continue
+    if (r.height < 44 || r.width < 44) {
+      small.push(`${el.className ? '.' + String(el.className).split(' ')[0] : el.tagName}` +
+                 ` "${el.textContent.trim().slice(0, 10)}" ${r.height.toFixed(0)}x${r.width.toFixed(0)}px`)
+    }
+  }
+  return { used: used.length, undeclared, small: [...new Set(small)] }
+})
+
+check(`every custom property used is declared (${audit.used} in use)`,
+  audit.undeclared.length === 0,
+  `${audit.undeclared.join(', ')} — var() with no declaration resolves to nothing, silently`)
+
+check('every tap target meets the 44px floor',
+  audit.small.length === 0,
+  audit.small.slice(0, 5).join(' | '))
+
 // CONTRAST WITH OPACITY COMPOSITED IN, which token-level checks cannot see.
 //
 // palette-check grades TOKENS -- hex against hex -- and is right to. It has no
