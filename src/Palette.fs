@@ -142,6 +142,34 @@ let card2 = Token "#0e0c24"
 let edgeStrong = Token "#646383"
 let text = Token "#ece8f8"
 let dim = Token "#5a5878"
+
+/// `dim`, at the ratio TEXT needs rather than the one a border needs.
+///
+/// `edgeStrong` above splits `dim` by role for chrome and derives its value
+/// against 3.0. That threshold is WCAG 1.4.11 -- NON-text contrast, for UI
+/// components and graphical boundaries. It is the right bar for a rule and a
+/// hairline, and the wrong one for a word.
+///
+/// Measured 2026-08-29 on the rendered page at 1440x900: seventeen elements draw
+/// TEXT in `dim` at 2.98:1 -- the six tab labels at 12.8px and eleven
+/// `.sport-group__title` headings at 12.48px. Both are far below the 18.66px-bold
+/// / 24px line where WCAG 1.4.3 relaxes to 3.0, so both need 4.5. `edgeStrong` at
+/// 3.52 would not have cleared it either; the token was never aimed at this.
+///
+/// THE VALUE IS DERIVED THE SAME WAY `edgeStrong` WAS: the darkest point on the
+/// existing `dim` -> `quiet` line clearing 4.5 on all three surfaces, so it is
+/// the quietest option that passes rather than the first that looked right:
+///
+///   #5a5878 (dim)     2.98 / 2.89 / 2.83   fails on all three
+///   #646383 (edge)    3.52 / 3.40 / 3.33   clears 3.0, not 4.5
+///   #6a6a8a (quiet)   3.89 / 3.76 / 3.68   still short
+///   #7977a2            4.78 / 4.63 / 4.53   <- this
+///
+/// NOT a replacement for `dim`. Raising `dim` itself would lift every quiet
+/// value on the desk to fix seventeen text nodes, and the rest of those uses are
+/// a taste call with no external standard behind them. Same reasoning, and the
+/// same split, as `edgeStrong`.
+let dimText = Token "#7977a2"
 let red = Token "#ef4444"      // live dot / elimination
 let violet = Token "#a78bfa"   // rivalry / intelligence
 

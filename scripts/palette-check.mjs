@@ -20,7 +20,7 @@ import { createChecks } from './checks.mjs'
 import {
   allSemantics, tokenOf, cssValue, accentOf, accentCss,
   dramaScale, advancementScale,
-  bg, card, card2, edgeStrong, text, dim, red, violet,
+  bg, card, card2, edgeStrong, text, dim, dimText, red, violet,
 } from '../build/Palette.js'
 
 const SELF_TEST = process.argv.includes('--self-test')
@@ -148,6 +148,34 @@ for (const [name, tok] of surfaces) {
 check('the three surfaces are distinct shades',
   new Set(surfaces.map(([, t]) => cssValue(t))).size === 3,
   surfaces.map(([, t]) => cssValue(t)).join(', '))
+
+// TEXT CONTRAST, AT 4.5 — a different bar from MIN_CONTRAST above, deliberately.
+//
+// MIN_CONTRAST is 3.0: WCAG 1.4.11, non-text contrast, correct for a control's
+// boundary and for `edgeStrong`. It is NOT correct for a word. 1.4.3 requires
+// 4.5:1 for text below 18.66px bold / 24px, and on 2026-08-29 the rendered page
+// drew seventeen text nodes in `dim` at 2.98:1 — six tab labels at 12.8px and
+// eleven sport-group headings at 12.48px — while every palette check passed,
+// because nothing here graded a token as TEXT.
+//
+// `dimText` exists for those, and this is the assertion that keeps it honest. On
+// all three surfaces, because a token that clears the bar on `bg` and fails on
+// `card2` is a trap for the next person who reaches for it.
+const TEXT_CONTRAST = 4.5
+for (const [name, tok] of surfaces) {
+  const cr = contrast(cssValue(dimText), cssValue(tok))
+  check(`dimText clears ${TEXT_CONTRAST}:1 as TEXT on ${name}`,
+    cr >= TEXT_CONTRAST,
+    `${cssValue(dimText)} on ${cssValue(tok)} = ${cr?.toFixed(2)}:1`)
+}
+
+// The token has to be QUIETER than the body text it sits beside, or it is not a
+// secondary role at all — it is just a second body colour, and the hierarchy the
+// split was made to preserve is gone.
+check('dimText is quieter than text, and louder than dim',
+  luminance(cssValue(dimText)) < luminance(cssValue(text)) &&
+  luminance(cssValue(dimText)) > luminance(cssValue(dim)),
+  `dim ${cssValue(dim)} < dimText ${cssValue(dimText)} < text ${cssValue(text)}`)
 
 // THIS ASSERTION MEASURES PRESENCE, NOT SUFFICIENCY, AND SAYS SO.
 //

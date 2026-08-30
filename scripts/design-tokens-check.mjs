@@ -59,7 +59,8 @@ semNames.forEach((name, i) => {
 const foundation = {
   bg: Palette.bg, card: Palette.card, card2: Palette.card2,
   'edge-strong': Palette.edgeStrong,
-  text: Palette.text, dim: Palette.dim, red: Palette.red, violet: Palette.violet,
+  text: Palette.text, dim: Palette.dim, 'dim-text': Palette.dimText,
+  red: Palette.red, violet: Palette.violet,
 }
 for (const [name, tok] of Object.entries(foundation)) {
   const want = Palette.cssValue(tok)

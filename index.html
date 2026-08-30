@@ -59,7 +59,9 @@
   }
   .tabs button {
     font: inherit; font-size: .8rem; letter-spacing: .04em;
-    color: var(--dim); background: none;
+    /* --dim-text, not --dim: 12.8px is well below WCAG's large-text line, so
+       these need 4.5:1 and --dim measured 2.98:1 on the rendered page. */
+    color: var(--dim-text); background: none;
     border: none; border-bottom: 2px solid transparent;
     padding: 0 .9rem; cursor: pointer;
   }
@@ -251,7 +253,8 @@
   .sport-group__title {
     position: sticky; top: calc(var(--tab-h) + var(--nav-h)); z-index: 1;
     font-size: .78rem; text-transform: uppercase; letter-spacing: .08em;
-    font-weight: 600; color: var(--dim); margin: 0 0 .75rem;
+    /* --dim-text, not --dim: 12.48px text needs 4.5:1; --dim gave 2.98:1. */
+    font-weight: 600; color: var(--dim-text); margin: 0 0 .75rem;
     padding: .55rem 0; background: var(--bg);
     box-shadow: 0 -1px 0 var(--bg), 0 1px 0 var(--edge-strong);
   }
