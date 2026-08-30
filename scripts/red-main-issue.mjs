@@ -62,8 +62,93 @@ export const MARKER = '<!-- red-main-sentinel -->'
  * file, say -- would be "closed" as a recovery. Anything with a
  * `pull_request` key is not a candidate.
  */
-export const findSentinel = (items) =>
-  (items ?? []).find(i => !i.pull_request && (i.body ?? '').includes(MARKER)) ?? null
+export const findSentinel = (items, marker = MARKER) =>
+  (items ?? []).find(i => !i.pull_request && (i.body ?? '').includes(marker)) ?? null
+
+/** A bound GitHub REST caller. Throws on any non-2xx so a silent 403 cannot read as "no issue". */
+export const gh = (token) => async (path, init = {}) => {
+  const r = await fetch(`https://api.github.com${path}`, {
+    ...init,
+    headers: {
+      authorization: `Bearer ${token}`,
+      accept: 'application/vnd.github+json',
+      'content-type': 'application/json',
+      ...(init.headers || {}),
+    },
+  })
+  if (!r.ok) throw new Error(`HTTP ${r.status} ${init.method || 'GET'} ${path}: ${(await r.text()).slice(0, 200)}`)
+  return r.json()
+}
+
+/**
+ * Open issues, paged, until the marker is found.
+ *
+ * Paged with a HARD CAP rather than `while (true)`: an unbounded loop over a
+ * paginated API is a way to burn a rate limit on one bad response, and 1000
+ * open issues in this repo would be a bigger problem than a missed sentinel.
+ */
+export const findOpen = async (api, repo, marker = MARKER) => {
+  for (let page = 1; page <= 10; page++) {
+    const batch = await api(`/repos/${repo}/issues?state=open&per_page=100&page=${page}`)
+    const hit = findSentinel(batch, marker)
+    if (hit) return hit
+    if (!Array.isArray(batch) || batch.length < 100) return null
+  }
+  return null
+}
+
+/**
+ * Decide and act. Returns `{ verdict, issue }`.
+ *
+ * EXTRACTED SO THE WRITE PATHS CAN BE EXERCISED. As first shipped this was
+ * straight-line code inside the `isMain` block, which meant `open`, `comment`
+ * and `close` could only ever run when main was genuinely red -- three
+ * branches that would first execute in the incident they exist to report, with
+ * nobody watching. The green path was proven on a real runner within minutes
+ * (run 33323829305: "action: none"); the other three were a carry-forward.
+ *
+ * `api` is injected rather than constructed here for the same reason.
+ */
+export const run = async ({ api, repo, green, sha, runUrl, failedStep,
+                            marker = MARKER, titlePrefix = '', log = console.log }) => {
+  const openIssue = await findOpen(api, repo, marker)
+  const verdict = action(green, openIssue)
+  log(`\n  verify: ${green ? 'green' : 'RED'} on ${sha.slice(0, 7) || '(unknown)'}` +
+      ` | sentinel issue: ${openIssue ? `#${openIssue.number} open` : 'none'}` +
+      ` | action: ${verdict}\n`)
+
+  if (verdict === 'open') {
+    const made = await api(`/repos/${repo}/issues`, {
+      method: 'POST',
+      body: JSON.stringify({ title: `${titlePrefix}main is red — verify failed on ${sha.slice(0, 7)}`,
+                             body: body({ sha, runUrl, failedStep, marker }) }),
+    })
+    log(`  opened #${made.number}`)
+    return { verdict, issue: made }
+  }
+  if (verdict === 'comment') {
+    await api(`/repos/${repo}/issues/${openIssue.number}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ body: `Still red on \`${sha.slice(0, 7)}\`.\n\n${runUrl}` }),
+    })
+    log(`  commented on #${openIssue.number}`)
+    return { verdict, issue: openIssue }
+  }
+  if (verdict === 'close') {
+    await api(`/repos/${repo}/issues/${openIssue.number}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ body: `Green again on \`${sha.slice(0, 7)}\`. Closing.` }),
+    })
+    await api(`/repos/${repo}/issues/${openIssue.number}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ state: 'closed', state_reason: 'completed' }),
+    })
+    log(`  closed #${openIssue.number}`)
+    return { verdict, issue: openIssue }
+  }
+  log('  nothing to do')
+  return { verdict, issue: null }
+}
 
 /**
  * What to do, given the suite's verdict and whether a sentinel issue is open.
@@ -106,8 +191,8 @@ export const verdictOf = (v) => {
 }
 
 /** The issue body, kept to what makes the notification actionable. */
-export const body = ({ sha, runUrl, failedStep }) =>
-  `${MARKER}\n\n` +
+export const body = ({ sha, runUrl, failedStep, marker = MARKER }) =>
+  `${marker}\n\n` +
   `\`verify\` failed on \`${sha.slice(0, 7)}\`.\n\n` +
   (failedStep ? `**First failing step:** ${failedStep}\n\n` : '') +
   `${runUrl}\n\n` +
@@ -186,6 +271,59 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('a missing failing step does not render an empty heading',
     !body({ sha: 'abc1234def', runUrl: 'https://x/1' }).includes('First failing step'))
 
+  // THE FOUR BRANCHES, against a RECORDING FAKE.
+  //
+  // These assert the HTTP calls each verdict issues, which the pure `action`
+  // test above cannot: `action` returning 'close' and the close path actually
+  // sending a PATCH are two different claims, and the second one is the one
+  // that reopens noise or leaves an issue open forever when it is wrong.
+  //
+  // A fake proves the calls are ISSUED. It cannot prove GitHub accepts them --
+  // a missing `issues: write`, a body GitHub rejects, a state_reason it does
+  // not know. scripts/red-main-rehearsal.mjs drives the same `run` against the
+  // real API for that.
+  const recorder = (openIssues = []) => {
+    const calls = []
+    const api = async (path, init = {}) => {
+      calls.push(`${init.method || 'GET'} ${path.split('?')[0]}`)
+      if (path.startsWith('/repos/') && path.includes('/issues?state=open')) return openIssues
+      return { number: 42 }
+    }
+    return { api, calls }
+  }
+  const drive = async (green, openIssues) => {
+    const r = recorder(openIssues)
+    const out = await run({ api: r.api, repo: 'o/r', green, sha: 'abc1234def',
+                            runUrl: 'https://x/1', log: () => {} })
+    return { ...out, calls: r.calls }
+  }
+  const sentinelIssue = { number: 7, body: sentinel.body }
+
+  const opened = await drive(false, [])
+  check('RED with nothing open POSTs a new issue',
+    opened.verdict === 'open' && opened.calls.includes('POST /repos/o/r/issues'))
+  check('...and the issue it POSTs carries the marker',
+    opened.issue.number === 42 && body({ sha: 'x', runUrl: 'y' }).includes(MARKER))
+
+  const commented = await drive(false, [sentinelIssue])
+  check('RED with one open POSTs a COMMENT and no second issue',
+    commented.calls.includes('POST /repos/o/r/issues/7/comments') &&
+    !commented.calls.includes('POST /repos/o/r/issues'),
+    'the twelve-runs-in-a-day case: one issue, not twelve')
+
+  const closed = await drive(true, [sentinelIssue])
+  check('GREEN with one open comments THEN patches it closed',
+    closed.calls.includes('POST /repos/o/r/issues/7/comments') &&
+    closed.calls.includes('PATCH /repos/o/r/issues/7') &&
+    closed.calls.indexOf('POST /repos/o/r/issues/7/comments') <
+      closed.calls.indexOf('PATCH /repos/o/r/issues/7'),
+    'commenting after the close would land on a closed issue and read as a reopening')
+
+  const quiet = await drive(true, [])
+  check('GREEN with nothing open WRITES NOTHING',
+    quiet.verdict === 'none' && quiet.calls.every(c => c.startsWith('GET ')),
+    'every green deploy runs this; a write on that path would be noise per deploy')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -193,6 +331,14 @@ if (isMain(import.meta.url)) {
   const token = process.env.GITHUB_TOKEN
   const repo = process.env.GITHUB_REPOSITORY
   const sha = process.env.RED_MAIN_SHA || process.env.GITHUB_SHA || ''
+  const runUrl = process.env.RED_MAIN_RUN_URL || ''
+  const failedStep = process.env.RED_MAIN_STEP || ''
+
+  if (!token || !repo) {
+    console.log('  no GITHUB_TOKEN or GITHUB_REPOSITORY — nothing to do')
+    process.exit(0)
+  }
+
   // GREEN IS READ, NOT INFERRED FROM THE TRIGGER.
   //
   // The first wiring set this from the workflow event: "green unless a failing
@@ -205,14 +351,6 @@ if (isMain(import.meta.url)) {
   // status.mjs already reads verify's real conclusion for main; STATUS.md's
   // first line comes from it. The sentinel reads the same source, so the issue
   // and the file can never disagree.
-  const runUrl = process.env.RED_MAIN_RUN_URL || ''
-  const failedStep = process.env.RED_MAIN_STEP || ''
-
-  if (!token || !repo) {
-    console.log('  no GITHUB_TOKEN or GITHUB_REPOSITORY — nothing to do')
-    process.exit(0)
-  }
-
   const verify = await readVerify({ repo, token, head: sha }).catch(e => ({ problem: String(e) }))
   const suite = verdictOf(verify)
   if (suite === 'unreadable') {
@@ -220,66 +358,6 @@ if (isMain(import.meta.url)) {
     console.log('  doing nothing — an unread verdict is neither a red to report nor a green to close on')
     process.exit(0)
   }
-  const green = suite === 'green'
 
-  const api = async (path, init = {}) => {
-    const r = await fetch(`https://api.github.com${path}`, {
-      ...init,
-      headers: {
-        authorization: `Bearer ${token}`,
-        accept: 'application/vnd.github+json',
-        'content-type': 'application/json',
-        ...(init.headers || {}),
-      },
-    })
-    if (!r.ok) throw new Error(`HTTP ${r.status} ${init.method || 'GET'} ${path}: ${(await r.text()).slice(0, 200)}`)
-    return r.json()
-  }
-
-  // Match on the MARKER in the body rather than on the title. A title is
-  // editable and a label can be removed; the marker is invisible and survives
-  // both. Listed rather than searched -- see findSentinel for why the search
-  // index is the wrong source for a decision made twice within a minute.
-  //
-  // Paged with a hard cap: an unbounded `while (true)` over a paginated API is
-  // a way to burn a rate limit on a bad response, and 1000 open issues in this
-  // repo would be a bigger problem than a missed sentinel.
-  let openIssue = null
-  for (let page = 1; page <= 10 && !openIssue; page++) {
-    const batch = await api(`/repos/${repo}/issues?state=open&per_page=100&page=${page}`)
-    openIssue = findSentinel(batch)
-    if (!Array.isArray(batch) || batch.length < 100) break
-  }
-
-  const verdict = action(green, openIssue)
-  console.log(`\n  verify: ${green ? 'green' : 'RED'} on ${sha.slice(0, 7) || '(unknown)'}` +
-              ` | sentinel issue: ${openIssue ? `#${openIssue.number} open` : 'none'}` +
-              ` | action: ${verdict}\n`)
-
-  if (verdict === 'open') {
-    const made = await api(`/repos/${repo}/issues`, {
-      method: 'POST',
-      body: JSON.stringify({ title: `main is red — verify failed on ${sha.slice(0, 7)}`,
-                             body: body({ sha, runUrl, failedStep }) }),
-    })
-    console.log(`  opened #${made.number}`)
-  } else if (verdict === 'comment') {
-    await api(`/repos/${repo}/issues/${openIssue.number}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ body: `Still red on \`${sha.slice(0, 7)}\`.\n\n${runUrl}` }),
-    })
-    console.log(`  commented on #${openIssue.number}`)
-  } else if (verdict === 'close') {
-    await api(`/repos/${repo}/issues/${openIssue.number}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({ body: `Green again on \`${sha.slice(0, 7)}\`. Closing.` }),
-    })
-    await api(`/repos/${repo}/issues/${openIssue.number}`, {
-      method: 'PATCH',
-      body: JSON.stringify({ state: 'closed', state_reason: 'completed' }),
-    })
-    console.log(`  closed #${openIssue.number}`)
-  } else {
-    console.log('  nothing to do')
-  }
+  await run({ api: gh(token), repo, green: suite === 'green', sha, runUrl, failedStep })
 }

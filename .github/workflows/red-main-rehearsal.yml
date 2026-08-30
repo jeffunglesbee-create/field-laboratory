@@ -1,0 +1,58 @@
+# Proves the red-main sentinel's WRITE paths, on demand.
+#
+# `status.yml` runs scripts/red-main-issue.mjs on every red verify and every
+# deploy. Only its `none` branch has ever executed there, because the other
+# three require main to be red -- so `open`, `comment` and `close` would first
+# run during a real incident, unobserved, and a 403 from a missing permission
+# would look exactly like silence.
+#
+# This drives the same `run()` against the real API on an isolated marker,
+# asserts GitHub's own view of the issue after each transition, and leaves it
+# closed.
+#
+# COST: dispatch only. No schedule, no push trigger, no run this workflow makes
+# on its own. Against a budget recorded in status.yml's header as 90% consumed,
+# a rehearsal that fires by itself would be worse than no rehearsal.
+name: red-main-rehearsal
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  # The whole point: if this were missing, the live sentinel would fail with a
+  # 403 during a real outage. Rehearsing without it proves nothing.
+  issues: write
+
+concurrency:
+  group: red-main-rehearsal
+  cancel-in-progress: false
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0, and it is check:workflows that insisted.
+      #
+      # This job reads no git history itself. But it imports `run` from
+      # red-main-issue.mjs, which imports `readVerify` from status.mjs, which
+      # reaches deployable.mjs -- a history reader. check:workflows walks that
+      # import graph and flagged the job, correctly: static reachability is what
+      # it can see, and "the unused import never executes" is a claim about
+      # runtime that would be one refactor away from false.
+      #
+      # A full clone costs seconds on a dispatch-only workflow. Weakening the
+      # detector to accept a shallow one would cost the next job that really does
+      # read history, which is the mistake it was written for.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Rehearse open, comment and close
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/red-main-rehearsal.mjs --self-test
+          node scripts/red-main-rehearsal.mjs

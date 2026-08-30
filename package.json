@@ -72,7 +72,8 @@
     "check:glyph": "node scripts/glyph-check.mjs --self-test && node scripts/glyph-check.mjs",
     "check:computed-chrome": "URL='http://localhost:8080/?data=context-briefs-fixture' node scripts/computed-chrome-check.mjs",
     "check:viewport-overflow": "node scripts/viewport-overflow-check.mjs --self-test && node scripts/viewport-overflow-check.mjs",
-    "check:red-main-issue": "node scripts/red-main-issue.mjs --self-test"
+    "check:red-main-issue": "node scripts/red-main-issue.mjs --self-test",
+    "check:red-main-rehearsal": "node scripts/red-main-rehearsal.mjs --self-test"
   },
   "dependencies": {
     "solid-js": "^1.9.14"
