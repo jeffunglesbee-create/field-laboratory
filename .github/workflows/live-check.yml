@@ -116,6 +116,19 @@ jobs:
       # Both pick tabs, on the DEPLOYED artifact. Structural assertions only —
       # tab-check.mjs pins ?data= and checks for teams by name, none of which
       # holds against tonight's real slate.
+      # The phase rule, against the page a person opens rather than a fixture.
+      # verify proves it on data/brief-recency-corpus.json and on a local server;
+      # both are copies. This fetches the same /context/date the page fetched,
+      # computes what the rule says each final game should show, and asserts the
+      # DOM agrees — the shape the stale Bundesliga build slipped through.
+      #
+      # Three-state: no final game carrying both phases is NOT OBSERVABLE, warned
+      # and not counted as a pass.
+      - name: A finished game shows the brief written after it finished
+        run: |
+          node scripts/brief-phase-live-check.mjs --self-test
+          URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/brief-phase-live-check.mjs
+
       - name: The deployed page serves both pick tabs
         run: npm run check:live-tabs
 
