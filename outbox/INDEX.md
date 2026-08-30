@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c645101` | 2026-08-30 | [cc-the-driver-collapsed-three-states-into-two-2026-08-29.md](cc-the-driver-collapsed-three-states-into-two-2026-08-29.md) | fix: a null verdict is NOT OBSERVABLE, not a regression |
+| `b89cc43` | 2026-08-30 | [cc-dim-was-a-border-colour-doing-text-work-2026-08-29.md](cc-dim-was-a-border-colour-doing-text-work-2026-08-29.md) | palette: split dimText out of dim, at the bar TEXT actually needs |
 | `afc5495` | 2026-08-30 | [cc-the-phase-rule-verified-live-2026-08-29.md](cc-the-phase-rule-verified-live-2026-08-29.md) | check: prove the phase rule against the deployed page, not a fixture |
 | `4c0e0fb` | 2026-08-30 | [cc-scrollcraft-installed-2026-08-29.md](cc-scrollcraft-installed-2026-08-29.md) | skills: install scrollcraft from nateherkai/scroll-craft |
 | `1565d8d` | 2026-08-30 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
