@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `16c3980` | 2026-08-30 | [cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md](cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md) | chrome: press with the spec's scale(0.98), and grade the value not its presence |
 | `55d850f` | 2026-08-30 | [cc-the-five-words-match-the-spec-2026-08-29.md](cc-the-five-words-match-the-spec-2026-08-29.md) | palette: pin the five semantic colours to the spec that defines them |
 | `b0a713d` | 2026-08-30 | [cc-four-viewport-docs-and-one-hard-number-2026-08-29.md](cc-four-viewport-docs-and-one-hard-number-2026-08-29.md) | type: cap brief prose at FIELD's own 65ch lock, not a borrowed 68 |
 | `832c750` | 2026-08-30 | [cc-the-no-overflow-invariant-is-now-asserted-2026-08-29.md](cc-the-no-overflow-invariant-is-now-asserted-2026-08-29.md) | check: assert no canonical viewport overflows horizontally |
