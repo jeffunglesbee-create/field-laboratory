@@ -38,7 +38,12 @@
   }
   body {
     font: 15px/1.5 var(--font-body);
-    margin: 0; padding: 2rem; background: var(--bg); color: var(--text);
+    /* FLUID, not a flat 2rem. Measured 2026-08-29 at a 390px viewport: a fixed
+       2rem put 64px of padding on a 390px screen -- 16.4% of it -- and that is
+       desktop air inherited by a phone. It cost the brief prose about 4.5ch and
+       left the measure at 41ch against a 45 floor.
+       clamp keeps 2rem from 640px up, so nothing on desktop moves. */
+    margin: 0; padding: clamp(1rem, 5vw, 2rem); background: var(--bg); color: var(--text);
   }
   h1 {
     font-family: var(--font-identity); font-weight: 700;
@@ -52,12 +57,26 @@
      which are not the same feature and must not look like one. */
   .tabs {
     position: sticky; top: 0; z-index: 3;
+    /* SCROLLS RATHER THAN OVERFLOWING THE PAGE.
+       Measured 2026-08-29 at 360x780: seven tab buttons total 534px inside a
+       324px container, and with `overflow-x: visible` they pushed the DOCUMENT
+       to 576px. Every portrait phone scrolled horizontally -- 216px of overflow
+       at 360, 185px at 393, 150px at 430 -- and it was the page, not the tabs.
+       "FIELD — Viewport Consistency Specification" (Drive, May 24 2026, status
+       DEFINITIVE) asserts for P1: "no element overflows viewport horizontally",
+       and prescribes this exact treatment for the analogous filter bar:
+       "horizontal scroll-snap, hidden scrollbar".
+       Contained here so the row scrolls and the page does not. */
+    overflow-x: auto; scroll-snap-type: x proximity;
+    scrollbar-width: none; -ms-overflow-style: none;
     display: flex; gap: .25rem;
     height: var(--tab-h); box-sizing: border-box; align-items: stretch;
     margin: 0; background: var(--bg);
     border-bottom: 1px solid var(--edge-strong);
   }
+  .tabs::-webkit-scrollbar { display: none; }
   .tabs button {
+    scroll-snap-align: start; flex: 0 0 auto;
     font: inherit; font-size: .8rem; letter-spacing: .04em;
     /* --dim-text, not --dim: 12.8px is well below WCAG's large-text line, so
        these need 4.5:1 and --dim measured 2.98:1 on the rendered page. */
@@ -326,7 +345,36 @@
      grid. */
   .desk-card--flippable { cursor: pointer; }
   .desk-card--flippable:focus-visible { outline: 2px solid var(--discovery); outline-offset: 2px; }
+  /* THE CAP IS ON THE TEXT, NOT THE CARD.
+     `span 2` fixed desktop (24.4 -> 54.4ch) and overshot tablet: at 834px the
+     grid is TWO columns, so spanning two makes the card full width and the
+     brief ran 79ch, past the 75 ceiling. Widening a card and capping its prose
+     are different jobs, and this is the one the rule is actually about.
+     68ch rather than 75: the ceiling is where it stops being comfortable, not a
+     target to sit on. */
+  .desk-card__brief-text { max-width: 68ch; }
   .desk-card__brief { display: none; }
+  /* A FLIPPED CARD TAKES TWO COLUMNS, because the brief is prose and the card
+     is not sized for prose.
+     Measured 2026-08-29 across three viewports, with every flippable card
+     flipped: the brief ran 24.4ch on desktop, 36.8 on tablet, 31.3 on phone,
+     against taste.md's 45-75ch band. Desktop was the WORST, which is the tell:
+     `repeat(auto-fill, minmax(260px, 1fr))` packs more columns as the viewport
+     grows, so a 1440px monitor gave the journalism 227px and a 390px phone gave
+     it 291px. The desk read worst on the machine built to read it.
+     Two columns rather than a wider minmax: raising the floor to 400px would
+     fix measure everywhere and cut the desktop slate from five columns to
+     three, and seeing the whole slate at once is what this grid is for. This
+     only widens a card someone deliberately opened.
+     GATED to 34rem and up. The first version of this rule was unconditional,
+     with a comment claiming `span 2` on a single-column grid "is clamped by the
+     spec, so the phone is unaffected — measured below, not assumed." That was
+     asserted, not measured: at 360px the grid computes to a single 324px track
+     unflipped, and flipping manufactured a SECOND track. Below 34rem there is
+     no second column to span into. */
+  @media (min-width: 34rem) {
+    .desk-card.is-flipped { grid-column: span 2; }
+  }
   .desk-card.is-flipped .desk-card__front { display: none; }
   .desk-card.is-flipped .desk-card__brief { display: block; }
   .desk-card__flip-hint {
