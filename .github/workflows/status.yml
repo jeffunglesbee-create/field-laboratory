@@ -25,7 +25,19 @@ name: status
 
 on:
   workflow_run:
-    workflows: [deploy, pages, drift-sentinel]
+    # `verify` ADDED 2026-08-29, and gated below rather than run on every push.
+    #
+    # STATUS.md's first line answers "Did the suite pass on main?" from verify's
+    # history. Nothing triggered it on a verify FAILURE: deploy fires only on
+    # verify success, and status fired only on deploy -- so a red verify left
+    # that line reporting the last green commit until the daily backstop, up to
+    # 24 hours later. The file went quiet at precisely the moment it had
+    # something to say.
+    #
+    # Measured 2026-08-29: verify was red on three consecutive commits and the
+    # question "is main green" was answered by hand each time, from run logs.
+    # That is the reading this file exists to make unnecessary.
+    workflows: [deploy, pages, drift-sentinel, verify]
     types: [completed]
   schedule:
     - cron: '33 6 * * *'
@@ -45,6 +57,21 @@ concurrency:
 jobs:
   status:
     runs-on: ubuntu-latest
+    # THE GATE, and it is a budget decision as much as a correctness one.
+    #
+    # `verify` runs on every push to main -- twelve times on 2026-08-29 alone --
+    # and refreshing status after each GREEN one buys nothing: deploy already
+    # fires on success and already triggers this workflow. Only the failures are
+    # unreported, so only failures are worth a run.
+    #
+    # This workflow's own header records a cadence cut from 8 runs a day to 1
+    # "against a budget that was 90% consumed with two weeks of the month left".
+    # An ungated verify trigger would have undone that and more. A skipped job
+    # costs seconds and no minutes.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.name != 'verify' ||
+      github.event.workflow_run.conclusion == 'failure'
     steps:
       # Full history: the outbox index is read out of git log, and a shallow
       # clone would silently produce a near-empty table.
