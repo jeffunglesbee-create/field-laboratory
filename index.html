@@ -346,8 +346,44 @@
     padding: .55rem 0; background: var(--bg);
     box-shadow: 0 -1px 0 var(--bg), 0 1px 0 var(--edge-strong);
   }
+  /* THE GRID FLOOR IS 400px, CLAMPED TO THE CONTAINER.
+     Raised from 260px on 2026-08-30, deliberately, as a trade rather than a
+     bug fix: the brief is prose and a 260px floor gave it 24.4ch on a 1440px
+     monitor, against taste.md's 45-75ch band. The desk read worst on the
+     machine built to read it, because `auto-fill` packs MORE columns as the
+     viewport grows.
+
+       viewport   cols 260 -> 400   briefCh 260 -> 400
+       P1 360       1 -> 1          31   -> 31
+       P2 393       1 -> 1          34.2 -> 34.2
+       P3 430       1 -> 1          37.8 -> 37.8
+       L1 667       2 -> 1          27.7 -> 61
+       T 834        2 -> 1          36.7 -> 64.9
+       D1 1200      4 -> 2          25.4 -> 56.4
+       D3 1440      5 -> 3          24.4 -> 44.3
+       U1 1920      6 -> 4          28   -> 44.8
+
+     `min(400px, 100%)` AND NOT A BARE 400px. A bare floor is a MINIMUM: when
+     no 400px track fits, auto-fill still lays one down and the document grows
+     past the viewport. Measured, not reasoned: 58px of horizontal overflow at
+     360 and 27px at 393 — the two commonest phone widths — against a spec whose
+     P1 line reads "Assert: no element overflows viewport horizontally"
+     (Drive 1jvQw0uS3TR..., May 24 2026, DEFINITIVE). `min()` clamps the floor
+     to the container, so the phone rows above are byte-identical either way and
+     only the wider viewports move.
+
+     WHAT IT COSTS, stated because it is a trade: every viewport loses columns.
+     Desktop goes 5 to 3 as predicted, and 834 and 667 drop to a SINGLE column,
+     which was not predicted — a tablet now shows one card per row.
+
+     AND IT DOES NOT FIX 1440 OR 1920. Both land at 44.3 and 44.8ch, just under
+     the band's 45 floor, because auto-fill spends the extra width on a third
+     and fourth column rather than on measure. Closing that last half-character
+     means capping the grid's own width, which is a different decision about how
+     much of the screen the desk should use, and is not being made here. */
   .sport-group__grid {
-    display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    display: grid; gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
   }
   /* NO BORDER, AND NO RADIUS. Measured 2026-08-26: `--edge` renders at 1.09:1
      against `--card`, and holding layout constant (`var(--edge)` ->
@@ -430,14 +466,17 @@
      SO THE REMOVAL HAS A REAL COST, stated rather than buried: the brief loses
      28ch on tablet and 30ch on desktop, landing at 24.4ch against taste.md's
      45-75ch band, and desktop reflow goes from 2 cards to 58. Desktop is worst
-     because `repeat(auto-fill, minmax(260px, 1fr))` packs more columns as the
+     because the grid floor was then 260px and `auto-fill` packs more columns as the
      viewport grows -- the desk reads worst on the machine built to read it.
      `.desk-card__brief-text`'s 65ch cap is a ceiling and a 262px column never
      approaches it.
-     The remaining lever is the grid floor: `minmax(400px, 1fr)` fixes measure
-     everywhere and costs the desktop slate two of its five columns. That is a
-     trade about what the desk is FOR, not a bug fix, so it is not being made
-     here by implication. Do not re-add `span 2` without looking at a tablet. */
+     THE REMAINING LEVER WAS PULLED, later the same day: the grid floor went
+     from 260px to `min(400px, 100%)`, which takes the brief to 64.9ch on tablet
+     and 56.4ch at 1200 without widening any single card relative to its
+     siblings. See the `.sport-group__grid` comment above for the full table and
+     what it costs in columns. `span 2` remains the wrong tool: it fixed measure
+     by making ONE card unlike the others, and the floor fixes it by changing
+     every card equally. Do not re-add `span 2` without looking at a tablet. */
   .desk-card.is-flipped .desk-card__front { display: none; }
   .desk-card.is-flipped .desk-card__brief { display: block; }
   .desk-card__flip-hint {
