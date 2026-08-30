@@ -98,6 +98,44 @@ export const findOpen = async (api, repo, marker = MARKER) => {
 }
 
 /**
+ * Wait until the issue list agrees with a write that has already been accepted.
+ *
+ * MEASURED, NOT ASSUMED. `GET /repos/{owner}/{repo}/issues` is EVENTUALLY
+ * CONSISTENT. Rehearsal run 33325161310 opened an issue and then read the list
+ * three times over three seconds:
+ *
+ *     [diag +0ms]    array:true len:0 (empty)
+ *     [diag +1000ms] array:true len:0 (empty)
+ *     [diag +2000ms] array:true len:0 (empty)
+ *
+ * The issue appeared between +4s and +5s. The run before it (33325017952) had
+ * opened a DUPLICATE because of exactly this: #6, then 400ms later "sentinel
+ * issue: none", then #7.
+ *
+ * That is the same defect that put `/search/issues` here in the first place. I
+ * moved off search because its index lags writes, and then asserted -- from
+ * memory, not from a probe -- that the list endpoint is read-after-write
+ * consistent. It is not.
+ *
+ * WHY NOT JUST RELY ON THE GAP BETWEEN RUNS. status.yml has
+ * `concurrency: group: status, cancel-in-progress: true`, and its jobs measured
+ * 13-16s, so two sentinel executions cannot land inside a 5s window today. That
+ * is a 2.6x margin resting on one measurement of someone else's replication
+ * lag, and it silently disappears if the job ever gets faster. Closing the
+ * window where the write happens costs seconds on the rare open/close
+ * transition and does not depend on the argument holding.
+ */
+export const settle = async (api, repo, marker, want, boundMs = 20000, sleep = ms => new Promise(r => setTimeout(r, ms))) => {
+  const t0 = Date.now()
+  for (;;) {
+    const hit = await findOpen(api, repo, marker)
+    if ((want === 'present') === (hit !== null)) return { ms: Date.now() - t0, settled: true, hit }
+    if (Date.now() - t0 >= boundMs) return { ms: Date.now() - t0, settled: false, hit }
+    await sleep(400)
+  }
+}
+
+/**
  * Decide and act. Returns `{ verdict, issue }`.
  *
  * EXTRACTED SO THE WRITE PATHS CAN BE EXERCISED. As first shipped this was
@@ -110,7 +148,8 @@ export const findOpen = async (api, repo, marker = MARKER) => {
  * `api` is injected rather than constructed here for the same reason.
  */
 export const run = async ({ api, repo, green, sha, runUrl, failedStep,
-                            marker = MARKER, titlePrefix = '', log = console.log }) => {
+                            marker = MARKER, titlePrefix = '', log = console.log,
+                            sleep = ms => new Promise(r => setTimeout(r, ms)) }) => {
   const openIssue = await findOpen(api, repo, marker)
   const verdict = action(green, openIssue)
   log(`\n  verify: ${green ? 'green' : 'RED'} on ${sha.slice(0, 7) || '(unknown)'}` +
@@ -124,7 +163,11 @@ export const run = async ({ api, repo, green, sha, runUrl, failedStep,
                              body: body({ sha, runUrl, failedStep, marker }) }),
     })
     log(`  opened #${made.number}`)
-    return { verdict, issue: made }
+    // See `settle`: without this the NEXT run reads a list that does not yet
+    // contain this issue and opens another one.
+    const seen = await settle(api, repo, marker, 'present', 20000, sleep)
+    log(`  visible to the lookup after ${seen.ms}ms${seen.settled ? '' : ' — NOT SETTLED, a duplicate is possible'}`)
+    return { verdict, issue: made, settleMs: seen.ms, settled: seen.settled }
   }
   if (verdict === 'comment') {
     await api(`/repos/${repo}/issues/${openIssue.number}/comments`, {
@@ -144,7 +187,11 @@ export const run = async ({ api, repo, green, sha, runUrl, failedStep,
       body: JSON.stringify({ state: 'closed', state_reason: 'completed' }),
     })
     log(`  closed #${openIssue.number}`)
-    return { verdict, issue: openIssue }
+    // The mirror image: a close that the list still reports as open makes the
+    // next run comment on a closed issue.
+    const gone = await settle(api, repo, marker, 'absent', 20000, sleep)
+    log(`  gone from the lookup after ${gone.ms}ms${gone.settled ? '' : ' — NOT SETTLED, a stale comment is possible'}`)
+    return { verdict, issue: openIssue, settleMs: gone.ms, settled: gone.settled }
   }
   log('  nothing to do')
   return { verdict, issue: null }
@@ -282,19 +329,35 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   // a missing `issues: write`, a body GitHub rejects, a state_reason it does
   // not know. scripts/red-main-rehearsal.mjs drives the same `run` against the
   // real API for that.
-  const recorder = (openIssues = []) => {
+  // The fake models the API's EVENTUAL CONSISTENCY, because a fake that is
+  // instantly consistent is a fake of an API that does not exist -- and the
+  // duplicate-issue bug lived precisely in the gap between the two. `lagPolls`
+  // is how many list reads happen before a write becomes visible.
+  const recorder = (openIssues = [], lagPolls = 0) => {
     const calls = []
+    let visible = [...openIssues]
+    let pending = null, countdown = 0
     const api = async (path, init = {}) => {
-      calls.push(`${init.method || 'GET'} ${path.split('?')[0]}`)
-      if (path.startsWith('/repos/') && path.includes('/issues?state=open')) return openIssues
+      const method = init.method || 'GET'
+      calls.push(`${method} ${path.split('?')[0]}`)
+      if (method === 'GET' && path.includes('/issues?state=open')) {
+        if (pending !== null && countdown-- <= 0) { visible = pending; pending = null }
+        return visible
+      }
+      if (method === 'POST' && /\/issues$/.test(path)) {
+        const made = { number: 42, body: JSON.parse(init.body).body }
+        pending = [...visible, made]; countdown = lagPolls
+        return made
+      }
+      if (method === 'PATCH') { pending = []; countdown = lagPolls; return { number: 42 } }
       return { number: 42 }
     }
     return { api, calls }
   }
-  const drive = async (green, openIssues) => {
-    const r = recorder(openIssues)
+  const drive = async (green, openIssues, lagPolls = 0) => {
+    const r = recorder(openIssues, lagPolls)
     const out = await run({ api: r.api, repo: 'o/r', green, sha: 'abc1234def',
-                            runUrl: 'https://x/1', log: () => {} })
+                            runUrl: 'https://x/1', log: () => {}, sleep: async () => {} })
     return { ...out, calls: r.calls }
   }
   const sentinelIssue = { number: 7, body: sentinel.body }
@@ -323,6 +386,35 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('GREEN with nothing open WRITES NOTHING',
     quiet.verdict === 'none' && quiet.calls.every(c => c.startsWith('GET ')),
     'every green deploy runs this; a write on that path would be noise per deploy')
+
+  // THE DUPLICATE, as a fixture. Under a lagging list the open path must not
+  // return until the issue it just created is visible to the same lookup the
+  // next run will use.
+  const lagged = await drive(false, [], 3)
+  check('THE OPEN PATH WAITS FOR ITS OWN WRITE TO BECOME VISIBLE',
+    lagged.settled === true,
+    'run 33325017952 opened #6 and then #7 because it did not')
+  check('...and it polled the list more than once to establish that',
+    lagged.calls.filter(c => c === 'GET /repos/o/r/issues').length >= 4,
+    `polled ${lagged.calls.filter(c => c === 'GET /repos/o/r/issues').length} time(s)`)
+
+  // ASSERTED ON THE POLL COUNT, not on `settled`.
+  //
+  // The first version of this check read `laggedClose.settled === true` alone,
+  // and a mutant that deleted the close path's settle entirely -- replacing it
+  // with a hardcoded `{ settled: true }` -- passed 29/29. The check was
+  // vacuous: it read a field the mutation supplies. The polls are the evidence
+  // that a wait actually happened.
+  const laggedClose = await drive(true, [sentinelIssue], 3)
+  const closePolls = laggedClose.calls.filter(c => c === 'GET /repos/o/r/issues').length
+  check('THE CLOSE PATH WAITS FOR THE ISSUE TO DISAPPEAR',
+    laggedClose.settled === true && closePolls >= 4,
+    `polled ${closePolls} time(s) — a close the list still reports as open makes the next run comment on a closed issue`)
+
+  // Three states again: an unsettled write is REPORTED, not silently accepted.
+  const stuck = await settle(async () => [], 'o/r', MARKER, 'present', 0, async () => {})
+  check('a write that never becomes visible is reported as unsettled, not as settled',
+    stuck.settled === false && stuck.hit === null)
 
   process.exit(summarize() === 0 ? 0 : 1)
 }

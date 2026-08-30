@@ -98,25 +98,19 @@ if (isMain(import.meta.url)) {
     !(afterOpen.body ?? '').includes(MARKER),
     'a rehearsal that the live sentinel can find is not isolated')
 
-  // DIAGNOSTIC, added after the first rehearsal run (33325017952) failed.
+  // THE MEASUREMENT THAT THIS RUN EXISTS TO PRODUCE.
   //
-  // That run opened #6 and then, 400ms later, printed "sentinel issue: none"
-  // and opened #7 -- a duplicate, which is the exact failure the stateful
-  // design exists to prevent. It stayed invisible at +1.2s and +1.5s too.
+  // Rehearsal 33325017952 opened #6 and then, 400ms later, opened #7 -- the
+  // list endpoint had not yet caught up. 33325161310's diagnostic pinned it:
+  // three reads at +0/+1000/+2000ms all returned `len:0`, and the issue became
+  // visible between +4s and +5s.
   //
-  // Replica lag is the obvious story and is therefore the one not to tell:
-  // "that's expected because..." is what Rule 77 forbids. This prints what the
-  // list endpoint ACTUALLY returns, three times over three seconds, so the
-  // next run distinguishes "the issue is absent from the response" from "it is
-  // present and findSentinel does not match it". Those have different fixes.
-  for (const wait of [0, 1000, 2000]) {
-    if (wait) await new Promise(r => setTimeout(r, wait))
-    const raw = await api(`/repos/${repo}/issues?state=open&per_page=100&page=1`)
-    const rows = (Array.isArray(raw) ? raw : []).map(i =>
-      `#${i.number} ${i.state} pr:${!!i.pull_request} marker:${(i.body ?? '').includes(REHEARSAL_MARKER)}`)
-    console.log(`  [diag +${wait}ms] array:${Array.isArray(raw)} len:${Array.isArray(raw) ? raw.length : '-'}` +
-                ` ${rows.join(' | ') || '(empty)'}`)
-  }
+  // `run`'s open path now waits for its own write, and this prints how long
+  // that took. It is a number, not a "looks right": if the lag ever grows past
+  // the 20s bound, `settled` goes false and the assertion below fails.
+  console.log(`  the open became visible to the lookup after ${first.settleMs}ms`)
+  check('the open settled within the bound', first.settled === true,
+    `settleMs ${first.settleMs} — an unsettled open is a duplicate issue on the next run`)
 
   console.log('\n  2. STILL RED, that issue open')
   const second = await run({ ...opts, green: false, sha: 'rehears2' })
@@ -143,6 +137,28 @@ if (isMain(import.meta.url)) {
     (await findOpen(api, repo, REHEARSAL_MARKER)) === null,
     'a close that the lookup still matches would comment on a closed issue forever')
 
-  console.log(`\n  rehearsal issue: ${afterClose.html_url} (closed)\n`)
+  console.log(`  the close became invisible to the lookup after ${third.settleMs}ms`)
+  check('the close settled within the bound', third.settled === true,
+    `settleMs ${third.settleMs} — an unsettled close makes the next run comment on a closed issue`)
+
+  // SWEEP. Not just the issue this run tracked: 33325017952 left #6 AND #7
+  // open, because the duplicate it opened was never in a variable to clean up.
+  // A rehearsal that leaves its own debris behind is one more thing to do by
+  // hand, which is what this whole line of work is removing.
+  let swept = 0
+  for (;;) {
+    const stray = await findOpen(api, repo, REHEARSAL_MARKER)
+    if (!stray) break
+    await api(`/repos/${repo}/issues/${stray.number}`,
+      { method: 'PATCH', body: JSON.stringify({ state: 'closed', state_reason: 'not_planned' }) })
+    swept++
+    if (swept > 20) break
+    await new Promise(r => setTimeout(r, 1500))
+  }
+  check('the rehearsal leaves no open issue behind',
+    (await findOpen(api, repo, REHEARSAL_MARKER)) === null,
+    `swept ${swept} stray issue(s)`)
+
+  console.log(`\n  rehearsal issue: ${afterClose.html_url} (closed), ${swept} stray closed\n`)
   process.exit(summarize() === 0 ? 0 : 1)
 }
