@@ -350,9 +350,14 @@
      grid is TWO columns, so spanning two makes the card full width and the
      brief ran 79ch, past the 75 ceiling. Widening a card and capping its prose
      are different jobs, and this is the one the rule is actually about.
-     68ch rather than 75: the ceiling is where it stops being comfortable, not a
-     target to sit on. */
-  .desk-card__brief-text { max-width: 68ch; }
+     65ch, and the number is FIELD's own rather than the skill's. The first
+     version used 68, reasoned from taste.md's 45-75 band ("the ceiling is where
+     it stops being comfortable, not a target to sit on"). "FIELD — Complete
+     Feature x Viewport Audit" (Drive, May 24 2026, DEFINITIVE) already fixes it
+     in Section 3: "P4 lock: CENTRE reading width max 65ch". A project with its
+     own locked reading width does not need one derived from a third-party rule
+     of thumb, and 68 quietly overran it. */
+  .desk-card__brief-text { max-width: 65ch; }
   .desk-card__brief { display: none; }
   /* A FLIPPED CARD TAKES TWO COLUMNS, because the brief is prose and the card
      is not sized for prose.
