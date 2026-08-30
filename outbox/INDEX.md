@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1e84f07` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | docs: the rehearsal is green, 16/16, with the lag measured |
+| `c71ce45` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | status: the sentinel waits for its own write to become visible |
 | `25ae6b7` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | status: print what the issue lookup actually returns |
 | `a545691` | 2026-08-30 | [cc-three-branches-that-first-run-during-the-outage-2026-08-30.md](cc-three-branches-that-first-run-during-the-outage-2026-08-30.md) | status: rehearse the sentinel's write paths against the real API |
 | `919e92f` | 2026-08-30 | [cc-a-red-main-now-reaches-someone-2026-08-30.md](cc-a-red-main-now-reaches-someone-2026-08-30.md) | status: a red main opens an issue, a green main closes it |
