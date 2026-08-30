@@ -147,3 +147,65 @@ restored                   -> 29/29
 a variable to clean up. The rehearsal now sweeps every open issue carrying
 `REHEARSAL_MARKER` at the end and asserts none remain. #6, #7 and #9 closed as
 `not_planned` by hand this once.
+
+---
+
+## Green: run `33325350486`, 16/16
+
+```
+1. RED, nothing open
+  verify: RED on rehears | sentinel issue: none | action: open
+  opened #10
+  visible to the lookup after 3215ms
+2. STILL RED, that issue open
+  verify: RED on rehears | sentinel issue: #10 open | action: comment
+  commented on #10
+3. GREEN, that issue open
+  verify: green on rehears | sentinel issue: #10 open | action: close
+  closed #10
+  gone from the lookup after 1938ms
+4. GREEN, nothing open
+  verify: green on rehears | sentinel issue: none | action: none
+  nothing to do
+
+rehearsal issue: .../issues/10 (closed), 0 stray closed
+16/16 checks passed
+```
+
+All four transitions, against the real API, asserted against GitHub's own view
+of the issue after each one:
+
+```
+PASS  GitHub accepted the open — #10 is state:open
+PASS  a still-red main COMMENTS rather than opening a second issue
+PASS  GitHub accepted the comment — #10 has 1 comment(s)
+PASS  GitHub accepted the close — #10 is state:closed
+PASS  it carries the recovery comment as well as the still-red one
+PASS  a green main with no open issue does nothing
+PASS  the closed rehearsal issue is NOT found again
+PASS  the rehearsal leaves no open issue behind
+```
+
+### The two numbers this produced
+
+```
+open  -> visible to the lookup after  3215ms
+close -> gone from the lookup after   1938ms
+```
+
+They are the point. Not "the endpoint is eventually consistent" as a fact
+someone once read, but **3215ms and 1938ms, on this repo, through this token,
+today** — and a bound that fails loudly if either grows past 20s. The first
+rehearsal's 400ms gap was inside that window, which is why it opened #7.
+
+## Three runs, and what each one bought
+
+| run | result | what it established |
+|---|---|---|
+| `33325017952` | 8/13 | the write paths do not work; a duplicate was opened |
+| `33325161310` | 8/13 | `len:0` — the issue is absent, not unmatched |
+| `33325350486` | 16/16 | all four transitions, with the lag measured |
+
+The middle one is the one that mattered. Both hypotheses fit run 1 and they had
+different fixes; a run that printed only its verdict could not choose between
+them, and choosing by plausibility would have been a guess wearing a diagnosis.
