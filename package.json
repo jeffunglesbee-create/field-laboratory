@@ -70,7 +70,8 @@
     "check:staged-verifier": "node scripts/staged-verifier-check.mjs --self-test && node scripts/staged-verifier-check.mjs",
     "check:boundary": "node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs",
     "check:glyph": "node scripts/glyph-check.mjs --self-test && node scripts/glyph-check.mjs",
-    "check:computed-chrome": "URL='http://localhost:8080/?data=context-briefs-fixture' node scripts/computed-chrome-check.mjs"
+    "check:computed-chrome": "URL='http://localhost:8080/?data=context-briefs-fixture' node scripts/computed-chrome-check.mjs",
+    "check:viewport-overflow": "node scripts/viewport-overflow-check.mjs --self-test && node scripts/viewport-overflow-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

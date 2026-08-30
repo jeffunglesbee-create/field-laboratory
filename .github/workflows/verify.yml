@@ -135,6 +135,24 @@ jobs:
       # which disables the date controls by design. This probe intercepts the
       # relay at the network layer instead, so it needs no egress and asserts
       # that each navigation leaves exactly the new slate behind.
+      - name: No canonical viewport overflows horizontally
+        run: |
+          # "FIELD — Viewport Consistency Specification" (Drive, May 24 2026,
+          # DEFINITIVE) lists this under P1: "Assert: no element overflows
+          # viewport horizontally". On 2026-08-29 the desk failed it on every
+          # portrait phone -- 216px at 360, 185px at 393, 150px at 430 -- and
+          # nothing in CI looked. Every render check passed throughout, because
+          # they assert on CONTENT, and content renders fine inside a page that
+          # is too wide. The failure is geometric, so the assertion is geometric.
+          #
+          # Ten states, measured twice each: at rest, and with every flippable
+          # card open. The second pass is not padding -- a grid-column: span 2
+          # added the same day was sound at rest and manufactured a second grid
+          # track on a phone once a card opened.
+          node scripts/serve.mjs &
+          for i in $(seq 1 30); do curl -sf http://localhost:8080/ -o /dev/null && break; sleep 1; done
+          npm run check:viewport-overflow
+
       - name: Grouping and date-navigation checks
         run: npm run check:nav
 

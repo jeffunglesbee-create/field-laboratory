@@ -1,0 +1,177 @@
+// No element overflows the viewport horizontally, at any canonical viewport.
+//
+// WHERE THE INVARIANT COMES FROM
+//
+// "FIELD — Viewport Consistency Specification (all devices x all orientations)",
+// Drive 1jvQw0uS3TR_pblNh7TCUxjsH22MN8IJt_o_yPvbuJ30, May 24 2026, status
+// DEFINITIVE. It specifies eleven canonical viewport states and lists, under P1:
+//
+//     Assert: no element overflows viewport horizontally
+//
+// That document is jubilant-bassoon's. Its selectors (`.game-card`, the ambient
+// panel, the OTW banner) do not exist here and its feature matrix describes a
+// different product, so most of it does not transfer. This one assertion does,
+// along with the widths it is measured at and its stated purpose: "FIELD must
+// render a consistent, intentional product at every viewport."
+//
+// WHY IT EXISTS AS A CHECK
+//
+// On 2026-08-29 the laboratory failed it on every portrait phone -- 216px of
+// overflow at 360, 185px at 393, 150px at 430 -- and had done for an unknown
+// length of time. Seven tab buttons totalling 534px sat in a 324px container
+// with `flex-wrap: nowrap` and `overflow-x: visible`, so the row did not scroll,
+// it pushed the DOCUMENT to 576px.
+//
+// It was found by hand, by measuring. Nothing in CI looked, and every render
+// check passed throughout: they assert on content, and content renders fine
+// inside a page that is too wide. The failure is geometric, so the assertion
+// has to be geometric.
+//
+// AND IT IS MEASURED TWICE PER VIEWPORT
+//
+// Before any interaction, and again with every flippable card opened. The
+// second pass is not padding: a `grid-column: span 2` added that same day was
+// clamped-by-the-spec in a code comment and, measured, manufactured a second
+// grid track on a single-column phone. A layout that is sound at rest and
+// overflows when a card opens is the shape this repo keeps producing.
+//
+// Usage:  URL=http://localhost:8080/ node scripts/viewport-overflow-check.mjs
+//         node scripts/viewport-overflow-check.mjs --self-test
+
+import { existsSync } from 'node:fs'
+import { chromium } from 'playwright'
+import { createChecks, isMain } from './checks.mjs'
+
+const URL = process.env.URL || 'http://localhost:8080/?data=context-2026-08-29'
+
+/**
+ * The canonical states, transcribed from the specification's viewport matrix.
+ *
+ * Ten of its eleven: D2 and D4 are the WHOLE FIELD toggle of D1 and D3, which is
+ * a jubilant-bassoon mode this repo has no equivalent of, so D1/D3 stand for
+ * their widths. Device examples are the spec's own.
+ */
+const VIEWPORTS = [
+  { id: 'P1', name: 'phone-compact',        w: 360,  h: 780,  cols: 1, eg: 'Galaxy A36' },
+  { id: 'P2', name: 'phone-standard',       w: 393,  h: 852,  cols: 1, eg: 'iPhone 15/16' },
+  { id: 'P3', name: 'phone-large',          w: 430,  h: 932,  cols: 1, eg: 'iPhone 16 Pro Max' },
+  { id: 'L1', name: 'phone-landscape',      w: 667,  h: 375,  cols: null, eg: 'iPhone SE landscape' },
+  { id: 'L2', name: 'phone-landscape-wide', w: 932,  h: 430,  cols: null, eg: 'S24 Ultra landscape' },
+  { id: 'T1', name: 'iPad portrait',        w: 820,  h: 1180, cols: null, eg: 'iPad Air' },
+  { id: 'T2', name: 'iPad landscape',       w: 1180, h: 820,  cols: null, eg: 'iPad Air landscape' },
+  { id: 'D1', name: 'laptop',               w: 1200, h: 800,  cols: null, eg: 'MacBook Air 13"' },
+  { id: 'D3', name: 'desktop',              w: 1440, h: 900,  cols: null, eg: 'MacBook Pro 16"' },
+  { id: 'U1', name: 'ultra-wide',           w: 1920, h: 1080, cols: null, eg: '3440x1440 monitor' },
+]
+
+/**
+ * A viewport's verdict from its measurements. Pure, so it can be asserted
+ * without a browser.
+ *
+ * `cols` is checked only where the spec's feature matrix pins it: P1, P2 and P3
+ * are `1col`. Everywhere else the column count is a consequence of the grid's
+ * own auto-fill and pinning it here would be inventing a contract.
+ */
+export const verdictFor = (v, m) => {
+  const faults = []
+  if (m.overflowBefore > 0) faults.push(`${m.overflowBefore}px overflow at rest`)
+  if (m.overflowAfter > 0) faults.push(`${m.overflowAfter}px overflow once cards are open`)
+  if (v.cols !== null && m.cols !== v.cols) faults.push(`${m.cols} column(s), spec says ${v.cols}`)
+  return faults
+}
+
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
+  const { check, summarize } = createChecks()
+  const P1 = VIEWPORTS[0], D3 = VIEWPORTS[8]
+  const clean = { overflowBefore: 0, overflowAfter: 0, cols: 1 }
+
+  check('a clean phone has no faults', verdictFor(P1, clean).length === 0)
+  check('overflow AT REST is a fault',
+    verdictFor(P1, { ...clean, overflowBefore: 216 })[0] === '216px overflow at rest')
+  check('THE SPAN-2 SHAPE: sound at rest, overflowing once a card opens',
+    verdictFor(P1, { ...clean, overflowAfter: 60 }).length === 1,
+    'a check that only measured the resting page would have passed this')
+  check('a phone rendering two columns contradicts the spec matrix',
+    verdictFor(P1, { ...clean, cols: 2 })[0] === '2 column(s), spec says 1')
+  check('column count is NOT asserted where the spec does not pin it',
+    verdictFor(D3, { overflowBefore: 0, overflowAfter: 0, cols: 5 }).length === 0,
+    'D3 has no cols contract; asserting one would be invented')
+  check('faults accumulate rather than short-circuiting',
+    verdictFor(P1, { overflowBefore: 10, overflowAfter: 20, cols: 3 }).length === 3)
+  process.exit(summarize() === 0 ? 0 : 1)
+}
+
+if (isMain(import.meta.url)) {
+  const { check, summarize } = createChecks()
+  const sessionChromium = '/opt/pw-browsers/chromium'
+  const browser = await chromium.launch(
+    existsSync(sessionChromium) ? { executablePath: sessionChromium } : {})
+
+  // THE DETECTOR IS PROVEN AGAINST A PLANTED OVERFLOW FIRST.
+  //
+  // Ten green rows prove nothing if the measurement cannot go red. This injects
+  // a 3000px element into the real page at the narrowest viewport, confirms the
+  // measurement reports it, and removes it -- so every row below is read against
+  // a detector that has just been shown to discriminate.
+  {
+    const p = await browser.newPage({ viewport: { width: 360, height: 780 } })
+    await p.goto(URL, { waitUntil: 'domcontentloaded' })
+    await p.waitForSelector('.desk-card', { timeout: 30000 })
+    const planted = await p.evaluate(() => {
+      const d = document.createElement('div')
+      d.id = '__overflow_probe'; d.style.cssText = 'width:3000px;height:1px'
+      document.body.appendChild(d)
+      const over = document.documentElement.scrollWidth - window.innerWidth
+      d.remove()
+      return over
+    })
+    check('the detector catches a planted 3000px element',
+      planted > 2000,
+      `planted element produced ${planted}px of overflow — a detector reading 0 here measures nothing`)
+    await p.close()
+  }
+
+  console.log('\n  state  name                  w×h        rest  open   cols')
+  const failures = []
+  for (const v of VIEWPORTS) {
+    const p = await browser.newPage({ viewport: { width: v.w, height: v.h } })
+    await p.goto(URL, { waitUntil: 'domcontentloaded' })
+    await p.waitForSelector('.desk-card', { timeout: 30000 })
+    const overflowBefore = await p.evaluate(() =>
+      document.documentElement.scrollWidth - window.innerWidth)
+    await p.evaluate(() =>
+      [...document.querySelectorAll('.desk-card--flippable')].forEach(c => c.click()))
+    await p.waitForTimeout(150)
+    const m = await p.evaluate(() => {
+      const g = document.querySelector('.sport-group__grid')
+      const vw = window.innerWidth
+      // The widest offender, so a failure names the element rather than a number.
+      let worst = null
+      for (const el of document.body.querySelectorAll('*')) {
+        const r = el.getBoundingClientRect()
+        if (!el.getClientRects().length || r.width === 0) continue
+        if (r.right > vw + 1 && (!worst || r.right > worst.right)) {
+          worst = { right: +r.right.toFixed(0),
+                    what: el.className ? `.${String(el.className).split(' ')[0]}` : el.tagName }
+        }
+      }
+      return { cols: g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : null,
+               overflowAfter: document.documentElement.scrollWidth - vw, worst }
+    })
+    await p.close()
+
+    const faults = verdictFor(v, { ...m, overflowBefore })
+    console.log(`  ${v.id.padEnd(6)} ${v.name.padEnd(21)} ${String(v.w).padStart(4)}×${String(v.h).padEnd(5)} ` +
+      `${String(overflowBefore).padStart(4)}  ${String(m.overflowAfter).padStart(4)}   ${String(m.cols).padStart(2)}` +
+      (faults.length ? `   <-- ${faults.join('; ')}${m.worst ? ` (widest: ${m.worst.what} to ${m.worst.right}px)` : ''}` : ''))
+    if (faults.length) failures.push(`${v.id} ${v.name} (${v.eg}): ${faults.join('; ')}`)
+  }
+  console.log('')
+
+  check(`no canonical viewport overflows horizontally (${VIEWPORTS.length} states)`,
+    failures.length === 0,
+    failures.join(' | '))
+
+  await browser.close()
+  process.exit(summarize() === 0 ? 0 : 1)
+}
