@@ -45,6 +45,10 @@ on:
 
 permissions:
   contents: write
+  # Opening and closing the red-main sentinel issue. GITHUB_TOKEN already exists
+  # in every run, so the notification channel costs no new secret -- see
+  # scripts/red-main-issue.mjs for why an issue rather than a webhook.
+  issues: write
   # Reading verify's conclusion for main. The status file is what would have
   # contradicted a false "main is green" claim, and it could not, because it had
   # no way to look.
@@ -88,6 +92,33 @@ jobs:
         run: node scripts/status.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      # THE NOTIFICATION. A red main opens an issue; a green main closes it.
+      #
+      # This rides triggers that already exist and adds no run of its own: this
+      # workflow fires on a red `verify` (the gate above) and on `deploy`, which
+      # fires only on a green one. So both transitions are already reaching this
+      # job, and the sentinel is a few seconds of API calls inside it.
+      #
+      # `always()` because it must run when the status render above failed --
+      # that failure means verify's conclusion could not be read, which is
+      # exactly a moment someone should hear about.
+      #
+      # No RED_MAIN_GREEN is passed. The first wiring computed green-ness from
+      # the triggering event here, which reads TRUE on the daily backstop, on a
+      # manual dispatch, and on a pages/drift-sentinel completion -- so a
+      # still-red main would have looked green and had its issue closed. The
+      # script reads verify's real verdict from the same function STATUS.md's
+      # first line uses instead.
+      - name: A red main reaches someone
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RED_MAIN_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          RED_MAIN_RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          node scripts/red-main-issue.mjs --self-test
+          node scripts/red-main-issue.mjs
 
       # Which commit wrote which outbox entry, derived from git. It runs here
       # rather than in verify because it describes a commit and so can only be
