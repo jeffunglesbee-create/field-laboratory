@@ -149,6 +149,47 @@ check('the three surfaces are distinct shades',
   new Set(surfaces.map(([, t]) => cssValue(t))).size === 3,
   surfaces.map(([, t]) => cssValue(t)).join(', '))
 
+// THE FIVE SEMANTIC COLOURS, AGAINST THE SPEC THAT DEFINES THEM.
+//
+// "FIELD — Semantics x Viewport Bridge" (Drive
+// 1TQ-PIyLvK4l2zMaeYwWUL7TQrlHzEn_nYPoO4Wcv_7w, May 24 2026, status DEFINITIVE)
+// fixes a hex for each word of the five-word vocabulary and states the reason
+// this matters more than a style preference:
+//
+//   "a user on an iPhone SE (P1) and a user on a 4K monitor (U1) should both
+//    instinctively feel 'gold = must' even though the surfaces, sizes, and
+//    column counts are completely different."
+//
+// Two products share that vocabulary. A drift here does not look like a bug in
+// either one -- each renders a perfectly reasonable colour -- it looks like the
+// same word meaning two things, which is the failure the whole system exists to
+// prevent, and nothing in this repo could see it.
+//
+// Verified 2026-08-29: all five match. This assertion is what keeps that true,
+// and it is a TRANSCRIPTION, so it is written out per word rather than derived
+// from the palette it is checking.
+const SEMANTIC_SPEC = {
+  MUST: '#c9a84c', WATCH: '#4a9eff', DISCOVERY: '#2dd4bf',
+  CAUTION: '#f59e0b', QUIET: '#6a6a8a',
+}
+for (const sem of allSemantics) {
+  const word = String(sem.name ?? sem).toUpperCase()
+  const want = SEMANTIC_SPEC[word]
+  const got = cssValue(tokenOf(sem)).toLowerCase()
+  check(`${word} is the Drive spec's ${want ?? '(no spec value)'}`,
+    want != null && got === want.toLowerCase(),
+    want == null
+      ? `${word} has no value in the Semantics x Viewport Bridge — a new word needs one there first`
+      : `palette ${got}, spec ${want}`)
+}
+
+// The transcription covers every word the registry has, or it is grading a
+// subset and reporting a clean sweep. Same vacuity shape as a check that reads
+// nothing and passes.
+check('every semantic word in the registry has a spec value transcribed',
+  Array.from(allSemantics).every(s => SEMANTIC_SPEC[String(s.name ?? s).toUpperCase()] != null),
+  `registry: ${Array.from(allSemantics).map(s => String(s.name ?? s)).join(', ')}`)
+
 // TEXT CONTRAST, AT 4.5 — a different bar from MIN_CONTRAST above, deliberately.
 //
 // MIN_CONTRAST is 3.0: WCAG 1.4.11, non-text contrast, correct for a control's
