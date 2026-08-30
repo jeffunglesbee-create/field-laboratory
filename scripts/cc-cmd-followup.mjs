@@ -26,6 +26,22 @@ const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
 const SELF_TEST = process.argv.includes('--self-test')
 
+/**
+ * A landed ask's verdict, as one of THREE states.
+ *
+ * Extracted so it can be asserted. This logic used to be `if (!a.holds(j))
+ * regressed.push(a)` inline in the loop, and `!null` is `true`, so every
+ * documented not-observable answer was reported as a regression against a
+ * landed fact — including the 2026-08-27 soccer verdict that cost two sessions.
+ * The predicates all return three states on purpose; their caller collapsed two
+ * of them and nothing could see it, because nothing tested the caller.
+ */
+// NOT exported: the self-test lives in this file, so nothing outside needs it,
+// and adding `export` puts an 800-line script that runs at module scope into
+// check:import-purity's scope. Guarding the whole executable half behind isMain
+// to publish one helper would be a restructure in service of nothing.
+const landedVerdict = v => (v == null ? 'no rows' : v ? 'holds' : 'REGRESSED')
+
 // The soccer three-way ask (CC-CMD-2026-08-23) must look at CURRENT data, not a
 // frozen date. The odds-api adapter change it asks for applies to newly captured
 // odds going forward, so a historical date would never show it landing. Yesterday
@@ -219,7 +235,7 @@ const LANDED = [
       return lines.some(ml => 'draw' in ml)
     },
     mustFailOn: { games: { regular: [{ sport: 'MLS', opening_odds: '{"moneyline":{"home":-120,"away":260}}' }] } },
-    note: 'the relay adapter (5a2bacc, drawPriceFrom in src/odds-shape.js) identifies the draw by POSITION — the h2h outcome that is neither team — so a renamed selection cannot silently drop it again. First observed 2026-08-26 on the 2026-08-25 slate, the first slate captured against the deployed adapter',
+    note: 'THE ADAPTER IS PROVEN ELSEWHERE, DETERMINISTICALLY: field-relay-nba scripts/three-way-odds-check.mjs runs on every deploy (deploy.yml:335) with 12 assertions, including that a two-outcome market yields no draw, and needs no slate to run. This entry watches the FIELD behaviour, which depends on what books priced that day and can only ever be null/true/false. If it reads REGRESSED, check that check first. The relay adapter (5a2bacc, drawPriceFrom in src/odds-shape.js) identifies the draw by POSITION — the h2h outcome that is neither team — so a renamed selection cannot silently drop it again. First observed 2026-08-26 on the 2026-08-25 slate, the first slate captured against the deployed adapter',
   },
   {
     cmd: 'CC-CMD-2026-08-21-closing-odds-capture (surviving ask)',
@@ -704,6 +720,18 @@ if (SELF_TEST) {
     contam.landed({ results: [dated(CLEAN), dated(EVERTON)] }) === false,
     'one clean brief masks a contaminated one')
 
+  // ── the three-state driver, which is what actually broke ──────────────────
+  check('a predicate returning null reads NOT OBSERVABLE, not REGRESSED',
+    landedVerdict(null) === 'no rows')
+  check('undefined reads the same way — a predicate that forgets to return',
+    landedVerdict(undefined) === 'no rows')
+  check('false is the only REGRESSED',
+    landedVerdict(false) === 'REGRESSED')
+  check('true holds', landedVerdict(true) === 'holds')
+  check('THE COLLAPSE IS DETECTED: the old `!verdict` test cannot tell them apart',
+    !null === !false && landedVerdict(null) !== landedVerdict(false),
+    'both were falsy, so an off-day and a regression were the same verdict')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -712,12 +740,34 @@ const rows = []
 
 // Landed asks first: a regression is more urgent than a pending ask.
 const regressed = []
+const notObservable = []
 let landedUnverified = 0
 for (const a of LANDED) {
   try {
     const r = await fetch(`${RELAY}${a.route}`, { signal: AbortSignal.timeout(20000) })
     if (!r.ok) { landedUnverified++; continue }
-    if (!a.holds(await r.json())) regressed.push(a)
+    // THREE STATES, AND THIS LOOP USED TO DESTROY TWO OF THEM.
+    //
+    // Every `holds` predicate here documents a `null` return for "the route
+    // answered but carried nothing to observe" — the soccer entry's own comment
+    // says "an off-day is not a regression, and the fatal list must not fire on
+    // a Monday". This was `if (!a.holds(j)) regressed.push(a)`, and `!null` is
+    // `true`, so every one of those off-days was reported as REGRESSED and
+    // failed the build.
+    //
+    // That is what the 2026-08-27 verdict was. 42 soccer games played and
+    // SOCCER_SPORTS could see 7 of them, so the predicate returned its
+    // not-observable answer honestly and this line turned it into a regression
+    // against a landed fact. Two sessions were then spent asking whether the
+    // relay's adapter had broken. It had not: `three-way-odds-check.mjs` proves
+    // it deterministically on every deploy (deploy.yml:335, 12 assertions
+    // including a two-outcome market yielding no draw) and has never failed.
+    //
+    // The discipline was written into the predicates and thrown away by their
+    // caller. `== null` catches both null and undefined on purpose.
+    const verdict = landedVerdict(a.holds(await r.json()))
+    if (verdict === 'no rows') notObservable.push(a)
+    else if (verdict === 'REGRESSED') regressed.push(a)
   } catch { landedUnverified++ }
 }
 
@@ -746,7 +796,11 @@ for (const a of ASKS) {
 console.log('\nCC-CMD follow-up — the observable consequence of each ask\n')
 
 for (const a of LANDED) {
-  const state = regressed.includes(a) ? 'REGRESSED' : landedUnverified ? 'unverified' : 'holds'
+  const state = regressed.includes(a) ? 'REGRESSED'
+    : notObservable.includes(a) ? 'no rows'
+    : landedUnverified ? 'unverified' : 'holds'
+  // (the three real states come from landedVerdict; `unverified` is the fourth
+  //  and separate case, an HTTP failure, where no predicate ever ran)
   console.log(`  ${state.padEnd(10)} ${a.cmd}`)
   console.log(`             landed ${a.landedOn}, ${a.landedIn}`)
   console.log(`             ${a.note}`)
@@ -788,6 +842,16 @@ if (stopped.length) {
     console.log(`::notice::CLEAN THIS RUN ${r.cmd}: the returned soccer briefs carried none of the flagged defects.`)
   }
   console.log('::notice::A cessation ask stays in the open ASKS list — one clean slate is not a landed fact. Do NOT promote it to the fatal LANDED list.')
+}
+
+// A landed ask whose slate carried nothing to look at. Warned, never fatal: this
+// is the state whose collapse into REGRESSED cost two sessions, and it must stay
+// visible rather than silent, or the fix becomes "it went quiet" instead of "it
+// was never observable".
+if (notObservable.length) {
+  for (const a of notObservable) {
+    console.log(`::warning::NOT OBSERVABLE ${a.cmd} — ${a.route} answered, but this slate carried nothing the predicate could judge. Not a regression.`)
+  }
 }
 
 // Fatal, and reported before the unreachable case, because a regression is a
