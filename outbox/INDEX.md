@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b96a3aa` | 2026-08-30 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-30 [skip ci] |
+| `b96a3aa` | 2026-08-30 | [sport-vocabulary-2026-08-30T16-30-28-254Z.json](sport-vocabulary-2026-08-30T16-30-28-254Z.json) | drift-sentinel: ok on 2026-08-30 [skip ci] |
 | `96ce742` | 2026-08-30 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-30 [skip ci] |
 | `96ce742` | 2026-08-30 | [sport-vocabulary-2026-08-30T06-54-38-854Z.json](sport-vocabulary-2026-08-30T06-54-38-854Z.json) | drift-sentinel: ok on 2026-08-30 [skip ci] |
 | `1b14f81` | 2026-08-30 | [cc-eight-tap-targets-under-the-floor-2026-08-29.md](cc-eight-tap-targets-under-the-floor-2026-08-29.md) | chrome: raise eight tap targets to the 44px floor, and assert both |
