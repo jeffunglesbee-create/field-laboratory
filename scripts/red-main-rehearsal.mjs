@@ -98,6 +98,26 @@ if (isMain(import.meta.url)) {
     !(afterOpen.body ?? '').includes(MARKER),
     'a rehearsal that the live sentinel can find is not isolated')
 
+  // DIAGNOSTIC, added after the first rehearsal run (33325017952) failed.
+  //
+  // That run opened #6 and then, 400ms later, printed "sentinel issue: none"
+  // and opened #7 -- a duplicate, which is the exact failure the stateful
+  // design exists to prevent. It stayed invisible at +1.2s and +1.5s too.
+  //
+  // Replica lag is the obvious story and is therefore the one not to tell:
+  // "that's expected because..." is what Rule 77 forbids. This prints what the
+  // list endpoint ACTUALLY returns, three times over three seconds, so the
+  // next run distinguishes "the issue is absent from the response" from "it is
+  // present and findSentinel does not match it". Those have different fixes.
+  for (const wait of [0, 1000, 2000]) {
+    if (wait) await new Promise(r => setTimeout(r, wait))
+    const raw = await api(`/repos/${repo}/issues?state=open&per_page=100&page=1`)
+    const rows = (Array.isArray(raw) ? raw : []).map(i =>
+      `#${i.number} ${i.state} pr:${!!i.pull_request} marker:${(i.body ?? '').includes(REHEARSAL_MARKER)}`)
+    console.log(`  [diag +${wait}ms] array:${Array.isArray(raw)} len:${Array.isArray(raw) ? raw.length : '-'}` +
+                ` ${rows.join(' | ') || '(empty)'}`)
+  }
+
   console.log('\n  2. STILL RED, that issue open')
   const second = await run({ ...opts, green: false, sha: 'rehears2' })
   check('a still-red main COMMENTS rather than opening a second issue',
