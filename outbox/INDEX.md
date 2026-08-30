@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `919e92f` | 2026-08-30 | [cc-a-red-main-now-reaches-someone-2026-08-30.md](cc-a-red-main-now-reaches-someone-2026-08-30.md) | status: a red main opens an issue, a green main closes it |
 | `10f6187` | 2026-08-30 | [cc-status-went-quiet-when-it-had-something-to-say-2026-08-29.md](cc-status-went-quiet-when-it-had-something-to-say-2026-08-29.md) | status: refresh on a RED verify, which is when the file went stale |
 | `b96a3aa` | 2026-08-30 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-30 [skip ci] |
 | `b96a3aa` | 2026-08-30 | [sport-vocabulary-2026-08-30T16-30-28-254Z.json](sport-vocabulary-2026-08-30T16-30-28-254Z.json) | drift-sentinel: ok on 2026-08-30 [skip ci] |
