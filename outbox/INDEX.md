@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4c0e0fb` | 2026-08-30 | [cc-scrollcraft-installed-2026-08-29.md](cc-scrollcraft-installed-2026-08-29.md) | skills: install scrollcraft from nateherkai/scroll-craft |
 | `1565d8d` | 2026-08-30 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
 | `1565d8d` | 2026-08-30 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
 | `1565d8d` | 2026-08-30 | [2026-08-28-fetch-silently-empty-probe.md](2026-08-28-fetch-silently-empty-probe.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
