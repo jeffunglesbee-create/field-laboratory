@@ -55,8 +55,8 @@ const VIEWPORTS = [
   { id: 'P1', name: 'phone-compact',        w: 360,  h: 780,  cols: 1, eg: 'Galaxy A36' },
   { id: 'P2', name: 'phone-standard',       w: 393,  h: 852,  cols: 1, eg: 'iPhone 15/16' },
   { id: 'P3', name: 'phone-large',          w: 430,  h: 932,  cols: 1, eg: 'iPhone 16 Pro Max' },
-  { id: 'L1', name: 'phone-landscape',      w: 667,  h: 375,  cols: null, eg: 'iPhone SE landscape' },
-  { id: 'L2', name: 'phone-landscape-wide', w: 932,  h: 430,  cols: null, eg: 'S24 Ultra landscape' },
+  { id: 'L1', name: 'phone-landscape',      w: 667,  h: 375,  cols: 1,    eg: 'iPhone SE landscape' },
+  { id: 'L2', name: 'phone-landscape-wide', w: 932,  h: 430,  cols: 2,    eg: 'S24 Ultra landscape' },
   { id: 'T1', name: 'iPad portrait',        w: 820,  h: 1180, cols: null, eg: 'iPad Air' },
   { id: 'T2', name: 'iPad landscape',       w: 1180, h: 820,  cols: null, eg: 'iPad Air landscape' },
   { id: 'D1', name: 'laptop',               w: 1200, h: 800,  cols: null, eg: 'MacBook Air 13"' },
@@ -68,9 +68,33 @@ const VIEWPORTS = [
  * A viewport's verdict from its measurements. Pure, so it can be asserted
  * without a browser.
  *
- * `cols` is checked only where the spec's feature matrix pins it: P1, P2 and P3
- * are `1col`. Everywhere else the column count is a consequence of the grid's
- * own auto-fill and pinning it here would be inventing a contract.
+ * `cols` is checked only where the spec's feature matrix pins it, and only
+ * where that pin is about CARD WIDTH rather than about a feature this repo does
+ * not have. The matrix's `Game cards` row reads:
+ *
+ *     P1   P2   P3   L1   L2   T1   T2   D1..U1
+ *     1col 1col 1col 1col 2col 1col 1col LEFT
+ *
+ * P1/P2/P3/L1/L2 TRANSFER. Each is a statement about how much width a card
+ * needs: L1's section says "No special grid -- phone is too narrow for
+ * 2-column at this width", and L2's calls its two columns "the key landscape
+ * upgrade". Nothing in either depends on a selector this repo lacks.
+ *
+ * L1 AND L2 ADDED 2026-08-30, and L1 was FAILING. With the grid floor at 260px
+ * a 667px landscape phone rendered TWO columns against a spec that says one.
+ * Nothing caught it because this table left L1 null. Raising the floor to
+ * min(400px, 100%) fixed it as a side effect, which is exactly the kind of
+ * accidental correctness that goes back out again unnoticed -- so it is pinned
+ * now rather than enjoyed.
+ *
+ * T1/T2 DO NOT TRANSFER, and their `1col` is the reason to be careful with this
+ * matrix rather than to copy it. iPad is one column in FIELD because the right
+ * half of the screen is the AMBIENT PANEL -- "left pane ~430px + Ambient panel
+ * ~390px". This repo has no ambient panel, so a single column here would buy
+ * nothing and cost half the slate.
+ *
+ * D1..U1 read `LEFT`, naming FIELD's three-column desktop product. Not a column
+ * count, and not something this repo implements.
  */
 export const verdictFor = (v, m) => {
   const faults = []
