@@ -365,7 +365,40 @@ const result = await page.evaluate(() => {
   }
 })
 
+// INTERACTION STATES, read off the live stylesheet.
+//
+// Added 2026-08-29 after a /scrollcraft sweep measured 102 interactive elements
+// and ZERO `:active` rules -- no control on the desk acknowledged a press -- and
+// three ungated `:hover` rules. A tap on a touch screen fires :hover and leaves
+// it applied until the next tap elsewhere, so a phone shows a hovered look on a
+// control nobody is hovering.
+//
+// This is read from the rendered page's own stylesheet rather than from
+// index.html, because index.html is the SOURCE and public/index.html is what
+// ships; a rule that survives the source and not the build is exactly what this
+// repo's stale-build incident was.
+const interaction = await page.evaluate(() => {
+  const text = [...document.styleSheets]
+    .flatMap(s => { try { return [...s.cssRules].map(r => r.cssText) } catch { return [] } })
+    .join('\n')
+  const ungated = []
+  for (const rule of [...document.styleSheets].flatMap(s => { try { return [...s.cssRules] } catch { return [] } })) {
+    // A :hover at the TOP level of the sheet is ungated. One inside a media
+    // query is checked for the gate on that query's condition.
+    if (rule.selectorText?.includes(':hover')) ungated.push(rule.selectorText)
+  }
+  return { activeRules: (text.match(/:active/g) || []).length, ungatedHover: ungated }
+})
+
 const { check, summarize } = createChecks()
+
+check('every pressable control acknowledges a press',
+  interaction.activeRules > 0,
+  `${interaction.activeRules} :active rule(s) — a page with only a resting state is half-built`)
+
+check('no :hover sits outside a (hover: hover) gate',
+  interaction.ungatedHover.length === 0,
+  `${interaction.ungatedHover.join(', ')} — a touch tap leaves these applied`)
 
 console.log(`\n  ${result.declared.length} class(es) defined, ${rendered.size} rendered across ${TABS.length} panel(s)`)
 console.log(`  ${result.states.length} state modifier(s) exercised\n`)

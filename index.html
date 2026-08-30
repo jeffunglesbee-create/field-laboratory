@@ -65,7 +65,26 @@
     border: none; border-bottom: 2px solid transparent;
     padding: 0 .9rem; cursor: pointer;
   }
-  .tabs button:hover { color: var(--text); }
+  /* HOVER IS GATED, PRESS IS NOT.
+     A touch tap fires :hover and leaves it applied until the next tap
+     elsewhere, so on a phone an untapped control keeps a hovered look. These
+     three rules are colour-only, so the symptom is mild, but the desk is read
+     on a phone and the gate costs nothing.
+     :active is the state that was missing entirely: 102 interactive elements
+     and not one declared a pressed look. The page has no transitions anywhere
+     (measured 2026-08-29: zero `transition:`, zero @keyframes), so this lands
+     instantly on press and releases instantly, which is what press feedback
+     should do. No transform on .desk-card--flippable: a transform on a grid
+     item creates a containing block, and the comment above that rule records
+     a rotateY that "did not survive contact with a grid". The flip itself is
+     that card's feedback. */
+  @media (hover: hover) and (pointer: fine) {
+    .tabs button:hover { color: var(--text); }
+  }
+  .tabs button:active,
+  .pk-sport:active,
+  .pk-side:active,
+  .datenav button:not([disabled]):active { transform: translateY(1px); }
   .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--discovery); }
   /* Focus must stay visible: a tablist is keyboard-driven by design, and the
      arrow-key pattern is unusable if focus is invisible. */
@@ -189,7 +208,9 @@
     border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer; white-space: nowrap;
   }
-  .pk-side:hover { color: var(--text); }
+  @media (hover: hover) and (pointer: fine) {
+    .pk-side:hover { color: var(--text); }
+  }
   .pk-side--chosen { color: var(--discovery); border-color: var(--must); }
   .pk-side:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
   /* An event has no sides to pick between. Deliberately NOT styled as a
@@ -231,7 +252,9 @@
     border: 1px solid var(--edge-strong); border-radius: 8px;
     padding: .35rem .7rem; cursor: pointer;
   }
-  .datenav button:hover:not([disabled]) { background: var(--card2); }
+  @media (hover: hover) and (pointer: fine) {
+    .datenav button:hover:not([disabled]) { background: var(--card2); }
+  }
   /* Pinning to a committed capture disables navigation — the capture is one
      fixed day, so stepping off it would silently show a different date's data
      under a URL that claims to be pinned. Disabled controls say so visually. */
