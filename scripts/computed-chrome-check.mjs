@@ -395,7 +395,16 @@ const interaction = await page.evaluate(() => {
     .flatMap(s => { try { return [...s.cssRules] } catch { return [] } })
     .filter(r => r.selectorText?.includes(':active'))
     .map(r => r.style?.transform).filter(Boolean)
-  return { activeRules: (text.match(/:active/g) || []).length, ungatedHover: ungated, pressRules }
+  // The DURATION and EASING are specified too, and nothing was grading them.
+  // ITEM 4 of the June 12 Design System Items Catalog: "Duration 100ms
+  // ease-out". The first version of this rule shipped with no transition at
+  // all -- an instant snap -- on the author's reasoning rather than the
+  // decision record's number.
+  const pressTiming = [...document.styleSheets]
+    .flatMap(s => { try { return [...s.cssRules] } catch { return [] } })
+    .filter(r => r.selectorText?.includes(':active') && r.style?.transitionDuration)
+    .map(r => `${r.style.transitionDuration} ${r.style.transitionTimingFunction}`.trim())
+  return { activeRules: (text.match(/:active/g) || []).length, ungatedHover: ungated, pressRules, pressTiming }
 })
 
 const { check, summarize } = createChecks()
@@ -461,6 +470,11 @@ check('no LIVE control or text renders below its contrast bar once opacity compo
 check('the press transform is the spec\'s scale(0.98)',
   interaction.pressRules.length > 0 && interaction.pressRules.every(t => /scale\(0\.98\)/.test(t)),
   `found: ${interaction.pressRules.join(' | ') || '(no transform on any :active rule)'}`)
+
+check('the press transition is the spec\'s 100ms ease-out',
+  interaction.pressTiming.length > 0 &&
+  interaction.pressTiming.every(t => /(^|\s)0\.1s|100ms/.test(t) && /ease-out/.test(t)),
+  `found: ${interaction.pressTiming.join(' | ') || '(no :active rule declares a transition)'}`)
 
 check('no :hover sits outside a (hover: hover) gate',
   interaction.ungatedHover.length === 0,

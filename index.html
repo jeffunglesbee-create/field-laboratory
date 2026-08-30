@@ -100,17 +100,40 @@
   @media (hover: hover) and (pointer: fine) {
     .tabs button:hover { color: var(--text); }
   }
-  /* scale(0.98), and the number is FIELD's own.
-     The first version used translateY(1px), taken from taste.md's "press
-     feedback: scale(0.97) or translateY(1px)". "FIELD — Viewport Artifact v4
-     Build Brief" (Drive, June 12 2026) fixes it under INTERACTION ARCHITECTURE:
-     "Touch feedback: scale(0.98) on :active". Same correction as the 65ch
-     reading lock: a third-party rule of thumb offered a range, and this project
-     had already picked a point inside it. */
+  /* TOUCH FEEDBACK, to ITEM 4 of the June 12 Design System Items Catalog
+     (Drive 1lWX2KtRPMNN1e8YfxrCd3aBPNzxOc8k0JAHOzUxprd0, DECISION: APPROVED):
+     "All interactive elements: transform scale(0.98) + card-highlight
+     background on :active. Duration 100ms ease-out."
+
+     Three corrections to the first version of this rule, all from that item:
+
+     1. The DURATION. This shipped with no transition at all, on my reasoning
+        that "with no transitions anywhere it lands instantly on press and
+        releases instantly, which is what press feedback should do". The spec
+        says 100ms ease-out. It is the only transition on the page, and it is
+        there because a decision record put it there.
+     2. The BACKGROUND. Only the transform was implemented; the item pairs it
+        with a card-highlight ground.
+     3. GAME CARDS. I excluded .desk-card--flippable, reasoning that a transform
+        on a grid item creates a containing block, citing a rotateY that "did
+        not survive contact with a grid". The item lists "Game cards (all tiers)"
+        first. Re-measured: scale(0.98) leaves the grid intact at all ten
+        canonical viewports, zero overflow. A uniform scale is not a rotation,
+        and the old scar did not transfer.
+
+     NOT applied, per the same item's exclusion list: score elements, brief
+     text, labels and headers. Those are data and prose, not controls. */
   .tabs button:active,
   .pk-sport:active,
   .pk-side:active,
-  .datenav button:not([disabled]):active { transform: scale(0.98); }
+  .desk-card--flippable:active,
+  .datenav button:not([disabled]):active {
+    transform: scale(0.98);
+    transition: transform 100ms ease-out, background-color 100ms ease-out;
+  }
+  .desk-card--flippable:active,
+  .pk-sport:active,
+  .pk-side:active { background-color: var(--card2); }
   .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--discovery); }
   /* Focus must stay visible: a tablist is keyboard-driven by design, and the
      arrow-key pattern is unusable if focus is invisible. */
