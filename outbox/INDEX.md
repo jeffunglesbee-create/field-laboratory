@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `41447b9` | 2026-08-30 | [cc-the-rehearsal-is-on-a-clock-2026-08-30.md](cc-the-rehearsal-is-on-a-clock-2026-08-30.md) | drift-sentinel: rehearse the red-main write paths weekly |
 | `1e84f07` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | docs: the rehearsal is green, 16/16, with the lag measured |
 | `c71ce45` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | status: the sentinel waits for its own write to become visible |
 | `25ae6b7` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | status: print what the issue lookup actually returns |
