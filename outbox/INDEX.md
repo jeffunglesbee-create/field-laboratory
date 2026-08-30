@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e3ec02e` | 2026-08-30 | [cc-the-spec-settled-the-tablet-question-2026-08-30.md](cc-the-spec-settled-the-tablet-question-2026-08-30.md) | check: pin the L1 and L2 column contracts, which were both being violated |
 | `fd29fcb` | 2026-08-30 | [cc-the-grid-floor-goes-to-400-2026-08-30.md](cc-the-grid-floor-goes-to-400-2026-08-30.md) | desk: raise the grid floor to min(400px, 100%) |
 | `4442ddc` | 2026-08-30 | [cc-the-flipped-card-was-double-wide-2026-08-30.md](cc-the-flipped-card-was-double-wide-2026-08-30.md) | desk: a flipped card no longer spans two columns |
 | `41447b9` | 2026-08-30 | [cc-the-rehearsal-is-on-a-clock-2026-08-30.md](cc-the-rehearsal-is-on-a-clock-2026-08-30.md) | drift-sentinel: rehearse the red-main write paths weekly |
