@@ -100,7 +100,7 @@ All three are BUILT. Evidence, not inference:
 |---|---|
 | `fix-cloud-setup-and-scaffold-fable` | `src/Laboratory.fsproj` + 20 `src/*.fs`; `npm run check:proof` compiles under the real F# compiler; `verify` green |
 | `dotnet-sdk-and-desk-scoreboard` | the desk/scoreboard shipped as `src/Scoreboard.fs`; SDK path proven by the same compile |
-| `drift-sentinel-and-reactive-staleness` | `.github/workflows/drift-sentinel.yml`, 57 rows in `outbox/drift-log.md`, latest `ok` 2026-08-27 (55 games, 0 malformed); staleness fixed as that document's own Option 1 — `stateNode` at `src/Scoreboard.fs:267` wraps every state-derived node in `Solid.createEffect`, with `staticNode` beside it carrying the comment for nodes safe to set once |
+| `drift-sentinel-and-reactive-staleness` | `.github/workflows/drift-sentinel.yml`, 57 rows in `outbox/drift-log.md`, latest `ok` 2026-08-27 (55 games, 0 malformed); staleness fixed as that document's own Option 1 — `stateNode` at `src/Scoreboard.fs:270` wraps every state-derived node in `Solid.createEffect`, with `staticNode` beside it carrying the comment for nodes safe to set once |
 
 **Their shared residual is real and is named in each status line rather than
 left to imply the ask is open.** The cloud environment's setup-script field is

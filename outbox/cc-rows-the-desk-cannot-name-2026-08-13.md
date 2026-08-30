@@ -199,7 +199,7 @@ checks for the first time, and failed at the last step instead:
 page.goto: Timeout 30000ms exceeded.
   - navigating to "https://field-laboratory.jeffunglesbee.workers.dev/",
     waiting until "networkidle"
-  at scripts/schedule-live-check.mjs:37
+  at scripts/schedule-live-check.mjs:40
 ```
 
 `schedule-live-check` had **never actually run against a rendered page**. Every

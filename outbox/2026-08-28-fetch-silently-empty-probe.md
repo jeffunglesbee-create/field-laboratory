@@ -84,7 +84,7 @@ Its assertion reads `A('the archive answered with rows for this date', rows.leng
 `rows = []` and failed that assertion reporting `0`, i.e. an empty archive for a
 relay that never replied.
 
-### 2. `field-laboratory/scripts/sport-vocabulary-check.mjs:120`
+### 2. `field-laboratory/scripts/sport-vocabulary-check.mjs:170`
 
 `.then(r => r.json()).catch(() => null)` merged three states: a network failure,
 a non-200 from `/d1/execute` (**a wrong or rotated `RELAY_SECRET` returns one**),

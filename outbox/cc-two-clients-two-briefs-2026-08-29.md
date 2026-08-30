@@ -39,7 +39,14 @@ laboratory is showing a mid-match brief on a finished match.
 
 ## Cause 2: the laboratory picks the live brief on a final game, 10 of 10
 
-`src/Desk.fs:786`:
+> **SUPERSEDED 2026-08-29** by `cc-the-recap-on-a-finished-game-2026-08-29.md`.
+> The 10-of-10 below was measured on a capture truncated at 50 briefs/day. On the
+> untruncated 667-brief window the real figure is **188 of 199** — payload order
+> was already right 94.5% of the time. `updated_at`, which this document proposed
+> as the fix, picks the after-brief **0 of 199**. Both numbers below stand as
+> what was measured; neither is what is true.
+
+`src/Desk.fs:792`:
 
 ```fsharp
 usable

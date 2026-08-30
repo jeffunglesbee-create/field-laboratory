@@ -50,7 +50,7 @@ next session would have inherited "six competitions are not being archived" as a
 fact.
 
 Two things fixed it. The shape is now read from two existing consumers rather
-than guessed a second time. `scripts/brief-join-capture.mjs:84` reads
+than guessed a second time. `scripts/brief-join-capture.mjs:127` reads
 `const rows = [...(j.games?.regular ?? []), ...(j.games?.postseason ?? [])]` and
 `scripts/drift-check.mjs:100` reads
 `return n(j?.games?.regular) + n(j?.games?.postseason)` — both destructure

@@ -47,5 +47,15 @@ npm run --silent check:boundary
 # log. The probe imports 25 modules in fresh processes and takes about a second,
 # no network and no build, so the door is where it belongs.
 npm run --silent check:import-purity
+# Added 2026-08-29, after this exact check failed verify on THREE consecutive
+# commits and blocked the deploy each time -- deploy.yml triggers on
+# `workflow_run: [verify] completed`, so a red verify means the site silently
+# stays behind main. It is a docs-only scan with no network and no build, and it
+# reports its own repair ("src/Scoreboard.fs:267 -> now :270"), so the whole
+# failure is a one-line edit at the door instead of a six-minute CI round trip.
+#
+# It also catches the shape this hook already guards elsewhere: a citation whose
+# line number moved because the SAME commit moved it.
+npm run --silent check:citations
 
 echo "pre-commit: ok"
