@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1565d8d` | 2026-08-30 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
+| `1565d8d` | 2026-08-30 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
+| `1565d8d` | 2026-08-30 | [2026-08-28-fetch-silently-empty-probe.md](2026-08-28-fetch-silently-empty-probe.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
+| `1565d8d` | 2026-08-30 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
+| `1565d8d` | 2026-08-30 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
+| `1565d8d` | 2026-08-30 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
 | `c338742` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | census: page jq-density-census, and correct the claim that it was truncated |
 | `4b00a5b` | 2026-08-29 | [cc-the-recap-on-a-finished-game-2026-08-29.md](cc-the-recap-on-a-finished-game-2026-08-29.md) | fix: on a finished game, show the brief written after it finished |
 | `64ac887` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | capture: page /archive/query instead of asking for 100 and taking 50 |
