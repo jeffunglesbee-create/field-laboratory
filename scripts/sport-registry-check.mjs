@@ -21,7 +21,8 @@
 // it rather than being deleted -- a check that only asserted "everything is
 // modelled" would still pass while the desk said a tournament played a round.
 
-import { sportOfString, sportMeta, matchupText, presentByMatchup } from '../build/Desk.js'
+import { readFileSync } from 'node:fs'
+import { sportOfString, sportMeta, matchupText, presentByMatchup, allSports } from '../build/Desk.js'
 import { createChecks } from './checks.mjs'
 
 const { check, summarize } = createChecks()
@@ -29,7 +30,18 @@ const { check, summarize } = createChecks()
 // Every sport string observed in production's /context/date payloads, from the
 // drift-sentinel log lines of 2026-08-14 and 2026-08-15:
 //   MLB:14 MLS:3 NFL*:3 WNBA:2 CFL*:1 golf*:1   (* = unmodelled at the time)
-const SEEN = ['MLB', 'MLS', 'WNBA', 'EFL Cup', 'NFL', 'CFL', 'AFL']
+//
+// UNIONED WITH A REAL CAPTURE, because a frozen observation stops observing.
+// Those seven were what the sentinel logged on two days in mid-August. The
+// committed /context/date capture from 2026-08-29 carries eleven, six of which
+// are not in the list above -- so "every sport production serves is modelled"
+// was answered about a fortnight-old slate. Third instance of this exact shape
+// today, after the brief-type registry and the four-competition soccer set.
+const CAPTURE = JSON.parse(readFileSync('data/context-2026-08-29.json', 'utf8'))
+const CAPTURED = [...new Set([...(CAPTURE.games?.regular ?? []),
+                              ...(CAPTURE.games?.postseason ?? [])]
+  .map(g => g.sport).filter(Boolean))]
+const SEEN = [...new Set(['MLB', 'MLS', 'WNBA', 'EFL Cup', 'NFL', 'CFL', 'AFL', ...CAPTURED])].sort()
 
 check('the observed-sport list is non-empty',
   SEEN.length > 0, `${SEEN.length} sport string(s)`)
@@ -81,10 +93,46 @@ check('score ordering agrees with the matchup text for every sport',
   wrongOrder.map(([s]) => `${s}: first=${firstOf(s)}`).join('; ') || 'all seven')
 
 // Soccer is a flag Rule 50 names explicitly, and gridiron must not inherit it.
+// The assertion was `soccer.length === 2 && includes('MLS') && includes('EFL
+// Cup')` -- a property of the seven-element literal, not of the registry. With
+// the capture unioned in, SEEN carries every soccer competition production
+// served that day, and pinning a COUNT would just freeze a new number.
+//
+// The invariant Rule 50 actually names is the one that broke: gridiron must not
+// inherit the soccer flag. That is stated directly, over every code that is not
+// association football, so it holds however many competitions arrive.
 const soccer = SEEN.filter(s => sportMeta(sportOfString(s)).IsSoccer)
-check('only the association-football competitions are flagged as soccer',
-  soccer.length === 2 && soccer.includes('MLS') && soccer.includes('EFL Cup'),
-  `flagged: ${soccer.join(', ') || 'none'}`)
+const NOT_FOOTBALL = ['MLB', 'WNBA', 'NFL', 'CFL', 'CFB', 'AFL', 'NBA', 'NHL', 'PGA Tour', 'IPL', 'UFL']
+const wronglyFlagged = NOT_FOOTBALL.filter(s => sportMeta(sportOfString(s)).IsSoccer)
+check('no gridiron, diamond or court sport is flagged as soccer',
+  wronglyFlagged.length === 0,
+  wronglyFlagged.join(', ') || `${soccer.length} soccer competition(s) flagged, none of them ${NOT_FOOTBALL.length} others`)
+
+// THE REGISTRY ITSELF, not just the sports observed in one payload.
+//
+// allSports was added to Desk.fs on 2026-08-29 and did not exist before, which
+// is why every consumer here transcribed a list. "FIELD — Unification Specs
+// v1.0" (Drive, May 24 2026) names this root cause for the sibling product:
+// "any time a new sport is added ... a bug is possible because the identity
+// logic exists in at least 6 different places."
+const ALL = Array.from(allSports)
+const badLabel = ALL.filter(sp => sportOfString(sportMeta(sp).Label) !== sp)
+check(`every registry entry round-trips through its own label (${ALL.length} sports)`,
+  badLabel.length === 0,
+  badLabel.map(sp => sportMeta(sp).Label).join(', ') || 'all round-trip')
+
+// COMPLETENESS, read from the source rather than trusted. Fable cannot reflect
+// over a DU, so `allSports` is written by hand and would silently miss a case
+// added later. The Sport DU's own `| Case` lines are counted here, minus the
+// one payload-carrying case (`Unrecognised of raw: string`), and the two
+// numbers must agree.
+const deskSrc = readFileSync('src/Desk.fs', 'utf8')
+const duBody = deskSrc.slice(deskSrc.indexOf('type Sport ='))
+const duCases = [...duBody.slice(0, duBody.indexOf('let allSports')).matchAll(/^ {4}\| ([A-Za-z0-9]+)( of)?/gm)]
+const named = duCases.filter(m => !m[2]).length
+check('allSports covers every named case in the Sport DU',
+  named === ALL.length,
+  `DU declares ${named} named case(s) (+${duCases.length - named} with a payload), allSports lists ${ALL.length}`)
 
 // Golf, pinned as a NON-CONTEST so it cannot quietly become a fixture again.
 //

@@ -41,7 +41,7 @@ import {
 } from '../build/Prose.js'
 import { maxOf, nominal, relayReachable, unreachable } from '../build/Ceiling.js'
 import { anchoring, briefTypeOfString, isModelled } from '../build/Journalism.js'
-import { sportOfString, sportMeta } from '../build/Desk.js'
+import { sportOfString, sportMeta, allSports } from '../build/Desk.js'
 
 const SELF_TEST = process.argv.includes('--self-test')
 const { check, summarize } = createChecks()
@@ -57,7 +57,11 @@ const anchored = CORPUS.reduce(
   },
   { stat: 0, anchored: 0 })
 
-const SPORTS = ['MLB', 'MLS', 'WNBA', 'EFL Cup', 'NFL', 'CFL', 'AFL']
+// The whole registry, not seven strings. `allSports` was added to Desk.fs on
+// 2026-08-29; before it existed this file transcribed the same seven sports
+// sport-registry-check did, and the `sports.modelled` claim below was a fact
+// about that literal rather than about the registry.
+const SPORTS = Array.from(allSports).map(sp => sportMeta(sp).Label)
 // Read from the capture, not transcribed. See journalism-check.mjs for the full
 // reasoning: the literal that used to be here was a copy of the registry's own
 // vintage, so the claim it fed could not move when production wrote a new type.

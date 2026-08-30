@@ -337,6 +337,33 @@ type SportMeta =
 
 /// THE registry. Adding a case to `Sport` without adding it here does not
 /// compile — see docs/SPORT-PROOF.md for the compiler refusing exactly that.
+/// EVERY Sport case, for exhaustive iteration.
+///
+/// It did not exist until 2026-08-29, and its absence is why every consumer
+/// carried its own list. `sport-registry-check.mjs` graded seven sports and
+/// `docs-check.mjs` claimed `sports.modelled` from the same seven, while the DU
+/// below holds 28. A check named "The sport registry matches what
+/// production serves" was looking at a quarter of the registry.
+///
+/// "FIELD — Unification Specs v1.0" (Drive, May 24 2026) names this exact root
+/// cause for the sibling product: "any time a new sport is added ... a bug is
+/// possible because the identity logic exists in at least 6 different places."
+/// Its SPEC 1 proposes one `SPORT_DISPLAY_RULES` object as the single source.
+/// `sportMeta` below already IS that object, and is compiler-enforced -- adding
+/// a case without a registry entry does not compile. What was missing was a way
+/// to WALK it, so consumers transcribed instead.
+///
+/// `Unrecognised of raw: string` is deliberately absent: it is not a sport, it
+/// is the honest answer for a competition the registry has never seen, and it
+/// carries a payload so it is a function rather than a value. Every NAMED sport
+/// is here; the 28th case is the one that means "not one of these".
+///
+/// Completeness is asserted, not trusted: sport-registry-check counts the `|`
+/// cases in this file's Sport DU, subtracts the payload-carrying one, and
+/// requires the two numbers to agree -- so a case added above and forgotten
+/// here fails the run.
+let allSports = [ Sport.AFL; Sport.MLB; Sport.MLS; Sport.WNBA; Sport.EFLCup; Sport.NFL; Sport.CFL; Sport.CFB; Sport.LaLiga; Sport.Bundesliga; Sport.EPL; Sport.Ligue1; Sport.SerieA; Sport.UEFAChampionsLeague; Sport.UEFAChampionsLeagueQualifying; Sport.UEFAEuropaLeague; Sport.UEFAEuropaLeagueQualifying; Sport.UEFAEuropaConferenceLeague; Sport.UEFAEuropaConferenceLeagueQualifying; Sport.FIFAWorldCup; Sport.EFLTrophy; Sport.NBA; Sport.NHL; Sport.Golf; Sport.PGATour; Sport.IPL; Sport.UFL ]
+
 let sportMeta (sport: Sport) : SportMeta =
     match sport with
     | Sport.AFL -> { Label = "AFL"; Matchup = HomeVersusAway; IsSoccer = false; Modelled = true; Omission = None }
