@@ -404,6 +404,60 @@ check('every pressable control acknowledges a press',
   interaction.activeRules > 0,
   `${interaction.activeRules} :active rule(s) — a page with only a resting state is half-built`)
 
+// CONTRAST WITH OPACITY COMPOSITED IN, which token-level checks cannot see.
+//
+// palette-check grades TOKENS -- hex against hex -- and is right to. It has no
+// way to know that `.desk-card__header`, `.desk-card__brief-kind`,
+// `.desk-card__flip-hint` and eleven other rules dim their text with
+// `opacity`, which composites the colour toward the ground before a reader ever
+// sees it. A token can clear 4.5:1 and render at 2.8:1.
+//
+// Found 2026-08-29 by re-running a contrast pass that had reported "0 text nodes
+// below 4.5:1" -- a number produced by reading `getComputedStyle(el).color` and
+// never looking at `opacity`. The conclusion survived; the method was wrong, and
+// a method that cannot see a whole CSS property will be wrong again.
+//
+// Opacity is the PRODUCT of every ancestor's, because that is how it composites.
+//
+// DISABLED CONTROLS ARE EXEMPT, and by the standard rather than by convenience:
+// WCAG 1.4.3 excludes "text or images of text that are part of an inactive user
+// interface component". `.datenav button[disabled]` renders at 2.81:1 under
+// opacity .35 and is conformant. The exemption is narrow -- disabled only -- so
+// that dimming a live control cannot hide behind it.
+const dimmed = await page.evaluate(() => {
+  const lum = c => { const [r,g,b] = c.match(/[\d.]+/g).map(Number)
+    .map(v => { v /= 255; return v <= .03928 ? v/12.92 : ((v+.055)/1.055) ** 2.4 })
+    return .2126*r + .7152*g + .0722*b }
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m); return (x+.05)/(y+.05) }
+  const rgb = c => c.match(/[\d.]+/g).map(Number)
+  const bgOf = el => { let n = el
+    while (n) { const g = getComputedStyle(n).backgroundColor; if (g && !/, 0\)$/.test(g)) return g; n = n.parentElement }
+    return 'rgb(6, 5, 20)' }
+  const effOpacity = el => { let o = 1, n = el
+    while (n && n !== document.documentElement) { o *= parseFloat(getComputedStyle(n).opacity) || 1; n = n.parentElement }
+    return o }
+  const isDisabled = el => !!el.closest('[disabled], :disabled, [aria-disabled="true"]')
+  const out = []
+  for (const el of document.body.querySelectorAll('*')) {
+    if (el.children.length || !el.textContent?.trim() || !el.getClientRects().length) continue
+    const st = getComputedStyle(el), o = effOpacity(el)
+    if (o >= 1) continue                       // token-level checks already cover these
+    const size = parseFloat(st.fontSize), w = parseInt(st.fontWeight) || 400
+    const large = size >= 24 || (size >= 18.66 && w >= 700)
+    const bg = rgb(bgOf(el)), fg = rgb(st.color)
+    const composited = `rgb(${fg.map((v, i) => Math.round(v * o + bg[i] * (1 - o))).join(', ')})`
+    const real = +ratio(composited, bgOf(el)).toFixed(2)
+    if (real < (large ? 3 : 4.5) && !isDisabled(el)) {
+      out.push(`${el.className || el.tagName} at opacity ${o.toFixed(2)}, ${size.toFixed(1)}px: ${real}:1`)
+    }
+  }
+  return [...new Set(out)]
+})
+
+check('no LIVE control or text renders below its contrast bar once opacity composites',
+  dimmed.length === 0,
+  dimmed.slice(0, 5).join(' | '))
+
 check('the press transform is the spec\'s scale(0.98)',
   interaction.pressRules.length > 0 && interaction.pressRules.every(t => /scale\(0\.98\)/.test(t)),
   `found: ${interaction.pressRules.join(' | ') || '(no transform on any :active rule)'}`)
