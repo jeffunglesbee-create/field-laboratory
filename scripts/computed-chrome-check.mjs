@@ -387,7 +387,15 @@ const interaction = await page.evaluate(() => {
     // query is checked for the gate on that query's condition.
     if (rule.selectorText?.includes(':hover')) ungated.push(rule.selectorText)
   }
-  return { activeRules: (text.match(/:active/g) || []).length, ungatedHover: ungated }
+  // The press transform is checked for its VALUE, not just its presence.
+  // "FIELD — Viewport Artifact v4 Build Brief" (Drive, June 12 2026) fixes it:
+  // "Touch feedback: scale(0.98) on :active". A rule that exists but presses
+  // by some other amount is a different product's feedback.
+  const pressRules = [...document.styleSheets]
+    .flatMap(s => { try { return [...s.cssRules] } catch { return [] } })
+    .filter(r => r.selectorText?.includes(':active'))
+    .map(r => r.style?.transform).filter(Boolean)
+  return { activeRules: (text.match(/:active/g) || []).length, ungatedHover: ungated, pressRules }
 })
 
 const { check, summarize } = createChecks()
@@ -395,6 +403,10 @@ const { check, summarize } = createChecks()
 check('every pressable control acknowledges a press',
   interaction.activeRules > 0,
   `${interaction.activeRules} :active rule(s) — a page with only a resting state is half-built`)
+
+check('the press transform is the spec\'s scale(0.98)',
+  interaction.pressRules.length > 0 && interaction.pressRules.every(t => /scale\(0\.98\)/.test(t)),
+  `found: ${interaction.pressRules.join(' | ') || '(no transform on any :active rule)'}`)
 
 check('no :hover sits outside a (hover: hover) gate',
   interaction.ungatedHover.length === 0,

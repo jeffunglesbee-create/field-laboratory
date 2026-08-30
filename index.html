@@ -100,10 +100,17 @@
   @media (hover: hover) and (pointer: fine) {
     .tabs button:hover { color: var(--text); }
   }
+  /* scale(0.98), and the number is FIELD's own.
+     The first version used translateY(1px), taken from taste.md's "press
+     feedback: scale(0.97) or translateY(1px)". "FIELD — Viewport Artifact v4
+     Build Brief" (Drive, June 12 2026) fixes it under INTERACTION ARCHITECTURE:
+     "Touch feedback: scale(0.98) on :active". Same correction as the 65ch
+     reading lock: a third-party rule of thumb offered a range, and this project
+     had already picked a point inside it. */
   .tabs button:active,
   .pk-sport:active,
   .pk-side:active,
-  .datenav button:not([disabled]):active { transform: translateY(1px); }
+  .datenav button:not([disabled]):active { transform: scale(0.98); }
   .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--discovery); }
   /* Focus must stay visible: a tablist is keyboard-driven by design, and the
      arrow-key pattern is unusable if focus is invisible. */
