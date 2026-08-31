@@ -191,8 +191,27 @@ check('the Field\'s Pick panel is in a stated state, not blank',
   || /pick-reason/.test(await page.innerHTML('#panel-field-pick')),
   `panel said: ${fieldText.replace(/\s+/g, ' ').slice(0, 200)}`)
 
-check('the Scout\'s Pick panel reports gates',
-  /Gate /.test(scoutText),
+// TWO MODELLED STATES, because src/PickView.fs has exactly two branches.
+//
+// The gate rows come from `match games with | [] -> () | first :: _ ->`, so on
+// an EMPTY SLATE no gate is rendered at all — not by accident, by construction.
+// The panel instead prints its `pick-empty` paragraph, transcribed here from
+// src/PickView.fs:136 rather than from the truncated run log:
+//
+//     "No game qualifies from this payload — and for most gates that is because
+//      the data is not here, not because the answer is no."
+//
+// Asserting only `/Gate /` made this unsatisfiable between midnight ET and the
+// first fixture, and it went red at 04:36 UTC on 2026-08-31 for a panel that
+// was behaving exactly as written.
+//
+// This is not a relaxation to reach green. Both sibling assertions in this same
+// file already model their empty state — Field's Pick accepts `No pick section`
+// and the Pick'em legend accepts `No games on this slate`. This one was the
+// odd assertion out, and a blank panel still fails, which is the failure shape
+// the project actually records.
+check('the Scout\'s Pick panel is in a stated state — gates, or why there are none',
+  /Gate /.test(scoutText) || /No game qualifies from this payload/.test(scoutText),
   `panel said: ${scoutText.replace(/\s+/g, ' ').slice(0, 200)}`)
 
 // Pick'em on the deployed artifact. Structural only — whether tonight's slate

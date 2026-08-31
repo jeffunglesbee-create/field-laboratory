@@ -378,3 +378,66 @@ still hasn't been exercised against a populated slate — it'll get its first re
 test when today's fixtures land."* That sentence puts a human in the loop to
 remember to look. Moving the schedule into a populated window is the same
 outcome with nobody remembering anything.
+
+---
+
+## Round six: the same empty slate, one panel further along
+
+With the empty-slate state in place, the brief-phase step **passed** and the red
+moved to step 13:
+
+```
+FAIL  the Scout's Pick panel reports gates
+      → panel said: Scout's Pick … No game qualifies from this p…
+```
+
+`src/PickView.fs` has exactly two branches:
+
+```fsharp
+match games with
+| [] -> ()
+| first :: _ ->
+    child panel (el "h3" "pick-panel__what" (sprintf "Gates — %s" …))
+    for gate in gatesFor first seriesEntries do …
+```
+
+**On an empty slate no gate is rendered at all** — not by accident, by
+construction. The panel prints its `pick-empty` paragraph instead. So
+`/Gate /.test(scoutText)` was unsatisfiable between midnight ET and the first
+fixture, and it went red for a panel behaving exactly as written.
+
+### Its two siblings in the same file already model this
+
+```js
+check('the Field\'s Pick panel is in a stated state, not blank',
+  /No pick section|Passed on tonight|Also ranked|level with/i.test(fieldText) || …)
+
+check('the Pick\'em legend explains its two numbers',
+  /Chips count games/.test(pickemText) || /No games on this slate/.test(pickemText))
+```
+
+Field's Pick accepts `No pick section`. Pick'em accepts `No games on this slate`.
+Scout's Pick accepted nothing. It was the odd assertion out, not a considered
+stricter contract.
+
+Now: gates, **or** the panel's own stated reason there are none — transcribed
+from `src/PickView.fs:136` rather than from the truncated run log. A blank panel
+still fails, which is the failure shape this project actually records.
+
+## Six rounds, one slate, and the check never moved toward green
+
+Each round the red moved forward a step and each cause was different:
+
+| round | red | cause |
+|---|---|---|
+| 1–3 | brief phase | `find` took a duplicate stub |
+| 4 | brief phase | AMBIGUOUS failed the rule holding twice |
+| 5 | page load | empty slate thrown as a TimeoutError |
+| 6 | pick tabs | an assertion with no empty-slate branch |
+
+Rounds 1–4 were bugs in a check. Rounds 5–6 are the same root fact — **a slate
+with no games** — meeting two different assertions that had never seen one,
+because the daily beat ran at 02:37 ET and every other run came from a deploy.
+
+Moving that beat to 23:37 ET is what stops this class arriving one panel at a
+time.
