@@ -202,6 +202,31 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs
 
+      # Does /context/date serve the same fixture twice?
+      #
+      # Observed 2026-08-30: three fixtures came back as two rows each, every
+      # pair sharing one espn_event_id — so the relay holds a unique key and
+      # wrote two rows anyway. Downstream the desk renders one card per row, and
+      # where the two rows disagree about state (one final, one an unplayed
+      # stub) one card carries the recap and the other carries nothing.
+      #
+      # NEW as of that date: four committed captures here hold 88 game rows with
+      # zero duplicated ids, and this repo's own drift log records WNBA going
+      # from 2 rows to 4 for the same two fixtures overnight.
+      #
+      # Cross-repo, no PR, self-closing — same mechanism as the brief-defect
+      # watcher above, and it SKIPS cleanly when SIBLING_REPO_TOKEN is unset.
+      # continue-on-error: the relay's backlog must not redden this repo's run.
+      - name: File a self-closing duplicate-fixture ticket on the relay
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.SIBLING_REPO_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node scripts/relay-duplicate-fixture-watch.mjs --self-test
+          node scripts/relay-duplicate-fixture-watch.mjs
+
       # Is the registry about to be surprised?
       #
       # The drift check above fails on an unmodelled sport, and it is right to.
