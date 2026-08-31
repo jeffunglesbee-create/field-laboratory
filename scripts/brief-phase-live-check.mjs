@@ -50,6 +50,25 @@ const RELAY = process.env.RELAY || 'https://field-relay-nba.jeffunglesbee.worker
 const DURING_PLAY = new Set(['pre_game', 'game_live'])
 const AFTER_PLAY = new Set(['game_recap'])
 
+/**
+ * Team-name normalisation, for the DIAGNOSTIC only — never for the verdict.
+ *
+ * The verdict still uses exact substring matching, deliberately. Loosening it
+ * would make the check agree with the page more often without anyone learning
+ * why it disagreed, which is how a red turns into a shrug.
+ */
+export const norm = t => (t || '')
+  .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // Málaga -> Malaga
+  .replace(/[^A-Za-z0-9 ]/g, ' ')                      // St. Louis -> St Louis
+  .replace(/\s+/g, ' ').trim().toLowerCase()
+
+/** Significant words, so `FC` and `SC` do not make every club match every club. */
+export const tokens = t => norm(t).split(' ').filter(w => w.length > 2)
+
+/** How many significant words of `name` appear in a card's team line. */
+export const overlap = (cardTeams, name) =>
+  tokens(name).filter(w => norm(cardTeams).includes(w)).length
+
 /** Brief `game_id` values resolve to a game by its own id or its ESPN event id. */
 export const briefMatches = (game, brief) => {
   if (!brief.game_id) return false
@@ -85,6 +104,19 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     expectedKind(g, [live]) === null && expectedKind(g, [recap]) === null)
   check('an empty brief is not a brief to prefer',
     expectedKind(g, [live, { ...recap, brief_text: '   ' }]) === null)
+  check('diacritics normalise so a name is comparable',
+    norm('Málaga') === 'malaga')
+  check('punctuation normalises — St. Louis and St Louis are one name',
+    norm('St. Louis') === norm('St Louis'))
+  check('SHORT WORDS ARE NOT TOKENS, or FC would match every club',
+    tokens('FC Dallas').join() === 'dallas')
+  check('overlap finds a short name inside a long one',
+    overlap('Minnesota Lynx v Atlanta Dream', 'Lynx') === 1,
+    'the 2026-08-30 payload carried this fixture under both names')
+  check('overlap is 0 for an unrelated card',
+    overlap('Red Sox v Yankees', 'FC Dallas') === 0,
+    'a non-zero floor here would print nonsense as the nearest card')
+
   check('THE BUG IS DETECTED: a during-play kind on a final game is not the expectation',
     expectedKind(g, [live, recap]) !== 'game_live',
     'the screenshot that prompted this showed GAME_LIVE on a 3-3 final')
@@ -165,17 +197,62 @@ if (isMain(import.meta.url)) {
   }
 
   // The artifact: one row per game, the expectation beside what the DOM shows.
+  //
+  // `(no card / no kind)` USED TO BE ONE STRING FOR TWO FAILURES, and it cost a
+  // diagnosis. live-check went red on 2026-08-31 with
+  //
+  //     Dallas @ St. Louis: expected game_recap, shown (no card / no kind)
+  //
+  // and that message cannot distinguish "the desk did not render this game"
+  // from "the desk rendered it and this matcher did not find it". Those have
+  // opposite fixes -- one is a rendering bug in the app, the other is a bug in
+  // this file -- and the run reported neither. Same collapse this session has
+  // now found six times, here in a check written to catch collapses.
+  //
+  // So the states are separated and the row carries its own evidence: when no
+  // card matches, the closest team lines the page actually rendered are printed
+  // beside it, because the next run has to be able to tell which of the two it
+  // is without anyone opening a browser.
   const wrong = []
   console.log('  game'.padEnd(42) + 'expected'.padEnd(14) + 'shown')
   for (const { g, want } of testable) {
     const label = `${g.away} @ ${g.home}`
     const card = cards.find(c => c.teams.includes(g.away) || c.teams.includes(g.home))
-    const shown = card?.kind ?? '(no card / no kind)'
+    let shown
+    if (card) {
+      shown = card.kind ?? '(card found, NO KIND rendered)'
+    } else {
+      // Not "no card". Either the game is absent from the page, or it is there
+      // under a name this exact-substring matcher cannot see.
+      const near = cards
+        .map(c => ({ c, n: Math.max(overlap(c.teams, g.away), overlap(c.teams, g.home)) }))
+        .filter(x => x.n > 0).sort((a, b) => b.n - a.n).slice(0, 2)
+      shown = near.length
+        ? `(NO EXACT MATCH; page has: ${near.map(x => JSON.stringify(x.c.teams)).join(', ')})`
+        : '(NOT RENDERED — no card on the page shares a word with either team)'
+    }
     const ok = shown === want
     if (!ok) wrong.push(`${label}: expected ${want}, shown ${shown}`)
     console.log(`  ${label.slice(0, 40).padEnd(40)}${want.padEnd(14)}${shown}${ok ? '' : '   <-- '}`)
   }
   console.log('')
+
+  // The payload carried the SAME fixture twice on 2026-08-30 under two naming
+  // conventions -- `Lynx @ Dream` and `Minnesota Lynx @ Atlanta Dream`, and the
+  // same for Sparks/Storm. That is a relay-side observation, not this repo's
+  // bug, and it is counted rather than asserted on: a duplicate inflates the
+  // testable population and makes one card satisfy two rows.
+  const seen = new Map()
+  for (const { g } of testable) {
+    const k = `${norm(g.away)}|${norm(g.home)}`.split('|').map(x => x.split(' ').pop()).join('|')
+    seen.set(k, (seen.get(k) ?? 0) + 1)
+  }
+  const dupes = [...seen].filter(([, n]) => n > 1)
+  if (dupes.length) {
+    console.log(`  NOTE: ${dupes.length} fixture(s) appear more than once in the payload under`)
+    console.log(`  different naming conventions: ${dupes.map(([k, n]) => `${k} x${n}`).join(', ')}`)
+    console.log('  Relay-side. Counted, not asserted on.\n')
+  }
 
   check(`every final game with both phases shows its after-play brief (${testable.length} testable)`,
     wrong.length === 0,
