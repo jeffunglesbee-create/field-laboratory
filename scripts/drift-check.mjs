@@ -101,9 +101,38 @@ if (decoded) {
     } catch { return -1 }
   })()
 
-  check('every game row in the capture is accepted as a game',
-    rawGameRows > 0 && games.length === rawGameRows && payload.Unnamed === 0,
-    `${rawGameRows} row(s) in the file, ${games.length} decoded, ${payload.Unnamed} un-nameable`)
+  // THREE STATES, and `rawGameRows` already distinguished them — the value was
+  // computed and then flattened into a boolean.
+  //
+  //   -1  the body did not parse. The `catch` above returns this precisely so
+  //       an unparseable payload cannot look like a small one. Still fatal.
+  //    0  the body parsed and the relay served no games. A LEGITIMATE EMPTY
+  //       SLATE — a day before its first fixture. There is no conservation law
+  //       to test, so testing one is not a finding.
+  //   >0  rows exist: every one must decode, with nothing un-nameable.
+  //
+  // WHY `rawGameRows > 0` WAS THERE, in the author's own words above: "a broken
+  // decoder maps every row to None, so games + unnamed === rows still balances
+  // perfectly at zero games". That reasoning is right and is NOT weakened here.
+  // A broken decoder against a real payload gives rawGameRows > 0 and
+  // games.length === 0, which the conservation clause still fails. What the
+  // clause additionally rejected was the case it was never aimed at — the relay
+  // honestly serving nothing.
+  //
+  // The comment says "both CAPTURES are hand-checked", and that is the whole
+  // story: this assertion was written for pinned fixtures, where zero rows can
+  // only mean a broken decoder. drift-sentinel then pointed it at a LIVE
+  // payload, where zero rows is a Monday at 03:09 ET. It went red on
+  // 2026-08-31 for a relay that was answering correctly, while the run's own
+  // drift-log row read `| 2026-08-31 | 0 | ok |`.
+  if (rawGameRows === 0) {
+    console.log('NOTE  the relay served 0 game rows and the body parsed cleanly —')
+    console.log('      an empty slate. No conservation law to test on this payload.')
+  } else {
+    check('every game row in the capture is accepted as a game',
+      rawGameRows > 0 && games.length === rawGameRows && payload.Unnamed === 0,
+      `${rawGameRows} row(s) in the file, ${games.length} decoded, ${payload.Unnamed} un-nameable`)
+  }
 
   // The three fields the relay serves as strings containing JSON. Tag 2 means
   // the outer string was present and the inner JSON did not decode — a real
