@@ -42,7 +42,7 @@ check('every brief_type observed in /quality/report is modelled', ...)
 served on **2026-08-15**, frozen into an array literal — and the registry was
 written from the same observation on the same day. So the check compared the
 registry against a copy of the registry's own vintage. It cannot fail on a new
-type, by construction. `scripts/docs-check.mjs:67` had the identical literal
+type, by construction. `scripts/docs-check.mjs:71` had the identical literal
 feeding a `briefTypes.modelled = 9` claim at tolerance 0.
 
 Production has since written two types neither list contains:

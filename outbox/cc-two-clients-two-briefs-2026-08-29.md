@@ -46,7 +46,7 @@ laboratory is showing a mid-match brief on a finished match.
 > as the fix, picks the after-brief **0 of 199**. Both numbers below stand as
 > what was measured; neither is what is true.
 
-`src/Desk.fs:792`:
+`src/Desk.fs:819`:
 
 ```fsharp
 usable

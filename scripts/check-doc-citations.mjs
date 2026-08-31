@@ -35,7 +35,7 @@
 // A missing FILE is reported, never fatal: these repos cite each other, and
 // jubilant-bassoon's paths are legitimately absent here.
 
-import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { isMain } from './checks.mjs';
@@ -108,6 +108,40 @@ export function lineOf(body, anchor) {
   return hits.length === 1 ? hits[0] : null;
 }
 
+/**
+ * Rewrite `path:oldLine` to `path:newLine` in a document. Returns the new text
+ * and how many occurrences changed.
+ *
+ * WHY THIS EXISTS. The stale list below has been printing the exact repair on
+ * every run for days, and nothing applied it. That is the failure this repo
+ * fixed one level up in field-playground's followups.mjs this morning: a
+ * warning nothing acts on becomes a warning nobody reads. The checker already
+ * computes the answer; withholding the edit is the only thing standing between
+ * a report and a repair.
+ *
+ * TWO WAYS THIS COULD CORRUPT A DOCUMENT, both closed:
+ *
+ * 1. A PREFIX MATCH. `src/Desk.fs:79` is a prefix of `src/Desk.fs:792`, and a
+ *    plain string replace of the shorter one would rewrite the middle of the
+ *    longer, producing a line number that never existed. The trailing `\b`
+ *    cannot match between `9` and `2`, so the shorter citation leaves the
+ *    longer alone.
+ * 2. A PATH READ AS A PATTERN. `src/Desk.fs` contains a `.`, which matches any
+ *    character unescaped -- `src/DeskXfs:792` would be rewritten. The path is
+ *    escaped before it becomes a regex.
+ *
+ * It only ever runs against repairs `lineOf` produced, and `lineOf` returns
+ * null for an anchor appearing more than once, so an ambiguous anchor yields
+ * no repair to apply.
+ */
+export function applyRepair(docText, path, oldLine, newLine) {
+  const esc = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`\\b${esc}:${oldLine}\\b`, 'g');
+  let n = 0;
+  const text = docText.replace(re, () => { n++; return `${path}:${newLine}`; });
+  return { text, changed: n };
+}
+
 if (SELF_TEST) {
   const FILE = "one\ntwo\nconst k = teams.find(t => t.homeAway === 'home');\nfour\n";
   const ex = p => p === 'src/index.js';
@@ -152,6 +186,23 @@ if (SELF_TEST) {
     classify('See `src/index.js:3` — `src/index.js` has it.', ex, tx)[0]?.state === 'bare',
     'a path quoted itself into an anchor');
 
+  // --fix's edit, and the two ways it could corrupt a document.
+  const doc = 'see `src/Desk.fs:792` and also src/Desk.fs:792, plus src/Desk.fs:79 elsewhere';
+  const r = applyRepair(doc, 'src/Desk.fs', 792, 819);
+  check('a repair rewrites every occurrence of that exact citation',
+    r.changed === 2 && r.text.includes('src/Desk.fs:819'), `changed ${r.changed}`);
+  check('A SHORTER CITATION DOES NOT REWRITE THE MIDDLE OF A LONGER ONE',
+    r.text.includes('src/Desk.fs:79 elsewhere'),
+    'src/Desk.fs:79 is a prefix of :792; a plain replace would invent a line number');
+  check('...and repairing the SHORT one leaves the long one alone',
+    applyRepair(doc, 'src/Desk.fs', 79, 5).text.includes('src/Desk.fs:792'),
+    'the trailing word boundary cannot match between 9 and 2');
+  check('THE PATH IS ESCAPED, NOT USED AS A PATTERN',
+    applyRepair('src/DeskXfs:792', 'src/Desk.fs', 792, 819).changed === 0,
+    'an unescaped dot matches any character and would rewrite an unrelated path');
+  check('a repair that matches nothing changes nothing',
+    applyRepair(doc, 'src/Other.fs', 792, 819).changed === 0);
+
   process.exit(failed === 0 ? 0 : 1);
 }
 
@@ -177,7 +228,7 @@ const bodyOf = p => {
 };
 
 let anchored = 0, bare = 0, noFile = 0, pathOnly = 0;
-const brokenAnchors = [], stale = [];
+const brokenAnchors = [], stale = [], repairs = [];
 for (const d of docs) {
   let text; try { text = readFileSync(d, 'utf8'); } catch { continue; }
   for (const c of classify(text, existsSync, bodyOf)) {
@@ -187,6 +238,7 @@ for (const d of docs) {
       const now = lineOf(bodyOf(c.path), c.anchor);
       if (c.line !== null && now !== null && now !== c.line) {
         stale.push(`${d}: ${c.path}:${c.line} → now :${now}   (${c.anchor.slice(0, 48)})`);
+        repairs.push({ doc: d, path: c.path, from: c.line, to: now });
       }
     } else if (c.state === 'bare') { bare++; }
     else if (c.state === 'no-file') noFile++;
@@ -208,6 +260,28 @@ if (stale.length) {
   console.log('ANCHORED BUT THE NUMBER MOVED — the anchor gives the repair:');
   for (const s of stale.slice(0, 20)) console.log(`  ${s}`);
   console.log('');
+}
+
+// --fix APPLIES what the block above has only ever printed.
+//
+// Deliberately opt-in and never run in CI: rewriting committed prose without
+// anyone asking is a different and worse habit than leaving a line number
+// stale. `npm run fix:citations`, then read the diff.
+if (process.argv.includes('--fix')) {
+  if (!repairs.length) {
+    console.log('nothing to repair — every anchored citation is on its stated line\n');
+  } else {
+    const byDoc = new Map();
+    for (const r of repairs) {
+      if (!byDoc.has(r.doc)) byDoc.set(r.doc, readFileSync(r.doc, 'utf8'));
+      const { text, changed } = applyRepair(byDoc.get(r.doc), r.path, r.from, r.to);
+      byDoc.set(r.doc, text);
+      console.log(`  ${r.doc}: ${r.path}:${r.from} → :${r.to}   (${changed} occurrence(s))`);
+    }
+    for (const [doc, text] of byDoc) writeFileSync(doc, text);
+    console.log(`\nrepaired ${repairs.length} citation(s) across ${byDoc.size} document(s).`);
+    console.log('Read the diff before committing — a repair is an edit to committed prose.\n');
+  }
 }
 
 check('every anchored citation resolves', brokenAnchors.length === 0, brokenAnchors.join('; '));

@@ -58,6 +58,7 @@
     "check:clean-source": "node scripts/clean-source-check.mjs",
     "check:outlet-scan": "node scripts/outlet-scan-check.mjs",
     "check:sports": "node scripts/sport-registry-check.mjs",
+    "fix:citations": "node scripts/check-doc-citations.mjs --fix",
     "check:citations": "node scripts/check-doc-citations.mjs --self-test && node scripts/check-doc-citations.mjs",
     "check:ceiling": "node scripts/ceiling-check.mjs",
     "check:journalism": "node scripts/journalism-check.mjs",
