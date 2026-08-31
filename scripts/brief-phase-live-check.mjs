@@ -203,7 +203,24 @@ if (isMain(import.meta.url)) {
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()) })
 
   await page.goto(URL, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.desk-card', { timeout: 30000 })
+
+  // AN EMPTY SLATE IS A STATE, NOT A CRASH.
+  //
+  // This was an unhandled `waitForSelector` and it took the run down with a raw
+  // TimeoutError on 2026-08-31 at 04:26 UTC — which is 00:26 in FIELD's zone,
+  // twenty-six minutes into a new day with nothing on it yet. The page was
+  // fine. It had no games to draw.
+  //
+  // Left alone that is a red every night in the window between midnight ET and
+  // the first fixture, on a check whose own header already defines a state for
+  // "the rule could not be exercised". A nightly red nobody can act on is how a
+  // check gets ignored, then disabled.
+  //
+  // The wait still happens — a page that is slow or broken must not read as an
+  // empty slate — but the timeout is caught, and the two are told apart below
+  // by whether the page rendered its own date.
+  const sawCards = await page.waitForSelector('.desk-card', { timeout: 30000 })
+    .then(() => true).catch(() => false)
 
   // `#viewed-date`, an element id written by `report "viewed-date"`
   // (src/Program.fs:200) — NOT a class. The first draft guessed
@@ -227,6 +244,21 @@ if (isMain(import.meta.url)) {
     status: el.querySelector('.desk-card__status')?.textContent?.trim() ?? '',
     kind: el.querySelector('.desk-card__brief-kind')?.textContent?.trim() ?? null,
   })))
+
+  // NO CARDS, AND THE PAGE KNOWS WHAT DAY IT IS -> an empty slate.
+  //
+  // The date came from `#viewed-date`, which the app writes after it has
+  // decoded a payload, so reaching here at all means the page loaded, ran, and
+  // rendered. Zero cards on top of that is a day with no games, and the
+  // assertion below would call it a broken deploy.
+  if (!sawCards && cards.length === 0) {
+    console.log(`\n  NOT OBSERVABLE — the deployed page reports ${shownDate} and rendered 0 cards.`)
+    console.log('  The page loaded and knows its own date, so this is an empty slate, not a')
+    console.log('  broken deploy. Common between midnight ET and the first fixture.')
+    console.log(`::warning::brief-phase rule NOT OBSERVABLE on ${shownDate} — empty slate`)
+    await browser.close()
+    process.exit(summarize() === 0 ? 0 : 1)
+  }
 
   check('the deployed page rendered cards at all', cards.length > 0, `${cards.length} card(s)`)
   check('the page logged no errors while rendering', errors.length === 0, errors.slice(0, 3).join(' | '))

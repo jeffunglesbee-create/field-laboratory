@@ -281,3 +281,71 @@ mode this whole session has been about. Three things keep it honest:
 None of them invented. Lynx/Sparks/Athletic supply the two-correct-cards case,
 Dallas supplies the stub case, and the during-play cases come from the bug this
 check was written for in the first place.
+
+---
+
+## Round five: the red moved twice, and neither move was the brief rule
+
+Re-ran `33356339613`. Two more failures, and both were mine to fix — neither was
+the thing the check exists to test.
+
+### The build crashed, and it was a genuine flake
+
+Attempt 1 died in the F# compiler:
+
+```
+Object reference not set to an instance of an object.
+  at FSharp.Compiler.NicePrint.stringOfMethInfo
+  at FSharp.Compiler.CompilerDiagnostics.overloadMethodInfo
+  at FSharp.Compiler.CompilerDiagnostics.formatOverloads
+```
+
+The compiler crashed *formatting* an overload-resolution diagnostic. Ruled out
+as a source error before re-running, not after:
+
+- `git diff e08c8e1..44e82a9 -- 'src/*.fs' '*.fsproj'` is **empty** — the only
+  changes were `STATUS.md`, `outbox/`, and one `.mjs`.
+- Fable is pinned at `5.13.0` with `rollForward: false`.
+- `verify` builds the same source with the same command on the **same commit**
+  and its build step reads `success`.
+
+Identical source, identical pinned toolchain, same commit, opposite results in
+two jobs. That is the one case the rules allow a re-run for, and attempt 2's
+build passed.
+
+### I misread my own re-run
+
+I first reported "failed again on attempt 2 — reproduces, so it's real." Wrong.
+The *run* failed again; the *build* succeeded. I conflated the two, which is the
+same error as reading `$?` after a pipe and getting `tail`'s status — an
+instrument pointed at the wrong thing, twice in one session.
+
+### The real attempt-2 failure: an empty slate read as a crash
+
+```
+page.waitForSelector: Timeout 30000ms exceeded.
+  waiting for locator('.desk-card') to be visible
+```
+
+04:26 UTC is **00:26 in FIELD's zone** — twenty-six minutes into a new day with
+nothing on it yet. The page was fine. It had no games to draw.
+
+Left alone, that is a red every night between midnight ET and the first fixture,
+on a check whose own header already defines a state for "the rule could not be
+exercised". A nightly red nobody can act on is how a check gets ignored and then
+disabled.
+
+The wait still happens, so a slow or broken page cannot masquerade as an empty
+slate. The timeout is caught, and the two are separated by evidence the page
+already produces: `#viewed-date` is written after the app decodes a payload, so
+a page that reports its own date **loaded, ran, and rendered**. Zero cards on top
+of that is a day with no games.
+
+```
+NOT OBSERVABLE — the deployed page reports 2026-08-31 and rendered 0 cards.
+The page loaded and knows its own date, so this is an empty slate, not a
+broken deploy.
+```
+
+`::warning::`, exit 0. The same three-state discipline the header already
+described, applied one level earlier than it was written for.
