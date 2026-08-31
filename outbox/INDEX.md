@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `38075f0` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | live-check: move the daily beat to an hour the slate exists |
+| `ceacd3a` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: an empty slate is a state, not a TimeoutError |
 | `44e82a9` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: two cards agreeing is the rule holding, not a defect |
 | `e08c8e1` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: three cards, one fixture — filter, not find |
 | `34de9e9` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: make the failing row print the keys both matchers see |
