@@ -217,9 +217,27 @@ if (isMain(import.meta.url)) {
   console.log('  game'.padEnd(42) + 'expected'.padEnd(14) + 'shown')
   for (const { g, want } of testable) {
     const label = `${g.away} @ ${g.home}`
-    const card = cards.find(c => c.teams.includes(g.away) || c.teams.includes(g.home))
+    // FILTER, NOT FIND. `find` takes the first match and says nothing about the
+    // rest, which is how this check spent three rounds blaming the wrong thing.
+    //
+    // The 2026-08-30 payload carries `Dallas @ St. Louis` TWICE: once finalized
+    // (id MLS_2026-08-30_stlouis_dallas, espn 761769, finalized_at set, and
+    // carrying pre_game/game_live/game_recap) and once as an unplayed stub the
+    // desk renders as "Scheduled — no start time" with no brief. Both cards say
+    // "St. Louis CITY SC v FC Dallas", so matching on BOTH teams instead of
+    // either would not have separated them.
+    //
+    // `find` silently picked the stub and reported "NO KIND rendered", which
+    // reads as a rendering defect in the desk. The desk is right: it rendered
+    // both rows the relay served. Taking the first of two and describing it as
+    // "the" card is this file's bug.
+    const matching = cards.filter(c => c.teams.includes(g.away) || c.teams.includes(g.home))
+    const card = matching[0]
     let shown
-    if (card) {
+    if (matching.length > 1) {
+      shown = `(AMBIGUOUS — ${matching.length} cards match: ` +
+              matching.map(c => `${JSON.stringify(c.status)}/${JSON.stringify(c.kind)}`).join(' ') + ')'
+    } else if (card) {
       shown = card.kind ?? '(card found, NO KIND rendered)'
     } else {
       // Not "no card". Either the game is absent from the page, or it is there
@@ -264,12 +282,20 @@ if (isMain(import.meta.url)) {
   // same for Sparks/Storm. That is a relay-side observation, not this repo's
   // bug, and it is counted rather than asserted on: a duplicate inflates the
   // testable population and makes one card satisfy two rows.
+  // KEYED ON espn_event_id FIRST. The name-based key missed the MLS duplicate
+  // entirely: it took the last significant word of each side, which turns
+  // `Dallas @ St. Louis` into dallas|louis and `FC Dallas @ St. Louis CITY SC`
+  // into dallas|sc. Two keys, one fixture, no note. An event id names a fixture
+  // exactly and needs no convention to agree with itself.
   const seen = new Map()
-  for (const { g } of testable) {
-    const k = `${norm(g.away)}|${norm(g.home)}`.split('|').map(x => x.split(' ').pop()).join('|')
-    seen.set(k, (seen.get(k) ?? 0) + 1)
+  for (const g of games) {
+    const k = g.espn_event_id != null
+      ? `espn:${g.espn_event_id}`
+      : `${norm(g.away)}|${norm(g.home)}`.split('|').map(x => x.split(' ').pop()).join('|')
+    if (!seen.has(k)) seen.set(k, [])
+    seen.get(k).push(`${g.away} @ ${g.home}${g.finalized_at ? ' (final)' : ' (not final)'}`)
   }
-  const dupes = [...seen].filter(([, n]) => n > 1)
+  const dupes = [...seen].filter(([, v]) => v.length > 1).map(([k, v]) => [`${k} → ${v.join(' | ')}`, v.length])
   if (dupes.length) {
     console.log(`  NOTE: ${dupes.length} fixture(s) appear more than once in the payload under`)
     console.log(`  different naming conventions: ${dupes.map(([k, n]) => `${k} x${n}`).join(', ')}`)

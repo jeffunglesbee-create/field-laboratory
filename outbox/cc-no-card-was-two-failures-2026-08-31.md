@@ -133,3 +133,77 @@ card's own `teams` / `status` / `kind`.
 One `live-check` run returns the keys both sides are matching on. That is the
 third round of the same discipline — narrow the state, print the evidence, do
 not name a cause the data has not named.
+
+---
+
+## Round three: the evidence named it, and the bug was mine
+
+Run `33354964345`:
+
+```
+evidence: game.id="MLS_2026-08-30_stlouis_dallas" espn_event_id="761769"
+          finalized_at="2026-08-31 01:15:29" sport="MLS"
+          brief game_id="761769" type="game_live"  text=268ch
+          brief game_id="761769" type="game_recap" text=276ch
+          brief game_id="761769" type="pre_game"   text=276ch
+          card teams="St. Louis CITY SC v FC Dallas"
+               status="Scheduled — no start time" kind=null
+```
+
+The payload game is **final** — `finalized_at` set, three briefs including the
+recap. The card matched is **"Scheduled — no start time"** with no brief.
+
+They are not the same row. The payload carries this fixture **twice**: once
+finalized and once as an unplayed stub. `cards.find` took the first, which was
+the stub, and reported `NO KIND rendered` — a phrase that reads as a rendering
+defect in the desk.
+
+**The desk is right.** It rendered both rows the relay served. Taking the first
+of two and calling it "the" card is this file's bug.
+
+## Both cards say the same thing
+
+```
+"St. Louis CITY SC v FC Dallas"
+```
+
+So matching on **both** team names instead of either would not have separated
+them. There is no name-based matcher that distinguishes two cards for one
+fixture. The honest handling is to stop pretending there is one card:
+
+```
+(AMBIGUOUS — 2 cards match: "Scheduled — no start time"/null "FT"/"game_recap")
+```
+
+`filter`, not `find`. Zero, one, and many are three different answers.
+
+## The duplicate detector missed this one
+
+The name key took the last significant word of each side — `Dallas @ St. Louis`
+became `dallas|louis`, and `FC Dallas @ St. Louis CITY SC` became `dallas|sc`.
+Two keys, one fixture, no note. It caught the WNBA pair only because both of
+those spellings end on the same word.
+
+Now keyed on `espn_event_id` where present, falling back to names. An event id
+names a fixture exactly and needs no naming convention to agree with itself. The
+note also says which side is final, because *that* is the interesting part here:
+
+```
+espn:761769 → Dallas @ St. Louis (final) | FC Dallas @ St. Louis CITY SC (not final)
+```
+
+## Three rounds, three wrong answers, and none of them guessed
+
+| round | reported | what it ruled out |
+|---|---|---|
+| 1 | `(no card / no kind)` | nothing — two failures, one string |
+| 2 | `(card found, NO KIND rendered)` | the desk renders it; the matcher finds it |
+| 3 | the keys themselves | the desk is innocent; `find` picked a stub |
+
+Each round narrowed the state and printed evidence rather than naming a cause.
+Round two's conclusion — "the divergence is between `briefMatches` and
+`briefKeyMatches`" — was **wrong**, and reading those two functions side by side
+correctly found no difference, because there isn't one.
+
+Had I trusted that reading and started editing `Desk.fs`, I would have changed
+correct F# to accommodate a JavaScript `find`.
