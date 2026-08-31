@@ -69,6 +69,39 @@ export const tokens = t => norm(t).split(' ').filter(w => w.length > 2)
 export const overlap = (cardTeams, name) =>
   tokens(name).filter(w => norm(cardTeams).includes(w)).length
 
+/**
+ * The verdict for one game, from the cards that matched it.
+ *
+ * WRITTEN FROM THIS FILE'S OWN STATED CONTRACT, five lines from the top:
+ *
+ *   FAIL  a card shows a during-play kind while an after-play brief for that
+ *         same game exists in the payload.
+ *
+ * The first AMBIGUOUS version ignored that and failed any game matching more
+ * than one card. Measured on the 2026-08-30 slate, three of its four failures
+ * were rows where BOTH cards read "Final"/"game_recap" — the rule holding
+ * twice, reported as a defect. The fourth paired a "Final"/"game_recap" card
+ * with an unplayed stub carrying no brief at all, which is a relay duplicate,
+ * not a during-play kind on a finished game.
+ *
+ * Duplication is REPORTED, never failed on. It is the relay's to fix and the
+ * NOTE block already names each instance with its event id.
+ *
+ * Returns `{ ok, shown }`.
+ */
+export const verdictForCards = (matching, want, duringPlay) => {
+  if (!matching.length) return { ok: false, shown: null }   // caller describes why
+  const during = matching.filter(c => duringPlay.has(c.kind))
+  if (during.length) {
+    return { ok: false, shown: `DURING-PLAY KIND ON A FINAL GAME: ${during.map(c => c.kind).join(', ')}` }
+  }
+  const kinds = matching.map(c => c.kind)
+  if (!kinds.includes(want)) {
+    return { ok: false, shown: `no card carries ${want} (kinds: ${kinds.map(k => JSON.stringify(k)).join(', ')})` }
+  }
+  return { ok: true, shown: matching.length > 1 ? `${want} (${matching.length} cards, duplicated upstream)` : want }
+}
+
 /** Brief `game_id` values resolve to a game by its own id or its ESPN event id. */
 export const briefMatches = (game, brief) => {
   if (!brief.game_id) return false
@@ -104,6 +137,32 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     expectedKind(g, [live]) === null && expectedKind(g, [recap]) === null)
   check('an empty brief is not a brief to prefer',
     expectedKind(g, [live, { ...recap, brief_text: '   ' }]) === null)
+  // THE VERDICT, and every fixture is a row from the 2026-08-30 slate.
+  const D = DURING_PLAY
+  const C = (status, kind) => ({ status, kind })
+  check('one Final card carrying the recap passes',
+    verdictForCards([C('Final', 'game_recap')], 'game_recap', D).ok === true)
+  check('TWO cards both carrying the recap still passes',
+    verdictForCards([C('Final', 'game_recap'), C('Final', 'game_recap')], 'game_recap', D).ok === true,
+    'Lynx @ Dream, Sparks @ Storm and Athletic @ Celta Vigo — the rule holding twice is not a defect')
+  check('...and says so, so the duplication is not invisible',
+    verdictForCards([C('Final', 'game_recap'), C('Final', 'game_recap')], 'game_recap', D)
+      .shown.includes('duplicated upstream'))
+  check('a Final card plus an unplayed STUB passes on the Final one',
+    verdictForCards([C('Scheduled — no start time', null), C('Final', 'game_recap')], 'game_recap', D).ok === true,
+    'Dallas @ St. Louis: a relay duplicate is not a during-play kind on a finished game')
+  check('THE DEFINED FAILURE STILL FAILS: a during-play kind on a final game',
+    verdictForCards([C('Final', 'game_live')], 'game_recap', D).ok === false,
+    'this is the only failure the header defines, and it must survive every relaxation above')
+  check('...and it fails even when a correct card sits beside it',
+    verdictForCards([C('Final', 'game_recap'), C('Final', 'game_live')], 'game_recap', D).ok === false,
+    'one right card must not launder a wrong one')
+  check('no card carrying the recap at all is a failure',
+    verdictForCards([C('Scheduled', null)], 'game_recap', D).ok === false,
+    'a recap that reached no card is a real miss, not a duplicate')
+  check('no matching cards is left for the caller to describe',
+    verdictForCards([], 'game_recap', D).shown === null)
+
   check('diacritics normalise so a name is comparable',
     norm('Málaga') === 'malaga')
   check('punctuation normalises — St. Louis and St Louis are one name',
@@ -233,12 +292,10 @@ if (isMain(import.meta.url)) {
     // "the" card is this file's bug.
     const matching = cards.filter(c => c.teams.includes(g.away) || c.teams.includes(g.home))
     const card = matching[0]
-    let shown
-    if (matching.length > 1) {
-      shown = `(AMBIGUOUS — ${matching.length} cards match: ` +
-              matching.map(c => `${JSON.stringify(c.status)}/${JSON.stringify(c.kind)}`).join(' ') + ')'
-    } else if (card) {
-      shown = card.kind ?? '(card found, NO KIND rendered)'
+    const v = verdictForCards(matching, want, DURING_PLAY)
+    let shown = v.shown
+    if (matching.length) {
+      // verdictForCards decided; nothing more to describe.
     } else {
       // Not "no card". Either the game is absent from the page, or it is there
       // under a name this exact-substring matcher cannot see.
@@ -249,7 +306,7 @@ if (isMain(import.meta.url)) {
         ? `(NO EXACT MATCH; page has: ${near.map(x => JSON.stringify(x.c.teams)).join(', ')})`
         : '(NOT RENDERED — no card on the page shares a word with either team)'
     }
-    const ok = shown === want
+    const ok = matching.length ? v.ok : false
     if (!ok) {
       wrong.push(`${label}: expected ${want}, shown ${shown}`)
       // THE ROW PRINTS ITS OWN EVIDENCE.

@@ -207,3 +207,77 @@ correctly found no difference, because there isn't one.
 
 Had I trusted that reading and started editing `Desk.fs`, I would have changed
 correct F# to accommodate a JavaScript `find`.
+
+---
+
+## Round four: my AMBIGUOUS state failed the rule holding twice
+
+Run `33355284626`, four failures:
+
+```
+Lynx @ Dream:          2 cards: "Final"/"game_recap"  "Final"/"game_recap"
+Sparks @ Storm:        2 cards: "Final"/"game_recap"  "Final"/"game_recap"
+Athletic @ Celta Vigo: 2 cards: "Final"/"game_recap"  "Final"/"game_recap"
+Dallas @ St. Louis:    2 cards: "Scheduled — no start time"/null  "Final"/"game_recap"
+```
+
+**Three of the four are the rule holding twice.** Both cards final, both showing
+the recap. I failed them for being duplicated.
+
+The fourth pairs a correct `Final`/`game_recap` card with the unplayed stub — so
+even there, the recap did reach a card.
+
+The previous round replaced `find` with `filter`, which was right, and then
+treated *any* multiplicity as a failure, which was not. Fixing a collapse by
+adding a state is only progress if the new state means something.
+
+## The contract was five lines from the top of the file
+
+```
+FAIL  a card shows a during-play kind while an after-play brief for that
+      same game exists in the payload.
+```
+
+That is the only failure this check defines. Two cards agreeing on `game_recap`
+is not it. A stub with no brief is not it.
+
+`verdictForCards(matching, want, duringPlay)` now applies exactly that:
+
+- any matching card showing a **during-play kind** → FAIL
+- no matching card carrying the expected kind at all → FAIL (a recap that
+  reached no card is a real miss)
+- otherwise PASS, and the row says `game_recap (2 cards, duplicated upstream)`
+  so the duplication stays visible
+
+Duplication is reported, never failed on. It is the relay's to fix, and the NOTE
+block names each instance with its event id:
+
+```
+espn:401857186 → Lynx @ Dream (final) | Minnesota Lynx @ Atlanta Dream (final)
+espn:401857187 → Sparks @ Storm (final) | Los Angeles Sparks @ Seattle Storm (final)
+```
+
+## Not tuning toward green
+
+The distinction matters because relaxing a check to make it pass is the failure
+mode this whole session has been about. Three things keep it honest:
+
+1. The relaxation is **transcribed from the file's own stated contract**, written
+   before any of these failures existed — not derived from what would make
+   today's slate pass.
+2. The defined failure is fixture-pinned and mutation-proven:
+   ```
+   during-play detection removed  →  18/19
+   "no card carries want" removed →  18/19
+   restored                       →  19/19
+   ```
+3. `...and it fails even when a correct card sits beside it` exists specifically
+   so one right card cannot launder a wrong one. It is the only fixture that
+   discriminates: with a single card, either guard catches the failure, so the
+   pair is what proves the first guard is doing work.
+
+## Eight fixtures, every one a row from the real slate
+
+None of them invented. Lynx/Sparks/Athletic supply the two-correct-cards case,
+Dallas supplies the stub case, and the during-play cases come from the bug this
+check was written for in the first place.
