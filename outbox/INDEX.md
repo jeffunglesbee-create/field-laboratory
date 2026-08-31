@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `34de9e9` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: make the failing row print the keys both matchers see |
 | `8b647bd` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: split '(no card / no kind)' into the two failures it hid |
 | `9b8568a` | 2026-08-31 | [cc-a-roster-that-could-not-audit-itself-2026-08-31.md](cc-a-roster-that-could-not-audit-itself-2026-08-31.md) | check: the skill roster is audited against the directory |
 | `d1730c1` | 2026-08-31 | [cc-a-bucket-that-collapsed-two-states-2026-08-31.md](cc-a-bucket-that-collapsed-two-states-2026-08-31.md) | check: split cross-repo from deleted-here, and abort on a shallow clone |
