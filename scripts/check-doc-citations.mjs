@@ -37,6 +37,7 @@
 
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { execSync } from 'node:child_process';
 
 import { isMain } from './checks.mjs';
 
@@ -47,6 +48,7 @@ import { isMain } from './checks.mjs';
 // code instead of its own, silently.
 const IS_MAIN = isMain(import.meta.url);
 const SELF_TEST = IS_MAIN && process.argv.includes('--self-test');
+const DELETED_BUDGET = 'docs/deleted-citation-budget.txt';
 const BUDGET = 'docs/citation-budget.txt';
 const SKIP = new Set(['.git', 'node_modules', '.wrangler', 'dist', 'build']);
 // Repo-relative paths only. A bare word with a colon and digits is not a
@@ -106,6 +108,41 @@ export function lineOf(body, anchor) {
   const hits = [];
   for (let i = 0; i < lines.length; i++) if (lines[i].includes(anchor)) hits.push(i + 1);
   return hits.length === 1 ? hits[0] : null;
+}
+
+/**
+ * Split the "no file" citations into the two things they actually are.
+ *
+ * THE BUCKET COLLAPSED TWO STATES and reported neither. Its own label said so —
+ * "cross-repo or deleted — reported, never fatal" — and 172 citations sat in it.
+ * A citation naming a relay or client path this repo has never had is correct
+ * and unremarkable. A citation naming a path THIS repo tracked and then deleted
+ * is a different animal: the file it points at is gone from the tree it was
+ * written about.
+ *
+ * Git separates them exactly, which is why this is worth a subprocess: a path
+ * that was ever added or renamed here is in the log, and one that never existed
+ * here is not.
+ *
+ * MEASURED 2026-08-31 before the split was written: 172 citations, 50 distinct
+ * paths, and exactly ONE was deleted-here — `chrome-check.mjs`, 2 citations,
+ * removed the same day it was written up. The other 49 are genuinely foreign
+ * (the relay's index.js at 41 citations, the client's legacy bundle at 10). So
+ * the bucket really was 99% what its label's first word claimed, and the point
+ * of splitting it is that nothing would have told you when that stopped being
+ * true.
+ *
+ * NOT FATAL, AND DELIBERATELY SO. Both current deleted-here citations are
+ * accurate history — one records the file being wired into verify, the other is
+ * captured output naming it. A document describing a deletion has every reason
+ * to name what was deleted. Whether such a citation is stale or archival is not
+ * mechanically decidable, so this ratchets the count instead, the same way
+ * `bare` is ratcheted.
+ */
+export function splitNoFile(paths, everTracked) {
+  const deleted = [], foreign = []
+  for (const p of paths) (everTracked.has(p) ? deleted : foreign).push(p)
+  return { deleted, foreign }
 }
 
 /**
@@ -186,6 +223,18 @@ if (SELF_TEST) {
     classify('See `src/index.js:3` — `src/index.js` has it.', ex, tx)[0]?.state === 'bare',
     'a path quoted itself into an anchor');
 
+  // The split, including the state that must never read as the other one.
+  const ever = new Set(['scripts/gone.mjs']);
+  const sp = splitNoFile(['scripts/gone.mjs', 'src/index.js'], ever);
+  check('a path this repo tracked and deleted is deleted-here',
+    sp.deleted.join() === 'scripts/gone.mjs');
+  check('a path this repo never had is foreign, not deleted',
+    sp.foreign.join() === 'src/index.js',
+    'the relay\'s index.js has 41 citations here and none of them are broken');
+  check('AN EMPTY HISTORY MAKES EVERYTHING LOOK FOREIGN',
+    splitNoFile(['scripts/gone.mjs'], new Set()).deleted.length === 0,
+    'which is why a shallow clone must abort rather than report a confident zero');
+
   // --fix's edit, and the two ways it could corrupt a document.
   const doc = 'see `src/Desk.fs:792` and also src/Desk.fs:792, plus src/Desk.fs:79 elsewhere';
   const r = applyRepair(doc, 'src/Desk.fs', 792, 819);
@@ -227,8 +276,32 @@ const bodyOf = p => {
   return cache.get(p);
 };
 
+// EVERY PATH THIS REPO HAS EVER TRACKED, from full history.
+//
+// A SHALLOW CLONE MUST ABORT, not report zero. `splitNoFile` against an empty
+// history classifies everything as foreign, so a truncated log turns the whole
+// deleted-here state off and leaves the check passing — the precise failure
+// that wasted a pass on jubilant-bassoon two days ago, where 201 grafted
+// commits were read as the repo's history and a conclusion drawn from them.
+// check:workflows enforces the precondition at the door: this file now contains
+// `git log`, so its historyReaders detector requires fetch-depth: 0 on any job
+// that runs it. Both jobs that do already carry it.
+let everTracked = null, historyProblem = null;
+try {
+  if (execSync('git rev-parse --is-shallow-repository', { encoding: 'utf8' }).trim() === 'true') {
+    historyProblem = 'the clone is SHALLOW — deleted-here cannot be told from cross-repo';
+  } else {
+    everTracked = new Set(
+      execSync('git log --all --pretty=format: --name-only --diff-filter=AR',
+               { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+        .split('\n').map(x => x.trim()).filter(Boolean));
+  }
+} catch (e) {
+  historyProblem = `git history unreadable: ${String(e.message || e).slice(0, 80)}`;
+}
+
 let anchored = 0, bare = 0, noFile = 0, pathOnly = 0;
-const brokenAnchors = [], stale = [], repairs = [];
+const brokenAnchors = [], stale = [], repairs = [], noFilePaths = new Set();
 for (const d of docs) {
   let text; try { text = readFileSync(d, 'utf8'); } catch { continue; }
   for (const c of classify(text, existsSync, bodyOf)) {
@@ -241,7 +314,7 @@ for (const d of docs) {
         repairs.push({ doc: d, path: c.path, from: c.line, to: now });
       }
     } else if (c.state === 'bare') { bare++; }
-    else if (c.state === 'no-file') noFile++;
+    else if (c.state === 'no-file') { noFile++; noFilePaths.add(c.path); }
     else pathOnly++;
   }
 }
@@ -253,7 +326,14 @@ const budget = existsSync(BUDGET)
 console.log(`\n${docs.length} document(s) scanned`);
 console.log(`  anchored   ${anchored}  (a quoted fragment beside the citation is present in the file)`);
 console.log(`  bare       ${bare}  (a line number and nothing to verify it against)`);
-console.log(`  no file    ${noFile}  (cross-repo or deleted — reported, never fatal)`);
+const split = everTracked ? splitNoFile([...noFilePaths], everTracked) : null;
+console.log(`  no file    ${noFile}  across ${noFilePaths.size} distinct path(s)`);
+if (split) {
+  console.log(`    cross-repo   ${split.foreign.length} path(s)  (the relay, the client — correct and unremarkable)`);
+  console.log(`    DELETED HERE ${split.deleted.length} path(s)  ${split.deleted.join(', ') || '(none)'}`);
+} else {
+  console.log(`    NOT SPLIT — ${historyProblem}`);
+}
 console.log(`  path only  ${pathOnly}\n`);
 
 if (stale.length) {
@@ -284,7 +364,21 @@ if (process.argv.includes('--fix')) {
   }
 }
 
+const deletedBudget = existsSync(DELETED_BUDGET)
+  ? Number((readFileSync(DELETED_BUDGET, 'utf8').match(/^\s*(\d+)\s*$/m) || [])[1])
+  : NaN;
+
 check('every anchored citation resolves', brokenAnchors.length === 0, brokenAnchors.join('; '));
+check('the history needed to split cross-repo from deleted-here was readable',
+  split !== null,
+  `${historyProblem}. Without it every deleted-here citation reads as cross-repo and this ` +
+  `state silently switches off. Run with a full clone (fetch-depth: 0).`);
+check(`deleted-here citations do not grow (budget ${deletedBudget})`,
+  split === null || (Number.isFinite(deletedBudget) && split.deleted.length <= deletedBudget),
+  `${split?.deleted.length} path(s) cite a file this repo deleted: ${split?.deleted.join(', ')}. ` +
+  `Not automatically wrong — a document about a deletion has every reason to name what was ` +
+  `deleted, and both current ones are accurate history. A ratchet, like bare: if you REDUCED ` +
+  `the count, lower the number in ${DELETED_BUDGET} in this commit.`);
 check(`bare citations do not grow (budget ${budget})`,
   Number.isFinite(budget) && bare <= budget,
   `${bare} bare against a budget of ${budget}. A ratchet: new citations must quote what ` +
