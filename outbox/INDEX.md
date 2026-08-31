@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c3bd838` | 2026-08-31 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-31 [skip ci] |
+| `c3bd838` | 2026-08-31 | [sport-vocabulary-2026-08-31T07-09-49-162Z.json](sport-vocabulary-2026-08-31T07-09-49-162Z.json) | drift-sentinel: ok on 2026-08-31 [skip ci] |
 | `cbcfaf3` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: the Scout's Pick panel has two states, and one was unassertable |
 | `38075f0` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | live-check: move the daily beat to an hour the slate exists |
 | `ceacd3a` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: an empty slate is a state, not a TimeoutError |
