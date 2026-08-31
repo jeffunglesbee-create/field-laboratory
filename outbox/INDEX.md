@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `af7483d` | 2026-08-31 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | check: citations can now repair what they have only reported |
+| `af7483d` | 2026-08-31 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | check: citations can now repair what they have only reported |
+| `af7483d` | 2026-08-31 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | check: citations can now repair what they have only reported |
 | `e3ec02e` | 2026-08-30 | [cc-the-spec-settled-the-tablet-question-2026-08-30.md](cc-the-spec-settled-the-tablet-question-2026-08-30.md) | check: pin the L1 and L2 column contracts, which were both being violated |
 | `fd29fcb` | 2026-08-30 | [cc-the-grid-floor-goes-to-400-2026-08-30.md](cc-the-grid-floor-goes-to-400-2026-08-30.md) | desk: raise the grid floor to min(400px, 100%) |
 | `4442ddc` | 2026-08-30 | [cc-the-flipped-card-was-double-wide-2026-08-30.md](cc-the-flipped-card-was-double-wide-2026-08-30.md) | desk: a flipped card no longer spans two columns |
