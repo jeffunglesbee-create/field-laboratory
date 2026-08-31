@@ -114,3 +114,52 @@ npm run check:workflows                                      9/9
 npm run check:script-orphans                                 3/3
 npm run check:import-purity                                  2/2
 ```
+
+---
+
+## Filed: field-relay-nba#1
+
+Filed by hand, not by the watcher, because the watcher's blocker was never the
+finding — it was `SIBLING_REPO_TOKEN`, which gates the *daily re-check*, not
+today's report. I had the access to file it all along.
+
+**The issue body opens with `<!-- relay-duplicate-fixture -->`**, the exact
+marker `relay-duplicate-fixture-watch.mjs` looks up. So when that secret lands,
+the watcher finds THIS issue, updates it while the condition persists, and closes
+it on the first clean run — rather than opening a second ticket about the same
+thing.
+
+## The blocker was inherited, and I never re-verified it
+
+I declined to fix the relay citing `relay-brief-watch.mjs`'s header:
+
+> It cannot write the relay's CODE (**this session cannot read that repo**, and a
+> blind fix committed to their main is exactly what the confidence bar forbids).
+
+That was true for the session that wrote it. **It is false for this one** — I
+read `field-relay-nba/src/index.js` four times today. Rule 72 (CHALLENGE-A) says
+an inherited claim that influences a build decision must be verified before
+acting on it, and I treated a comment as a constraint.
+
+Once re-verified, the diagnosis took four greps:
+
+1. `SELECT * FROM regular_season_games WHERE date = ?` — the route is innocent.
+2. **Exactly one** INSERT site for that table, which killed the "two write paths
+   disagree" theory outright.
+3. `idTail = ${homeShort}_${awayShort}` with `ON CONFLICT(id)` — the upsert key
+   is a *spelling*.
+4. Twenty lines above it: the same bug, already solved for `series_key`, with the
+   observed `MLS-COM-00002V_SF-01` 4-row case, the disambiguator chosen by
+   testing candidates against live D1, and a reasoned decision not to backfill.
+
+**The novel thinking was not a new mechanism.** It was noticing that the reason
+for not looking had expired. The fix, once looked at, is this repo's own move
+extended from `series_key` to `espn_event_id`.
+
+## Still not committed to the relay, and that part was right
+
+Their Rule 39 wants every `id` consumer enumerated (`/archive/score-by-id`,
+`/archive/drama-by-id`, external callers holding cached ids) and uniqueness
+confirmed against live D1 the way `date` was confirmed across 501 postseason
+rows. Neither is done. The ticket carries both as the stated next steps rather
+than a patch that skips them.
