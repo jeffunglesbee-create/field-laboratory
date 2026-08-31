@@ -60,7 +60,7 @@
 // deletes it deliberately and says why. Coverage is now derivable from it as a
 // side effect — but drift is still the question this check answers.
 
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, readdirSync } from 'node:fs'
 import { createChecks, isMain } from './checks.mjs'
 
 
@@ -72,10 +72,41 @@ import { createChecks, isMain } from './checks.mjs'
 const IS_MAIN = isMain(import.meta.url)
 const SELF_TEST = IS_MAIN && process.argv.includes('--self-test')
 
+const SKILLS_DIR = '.claude/skills'
+
 const SKILLS = [
-  { name: 'i-have-adhd', path: '.claude/skills/i-have-adhd/SKILL.md' },
-  { name: 'unslop-ui', path: '.claude/skills/unslop-ui/SKILL.md' },
+  { name: 'i-have-adhd', path: `${SKILLS_DIR}/i-have-adhd/SKILL.md` },
+  { name: 'unslop-ui', path: `${SKILLS_DIR}/unslop-ui/SKILL.md` },
+  // ADDED 2026-08-31, and the gap is why the guard below now exists.
+  // scroll-craft was installed on 2026-08-29 by request and invoked on nearly
+  // every message since. It sat outside this roster for two days: a skill this
+  // repo carries, in the one repo positioned to compare all four copies, that
+  // was never compared. Nothing noticed, because nothing was looking at the
+  // directory — the roster was the only source of truth about its own scope.
+  { name: 'scrollcraft', path: `${SKILLS_DIR}/scrollcraft/SKILL.md` },
 ]
+
+/**
+ * Every skill on disk, from the directory rather than from the roster.
+ *
+ * THE ROSTER CANNOT AUDIT ITSELF. A hand-maintained list of what to compare is
+ * complete exactly until the next install, and its incompleteness is invisible
+ * from inside: a skill that is absent from the list is absent from the output,
+ * so the check reports on everything it knows about and knows about less than
+ * it should. That is the same shape as `check-script-orphans` guarding
+ * docs/unreachable-scripts.txt, and as the sport registry reading its DU case
+ * count out of the F# source rather than trusting a literal.
+ *
+ * `.claude/skills` is the source. The roster is a copy of it.
+ */
+export const skillsOnDisk = (readdir, exists) =>
+  readdir(SKILLS_DIR)
+    .filter(n => exists(`${SKILLS_DIR}/${n}/SKILL.md`))
+    .sort()
+
+/** Skills on disk that the roster does not name. */
+export const rosterGaps = (onDisk, roster) =>
+  onDisk.filter(n => !roster.some(s => s.name === n))
 
 const OWNER = 'jeffunglesbee-create'
 const SIBLINGS = ['field-relay-nba', 'jubilant-bassoon', 'field-playground']
@@ -178,6 +209,21 @@ if (SELF_TEST) {
     SKILLS.every(s => s.path === `.claude/skills/${s.name}/SKILL.md`),
     'a name and its path disagree — the report would cite the wrong file')
 
+  // THE ROSTER COVERS THE DIRECTORY. This is the gap that existed for two days.
+  const roster = [{ name: 'i-have-adhd' }, { name: 'unslop-ui' }]
+  const disk = ['i-have-adhd', 'scrollcraft', 'unslop-ui']
+  check('a skill on disk but not in the roster is a gap',
+    rosterGaps(disk, roster).join() === 'scrollcraft',
+    'scrollcraft was installed 2026-08-29 and compared by nothing until 2026-08-31')
+  check('a complete roster has no gaps',
+    rosterGaps(disk, [...roster, { name: 'scrollcraft' }]).length === 0)
+  check('a roster entry with no directory is NOT a gap',
+    rosterGaps(['i-have-adhd'], [...roster, { name: 'removed-skill' }]).length === 0,
+    'an uninstalled skill leaves a stale roster line, which is a different problem')
+  check('A DIRECTORY WITHOUT A SKILL.md IS NOT A SKILL',
+    skillsOnDisk(() => ['i-have-adhd', 'scratch'], p => p.includes('i-have-adhd')).join() === 'i-have-adhd',
+    'engine/, references/ and templates/ live beside SKILL.md and must not be read as skills')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -238,7 +284,21 @@ for (const skill of SKILLS) {
   }
 }
 
+// THE ROSTER IS AUDITED AGAINST THE DIRECTORY, and this is fatal.
+//
+// Unlike UNREADABLE and `undeclared`, a gap here is entirely inside this repo:
+// nobody else's repository can cause it and nothing outside can fix it. A skill
+// sitting in .claude/skills that this check does not compare is a copy drifting
+// with no observer, in the one repo that can see all four.
+const gaps = rosterGaps(skillsOnDisk(readdirSync, existsSync), SKILLS)
+
 console.log(`\n${compared} copy/copies compared, ${drifted} drifted, ${dark} went dark`)
+if (gaps.length) {
+  console.log(`\n${gaps.length} skill(s) on disk that this check does not compare: ${gaps.join(', ')}`)
+  console.log(`Add each to SKILLS in ${'scripts/skill-drift-check.mjs'}. A roster that does not`)
+  console.log('cover the directory reports on everything it knows about, and knows less than')
+  console.log('it should — which is how scrollcraft went two days uncompared.')
+}
 if (undeclared.length) {
   console.log(`\n${undeclared.length} copy/copies read cleanly but are not in ${REACH_PATH}.`)
   console.log('Paste these lines in, so a later disappearance is an event rather than silence:\n')
@@ -255,5 +315,5 @@ if (drifted) {
   console.log('Decide which text is right, then run adhd-skill-sync.yml (or copy by')
   console.log('hand) so every repo carries the same bytes — do not edit only one.')
 }
-process.exit(drifted || dark ? 1 : 0)
+process.exit(drifted || dark || gaps.length ? 1 : 0)
 })()
