@@ -117,12 +117,36 @@ jobs:
       # mid-flight transient. On the daily schedule and manual runs it is equally
       # true that the newest deployable commit should be live.
       - name: The deploy landed (published is the newest deployable commit)
+        id: landed
         run: SITE=https://field-laboratory.jeffunglesbee.workers.dev node scripts/deploy-landed-check.mjs --strict
 
+      # EVERY PAGE ASSERTION RUNS, EVEN AFTER ONE FAILS.
+      #
+      # These five describe the SAME deployed page and none depends on another,
+      # but a failing step ends the job, so a run reported exactly ONE of them.
+      # That is arithmetic, not luck, and it cost seven rounds on 2026-08-31: an
+      # empty slate (00:xx ET, no fixtures yet) met assertion after assertion
+      # that had never seen one, and each ~6-minute run revealed a single new
+      # instance. brief-phase, then Scout's Pick, then the stats cards.
+      #
+      # `!cancelled()` rather than `always()`: a cancelled run has nothing to say.
+      #
+      # AND GATED ON `landed`, WHICH IS THE POINT OF NOT USING always(). Steps 1
+      # and 2 do not assert about the page — they establish WHICH artifact the
+      # page is. If the published commit is behind the newest deployable one,
+      # every assertion below describes some other build, and running them
+      # anyway would produce five confident findings about the wrong bytes.
+      # Fail-fast is correct there and wrong here.
       - name: Render the deployed page and assert on it
+        # Runs even if a SIBLING assertion failed, but not if the artifact under
+        # test is unknown — see the block above `Render the deployed page`.
+        if: "!cancelled() && steps.landed.outcome == 'success'"
         run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs
 
       - name: The deployed page groups by sport
+        # Runs even if a SIBLING assertion failed, but not if the artifact under
+        # test is unknown — see the block above `Render the deployed page`.
+        if: "!cancelled() && steps.landed.outcome == 'success'"
         run: |
           # render-check counts cards; it does not know about sections. On a
           # real multi-sport day the live slate must come back grouped, which is
@@ -141,14 +165,23 @@ jobs:
       # Three-state: no final game carrying both phases is NOT OBSERVABLE, warned
       # and not counted as a pass.
       - name: A finished game shows the brief written after it finished
+        # Runs even if a SIBLING assertion failed, but not if the artifact under
+        # test is unknown — see the block above `Render the deployed page`.
+        if: "!cancelled() && steps.landed.outcome == 'success'"
         run: |
           node scripts/brief-phase-live-check.mjs --self-test
           URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/brief-phase-live-check.mjs
 
       - name: The deployed page serves both pick tabs
+        # Runs even if a SIBLING assertion failed, but not if the artifact under
+        # test is unknown — see the block above `Render the deployed page`.
+        if: "!cancelled() && steps.landed.outcome == 'success'"
         run: npm run check:live-tabs
 
       - name: The pitcher and records rows appear on the deployed page
+        # Runs even if a SIBLING assertion failed, but not if the artifact under
+        # test is unknown — see the block above `Render the deployed page`.
+        if: "!cancelled() && steps.landed.outcome == 'success'"
         # Against the DEPLOYED page, not a local server: this is the only
         # configuration where the schedule fetch runs at all — a page pinned to
         # `?data=` renders a committed capture and must never reach the network,
