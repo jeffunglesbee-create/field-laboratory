@@ -68,6 +68,9 @@ const seen = await page.evaluate(() => {
   const cards = [...document.querySelectorAll('.st-card')]
   return {
     cards: cards.length,
+    // The discriminator for "no stats cards". A slate with no games has no
+    // desk cards either; a slate WITH games and no stats cards is a break.
+    deskCards: document.querySelectorAll('.desk-card').length,
     // Every row rendered, by label, with its text — so a row that is present
     // but empty is distinguishable from one that is absent. "Present" alone was
     // the check that let an empty R2 object read as healthy in production.
@@ -90,8 +93,30 @@ console.log(`\n${seen.cards} stats card(s); schedule note: ${seen.note}`)
 console.log(`records rows: ${JSON.stringify(seen.records)}`)
 console.log(`pitcher rows: ${JSON.stringify(seen.pitchers)}\n`)
 
-check('the page rendered stats cards at all', seen.cards > 0,
-  'no .st-card on the page, so nothing below could be true')
+// NO STATS CARDS IS TWO DIFFERENT FACTS, and this file already knew that about
+// its other two rows.
+//
+// It NOTEs a missing records row ("correct when the slate has no MLB game whose
+// venue resolves to a park") and a missing pitcher row ("correct when no starter
+// has been announced"), then asserted flatly that stats cards must exist. On
+// 2026-08-31 at 04:43 UTC — 00:43 ET, a day with no fixtures yet — it printed
+// both NOTEs and failed on the third:
+//
+//     FAIL  the page rendered stats cards at all
+//           → no .st-card on the page, so nothing below could be true
+//
+// The page was right. There was nothing to draw.
+//
+// `deskCards` separates the two: an empty slate renders no desk cards either, so
+// zero-and-zero is a day with no games. Desk cards present and stats cards
+// absent is the panel actually failing, and still fails.
+if (seen.deskCards === 0) {
+  console.log('NOTE  no stats cards, and no desk cards either — an empty slate.')
+  console.log('      The stats panel has nothing to draw; this asserts nothing today.')
+} else {
+  check('the page rendered stats cards at all', seen.cards > 0,
+    `no .st-card on the page despite ${seen.deskCards} desk card(s), so nothing below could be true`)
+}
 
 check('no page errors during the schedule fetch', errors.length === 0, errors.join('\n      → '))
 

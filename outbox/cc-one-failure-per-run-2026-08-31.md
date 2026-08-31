@@ -64,3 +64,52 @@ run is allowed to tell.**
 ```
 npm run check:workflows    9/9
 ```
+
+---
+
+## The green run does not prove what it looks like it proves
+
+`live-check` went **green on `5bcc1db`**, all steps, zero failures. That is not
+the empty-slate coverage being confirmed.
+
+The run is timestamped **11:59 UTC — 07:59 ET**. Hours passed between the commit
+and the run, and today's fixtures exist:
+
+```
+PASS  a records row names BOTH teams, never half a line
+PASS  every pitcher row carries a name
+5/5 checks passed
+```
+
+Everything passed because the slate is populated. The `if:` guards shipped
+correctly and were never exercised — with nothing failing, there was nothing for
+them to reveal. **Round seven's assertion is still unfixed**, and would have
+reddened again after midnight ET.
+
+Recording this because a green run at the wrong hour is exactly the kind of
+evidence this session keeps catching itself misreading: `$?` after a pipe,
+"failed again on attempt 2", and now "green, therefore fixed".
+
+## Round seven, fixed from the evidence rather than from a rerun
+
+`scripts/schedule-live-check.mjs` already reasoned about empty states twice:
+
+```
+NOTE  no records row rendered. Correct when the slate has no MLB game
+      whose venue resolves to a park.
+NOTE  no pitcher row rendered. Correct when no starter has been announced.
+FAIL  the page rendered stats cards at all
+```
+
+Two NOTEs and a flat assertion, in one file, about one page. The bounded wait
+above them (`waitForSelector(...).catch(() => {})`) shows the author already
+knew the selector "may legitimately never appear".
+
+`deskCards` separates the two facts. An empty slate renders no desk cards
+either, so zero-and-zero is a day with no games and gets a NOTE. Desk cards
+present with no stats cards is the panel actually failing, and still fails —
+with the count in the message, so the distinction is visible in the log rather
+than only in this comment.
+
+That is the third and last of the empty-slate assertions found on 2026-08-31.
+The next one, if there is one, arrives in a single run rather than a seventh.
