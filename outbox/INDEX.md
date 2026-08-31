@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `cbcfaf3` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: the Scout's Pick panel has two states, and one was unassertable |
 | `38075f0` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | live-check: move the daily beat to an hour the slate exists |
 | `ceacd3a` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: an empty slate is a state, not a TimeoutError |
 | `44e82a9` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: two cards agreeing is the rule holding, not a defect |
