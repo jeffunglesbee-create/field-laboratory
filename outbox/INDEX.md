@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d1730c1` | 2026-08-31 | [cc-a-bucket-that-collapsed-two-states-2026-08-31.md](cc-a-bucket-that-collapsed-two-states-2026-08-31.md) | check: split cross-repo from deleted-here, and abort on a shallow clone |
 | `af7483d` | 2026-08-31 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | check: citations can now repair what they have only reported |
 | `af7483d` | 2026-08-31 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | check: citations can now repair what they have only reported |
 | `af7483d` | 2026-08-31 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | check: citations can now repair what they have only reported |
