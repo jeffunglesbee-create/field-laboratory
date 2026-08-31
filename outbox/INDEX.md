@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f62288f` | 2026-08-31 | [cc-one-failure-per-run-2026-08-31.md](cc-one-failure-per-run-2026-08-31.md) | check: no stats cards is two facts, and the file already knew that |
 | `5bcc1db` | 2026-08-31 | [cc-one-failure-per-run-2026-08-31.md](cc-one-failure-per-run-2026-08-31.md) | live-check: let one run report every page assertion, not just the first |
 | `c3bd838` | 2026-08-31 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-31 [skip ci] |
 | `c3bd838` | 2026-08-31 | [sport-vocabulary-2026-08-31T07-09-49-162Z.json](sport-vocabulary-2026-08-31T07-09-49-162Z.json) | drift-sentinel: ok on 2026-08-31 [skip ci] |
