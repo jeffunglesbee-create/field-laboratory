@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `70ab5bc` | 2026-08-31 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | docs: relay duplicate filed as field-relay-nba#1, and the blocker was inherited |
 | `d2e364f` | 2026-08-31 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | watch: file a self-closing duplicate-fixture ticket on the relay |
 | `262f6f2` | 2026-08-31 | [cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md](cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md) | drift-check: zero rows is an empty slate, not a broken decoder |
 | `f62288f` | 2026-08-31 | [cc-one-failure-per-run-2026-08-31.md](cc-one-failure-per-run-2026-08-31.md) | check: no stats cards is two facts, and the file already knew that |
