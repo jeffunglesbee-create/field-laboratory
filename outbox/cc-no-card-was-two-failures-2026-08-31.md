@@ -349,3 +349,32 @@ broken deploy.
 
 `::warning::`, exit 0. The same three-state discipline the header already
 described, applied one level earlier than it was written for.
+
+---
+
+## The daily beat was scheduled where the rule cannot run
+
+`live-check`'s schedule was `37 6 * * *` — **06:37 UTC, which is 02:37 in
+FIELD's zone.** The page renders the current ET day, and at 02:37 that day is
+two and a half hours old with nothing on it.
+
+So every scheduled run met an empty slate. Until this morning that surfaced as a
+raw `TimeoutError`; with the fix above it is correctly reported NOT OBSERVABLE.
+Both are honest and both mean the same thing: **the brief-phase rule,
+live-grouping and the schedule-row checks were never exercised by the schedule.**
+Only deploys ever tested them, which makes the daily beat a run that proves the
+site is up and nothing else.
+
+Moved to `37 3 * * *` — 23:37 EDT, 22:37 EST. Evening ET in both halves of the
+year, with the day's early fixtures final and carrying recaps. That is the state
+these checks are written for.
+
+**Same one run a day.** The cost is identical; the coverage is not.
+
+### Why this is the follow-up, not a new idea
+
+The previous entry ended with a carry-forward: *"the brief-phase verdict fix
+still hasn't been exercised against a populated slate — it'll get its first real
+test when today's fixtures land."* That sentence puts a human in the loop to
+remember to look. Moving the schedule into a populated window is the same
+outcome with nobody remembering anything.

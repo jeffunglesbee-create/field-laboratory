@@ -21,8 +21,24 @@ on:
   workflow_dispatch:
   # A daily beat catches the other direction: the artifact is fine but the
   # relay's shape moved under it.
+  #
+  # MOVED 2026-08-31 from '37 6 * * *' to an evening-ET hour, and the reason is
+  # that the old one could never exercise half this job.
+  #
+  # 06:37 UTC is 02:37 in FIELD's zone. The page renders the CURRENT ET day, and
+  # at 02:37 that day is two and a half hours old with no fixtures on it. So the
+  # daily run met an empty slate every time. Until today that surfaced as a raw
+  # TimeoutError; now it is correctly reported NOT OBSERVABLE — which is honest
+  # and still means the brief-phase rule, live-grouping and the schedule rows
+  # were never tested by the schedule, only by deploys.
+  #
+  # 03:37 UTC is 23:37 EDT and 22:37 EST — evening ET in both halves of the
+  # year, with the day's early fixtures final and carrying recaps. That is the
+  # state these checks are written for.
+  #
+  # Same one run a day. The cost is identical and the coverage is not.
   schedule:
-    - cron: '37 6 * * *'
+    - cron: '37 3 * * *'
 
 concurrency:
   group: live-check
