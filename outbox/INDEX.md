@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2683add` | 2026-08-31 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-31 [skip ci] |
+| `2683add` | 2026-08-31 | [sport-vocabulary-2026-08-31T19-02-44-979Z.json](sport-vocabulary-2026-08-31T19-02-44-979Z.json) | drift-sentinel: ok on 2026-08-31 [skip ci] |
+| `f28ebf7` | 2026-08-31 | [cc-id-consumer-enumeration-2026-08-31.md](cc-id-consumer-enumeration-2026-08-31.md) | docs: enumerate every consumer of regular_season_games.id |
 | `70ab5bc` | 2026-08-31 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | docs: relay duplicate filed as field-relay-nba#1, and the blocker was inherited |
 | `d2e364f` | 2026-08-31 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | watch: file a self-closing duplicate-fixture ticket on the relay |
 | `262f6f2` | 2026-08-31 | [cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md](cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md) | drift-check: zero rows is an empty slate, not a broken decoder |
