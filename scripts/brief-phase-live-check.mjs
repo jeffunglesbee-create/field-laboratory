@@ -232,7 +232,29 @@ if (isMain(import.meta.url)) {
         : '(NOT RENDERED — no card on the page shares a word with either team)'
     }
     const ok = shown === want
-    if (!ok) wrong.push(`${label}: expected ${want}, shown ${shown}`)
+    if (!ok) {
+      wrong.push(`${label}: expected ${want}, shown ${shown}`)
+      // THE ROW PRINTS ITS OWN EVIDENCE.
+      //
+      // The previous round narrowed this from "(no card / no kind)" to "(card
+      // found, NO KIND rendered)", which eliminated both hypotheses at once:
+      // the desk DOES render the game, and this matcher DOES find its card. The
+      // card simply carries no brief, while the payload carries a game_recap
+      // that `expectedKind` resolved to it.
+      //
+      // So the divergence is between two implementations of one rule — this
+      // file's `briefMatches`, transcribed independently, and `briefKeyMatches`
+      // in src/Desk.fs. That is precisely what this check's header says it
+      // exists to catch, and the next step needs the keys both sides are
+      // matching on, not another guess at the source.
+      const mine = briefs.filter(b => briefMatches(g, b))
+      console.log(`      evidence: game.id=${JSON.stringify(g.id)} espn_event_id=${JSON.stringify(g.espn_event_id)}`)
+      console.log(`                finalized_at=${JSON.stringify(g.finalized_at)} sport=${JSON.stringify(g.sport)}`)
+      for (const b of mine.slice(0, 6)) {
+        console.log(`                brief game_id=${JSON.stringify(b.game_id)} type=${JSON.stringify(b.brief_type)} text=${(b.brief_text || '').length}ch`)
+      }
+      if (card) console.log(`                card teams=${JSON.stringify(card.teams)} status=${JSON.stringify(card.status)} kind=${JSON.stringify(card.kind)}`)
+    }
     console.log(`  ${label.slice(0, 40).padEnd(40)}${want.padEnd(14)}${shown}${ok ? '' : '   <-- '}`)
   }
   console.log('')
