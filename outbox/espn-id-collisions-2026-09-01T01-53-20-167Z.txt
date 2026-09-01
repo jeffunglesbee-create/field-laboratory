@@ -1,0 +1,83 @@
+probe_at: 2026-09-01T01:53:20.167Z
+question: would keying the archive id on espn_event_id ever merge two DIFFERENT games?
+method:   public GET /context/date, no credential. 30 day(s) back from today (ET).
+
+  2026-08-30   48 row(s)  2 collision(s)
+      espn:401857186  same fixture
+        WNBA_2026-08-30_dream_lynx  Lynx @ Dream
+        wnba_2026-08-30_atlantadream_minnesotalynx  Minnesota Lynx @ Atlanta Dream
+      espn:401857187  same fixture
+        WNBA_2026-08-30_storm_sparks  Sparks @ Storm
+        wnba_2026-08-30_seattlestorm_losangelessparks  Los Angeles Sparks @ Seattle Storm
+  2026-08-29   81 row(s)  1 collision(s)
+      espn:401857184  same fixture
+        WNBA_2026-08-29_liberty_sky  Sky @ Liberty
+        wnba_2026-08-29_newyorkliberty_chicagosky  Chicago Sky @ New York Liberty
+  2026-08-28   36 row(s)  —
+  2026-08-27   57 row(s)  —
+  2026-08-26   30 row(s)  —
+  2026-08-25   42 row(s)  —
+  2026-08-24   18 row(s)  —
+  2026-08-23   48 row(s)  1 collision(s)
+      espn:401857167  same fixture
+        WNBA_2026-08-23_wings_storm  Storm @ Wings
+        wnba_2026-08-23_dallaswings_seattlestorm  Seattle Storm @ Dallas Wings
+  2026-08-22   75 row(s)  —
+  2026-08-21   26 row(s)  1 collision(s)
+      espn:golf_401811963  *** DIFFERENT FIXTURES ***
+        golf_2026-08-21_bmwchampionship_r1  R1 @ BMW Championship
+        golf_2026-08-21_bmwchampionship_r2  R2 @ BMW Championship
+  2026-08-20   62 row(s)  —
+  2026-08-19   53 row(s)  —
+  2026-08-18   25 row(s)  —
+  2026-08-17   15 row(s)  —
+  2026-08-16   34 row(s)  1 collision(s)
+      espn:golf_401811962  *** DIFFERENT FIXTURES ***
+        golf_2026-08-16_fedexstjudechampionship_r3  R3 @ FedEx St. Jude Championship
+        golf_2026-08-16_fedexstjudechampionship_r4  R4 @ FedEx St. Jude Championship
+  2026-08-15   58 row(s)  1 collision(s)
+      espn:401857145  same fixture
+        WNBA_2026-08-15_sun_liberty  Liberty @ Sun
+        wnba_2026-08-15_connecticutsun_newyorkliberty  New York Liberty @ Connecticut Sun
+  2026-08-14   24 row(s)  —
+  2026-08-13   26 row(s)  —
+  2026-08-12   26 row(s)  —
+  2026-08-11   21 row(s)  —
+  2026-08-10   18 row(s)  —
+  2026-08-09   29 row(s)  1 collision(s)
+      espn:401857128  same fixture
+        WNBA_2026-08-09_liberty_aces  Aces @ Liberty
+        wnba_2026-08-09_newyorkliberty_lasvegasaces  Las Vegas Aces @ New York Liberty
+  2026-08-08   60 row(s)  2 collision(s)
+      espn:401857125  same fixture
+        WNBA_2026-08-08_lynx_aces  Aces @ Lynx
+        wnba_2026-08-08_minnesotalynx_lasvegasaces  Las Vegas Aces @ Minnesota Lynx
+      espn:401857126  same fixture
+        WNBA_2026-08-08_sky_fever  Fever @ Sky
+        wnba_2026-08-08_chicagosky_indianafever  Indiana Fever @ Chicago Sky
+  2026-08-07   28 row(s)  —
+  2026-08-06   20 row(s)  —
+  2026-08-05   25 row(s)  —
+  2026-08-04   18 row(s)  —
+  2026-08-03   12 row(s)  —
+  2026-08-02   31 row(s)  3 collision(s)
+      espn:401857107  same fixture
+        WNBA_2026-08-02_lynx_fever  Fever @ Lynx
+        wnba_2026-08-02_minnesotalynx_indianafever  Indiana Fever @ Minnesota Lynx
+      espn:401857108  same fixture
+        WNBA_2026-08-02_fire_sparks  Sparks @ Fire
+        wnba_2026-08-02_portlandfire_losangelessparks  Los Angeles Sparks @ Portland Fire
+      espn:golf_401811960  *** DIFFERENT FIXTURES ***
+        golf_2026-08-02_rocketclassic_r3  R3 @ Rocket Classic
+        golf_2026-08-02_rocketclassic_r4  R4 @ Rocket Classic
+  2026-08-01   39 row(s)  —
+
+30 date(s) observed, 1085 row(s), 13 collision group(s)
+same fixture: 10   DIFFERENT fixtures: 3
+VERDICT: unsafe
+
+At least one event id is shared by two DIFFERENT games. Keying on it would
+merge them and destroy a row. The proposal in field-relay-nba#1 must not ship
+as written; the pairs are listed above.
+
+artifact: outbox/espn-id-collisions-2026-09-01T01-53-20-167Z.txt
