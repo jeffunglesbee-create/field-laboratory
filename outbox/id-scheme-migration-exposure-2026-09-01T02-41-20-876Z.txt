@@ -1,0 +1,42 @@
+probe_at: 2026-09-01T02:41:20.904Z
+question: how many rows would the numeric-id upsert key strand on the day it ships?
+method:   public GET /context/date. 21 day(s) FORWARD from today (ET),
+          plus yesterday as a readability control.
+
+control 2026-08-30  48 row(s), 39 scored
+
+  2026-08-31   18 row(s)    5 exposed
+  2026-09-01    3 row(s)    0 exposed
+  2026-09-02    1 row(s)    0 exposed
+  2026-09-03    1 row(s)    0 exposed
+  2026-09-04   15 row(s)    0 exposed
+  2026-09-05    7 row(s)    0 exposed
+  2026-09-06    7 row(s)    0 exposed
+  2026-09-07    0 row(s)    0 exposed
+  2026-09-08    0 row(s)    0 exposed
+  2026-09-09   15 row(s)    0 exposed
+  2026-09-10    9 row(s)    0 exposed
+  2026-09-11    0 row(s)    0 exposed
+  2026-09-12   15 row(s)    0 exposed
+  2026-09-13    9 row(s)    0 exposed
+  2026-09-14    1 row(s)    0 exposed
+  2026-09-15    3 row(s)    0 exposed
+  2026-09-16    3 row(s)    0 exposed
+  2026-09-17    1 row(s)    0 exposed
+  2026-09-18   15 row(s)    0 exposed
+  2026-09-19    4 row(s)    0 exposed
+  2026-09-20   10 row(s)    0 exposed
+  2026-09-21    0 row(s)    0 exposed
+
+VERDICT: measured
+
+137 forward row(s), 5 EXPOSED
+    MLB           5
+
+5 unscored future-dated row(s) carry a numeric event id. Each will be
+rewritten under a new id on resolution and stranded under its old one,
+permanently unscored — the exact 55-group shape measured 2026-08-08. Ship the
+numeric key only with a paired cleanup for these rows, or wait for a window
+where this count is zero. The per-sport breakdown above says which rows.
+
+artifact: outbox/id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt
