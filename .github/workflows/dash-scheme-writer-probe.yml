@@ -1,0 +1,50 @@
+# CC-CMD-2026-09-01-mls-dual-writer-duplicate, Task 1.
+#
+# Which of three explanations produced `2026-08-30-mls-stl-dal`? That spec
+# deliberately asserts no write path: the relay has exactly one
+# `INSERT INTO regular_season_games`, at POST /archive/game, and its id shape is
+# underscore-separated and cannot produce a dash-only id.
+#
+# `created_at` decides between stale and live, and /context/date serves it, so
+# this needs no credential and never touches /d1/execute.
+#
+# THE DISCRIMINATOR IS THE SPREAD, NOT THE AGE. One stamp on every dash row, for
+# games spread across weeks, is an import that ran once. Stamps tracking each
+# game is a writer still running. Age alone cannot separate them.
+#
+# WHY CI: *.workers.dev is blocked by the dev sandbox's egress allowlist.
+# DISPATCH ONLY.
+name: dash-scheme writer probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: How many days back to sweep
+        default: '30'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Stale import, or a writer still running?
+        run: |
+          node scripts/probe-dash-scheme-writer.mjs --self-test
+          node scripts/probe-dash-scheme-writer.mjs --days "${{ inputs.days || '30' }}"
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/dash-scheme-writer-*.txt || true
+          git diff --staged --quiet || git commit -m "probe: dash-scheme writer [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
