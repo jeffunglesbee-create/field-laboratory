@@ -34,7 +34,7 @@ Four primitives, all of them `[<Import>]` bindings to `solid-js` functions:
 
 | primitive | sites |
 | --- | --- |
-| `Solid.createRoot` | `src/Program.fs:247` |
+| `Solid.createRoot` | `src/Program.fs:248` |
 | `Solid.createSignal` | `src/Scoreboard.fs:284` |
 | `Solid.createMemo` | `src/Scoreboard.fs:288, 289, 293` |
 | `Solid.createEffect` | `src/Scoreboard.fs:270` |
