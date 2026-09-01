@@ -258,4 +258,76 @@
 # not block a commit. An orphan is unambiguous, and is the one this cost a
 # red main for.
 
-c31b94e075ee098c2248c9fa3b3d2c59f2b22ae4  22
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-09-01, FROM c31b94e / 22 TO d917dc97 / 24
+#
+# The fourth move. The 08-23 entry said what to do when it happened: "If it
+# moves a fourth time, the guard above was bypassed or removed, and THAT is the
+# thing to investigate — not the commits." It was bypassed, structurally, and
+# the answer is not attention.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — two commits, both machine-authored:
+#
+#   c6e8686  generated: team colours table [skip ci]
+#   304b459  generated: team colours table [skip ci]
+#
+# Both shipped src/TeamColours.fs and src/Laboratory.fsproj with no outbox
+# entry. Real violations, correctly surfaced, and mine — I wrote the workflow
+# that made them.
+#
+# WHY THE GUARD DID NOT FIRE, WHICH IS THE ONLY INTERESTING PART
+#
+# .githooks/pre-commit runs check:staged-outbox and is exactly the right guard
+# for this class. It CANNOT fire here. Both commits were made by a GitHub
+# Actions runner inside .github/workflows/generate-team-colours.yml, and a
+# workflow's `git commit` never consults `core.hooksPath` — the runner is a
+# fresh checkout that never ran scripts/install_pkgs.sh and has no reason to.
+#
+# The 08-23 entry diagnosed the third move as "an opt-in guard that nothing
+# opted into". This is the same sentence one level out: a LOCAL guard cannot
+# cover a REMOTE committer, and this repo acquired its first workflow that
+# commits source on 2026-09-01. The guard was never bypassed by carelessness;
+# it was never in the path at all.
+#
+# WHAT SHIPPED SO THE FIFTH MOVE DOES NOT HAPPEN
+#
+#   scripts/generate-team-colours.mjs   now writes
+#                                       outbox/generated-team-colours-<date>.md
+#                                       beside the table — real provenance
+#                                       (entry count, leagues, source dates,
+#                                       dropped names), not a placeholder
+#   .github/workflows/…-team-colours    stages both and runs
+#                                       scripts/staged-outbox-check.mjs before
+#                                       `git commit`, so the runner asks the
+#                                       same predicate the local hook asks and
+#                                       refuses the commit if it fails
+#
+# The predicate is the one that already exists. What changed is where it is
+# asked. Any FUTURE workflow that commits to src/ or scripts/ needs the same
+# three lines, and that is the thing to check when reviewing one.
+#
+# WHY d917dc9 IS THE BOUNDARY
+#
+# First commit after the last violation that obeys the rule affirmatively: it
+# ships src/Desk.fs, src/Scoreboard.fs, src/Palette.fs and two scripts BESIDE
+# outbox/cc-session-2026-09-01-team-tints.md. The four status-refresh commits
+# between 304b459 and it touch no source at all, so the boundary lands on a
+# commit that demonstrates the rule rather than one that merely avoids it.
+#
+# HOW 24 WAS DERIVED
+#
+# 22 + 2. verify run 246 reported "predating the rule: 22" against boundary
+# c31b94e and named exactly two governed violations, c6e8686 and 304b459.
+# Moving past them moves each from governed to predating: 22 + 2 = 24.
+#
+# DERIVED LOCALLY THIS TIME, and that is a departure the previous two entries
+# would have flagged. Both warned that a cloud session's clone is shallow and
+# its count meaningless. This clone is NOT shallow — `git log --oneline | wc -l`
+# is 1150, against CI's 1139 at run 246 — so the local audit walks the same
+# history. The rule those entries actually state is "confirm the depth before
+# believing any local number", and it was confirmed. CI remains the authority
+# if the two ever disagree.
+#
+# The governed violation count is 0 again.
+
+d917dc977c0ea97d4b301978709fd21ceb5b901c  24
