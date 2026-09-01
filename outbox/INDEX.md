@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b625cb4` | 2026-09-01 | [generated-team-colours-2026-09-01.md](generated-team-colours-2026-09-01.md) | generated: team colours table [skip ci] |
+| `951761d` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | fix: attribute only when there is a failure to attribute |
 | `5f97823` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | fix: attribute a weather failure from the page's window, not from a later probe |
 | `7a44543` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-38-51-294Z.json](open-meteo-egress-2026-09-01T21-38-51-294Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `7a44543` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
