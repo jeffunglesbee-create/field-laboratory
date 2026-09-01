@@ -2,18 +2,20 @@
   probing 8 venue(s) from node and from chromium
 
   node   single   HTTP 200
-  chrome single   ok in 2103ms
+  chrome single   ok in 635ms
   chrome burst    8/8 answered
-           0+   137ms  HTTP 200
-           0+   261ms  HTTP 200
-           0+   384ms  HTTP 200
-           0+   490ms  HTTP 200
-           0+   519ms  HTTP 200
-           0+   498ms  HTTP 200
-           0+   510ms  HTTP 200
-           0+   505ms  HTTP 200
+           0+   154ms  HTTP 200
+           1+   307ms  HTTP 200
+           1+   460ms  HTTP 200
+           1+   603ms  HTTP 200
+           1+   612ms  HTTP 200
+           1+   607ms  HTTP 200
+           2+   607ms  HTTP 200
+           2+   609ms  HTTP 200
 
-  resource timing: 5 open-meteo entr(ies)
+  resource timing: 11 open-meteo entr(ies)
+    an entry for EVERY request    : 9/9 to the real host (burst + single)
+    an entry for a TIMED-OUT req  : YES — status 0, 4000ms
     name carries the query string : YES
     responseStatus present        : YES
     responseStatus on an answered : 200
@@ -24,4 +26,4 @@
   VERDICT: reachable
   nothing is wrong now — the failure was transient and the probe must be able to say so
 
-  outbox/open-meteo-egress-2026-09-01T21-34-49-910Z.json
+  outbox/open-meteo-egress-2026-09-01T21-38-51-294Z.json
