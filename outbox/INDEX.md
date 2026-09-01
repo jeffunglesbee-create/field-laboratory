@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3135175` | 2026-09-01 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-01 [skip ci] |
+| `3135175` | 2026-09-01 | [sport-vocabulary-2026-09-01T06-22-05-077Z.json](sport-vocabulary-2026-09-01T06-22-05-077Z.json) | drift-sentinel: ok on 2026-09-01 [skip ci] |
 | `778a656` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: bound the vertical chrome budget, an axis nothing measured |
 | `b197a10` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: date-change behaviour, and four control affordances |
 | `37d747a` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: the tab is in the URL, and Route.fs is where its grammar lives |
