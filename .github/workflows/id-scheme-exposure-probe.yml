@@ -1,0 +1,55 @@
+# What would the numeric-id upsert key STRAND on the day it ships?
+#
+# docs/CC-CMD-2026-09-01-archive-game-numeric-espn-upsert-key.md (filed into
+# field-relay-nba) proves the numeric key is unique-safe. Uniqueness is not the
+# whole question. The relay's own id composition carries a correction from
+# 2026-08-08: an id-scheme change crossing already-seeded FUTURE-dated fixtures
+# leaves the old rows permanently unscored, because resolution writes the new id
+# and nothing ever touches the old row again. Measured cost there: 55 duplicate
+# groups, 110 rows.
+#
+# So this sweeps FORWARD, not backward, and counts unscored rows that already
+# carry a numeric event id. Zero means the change strands nothing today.
+#
+# The control day is load-bearing: a forward sweep legitimately has no scores,
+# so "no scored rows" cannot tell an empty future from an unreadable field.
+# Yesterday must contain scored rows or the forward count is refused outright.
+#
+# WHY CI: *.workers.dev is blocked by the dev sandbox's egress allowlist.
+# DISPATCH ONLY. This gates one decision.
+name: id-scheme migration exposure
+
+on:
+  workflow_dispatch:
+    inputs:
+      forward:
+        description: How many days ahead to sweep
+        default: '21'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: How many rows would the numeric key strand?
+        run: |
+          node scripts/probe-id-scheme-migration-exposure.mjs --self-test
+          node scripts/probe-id-scheme-migration-exposure.mjs --forward "${{ inputs.forward || '21' }}"
+
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/id-scheme-migration-exposure-*.txt || true
+          git diff --staged --quiet || git commit -m "probe: id-scheme migration exposure [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
