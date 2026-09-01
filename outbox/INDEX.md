@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7a44543` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-38-51-294Z.json](open-meteo-egress-2026-09-01T21-38-51-294Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `7a44543` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `36d407f` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | probe: measure resource timing at the real origin, and for a timed-out request |
 | `801bc29` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-34-49-910Z.json](open-meteo-egress-2026-09-01T21-34-49-910Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `801bc29` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
 | `3257799` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | probe: what render-check can see about the page's own Open-Meteo requests |
