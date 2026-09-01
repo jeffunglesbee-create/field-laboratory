@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `dd2acf8` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: today is not the future, and the advice was wrong because of it |
+| `23176d1` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | probe: id-scheme migration exposure [skip ci] |
+| `7358ab9` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: what the numeric-id key would strand, swept forward |
 | `a54ac39` | 2026-09-01 | [espn-id-collisions-2026-09-01T02-09-31-408Z.txt](espn-id-collisions-2026-09-01T02-09-31-408Z.txt) | probe: espn_event_id collision safety [skip ci] |
 | `75c0138` | 2026-09-01 | [cc-session-2026-09-01-espn-id-refined.md](cc-session-2026-09-01-espn-id-refined.md) | probe: refined espn_event_id rule (numeric ids only) + coverage, and a verdict that cannot pass on an empty slate |
 | `a5641f8` | 2026-09-01 | [cc-would-keying-on-event-id-merge-two-games-2026-08-31.md](cc-would-keying-on-event-id-merge-two-games-2026-08-31.md) | probe: the espn_event_id proposal is UNSAFE as filed — golf shares one id per tournament |
