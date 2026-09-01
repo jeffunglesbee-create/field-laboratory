@@ -38,6 +38,7 @@
     "check:state": "node scripts/state-check.mjs",
     "check:spark": "node scripts/spark-check.mjs",
     "check:palette": "node scripts/palette-check.mjs --self-test && node scripts/palette-check.mjs",
+    "check:device-chrome": "node scripts/device-chrome-check.mjs --self-test && node scripts/device-chrome-check.mjs index.html",
     "check:wp": "node scripts/wp-check.mjs --self-test && node scripts/wp-check.mjs",
     "check:typography": "node scripts/typography-check.mjs --self-test && node scripts/typography-check.mjs",
     "check:design-tokens": "node scripts/design-tokens-check.mjs --self-test && node scripts/design-tokens-check.mjs",

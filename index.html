@@ -96,7 +96,12 @@
      should do. No transform on .desk-card--flippable: a transform on a grid
      item creates a containing block, and the comment above that rule records
      a rotateY that "did not survive contact with a grid". The flip itself is
-     that card's feedback. */
+     that card's feedback.
+
+     STALE CLAUSE, corrected 2026-09-01: "measured 2026-08-29: zero
+     `transition:`, zero @keyframes" was true when written and is false three
+     lines below, where the 100ms rule now sits. The measurement stands as
+     history; the present tense did not. */
   @media (hover: hover) and (pointer: fine) {
     .tabs button:hover { color: var(--text); }
   }
@@ -134,6 +139,41 @@
   .desk-card--flippable:active,
   .pk-sport:active,
   .pk-side:active { background-color: var(--card2); }
+  /* MOTION IS OPT-OUTABLE. The scale above is the page's only transform and its
+     only transition, added from the June 12 catalog. WCAG 2.3.3 covers motion
+     from interaction, and a 2% scale is exactly that — small, but the guard
+     costs one query and the alternative is a control that moves for a reader
+     who asked the OS for none.
+
+     The background-colour half is DELIBERATELY KEPT: a colour change is not
+     motion, and removing it would leave those four controls with no pressed
+     state at all for the one reader who most needs the feedback unambiguous. */
+  @media (prefers-reduced-motion: reduce) {
+    .tabs button:active,
+    .pk-sport:active,
+    .pk-side:active,
+    .desk-card--flippable:active,
+    .datenav button:not([disabled]):active {
+      transform: none;
+      transition: background-color 100ms ease-out;
+    }
+  }
+  /* TAP LATENCY, not gesture routing. iOS reserves ~300ms after a tap on any
+     element that could be a double-tap-to-zoom target, and every control on
+     this page is one. `manipulation` allows panning and pinch-zoom and drops
+     only double-tap zoom, so scrolling is untouched and the page stops feeling
+     a third of a second behind the finger.
+
+     NOT on `.tabs` itself. That is a scroll-snap horizontal scroller, and its
+     default `auto` is already correct: the browser routes a horizontal drag to
+     the scroller and a vertical one to the page. `pan-x` there would block
+     vertical page scroll for any gesture starting on the tab bar, which is a
+     regression dressed as a fix. */
+  .tabs button,
+  .datenav button,
+  .pk-sport,
+  .pk-side,
+  .desk-card--flippable { touch-action: manipulation; }
   .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--discovery); }
   /* Focus must stay visible: a tablist is keyboard-driven by design, and the
      arrow-key pattern is unusable if focus is invisible. */
@@ -622,7 +662,13 @@
        the back button works. -->
   <nav class="datenav" aria-label="Slate date">
     <button id="prev-day" type="button" aria-label="Previous day">←</button>
-    <span id="viewed-date"></span>
+    <!-- LIVE. Program.fs `report "viewed-date"` writes here, and pressing an
+         arrow re-renders the entire slate below without moving focus — the one
+         case on this page where content changes and nothing tells a screen
+         reader. The tabs need no live region: aria-selected plus a real
+         tabpanel already announce, and focus follows the arrow keys.
+         aria-atomic because the date is one fact, not a stream of edits. -->
+    <span id="viewed-date" aria-live="polite" aria-atomic="true"></span>
     <button id="next-day" type="button" aria-label="Next day">→</button>
     <button id="today" type="button">Today</button>
   </nav>

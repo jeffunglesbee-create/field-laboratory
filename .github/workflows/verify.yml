@@ -173,6 +173,18 @@ jobs:
       - name: The semantic palette holds
         run: npm run check:palette
 
+      # Three device affordances the page carries, and one it must NOT fake.
+      # Filed 2026-09-01 after measuring this page's device handling against
+      # jubilant-bassoon's. Four gaps were counted and TWO WERE NOT GAPS:
+      # `viewport-fit` appears zero times in either file, so the client's nine
+      # env(safe-area-inset-*) declarations all resolve to 0, and this page uses
+      # no viewport-height unit for dvh to improve on. So the check guards the
+      # negative too — env() and viewport-fit=cover are asserted paired-or-absent,
+      # because env() alone is inert and cover alone puts content under the notch
+      # with nothing holding it out. Both directions fail; neither and both pass.
+      - name: Device affordances, including the one not to fake
+        run: npm run check:device-chrome
+
       # The win-probability market-shape model, over the real compiled Market.fs:
       # constructors validate the sum, the two-way complement is correct where
       # allowed, and on a real de-vigged three-way market the two-way complement
