@@ -163,3 +163,68 @@ was worried about does not occur in practice.
 
 Each entry now carries every label the payload might use, and a check asserts the
 three spaced forms — dropping one takes the suite 14/14 -> 13/14.
+
+
+## The generator: fuzzy here, exact at runtime
+
+`Desk.fs` states this repo's position on normalisers outright:
+
+> a normaliser is a place for two spellings to silently become one
+
+> accepting a spelling that has never been served is how a normaliser starts
+
+and `Venues.fs` follows it — *"Aliases are separate entries with the SAME
+coordinates"*. That is the opposite of the subset matching the coverage probe
+uses, and the precedent is right: the fuzzy match runs **once, in the generator**,
+where its output is a table a person can read in a diff. At runtime the lookup is
+string equality, and a spelling not in the table yields no colour rather than the
+nearest one.
+
+That is the whole difference between a generator and a normaliser: this file can
+be wrong in a way that shows up.
+
+### The payload's spellings are keys too
+
+ESPN publishes `Atlanta Dream`; the relay serves `Dream` on some rows and
+`Atlanta Dream` on others. A table holding only ESPN's spelling would resolve
+half the desk, so a real slate is swept and every name it serves is emitted
+beside ESPN's `displayName` and `shortDisplayName`.
+
+### Two refusals
+
+**A name resolving to two different colours is dropped, not picked.** Two clubs
+sharing a spelling is exactly where a silent choice would be wrong; the conflict
+is reported instead.
+
+**A table below 300 entries is refused outright.** A near-empty table compiles,
+renders nothing, and reads as a design decision — indistinguishable from "no team
+has a colour". If something upstream failed, that is what needs fixing.
+
+### The workflow is atomic because it has to be
+
+The module returns `Palette.Token`, so it must be registered in the fsproj. A
+commit adding the registration without the file, or the file without the
+registration, leaves `main` unable to compile. Both happen in one commit, after a
+real `npm run build` and `check:verify` have proved the pair works — the workflow
+cannot push a tree it has not compiled.
+
+Dispatch-only, deliberately: a colour table regenerating on a schedule would
+rewrite the page's palette with nobody reading the diff.
+
+### Verified locally before any run
+
+12/12 self-test. The generator was driven against a stub serving 400 synthetic
+teams: 1922 entries across 32 leagues, sorted, floor cleared. Registered in the
+fsproj and compiled — the generated tuple-list F# is valid and `Palette.Token`
+resolves. Then driven at runtime:
+
+```
+tryBrand  "AFL" "afl City 0"       -> #005A9C
+tryTint   "AFL" "afl City 0"       -> #367fb4
+tryTint   "AFL" "Nonexistent Club" -> none
+tryTint   "MLB" "afl City 0"       -> none   (league-scoped, as intended)
+```
+
+**That stub table is not committed.** The names were invented, and inventing data
+is what this project refuses. The fsproj change was reverted with it; the real
+table only ever comes from the workflow.
