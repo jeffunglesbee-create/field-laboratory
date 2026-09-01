@@ -1,0 +1,233 @@
+probe_at: 2026-09-01T15:21:01.424Z
+question: are there duplicate fixtures the espn_event_id watcher cannot see?
+method:   public GET /context/date, 30 day(s) back. Grouped by FIXTURE
+          IDENTITY (date + team names), never by event id.
+
+  2026-08-31   18 row(s)  —
+  2026-08-30   48 row(s)  4 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-30-mls-stl-dal  FC Dallas @ St. Louis CITY SC  eid=(none) start=(none)
+        MLS_2026-08-30_stlouis_dallas  Dallas @ St. Louis  eid=761769 start=2026-08-30T23:00Z
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-30_dream_lynx  Lynx @ Dream  eid=401857186 start=2026-08-30T19:00Z
+        wnba_2026-08-30_atlantadream_minnesotalynx  Minnesota Lynx @ Atlanta Dream  eid=401857186 start=(none)
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-30_storm_sparks  Sparks @ Storm  eid=401857187 start=2026-08-30T21:00Z
+        wnba_2026-08-30_seattlestorm_losangelessparks  Los Angeles Sparks @ Seattle Storm  eid=401857187 start=(none)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        MLS_2026-08-30_columbus_newengland  New England @ Columbus  eid=761758 start=2026-08-30T20:30Z
+        2026-08-30-mls-clb-ne  New England Revolution @ Columbus Crew  eid=(none) start=(none)
+  2026-08-29   81 row(s)  12 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-sd-la  LA Galaxy @ San Diego FC  eid=(none) start=(none)
+        MLS_2026-08-29_sandiego_lagalaxy  LA Galaxy @ San Diego  eid=761767 start=2026-08-30T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-por-atx  Austin FC @ Portland Timbers  eid=(none) start=(none)
+        MLS_2026-08-29_portland_austin  Austin @ Portland  eid=761768 start=2026-08-30T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-nsh-cin  FC Cincinnati @ Nashville SC  eid=(none) start=(none)
+        MLS_2026-08-29_nashville_cincinnati  Cincinnati @ Nashville  eid=761764 start=2026-08-30T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-min-orl  Orlando City @ Minnesota United FC  eid=(none) start=(none)
+        MLS_2026-08-29_minnesota_orlando  Orlando @ Minnesota  eid=761763 start=2026-08-30T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-skc-van  Vancouver Whitecaps FC @ Sporting Kansas City  eid=(none) start=(none)
+        MLS_2026-08-29_kansascity_vancouver  Vancouver @ Kansas City  eid=761762 start=2026-08-30T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-hou-sj  San Jose Earthquakes @ Houston Dynamo FC  eid=(none) start=(none)
+        MLS_2026-08-29_houston_sanjose  San Jose @ Houston  eid=761765 start=2026-08-30T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-col-rsl  Real Salt Lake @ Colorado Rapids  eid=(none) start=(none)
+        MLS_2026-08-29_colorado_saltlake  Salt Lake @ Colorado  eid=761766 start=2026-08-30T01:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-sea-chi  Chicago Fire FC @ Seattle Sounders FC  eid=(none) start=(none)
+        MLS_2026-08-29_seattle_chicago  Chicago @ Seattle  eid=761755 start=2026-08-29T20:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-rbny-phi  Philadelphia Union @ Red Bull New York  eid=(none) start=(none)
+        MLS_2026-08-29_redbullny_philadelphia  Philadelphia @ Red Bull NY  eid=761761 start=2026-08-29T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-mia-mtl  CF Montréal @ Inter Miami CF  eid=(none) start=(none)
+        MLS_2026-08-29_miami_cfmontral  CF Montréal @ Miami  eid=761757 start=2026-08-29T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-29-mls-atl-clt  Charlotte FC @ Atlanta United  eid=(none) start=(none)
+        MLS_2026-08-29_atlanta_charlotte  Charlotte @ Atlanta  eid=761759 start=2026-08-29T23:30Z
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-29_liberty_sky  Sky @ Liberty  eid=401857184 start=2026-08-29T17:00Z
+        wnba_2026-08-29_newyorkliberty_chicagosky  Chicago Sky @ New York Liberty  eid=401857184 start=(none)
+  2026-08-28   36 row(s)  —
+  2026-08-27   57 row(s)  —
+  2026-08-26   30 row(s)  —
+  2026-08-25   42 row(s)  —
+  2026-08-24   18 row(s)  —
+  2026-08-23   48 row(s)  2 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-23-mls-atl-skc  Sporting Kansas City @ Atlanta United  eid=(none) start=(none)
+        MLS_2026-08-23_atlanta_kansascity  Kansas City @ Atlanta  eid=761754 start=2026-08-23T23:00Z
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-23_wings_storm  Storm @ Wings  eid=401857167 start=2026-08-23T20:00Z
+        wnba_2026-08-23_dallaswings_seattlestorm  Seattle Storm @ Dallas Wings  eid=401857167 start=(none)
+  2026-08-22   75 row(s)  12 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-van-dal  FC Dallas @ Vancouver Whitecaps FC  eid=(none) start=(none)
+        MLS_2026-08-22_vancouver_dallas  Dallas @ Vancouver  eid=761749 start=2026-08-23T01:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-stl-hou  Houston Dynamo FC @ St. Louis CITY SC  eid=(none) start=(none)
+        MLS_2026-08-22_stlouis_houston  Houston @ St. Louis  eid=761747 start=2026-08-23T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-sj-min  Minnesota United FC @ San Jose Earthquakes  eid=(none) start=(none)
+        MLS_2026-08-22_sanjose_minnesota  Minnesota @ San Jose  eid=761752 start=2026-08-23T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-sd-col  Colorado Rapids @ San Diego FC  eid=(none) start=(none)
+        MLS_2026-08-22_sandiego_colorado  Colorado @ San Diego  eid=761750 start=2026-08-23T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-nsh-clb  Columbus Crew @ Nashville SC  eid=(none) start=(none)
+        MLS_2026-08-22_nashville_columbus  Columbus @ Nashville  eid=761746 start=2026-08-23T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-atx-phi  Philadelphia Union @ Austin FC  eid=(none) start=(none)
+        MLS_2026-08-22_austin_philadelphia  Philadelphia @ Austin  eid=761748 start=2026-08-23T01:00Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-orl-rsl  Real Salt Lake @ Orlando City  eid=(none) start=(none)
+        MLS_2026-08-22_orlando_saltlake  Salt Lake @ Orlando  eid=761740 start=2026-08-22T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-rbny-chi  Chicago Fire FC @ Red Bull New York  eid=(none) start=(none)
+        MLS_2026-08-22_redbullny_chicago  Chicago @ Red Bull NY  eid=761744 start=2026-08-22T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-mtl-la  LA Galaxy @ CF Montréal  eid=(none) start=(none)
+        MLS_2026-08-22_cfmontral_lagalaxy  LA Galaxy @ CF Montréal  eid=761745 start=2026-08-22T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-mia-tor  Toronto FC @ Inter Miami CF  eid=(none) start=(none)
+        MLS_2026-08-22_miami_toronto  Toronto @ Miami  eid=761742 start=2026-08-22T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-cin-sea  Seattle Sounders FC @ FC Cincinnati  eid=(none) start=(none)
+        MLS_2026-08-22_cincinnati_seattle  Seattle @ Cincinnati  eid=761743 start=2026-08-22T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-22-mls-clt-dc  D.C. United @ Charlotte FC  eid=(none) start=(none)
+        MLS_2026-08-22_charlotte_dcunited  D.C. United @ Charlotte  eid=761741 start=2026-08-22T23:30Z
+  2026-08-21   26 row(s)  —
+  2026-08-20   62 row(s)  —
+  2026-08-19   53 row(s)  13 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-van-hou  Houston Dynamo FC @ Vancouver Whitecaps FC  eid=(none) start=(none)
+        MLS_2026-08-19_vancouver_houston  Houston @ Vancouver  eid=761739 start=2026-08-20T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-sea-atx  Austin FC @ Seattle Sounders FC  eid=(none) start=(none)
+        MLS_2026-08-19_seattle_austin  Austin @ Seattle  eid=761736 start=2026-08-20T01:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-rsl-dal  FC Dallas @ Real Salt Lake  eid=(none) start=(none)
+        MLS_2026-08-19_saltlake_dallas  Dallas @ Salt Lake  eid=761735 start=2026-08-20T01:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-por-sd  San Diego FC @ Portland Timbers  eid=(none) start=(none)
+        MLS_2026-08-19_portland_sandiego  San Diego @ Portland  eid=761737 start=2026-08-20T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-min-atl  Atlanta United @ Minnesota United FC  eid=(none) start=(none)
+        MLS_2026-08-19_minnesota_atlanta  Atlanta @ Minnesota  eid=761733 start=2026-08-20T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-la-sj  San Jose Earthquakes @ LA Galaxy  eid=(none) start=(none)
+        MLS_2026-08-19_lagalaxy_sanjose  San Jose @ LA Galaxy  eid=761738 start=2026-08-20T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-skc-stl  St. Louis CITY SC @ Sporting Kansas City  eid=(none) start=(none)
+        MLS_2026-08-19_kansascity_stlouis  St. Louis @ Kansas City  eid=761732 start=2026-08-20T00:00Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-tor-clt  Charlotte FC @ Toronto FC  eid=(none) start=(none)
+        MLS_2026-08-19_toronto_charlotte  Charlotte @ Toronto  eid=761731 start=2026-08-19T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-phi-mia  Inter Miami CF @ Philadelphia Union  eid=(none) start=(none)
+        MLS_2026-08-19_philadelphia_miami  Miami @ Philadelphia  eid=761727 start=2026-08-19T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-orl-chi  Chicago Fire FC @ Orlando City  eid=(none) start=(none)
+        MLS_2026-08-19_orlando_chicago  Chicago @ Orlando  eid=761729 start=2026-08-19T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-rbny-nsh  Nashville SC @ Red Bull New York  eid=(none) start=(none)
+        MLS_2026-08-19_redbullny_nashville  Nashville @ Red Bull NY  eid=761728 start=2026-08-19T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-dc-ne  New England Revolution @ D.C. United  eid=(none) start=(none)
+        MLS_2026-08-19_dcunited_newengland  New England @ D.C. United  eid=761725 start=2026-08-19T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-19-mls-clb-mtl  CF Montréal @ Columbus Crew  eid=(none) start=(none)
+        MLS_2026-08-19_columbus_cfmontral  CF Montréal @ Columbus  eid=761726 start=2026-08-19T23:30Z
+  2026-08-18   25 row(s)  —
+  2026-08-17   15 row(s)  —
+  2026-08-16   34 row(s)  1 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-16-mls-chi-por  Portland Timbers @ Chicago Fire FC  eid=(none) start=(none)
+        MLS_2026-08-16_chicago_portland  Portland @ Chicago  eid=761723 start=2026-08-16T22:00Z
+  2026-08-15   58 row(s)  11 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-sj-stl  St. Louis CITY SC @ San Jose Earthquakes  eid=(none) start=(none)
+        MLS_2026-08-15_sanjose_stlouis  St. Louis @ San Jose  eid=761721 start=2026-08-16T02:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-rsl-min  Minnesota United FC @ Real Salt Lake  eid=(none) start=(none)
+        MLS_2026-08-15_saltlake_minnesota  Minnesota @ Salt Lake  eid=761719 start=2026-08-16T01:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-nsh-mia  Inter Miami CF @ Nashville SC  eid=(none) start=(none)
+        MLS_2026-08-15_nashville_miami  Miami @ Nashville  eid=761716 start=2026-08-16T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-hou-la  LA Galaxy @ Houston Dynamo FC  eid=(none) start=(none)
+        MLS_2026-08-15_houston_lagalaxy  LA Galaxy @ Houston  eid=761715 start=2026-08-16T00:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-col-skc  Sporting Kansas City @ Colorado Rapids  eid=(none) start=(none)
+        MLS_2026-08-15_colorado_kansascity  Kansas City @ Colorado  eid=761718 start=2026-08-16T01:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-tor-ne  New England Revolution @ Toronto FC  eid=(none) start=(none)
+        MLS_2026-08-15_toronto_newengland  New England @ Toronto  eid=761714 start=2026-08-15T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-orl-cin  FC Cincinnati @ Orlando City  eid=(none) start=(none)
+        MLS_2026-08-15_orlando_cincinnati  Cincinnati @ Orlando  eid=761713 start=2026-08-15T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-mtl-dc  D.C. United @ CF Montréal  eid=(none) start=(none)
+        MLS_2026-08-15_cfmontral_dcunited  D.C. United @ CF Montréal  eid=761711 start=2026-08-15T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-clt-clb  Columbus Crew @ Charlotte FC  eid=(none) start=(none)
+        MLS_2026-08-15_charlotte_columbus  Columbus @ Charlotte  eid=761710 start=2026-08-15T23:30Z
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-15-mls-atl-rbny  Red Bull New York @ Atlanta United  eid=(none) start=(none)
+        MLS_2026-08-15_atlanta_redbullny  Red Bull NY @ Atlanta  eid=761712 start=2026-08-15T23:30Z
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-15_sun_liberty  Liberty @ Sun  eid=401857145 start=2026-08-15T17:00Z
+        wnba_2026-08-15_connecticutsun_newyorkliberty  New York Liberty @ Connecticut Sun  eid=401857145 start=(none)
+  2026-08-14   24 row(s)  —
+  2026-08-13   26 row(s)  —
+  2026-08-12   26 row(s)  —
+  2026-08-11   21 row(s)  —
+  2026-08-10   18 row(s)  —
+  2026-08-09   29 row(s)  1 group(s)
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-09_liberty_aces  Aces @ Liberty  eid=401857128 start=2026-08-09T16:30Z
+        wnba_2026-08-09_newyorkliberty_lasvegasaces  Las Vegas Aces @ New York Liberty  eid=401857128 start=(none)
+  2026-08-08   60 row(s)  3 group(s)
+      INDISTINGUISHABLE  *** WATCHER IS BLIND ***
+        2026-08-08-mls-ne-hou  Houston Dynamo FC @ New England Revolution  eid=(none) start=(none)
+        MLS_2026-08-08_newengland_houston  Houston @ New England  eid=761469 start=2026-08-08T20:30Z
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-08_lynx_aces  Aces @ Lynx  eid=401857125 start=2026-08-08T17:00Z
+        wnba_2026-08-08_minnesotalynx_lasvegasaces  Las Vegas Aces @ Minnesota Lynx  eid=401857125 start=(none)
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-08_sky_fever  Fever @ Sky  eid=401857126 start=2026-08-08T19:30Z
+        wnba_2026-08-08_chicagosky_indianafever  Indiana Fever @ Chicago Sky  eid=401857126 start=(none)
+  2026-08-07   28 row(s)  —
+  2026-08-06   20 row(s)  —
+  2026-08-05   25 row(s)  —
+  2026-08-04   18 row(s)  —
+  2026-08-03   12 row(s)  —
+  2026-08-02   31 row(s)  2 group(s)
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-02_lynx_fever  Fever @ Lynx  eid=401857107 start=2026-08-02T17:00Z
+        wnba_2026-08-02_minnesotalynx_indianafever  Indiana Fever @ Minnesota Lynx  eid=401857107 start=(none)
+      DUPLICATE  watcher SEES it
+        WNBA_2026-08-02_fire_sparks  Sparks @ Fire  eid=401857108 start=2026-08-02T19:30Z
+        wnba_2026-08-02_portlandfire_losangelessparks  Los Angeles Sparks @ Portland Fire  eid=401857108 start=(none)
+
+1064 row(s), 170 with no event id (16.0%)
+61 non-distinct group(s), 51 INVISIBLE to the event-id watcher
+
+VERDICT: blind-spot
+
+51 group(s) the watcher cannot see, because at least one row in each
+carries no event id. The numeric key cannot reach them either — it is scoped
+to exactly the rows the watcher can group. Closing #1 on a clean watcher run
+would be an artifact of where we were looking. Per Rule 87 (4) this needs a
+SECOND CC-CMD written before the first is closed; the rows are listed above.
+INDISTINGUISHABLE means neither a duplicate nor a doubleheader can be ruled
+out from what is served — those rows carry no event id AND no start_time.
+
+artifact: outbox/fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt
