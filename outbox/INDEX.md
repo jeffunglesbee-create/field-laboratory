@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b0241f0` | 2026-09-01 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | docs: repair two citations the render shifted |
+| `b0241f0` | 2026-09-01 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | docs: repair two citations the render shifted |
+| `d917dc9` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ui: team tints on the desk, resolved pairwise per card |
+| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-09-07-993Z.png](team-tints-2026-09-01T20-09-07-993Z.png) | ui: team tints on the desk, resolved pairwise per card |
+| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-10-12-339Z.png](team-tints-2026-09-01T20-10-12-339Z.png) | ui: team tints on the desk, resolved pairwise per card |
+| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-10-49-391Z.png](team-tints-2026-09-01T20-10-49-391Z.png) | ui: team tints on the desk, resolved pairwise per card |
+| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-13-35-188Z.png](team-tints-2026-09-01T20-13-35-188Z.png) | ui: team tints on the desk, resolved pairwise per card |
+| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-14-42-209Z.png](team-tints-2026-09-01T20-14-42-209Z.png) | ui: team tints on the desk, resolved pairwise per card |
 | `da5e5f7` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | generator: a colour identifying two clubs identifies neither |
 | `ad1d1aa` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | generator: the club colours table, fuzzy here and exact at runtime |
 | `f9ae81c` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-47-22-768Z.txt](team-colour-coverage-2026-09-01T19-47-22-768Z.txt) | probe: team-colour coverage [skip ci] |
