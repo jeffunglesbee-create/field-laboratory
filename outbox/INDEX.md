@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f6cc6b5` | 2026-09-01 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | docs: repair two anchored citations whose line numbers moved |
+| `9c0b64f` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: a failure can no longer look like progress |
 | `c5ec179` | 2026-09-01 | [cc-session-2026-09-01-device-affordances.md](cc-session-2026-09-01-device-affordances.md) | ui: three device affordances, and a guard against faking the fourth |
 | `1560b68` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: corrected exposure artifact, and 5 became 4 on its own |
 | `1560b68` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | probe: corrected exposure artifact, and 5 became 4 on its own |
