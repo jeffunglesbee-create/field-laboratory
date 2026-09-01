@@ -421,7 +421,7 @@ Scout's Pick accepted nothing. It was the odd assertion out, not a considered
 stricter contract.
 
 Now: gates, **or** the panel's own stated reason there are none — transcribed
-from `src/PickView.fs:136` rather than from the truncated run log. A blank panel
+from `src/PickView.fs:63` rather than from the truncated run log. A blank panel
 still fails, which is the failure shape this project actually records.
 
 ## Six rounds, one slate, and the check never moved toward green
