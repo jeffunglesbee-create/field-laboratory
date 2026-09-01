@@ -228,3 +228,56 @@ tryTint   "MLB" "afl City 0"       -> none   (league-scoped, as intended)
 **That stub table is not committed.** The names were invented, and inventing data
 is what this project refuses. The fsproj change was reverted with it; the real
 table only ever comes from the workflow.
+
+
+## The first real table exposed a bigger problem than legibility
+
+1702 entries, 31 leagues, generated and committed by the workflow. Measured
+immediately, because a table that compiles is not a table that works:
+
+```
+Bundesliga  #ffffff -> Augsburg, Monchengladbach, Cologne, Eintracht Frankfurt
+            #da0308 -> Union Berlin, Leverkusen, Freiburg, Mainz
+La Liga     #ffffff -> Racing, Rayo Vallecano, Real Madrid, Sevilla
+EPL         #ffffff -> Fulham, Leeds, Spurs
+MLB         #000000 -> White Sox, Giants, Pirates
+WNBA        clean — 15 colours, 15 clubs
+```
+
+**ESPN's `color` for European football is the KIT, not the club.** Real Madrid
+and Sevilla both play in white, so ESPN says white for both. That is correct and
+useless: four clubs rendering one tint tells a reader nothing, and implies a
+relationship that is not there.
+
+Bundesliga had **9 distinct colours across 34 entries**. The feature would have
+shipped looking finished and communicating almost nothing in three of the five
+biggest football leagues.
+
+Legibility was the problem I set out to solve. This one is larger, and only the
+real data showed it — the fifteen hand-picked colours I measured at the start
+were all American, all distinct, and all reassuring.
+
+### The rule: a colour identifying two clubs identifies neither
+
+`alternateColor` is tried first, since a club whose primary is taken usually has
+a distinct secondary. A club whose **both** colours are taken is dropped and
+renders as plain text.
+
+That is the same refusal `buildEntries` already makes on the other axis — one
+name carrying two colours is dropped rather than picked — applied symmetrically.
+Neither is a fallback; both are the honest answer when the data cannot say.
+
+A `canon` key decides what counts as "another club", because a club must not
+collide with its own second spelling. And the slate's spelling joins its club's
+candidate rather than becoming a new one, so it inherits whatever colour that
+club resolved to.
+
+### Verified
+
+16/16, with four cases on the collision rule itself: the second white club takes
+its alternate; a club whose both colours are taken is dropped rather than forced;
+two spellings of one club are not a collision; the same colour in two different
+leagues is not a collision.
+
+Exercised against a stub where twelve clubs per league share white and differ on
+their alternates — eleven resolve, one drops, per league.
