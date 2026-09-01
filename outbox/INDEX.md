@@ -12,6 +12,22 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `406b2eb` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-17-23-500Z.png](team-tints-2026-09-01T20-17-23-500Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-17-55-243Z.png](team-tints-2026-09-01T20-17-55-243Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-18-12-162Z.png](team-tints-2026-09-01T20-18-12-162Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-18-29-705Z.png](team-tints-2026-09-01T20-18-29-705Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-18-48-056Z.png](team-tints-2026-09-01T20-18-48-056Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-19-23-814Z.png](team-tints-2026-09-01T20-19-23-814Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-19-56-374Z.png](team-tints-2026-09-01T20-19-56-374Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-20-14-779Z.png](team-tints-2026-09-01T20-20-14-779Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-20-32-527Z.png](team-tints-2026-09-01T20-20-32-527Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-20-51-867Z.png](team-tints-2026-09-01T20-20-51-867Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-10-308Z.png](team-tints-2026-09-01T20-21-10-308Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-35-997Z.png](team-tints-2026-09-01T20-21-35-997Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-39-045Z.png](team-tints-2026-09-01T20-21-39-045Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-58-437Z.png](team-tints-2026-09-01T20-21-58-437Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
+| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-22-16-742Z.png](team-tints-2026-09-01T20-22-16-742Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
 | `b0241f0` | 2026-09-01 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | docs: repair two citations the render shifted |
 | `b0241f0` | 2026-09-01 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | docs: repair two citations the render shifted |
 | `d917dc9` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ui: team tints on the desk, resolved pairwise per card |
