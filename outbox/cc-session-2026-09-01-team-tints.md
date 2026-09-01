@@ -50,9 +50,16 @@ colour that carries meaning, and the rule cannot drift if a semantic is retuned.
 
 ### Three properties are public because they are the claim
 
-`contrastWithBg`, `hueOf`, `saturationOf`. "The hue is preserved" is the entire
+`contrastWithCard`, `hueOf`, `saturationOf`. "The hue is preserved" is the entire
 justification for showing a derived colour, so it has to be checkable rather than
 asserted in a comment.
+
+(Corrected 2026-09-01: this said `contrastWithBg`. That helper measured against
+the page ground and was written while `teamTint` still targeted it; moving the
+target to `card2` left it with no consumer, and `check:unused` said so. Deleted.
+Contrast against the page ground is still asserted, in
+`scripts/team-tint-render-check.mjs`, where it is a rendering fact rather than a
+property of the derivation.)
 
 ### None is a third state, not a fallback
 

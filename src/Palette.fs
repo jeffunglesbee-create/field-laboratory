@@ -315,11 +315,6 @@ let teamTintSaturationCap =
     |> List.map (fun s -> let (_, sat, _) = toHsl (Option.get (hexToRgb (cssValue (tokenOf s)))) in sat)
     |> List.min
 
-/// A token's contrast against the page ground. Public because a tint's whole
-/// claim is a number, and a claim nothing can measure from outside is a promise.
-let contrastWithBg (t: Token) =
-    contrastOf (Option.get (hexToRgb (cssValue t))) (Option.get (hexToRgb (cssValue bg)))
-
 /// A token's contrast against the LIGHTEST card surface — the one a team name
 /// actually sits on, and the one `teamTint` targets.
 let contrastWithCard (t: Token) =
