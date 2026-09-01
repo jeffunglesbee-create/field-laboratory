@@ -185,6 +185,17 @@ jobs:
       - name: Device affordances, including the one not to fake
         run: npm run check:device-chrome
 
+      # A failure must not be able to look like progress. `report` wrote
+      # textContent only, so FETCH FAILED rendered exactly like "decoding…",
+      # and `.meta`'s container `opacity` composited the subtree so no child
+      # could paint back to full strength — the container was the reason an
+      # error could not be made to look like one. Reads build/Program.js, the
+      # artifact the browser runs, not the F# it came from: Fable inlines and
+      # renames, and routing that reads correctly in source is not thereby
+      # present in the output. Runs after the build step above for that reason.
+      - name: A failure looks like a failure
+        run: npm run check:status-state
+
       # The win-probability market-shape model, over the real compiled Market.fs:
       # constructors validate the sum, the two-way complement is correct where
       # allowed, and on a real de-vigged three-way market the two-way complement

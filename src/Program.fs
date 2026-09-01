@@ -125,10 +125,27 @@ let private disposePrevious () =
         disposeRoot <- None
     | None -> ()
 
-let private report (id: string) (text: string) =
+/// Write a status line AND say which kind it is.
+///
+/// THE STATE IS ALWAYS SET, NEVER ONLY ON FAILURE. A line that reaches `ok`
+/// after a failure has to LOSE the failed marker, or the first error of a
+/// session paints that line red for the rest of it — a stale status dressed as
+/// a live one, which is the failure mode this whole page exists to catch.
+///
+/// `warn` is not decoration either. The fallback path currently folds "live
+/// slate unreachable, showing committed capture" into the middle of an
+/// otherwise successful sentence, at the same weight as the game count. That is
+/// a page serving yesterday's data while looking like it is serving today's.
+let private reportAs (state: string) (id: string) (text: string) =
     match document.getElementById id with
     | null -> ()
-    | node -> node.textContent <- text
+    | node ->
+        node.textContent <- text
+        node.setAttribute ("data-state", state)
+
+let private report (id: string) (text: string) = reportAs "ok" id text
+let private reportWarn (id: string) (text: string) = reportAs "warn" id text
+let private reportFailed (id: string) (text: string) = reportAs "failed" id text
 
 /// Test affordance, wired only when `?simulate=1` is present.
 ///
@@ -177,12 +194,12 @@ let private start () =
 
         match attempt with
         | Error err ->
-            report "decode-status" (sprintf "FETCH FAILED: %s" err)
+            reportFailed "decode-status" (sprintf "FETCH FAILED: %s" err)
         | Ok(body, note) ->
 
         match decodePayload body with
         | Error err ->
-            report "decode-status" (sprintf "DECODE FAILED: %s" err)
+            reportFailed "decode-status" (sprintf "DECODE FAILED: %s" err)
         | Ok payload ->
             let games = payload.Regular @ payload.Postseason
 
@@ -195,7 +212,13 @@ let private start () =
                 if payload.Unnamed = 0 then ""
                 else sprintf " · %d row(s) not drawn — sides not named" payload.Unnamed
 
-            report "decode-status"
+            // `note` is non-empty ONLY on the fallback path, where the live
+            // slate was unreachable and a committed capture is being served
+            // instead. Same sentence, same game count, entirely different
+            // claim about what the page is showing — so it gets its own state
+            // rather than the same weight as a normal load.
+            (if note = "" then report else reportWarn)
+                "decode-status"
                 (sprintf "decoded %d game(s) for %s%s%s" (List.length games) payload.Date note unnamed)
             if (queryParam "data").IsNone then report "viewed-date" (viewedDate ())
 
@@ -349,7 +372,7 @@ let private start () =
                     // Named, not swallowed. The six undefined weather functions
                     // were invisible for three days because a try/catch ate the
                     // error; a schedule that cannot be read says so.
-                    | Error e -> report "schedule" (sprintf "schedule unavailable — %s" e))
+                    | Error e -> reportFailed "schedule" (sprintf "schedule unavailable — %s" e))
 
             weatherVenues <- games |> List.choose (fun g -> g.Venue) |> List.distinct
             weatherLoaded <- false

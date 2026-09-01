@@ -50,8 +50,18 @@
     font-size: 1.1rem; letter-spacing: .26em; text-transform: uppercase;
     opacity: .8; margin: 0 0 1.5rem; color: var(--text);
   }
-  .meta { font-size: .85rem; opacity: .65; margin-bottom: 1.5rem; }
-  .meta div { margin-bottom: .25rem; }
+  /* THE DIMMING MOVED FROM `opacity` TO `color`, and that is the whole fix.
+     `opacity` on the container composites the entire subtree, so a child CANNOT
+     raise itself back to full strength — a failure line styled `color: var(--red)`
+     would still have rendered at 65%, looking like every other status. The
+     container was the reason an error could not be made to look like an error.
+     Per-line colour has no such ceiling. */
+  .meta { font-size: .85rem; margin-bottom: 1.5rem; }
+  .meta div { margin-bottom: .25rem; color: var(--dim-text); }
+  /* Set by reportAs in Program.fs on EVERY write, so a line that recovers loses
+     its marker instead of staying red for the rest of the session. */
+  .meta [data-state="warn"]   { color: var(--caution); }
+  .meta [data-state="failed"] { color: var(--red); }
 
   /* Tabs. Three surfaces over the same date: the slate, and the two picks —
      which are not the same feature and must not look like one. */
@@ -674,7 +684,11 @@
   </nav>
 
   <div class="meta">
-    <div id="decode-status">decoding…</div>
+    <!-- role=status, because this line is the answer to "does the page have
+         data at all". A fetch failure that is only visible is half a fix, by
+         the same argument that made #viewed-date a live region. Polite, not
+         assertive: it must not interrupt. -->
+    <div id="decode-status" role="status">decoding…</div>
     <div id="units-demo"></div>
     <!-- What the MLB schedule fetch did. `report` writes by element id, so an id
          nothing renders is a silent no-op — which is how a status line comes to
