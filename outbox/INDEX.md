@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `52c7bc6` | 2026-09-01 | [2026-09-01-history-guard-on-the-runner.md](2026-09-01-history-guard-on-the-runner.md) | ci: the outbox guard reaches the runner, and the generator carries its own entry |
 | `406b2eb` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
 | `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-17-23-500Z.png](team-tints-2026-09-01T20-17-23-500Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
 | `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-17-55-243Z.png](team-tints-2026-09-01T20-17-55-243Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
