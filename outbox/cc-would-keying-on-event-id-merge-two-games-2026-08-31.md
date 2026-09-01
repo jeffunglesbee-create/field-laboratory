@@ -105,3 +105,63 @@ npm run check:import-purity                              2/2
 The live sweep needs CI (`*.workers.dev` is blocked from the sandbox) and is
 dispatch-only — it settles a question once. The daily watcher in `drift-sentinel`
 is the monitor.
+
+---
+
+## Result: UNSAFE. My own proposal, refuted by my own check.
+
+Run `33460445427`, 30 days, **1085 rows, 13 collision groups — 10 same fixture,
+3 DIFFERENT fixtures.** All three are golf, all the same shape:
+
+```
+espn:golf_401811963  *** DIFFERENT FIXTURES ***
+    golf_2026-08-21_bmwchampionship_r1   R1 @ BMW Championship
+    golf_2026-08-21_bmwchampionship_r2   R2 @ BMW Championship
+espn:golf_401811962  R3 / R4  FedEx St. Jude Championship
+espn:golf_401811960  R3 / R4  Rocket Classic
+```
+
+Golf writes **one row per round** — `home: eventName, away: 'R'+round`, with the
+same `source_id: 'golf_'+eventId` every round. Its `espn_event_id` identifies a
+**tournament**, not a fixture. Keying the archive id on it would have merged R1
+with R2 and R3 with R4, destroying a row per pair, in three tournaments in one
+month.
+
+I had read that golf writer earlier today while checking what clients post. I did
+not connect it to the proposal I filed two hours later.
+
+## The data separates the cases without needing a judgement call
+
+| group | id shape | n | verdict |
+|---|---|---|---|
+| real ESPN event ids | `401857107` … `401857187` | 10 | same fixture, safe |
+| golf synthetic keys | `golf_401811960/62/63` | 3 | different fixtures, **unsafe** |
+
+Every safe id is purely numeric. Every unsafe one carries a `golf_` prefix. The
+refinement writes itself: **key on `espn_event_id` only when `/^\d+$/`**, and
+leave synthetic keys on the name-based id — the same carve-out the series CC-CMD
+made for non-bracket callers.
+
+## Incidental finding: two fields drift, not one
+
+```
+WNBA_2026-08-08_sky_fever                  Fever @ Sky
+wnba_2026-08-08_chicagosky_indianafever    Indiana Fever @ Chicago Sky
+```
+
+Uppercase vs lowercase **sport label**, and short vs full **team names**. Two
+write paths differing in both the id prefix and the id tail — the documented
+"drifting label splits one competition across two id namespaces" hazard and the
+team-name drift, at once.
+
+## What the subset rule bought
+
+Comparing by equality would have called all 13 groups dangerous, including the 10
+that are the bug being fixed. The answer would have been "unsafe" — correct by
+accident, for entirely the wrong reason, and the golf finding would have been
+invisible inside it.
+
+The mutation that proved this (`6/12`) was written before the sweep ran. It is
+the difference between an answer and a coincidence.
+
+Posted to field-relay-nba#1.
