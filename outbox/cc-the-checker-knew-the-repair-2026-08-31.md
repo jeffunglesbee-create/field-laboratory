@@ -61,7 +61,7 @@ nothing else. Both verified against their anchors rather than trusted:
 
 - `scripts/docs-check.mjs:71` now reads
   `JSON.parse(readFileSync('data/brief-recency-corpus.json', 'utf8'))`
-- `src/Desk.fs:819` now reads
+- `src/Desk.fs:842` now reads
   `` `updated_at` picks the after-brief 0 times of 199 ``
 
 Citation drift is zero — the `ANCHORED BUT` block no longer prints.
