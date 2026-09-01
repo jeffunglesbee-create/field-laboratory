@@ -1,0 +1,49 @@
+probe_at: 2026-09-01T15:12:00.719Z
+question: how many rows would the numeric-id upsert key strand on the day it ships?
+method:   public GET /context/date. 21 day(s) FORWARD from today (ET),
+          plus yesterday as a readability control.
+
+control 2026-08-31  18 row(s), 18 scored
+
+  2026-09-01   18 row(s)   15 exposed   <- today (ET)
+  2026-09-02    1 row(s)    0 exposed
+  2026-09-03    1 row(s)    0 exposed
+  2026-09-04   15 row(s)    0 exposed
+  2026-09-05    7 row(s)    0 exposed
+  2026-09-06    7 row(s)    0 exposed
+  2026-09-07    0 row(s)    0 exposed
+  2026-09-08    0 row(s)    0 exposed
+  2026-09-09   15 row(s)    0 exposed
+  2026-09-10    9 row(s)    0 exposed
+  2026-09-11    0 row(s)    0 exposed
+  2026-09-12   15 row(s)    0 exposed
+  2026-09-13    9 row(s)    0 exposed
+  2026-09-14    1 row(s)    0 exposed
+  2026-09-15    3 row(s)    0 exposed
+  2026-09-16    3 row(s)    0 exposed
+  2026-09-17    1 row(s)    0 exposed
+  2026-09-18   15 row(s)    0 exposed
+  2026-09-19    4 row(s)    0 exposed
+  2026-09-20   10 row(s)    0 exposed
+  2026-09-21    0 row(s)    0 exposed
+  2026-09-22    0 row(s)    0 exposed
+
+VERDICT: measured
+
+134 forward row(s), 15 EXPOSED
+  today (in flight, resolves on its own): 15
+  future-dated (strands)                : 0
+    MLB          15
+
+SHIP ADVICE: quiet-window
+
+15 exposed row(s), ALL on today and NONE future-dated. These are
+in-flight games seeded at start and resolving within hours on their own. This is
+NOT the 2026-08-08 shape — that was a bulk import of future fixtures nothing was
+waiting to resolve. There is no backlog to clean up.
+
+Deploy after tonight's slate finalizes and this count is zero. A deploy landing
+mid-slate strands exactly these 15 row(s) — bounded, nameable, and
+avoidable by waiting a few hours rather than by writing a cleanup.
+
+artifact: outbox/id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt
