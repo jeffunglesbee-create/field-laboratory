@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a5641f8` | 2026-09-01 | [cc-would-keying-on-event-id-merge-two-games-2026-08-31.md](cc-would-keying-on-event-id-merge-two-games-2026-08-31.md) | probe: the espn_event_id proposal is UNSAFE as filed — golf shares one id per tournament |
+| `d0de361` | 2026-09-01 | [espn-id-collisions-2026-09-01T01-53-20-167Z.txt](espn-id-collisions-2026-09-01T01-53-20-167Z.txt) | probe: espn_event_id collision safety [skip ci] |
+| `6233edc` | 2026-09-01 | [cc-would-keying-on-event-id-merge-two-games-2026-08-31.md](cc-would-keying-on-event-id-merge-two-games-2026-08-31.md) | probe: would keying on espn_event_id merge two different games? |
 | `2683add` | 2026-08-31 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-31 [skip ci] |
 | `2683add` | 2026-08-31 | [sport-vocabulary-2026-08-31T19-02-44-979Z.json](sport-vocabulary-2026-08-31T19-02-44-979Z.json) | drift-sentinel: ok on 2026-08-31 [skip ci] |
 | `f28ebf7` | 2026-08-31 | [cc-id-consumer-enumeration-2026-08-31.md](cc-id-consumer-enumeration-2026-08-31.md) | docs: enumerate every consumer of regular_season_games.id |
