@@ -170,3 +170,56 @@ query string, and whether `responseStatus` is populated or TAO-gated to 0 like
 the connection phases already are. Both are documented, and documentation is a
 copy of the source, so the probe now measures them on the browser that runs the
 check, including what an entry for a request to a dead host looks like.
+
+---
+
+## Reading 2, run 33561563519 (21:34 UTC) — and one thing it got wrong
+
+Both cross-boundary facts came back usable:
+
+```
+    name carries the query string : YES
+    responseStatus present        : YES
+    responseStatus on an answered : 200
+    responseStatus on a DEAD host : 0
+    a name, verbatim: https://api.open-meteo.com/v1/forecast?latitude=39.0517&longitude=-94.4803&current=...
+```
+
+`responseStatus` is populated despite the absent `Timing-Allow-Origin` — it is
+not gated the way the connection phases are — and the full query string is in
+`name`, so the URL the page requested is checkable against `forecastUrl`.
+
+**But the probe recorded 5 resource entries for 10 requests**, and that number is
+the more important result. A mechanism resting on "no entry received a response"
+is worthless if entries go missing.
+
+Cause: the probe ran on `about:blank`, which has an opaque origin and is not the
+configuration `render-check` runs in. The real check's own output disagrees —
+run 250 printed eight timings for eight attempted requests, from the app at
+`http://localhost:8080`:
+
+```
+642+8000ms 642+8000ms 642+8000ms 643+8002ms 8643+6000ms 8644+5999ms 8644+5997ms 8644+5997ms
+```
+
+So on the real origin, entries appear to be complete, including for requests that
+were aborted at their cap. "Appear to be" is the problem: that is read off a log,
+and the fact needed is that EVERY request leaves an entry, which a log of eight
+timings for eight requests suggests but does not establish for the general case.
+
+## What the third run measures
+
+Two changes, both narrowing the gap between the probe and the thing it stands in
+for:
+
+1. **The real origin.** `scripts/serve.mjs` answers an unknown path with a plain
+   404 body — a real document at `http://localhost:8080` with none of the app's
+   JS, so the app's own waves, budgets and retry are not in the measurement while
+   the origin is the right one. The probe now reports entries recorded against
+   requests made.
+
+2. **A request that TIMES OUT, not one that fails DNS.** `api.open-meteo.invalid`
+   fails at name resolution in 13ms. The failure being attributed is a request
+   aborted at its cap after eight seconds. An entry existing for the first does
+   not prove one exists for the second, and the second is the entire mechanism.
+   The new target is an unroutable address that hangs until `AbortSignal` fires.

@@ -131,10 +131,18 @@ if (isMain(import.meta.url)) {
   const sessionChromium = '/opt/pw-browsers/chromium'
   const browser = await chromium.launch(existsSync(sessionChromium) ? { executablePath: sessionChromium } : {})
   const page = await browser.newPage()
-  // about:blank, not the app. The page's own weather code has waves, budgets and
-  // a retry; running through it would measure THOSE, and what is in question is
-  // whether the browser can reach the host at all.
-  await page.goto('about:blank')
+  // A 404 FROM THE REAL DEV SERVER, not about:blank and not the app.
+  //
+  // Not the app: its weather code has waves, budgets and a retry, and running
+  // through it would measure those rather than reachability. Not about:blank
+  // either — the first run of this probe used it and recorded resource entries
+  // for only 5 of its 10 requests, which would have made "no entry received a
+  // response" unusable as evidence. `about:blank` has an opaque origin and is
+  // not the configuration render-check runs in. `scripts/serve.mjs` answers an
+  // unknown path with a plain 404 body, which is a real document at the real
+  // origin with none of the app's JS.
+  const ORIGIN = process.env.ORIGIN || 'http://localhost:8080'
+  await page.goto(`${ORIGIN}/__egress-probe`, { waitUntil: 'domcontentloaded' })
 
   const browser1 = await timed(() => page.evaluate(async (u) => {
     const r = await fetch(u, { signal: AbortSignal.timeout(15_000) })
@@ -179,10 +187,18 @@ if (isMain(import.meta.url)) {
   // measured here, on the browser that runs the check, including what an entry
   // for a request that NEVER ANSWERED looks like — because distinguishing that
   // from a 200 is the entire mechanism.
-  const dead = 'https://api.open-meteo.invalid/v1/forecast?latitude=1.0&longitude=2.0'
-  await page.evaluate(async (u) => {
-    try { await fetch(u, { signal: AbortSignal.timeout(2000) }) } catch {}
-  }, dead)
+  // TWO ways to never answer, because they are not the same event and the one
+  // that matters is the second. A bad hostname fails at DNS in milliseconds; the
+  // failure being attributed is a request that CONNECTED OR DID NOT and was then
+  // aborted at its cap after eight seconds. An entry existing for the first does
+  // not prove one exists for the second, and the whole mechanism is that it does.
+  const deadDns = 'https://api.open-meteo.invalid/v1/forecast?latitude=1.0&longitude=2.0'
+  const deadHang = 'https://10.255.255.1/v1/forecast?latitude=1.0&longitude=2.0&host=open-meteo'
+  await page.evaluate(async (us) => {
+    await Promise.all(us.map(async (u) => {
+      try { await fetch(u, { signal: AbortSignal.timeout(4000) }) } catch {}
+    }))
+  }, [deadDns, deadHang])
 
   const entries = await page.evaluate(() =>
     performance.getEntriesByType('resource')
@@ -195,9 +211,12 @@ if (isMain(import.meta.url)) {
         transferSize: e.transferSize,
       })))
 
-  const answered = entries.filter(e => !e.name.includes('.invalid'))
+  const answered = entries.filter(e => e.name.startsWith('https://api.open-meteo.com/'))
   const never = entries.filter(e => e.name.includes('.invalid'))
+  const hung = entries.filter(e => e.name.includes('10.255.255.1'))
   console.log(`\n  resource timing: ${entries.length} open-meteo entr(ies)`)
+  console.log(`    an entry for EVERY request    : ${answered.length}/${urls.length + 1} to the real host (burst + single)`)
+  console.log(`    an entry for a TIMED-OUT req  : ${hung.length ? `YES — status ${hung[0].responseStatus}, ${hung[0].duration}ms` : 'NO — a request aborted at its cap leaves NO entry'}`)
   console.log(`    name carries the query string : ${answered.every(e => e.name.includes('latitude=')) ? 'YES' : 'NO'}`)
   console.log(`    responseStatus present        : ${answered.every(e => e.hasResponseStatus) ? 'YES' : 'NO'}`)
   console.log(`    responseStatus on an answered : ${[...new Set(answered.map(e => e.responseStatus))].join(', ') || 'none'}`)
@@ -222,6 +241,7 @@ if (isMain(import.meta.url)) {
   writeFileSync(out, JSON.stringify({
     at: new Date().toISOString(), verdict, repair: repairFor(verdict), measurements,
     node: node1, browserSingle: browser1, burst, resourceTiming: entries,
+    origin: ORIGIN,
   }, null, 2))
   console.log(`  ${out}`)
 
