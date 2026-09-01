@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `615260c` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-30-29-625Z.json](open-meteo-egress-2026-09-01T21-30-29-625Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `615260c` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
+| `bce3973` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | probe: which stack cannot reach Open-Meteo, node's or the browser's |
 | `00155ae` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | fix: delete contrastWithBg, which the card-surface move orphaned |
 | `52c7bc6` | 2026-09-01 | [2026-09-01-history-guard-on-the-runner.md](2026-09-01-history-guard-on-the-runner.md) | ci: the outbox guard reaches the runner, and the generator carries its own entry |
 | `406b2eb` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
