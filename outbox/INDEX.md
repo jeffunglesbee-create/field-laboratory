@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c5ec179` | 2026-09-01 | [cc-session-2026-09-01-device-affordances.md](cc-session-2026-09-01-device-affordances.md) | ui: three device affordances, and a guard against faking the fourth |
+| `1560b68` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: corrected exposure artifact, and 5 became 4 on its own |
+| `1560b68` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | probe: corrected exposure artifact, and 5 became 4 on its own |
+| `a302994` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt](id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt) | probe: id-scheme migration exposure [skip ci] |
 | `dd2acf8` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: today is not the future, and the advice was wrong because of it |
 | `23176d1` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | probe: id-scheme migration exposure [skip ci] |
 | `7358ab9` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: what the numeric-id key would strand, swept forward |
