@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `778a656` — [run 33470046150](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33470046150)
+**green** on `5f84930` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `2d329b5`
+`live-check` (post-deploy, against the deployed page): **running** on `73d32a9`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `2d329b5` — newest deployable `778a656` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `73d32a9` — newest deployable `5f84930` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

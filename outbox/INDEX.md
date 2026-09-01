@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `73d32a9` | 2026-09-01 | [fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt](fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt) | probe: fixture-identity duplicates [skip ci] |
+| `5f84930` | 2026-09-01 | [cc-session-2026-09-01-fixture-identity-blind-spot.md](cc-session-2026-09-01-fixture-identity-blind-spot.md) | probe: duplicates the event-id watcher cannot see |
+| `8deca4b` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt](id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt) | probe: id-scheme migration exposure [skip ci] |
 | `3135175` | 2026-09-01 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-01 [skip ci] |
 | `3135175` | 2026-09-01 | [sport-vocabulary-2026-09-01T06-22-05-077Z.json](sport-vocabulary-2026-09-01T06-22-05-077Z.json) | drift-sentinel: ok on 2026-09-01 [skip ci] |
 | `778a656` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: bound the vertical chrome budget, an axis nothing measured |
