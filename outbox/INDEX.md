@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `69fe415` | 2026-09-01 | [cc-session-2026-09-01-watcher-blind-spot-fix.md](cc-session-2026-09-01-watcher-blind-spot-fix.md) | watch: the duplicate watcher can see the class it was closing over |
 | `f8ef9de` | 2026-09-01 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-01 [skip ci] |
 | `f8ef9de` | 2026-09-01 | [sport-vocabulary-2026-09-01T16-26-08-537Z.json](sport-vocabulary-2026-09-01T16-26-08-537Z.json) | drift-sentinel: ok on 2026-09-01 [skip ci] |
 | `0ade237` | 2026-09-01 | [dash-scheme-writer-2026-09-01T16-06-43-389Z.txt](dash-scheme-writer-2026-09-01T16-06-43-389Z.txt) | probe: dash-scheme writer [skip ci] |
