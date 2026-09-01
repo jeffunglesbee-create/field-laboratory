@@ -96,17 +96,66 @@ const VIEWPORTS = [
  * D1..U1 read `LEFT`, naming FIELD's three-column desktop product. Not a column
  * count, and not something this repo implements.
  */
+/**
+ * The share of the viewport left for content once the sticky chrome is paid for.
+ *
+ * THE AXIS THIS FILE DID NOT MEASURE. It proved nothing spills sideways while a
+ * third of the screen was going vertically. Measured 2026-09-01 across all ten
+ * states, the sticky stack — tab bar, date nav, sport heading, body padding —
+ * is a flat 154-168px everywhere, which is 15-21% of a portrait phone and
+ * **44.9% of L1** (667x375): 168px of chrome above 207px of content, about one
+ * card. Nothing in CI looked, because both existing assertions are horizontal.
+ *
+ * `position` is read at measure time rather than assumed: a layer that is
+ * sticky on a phone and static in landscape must not be counted in both.
+ */
+export const contentShare = (m) => (m.viewportHeight - m.chromeHeight) / m.viewportHeight
+
+/**
+ * The floor, set from measurement rather than from taste.
+ *
+ * After dropping the sport heading below 500px of height, the worst state is L1
+ * at 64.8%, then L2 at 69.3%; every other state is 79% or better. 0.60 sits
+ * about five points under the worst, which is enough headroom that the check
+ * does not fire on rounding and little enough that ONE new sticky layer — the
+ * smallest here is 36px, and 36px costs L1 nine points — trips it.
+ *
+ * Deliberately ONE number rather than a per-viewport ratchet. A ratchet blesses
+ * whatever each state does today; a floor says what any state must clear.
+ */
+export const CONTENT_FLOOR = 0.60
+
 export const verdictFor = (v, m) => {
   const faults = []
   if (m.overflowBefore > 0) faults.push(`${m.overflowBefore}px overflow at rest`)
   if (m.overflowAfter > 0) faults.push(`${m.overflowAfter}px overflow once cards are open`)
   if (v.cols !== null && m.cols !== v.cols) faults.push(`${m.cols} column(s), spec says ${v.cols}`)
+  if (m.chromeHeight !== undefined && contentShare(m) < CONTENT_FLOOR)
+    faults.push(`${m.chromeHeight}px of sticky chrome leaves ${(100 * contentShare(m)).toFixed(1)}% for content`)
   return faults
 }
 
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const { check, summarize } = createChecks()
   const P1 = VIEWPORTS[0], D3 = VIEWPORTS[8]
+  const roomy = { chromeHeight: 132, viewportHeight: 375 }   // L1 as measured today
+  const eaten = { chromeHeight: 168, viewportHeight: 375 }   // L1 before the fix
+
+  check('the measured L1 clears the floor',
+    contentShare(roomy) > CONTENT_FLOOR && contentShare(roomy).toFixed(3) === '0.648')
+  check('L1 AS IT WAS DOES NOT — 168px of chrome in a 375px window',
+    contentShare(eaten) < CONTENT_FLOOR,
+    'the state this assertion was written for must fail it')
+  check('one more 36px sticky layer breaks the floor',
+    contentShare({ chromeHeight: 132 + 36, viewportHeight: 375 }) < CONTENT_FLOOR,
+    'the check must be tight enough that a single added layer trips it')
+  check('a portrait phone is nowhere near the floor',
+    contentShare({ chromeHeight: 154, viewportHeight: 780 }) > CONTENT_FLOOR)
+  check('a measurement with no chrome recorded raises no fault',
+    verdictFor(D3, { overflowBefore: 0, overflowAfter: 0, cols: 1 }).length === 0,
+    'the fault is skipped when chromeHeight is absent, not counted as zero')
+  check('chrome eating the viewport IS a fault',
+    verdictFor(P1, { overflowBefore: 0, overflowAfter: 0, cols: 1, ...eaten }).length === 1)
   const clean = { overflowBefore: 0, overflowAfter: 0, cols: 1 }
 
   check('a clean phone has no faults', verdictFor(P1, clean).length === 0)
@@ -155,7 +204,7 @@ if (isMain(import.meta.url)) {
     await p.close()
   }
 
-  console.log('\n  state  name                  w×h        rest  open   cols')
+  console.log('\n  state  name                  w×h        rest  open   cols  chrome  content')
   const failures = []
   for (const v of VIEWPORTS) {
     const p = await browser.newPage({ viewport: { width: v.w, height: v.h } })
@@ -179,20 +228,47 @@ if (isMain(import.meta.url)) {
                     what: el.className ? `.${String(el.className).split(' ')[0]}` : el.tagName }
         }
       }
+      // Sticky chrome, FOUND rather than listed.
+      //
+      // The first version summed three named selectors and a mutation caught
+      // it: making `h1` a fourth sticky layer changed nothing, because the
+      // measurement could only see the three it already knew. A check that
+      // enumerates today's chrome cannot notice tomorrow's, which is the only
+      // thing it exists to notice.
+      //
+      // `position` is read, never assumed — `.sport-group__title` is static
+      // below 500px of height, and counting it there would report a cost the
+      // reader is not paying. Nested stickies are counted once, at the
+      // outermost element: a sticky inside a sticky occupies its parent's
+      // space, not its own.
+      const seen = []
+      for (const el of document.body.querySelectorAll('*')) {
+        const cs = getComputedStyle(el)
+        if (cs.position !== 'sticky' && cs.position !== 'fixed') continue
+        if (seen.some(a => a.contains(el))) continue
+        const r = el.getBoundingClientRect()
+        if (r.height === 0 || r.top > window.innerHeight) continue
+        seen.push(el)
+      }
+      const chromeHeight = Math.round(
+        seen.reduce((t, el) => t + el.getBoundingClientRect().height, 0) +
+        parseFloat(getComputedStyle(document.body).paddingTop))
       return { cols: g ? getComputedStyle(g).gridTemplateColumns.split(' ').length : null,
-               overflowAfter: document.documentElement.scrollWidth - vw, worst }
+               overflowAfter: document.documentElement.scrollWidth - vw, worst,
+               chromeHeight, viewportHeight: window.innerHeight }
     })
     await p.close()
 
     const faults = verdictFor(v, { ...m, overflowBefore })
     console.log(`  ${v.id.padEnd(6)} ${v.name.padEnd(21)} ${String(v.w).padStart(4)}×${String(v.h).padEnd(5)} ` +
       `${String(overflowBefore).padStart(4)}  ${String(m.overflowAfter).padStart(4)}   ${String(m.cols).padStart(2)}` +
+      `   ${String(m.chromeHeight).padStart(4)}px  ${(100 * contentShare(m)).toFixed(1).padStart(5)}%` +
       (faults.length ? `   <-- ${faults.join('; ')}${m.worst ? ` (widest: ${m.worst.what} to ${m.worst.right}px)` : ''}` : ''))
     if (faults.length) failures.push(`${v.id} ${v.name} (${v.eg}): ${faults.join('; ')}`)
   }
   console.log('')
 
-  check(`no canonical viewport overflows horizontally (${VIEWPORTS.length} states)`,
+  check(`no canonical viewport overflows horizontally or is eaten by chrome (${VIEWPORTS.length} states)`,
     failures.length === 0,
     failures.join(' | '))
 

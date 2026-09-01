@@ -347,6 +347,8 @@
     .pk-row__sides { grid-column: 1 / -1; }
   }
 
+
+
   /* Date navigation. Sticky because a full multi-sport slate is long and the
      controls are useless if you have to scroll back to the top to reach them. */
   .datenav {
@@ -448,7 +450,33 @@
     display: grid; gap: 1rem;
     grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr));
   }
-  /* NO BORDER, AND NO RADIUS. Measured 2026-08-26: `--edge` renders at 1.09:1
+
+
+  /* SHORT VIEWPORTS DROP THE THIRD STICKY LAYER.
+     Measured 2026-09-01 across the ten canonical viewports: the sticky stack is
+     a flat 154-168px everywhere, which is 15-21% of a portrait phone and
+     44.9% of L1 (667x375, iPhone SE landscape) — 168px of chrome above 207px
+     of content, about one card.
+
+     `viewport-overflow-check` proved nothing spills sideways while a third of
+     the screen was going vertically, because it only ever measured one axis.
+
+     The sport heading is the layer that goes. Its job is keeping the sport
+     identifiable while scrolling a long section, and a viewport this short
+     holds barely one card — there is no long section to lose your place in.
+     The tab bar and the date nav stay: those are controls, and the comment on
+     `.datenav` records why they are sticky at all.
+
+     Height, not width: a tall narrow phone has the room and keeps all three.
+
+     PLACED AFTER the rule it overrides, not with the other media queries. A
+     media query adds NO specificity, so the same selector declared later still
+     wins — the first attempt sat 90 lines above `.sport-group__title` and
+     changed nothing at all. Measured, not read: the title was still `sticky`
+     at 667x375 and the content share had not moved off 55.1%. */
+  @media (max-height: 500px) {
+    .sport-group__title { position: static; }
+  }  /* NO BORDER, AND NO RADIUS. Measured 2026-08-26: `--edge` renders at 1.09:1
      against `--card`, and holding layout constant (`var(--edge)` ->
      `transparent`, same box, no reflow) the outline's entire visual contribution
      was 5766 of 1152000 pixels at a max channel delta of 15 of 255 — half a

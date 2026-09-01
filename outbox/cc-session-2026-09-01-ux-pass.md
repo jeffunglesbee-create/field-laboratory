@@ -216,3 +216,68 @@ that was a defect. Whether "decoded 78 game(s)" should still hold the top of the
 viewport once it has served its purpose is a judgement about what this page is
 for, and this page is a laboratory whose output is findings. Removing them
 because they look like chrome would be a guess dressed as a cleanup.
+
+
+## A. The axis nobody was measuring
+
+`viewport-overflow-check` visits ten canonical viewports and asserts two things,
+both horizontal: nothing spills sideways, and the column count matches the
+spec's feature matrix. It proved that while a third of the screen was going
+vertically.
+
+Measured across all ten states, the sticky stack — tab bar, date nav, sport
+heading, body padding — was a flat 154–168px everywhere:
+
+```
+P1 360x780   154px   80.2%        L1  667x375   168px   55.1%   <-- worst
+P2 393x852   156px   81.7%        L2  932x430   168px   60.9%
+P3 430x932   158px   83.1%        T2 1180x820   168px   79.5%
+```
+
+168px of chrome above 207px of content on an iPhone SE in landscape — about one
+card. My own arithmetic estimate beforehand was ~132px and ~65%; the measurement
+was worse on both counts, which is the argument for measuring.
+
+### The fix, and the reason the first attempt did nothing
+
+Below 500px of viewport HEIGHT the sport heading stops being sticky. Its job is
+keeping the sport identifiable while scrolling a long section, and a viewport
+this short holds barely one card — there is no long section to lose your place
+in. The tab bar and date nav stay: those are controls.
+
+Height, not width, so a tall narrow phone keeps all three.
+
+The first attempt changed nothing. I put the media query with the other media
+queries, ninety lines ABOVE `.sport-group__title` — and a media query adds no
+specificity, so the plain later rule still won. Measured, not read: the title
+was still `sticky` at 667×375 and the content share had not moved off 55.1%.
+Moved below the rule it overrides:
+
+```
+L1  55.1% -> 64.8%      L2  60.9% -> 69.3%      P1, T2, D1..U1 unchanged
+```
+
+### The floor, and the mutation that rewrote the measurement
+
+`CONTENT_FLOOR = 0.60`. Set from measurement: the worst state is now L1 at
+64.8%, so the floor sits about five points under it — enough headroom not to
+fire on rounding, tight enough that one added sticky layer trips it. One number
+rather than a per-viewport ratchet, because a ratchet blesses whatever each
+state does today and a floor says what any state must clear.
+
+Two mutations:
+
+| mutation | result |
+|---|---|
+| revert the short-viewport rule | L1 back to 55.2%, **1/2** |
+| make `h1` a fourth sticky layer | **2/2 — no effect** |
+
+The second one is the finding. The measurement summed three NAMED selectors, so
+a new sticky layer was invisible to it: a check that enumerates today's chrome
+cannot notice tomorrow's, which is the only thing it exists to notice. Rewritten
+to FIND sticky and fixed elements, skipping any nested inside one already
+counted. Same baselines afterwards — 154px at P1, 132px at L1 — so the rewrite
+changed what it can see, not what it measures. The fourth layer now reads 158px
+and 57.9%, and fails.
+
+12/12 self-test, 2/2 against the page.
