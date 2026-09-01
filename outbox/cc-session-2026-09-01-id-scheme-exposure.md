@@ -83,8 +83,66 @@ per-sport breakdown says which. MLS is the sport to watch: it is both the larges
 share of rows with no numeric id at all and the sport all 55 stranded groups
 belonged to.
 
+## The run, and the probe being wrong about its own result
+
+`outbox/id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt`, run
+`33461890000`-era dispatch. 21 days forward, control day 2026-08-30 with 48 rows
+and 39 scored, so the field reads.
+
+```
+137 forward row(s), 5 EXPOSED
+    MLB   5
+```
+
+And the probe concluded: *"Ship the numeric key only with a paired cleanup for
+these rows."*
+
+**That is the wrong instruction, and the per-day breakdown in the same artifact
+disproves it.** All 5 are on 2026-08-31 — day 0, which is TODAY in ET (the run
+stamped 02:41Z, 22:41 ET). Every one of the 21 genuinely future dates is zero.
+
+Today's exposed rows are tonight's in-flight MLB games: seeded at first pitch,
+resolving within hours on their own. The 2026-08-08 disaster was the opposite
+shape — a bulk import of FUTURE fixtures that nothing was waiting to resolve,
+which is why those 110 rows sat stranded for weeks instead of minutes.
+
+Same count, opposite remedies. A cleanup written for rows that fix themselves
+before the cleanup is finished is worse than useless: it makes the real signal, a
+future backlog, indistinguishable from a routine evening.
+
+### The fix, and its teeth
+
+`shipAdvice` splits the two:
+
+| today | future | advice |
+|---|---|---|
+| 0 | 0 | `clear` — ship now |
+| >0 | 0 | `quiet-window` — deploy after the slate finalizes |
+| any | >0 | `cleanup-required` — the 2026-08-08 shape |
+
+The self-test asserts the two cannot collapse:
+
+```js
+check('COLLAPSING THE TWO WOULD HAVE GIVEN ONE ANSWER FOR BOTH',
+  shipAdvice({ todayExposed: 5, futureExposed: 0 }) !==
+  shipAdvice({ todayExposed: 0, futureExposed: 5 }))
+```
+
+15/15. Both advice paths exercised against a stub: 5-on-today yields
+`quiet-window`, 6-on-future yields `cleanup-required`.
+
+## The actual answer for the CC-CMD
+
+**`quiet-window`.** There is no backlog. The numeric key can ship, and the only
+requirement is that the deploy land when no game is in flight — a few hours'
+patience rather than a paired cleanup. Waiting also has a cost the artifact
+argues for: the exposure is zero today precisely because no bulk
+forward-schedule import is pending, and the last one made 55 groups.
+
 ## Open
 
-The dispatch. Until it runs, the CC-CMD at field-relay-nba `de2eb1a` is
-unique-safe and migration-**unknown**, and should not be executed on the
-uniqueness result alone.
+A re-dispatch, so the committed artifact carries the corrected advice rather than
+the collapsed one. The current artifact's per-day table is right and its
+conclusion is wrong — exactly the inherited-claim shape Rule 72 exists for, and
+leaving it in the outbox for a later session to read would be filing the bug
+rather than fixing it.

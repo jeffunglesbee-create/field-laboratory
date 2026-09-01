@@ -72,6 +72,31 @@ export const exposureVerdict = ({ forwardRows, controlRows, controlScored }) => 
   return 'measured'
 }
 
+/**
+ * `clear` | `quiet-window` | `cleanup-required` — what to actually do.
+ *
+ * TODAY AND THE FUTURE ARE NOT THE SAME EXPOSURE, and collapsing them produces
+ * the wrong instruction. Measured 2026-09-01: 5 exposed rows, all MLB, all on
+ * TODAY, and zero on all 21 forward dates. The first version of this probe read
+ * that as "ship only with a paired cleanup" — the remedy for the 2026-08-08
+ * disaster, which was a bulk import of FUTURE fixtures that sat unresolved for
+ * weeks.
+ *
+ * Today's rows are not that. They are tonight's in-flight games, seeded at
+ * first pitch and resolving within hours on their own. The remedy is a deploy
+ * window, not a cleanup — and telling someone to write a cleanup for rows that
+ * will fix themselves before they finish writing it is worse than useless: it
+ * makes the real signal, a future backlog, indistinguishable from routine.
+ *
+ * A future-dated exposed row IS the 2026-08-08 shape: nothing resolves it on a
+ * schedule anyone is waiting for, so it strands.
+ */
+export const shipAdvice = ({ todayExposed, futureExposed }) => {
+  if (futureExposed > 0) return 'cleanup-required'
+  if (todayExposed > 0) return 'quiet-window'
+  return 'clear'
+}
+
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const { check, summarize } = createChecks()
   const row = (hs, eid) => ({ home_score: hs, espn_event_id: eid })
@@ -105,6 +130,23 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     exposureVerdict({ forwardRows: 300, controlRows: 0, controlScored: 0 }) === 'unreadable')
   check('nothing anywhere is not-observable',
     exposureVerdict({ forwardRows: 0, controlRows: 0, controlScored: 0 }) === 'not-observable')
+
+  // ── today is not the future ───────────────────────────────────────────────
+  check('THE REAL 2026-09-01 READING IS A DEPLOY WINDOW, NOT A CLEANUP',
+    shipAdvice({ todayExposed: 5, futureExposed: 0 }) === 'quiet-window',
+    "5 in-flight MLB games resolve within hours; a cleanup for them is worse than useless")
+  check('one future-dated exposed row IS the 2026-08-08 shape',
+    shipAdvice({ todayExposed: 0, futureExposed: 1 }) === 'cleanup-required',
+    'nothing resolves it on a schedule anyone is waiting for')
+  check('future wins over today when both are non-zero',
+    shipAdvice({ todayExposed: 5, futureExposed: 1 }) === 'cleanup-required')
+  check('nothing exposed anywhere is clear',
+    shipAdvice({ todayExposed: 0, futureExposed: 0 }) === 'clear')
+  check('COLLAPSING THE TWO WOULD HAVE GIVEN ONE ANSWER FOR BOTH',
+    shipAdvice({ todayExposed: 5, futureExposed: 0 }) !==
+    shipAdvice({ todayExposed: 0, futureExposed: 5 }),
+    'the same total, opposite remedies — this is the distinction the probe missed')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -140,7 +182,7 @@ if (isMain(import.meta.url)) {
   log(`control ${dayAt(-1)}  ${c.rows} row(s), ${c.scored} scored`)
   log('')
 
-  let forwardRows = 0, exposed = 0
+  let forwardRows = 0, exposed = 0, todayExposed = 0, futureExposed = 0
   const bySport = new Map()
   for (let d = 0; d <= days; d++) {
     const day = dayAt(d)
@@ -148,12 +190,13 @@ if (isMain(import.meta.url)) {
     if (games === null) { log(`  ${day}  not observed`); continue }
     const e = exposureOf(games)
     forwardRows += e.rows; exposed += e.exposed
+    if (d === 0) todayExposed += e.exposed; else futureExposed += e.exposed
     for (const g of games) {
       if (!isExposed(g)) continue
       const k = String(g?.sport ?? '?')
       bySport.set(k, (bySport.get(k) ?? 0) + 1)
     }
-    log(`  ${day}  ${String(e.rows).padStart(3)} row(s)  ${String(e.exposed).padStart(3)} exposed`)
+    log(`  ${day}  ${String(e.rows).padStart(3)} row(s)  ${String(e.exposed).padStart(3)} exposed${d === 0 ? '   <- today (ET)' : ''}`)
   }
 
   const verdict = exposureVerdict({ forwardRows, controlRows: c.rows, controlScored: c.scored })
@@ -167,22 +210,39 @@ if (isMain(import.meta.url)) {
         'row on a past date, home_score is not being read, and every forward row would\n' +
         'count as exposed for the wrong reason. The forward count below is NOT a result.')
   } else {
+    const advice = shipAdvice({ todayExposed, futureExposed })
     log(`${forwardRows} forward row(s), ${exposed} EXPOSED`)
+    log(`  today (in flight, resolves on its own): ${todayExposed}`)
+    log(`  future-dated (strands)                : ${futureExposed}`)
     for (const [s, n] of [...bySport.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)) {
       log(`    ${String(s).padEnd(10)} ${String(n).padStart(4)}`)
     }
     log('')
-    log(exposed === 0
-      ? 'Zero rows are exposed. Shipping the numeric key strands nothing: no unscored,\n' +
-        'future-dated row carries a numeric event id today, so no resolution write can\n' +
-        'land on a new id and leave an old row behind. The 2026-08-08 residual does not\n' +
-        'apply to this change at this moment — and this window is the reason to ship it\n' +
-        'now rather than after the next bulk forward-schedule import.'
-      : `${exposed} unscored future-dated row(s) carry a numeric event id. Each will be\n` +
-        'rewritten under a new id on resolution and stranded under its old one,\n' +
-        'permanently unscored — the exact 55-group shape measured 2026-08-08. Ship the\n' +
-        'numeric key only with a paired cleanup for these rows, or wait for a window\n' +
-        'where this count is zero. The per-sport breakdown above says which rows.')
+    log(`SHIP ADVICE: ${advice}`)
+    log('')
+    log({
+      clear:
+        'Nothing is exposed. Shipping the numeric key strands nothing — no unscored row\n' +
+        'anywhere in this window carries a numeric event id, so no resolution write can\n' +
+        'land on a new id and leave an old row behind. Ship now rather than after the\n' +
+        'next bulk forward-schedule import; that import is what made the 55 groups.',
+      'quiet-window':
+        `${todayExposed} exposed row(s), ALL on today and NONE future-dated. These are\n` +
+        'in-flight games seeded at start and resolving within hours on their own. This is\n' +
+        'NOT the 2026-08-08 shape — that was a bulk import of future fixtures nothing was\n' +
+        'waiting to resolve. There is no backlog to clean up.\n' +
+        '\n' +
+        'Deploy after tonight\'s slate finalizes and this count is zero. A deploy landing\n' +
+        `mid-slate strands exactly these ${todayExposed} row(s) — bounded, nameable, and\n` +
+        'avoidable by waiting a few hours rather than by writing a cleanup.',
+      'cleanup-required':
+        `${futureExposed} FUTURE-DATED unscored row(s) carry a numeric event id (plus\n` +
+        `${todayExposed} in flight today). The future-dated ones are the 2026-08-08 shape:\n` +
+        'nothing resolves them on a schedule anyone is waiting for, so each gets rewritten\n' +
+        'under a new id and stranded under its old one, permanently unscored. Ship the\n' +
+        'numeric key only with a paired cleanup for them. The breakdown above names the\n' +
+        'sports; a bulk forward-schedule import is the usual cause.',
+    }[advice])
   }
   log('')
   log(`artifact: ${outPath}`)
