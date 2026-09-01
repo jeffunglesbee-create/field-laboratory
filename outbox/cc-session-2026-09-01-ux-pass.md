@@ -83,3 +83,73 @@ Colour is redundant reinforcement, which is what 1.4.1 asks for.
 
 **The back button.** I read `pushState` with no handler and called it a trap.
 `Program.fs` wires `popstate`. Wrong on first read, corrected by grep.
+
+
+## 2. The tab is now in the URL, and two of my own tests had no teeth
+
+`pushState` carried only `date` and `simulate`. A surface was not linkable, was
+lost on reload, and a Back press moved the slate while the tab strip stayed put.
+
+### Route.fs, and why it is not in Program.fs
+
+The URL grammar moved to its own module. `Program.fs` is an entry point that
+calls `start ()` at module level, so anything importing it in Node runs the whole
+app against a `document` that is not there — and the fsproj already says so, in a
+comment above `Suite.fs`:
+
+> Below Program.fs because nothing imports them; `node build/VerifyMain.js` is a
+> second entry, and it must not pull in Program's browser side effects.
+
+So the choice was a separate module or logic testable only through a browser.
+
+### `replaceState`, not `pushState`
+
+Arrow keys move selection on every press. Pushing would put seven entries in
+history for one sweep of the tab strip and leave Back unable to reach the
+previous **date**, which is the only navigation on this page a reader means. The
+tab is view state: addressable, not a step.
+
+### The rules, each of which the obvious implementation gets wrong
+
+`sprintf "?date=%s&tab=%s"` is correct on the case in front of you and wrong on
+four others, so every MustFail in the suite is the rebuilt-query answer:
+
+| rule | what rebuilding does |
+|---|---|
+| preserve, never rebuild | drops `data=`, silently unpinning a committed capture on reload |
+| never ADD `date` | stamps today into a shared link, so tomorrow it shows yesterday |
+| default surface omitted | gives one destination two spellings |
+| empty query returns `""`, not `"?"` | `replaceState` with `""` resolves to the CURRENT url, so the last parameter never clears |
+
+Ten cases in `Suite.fs`. Suite went 85/85 to 95/95, and MustFail means each
+carries its own counterexample by construction.
+
+### Both browser assertions I wrote were toothless, in different ways
+
+The F# suite cannot see the wiring — whether `select` writes the URL, whether
+boot reads it back, whether Back moves both. Seven assertions went into the
+existing `tab-check.mjs`. Four mutations, run against a real browser:
+
+| mutation | first run | after fixing the test |
+|---|---|---|
+| no `applyTabFromUrl` on boot | 34/37 | 34/37 |
+| **no re-apply on popstate** | **37/37** | 36/37 |
+| `pushState` instead of `replaceState` | 36/37 | 36/37 |
+| restore steals focus | 36/37 | 36/37 |
+
+**Version one** used `page.goBack()` between two `page.goto()` urls. That is a
+full reload, so the boot's own re-apply handled it and the popstate path was
+never entered — a test of the wrong path, passing for the wrong reason.
+
+**Version two** made a same-document entry, and still passed under mutation: it
+went back to an entry naming the surface already on screen, so the correct
+answer and the stale answer were the same string. Two states collapsed into one,
+and the collapsed one never fails. This is the session's recurring defect,
+committed by me, inside the test written to catch it.
+
+**Version three** pushes an entry, moves the strip onto it, and only then goes
+back — so the strip must actively disagree with the entry being returned to.
+That one fails when the handler is removed.
+
+Neither version could have been caught by reading. Both were caught by mutating
+and watching the count not move.

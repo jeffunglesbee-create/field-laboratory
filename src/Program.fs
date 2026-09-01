@@ -1,5 +1,6 @@
 module Program
 
+open Route
 open Browser
 open Fable.Core.JsInterop
 open Fetch
@@ -395,6 +396,10 @@ let private start () =
                                           (formatWinProbability openingWinProbability))
     }
 
+/// Set by `wireTabs`, called by the boot and by `popstate`. A hook rather than
+/// a direct call because the tablist is wired after the date nav that needs it.
+let mutable private applyTabFromUrl : unit -> unit = fun () -> ()
+
 /// Wires the date toolbar. Navigation rewrites the URL and re-renders in place
 /// rather than reloading, so the viewed day is linkable and the back button
 /// works, without a full page fetch per step.
@@ -402,12 +407,16 @@ let private wireDateNav () =
     let pinned = (queryParam "data").IsSome
 
     let goTo (date: string) =
-        let query =
+        // The tab rides along. Stepping a day while reading Briefs and landing
+        // back on the Scoreboard would be the page undoing a choice the reader
+        // did not revisit.
+        let tab = tabOf window.location.search
+        let baseQuery =
             if window.location.search.Contains "simulate=1" then
                 sprintf "?date=%s&simulate=1" date
             else
                 sprintf "?date=%s" date
-        window.history.pushState (null, "", query)
+        window.history.pushState (null, "", window.location.pathname + withTab baseQuery tab)
         start () |> Promise.start
 
     let bind (id: string) (handler: unit -> unit) =
@@ -424,7 +433,9 @@ let private wireDateNav () =
     // The back/forward buttons change the URL without a load, so the slate has
     // to be re-rendered explicitly or the page would show the previous day's
     // cards under the new date.
-    window.addEventListener ("popstate", fun _ -> start () |> Promise.start)
+    window.addEventListener ("popstate", fun _ ->
+        applyTabFromUrl ()
+        start () |> Promise.start)
 
     if pinned then
         report "viewed-date" "pinned to a committed capture"
@@ -447,7 +458,11 @@ let private wireTabs () =
             | null -> None
             | node -> Some node)
 
-    let select (target: Browser.Types.HTMLElement) =
+    /// `focusIt` is false when the selection comes from the URL rather than
+    /// from the user — on boot, and on back/forward. Focusing then would steal
+    /// focus from wherever the reader actually is and scroll the tab strip,
+    /// which is a page that grabs at you for no reason you initiated.
+    let selectWith (focusIt: bool) (target: Browser.Types.HTMLElement) =
         for tab in tabs () do
             let selected = tab.id = target.id
             tab.setAttribute ("aria-selected", (if selected then "true" else "false"))
@@ -458,7 +473,15 @@ let private wireTabs () =
             | panel ->
                 if selected then panel.removeAttribute "hidden"
                 else panel.setAttribute ("hidden", "true")
-        target.focus ()
+        // REPLACE, NEVER PUSH. Arrow keys move selection on every press, so a
+        // pushState here would put seven entries in the history for one sweep
+        // of the tab strip and leave the back button unable to reach the
+        // previous DATE, which is the only navigation on this page a reader
+        // actually means. The tab is view state: addressable, not a step.
+        window.history.replaceState (null, "", window.location.pathname + withTab window.location.search (slugOf target.id))
+        if focusIt then target.focus ()
+
+    let select = selectWith true
 
     let step (from: Browser.Types.HTMLElement) (delta: int) =
         let all = tabs ()
@@ -467,6 +490,16 @@ let private wireTabs () =
         // Wraps, per the pattern. Clamping would leave the last arrow press
         // doing nothing, which reads as a broken control rather than an edge.
         | Some i -> select all.[((i + delta) % all.Length + all.Length) % all.Length]
+
+    // Applied on boot and on every back/forward. `start ()` re-renders the
+    // slate but does not touch the tab strip, so without this the URL and the
+    // visible surface drift apart after a single Back press.
+    applyTabFromUrl <-
+        fun () ->
+            let want = tabIdOf (tabOf window.location.search)
+            match tabs () |> List.tryFind (fun t -> t.id = want) with
+            | Some t -> selectWith false t
+            | None -> ()   // an unknown slug leaves the current surface alone
 
     for tab in tabs () do
         tab.addEventListener ("click", fun _ -> select tab)
@@ -481,4 +514,7 @@ let private wireTabs () =
 
 wireTabs ()
 wireDateNav ()
+// After both, because it needs the tablist wired and the hook set. Without
+// focus: a page that grabs focus on load is a page fighting the reader.
+applyTabFromUrl ()
 start () |> Promise.start

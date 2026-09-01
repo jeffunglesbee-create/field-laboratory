@@ -1015,5 +1015,75 @@ let private stats =
           None
           (Scouting.tryUmpire "jimenez") ]
 
+// ---------------------------------------------------------------------------
+// The URL grammar for view state. Every MustFail here is the answer a
+// REBUILT query gives — the obvious implementation, `sprintf "?date=%s&tab=%s"`,
+// which is correct on the case you are looking at and wrong on the four you
+// are not.
+// ---------------------------------------------------------------------------
+
+let private route =
+    let rewrites (search, slug, expected) = Route.withTab search slug = expected
+
+    [ Verify.check "a tab is appended and the date survives"
+          rewrites
+          ("?date=2026-08-29", "briefs", "?date=2026-08-29&tab=briefs")
+          ("?date=2026-08-29", "briefs", "?tab=briefs")
+
+      // Appending unconditionally leaves ?tab=stats&tab=briefs, and which one
+      // wins is then a question about the reader's browser.
+      Verify.check "switching surfaces REPLACES the tab, never appends a second"
+          rewrites
+          ("?date=2026-08-29&tab=stats", "briefs", "?date=2026-08-29&tab=briefs")
+          ("?date=2026-08-29&tab=stats", "briefs", "?date=2026-08-29&tab=stats&tab=briefs")
+
+      Verify.check "the default surface is omitted, so one link has one spelling"
+          rewrites
+          ("?date=2026-08-29&tab=briefs", "scoreboard", "?date=2026-08-29")
+          ("?date=2026-08-29&tab=briefs", "scoreboard", "?date=2026-08-29&tab=scoreboard")
+
+      // THE ONE THAT MATTERS MOST. A bare load means "today". Stamping today's
+      // date in on a tab click pins a shared link to this calendar day, so
+      // opening it tomorrow shows yesterday under a link that promised today.
+      Verify.check "a bare url does NOT acquire a date from a tab click"
+          rewrites
+          ("", "briefs", "?tab=briefs")
+          ("", "briefs", "?date=2026-09-01&tab=briefs")
+
+      // `data=` pins the page to a committed capture and disables the date nav.
+      // A rebuilt query drops it, and the page silently unpins on reload.
+      Verify.check "pinning to a committed capture survives a tab click"
+          rewrites
+          ("?data=games-2026-08-09", "stats", "?data=games-2026-08-09&tab=stats")
+          ("?data=games-2026-08-09", "stats", "?tab=stats")
+
+      Verify.check "simulate survives too"
+          rewrites
+          ("?date=2026-08-29&simulate=1", "pickem", "?date=2026-08-29&simulate=1&tab=pickem")
+          ("?date=2026-08-29&simulate=1", "pickem", "?date=2026-08-29&tab=pickem")
+
+      // An empty url argument to replaceState resolves to the CURRENT url, so
+      // returning "?" here would leave the parameter in place — the one case
+      // this function exists for, failing in the way that looks like nothing.
+      Verify.check "clearing the last parameter yields an empty query, not \"?\""
+          rewrites
+          ("?tab=briefs", "scoreboard", "")
+          ("?tab=briefs", "scoreboard", "?")
+
+      Verify.check "a url with no tab reads as the default surface"
+          (fun (search, expected) -> Route.tabOf search = expected)
+          ("?date=2026-08-29", "scoreboard")
+          ("?date=2026-08-29", "briefs")
+
+      Verify.check "a url with a tab reads as that surface"
+          (fun (search, expected) -> Route.tabOf search = expected)
+          ("?date=2026-08-29&tab=briefs", "briefs")
+          ("?date=2026-08-29&tab=briefs", "scoreboard")
+
+      Verify.check "the slug and the element id round-trip"
+          (fun (tabId: string) -> Route.tabIdOf (Route.slugOf tabId) = tabId)
+          "tab-scoreboard"
+          "briefs" ]
+
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats
+let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route

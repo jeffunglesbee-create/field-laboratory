@@ -195,6 +195,93 @@ for (const gate of ['Gate 0', 'Gate A']) {
     `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
 }
 
+// ── The tab is in the URL, and the URL is the tab ───────────────────────────
+//
+// Added 2026-09-01. The grammar itself is proven in the F# suite (Route, ten
+// cases, each with a compulsory counterexample). What the suite CANNOT see is
+// the wiring: whether `select` writes the URL, whether the boot reads it back,
+// and whether a Back press moves both the slate and the tab strip. That is
+// three separate places the two can drift apart, and all three are here.
+
+const visibleTab = () =>
+  page.$eval('[role="tab"][aria-selected="true"]', el => el.id)
+const query = () => page.evaluate(() => window.location.search)
+
+// 1. Selecting writes the URL.
+await page.click('#tab-briefs')
+check('selecting a surface puts it in the URL',
+  (await query()).includes('tab=briefs'),
+  `query: ${await query()}`)
+
+// 2. REPLACE, NOT PUSH. Arrows move selection on every press, so pushing would
+//    put seven entries in history for one sweep and leave Back unable to reach
+//    the previous date — the only navigation on this page a reader means.
+const before = await page.evaluate(() => history.length)
+await page.click('#tab-stats')
+await page.click('#tab-weather')
+check('three surface changes add no history entries',
+  (await page.evaluate(() => history.length)) === before,
+  `history grew by ${(await page.evaluate(() => history.length)) - before}`)
+
+// 3. The default surface leaves no trace, so an existing link keeps its exact
+//    query and one destination does not acquire two spellings.
+await page.click('#tab-scoreboard')
+check('returning to the default surface clears the parameter',
+  !(await query()).includes('tab='),
+  `query: ${await query()}`)
+
+// 4. THE ROUND TRIP. A link someone was sent must open on that surface — this
+//    is the whole point of the feature, and it is a fresh load, not a click.
+const deep = `${URL_BASE}${URL_BASE.includes('?') ? '&' : '?'}tab=stats`
+await page.goto(deep, { waitUntil: 'domcontentloaded' })
+await page.waitForSelector('[role="tab"][aria-selected="true"]')
+check('a shared link opens on the surface it names',
+  (await visibleTab()) === 'tab-stats',
+  `opened on: ${await visibleTab()}`)
+check('...and that panel is the visible one',
+  (await page.$eval('#panel-stats', el => el.hasAttribute('hidden'))) === false)
+
+// 5. Restoring from the URL must NOT steal focus. A page that grabs at the
+//    reader on load is fighting them; the tab is selected, not focused.
+check('opening a deep link does not steal focus to the tab strip',
+  (await page.evaluate(() => document.activeElement?.id ?? '')) !== 'tab-stats',
+  `focus landed on: ${await page.evaluate(() => document.activeElement?.id ?? '(body)')}`)
+
+// 6. Back must move BOTH the slate and the tab strip. `start ()` re-renders the
+//    slate and does not touch the tab strip, so without an explicit re-apply
+//    on popstate the URL and the visible surface drift apart.
+//
+//    THE FIRST VERSION OF THIS HAD NO TEETH, and the mutation run said so:
+//    removing the popstate re-apply left it at 37/37. It used page.goBack()
+//    between two page.goto() urls, which is a FULL RELOAD — the boot's own
+//    re-apply handled it and the popstate path was never entered. A test of
+//    the wrong path, passing for the wrong reason.
+//
+//    A same-document entry is what popstate needs, so one is made directly.
+//    Date navigation would be the natural way in and is disabled here: this
+//    harness pins ?data= to a committed capture, which is exactly what
+//    disables the date nav.
+//    THE SECOND VERSION HAD NO TEETH EITHER, for a different reason: it went
+//    back to an entry naming the surface already on screen, so the correct
+//    answer and the stale answer were the same string. Two states collapsed
+//    into one, and the collapsed one never fails.
+//
+//    The strip must DISAGREE with the entry being returned to. Clicks replace
+//    rather than push, so the second entry is made explicitly, and the strip is
+//    then moved onto it before going back.
+await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+await page.waitForSelector('[role="tab"][aria-selected="true"]')
+await page.click('#tab-briefs')                       // entry A -> tab=briefs, strip briefs
+await page.evaluate(() => history.pushState(null, '', location.href))  // entry B
+await page.click('#tab-stats')                        // entry B -> tab=stats, strip stats
+await page.evaluate(() => new Promise(r => {
+  window.addEventListener('popstate', () => setTimeout(r, 80), { once: true })
+  history.back()                                      // back to A: tab=briefs, strip still stats
+}))
+check('a same-document Back moves the tab strip, not just the URL',
+  (await visibleTab()) === `tab-${new URLSearchParams(await query()).get('tab') ?? 'scoreboard'}`,
+  `url says ${new URLSearchParams(await query()).get('tab') ?? 'scoreboard'}, page shows ${await visibleTab()}`)
+
 check('no page errors during any of this', failures.length === 0, failures.join(' | '))
 
 await browser.close()
