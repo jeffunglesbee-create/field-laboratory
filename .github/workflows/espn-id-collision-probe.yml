@@ -1,0 +1,58 @@
+# Rule 39 step 2 for field-relay-nba#1, without a credential.
+#
+# That issue proposes composing the archive id from `espn_event_id` instead of
+# team names. Before it is committable, the relay's Rule 39 wants the equivalent
+# of the check they ran for the series fix — "verified live, zero (series_key,
+# round, date) duplicates across all 501 real postseason_games rows".
+#
+# The equivalent here is NOT "does any event id appear twice". It appears twice
+# on purpose; that is the bug. The question is whether any event id is shared by
+# two DIFFERENT games, because keying on it would then collapse them and destroy
+# a row. One instance makes the proposal unsafe.
+#
+# CREDENTIAL-FREE. /d1/execute could answer this in one query and is gated by a
+# shared secret; /context/date is a public read carrying espn_event_id per row.
+# The public path keeps a credential out of a question that does not need one.
+#
+# WHY CI: *.workers.dev is blocked by the dev sandbox's egress allowlist.
+#
+# DISPATCH ONLY. This settles a question once. It is not a monitor — the daily
+# duplicate watcher in drift-sentinel is.
+name: espn-id collision probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: How many days back to sweep
+        default: '30'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Would keying on espn_event_id ever merge two different games?
+        run: |
+          node scripts/probe-espn-id-collisions.mjs --self-test
+          node scripts/probe-espn-id-collisions.mjs --days "${{ inputs.days || '30' }}"
+
+      # The artifact is the point: this is evidence for a cross-repo decision,
+      # and evidence that lives only in a run log is evidence nobody can cite.
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/espn-id-collisions-*.txt || true
+          git diff --staged --quiet || git commit -m "probe: espn_event_id collision safety [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
