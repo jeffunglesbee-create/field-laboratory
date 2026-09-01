@@ -16,6 +16,15 @@
 #
 # WHY CI: *.workers.dev is blocked by the dev sandbox's egress allowlist.
 #
+# SECOND RUN (2026-09-01). The first sweep returned `unsafe` on three groups,
+# all golf, all of the shape `golf_401811962` — a per-TOURNAMENT synthetic key
+# under which R3 and R4 are two separate archive rows. Every safe group was a
+# bare numeric ESPN event id. So the probe now reports TWO verdicts: the
+# original rule, and the refined one that keys on espn_event_id only when it is
+# purely numeric. It also reports COVERAGE — the share of rows a numeric key
+# could ever address — because a rule that is safe on 40% of rows and silent on
+# the rest is a partial fix, and the size of the remainder is the decision.
+#
 # DISPATCH ONLY. This settles a question once. It is not a monitor — the daily
 # duplicate watcher in drift-sentinel is.
 name: espn-id collision probe
