@@ -115,3 +115,51 @@ maths, so the number it reports is about the code the page runs.
 11/11 self-test. Exercised end to end against a stub covering all three buckets:
 a subset name match (`Dream` -> `Atlanta Dream`) landing in `both`, a half match
 in `one side only`, and a colourless league in `neither`.
+
+
+## The coverage result: 77.1%, and three of the misses were mine
+
+`outbox/team-colour-coverage-2026-09-01T19-44-40-527Z.txt`, slate 2026-08-30:
+
+```
+per league — 21 tried, 20 covered
+  MLB 30/30   NBA 30/30   WNBA 15/15   NFL 32/32   CFB 50/50   NHL 32/32
+  MLS 30/30   EPL 20/20   LaLiga 20/20  SerieA 20/20  Ligue1 18/18
+  UCL 36/36   UEL 36/36   UECL 36/36   EFLCup 92/92  EFLTrophy 64/64
+  AFL 19/19   UFL 8/8     FIFAWorldCup 48/48
+  CFL  9 team(s)  0 coloured   none      <- the only real gap
+
+per slate — 48 rows
+  both sides tinted : 37 (77.1%)
+  one side only     :  0 (0.0%)
+  neither           : 11 (22.9%)
+      La Liga 3   Serie A 3   Ligue 1 3   golf 1   CFL 1
+```
+
+**Nine of the eleven misses were a defect in the probe, not a data gap.** La
+Liga, Serie A and Ligue 1 all report `covered` at 20/20, 20/20 and 18/18 in the
+same artifact. They missed because the lookup was keyed on the F# union member
+name — `LaLiga` — and the payload says `La Liga`, with the space.
+
+`Desk.fs` says so outright, in comments read earlier the same day:
+
+> The relay labels it "La Liga", with the space
+
+and the same for Serie A and Ligue 1. A union member name is a name in the F#;
+the label in the data is a different string, and only one of them is what
+`/context/date` serves. Reading both and still keying on the wrong one is the
+session's own recurring shape.
+
+**The per-sport miss report is what surfaced it.** A bare 77.1% would have read
+as a data problem in three European leagues, and the next step would have been
+investigating ESPN's soccer coverage — which is perfect.
+
+Corrected coverage, pending the re-run: **46 of 48 rows, 95.8%**, with only golf
+(no teams) and CFL (ESPN serves no colours) genuinely out of reach.
+
+`0 one side only` is worth keeping: the resolution is per-league, not per-team,
+so a row either gets both names or neither. The half-coloured matchup the design
+was worried about does not occur in practice.
+
+Each entry now carries every label the payload might use, and a check asserts the
+three spaced forms — dropping one takes the suite 14/14 -> 13/14.

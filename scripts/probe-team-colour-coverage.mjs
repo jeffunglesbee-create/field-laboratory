@@ -33,6 +33,24 @@ const RELAY = process.env.RELAY || 'https://field-relay-nba.jeffunglesbee.worker
 const ESPN = process.env.ESPN || 'https://site.api.espn.com/apis/site/v2/sports'
 
 /**
+ * THE KEY IS THE RELAY'S LABEL, NOT THE F# UNION MEMBER NAME.
+ *
+ * The first run of this probe reported La Liga, Serie A and Ligue 1 as having
+ * no tint on nine rows, while the per-league table showed all three `covered`
+ * at 20/20, 20/20 and 18/18. The leagues were fine; the lookup was keyed on
+ * `LaLiga` and the payload says `La Liga`, with the space.
+ *
+ * `Desk.fs` states this outright, in comments read earlier the same day:
+ * "The relay labels it 'La Liga', with the space", and the same for Serie A and
+ * Ligue 1. A union member name is a name in the F#; the label in the data is a
+ * different string, and only one of them is what `/context/date` serves.
+ *
+ * Each entry therefore carries EVERY label the payload might use, and the miss
+ * report is what surfaced the gap — a bare percentage would have read as a data
+ * problem in three European leagues.
+ */
+
+/**
  * `Sport` union member -> ESPN path. A HYPOTHESIS, tried and reported.
  *
  * Golf and PGATour are deliberately absent: they are individual competitions
@@ -41,15 +59,28 @@ const ESPN = process.env.ESPN || 'https://site.api.espn.com/apis/site/v2/sports'
  * slug for it would manufacture a failure that says nothing.
  */
 export const LEAGUES = [
-  ['MLB', 'baseball/mlb'], ['NBA', 'basketball/nba'], ['WNBA', 'basketball/wnba'],
-  ['NFL', 'football/nfl'], ['CFB', 'football/college-football'], ['CFL', 'football/cfl'],
-  ['UFL', 'football/ufl'], ['NHL', 'hockey/nhl'], ['AFL', 'australian-football/afl'],
-  ['MLS', 'soccer/usa.1'], ['EPL', 'soccer/eng.1'], ['LaLiga', 'soccer/esp.1'],
-  ['Bundesliga', 'soccer/ger.1'], ['SerieA', 'soccer/ita.1'], ['Ligue1', 'soccer/fra.1'],
-  ['UEFAChampionsLeague', 'soccer/uefa.champions'], ['UEFAEuropaLeague', 'soccer/uefa.europa'],
-  ['UEFAEuropaConferenceLeague', 'soccer/uefa.europa.conf'],
-  ['EFLCup', 'soccer/eng.league_cup'], ['EFLTrophy', 'soccer/eng.trophy'],
-  ['FIFAWorldCup', 'soccer/fifa.world'],
+  ['MLB', 'baseball/mlb', ['MLB']],
+  ['NBA', 'basketball/nba', ['NBA']],
+  ['WNBA', 'basketball/wnba', ['WNBA']],
+  ['NFL', 'football/nfl', ['NFL']],
+  ['CFB', 'football/college-football', ['CFB', 'College Football', 'NCAAF']],
+  ['CFL', 'football/cfl', ['CFL']],
+  ['UFL', 'football/ufl', ['UFL']],
+  ['NHL', 'hockey/nhl', ['NHL']],
+  ['AFL', 'australian-football/afl', ['AFL']],
+  ['MLS', 'soccer/usa.1', ['MLS']],
+  ['EPL', 'soccer/eng.1', ['EPL', 'Premier League']],
+  ['LaLiga', 'soccer/esp.1', ['La Liga', 'LaLiga']],
+  ['Bundesliga', 'soccer/ger.1', ['Bundesliga']],
+  ['SerieA', 'soccer/ita.1', ['Serie A', 'SerieA']],
+  ['Ligue1', 'soccer/fra.1', ['Ligue 1', 'Ligue1']],
+  ['UEFAChampionsLeague', 'soccer/uefa.champions', ['UEFA Champions League', 'Champions League']],
+  ['UEFAEuropaLeague', 'soccer/uefa.europa', ['UEFA Europa League', 'Europa League']],
+  ['UEFAEuropaConferenceLeague', 'soccer/uefa.europa.conf',
+    ['UEFA Europa Conference League', 'Europa Conference League']],
+  ['EFLCup', 'soccer/eng.league_cup', ['EFL Cup', 'Carabao Cup']],
+  ['EFLTrophy', 'soccer/eng.trophy', ['EFL Trophy']],
+  ['FIFAWorldCup', 'soccer/fifa.world', ['FIFA World Cup', 'World Cup']],
 ]
 
 /** A usable brand colour, or null. ESPN serves `"000000"` and `""` both. */
@@ -105,6 +136,19 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('every team coloured is covered',
     leagueVerdict({ ok: true, teams: 20, withColour: 20 }) === 'covered')
   check('some is partial', leagueVerdict({ ok: true, teams: 20, withColour: 12 }) === 'partial')
+
+  // ── the defect the first run found, guarded ────────────────────────────────
+  const labelsOf = n => LEAGUES.find(([name]) => name === n)?.[2] ?? []
+  check('EVERY LEAGUE CARRIES AT LEAST ONE PAYLOAD LABEL',
+    LEAGUES.every(([, , labels]) => Array.isArray(labels) && labels.length > 0),
+    'an entry with no label can never match a row, and would report as a data gap')
+  check('the three spaced labels are present — this is what the first run missed',
+    labelsOf('LaLiga').includes('La Liga') &&
+    labelsOf('SerieA').includes('Serie A') &&
+    labelsOf('Ligue1').includes('Ligue 1'),
+    'Desk.fs says the relay labels these with a space; keying on the union name found nothing')
+  check('the union name is kept too, so both spellings resolve',
+    labelsOf('LaLiga').includes('LaLiga') && labelsOf('SerieA').includes('SerieA'))
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -131,7 +175,7 @@ if (isMain(import.meta.url)) {
 
   const byLeague = new Map()
   log('per league — does ESPN serve teams, and do they carry a colour?')
-  for (const [name, path] of LEAGUES) {
+  for (const [name, path, labels] of LEAGUES) {
     let ok = false, teams = [], withColour = 0
     try {
       const r = await fetch(`${ESPN}/${path}/teams`, { signal: AbortSignal.timeout(20000) })
@@ -143,7 +187,7 @@ if (isMain(import.meta.url)) {
       }
     } catch { ok = false }
     const v = leagueVerdict({ ok, teams: teams.length, withColour })
-    byLeague.set(name, { teams, verdict: v })
+    for (const label of labels) byLeague.set(label, { teams, verdict: v })
     log(`  ${name.padEnd(28)} ${String(teams.length).padStart(4)} team(s)  ${String(withColour).padStart(4)} coloured   ${v}`)
   }
 
