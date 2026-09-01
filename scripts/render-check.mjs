@@ -258,7 +258,7 @@ const attributeWeather = ({ requests, expectedUrls }) => {
   const answered = requests.filter(r => r.status > 0)
   if (answered.length)
     return { verdict: PAGE_AT_FAULT,
-             why: `${answered.length} request(s) received a response (${[...new Set(answered.map(r => r.status))].join(', ')}) and no chip filled` }
+             why: `${answered.length} request(s) received a response (${[...new Set(answered.map(r => r.status))].join(', ')})` }
 
   // WHAT IS DELIBERATELY NOT ASKED HERE: whether the page ran each request to the
   // budget it was entitled to.
@@ -599,8 +599,25 @@ if (!pinned) {
   const byName = new Map(Array.from(weatherVenues).map(v => [v.Name, v]))
   const expectedUrls = new Set(cardVenues.filter(v => known.has(v))
     .map(n => forecastUrl(byName.get(n).Where)))
-  const attribution = attributeWeather({ requests: wxRequests, expectedUrls })
-  console.log(`attribution: ${attribution.verdict} — ${attribution.why}\n`)
+  // ONLY WHEN THERE IS A FAILURE TO ATTRIBUTE.
+  //
+  // Computed unconditionally in the first version of this, and verify run 254
+  // showed why that is wrong: the chips filled, both live checks passed, and the
+  // line printed was `attribution: page — 14 request(s) received a response (200)
+  // and no chip filled`. Every clause of that is true except the last, and the
+  // last is the one that makes it a finding. An instrument that reports a fault
+  // on a healthy run is the same collapse it was written to prevent, one level
+  // up: `page` meant both "the host answered and nothing rendered" and "the host
+  // answered and everything is fine".
+  //
+  // The node probe it replaces had this right — "the probe runs solely when there
+  // is an empty-chip failure to explain, so a healthy slate pays nothing" — and
+  // the condition here is the same one.
+  const unexplained = waitErr !== null || filled.length < expected
+  const attribution = unexplained
+    ? attributeWeather({ requests: wxRequests, expectedUrls })
+    : { verdict: null, why: 'not computed — every expected chip filled' }
+  if (unexplained) console.log(`attribution: ${attribution.verdict} — ${attribution.why}\n`)
 
   if (TOLERATE && attribution.verdict === HOST_SILENT) {
     // The page asked for the right URLs, ran every request to the budget it was

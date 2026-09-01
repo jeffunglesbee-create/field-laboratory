@@ -331,3 +331,41 @@ guarded for on 2026-08-23.
 
 Nothing outside the file needs them, and the enumerated cases are in the same
 file, so they are local. Not a workaround — the export was the mistake.
+
+---
+
+## Run 254 went green, and printed something false while doing it
+
+`verify` 254 on `5f97823`: **success**. It is worth reading how.
+
+```
+open-meteo (start+duration): 553+8000ms 553+8000ms 553+8000ms 553+8001ms
+                             8554+69ms 8554+86ms 8554+103ms 8554+120ms  ...
+attribution: page — 14 request(s) received a response (200) and no chip filled
+PASS  the chips all filled within the wait
+PASS  every card whose venue the table knows carries a live chip
+```
+
+The first wave aborted at its cap, four times over, and the retry wave landed in
+69-120ms — the recover-within-one-page-load behaviour `WeatherView.fs` documents,
+working exactly as designed. The page saved itself and the chips filled.
+
+And the attribution line says `page — ... and no chip filled`, on a run where
+every chip filled.
+
+Every clause of that sentence is true except the last, and the last is the one
+that makes it a finding. It changed no decision — the verdict is only consulted
+when chips are missing — but an instrument that reports a fault on a healthy run
+is **the same collapse it was written to prevent, one level up**: `page` meant
+both "the host answered and nothing rendered" and "the host answered and
+everything is fine".
+
+The node probe it replaces had this right and said so: "the probe runs solely
+when there is an empty-chip failure to explain, so a healthy slate pays nothing."
+Moving the computation ahead of the branch dropped that property. It is now
+computed only when `waitErr !== null || filled.length < expected` — the same
+condition — and the `why` for an answered request no longer asserts "and no chip
+filled", which is the caller's fact and not the function's.
+
+Fifth instance today of a measurement that reads true locally and is false about
+the thing it stands for.
