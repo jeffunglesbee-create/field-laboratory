@@ -50,6 +50,10 @@
 // MODES: (default) scan live and act | --dry-run | --self-test
 
 import { decideIssueAction } from './relay-brief-watch.mjs'
+// The identity grouping, IMPORTED rather than reimplemented — a second copy of
+// `sameFixture` would drift from the one the collision probe is mutation-proven
+// against, and this file's whole failure was a scope it could not see.
+import { groupsFor } from './probe-fixture-identity-duplicates.mjs'
 import { createChecks, isMain } from './checks.mjs'
 
 const TARGET = process.env.TARGET || 'jeffunglesbee-create/field-relay-nba'
@@ -91,16 +95,49 @@ export const scanDuplicates = (games) => {
     }))
 }
 
-export const issueBody = (dupes, date, runUrl) => [
+/**
+ * Duplicates this watcher's OWN event-id grouping cannot see.
+ *
+ * MEASURED 2026-09-01, and it is the reason this function exists. `scanDuplicates`
+ * skips any row with no `espn_event_id`, and the numeric-id upsert key shipped
+ * for this issue (relay `d253209`) is numeric-only — BOTH SKIP THE SAME ROWS.
+ * A 30-day sweep found 61 non-distinct fixture groups and **51 of them invisible
+ * here**, every one MLS, each a pair of one row with an event id and one without.
+ *
+ * So this watcher could report clean and close the issue while the condition
+ * persisted: the fix succeeding and the instrument being blind produce the same
+ * output. That is what this adds — the class the event-id key cannot reach.
+ *
+ * `distinct` groups are dropped: two differing event ids or two differing start
+ * times are two real games, and a doubleheader is not a defect.
+ */
+export const scanIdentityOnly = (games) =>
+  groupsFor(games ?? []).filter(g => g.kind !== 'distinct' && !g.watcherSees)
+
+/**
+ * Everything that should keep the ticket open. EXPORTED, because the first
+ * version of this lived inline in the runner and a mutation reverting it to
+ * `dupes` alone left the suite at 15/15 — the line that decides whether a real
+ * ticket closes was the one line no check could reach.
+ */
+export const offendersFor = (games) => [...scanDuplicates(games), ...scanIdentityOnly(games)]
+
+export const issueBody = (dupes, date, runUrl, identityOnly = []) => [
   MARKER,
   '',
   `On **${date}**, \`GET /context/date/${date}\` returned ${dupes.length} fixture(s) as two rows each.`,
   '',
-  'Each pair shares one `espn_event_id`, so the relay already holds a unique key',
+  'These pairs share one `espn_event_id`, so the relay already holds a unique key',
   'for the fixture and wrote two rows anyway. The archive id is composed',
   '`SPORT_DATE_HOME_AWAY`, and the team-name form differs between write paths —',
   'the same split this repo already documents for a drifting sport label',
   '(`src/index.js`, "A drifting label splits one competition across two id namespaces").',
+  '',
+  '**Not every duplicate is in that list.** This watcher groups on `espn_event_id`',
+  'and skips rows without one, so a pair where only one row carries an id is',
+  'invisible to it — and the numeric-id upsert key is scoped the same way, so the',
+  'fix succeeding and this instrument being blind look identical. The section',
+  'below is that class, found by grouping on fixture identity instead.',
   '',
   ...dupes.flatMap(d => [
     `- **espn:${d.id}**`,
@@ -112,12 +149,31 @@ export const issueBody = (dupes, date, runUrl) => [
   'about state (one final, one an unplayed stub), one card carries the recap and',
   'the other carries nothing.',
   '',
-  '**Not seen before 2026-08-30.** Four committed captures in field-laboratory',
-  '(2026-05-15, 2026-08-09, 2026-08-29, plus the briefs fixture) hold 88 game rows',
-  'with zero duplicated event ids, and its drift log records WNBA going from 2 rows',
-  'on 2026-08-29 to 4 on 2026-08-30 for the same two fixtures.',
+  ...(identityOnly.length ? [
+    '',
+    `### ${identityOnly.length} more this watcher's event-id grouping cannot see`,
+    '',
+    'Each is one fixture served twice, where one row carries an event id and a',
+    'start time and the other carries neither. `INDISTINGUISHABLE` means exactly',
+    'that: with no event id and no start time on one side, a duplicated row and a',
+    'doubleheader cannot be told apart from what is served, and neither answer is',
+    'invented here.',
+    '',
+    ...identityOnly.flatMap(g => [
+      `- **${g.kind}**`,
+      ...g.rows.map(r => `  - \`${r.id}\` — ${r.away} @ ${r.home} · eid=${r.espn_event_id ?? '(none)'} · start=${r.start_time ?? '(none)'}`),
+    ]),
+  ] : []),
   '',
-  'Closes itself on the first run where the payload carries no duplicated event id.',
+  '**Dating, corrected 2026-09-01.** An earlier version of this body said the',
+  'condition was not seen before 2026-08-30, citing four committed captures with',
+  '88 rows and no duplicated event ids. A 30-day sweep finds event-id collisions',
+  'on 2026-08-02 onward, so it is at least four weeks old. The captures missed it',
+  'because they are small and predate the second write — one of the four holds',
+  'two rows, and a two-row file was never evidence about that day\'s slate.',
+  '',
+  'Closes itself on the first run where BOTH groupings are clean. Closing on the',
+  'event-id grouping alone would be an artifact of where this watcher looks.',
   '',
   runUrl ? `_Filed by field-laboratory's relay-duplicate-fixture-watch. Run: ${runUrl}_` : '',
 ].join('\n')
@@ -150,6 +206,52 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('the body names both archive ids, which is the actionable part',
     issueBody(scanDuplicates(wnba), '2026-08-30', '').includes('WNBA_a') &&
     issueBody(scanDuplicates(wnba), '2026-08-30', '').includes('WNBA_b'))
+  // ── the blind spot, which is why this file changed ─────────────────────────
+  const idless = (id, away, home) => ({ id, espn_event_id: null, away, home, start_time: null })
+  const withId = (id, espn, away, home) =>
+    ({ id, espn_event_id: espn, away, home, start_time: '2026-08-30T23:00Z' })
+
+  const mixed = [withId('MLS_a', '761769', 'Dallas', 'St. Louis'),
+                 idless('2026-08-30-mls-stl-dal', 'FC Dallas', 'St. Louis CITY SC')]
+  check('THE EVENT-ID GROUPING SEES NOTHING IN THE REAL MLS PAIR',
+    scanDuplicates(mixed).length === 0,
+    'one row carries 761769 and the other carries none, so there is nothing to group')
+  check('...and the identity grouping sees it',
+    scanIdentityOnly(mixed).length === 1)
+  check('a pair BOTH groupings see is not double-counted as blind',
+    scanIdentityOnly(wnba).length === 0 && scanDuplicates(wnba).length === 1,
+    'watcherSees is true there, so it belongs to the event-id list only')
+  // TWO START TIMES AND NO EVENT IDS. This is the case the `distinct` filter is
+  // actually for: `!watcherSees` is true, so without it a doubleheader would be
+  // reported as an offender and hold the ticket open forever. The first version
+  // of this check used a pair that both carried event ids, where `watcherSees`
+  // filtered it anyway and the `distinct` clause was never exercised —
+  // deleting that clause left the suite at 15/15.
+  const dh = [
+    { id: 'a', espn_event_id: null, away: 'Padres', home: 'Dodgers', start_time: '2026-08-30T20:00Z' },
+    { id: 'b', espn_event_id: null, away: 'Padres', home: 'Dodgers', start_time: '2026-08-31T02:00Z' },
+  ]
+  check('A DOUBLEHEADER WITH NO EVENT IDS IS NOT AN OFFENDER',
+    scanIdentityOnly(dh).length === 0 && offendersFor(dh).length === 0,
+    'differing start times are two real games, and this pair is invisible to the event-id grouping')
+  check('the same pair at ONE start time IS an offender',
+    offendersFor([dh[0], { ...dh[1], start_time: dh[0].start_time }]).length === 1,
+    'so the exemption is the differing time, not the missing ids')
+  check('the blind rows reach the issue body',
+    issueBody([], '2026-08-30', null, scanIdentityOnly(mixed))
+      .includes('2026-08-30-mls-stl-dal'))
+  // The discriminating PAIR, not a single string. Asserting one action name is
+  // how the first version of this check failed: it asserted 'comment' from
+  // memory when the imported function returns 'update'. Two calls on the same
+  // payload, differing only in which grouping feeds them, cannot be satisfied
+  // by guessing a name.
+  check('CLOSING TAKES BOTH GROUPINGS',
+    decideIssueAction({ rowsPresent: true, offenders: scanDuplicates(mixed),
+                        openIssueNumber: 5 }) === 'close' &&
+    decideIssueAction({ rowsPresent: true, offenders: offendersFor(mixed),
+                        openIssueNumber: 5 }) !== 'close',
+    'the event-id grouping alone says close on a payload that still has 1 duplicate')
+
   check('decideIssueAction is the imported one, not a second copy',
     decideIssueAction({ rowsPresent: true, offenders: [1], openIssueNumber: null }) === 'create' &&
     decideIssueAction({ rowsPresent: true, offenders: [], openIssueNumber: 5 }) === 'close' &&
@@ -173,11 +275,17 @@ if (isMain(import.meta.url)) {
   const payload = await res.json()
   const games = [...(payload.games?.regular ?? []), ...(payload.games?.postseason ?? [])]
   const dupes = scanDuplicates(games)
+  const blind = scanIdentityOnly(games)
 
   console.log(`\n  ${date}: ${games.length} game row(s), ${dupes.length} duplicated fixture(s)`)
   for (const d of dupes) {
     console.log(`    espn:${d.id}`)
     for (const r of d.rows) console.log(`      ${r.archiveId}  ${r.label}${r.final ? '  (final)' : ''}`)
+  }
+  console.log(`  ${blind.length} more invisible to the event-id grouping`)
+  for (const g of blind) {
+    console.log(`    ${g.kind}`)
+    for (const r of g.rows) console.log(`      ${r.id}  ${r.away} @ ${r.home}  eid=${r.espn_event_id ?? '(none)'}`)
   }
 
   // rowsPresent guards the close path: an empty slate must never close a real
@@ -201,12 +309,16 @@ if (isMain(import.meta.url)) {
     }
   }
 
-  const action = decideIssueAction({ rowsPresent: games.length > 0, offenders: dupes,
+  // BOTH GROUPINGS, or the close path is the blind one. Closing on `dupes` alone
+  // would have shut this ticket while 51 pairs a day persisted unseen — the
+  // measurement that prompted this change.
+  const offenders = offendersFor(games)
+  const action = decideIssueAction({ rowsPresent: games.length > 0, offenders,
                                      openIssueNumber: open?.number ?? null })
   console.log(`\n  action: ${action}${open ? ` (open #${open.number})` : ''}\n`)
   if (dry) process.exit(0)
 
-  const body = issueBody(dupes, date, runUrl)
+  const body = issueBody(dupes, date, runUrl, blind)
   if (action === 'create') {
     const made = await api(`/repos/${TARGET}/issues`, { method: 'POST',
       body: JSON.stringify({ title: TITLE, body }) })
