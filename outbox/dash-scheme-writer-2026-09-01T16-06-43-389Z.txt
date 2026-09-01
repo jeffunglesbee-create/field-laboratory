@@ -1,0 +1,51 @@
+probe_at: 2026-09-01T16:06:43.390Z
+question: is the dash-scheme MLS writer STALE (one bulk import) or LIVE?
+method:   public GET /context/date, 30 day(s) back. created_at is served,
+          so this needs no credential. CC-CMD-2026-09-01-mls-dual-writer Task 1.
+
+  2026-08-31   18 row(s)  no dash-scheme rows
+  2026-08-30   48 row(s)   9 dash  created 2026-07-06, 2026-08-31
+  2026-08-29   81 row(s)  15 dash  created 2026-06-30
+  2026-08-28   36 row(s)  no dash-scheme rows
+  2026-08-27   57 row(s)  no dash-scheme rows
+  2026-08-26   30 row(s)  no dash-scheme rows
+  2026-08-25   42 row(s)  no dash-scheme rows
+  2026-08-24   18 row(s)  no dash-scheme rows
+  2026-08-23   48 row(s)   9 dash  created 2026-07-06
+  2026-08-22   75 row(s)  15 dash  created 2026-06-30
+  2026-08-21   26 row(s)  no dash-scheme rows
+  2026-08-20   62 row(s)   8 dash  created 2026-07-06
+  2026-08-19   53 row(s)  15 dash  created 2026-06-30
+  2026-08-18   25 row(s)  no dash-scheme rows
+  2026-08-17   15 row(s)   2 dash  created 2026-07-06
+  2026-08-16   34 row(s)   8 dash  created 2026-07-06
+  2026-08-15   58 row(s)  15 dash  created 2026-06-30
+  2026-08-14   24 row(s)  no dash-scheme rows
+  2026-08-13   26 row(s)  no dash-scheme rows
+  2026-08-12   26 row(s)  no dash-scheme rows
+  2026-08-11   21 row(s)  no dash-scheme rows
+  2026-08-10   18 row(s)  no dash-scheme rows
+  2026-08-09   29 row(s)  no dash-scheme rows
+  2026-08-08   60 row(s)   1 dash  created 2026-07-06
+  2026-08-07   28 row(s)  no dash-scheme rows
+  2026-08-06   20 row(s)  no dash-scheme rows
+  2026-08-05   25 row(s)  no dash-scheme rows
+  2026-08-04   18 row(s)  no dash-scheme rows
+  2026-08-03   12 row(s)  no dash-scheme rows
+  2026-08-02   31 row(s)   8 dash  created 2026-07-06, 2026-08-03
+
+dash-scheme rows: 105, 105 carrying created_at
+distinct created_at DAYS among them: 4
+    2026-06-30  60 row(s)
+    2026-07-06  43 row(s)
+    2026-08-03  1 row(s)
+    2026-08-31  1 row(s)
+for contrast, composite rows span 29 created_at day(s)
+
+VERDICT: live-writer
+
+Dash-scheme rows carry created_at stamps that track the games rather than
+one import instant. Something is still writing them, so this is explanation
+(1) or (3) and the caller must be identified before any fix.
+
+artifact: outbox/dash-scheme-writer-2026-09-01T16-06-43-389Z.txt
