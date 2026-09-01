@@ -81,3 +81,37 @@ splitting home and away into spans in `Scoreboard.fs`.
 Both are the next commit. The derivation is complete and proven on its own, and
 is committed separately so that proof stands whatever the data source turns out
 to cover.
+
+
+## Coverage: the number that decides whether this ships
+
+The derivation cannot conjure a brand hex, so the remaining question is how much
+of the desk it can reach. Two measurements, and the second is the answer:
+
+1. **Per league** — does ESPN serve teams, and do they carry `color`?
+2. **Per slate** — of the rows the desk actually renders, how many resolve
+   **both** team names to a tint?
+
+A league with perfect colour data whose team names do not match the names
+`/context/date` serves contributes nothing to the page. Name drift is this
+session's recurring subject — `Dream` vs `Atlanta Dream` — so the match runs
+through the same subset-based `sameTeam` the collision probe is mutation-proven
+against, never string equality.
+
+**The slug list is a hypothesis, tried and reported.** A 404 reads `unavailable`,
+which is deliberately not the same as zero coverage: averaging a slug typo in
+with a real zero would publish a mistake as a fact about the sport. Golf and
+PGATour are absent because they have no teams, and IPL because it lives on a
+different API — guessing a slug there would manufacture a failure that says
+nothing.
+
+**One side tinted is its own bucket.** A row where only one team resolves must
+not render half a matchup in colour: one coloured name beside a plain one reads
+as emphasis, not identity. `both` is the addressable fraction.
+
+The probe imports the **compiled** palette rather than reimplementing the tint
+maths, so the number it reports is about the code the page runs.
+
+11/11 self-test. Exercised end to end against a stub covering all three buckets:
+a subset name match (`Dream` -> `Atlanta Dream`) landing in `both`, a half match
+in `one side only`, and a colourless league in `neither`.

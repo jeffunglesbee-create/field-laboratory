@@ -1,0 +1,59 @@
+# What fraction of the desk would actually get a team tint?
+#
+# `Palette.teamTint` is built and proven (suite 101/101) and cannot conjure a
+# brand hex. There is no colour field in the relay payload or in either repo, so
+# what decides whether this ships is COVERAGE, not derivation.
+#
+# Two numbers, and the second is the one that matters: per league, does ESPN
+# serve teams carrying `color`; and per SLATE, of the rows the desk renders, how
+# many resolve BOTH team names to a tint. A league with perfect colour data whose
+# names do not match what /context/date serves contributes nothing to the page —
+# so the match runs through the same subset-based `sameTeam` the collision probe
+# is mutation-proven against, never string equality.
+#
+# BUILDS FIRST. The probe imports the COMPILED palette rather than
+# reimplementing the tint maths; a second copy would drift from the one the F#
+# suite proves, and the number reported would then be about the copy.
+#
+# WHY CI: both site.api.espn.com and *.workers.dev are blocked by the dev
+# sandbox's egress allowlist. DISPATCH ONLY.
+name: team-colour coverage probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: Slate date to measure (YYYY-MM-DD, default yesterday ET)
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: npm ci
+      - name: Build — the probe reads the compiled palette
+        run: npm run build
+      - name: How much of the desk can be tinted?
+        run: |
+          node scripts/probe-team-colour-coverage.mjs --self-test
+          node scripts/probe-team-colour-coverage.mjs ${{ inputs.date && format('--date {0}', inputs.date) || '' }}
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/team-colour-coverage-*.txt || true
+          git diff --staged --quiet || git commit -m "probe: team-colour coverage [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
