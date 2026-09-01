@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0ade237` | 2026-09-01 | [dash-scheme-writer-2026-09-01T16-06-43-389Z.txt](dash-scheme-writer-2026-09-01T16-06-43-389Z.txt) | probe: dash-scheme writer [skip ci] |
+| `8f1ebd8` | 2026-09-01 | [cc-session-2026-09-01-dash-scheme-writer.md](cc-session-2026-09-01-dash-scheme-writer.md) | probe: is the dash-scheme MLS writer stale or still running? |
 | `73d32a9` | 2026-09-01 | [fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt](fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt) | probe: fixture-identity duplicates [skip ci] |
 | `5f84930` | 2026-09-01 | [cc-session-2026-09-01-fixture-identity-blind-spot.md](cc-session-2026-09-01-fixture-identity-blind-spot.md) | probe: duplicates the event-id watcher cannot see |
 | `8deca4b` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt](id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt) | probe: id-scheme migration exposure [skip ci] |
