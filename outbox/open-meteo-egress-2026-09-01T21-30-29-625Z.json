@@ -1,0 +1,70 @@
+{
+  "at": "2026-09-01T21:30:29.625Z",
+  "verdict": "reachable",
+  "repair": "nothing is wrong now — the failure was transient and the probe must be able to say so",
+  "measurements": {
+    "node": "ok",
+    "browserSingle": "ok",
+    "browserBurst": "ok"
+  },
+  "node": {
+    "m": "ok",
+    "ms": 576,
+    "note": ""
+  },
+  "browserSingle": {
+    "m": "ok",
+    "ms": 528,
+    "note": ""
+  },
+  "burst": [
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 202
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 327
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 445
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 477
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 510
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 476
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 482
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 1,
+      "ms": 510
+    }
+  ]
+}
