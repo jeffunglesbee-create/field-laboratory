@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ad1d1aa` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | generator: the club colours table, fuzzy here and exact at runtime |
 | `f9ae81c` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-47-22-768Z.txt](team-colour-coverage-2026-09-01T19-47-22-768Z.txt) | probe: team-colour coverage [skip ci] |
 | `bfe0e78` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | probe: key the league lookup on the relay's label, not the F# union name |
 | `5e217ce` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-44-40-527Z.txt](team-colour-coverage-2026-09-01T19-44-40-527Z.txt) | probe: team-colour coverage [skip ci] |
