@@ -2,18 +2,26 @@
   probing 8 venue(s) from node and from chromium
 
   node   single   HTTP 200
-  chrome single   ok in 528ms
+  chrome single   ok in 2103ms
   chrome burst    8/8 answered
-           0+   202ms  HTTP 200
-           1+   327ms  HTTP 200
-           1+   445ms  HTTP 200
-           1+   477ms  HTTP 200
-           1+   510ms  HTTP 200
-           1+   476ms  HTTP 200
-           1+   482ms  HTTP 200
-           1+   510ms  HTTP 200
+           0+   137ms  HTTP 200
+           0+   261ms  HTTP 200
+           0+   384ms  HTTP 200
+           0+   490ms  HTTP 200
+           0+   519ms  HTTP 200
+           0+   498ms  HTTP 200
+           0+   510ms  HTTP 200
+           0+   505ms  HTTP 200
+
+  resource timing: 5 open-meteo entr(ies)
+    name carries the query string : YES
+    responseStatus present        : YES
+    responseStatus on an answered : 200
+    responseStatus on a DEAD host : 0
+    transferSize on an answered   : 0
+    a name, verbatim: https://api.open-meteo.com/v1/forecast?latitude=39.0517&longitude=-94.4803&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto
 
   VERDICT: reachable
   nothing is wrong now — the failure was transient and the probe must be able to say so
 
-  outbox/open-meteo-egress-2026-09-01T21-30-29-625Z.json
+  outbox/open-meteo-egress-2026-09-01T21-34-49-910Z.json

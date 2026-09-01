@@ -1,0 +1,107 @@
+{
+  "at": "2026-09-01T21:34:49.910Z",
+  "verdict": "reachable",
+  "repair": "nothing is wrong now — the failure was transient and the probe must be able to say so",
+  "measurements": {
+    "node": "ok",
+    "browserSingle": "ok",
+    "browserBurst": "ok"
+  },
+  "node": {
+    "m": "ok",
+    "ms": 686,
+    "note": ""
+  },
+  "browserSingle": {
+    "m": "ok",
+    "ms": 2103,
+    "note": ""
+  },
+  "burst": [
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 137
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 261
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 384
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 490
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 519
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 498
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 510
+    },
+    {
+      "ok": true,
+      "status": 200,
+      "start": 0,
+      "ms": 505
+    }
+  ],
+  "resourceTiming": [
+    {
+      "name": "https://api.open-meteo.com/v1/forecast?latitude=39.0517&longitude=-94.4803&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto",
+      "duration": 1903,
+      "responseStatus": 200,
+      "hasResponseStatus": true,
+      "transferSize": 0
+    },
+    {
+      "name": "https://api.open-meteo.com/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto",
+      "duration": 137,
+      "responseStatus": 200,
+      "hasResponseStatus": true,
+      "transferSize": 0
+    },
+    {
+      "name": "https://api.open-meteo.com/v1/forecast?latitude=41.9484&longitude=-87.6553&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto",
+      "duration": 261,
+      "responseStatus": 200,
+      "hasResponseStatus": true,
+      "transferSize": 0
+    },
+    {
+      "name": "https://api.open-meteo.com/v1/forecast?latitude=40.4469&longitude=-80.0057&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto",
+      "duration": 384,
+      "responseStatus": 200,
+      "hasResponseStatus": true,
+      "transferSize": 0
+    },
+    {
+      "name": "https://api.open-meteo.invalid/v1/forecast?latitude=1.0&longitude=2.0",
+      "duration": 13,
+      "responseStatus": 0,
+      "hasResponseStatus": true,
+      "transferSize": 0
+    }
+  ]
+}
