@@ -272,6 +272,71 @@ let private stateNode (className: string) (testId: string) (compute: unit -> str
 
 /// A node whose text comes from the immutable game record. Safe to set once,
 /// because there is no state it could fall behind.
+/// The matchup line, with each side in its club's tint where that is honest.
+///
+/// BOTH SIDES OR NEITHER, and never one. A coloured name beside a plain one
+/// reads as EMPHASIS — it says this team matters more — which is a claim the
+/// desk is not making. The coverage probe measured zero one-sided rows on a real
+/// slate anyway, because resolution is per league; this rule is here for the
+/// case that measurement did not contain.
+///
+/// PAIRWISE, NOT GLOBAL. Two clubs sharing a colour only confuse a reader when
+/// they appear together, and `Palette.distinguishable` asks exactly that. The
+/// alternative — dropping a club from every matchup — cost roughly a hundred
+/// clubs their colour permanently to fix collisions most of them never had.
+///
+/// `SingleLine` is never tinted: "BMW Championship · R4" has no two clubs, and
+/// colouring either half would invent a rivalry.
+let private teamsNode (game: Game) =
+    let node = el "div" "desk-card__teams" ""
+    node.setAttribute ("data-testid", "teams")
+    // LEAGUE FIRST, SPORT AS THE FALLBACK — and this is not defensive coding.
+    // `league` is NULL on exactly the dash-scheme MLS rows, which are the whole
+    // top of the desk, while `sport` carries "MLS" on all of them. Keying on
+    // `League` alone rendered every MLS card plain and looked like a data gap.
+    // The coverage probe already handled this and the handling was not carried
+    // across — the third time in this session that reading the right field in
+    // one place and the wrong one in another has cost a measurement.
+    let league =
+        if game.League <> "" && game.League <> null then game.League
+        else (sportMeta game.Sport).Label
+    let plain (t: string) = node.appendChild (document.createTextNode t) |> ignore
+    let side (name: string) (tint: Palette.Token option) =
+        match tint with
+        | None -> plain name
+        | Some t ->
+            let span = document.createElement "span"
+            span.className <- "desk-card__team"
+            span.textContent <- name
+            // The tint escapes as a CSS value and nowhere else — the seal on
+            // Palette.Token means this is the only shape a colour can take here.
+            span.setAttribute ("style", sprintf "color:%s" (Palette.cssValue t))
+            // The hex is on the node so a check can read what actually rendered
+            // rather than trust that it did.
+            span.setAttribute ("data-tint", Palette.cssValue t)
+            node.appendChild span |> ignore
+    match matchupParts game.Sport game.Home game.Away with
+    | SingleLine text -> plain text
+    | TwoSides(first, sep, second) ->
+        // The parts come back already ordered, so the tint has to be looked up
+        // by NAME rather than by home/away — `first` is the away side in the
+        // American convention and the home side elsewhere.
+        let tintFor (n: string) = TeamColours.tryTint league n
+        let t1, t2 = tintFor first, tintFor second
+        let both =
+            match t1, t2 with
+            // Three conditions, not one. Both sides must resolve, each tint must
+            // read as a colour rather than as the plain text it replaces, and
+            // the two must be tellable apart. Any failure sends BOTH to plain.
+            | Some a, Some b when
+                Palette.readsAsColour a && Palette.readsAsColour b
+                && Palette.distinguishable a b -> Some(a, b)
+            | _ -> None
+        match both with
+        | Some(a, b) -> side first (Some a); plain sep; side second (Some b)
+        | None -> plain (first + sep + second)
+    node
+
 let private staticNode (className: string) (testId: string) (text: string) =
     let node = el "div" className text
     if testId <> "" then node.setAttribute("data-testid", testId)
@@ -304,7 +369,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
         // The sport is the group heading now, so the card header carries the
         // venue alone rather than repeating it on every card in the section.
         [ staticNode "desk-card__header" "" (defaultArg game.Venue "—")
-          staticNode "desk-card__teams" "" (matchupText game.Sport game.Home game.Away)
+          teamsNode game
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
           stateNode "desk-card__drama" "drama" drama

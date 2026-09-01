@@ -1095,9 +1095,18 @@ let private route =
 
 let private teamTints =
     let tint hex = Option.get (Palette.teamTint hex)
-    let clears (hex: string) = Palette.contrastWithBg (tint hex) >= Palette.TEAM_TINT_CONTRAST
+    // AGAINST THE CARD, not the page. Team names sit inside `.desk-card`, so
+    // `bg` is the one surface they are never on — and a suite measuring `bg`
+    // agreed with a bug a rendered check then caught at 4.35.
+    let clears (hex: string) = Palette.contrastWithCard (tint hex) >= Palette.TEAM_TINT_CONTRAST
 
     [ // Navy on near-black is the ordinary case in American sport. 1.32 raw.
+      Verify.check "the tint clears AA ON THE CARD, which is where it renders"
+          (fun (hex, wantClear) ->
+              (Palette.contrastWithCard (tint hex) >= Palette.TEAM_TINT_CONTRAST) = wantClear)
+          ("#134a8e", true)
+          ("#134a8e", false)
+
       Verify.check "the derived tint clears AA where the brand hex does not"
           (fun (hex, wantClear) -> clears hex = wantClear)
           ("#132448", true)
@@ -1117,9 +1126,15 @@ let private teamTints =
       // The cap is the least saturated CHROMATIC semantic, computed from the
       // registry. A tint at full brand saturation would compete with colour that
       // carries meaning, which is the larger hazard than legibility.
+      // ONE QUANTISATION STEP OF TOLERANCE, and that number is 1/255 rather than
+      // a widened guess. The cap is applied in HSL and the result is then
+      // rounded to a hex; reading the saturation back off that hex returns a
+      // value up to one 8-bit step away. #CE1141 measured 0.0013 over, which is
+      // a third of a step. A tighter tolerance would fail on rounding; a looser
+      // one would stop catching a real breach of the cap.
       Verify.check "a fully saturated brand colour is capped, not passed through"
           (fun (hex, wantCapped) ->
-              (Palette.saturationOf (tint hex) <= Palette.teamTintSaturationCap + 0.001) = wantCapped)
+              (Palette.saturationOf (tint hex) <= Palette.teamTintSaturationCap + (1.0 / 255.0)) = wantCapped)
           ("#CE1141", true)
           ("#CE1141", false)
 
@@ -1132,6 +1147,31 @@ let private teamTints =
 
       // None is a third state. A default tint would put a colour on the page
       // that no source supplied.
+      // PAIRWISE, which is the whole reason a club no longer drops globally.
+      Verify.check "two clubs in the same white cannot be told apart"
+          (fun (a, b) -> Palette.distinguishable (tint a) (tint b))
+          ("#ffffff", "#a50044")
+          ("#ffffff", "#ffffff")
+
+      Verify.check "TWO REDS ARE AS BAD AS ONE RED — a distance, not an equality"
+          (fun (a, b) -> Palette.distinguishable (tint a) (tint b))
+          ("#007A33", "#CE1141")
+          ("#f42727", "#e31837")
+
+      // Derived from the registry: the closest pair among the five semantics is
+      // the smallest separation this page already asks anyone to distinguish.
+      // Found by looking at the rendered page, not at a number: a pale tint reads
+      // as unstyled, and its partner's colour then reads as emphasis.
+      Verify.check "A TINT TOO CLOSE TO THE TEXT COLOUR IS NOT A COLOUR"
+          (fun (hex: string) -> Palette.readsAsColour (tint hex))
+          "#005A9C"
+          "#aec7e6"
+
+      Verify.check "the separation floor comes from the palette, not from taste"
+          (fun (floor: float) -> floor > 1.0 && floor < 100.0)
+          Palette.tintSeparationFloor
+          0.0
+
       Verify.check "a malformed colour yields NO tint, never a default one"
           (fun (hex, wantSome) -> (Palette.teamTint hex).IsSome = wantSome)
           ("not-a-hex", false)

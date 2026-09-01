@@ -612,22 +612,45 @@ let presentByMatchup (sport: Sport) (home: 'a) (away: 'a) : Presentation<'a> =
     | NotAContest shape -> Event shape
 
 /// Renders a fixture in its sport's own convention.
-let matchupText (sport: Sport) (home: string) (away: string) =
+/// The matchup, decomposed — the same decision `matchupText` makes, before it
+/// becomes a string.
+///
+/// TWO RENDERINGS, ONE DECISION. Tinting the team names needs the two sides as
+/// separate nodes, and a second function computing the order independently would
+/// be free to drift from this one. `matchupText` is now built on top of this, so
+/// the string and the spans cannot disagree about which side comes first.
+///
+/// `OneLine` is not a contest and must never be tinted: "BMW Championship · R4"
+/// has no two clubs in it, and colouring either half would invent a rivalry.
+type MatchupParts =
+    | TwoSides of first: string * separator: string * second: string
+    // NOT `OneLine` — Desk.fs already owns that name for a betting line
+    // (`OneLine of line: float`), and the later definition would shadow this one
+    // wherever both are in scope. The compiler caught it; the two meanings are
+    // unrelated and only one of them can have the short name.
+    | SingleLine of text: string
+
+let matchupParts (sport: Sport) (home: string) (away: string) =
     match presentByMatchup sport home away with
     | Contest(first, second) ->
         match (sportMeta sport).Matchup with
-        | AwayAtHome -> sprintf "%s @ %s" first second
-        | HomeVersusAway -> sprintf "%s v %s" first second
+        | AwayAtHome -> TwoSides(first, " @ ", second)
+        | HomeVersusAway -> TwoSides(first, " v ", second)
         // Home first, neutral separator. Not a guess at the convention — a
         // refusal to make one.
         | UnknownConvention
-        | NotAContest _ -> sprintf "%s vs %s" first second
+        | NotAContest _ -> TwoSides(first, " vs ", second)
     | Event LeaderboardSnapshot ->
         // The event and the stage within it, in the column order the relay
         // wrote them. Never a separator that reads as a versus: "BMW
         // Championship v R4" is the sentence this case exists to stop the desk
         // from saying.
-        sprintf "%s · %s" home away
+        SingleLine(sprintf "%s · %s" home away)
+
+let matchupText (sport: Sport) (home: string) (away: string) =
+    match matchupParts sport home away with
+    | TwoSides(a, sep, b) -> a + sep + b
+    | SingleLine t -> t
 
 /// The score line for an event, from the two columns that actually carry one.
 ///

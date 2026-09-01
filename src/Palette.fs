@@ -320,6 +320,11 @@ let teamTintSaturationCap =
 let contrastWithBg (t: Token) =
     contrastOf (Option.get (hexToRgb (cssValue t))) (Option.get (hexToRgb (cssValue bg)))
 
+/// A token's contrast against the LIGHTEST card surface — the one a team name
+/// actually sits on, and the one `teamTint` targets.
+let contrastWithCard (t: Token) =
+    contrastOf (Option.get (hexToRgb (cssValue t))) (Option.get (hexToRgb (cssValue card2)))
+
 /// The hue a token sits at, 0-360. Public for the same reason: "the hue is
 /// preserved" is the entire justification for showing a derived colour at all,
 /// so it has to be checkable rather than asserted in a comment.
@@ -345,11 +350,85 @@ let teamTint (brandHex: string) : Token option =
     | Some rgb ->
         let (h, s0, l0) = toHsl rgb
         let s = min s0 teamTintSaturationCap
-        let bgRgb = Option.get (hexToRgb (cssValue bg))
-        // Raise lightness in fixed steps until AA clears. Terminates: near-white
-        // on this ground measures about 19:1, far above the bar.
+        // AGAINST THE LIGHTEST SURFACE A TINT CAN LAND ON, not against `bg`.
+        //
+        // Team names render inside a card — `.desk-card` paints `card`, and a
+        // flipped card paints `card2` — so `bg` is the one surface they are
+        // never on. Measured 2026-09-01 by a rendered check, which is the only
+        // thing that could have caught it: the F# suite measures against `bg`
+        // by construction, so it agreed with the bug. Blue Jays derived to
+        // #3b78c4, scoring 4.49 on bg and 4.35 on the card it actually sat on.
+        //
+        // `card2` is the lightest of the three, so clearing it clears all three.
+        let surface = Option.get (hexToRgb (cssValue card2))
+        // MEASURED AFTER QUANTISATION. The loop used to test the float triple
+        // and then round to hex, so a candidate that just cleared 4.5 could land
+        // at 4.49 once it became a colour. What renders is the hex, so the hex
+        // is what has to clear.
         let rec lift l =
-            let cand = fromHsl (h, s, l)
-            if contrastOf cand bgRgb >= TEAM_TINT_CONTRAST || l >= 0.97 then cand
-            else lift (l + 0.01)
-        Some(Token(toHex (lift (max l0 0.35))))
+            let hex = toHex (fromHsl (h, s, l))
+            match hexToRgb hex with
+            | Some q when contrastOf q surface >= TEAM_TINT_CONTRAST -> hex
+            | _ when l >= 0.97 -> hex
+            | _ -> lift (l + 0.01)
+        Some(Token(lift (max l0 0.35)))
+
+/// Perceptual distance between two tints (CIE76 on sRGB->Lab).
+///
+/// WHY A DISTANCE AND NOT AN EQUALITY CHECK. Two clubs both in shades of red on
+/// one card are as confusing as two in the same red; `<>` on the hex would call
+/// that fine. The question a reader actually asks is "are these two names
+/// different colours", and that is a distance.
+let private toLab (r, g, b) =
+    let f c = if c > 0.04045 then ((c + 0.055) / 1.055) ** 2.4 else c / 12.92
+    let (r', g', b') = (f r, f g, f b)
+    // sRGB D65
+    let x = (0.4124 * r' + 0.3576 * g' + 0.1805 * b') / 0.95047
+    let y = (0.2126 * r' + 0.7152 * g' + 0.0722 * b')
+    let z = (0.0193 * r' + 0.1192 * g' + 0.9505 * b') / 1.08883
+    let g2 t = if t > 0.008856 then t ** (1.0 / 3.0) else (7.787 * t) + (16.0 / 116.0)
+    let (fx, fy, fz) = (g2 x, g2 y, g2 z)
+    (116.0 * fy - 16.0, 500.0 * (fx - fy), 200.0 * (fy - fz))
+
+let distance (a: Token) (b: Token) =
+    let (l1, a1, b1) = toLab (Option.get (hexToRgb (cssValue a)))
+    let (l2, a2, b2) = toLab (Option.get (hexToRgb (cssValue b)))
+    sqrt ((l1 - l2) ** 2.0 + (a1 - a2) ** 2.0 + (b1 - b2) ** 2.0)
+
+/// How far apart two tints must be to read as two colours.
+///
+/// DERIVED FROM THE REGISTRY, not chosen — the same move as the saturation cap.
+/// The five semantics are the distances this page already asks a reader to tell
+/// apart: gold from amber, blue from teal. The CLOSEST pair among them is the
+/// smallest separation this design has already committed to being legible, so
+/// two team tints closer than that are closer than anything the page currently
+/// expects anyone to distinguish.
+let tintSeparationFloor =
+    let toks = allSemantics |> List.map tokenOf
+    [ for i in 0 .. toks.Length - 1 do
+        for j in i + 1 .. toks.Length - 1 -> distance toks.[i] toks.[j] ]
+    |> List.min
+
+/// Can these two tints be told apart on one card?
+///
+/// PAIRWISE, AND THAT IS THE WHOLE POINT. Two clubs sharing a colour only
+/// confuse a reader when they appear TOGETHER. A global uniqueness rule drops a
+/// club from every matchup to fix the handful where it actually collides — and
+/// the desk shows matchups, never a league table, so colour is only ever read in
+/// pairs.
+let distinguishable (a: Token) (b: Token) = distance a b >= tintSeparationFloor
+
+/// Does this tint read as a COLOUR, or as the ordinary text it sits beside?
+///
+/// THE AXIS THE PAIRWISE RULE DOES NOT WATCH, found by looking at a screenshot
+/// rather than at a number. Sporting Kansas City derived to `#aec7e6`, a pale
+/// blue measuring 18.2 against `text` — on the page it read as unstyled, so its
+/// partner Vancouver's blue read as EMPHASIS. That is the exact failure the
+/// both-or-neither rule exists to prevent, arriving through a door that rule
+/// does not cover: it compares the two tints to each other and never to the
+/// colour a plain name would have been.
+///
+/// Same floor, because the question is the same one — can a reader tell these
+/// two colours apart — and inventing a second threshold for it would be picking
+/// a number to fit an impression.
+let readsAsColour (t: Token) = distance t text >= tintSeparationFloor

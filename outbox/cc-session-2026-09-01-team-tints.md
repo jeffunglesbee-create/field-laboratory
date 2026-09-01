@@ -281,3 +281,69 @@ leagues is not a collision.
 
 Exercised against a stub where twelve clubs per league share white and differ on
 their alternates — eleven resolve, one drops, per league.
+
+## The render, and three defects only the page could show
+
+**Pairwise, not global.** Two clubs sharing a colour confuse a reader only when
+they appear together, and the desk shows matchups, never a league table. The
+global rule cost roughly a hundred clubs their colour permanently to fix
+collisions most of them never had; `resolveCollisions` is kept and still tested,
+but the runner no longer calls it. The table went back to every club's real
+colour and the constraint moved to render time.
+
+`Palette.distance` is CIE76 on Lab, because two clubs in *shades* of red are as
+confusing as two in the same red and `<>` on the hex would call that fine.
+`tintSeparationFloor` is the closest pair among the five semantics — 32.9 — the
+smallest separation this page already asks anyone to distinguish.
+
+### The three defects, and what caught each
+
+**1. The wrong surface.** `teamTint` targeted `bg` (`#060514`). Team names sit
+inside `.desk-card`, which paints `card` (`#0b0920`), and a flipped card paints
+`card2`. Blue Jays derived to `#3b78c4` — 4.49 on `bg`, **4.35 on the card it
+actually sat on**. The F# suite measured against `bg` by construction, so it
+agreed with the bug. Only the rendered check could catch it. Now targets `card2`,
+the lightest of the three, so clearing it clears all three.
+
+**2. Quantisation after the check.** The loop tested the float triple and then
+rounded to hex, so a candidate that just cleared 4.5 could land at 4.49 once it
+became a colour. What renders is the hex, so the hex is what has to clear.
+
+**3. The null league.** `league` is null on exactly the dash-scheme MLS rows —
+the entire top of the desk — while `sport` carries `MLS` on all of them. Keying
+on `League` alone rendered every MLS card plain and looked like a data gap. The
+coverage probe already handled this with a fallback and the handling was not
+carried across. **Third time this session** that reading the right field in one
+place and the wrong one in another cost a measurement.
+
+### And one the screenshot showed that no check would have
+
+Sporting Kansas City derived to `#aec7e6`, a pale blue measuring **18.2 against
+`text`**. On the page it read as unstyled — so Vancouver's blue beside it read as
+EMPHASIS. That is the precise failure the both-or-neither rule exists to prevent,
+arriving through a door that rule does not watch: it compares the two tints to
+*each other* and never to the colour a plain name would have been.
+
+`readsAsColour` closes it, on the same floor, because it is the same question.
+Inventing a second threshold would have been picking a number to fit an
+impression.
+
+Cost: 45 tinted cards down to 31. That is the price of not showing a colour that
+is not one.
+
+### Left alone deliberately
+
+San Diego FC derives to `#6e7f82`, measuring 42.1 against `text` — above the
+floor, and to my eye still muted beside LA Galaxy's blue. The metric says it is
+fine and one impression is not a reason to move a derived threshold. Recorded
+here so a second observation has something to agree or disagree with.
+
+### Verification
+
+106/106 suite. 7/7 on the rendered page at 1200x900, asserting: every tint
+painted the colour it declared; every one clears AA against the real background
+(lowest 4.75); no card is one-sided; and **tints appear only on matchup names** —
+never in the pick panel, the pick'em rows or the stats headers, which all still
+call plain `matchupText`. Colours are for matchups, not standings.
+
+Screenshot: `outbox/team-tints-2026-09-01T20-14-42-209Z.png`.
