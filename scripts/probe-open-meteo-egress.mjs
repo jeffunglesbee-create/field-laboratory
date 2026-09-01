@@ -157,6 +157,54 @@ if (isMain(import.meta.url)) {
   console.log(`  chrome burst    ${burstOk}/${burst.length} answered`)
   for (const r of burst) console.log(`      ${String(r.start).padStart(6)}+${String(r.ms).padStart(6)}ms  ${r.ok ? 'HTTP ' + r.status : 'FAILED ' + (r.err ?? '')}`)
 
+  // ---------------------------------------------------------------------------
+  // SECOND QUESTION: what can render-check actually SEE about the page's own
+  // requests?
+  //
+  // The repair worth making is to attribute the failure from the page's own
+  // window rather than from a probe fired after it — "the page asked for the
+  // right URLs and none of them received any response" needs no second request
+  // and cannot be fooled by a host that recovers in the six seconds between the
+  // page giving up and the probe firing.
+  //
+  // That repair rests on two cross-boundary facts about PerformanceResourceTiming
+  // for a CROSS-ORIGIN resource whose server sends no Timing-Allow-Origin, which
+  // api.open-meteo.com does not:
+  //
+  //   does `name` carry the full URL including the query string?
+  //   is `responseStatus` populated, or is it TAO-gated to 0 like the
+  //     connection phases already are?
+  //
+  // Both are documented. Documentation is a copy of the source. These are
+  // measured here, on the browser that runs the check, including what an entry
+  // for a request that NEVER ANSWERED looks like — because distinguishing that
+  // from a 200 is the entire mechanism.
+  const dead = 'https://api.open-meteo.invalid/v1/forecast?latitude=1.0&longitude=2.0'
+  await page.evaluate(async (u) => {
+    try { await fetch(u, { signal: AbortSignal.timeout(2000) }) } catch {}
+  }, dead)
+
+  const entries = await page.evaluate(() =>
+    performance.getEntriesByType('resource')
+      .filter(e => e.name.includes('open-meteo'))
+      .map(e => ({
+        name: e.name,
+        duration: Math.round(e.duration),
+        responseStatus: e.responseStatus,
+        hasResponseStatus: 'responseStatus' in e,
+        transferSize: e.transferSize,
+      })))
+
+  const answered = entries.filter(e => !e.name.includes('.invalid'))
+  const never = entries.filter(e => e.name.includes('.invalid'))
+  console.log(`\n  resource timing: ${entries.length} open-meteo entr(ies)`)
+  console.log(`    name carries the query string : ${answered.every(e => e.name.includes('latitude=')) ? 'YES' : 'NO'}`)
+  console.log(`    responseStatus present        : ${answered.every(e => e.hasResponseStatus) ? 'YES' : 'NO'}`)
+  console.log(`    responseStatus on an answered : ${[...new Set(answered.map(e => e.responseStatus))].join(', ') || 'none'}`)
+  console.log(`    responseStatus on a DEAD host : ${never.length ? [...new Set(never.map(e => e.responseStatus))].join(', ') : 'NO ENTRY AT ALL — a request that never answered leaves no resource entry'}`)
+  console.log(`    transferSize on an answered   : ${[...new Set(answered.map(e => e.transferSize))].join(', ') || 'none'}`)
+  if (answered.length) console.log(`    a name, verbatim: ${answered[0].name}`)
+
   await browser.close()
 
   const measurements = {
@@ -173,7 +221,7 @@ if (isMain(import.meta.url)) {
   const out = `outbox/open-meteo-egress-${stamp}.json`
   writeFileSync(out, JSON.stringify({
     at: new Date().toISOString(), verdict, repair: repairFor(verdict), measurements,
-    node: node1, browserSingle: browser1, burst,
+    node: node1, browserSingle: browser1, burst, resourceTiming: entries,
   }, null, 2))
   console.log(`  ${out}`)
 

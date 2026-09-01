@@ -111,3 +111,62 @@ into a second thing that has to be kept green.
 The repair to `render-check.mjs` is deliberately **not** in this commit. Widening
 a tolerance before measuring which reading is true is how a real page defect gets
 skipped, and that is the failure mode the 08-23 doc was written to avoid.
+
+---
+
+## Reading, run 33561312637 (21:30 UTC)
+
+```
+  node   single   HTTP 200
+  chrome single   ok in 528ms
+  chrome burst    8/8 answered
+           0+   202ms  HTTP 200
+           1+   327ms  HTTP 200
+           1+   445ms  HTTP 200
+           1+   477ms  HTTP 200
+           1+   510ms  HTTP 200
+           1+   476ms  HTTP 200
+           1+   482ms  HTTP 200
+           1+   510ms  HTTP 200
+
+  VERDICT: reachable
+```
+
+**`browser-only` and `burst-refused` are both dead.** Chromium bursts eight
+concurrent requests to the same host, from the same runner image, in 202–510ms.
+The network stack is not the difference and concurrency is not the difference.
+
+What is left is the third reading: the outage was real and had ended. Seven
+minutes separate run 250's failure from this. `WeatherView.fs` already documents
+this host recovering inside a single page load, and the six seconds between the
+page giving up and `render-check`'s probe firing is more than enough.
+
+That makes the late node probe structurally unable to attribute this failure —
+not sometimes, but whenever the host recovers faster than the probe fires, which
+is the documented behaviour. Re-probing harder cannot fix it. The attribution has
+to come from **the page's own window**.
+
+## The repair being measured for
+
+Three facts, all of them inside the window the page already observed, none of them
+requiring a second request:
+
+1. **the page asked for the right URLs** — every `open-meteo` resource entry
+   parses to the exact shape `forecastUrl` produces, for a coordinate the venue
+   table carries
+2. **nothing answered** — no entry received an HTTP response
+3. **the page waited** — each attempt ran to its abort cap rather than giving up
+   early, which is what a shrunken budget or a broken timeout would look like
+
+All three true is "the page did everything right and the host said nothing" —
+tolerable, loudly. Any one false is a real failure and stays one. Note what this
+excludes that the current probe does not: a page requesting a malformed URL, or
+aborting its own requests in 50ms, both currently reach the tolerance branch
+whenever the host happens to be slow.
+
+It rests on two cross-boundary facts about `PerformanceResourceTiming` for a
+cross-origin resource with no `Timing-Allow-Origin` — whether `name` carries the
+query string, and whether `responseStatus` is populated or TAO-gated to 0 like
+the connection phases already are. Both are documented, and documentation is a
+copy of the source, so the probe now measures them on the browser that runs the
+check, including what an entry for a request to a dead host looks like.
