@@ -1085,5 +1085,57 @@ let private route =
           "tab-scoreboard"
           "briefs" ]
 
+// ---------------------------------------------------------------------------
+// Team tints. Every MustFail here is the RAW BRAND HEX — the thing that was
+// asked for, and the thing measurement rejected: thirteen of fifteen real club
+// colours fail AA on this ground and seven fail even the 3.0 floor this palette
+// already enforces. A check whose counterexample is "just use the team's colour"
+// cannot go green on a build that quietly does.
+// ---------------------------------------------------------------------------
+
+let private teamTints =
+    let tint hex = Option.get (Palette.teamTint hex)
+    let clears (hex: string) = Palette.contrastWithBg (tint hex) >= Palette.TEAM_TINT_CONTRAST
+
+    [ // Navy on near-black is the ordinary case in American sport. 1.32 raw.
+      Verify.check "the derived tint clears AA where the brand hex does not"
+          (fun (hex, wantClear) -> clears hex = wantClear)
+          ("#132448", true)
+          ("#132448", false)
+
+      // Black has no hue to preserve, and inventing one would be inventing data.
+      Verify.check "a black club colour becomes GREY, not an invented hue"
+          (fun (hex, wantSat) -> Palette.saturationOf (tint hex) = wantSat)
+          ("#000000", 0.0)
+          ("#000000", 0.5)
+
+      Verify.check "THE HUE SURVIVES — that is the whole justification"
+          (fun (hex, wantHue) -> abs (Palette.hueOf (tint hex) - wantHue) < 2.0)
+          ("#005A9C", 205.0)
+          ("#005A9C", 20.0)
+
+      // The cap is the least saturated CHROMATIC semantic, computed from the
+      // registry. A tint at full brand saturation would compete with colour that
+      // carries meaning, which is the larger hazard than legibility.
+      Verify.check "a fully saturated brand colour is capped, not passed through"
+          (fun (hex, wantCapped) ->
+              (Palette.saturationOf (tint hex) <= Palette.teamTintSaturationCap + 0.001) = wantCapped)
+          ("#CE1141", true)
+          ("#CE1141", false)
+
+      // Already legible, so nothing to do. A derivation that moves every colour
+      // would be a filter, not a repair.
+      Verify.check "a club colour that already clears AA is left alone"
+          (fun (hex, wantSame) -> (Palette.cssValue (tint hex) = hex) = wantSame)
+          ("#5d9741", true)
+          ("#5d9741", false)
+
+      // None is a third state. A default tint would put a colour on the page
+      // that no source supplied.
+      Verify.check "a malformed colour yields NO tint, never a default one"
+          (fun (hex, wantSome) -> (Palette.teamTint hex).IsSome = wantSome)
+          ("not-a-hex", false)
+          ("not-a-hex", true) ]
+
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route
+let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints

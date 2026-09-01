@@ -217,3 +217,139 @@ let advancementScale (p: float<pct>) : Semantic =
     if p >= 70.0<pct> then Semantic.Must
     elif p >= 40.0<pct> then Semantic.Watch
     else Semantic.Quiet
+
+// ---------------------------------------------------------------------------
+// Team tints. The HUE of a club's colour, never its hex.
+//
+// WHY NOT THE ACTUAL COLOUR, WHICH IS WHAT WAS ASKED FOR
+//
+// Measured 2026-09-01 against `bg` (#060514) across fifteen real club colours:
+// THIRTEEN fail WCAG AA for small text and SEVEN fail even the 3.0 floor
+// `palette-check` already enforces on every token here.
+//
+//   Yankees navy #132448  1.32      Astros navy   #002D62  1.49
+//   LAFC black   #000000  1.04      Lakers purple #552583  1.90
+//   Dodgers blue #005A9C  2.83      Storm green   #2C5234  2.27
+//
+// Navy on near-black is the ordinary case in American sport, and LAFC's black
+// is literally invisible. A page that renders a team name in its own hex is a
+// page that hides one team in three.
+//
+// So the hue survives and the hex does not. `teamTint` holds the hue, clamps
+// the saturation, and raises the lightness until the result clears 4.5:1. The
+// output is recognisably Dodgers-blue-ish and is NOT Dodgers blue, and every
+// caller should say so rather than imply fidelity.
+//
+// THE SATURATION CAP IS DERIVED, NOT CHOSEN. This palette is semantic — gold
+// means MUST, amber means CAUTION, red means wrong — so a decorative colour
+// entering the same visual field is the real hazard, larger than legibility.
+// The four chromatic semantics measure s=0.54, 0.66, 0.92, 1.00; QUIET smoke is
+// 0.13. The cap is the MINIMUM of the chromatic four, computed below from the
+// registry itself, so a team tint is always less saturated than any colour that
+// carries meaning — and so the rule cannot drift if a semantic is ever retuned.
+
+let private hexToRgb (hex: string) : (float * float * float) option =
+    let h = if hex.StartsWith "#" then hex.Substring 1 else hex
+    // Hand-rolled rather than System.Uri.IsHexDigit, which Fable does not
+    // support — caught by the compiler, which is the point of compiling.
+    let isHex (c: char) =
+        (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+    if h.Length <> 6 || not (h |> Seq.forall isHex) then None
+    else
+        let at i = float (System.Convert.ToInt32(h.Substring(i, 2), 16)) / 255.0
+        Some(at 0, at 2, at 4)
+
+let private toHsl (r: float, g: float, b: float) =
+    let mx = max r (max g b)
+    let mn = min r (min g b)
+    let l = (mx + mn) / 2.0
+    let d = mx - mn
+    if d = 0.0 then (0.0, 0.0, l)
+    else
+        let s = if l > 0.5 then d / (2.0 - mx - mn) else d / (mx + mn)
+        let h =
+            if mx = r then ((g - b) / d + (if g < b then 6.0 else 0.0))
+            elif mx = g then ((b - r) / d + 2.0)
+            else ((r - g) / d + 4.0)
+        (h * 60.0, s, l)
+
+let private hueToRgb (p: float) (q: float) (t0: float) =
+    let t = if t0 < 0.0 then t0 + 1.0 elif t0 > 1.0 then t0 - 1.0 else t0
+    if t < 1.0 / 6.0 then p + (q - p) * 6.0 * t
+    elif t < 0.5 then q
+    elif t < 2.0 / 3.0 then p + (q - p) * (2.0 / 3.0 - t) * 6.0
+    else p
+
+let private fromHsl (h: float, s: float, l: float) =
+    if s = 0.0 then (l, l, l)
+    else
+        let q = if l < 0.5 then l * (1.0 + s) else l + s - l * s
+        let p = 2.0 * l - q
+        let hk = h / 360.0
+        (hueToRgb p q (hk + 1.0 / 3.0), hueToRgb p q hk, hueToRgb p q (hk - 1.0 / 3.0))
+
+let private channel (c: float) =
+    if c <= 0.03928 then c / 12.92 else ((c + 0.055) / 1.055) ** 2.4
+
+let private luminance (r, g, b) =
+    0.2126 * channel r + 0.7152 * channel g + 0.0722 * channel b
+
+/// WCAG 2.1 contrast between two rgb triples.
+let private contrastOf a b =
+    let la, lb = luminance a, luminance b
+    (max la lb + 0.05) / (min la lb + 0.05)
+
+let private toHex (r: float, g: float, b: float) =
+    let byte (c: float) = int (System.Math.Round(min 1.0 (max 0.0 c) * 255.0))
+    sprintf "#%02x%02x%02x" (byte r) (byte g) (byte b)
+
+/// Small-text AA. Team names render at the card's body size, not as headings.
+let [<Literal>] TEAM_TINT_CONTRAST = 4.5
+
+/// The saturation ceiling, taken from the registry rather than picked: the least
+/// saturated CHROMATIC semantic. QUIET smoke (0.13) is excluded because it is the
+/// absence of an accent, not one — capping team tints below IT would make every
+/// club grey and defeat the point.
+let teamTintSaturationCap =
+    [ Semantic.Must; Semantic.Watch; Semantic.Discovery; Semantic.Caution ]
+    |> List.map (fun s -> let (_, sat, _) = toHsl (Option.get (hexToRgb (cssValue (tokenOf s)))) in sat)
+    |> List.min
+
+/// A token's contrast against the page ground. Public because a tint's whole
+/// claim is a number, and a claim nothing can measure from outside is a promise.
+let contrastWithBg (t: Token) =
+    contrastOf (Option.get (hexToRgb (cssValue t))) (Option.get (hexToRgb (cssValue bg)))
+
+/// The hue a token sits at, 0-360. Public for the same reason: "the hue is
+/// preserved" is the entire justification for showing a derived colour at all,
+/// so it has to be checkable rather than asserted in a comment.
+let hueOf (t: Token) =
+    let (h, _, _) = toHsl (Option.get (hexToRgb (cssValue t)))
+    h
+
+/// A token's saturation, 0-1. Checkable so the registry-derived cap is enforced
+/// rather than described.
+let saturationOf (t: Token) =
+    let (_, s, _) = toHsl (Option.get (hexToRgb (cssValue t)))
+    s
+
+/// A club's colour as a legible tint, or None if the input is not a hex.
+///
+/// `None` is a THIRD STATE and not a fallback: a missing or malformed club
+/// colour must render as the ordinary text colour, never as an invented one.
+/// Returning a default tint here would put a colour on the page that no source
+/// ever supplied, which is the fabrication this project refuses.
+let teamTint (brandHex: string) : Token option =
+    match hexToRgb brandHex with
+    | None -> None
+    | Some rgb ->
+        let (h, s0, l0) = toHsl rgb
+        let s = min s0 teamTintSaturationCap
+        let bgRgb = Option.get (hexToRgb (cssValue bg))
+        // Raise lightness in fixed steps until AA clears. Terminates: near-white
+        // on this ground measures about 19:1, far above the bar.
+        let rec lift l =
+            let cand = fromHsl (h, s, l)
+            if contrastOf cand bgRgb >= TEAM_TINT_CONTRAST || l >= 0.97 then cand
+            else lift (l + 0.01)
+        Some(Token(toHex (lift (max l0 0.35))))
