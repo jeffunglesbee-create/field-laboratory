@@ -1,0 +1,52 @@
+# Duplicates the espn_event_id watcher CANNOT SEE.
+#
+# `relay-duplicate-fixture-watch.mjs` closes field-relay-nba#1, and it skips any
+# row with no `espn_event_id`. The numeric-id upsert key shipped for that issue
+# (relay d253209) is numeric-only. BOTH SKIP THE SAME 197 ROWS — 18.2% of a
+# 30-day window, 177 of them MLS. So the watcher can report clean and close the
+# issue while every duplicate among those rows stays invisible to it: the fix
+# succeeding and the instrument being blind look identical.
+#
+# This groups by FIXTURE IDENTITY instead, so it sees every row. It does not
+# report doubleheaders as bugs, and where neither discriminator is served —
+# start_time is null on exactly the rows that carry no event id — it says
+# INDISTINGUISHABLE rather than guessing.
+#
+# WHY CI: *.workers.dev is blocked by the dev sandbox's egress allowlist.
+# DISPATCH ONLY. It answers one question about whether #1 can honestly close.
+name: fixture-identity duplicates
+
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: How many days back to sweep
+        default: '30'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Are there duplicates the event-id watcher cannot see?
+        run: |
+          node scripts/probe-fixture-identity-duplicates.mjs --self-test
+          node scripts/probe-fixture-identity-duplicates.mjs --days "${{ inputs.days || '30' }}"
+
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/fixture-identity-duplicates-*.txt || true
+          git diff --staged --quiet || git commit -m "probe: fixture-identity duplicates [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
