@@ -216,8 +216,11 @@ let private timeoutSignal (ms: int) : AbortSignal = jsNative
 [<Emit("Date.now()")>]
 let private nowMs () : float = jsNative
 
-let private slateDeadlineMs = 14000.0
-let private requestCapMs = 8000.0
+/// Public so `render-check` can attribute a weather failure from the page's own
+/// window: whether each request ran to the budget it was entitled to, or the page
+/// gave up while time remained. Read one line below, so it is not an orphan.
+let slateDeadlineMs = 14000.0
+let requestCapMs = 8000.0
 
 /// What one attempt turned out to be.
 ///

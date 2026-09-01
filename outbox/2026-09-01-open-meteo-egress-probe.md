@@ -223,3 +223,111 @@ for:
    aborted at its cap after eight seconds. An entry existing for the first does
    not prove one exists for the second, and the second is the entire mechanism.
    The new target is an unroutable address that hangs until `AbortSignal` fires.
+
+---
+
+## Reading 3, run 33561942089 (21:38 UTC) — at the real origin
+
+```
+  resource timing: 11 open-meteo entr(ies)
+    an entry for EVERY request    : 9/9 to the real host (burst + single)
+    an entry for a TIMED-OUT req  : YES — status 0, 4000ms
+    name carries the query string : YES
+    responseStatus present        : YES
+    responseStatus on an answered : 200
+    responseStatus on a DEAD host : 0
+```
+
+9 of 9 at `http://localhost:8080`, against 5 of 10 on `about:blank`. The missing
+entries were the opaque origin, not the browser. And a request that hung until
+its `AbortSignal` fired leaves an entry carrying `status 0` and its full
+duration — which is the fact the whole mechanism turns on, and the one a DNS
+failure could not have established.
+
+## The repair, shipped
+
+`render-check` now attributes an empty-chip failure from the page's own resource
+entries. `attributeWeather({ requests, expectedUrls })` returns `host-silent` or
+`page`:
+
+- **no request at all** -> page. There is nothing for a host to be silent about.
+- **a URL the venue table does not explain** -> page. Compared origin, path and
+  the full sorted parameter set, so the right host and coordinate with the wrong
+  field list is not the right request.
+- **any response received** -> page. A 429 is the host talking.
+- **otherwise** -> host-silent.
+
+`expectedUrls` is built from the venue records through the same `forecastUrl` the
+page calls, so a page requesting the wrong place cannot define its own
+expectation.
+
+### The clause that was written and then deleted
+
+The first version also asked whether each request ran to the budget it was
+entitled to — `min(requestCapMs, slateDeadlineMs - offset)`, both read from
+`WeatherView` rather than typed in. It is wrong, and the sandbox proved it in one
+run: a request the PAGE abandons early and one the NETWORK refuses early are the
+same resource entry, `status 0` and a short duration. The probe measured both
+shapes — a dead hostname ends in 13ms, an aborted request ends at 4000ms, neither
+carries a status. Reading "short" as "the page gave up" fails exactly the case
+this branch exists to tolerate. Against the sandbox's proxy the page's requests
+are refused in 302ms, and the deleted rule called that a page defect.
+
+A page that shrinks its own timeout is therefore not caught here. It is caught by
+`check:weather-burst`, which drives the wave, budget and retry logic against
+mocked timings and asserts them directly — "...and it is asked exactly twice,
+never more", "a 429 is NOT retried". Those are properties of the code, not of a
+live slate, and that is where they belong.
+
+### Verified, against the sandbox that refuses Open-Meteo exactly as the runner did
+
+| run | result |
+|---|---|
+| pinned | 18/18, the enumerated attribution cases among them |
+| live, no flag | four weather checks FAIL — teeth intact — 18/23 |
+| live, `--tolerate-unreachable` | `host-silent`, four checks skipped with the warning, denominator 23 -> 19 |
+
+The live runs' remaining failure is `no page or console errors`, which is the
+sandbox proxy's `ERR_TUNNEL_CONNECTION_FAILED` and passes on a runner (it passed
+in run 250, mid-outage).
+
+### Teeth
+
+Eight enumerated cases, and each mutation drops the count 18 -> 17:
+
+| mutation | caught |
+|---|---|
+| a received response no longer disqualifies | yes |
+| an unexplained URL no longer disqualifies | yes |
+| zero requests reads as `host-silent` | yes |
+| the query comparison ignores the field set | yes |
+
+The first is the regression this must never tolerate: the host answered and no
+chip filled.
+
+### One F# change it required
+
+`WeatherView.slateDeadlineMs` and `requestCapMs` were `private`. They are now
+public so the attribution reads the page's real budget rather than a copy of it,
+and both are read one line below their definition, so `check:unused` is satisfied
+on its own terms rather than by exception.
+
+## What is still not established
+
+That the tolerance branch fires **on a runner mid-outage**. It has been verified
+against a sandbox that refuses at the proxy, which is a different failure shape
+from a host that accepts and never answers. The next real Open-Meteo outage is
+the test, and the warning text is written to say plainly which evidence it acted
+on so that run is readable after the fact.
+
+### One thing the pre-commit gate caught
+
+The pure function and its two verdict constants were written with `export`, out
+of habit. `check:import-purity` refused the commit: `render-check.mjs` runs at
+module scope — it launches a browser and exits — so exporting anything makes the
+purity check import it, and the import terminates the importing process. Exactly
+the shape that check exists for, and exactly what `staged-outbox-check.mjs` was
+guarded for on 2026-08-23.
+
+Nothing outside the file needs them, and the enumerated cases are in the same
+file, so they are local. Not a workaround — the export was the mistake.

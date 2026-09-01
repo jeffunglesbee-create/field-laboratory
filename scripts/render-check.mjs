@@ -10,6 +10,7 @@ import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { all as weatherVenues } from '../build/Venues.js'
 import { forecastUrl, coordinates } from '../build/Weather.js'
+import { requestCapMs, slateDeadlineMs } from '../build/WeatherView.js'
 import { createChecks } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
@@ -167,6 +168,7 @@ let filled = []
 let waitErr = null
 let pageAccount = ''
 let wxTiming = ''
+let wxRequests = []
 
 // Relay values that occupy the `venue` column without naming a venue.
 //
@@ -180,6 +182,108 @@ let wxTiming = ''
 // no venue code, and would fail again on every thin early-morning slate. The
 // three states below are the same discipline this repo applies everywhere
 // else: covered, genuinely uncovered, and nothing to observe.
+
+// Attribute an empty-chip failure FROM THE PAGE'S OWN WINDOW.
+//
+// The node probe below cannot do this, and render-check has said so since the
+// day it was written: it is one request "after the 20s wait has already elapsed,
+// and a service that refused a burst can answer a single late request perfectly
+// well." On 2026-09-01 that became the failure — runs 244, 245 and 250 died with
+// every page request timed out and the probe answering HTTP 200, so the
+// tolerance branch built for exactly this outage never fired and a third-party
+// condition gated the deploy.
+//
+// `probe-open-meteo-egress` measured why re-probing cannot fix it: chromium
+// bursts eight concurrent requests to the host in 202-510ms from the same runner
+// image, so it is neither the network stack nor concurrency. The host recovers
+// faster than a probe fired six seconds later can catch, which `WeatherView.fs`
+// already documents it doing inside a single page load. A later probe measures a
+// later moment. It is the wrong instrument, not a badly-tuned one.
+//
+// So the evidence is the page's own resource entries, which say three things
+// that together attribute the failure without a second request. Measured on the
+// browser that runs this check (run 33561942089, at the real origin):
+//
+//   an entry for EVERY request    : 9/9 to the real host
+//   an entry for a TIMED-OUT req  : YES — status 0, 4000ms
+//   name carries the query string : YES
+//   responseStatus present        : YES  (200 answered, 0 never-answered)
+//
+// `responseStatus` is NOT gated by the absent `Timing-Allow-Origin` the way the
+// connection phases are, which is the fact the whole mechanism turns on.
+//
+// This is NARROWER than the probe it replaces, not wider. A page requesting a
+// malformed URL, or aborting its own requests in 50ms, currently reaches the
+// tolerance branch whenever the host happens to be slow. Neither does here.
+// NOT exported. This file runs at module scope — it launches a browser and
+// exits — so exporting anything makes `check:import-purity` import it and the
+// import terminates the importing process. The enumerated cases below are in
+// this same file and nothing outside it needs these, so local is correct
+// rather than a workaround.
+const HOST_SILENT = 'host-silent'
+const PAGE_AT_FAULT = 'page'
+
+/**
+ * `{ verdict, why }` from the page's Open-Meteo resource entries.
+ *
+ * `requests`: `{ url, start, ms, status }` per entry, straight from
+ * PerformanceResourceTiming. `expectedUrls`: what `forecastUrl` produces for the
+ * venues on this slate that the table knows.
+ */
+const attributeWeather = ({ requests, expectedUrls }) => {
+  if (!Array.isArray(requests)) throw new TypeError('attributeWeather: requests is required')
+  if (!(expectedUrls instanceof Set)) throw new TypeError('attributeWeather: expectedUrls must be a Set')
+
+  // No request at all is the page's failure, not the host's. There is nothing
+  // for a host to be silent about.
+  if (requests.length === 0)
+    return { verdict: PAGE_AT_FAULT, why: 'no Open-Meteo request was made at all' }
+
+  const sameQuery = (a, b) => {
+    const q = (u) => {
+      try {
+        const x = new global.URL(u)
+        return x.origin + x.pathname + '?' +
+          [...x.searchParams.entries()].map(([k, v]) => `${k}=${v}`).sort().join('&')
+      } catch { return null }
+    }
+    const qa = q(a)
+    return qa !== null && qa === q(b)
+  }
+  const unexplained = requests.filter(r => ![...expectedUrls].some(u => sameQuery(r.url, u)))
+  if (unexplained.length)
+    return { verdict: PAGE_AT_FAULT,
+             why: `requested ${unexplained.length} URL(s) the venue table does not explain, e.g. ${unexplained[0].url}` }
+
+  const answered = requests.filter(r => r.status > 0)
+  if (answered.length)
+    return { verdict: PAGE_AT_FAULT,
+             why: `${answered.length} request(s) received a response (${[...new Set(answered.map(r => r.status))].join(', ')}) and no chip filled` }
+
+  // WHAT IS DELIBERATELY NOT ASKED HERE: whether the page ran each request to the
+  // budget it was entitled to.
+  //
+  // It was, in the first version of this function, and the rule was wrong. A
+  // request the PAGE abandons early and one the NETWORK refuses early are the
+  // same resource entry — `status 0`, short duration. `probe-open-meteo-egress`
+  // measured both shapes: a dead hostname ends in 13ms and a request aborted at
+  // its cap ends at 4000ms, and neither carries a status. A refusal is the
+  // clearest possible third-party failure, so a rule that reads "short" as "the
+  // page gave up" fails exactly the case this branch exists to tolerate — and the
+  // dev sandbox, which refuses Open-Meteo at the proxy, is that case.
+  //
+  // A page that shrinks its own timeout is therefore NOT caught here. It is
+  // caught by `check:weather-burst`, which drives the wave, budget and retry
+  // logic against mocked timings and asserts them directly ("...and it is asked
+  // exactly twice, never more", "a 429 is NOT retried"). That is the right place
+  // for it: those are properties of the code, not of a live slate.
+  const first = Math.min(...requests.map(r => r.start))
+  const span = Math.max(...requests.map(r => r.start + r.ms)) - first
+  return { verdict: HOST_SILENT,
+           why: `${requests.length} request(s) over ${span}ms, none received any response ` +
+                `(the slate's budget is ${slateDeadlineMs}ms, each request's cap ${requestCapMs}ms)` }
+}
+
 const PLACEHOLDER_VENUES = new Set(['TBC', 'TBD', '—', '-', ''])
 const realVenues = vs => [...new Set(vs)].filter(v => !PLACEHOLDER_VENUES.has((v || '').trim()))
 
@@ -232,11 +336,21 @@ if (!pinned) {
   // reporting them would be reporting zeroes as measurements. Start time
   // separates the waves and duration is what each one cost, which is enough to
   // tell "wave 1 was slow" from "everything was slow".
-  wxTiming = await page.evaluate(() =>
+  //
+  // `responseStatus` and the full `name` are captured alongside, because the
+  // attribution above needs WHICH url and WHETHER anything answered, and both
+  // were measured usable on this browser for a cross-origin resource with no
+  // Timing-Allow-Origin.
+  wxRequests = await page.evaluate(() =>
     performance.getEntriesByType('resource')
       .filter(e => e.name.includes('open-meteo'))
-      .map(e => `${Math.round(e.startTime)}+${Math.round(e.duration)}ms`)
-      .join(' '))
+      .map(e => ({
+        url: e.name,
+        start: Math.round(e.startTime),
+        ms: Math.round(e.duration),
+        status: e.responseStatus ?? 0,
+      })))
+  wxTiming = wxRequests.map(r => `${r.start}+${r.ms}ms`).join(' ')
 }
 
 // Attribute empty chips: if they did not fill, was Open-Meteo reachable at all?
@@ -280,6 +394,46 @@ const VENUE_CASES = [
   [['Some Unlisted Park'], 1, 'a real venue absent from the table IS a coverage gap'],
   [[null, '  TBD  '], 0, 'null and surrounding whitespace are placeholders too'],
 ]
+// The attribution, enumerated, BEFORE anything is decided through it — the same
+// discipline the venue predicate gets directly below, and for the same reason: a
+// tolerance that is wrong in the loosening direction prints a warning and passes.
+// The cases that must keep FAILING are the ones written first.
+const U = (lat, lon) => forecastUrl(coordinates(lat, lon))
+const FENWAY = U(42.3467, -71.0972)
+const WRIGLEY = U(41.9484, -87.6553)
+const EXPECTED = new Set([FENWAY, WRIGLEY])
+// Run 250's actual shape: two waves, the second budget-clamped, nothing answered.
+const RUN_250 = [
+  { url: FENWAY, start: 642, ms: 8000, status: 0 },
+  { url: WRIGLEY, start: 642, ms: 8000, status: 0 },
+  { url: FENWAY, start: 8643, ms: 6000, status: 0 },
+  { url: WRIGLEY, start: 8644, ms: 5999, status: 0 },
+]
+const ATTRIB_CASES = [
+  [{ requests: RUN_250, expectedUrls: EXPECTED }, HOST_SILENT,
+   "run 250's own shape: two waves, the second budget-clamped, nothing answered"],
+  [{ requests: [], expectedUrls: EXPECTED }, PAGE_AT_FAULT,
+   'NO REQUEST AT ALL is the page, not the host — there is nothing to be silent about'],
+  [{ requests: [{ url: FENWAY, start: 642, ms: 8000, status: 200 }], expectedUrls: EXPECTED }, PAGE_AT_FAULT,
+   'THE HOST ANSWERED AND NO CHIP FILLED — the regression this must never tolerate'],
+  [{ requests: [{ url: FENWAY, start: 642, ms: 8000, status: 429 }], expectedUrls: EXPECTED }, PAGE_AT_FAULT,
+   'a 429 is the host TALKING, not the host silent'],
+  [{ requests: [{ url: U(1.0, 2.0), start: 642, ms: 8000, status: 0 }], expectedUrls: EXPECTED }, PAGE_AT_FAULT,
+   'a coordinate no venue on this slate explains'],
+  [{ requests: [{ url: 'https://api.open-meteo.com/v1/forecast?latitude=42.3467', start: 1, ms: 8000, status: 0 }], expectedUrls: EXPECTED }, PAGE_AT_FAULT,
+   'the right host and place with the WRONG FIELDS is not the right request'],
+  [{ requests: [{ url: FENWAY, start: 642, ms: 13, status: 0 }], expectedUrls: EXPECTED }, HOST_SILENT,
+   'A REFUSAL IN 13ms IS THE HOST, NOT THE PAGE — the sandbox and a dead DNS both look like this'],
+  [{ requests: [{ url: FENWAY, start: 0, ms: 8000, status: 0 },
+                { url: WRIGLEY, start: 13000, ms: 900, status: 0 }], expectedUrls: EXPECTED }, HOST_SILENT,
+   'a late wave with almost no budget left is entitled to abort early'],
+]
+const attribWrong = ATTRIB_CASES.filter(([input, want]) => attributeWeather(input).verdict !== want)
+check('the weather attribution holds on every enumerated case',
+  attribWrong.length === 0,
+  attribWrong.map(([input, want, why]) => `${why}: got ${attributeWeather(input).verdict}, want ${want}`).join('; ')
+    || `${ATTRIB_CASES.length} cases`)
+
 const venueWrong = VENUE_CASES.filter(([vs, want]) => realVenues(vs).length !== want)
 check('the placeholder-venue predicate holds on every enumerated case',
   venueWrong.length === 0,
@@ -438,22 +592,39 @@ if (!pinned) {
   check('the venue table covers at least one venue on this slate', expected > 0,
     `${real.join(', ')} — none of them in the ${known.size}-entry table`)
 
-  if (TOLERATE && openMeteoDown) {
-    // Open-Meteo unreachable from this runner. The chips could not fill through no
-    // fault of the page, so the four live-weather assertions are SKIPPED — loudly,
-    // as a warning, never a silent pass. Tolerated here only because verify passes
-    // the flag; every other job asserts, and a broken chip with the service UP is
-    // never reached by this branch (openMeteoDown is set only on a failed probe).
-    console.log('::warning::Open-Meteo unreachable from this runner — the four live weather-chip ' +
-      `checks are skipped (${expected} known venue(s) on this slate, ${filled.length} chip(s) filled; ` +
-      `probe saw ${probeSaw}; the page reported: ${pageAccount || 'nothing'}). ` +
+  // What the page SHOULD have asked for: the venues on this slate the table
+  // knows, through the same `forecastUrl` the page calls. Built from the venue
+  // records rather than from the page, so a page requesting the wrong place
+  // cannot define its own expectation.
+  const byName = new Map(Array.from(weatherVenues).map(v => [v.Name, v]))
+  const expectedUrls = new Set(cardVenues.filter(v => known.has(v))
+    .map(n => forecastUrl(byName.get(n).Where)))
+  const attribution = attributeWeather({ requests: wxRequests, expectedUrls })
+  console.log(`attribution: ${attribution.verdict} — ${attribution.why}\n`)
+
+  if (TOLERATE && attribution.verdict === HOST_SILENT) {
+    // The page asked for the right URLs, ran every request to the budget it was
+    // entitled to, and received no response at all. The chips could not fill
+    // through no fault of the page, so the four live-weather assertions are
+    // SKIPPED — loudly, as a warning, never a silent pass. Tolerated only because
+    // verify passes the flag; every other job asserts.
+    //
+    // A broken chip while the host is ANSWERING never reaches this branch, and
+    // neither does a malformed URL or a page that abandons its own requests —
+    // which the probe this replaced would both have tolerated whenever the host
+    // happened to be slow.
+    console.log('::warning::Open-Meteo answered nothing during the page\'s window — the four live ' +
+      `weather-chip checks are skipped (${expected} known venue(s) on this slate, ${filled.length} chip(s) ` +
+      `filled; ${attribution.why}; the late node probe saw ${probeSaw}, which is a later moment and not ` +
+      `evidence about the page's window; the page reported: ${pageAccount || 'nothing'}). ` +
       'This is a third-party outage, not a page defect; verify is not gated on it.')
   } else {
     check('the chips all filled within the wait', waitErr === null, waitErr)
     check('every card whose venue the table knows carries a live chip',
       expected > 0 && filled.length === expected,
       `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled. ` +
-      `Open-Meteo answered this runner: ${probeSaw}. ` +
+      `Attribution from the page's own window: ${attribution.verdict} — ${attribution.why}. ` +
+      `A late node probe saw: ${probeSaw} (a later moment, not evidence about the page's window). ` +
       `The page reported: ${pageAccount || '(nothing — the panel said nothing at all)'}. ` +
       `Request timings (start+duration): ${wxTiming || '(no Open-Meteo request was made at all)'}. ` +
       `Page built from: ${builtFrom}`)
