@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f9ae81c` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-47-22-768Z.txt](team-colour-coverage-2026-09-01T19-47-22-768Z.txt) | probe: team-colour coverage [skip ci] |
+| `bfe0e78` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | probe: key the league lookup on the relay's label, not the F# union name |
+| `5e217ce` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-44-40-527Z.txt](team-colour-coverage-2026-09-01T19-44-40-527Z.txt) | probe: team-colour coverage [skip ci] |
 | `cfdb4d9` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | probe: how much of the desk can actually be tinted |
 | `e3eb1d7` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | palette: team colours as a derived tint — the hue, not the hex |
 | `69fe415` | 2026-09-01 | [cc-session-2026-09-01-watcher-blind-spot-fix.md](cc-session-2026-09-01-watcher-blind-spot-fix.md) | watch: the duplicate watcher can see the class it was closing over |
