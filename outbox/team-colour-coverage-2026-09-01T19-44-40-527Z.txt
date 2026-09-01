@@ -1,0 +1,44 @@
+probe_at: 2026-09-01T19:44:40.550Z
+question: what fraction of the desk would actually get a team tint?
+slate:    2026-08-30
+
+per league — does ESPN serve teams, and do they carry a colour?
+  MLB                            30 team(s)    30 coloured   covered
+  NBA                            30 team(s)    30 coloured   covered
+  WNBA                           15 team(s)    15 coloured   covered
+  NFL                            32 team(s)    32 coloured   covered
+  CFB                            50 team(s)    50 coloured   covered
+  CFL                             9 team(s)     0 coloured   none
+  UFL                             8 team(s)     8 coloured   covered
+  NHL                            32 team(s)    32 coloured   covered
+  AFL                            19 team(s)    19 coloured   covered
+  MLS                            30 team(s)    30 coloured   covered
+  EPL                            20 team(s)    20 coloured   covered
+  LaLiga                         20 team(s)    20 coloured   covered
+  Bundesliga                     18 team(s)    18 coloured   covered
+  SerieA                         20 team(s)    20 coloured   covered
+  Ligue1                         18 team(s)    18 coloured   covered
+  UEFAChampionsLeague            36 team(s)    36 coloured   covered
+  UEFAEuropaLeague               36 team(s)    36 coloured   covered
+  UEFAEuropaConferenceLeague     36 team(s)    36 coloured   covered
+  EFLCup                         92 team(s)    92 coloured   covered
+  EFLTrophy                      64 team(s)    64 coloured   covered
+  FIFAWorldCup                   48 team(s)    48 coloured   covered
+
+per slate — of the rows the desk renders on 2026-08-30, how many resolve BOTH sides?
+
+48 row(s) on the slate
+  both sides tinted : 37 (77.1%)   <- the fraction that would render
+  one side only     : 0 (0.0%)
+  neither           : 11 (22.9%)
+      La Liga                         3 row(s) with no tint
+      Serie A                         3 row(s) with no tint
+      Ligue 1                         3 row(s) with no tint
+      golf                            1 row(s) with no tint
+      CFL                             1 row(s) with no tint
+
+A row with ONE side tinted must not render half a matchup in colour: one
+coloured name beside a plain one reads as emphasis, not identity. Treat
+`both` as the addressable fraction and the rest as plain text.
+
+artifact: outbox/team-colour-coverage-2026-09-01T19-44-40-527Z.txt
