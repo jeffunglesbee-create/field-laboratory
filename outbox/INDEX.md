@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b197a10` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: date-change behaviour, and four control affordances |
 | `37d747a` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: the tab is in the URL, and Route.fs is where its grammar lives |
 | `f6cc6b5` | 2026-09-01 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | docs: repair two anchored citations whose line numbers moved |
 | `9c0b64f` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: a failure can no longer look like progress |
