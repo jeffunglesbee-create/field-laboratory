@@ -41,7 +41,17 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - run: npm ci
+      # `dotnet tool restore` is not optional and is not decoration. Fable is a
+      # dotnet LOCAL TOOL, so `npm run build` — which shells out to `dotnet
+      # fable` — fails with "Run \"dotnet tool restore\" to make the \"fable\"
+      # command available" without it. Run 33550446839 failed here in 24
+      # seconds because this step was written from memory of what the build does
+      # locally, where the tool is already restored, instead of copied from
+      # verify.yml, which has done it correctly all along.
+      - name: Install
+        run: |
+          npm ci
+          dotnet tool restore
       - name: Build — the probe reads the compiled palette
         run: npm run build
       - name: How much of the desk can be tinted?
