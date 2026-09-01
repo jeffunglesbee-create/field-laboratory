@@ -1,3 +1,25 @@
+*** SUPERSEDED — THE CONCLUSION BELOW IS WRONG. The measurement is not. ***
+
+This run concluded "Ship the numeric key only with a paired cleanup for these
+rows." The per-day table in this same file disproves it: all 5 exposed rows are
+on 2026-08-31, which is day 0 — TODAY in ET at the time of the run (stamped
+02:41Z, 22:41 ET). Every one of the 21 genuinely future dates is zero.
+
+Today's exposed rows are in-flight games, seeded at start and resolving within
+hours on their own. The 2026-08-08 disaster this warns about was the opposite
+shape: a bulk import of FUTURE fixtures nothing was waiting to resolve. Same
+count, opposite remedies.
+
+Confirmed by the next run one hour later: the count had fallen 5 to 4 with no
+intervention, which a stranded-row backlog cannot do.
+
+The probe now splits today from future and reports SHIP ADVICE. The correct
+reading is quiet-window: no backlog, deploy when no game is in flight.
+
+Superseding run: 2026-09-01T03-41-39-110Z in this directory.
+
+────────────────────────────────────────────────────────────────────────────
+
 probe_at: 2026-09-01T02:41:20.904Z
 question: how many rows would the numeric-id upsert key strand on the day it ships?
 method:   public GET /context/date. 21 day(s) FORWARD from today (ET),

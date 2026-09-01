@@ -139,10 +139,31 @@ patience rather than a paired cleanup. Waiting also has a cost the artifact
 argues for: the exposure is zero today precisely because no bulk
 forward-schedule import is pending, and the last one made 55 groups.
 
+## The corrected run, and a prediction that held
+
+Re-dispatched an hour later. `id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt`:
+
+```
+137 forward row(s), 4 EXPOSED
+  today (in flight, resolves on its own): 4
+  future-dated (strands)                : 0
+    MLB   4
+
+SHIP ADVICE: quiet-window
+```
+
+**5 became 4 with no intervention.** That is the split's own falsifiable
+prediction, confirmed within the hour: an in-flight game finalized, and its row
+left the exposed set on its own. A stranded-row backlog cannot do that — the 55
+groups from 2026-08-08 sat unchanged for three weeks. The decay is the difference
+between the two readings, observable directly rather than argued.
+
+The superseded artifact keeps its measurement and carries a header saying the
+conclusion is wrong and why. Deleting it would remove the evidence that the
+collapsed reading was ever made, which is the part worth keeping.
+
 ## Open
 
-A re-dispatch, so the committed artifact carries the corrected advice rather than
-the collapsed one. The current artifact's per-day table is right and its
-conclusion is wrong — exactly the inherited-claim shape Rule 72 exists for, and
-leaving it in the outbox for a later session to read would be filing the bug
-rather than fixing it.
+Nothing on this thread. The CC-CMD at field-relay-nba `de2eb1a` is now
+unique-safe (30-day sweep) and migration-clear (`quiet-window`, no backlog), and
+its only remaining precondition is a deploy landing when no game is in flight.
