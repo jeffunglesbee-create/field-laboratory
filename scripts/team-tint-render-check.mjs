@@ -101,7 +101,30 @@ if (isMain(import.meta.url)) {
     const strays = [...document.querySelectorAll('[data-tint]')]
       .filter(e => !e.closest('.desk-card__teams'))
       .map(e => e.className || e.tagName)
-    return { cards, strays, pageBg: toHex(getComputedStyle(document.body).backgroundColor) }
+    // THE SURFACE EACH SPAN IS ACTUALLY ON, walked up to the first ancestor that
+    // paints something. `document.body` is `--bg`, and a team name is never on
+    // it — it sits inside `.desk-card`, which paints `--card`. Measuring the
+    // body gave this check the same blind spot as the bug it was written to
+    // catch, and a mutation reverting the derivation to `bg` passed 7/7.
+    const surfaceOf = (el) => {
+      for (let n = el; n && n !== document.documentElement; n = n.parentElement) {
+        const bgc = getComputedStyle(n).backgroundColor
+        if (bgc && !/rgba\(0,\s*0,\s*0,\s*0\)|transparent/.test(bgc)) return toHex(bgc)
+      }
+      return toHex(getComputedStyle(document.body).backgroundColor)
+    }
+    for (const c of cards) c.tints.forEach(t => {})
+    const spans = [...document.querySelectorAll('.desk-card__team')]
+    const surfaces = spans.map(s => ({ name: s.textContent, surface: surfaceOf(s) }))
+    // What a name looks like when it is NOT tinted — the colour a tint has to be
+    // tellable apart from, or it is not a tint at all.
+    const plainName = (() => {
+      const t = [...document.querySelectorAll('.desk-card__teams')]
+        .find(n => !n.querySelector('.desk-card__team'))
+      return t ? toHex(getComputedStyle(t).color) : null
+    })()
+    return { cards, strays, surfaces, plainName,
+             pageBg: toHex(getComputedStyle(document.body).backgroundColor) }
   })
 
   const cards = measured.cards
@@ -124,18 +147,55 @@ if (isMain(import.meta.url)) {
   }
 
   check('the page rendered cards at all', cards.length > 0)
-  check('at least one matchup is tinted — otherwise nothing is being checked',
-    tinted.length > 0, 'a page with zero tints would pass every assertion below')
+  // PINNED TO THE CAPTURE, not a tolerance — the same discipline
+  // `game-id-check` uses: "the counts are pinned to the committed capture, not
+  // to a tolerance. This file and the corpus move together or the build stops."
+  //
+  // "At least one is tinted" was not enough, and a mutation said so: reverting
+  // the league fallback took every MLS card dark — the whole top of the desk —
+  // and the check still passed 9/9, because MLB and WNBA rows carry `league` and
+  // kept their colour. A whole sport can go plain without a boolean noticing.
+  //
+  // The capture is frozen, so the number is exact. If it moves, either the
+  // resolution changed or the derivation did, and both want reading.
+  const EXPECTED_TINTED = 31
+  const EXPECTED_CARDS = 78
+  check(`exactly ${EXPECTED_TINTED} of ${EXPECTED_CARDS} cards tint on this frozen capture`,
+    tinted.length === EXPECTED_TINTED && cards.length === EXPECTED_CARDS,
+    `saw ${tinted.length} tinted of ${cards.length} — a change here is a real change, not drift`)
   check('NO CARD IS ONE-SIDED', oneSided.length === 0,
     oneSided.map(c => c.text.trim()).join(' | '))
   check('every tint painted the colour it declared',
     allTints.every(t => t.painted.toLowerCase() === String(t.declared).toLowerCase()),
     allTints.filter(t => t.painted.toLowerCase() !== String(t.declared).toLowerCase())
       .map(t => `${t.name}: declared ${t.declared} painted ${t.painted}`).join(' | '))
+  // AGAINST THE SURFACE EACH SPAN IS ON, not against the page. The two differ by
+  // about 0.15 and the whole first round of this feature turned on that gap.
+  const surfaceBy = new Map(measured.surfaces.map(s => [s.name, s.surface]))
+  const onCard = allTints
+    .map(t => ({ ...t, surface: surfaceBy.get(t.name), cr: contrast(t.painted, surfaceBy.get(t.name)) }))
+    .filter(t => t.cr !== null)
+  const badCard = onCard.filter(t => t.cr < 4.5)
+  console.log(`  card surface: ${[...new Set(measured.surfaces.map(s => s.surface))].join(', ')}`)
+  check('every rendered tint clears AA ON THE SURFACE IT SITS ON',
+    badCard.length === 0 && onCard.length === allTints.length,
+    badCard.map(t => `${t.name} ${t.painted} on ${t.surface} = ${t.cr.toFixed(2)}`).join(' | '))
+
   const bad = worst.filter(t => t.cr < 4.5)
-  check('every rendered tint clears WCAG AA against the real background',
+  check('...and against the page background too',
     bad.length === 0,
     bad.map(t => `${t.name} ${t.painted} ${t.cr.toFixed(2)}`).join(' | '))
+
+  // A tint that matches the plain text is not a tint, and its partner's colour
+  // then reads as emphasis. The pairwise rule compares the two tints to each
+  // other and never to this, so it is asserted here.
+  const nearText = measured.plainName
+    ? onCard.map(t => ({ ...t, dc: contrast(t.painted, measured.plainName) }))
+        .filter(t => t.dc !== null && t.dc < 1.35)
+    : []
+  check(`no rendered tint reads as the plain text colour (${measured.plainName ?? 'no plain card to compare'})`,
+    measured.plainName !== null && nearText.length === 0,
+    nearText.map(t => `${t.name} ${t.painted} vs plain ${measured.plainName}`).join(' | '))
   check('TINTS APPEAR ONLY ON MATCHUP NAMES — colours are for matchups, not standings',
     measured.strays.length === 0, measured.strays.join(' | '))
   check('no page errors', errors.length === 0, errors.join(' | '))

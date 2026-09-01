@@ -30,6 +30,7 @@
     "watch:relay-briefs": "node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs",
     "check:pick": "node scripts/pick-check.mjs",
     "check:tabs": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
+    "check:team-tints": "node scripts/team-tint-render-check.mjs --self-test && URL='http://localhost:8080/?data=context-2026-08-29' node scripts/team-tint-render-check.mjs",
     "check:brief-flip": "node scripts/brief-flip-check.mjs",
     "check:pick-live": "node scripts/pick-live-check.mjs",
     "check:pick-shape": "node scripts/pick-shape-check.mjs",

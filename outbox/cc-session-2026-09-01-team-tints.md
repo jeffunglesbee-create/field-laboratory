@@ -347,3 +347,46 @@ never in the pick panel, the pick'em rows or the stats headers, which all still
 call plain `matchupText`. Colours are for matchups, not standings.
 
 Screenshot: `outbox/team-tints-2026-09-01T20-14-42-209Z.png`.
+
+## Wired into verify — and the check had the same blind spot as the bug
+
+`check:team-tints` runs in `verify.yml` beside the other rendered checks, reusing
+the server an earlier step starts. The screenshot uploads as a workflow artifact
+**on failure only** — it is what a red run needs and a green run does not.
+
+Mutation is what made it worth having. The first version passed 7/7 against two
+of four deliberate breakages:
+
+| mutation | before | after |
+|---|---|---|
+| derive against `bg` again | **7/7** | 8/9 |
+| drop the `readsAsColour` gate | **7/7** | 8/9 |
+| render one side only | 5/7 | 7/9 |
+| revert the league fallback | **7/7** → **9/9** | 8/9 |
+
+### It measured `document.body`
+
+Which is `--bg` — the one surface a team name is never on. So the check that was
+written to catch "derived against the wrong surface" was itself measuring the
+wrong surface, and only caught Blue Jays originally because 4.49 missed by a hair
+on `bg` too. It now walks each span up to the first ancestor that paints
+something, and reports it: `#0b0920`, the card.
+
+### It never compared a tint to the plain text
+
+The pairwise rule compares the two tints to each other. Nothing compared either
+to the colour a plain name would have been, so removing `readsAsColour` was
+invisible. Now asserted against the measured colour of an actually-plain card.
+
+### "At least one is tinted" let a whole sport go dark
+
+Reverting the league fallback took every MLS card plain — the top of the desk —
+and the check still passed, because MLB and WNBA rows carry `league` and kept
+their colour. A boolean cannot see a coverage collapse.
+
+Pinned to the frozen capture instead — **exactly 31 of 78** — following
+`game-id-check`'s stated discipline: *"the counts are pinned to the committed
+capture, not to a tolerance. This file and the corpus move together or the build
+stops."* A change in that number is a real change, and wants reading.
+
+9/9, all four mutations caught.

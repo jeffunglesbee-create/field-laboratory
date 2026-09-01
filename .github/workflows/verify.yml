@@ -260,6 +260,31 @@ jobs:
       - name: Tabs, both pick panels, and the ADR-002 display check
         run: npm run check:tabs
 
+      # Team tints, on the page rather than in the type system. Three of the four
+      # defects this found were invisible to the F# suite BY CONSTRUCTION: the
+      # suite measures contrast against `bg`, and team names sit on a card, so it
+      # agreed with a tint scoring 4.35 on the surface it actually rendered on.
+      #
+      # It also asserts the constraint that is a design decision rather than a
+      # measurement — tints appear ONLY on matchup names, never in the pick
+      # panel, the pick'em rows or the stats headers. Colours are for matchups,
+      # not standings, and that is enforced here rather than remembered.
+      #
+      # Uses the capture with a real multi-sport slate, not the two-row one:
+      # a check that renders no tinted card passes every assertion below it, so
+      # "at least one matchup is tinted" is itself one of the assertions.
+      - name: Team tints, on the rendered page
+        run: npm run check:team-tints
+
+      # The screenshot is the artifact a red run needs and a green run does not.
+      - name: Keep the screenshot when the tints check fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: team-tints-screenshot
+          path: outbox/team-tints-*.png
+          if-no-files-found: ignore
+
       # Stage 1 of surfacing the journalism work: a game card with a joined
       # brief turns to reveal the prose. Driven in a real browser against a
       # fixture built from REAL captured briefs, because both committed render
