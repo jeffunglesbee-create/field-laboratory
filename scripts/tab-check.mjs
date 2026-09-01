@@ -282,6 +282,78 @@ check('a same-document Back moves the tab strip, not just the URL',
   (await visibleTab()) === `tab-${new URLSearchParams(await query()).get('tab') ?? 'scoreboard'}`,
   `url says ${new URLSearchParams(await query()).get('tab') ?? 'scoreboard'}, page shows ${await visibleTab()}`)
 
+// ── The title says where you are ────────────────────────────────────────────
+//
+// It never changed: every open tab read "FIELD Laboratory — desk scoreboard",
+// so three days of this page side by side were indistinguishable in the tab
+// strip — and comparing days across tabs is what this page is for.
+await page.goto(URL_BASE, { waitUntil: 'domcontentloaded' })
+await page.waitForSelector('[role="tab"][aria-selected="true"]')
+const titleOnDefault = await page.title()
+await page.click('#tab-briefs')
+const titleOnBriefs = await page.title()
+check('the title names the surface, and changes with it',
+  titleOnBriefs !== titleOnDefault && /Briefs/.test(titleOnBriefs),
+  `default: "${titleOnDefault}" -> briefs: "${titleOnBriefs}"`)
+// This harness pins ?data=, so the title must say so rather than print today's
+// date over a committed August fixture.
+check('a pinned capture is not titled with today\'s date',
+  /committed capture/.test(titleOnBriefs) && !/\d{4}-\d{2}-\d{2}/.test(titleOnBriefs),
+  `title: "${titleOnBriefs}"`)
+
+// ── Every control has the same focus ring, and none is text ─────────────────
+//
+// Counted rather than eyeballed: the date nav was the one control that fell
+// through to the user-agent default while four other selectors carried the
+// discovery outline.
+for (const sel of ['#tab-scoreboard', '#prev-day', '#today']) {
+  const styles = await page.$eval(sel, el => {
+    const c = getComputedStyle(el)
+    return { select: c.userSelect || c.webkitUserSelect, touch: c.touchAction }
+  })
+  check(`${sel} is a control, not text (user-select ${styles.select}, touch-action ${styles.touch})`,
+    styles.select === 'none' && styles.touch === 'manipulation')
+}
+
+// ── Stepping a day returns you to the top ───────────────────────────────────
+//
+// Without it, pressing prev from deep in a long slate leaves the reader at the
+// same pixel offset inside a DIFFERENT day's cards, which reads as the page not
+// having responded at all.
+//
+// Two things make this test real rather than vacuous:
+//   - it leaves the pinned URL, because `?data=` disables the date nav, so the
+//     button under test does nothing in the harness used above;
+//   - it shrinks the viewport first. At the default size this page is 680px of
+//     content in a 720px window — NOT SCROLLABLE — so scrollTo(0,0) would be a
+//     no-op and the assertion would pass without the code existing.
+await page.setViewportSize({ width: 390, height: 400 })
+await page.goto('http://localhost:8080/?date=2026-08-09', { waitUntil: 'domcontentloaded' })
+await page.waitForSelector('#prev-day:not([disabled])')
+await page.waitForFunction(() => document.body.scrollHeight > window.innerHeight + 100)
+await page.evaluate(() => window.scrollTo(0, 250))
+const scrolledTo = await page.evaluate(() => window.scrollY)
+check('the page is actually scrolled before the test — otherwise it proves nothing',
+  scrolledTo > 100, `scrollY was ${scrolledTo}`)
+await page.click('#prev-day')
+await page.waitForFunction(() => window.scrollY === 0, null, { timeout: 3000 })
+  .catch(() => {})
+// The date element is a date — asserted HERE, on the unpinned page, and not on
+// the harness URL above. Pinned mode reports "pinned to a committed capture"
+// and correctly sets no `datetime`, so the assertion up there accepted the
+// absence and passed with the attribute never wired. Mutation said so:
+// removing the setAttribute left it at 45/45. Only an unpinned page
+// discriminates.
+check('the viewed date carries a machine-readable value',
+  await page.$eval('#viewed-date', el =>
+    el.tagName.toLowerCase() === 'time' && /^\d{4}-\d{2}-\d{2}$/.test(el.getAttribute('datetime') ?? '')),
+  await page.$eval('#viewed-date', el =>
+    `<${el.tagName.toLowerCase()} datetime="${el.getAttribute('datetime')}">${el.textContent}`))
+
+check('stepping a day returns to the top of the slate',
+  (await page.evaluate(() => window.scrollY)) === 0,
+  `scrollY after stepping: ${await page.evaluate(() => window.scrollY)}`)
+
 check('no page errors during any of this', failures.length === 0, failures.join(' | '))
 
 await browser.close()

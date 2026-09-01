@@ -60,12 +60,27 @@ export const touchAction = (css) => {
   }
 }
 
-/** The date span must announce; the tablist must not (focus already moves). */
-export const liveRegions = (html) => ({
-  dateIsLive: /<span id="viewed-date"[^>]*aria-live="polite"/.test(html),
-  dateIsAtomic: /<span id="viewed-date"[^>]*aria-atomic="true"/.test(html),
-  tablistIsLive: /<div class="tabs"[^>]*aria-live=/.test(html),
-})
+/**
+ * The date element must announce; the tablist must not (focus already moves).
+ *
+ * MATCHED BY ID, NOT BY TAG. The first version anchored on `<span id=…>` and
+ * failed the moment that span became a `<time>` — the element changed, the
+ * property did not, and the check reported a regression that was an
+ * improvement. An assertion keyed to the tag was testing the wrong axis.
+ */
+const el = (html, id) => html.match(new RegExp(`<[a-z]+ id="${id}"[^>]*>`))?.[0] ?? ''
+
+export const liveRegions = (html) => {
+  const d = el(html, 'viewed-date')
+  return {
+    dateIsLive: /aria-live="polite"/.test(d),
+    dateIsAtomic: /aria-atomic="true"/.test(d),
+    // A live region announcing an unparseable string is half a fix: `datetime`
+    // is what makes the visible text a DATE to anything not reading pixels.
+    dateIsTime: /^<time /.test(d),
+    tablistIsLive: /<div class="tabs"[^>]*aria-live=/.test(html),
+  }
+}
 
 /**
  * env(safe-area-inset-*) and viewport-fit=cover are meaningful ONLY together.
@@ -103,11 +118,16 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('controls-only does not trip the scroller flag',
     touchAction('.tabs button { touch-action: manipulation; }').onScroller === false)
 
-  const live = '<span id="viewed-date" aria-live="polite" aria-atomic="true"></span>'
-  check('the date span announces', liveRegions(live).dateIsLive === true)
+  const live = '<time id="viewed-date" aria-live="polite" aria-atomic="true"></time>'
+  check('the date element announces', liveRegions(live).dateIsLive === true)
   check('and does so atomically', liveRegions(live).dateIsAtomic === true)
-  check('a bare span does not',
-    liveRegions('<span id="viewed-date"></span>').dateIsLive === false)
+  check('AND IS MATCHED BY ID, NOT BY TAG',
+    liveRegions('<span id="viewed-date" aria-live="polite"></span>').dateIsLive === true,
+    'anchoring on the tag made a span-to-time upgrade read as a regression')
+  check('a bare element does not announce',
+    liveRegions('<time id="viewed-date"></time>').dateIsLive === false)
+  check('a time element is recognised as one',
+    liveRegions(live).dateIsTime === true && liveRegions('<span id="viewed-date"></span>').dateIsTime === false)
   check('a live tablist is flagged — aria-selected already announces',
     liveRegions('<div class="tabs" aria-live="polite">').tablistIsLive === true)
 
@@ -141,6 +161,7 @@ if (isMain(import.meta.url)) {
 
   const lr = liveRegions(html)
   check('a date change is announced', lr.dateIsLive && lr.dateIsAtomic)
+  check('...and carries a machine-readable date, not only pixels', lr.dateIsTime)
   check('the tablist is not also a live region', !lr.tablistIsLive)
 
   const sa = pairedOrAbsent(html)

@@ -153,3 +153,66 @@ That one fails when the handler is removed.
 
 Neither version could have been caught by reading. Both were caught by mutating
 and watching the count not move.
+
+
+## 3 & 4. Date-change behaviour, and four control affordances
+
+**Scroll reset.** Stepping a day left the reader at the same pixel offset inside
+a different day's cards — which reads as the page not having responded. One line
+in `goTo`, and deliberately NOT on `popstate`: the browser restores scroll for
+history navigation, and overriding that throws away the place someone pressed
+Back to return to.
+
+**The title.** It never changed. Every open tab read the same string, so three
+days of this page side by side were indistinguishable in the tab strip — and
+comparing days across tabs is what this page is for. The surface name is read
+from the selected button rather than mapped from the slug, so the tab strip
+stays the one place a surface is named. A pinned capture is titled
+"committed capture", not today's date over an August fixture.
+
+**`.datenav button:focus-visible`** — the one control without it, found by
+counting rather than by looking. Four selectors carried the discovery outline;
+the primary navigation fell through to the user-agent default. Consistency, not
+rescue: that default is visible on this ground.
+
+**`<time datetime>`** on the viewed date, and **`user-select: none`** on the five
+control selectors — the other half of `touch-action: manipulation`, where the
+second tap highlights a button's label instead of firing it.
+
+### Two more toothless assertions, both caught by mutating
+
+**The `datetime` assertion passed with the attribute never wired.** It ran on
+the harness URL, which pins `?data=`, where the element correctly reports
+"pinned to a committed capture" and sets no `datetime` — so the check took that
+branch every time and never saw the case it was written for. Removing the
+`setAttribute` left it at 45/45. Moved to the unpinned page, where the attribute
+must match `^\d{4}-\d{2}-\d{2}$`, it drops to 44/45.
+
+**My own check anchored an assertion on a tag name.** `device-chrome-check`
+matched `<span id="viewed-date"`, so upgrading that span to a `<time>` was
+reported as a regression. The element changed; the property did not. Matching by
+id instead, plus a new assertion that it IS a `<time>`, tests the axis that
+matters.
+
+### Mutations
+
+| mutation | result |
+|---|---|
+| remove the scroll reset | 44/45 |
+| title never syncs on tab change | 44/45 |
+| remove the `datetime` attribute | 44/45 (was 45/45 before the fix) |
+| `<time>` back to `<span>` | device-chrome 7/8 |
+| controls become selectable text | 42/45 |
+
+45/45 and 8/8 restored.
+
+## Item 5, not done, and why
+
+The always-on `.meta` block was the fifth finding and I said the call was yours.
+It is not removed. The error-state work already changed how it reads — the
+dimming moved from container `opacity` to per-line `color`, so a finished status
+now sits at `--dim-text` while a failure sits at `--red` — and that is the part
+that was a defect. Whether "decoded 78 game(s)" should still hold the top of the
+viewport once it has served its purpose is a judgement about what this page is
+for, and this page is a laboratory whose output is findings. Removing them
+because they look like chrome would be a guess dressed as a cleanup.

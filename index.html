@@ -183,7 +183,14 @@
   .datenav button,
   .pk-sport,
   .pk-side,
-  .desk-card--flippable { touch-action: manipulation; }
+  .desk-card--flippable {
+    touch-action: manipulation;
+    /* The other half of the same interaction. `manipulation` drops the
+       double-tap ZOOM; this drops the double-tap SELECTION, where the second
+       tap highlights the button's own label instead of firing it. Labels here
+       are control text — "Today", "LIVE" — never content anyone copies. */
+    -webkit-user-select: none; user-select: none;
+  }
   .tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--discovery); }
   /* Focus must stay visible: a tablist is keyboard-driven by design, and the
      arrow-key pattern is unusable if focus is invisible. */
@@ -374,6 +381,12 @@
      fixed day, so stepping off it would silently show a different date's data
      under a URL that claims to be pinned. Disabled controls say so visually. */
   .datenav button[disabled] { opacity: .35; cursor: not-allowed; }
+  /* The ONLY control on the page without this, found by counting: four
+     selectors carried the discovery outline and the date nav — the primary
+     navigation — fell through to the user-agent default. That default is
+     visible on this ground rather than absent, so this is a consistency fix,
+     not a rescue: one focus ring, not two. */
+  .datenav button:focus-visible { outline: 2px solid var(--discovery); outline-offset: -2px; }
   #viewed-date {
     font-variant-numeric: tabular-nums; letter-spacing: .04em;
     font-size: .9rem; opacity: .8; min-width: 10ch;
@@ -678,7 +691,7 @@
          reader. The tabs need no live region: aria-selected plus a real
          tabpanel already announce, and focus follows the arrow keys.
          aria-atomic because the date is one fact, not a stream of edits. -->
-    <span id="viewed-date" aria-live="polite" aria-atomic="true"></span>
+    <time id="viewed-date" aria-live="polite" aria-atomic="true"></time>
     <button id="next-day" type="button" aria-label="Next day">→</button>
     <button id="today" type="button">Today</button>
   </nav>

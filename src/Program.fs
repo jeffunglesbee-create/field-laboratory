@@ -171,6 +171,25 @@ let private exposeForTesting (setters: ResizeArray<GameState -> unit>) =
     window?__labSetState <- System.Func<int, string, unit>(fun index name ->
         if index >= 0 && index < setters.Count then setters.[index] (named name))
 
+/// The tab title says which day and which surface.
+///
+/// It never changed. Every open tab read "FIELD Laboratory — desk scoreboard",
+/// so three days of this page side by side were indistinguishable in the tab
+/// strip — and comparing days across tabs is the thing this page is for.
+///
+/// The surface name is read from the selected button rather than mapped from
+/// the slug, so the tab strip stays the single place a surface is named.
+let private syncTitle () =
+    let surface =
+        match document.querySelector "[role=\"tab\"][aria-selected=\"true\"]" with
+        | null -> ""
+        | t -> t.textContent.Trim() + " · "
+    // A pinned capture is not a date. Printing `viewedDate ()` here would put
+    // today in the title of a page showing a committed fixture from August.
+    let where =
+        if (queryParam "data").IsSome then "committed capture" else viewedDate ()
+    document.title <- sprintf "%s%s — FIELD Laboratory" surface where
+
 let private start () =
     promise {
         let primaryUrl = dataUrl ()
@@ -221,7 +240,15 @@ let private start () =
             (if note = "" then report else reportWarn)
                 "decode-status"
                 (sprintf "decoded %d game(s) for %s%s%s" (List.length games) payload.Date note unnamed)
-            if (queryParam "data").IsNone then report "viewed-date" (viewedDate ())
+            if (queryParam "data").IsNone then
+                report "viewed-date" (viewedDate ())
+                // A live region announcing an unparseable string is half a fix.
+                // `datetime` is what makes the visible text a DATE to anything
+                // that is not a person reading pixels.
+                match document.getElementById "viewed-date" with
+                | null -> ()
+                | node -> node.setAttribute ("datetime", viewedDate ())
+            syncTitle ()
 
             match document.getElementById "desk" with
             | null -> ()
@@ -417,6 +444,14 @@ let private wireDateNav () =
             else
                 sprintf "?date=%s" date
         window.history.pushState (null, "", window.location.pathname + withTab baseQuery tab)
+        // BACK TO THE TOP, and only here. Stepping a day from deep in a long
+        // slate otherwise leaves the reader at the same pixel offset inside a
+        // different day's cards, which reads as the page not having responded.
+        //
+        // Deliberately NOT on popstate: the browser restores scroll position
+        // for history navigation, and overriding that would throw away the
+        // place a reader pressed Back to return to.
+        window.scrollTo (0.0, 0.0)
         start () |> Promise.start
 
     let bind (id: string) (handler: unit -> unit) =
@@ -479,6 +514,7 @@ let private wireTabs () =
         // previous DATE, which is the only navigation on this page a reader
         // actually means. The tab is view state: addressable, not a step.
         window.history.replaceState (null, "", window.location.pathname + withTab window.location.search (slugOf target.id))
+        syncTitle ()
         if focusIt then target.focus ()
 
     let select = selectWith true
