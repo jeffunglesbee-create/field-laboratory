@@ -24,8 +24,8 @@
   colour-ish fields: alternateColor, color
 
   78 card(s) on context-2026-08-29
-    already          39
-    recovered        26
+    already          38
+    recovered        27
     still-plain      5
     not-observable   8
 
@@ -45,6 +45,7 @@
     EPL              Nottm Forest v Liverpool  ->  #1b3624 / #d11317  (was #c8102e / #d11317)
     EPL              Newcastle v Spurs  ->  #000000 / #0b1426  (was #000000 / #ffffff)
     MLS              Chicago v Seattle  ->  #ff0000 / #2dc84d  (was #7ccdef / #2dc84d)
+    MLS              LAFC v D.C. United  ->  #000000 / #d61018  (was #000000 / #000000)
     MLS              NYCFC v Toronto  ->  #000229 / #aa182c  (was #9fd2ff / #aa182c)
     MLS              Salt Lake v Colorado  ->  #daa900 / #8a2432  (was #a32035 / #8a2432)
     MLS              Austin v Portland  ->  #00b140 / #c99700  (was #00b140 / #2c5234)
@@ -67,11 +68,11 @@
   NOT OBSERVABLE — a club ESPN did not resolve, a coverage gap and not a colour one:
     MLS              Los Angeles Football Club v D.C. United  0/2 resolved
     CFB              North Carolina v TCU  0/0 resolved
-    CFB              NC State v Virginia  2/0 resolved
+    CFB              NC State v Virginia  0/0 resolved
     CFB              Jax State v N Dakota St  2/0 resolved
     CFB              Sacramento St v E Michigan  2/0 resolved
-    CFB              New Mexico St v Florida St  0/2 resolved
+    CFB              New Mexico St v Florida St  0/0 resolved
     CFB              Memphis v UNLV  0/0 resolved
     CFL              Montreal Alouettes v Winnipeg Blue Bombers  0/0 resolved
 
-  outbox/alternate-colours-2026-09-02T00-00-24-744Z.json
+  outbox/alternate-colours-2026-09-02T00-07-05-656Z.json
