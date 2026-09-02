@@ -1,6 +1,6 @@
 # Generated: team colours, 2026-09-02
 
-- **1705 entries** across 31 league(s)
+- **5539 entries** across 31 league(s)
 - ESPN team endpoints read 2026-09-02
 - slate swept for the relay's own spellings: 2026-08-29 (81 row(s), 4 resolved)
 
