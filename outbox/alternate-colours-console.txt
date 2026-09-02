@@ -1,0 +1,77 @@
+  MLB                            30 team(s),   30 with a distinct alternate
+  NBA                            30 team(s),   30 with a distinct alternate
+  WNBA                           15 team(s),   15 with a distinct alternate
+  NFL                            32 team(s),   32 with a distinct alternate
+  CFB                            50 team(s),   42 with a distinct alternate
+  CFL                             9 team(s),    0 with a distinct alternate
+  UFL                             8 team(s),    8 with a distinct alternate
+  NHL                            32 team(s),   32 with a distinct alternate
+  AFL                            19 team(s),   18 with a distinct alternate
+  MLS                            30 team(s),   30 with a distinct alternate
+  EPL                            20 team(s),   20 with a distinct alternate
+  LaLiga                         20 team(s),   20 with a distinct alternate
+  Bundesliga                     18 team(s),   18 with a distinct alternate
+  SerieA                         20 team(s),   20 with a distinct alternate
+  Ligue1                         18 team(s),   16 with a distinct alternate
+  UEFAChampionsLeague            36 team(s),   36 with a distinct alternate
+  UEFAEuropaLeague               36 team(s),   34 with a distinct alternate
+  UEFAEuropaConferenceLeague     36 team(s),   33 with a distinct alternate
+  EFLCup                         92 team(s),   92 with a distinct alternate
+  EFLTrophy                      64 team(s),   64 with a distinct alternate
+  FIFAWorldCup                   48 team(s),   42 with a distinct alternate
+
+  ESPN team fields observed: abbreviation, alternateColor, color, displayName, id, isActive, isAllStar, links, location, logos, name, nickname, shortDisplayName, slug, uid
+  colour-ish fields: alternateColor, color
+
+  78 card(s) on context-2026-08-29
+    already          39
+    recovered        26
+    still-plain      5
+    not-observable   8
+
+  RECOVERED by an alternate:
+    MLS              FC Dallas v St. Louis CITY SC  ->  #c6093b / #001544  (was #c6093b / #ec1458)
+    MLS              Austin FC v Portland Timbers  ->  #00b140 / #c99700  (was #00b140 / #2c5234)
+    MLS              Real Salt Lake v Colorado Rapids  ->  #daa900 / #8a2432  (was #a32035 / #8a2432)
+    MLS              New York City Football Club v Toronto FC  ->  #000229 / #aa182c  (was #9fd2ff / #aa182c)
+    MLS              Chicago Fire FC v Seattle Sounders FC  ->  #ff0000 / #2dc84d  (was #7ccdef / #2dc84d)
+    MLB              Red Sox v Yankees  ->  #bd3039 / #132448  (was #0d2b56 / #132448)
+    MLB              Dodgers v Tigers  ->  #005a9c / #ff4713  (was #005a9c / #0a2240)
+    MLB              Astros v Mets  ->  #002d62 / #ff5910  (was #002d62 / #002d72)
+    MLB              Royals v Guardians  ->  #004687 / #e31937  (was #004687 / #002b5c)
+    MLB              Rangers v Brewers  ->  #003278 / #ffc72c  (was #003278 / #13294b)
+    MLB              Phillies v Angels  ->  #003278 / #ba0021  (was #e81828 / #ba0021)
+    WNBA             Tempo v Mercury  ->  #33476d / #fa4b0a  (was #33476d / #3c286e)
+    EPL              Nottm Forest v Liverpool  ->  #1b3624 / #d11317  (was #c8102e / #d11317)
+    EPL              Newcastle v Spurs  ->  #000000 / #0b1426  (was #000000 / #ffffff)
+    MLS              Chicago v Seattle  ->  #ff0000 / #2dc84d  (was #7ccdef / #2dc84d)
+    MLS              NYCFC v Toronto  ->  #000229 / #aa182c  (was #9fd2ff / #aa182c)
+    MLS              Salt Lake v Colorado  ->  #daa900 / #8a2432  (was #a32035 / #8a2432)
+    MLS              Austin v Portland  ->  #00b140 / #c99700  (was #00b140 / #2c5234)
+    La Liga          Espanyol v Real Sociedad  ->  #3366cc / #000000  (was #3366cc / #3366cc)
+    La Liga          Atlético v Sevilla  ->  #000000 / #d81022  (was #ca3624 / #ffffff)
+    Serie A          Parma v Juventus  ->  #ffdd30 / #000000  (was #19161d / #000000)
+    Bundesliga       Frankfurt v Union Berlin  ->  #272726 / #da0308  (was #ffffff / #da0308)
+    Bundesliga       Hoffenheim v Cologne  ->  #003399 / #da0308  (was #003399 / #ffffff)
+    Bundesliga       Gladbach v RB Leipzig  ->  #03915c / #740c14  (was #ffffff / #ffffff)
+    Ligue 1          Le Havre AC v Lyon  ->  #011f68 / #1a1a1a  (was #011f68 / #ffffff)
+    NFL              Bears v Titans  ->  #e64100 / #4495d2  (was #0b1c3a / #4495d2)
+
+  STILL PLAIN — every combination of the colours ESPN serves fails:
+    MLS              Vancouver Whitecaps FC v Sporting Kansas City  #ffffff/#12284c vs #a7c6ed/#0a2240
+    EPL              Hull v Coventry  #f28800/#ffffff vs #87cced/#ffffff
+    MLS              Vancouver v Kansas City  #ffffff/#12284c vs #a7c6ed/#0a2240
+    Ligue 1          Angers v Auxerre  #1a1a1a/#ffffff vs #ffffff/#1a1a1a
+    NFL              Lions v Colts  #0076b6/#bbbbbb vs #003b75/#ffffff
+
+  NOT OBSERVABLE — a club ESPN did not resolve, a coverage gap and not a colour one:
+    MLS              Los Angeles Football Club v D.C. United  0/2 resolved
+    CFB              North Carolina v TCU  0/0 resolved
+    CFB              NC State v Virginia  2/0 resolved
+    CFB              Jax State v N Dakota St  2/0 resolved
+    CFB              Sacramento St v E Michigan  2/0 resolved
+    CFB              New Mexico St v Florida St  0/2 resolved
+    CFB              Memphis v UNLV  0/0 resolved
+    CFL              Montreal Alouettes v Winnipeg Blue Bombers  0/0 resolved
+
+  outbox/alternate-colours-2026-09-02T00-00-24-744Z.json
