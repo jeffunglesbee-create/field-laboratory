@@ -143,6 +143,24 @@ jobs:
         if: "!cancelled() && steps.landed.outcome == 'success'"
         run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/render-check.mjs
 
+      # THE TINTS, ON THE PAGE THAT IS ACTUALLY SERVED.
+      #
+      # `check:team-tints` runs in verify against localhost, which proves the
+      # BUILT page and not the deployed one. This repo's own record of why that
+      # gap matters is the Bundesliga case in CLAUDE.md: behaviour read off a
+      # local build was attributed to the source, the build predated the commit,
+      # and the tell was a single separator character. `public/` is a copy;
+      # `build/` is a copy; the worker's response is the only thing that is not.
+      #
+      # Pinned to the frozen capture, which `build-site.mjs` copies into
+      # `public/data` and the worker serves at the same path — so the count here
+      # is the same 62 verify asserts, measured one hop further out.
+      - name: Team tints on the DEPLOYED page
+        if: "!cancelled() && steps.landed.outcome == 'success'"
+        run: |
+          URL='https://field-laboratory.jeffunglesbee.workers.dev/?data=context-2026-08-29' \
+            node scripts/team-tint-render-check.mjs
+
       - name: The deployed page groups by sport
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.

@@ -139,3 +139,36 @@ Frankfurt v Union Berlin  #272726 / #da0308
 ```
 
 Each is the club's own second colour.
+
+---
+
+## The last hop, which was not asserted anywhere
+
+Everything above proves the tints on the BUILT page: `check:team-tints` runs in
+`verify` against `localhost:8080`. `live-check` runs `render-check.mjs` against
+the deployed worker, but never the tint check — so "62 of 78 tint" was true of a
+copy, and the served page asserted nothing about colour at all.
+
+That is precisely the shape `CLAUDE.md` opens with. Its fifth instance is the
+Bundesliga case: behaviour read off a local build, attributed to the source, and
+the build predated the commit. The tell was one separator character — `vs` where
+the fresh build renders `v` — and a boolean check asserting "Bundesliga is on the
+page" would have passed on the stale build.
+
+`public/` is a copy. `build/` is a copy. The worker's response is not.
+
+`live-check` now runs `team-tint-render-check` against
+`https://field-laboratory.jeffunglesbee.workers.dev/?data=context-2026-08-29`.
+The capture is reachable there because `build-site.mjs` copies `data/` into
+`public/` and no `.assetsignore` excludes it, so the pin is the same 62,
+measured one hop further out.
+
+### Landed and green
+
+| | |
+|---|---|
+| verify 258 | the resolver fix |
+| verify 260 | generator, `choosePair`, wiring, pin at 62 |
+| guards 115 | |
+| deploy 630 | |
+| live-check 632 | the deployed page renders — without, until now, any claim about its colours |
