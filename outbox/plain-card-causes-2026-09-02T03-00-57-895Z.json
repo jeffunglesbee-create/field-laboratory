@@ -1,0 +1,1219 @@
+{
+  "at": "2026-09-02T03:00:57.896Z",
+  "pageRows": [
+    {
+      "name": "MLB",
+      "bare": 30,
+      "paged": 30,
+      "coloured": 30,
+      "verdict": "complete"
+    },
+    {
+      "name": "NBA",
+      "bare": 30,
+      "paged": 30,
+      "coloured": 30,
+      "verdict": "complete"
+    },
+    {
+      "name": "WNBA",
+      "bare": 15,
+      "paged": 15,
+      "coloured": 15,
+      "verdict": "complete"
+    },
+    {
+      "name": "NFL",
+      "bare": 32,
+      "paged": 32,
+      "coloured": 32,
+      "verdict": "complete"
+    },
+    {
+      "name": "CFB",
+      "bare": 50,
+      "paged": 760,
+      "coloured": 690,
+      "verdict": "paginated"
+    },
+    {
+      "name": "CFL",
+      "bare": 9,
+      "paged": 9,
+      "coloured": 0,
+      "verdict": "complete"
+    },
+    {
+      "name": "UFL",
+      "bare": 8,
+      "paged": 8,
+      "coloured": 8,
+      "verdict": "complete"
+    },
+    {
+      "name": "NHL",
+      "bare": 32,
+      "paged": 32,
+      "coloured": 32,
+      "verdict": "complete"
+    },
+    {
+      "name": "AFL",
+      "bare": 19,
+      "paged": 19,
+      "coloured": 19,
+      "verdict": "complete"
+    },
+    {
+      "name": "MLS",
+      "bare": 30,
+      "paged": 30,
+      "coloured": 30,
+      "verdict": "complete"
+    },
+    {
+      "name": "EPL",
+      "bare": 20,
+      "paged": 20,
+      "coloured": 20,
+      "verdict": "complete"
+    },
+    {
+      "name": "LaLiga",
+      "bare": 20,
+      "paged": 20,
+      "coloured": 20,
+      "verdict": "complete"
+    },
+    {
+      "name": "Bundesliga",
+      "bare": 18,
+      "paged": 18,
+      "coloured": 18,
+      "verdict": "complete"
+    },
+    {
+      "name": "SerieA",
+      "bare": 20,
+      "paged": 20,
+      "coloured": 20,
+      "verdict": "complete"
+    },
+    {
+      "name": "Ligue1",
+      "bare": 18,
+      "paged": 18,
+      "coloured": 18,
+      "verdict": "complete"
+    },
+    {
+      "name": "UEFAChampionsLeague",
+      "bare": 36,
+      "paged": 36,
+      "coloured": 36,
+      "verdict": "complete"
+    },
+    {
+      "name": "UEFAEuropaLeague",
+      "bare": 36,
+      "paged": 36,
+      "coloured": 36,
+      "verdict": "complete"
+    },
+    {
+      "name": "UEFAEuropaConferenceLeague",
+      "bare": 36,
+      "paged": 36,
+      "coloured": 36,
+      "verdict": "complete"
+    },
+    {
+      "name": "EFLCup",
+      "bare": 92,
+      "paged": 92,
+      "coloured": 92,
+      "verdict": "complete"
+    },
+    {
+      "name": "EFLTrophy",
+      "bare": 64,
+      "paged": 64,
+      "coloured": 64,
+      "verdict": "complete"
+    },
+    {
+      "name": "FIFAWorldCup",
+      "bare": 48,
+      "paged": 48,
+      "coloured": 48,
+      "verdict": "complete"
+    }
+  ],
+  "rows": [
+    {
+      "league": "MLS",
+      "away": "FC Dallas",
+      "home": "St. Louis CITY SC",
+      "a": [
+        "#c6093b",
+        "#001f5b"
+      ],
+      "b": [
+        "#ec1458",
+        "#001544"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "LA Galaxy",
+      "home": "San Diego FC",
+      "a": [
+        "#00235d",
+        "#ffffff"
+      ],
+      "b": [
+        "#697a7c",
+        "#f89e1a"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Austin FC",
+      "home": "Portland Timbers",
+      "a": [
+        "#00b140",
+        "#000000"
+      ],
+      "b": [
+        "#2c5234",
+        "#c99700"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "FC Cincinnati",
+      "home": "Nashville SC",
+      "a": [
+        "#003087",
+        "#fe5000"
+      ],
+      "b": [
+        "#ece83a",
+        "#1f1646"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Orlando City",
+      "home": "Minnesota United FC",
+      "a": [
+        "#60269e",
+        "#f0d283"
+      ],
+      "b": [
+        "#000000",
+        "#9bcde4"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Vancouver Whitecaps FC",
+      "home": "Sporting Kansas City",
+      "a": [
+        "#ffffff",
+        "#12284c"
+      ],
+      "b": [
+        "#a7c6ed",
+        "#0a2240"
+      ],
+      "cause": "too-close"
+    },
+    {
+      "league": "MLS",
+      "away": "San Jose Earthquakes",
+      "home": "Houston Dynamo FC",
+      "a": [
+        "#003da6",
+        "#ffffff"
+      ],
+      "b": [
+        "#ff6b00",
+        "#101820"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Real Salt Lake",
+      "home": "Colorado Rapids",
+      "a": [
+        "#a32035",
+        "#daa900"
+      ],
+      "b": [
+        "#8a2432",
+        "#8ab7e9"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "New York City Football Club",
+      "home": "Toronto FC",
+      "a": [
+        "#9fd2ff",
+        "#000229"
+      ],
+      "b": [
+        "#aa182c",
+        "#a2a9ad"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Chicago Fire FC",
+      "home": "Seattle Sounders FC",
+      "a": [
+        "#7ccdef",
+        "#ff0000"
+      ],
+      "b": [
+        "#2dc84d",
+        "#0033a0"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Philadelphia Union",
+      "home": "Red Bull New York",
+      "a": [
+        "#051f31",
+        "#e0d0a6"
+      ],
+      "b": [
+        "#ba0c2f",
+        "#ffc72c"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "CF Montréal",
+      "home": "Inter Miami CF",
+      "a": [
+        "#003da6",
+        "#c1c5c8"
+      ],
+      "b": [
+        "#231f20",
+        "#f7b5cd"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Los Angeles Football Club",
+      "home": "D.C. United",
+      "a": [],
+      "b": [
+        "#000000",
+        "#d61018"
+      ],
+      "cause": "no-colours"
+    },
+    {
+      "league": "MLS",
+      "away": "New England Revolution",
+      "home": "Columbus Crew",
+      "a": [
+        "#022166",
+        "#ce0e2d"
+      ],
+      "b": [
+        "#000000",
+        "#fedd00"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Charlotte FC",
+      "home": "Atlanta United",
+      "a": [
+        "#0085ca",
+        "#000000"
+      ],
+      "b": [
+        "#9d2235",
+        "#aa9767"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Red Sox",
+      "home": "Yankees",
+      "a": [
+        "#0d2b56",
+        "#bd3039"
+      ],
+      "b": [
+        "#132448",
+        "#c4ced4"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Dodgers",
+      "home": "Tigers",
+      "a": [
+        "#005a9c",
+        "#ffffff"
+      ],
+      "b": [
+        "#0a2240",
+        "#ff4713"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "White Sox",
+      "home": "Twins",
+      "a": [
+        "#000000",
+        "#c4ced4"
+      ],
+      "b": [
+        "#031f40",
+        "#e20e32"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Pirates",
+      "home": "Cardinals",
+      "a": [
+        "#000000",
+        "#fdb827"
+      ],
+      "b": [
+        "#be0a14",
+        "#001541"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Reds",
+      "home": "Cubs",
+      "a": [
+        "#c6011f",
+        "#ffffff"
+      ],
+      "b": [
+        "#0e3386",
+        "#cc3433"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Mariners",
+      "home": "Blue Jays",
+      "a": [
+        "#005c5c",
+        "#0c2c56"
+      ],
+      "b": [
+        "#134a8e",
+        "#6cace5"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Marlins",
+      "home": "Nationals",
+      "a": [
+        "#00a3e0",
+        "#000000"
+      ],
+      "b": [
+        "#ab0003",
+        "#11225b"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Diamondbacks",
+      "home": "Giants",
+      "a": [
+        "#aa182c",
+        "#000000"
+      ],
+      "b": [
+        "#000000",
+        "#fd5a1e"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Rockies",
+      "home": "Braves",
+      "a": [
+        "#33006f",
+        "#000000"
+      ],
+      "b": [
+        "#0c2340",
+        "#ba0c2f"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Astros",
+      "home": "Mets",
+      "a": [
+        "#002d62",
+        "#eb6e1f"
+      ],
+      "b": [
+        "#002d72",
+        "#ff5910"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Royals",
+      "home": "Guardians",
+      "a": [
+        "#004687",
+        "#7ab2dd"
+      ],
+      "b": [
+        "#002b5c",
+        "#e31937"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Padres",
+      "home": "Rays",
+      "a": [
+        "#2f241d",
+        "#ffc425"
+      ],
+      "b": [
+        "#092c5c",
+        "#8fbce6"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Rangers",
+      "home": "Brewers",
+      "a": [
+        "#003278",
+        "#c0111f"
+      ],
+      "b": [
+        "#13294b",
+        "#ffc72c"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Orioles",
+      "home": "Athletics",
+      "a": [
+        "#df4601",
+        "#000000"
+      ],
+      "b": [
+        "#003831",
+        "#efb21e"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLB",
+      "away": "Phillies",
+      "home": "Angels",
+      "a": [
+        "#e81828",
+        "#003278"
+      ],
+      "b": [
+        "#ba0021",
+        "#c4ced4"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "WNBA",
+      "away": "Sky",
+      "home": "Liberty",
+      "a": [
+        "#5091cd",
+        "#ffd520"
+      ],
+      "b": [
+        "#86cebc",
+        "#000000"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "WNBA",
+      "away": "Tempo",
+      "home": "Mercury",
+      "a": [
+        "#33476d",
+        "#7b1b38"
+      ],
+      "b": [
+        "#3c286e",
+        "#fa4b0a"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "EPL",
+      "away": "Nottm Forest",
+      "home": "Liverpool",
+      "a": [
+        "#c8102e",
+        "#1b3624"
+      ],
+      "b": [
+        "#d11317",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "EPL",
+      "away": "Everton",
+      "home": "Bournemouth",
+      "a": [
+        "#0606fa",
+        "#ffffff"
+      ],
+      "b": [
+        "#f42727",
+        "#b57edc"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "EPL",
+      "away": "Hull",
+      "home": "Coventry",
+      "a": [
+        "#f28800",
+        "#ffffff"
+      ],
+      "b": [
+        "#87cced",
+        "#ffffff"
+      ],
+      "cause": "one-unreadable"
+    },
+    {
+      "league": "EPL",
+      "away": "Newcastle",
+      "home": "Spurs",
+      "a": [
+        "#000000",
+        "#0b1b3d"
+      ],
+      "b": [
+        "#ffffff",
+        "#0b1426"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Chicago",
+      "home": "Seattle",
+      "a": [
+        "#7ccdef",
+        "#ff0000"
+      ],
+      "b": [
+        "#2dc84d",
+        "#0033a0"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Charlotte",
+      "home": "Atlanta",
+      "a": [
+        "#0085ca",
+        "#000000"
+      ],
+      "b": [
+        "#9d2235",
+        "#aa9767"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "LAFC",
+      "home": "D.C. United",
+      "a": [
+        "#000000",
+        "#c7a36f"
+      ],
+      "b": [
+        "#000000",
+        "#d61018"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "CF Montréal",
+      "home": "Miami",
+      "a": [
+        "#003da6",
+        "#c1c5c8"
+      ],
+      "b": [
+        "#231f20",
+        "#f7b5cd"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Philadelphia",
+      "home": "Red Bull NY",
+      "a": [
+        "#051f31",
+        "#e0d0a6"
+      ],
+      "b": [
+        "#ba0c2f",
+        "#ffc72c"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "NYCFC",
+      "home": "Toronto",
+      "a": [
+        "#9fd2ff",
+        "#000229"
+      ],
+      "b": [
+        "#aa182c",
+        "#a2a9ad"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "San Jose",
+      "home": "Houston",
+      "a": [
+        "#003da6",
+        "#ffffff"
+      ],
+      "b": [
+        "#ff6b00",
+        "#101820"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Orlando",
+      "home": "Minnesota",
+      "a": [
+        "#60269e",
+        "#f0d283"
+      ],
+      "b": [
+        "#000000",
+        "#9bcde4"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Cincinnati",
+      "home": "Nashville",
+      "a": [
+        "#003087",
+        "#fe5000"
+      ],
+      "b": [
+        "#ece83a",
+        "#1f1646"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Vancouver",
+      "home": "Kansas City",
+      "a": [
+        "#ffffff",
+        "#12284c"
+      ],
+      "b": [
+        "#a7c6ed",
+        "#0a2240"
+      ],
+      "cause": "too-close"
+    },
+    {
+      "league": "MLS",
+      "away": "Salt Lake",
+      "home": "Colorado",
+      "a": [
+        "#a32035",
+        "#daa900"
+      ],
+      "b": [
+        "#8a2432",
+        "#8ab7e9"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "Austin",
+      "home": "Portland",
+      "a": [
+        "#00b140",
+        "#000000"
+      ],
+      "b": [
+        "#2c5234",
+        "#c99700"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "MLS",
+      "away": "LA Galaxy",
+      "home": "San Diego",
+      "a": [
+        "#00235d",
+        "#ffffff"
+      ],
+      "b": [
+        "#697a7c",
+        "#f89e1a"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "La Liga",
+      "away": "Betis",
+      "home": "Levante",
+      "a": [
+        "#288a00",
+        "#0a422d"
+      ],
+      "b": [
+        "#c8142f",
+        "#000000"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "La Liga",
+      "away": "Espanyol",
+      "home": "Real Sociedad",
+      "a": [
+        "#3366cc",
+        "#c8142f"
+      ],
+      "b": [
+        "#3366cc",
+        "#000000"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "La Liga",
+      "away": "Atlético",
+      "home": "Sevilla",
+      "a": [
+        "#ca3624",
+        "#000000"
+      ],
+      "b": [
+        "#ffffff",
+        "#d81022"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Serie A",
+      "away": "Frosinone",
+      "home": "Fiorentina",
+      "a": [
+        "#facf08",
+        "#ffffff"
+      ],
+      "b": [
+        "#4c1d84",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Serie A",
+      "away": "Udinese",
+      "home": "Monza",
+      "a": [
+        "#19161d",
+        "#0f1c3f"
+      ],
+      "b": [
+        "#c8142f",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Serie A",
+      "away": "Torino",
+      "home": "Sassuolo",
+      "a": [
+        "#9f0000",
+        "#ffffff"
+      ],
+      "b": [
+        "#0fa653",
+        "#adaeb0"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Serie A",
+      "away": "Parma",
+      "home": "Juventus",
+      "a": [
+        "#19161d",
+        "#ffdd30"
+      ],
+      "b": [
+        "#000000",
+        "#e8a2b0"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Frankfurt",
+      "home": "Union Berlin",
+      "a": [
+        "#ffffff",
+        "#272726"
+      ],
+      "b": [
+        "#da0308",
+        "#d4d4d4"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Hoffenheim",
+      "home": "Cologne",
+      "a": [
+        "#003399",
+        "#000055"
+      ],
+      "b": [
+        "#ffffff",
+        "#da0308"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Paderborn",
+      "home": "Mainz",
+      "a": [
+        "#0000dd",
+        "#ffffff"
+      ],
+      "b": [
+        "#da0308",
+        "#000055"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Gladbach",
+      "home": "RB Leipzig",
+      "a": [
+        "#ffffff",
+        "#03915c"
+      ],
+      "b": [
+        "#ffffff",
+        "#740c14"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Leverkusen",
+      "home": "Elversberg",
+      "a": [
+        "#da0308",
+        "#f9fbfc"
+      ],
+      "b": [
+        "#000000",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Hamburg",
+      "home": "Dortmund",
+      "a": [
+        "#1a26af",
+        "#1a1a1a"
+      ],
+      "b": [
+        "#ffee00",
+        "#272726"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Lens",
+      "home": "Strasbourg",
+      "a": [
+        "#e91514",
+        "#004c37"
+      ],
+      "b": [
+        "#0000bf",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Angers",
+      "home": "Auxerre",
+      "a": [
+        "#1a1a1a",
+        "#ffffff"
+      ],
+      "b": [
+        "#ffffff",
+        "#1a1a1a"
+      ],
+      "cause": "too-close"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Toulouse",
+      "home": "Brest",
+      "a": [
+        "#560080",
+        "#ffff00"
+      ],
+      "b": [
+        "#ef2f24",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Troyes",
+      "home": "Lorient",
+      "a": [
+        "#0000bf",
+        "#fafafc"
+      ],
+      "b": [
+        "#f46100",
+        "#1a1a1a"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Le Havre AC",
+      "home": "Lyon",
+      "a": [
+        "#011f68",
+        "#ededed"
+      ],
+      "b": [
+        "#ffffff",
+        "#1a1a1a"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "NFL",
+      "away": "Lions",
+      "home": "Colts",
+      "a": [
+        "#0076b6",
+        "#bbbbbb"
+      ],
+      "b": [
+        "#003b75",
+        "#ffffff"
+      ],
+      "cause": "too-close"
+    },
+    {
+      "league": "NFL",
+      "away": "Bears",
+      "home": "Titans",
+      "a": [
+        "#0b1c3a",
+        "#e64100"
+      ],
+      "b": [
+        "#4495d2",
+        "#001532"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "CFB",
+      "away": "North Carolina",
+      "home": "TCU",
+      "a": [
+        "#7bafd4",
+        "#13294b"
+      ],
+      "b": [
+        "#4d1979",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "CFB",
+      "away": "San José St",
+      "home": "USC",
+      "a": [
+        "#0038a8",
+        "#ffb81a"
+      ],
+      "b": [
+        "#9d2235",
+        "#ffc72c"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "CFB",
+      "away": "NC State",
+      "home": "Virginia",
+      "a": [],
+      "b": [],
+      "cause": "no-colours"
+    },
+    {
+      "league": "CFB",
+      "away": "Jax State",
+      "home": "N Dakota St",
+      "a": [
+        "#cc0000",
+        "#000000"
+      ],
+      "b": [],
+      "cause": "no-colours"
+    },
+    {
+      "league": "CFB",
+      "away": "Sacramento St",
+      "home": "E Michigan",
+      "a": [
+        "#00573c",
+        "#cdb97d"
+      ],
+      "b": [],
+      "cause": "no-colours"
+    },
+    {
+      "league": "CFB",
+      "away": "Hawai'i",
+      "home": "Stanford",
+      "a": [
+        "#005737",
+        "#000000"
+      ],
+      "b": [
+        "#8c1515",
+        "#ffffff"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "CFB",
+      "away": "New Mexico St",
+      "home": "Florida St",
+      "a": [],
+      "b": [],
+      "cause": "no-colours"
+    },
+    {
+      "league": "CFB",
+      "away": "Memphis",
+      "home": "UNLV",
+      "a": [
+        "#004991",
+        "#8e908f"
+      ],
+      "b": [
+        "#cf0a2c",
+        "#cac8c8"
+      ],
+      "cause": "renderable"
+    },
+    {
+      "league": "CFL",
+      "away": "Montreal Alouettes",
+      "home": "Winnipeg Blue Bombers",
+      "a": [],
+      "b": [],
+      "cause": "no-colours"
+    }
+  ]
+}

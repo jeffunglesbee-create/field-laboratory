@@ -1,0 +1,1472 @@
+{
+  "at": "2026-09-02T03:00:53.611Z",
+  "capture": "context-2026-08-29",
+  "counts": {
+    "already": 38,
+    "recovered": 27,
+    "still-plain": 5,
+    "not-observable": 8
+  },
+  "colourFields": [
+    "alternateColor",
+    "color"
+  ],
+  "rows": [
+    {
+      "league": "MLS",
+      "away": "FC Dallas",
+      "home": "St. Louis CITY SC",
+      "candidatesA": [
+        "#c6093b",
+        "#001f5b"
+      ],
+      "candidatesB": [
+        "#ec1458",
+        "#001544"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#c6093b",
+        "b": "#001544"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "LA Galaxy",
+      "home": "San Diego FC",
+      "candidatesA": [
+        "#00235d",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#697a7c",
+        "#f89e1a"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#00235d",
+        "b": "#697a7c"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Austin FC",
+      "home": "Portland Timbers",
+      "candidatesA": [
+        "#00b140",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#2c5234",
+        "#c99700"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#00b140",
+        "b": "#c99700"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "FC Cincinnati",
+      "home": "Nashville SC",
+      "candidatesA": [
+        "#003087",
+        "#fe5000"
+      ],
+      "candidatesB": [
+        "#ece83a",
+        "#1f1646"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#003087",
+        "b": "#ece83a"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Orlando City",
+      "home": "Minnesota United FC",
+      "candidatesA": [
+        "#60269e",
+        "#f0d283"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#9bcde4"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#60269e",
+        "b": "#000000"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Vancouver Whitecaps FC",
+      "home": "Sporting Kansas City",
+      "candidatesA": [
+        "#ffffff",
+        "#12284c"
+      ],
+      "candidatesB": [
+        "#a7c6ed",
+        "#0a2240"
+      ],
+      "chosen": null,
+      "outcome": "still-plain"
+    },
+    {
+      "league": "MLS",
+      "away": "San Jose Earthquakes",
+      "home": "Houston Dynamo FC",
+      "candidatesA": [
+        "#003da6",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#ff6b00",
+        "#101820"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#003da6",
+        "b": "#ff6b00"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Real Salt Lake",
+      "home": "Colorado Rapids",
+      "candidatesA": [
+        "#a32035",
+        "#daa900"
+      ],
+      "candidatesB": [
+        "#8a2432",
+        "#8ab7e9"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#daa900",
+        "b": "#8a2432"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "New York City Football Club",
+      "home": "Toronto FC",
+      "candidatesA": [
+        "#9fd2ff",
+        "#000229"
+      ],
+      "candidatesB": [
+        "#aa182c",
+        "#a2a9ad"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#000229",
+        "b": "#aa182c"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "Chicago Fire FC",
+      "home": "Seattle Sounders FC",
+      "candidatesA": [
+        "#7ccdef",
+        "#ff0000"
+      ],
+      "candidatesB": [
+        "#2dc84d",
+        "#0033a0"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#ff0000",
+        "b": "#2dc84d"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "Philadelphia Union",
+      "home": "Red Bull New York",
+      "candidatesA": [
+        "#051f31",
+        "#e0d0a6"
+      ],
+      "candidatesB": [
+        "#ba0c2f",
+        "#ffc72c"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#051f31",
+        "b": "#ba0c2f"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "CF Montréal",
+      "home": "Inter Miami CF",
+      "candidatesA": [
+        "#003da6",
+        "#c1c5c8"
+      ],
+      "candidatesB": [
+        "#231f20",
+        "#f7b5cd"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#003da6",
+        "b": "#231f20"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Los Angeles Football Club",
+      "home": "D.C. United",
+      "candidatesA": [],
+      "candidatesB": [
+        "#000000",
+        "#d61018"
+      ],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "MLS",
+      "away": "New England Revolution",
+      "home": "Columbus Crew",
+      "candidatesA": [
+        "#022166",
+        "#ce0e2d"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#fedd00"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#022166",
+        "b": "#000000"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Charlotte FC",
+      "home": "Atlanta United",
+      "candidatesA": [
+        "#0085ca",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#9d2235",
+        "#aa9767"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#0085ca",
+        "b": "#9d2235"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Red Sox",
+      "home": "Yankees",
+      "candidatesA": [
+        "#0d2b56",
+        "#bd3039"
+      ],
+      "candidatesB": [
+        "#132448",
+        "#c4ced4"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#bd3039",
+        "b": "#132448"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLB",
+      "away": "Dodgers",
+      "home": "Tigers",
+      "candidatesA": [
+        "#005a9c",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#0a2240",
+        "#ff4713"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#005a9c",
+        "b": "#ff4713"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLB",
+      "away": "White Sox",
+      "home": "Twins",
+      "candidatesA": [
+        "#000000",
+        "#c4ced4"
+      ],
+      "candidatesB": [
+        "#031f40",
+        "#e20e32"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#000000",
+        "b": "#031f40"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Pirates",
+      "home": "Cardinals",
+      "candidatesA": [
+        "#000000",
+        "#fdb827"
+      ],
+      "candidatesB": [
+        "#be0a14",
+        "#001541"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#000000",
+        "b": "#be0a14"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Reds",
+      "home": "Cubs",
+      "candidatesA": [
+        "#c6011f",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#0e3386",
+        "#cc3433"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#c6011f",
+        "b": "#0e3386"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Mariners",
+      "home": "Blue Jays",
+      "candidatesA": [
+        "#005c5c",
+        "#0c2c56"
+      ],
+      "candidatesB": [
+        "#134a8e",
+        "#6cace5"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#005c5c",
+        "b": "#134a8e"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Marlins",
+      "home": "Nationals",
+      "candidatesA": [
+        "#00a3e0",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#ab0003",
+        "#11225b"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#00a3e0",
+        "b": "#ab0003"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Diamondbacks",
+      "home": "Giants",
+      "candidatesA": [
+        "#aa182c",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#fd5a1e"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#aa182c",
+        "b": "#000000"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Rockies",
+      "home": "Braves",
+      "candidatesA": [
+        "#33006f",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#0c2340",
+        "#ba0c2f"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#33006f",
+        "b": "#0c2340"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Astros",
+      "home": "Mets",
+      "candidatesA": [
+        "#002d62",
+        "#eb6e1f"
+      ],
+      "candidatesB": [
+        "#002d72",
+        "#ff5910"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#002d62",
+        "b": "#ff5910"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLB",
+      "away": "Royals",
+      "home": "Guardians",
+      "candidatesA": [
+        "#004687",
+        "#7ab2dd"
+      ],
+      "candidatesB": [
+        "#002b5c",
+        "#e31937"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#004687",
+        "b": "#e31937"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLB",
+      "away": "Padres",
+      "home": "Rays",
+      "candidatesA": [
+        "#2f241d",
+        "#ffc425"
+      ],
+      "candidatesB": [
+        "#092c5c",
+        "#8fbce6"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#2f241d",
+        "b": "#092c5c"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Rangers",
+      "home": "Brewers",
+      "candidatesA": [
+        "#003278",
+        "#c0111f"
+      ],
+      "candidatesB": [
+        "#13294b",
+        "#ffc72c"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#003278",
+        "b": "#ffc72c"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLB",
+      "away": "Orioles",
+      "home": "Athletics",
+      "candidatesA": [
+        "#df4601",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#003831",
+        "#efb21e"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#df4601",
+        "b": "#003831"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLB",
+      "away": "Phillies",
+      "home": "Angels",
+      "candidatesA": [
+        "#e81828",
+        "#003278"
+      ],
+      "candidatesB": [
+        "#ba0021",
+        "#c4ced4"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#003278",
+        "b": "#ba0021"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "WNBA",
+      "away": "Sky",
+      "home": "Liberty",
+      "candidatesA": [
+        "#5091cd",
+        "#ffd520"
+      ],
+      "candidatesB": [
+        "#86cebc",
+        "#000000"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#5091cd",
+        "b": "#86cebc"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "WNBA",
+      "away": "Tempo",
+      "home": "Mercury",
+      "candidatesA": [
+        "#33476d",
+        "#7b1b38"
+      ],
+      "candidatesB": [
+        "#3c286e",
+        "#fa4b0a"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#33476d",
+        "b": "#fa4b0a"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "EPL",
+      "away": "Nottm Forest",
+      "home": "Liverpool",
+      "candidatesA": [
+        "#c8102e",
+        "#1b3624"
+      ],
+      "candidatesB": [
+        "#d11317",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#1b3624",
+        "b": "#d11317"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "EPL",
+      "away": "Everton",
+      "home": "Bournemouth",
+      "candidatesA": [
+        "#0606fa",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#f42727",
+        "#b57edc"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#0606fa",
+        "b": "#f42727"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "EPL",
+      "away": "Hull",
+      "home": "Coventry",
+      "candidatesA": [
+        "#f28800",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#87cced",
+        "#ffffff"
+      ],
+      "chosen": null,
+      "outcome": "still-plain"
+    },
+    {
+      "league": "EPL",
+      "away": "Newcastle",
+      "home": "Spurs",
+      "candidatesA": [
+        "#000000",
+        "#0b1b3d"
+      ],
+      "candidatesB": [
+        "#ffffff",
+        "#0b1426"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#000000",
+        "b": "#0b1426"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "Chicago",
+      "home": "Seattle",
+      "candidatesA": [
+        "#7ccdef",
+        "#ff0000"
+      ],
+      "candidatesB": [
+        "#2dc84d",
+        "#0033a0"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#ff0000",
+        "b": "#2dc84d"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "Charlotte",
+      "home": "Atlanta",
+      "candidatesA": [
+        "#0085ca",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#9d2235",
+        "#aa9767"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#0085ca",
+        "b": "#9d2235"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "LAFC",
+      "home": "D.C. United",
+      "candidatesA": [
+        "#000000",
+        "#c7a36f"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#d61018"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#000000",
+        "b": "#d61018"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "CF Montréal",
+      "home": "Miami",
+      "candidatesA": [
+        "#003da6",
+        "#c1c5c8"
+      ],
+      "candidatesB": [
+        "#231f20",
+        "#f7b5cd"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#003da6",
+        "b": "#231f20"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Philadelphia",
+      "home": "Red Bull NY",
+      "candidatesA": [
+        "#051f31",
+        "#e0d0a6"
+      ],
+      "candidatesB": [
+        "#ba0c2f",
+        "#ffc72c"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#051f31",
+        "b": "#ba0c2f"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "NYCFC",
+      "home": "Toronto",
+      "candidatesA": [
+        "#9fd2ff",
+        "#000229"
+      ],
+      "candidatesB": [
+        "#aa182c",
+        "#a2a9ad"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#000229",
+        "b": "#aa182c"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "San Jose",
+      "home": "Houston",
+      "candidatesA": [
+        "#003da6",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#ff6b00",
+        "#101820"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#003da6",
+        "b": "#ff6b00"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Orlando",
+      "home": "Minnesota",
+      "candidatesA": [
+        "#60269e",
+        "#f0d283"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#9bcde4"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#60269e",
+        "b": "#000000"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Cincinnati",
+      "home": "Nashville",
+      "candidatesA": [
+        "#003087",
+        "#fe5000"
+      ],
+      "candidatesB": [
+        "#ece83a",
+        "#1f1646"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#003087",
+        "b": "#ece83a"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "MLS",
+      "away": "Vancouver",
+      "home": "Kansas City",
+      "candidatesA": [
+        "#ffffff",
+        "#12284c"
+      ],
+      "candidatesB": [
+        "#a7c6ed",
+        "#0a2240"
+      ],
+      "chosen": null,
+      "outcome": "still-plain"
+    },
+    {
+      "league": "MLS",
+      "away": "Salt Lake",
+      "home": "Colorado",
+      "candidatesA": [
+        "#a32035",
+        "#daa900"
+      ],
+      "candidatesB": [
+        "#8a2432",
+        "#8ab7e9"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#daa900",
+        "b": "#8a2432"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "Austin",
+      "home": "Portland",
+      "candidatesA": [
+        "#00b140",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#2c5234",
+        "#c99700"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#00b140",
+        "b": "#c99700"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "MLS",
+      "away": "LA Galaxy",
+      "home": "San Diego",
+      "candidatesA": [
+        "#00235d",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#697a7c",
+        "#f89e1a"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#00235d",
+        "b": "#697a7c"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "La Liga",
+      "away": "Betis",
+      "home": "Levante",
+      "candidatesA": [
+        "#288a00",
+        "#0a422d"
+      ],
+      "candidatesB": [
+        "#c8142f",
+        "#000000"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#288a00",
+        "b": "#c8142f"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "La Liga",
+      "away": "Espanyol",
+      "home": "Real Sociedad",
+      "candidatesA": [
+        "#3366cc",
+        "#c8142f"
+      ],
+      "candidatesB": [
+        "#3366cc",
+        "#000000"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#3366cc",
+        "b": "#000000"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "La Liga",
+      "away": "Atlético",
+      "home": "Sevilla",
+      "candidatesA": [
+        "#ca3624",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#ffffff",
+        "#d81022"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 1,
+        "a": "#000000",
+        "b": "#d81022"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "Serie A",
+      "away": "Frosinone",
+      "home": "Fiorentina",
+      "candidatesA": [
+        "#facf08",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#4c1d84",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#facf08",
+        "b": "#4c1d84"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Serie A",
+      "away": "Udinese",
+      "home": "Monza",
+      "candidatesA": [
+        "#19161d",
+        "#0f1c3f"
+      ],
+      "candidatesB": [
+        "#c8142f",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#19161d",
+        "b": "#c8142f"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Serie A",
+      "away": "Torino",
+      "home": "Sassuolo",
+      "candidatesA": [
+        "#9f0000",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#0fa653",
+        "#adaeb0"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#9f0000",
+        "b": "#0fa653"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Serie A",
+      "away": "Parma",
+      "home": "Juventus",
+      "candidatesA": [
+        "#19161d",
+        "#ffdd30"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#e8a2b0"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#ffdd30",
+        "b": "#000000"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Frankfurt",
+      "home": "Union Berlin",
+      "candidatesA": [
+        "#ffffff",
+        "#272726"
+      ],
+      "candidatesB": [
+        "#da0308",
+        "#d4d4d4"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#272726",
+        "b": "#da0308"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Hoffenheim",
+      "home": "Cologne",
+      "candidatesA": [
+        "#003399",
+        "#000055"
+      ],
+      "candidatesB": [
+        "#ffffff",
+        "#da0308"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#003399",
+        "b": "#da0308"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Paderborn",
+      "home": "Mainz",
+      "candidatesA": [
+        "#0000dd",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#da0308",
+        "#000055"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#0000dd",
+        "b": "#da0308"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Gladbach",
+      "home": "RB Leipzig",
+      "candidatesA": [
+        "#ffffff",
+        "#03915c"
+      ],
+      "candidatesB": [
+        "#ffffff",
+        "#740c14"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 1,
+        "a": "#03915c",
+        "b": "#740c14"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Leverkusen",
+      "home": "Elversberg",
+      "candidatesA": [
+        "#da0308",
+        "#f9fbfc"
+      ],
+      "candidatesB": [
+        "#000000",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#da0308",
+        "b": "#000000"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Bundesliga",
+      "away": "Hamburg",
+      "home": "Dortmund",
+      "candidatesA": [
+        "#1a26af",
+        "#1a1a1a"
+      ],
+      "candidatesB": [
+        "#ffee00",
+        "#272726"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#1a26af",
+        "b": "#ffee00"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Lens",
+      "home": "Strasbourg",
+      "candidatesA": [
+        "#e91514",
+        "#004c37"
+      ],
+      "candidatesB": [
+        "#0000bf",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#e91514",
+        "b": "#0000bf"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Angers",
+      "home": "Auxerre",
+      "candidatesA": [
+        "#1a1a1a",
+        "#ffffff"
+      ],
+      "candidatesB": [
+        "#ffffff",
+        "#1a1a1a"
+      ],
+      "chosen": null,
+      "outcome": "still-plain"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Toulouse",
+      "home": "Brest",
+      "candidatesA": [
+        "#560080",
+        "#ffff00"
+      ],
+      "candidatesB": [
+        "#ef2f24",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#560080",
+        "b": "#ef2f24"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Troyes",
+      "home": "Lorient",
+      "candidatesA": [
+        "#0000bf",
+        "#fafafc"
+      ],
+      "candidatesB": [
+        "#f46100",
+        "#1a1a1a"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#0000bf",
+        "b": "#f46100"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "Ligue 1",
+      "away": "Le Havre AC",
+      "home": "Lyon",
+      "candidatesA": [
+        "#011f68",
+        "#ededed"
+      ],
+      "candidatesB": [
+        "#ffffff",
+        "#1a1a1a"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 1,
+        "a": "#011f68",
+        "b": "#1a1a1a"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "NFL",
+      "away": "Lions",
+      "home": "Colts",
+      "candidatesA": [
+        "#0076b6",
+        "#bbbbbb"
+      ],
+      "candidatesB": [
+        "#003b75",
+        "#ffffff"
+      ],
+      "chosen": null,
+      "outcome": "still-plain"
+    },
+    {
+      "league": "NFL",
+      "away": "Bears",
+      "home": "Titans",
+      "candidatesA": [
+        "#0b1c3a",
+        "#e64100"
+      ],
+      "candidatesB": [
+        "#4495d2",
+        "#001532"
+      ],
+      "chosen": {
+        "i": 1,
+        "j": 0,
+        "a": "#e64100",
+        "b": "#4495d2"
+      },
+      "outcome": "recovered"
+    },
+    {
+      "league": "CFB",
+      "away": "North Carolina",
+      "home": "TCU",
+      "candidatesA": [],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "CFB",
+      "away": "San José St",
+      "home": "USC",
+      "candidatesA": [
+        "#0038a8",
+        "#ffb81a"
+      ],
+      "candidatesB": [
+        "#9d2235",
+        "#ffc72c"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#0038a8",
+        "b": "#9d2235"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "CFB",
+      "away": "NC State",
+      "home": "Virginia",
+      "candidatesA": [],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "CFB",
+      "away": "Jax State",
+      "home": "N Dakota St",
+      "candidatesA": [
+        "#cc0000",
+        "#000000"
+      ],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "CFB",
+      "away": "Sacramento St",
+      "home": "E Michigan",
+      "candidatesA": [
+        "#00573c",
+        "#cdb97d"
+      ],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "CFB",
+      "away": "Hawai'i",
+      "home": "Stanford",
+      "candidatesA": [
+        "#005737",
+        "#000000"
+      ],
+      "candidatesB": [
+        "#8c1515",
+        "#ffffff"
+      ],
+      "chosen": {
+        "i": 0,
+        "j": 0,
+        "a": "#005737",
+        "b": "#8c1515"
+      },
+      "outcome": "already"
+    },
+    {
+      "league": "CFB",
+      "away": "New Mexico St",
+      "home": "Florida St",
+      "candidatesA": [],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "CFB",
+      "away": "Memphis",
+      "home": "UNLV",
+      "candidatesA": [],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    },
+    {
+      "league": "CFL",
+      "away": "Montreal Alouettes",
+      "home": "Winnipeg Blue Bombers",
+      "candidatesA": [],
+      "candidatesB": [],
+      "chosen": null,
+      "outcome": "not-observable"
+    }
+  ]
+}

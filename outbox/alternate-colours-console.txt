@@ -75,4 +75,4 @@
     CFB              Memphis v UNLV  0/0 resolved
     CFL              Montreal Alouettes v Winnipeg Blue Bombers  0/0 resolved
 
-  outbox/alternate-colours-2026-09-02T00-07-05-656Z.json
+  outbox/alternate-colours-2026-09-02T03-00-53-611Z.json

@@ -1,0 +1,51 @@
+
+  league                        bare   limit=900   with colour   verdict
+  MLB                            30          30            30   complete
+  NBA                            30          30            30   complete
+  WNBA                           15          15            15   complete
+  NFL                            32          32            32   complete
+  CFB                            50         760           690   paginated
+  CFL                             9           9             0   complete
+  UFL                             8           8             8   complete
+  NHL                            32          32            32   complete
+  AFL                            19          19            19   complete
+  MLS                            30          30            30   complete
+  EPL                            20          20            20   complete
+  LaLiga                         20          20            20   complete
+  Bundesliga                     18          18            18   complete
+  SerieA                         20          20            20   complete
+  Ligue1                         18          18            18   complete
+  UEFAChampionsLeague            36          36            36   complete
+  UEFAEuropaLeague               36          36            36   complete
+  UEFAEuropaConferenceLeague     36          36            36   complete
+  EFLCup                         92          92            92   complete
+  EFLTrophy                      64          64            64   complete
+  FIFAWorldCup                   48          48            48   complete
+
+  78 card(s), by cause — WITH the paged team lists:
+    renderable         67
+    no-colours         6
+    one-unreadable     1
+    both-unreadable    0
+    too-close          4
+
+  no-colours:
+    MLS            Los Angeles Football Club v D.C. United   (none)  vs  #000000/#d61018
+    CFB            NC State v Virginia   (none)  vs  (none)
+    CFB            Jax State v N Dakota St   #cc0000/#000000  vs  (none)
+    CFB            Sacramento St v E Michigan   #00573c/#cdb97d  vs  (none)
+    CFB            New Mexico St v Florida St   (none)  vs  (none)
+    CFL            Montreal Alouettes v Winnipeg Blue Bombers   (none)  vs  (none)
+
+  one-unreadable:
+    EPL            Hull v Coventry   #f28800/#ffffff*  vs  #87cced*/#ffffff*
+
+  too-close:
+    MLS            Vancouver Whitecaps FC v Sporting Kansas City   #ffffff*/#12284c  vs  #a7c6ed*/#0a2240
+    MLS            Vancouver v Kansas City   #ffffff*/#12284c  vs  #a7c6ed*/#0a2240
+    Ligue 1        Angers v Auxerre   #1a1a1a/#ffffff*  vs  #ffffff*/#1a1a1a
+    NFL            Lions v Colts   #0076b6/#bbbbbb*  vs  #003b75/#ffffff*
+
+  * = derives a tint that does not read as a colour on this page
+
+  outbox/plain-card-causes-2026-09-02T03-00-57-895Z.json
