@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7b4bc5d` | 2026-09-01 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | probe: does a club's alternate colour recover a card that renders plain? |
+| `f5401ea` | 2026-09-01 | [2026-09-01-team-colours-regenerated.md](2026-09-01-team-colours-regenerated.md) | ci: re-pin the tinted count to 36, the table's first pairwise regeneration |
 | `b625cb4` | 2026-09-01 | [generated-team-colours-2026-09-01.md](generated-team-colours-2026-09-01.md) | generated: team colours table [skip ci] |
 | `951761d` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | fix: attribute only when there is a failure to attribute |
 | `5f97823` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | fix: attribute a weather failure from the page's window, not from a later probe |
