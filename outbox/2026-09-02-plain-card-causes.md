@@ -66,3 +66,110 @@ than what it names.
 No fix is committed with this. The point of the probe is that three of the four
 remedies differ depending on what it finds, and choosing between them first is
 how the wrong one ships.
+
+---
+
+## The reading
+
+```
+  league                        bare   limit=900   with colour   verdict
+  CFB                            50         760           690   paginated
+  CFL                             9           9             0   complete
+  ...every other league          =bare      =bare         =all   complete
+```
+
+**CFB was pagination.** 50 was ESPN's default page size, exactly as suspected;
+the endpoint holds 760 teams and 690 of them carry a colour. Twenty of the
+twenty-one leagues were already complete, so this was one league's worth of a
+silent truncation that had been written down as a fact about the sport.
+
+**CFL serves nine teams and zero colours.** Not a page-size artifact and not a
+resolution failure — the field is simply absent for that league, which also
+explains its 0-of-9 alternates in the earlier reading.
+
+### Every card, re-classified against the paged lists
+
+```
+    renderable         67      <- 65 today
+    no-colours          6
+    one-unreadable      1
+    both-unreadable     0
+    too-close           4
+```
+
+**Paging alone recovers two cards** — North Carolina v TCU and Memphis v UNLV —
+and that number is measured with any losses already netted out: a name unique
+among 50 teams can become ambiguous among 760, and the resolver correctly
+refuses those.
+
+### The six `no-colours` are two different problems
+
+```
+MLS  Los Angeles Football Club v D.C. United  (none)  vs  #000000/#d61018
+CFL  Montreal Alouettes v Winnipeg Blue Bombers  (none) vs (none)
+CFB  NC State v Virginia                      (none)  vs  (none)
+CFB  N Dakota St  (side of Jax State v ...)   (none)
+CFB  E Michigan   (side of Sacramento St v ...) (none)
+CFB  New Mexico St v Florida St               (none)  vs  (none)
+```
+
+CFL is the source. The four CFB sides are **the tokeniser**, and the cause is
+exact:
+
+```
+NC State       -> {state}
+N Dakota St    -> {dakota}
+E Michigan     -> {michigan}
+Florida St     -> {florida}
+Virginia       -> {virginia}
+New Mexico St  -> {new, mexico}
+```
+
+`tokens` drops every word of two characters or fewer, which throws away
+precisely the discriminating part — `NC`, `N`, `E` — and leaves a stem that
+several of 760 teams answer to. The resolver then refuses, correctly, because
+picking one would invent a club's colour. Note `Jax State -> {jax, state}`
+resolves fine: three characters survive the filter.
+
+So this is not a matching bug. It is `tokens` throwing away the identity before
+the matcher ever sees it, and the fix lives there — which moves `sameTeam`, and
+with it `sameFixture` and the duplicate-fixture watcher. That is the blast radius
+already flagged when `findTeam` was fixed in isolation, and it still wants its own
+probe rather than a change made in passing.
+
+### The five colour failures are all genuine, and one is suspicious data
+
+```
+one-unreadable  EPL      Hull v Coventry    #f28800/#ffffff*  vs  #87cced*/#ffffff*
+too-close       MLS      Vancouver v Sporting KC   #ffffff*/#12284c  vs  #a7c6ed*/#0a2240
+too-close       Ligue 1  Angers v Auxerre   #1a1a1a/#ffffff*  vs  #ffffff*/#1a1a1a
+too-close       NFL      Lions v Colts      #0076b6/#bbbbbb*  vs  #003b75/#ffffff*
+```
+
+Coventry really is sky blue and white, and both derive tints that read as this
+page's own text. That is a page constraint, not bad data: a pale foreground
+cannot be told from light text on a dark ground, and the rule is right to refuse.
+
+Vancouver and Sporting KC both come down to a navy — `#12284c` against `#0a2240`.
+Lions and Colts to two blues. Those are real collisions and plain is correct.
+
+**Angers and Auxerre carry byte-identical pairs**, `#1a1a1a/#ffffff` both ways
+round. Angers' colours are black and white; Auxerre's are white and blue. Two
+clubs with the same pair to the byte is the shape of a placeholder, not of two
+clubs. Worth flagging, not worth acting on from here — correcting it needs a
+source, and inventing one is the fabrication this project refuses.
+
+## What shipped with this reading
+
+`?limit=900` at all three ESPN call sites — the coverage probe, the alternate
+probe, and the generator. One league was truncated; twenty were not; the
+parameter costs nothing on the twenty.
+
+## What did not, and why
+
+| | remedy | blocked on |
+|---|---|---|
+| 4 CFB cards | keep short words in `tokens` | moves `sameFixture` and the duplicate-fixture watcher — needs its own probe |
+| 1 `Los Angeles Football Club` | an explicit alias | a fact someone writes down, not one a matcher infers |
+| 1 CFL card | another colour source | ESPN has no colour for that league |
+| 4 colour collisions | nothing | the rule is working; plain is the honest rendering |

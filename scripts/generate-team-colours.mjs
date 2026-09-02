@@ -269,7 +269,12 @@ if (isMain(import.meta.url)) {
   for (const [name, path, labels] of LEAGUES) {
     let teams = []
     try {
-      const r = await fetch(`${ESPN}/${path}/teams`, { signal: AbortSignal.timeout(20000) })
+      // `limit` IS NOT OPTIONAL. ESPN's teams endpoint pages at 50 by default,
+      // and a league that stops at exactly 50 looks identical to a league with
+      // fifty teams. Measured 2026-09-02: college football returns 50 bare and
+      // 760 with `limit=900`, 690 of them carrying a colour. Six cards were
+      // filed as "ESPN does not serve the club" on the strength of that number.
+      const r = await fetch(`${ESPN}/${path}/teams?limit=900`, { signal: AbortSignal.timeout(20000) })
       if (r.ok) {
         const d = await r.json()
         teams = (d?.sports?.[0]?.leagues?.[0]?.teams ?? []).map(t => t.team).filter(Boolean)
