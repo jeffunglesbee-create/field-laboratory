@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ace687e` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
 | `cf9492f` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | fix: pass limit=900 to ESPN's teams endpoint — CFB was truncated at 50 |
 | `5167cde` | 2026-09-02 | [alternate-colours-2026-09-02T03-00-53-611Z.json](alternate-colours-2026-09-02T03-00-53-611Z.json) | probe: alternate colours against the frozen capture [skip ci] |
 | `5167cde` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
