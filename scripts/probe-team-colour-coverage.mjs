@@ -26,7 +26,7 @@
 //         node scripts/probe-team-colour-coverage.mjs --self-test
 
 import { writeFileSync, mkdirSync } from 'node:fs'
-import { sameTeam } from './probe-espn-id-collisions.mjs'
+import { sameTeam, tokens } from './probe-espn-id-collisions.mjs'
 import { createChecks, isMain } from './checks.mjs'
 
 const RELAY = process.env.RELAY || 'https://field-relay-nba.jeffunglesbee.workers.dev'
@@ -91,11 +91,47 @@ export const brandOf = (team) => {
   return /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : null
 }
 
-/** Resolve one payload team name against an ESPN team list. */
-export const findTeam = (name, teams) =>
-  teams.find(t => sameTeam(name, t.displayName))
-  ?? teams.find(t => sameTeam(name, t.shortDisplayName ?? ''))
-  ?? null
+/**
+ * Resolve one payload team name against an ESPN team list.
+ *
+ * EXACT FIRST, THEN UNIQUE, THEN NOTHING. `sameTeam` is a SUBSET test, and
+ * `tokens` drops every word of two characters or fewer — so `D.C. United`
+ * reduces to the single token `united`, which is a subset of Atlanta United,
+ * Minnesota United, Newcastle United and every other `* United` club on earth.
+ * Taking the FIRST such match resolved D.C. United to Atlanta United FC, and
+ * that is not a hypothetical: the alternate-colour probe reported identical
+ * candidate colours `#9d2235 / #aa9767` for both clubs, which is Atlanta's pair.
+ *
+ * The subset test itself is right and must stay — the whole point is that
+ * `Dream` and `Atlanta Dream` are one club. What was missing is that an
+ * AMBIGUOUS match is not a match. `Dream` still resolves, because exactly one
+ * club answers to it. `united` resolves to nothing, because six do.
+ *
+ * Exact-first is what keeps `D.C. United` working rather than merely failing
+ * safely: its token set equals ESPN's own for that club, so it never reaches the
+ * ambiguous branch.
+ *
+ * SCOPE, STATED: this fixes the NAME RESOLVER. `sameTeam` is unchanged, so
+ * `sameFixture` and the duplicate-fixture watcher behave exactly as before —
+ * they have the same exposure and it wants its own probe, not a change smuggled
+ * in beside this one.
+ */
+export const findTeam = (name, teams) => {
+  const want = tokens(name)
+  if (!want.size) return null
+  const eq = (a, b) => a.size === b.size && [...a].every(w => b.has(w))
+  for (const field of ['displayName', 'shortDisplayName']) {
+    const hit = teams.filter(t => eq(want, tokens(t[field] ?? '')))
+    if (hit.length === 1) return hit[0]
+    if (hit.length > 1) return null
+  }
+  for (const field of ['displayName', 'shortDisplayName']) {
+    const hit = teams.filter(t => sameTeam(name, t[field] ?? ''))
+    if (hit.length === 1) return hit[0]
+    if (hit.length > 1) return null
+  }
+  return null
+}
 
 /**
  * `covered` | `partial` | `none` | `unavailable`.
@@ -127,6 +163,39 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     findTeam('Dream', teams)?.displayName === 'Atlanta Dream',
     'string equality would resolve nothing — this is the drift the whole session is about')
   check('an unrelated name resolves to nothing', findTeam('Chelsea', teams) === null)
+  // The bug, enumerated. `D.C. United` reduces to the single token `united`,
+  // and the first version returned the FIRST club that token was a subset of.
+  const united = [
+    { displayName: 'Atlanta United FC', shortDisplayName: 'Atlanta' },
+    { displayName: 'D.C. United', shortDisplayName: 'D.C. United' },
+    { displayName: 'Minnesota United FC', shortDisplayName: 'Minnesota' },
+  ]
+  check('D.C. UNITED RESOLVES TO ITSELF, not to the first club named United',
+    findTeam('D.C. United', united)?.displayName === 'D.C. United',
+    'the alternate-colour probe scored it as Atlanta United, #9d2235 / #aa9767')
+  // AMBIGUITY IS NOT A MATCH — the clause that closes the bug.
+  const twoUniteds = [united[0], united[2]]
+  check('A TOKEN SEVERAL CLUBS ANSWER TO RESOLVES TO NOTHING',
+    findTeam('United', twoUniteds) === null,
+    'picking the first would invent a club\'s colour')
+  check('...and the short-name pass does not rescue it',
+    findTeam('united fc', twoUniteds) === null)
+  // STATED AS A LIMIT, not asserted away. `tokens` drops every word of two
+  // characters or fewer, so `D.C. United` reduces to exactly `{united}` — the
+  // same set as the bare word. Against the full list, `United` therefore
+  // resolves to D.C. United by exact equality, and no rule in THIS function can
+  // separate them; the tokeniser is where that would live, and changing it moves
+  // `sameTeam` and the duplicate-fixture watcher with it.
+  //
+  // Harmless here and asserted so it stays visible: no relay spelling is the
+  // bare word, and the club it lands on is the right one anyway.
+  check('the bare word lands on D.C. United, a known limit of the tokeniser',
+    findTeam('United', united)?.displayName === 'D.C. United',
+    'if this ever changes, the tokeniser changed and sameFixture moved with it')
+  check('a UNIQUE short spelling still resolves — the whole point of subset matching',
+    findTeam('Minnesota', united)?.displayName === 'Minnesota United FC')
+  check('exact wins over a subset that would also match',
+    findTeam('Atlanta United FC', united)?.displayName === 'Atlanta United FC')
 
   check('a 404 is unavailable, NOT zero coverage',
     leagueVerdict({ ok: false, teams: 0, withColour: 0 }) === 'unavailable',

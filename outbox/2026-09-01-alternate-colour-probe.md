@@ -95,3 +95,115 @@ the rule was stated in a comment and enforced by nothing. The test now records
 the sequence of combinations tried against three candidates a side and asserts it
 is monotone. No current source produces three, but a rule the data only happens
 to satisfy is not a rule.
+
+---
+
+## The reading, and the bug it exposed in the probe itself
+
+Run 33564289570, ESPN read 2026-09-02 00:00 UTC.
+
+```
+  ESPN team fields observed: abbreviation, alternateColor, color, displayName,
+    id, isActive, isAllStar, links, location, name, nickname, logos,
+    shortDisplayName, slug, uid
+  colour-ish fields: alternateColor, color
+
+  78 card(s)
+    already          39
+    recovered        26
+    still-plain       5
+    not-observable    8
+```
+
+**There is no third colour.** Two fields, measured rather than assumed: `color`
+and `alternateColor`. A club with three real identity colours — D.C. United is
+black, red and white — has two of them here, and the third is not available from
+this source at any price.
+
+Alternates are near-universal: 30/30 MLB, 32/32 NFL, 32/32 NHL, 30/30 MLS, 20/20
+EPL, 18/18 Bundesliga. CFL is the one league with **none** (0 of 9).
+
+### 26 of 78 cards recover, including two of the three that started this
+
+```
+EPL          Newcastle v Spurs        -> #000000 / #0b1426  (was #000000 / #ffffff)
+Bundesliga   Frankfurt v Union Berlin -> #272726 / #da0308  (was #ffffff / #da0308)
+MLB          Red Sox v Yankees        -> #bd3039 / #132448  (was #0d2b56 / #132448)
+MLS          Chicago Fire v Seattle   -> #ff0000 / #2dc84d  (was #7ccdef / #2dc84d)
+```
+
+Spurs takes its navy, Frankfurt its black. Both are the club's own second
+colour — nothing invented.
+
+### Five cards no combination fixes
+
+```
+MLS      Vancouver Whitecaps v Sporting KC  #ffffff/#12284c vs #a7c6ed/#0a2240
+EPL      Hull v Coventry                    #f28800/#ffffff vs #87cced/#ffffff
+Ligue 1  Angers v Auxerre                   #1a1a1a/#ffffff vs #ffffff/#1a1a1a
+NFL      Lions v Colts                      #0076b6/#bbbbbb vs #003b75/#ffffff
+```
+
+Angers and Auxerre are the clearest case: the same two colours in opposite order.
+No choice from this data separates them, and plain is the honest rendering.
+
+### THE PROBE MIS-RESOLVED D.C. UNITED, AND THE CARD THAT PROMPTED IT WAS NEVER MEASURED
+
+`sameTeam` is a subset test over `tokens`, which drops every word of two
+characters or fewer. `D.C. United` therefore reduces to the single token
+`united`, which is a subset of Atlanta United, Minnesota United, Newcastle United
+and every other `* United` club. `findTeam` returned the FIRST match.
+
+Confirmed by direct call, not inferred:
+
+```
+sameTeam('D.C. United', 'Atlanta United FC')     -> true
+sameTeam('D.C. United', 'Minnesota United FC')   -> true
+sameTeam('D.C. United', 'Newcastle United')      -> true
+```
+
+And the signature is in the probe's own output: `D.C. United` and
+`Atlanta United` came back with **identical** candidate lists,
+`#9d2235 / #aa9767`, which is Atlanta's pair.
+
+I reported those as D.C. United's colours. They are not. The card the question
+was about — LAFC v D.C. United — was scored against Atlanta United and is not a
+measurement of anything.
+
+**The committed table is NOT affected.** Its rows come from ESPN's own
+`displayName` and `shortDisplayName` directly (`generate-team-colours.mjs:233`),
+with no fuzzy matching, so `"MLS", "D.C. United", "#000000"` is ESPN's real
+value. The fuzzy resolver appears in the generator only in the slate sweep, which
+attaches the relay's spellings — and the last run resolved zero, so nothing
+entered the table through it. The exposure there is latent, not realised: a slate
+spelling reducing to a generic token would inherit the wrong club's colour, and
+that is an invented identity rather than a missing one.
+
+### The fix, scoped
+
+`findTeam` now resolves EXACT first, then UNIQUE subset, then nothing.
+`Dream` still resolves to `Atlanta Dream` — one club answers to it, which was
+always the point. `United` against two United clubs resolves to nothing, because
+picking one invents a colour.
+
+20 self-tests, and the mutations bite: ambiguity picking the first match drops to
+18/20, removing the exact pass drops to 17/20.
+
+**`sameTeam` is unchanged**, so `sameFixture` and the duplicate-fixture watcher
+behave exactly as before. They have the same exposure — two different `* United`
+fixtures would read as one — and it wants its own probe rather than a change
+smuggled in beside this one.
+
+### One limit stated rather than asserted away
+
+Because `tokens` drops `D.C.`, that club's token set is exactly `{united}` — the
+same as the bare word. No rule inside `findTeam` can separate them; the tokeniser
+is where that would live, and changing it moves `sameTeam` and the watcher with
+it. Harmless today (no relay spelling is the bare word, and it lands on the right
+club anyway) and asserted so it stays visible if the tokeniser ever changes.
+
+### Therefore the 26 is provisional
+
+Every card whose name reduces to a generic token was scored against the wrong
+club. The mechanism looks strong and the direction is not in doubt, but the
+number is re-run material, not a result.
