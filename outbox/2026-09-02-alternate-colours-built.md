@@ -88,3 +88,54 @@ afterwards: suite 110/110, generator 21/21, unused 1/1.
 Worth naming because the failure mode is silent: a mutation is a small, valid
 edit to real source, so a committed one compiles, and the check that would catch
 it is the one that put it there.
+
+---
+
+## Steps 2 and 3, and the measured result
+
+**36 -> 62 of 78 cards tint.** The probe's range was 61-63; the page renders 62.
+
+The regeneration (`b9df02e`) carries 1701 entries, 75 of them with no alternate.
+Spot-checked against the probe's reading:
+
+```
+"MLS", "D.C. United", "#000000", "#d61018"
+"MLS", "LAFC",        "#000000", "#c7a36f"
+"EPL", "Spurs",       "#ffffff", "#0B1426"
+"Bundesliga", "Frankfurt", "#ffffff", "#272726"
+```
+
+`Scoreboard` now calls `Palette.choosePair` with both clubs' full lists. The
+three conditions are unchanged and still all bind; they are asked of each
+combination rather than of one.
+
+### The sixteen that stay plain are three different facts
+
+Only one of them is about colour, and the pin comment says so rather than
+reporting a number:
+
+| | cards |
+|---|---|
+| **no combination works** | 5 — Angers v Auxerre, Vancouver v Sporting KC (both spellings), Hull v Coventry, Lions v Colts |
+| **ESPN does not serve the club** | 7 — six CFB fixtures past the 50 teams that endpoint returns, plus Montreal v Winnipeg |
+| **the table lacks that spelling** | 4 — `Los Angeles Football Club`, `Minnesota United FC`, `New York City Football Club`, `Atlanta United` |
+
+The last group is why the page renders 62 rather than the 65 the probe resolved
+through ESPN directly. It is a COVERAGE gap and it has a known fix — the slate
+sweep, which resolved zero rows on the 2026-08-31 slate and wants a slate where
+those clubs actually play.
+
+Every other assertion held on the render: no card one-sided, every tint painted
+the colour it declared, AA cleared on the card surface and on the page ground,
+no tint reading as the plain text colour, tints only on matchup names, no page
+errors.
+
+### What the three that started this now render
+
+```
+LAFC v D.C. United        #000000 / #d61018
+Newcastle v Spurs         #000000 / #0b1426
+Frankfurt v Union Berlin  #272726 / #da0308
+```
+
+Each is the club's own second colour.

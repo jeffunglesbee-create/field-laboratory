@@ -321,17 +321,24 @@ let private teamsNode (game: Game) =
         // The parts come back already ordered, so the tint has to be looked up
         // by NAME rather than by home/away — `first` is the away side in the
         // American convention and the home side elsewhere.
-        let tintFor (n: string) = TeamColours.tryTint league n
-        let t1, t2 = tintFor first, tintFor second
-        let both =
-            match t1, t2 with
-            // Three conditions, not one. Both sides must resolve, each tint must
-            // read as a colour rather than as the plain text it replaces, and
-            // the two must be tellable apart. Any failure sends BOTH to plain.
-            | Some a, Some b when
-                Palette.readsAsColour a && Palette.readsAsColour b
-                && Palette.distinguishable a b -> Some(a, b)
-            | _ -> None
+        // EVERY COLOUR EACH CLUB OFFERS, not just its primary.
+        //
+        // The three conditions are unchanged and still all bind — both sides
+        // resolve, each tint reads as a colour rather than as the plain text it
+        // replaces, and the two are tellable apart — but they are now asked of
+        // each COMBINATION rather than of one. `Palette.choosePair` states the
+        // order: fewest primaries changed wins, first-named side keeps its
+        // primary on a tie.
+        //
+        // Thirty of the frozen capture's 78 cards rendered plain on colour
+        // alone: twelve where one club's brand is white and so reads as this
+        // page's own text, eighteen where both read but sit closer than the
+        // separation floor. LAFC and D.C. United are both #000000, an exact
+        // collision. Measured 2026-09-02, the club's own second colour recovers
+        // 27 of the 30 — and the three it does not, like Angers v Auxerre with
+        // the same two colours in opposite order, stay plain, which is correct.
+        let both = Palette.choosePair (TeamColours.tryColours league first)
+                                      (TeamColours.tryColours league second)
         match both with
         | Some(a, b) -> side first (Some a); plain sep; side second (Some b)
         | None -> plain (first + sep + second)

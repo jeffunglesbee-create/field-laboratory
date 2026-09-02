@@ -181,7 +181,26 @@ if (isMain(import.meta.url)) {
   // both sides of each of those three are genuinely the same colour: two blacks,
   // two whites, two reds. A pair a reader cannot tell apart renders plain, which
   // is what the pairwise rule is for.
-  const EXPECTED_TINTED = 36
+  //
+  // MOVED 36 -> 62 on 2026-09-02, when each club's SECOND colour reached the
+  // table and `Palette.choosePair` began reading both per card. Measured, not
+  // predicted: the probe's range was 61-63 and the page renders 62.
+  //
+  // The sixteen that stay plain are three different facts and only one of them
+  // is about colour:
+  //
+  //   5  no combination works — Angers v Auxerre carry the same two colours in
+  //      opposite order, Vancouver v Sporting KC (both spellings), Hull v
+  //      Coventry, Lions v Colts. Plain is the correct rendering; a page showing
+  //      a difference here would be inventing one.
+  //   7  ESPN does not serve the club — six CFB fixtures past the 50 teams that
+  //      endpoint returns, plus Montreal v Winnipeg, and CFL is also the one
+  //      league serving no alternates at all.
+  //   4  the table lacks that spelling — `Los Angeles Football Club`,
+  //      `Minnesota United FC`, `New York City Football Club`, `Atlanta United`.
+  //      A COVERAGE gap, not a colour one, and the reason this number is 62
+  //      rather than the 65 the probe resolved through ESPN directly.
+  const EXPECTED_TINTED = 62
   const EXPECTED_CARDS = 78
   check(`exactly ${EXPECTED_TINTED} of ${EXPECTED_CARDS} cards tint on this frozen capture`,
     tinted.length === EXPECTED_TINTED && cards.length === EXPECTED_CARDS,
