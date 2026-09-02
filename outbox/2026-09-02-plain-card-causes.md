@@ -173,3 +173,81 @@ parameter costs nothing on the twenty.
 | 1 `Los Angeles Football Club` | an explicit alias | a fact someone writes down, not one a matcher infers |
 | 1 CFL card | another colour source | ESPN has no colour for that league |
 | 4 colour collisions | nothing | the rule is working; plain is the honest rendering |
+
+---
+
+## Resolved: 65 -> 71, and two of my own diagnoses died on the way
+
+Regenerated with `?limit=900`. The table went 1705 -> **5539 entries** and the
+page went **65 -> 71 of 78**.
+
+The probe predicted 67. It resolves through `findTeam`, which refuses an
+ambiguous subset match; the page reads a table that now holds ESPN's own
+strings. The prediction was the conservative one and the measurement is the
+number.
+
+### Both remedies I proposed for the CFB names were wrong
+
+**"Keep short words in `tokens`."** Measured against ESPN's real naming:
+
+| spelling | candidates now | with short words kept |
+|---|---|---|
+| NC State | 6 | **1** — fixed |
+| Virginia | 3 | 3 — unchanged |
+| N Dakota St | 2 | **0** — broken |
+| E Michigan | 3 | **0** — broken |
+| New Mexico St | 2 | **0** — broken |
+| Florida St | 2 | **0** — broken |
+
+`st` is not `state` and `n` is not `north`. It also breaks `D.C. United` against
+`DC United`, which works today. One fixed, four broken, one regression.
+
+**"They need an explicit alias table."** Also wrong, and the reason is the sort of
+thing only running finds: ESPN's own `shortDisplayName` for those clubs **is** the
+relay's abbreviation.
+
+```
+"CFB", "E Michigan",    "#006938", "#ffffff"
+"CFB", "Florida St",    "#782f40", "#ceb888"
+"CFB", "N Dakota St",   "#01402A", "#ffffff"
+"CFB", "NC State",      "#cc0000", "#ffffff"
+"CFB", "New Mexico St", "#7e141b", "#231f20"
+"CFB", "Virginia",      "#232d4b", "#f84c1e"
+```
+
+The generator stores every spelling a club answers to, so the moment the full
+760-team page arrived the table carried those strings and the page's exact lookup
+found them. Six cards, no matcher change, no alias, no design decision.
+
+The fuzzy matcher was the wrong instrument to ask. It answers "which club is this
+probably", and the table answers "which club serves this exact string" — and the
+second question already had the answer.
+
+### The seven that remain are the floor
+
+```
+MLS      Sporting Kansas City v Vancouver Whitecaps FC   two navies
+MLS      Kansas City v Vancouver                          the same fixture, short spellings
+NFL      Lions v Colts                                    two blues
+EPL      Coventry v Hull                                  Coventry is sky blue and white
+Ligue 1  Auxerre v Angers                                 byte-identical pairs
+MLS      D.C. United v Los Angeles Football Club          no shared token with `LAFC`
+CFL      Montreal Alouettes v Winnipeg Blue Bombers       ESPN serves 0 colours for CFL
+```
+
+Five are the rule working. One needs an alias written down. One needs a source
+that does not exist here.
+
+### The probe that outlived its motivating case
+
+`probe-unresolved-spellings` was written for six cards and finished with one. It
+is kept, and its header now says so: a spelling gap is a recurring shape in this
+repo, `Los Angeles Football Club` is still open, and the alternative to the probe
+is guessing. It decides nothing — it lists ESPN's plausible candidates so an
+alias is written from evidence.
+
+Its own self-tests caught me making the session's signature error twice, inside
+the test cases: `N Dakota St` asserted to fit `North Dakota Sioux` (`st` is not a
+prefix of `sioux`), then `West Virginia` asserted NOT to fit `Virginia` (it does —
+`virginia` is a prefix of its own second word). Both written from reading, both
+answered in a second by running.

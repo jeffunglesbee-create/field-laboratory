@@ -63,6 +63,14 @@ jobs:
           node scripts/probe-plain-card-causes.mjs --self-test
           node scripts/probe-plain-card-causes.mjs | tee outbox/plain-card-causes-console.txt
 
+      # The spellings that still resolve to nothing, with ESPN's plausible
+      # candidates beside them, so an alias is written from evidence.
+      - name: Spellings that resolve to nothing
+        if: always()
+        run: |
+          node scripts/probe-unresolved-spellings.mjs --self-test
+          node scripts/probe-unresolved-spellings.mjs | tee outbox/unresolved-spellings-console.txt
+
       - name: Commit the reading
         if: always()
         run: |
