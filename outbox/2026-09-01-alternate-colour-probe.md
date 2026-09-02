@@ -207,3 +207,56 @@ club anyway) and asserted so it stays visible if the tokeniser ever changes.
 Every card whose name reduces to a generic token was scored against the wrong
 club. The mechanism looks strong and the direction is not in doubt, but the
 number is re-run material, not a result.
+
+---
+
+## The corrected reading — run 33564534891, matcher fixed
+
+```
+    already          38
+    recovered        27
+    still-plain       5
+    not-observable    8
+```
+
+**All three cards that started this recover, and each takes the club's own second
+colour:**
+
+| card | candidates | rendered |
+|---|---|---|
+| LAFC v D.C. United | `#000000/#c7a36f` vs `#000000/#d61018` | `#000000` / **`#d61018`** |
+| Newcastle v Spurs | `#000000/#0b1b3d` vs `#ffffff/#0b1426` | `#000000` / **`#0b1426`** |
+| Frankfurt v Union Berlin | `#ffffff/#272726` vs `#da0308/#d4d4d4` | **`#272726`** / `#da0308` |
+
+**D.C. United's ESPN pair is `#000000` and `#d61018` — black and RED.** The
+question that prompted this probe guessed red, and it is there. The earlier run
+reported `#9d2235 / #aa9767` for that club, which was Atlanta United's pair
+arriving through the broken matcher; it also mis-attached D.C. United's own
+`#d61018` to Minnesota United, and both readings are now consistent.
+
+What the fix moved: `already` 39 -> 38 and `recovered` 26 -> 27, because
+LAFC v D.C. United had been scored as `already` against Atlanta's red and is in
+truth a recovery. Two CFB cards moved from partly-resolved to `0/0` — ambiguous
+matches correctly refusing to resolve rather than picking a club.
+
+### The prize, stated as a range rather than a number
+
+The page renders **36** tinted today. The probe resolves through ESPN with the
+fixed matcher and finds **38** already workable, so two cards are spellings the
+committed table does not carry — a coverage gap, not a colour one. Adding the
+alternate mechanism reaches **63 of 78** where the table has both spellings, and
+61 where it does not.
+
+The 8 `not-observable` are ESPN coverage: the CFB endpoint serves 50 teams and
+this slate reaches well past them, and CFL resolves nothing at all — the same
+league that has no alternates.
+
+### The five that stay plain are the argument that the rule is honest
+
+```
+Ligue 1  Angers v Auxerre   #1a1a1a/#ffffff  vs  #ffffff/#1a1a1a
+```
+
+The same two colours in opposite order. No combination of what the source
+provides separates them, and a page that showed a difference here would be
+inventing one.
