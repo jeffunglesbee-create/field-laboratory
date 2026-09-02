@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `cf9492f` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | fix: pass limit=900 to ESPN's teams endpoint — CFB was truncated at 50 |
+| `5167cde` | 2026-09-02 | [alternate-colours-2026-09-02T03-00-53-611Z.json](alternate-colours-2026-09-02T03-00-53-611Z.json) | probe: alternate colours against the frozen capture [skip ci] |
+| `5167cde` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
+| `5167cde` | 2026-09-02 | [plain-card-causes-2026-09-02T03-00-57-895Z.json](plain-card-causes-2026-09-02T03-00-57-895Z.json) | probe: alternate colours against the frozen capture [skip ci] |
+| `5167cde` | 2026-09-02 | [plain-card-causes-console.txt](plain-card-causes-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
+| `59e3981` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | probe: which of the thirteen plain cards are a limit of the source, not the rule |
 | `5f48cdc` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | ci: re-pin to 65 after the 2026-08-29 slate sweep |
 | `8477085` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
 | `74b64b3` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | ci: assert the team tints on the DEPLOYED page, not only the built one |
