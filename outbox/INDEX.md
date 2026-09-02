@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5f48cdc` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | ci: re-pin to 65 after the 2026-08-29 slate sweep |
+| `8477085` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
 | `74b64b3` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | ci: assert the team tints on the DEPLOYED page, not only the built one |
 | `b6937d0` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | feat: the desk reads each club's second colour, and 62 of 78 cards now tint |
 | `b9df02e` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
