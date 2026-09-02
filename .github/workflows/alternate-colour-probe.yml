@@ -54,6 +54,15 @@ jobs:
           node scripts/probe-alternate-colours.mjs --capture "${{ inputs.capture || 'context-2026-08-29' }}" \
             | tee outbox/alternate-colours-console.txt
 
+      # THE SAME QUESTION ONE STEP ON: of the cards that still cannot render,
+      # which are a limit of the SOURCE and which of the fixture? Shares this
+      # job's install and build rather than duplicating a runner for it.
+      - name: Why the remaining cards stay plain
+        if: always()
+        run: |
+          node scripts/probe-plain-card-causes.mjs --self-test
+          node scripts/probe-plain-card-causes.mjs | tee outbox/plain-card-causes-console.txt
+
       - name: Commit the reading
         if: always()
         run: |
