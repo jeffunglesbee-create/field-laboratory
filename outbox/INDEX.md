@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6fc18a3` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | ci: re-pin to 72 — the alias lands and the resolvable set is empty |
+| `44b0227` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
+| `3212c36` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | feat: an alias table, written down, with its evidence attached |
 | `383a865` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | ci: re-pin to 71 — pagination alone resolved all six CFB cards |
 | `ace687e` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
 | `cf9492f` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | fix: pass limit=900 to ESPN's teams endpoint — CFB was truncated at 50 |
