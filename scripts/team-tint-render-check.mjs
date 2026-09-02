@@ -159,18 +159,21 @@ if (isMain(import.meta.url)) {
   // The capture is frozen, so the number is exact. If it moves, either the
   // resolution changed or the derivation did, and both want reading.
   //
-  // 31 -> 36 -> 62 -> 65 -> 71, and the last move is the one worth reading.
+  // 31 -> 36 -> 62 -> 65 -> 71 -> 72, and this is where it stops.
   //
-  // 71 of 78. The seven that remain are the floor this source can reach:
+  // 72 of 78. The six that remain cannot be reached from this source:
   //
   //   5  no combination of published colours works — Vancouver v Sporting KC
   //      (both spellings) reduce to two navies, Lions v Colts to two blues,
   //      Coventry is sky blue and white and both read as this page's own text,
   //      Angers and Auxerre carry byte-identical pairs. Plain is correct: a page
   //      showing a difference here would be inventing one.
-  //   1  `Los Angeles Football Club` — shares no token with ESPN's `LAFC`, so no
-  //      matcher can bridge it. Needs an alias written down, not inferred.
   //   1  Montreal v Winnipeg — ESPN serves nine CFL teams and ZERO colours.
+  //
+  // 71 -> 72 is the alias for `Los Angeles Football Club`, which shares no token
+  // with ESPN's `LAFC` and so can only ever be a written fact. Its evidence is
+  // in `generate-team-colours.mjs`: the 2026-08-29 slate carries both spellings
+  // for the same fixture, under the dash and underscore id schemes.
   //
   // 65 -> 71 came from `?limit=900` alone. ESPN's teams endpoint pages at 50 by
   // default and college football holds 760; the six CFB cards that had been
@@ -189,7 +192,7 @@ if (isMain(import.meta.url)) {
   // through `findTeam`, which refuses an ambiguous subset match, while the page
   // reads a table that now holds ESPN's own strings. The prediction was the
   // conservative one and the measurement is the number.
-  const EXPECTED_TINTED = 71
+  const EXPECTED_TINTED = 72
   const EXPECTED_CARDS = 78
   check(`exactly ${EXPECTED_TINTED} of ${EXPECTED_CARDS} cards tint on this frozen capture`,
     tinted.length === EXPECTED_TINTED && cards.length === EXPECTED_CARDS,

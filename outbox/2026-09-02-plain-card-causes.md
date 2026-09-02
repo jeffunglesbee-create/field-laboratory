@@ -302,3 +302,64 @@ either way — so replacing the whole condition with `true` changed nothing. A
 predicate asserted only against data that already passes is not asserted at all.
 It now carries its counterexamples: an alias with no `why`, and one whose `why`
 is the word "because".
+
+---
+
+## 72 of 78, and the resolvable set is empty
+
+The alias landed as an ordinary row:
+
+```
+"MLS", "Los Angeles Football Club", "#000000", "#c7a36f"
+```
+
+LAFC's own colours, on the spelling the relay serves. **71 -> 72**, exactly as
+predicted.
+
+### The whole arc
+
+| tinted | what moved it |
+|---|---|
+| 31 | globally collision-resolved table |
+| 36 | pairwise resolution, real club colours |
+| 62 | each club's SECOND colour, chosen per card |
+| 65 | slate sweep on the capture's own day |
+| 71 | `?limit=900` — ESPN's teams endpoint pages at 50 |
+| **72** | one written alias |
+
+**36 -> 72.** Four of the five moves were data or configuration; only one was a
+design decision, and that one was worth 26 cards.
+
+### The six that remain, and why none is a defect
+
+```
+MLS      Sporting Kansas City v Vancouver Whitecaps FC   two navies
+MLS      Kansas City v Vancouver                         the same fixture, short spellings
+NFL      Lions v Colts                                   two blues
+EPL      Coventry v Hull                                 Coventry is sky blue and white
+Ligue 1  Auxerre v Angers                                byte-identical pairs
+CFL      Montreal Alouettes v Winnipeg Blue Bombers      ESPN serves 0 colours for CFL
+```
+
+Five are the rule doing exactly what it was built for: two clubs a reader cannot
+tell apart render plain rather than borrowing a difference neither has. The sixth
+is a league with no colour data at any page size.
+
+Two of the six are the same fixture under two spellings — the MLS dual-writer
+duplicate, a relay defect and not a colour one. Fixing it there takes the desk to
+five.
+
+### What did not survive contact with measurement
+
+Three remedies were proposed in this session and none was needed:
+
+1. **"Keep short words in `tokens`"** — fixes one name, breaks four, regresses
+   `D.C. United`.
+2. **"The CFB names need an alias table"** — they needed a query parameter.
+   ESPN's own `shortDisplayName` already was the relay's abbreviation.
+3. **"Angers and Auxerre need a better source"** — probably true and
+   unactionable: there is no second source here, and inventing colours is the
+   fabrication this project refuses.
+
+The one remedy that was needed applies to exactly one spelling, and the case for
+it is a duplicate row in the relay's own payload.
