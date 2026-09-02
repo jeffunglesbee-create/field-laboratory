@@ -196,11 +196,23 @@ if (isMain(import.meta.url)) {
   //   7  ESPN does not serve the club — six CFB fixtures past the 50 teams that
   //      endpoint returns, plus Montreal v Winnipeg, and CFL is also the one
   //      league serving no alternates at all.
-  //   4  the table lacks that spelling — `Los Angeles Football Club`,
-  //      `Minnesota United FC`, `New York City Football Club`, `Atlanta United`.
-  //      A COVERAGE gap, not a colour one, and the reason this number is 62
-  //      rather than the 65 the probe resolved through ESPN directly.
-  const EXPECTED_TINTED = 62
+  //   1  the table lacks that spelling — `Los Angeles Football Club`. A
+  //      COVERAGE gap, not a colour one. Three of its four siblings were closed
+  //      by sweeping the 2026-08-29 slate (below); this one cannot be, because
+  //      the relay's spelling and ESPN's `LAFC` share no token at all. Subset
+  //      matching does not bridge an acronym to its expansion and should not:
+  //      that needs an explicit alias, which is a fact someone writes down, not
+  //      one a matcher infers.
+  //
+  // MOVED 62 -> 65 on 2026-09-02 by the slate sweep, not by any code change.
+  // The generator's default slate had resolved zero relay spellings; run against
+  // 2026-08-29 — the capture's own day — it resolved four, and three of them
+  // reach a card here: Minnesota United FC v Orlando City, Toronto FC v New York
+  // City Football Club, Atlanta United v Charlotte FC.
+  //
+  // 65 is the number the alternate-colour probe resolved through ESPN directly,
+  // predicted before the sweep ran. Prediction and measurement agree.
+  const EXPECTED_TINTED = 65
   const EXPECTED_CARDS = 78
   check(`exactly ${EXPECTED_TINTED} of ${EXPECTED_CARDS} cards tint on this frozen capture`,
     tinted.length === EXPECTED_TINTED && cards.length === EXPECTED_CARDS,

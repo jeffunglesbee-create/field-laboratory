@@ -172,3 +172,58 @@ measured one hop further out.
 | guards 115 | |
 | deploy 630 | |
 | live-check 632 | the deployed page renders — without, until now, any claim about its colours |
+
+---
+
+## The slate sweep, and the one gap it cannot close
+
+Dispatched `generate team colours` with `date=2026-08-29` — the capture's own
+day, and a day the relay really served those spellings.
+
+```
+- 1705 entries across 31 league(s)
+- slate swept for the relay's own spellings: 2026-08-29 (81 row(s), 4 resolved)
+```
+
+**62 -> 65 of 78**, with no code change at all. 65 is the number the
+alternate-colour probe resolved through ESPN directly, predicted before the sweep
+ran; prediction and measurement agree.
+
+Three of the four resolved spellings reach a card here — Minnesota United FC v
+Orlando City, Toronto FC v New York City Football Club, Atlanta United v
+Charlotte FC. Incidentally confirming the earlier diagnosis: the table now
+carries `"MLS", "Atlanta United", "#9d2235", "#aa9767"`, which is the pair the
+broken matcher had been handing to D.C. United.
+
+### `Los Angeles Football Club` cannot be swept, and that is correct
+
+```
+sameTeam('LAFC', 'Los Angeles Football Club') -> false
+```
+
+No shared token. `tokens` keeps words of three characters or more, so ESPN's
+`LAFC` is `{lafc}` and the relay's spelling is `{los, angeles, football, club}`.
+Subset matching cannot bridge an acronym to its expansion in either direction.
+
+That result was printed in this session hours ago, in the very self-test written
+to prove the matcher — and read past. It is the correct behaviour: a matcher
+that bridged those two would be inferring an identity rather than observing one,
+which is the whole thing `Desk.fs` refuses when it says "a normaliser is a place
+for two spellings to silently become one".
+
+The remedy is an explicit alias — a fact someone writes down, which then appears
+as an ordinary readable row in the generated table rather than as matcher
+behaviour. Not taken here: it is an addition to the generator's INPUT, and it
+wants its own decision rather than arriving inside a sweep.
+
+The short spelling `LAFC v D.C. United` renders `#000000 / #d61018` today, so the
+fixture is coloured on the desk; it is the long-spelling duplicate row that stays
+plain.
+
+### The thirteen that remain
+
+| | cards |
+|---|---|
+| no combination works | 5 |
+| ESPN does not serve the club | 7 |
+| the table lacks that spelling | 1 — `Los Angeles Football Club` |
