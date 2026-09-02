@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `003cf53` | 2026-09-02 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-02 [skip ci] |
+| `003cf53` | 2026-09-02 | [sport-vocabulary-2026-09-02T06-01-43-789Z.json](sport-vocabulary-2026-09-02T06-01-43-789Z.json) | drift-sentinel: ok on 2026-09-02 [skip ci] |
 | `6fc18a3` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | ci: re-pin to 72 — the alias lands and the resolvable set is empty |
 | `44b0227` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
 | `3212c36` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | feat: an alias table, written down, with its evidence attached |
