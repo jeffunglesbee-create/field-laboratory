@@ -427,3 +427,41 @@ let distinguishable (a: Token) (b: Token) = distance a b >= tintSeparationFloor
 /// two colours apart — and inventing a second threshold for it would be picking
 /// a number to fit an impression.
 let readsAsColour (t: Token) = distance t text >= tintSeparationFloor
+
+/// The pair of tints to render for one card, or None if no combination works.
+///
+/// WHY A CHOICE EXISTS AT ALL. Thirty of the frozen capture's 78 cards render
+/// plain for colour reasons alone: twelve where one club's brand is white and so
+/// reads as the page's own text, eighteen where both read but are closer than
+/// the separation floor. Every club ESPN serves carries a SECOND published
+/// colour, and the table had been discarding it. Measured 2026-09-02: taking it
+/// per card recovers 27 of those 30.
+///
+/// THE RULE, STATED: the combination that changes the fewest primaries wins; on
+/// a tie, the first-named side keeps its primary. It is stated rather than left
+/// to enumeration order because a club appearing in its alternate on one card
+/// and its primary on another is a weaker identity signal, and this rule decides
+/// how often that happens. The probe that measured this had the rule in a
+/// comment and enforced by nothing — with two candidates a side the naive loop
+/// emits the right order by accident — so it is a sort here, and asserted.
+///
+/// NOT A FALLBACK. An alternate is the club's own published colour, so a card
+/// that uses it is still showing that club's identity. What it is not allowed to
+/// do is invent: when no combination satisfies the three conditions, both sides
+/// go plain, which is why Angers v Auxerre — the same two colours in opposite
+/// order — stays plain and should.
+///
+/// The three conditions are unchanged and all three still bind: each side must
+/// derive a legible tint, each must read as a colour rather than as the text it
+/// replaces, and the two must be tellable apart.
+let choosePair (a: string list) (b: string list) : (Token * Token) option =
+    let ta = a |> List.map teamTint
+    let tb = b |> List.map teamTint
+    [ for i in 0 .. List.length ta - 1 do
+        for j in 0 .. List.length tb - 1 -> (i, j) ]
+    |> List.sortBy (fun (i, j) -> (i + j, i))
+    |> List.tryPick (fun (i, j) ->
+        match List.item i ta, List.item j tb with
+        | Some x, Some y when readsAsColour x && readsAsColour y && distinguishable x y ->
+            Some(x, y)
+        | _ -> None)

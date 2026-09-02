@@ -1175,7 +1175,45 @@ let private teamTints =
       Verify.check "a malformed colour yields NO tint, never a default one"
           (fun (hex, wantSome) -> (Palette.teamTint hex).IsSome = wantSome)
           ("not-a-hex", false)
-          ("not-a-hex", true) ]
+          ("not-a-hex", true)
+
+      // THE PER-CARD CHOICE. Real pairs from the frozen capture, because a
+      // synthetic one would let the rule be right about nothing in particular.
+      //
+      // LAFC and D.C. United are both #000000 and derive the identical tint, so
+      // the primaries are indistinguishable and the card rendered plain. D.C.
+      // United's own second colour is #d61018.
+      Verify.check "an alternate recovers a pair the primaries cannot"
+          (fun (a, b) -> (Palette.choosePair a b).IsSome)
+          ([ "#000000"; "#c7a36f" ], [ "#000000"; "#d61018" ])
+          ([ "#000000" ], [ "#000000" ])
+
+      // THE RULE, not the enumeration order. The first-named side keeps its
+      // primary whenever changing only the second suffices — and the
+      // counterexample is a card where the first side is the one that has to
+      // move, Spurs' white against Newcastle's black.
+      Verify.check "THE FEWEST-CHANGES COMBINATION WINS, first-named side first"
+          (fun (a, b) ->
+              match Palette.choosePair a b with
+              | Some(x, _) -> Palette.cssValue x = Palette.cssValue (tint (List.head a))
+              | None -> false)
+          ([ "#000000"; "#c7a36f" ], [ "#000000"; "#d61018" ])
+          ([ "#ffffff"; "#0b1426" ], [ "#000000" ])
+
+      // Angers and Auxerre carry the same two colours in opposite order. No
+      // combination separates them and the card must stay plain — a page that
+      // showed a difference here would be inventing one.
+      Verify.check "NO COMBINATION MEANS BOTH PLAIN, never a borrowed colour"
+          (fun (a, b) -> (Palette.choosePair a b).IsNone)
+          ([ "#1a1a1a"; "#ffffff" ], [ "#ffffff"; "#1a1a1a" ])
+          ([ "#1a1a1a"; "#ffffff" ], [ "#da0308"; "#d4d4d4" ])
+
+      // A spelling the table has never seen resolves to no colours at all, and
+      // that is not the same failure as a club whose colours do not work.
+      Verify.check "a club with no colours yields None rather than a half-tinted card"
+          (fun (a, b) -> (Palette.choosePair a b).IsNone)
+          ([], [ "#000000" ])
+          ([ "#da0308" ], [ "#000000" ]) ]
 
 /// Everything, in one list. Order is presentation only.
 let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints

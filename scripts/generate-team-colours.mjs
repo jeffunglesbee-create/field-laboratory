@@ -80,7 +80,7 @@ export const resolveCollisions = (candidates) => {
 export const buildEntries = (rows) => {
   const by = new Map()
   const conflicts = []
-  for (const { league, name, hex } of rows) {
+  for (const { league, name, hex, alt } of rows) {
     if (!league || !name || !hex) continue
     const k = `${league}\u0000${name}`
     const prev = by.get(k)
@@ -89,7 +89,12 @@ export const buildEntries = (rows) => {
       by.delete(k)
       continue
     }
-    if (!prev) by.set(k, { league, name, hex })
+    // THE ALTERNATE IS DROPPED WHEN IT EQUALS THE PRIMARY. A club whose two
+    // fields hold the same value has one colour, not a choice, and carrying it
+    // twice would make "the alternate did not help" indistinguishable from
+    // "there was no alternate" at render time exactly as it did in the probe.
+    const a = (alt && alt.toLowerCase() !== hex.toLowerCase()) ? alt : ''
+    if (!prev) by.set(k, { league, name, hex, alt: a })
   }
   const entries = [...by.values()].sort(
     (x, y) => x.league.localeCompare(y.league) || x.name.localeCompare(y.name))
@@ -98,7 +103,8 @@ export const buildEntries = (rows) => {
 
 export const renderModule = (entries, meta) => {
   const rows = entries
-    .map(e => '    ' + fsStr(e.league) + ', ' + fsStr(e.name) + ', ' + fsStr(e.hex))
+    .map(e => '    ' + fsStr(e.league) + ', ' + fsStr(e.name) + ', ' + fsStr(e.hex) +
+              ', ' + fsStr(e.alt ?? ''))
     .join('\n')
   return `module TeamColours
 
@@ -117,8 +123,17 @@ export const renderModule = (entries, meta) => {
 // a legible tint from it: thirteen of fifteen real club colours fail WCAG AA on
 // this page's ground, and LAFC's black measures 1.04:1.
 
-/// (league label as the relay serves it, team name as the relay serves it, brand hex)
-let private entries : (string * string * string) list =
+/// (league label, team name as the relay serves it, brand hex, alternate or "")
+///
+/// THE ALTERNATE IS THE CLUB'S OWN SECOND COLOUR, not a computed one. ESPN
+/// serves exactly two colour fields and no more — measured 2026-09-02 across
+/// every field name on a team object — so this is the whole of what a club can
+/// offer, and a card neither colour can resolve renders plain rather than
+/// borrowing one.
+///
+/// An empty alternate means the club has ONE colour: either no alternate was served, or the
+/// two fields held the same value. Those are the same fact at render time.
+let private entries : (string * string * string * string) list =
   [
 ${rows}
   ]
@@ -127,7 +142,19 @@ ${rows}
 /// this table has never seen — never the nearest match, and never a default.
 let tryBrand (league: string) (team: string) : string option =
     entries
-    |> List.tryPick (fun (l, n, hex) -> if l = league && n = team then Some hex else None)
+    |> List.tryPick (fun (l, n, hex, _) -> if l = league && n = team then Some hex else None)
+
+/// Every colour the club offers, PRIMARY FIRST, or an empty list.
+///
+/// The list is the input to Palette.choosePair, which reads it per card. An
+/// empty list and a one-colour list are different: the first is a spelling this
+/// table has never seen, the second is a club with no second colour.
+let tryColours (league: string) (team: string) : string list =
+    entries
+    |> List.tryPick (fun (l, n, hex, alt) ->
+        if l = league && n = team then Some (if alt = "" then [ hex ] else [ hex; alt ])
+        else None)
+    |> Option.defaultValue []
 
 /// The legible tint, or None. The two Nones differ and both are correct: no
 /// entry for this spelling, or an entry whose hex will not parse.
@@ -154,6 +181,32 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     one.entries.length === 1 && one.conflicts.length === 0)
 
   const clash = buildEntries([r('EPL', 'United', '#FF0000'), r('EPL', 'United', '#0000FF')])
+  // THE ALTERNATE, which is what makes a per-card choice possible at all.
+  const row = (name, hex, alt) => ({ league: 'EPL', name, hex, alt })
+  const colsOf = (name, rows) => {
+    const e = buildEntries(rows).entries.find(x => x.name === name)
+    return e ? (e.alt === '' ? [e.hex] : [e.hex, e.alt]) : []
+  }
+  check('a distinct alternate is carried',
+    JSON.stringify(colsOf('Spurs', [row('Spurs', '#ffffff', '#0b1426')])) ===
+    JSON.stringify(['#ffffff', '#0b1426']))
+  check('AN ALTERNATE EQUAL TO THE PRIMARY IS NOT A CHOICE',
+    JSON.stringify(colsOf('X', [row('X', '#ffffff', '#FFFFFF')])) === JSON.stringify(['#ffffff']),
+    'carrying it twice makes "the alternate did not help" and "there was no alternate" one state')
+  check('a missing alternate leaves one colour',
+    JSON.stringify(colsOf('Y', [row('Y', '#123456', null)])) === JSON.stringify(['#123456']))
+  check('THE EMITTED TABLE IS A FOUR-TUPLE and carries the alternate',
+    (() => {
+      const m = renderModule([{ league: 'EPL', name: 'Spurs', hex: '#ffffff', alt: '#0b1426' }],
+        { count: 1, leagues: 1, at: 'x', slate: 'y' })
+      return m.includes('(string * string * string * string) list') &&
+             m.includes('"EPL", "Spurs", "#ffffff", "#0b1426"') &&
+             m.includes('let tryColours')
+    })())
+  check('a club with one colour emits an empty alternate, not a repeat',
+    renderModule([{ league: 'EPL', name: 'Y', hex: '#123456', alt: '' }],
+      { count: 1, leagues: 1, at: 'x', slate: 'y' }).includes('"EPL", "Y", "#123456", ""'))
+
   check('A NAME WITH TWO COLOURS IS DROPPED, NOT PICKED',
     clash.entries.length === 0 && clash.conflicts.length === 1,
     'two clubs sharing a name is exactly where a silent pick would be wrong')
@@ -284,7 +337,7 @@ if (isMain(import.meta.url)) {
   // Cost of the global rule, measured: 1702 entries -> 1453, roughly a hundred
   // clubs rendering plain forever to fix a collision most of them never had.
   const rows = candidates.flatMap(c =>
-    c.names.map(name => ({ league: c.league, name, hex: c.hex })))
+    c.names.map(name => ({ league: c.league, name, hex: c.hex, alt: c.alt })))
   const dropped = []
   const { entries, conflicts } = buildEntries(rows)
   const leagues = new Set(entries.map(e => e.league)).size
