@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b9df02e` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
+| `cb6f859` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | feat: Palette.choosePair, and the table gains each club's second colour |
 | `5b8d9b9` | 2026-09-02 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | docs: the corrected alternate-colour reading — all three cards recover |
 | `71ce99d` | 2026-09-02 | [alternate-colours-2026-09-02T00-07-05-656Z.json](alternate-colours-2026-09-02T00-07-05-656Z.json) | probe: alternate colours against the frozen capture [skip ci] |
 | `71ce99d` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
