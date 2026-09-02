@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5b8d9b9` | 2026-09-02 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | docs: the corrected alternate-colour reading — all three cards recover |
+| `71ce99d` | 2026-09-02 | [alternate-colours-2026-09-02T00-07-05-656Z.json](alternate-colours-2026-09-02T00-07-05-656Z.json) | probe: alternate colours against the frozen capture [skip ci] |
+| `71ce99d` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
+| `6032923` | 2026-09-02 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | fix: an ambiguous name is not a match, and D.C. United proves it |
 | `c8d2b28` | 2026-09-02 | [alternate-colours-2026-09-02T00-00-24-744Z.json](alternate-colours-2026-09-02T00-00-24-744Z.json) | probe: alternate colours against the frozen capture [skip ci] |
 | `c8d2b28` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
 | `7b4bc5d` | 2026-09-01 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | probe: does a club's alternate colour recover a card that renders plain? |
