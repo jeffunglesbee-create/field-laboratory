@@ -77,6 +77,55 @@ export const resolveCollisions = (candidates) => {
  * resolves to TWO different colours is dropped and reported, never guessed —
  * two clubs sharing a name is exactly where a silent pick would be wrong.
  */
+/**
+ * Spellings no matcher can bridge, each carrying the evidence for it.
+ *
+ * WHY THESE ARE WRITTEN DOWN RATHER THAN INFERRED. `LAFC` and
+ * `Los Angeles Football Club` share no token at all — `sameTeam` returns false
+ * and should, because a rule that bridged an acronym to its expansion would be
+ * inferring an identity rather than observing one. That is the class of mistake
+ * that put Atlanta United's colours on D.C. United earlier today.
+ *
+ * So an alias is a FACT SOMEONE ASSERTS, with its evidence beside it, appearing
+ * in the generated table as an ordinary readable row. `Desk.fs` objects to a
+ * normaliser because it is "a place for two spellings to SILENTLY become one".
+ * Nothing here is silent.
+ *
+ * The bar for adding one: the relay must be observed serving both spellings for
+ * the same club, and the entry must say where.
+ */
+export const ALIASES = [
+  {
+    league: 'MLS',
+    spelling: 'Los Angeles Football Club',
+    espn: 'LAFC',
+    why: 'the 2026-08-29 slate carries both spellings for the SAME fixture — '
+       + 'id 2026-08-29-mls-dc-lafc (Los Angeles Football Club at D.C. United) and '
+       + 'id MLS_2026-08-29_dcunited_lafc (LAFC at D.C. United). The two ids are '
+       + 'the dash and underscore schemes, so the evidence is itself the MLS '
+       + 'dual-writer duplicate.',
+  },
+]
+
+/**
+ * Attach each alias spelling to the club it names.
+ *
+ * EXACT MATCH ON THE TARGET, never a subset: `LAFC` must not reach `LAFC II`.
+ * An alias whose target is absent is RETURNED, not skipped — a silently dropped
+ * alias is one that rots the moment ESPN renames a club, and it would rot
+ * invisibly because the only symptom is a card quietly rendering plain.
+ */
+export const applyAliases = (candidates, aliases) => {
+  const missing = []
+  for (const a of aliases) {
+    const hit = candidates.filter(c => c.league === a.league &&
+      [c.canon, ...(c.names ?? [])].some(n => String(n ?? '').toLowerCase() === a.espn.toLowerCase()))
+    if (hit.length !== 1) { missing.push({ ...a, matched: hit.length }); continue }
+    if (!hit[0].names.includes(a.spelling)) hit[0].names.push(a.spelling)
+  }
+  return { missing }
+}
+
 export const buildEntries = (rows) => {
   const by = new Map()
   const conflicts = []
@@ -181,6 +230,52 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     one.entries.length === 1 && one.conflicts.length === 0)
 
   const clash = buildEntries([r('EPL', 'United', '#FF0000'), r('EPL', 'United', '#0000FF')])
+  // ALIASES — the one remedy that is a written fact rather than a measurement.
+  const club = (league, canon, names) => ({ league, canon, hex: '#111111', alt: '', names })
+  const pool = () => [
+    club('MLS', 'LAFC', ['LAFC']),
+    club('MLS', 'LAFC II', ['LAFC II']),
+    club('EPL', 'LAFC', ['LAFC']),
+  ]
+  check('an alias attaches its spelling to the named club', (() => {
+    const cs = pool()
+    applyAliases(cs, [{ league: 'MLS', spelling: 'Los Angeles Football Club', espn: 'LAFC' }])
+    return cs[0].names.includes('Los Angeles Football Club')
+  })())
+  check('THE TARGET IS MATCHED EXACTLY — `LAFC` must not reach `LAFC II`', (() => {
+    const cs = pool()
+    applyAliases(cs, [{ league: 'MLS', spelling: 'X', espn: 'LAFC' }])
+    return !cs[1].names.includes('X')
+  })(), 'a subset match here would put one club\u2019s colour on another')
+  check('an alias does not cross leagues', (() => {
+    const cs = pool()
+    applyAliases(cs, [{ league: 'MLS', spelling: 'X', espn: 'LAFC' }])
+    return !cs[2].names.includes('X')
+  })())
+  check('AN ALIAS WHOSE TARGET IS ABSENT IS REPORTED, not silently skipped',
+    applyAliases(pool(), [{ league: 'MLS', spelling: 'X', espn: 'Nobody' }]).missing.length === 1,
+    'a dropped alias rots invisibly — the only symptom is a card quietly going plain')
+  check('...and so is one whose target is ambiguous',
+    applyAliases([club('MLS', 'A', ['LAFC']), club('MLS', 'B', ['LAFC'])],
+      [{ league: 'MLS', spelling: 'X', espn: 'LAFC' }]).missing.length === 1)
+  check('a spelling already present is not duplicated', (() => {
+    const cs = [club('MLS', 'LAFC', ['LAFC', 'Los Angeles Football Club'])]
+    applyAliases(cs, [{ league: 'MLS', spelling: 'Los Angeles Football Club', espn: 'LAFC' }])
+    return cs[0].names.filter(n => n === 'Los Angeles Football Club').length === 1
+  })())
+  // THE PREDICATE, not just the list. Asserting only `ALIASES.every(...)` is
+  // vacuous while every shipped alias happens to satisfy it — a mutation
+  // replacing the whole condition with `true` passed 28/28. The counterexample
+  // is what makes it a rule.
+  const hasEvidence = a =>
+    !!a.league && !!a.spelling && !!a.espn && typeof a.why === 'string' && a.why.length > 40
+  check('AN ALIAS WITHOUT EVIDENCE IS REJECTED',
+    hasEvidence(ALIASES[0]) &&
+    !hasEvidence({ league: 'MLS', spelling: 'X', espn: 'LAFC' }) &&
+    !hasEvidence({ league: 'MLS', spelling: 'X', espn: 'LAFC', why: 'because' }),
+    'an alias without evidence is a guess with a commit hash')
+  check('every shipped alias carries its evidence', ALIASES.every(hasEvidence))
+
   // THE ALTERNATE, which is what makes a per-card choice possible at all.
   const row = (name, hex, alt) => ({ league: 'EPL', name, hex, alt })
   const colsOf = (name, rows) => {
@@ -325,6 +420,19 @@ if (isMain(import.meta.url)) {
       }
     }
   } catch { /* the slate is an ENRICHMENT, not a prerequisite */ }
+
+  // Aliases, after the slate sweep so a spelling the relay actually served wins
+  // on its own and an alias is only ever the fallback-free last resort.
+  const { missing } = applyAliases(candidates, ALIASES)
+  if (missing.length) {
+    console.error(`\nREFUSING TO WRITE: ${missing.length} alias(es) name a club this run cannot resolve:`)
+    for (const m of missing) console.error(`  ${m.league} "${m.espn}" matched ${m.matched} candidate(s)`)
+    console.error('An alias is a written fact. If ESPN renamed the club, the fact changed and')
+    console.error('the alias must be rewritten — not quietly dropped, which is how a card goes')
+    console.error('plain for a reason nobody can find.')
+    process.exit(1)
+  }
+  console.log(`\naliases applied: ${ALIASES.length}`)
 
   // GLOBAL COLLISION RESOLUTION IS DELIBERATELY NOT APPLIED.
   //

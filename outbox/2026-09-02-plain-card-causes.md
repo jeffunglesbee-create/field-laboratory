@@ -251,3 +251,54 @@ the test cases: `N Dakota St` asserted to fit `North Dakota Sioux` (`st` is not 
 prefix of `sioux`), then `West Virginia` asserted NOT to fit `Virginia` (it does —
 `virginia` is a prefix of its own second word). Both written from reading, both
 answered in a second by running.
+
+---
+
+## The alias, written down
+
+`Los Angeles Football Club` is the one remaining gap a decision can close, and
+the capture supplies its own evidence:
+
+```
+MLS | Los Angeles Football Club | D.C. United | id 2026-08-29-mls-dc-lafc
+MLS | LAFC                      | D.C. United | id MLS_2026-08-29_dcunited_lafc
+```
+
+The same fixture, the same day, D.C. United at home both times. The relay itself
+asserts the two spellings are one club — and the two ids are the dash and
+underscore schemes, so **the evidence is the MLS dual-writer duplicate this
+session has been tracking in the relay**.
+
+`ALIASES` is a list of facts with their evidence attached, applied after the
+slate sweep so a spelling the relay actually served always wins on its own and an
+alias is only ever the last resort. `Desk.fs` objects to a normaliser because it
+is "a place for two spellings to **silently** become one". Nothing here is
+silent: an alias appears in the generated table as an ordinary readable row, and
+the entry says where it came from.
+
+Two properties matter more than the mechanism:
+
+- **The target is matched exactly.** `LAFC` must not reach `LAFC II`.
+- **An alias whose target is absent or ambiguous refuses the whole run.** A
+  silently dropped alias rots the moment ESPN renames a club, and it rots
+  invisibly — the only symptom is a card quietly rendering plain, which is
+  indistinguishable from every other reason a card renders plain.
+
+### Teeth
+
+29 self-tests. Five mutations, each dropping the count:
+
+| mutation | result |
+|---|---|
+| exact target match becomes a substring match | 28/29 |
+| a missing target is skipped rather than reported | 27/29 |
+| an ambiguous target is accepted | 28/29 |
+| the league is ignored | 28/29 |
+| evidence is not required | 28/29 |
+
+**The last one survived the first pass at 28/28.** The check asserted only
+`ALIASES.every(hasEvidence)`, and the single shipped alias satisfies the rule
+either way — so replacing the whole condition with `true` changed nothing. A
+predicate asserted only against data that already passes is not asserted at all.
+It now carries its counterexamples: an alias with no `why`, and one whose `why`
+is the word "because".
