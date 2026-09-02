@@ -1,8 +1,8 @@
 # Generated: team colours, 2026-09-02
 
-- **1701 entries** across 31 league(s)
+- **1705 entries** across 31 league(s)
 - ESPN team endpoints read 2026-09-02
-- slate swept for the relay's own spellings: 2026-08-31 (18 row(s), 0 resolved)
+- slate swept for the relay's own spellings: 2026-08-29 (81 row(s), 4 resolved)
 
 The hex is the CLUB's colour and is not what renders — `Palette.teamTint`
 derives a legible tint, because thirteen of fifteen real club colours fail
