@@ -95,7 +95,88 @@ with `isMain(import.meta.url)` at line 155 and this one now does too.
 Both are the same shape as this repo's probe-first rule: the simulation said
 pass, the execution said otherwise. Neither was visible in the code.
 
-## Result
+## Result — WIDER THAN FILED, and the CC-CMD's number was exactly right
 
-Pending the first dispatch. This section is filled in from the run, not from the
-expectation.
+Run `33775532885`, 2777 rows across both tables.
+
+```
+WIDER THAN FILED  the CC-CMD says "every one MLS". Archive-wide there are
+                  53 mixed-scheme cluster(s) across 2 sport(s):
+                  WNBA, MLS. The non-MLS ones are WNBA.
+                  A fix scoped to MLS would leave those in place.
+```
+
+**51 MLS, 2 WNBA.** The CC-CMD's count is correct to the row; its scope claim is
+off by two, and the two are the interesting ones.
+
+| | MLS | WNBA |
+|---|---|---|
+| clusters | 51 | 2 |
+| schemes | `provider-composite + unrecognised` | `provider-composite + sport-prefixed-external` |
+| verdict | `indistinguishable` ×51 | **`duplicate` ×2** |
+
+### The WNBA pairs are a different defect wearing the same shape
+
+```
+WNBA 2026-06-20 duplicate  provider-composite + sport-prefixed-external
+    wnba_2026-06-20_atlantadre_indianafev
+    WNBA_2026-06-20_dream_fever
+
+WNBA 2026-06-20 duplicate  provider-composite + sport-prefixed-external
+    wnba_2026-06-20_phoenixmer_seattlesto
+    WNBA_2026-06-20_mercury_storm
+```
+
+Three things separate these from the 51:
+
+1. **A third id scheme**, not the dash one. Lowercase sport prefix, underscore
+   separators, ten-character team truncations (`atlantadre`, `indianafev`) —
+   `sport-prefixed-external`, and the CC-CMD's writer hunt is not looking for it.
+2. **They classify as `duplicate`, not `indistinguishable`.** `classifyPair`
+   only returns `duplicate` on evidence: two rows sharing an event id, or two
+   rows sharing a start time. The 51 MLS pairs carry neither and stay a question.
+   These two are answered.
+3. **They are therefore fixable now.** A pair with a shared discriminator can be
+   merged without deciding whether it might be a doubleheader.
+
+### What the sweep says about the 1007 `unrecognised` rows
+
+`unrecognised` spans **22 sports** and 1007 rows:
+
+```
+MLS 520 · FIFA World Cup 103 · MLB 61 · EFL Cup 57 · UEFA ECL Qualifying 48
+La Liga 41 · EPL 26 · UEFA EL Qualifying 24 · Ligue 1 21 · Serie A 20 · WNBA 19
+PGA Tour 14 · UCL Qualifying 11 · NHL 9 · Bundesliga 9 · EFL Trophy 9 · NBA 8
+IPL 2 · UFL 2 · UCL 1 · UEL 1 · UECL 1
+```
+
+**Only MLS produces mixed-scheme clusters.** So for the other ~487 `unrecognised`
+rows, the non-standard writer is the *only* writer for that fixture — those are
+not duplicates and merging is not the question there. That is a materially
+different situation from the MLS 520, and nothing in the CC-CMD distinguishes
+them.
+
+### Two counts that look contradictory and are not
+
+The relay census reported **591 dash-scheme**; this reports **1007
+`unrecognised`**. Different predicates over the same rows:
+
+- relay `idScheme`: `dash` requires a leading ISO date AND no underscore anywhere.
+- laboratory `schemeOf`: `unrecognised` is everything matching none of seven
+  known shapes.
+
+`unrecognised` ⊇ `dash`. The 416 difference is rows in neither the dash shape nor
+any recognised one — worth its own look, and not this probe's question.
+
+Row count also moved: 2750 at 03:40 UTC, **2777 at 15:55**. Twenty-seven rows in
+twelve hours. The writer is live, which is what
+`CC-CMD-2026-09-01-mls-dual-writer-duplicate` Task 1 already concluded.
+
+### What this changes
+
+- **`CC-CMD-2026-09-01-mls-dual-writer-duplicate`'s title and scope.** Not
+  MLS-only, and not one dual writer — two scheme pairs in two sports.
+- **Its Task 3** (a shared upsert key) has two cases, not one, and the WNBA case
+  needs no writer identification: the rows carry a discriminator.
+- **`relay-duplicate-fixture-watch.mjs` is blind to both**, for the reason the
+  CC-CMD already gives — it groups on `espn_event_id` and skips rows lacking one.
