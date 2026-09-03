@@ -1,12 +1,126 @@
 {
-  "probed_at": "2026-09-03T15:54:24.714Z",
-  "rows_seen": 0,
-  "by_scheme": {},
-  "unrecognised_by_sport": {},
-  "clusters": 0,
-  "mixed_scheme_clusters": 0,
-  "mixed_by_sport": {},
-  "kind_of_mixed": {},
-  "examples": [],
-  "error": "RELAY_SHARED_SECRET is not set. This probe reads the relay's games tables through POST /d1/execute, which is credentialled. Pass it from the workflow. Until then the duplicate surface is unobserved, which is a failure and not a skip."
+  "probed_at": "2026-09-03T15:55:46.089Z",
+  "rows_seen": 2777,
+  "by_scheme": {
+    "unrecognised": 1007,
+    "sport-prefixed-external": 158,
+    "provider-composite": 1612
+  },
+  "unrecognised_by_sport": {
+    "MLB": 61,
+    "IPL": 2,
+    "MLS": 520,
+    "EPL": 26,
+    "La Liga": 41,
+    "Ligue 1": 21,
+    "WNBA": 19,
+    "FIFA World Cup": 103,
+    "PGA Tour": 14,
+    "UEFA Champions League": 1,
+    "UEFA Europa League": 1,
+    "UEFA Europa Conference League": 1,
+    "EFL Cup": 57,
+    "EFL Trophy": 9,
+    "UEFA Europa League Qualifying": 24,
+    "UEFA Europa Conference League Qualifying": 48,
+    "UEFA Champions League Qualifying": 11,
+    "Serie A": 20,
+    "Bundesliga": 9,
+    "NBA": 8,
+    "NHL": 9,
+    "UFL": 2
+  },
+  "clusters": 182,
+  "mixed_scheme_clusters": 53,
+  "mixed_by_sport": {
+    "WNBA": 2,
+    "MLS": 51
+  },
+  "kind_of_mixed": {
+    "duplicate": 2,
+    "indistinguishable": 51
+  },
+  "examples": [
+    {
+      "sport": "WNBA",
+      "date": "2026-06-20",
+      "kind": "duplicate",
+      "schemes": "provider-composite + sport-prefixed-external",
+      "ids": [
+        "wnba_2026-06-20_atlantadre_indianafev",
+        "WNBA_2026-06-20_dream_fever"
+      ]
+    },
+    {
+      "sport": "WNBA",
+      "date": "2026-06-20",
+      "kind": "duplicate",
+      "schemes": "provider-composite + sport-prefixed-external",
+      "ids": [
+        "wnba_2026-06-20_phoenixmer_seattlesto",
+        "WNBA_2026-06-20_mercury_storm"
+      ]
+    },
+    {
+      "sport": "MLS",
+      "date": "2026-08-29",
+      "kind": "indistinguishable",
+      "schemes": "provider-composite + unrecognised",
+      "ids": [
+        "2026-08-29-mls-sd-la",
+        "MLS_2026-08-29_sandiego_lagalaxy"
+      ]
+    },
+    {
+      "sport": "MLS",
+      "date": "2026-08-29",
+      "kind": "indistinguishable",
+      "schemes": "provider-composite + unrecognised",
+      "ids": [
+        "2026-08-29-mls-por-atx",
+        "MLS_2026-08-29_portland_austin"
+      ]
+    },
+    {
+      "sport": "MLS",
+      "date": "2026-08-29",
+      "kind": "indistinguishable",
+      "schemes": "provider-composite + unrecognised",
+      "ids": [
+        "2026-08-29-mls-nsh-cin",
+        "MLS_2026-08-29_nashville_cincinnati"
+      ]
+    },
+    {
+      "sport": "MLS",
+      "date": "2026-08-29",
+      "kind": "indistinguishable",
+      "schemes": "provider-composite + unrecognised",
+      "ids": [
+        "2026-08-29-mls-min-orl",
+        "MLS_2026-08-29_minnesota_orlando"
+      ]
+    },
+    {
+      "sport": "MLS",
+      "date": "2026-08-29",
+      "kind": "indistinguishable",
+      "schemes": "provider-composite + unrecognised",
+      "ids": [
+        "2026-08-29-mls-skc-van",
+        "MLS_2026-08-29_kansascity_vancouver"
+      ]
+    },
+    {
+      "sport": "MLS",
+      "date": "2026-08-29",
+      "kind": "indistinguishable",
+      "schemes": "provider-composite + unrecognised",
+      "ids": [
+        "2026-08-29-mls-hou-sj",
+        "MLS_2026-08-29_houston_sanjose"
+      ]
+    }
+  ],
+  "error": null
 }
