@@ -247,16 +247,19 @@ if (isMain(import.meta.url)) {
     // is the same guess-instead-of-probe this repo keeps deleting. REFERENCERS
     // is built from PRAGMA table_info over the /d1/execute allowlist, so a table
     // with a game-id column that nobody remembered still blocks.
-    const refs = {}
+    const refs = {}, survivorRefs = {}
     for (const [table, col] of REFERENCERS) {
-      const n = await d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [pick.loser.id])
-      const k = Number(n[0]?.n ?? 0)
-      if (k) refs[`${table}.${col}`] = k
+      const [l, sv] = await Promise.all([
+        d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [pick.loser.id]),
+        d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [pick.survivor.id]),
+      ])
+      if (Number(l[0]?.n ?? 0)) refs[`${table}.${col}`] = Number(l[0].n)
+      if (Number(sv[0]?.n ?? 0)) survivorRefs[`${table}.${col}`] = Number(sv[0].n)
     }
     plan.push({
       date: c.date, key,
       survivor: pick.survivor.id, loser: pick.loser.id,
-      payload, refs,
+      payload, refs, survivorRefs,
     })
   }
 
@@ -266,6 +269,8 @@ if (isMain(import.meta.url)) {
     const r = Object.entries(p.refs).map(([k, n]) => `${k}=${n}`).join('  ')
     console.log(`     delete ${p.loser}${r ? `   refs: ${r}` : ''}`)
     console.log(`     absorb ${Object.keys(p.payload).length ? Object.keys(p.payload).join(', ') : '(nothing)'}`)
+    if (Object.keys(p.refs).length)
+      console.log(`     repoint ${Object.entries(p.refs).map(([k, n]) => `${n} ${k}`).join(', ')} -> ${p.survivor}`)
   }
 
   const fieldCounts = {}
@@ -312,11 +317,31 @@ if (isMain(import.meta.url)) {
     }
   }
 
-  const orphaning = plan.filter(p => Object.keys(p.refs).length)
-  say(orphaning.length === 0, 'nothing else references a row that would be deleted',
-    `${orphaning.length} of ${plan.length} pair(s) would orphan a reference. `
-    + `Totals: ${Object.entries(totals).map(([k, n]) => `${k}=${n}`).join(', ')}. `
-    + 'Repoint them at the survivor or decide they are disposable — do not delete past this.')
+  // THE REFERENCES ARE REPOINTED, NOT ORPHANED, and this is the decision the
+  // first dry run forced. The sampled rows are not incidental bookkeeping:
+  //
+  //   change_log: {"game_id":"2026-08-29-mls-sd-la","source":"odds_api",
+  //                "field":"opening_odds","new_value":"{...draftkings...}"}
+  //
+  // The ODDS PIPELINE WROTE TO THE DASH ROW. 135 change_log rows and 22
+  // odds_history rows hang off the rows that would be deleted, and deleting them
+  // would detach a real odds series from the fixture it belongs to. The fixture
+  // survives under the other id — the slate established that — so the correct
+  // action is to move the references onto the survivor.
+  //
+  // Every referencing table must be writable through /d1/execute or the repoint
+  // cannot happen and the delete must not either.
+  const unwritable = [...new Set(Object.keys(totals).map(k => k.split('.')[0]))].filter(t => !ALLOWED.includes(t))
+  say(unwritable.length === 0, 'every referencing table is writable through /d1/execute',
+    `cannot repoint references in: ${unwritable.join(', ')} — and a delete that cannot repoint must not run`)
+
+  const collide = plan.filter(p => Object.keys(p.refs).some(k => p.survivorRefs[k]))
+  if (collide.length) {
+    console.log(`\n  ${collide.length} pair(s) where BOTH rows carry references in the same table.`)
+    console.log('  Repointing merges two series into one; read these before approving:')
+    for (const p of collide.slice(0, 10))
+      console.log(`    ${p.date}  ${p.loser} ${JSON.stringify(p.refs)}  +  ${p.survivor} ${JSON.stringify(p.survivorRefs)}`)
+  }
   say(new Set(plan.map(p => p.key)).size === plan.length, 'every merge key is distinct',
     'two pairs resolving to one event id would fold two real fixtures together')
   say(new Set(plan.map(p => p.survivor)).size === plan.length, 'every survivor is distinct')
@@ -332,6 +357,16 @@ if (isMain(import.meta.url)) {
   } else {
     console.log(`\nEXECUTING ${plan.length} merge(s).\n`)
     for (const p of plan) {
+      // ORDER MATTERS AND IS NOT ARBITRARY. Repoint first: if it fails, the
+      // delete never runs and the row is still there to repoint next time. Delete
+      // first would leave 157 references pointing at nothing with no way back.
+      for (const [k, n] of Object.entries(p.refs)) {
+        const [table, col] = k.split('.')
+        await d1(`UPDATE ${table} SET ${col} = ? WHERE ${col} = ?`, [p.survivor, p.loser])
+        const left = await d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [p.loser])
+        if (Number(left[0]?.n ?? 1) !== 0)
+          throw new Error(`repoint failed: ${n} row(s) in ${k} still point at ${p.loser}; NOT deleting it`)
+      }
       const sets = Object.keys(p.payload)
       if (sets.length) {
         await d1(`UPDATE regular_season_games SET ${sets.map(f => `${f} = ?`).join(', ')} WHERE id = ?`,
@@ -343,13 +378,22 @@ if (isMain(import.meta.url)) {
         d1(`SELECT COUNT(*) n FROM regular_season_games WHERE id = ?`, [p.loser]),
         d1(`SELECT id, espn_event_id, venue FROM regular_season_games WHERE id = ?`, [p.survivor]),
       ])
-      const ok = Number(gone[0]?.n ?? 1) === 0 && kept.length === 1
-      out.results.push({ ...p, loser_gone: Number(gone[0]?.n ?? 1) === 0, survivor: kept[0] ?? null })
+      // AND THAT NOTHING STILL POINTS AT THE ROW THAT IS NOW GONE.
+      let dangling = 0
+      for (const k of Object.keys(p.refs)) {
+        const [table, col] = k.split('.')
+        const left = await d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [p.loser])
+        dangling += Number(left[0]?.n ?? 0)
+      }
+      const ok = Number(gone[0]?.n ?? 1) === 0 && kept.length === 1 && dangling === 0
+      out.results.push({ ...p, loser_gone: Number(gone[0]?.n ?? 1) === 0, dangling, survivor: kept[0] ?? null })
       console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${p.loser} -> ${p.survivor}  eid=${kept[0]?.espn_event_id ?? '?'}`)
       if (!ok) fatal++
     }
     say(out.results.every(r => r.loser_gone), 'every loser row is gone')
     say(out.results.every(r => r.survivor), 'every survivor row is still present')
+    say(out.results.every(r => r.dangling === 0), 'no reference is left pointing at a deleted row',
+      `${out.results.reduce((a, r) => a + r.dangling, 0)} dangling reference(s)`)
   }
 
   writeFileSync('outbox/mls-merge-latest.json', JSON.stringify(out, null, 2))
