@@ -1,5 +1,5 @@
 {
-  "probed_at": "2026-09-03T17:07:26.681Z",
+  "probed_at": "2026-09-03T17:10:11.654Z",
   "executed": false,
   "planned": 51,
   "refused": [],
@@ -10,8 +10,9 @@
       "survivor": "MLS_2026-08-29_sandiego_lagalaxy",
       "loser": "2026-08-29-mls-sd-la",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -19,8 +20,9 @@
       "survivor": "MLS_2026-08-29_portland_austin",
       "loser": "2026-08-29-mls-por-atx",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -28,8 +30,9 @@
       "survivor": "MLS_2026-08-29_nashville_cincinnati",
       "loser": "2026-08-29-mls-nsh-cin",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -37,8 +40,9 @@
       "survivor": "MLS_2026-08-29_minnesota_orlando",
       "loser": "2026-08-29-mls-min-orl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -46,8 +50,9 @@
       "survivor": "MLS_2026-08-29_kansascity_vancouver",
       "loser": "2026-08-29-mls-skc-van",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -55,8 +60,9 @@
       "survivor": "MLS_2026-08-29_houston_sanjose",
       "loser": "2026-08-29-mls-hou-sj",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -64,8 +70,9 @@
       "survivor": "MLS_2026-08-29_colorado_saltlake",
       "loser": "2026-08-29-mls-col-rsl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -73,8 +80,9 @@
       "survivor": "MLS_2026-08-29_seattle_chicago",
       "loser": "2026-08-29-mls-sea-chi",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -84,8 +92,9 @@
       "payload": {
         "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-29T10:01:46.114Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":185,\"away\":110,\"draw\":290}}"
       },
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -93,8 +102,9 @@
       "survivor": "MLS_2026-08-29_miami_cfmontral",
       "loser": "2026-08-29-mls-mia-mtl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-29",
@@ -102,8 +112,9 @@
       "survivor": "MLS_2026-08-29_atlanta_charlotte",
       "loser": "2026-08-29-mls-atl-clt",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-22",
@@ -111,8 +122,10 @@
       "survivor": "MLS_2026-08-22_vancouver_dallas",
       "loser": "2026-08-22-mls-van-dal",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -120,8 +133,9 @@
       "survivor": "MLS_2026-08-22_stlouis_houston",
       "loser": "2026-08-22-mls-stl-hou",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-22",
@@ -129,8 +143,10 @@
       "survivor": "MLS_2026-08-22_sanjose_minnesota",
       "loser": "2026-08-22-mls-sj-min",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -138,8 +154,10 @@
       "survivor": "MLS_2026-08-22_sandiego_colorado",
       "loser": "2026-08-22-mls-sd-col",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -147,8 +165,7 @@
       "survivor": "MLS_2026-08-22_nashville_columbus",
       "loser": "2026-08-22-mls-nsh-clb",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 0
+      "refs": {}
     },
     {
       "date": "2026-08-22",
@@ -156,8 +173,10 @@
       "survivor": "MLS_2026-08-22_austin_philadelphia",
       "loser": "2026-08-22-mls-atx-phi",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -165,8 +184,9 @@
       "survivor": "MLS_2026-08-22_orlando_saltlake",
       "loser": "2026-08-22-mls-orl-rsl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-22",
@@ -176,8 +196,9 @@
       "payload": {
         "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-22T10:01:21.633Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":155,\"away\":135}}"
       },
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-22",
@@ -185,8 +206,10 @@
       "survivor": "MLS_2026-08-22_cfmontral_lagalaxy",
       "loser": "2026-08-22-mls-mtl-la",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -194,8 +217,10 @@
       "survivor": "MLS_2026-08-22_miami_toronto",
       "loser": "2026-08-22-mls-mia-tor",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -203,8 +228,10 @@
       "survivor": "MLS_2026-08-22_cincinnati_seattle",
       "loser": "2026-08-22-mls-cin-sea",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-22",
@@ -212,8 +239,10 @@
       "survivor": "MLS_2026-08-22_charlotte_dcunited",
       "loser": "2026-08-22-mls-clt-dc",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -221,8 +250,9 @@
       "survivor": "MLS_2026-08-19_vancouver_houston",
       "loser": "2026-08-19-mls-van-hou",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-19",
@@ -230,8 +260,10 @@
       "survivor": "MLS_2026-08-19_seattle_austin",
       "loser": "2026-08-19-mls-sea-atx",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -239,8 +271,10 @@
       "survivor": "MLS_2026-08-19_saltlake_dallas",
       "loser": "2026-08-19-mls-rsl-dal",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -248,8 +282,10 @@
       "survivor": "MLS_2026-08-19_portland_sandiego",
       "loser": "2026-08-19-mls-por-sd",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -257,8 +293,9 @@
       "survivor": "MLS_2026-08-19_minnesota_atlanta",
       "loser": "2026-08-19-mls-min-atl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-19",
@@ -266,8 +303,10 @@
       "survivor": "MLS_2026-08-19_lagalaxy_sanjose",
       "loser": "2026-08-19-mls-la-sj",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -275,8 +314,10 @@
       "survivor": "MLS_2026-08-19_kansascity_stlouis",
       "loser": "2026-08-19-mls-skc-stl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -284,8 +325,10 @@
       "survivor": "MLS_2026-08-19_toronto_charlotte",
       "loser": "2026-08-19-mls-tor-clt",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -293,8 +336,10 @@
       "survivor": "MLS_2026-08-19_philadelphia_miami",
       "loser": "2026-08-19-mls-phi-mia",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -302,8 +347,9 @@
       "survivor": "MLS_2026-08-19_orlando_chicago",
       "loser": "2026-08-19-mls-orl-chi",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-19",
@@ -313,8 +359,9 @@
       "payload": {
         "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-19T10:01:21.193Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":175,\"away\":125}}"
       },
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-19",
@@ -322,8 +369,10 @@
       "survivor": "MLS_2026-08-19_dcunited_newengland",
       "loser": "2026-08-19-mls-dc-ne",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-19",
@@ -331,8 +380,7 @@
       "survivor": "MLS_2026-08-19_columbus_cfmontral",
       "loser": "2026-08-19-mls-clb-mtl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 0
+      "refs": {}
     },
     {
       "date": "2026-08-15",
@@ -340,8 +388,10 @@
       "survivor": "MLS_2026-08-15_sanjose_stlouis",
       "loser": "2026-08-15-mls-sj-stl",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-15",
@@ -349,8 +399,10 @@
       "survivor": "MLS_2026-08-15_saltlake_minnesota",
       "loser": "2026-08-15-mls-rsl-min",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-15",
@@ -358,8 +410,10 @@
       "survivor": "MLS_2026-08-15_nashville_miami",
       "loser": "2026-08-15-mls-nsh-mia",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-15",
@@ -367,8 +421,9 @@
       "survivor": "MLS_2026-08-15_houston_lagalaxy",
       "loser": "2026-08-15-mls-hou-la",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-15",
@@ -376,8 +431,10 @@
       "survivor": "MLS_2026-08-15_colorado_kansascity",
       "loser": "2026-08-15-mls-col-skc",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-15",
@@ -385,8 +442,10 @@
       "survivor": "MLS_2026-08-15_toronto_newengland",
       "loser": "2026-08-15-mls-tor-ne",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-15",
@@ -394,8 +453,9 @@
       "survivor": "MLS_2026-08-15_orlando_cincinnati",
       "loser": "2026-08-15-mls-orl-cin",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-15",
@@ -403,8 +463,10 @@
       "survivor": "MLS_2026-08-15_cfmontral_dcunited",
       "loser": "2026-08-15-mls-mtl-dc",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 5
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      }
     },
     {
       "date": "2026-08-15",
@@ -412,8 +474,7 @@
       "survivor": "MLS_2026-08-15_charlotte_columbus",
       "loser": "2026-08-15-mls-clt-clb",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 0
+      "refs": {}
     },
     {
       "date": "2026-08-15",
@@ -423,8 +484,9 @@
       "payload": {
         "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-15T10:01:05.261Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":100,\"away\":210}}"
       },
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-30",
@@ -432,8 +494,9 @@
       "survivor": "MLS_2026-08-30_stlouis_dallas",
       "loser": "2026-08-30-mls-stl-dal",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-30",
@@ -441,8 +504,7 @@
       "survivor": "MLS_2026-08-30_columbus_newengland",
       "loser": "2026-08-30-mls-clb-ne",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 0
+      "refs": {}
     },
     {
       "date": "2026-08-23",
@@ -450,8 +512,9 @@
       "survivor": "MLS_2026-08-23_atlanta_kansascity",
       "loser": "2026-08-23-mls-atl-skc",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-16",
@@ -459,8 +522,9 @@
       "survivor": "MLS_2026-08-16_chicago_portland",
       "loser": "2026-08-16-mls-chi-por",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     },
     {
       "date": "2026-08-08",
@@ -468,8 +532,9 @@
       "survivor": "MLS_2026-08-08_newengland_houston",
       "loser": "2026-08-08-mls-ne-hou",
       "payload": {},
-      "briefs_on_loser": 0,
-      "changelog_on_loser": 1
+      "refs": {
+        "change_log.game_id": 1
+      }
     }
   ],
   "results": []
