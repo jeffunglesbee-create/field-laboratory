@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `b8b61bd`
+**green** on `b8b61bd` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`ok` on 2026-09-03 — 1 games, 0 malformed (69 runs logged)
+`ok` on 2026-09-03 — 23 games, 0 malformed (70 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
