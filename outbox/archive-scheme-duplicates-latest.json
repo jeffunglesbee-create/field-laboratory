@@ -1,0 +1,12 @@
+{
+  "probed_at": "2026-09-03T15:54:24.714Z",
+  "rows_seen": 0,
+  "by_scheme": {},
+  "unrecognised_by_sport": {},
+  "clusters": 0,
+  "mixed_scheme_clusters": 0,
+  "mixed_by_sport": {},
+  "kind_of_mixed": {},
+  "examples": [],
+  "error": "RELAY_SHARED_SECRET is not set. This probe reads the relay's games tables through POST /d1/execute, which is credentialled. Pass it from the workflow. Until then the duplicate surface is unobserved, which is a failure and not a skip."
+}

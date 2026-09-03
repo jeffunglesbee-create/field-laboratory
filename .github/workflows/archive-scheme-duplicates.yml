@@ -1,0 +1,53 @@
+# The dual-writer duplicate, over the WHOLE archive rather than a served window.
+#
+# `fixture-identity-probe.yml` and `dash-scheme-writer-probe.yml` both sweep
+# public `/context/date` over N days. That is the right instrument for their
+# questions and it is the wrong one for this: `CC-CMD-2026-09-01-mls-dual-writer-
+# duplicate` reports 51 pairs and "every one MLS" from a 1064-row, 30-day window,
+# and on 2026-09-03 the relay's provenance census read the tables themselves —
+# 2750 rows, 591 dash-scheme, with EPL among the examples.
+#
+# So this reads D1 directly through POST /d1/execute, which is credentialled, and
+# it exists to test whether "every one MLS" is a fact about the archive or about
+# the window. It is deliberately able to come back CONFIRMED.
+#
+# WHY CI: *.workers.dev is blocked by the dev sandbox's egress allowlist.
+# DISPATCH ONLY. It reads; it writes nothing to D1.
+name: archive-wide scheme duplicates
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Is "every one MLS" true of the archive, or only of the window?
+        env:
+          # The variable, never the value. The script has no fallback and fails
+          # loudly when this is empty: a duplicate sweep that cannot read the
+          # tables has not swept anything, and reporting that as a skip is the
+          # silence this repo keeps deleting.
+          RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
+        run: |
+          node scripts/probe-archive-scheme-duplicates.mjs --self-test
+          node scripts/probe-archive-scheme-duplicates.mjs
+
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/archive-scheme-duplicates-latest.json || true
+          git diff --staged --quiet || git commit -m "probe: archive-wide scheme duplicates [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
