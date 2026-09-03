@@ -41,6 +41,46 @@ time — and needed the slate to settle them. **These two already classify as
 still consulted, because the same evidence standard should apply to both and
 re-asking costs one fetch.
 
+## Dry run — run `33788096001`, exit 0
+
+```
+sport WNBA   planned 2   refused 0   executed False
+
+2026-06-20  key=401857006
+   keep   WNBA_2026-06-20_dream_fever
+   delete wnba_2026-06-20_atlantadre_indianafev
+   absorb streams, opening_odds
+   refs   {}          survivor: {briefs.game_id: 1}
+
+2026-06-20  key=401857007
+   keep   WNBA_2026-06-20_mercury_storm
+   delete wnba_2026-06-20_phoenixmer_seattlesto
+   absorb streams, opening_odds
+   refs   {}          survivor: {briefs.game_id: 1}
+```
+
+**Nothing references either loser.** No repoints, no drops — the whole reference
+apparatus the MLS merge needed does nothing here, which is what a correctly
+scoped gate looks like when the condition it guards is absent.
+
+Each survivor carries **one brief**, and keeps it: briefs attach to the survivor,
+which is the row that stays. Had the brief been on the loser the gate would have
+blocked, as it did for `change_log` on MLS.
+
+Each survivor absorbs `streams` and `opening_odds` from the loser — real data
+that would have been lost by a plain delete.
+
+Two distinct merge keys, `401857006` and `401857007`.
+
+### Blast radius
+
+| action | rows |
+|---|---|
+| absorb `streams`, `opening_odds` | 2 |
+| delete duplicate row | 2 |
+
+**Four writes.** Against 212 for MLS.
+
 ## Result
 
-Pending the dry run.
+Pending execution.
