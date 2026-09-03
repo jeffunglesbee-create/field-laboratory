@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `89e9b4e` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: WNBA executed — the archive holds ZERO mixed-scheme clusters |
+| `27bc4b9` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `6a70ad9` | 2026-09-03 | [wnba-merge-latest.json](wnba-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `65d07e5` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: WNBA dry run clean — 2 pairs, zero references, four writes |
+| `698e561` | 2026-09-03 | [wnba-merge-latest.json](wnba-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `58306f4` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: generalise by sport — the name had stopped being true |
+| `58306f4` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: generalise by sport — the name had stopped being true |
+| `6304cd6` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: EXECUTED — 51 MLS duplicates merged, verified by the instrument that found them |
+| `b2a1595` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `34230b6` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `a16d237` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: fifth dry run clean — 112 repoint, 45 drop, every gate green |
 | `32e9f4a` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `15b6998` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: classify each reference per row — repoint where unmatched, drop duplicates |
