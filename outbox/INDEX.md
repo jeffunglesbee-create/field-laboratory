@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f1e63d1` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `6598e1d` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: the dry run blocked on 47 orphaned change_log rows, and found a defect of mine |
+| `38a1462` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `5a179aa` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: build the MLS pair merge, dry run by default |
 | `3aa95e1` | 2026-09-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-03 [skip ci] |
 | `3aa95e1` | 2026-09-03 | [sport-vocabulary-2026-09-03T16-14-52-971Z.json](sport-vocabulary-2026-09-03T16-14-52-971Z.json) | drift-sentinel: ok on 2026-09-03 [skip ci] |
 | `187cd32` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: the five disagreeing venues are naming, measured not inferred |
