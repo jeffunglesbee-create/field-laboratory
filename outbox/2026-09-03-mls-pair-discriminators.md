@@ -43,6 +43,52 @@ The sweep is written **after** `--recon` reports: the real column list from
 `/context/date` serves. Writing the comparison against remembered column names
 is the defect this repo's probe-first rule exists for.
 
+## Recon result — the discriminator exists
+
+
+
+Twenty-four columns. The identity probe reads four of them.
+
+
+
+**The dash rows carry  and **, which nothing had looked at.
+They also share one  —  on all four sampled —
+which is the single-import signature, not a per-game one.
+
+
+
+**Yes, with ESPN event ids.** Both  and  are accepted.
+ returns 404 — wrong parameter shape, and not needed.
+
+So the authoritative discriminator exists and is one fetch away: how many
+fixtures the league actually played between those clubs on that date.
+
+## The sweep, written against those shapes
+
+ puts the slate ahead of the fields, deliberately. Two rows of one
+fixture can disagree about a venue string without being two games — one writer
+says , another  — so a field difference is
+weak evidence in the direction that matters least. How many fixtures the league
+played is not a formatting question.
+
+ and  are excluded from the comparison.  records
+the write, not the fixture, and the whole defect is that the two rows were
+written at different times.  is null on every dash row measured, so it
+could only ever return .
+
+### One limit, asserted rather than hidden
+
+ is a token-subset match, so  does **not** match
+ —  is not a token of it. An abbreviated slate
+entry against a spelled-out archive row would yield zero and read as
+, which is indistinguishable from a fixture never played. The
+measured data does not hit this (both sides spell names out), the self-test
+asserts the limit so it fails loudly if  ever grows an alias table, and
+the sweep prints every  pair so the failure mode is a number
+rather than a silence.
+
+22/22 self-tests. A mutation making the slate never win drops it to 21/22.
+
 ## Result
 
-Pending recon.
+Pending the resolve run.

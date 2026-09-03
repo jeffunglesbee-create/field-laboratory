@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       phase:
-        description: 'sweep | mls-recon'
+        description: 'sweep | mls-recon | mls-resolve'
         required: false
         default: 'sweep'
 
@@ -37,7 +37,7 @@ jobs:
           node-version: 22
 
       - name: Is "every one MLS" true of the archive, or only of the window?
-        if: inputs.phase != 'mls-recon'
+        if: inputs.phase == 'sweep' || inputs.phase == ''
         env:
           # The variable, never the value. The script has no fallback and fails
           # loudly when this is empty: a duplicate sweep that cannot read the
@@ -56,12 +56,20 @@ jobs:
           node scripts/probe-mls-pair-discriminators.mjs --self-test
           node scripts/probe-mls-pair-discriminators.mjs --recon
 
+      - name: Resolve the MLS pairs against the slate
+        if: inputs.phase == 'mls-resolve'
+        env:
+          RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
+        run: |
+          node scripts/probe-mls-pair-discriminators.mjs --self-test
+          node scripts/probe-mls-pair-discriminators.mjs
+
       - name: Commit the artifact
         if: always()
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add outbox/archive-scheme-duplicates-latest.json || true
+          git add outbox/archive-scheme-duplicates-latest.json outbox/mls-pair-discriminators-latest.json || true
           git diff --staged --quiet || git commit -m "probe: archive-wide scheme duplicates [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
