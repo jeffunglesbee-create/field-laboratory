@@ -19,9 +19,15 @@ on:
   workflow_dispatch:
     inputs:
       phase:
-        description: 'sweep | mls-recon | mls-resolve | mls-merge-dry | mls-merge-execute'
+        description: 'sweep | mls-recon | mls-resolve | merge-dry | merge-execute'
         required: false
         default: 'sweep'
+      sport:
+        # NO DEFAULT, matching the script's own refusal. A merge that picked its
+        # own scope could delete rows in a league nobody was looking at, and
+        # "it defaulted to MLS" is not a thing to discover from an execute run.
+        description: 'archive sport label for the merge phases, e.g. MLS or WNBA'
+        required: false
 
 permissions:
   contents: write
@@ -64,32 +70,32 @@ jobs:
           node scripts/probe-mls-pair-discriminators.mjs --self-test
           node scripts/probe-mls-pair-discriminators.mjs
 
-      - name: Merge the MLS pairs — DRY RUN, writes nothing
-        if: inputs.phase == 'mls-merge-dry'
+      - name: Merge duplicate pairs — DRY RUN, writes nothing
+        if: inputs.phase == 'merge-dry'
         env:
           RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
         run: |
-          node scripts/merge-mls-duplicate-pairs.mjs --self-test
-          node scripts/merge-mls-duplicate-pairs.mjs
+          node scripts/merge-duplicate-pairs.mjs --self-test
+          node scripts/merge-duplicate-pairs.mjs --sport "${{ inputs.sport }}"
 
       # SEPARATE PHASE, SEPARATE DISPATCH, AND BOTH FLAGS. Deleting archive rows
       # needs explicit human approval, and a phase named `mls-merge-execute` has
       # to be typed on purpose — the dry run cannot become a write by a default
       # value or a mistyped input.
-      - name: Merge the MLS pairs — EXECUTE
-        if: inputs.phase == 'mls-merge-execute'
+      - name: Merge duplicate pairs — EXECUTE
+        if: inputs.phase == 'merge-execute'
         env:
           RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
         run: |
-          node scripts/merge-mls-duplicate-pairs.mjs --self-test
-          node scripts/merge-mls-duplicate-pairs.mjs --execute --i-have-approval
+          node scripts/merge-duplicate-pairs.mjs --self-test
+          node scripts/merge-duplicate-pairs.mjs --sport "${{ inputs.sport }}" --execute --i-have-approval
 
       - name: Commit the artifact
         if: always()
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add outbox/archive-scheme-duplicates-latest.json outbox/mls-pair-discriminators-latest.json outbox/mls-merge-latest.json || true
+          git add outbox/archive-scheme-duplicates-latest.json outbox/mls-pair-discriminators-latest.json outbox/*-merge-latest.json || true
           git diff --staged --quiet || git commit -m "probe: archive-wide scheme duplicates [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main

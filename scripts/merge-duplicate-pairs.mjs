@@ -1,4 +1,13 @@
-// Merge the 51 MLS duplicate pairs. DRY RUN BY DEFAULT.
+// Merge same-fixture rows written under two id schemes. DRY RUN BY DEFAULT.
+//
+// SCOPED BY SPORT, not to MLS. It began as merge-mls-duplicate-pairs.mjs and
+// merged 51 MLS pairs on 2026-09-03; the same sweep found 2 WNBA pairs under a
+// THIRD id scheme (`sport-prefixed-external`,
+// `wnba_2026-06-20_atlantadre_indianafev` against `WNBA_2026-06-20_dream_fever`),
+// and nothing in the machinery was MLS-specific — `mixedScheme` compares schemes
+// without naming them and `pickSurvivor` asks which row is provider-composite.
+// Only the SQL filter and the slate URL were. Renamed rather than left with a
+// name that had stopped being true.
 //
 // The evidence is `probe-mls-pair-discriminators.mjs`, runs 33776839924 and
 // 33777097281: 51 mixed-scheme clusters, all 51 answered `duplicate` by the
@@ -26,9 +35,9 @@
 // onto the survivor instead of creating a third row — which is `d253209`'s key
 // doing its job — but it does not stop the dash writer.
 //
-// Usage:  node scripts/merge-mls-duplicate-pairs.mjs               DRY RUN
-//         node scripts/merge-mls-duplicate-pairs.mjs --self-test
-//         node scripts/merge-mls-duplicate-pairs.mjs --execute --i-have-approval
+// Usage:  node scripts/merge-duplicate-pairs.mjs --sport MLS          DRY RUN
+//         node scripts/merge-duplicate-pairs.mjs --self-test
+//         node scripts/merge-duplicate-pairs.mjs --sport WNBA --execute --i-have-approval
 
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { schemeOf } from './game-id-scheme.mjs'
@@ -184,6 +193,18 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const noKey = pickSurvivor(dash(), ours(), null)
   check('no slate key is a refusal, not a guess, and names the absence',
     noKey.refuse === true && /no slate key/.test(noKey.why), `why=${noKey.why}`)
+  // THE WNBA PAIR USES A DIFFERENT THIRD SCHEME, and pickSurvivor must handle it
+  // without being told: `sport-prefixed-external` is lower-case-prefixed, so the
+  // upper-case row is still the only provider-composite one.
+  const wnba = pickSurvivor(
+    { id: 'wnba_2026-06-20_atlantadre_indianafev' },
+    { id: 'WNBA_2026-06-20_dream_fever', espn_event_id: '401736123' }, '401736123')
+  check('THE WNBA PAIR RESOLVES WITHOUT THE RULE KNOWING THE SCHEME',
+    wnba.survivor?.id === 'WNBA_2026-06-20_dream_fever'
+    && wnba.loser?.id === 'wnba_2026-06-20_atlantadre_indianafev',
+    `${JSON.stringify(wnba)} — the loser here is sport-prefixed-external, not the `
+    + 'dash shape the MLS pairs used; nothing in pickSurvivor names either')
+
   const twoOurs = pickSurvivor(ours({ id: 'MLS_a' }), ours({ id: 'MLS_b' }), '1')
   check('TWO ROWS OF OUR OWN SCHEME ARE REFUSED, and the count is named',
     twoOurs.refuse === true && /found 2/.test(twoOurs.why),
@@ -249,6 +270,16 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
 
 // ─── the run ──────────────────────────────────────────────────────────────────
 if (isMain(import.meta.url)) {
+  // The sport is REQUIRED and not defaulted. A merge that picked its own scope
+  // could delete rows in a league nobody was looking at, and "it defaulted to
+  // MLS" is not a thing to discover from an execute run.
+  const si = process.argv.indexOf('--sport')
+  const SPORT = si >= 0 ? process.argv[si + 1] : null
+  if (!SPORT) { console.error('--sport is required (e.g. --sport MLS). This will not pick a scope for you.'); process.exit(1) }
+  // The v2 slate names sports in lower case; measured, not assumed —
+  // /v2/games?sport=mls answered 200 on 2026-09-03 and the archive's label is `MLS`.
+  const V2_SPORT = SPORT.toLowerCase()
+
   const EXECUTE = process.argv.includes('--execute') && process.argv.includes('--i-have-approval')
   if (process.argv.includes('--execute') && !EXECUTE) {
     console.error('--execute requires --i-have-approval on the same command line.')
@@ -270,18 +301,18 @@ if (isMain(import.meta.url)) {
     return j.results || []
   }
 
-  console.log(`=== MLS duplicate merge — ${EXECUTE ? 'EXECUTE' : 'DRY RUN'} — ${new Date().toISOString()} ===\n`)
+  console.log(`=== ${SPORT} duplicate merge — ${EXECUTE ? 'EXECUTE' : 'DRY RUN'} — ${new Date().toISOString()} ===\n`)
 
-  const rows = await d1(`SELECT * FROM regular_season_games WHERE sport = 'MLS'`)
+  const rows = await d1(`SELECT * FROM regular_season_games WHERE sport = ?`, [SPORT])
   const clusters = clustersByDay(rows).filter(c => mixedScheme(c.rows))
-  console.log(`${rows.length} MLS row(s), ${clusters.length} mixed-scheme cluster(s)\n`)
+  console.log(`${rows.length} ${SPORT} row(s), ${clusters.length} mixed-scheme cluster(s)\n`)
 
   const slateCache = new Map()
   const slateFor = async (date) => {
     if (slateCache.has(date)) return slateCache.get(date)
     let games = null
     try {
-      const r = await fetch(`${RELAY}/v2/games?sport=mls&date=${date}`, { headers: { 'User-Agent': UA } })
+      const r = await fetch(`${RELAY}/v2/games?sport=${V2_SPORT}&date=${date}`, { headers: { 'User-Agent': UA } })
       if (r.ok) { const j = await r.json(); games = Array.isArray(j?.games) ? j.games : null }
     } catch { games = null }
     slateCache.set(date, games)
@@ -473,7 +504,7 @@ if (isMain(import.meta.url)) {
   say(new Set(plan.map(p => p.survivor)).size === plan.length, 'every survivor is distinct')
 
   mkdirSync('outbox', { recursive: true })
-  const out = { probed_at: new Date().toISOString(), executed: EXECUTE, planned: plan.length, refused, plan, results: [] }
+  const out = { probed_at: new Date().toISOString(), sport: SPORT, executed: EXECUTE, planned: plan.length, refused, plan, results: [] }
 
   if (!EXECUTE) {
     console.log(`\nDRY RUN — nothing was written. ${plan.length} pair(s) planned, ${refused.length} refused.`)
@@ -530,7 +561,8 @@ if (isMain(import.meta.url)) {
       `${out.results.reduce((a, r) => a + r.dangling, 0)} dangling reference(s)`)
   }
 
-  writeFileSync('outbox/mls-merge-latest.json', JSON.stringify(out, null, 2))
-  console.log('\nwrote outbox/mls-merge-latest.json')
+  const outPath = `outbox/${SPORT.toLowerCase()}-merge-latest.json`
+  writeFileSync(outPath, JSON.stringify(out, null, 2))
+  console.log(`\nwrote ${outPath}`)
   process.exit(fatal ? 1 : 0)
 }
