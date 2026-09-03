@@ -17,6 +17,11 @@ name: archive-wide scheme duplicates
 
 on:
   workflow_dispatch:
+    inputs:
+      phase:
+        description: 'sweep | mls-recon'
+        required: false
+        default: 'sweep'
 
 permissions:
   contents: write
@@ -32,6 +37,7 @@ jobs:
           node-version: 22
 
       - name: Is "every one MLS" true of the archive, or only of the window?
+        if: inputs.phase != 'mls-recon'
         env:
           # The variable, never the value. The script has no fallback and fails
           # loudly when this is empty: a duplicate sweep that cannot read the
@@ -41,6 +47,14 @@ jobs:
         run: |
           node scripts/probe-archive-scheme-duplicates.mjs --self-test
           node scripts/probe-archive-scheme-duplicates.mjs
+
+      - name: Recon for the MLS pair discriminators
+        if: inputs.phase == 'mls-recon'
+        env:
+          RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
+        run: |
+          node scripts/probe-mls-pair-discriminators.mjs --self-test
+          node scripts/probe-mls-pair-discriminators.mjs --recon
 
       - name: Commit the artifact
         if: always()
