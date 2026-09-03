@@ -153,11 +153,25 @@ All five are Colorado or Red Bull New York **home** games. Had `pairVerdict` let
 the fields win, these five would have been called `two-games` and the merge would
 have left them in place.
 
-The obvious reading is two spellings of one ground. **It is not recorded here as
-a finding, because the artifact stored the comparison state and not the strings**
-— and inferring "same stadium, renamed" from which club is at home is exactly the
-move this repo keeps deleting. The probe now records the value of every
-disagreeing field, and the next run fills this in.
+The strings, from run `33777097281`:
+
+| pair | dash row | underscore row |
+|---|---|---|
+| `2026-08-29-mls-col-rsl` | `DICK'S Sporting Goods Park` | `Dick's Sporting Goods Park` |
+| `2026-08-15-mls-col-skc` | `DICK'S Sporting Goods Park` | `Dick's Sporting Goods Park` |
+| `2026-08-29-mls-rbny-phi` | `Sports Illustrated Stadium` | `Red Bull Arena` |
+| `2026-08-22-mls-rbny-chi` | `Sports Illustrated Stadium` | `Red Bull Arena` |
+| `2026-08-19-mls-rbny-nsh` | `Sports Illustrated Stadium` | `Red Bull Arena` |
+
+**Two causes, neither of them two grounds.** Colorado's is capitalisation and
+nothing else. Red Bull New York's is one stadium under two names — the two
+writers took the venue from sources that renamed it at different times.
+
+This is measured rather than inferred, which is the whole reason the probe was
+changed to store values and re-run. The earlier draft of this section said the
+obvious reading *was* two spellings of one ground and refused to record it as a
+finding, because the artifact held only the comparison state. It now holds the
+strings, and the reading is confirmed.
 
 ## What this unblocks
 
