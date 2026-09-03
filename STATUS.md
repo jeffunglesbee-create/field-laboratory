@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `1704c07`
+`live-check` (post-deploy, against the deployed page): **green** on `1704c07` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `628acef` — newest deployable `6fc18a3` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `1704c07` — newest deployable `6fc18a3` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-09-02 — 16 games, 0 malformed (68 runs logged)
+`ok` on 2026-09-03 — 1 games, 0 malformed (69 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
