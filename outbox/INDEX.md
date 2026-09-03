@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4243954` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: the MLS pairs are resolvable — the slate answers what four fields could not |
+| `c20cc90` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: is `indistinguishable` the data, or the instrument? |
 | `7d65a80` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: WIDER THAN FILED — 51 MLS, and 2 WNBA under a third id scheme |
 | `23a61f7` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `547a649` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: is "every one MLS" true of the archive, or only of the 30-day window? |
