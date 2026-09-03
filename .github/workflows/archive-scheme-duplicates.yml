@@ -19,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       phase:
-        description: 'sweep | mls-recon | mls-resolve | merge-dry | merge-execute'
+        description: 'sweep | mls-recon | mls-resolve | merge-dry | merge-execute | id-shapes'
         required: false
         default: 'sweep'
       sport:
@@ -90,12 +90,20 @@ jobs:
           node scripts/merge-duplicate-pairs.mjs --self-test
           node scripts/merge-duplicate-pairs.mjs --sport "${{ inputs.sport }}" --execute --i-have-approval
 
+      - name: What shapes are the `unrecognised` ids?
+        if: inputs.phase == 'id-shapes'
+        env:
+          RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
+        run: |
+          node scripts/probe-unrecognised-id-shapes.mjs --self-test
+          node scripts/probe-unrecognised-id-shapes.mjs
+
       - name: Commit the artifact
         if: always()
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add outbox/archive-scheme-duplicates-latest.json outbox/mls-pair-discriminators-latest.json outbox/*-merge-latest.json || true
+          git add outbox/archive-scheme-duplicates-latest.json outbox/mls-pair-discriminators-latest.json outbox/*-merge-latest.json outbox/unrecognised-id-shapes-latest.json || true
           git diff --staged --quiet || git commit -m "probe: archive-wide scheme duplicates [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main
