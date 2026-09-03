@@ -9,8 +9,6 @@ identity probe reads**. It is not a statement that no discriminator exists.
 first:
 
 1. **Does any other column separate the two rows?** The table has more than four.
-   A pair whose venues differ is two games; a pair agreeing on a populated score
-   is one row written twice.
 2. **What does the source say?** Two MLS clubs playing each other twice on one
    date is not something the league schedules — but asserting that from knowledge
    is exactly the move this repo keeps deleting. The relay serves the slate. Ask
@@ -22,7 +20,44 @@ This probe writes nothing to D1. A merge deletes a row, and *do not delete
 archive rows without explicit human approval* is standing. What it produces is
 the evidence a merge would need.
 
-## The two predicates, and why each has four states rather than two
+## Recon result — the discriminator exists
+
+```
+=== columns regular_season_games actually has ===
+id sport league date home away home_score away_score venue streams note tags crew
+local_note created_at opening_odds closing_odds drama_peak drama_arc
+espn_event_id went_to_ot finalized_at start_time importance
+```
+
+Twenty-four columns. The identity probe reads four of them.
+
+```json
+{"id":"2026-08-29-mls-dc-lafc","home":"D.C. United","away":"Los Angeles Football Club",
+ "venue":"Audi Field","created_at":"2026-06-30 17:13:25",
+ "opening_odds":"{...draftkings...captured_at 2026-08-29T10:01:46...}",
+ "espn_event_id":null,"start_time":null,"home_score":null}
+```
+
+**The dash rows carry `venue` and `opening_odds`**, which nothing had looked at.
+They also share one `created_at` — `2026-06-30 17:13:25` on all four sampled —
+which is a single-import signature, not a per-game one.
+
+```
+=== does the relay serve an MLS slate? ===
+  date=2026-08-29 -> HTTP 200  {"sport":"mls","games":[{"id":"espn:761755",
+    "espnEventId":"761755","state":"final","start":"2026-08-29T20:30Z",
+    "home":{"name":"Seattle Sounders FC","abbr":"SEA","score":2}, ...
+```
+
+**Yes, with ESPN event ids.** Both `2026-08-29` and `20260829` are accepted.
+`/context/date?date=` returns 404 — wrong parameter shape, and not needed.
+
+So the authoritative discriminator exists and is one fetch away: how many
+fixtures the league actually played between those clubs on that date.
+
+## The sweep, written against those shapes
+
+### The two predicates, and why each has four states rather than two
 
 `compareField` returns `agree` | `differ` | `one-null` | `both-null`. The middle
 two are the point: a column absent from both rows discriminates nothing, and
@@ -33,59 +68,34 @@ is made of.
 `slateVerdict` returns `one-fixture` | `doubleheader` | `absent-from-slate` |
 `not-observable`. A slate that failed to load is not "no duplicate found".
 
-13/13 self-tests, including the four that assert the non-obvious states.
+### The slate outranks the fields, deliberately
 
-## Recon first
+Two rows of one fixture can disagree about a venue string without being two games
+— one writer says `Audi Field`, another `Audi Field, Washington` — so a field
+difference is weak evidence in the direction that matters least. How many
+fixtures the league played is not a formatting question.
 
-The sweep is written **after** `--recon` reports: the real column list from
-`PRAGMA table_info`, one full MLS pair with every column, whether
-`/v2/games?sport=mls` answers at all and in which date format, and what
-`/context/date` serves. Writing the comparison against remembered column names
-is the defect this repo's probe-first rule exists for.
-
-## Recon result — the discriminator exists
-
-
-
-Twenty-four columns. The identity probe reads four of them.
-
-
-
-**The dash rows carry  and **, which nothing had looked at.
-They also share one  —  on all four sampled —
-which is the single-import signature, not a per-game one.
-
-
-
-**Yes, with ESPN event ids.** Both  and  are accepted.
- returns 404 — wrong parameter shape, and not needed.
-
-So the authoritative discriminator exists and is one fetch away: how many
-fixtures the league actually played between those clubs on that date.
-
-## The sweep, written against those shapes
-
- puts the slate ahead of the fields, deliberately. Two rows of one
-fixture can disagree about a venue string without being two games — one writer
-says , another  — so a field difference is
-weak evidence in the direction that matters least. How many fixtures the league
-played is not a formatting question.
-
- and  are excluded from the comparison.  records
-the write, not the fixture, and the whole defect is that the two rows were
-written at different times.  is null on every dash row measured, so it
-could only ever return .
+`created_at` and `league` are excluded from the field comparison. `created_at`
+records the write, not the fixture, and the whole defect is that the two rows
+were written at different times. `league` is null on every dash row measured, so
+it could only ever return `one-null`.
 
 ### One limit, asserted rather than hidden
 
- is a token-subset match, so  does **not** match
- —  is not a token of it. An abbreviated slate
+`sameTeam` is a token-subset match, so `LAFC` does **not** match
+`Los Angeles Football Club` — `lafc` is not a token of it. An abbreviated slate
 entry against a spelled-out archive row would yield zero and read as
-, which is indistinguishable from a fixture never played. The
-measured data does not hit this (both sides spell names out), the self-test
-asserts the limit so it fails loudly if  ever grows an alias table, and
-the sweep prints every  pair so the failure mode is a number
-rather than a silence.
+`absent-from-slate`, which is indistinguishable from a fixture never played.
+
+The measured data does not hit this: recon showed the archive row carrying the
+full name and the slate carrying `Seattle Sounders FC`, both spelled out. The
+self-test asserts the limit so it fails loudly if `sameTeam` ever grows an alias
+table, and the sweep prints every `absent-from-slate` pair so the failure mode is
+a number rather than a silence.
+
+**My first version of that test was itself wrong** — it asserted `LAFC` *should*
+match, which is the same alias mistake this session already made once with
+`D.C. United`. The code was right and the test was wrong.
 
 22/22 self-tests. A mutation making the slate never win drops it to 21/22.
 
