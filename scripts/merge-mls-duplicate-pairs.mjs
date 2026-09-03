@@ -103,6 +103,54 @@ export const mergePayload = (survivor, loser) => {
   return out
 }
 
+/**
+ * Columns that do NOT distinguish two records of the same event.
+ *
+ * `id` is the row's own key and the game-id column is the thing being changed,
+ * so neither can be evidence. `ts`, `consumed`, `created_at` and `updated_at`
+ * are bookkeeping: two writes of one captured event, filed under two game ids
+ * moments apart, differ there and are still one record. The event's own identity
+ * travels inside the content columns — `change_log.new_value` carries the
+ * odds payload's `captured_at`, which is what made the sampled pair identical to
+ * the millisecond.
+ *
+ * NAMED HERE RATHER THAN INLINE because it is a judgement, and a judgement that
+ * decides whether a row is deleted has to be visible and testable.
+ */
+export const NOT_EVIDENCE = ['id', 'ts', 'consumed', 'created_at', 'updated_at']
+
+/**
+ * Are these two rows the same record, filed under two game ids?
+ *
+ * Compares every column that is not in `ignore`, and REQUIRES AT LEAST ONE such
+ * column — otherwise a table whose columns were all ignored would report every
+ * row identical to every other, and the merge would delete real records while
+ * reporting a clean duplicate collapse.
+ */
+export const sameRecord = (a, b, ignore) => {
+  const skip = new Set(ignore.map(x => String(x).toLowerCase()))
+  const keys = Object.keys(a ?? {}).filter(k => !skip.has(k.toLowerCase()))
+  if (!keys.length) return false
+  return keys.every(k => String(a[k] ?? '') === String(b?.[k] ?? ''))
+}
+
+/**
+ * For one loser row: is it redundant, and if not, what makes it different?
+ *
+ * Returns `drop` with the survivor row it duplicates, or `repoint` with the
+ * columns that differ from the nearest candidate — so a decision to repoint is
+ * reported with its reason rather than as a default.
+ */
+export const referenceAction = (loserRow, survivorRows, ignore) => {
+  for (const s of survivorRows ?? [])
+    if (sameRecord(loserRow, s, ignore)) return { action: 'drop', duplicateOf: s.id ?? null }
+  const skip = new Set(ignore.map(x => String(x).toLowerCase()))
+  const keys = Object.keys(loserRow ?? {}).filter(k => !skip.has(k.toLowerCase()))
+  const nearest = (survivorRows ?? [])[0]
+  const differing = nearest ? keys.filter(k => String(loserRow[k] ?? '') !== String(nearest[k] ?? '')) : keys
+  return { action: 'repoint', differing, comparedAgainst: nearest?.id ?? null }
+}
+
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const { check, summarize } = createChecks()
   const dash = (o = {}) => ({ id: '2026-08-29-mls-sd-la', ...o })
@@ -163,6 +211,39 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     Object.keys(mergePayload({ id: null, home: null, venue: null },
       { id: 'x', home: 'y', venue: 'z' })).every(f => MERGEABLE.includes(f)))
 
+  // ── the reference rule ────────────────────────────────────────────────────
+  const IG = [...NOT_EVIDENCE, 'game_id']
+  const cl = (o = {}) => ({ id: 1, game_id: 'x', source: 'odds_api', field: 'opening_odds',
+    old_value: null, new_value: '{"captured_at":"2026-08-29T10:01:46.114Z"}', ts: '10:01', consumed: 0, ...o })
+
+  check('THE SAMPLED PAIR IS ONE RECORD FILED TWICE',
+    sameRecord(cl({ id: 10467, game_id: '2026-08-29-mls-sd-la' }),
+               cl({ id: 10491, game_id: 'MLS_2026-08-29_sandiego_lagalaxy', ts: '10:02' }), IG),
+    'same source, field and payload; different row id, game id and bookkeeping timestamp')
+  check('a different captured_at is a different record',
+    !sameRecord(cl(), cl({ new_value: '{"captured_at":"2026-08-29T11:55:38Z"}' }), IG))
+  check('a different FIELD is a different record',
+    !sameRecord(cl(), cl({ field: 'closing_odds' }), IG),
+    'the survivor carries a closing_odds row the loser does not; it must never be dropped')
+  check('a different SOURCE is a different record',
+    !sameRecord(cl(), cl({ source: 'archive_game_closing' }), IG))
+  check('IGNORING EVERY COLUMN MEANS NO MATCH, NOT EVERY MATCH',
+    !sameRecord(cl(), cl({ source: 'totally different' }), Object.keys(cl())),
+    'a table whose columns were all ignored would report every row identical to '
+    + 'every other, and the merge would delete real records reporting a clean collapse')
+  check('null and empty compare equal, so a NULL old_value is not spurious evidence',
+    sameRecord(cl({ old_value: null }), cl({ old_value: '' }), IG))
+
+  const drop = referenceAction(cl({ id: 10467 }), [cl({ id: 10491, ts: 'z' })], IG)
+  check('a redundant row is dropped, and says which row it duplicates',
+    drop.action === 'drop' && drop.duplicateOf === 10491)
+  const rp = referenceAction(cl({ id: 10467, field: 'closing_odds' }), [cl({ id: 10491 })], IG)
+  check('a row with no match is repointed, and NAMES what differs',
+    rp.action === 'repoint' && rp.differing.includes('field'),
+    `differing=${JSON.stringify(rp.differing)} — a repoint reported without its reason is a default, not a decision`)
+  check('with no survivor rows at all, everything is repointed',
+    referenceAction(cl(), [], IG).action === 'repoint')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -217,10 +298,15 @@ if (isMain(import.meta.url)) {
     if (t === 'regular_season_games' || t === 'postseason_games') continue
     let cols = []
     try { cols = await d1(`PRAGMA table_info(${t})`) } catch { continue }
+    // The primary key is captured too: a drop targets the ROW, never a predicate.
+    // A table with no single-column pk cannot be safely dropped from, and the
+    // plan refuses those rather than widening a DELETE into a match.
+    const pk = cols.filter(c => Number(c.pk) > 0)
     for (const c of cols)
-      if (/^game_id$/i.test(c.name) || /_game_id$/i.test(c.name)) REFERENCERS.push([t, c.name])
+      if (/^game_id$/i.test(c.name) || /_game_id$/i.test(c.name))
+        REFERENCERS.push([t, c.name, pk.length === 1 ? pk[0].name : null])
   }
-  console.log(`  referencing column(s) discovered: ${REFERENCERS.map(([t, c]) => `${t}.${c}`).join(', ') || '(none)'}\n`)
+  console.log(`  referencing column(s) discovered: ${REFERENCERS.map(([t, c, k]) => `${t}.${c}${k ? '' : ' (NO SINGLE PK)'}`).join(', ') || '(none)'}\n`)
 
   const plan = []
   const refused = []
@@ -247,19 +333,30 @@ if (isMain(import.meta.url)) {
     // is the same guess-instead-of-probe this repo keeps deleting. REFERENCERS
     // is built from PRAGMA table_info over the /d1/execute allowlist, so a table
     // with a game-id column that nobody remembered still blocks.
-    const refs = {}, survivorRefs = {}
-    for (const [table, col] of REFERENCERS) {
-      const [l, sv] = await Promise.all([
-        d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [pick.loser.id]),
-        d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [pick.survivor.id]),
+    // PER ROW, NOT PER TABLE. The sampled pair showed the loser's change_log row
+    // is byte-identical to one the survivor already holds — same source, same
+    // field, same captured_at — so repointing it would file one record twice
+    // rather than preserve anything. Each row is classified on its own content.
+    const refs = {}, survivorRefs = {}, actions = []
+    let unsafeDrop = null
+    for (const [table, col, pk] of REFERENCERS) {
+      const [lrows, srows] = await Promise.all([
+        d1(`SELECT * FROM ${table} WHERE ${col} = ?`, [pick.loser.id]),
+        d1(`SELECT * FROM ${table} WHERE ${col} = ?`, [pick.survivor.id]),
       ])
-      if (Number(l[0]?.n ?? 0)) refs[`${table}.${col}`] = Number(l[0].n)
-      if (Number(sv[0]?.n ?? 0)) survivorRefs[`${table}.${col}`] = Number(sv[0].n)
+      if (lrows.length) refs[`${table}.${col}`] = lrows.length
+      if (srows.length) survivorRefs[`${table}.${col}`] = srows.length
+      for (const row of lrows) {
+        const a = referenceAction(row, srows, [...NOT_EVIDENCE, col])
+        if (a.action === 'drop' && !pk) { unsafeDrop = `${table} has no single-column primary key`; continue }
+        actions.push({ table, col, pk, rowId: pk ? row[pk] : null, ...a })
+      }
     }
+    if (unsafeDrop) { refused.push({ date: c.date, ids: [a.id, b.id], why: unsafeDrop }); continue }
     plan.push({
       date: c.date, key,
       survivor: pick.survivor.id, loser: pick.loser.id,
-      payload, refs, survivorRefs,
+      payload, refs, survivorRefs, actions,
     })
   }
 
@@ -269,8 +366,10 @@ if (isMain(import.meta.url)) {
     const r = Object.entries(p.refs).map(([k, n]) => `${k}=${n}`).join('  ')
     console.log(`     delete ${p.loser}${r ? `   refs: ${r}` : ''}`)
     console.log(`     absorb ${Object.keys(p.payload).length ? Object.keys(p.payload).join(', ') : '(nothing)'}`)
-    if (Object.keys(p.refs).length)
-      console.log(`     repoint ${Object.entries(p.refs).map(([k, n]) => `${n} ${k}`).join(', ')} -> ${p.survivor}`)
+    const rp = p.actions.filter(x => x.action === 'repoint'), dr = p.actions.filter(x => x.action === 'drop')
+    if (p.actions.length)
+      console.log(`     refs   repoint ${rp.length}, drop ${dr.length} (redundant)`
+        + (rp.length ? `  [${rp.map(x => `${x.table}#${x.rowId} differs on ${x.differing.join('/') || '(no survivor row)'}`).join('; ')}]` : ''))
   }
 
   const fieldCounts = {}
@@ -344,6 +443,24 @@ if (isMain(import.meta.url)) {
   say(unwritable.length === 0, 'every referencing table is writable through /d1/execute',
     `cannot repoint references in: ${unwritable.join(', ')} — and a delete that cannot repoint must not run`)
 
+  const allActions = plan.flatMap(p => p.actions)
+  const nRepoint = allActions.filter(a => a.action === 'repoint').length
+  const nDrop = allActions.filter(a => a.action === 'drop').length
+  console.log(`\n  reference plan: ${nRepoint} repoint, ${nDrop} drop as redundant, ${allActions.length} total`)
+  const byTable = {}
+  for (const a of allActions) {
+    const k = `${a.table}.${a.col}`
+    byTable[k] = byTable[k] || { repoint: 0, drop: 0 }
+    byTable[k][a.action === 'drop' ? 'drop' : 'repoint']++
+  }
+  for (const [k, v] of Object.entries(byTable))
+    console.log(`    ${k}: repoint ${v.repoint}, drop ${v.drop}`)
+  say(allActions.length === Object.values(totals).reduce((x, y) => x + y, 0),
+    'every reference got an action', 'a reference with no action would be silently orphaned')
+  say(allActions.every(a => a.action !== 'drop' || a.rowId != null),
+    'every dropped row is addressed by its own primary key',
+    'a DELETE by predicate could match rows the plan never enumerated')
+
   const collide = plan.filter(p => Object.keys(p.refs).some(k => p.survivorRefs[k]))
   if (collide.length) {
     console.log(`\n  ${collide.length} pair(s) where BOTH rows carry references in the same table.`)
@@ -369,12 +486,20 @@ if (isMain(import.meta.url)) {
       // ORDER MATTERS AND IS NOT ARBITRARY. Repoint first: if it fails, the
       // delete never runs and the row is still there to repoint next time. Delete
       // first would leave 157 references pointing at nothing with no way back.
-      for (const [k, n] of Object.entries(p.refs)) {
+      for (const a of p.actions) {
+        if (a.action === 'drop') {
+          // BY PRIMARY KEY, never by predicate: the plan enumerated this exact
+          // row and nothing else may be caught by the same statement.
+          await d1(`DELETE FROM ${a.table} WHERE ${a.pk} = ?`, [a.rowId])
+        } else {
+          await d1(`UPDATE ${a.table} SET ${a.col} = ? WHERE ${a.pk} = ?`, [p.survivor, a.rowId])
+        }
+      }
+      for (const k of Object.keys(p.refs)) {
         const [table, col] = k.split('.')
-        await d1(`UPDATE ${table} SET ${col} = ? WHERE ${col} = ?`, [p.survivor, p.loser])
         const left = await d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [p.loser])
         if (Number(left[0]?.n ?? 1) !== 0)
-          throw new Error(`repoint failed: ${n} row(s) in ${k} still point at ${p.loser}; NOT deleting it`)
+          throw new Error(`${left[0].n} row(s) in ${k} still point at ${p.loser}; NOT deleting it`)
       }
       const sets = Object.keys(p.payload)
       if (sets.length) {
