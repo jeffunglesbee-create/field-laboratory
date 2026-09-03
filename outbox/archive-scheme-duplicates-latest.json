@@ -1,15 +1,15 @@
 {
-  "probed_at": "2026-09-03T15:55:46.089Z",
-  "rows_seen": 2777,
+  "probed_at": "2026-09-03T17:58:03.964Z",
+  "rows_seen": 2726,
   "by_scheme": {
-    "unrecognised": 1007,
+    "unrecognised": 956,
     "sport-prefixed-external": 158,
     "provider-composite": 1612
   },
   "unrecognised_by_sport": {
     "MLB": 61,
     "IPL": 2,
-    "MLS": 520,
+    "MLS": 469,
     "EPL": 26,
     "La Liga": 41,
     "Ligue 1": 21,
@@ -30,15 +30,13 @@
     "NHL": 9,
     "UFL": 2
   },
-  "clusters": 182,
-  "mixed_scheme_clusters": 53,
+  "clusters": 131,
+  "mixed_scheme_clusters": 2,
   "mixed_by_sport": {
-    "WNBA": 2,
-    "MLS": 51
+    "WNBA": 2
   },
   "kind_of_mixed": {
-    "duplicate": 2,
-    "indistinguishable": 51
+    "duplicate": 2
   },
   "examples": [
     {
@@ -59,66 +57,6 @@
       "ids": [
         "wnba_2026-06-20_phoenixmer_seattlesto",
         "WNBA_2026-06-20_mercury_storm"
-      ]
-    },
-    {
-      "sport": "MLS",
-      "date": "2026-08-29",
-      "kind": "indistinguishable",
-      "schemes": "provider-composite + unrecognised",
-      "ids": [
-        "2026-08-29-mls-sd-la",
-        "MLS_2026-08-29_sandiego_lagalaxy"
-      ]
-    },
-    {
-      "sport": "MLS",
-      "date": "2026-08-29",
-      "kind": "indistinguishable",
-      "schemes": "provider-composite + unrecognised",
-      "ids": [
-        "2026-08-29-mls-por-atx",
-        "MLS_2026-08-29_portland_austin"
-      ]
-    },
-    {
-      "sport": "MLS",
-      "date": "2026-08-29",
-      "kind": "indistinguishable",
-      "schemes": "provider-composite + unrecognised",
-      "ids": [
-        "2026-08-29-mls-nsh-cin",
-        "MLS_2026-08-29_nashville_cincinnati"
-      ]
-    },
-    {
-      "sport": "MLS",
-      "date": "2026-08-29",
-      "kind": "indistinguishable",
-      "schemes": "provider-composite + unrecognised",
-      "ids": [
-        "2026-08-29-mls-min-orl",
-        "MLS_2026-08-29_minnesota_orlando"
-      ]
-    },
-    {
-      "sport": "MLS",
-      "date": "2026-08-29",
-      "kind": "indistinguishable",
-      "schemes": "provider-composite + unrecognised",
-      "ids": [
-        "2026-08-29-mls-skc-van",
-        "MLS_2026-08-29_kansascity_vancouver"
-      ]
-    },
-    {
-      "sport": "MLS",
-      "date": "2026-08-29",
-      "kind": "indistinguishable",
-      "schemes": "provider-composite + unrecognised",
-      "ids": [
-        "2026-08-29-mls-hou-sj",
-        "MLS_2026-08-29_houston_sanjose"
       ]
     }
   ],
