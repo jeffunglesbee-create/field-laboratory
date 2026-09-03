@@ -1,9 +1,9 @@
 {
-  "probed_at": "2026-09-03T17:58:03.964Z",
-  "rows_seen": 2726,
+  "probed_at": "2026-09-03T18:04:13.667Z",
+  "rows_seen": 2724,
   "by_scheme": {
     "unrecognised": 956,
-    "sport-prefixed-external": 158,
+    "sport-prefixed-external": 156,
     "provider-composite": 1612
   },
   "unrecognised_by_sport": {
@@ -30,35 +30,10 @@
     "NHL": 9,
     "UFL": 2
   },
-  "clusters": 131,
-  "mixed_scheme_clusters": 2,
-  "mixed_by_sport": {
-    "WNBA": 2
-  },
-  "kind_of_mixed": {
-    "duplicate": 2
-  },
-  "examples": [
-    {
-      "sport": "WNBA",
-      "date": "2026-06-20",
-      "kind": "duplicate",
-      "schemes": "provider-composite + sport-prefixed-external",
-      "ids": [
-        "wnba_2026-06-20_atlantadre_indianafev",
-        "WNBA_2026-06-20_dream_fever"
-      ]
-    },
-    {
-      "sport": "WNBA",
-      "date": "2026-06-20",
-      "kind": "duplicate",
-      "schemes": "provider-composite + sport-prefixed-external",
-      "ids": [
-        "wnba_2026-06-20_phoenixmer_seattlesto",
-        "WNBA_2026-06-20_mercury_storm"
-      ]
-    }
-  ],
+  "clusters": 129,
+  "mixed_scheme_clusters": 0,
+  "mixed_by_sport": {},
+  "kind_of_mixed": {},
+  "examples": [],
   "error": null
 }
