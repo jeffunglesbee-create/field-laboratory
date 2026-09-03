@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7d65a80` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: WIDER THAN FILED — 51 MLS, and 2 WNBA under a third id scheme |
+| `23a61f7` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `547a649` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: is "every one MLS" true of the archive, or only of the 30-day window? |
+| `547a649` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: is "every one MLS" true of the archive, or only of the 30-day window? |
 | `b66d754` | 2026-09-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-03 [skip ci] |
 | `b66d754` | 2026-09-03 | [sport-vocabulary-2026-09-03T06-00-35-709Z.json](sport-vocabulary-2026-09-03T06-00-35-709Z.json) | drift-sentinel: ok on 2026-09-03 [skip ci] |
 | `237100d` | 2026-09-02 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-02 [skip ci] |
