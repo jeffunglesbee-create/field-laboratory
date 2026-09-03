@@ -1,5 +1,5 @@
 {
-  "probed_at": "2026-09-03T17:15:49.380Z",
+  "probed_at": "2026-09-03T17:41:33.662Z",
   "executed": false,
   "planned": 51,
   "refused": [],
@@ -15,7 +15,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10467,
+          "action": "drop",
+          "duplicateOf": 10491
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -28,7 +38,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10468,
+          "action": "drop",
+          "duplicateOf": 10490
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -41,7 +61,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10469,
+          "action": "drop",
+          "duplicateOf": 10487
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -54,7 +84,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10470,
+          "action": "drop",
+          "duplicateOf": 10486
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -67,7 +107,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10471,
+          "action": "drop",
+          "duplicateOf": 10488
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -80,7 +130,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10472,
+          "action": "drop",
+          "duplicateOf": 10485
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -93,7 +153,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10473,
+          "action": "drop",
+          "duplicateOf": 10489
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -106,7 +176,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10475,
+          "action": "drop",
+          "duplicateOf": 10480
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -119,7 +199,23 @@
       "refs": {
         "change_log.game_id": 1
       },
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10476,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -132,7 +228,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10477,
+          "action": "drop",
+          "duplicateOf": 10483
+        }
+      ]
     },
     {
       "date": "2026-08-29",
@@ -145,7 +251,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10479,
+          "action": "drop",
+          "duplicateOf": 10481
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -159,7 +275,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-van-dal_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9151,
+          "action": "drop",
+          "duplicateOf": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9264,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9265,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9266,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9267,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -172,7 +372,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9152,
+          "action": "drop",
+          "duplicateOf": 9169
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -186,7 +396,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-sj-min_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9153,
+          "action": "drop",
+          "duplicateOf": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9260,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9261,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9262,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9263,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -200,7 +494,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-sd-col_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9154,
+          "action": "drop",
+          "duplicateOf": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9256,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9257,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9258,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9259,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -209,7 +587,8 @@
       "loser": "2026-08-22-mls-nsh-clb",
       "payload": {},
       "refs": {},
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": []
     },
     {
       "date": "2026-08-22",
@@ -223,7 +602,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-atx-phi_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9156,
+          "action": "drop",
+          "duplicateOf": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9236,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9237,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9238,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9239,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -236,7 +699,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9157,
+          "action": "drop",
+          "duplicateOf": 9167
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -249,7 +722,23 @@
       "refs": {
         "change_log.game_id": 1
       },
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9158,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -264,7 +753,75 @@
       "survivorRefs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-mtl-la_mybookieag_close",
+          "action": "drop",
+          "duplicateOf": "MLS_2026-08-22_cfmontral_lagalaxy_mybookieag_close"
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9159,
+          "action": "drop",
+          "duplicateOf": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9252,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9253,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9254,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9255,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -278,7 +835,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-mia-tor_betmgm_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9160,
+          "action": "drop",
+          "duplicateOf": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9248,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9249,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9250,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9251,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -292,7 +933,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-cin-sea_mybookieag_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9161,
+          "action": "drop",
+          "duplicateOf": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9240,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9241,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9242,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9243,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        }
+      ]
     },
     {
       "date": "2026-08-22",
@@ -306,7 +1031,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-clt-dc_mybookieag_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9162,
+          "action": "drop",
+          "duplicateOf": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9244,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9245,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9246,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9247,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -319,7 +1128,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9039,
+          "action": "drop",
+          "duplicateOf": 9065
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -333,7 +1152,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-sea-atx_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9040,
+          "action": "drop",
+          "duplicateOf": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9115,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9116,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9117,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9118,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -347,7 +1250,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-rsl-dal_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9041,
+          "action": "drop",
+          "duplicateOf": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9111,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9112,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9113,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9114,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -361,7 +1348,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-por-sd_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9042,
+          "action": "drop",
+          "duplicateOf": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9107,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9108,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9109,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9110,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -374,7 +1445,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9043,
+          "action": "drop",
+          "duplicateOf": 9059
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -388,7 +1469,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-la-sj_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9044,
+          "action": "drop",
+          "duplicateOf": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9099,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9100,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9101,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9102,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -402,7 +1567,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-skc-stl_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9045,
+          "action": "drop",
+          "duplicateOf": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9119,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9120,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9121,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9122,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -416,7 +1665,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-tor-clt_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9047,
+          "action": "drop",
+          "duplicateOf": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9123,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9124,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9125,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9126,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -430,7 +1763,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-phi-mia_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9048,
+          "action": "drop",
+          "duplicateOf": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9103,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9104,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9105,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9106,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -443,7 +1860,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9049,
+          "action": "drop",
+          "duplicateOf": 9055
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -456,7 +1883,23 @@
       "refs": {
         "change_log.game_id": 1
       },
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9050,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -470,7 +1913,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-dc-ne_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9051,
+          "action": "drop",
+          "duplicateOf": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9095,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9096,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9097,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9098,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        }
+      ]
     },
     {
       "date": "2026-08-19",
@@ -479,7 +2006,8 @@
       "loser": "2026-08-19-mls-clb-mtl",
       "payload": {},
       "refs": {},
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": []
     },
     {
       "date": "2026-08-15",
@@ -493,7 +2021,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-sj-stl_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7869,
+          "action": "drop",
+          "duplicateOf": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7957,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7958,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7959,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7960,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -507,7 +2119,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-rsl-min_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7870,
+          "action": "drop",
+          "duplicateOf": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7949,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7950,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7951,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7952,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -521,7 +2217,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-nsh-mia_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7871,
+          "action": "drop",
+          "duplicateOf": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7945,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7946,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7947,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7948,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -534,7 +2314,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7873,
+          "action": "drop",
+          "duplicateOf": 7882
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -548,7 +2338,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-col-skc_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7874,
+          "action": "drop",
+          "duplicateOf": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7937,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7938,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7939,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7940,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -562,7 +2436,91 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-tor-ne_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7875,
+          "action": "drop",
+          "duplicateOf": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7961,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7962,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7963,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7964,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -575,7 +2533,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7876,
+          "action": "drop",
+          "duplicateOf": 7880
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -590,7 +2558,75 @@
       "survivorRefs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-mtl-dc_fanduel_close",
+          "action": "drop",
+          "duplicateOf": "MLS_2026-08-15_cfmontral_dcunited_fanduel_close"
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7877,
+          "action": "drop",
+          "duplicateOf": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7941,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7942,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7943,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7944,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        }
+      ]
     },
     {
       "date": "2026-08-15",
@@ -599,7 +2635,8 @@
       "loser": "2026-08-15-mls-clt-clb",
       "payload": {},
       "refs": {},
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": []
     },
     {
       "date": "2026-08-15",
@@ -612,7 +2649,23 @@
       "refs": {
         "change_log.game_id": 1
       },
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7878,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ]
     },
     {
       "date": "2026-08-30",
@@ -625,7 +2678,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10543,
+          "action": "drop",
+          "duplicateOf": 10544
+        }
+      ]
     },
     {
       "date": "2026-08-30",
@@ -634,7 +2697,8 @@
       "loser": "2026-08-30-mls-clb-ne",
       "payload": {},
       "refs": {},
-      "survivorRefs": {}
+      "survivorRefs": {},
+      "actions": []
     },
     {
       "date": "2026-08-23",
@@ -647,7 +2711,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 2
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9207,
+          "action": "drop",
+          "duplicateOf": 9209
+        }
+      ]
     },
     {
       "date": "2026-08-16",
@@ -660,7 +2734,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7909,
+          "action": "drop",
+          "duplicateOf": 7910
+        }
+      ]
     },
     {
       "date": "2026-08-08",
@@ -673,7 +2757,17 @@
       },
       "survivorRefs": {
         "change_log.game_id": 1
-      }
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 6538,
+          "action": "drop",
+          "duplicateOf": 6539
+        }
+      ]
     }
   ],
   "results": []
