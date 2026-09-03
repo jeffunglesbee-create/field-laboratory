@@ -307,13 +307,22 @@ if (isMain(import.meta.url)) {
   // whether repointing it at the survivor is right, disposable, or wrong. That
   // decision needs the content, and reading it from a count is the shape of
   // error this session has already made twice today.
-  const sample = plan.find(p => Object.keys(p.refs).length)
+  // SAMPLE BOTH SIDES. A count says a reference exists; it does not say whether
+  // repointing it is right. And where BOTH rows carry references in one table,
+  // repointing merges two series — so the question is not "is this a reference"
+  // but "are these two records of the same event, or two different ones". Only
+  // the rows answer that, and reading it off a count would be the same error a
+  // third time.
+  const sample = plan.find(p => Object.keys(p.refs).some(k => p.survivorRefs[k])) ?? plan.find(p => Object.keys(p.refs).length)
   if (sample) {
-    console.log(`\n  sample of what points at ${sample.loser}:`)
-    for (const [k] of Object.entries(sample.refs)) {
+    for (const k of Object.keys(sample.refs)) {
       const [table, col] = k.split('.')
-      const got = await d1(`SELECT * FROM ${table} WHERE ${col} = ? LIMIT 3`, [sample.loser])
-      for (const g of got) console.log(`    ${table}: ${JSON.stringify(g).slice(0, 320)}`)
+      for (const [label, id] of [['LOSER   ', sample.loser], ['SURVIVOR', sample.survivor]]) {
+        const got = await d1(`SELECT * FROM ${table} WHERE ${col} = ? LIMIT 4`, [id])
+        console.log(`\n  ${table} rows on ${label} ${id}:`)
+        for (const g of got) console.log(`    ${JSON.stringify(g).slice(0, 300)}`)
+        if (!got.length) console.log('    (none)')
+      }
     }
   }
 
