@@ -1,6 +1,6 @@
 {
-  "probed_at": "2026-09-03T17:41:33.662Z",
-  "executed": false,
+  "probed_at": "2026-09-03T17:54:34.073Z",
+  "executed": true,
   "planned": 51,
   "refused": [],
   "plan": [
@@ -2770,5 +2770,3077 @@
       ]
     }
   ],
-  "results": []
+  "results": [
+    {
+      "date": "2026-08-29",
+      "key": "761767",
+      "survivor": {
+        "id": "MLS_2026-08-29_sandiego_lagalaxy",
+        "espn_event_id": "761767",
+        "venue": "Snapdragon Stadium"
+      },
+      "loser": "2026-08-29-mls-sd-la",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10467,
+          "action": "drop",
+          "duplicateOf": 10491
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761768",
+      "survivor": {
+        "id": "MLS_2026-08-29_portland_austin",
+        "espn_event_id": "761768",
+        "venue": "Providence Park"
+      },
+      "loser": "2026-08-29-mls-por-atx",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10468,
+          "action": "drop",
+          "duplicateOf": 10490
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761764",
+      "survivor": {
+        "id": "MLS_2026-08-29_nashville_cincinnati",
+        "espn_event_id": "761764",
+        "venue": "GEODIS Park"
+      },
+      "loser": "2026-08-29-mls-nsh-cin",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10469,
+          "action": "drop",
+          "duplicateOf": 10487
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761763",
+      "survivor": {
+        "id": "MLS_2026-08-29_minnesota_orlando",
+        "espn_event_id": "761763",
+        "venue": "Allianz Field"
+      },
+      "loser": "2026-08-29-mls-min-orl",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10470,
+          "action": "drop",
+          "duplicateOf": 10486
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761762",
+      "survivor": {
+        "id": "MLS_2026-08-29_kansascity_vancouver",
+        "espn_event_id": "761762",
+        "venue": "Sporting Park"
+      },
+      "loser": "2026-08-29-mls-skc-van",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10471,
+          "action": "drop",
+          "duplicateOf": 10488
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761765",
+      "survivor": {
+        "id": "MLS_2026-08-29_houston_sanjose",
+        "espn_event_id": "761765",
+        "venue": "Shell Energy Stadium"
+      },
+      "loser": "2026-08-29-mls-hou-sj",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10472,
+          "action": "drop",
+          "duplicateOf": 10485
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761766",
+      "survivor": {
+        "id": "MLS_2026-08-29_colorado_saltlake",
+        "espn_event_id": "761766",
+        "venue": "Dick's Sporting Goods Park"
+      },
+      "loser": "2026-08-29-mls-col-rsl",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10473,
+          "action": "drop",
+          "duplicateOf": 10489
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761755",
+      "survivor": {
+        "id": "MLS_2026-08-29_seattle_chicago",
+        "espn_event_id": "761755",
+        "venue": "Lumen Field"
+      },
+      "loser": "2026-08-29-mls-sea-chi",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10475,
+          "action": "drop",
+          "duplicateOf": 10480
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761761",
+      "survivor": {
+        "id": "MLS_2026-08-29_redbullny_philadelphia",
+        "espn_event_id": "761761",
+        "venue": "Red Bull Arena"
+      },
+      "loser": "2026-08-29-mls-rbny-phi",
+      "payload": {
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-29T10:01:46.114Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":185,\"away\":110,\"draw\":290}}"
+      },
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10476,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761757",
+      "survivor": {
+        "id": "MLS_2026-08-29_miami_cfmontral",
+        "espn_event_id": "761757",
+        "venue": "Nu Stadium"
+      },
+      "loser": "2026-08-29-mls-mia-mtl",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10477,
+          "action": "drop",
+          "duplicateOf": 10483
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-29",
+      "key": "761759",
+      "survivor": {
+        "id": "MLS_2026-08-29_atlanta_charlotte",
+        "espn_event_id": "761759",
+        "venue": "Mercedes-Benz Stadium"
+      },
+      "loser": "2026-08-29-mls-atl-clt",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10479,
+          "action": "drop",
+          "duplicateOf": 10481
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761749",
+      "survivor": {
+        "id": "MLS_2026-08-22_vancouver_dallas",
+        "espn_event_id": "761749",
+        "venue": "BC Place"
+      },
+      "loser": "2026-08-22-mls-van-dal",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-van-dal_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9151,
+          "action": "drop",
+          "duplicateOf": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9264,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9265,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9266,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9267,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9170
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761747",
+      "survivor": {
+        "id": "MLS_2026-08-22_stlouis_houston",
+        "espn_event_id": "761747",
+        "venue": "Energizer Park"
+      },
+      "loser": "2026-08-22-mls-stl-hou",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9152,
+          "action": "drop",
+          "duplicateOf": 9169
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761752",
+      "survivor": {
+        "id": "MLS_2026-08-22_sanjose_minnesota",
+        "espn_event_id": "761752",
+        "venue": "PayPal Park"
+      },
+      "loser": "2026-08-22-mls-sj-min",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-sj-min_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9153,
+          "action": "drop",
+          "duplicateOf": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9260,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9261,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9262,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9263,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9173
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761750",
+      "survivor": {
+        "id": "MLS_2026-08-22_sandiego_colorado",
+        "espn_event_id": "761750",
+        "venue": "Snapdragon Stadium"
+      },
+      "loser": "2026-08-22-mls-sd-col",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-sd-col_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9154,
+          "action": "drop",
+          "duplicateOf": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9256,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9257,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9258,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9259,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9172
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761746",
+      "survivor": {
+        "id": "MLS_2026-08-22_nashville_columbus",
+        "espn_event_id": "761746",
+        "venue": "GEODIS Park"
+      },
+      "loser": "2026-08-22-mls-nsh-clb",
+      "payload": {},
+      "refs": {},
+      "survivorRefs": {},
+      "actions": [],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761748",
+      "survivor": {
+        "id": "MLS_2026-08-22_austin_philadelphia",
+        "espn_event_id": "761748",
+        "venue": "Q2 Stadium"
+      },
+      "loser": "2026-08-22-mls-atx-phi",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-atx-phi_betrivers_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9156,
+          "action": "drop",
+          "duplicateOf": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9236,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9237,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9238,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9239,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9168
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761740",
+      "survivor": {
+        "id": "MLS_2026-08-22_orlando_saltlake",
+        "espn_event_id": "761740",
+        "venue": "Inter&Co Stadium"
+      },
+      "loser": "2026-08-22-mls-orl-rsl",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9157,
+          "action": "drop",
+          "duplicateOf": 9167
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761744",
+      "survivor": {
+        "id": "MLS_2026-08-22_redbullny_chicago",
+        "espn_event_id": "761744",
+        "venue": "Red Bull Arena"
+      },
+      "loser": "2026-08-22-mls-rbny-chi",
+      "payload": {
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-22T10:01:21.633Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":155,\"away\":135}}"
+      },
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9158,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761745",
+      "survivor": {
+        "id": "MLS_2026-08-22_cfmontral_lagalaxy",
+        "espn_event_id": "761745",
+        "venue": "Stade Saputo"
+      },
+      "loser": "2026-08-22-mls-mtl-la",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-mtl-la_mybookieag_close",
+          "action": "drop",
+          "duplicateOf": "MLS_2026-08-22_cfmontral_lagalaxy_mybookieag_close"
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9159,
+          "action": "drop",
+          "duplicateOf": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9252,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9253,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9254,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9255,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9163
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761742",
+      "survivor": {
+        "id": "MLS_2026-08-22_miami_toronto",
+        "espn_event_id": "761742",
+        "venue": "Nu Stadium"
+      },
+      "loser": "2026-08-22-mls-mia-tor",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-mia-tor_betmgm_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9160,
+          "action": "drop",
+          "duplicateOf": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9248,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9249,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9250,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9251,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9166
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761743",
+      "survivor": {
+        "id": "MLS_2026-08-22_cincinnati_seattle",
+        "espn_event_id": "761743",
+        "venue": "TQL Stadium"
+      },
+      "loser": "2026-08-22-mls-cin-sea",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-cin-sea_mybookieag_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9161,
+          "action": "drop",
+          "duplicateOf": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9240,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9241,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9242,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9243,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9165
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-22",
+      "key": "761741",
+      "survivor": {
+        "id": "MLS_2026-08-22_charlotte_dcunited",
+        "espn_event_id": "761741",
+        "venue": "Bank of America Stadium"
+      },
+      "loser": "2026-08-22-mls-clt-dc",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-22-mls-clt-dc_mybookieag_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9162,
+          "action": "drop",
+          "duplicateOf": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9244,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9245,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9246,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9247,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9164
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761739",
+      "survivor": {
+        "id": "MLS_2026-08-19_vancouver_houston",
+        "espn_event_id": "761739",
+        "venue": "BC Place"
+      },
+      "loser": "2026-08-19-mls-van-hou",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9039,
+          "action": "drop",
+          "duplicateOf": 9065
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761736",
+      "survivor": {
+        "id": "MLS_2026-08-19_seattle_austin",
+        "espn_event_id": "761736",
+        "venue": "Lumen Field"
+      },
+      "loser": "2026-08-19-mls-sea-atx",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-sea-atx_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9040,
+          "action": "drop",
+          "duplicateOf": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9115,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9116,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9117,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9118,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9062
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761735",
+      "survivor": {
+        "id": "MLS_2026-08-19_saltlake_dallas",
+        "espn_event_id": "761735",
+        "venue": "America First Field"
+      },
+      "loser": "2026-08-19-mls-rsl-dal",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-rsl-dal_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9041,
+          "action": "drop",
+          "duplicateOf": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9111,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9112,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9113,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9114,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9061
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761737",
+      "survivor": {
+        "id": "MLS_2026-08-19_portland_sandiego",
+        "espn_event_id": "761737",
+        "venue": "Providence Park"
+      },
+      "loser": "2026-08-19-mls-por-sd",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-por-sd_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9042,
+          "action": "drop",
+          "duplicateOf": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9107,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9108,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9109,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9110,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9064
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761733",
+      "survivor": {
+        "id": "MLS_2026-08-19_minnesota_atlanta",
+        "espn_event_id": "761733",
+        "venue": "Allianz Field"
+      },
+      "loser": "2026-08-19-mls-min-atl",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9043,
+          "action": "drop",
+          "duplicateOf": 9059
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761738",
+      "survivor": {
+        "id": "MLS_2026-08-19_lagalaxy_sanjose",
+        "espn_event_id": "761738",
+        "venue": "Dignity Health Sports Park"
+      },
+      "loser": "2026-08-19-mls-la-sj",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-la-sj_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9044,
+          "action": "drop",
+          "duplicateOf": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9099,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9100,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9101,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9102,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9063
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761732",
+      "survivor": {
+        "id": "MLS_2026-08-19_kansascity_stlouis",
+        "espn_event_id": "761732",
+        "venue": "Sporting Park"
+      },
+      "loser": "2026-08-19-mls-skc-stl",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-skc-stl_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9045,
+          "action": "drop",
+          "duplicateOf": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9119,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9120,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9121,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9122,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9058
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761731",
+      "survivor": {
+        "id": "MLS_2026-08-19_toronto_charlotte",
+        "espn_event_id": "761731",
+        "venue": "BMO Field"
+      },
+      "loser": "2026-08-19-mls-tor-clt",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-tor-clt_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9047,
+          "action": "drop",
+          "duplicateOf": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9123,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9124,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9125,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9126,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9057
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761727",
+      "survivor": {
+        "id": "MLS_2026-08-19_philadelphia_miami",
+        "espn_event_id": "761727",
+        "venue": "Subaru Park"
+      },
+      "loser": "2026-08-19-mls-phi-mia",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-phi-mia_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9048,
+          "action": "drop",
+          "duplicateOf": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9103,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9104,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9105,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9106,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9056
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761729",
+      "survivor": {
+        "id": "MLS_2026-08-19_orlando_chicago",
+        "espn_event_id": "761729",
+        "venue": "Inter&Co Stadium"
+      },
+      "loser": "2026-08-19-mls-orl-chi",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9049,
+          "action": "drop",
+          "duplicateOf": 9055
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761728",
+      "survivor": {
+        "id": "MLS_2026-08-19_redbullny_nashville",
+        "espn_event_id": "761728",
+        "venue": "Red Bull Arena"
+      },
+      "loser": "2026-08-19-mls-rbny-nsh",
+      "payload": {
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-19T10:01:21.193Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":175,\"away\":125}}"
+      },
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9050,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761725",
+      "survivor": {
+        "id": "MLS_2026-08-19_dcunited_newengland",
+        "espn_event_id": "761725",
+        "venue": "Audi Field"
+      },
+      "loser": "2026-08-19-mls-dc-ne",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-19-mls-dc-ne_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9051,
+          "action": "drop",
+          "duplicateOf": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9095,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9096,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9097,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9098,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 9053
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-19",
+      "key": "761726",
+      "survivor": {
+        "id": "MLS_2026-08-19_columbus_cfmontral",
+        "espn_event_id": "761726",
+        "venue": "ScottsMiracle-Gro Field"
+      },
+      "loser": "2026-08-19-mls-clb-mtl",
+      "payload": {},
+      "refs": {},
+      "survivorRefs": {},
+      "actions": [],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761721",
+      "survivor": {
+        "id": "MLS_2026-08-15_sanjose_stlouis",
+        "espn_event_id": "761721",
+        "venue": "PayPal Park"
+      },
+      "loser": "2026-08-15-mls-sj-stl",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-sj-stl_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7869,
+          "action": "drop",
+          "duplicateOf": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7957,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7958,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7959,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7960,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7887
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761719",
+      "survivor": {
+        "id": "MLS_2026-08-15_saltlake_minnesota",
+        "espn_event_id": "761719",
+        "venue": "America First Field"
+      },
+      "loser": "2026-08-15-mls-rsl-min",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-rsl-min_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7870,
+          "action": "drop",
+          "duplicateOf": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7949,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7950,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7951,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7952,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7885
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761716",
+      "survivor": {
+        "id": "MLS_2026-08-15_nashville_miami",
+        "espn_event_id": "761716",
+        "venue": "GEODIS Park"
+      },
+      "loser": "2026-08-15-mls-nsh-mia",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-nsh-mia_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7871,
+          "action": "drop",
+          "duplicateOf": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7945,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7946,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7947,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7948,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7883
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761715",
+      "survivor": {
+        "id": "MLS_2026-08-15_houston_lagalaxy",
+        "espn_event_id": "761715",
+        "venue": "Shell Energy Stadium"
+      },
+      "loser": "2026-08-15-mls-hou-la",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7873,
+          "action": "drop",
+          "duplicateOf": 7882
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761718",
+      "survivor": {
+        "id": "MLS_2026-08-15_colorado_kansascity",
+        "espn_event_id": "761718",
+        "venue": "Dick's Sporting Goods Park"
+      },
+      "loser": "2026-08-15-mls-col-skc",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-col-skc_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7874,
+          "action": "drop",
+          "duplicateOf": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7937,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7938,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7939,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7940,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7884
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761714",
+      "survivor": {
+        "id": "MLS_2026-08-15_toronto_newengland",
+        "espn_event_id": "761714",
+        "venue": "BMO Field"
+      },
+      "loser": "2026-08-15-mls-tor-ne",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-tor-ne_fanduel_close",
+          "action": "repoint",
+          "differing": [
+            "sport",
+            "date",
+            "home_team",
+            "away_team",
+            "commence_time",
+            "home_ml",
+            "away_ml",
+            "draw_ml",
+            "over_under",
+            "over_price",
+            "under_price",
+            "bookmaker",
+            "snapshot_time",
+            "snapshot_type"
+          ],
+          "comparedAgainst": null
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7875,
+          "action": "drop",
+          "duplicateOf": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7961,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7962,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7963,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7964,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7881
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761713",
+      "survivor": {
+        "id": "MLS_2026-08-15_orlando_cincinnati",
+        "espn_event_id": "761713",
+        "venue": "Inter&Co Stadium"
+      },
+      "loser": "2026-08-15-mls-orl-cin",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7876,
+          "action": "drop",
+          "duplicateOf": 7880
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761711",
+      "survivor": {
+        "id": "MLS_2026-08-15_cfmontral_dcunited",
+        "espn_event_id": "761711",
+        "venue": "Stade Saputo"
+      },
+      "loser": "2026-08-15-mls-mtl-dc",
+      "payload": {},
+      "refs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "odds_history",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": "2026-08-15-mls-mtl-dc_fanduel_close",
+          "action": "drop",
+          "duplicateOf": "MLS_2026-08-15_cfmontral_dcunited_fanduel_close"
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7877,
+          "action": "drop",
+          "duplicateOf": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7941,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7942,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7943,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        },
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7944,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "new_value"
+          ],
+          "comparedAgainst": 7879
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761710",
+      "survivor": {
+        "id": "MLS_2026-08-15_charlotte_columbus",
+        "espn_event_id": "761710",
+        "venue": "Bank of America Stadium"
+      },
+      "loser": "2026-08-15-mls-clt-clb",
+      "payload": {},
+      "refs": {},
+      "survivorRefs": {},
+      "actions": [],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-15",
+      "key": "761712",
+      "survivor": {
+        "id": "MLS_2026-08-15_atlanta_redbullny",
+        "espn_event_id": "761712",
+        "venue": "Mercedes-Benz Stadium"
+      },
+      "loser": "2026-08-15-mls-atl-rbny",
+      "payload": {
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-08-15T10:01:05.261Z\",\"_oddsProof\":{\"adapterId\":\"odds-api\",\"sourceId\":\"odds-api-the-odds-api\"},\"moneyline\":{\"home\":100,\"away\":210}}"
+      },
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {},
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7878,
+          "action": "repoint",
+          "differing": [
+            "source",
+            "field",
+            "old_value",
+            "new_value"
+          ],
+          "comparedAgainst": null
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-30",
+      "key": "761769",
+      "survivor": {
+        "id": "MLS_2026-08-30_stlouis_dallas",
+        "espn_event_id": "761769",
+        "venue": "Energizer Park"
+      },
+      "loser": "2026-08-30-mls-stl-dal",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 10543,
+          "action": "drop",
+          "duplicateOf": 10544
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-30",
+      "key": "761758",
+      "survivor": {
+        "id": "MLS_2026-08-30_columbus_newengland",
+        "espn_event_id": "761758",
+        "venue": "ScottsMiracle-Gro Field"
+      },
+      "loser": "2026-08-30-mls-clb-ne",
+      "payload": {},
+      "refs": {},
+      "survivorRefs": {},
+      "actions": [],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-23",
+      "key": "761754",
+      "survivor": {
+        "id": "MLS_2026-08-23_atlanta_kansascity",
+        "espn_event_id": "761754",
+        "venue": "Mercedes-Benz Stadium"
+      },
+      "loser": "2026-08-23-mls-atl-skc",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 9207,
+          "action": "drop",
+          "duplicateOf": 9209
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-16",
+      "key": "761723",
+      "survivor": {
+        "id": "MLS_2026-08-16_chicago_portland",
+        "espn_event_id": "761723",
+        "venue": "Soldier Field"
+      },
+      "loser": "2026-08-16-mls-chi-por",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 7909,
+          "action": "drop",
+          "duplicateOf": 7910
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-08-08",
+      "key": "761469",
+      "survivor": {
+        "id": "MLS_2026-08-08_newengland_houston",
+        "espn_event_id": "761469",
+        "venue": "Gillette Stadium"
+      },
+      "loser": "2026-08-08-mls-ne-hou",
+      "payload": {},
+      "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
+      },
+      "actions": [
+        {
+          "table": "change_log",
+          "col": "game_id",
+          "pk": "id",
+          "rowId": 6538,
+          "action": "drop",
+          "duplicateOf": 6539
+        }
+      ],
+      "loser_gone": true,
+      "dangling": 0
+    }
+  ]
 }
