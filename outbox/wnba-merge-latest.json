@@ -1,7 +1,7 @@
 {
-  "probed_at": "2026-09-03T18:02:27.799Z",
+  "probed_at": "2026-09-03T18:03:37.715Z",
   "sport": "WNBA",
-  "executed": false,
+  "executed": true,
   "planned": 2,
   "refused": [],
   "plan": [
@@ -36,5 +36,48 @@
       "actions": []
     }
   ],
-  "results": []
+  "results": [
+    {
+      "date": "2026-06-20",
+      "key": "401857006",
+      "survivor": {
+        "id": "WNBA_2026-06-20_dream_fever",
+        "espn_event_id": "401857006",
+        "venue": "State Farm Arena"
+      },
+      "loser": "wnba_2026-06-20_atlantadre_indianafev",
+      "payload": {
+        "streams": "WNBA_ABC",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-06-20T00:00:15.996Z\",\"moneyline\":{\"home\":-205,\"away\":170},\"spread\":{\"home\":-4.5,\"away\":4.5},\"total\":{\"over\":175.5,\"under\":175.5}}"
+      },
+      "refs": {},
+      "survivorRefs": {
+        "briefs.game_id": 1
+      },
+      "actions": [],
+      "loser_gone": true,
+      "dangling": 0
+    },
+    {
+      "date": "2026-06-20",
+      "key": "401857007",
+      "survivor": {
+        "id": "WNBA_2026-06-20_mercury_storm",
+        "espn_event_id": "401857007",
+        "venue": "Mortgage Matchup Center"
+      },
+      "loser": "wnba_2026-06-20_phoenixmer_seattlesto",
+      "payload": {
+        "streams": "WNBA_ABC",
+        "opening_odds": "{\"source\":\"draftkings\",\"captured_at\":\"2026-06-20T00:00:16.279Z\",\"moneyline\":{\"home\":-298,\"away\":240},\"spread\":{\"home\":-7.5,\"away\":7.5},\"total\":{\"over\":160.5,\"under\":160.5}}"
+      },
+      "refs": {},
+      "survivorRefs": {
+        "briefs.game_id": 1
+      },
+      "actions": [],
+      "loser_gone": true,
+      "dangling": 0
+    }
+  ]
 }
