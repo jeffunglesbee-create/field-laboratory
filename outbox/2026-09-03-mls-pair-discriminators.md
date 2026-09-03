@@ -99,6 +99,73 @@ match, which is the same alias mistake this session already made once with
 
 22/22 self-tests. A mutation making the slate never win drops it to 21/22.
 
-## Result
+## Result — RESOLVED. All 51, on evidence.
 
-Pending the resolve run.
+Run `33776839924`.
+
+```
+  verdicts:
+      51  duplicate
+  decided by:
+      51  slate
+```
+
+**`indistinguishable` was the instrument, not the data.** Every one of the 51
+pairs is one fixture the league played once, and the relay's own slate says so.
+
+- 51 pairs, **51 distinct ESPN event ids** as merge keys — no key collides, so no
+  merge would fold two real fixtures together.
+- 8 dates: `2026-08-08`, `08-15`, `08-16`, `08-19`, `08-22`, `08-23`, `08-29`,
+  `08-30`.
+- `slate_matches == 1` on all 51. Not one `doubleheader`, not one
+  `absent-from-slate`, not one `not-observable` — so the naming-mismatch failure
+  mode the self-test guards against did not fire.
+
+### The fields agree independently
+
+| field | `agree` | `differ` | `one-null` |
+|---|---|---|---|
+| venue | 46 | 5 | 0 |
+| home_score | 0 | 0 | 51 |
+| away_score | 0 | 0 | 51 |
+| start_time | 0 | 0 | 51 |
+| streams | 0 | 0 | 51 |
+
+`home_score`, `away_score`, `start_time` and `streams` are `one-null` on all 51 —
+the stub pattern, and the reason `classifyPair` could not answer. It reads
+`start_time` and `espn_event_id`, and both are absent from exactly one side of
+every pair.
+
+**`venue` agrees on 46 of 51 and never on a value the two rows could not share.**
+That is a second, independent line pointing the same way.
+
+### The five that disagree are why the slate goes first
+
+```
+2026-08-29  2026-08-29-mls-col-rsl    MLS_2026-08-29_colorado_saltlake
+2026-08-29  2026-08-29-mls-rbny-phi   MLS_2026-08-29_redbullny_philadelphia
+2026-08-22  2026-08-22-mls-rbny-chi   MLS_2026-08-22_redbullny_chicago
+2026-08-19  2026-08-19-mls-rbny-nsh   MLS_2026-08-19_redbullny_nashville
+2026-08-15  2026-08-15-mls-col-skc    MLS_2026-08-15_colorado_kansascity
+```
+
+All five are Colorado or Red Bull New York **home** games. Had `pairVerdict` let
+the fields win, these five would have been called `two-games` and the merge would
+have left them in place.
+
+The obvious reading is two spellings of one ground. **It is not recorded here as
+a finding, because the artifact stored the comparison state and not the strings**
+— and inferring "same stadium, renamed" from which club is at home is exactly the
+move this repo keeps deleting. The probe now records the value of every
+disagreeing field, and the next run fills this in.
+
+## What this unblocks
+
+`CC-CMD-2026-09-01-mls-dual-writer-duplicate` Task 3 says a shared upsert key
+"cannot be designed until the second writer has a name". For these 51 that is now
+false: each pair has an authoritative ESPN event id, and `d253209` already keys
+`/archive/game` on a bare numeric `source_id`. The key exists; the writer's
+identity is not needed to use it.
+
+**The merge itself is not taken here.** It deletes 51 rows, and *do not delete
+archive rows without explicit human approval* is standing.

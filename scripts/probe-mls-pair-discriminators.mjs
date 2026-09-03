@@ -276,6 +276,14 @@ if (isMain(import.meta.url)) {
       slate: sv, slate_matches: matches,
       merge_key: sv === 'one-fixture' ? (slateMatches(slate, a)[0]?.espnEventId ?? null) : null,
       fields: Object.fromEntries(Object.entries(comparisons).filter(([, s2]) => s2 !== 'both-null')),
+      // THE VALUES, for every field that DIFFERS. A comparison state alone forces
+      // the reader to infer why two venues disagree, and inferring "same stadium,
+      // renamed" from which club is at home is exactly the move this repo keeps
+      // deleting. Two spellings of one ground and two different grounds are
+      // different findings, and only the strings tell them apart.
+      differing: Object.fromEntries(SUBSTANTIVE
+        .filter(f => comparisons[f] === 'differ')
+        .map(f => [f, [a[f], b[f]]])),
     })
   }
 
@@ -306,6 +314,17 @@ if (isMain(import.meta.url)) {
   // `sameTeam` is a token-subset match, so an abbreviated slate entry against a
   // spelled-out archive row yields zero and reads as `absent-from-slate`. Count
   // it out loud so that failure mode is a number rather than a silence.
+  // Pairs the slate called ONE fixture while a field disagreed. These are the
+  // reason `pairVerdict` puts the slate first, and they are printed in full
+  // rather than counted: if the two venues turn out to be different grounds, the
+  // ordering is wrong and this is where that shows.
+  const contested = out.pairs.filter(p => p.slate === 'one-fixture' && Object.keys(p.differing).length)
+  if (contested.length) {
+    console.log(`\n  ${contested.length} pair(s) the slate called ONE fixture while a field disagreed:`)
+    for (const p of contested)
+      console.log(`    ${p.date}  ${p.ids.join('  ')}\n      ${JSON.stringify(p.differing)}`)
+  }
+
   const absent = out.pairs.filter(p => p.slate === 'absent-from-slate')
   if (absent.length) {
     console.log(`\n  ${absent.length} pair(s) the slate did not list. Read these before trusting the`)
