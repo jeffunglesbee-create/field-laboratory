@@ -51,6 +51,85 @@ a date appearing anywhere but the start, so an unanchored restatement would have
 counted `mls-2026-08-30-stl-dal` as dash-scheme and over-counted the
 reconciliation with nothing noticing. Two cases now cover it.
 
-## Result
+## Result — run `33796824941`. The reconciliation holds exactly, and the gap is my instrument.
 
-Pending the run.
+```
+rows 2724   unrecognised 956
+dash 540    predicted 540    GAP 416
+```
+
+**540 = 540.** The census's 591 over 2777 rows, minus the 51 merged away, lands
+on the number this restatement of the rule produces. The two predicates agree,
+which is what the prediction was for.
+
+### The 416 decompose into two things, and only one is a mystery
+
+| | rows |
+|---|---|
+| `${label}_${date}_${home}_${away}` — **our own shape, with a non-acronym label** | **397** |
+| round labels (`nba-ecf-2026-g1`, `nhl-east-semis-2026-g7`, `ufl-playoffs-2026-wk9`) | 19 |
+| | **416** |
+
+397 of the 416 are **not a foreign scheme at all.** They are the same
+`provider-composite` shape `/archive/game` writes, misfiled because
+`schemeOf`'s test is `/^[A-Z]{2,5}_/` — two to five UPPERCASE letters and then
+an underscore:
+
+```
+MLS_2026-08-29_a_b                            -> provider-composite
+Bundesliga_2026-08-28_bayern_stuttgart        -> unrecognised
+EFL Cup_2026-08-08_qpr_millwall               -> unrecognised
+FIFA World Cup 2026_2026-06-20_netherlands_sweden -> unrecognised
+Ligue 1_2026-09-03_e401876468                 -> unrecognised
+```
+
+A league whose label carries a **space**, a **lower-case letter**, or **more
+than five characters** falls through. `Bundesliga` fails on one letter of case.
+And the last line is `d253209`'s new numeric-ESPN key — **the key this session
+shipped is itself being filed as unrecognised** whenever the league is not an
+acronym.
+
+The eleven families, all one scheme wearing different label widths:
+
+```
+ 155  a a a 9_9-9-9_a_a      FIFA World Cup 2026_… · MLS 52
+ 109  a a_9-9-9_a_a          EFL Cup_… · La Liga · Serie A
+  48  a a a a a_9-9-9_a_a    UEFA Europa Conference League Qualifying_…
+  33  a a a a_9-9-9_a_a      UEFA Europa League Qualifying_… · UCL Qualifying
+  18  a 9_9-9-9_a_a          Ligue 1_…
+  15  a a_9-9-9_a9           PGA Tour_2026-06-26_src401811953
+   9  a_9-9-9_a_a            Bundesliga_…
+   7  a a_9-9-9_a_a9         EFL Trophy_…_brightonu21
+   1  a a a a_9-9-9_a_a9   ·   1  a a a a_9-9-9_a9_a   ·   1  a 9_9-9-9_a9
+```
+
+### The error is mine, and it is a reuse error
+
+`schemeOf` was built for `briefs.game_id`, where the capture measured
+`provider-composite 32 "MLS_MLS-COM-…"` — acronym labels. It is not wrong for
+that population. **I applied it to the games table, which carries full league
+names, and reported the regex's narrowness as a property of the data.**
+
+Every statement this session made about "956 `unrecognised` rows across 22
+sports" was measuring the classifier as much as the archive. The counts were
+real; the reading was not.
+
+### What is actually unaccounted for
+
+**19 rows.** Round labels in NBA, NHL and UFL — `nba-ecf-2026-g1`,
+`nhl-east-semis-2026-g7`, `ufl-playoffs-2026-wk9`. A genuine fourth scheme,
+addressing a series game by round and ordinal rather than by fixture. They are
+the only ids in the archive whose key space nothing in this repo names.
+
+## What this does NOT change
+
+The merges. `mixedScheme` compares scheme *labels* for inequality — it never
+needed either label to be right, only different — and the 53 pairs it found were
+`provider-composite` against a genuinely foreign shape in every case. A pair of
+two mislabelled rows would have compared equal and never entered a plan.
+
+## Next
+
+`schemeOf`'s `provider-composite` test needs widening, and that is a change to a
+classifier `game-id-check.mjs` asserts fixed counts against — so it is its own
+task with its own before/after, not a fix to smuggle in here.
