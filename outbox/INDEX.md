@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `187cd32` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: the five disagreeing venues are naming, measured not inferred |
+| `d254468` | 2026-09-03 | [mls-pair-discriminators-latest.json](mls-pair-discriminators-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `b8b61bd` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: RESOLVED — all 51 MLS pairs are one fixture, and the slate says so |
+| `c0bf5e9` | 2026-09-03 | [mls-pair-discriminators-latest.json](mls-pair-discriminators-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `99bdc7a` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | outbox: restore the recon section a shell expansion ate |
 | `4243954` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: the MLS pairs are resolvable — the slate answers what four fields could not |
 | `c20cc90` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: is `indistinguishable` the data, or the instrument? |
 | `7d65a80` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: WIDER THAN FILED — 51 MLS, and 2 WNBA under a third id scheme |
