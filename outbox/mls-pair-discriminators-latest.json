@@ -1,0 +1,982 @@
+{
+  "probed_at": "2026-09-03T16:08:46.119Z",
+  "clusters": 51,
+  "verdicts": {
+    "duplicate": 51
+  },
+  "from": {
+    "slate": 51
+  },
+  "pairs": [
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-sd-la",
+        "MLS_2026-08-29_sandiego_lagalaxy"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761767",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-por-atx",
+        "MLS_2026-08-29_portland_austin"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761768",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-nsh-cin",
+        "MLS_2026-08-29_nashville_cincinnati"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761764",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-min-orl",
+        "MLS_2026-08-29_minnesota_orlando"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761763",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-skc-van",
+        "MLS_2026-08-29_kansascity_vancouver"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761762",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-hou-sj",
+        "MLS_2026-08-29_houston_sanjose"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761765",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-col-rsl",
+        "MLS_2026-08-29_colorado_saltlake"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761766",
+      "fields": {
+        "venue": "differ",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-sea-chi",
+        "MLS_2026-08-29_seattle_chicago"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761755",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-rbny-phi",
+        "MLS_2026-08-29_redbullny_philadelphia"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761761",
+      "fields": {
+        "venue": "differ",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-mia-mtl",
+        "MLS_2026-08-29_miami_cfmontral"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761757",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-29",
+      "ids": [
+        "2026-08-29-mls-atl-clt",
+        "MLS_2026-08-29_atlanta_charlotte"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761759",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-van-dal",
+        "MLS_2026-08-22_vancouver_dallas"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761749",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-stl-hou",
+        "MLS_2026-08-22_stlouis_houston"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761747",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-sj-min",
+        "MLS_2026-08-22_sanjose_minnesota"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761752",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-sd-col",
+        "MLS_2026-08-22_sandiego_colorado"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761750",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-nsh-clb",
+        "MLS_2026-08-22_nashville_columbus"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761746",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-atx-phi",
+        "MLS_2026-08-22_austin_philadelphia"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761748",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-orl-rsl",
+        "MLS_2026-08-22_orlando_saltlake"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761740",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-rbny-chi",
+        "MLS_2026-08-22_redbullny_chicago"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761744",
+      "fields": {
+        "venue": "differ",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-mtl-la",
+        "MLS_2026-08-22_cfmontral_lagalaxy"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761745",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-mia-tor",
+        "MLS_2026-08-22_miami_toronto"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761742",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-cin-sea",
+        "MLS_2026-08-22_cincinnati_seattle"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761743",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-22",
+      "ids": [
+        "2026-08-22-mls-clt-dc",
+        "MLS_2026-08-22_charlotte_dcunited"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761741",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-van-hou",
+        "MLS_2026-08-19_vancouver_houston"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761739",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-sea-atx",
+        "MLS_2026-08-19_seattle_austin"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761736",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-rsl-dal",
+        "MLS_2026-08-19_saltlake_dallas"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761735",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-por-sd",
+        "MLS_2026-08-19_portland_sandiego"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761737",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-min-atl",
+        "MLS_2026-08-19_minnesota_atlanta"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761733",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-la-sj",
+        "MLS_2026-08-19_lagalaxy_sanjose"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761738",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-skc-stl",
+        "MLS_2026-08-19_kansascity_stlouis"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761732",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-tor-clt",
+        "MLS_2026-08-19_toronto_charlotte"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761731",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-phi-mia",
+        "MLS_2026-08-19_philadelphia_miami"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761727",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-orl-chi",
+        "MLS_2026-08-19_orlando_chicago"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761729",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-rbny-nsh",
+        "MLS_2026-08-19_redbullny_nashville"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761728",
+      "fields": {
+        "venue": "differ",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-dc-ne",
+        "MLS_2026-08-19_dcunited_newengland"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761725",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-19",
+      "ids": [
+        "2026-08-19-mls-clb-mtl",
+        "MLS_2026-08-19_columbus_cfmontral"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761726",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-sj-stl",
+        "MLS_2026-08-15_sanjose_stlouis"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761721",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-rsl-min",
+        "MLS_2026-08-15_saltlake_minnesota"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761719",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-nsh-mia",
+        "MLS_2026-08-15_nashville_miami"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761716",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-hou-la",
+        "MLS_2026-08-15_houston_lagalaxy"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761715",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-col-skc",
+        "MLS_2026-08-15_colorado_kansascity"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761718",
+      "fields": {
+        "venue": "differ",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-tor-ne",
+        "MLS_2026-08-15_toronto_newengland"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761714",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-orl-cin",
+        "MLS_2026-08-15_orlando_cincinnati"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761713",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-mtl-dc",
+        "MLS_2026-08-15_cfmontral_dcunited"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761711",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-clt-clb",
+        "MLS_2026-08-15_charlotte_columbus"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761710",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-15",
+      "ids": [
+        "2026-08-15-mls-atl-rbny",
+        "MLS_2026-08-15_atlanta_redbullny"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761712",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-30",
+      "ids": [
+        "2026-08-30-mls-stl-dal",
+        "MLS_2026-08-30_stlouis_dallas"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761769",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-30",
+      "ids": [
+        "MLS_2026-08-30_columbus_newengland",
+        "2026-08-30-mls-clb-ne"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761758",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-23",
+      "ids": [
+        "2026-08-23-mls-atl-skc",
+        "MLS_2026-08-23_atlanta_kansascity"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761754",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-16",
+      "ids": [
+        "2026-08-16-mls-chi-por",
+        "MLS_2026-08-16_chicago_portland"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761723",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    },
+    {
+      "date": "2026-08-08",
+      "ids": [
+        "2026-08-08-mls-ne-hou",
+        "MLS_2026-08-08_newengland_houston"
+      ],
+      "verdict": "duplicate",
+      "from": "slate",
+      "slate": "one-fixture",
+      "slate_matches": 1,
+      "merge_key": "761469",
+      "fields": {
+        "venue": "agree",
+        "home_score": "one-null",
+        "away_score": "one-null",
+        "start_time": "one-null",
+        "streams": "one-null"
+      }
+    }
+  ],
+  "error": null
+}
