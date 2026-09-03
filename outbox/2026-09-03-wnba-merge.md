@@ -81,6 +81,49 @@ Two distinct merge keys, `401857006` and `401857007`.
 
 **Four writes.** Against 212 for MLS.
 
-## Result
+## EXECUTED — run `33788211815`
 
-Pending execution.
+```
+executed True   results 2
+losers gone:        True
+survivors present:  True
+dangling:           0
+
+wnba_2026-06-20_atlantadre_indianafev -> WNBA_2026-06-20_dream_fever    401857006
+wnba_2026-06-20_phoenixmer_seattlesto -> WNBA_2026-06-20_mercury_storm  401857007
+```
+
+## The archive is clean — sweep `33788288716`
+
+```
+rows 2724   clusters 129   MIXED 0
+mixed_by_sport: {}
+by_scheme: {unrecognised: 956, sport-prefixed-external: 156, provider-composite: 1612}
+```
+
+**Zero mixed-scheme clusters anywhere in the archive.** 53 at the start of the
+day.
+
+| | start | after MLS | after WNBA |
+|---|---|---|---|
+| mixed-scheme clusters | 53 | 2 | **0** |
+| rows in both game tables | 2777 | 2726 | 2724 |
+| same-fixture clusters | 182 | 131 | 129 |
+| `unrecognised` | 1007 | 956 | **956** |
+| `sport-prefixed-external` | 158 | 158 | **156** |
+
+The last two rows are the check that matters. The WNBA losers were
+`sport-prefixed-external`, **not** the dash shape — so that count had to fall by
+2 and `unrecognised` had to stay still. Both did. A merge that had deleted the
+wrong rows would have moved the wrong counter, and the totals alone would not
+have shown it.
+
+## What this does NOT fix
+
+**956 `unrecognised` rows remain across 22 sports**, and they are not duplicates:
+only MLS ever produced mixed-scheme clusters, so for those the non-standard
+writer is the *only* writer for that fixture. Merging is not the question there.
+
+**The external writer is still running.** This merged the rows that existed.
+`CC-CMD-2026-09-02-d1-write-provenance`'s instrumentation went live in `17ec554`
+and is watching for the next one.
