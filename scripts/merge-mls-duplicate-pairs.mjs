@@ -207,6 +207,21 @@ if (isMain(import.meta.url)) {
     return games
   }
 
+  // Every table /d1/execute will let us read, and which of their columns holds a
+  // games id. `game_id` is the convention; `id` is excluded because it is the
+  // table's own key, not a reference.
+  const ALLOWED = ['odds_history', 'odds_backfill_progress', 'regular_season_games', 'postseason_games',
+    'change_log', 'analytics_output', 'briefs', 'codex', 'jq_retry_telemetry', 'game_thread_notes']
+  const REFERENCERS = []
+  for (const t of ALLOWED) {
+    if (t === 'regular_season_games' || t === 'postseason_games') continue
+    let cols = []
+    try { cols = await d1(`PRAGMA table_info(${t})`) } catch { continue }
+    for (const c of cols)
+      if (/^game_id$/i.test(c.name) || /_game_id$/i.test(c.name)) REFERENCERS.push([t, c.name])
+  }
+  console.log(`  referencing column(s) discovered: ${REFERENCERS.map(([t, c]) => `${t}.${c}`).join(', ') || '(none)'}\n`)
+
   const plan = []
   const refused = []
 
@@ -226,23 +241,30 @@ if (isMain(import.meta.url)) {
     const payload = mergePayload(pick.survivor, pick.loser)
     if (nul(pick.survivor.espn_event_id) && !payload.espn_event_id) payload.espn_event_id = key
 
-    // REFERENTIAL SAFETY. A brief or a change_log row pointing at the loser
-    // orphans the moment it goes. Counted per pair, and any hit blocks.
-    const [briefs, chlog] = await Promise.all([
-      d1(`SELECT COUNT(*) n FROM briefs WHERE game_id = ?`, [pick.loser.id]),
-      d1(`SELECT COUNT(*) n FROM change_log WHERE game_id = ?`, [pick.loser.id]),
-    ])
+    // REFERENTIAL SAFETY, over every table that actually references a game —
+    // DISCOVERED, not listed from memory. The first version of this checked
+    // `briefs` and `change_log` because those were the two I could name, which
+    // is the same guess-instead-of-probe this repo keeps deleting. REFERENCERS
+    // is built from PRAGMA table_info over the /d1/execute allowlist, so a table
+    // with a game-id column that nobody remembered still blocks.
+    const refs = {}
+    for (const [table, col] of REFERENCERS) {
+      const n = await d1(`SELECT COUNT(*) n FROM ${table} WHERE ${col} = ?`, [pick.loser.id])
+      const k = Number(n[0]?.n ?? 0)
+      if (k) refs[`${table}.${col}`] = k
+    }
     plan.push({
       date: c.date, key,
       survivor: pick.survivor.id, loser: pick.loser.id,
-      payload, briefs_on_loser: Number(briefs[0]?.n ?? 0), changelog_on_loser: Number(chlog[0]?.n ?? 0),
+      payload, refs,
     })
   }
 
   for (const p of plan.slice(0, 60)) {
     console.log(`  ${p.date}  key=${p.key}`)
     console.log(`     keep   ${p.survivor}`)
-    console.log(`     delete ${p.loser}${p.briefs_on_loser ? `   BRIEFS=${p.briefs_on_loser}` : ''}${p.changelog_on_loser ? `  CHANGE_LOG=${p.changelog_on_loser}` : ''}`)
+    const r = Object.entries(p.refs).map(([k, n]) => `${k}=${n}`).join('  ')
+    console.log(`     delete ${p.loser}${r ? `   refs: ${r}` : ''}`)
     console.log(`     absorb ${Object.keys(p.payload).length ? Object.keys(p.payload).join(', ') : '(nothing)'}`)
   }
 
@@ -267,12 +289,34 @@ if (isMain(import.meta.url)) {
     'zero pairs planned — read that rather than reporting a clean merge')
   say(refused.length === 0, 'no pair was refused',
     `${refused.length} refused; a merge that proceeds past a refusal is not the merge that was reviewed`)
-  const withBriefs = plan.filter(p => p.briefs_on_loser > 0)
-  say(withBriefs.length === 0, 'no brief references a row that would be deleted',
-    `${withBriefs.length} pair(s) would orphan a brief: ${withBriefs.map(p => p.loser).join(', ')}`)
-  const withChlog = plan.filter(p => p.changelog_on_loser > 0)
-  say(withChlog.length === 0, 'no change_log row references a row that would be deleted',
-    `${withChlog.length} pair(s): ${withChlog.map(p => p.loser).join(', ')}`)
+  say(REFERENCERS.length > 0, 'at least one referencing column was discovered',
+    'zero means PRAGMA returned nothing and the referential check measured NOTHING — '
+    + 'which would look exactly like a clean merge')
+  const totals = {}
+  for (const p of plan) for (const [k, n] of Object.entries(p.refs)) totals[k] = (totals[k] ?? 0) + n
+  if (Object.keys(totals).length) {
+    console.log('\n  rows in other tables pointing at a row that would be deleted:')
+    for (const [k, n] of Object.entries(totals)) console.log(`    ${String(n).padStart(4)}  ${k}`)
+  }
+  // SAMPLE THE ACTUAL ROWS. A count says a reference exists; it does not say
+  // whether repointing it at the survivor is right, disposable, or wrong. That
+  // decision needs the content, and reading it from a count is the shape of
+  // error this session has already made twice today.
+  const sample = plan.find(p => Object.keys(p.refs).length)
+  if (sample) {
+    console.log(`\n  sample of what points at ${sample.loser}:`)
+    for (const [k] of Object.entries(sample.refs)) {
+      const [table, col] = k.split('.')
+      const got = await d1(`SELECT * FROM ${table} WHERE ${col} = ? LIMIT 3`, [sample.loser])
+      for (const g of got) console.log(`    ${table}: ${JSON.stringify(g).slice(0, 320)}`)
+    }
+  }
+
+  const orphaning = plan.filter(p => Object.keys(p.refs).length)
+  say(orphaning.length === 0, 'nothing else references a row that would be deleted',
+    `${orphaning.length} of ${plan.length} pair(s) would orphan a reference. `
+    + `Totals: ${Object.entries(totals).map(([k, n]) => `${k}=${n}`).join(', ')}. `
+    + 'Repoint them at the survivor or decide they are disposable — do not delete past this.')
   say(new Set(plan.map(p => p.key)).size === plan.length, 'every merge key is distinct',
     'two pairs resolving to one event id would fold two real fixtures together')
   say(new Set(plan.map(p => p.survivor)).size === plan.length, 'every survivor is distinct')
