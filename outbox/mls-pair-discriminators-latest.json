@@ -1,5 +1,5 @@
 {
-  "probed_at": "2026-09-03T16:08:46.119Z",
+  "probed_at": "2026-09-03T16:11:17.671Z",
   "clusters": 51,
   "verdicts": {
     "duplicate": 51
@@ -25,7 +25,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -44,7 +45,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -63,7 +65,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -82,7 +85,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -101,7 +105,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -120,7 +125,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -139,6 +145,12 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
+      },
+      "differing": {
+        "venue": [
+          "DICK'S Sporting Goods Park",
+          "Dick's Sporting Goods Park"
+        ]
       }
     },
     {
@@ -158,7 +170,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -177,6 +190,12 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
+      },
+      "differing": {
+        "venue": [
+          "Sports Illustrated Stadium",
+          "Red Bull Arena"
+        ]
       }
     },
     {
@@ -196,7 +215,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-29",
@@ -215,7 +235,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -234,7 +255,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -253,7 +275,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -272,7 +295,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -291,7 +315,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -310,7 +335,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -329,7 +355,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -348,7 +375,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -367,6 +395,12 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
+      },
+      "differing": {
+        "venue": [
+          "Sports Illustrated Stadium",
+          "Red Bull Arena"
+        ]
       }
     },
     {
@@ -386,7 +420,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -405,7 +440,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -424,7 +460,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-22",
@@ -443,7 +480,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -462,7 +500,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -481,7 +520,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -500,7 +540,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -519,7 +560,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -538,7 +580,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -557,7 +600,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -576,7 +620,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -595,7 +640,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -614,7 +660,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -633,7 +680,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -652,6 +700,12 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
+      },
+      "differing": {
+        "venue": [
+          "Sports Illustrated Stadium",
+          "Red Bull Arena"
+        ]
       }
     },
     {
@@ -671,7 +725,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-19",
@@ -690,7 +745,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -709,7 +765,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -728,7 +785,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -747,7 +805,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -766,7 +825,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -785,6 +845,12 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
+      },
+      "differing": {
+        "venue": [
+          "DICK'S Sporting Goods Park",
+          "Dick's Sporting Goods Park"
+        ]
       }
     },
     {
@@ -804,7 +870,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -823,7 +890,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -842,7 +910,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -861,7 +930,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-15",
@@ -880,7 +950,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-30",
@@ -899,7 +970,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-30",
@@ -918,7 +990,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-23",
@@ -937,7 +1010,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-16",
@@ -956,7 +1030,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     },
     {
       "date": "2026-08-08",
@@ -975,7 +1050,8 @@
         "away_score": "one-null",
         "start_time": "one-null",
         "streams": "one-null"
-      }
+      },
+      "differing": {}
     }
   ],
   "error": null
