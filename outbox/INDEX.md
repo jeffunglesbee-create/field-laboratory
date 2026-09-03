@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ac0c42a` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: the loser's audit row is a byte-identical duplicate, which inverts the repoint |
+| `dd669e9` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `d4278aa` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: sample both sides, because 43 of 51 pairs carry references on each |
 | `9ccdbfd` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `4cbe748` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: repoint the references instead of orphaning them, and a third table found |
