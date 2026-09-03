@@ -1,5 +1,5 @@
 {
-  "probed_at": "2026-09-03T17:10:11.654Z",
+  "probed_at": "2026-09-03T17:13:24.888Z",
   "executed": false,
   "planned": 51,
   "refused": [],
@@ -12,6 +12,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -22,6 +25,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -32,6 +38,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -42,6 +51,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -52,6 +64,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -62,6 +77,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -72,6 +90,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -81,6 +102,9 @@
       "loser": "2026-08-29-mls-sea-chi",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -94,7 +118,8 @@
       },
       "refs": {
         "change_log.game_id": 1
-      }
+      },
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-29",
@@ -104,6 +129,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -114,6 +142,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -125,6 +156,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -134,6 +168,9 @@
       "loser": "2026-08-22-mls-stl-hou",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -146,6 +183,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -157,6 +197,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -165,7 +208,8 @@
       "survivor": "MLS_2026-08-22_nashville_columbus",
       "loser": "2026-08-22-mls-nsh-clb",
       "payload": {},
-      "refs": {}
+      "refs": {},
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-22",
@@ -176,6 +220,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -185,6 +232,9 @@
       "loser": "2026-08-22-mls-orl-rsl",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -198,7 +248,8 @@
       },
       "refs": {
         "change_log.game_id": 1
-      }
+      },
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-22",
@@ -209,6 +260,10 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 1
       }
     },
     {
@@ -220,6 +275,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -231,6 +289,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -242,6 +303,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -251,6 +315,9 @@
       "loser": "2026-08-19-mls-van-hou",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -263,6 +330,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -274,6 +344,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -285,6 +358,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -294,6 +370,9 @@
       "loser": "2026-08-19-mls-min-atl",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -306,6 +385,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -317,6 +399,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -328,6 +413,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -339,6 +427,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -348,6 +439,9 @@
       "loser": "2026-08-19-mls-orl-chi",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -361,7 +455,8 @@
       },
       "refs": {
         "change_log.game_id": 1
-      }
+      },
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-19",
@@ -372,6 +467,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -380,7 +478,8 @@
       "survivor": "MLS_2026-08-19_columbus_cfmontral",
       "loser": "2026-08-19-mls-clb-mtl",
       "payload": {},
-      "refs": {}
+      "refs": {},
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-15",
@@ -391,6 +490,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -402,6 +504,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -413,6 +518,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -422,6 +530,9 @@
       "loser": "2026-08-15-mls-hou-la",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -434,6 +545,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -445,6 +559,9 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -454,6 +571,9 @@
       "loser": "2026-08-15-mls-orl-cin",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     },
@@ -466,6 +586,10 @@
       "refs": {
         "odds_history.game_id": 1,
         "change_log.game_id": 5
+      },
+      "survivorRefs": {
+        "odds_history.game_id": 1,
+        "change_log.game_id": 1
       }
     },
     {
@@ -474,7 +598,8 @@
       "survivor": "MLS_2026-08-15_charlotte_columbus",
       "loser": "2026-08-15-mls-clt-clb",
       "payload": {},
-      "refs": {}
+      "refs": {},
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-15",
@@ -486,7 +611,8 @@
       },
       "refs": {
         "change_log.game_id": 1
-      }
+      },
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-30",
@@ -496,6 +622,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -504,7 +633,8 @@
       "survivor": "MLS_2026-08-30_columbus_newengland",
       "loser": "2026-08-30-mls-clb-ne",
       "payload": {},
-      "refs": {}
+      "refs": {},
+      "survivorRefs": {}
     },
     {
       "date": "2026-08-23",
@@ -514,6 +644,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 2
       }
     },
     {
@@ -524,6 +657,9 @@
       "payload": {},
       "refs": {
         "change_log.game_id": 1
+      },
+      "survivorRefs": {
+        "change_log.game_id": 1
       }
     },
     {
@@ -533,6 +669,9 @@
       "loser": "2026-08-08-mls-ne-hou",
       "payload": {},
       "refs": {
+        "change_log.game_id": 1
+      },
+      "survivorRefs": {
         "change_log.game_id": 1
       }
     }
