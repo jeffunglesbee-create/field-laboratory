@@ -1,0 +1,230 @@
+{
+  "probed_at": "2026-09-03T19:30:38.133Z",
+  "rows_seen": 2724,
+  "unrecognised": 956,
+  "dash": 540,
+  "gap": 416,
+  "predicted_dash": 540,
+  "families": [
+    {
+      "sig": "9-9-9-a-a-a",
+      "n": 538,
+      "dash": 538,
+      "examples": [
+        "2026-05-25-mlb-pittsb-chicag",
+        "2026-05-25-mlb-baltim-tampa",
+        "2026-05-25-mlb-milwau-stlo"
+      ],
+      "sports": {
+        "MLB": 61,
+        "IPL": 2,
+        "MLS": 417,
+        "EPL": 26,
+        "La Liga": 10,
+        "WNBA": 19,
+        "UEFA Champions League": 1,
+        "UEFA Europa League": 1,
+        "UEFA Europa Conference League": 1
+      }
+    },
+    {
+      "sig": "a a a 9_9-9-9_a_a",
+      "n": 155,
+      "dash": 0,
+      "examples": [
+        "FIFA World Cup 2026_2026-06-20_netherlands_sweden",
+        "FIFA World Cup 2026_2026-06-20_germany_ivorycoast",
+        "FIFA World Cup 2026_2026-06-21_tunisia_japan"
+      ],
+      "sports": {
+        "FIFA World Cup": 103,
+        "MLS": 52
+      }
+    },
+    {
+      "sig": "a a_9-9-9_a_a",
+      "n": 109,
+      "dash": 0,
+      "examples": [
+        "EFL Cup_2026-08-08_cambridge_barnet",
+        "EFL Cup_2026-08-08_qpr_millwall",
+        "EFL Cup_2026-08-08_wimbledon_newport"
+      ],
+      "sports": {
+        "EFL Cup": 57,
+        "La Liga": 30,
+        "EFL Trophy": 2,
+        "Serie A": 20
+      }
+    },
+    {
+      "sig": "a a a a a_9-9-9_a_a",
+      "n": 48,
+      "dash": 0,
+      "examples": [
+        "UEFA Europa Conference League Qualifying_2026-08-20_interturku_kbenhavn",
+        "UEFA Europa Conference League Qualifying_2026-08-20_redimps_larne",
+        "UEFA Europa Conference League Qualifying_2026-08-20_midtjylland_rijeka"
+      ],
+      "sports": {
+        "UEFA Europa Conference League Qualifying": 48
+      }
+    },
+    {
+      "sig": "a a a a_9-9-9_a_a",
+      "n": 33,
+      "dash": 0,
+      "examples": [
+        "UEFA Europa League Qualifying_2026-08-20_kairatalmaty_anderlecht",
+        "UEFA Europa League Qualifying_2026-08-20_mjllby_rbsalzburg",
+        "UEFA Europa League Qualifying_2026-08-20_besiktas_kaunozalgiris"
+      ],
+      "sports": {
+        "UEFA Europa League Qualifying": 22,
+        "UEFA Champions League Qualifying": 11
+      }
+    },
+    {
+      "sig": "a 9_9-9-9_a_a",
+      "n": 18,
+      "dash": 0,
+      "examples": [
+        "Ligue 1_2026-08-21_marseille_strasbourg",
+        "Ligue 1_2026-08-22_lens_auxerre",
+        "Ligue 1_2026-08-22_lemans_brest"
+      ],
+      "sports": {
+        "Ligue 1": 18
+      }
+    },
+    {
+      "sig": "a-a-9-a9",
+      "n": 17,
+      "dash": 0,
+      "examples": [
+        "nba-ecf-2026-g1",
+        "nba-ecf-2026-g3",
+        "nba-ecf-2026-g4"
+      ],
+      "sports": {
+        "NBA": 8,
+        "NHL": 7,
+        "UFL": 2
+      }
+    },
+    {
+      "sig": "a a_9-9-9_a9",
+      "n": 15,
+      "dash": 0,
+      "examples": [
+        "PGA Tour_2026-06-26_src401811953",
+        "PGA Tour_2026-06-29_src401811953",
+        "PGA Tour_2026-07-02_src401811954"
+      ],
+      "sports": {
+        "PGA Tour": 14,
+        "La Liga": 1
+      }
+    },
+    {
+      "sig": "a_9-9-9_a_a",
+      "n": 9,
+      "dash": 0,
+      "examples": [
+        "Bundesliga_2026-08-28_bayern_stuttgart",
+        "Bundesliga_2026-08-29_unionberlin_frankfurt",
+        "Bundesliga_2026-08-29_cologne_hoffenheim"
+      ],
+      "sports": {
+        "Bundesliga": 9
+      }
+    },
+    {
+      "sig": "a a_9-9-9_a_a9",
+      "n": 7,
+      "dash": 0,
+      "examples": [
+        "EFL Trophy_2026-08-18_northampton_brightonu21",
+        "EFL Trophy_2026-08-18_stockport_evertonu21",
+        "EFL Trophy_2026-08-18_wigan_avillau21"
+      ],
+      "sports": {
+        "EFL Trophy": 7
+      }
+    },
+    {
+      "sig": "9-9-9-a9-a-a",
+      "n": 2,
+      "dash": 2,
+      "examples": [
+        "2026-05-13-ligue1-brest-strasb",
+        "2026-05-13-ligue1-lens-paris"
+      ],
+      "sports": {
+        "Ligue 1": 2
+      }
+    },
+    {
+      "sig": "a-a-a-9-a9",
+      "n": 2,
+      "dash": 0,
+      "examples": [
+        "nhl-east-semis-2026-g6",
+        "nhl-east-semis-2026-g7"
+      ],
+      "sports": {
+        "NHL": 2
+      }
+    },
+    {
+      "sig": "a a a a_9-9-9_a_a9",
+      "n": 1,
+      "dash": 0,
+      "examples": [
+        "UEFA Europa League Qualifying_2026-08-20_jagiellonia_iberia1999"
+      ],
+      "sports": {
+        "UEFA Europa League Qualifying": 1
+      }
+    },
+    {
+      "sig": "a a a a_9-9-9_a9_a",
+      "n": 1,
+      "dash": 0,
+      "examples": [
+        "UEFA Europa League Qualifying_2026-08-27_iberia1999_jagiellonia"
+      ],
+      "sports": {
+        "UEFA Europa League Qualifying": 1
+      }
+    },
+    {
+      "sig": "a 9_9-9-9_a9",
+      "n": 1,
+      "dash": 0,
+      "examples": [
+        "Ligue 1_2026-09-03_e401876468"
+      ],
+      "sports": {
+        "Ligue 1": 1
+      }
+    }
+  ],
+  "gap_by_sport": {
+    "FIFA World Cup": 103,
+    "PGA Tour": 14,
+    "MLS": 52,
+    "EFL Cup": 57,
+    "La Liga": 31,
+    "EFL Trophy": 9,
+    "UEFA Europa League Qualifying": 24,
+    "UEFA Europa Conference League Qualifying": 48,
+    "UEFA Champions League Qualifying": 11,
+    "Ligue 1": 19,
+    "Serie A": 20,
+    "Bundesliga": 9,
+    "NBA": 8,
+    "NHL": 9,
+    "UFL": 2
+  }
+}
