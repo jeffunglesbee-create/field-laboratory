@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1e39026` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: the 416-row gap is 397 of OUR OWN rows misfiled, and 19 genuine unknowns |
+| `6739e3b` | 2026-09-03 | [unrecognised-id-shapes-latest.json](unrecognised-id-shapes-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
+| `6a5c48c` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: measure the 416-row gap between `unrecognised` and dash-scheme |
 | `89e9b4e` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: WNBA executed — the archive holds ZERO mixed-scheme clusters |
 | `27bc4b9` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `6a70ad9` | 2026-09-03 | [wnba-merge-latest.json](wnba-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
