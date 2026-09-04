@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `279df96` | 2026-09-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-04 [skip ci] |
+| `279df96` | 2026-09-04 | [sport-vocabulary-2026-09-04T06-07-53-007Z.json](sport-vocabulary-2026-09-04T06-07-53-007Z.json) | drift-sentinel: ok on 2026-09-04 [skip ci] |
 | `1e39026` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: the 416-row gap is 397 of OUR OWN rows misfiled, and 19 genuine unknowns |
 | `6739e3b` | 2026-09-03 | [unrecognised-id-shapes-latest.json](unrecognised-id-shapes-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
 | `6a5c48c` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: measure the 416-row gap between `unrecognised` and dash-scheme |
