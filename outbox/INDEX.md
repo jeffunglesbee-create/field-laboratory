@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f74e42e` | 2026-09-04 | [2026-09-03-font-family-guard.md](2026-09-03-font-family-guard.md) | check: assert the rendered font-family, because "two fonts only" never reached the page |
 | `279df96` | 2026-09-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-04 [skip ci] |
 | `279df96` | 2026-09-04 | [sport-vocabulary-2026-09-04T06-07-53-007Z.json](sport-vocabulary-2026-09-04T06-07-53-007Z.json) | drift-sentinel: ok on 2026-09-04 [skip ci] |
 | `1e39026` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: the 416-row gap is 397 of OUR OWN rows misfiled, and 19 genuine unknowns |
