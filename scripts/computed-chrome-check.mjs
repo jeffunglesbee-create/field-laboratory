@@ -42,6 +42,7 @@ import { join } from 'node:path'
 import { chromium } from 'playwright'
 import { createChecks, isMain } from './checks.mjs'
 import { LEDGER, parseLedger } from './not-observable.mjs'
+import * as Typography from '../build/Typography.js'
 
 const sessionChromium = '/opt/pw-browsers/chromium'
 const URL = process.env.URL || 'http://localhost:8080/?data=games-2026-08-09'
@@ -743,6 +744,97 @@ const dead = result.declared.filter(c => !emitted.has(c))
 check('every class in the stylesheet is emitted by something',
   dead.length === 0,
   `${dead.map(c => '.' + c).join(', ')} — in no rendered page and no view source`)
+
+// ── 4. Every visible glyph is set in one of the two declared faces ─────────
+//
+// "Two fonts only" is enforced twice and neither reaches the page. `Font` is a
+// closed union, so F# cannot NAME a third face; `design-tokens-check` asserts the
+// injected `--font-identity` / `--font-body` EQUAL `Typography.fontFamily`. Both
+// are true and neither says anything about a rule elsewhere in the stylesheet
+// setting `font-family` directly — a vendored third-party stylesheet, a hand-added
+// rule, a UA default reaching an element nothing styles. This check reads
+// `fontFamily` off rendered nodes, which is the only place that question is
+// answerable.
+//
+// FOUND WHILE COSTING A CHARTING LIBRARY. uPlot ships a required stylesheet whose
+// first rule is `.uplot { font-family: system-ui, -apple-system, "Segoe UI", … }`.
+// Vendoring it would put a third font stack on the page and every existing guard
+// would pass. The gap is not about uPlot — it is about anything.
+//
+// THE CORPUS IS ELEMENTS THAT OWN VISIBLE TEXT, not every element. font-family
+// inherits, so a wrapper reports its parent's face and would triple-count one
+// violation while a `<div>` with no text would report a face nobody can see.
+// An element with its own non-empty text node is exactly the set whose font a
+// reader actually sees.
+const FACES = Array.from(Typography.allFonts).map(Typography.fontFamily)
+const normFont = f => String(f ?? '').replace(/["']/g, '').replace(/\s+/g, ' ').trim().toLowerCase()
+
+const fontScan = await page.evaluate(() => {
+  const out = []
+  for (const el of document.querySelectorAll('body *')) {
+    // Own text, not descendants': a wrapper is not what renders the glyph.
+    const own = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
+    if (!own) continue
+    const s = getComputedStyle(el)
+    if (s.display === 'none' || s.visibility === 'hidden') continue
+    out.push({ sel: el.className || el.tagName.toLowerCase(), font: s.fontFamily })
+  }
+  return out
+})
+
+const declaredFaces = new Set(FACES.map(normFont))
+const strayFonts = fontScan.filter(r => !declaredFaces.has(normFont(r.font)))
+const distinctStray = [...new Map(strayFonts.map(r => [normFont(r.font), r])).values()]
+
+// VACUITY FIRST, the lesson this file already learned once: a run that scanned
+// nothing would report zero strays and pass.
+check(`the font corpus is real (${fontScan.length} text-bearing element(s))`,
+  fontScan.length > 20,
+  `${fontScan.length} scanned — the assertion below would pass vacuously`)
+check('there are exactly two declared faces to check against', FACES.length === 2,
+  `Typography.allFonts yielded ${FACES.length}`)
+
+check('every visible glyph is set in one of the two declared faces',
+  strayFonts.length === 0,
+  distinctStray.map(r => `${r.sel}: ${r.font}`).join(' | ')
+  + ` — ${strayFonts.length} element(s) across ${distinctStray.length} stack(s) outside `
+  + FACES.join(' / '))
+
+// ── 4b. THE POSITIVE CONTROL, because a silent detector and a clean page look
+// identical. A rogue face is injected, the same scan re-run, and the detector
+// must fire on it. Then the rule is removed and the page re-verified clean, so
+// the control cannot leave the corpus dirty for anything after it.
+const CONTROL_FACE = 'Comic Sans MS'
+const control = await page.evaluate(async (face) => {
+  const st = document.createElement('style')
+  st.id = 'font-detector-control'
+  st.textContent = `body * { font-family: "${face}" !important; }`
+  document.head.appendChild(st)
+  const seen = []
+  for (const el of document.querySelectorAll('body *')) {
+    const own = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
+    if (own) seen.push(getComputedStyle(el).fontFamily)
+  }
+  st.remove()
+  const after = []
+  for (const el of document.querySelectorAll('body *')) {
+    const own = [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())
+    if (own) after.push(getComputedStyle(el).fontFamily)
+  }
+  return { seen, after }
+}, CONTROL_FACE)
+
+const caughtByControl = control.seen.filter(f => !declaredFaces.has(normFont(f))).length
+check(`the detector fires on an injected ${CONTROL_FACE} rule`,
+  control.seen.length > 0 && caughtByControl === control.seen.length,
+  `${caughtByControl}/${control.seen.length} caught — a detector that misses a face `
+  + 'this loud would miss a vendored stylesheet silently')
+check('...and the control left the page as it found it',
+  control.after.every(f => declaredFaces.has(normFont(f))),
+  'the injected rule outlived its removal, so every check after this one is suspect')
+
+for (const r of distinctStray)
+  console.log(`      stray face: ${r.font}  (first seen on ${r.sel})`)
 
 check('no page errors during any of this', errors.length === 0, errors.join('; '))
 
