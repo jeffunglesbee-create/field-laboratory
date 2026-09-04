@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5084637` | 2026-09-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-04 [skip ci] |
+| `5084637` | 2026-09-04 | [sport-vocabulary-2026-09-04T16-09-55-854Z.json](sport-vocabulary-2026-09-04T16-09-55-854Z.json) | drift-sentinel: ok on 2026-09-04 [skip ci] |
 | `f74e42e` | 2026-09-04 | [2026-09-03-font-family-guard.md](2026-09-03-font-family-guard.md) | check: assert the rendered font-family, because "two fonts only" never reached the page |
 | `279df96` | 2026-09-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-04 [skip ci] |
 | `279df96` | 2026-09-04 | [sport-vocabulary-2026-09-04T06-07-53-007Z.json](sport-vocabulary-2026-09-04T06-07-53-007Z.json) | drift-sentinel: ok on 2026-09-04 [skip ci] |
