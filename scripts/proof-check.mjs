@@ -69,8 +69,37 @@ const parseCases = doc => {
   return cases
 }
 
-const cases = DOCS().flatMap(f =>
+// `--only <substring>` restricts the run to proof docs whose filename matches.
+//
+// ADDED 2026-09-05, from a defect rather than a wish. Verifying five new cases
+// in docs/CHECK-PROOF.md meant a full run — one `dotnet build` per case, and in
+// a sandbox whose clock only advances while a turn is live it did not finish at
+// all. So a parallel five-case harness got written instead, and it immediately
+// reproduced a defect THIS FILE had already solved: it read a `src/Scoreboard.fs`
+// that a killed run had left injected, printed `baseline clean: false`, and ran
+// anyway. Every case then "failed to build" partly for reasons that had nothing
+// to do with it, and the run reported 5/5.
+//
+// The baseline guard below is what makes that impossible here. A subset run has
+// to keep it, which means the subset belongs in this file rather than beside it.
+// The coverage line printed with the result is Rule 91: a filtered run states
+// its denominator where the result is read, so nobody infers a full pass from a
+// green partial one.
+const ONLY = process.argv.includes('--only')
+  ? process.argv[process.argv.indexOf('--only') + 1]
+  : null
+const allDocs = DOCS()
+const selectedDocs = ONLY ? allDocs.filter(f => f.includes(ONLY)) : allDocs
+const cases = selectedDocs.flatMap(f =>
   parseCases(readFileSync(`docs/${f}`, 'utf8')).map(c => ({ ...c, doc: f })))
+if (ONLY) {
+  const total = allDocs.flatMap(f => parseCases(readFileSync(`docs/${f}`, 'utf8'))).length
+  console.log(`--only ${JSON.stringify(ONLY)}: ${cases.length} of ${total} case(s), `
+    + `${selectedDocs.length} of ${allDocs.length} doc(s) — THIS IS A SUBSET.`)
+  if (selectedDocs.length === 0) {
+    console.log(`  No proof doc matches. Available: ${allDocs.join(', ')}`)
+  }
+}
 const { check, summarize } = createChecks()
 
 // Repair before doing anything else, so a previous interrupted run cannot make
@@ -121,7 +150,7 @@ check('baseline tree compiles', baselineClean,
   (baseline.match(/error FS\d+.*/g) || []).slice(0, 2).join(' | '))
 
 check('the proof doc contains machine-checkable cases', cases.length > 0,
-  `${cases.length} case(s) across ${DOCS().join(', ')}`)
+  `${cases.length} case(s) across ${selectedDocs.join(', ') || '(no doc matched --only)'}`)
 
 if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
   try {

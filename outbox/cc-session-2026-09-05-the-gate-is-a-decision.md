@@ -220,3 +220,64 @@ keeps reporting a number that includes it.
 anchor-existence assertion is what caught it, and that assertion exists because
 of the "NOT CAUGHT with nothing mutated" defect recorded in Rule 90's table.
 That one worked exactly as written.
+
+---
+
+# Addendum 2 — `proof-check --only`, and cleaning up after the killed runs
+
+## The residue
+
+Four background waits were still alive an hour after the local `proof-check`
+they watched had been killed, and none of them could ever have exited:
+
+- three polled `/tmp/proofcheck.log`, which stays empty by design — `checks.mjs`
+  accumulates results and prints only in `summarize()`, so a killed run writes
+  nothing at all rather than writing a partial log;
+- the fourth ran `while pgrep -f "proof-check.mjs"`, which matched **its own
+  command line**. It was waiting for itself.
+
+Both are the session's recurring shape once more: an instrument that cannot
+observe the thing it is aimed at, reporting nothing and looking identical to
+"still working".
+
+Also cleared: `/tmp/field-laboratory-proof-check.fs` and its `.registry`
+sibling, left by a SIGKILLed run. Harmless here — the tree was clean and the
+next run rewrites them — but a stale backup beside an interrupted run is a
+restore-from-the-wrong-tree waiting to happen, and it cost nothing to remove.
+
+## `--only`, added because a workaround reproduced a solved defect
+
+`scripts/proof-check.mjs` gains `--only <substring>`, filtering to proof docs
+whose filename matches.
+
+The reason is not convenience. Verifying five new cases meant a full run — one
+`dotnet build` per case — and in a sandbox whose clock advances only while a
+turn is live, it never finished. So a parallel five-case harness got written in
+`/tmp`, and it immediately reproduced a defect `proof-check.mjs` had already
+fixed: it read a `src/Scoreboard.fs` that a killed run had left injected,
+printed `baseline clean: false`, **and ran anyway**. Every case then failed to
+build partly for reasons unrelated to it, and the run reported 5/5.
+
+A subset run has to keep the baseline guard, which means the subset belongs in
+the file that has it rather than beside it. The workaround is now deleted and
+unwritable-again.
+
+Two properties, both deliberate:
+
+- **The empty match fails loudly.** `--only NOSUCHDOC` reports
+  `0 of 73 case(s), 0 of 18 doc(s)`, lists the available docs, and fails "the
+  proof doc contains machine-checkable cases". A filter that silently matched
+  nothing and passed would be the vacuous green this repo keeps finding.
+- **The coverage line is printed with the result** — `THIS IS A SUBSET` — per
+  Rule 91. A filtered run states its denominator where the result is read.
+
+Verified: `--only SPORT-PROOF` → 4/4 with the real case compiled and rejected
+FS0025; `--only NOSUCHDOC` → fails, as it must.
+
+## On HANDOFF.md
+
+There isn't one, and there should not be. This repo's session state is the
+outbox entry plus `STATUS.md`, which is generated in CI and probed live rather
+than written by hand. An earlier note in this session said field-laboratory's
+HANDOFF "has no entry for today"; the file does not exist at all, and the
+convention it would duplicate is working.
