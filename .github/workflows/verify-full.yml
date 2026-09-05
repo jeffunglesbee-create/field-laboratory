@@ -145,6 +145,27 @@ jobs:
       # This is also the only place the mutation suite now runs: the gate's
       # `breaking each invariant makes a check fail` row is
       #   --self-test && the full suite && --only known-survivor must FAIL.
+      # PEAK SLATE. Added 2026-09-05.
+      #
+      # Every browser check in this repo loaded a two-card capture, while the
+      # live slate that week ran 1 -> 7 -> 15 -> 23 -> 46 -> 126 games
+      # (outbox/drift-log.md). 126 is now an ordinary Saturday: CFB alone was 68
+      # of them across 8 sports. So grouping, separation, overflow and scroll
+      # were all verified two orders of magnitude below the size they describe.
+      #
+      # Here rather than in `verify` on purpose. These are four browser runs, a
+      # peak slate is a weekly event, and verify.yml is the budget line this
+      # repository already had to split once — see the header above.
+      #
+      # The first peak run found no rendering defect and two CHECKS whose
+      # premises belonged to the small fixture. Both fixed in tab-check.mjs.
+      - name: The page at peak slate size (126 cards, 8 sports)
+        run: |
+          npm run check:scale
+          npm run check:peak
+          npm run check:peak-tabs
+          npm run check:peak-separation
+
       - name: Confidence gate (>= 95)
         run: npm run gate
 

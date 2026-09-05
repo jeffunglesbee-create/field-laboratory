@@ -78,7 +78,11 @@
     "check:viewport-overflow": "node scripts/viewport-overflow-check.mjs --self-test && node scripts/viewport-overflow-check.mjs",
     "check:red-main-issue": "node scripts/red-main-issue.mjs --self-test",
     "check:red-main-rehearsal": "node scripts/red-main-rehearsal.mjs --self-test",
-    "check:short-circuit": "node scripts/short-circuit-check.mjs"
+    "check:short-circuit": "node scripts/short-circuit-check.mjs",
+    "check:scale": "node scripts/scale-check.mjs --self-test && URL='http://localhost:8080/?data=context-2026-09-05' node scripts/scale-check.mjs",
+    "check:peak": "URL='http://localhost:8080/?data=context-2026-09-05' node scripts/render-check.mjs",
+    "check:peak-tabs": "URL='http://localhost:8080/?data=context-2026-09-05' node scripts/tab-check.mjs",
+    "check:peak-separation": "URL='http://localhost:8080/?data=context-2026-09-05' node scripts/separation-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

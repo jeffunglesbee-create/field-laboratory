@@ -562,3 +562,103 @@ run 13's record until a gate run writes one.
 `--quick` record from this session's local run, and no full-run record since
 `fffbd7a`'s 91. That gap is the honest state and is left visible rather than
 filled in.
+
+---
+
+# Addendum 7 — the UI at the size production actually serves
+
+Every browser check in this repo loaded a **two-card** capture. The live slate
+this week, from `outbox/drift-log.md`:
+
+```
+1 -> 7 -> 15 -> 23 -> 46 -> 126
+```
+
+126 on Saturday 2026-09-05, across 8 sports, CFB alone 68 of them. That is now
+an ordinary Saturday rather than a spike. So grouping, separation, overflow and
+scroll-across-re-render were each verified two orders of magnitude below the
+size they describe.
+
+Captured as `data/context-2026-09-05.json` — 126 rows, 8 sports, 391KB — through
+the existing `capture-render-fixture.yml`, so it is a real relay payload and not
+a hand-made one.
+
+## What held
+
+| check | at 126 cards |
+|---|---|
+| `render-check` | 18/18 |
+| `separation-check` | 9/9 |
+| `viewport-overflow-check` | 2/2 across 10 viewport states |
+| **mount time** | **390ms** |
+
+No rendering defect. The Solid fine-grained renderer draws 126 cards in 390ms,
+every card is a distinct landmark region with its own accessible name, and no
+canonical viewport overflows.
+
+## What broke was two CHECKS, both coupled to the small fixture
+
+**1. A page-wide scan for `3.5`.** The ADR-002 assertion "no pick score appears
+anywhere on the page" tested `!/\b3\.5\b/.test(document.body.textContent)`,
+because 3.5 was *that fixture's* pick score. At 126 cards it matched twice, and
+both are ordinary market data:
+
+```
+draftkings ML -115 / +300 -> +100 / +260 (home -3.5 pts implied)
+line moved 3.5% in implied terms
+```
+
+A page-wide scan for a number cannot tell a composite from arithmetic that
+shares its digits, and any real slate carries a -3.5 spread. Scoped to the two
+pick panels, which is the only place a pick can render. The type seal in
+`Pick.fs` is the actual guarantee; this is the second line.
+
+**The failure message was worse than the failure.** It matched with
+`/.{0,40}3\.5.{0,40}/` — no word boundaries — while the assertion used
+`\b3\.5\b`. So it reported the first *loose* match, forty characters of
+unrelated journalism prose about a 3.59 ERA, while the real matches were
+elsewhere. A message that points where the assertion did not fire costs more
+than no message. Fixed to use the assertion's own regex.
+
+**2. A gate premise that was a fact about one payload.** "Gate 0 gives a real
+answer, since this payload can answer it" — true of `games-2026-08-09`, false of
+a slate whose Scout-selected game lists no broadcasters, where Gate 0 correctly
+says "cannot tell". The check was right about its fixture and wrong to assume
+every fixture.
+
+Split rather than deleted, because the claim is real and nothing else makes it:
+
+- **slate-agnostic**, runs everywhere: every gate line states one of the three
+  legitimate answers, never a blank. Five gates, true of any payload.
+- **fixture-specific**, gated on `data=games-2026-08-09`: the two answerable
+  gates must give a real answer, so "everything is unanswerable" cannot pass.
+
+`tab-check` is now 50/50 on the 2-card fixture (was 45) and 48/48 at peak.
+
+## New: `scripts/scale-check.mjs`
+
+Seven assertions that only mean something at size, wired into `verify-full`
+rather than `verify` — four browser runs, and a peak slate is a weekly event.
+
+```
+  context-2026-09-05: 126 row(s), 8 sport(s)
+  mounted in 390ms — 126 card(s), 8 group(s)
+  groups: CFB · 68 | MLS · 21 | MLB · 15 | EPL · 7 | Bundesliga · 6 | La Liga · 3 | Ligue 1 · 3 | Serie A · 3
+  status: decoded 126 game(s) for 2026-09-05
+```
+
+The load-bearing one is the count. A renderer that drops rows under load and one
+that accumulates them across a re-render both leave a page that looks correct in
+a screenshot — `check:nav` caught exactly that at 18 cards, with cards going
+4 → 6 → 12 → 16 → 18 under a status line still reading "decoded 2". So the card
+count, the status line and the DOM must all agree.
+
+It also refuses to pass quietly on a small fixture: `the fixture is actually a
+peak slate` fails under 100 rows, so pointing this at the 2-card capture reports
+that it measured nothing rather than reporting green.
+
+**The mount budget was wrong on the first draft.** Set at 15,000ms against a
+390ms measurement — 38x, which would have passed a renderer forty times slower
+than the one it was written against. A budget that cannot be exceeded is not a
+budget. Now 5,000ms, ~13x, which absorbs a loaded CI runner and still fails
+anything with the wrong complexity.

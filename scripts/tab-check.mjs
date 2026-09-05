@@ -139,10 +139,30 @@ check('each panel names the other, so neither is read alone',
 // The fixture's scores are 3.5 and 3. Checked as page text rather than as a
 // property of the code, so a future renderer that reaches the number by some
 // other route is caught here even if the type seal is still intact.
-const wholePage = await page.textContent('body')
-check('no pick score appears anywhere on the page',
-  !/\b3\.5\b/.test(wholePage),
-  `the composite leaked into the DOM: ${(wholePage.match(/.{0,40}3\.5.{0,40}/) || [])[0]}`)
+// SCOPED TO THE PICK PANELS, not the whole body.
+//
+// This scanned `document.body` for a bare `3.5` — the fixture's pick score —
+// and that is unrunnable on a real slate. Measured 2026-09-05 against a
+// 126-card capture: two legitimate matches, `home -3.5 pts implied` (a point
+// spread) and `line moved 3.5% in implied terms`. Neither is a composite;
+// both are ordinary market data that any slate will carry.
+//
+// A page-wide scan for a number cannot tell a composite from arithmetic that
+// happens to share its digits. The composite can only render where a pick
+// renders, so that is where to look. The type seal in Pick.fs is the actual
+// guarantee — `docs/PICK-PROOF.md` compiles it — and this is the second line
+// of defence against a future renderer reaching the number another way.
+//
+// The failure message also used a LOOSER regex than the assertion —
+// `/.{0,40}3\.5.{0,40}/` with no word boundaries against `\b3\.5\b` — so it
+// reported the first loose match, which was 40 characters of unrelated
+// journalism prose. A message that points somewhere the assertion did not fire
+// costs more than no message.
+const pickPanels = `${fieldText}\n${scoutText}`
+const leak = pickPanels.match(/.{0,60}\b3\.5\b.{0,60}/)
+check('no pick score appears in either pick panel',
+  leak === null,
+  `the composite leaked into a pick panel: ${(leak || [])[0]}`)
 
 // Written first with `|| /No pick section/` as an allowance for the empty
 // state, which made it satisfiable by a panel that rendered nothing. That is
@@ -187,12 +207,37 @@ for (const [gate, needs] of [
     `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
 }
 
-// And the other direction, so "everything is unanswerable" is not a way to pass:
-// the two gates this payload CAN answer must give a real answer.
-for (const gate of ['Gate 0', 'Gate A']) {
-  check(`${gate} gives a real answer, since this payload can answer it`,
-    gateSays(gate, /qualifies —|no —/) && !gateSays(gate, /cannot tell/i),
+// TWO CLAIMS, and only one of them is about the code.
+//
+// SLATE-AGNOSTIC. Every gate line is one of the three legitimate forms. True of
+// any payload, so it runs everywhere and is the assertion that actually guards
+// the renderer.
+const GATE_FORM = /qualifies —|no —|cannot tell —/
+for (const gate of ['Gate 0', 'Gate A', 'Gate B', 'Gate C', 'Gate D']) {
+  check(`${gate} states one of the three answers, never a blank`,
+    gateSays(gate, GATE_FORM),
     `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+}
+
+// FIXTURE-SPECIFIC. "Everything is unanswerable" must not be a way to pass, and
+// the only way to assert that is against a payload known to answer — which is a
+// fact about `games-2026-08-09`, not about the code.
+//
+// It ran unconditionally until 2026-09-05, when a 126-card capture failed it:
+// the Scout selected a game with no outlets listed, so Gate 0 correctly said
+// "cannot tell". The check was right about its fixture and wrong to assume
+// every fixture. Gated rather than deleted, because the claim it makes is real
+// and nothing else makes it.
+const FIXTURE = new global.URL(URL_BASE, 'http://x').searchParams.get('data')
+if (FIXTURE === 'games-2026-08-09') {
+  for (const gate of ['Gate 0', 'Gate A']) {
+    check(`${gate} gives a real answer, since THIS payload can answer it`,
+      gateSays(gate, /qualifies —|no —/) && !gateSays(gate, /cannot tell/i),
+      `${gate} line: ${(scoutText.split(/(?=Gate [0A-D])/).find(l => l.startsWith(gate)) ?? '(missing)').slice(0, 120)}`)
+  }
+} else {
+  console.log(`\n  (the two answerable-gate assertions are specific to `
+    + `games-2026-08-09; this run loaded ${FIXTURE ?? 'the live slate'})`)
 }
 
 // ── The tab is in the URL, and the URL is the tab ───────────────────────────
