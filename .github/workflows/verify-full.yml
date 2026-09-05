@@ -13,6 +13,15 @@
 #   check:proof                                                  2m29s
 #   the confidence gate (which runs the mutation suite inside)   17m14s
 #
+# RE-MEASURED 2026-09-05, and both figures had drifted past double:
+#
+#   check:proof            5m56s (run 11)   7m06s (run 12)
+#   the confidence gate   26m44s (run 11)   >36m52s (run 12, CANCELLED)
+#
+# The gate figure is a floor, not a measurement: run 12 was killed by the job
+# timeout before it printed, so nothing recorded it. Reading the old 17m14s as
+# current is what made 45 minutes look generous — see the timeout note below.
+#
 # Two steps were the entire job. They stay here and run weekly; everything else
 # stays in `verify.yml` and runs on every push in about two minutes.
 #
@@ -57,11 +66,29 @@ jobs:
     runs-on: ubuntu-latest
     # The confidence gate runs the whole mutation suite, and the suite grows as
     # invariants are added — measured drift from ~17 min to ~22 as the journalism
-    # UI landed. A runaway (a hung browser mutation, a serve that never answers)
-    # would otherwise burn the full six-hour default on a metered runner. This
-    # bounds it: 45 minutes is roughly twice the current run, so it fails loud on
-    # a genuine hang without tripping on normal growth.
-    timeout-minutes: 45
+    # UI landed, then to 26m44s by 2026-09-05. A runaway (a hung browser
+    # mutation, a serve that never answers) would otherwise burn the full
+    # six-hour default on a metered runner, so this bounds it.
+    #
+    # RAISED 45 -> 90 on 2026-09-05, and the reason is work that is new rather
+    # than growth. Run 12 was cancelled at 36m52s with NO measurement written,
+    # because `confidence.mjs` appends its record only after every row finishes:
+    # a timeout here costs the whole run and says nothing about which row was
+    # slow.
+    #
+    # What changed under it, in `e7a7d43`: three mutations that had silently
+    # stopped doing anything started doing it again. `cards-run-together` had
+    # been failing instantly on an anchor deleted ten days earlier, so it never
+    # rebuilt and never drove a browser; `outbox-missing` and `outbox-stub` had
+    # a glob narrower than the predicate they test, so on many days they moved
+    # no files at all. Repairing them added three real mutation cycles the 45
+    # was never sized for. The old cap was "roughly twice the current run"
+    # against a 17-minute figure that was already stale twice over.
+    #
+    # 90 keeps that ratio against the 36m52s floor. It is deliberately a ceiling
+    # on a runaway and not a target: if a run approaches it, the suite has grown
+    # again and the number needs re-measuring rather than raising by reflex.
+    timeout-minutes: 90
     steps:
       # Full history: the gate's history rows walk to the root, and a shallow
       # clone would silently make them pass on one commit.

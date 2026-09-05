@@ -281,3 +281,56 @@ outbox entry plus `STATUS.md`, which is generated in CI and probed live rather
 than written by hand. An earlier note in this session said field-laboratory's
 HANDOFF "has no entry for today"; the file does not exist at all, and the
 convention it would duplicate is working.
+
+---
+
+# Addendum 3 — the gate re-run hit the job timeout, and the cap was sized on a stale number
+
+`verify-full` run 12 on `e7a7d43` was **cancelled at 36m52s** by the 45-minute
+job cap. Step 12 ran, found nothing to commit, and said so: `confidence.mjs`
+appends its record only after every row finishes, so a timeout costs the entire
+run and leaves no measurement at all — not even a partial one naming the row it
+was on.
+
+So there is still **no post-fix gate score**. The three fixes are verified
+individually (`venue-coverage-check` 4/4; `--only cards-run-together` 2/2;
+`--only outbox-missing` 2/2; `--only outbox-stub` 2/2) and the whole-gate number
+is outstanding.
+
+## Why it got slower, which is not growth
+
+The three mutations repaired in `e7a7d43` had all silently stopped doing
+anything, and repairing them added three real mutation cycles the cap was never
+sized for:
+
+- `cards-run-together` failed instantly on an anchor deleted ten days earlier.
+  It never rebuilt and never drove a browser. It now does both.
+- `outbox-missing` and `outbox-stub` had a glob narrower than the predicate they
+  test, so on any day their pattern missed they moved no files. They now move
+  files and run their row.
+
+A suite that starts doing work it had been skipping gets slower, and that is the
+fixes landing rather than a regression.
+
+## The cap was reasoned from a figure that was stale twice over
+
+The header's timing table said `check:proof 2m29s` and `confidence gate
+17m14s`, measured on `9d66cf6`. Both are now past double:
+
+| step | recorded | run 11 | run 12 |
+|---|---|---|---|
+| `check:proof` | 2m29s | 5m56s | 7m06s |
+| confidence gate | 17m14s | 26m44s | >36m52s (cancelled) |
+
+The 45 was set as "roughly twice the current run" against the 17m14s. Against
+26m44s it was already thin, and against a suite doing three more mutation cycles
+it was under.
+
+Raised to **90**, which keeps that ratio against the 36m52s floor, and the table
+above is now in the file so the next person sizing it reads a measurement rather
+than a figure from August. The gate figure is recorded as a floor and labelled
+as one — run 12 never printed, so nothing measured it.
+
+This is the same failure the session has been finding all day, in the workflow's
+own comments: a number that described the world when it was written, read later
+as though it still did.
