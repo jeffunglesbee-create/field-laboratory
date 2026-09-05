@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e7a7d43` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The gate has been red since 2026-08-24, and two of its mutations had stopped biting |
 | `fae60b4` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The gate is a decision, not a score: a passing witness no number can mint |
 | `bb5725a` | 2026-09-05 | [decision-2026-09-05-laboratory-no-graph-tool.md](decision-2026-09-05-laboratory-no-graph-tool.md) | docs: field-laboratory does not get a graph tool — the edge counts |
 | `e79832a` | 2026-09-05 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-05 [skip ci] |
