@@ -150,6 +150,32 @@ const byGap = separation.filter(s => s.gap >= 4).length
 const byBorder = separation.filter(s => s.border >= MIN_BOUNDARY).length
 console.log(`  carried by: gap ${byGap}/${separation.length}, boundary ${byBorder}/${separation.length}`)
 
+// ZERO BOUNDARIES IS THE DECIDED STATE, NOT A GAP IN ONE.
+//
+// Printed here because the bare count reads as a defect, and did: on 2026-09-05
+// a session ran this at 126 cards, saw `boundary 0/126`, measured `--card`
+// at 1.033:1 against `--bg`, and proposed brightening the cards — re-opening a
+// question `src/Palette.fs` had already settled on 2026-08-26 with every one of
+// the seventeen `edge` uses enumerated and resolved individually:
+//
+//   3 container outlines -> DELETED; a 1rem grid gap and a landmark region per
+//                           card already carried the grouping
+//
+// The two candidates measured before that was caught: raising `--card` to clear
+// 3:1 needs #4e3fe2, seven times brighter and a different product; a per-card
+// border needs #5e5e5e, or `edgeStrong` at 5.664:1. Both are cheap and neither
+// is warranted — WCAG 1.4.11 governs identifying COMPONENTS AND STATES, not
+// list items, and a border is invisible to a screen reader while the landmark
+// region asserted below is not.
+//
+// So the number is annotated where it is read. A count whose expected value is
+// zero, printed without saying so, is a check that reports a decision as a
+// finding.
+if (byBorder === 0) {
+  console.log('              boundary 0 is EXPECTED — the container outline was deleted'
+    + ' 2026-08-26 (src/Palette.fs); gap + landmark region carry the grouping')
+}
+
 // A background identical to the page separates nothing, which is exactly what
 // an unstyled card looks like.
 check('the card background differs from the page background',

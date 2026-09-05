@@ -735,3 +735,74 @@ The tab-delimited round-trip through a shell variable is the fragile part, so it
 was run in isolation before shipping: two rows in, two rows out, ledger, id and
 JSON line intact. Record lines are JSON with no tabs or newlines, which is what
 makes the delimiter safe.
+
+---
+
+# Addendum 9 — the two candidate values, and why neither is built
+
+Asked to measure what `--card` would need to clear 3:1 against `--bg`, after
+`separation-check` reported `boundary 0/126` at peak slate size.
+
+```
+current
+  bg   #060514  lum 0.00198
+  card #0b0920  lum 0.00371   vs bg: 1.033:1
+  card2#0e0c24               vs bg: 1.055:1
+
+CANDIDATE A — raise --card until it clears 3:1 against --bg
+  #0b0920 -> #4e3fe2   x7.05 brighter, 3.014:1
+
+CANDIDATE B — a per-card border at 3:1 against --card
+  neutral #5e5e5e (L=94), 3.015:1
+  existing edgeStrong #8b7fd4 vs card: 5.664:1 — already clears it
+```
+
+**Candidate A is not a tweak.** A near-black navy card becomes saturated indigo,
+seven times brighter. That is a different product, not a contrast fix.
+
+**Candidate B is cheap and still wrong**, and the reason is in the repository
+rather than in the measurement. `src/Palette.fs` records that this question was
+settled on 2026-08-26, with every one of the seventeen `edge` uses enumerated and
+resolved individually:
+
+> 3 container outlines -> DELETED; a 1rem grid gap and a landmark region per
+> card already carried the grouping
+
+So `boundary 0/126` is the recorded outcome, not an oversight. The reasoning
+behind it is better than the reasoning I brought to it: WCAG 1.4.11 governs
+"visual information required to identify **user interface components and
+states**", which a list item is not; and a border is invisible to a screen
+reader, while the per-card landmark region with its own accessible name is not.
+`separation-check` asserts both, and both hold at 126 cards.
+
+## What actually went wrong, which was mine
+
+I read a count and proposed a change without reading the decision behind it. The
+count was honest — the check prints exactly what it measured — and it still
+produced a wrong recommendation, because **a number whose expected value is zero,
+printed without saying so, reads as a finding.**
+
+That is the same shape as everything else this session found, arriving from the
+other side. Elsewhere an instrument reported clean because it could not see. Here
+an instrument reported accurately and the reader supplied the defect.
+
+## The fix, printed where the number is read
+
+`separation-check` now annotates the zero:
+
+```
+  carried by: gap 126/126, boundary 0/126
+              boundary 0 is EXPECTED — the container outline was deleted
+              2026-08-26 (src/Palette.fs); gap + landmark region carry the grouping
+```
+
+Conditional on `byBorder === 0`, so it appears exactly when the misreading is
+available and stays quiet when a future card genuinely carries an outline.
+
+The file's own header already said "the gap arm is what these cards actually
+rely on". That was in the source, and the misreading came from the OUTPUT — which
+is where the annotation had to go.
+
+Both candidate values are recorded above rather than discarded, so the next
+session that asks this question gets the numbers and the decision together
+instead of re-measuring and re-proposing.
