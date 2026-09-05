@@ -150,8 +150,8 @@ failure, not a data one. The strongest work in this repo aimed at that half is
 written in JavaScript: mutation testing, a gate that is a conjunction rather than
 an average, `fetch-depth: 0`, and a status file that can contradict its author.
 
-**And that is a choice, not a limit.** `src/` is 2,757 lines of F#; `scripts/`
-is 4,871 lines of untyped JavaScript, and every failure in the table above
+**And that is a choice, not a limit.** `src/` is 15,429 lines of F#; `scripts/`
+is 24,731 lines of untyped JavaScript, and every failure in the table above
 happened in the untyped half. Nothing prevented the check harness being written
 in F#. It was written in JavaScript because that was faster — so the claim went
 unapplied precisely where it was most testable, by the hand of the person making
@@ -163,16 +163,45 @@ result into a to-do and exempts the assertion from ground it lost. The same move
 appears twice more in this repo's history under different names — "cannot be
 tested" and "NOT claimed" — and it was corrected both times.
 
-So it stands as a result rather than a plan: **on verification, this repo's F#
-has no record, because its author reached for JavaScript every time verification
-was the problem.** What would change that is building the harness in F# and
-seeing whether the failures above become unwritable — not asserting in advance
-that they would.
+### Two of the ten have since been answered
+
+This section said, from 2026-08-11 until 2026-09-05: *"on verification, this
+repo's F# has no record, because its author reached for JavaScript every time
+verification was the problem."*
+
+That was true when it was written and false thirty-five minutes later.
+`src/Verify.fs` landed in `ba65230` at 17:24 that day; this paragraph is
+`98d000f`, 16:49. The README then went twenty-five days without mentioning
+either `Verify.fs` or `docs/CHECK-PROOF.md` — a negative result kept past the
+evidence that retired it, which is the mirror image of the claim that outruns
+its evidence, and no better.
+
+Corrected, with the count rather than the verdict. **Two of the ten rows above
+are now structural, and eight are not.**
+
+| row | mechanism | what holds it |
+|---|---|---|
+| a check with no teeth (`spark-check`; `outboxAccompanies`' unrun PASS direction) | `Verify.create` takes a counterexample as a fourth argument, and `Check`'s fields and `Sealed`'s case are private | compiler — `docs/CHECK-PROOF.md`, 7 cases |
+| a gate that is an average (ten of seventeen rows affordable at 225 points) | `Passing`'s case is private, so no score can mint a pass; `Row`'s case is private, so no fabricated row can reach `decide` | compiler — `docs/CHECK-PROOF.md`, 5 cases |
+
+The eight untouched are the ones about *the world*, not about the check: a check
+that changes as the world moves under it, that changes the world it measures,
+that answers about the wrong world, that agrees for the wrong reason, four API
+failures rendering one sentence, and both claim-shaped rows. Nothing here is
+evidence about those.
+
+And the boundary matters as much as the result. Neither mechanism makes the
+failure impossible — each collapses the surface from "every caller, forever" to
+one function inside one module. `run` can still be handed a counterexample that
+is not one; `decide` could be edited into an average tomorrow. Both proof
+documents say so in their own text, and the runtime half of each is a self-test
+in `src/VerifyMain.fs` that goes red when the mechanism is broken on purpose.
 
 ## Layout
 
 | Path | What it is |
 | --- | --- |
+| `src/Verify.fs` | The check harness. A check carries a counterexample or does not compile; a gate carries a witness no score can mint |
 | `src/Units.fs` | Units of measure for the 0–1 / 0–100 scales that already caused a production bug |
 | `src/Desk.fs` | Thoth.Json decoders for the real `/context/date` payload, plus the ADR-002 amnesty gate (`SealedDrama` / `AmnestyZone`) |
 | `src/Scoreboard.fs` | The cards and the slate. `stateNode` wires its own effect; `staticNode` cannot go stale |
