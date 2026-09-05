@@ -40,6 +40,17 @@ let private selfTest () =
             printfn "          → expected %s, got %s"
                 (Verify.verdictLabel expected) (Verify.verdictLabel actual)
 
+    // The gate assertions below are about a Gate, not a Verdict, and folding
+    // them through `assertVerdict` would have meant encoding "did it block?" as
+    // a Verdict — which is the "check that agrees for the wrong reason" shape
+    // this repo already has a scar from.
+    let assertTrue label condition =
+        if condition then
+            printfn "PASS      %s" label
+        else
+            failures <- failures + 1
+            printfn "FAIL      %s" label
+
     printfn ""
     printfn "Harness self-test"
     printfn ""
@@ -85,6 +96,56 @@ let private selfTest () =
         Verify.Held
         (if counted = 2 then Verify.Held else Verify.Broke)
 
+    // --- the gate: does a majority still get vetoed? ------------------------
+    //
+    // Rule 90's own rule, applied here: these assert the gate can BLOCK, not
+    // only that it can pass. A gate that has only ever been shown passing is
+    // the average all over again, one level up.
+
+    let allHold =
+        [ Verify.check "a" (fun n -> n > 0) 1 -1
+          Verify.check "b" (fun n -> n > 0) 2 -2 ]
+
+    // Nine hold, one has no teeth. 90% — comfortably past any bar anyone would
+    // write — and it must not pass, because none of these rows is a matter of
+    // degree.
+    let nineOfTen =
+        [ for i in 1..9 -> Verify.check (sprintf "row %d" i) (fun n -> n > 0) i -i ]
+        @ [ Verify.check "toothless row" (fun n -> n > 0) 1 2 ]
+
+    assertTrue "a suite where every row holds Passes"
+        (match Verify.decide (Verify.runRows allHold) with
+         | Verify.Passed _ -> true
+         | Verify.Blocked _ -> false)
+
+    assertTrue "the passing witness counts the rows it saw"
+        (match Verify.decide (Verify.runRows allHold) with
+         | Verify.Passed w -> Verify.heldCount w = 2
+         | Verify.Blocked _ -> false)
+
+    assertTrue "NINE OF TEN IS BLOCKED, and the score says 90"
+        (Verify.percent (Verify.score (Verify.runRows nineOfTen)) = 90
+         && (match Verify.decide (Verify.runRows nineOfTen) with
+             | Verify.Blocked _ -> true
+             | Verify.Passed _ -> false))
+
+    assertTrue "a blocked gate names the row that failed"
+        (match Verify.decide (Verify.runRows nineOfTen) with
+         | Verify.Blocked [ (name, Verify.NoTeeth) ] -> name = "toothless row"
+         | _ -> false)
+
+    assertTrue "the exit code comes from the decision, not the score"
+        (Verify.exitCode (Verify.decide (Verify.runRows nineOfTen)) = 1
+         && Verify.exitCode (Verify.decide (Verify.runRows allHold)) = 0)
+
+    // An empty suite. `decide []` returns Passed, and that is deliberate — it is
+    // the vacuous truth "no row failed" — but it must not be reachable as a
+    // silent pass, so the witness says zero and the caller can see it.
+    assertTrue "an empty suite passes with a witness of zero, not of one"
+        (match Verify.decide (Verify.runRows []) with
+         | Verify.Passed w -> Verify.heldCount w = 0
+         | Verify.Blocked _ -> false)
+
     printfn ""
     printfn "  self-test: %s" (if failures = 0 then "the harness can still tell the difference"
                                else sprintf "%d SELF-TEST FAILURES" failures)
@@ -94,12 +155,18 @@ let private selfTest () =
 
 let private blind = selfTest ()
 
-let private failures =
+// The exit code is the GATE's, not a count compared against zero.
+//
+// `exit (if failures = 0 then 0 else 1)` was correct and was still a number
+// standing where a decision belongs — one edit from `failures <= 2`, which is
+// how `confidence.mjs` acquired its average in the first place. `Verify.exitCode`
+// takes a `Gate`, and a `Gate` cannot be built from a score.
+let private code =
     if blind > 0 then
         printfn ""
         printfn "Suite NOT run: the harness failed its own self-test, so its verdicts mean nothing."
-        blind
+        1
     else
-        Verify.runAll "F# suite" Suite.all
+        Verify.exitCode (Verify.runGate "F# suite" Suite.all)
 
-exit (if failures = 0 then 0 else 1)
+exit code

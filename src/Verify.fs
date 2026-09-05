@@ -104,7 +104,137 @@ let verdictDetail =
     | Broke -> "the predicate did not hold on the input that must hold"
     | NoTeeth -> "the predicate ALSO held on the input that must fail — this check cannot fail"
 
-let sealedName (Sealed(name, _)) = name
+// --- the gate: how row verdicts COMBINE -------------------------------------
+//
+// Everything above is about ONE check. This is about the other half, and it is
+// the half the README's failure table is mostly made of: correct about every
+// row, wrong about how they combine.
+//
+// `scripts/confidence.mjs` scored `earned / possible` until 2026-08-10, so a
+// failing row was affordable whenever enough other rows passed, and every row
+// ADDED made the next failure cheaper:
+//
+//     the same 10-point row failing, at different suite sizes
+//     120 pts -> 92   blocked
+//     190 pts -> 95   PASSES
+//     225 pts -> 96   PASSES
+//
+// At 225 points TEN of seventeen rows could fail alone and still clear the bar,
+// including "build is clean" and "decoders still REJECT the corrupted fixture".
+// No commit introduced that. Growing the suite weakened it.
+//
+// It is fixed in JavaScript, and the fix is a line — `if (failedRows.length > 0)
+// … process.exit(1)`. Nothing in that language stops the next edit turning it
+// back into an average, and nothing did stop it the first time: the average was
+// there from the start and survived every review the file got.
+//
+// So the question this repo exists to ask, applied to itself: can the average be
+// made UNWRITABLE rather than merely fixed?
+//
+// WHAT IS AND IS NOT GUARANTEED — stated before the code, same as above.
+//
+//   GUARANTEED BY THE COMPILER. Outside this module a passing gate cannot be
+//   manufactured. `Passing`'s case is private, so `Passed` has no reachable
+//   argument; `Row`'s case is private, so a caller cannot hand `decide` a list
+//   of fabricated Held rows; and `Score` cannot become a `Gate`, because no
+//   function in this module maps one to the other. A caller holding a 96% score
+//   and a strong opinion has nothing to do with either.
+//
+//   NOT GUARANTEED BY THE COMPILER. That `decide` itself stays a conjunction.
+//   It is eleven lines inside this module and an edit could make it an average
+//   tomorrow. No type prevents that, in any language. What the types do is
+//   collapse the surface from "every caller, forever" to one function that
+//   docs/CHECK-PROOF.md compiles violations against — which is a smaller thing
+//   to guard, not an eliminated one.
+//
+// Saying that plainly is the point. The previous proof document in this repo
+// claimed more than it held, and this file's own header exists because of it.
+
+/// One row's outcome, tied to the check that produced it.
+///
+/// The case is private, and that is the load-bearing part. `Verdict`'s cases are
+/// public — they have to be, the suite reads them — so if `decide` took a plain
+/// `(string * Verdict) list` then `decide [ "everything", Held ]` would compile
+/// and would be a passing gate built from nothing at all. The only way to obtain
+/// a `Row` is to RUN a `Sealed` check.
+type Row = private Row of name: string * verdict: Verdict
+
+/// Proof that a gate had no failing row.
+///
+/// Private case, so this value cannot be built from a number, a percentage, a
+/// majority, or a conviction. `decide` is the only thing that can mint one, and
+/// it mints one only when the failing list is empty.
+type Passing = private Passing of rowsHeld: int
+
+/// A gate's decision.
+type Gate =
+    /// Every row held. The witness says how many, and cannot be forged.
+    | Passed of Passing
+    /// At least one row did not. Carries WHICH — a count could not name the
+    /// invariant that is off, and `scripts/gate-checks.mjs` has the scar to
+    /// prove it: a row failed after fourteen minutes and reported nothing but
+    /// its own name, which is a shrug rather than a signal.
+    | Blocked of failing: (string * Verdict) list
+
+/// A percentage, for reporting only.
+///
+/// It exists because the CC-CMD ceremony asks for a number, and it decides
+/// nothing. There is deliberately NO function from `Score` to `Gate` anywhere in
+/// this module, and adding one is the single edit that would undo this file.
+type Score = private Score of held: int * total: int
+
+/// Run every check in a suite. The only source of `Row` values.
+let runRows (suite: Sealed list) : Row list =
+    suite |> List.map (fun (Sealed(name, go)) -> Row(name, go ()))
+
+/// The conjunction. Every row, not a passing average.
+let decide (rows: Row list) : Gate =
+    let failing =
+        rows
+        |> List.choose (fun (Row(name, verdict)) ->
+            if verdict = Held then None else Some(name, verdict))
+    match failing with
+    | [] -> Passed(Passing(List.length rows))
+    | bad -> Blocked bad
+
+let heldCount (Passing n) = n
+
+let score (rows: Row list) : Score =
+    let held = rows |> List.filter (fun (Row(_, v)) -> v = Held) |> List.length
+    Score(held, List.length rows)
+
+let percent (Score(held, total)) = if total = 0 then 0 else (held * 100) / total
+
+/// The exit code, derived from the decision and never from the score.
+let exitCode (gate: Gate) : int =
+    match gate with
+    | Passed _ -> 0
+    | Blocked _ -> 1
+
+/// Run a suite, print it, and return the DECISION.
+let runGate (title: string) (suite: Sealed list) : Gate =
+    printfn ""
+    printfn "%s" title
+    printfn ""
+    let rows = runRows suite
+    rows
+    |> List.iter (fun (Row(name, verdict)) ->
+        printfn "%-9s %s" (verdictLabel verdict) name
+        if verdict <> Held then printfn "          → %s" (verdictDetail verdict))
+    let gate = decide rows
+    let (Score(held, total)) = score rows
+    printfn ""
+    printfn "%d/%d checks held" held total
+    match gate with
+    | Passed _ -> ()
+    | Blocked bad ->
+        // Printed AFTER the fraction and phrased so the fraction cannot be read
+        // as the verdict. `confidence.mjs` learned to do this the same way.
+        printfn ""
+        printfn "  %d FAILING ROW(S). The %d%% above is not the pass condition —"
+            (List.length bad) (percent (score rows))
+        printfn "  every row must hold."
+    gate
 
 /// Run a suite, print it, and return the number of results that are not `Held`.
 ///
@@ -113,14 +243,6 @@ let sealedName (Sealed(name, _)) = name
 /// broken one, and the fix for those is not the same: one means the code is
 /// wrong, the other means the check is worthless.
 let runAll (title: string) (suite: Sealed list) : int =
-    printfn ""
-    printfn "%s" title
-    printfn ""
-    let results = suite |> List.map (fun (Sealed(name, go) as s) -> sealedName s, go ())
-    for name, verdict in results do
-        printfn "%-9s %s" (verdictLabel verdict) name
-        if verdict <> Held then printfn "          → %s" (verdictDetail verdict)
-    let bad = results |> List.filter (fun (_, v) -> v <> Held)
-    printfn ""
-    printfn "%d/%d checks held" (List.length results - List.length bad) (List.length results)
-    List.length bad
+    match runGate title suite with
+    | Passed _ -> 0
+    | Blocked failing -> List.length failing
