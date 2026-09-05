@@ -1,0 +1,18 @@
+{
+  "_why": "Fixtures for scripts/short-circuit-check.mjs, held here rather than inline because that scanner reads scripts/*.mjs and would otherwise flag its own test data. Kept beside the other deliberately-wrong fixtures in this directory. Every `bad` entry is a REAL line, copied from the commit that fixed it.",
+  "bad": [
+    "    run: () => ok('npm run check') && ok('npm run check:hard') },",
+    "    run: () => ok('node scripts/unused-check.mjs') && ok('node scripts/units-check.mjs') },",
+    "  distinctExpects.every(cmd => run(cmd)),"
+  ],
+  "good": [
+    "    run: () => all('npm run check', 'npm run check:hard') },",
+    "  const baselineFailures = distinctExpects.filter(cmd => !run(cmd))",
+    "  const both = a.ok && b.ok",
+    "  const survived = built && run(m.expect)",
+    "  // see https://example.com/x"
+  ],
+  "_good_notes": {
+    "survived": "A PRECONDITION, not a second measurement. `built` is the result of `npm run build`; if the build failed, running the expect would measure a broken tree rather than the mutation. Short-circuiting is correct here, and a rule that flagged it would train the reader to ignore the rule."
+  }
+}

@@ -97,20 +97,36 @@ if (needsServer && !ok('curl -sf -o /dev/null http://localhost:8080/')) {
   }
 }
 
+// EACH ROW PRINTS AS IT FINISHES, with its duration.
+//
+// Run 12 on 2026-09-05 was killed by the job timeout after 36m52s and the log
+// said nothing at all: this file prints its table only at the end, so a run that
+// does not reach the end reports neither a score nor the row it died on. The
+// timeout was the one thing that could not be diagnosed from its own output.
+//
+// A line per row fixes that without changing the verdict. A killed run now shows
+// exactly which rows completed and which one was in flight, and a slow row is
+// visible while it is still happening rather than inferred afterwards from a
+// wall-clock total.
 let earned = 0
 let possible = 0
 const results = []
+const startedAll = Date.now()
 for (const row of rows) {
   if (QUICK && row.skipQuick) {
     results.push({ ...row, state: 'SKIP' })
     continue
   }
   possible += row.weight
+  const started = Date.now()
   let passed = false
   try { passed = row.run() } catch { passed = false }
+  const seconds = Math.round((Date.now() - started) / 1000)
   if (passed) earned += row.weight
-  results.push({ ...row, state: passed ? 'PASS' : 'FAIL' })
+  results.push({ ...row, state: passed ? 'PASS' : 'FAIL', seconds })
+  console.log(`  [${String(seconds).padStart(4)}s] ${passed ? 'PASS' : 'FAIL'}  ${row.name}`)
 }
+const totalSeconds = Math.round((Date.now() - startedAll) / 1000)
 
 if (server) process.kill(-server.pid)
 
@@ -122,7 +138,7 @@ for (const r of results) {
 }
 
 const total = possible === 0 ? 0 : Math.round((earned / possible) * 100)
-console.log(`\n  ${earned}/${possible} points = ${total}/100   (bar: ${BAR})`)
+console.log(`\n  ${earned}/${possible} points = ${total}/100   (bar: ${BAR})   ${totalSeconds}s`)
 
 // Recorded BEFORE the exit branches below, so a FAILING run is written down
 // too. A record that only ever captures passes is a record that cannot be used
@@ -159,6 +175,15 @@ appendFileSync(RECORD_PATH, JSON.stringify({
   earned,
   possible,
   total,
+  // Durations, so "the gate got slower" becomes a question with an answer.
+  //
+  // A short-circuiting check made a RED run cheaper than a green one for twelve
+  // days (see mutation-check.mjs), and the only symptom was the suite finishing
+  // sooner — which nothing recorded and nobody watches for. Per-row seconds turn
+  // both directions into something a later run can diff.
+  seconds: totalSeconds,
+  rowSeconds: Object.fromEntries(
+    results.filter(r => r.state !== 'SKIP').map(r => [r.name, r.seconds])),
   // Names, not a count. `confidence-record-check.mjs` refuses a passing claim
   // when this is non-empty, and a count could not say which invariant was off.
   failing: results.filter(r => r.state === 'FAIL').map(r => r.name),

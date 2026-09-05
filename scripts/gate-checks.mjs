@@ -79,6 +79,30 @@ const ok = cmd => {
 const fails = cmd => !ok(cmd)
 
 /**
+ * Every command RUNS; the verdict is their conjunction.
+ *
+ * `ok(a) && ok(b)` is the obvious way to write a two-command row and it is
+ * wrong here, because `&&` does two jobs at once: it states a logical claim AND
+ * it schedules the work. Short-circuiting is correct for the claim and wrong for
+ * the measurement — when `a` fails, `b` never runs, so the failures list names
+ * one command when two may be broken, and the row's cost silently depends on
+ * its own outcome.
+ *
+ * Measured 2026-09-05 in `mutation-check.mjs`, where the same shape appeared as
+ * `distinctExpects.every(cmd => run(cmd))`. A check had been failing since
+ * 2026-08-24, so the baseline stopped at the first failure and skipped the other
+ * twenty-odd commands. The result: a RED run was FASTER than a green one, its
+ * 26m44s was read as the cost of a passing gate, the job timeout was sized
+ * against that number, and the next green run was cancelled with no measurement
+ * at all.
+ *
+ * `.map(ok)` runs every command before the reduce sees any of them.
+ * `scripts/short-circuit-check.mjs` refuses the `&&` form so this cannot come
+ * back by habit.
+ */
+const all = (...cmds) => cmds.map(ok).reduce((a, b) => a && b, true)
+
+/**
  * An outbox entry dated today, so a session cannot skip its own write-up.
  *
  * Two things were wrong with the first version, both found by outside review.
@@ -163,7 +187,7 @@ const rows = [
     run: () => fails('node scripts/drift-check.mjs --file test/malformed-nested.json') },
 
   { name: 'render checks pass on both captures', weight: 30, skipQuick: true,
-    run: () => ok('npm run check') && ok('npm run check:hard') },
+    run: () => all('npm run check', 'npm run check:hard') },
 
   { name: 'grouping and date navigation pass', weight: 30, skipQuick: true,
     run: () => ok('npm run check:nav') },
@@ -260,7 +284,7 @@ const rows = [
   // mechanised. A public value nothing reads has never been observed by
   // anything; the compiler only says it is well-typed.
   { name: 'no value is written without being read back', weight: 20,
-    run: () => ok('node scripts/unused-check.mjs') && ok('node scripts/units-check.mjs') },
+    run: () => all('node scripts/unused-check.mjs', 'node scripts/units-check.mjs') },
 
   // A red main must be visible in the repo. STATUS.md could not say so until
   // now, which is how a false "main is green" claim stood unopposed.

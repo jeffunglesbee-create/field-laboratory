@@ -407,3 +407,90 @@ the proof; `grep -c "MUTATED ROW"` → 0.
 
 Green path verified separately: `--only outbox-stub` → `ran 1 of 1 … 0 failing`,
 2/2 checks passed.
+
+---
+
+# Addendum 5 — banning the short-circuit, and making a timeout name its row
+
+Two builds, both from the `.every` finding rather than from a wish list.
+
+## 1. `all(...)`, and a lint that refuses the `&&` form
+
+The general shape: **`&&` and `.every` do two jobs at once — they state a logical
+claim, and they schedule the work.** Short-circuiting is correct for the claim
+and wrong for the measurement. The verdict stays right; the COVERAGE becomes a
+function of the data, so a red run and a green run stop being comparable and
+nothing in the output says which one you are reading.
+
+Measured before building, because the first estimate was wrong: **2 sites**, not
+the twenty-plus I expected.
+
+```
+scripts/gate-checks.mjs   ok('npm run check') && ok('npm run check:hard')
+scripts/gate-checks.mjs   ok('node scripts/unused-check.mjs') && ok('node scripts/units-check.mjs')
+```
+
+Both migrated to `all(...)`, which is `cmds.map(ok).reduce((a, b) => a && b)` —
+`.map` runs every command before the reduce sees any of them.
+
+`scripts/short-circuit-check.mjs` then refuses the old form so it cannot return
+by habit. Wired into `.githooks/pre-commit`: pure regex over `scripts/`, no
+network, no build, and it costs no CI.
+
+**The rule over-fired on its first draft, and the fix is the interesting part.**
+It flagged this line in `scripts/mutation-check.mjs`:
+
+```js
+const survived = built && run(m.expect)
+```
+
+That is a **precondition**, not a second measurement. `built` is the result of
+`npm run build`; running the expect on a failed build would measure a broken
+tree rather than the mutation, so short-circuiting there is correct. A linter
+that flags correct code is one the reader learns to skip — so the rule now
+requires **both** operands to be command calls, and that line is a `good`
+fixture with the reasoning attached.
+
+Fixtures live in `test/short-circuit-fixtures.json`, beside the other
+deliberately-wrong fixtures, because the scanner reads `scripts/*.mjs` and would
+otherwise flag its own test data. Excluding itself by name was the cheaper fix
+and the worse one: it makes the checker the single place its own rule does not
+apply.
+
+**A defect found in the checker while writing it.** It reported `6/6 checks
+passed` and exited 1. `summarize()` returns the FAILED COUNT, not a boolean, and
+`process.exit(summarize() ? 0 : 1)` inverts on success — every other caller in
+the repo writes `summarize() === 0 ? 0 : 1`. Two occurrences, both fixed. A
+green report with a red exit code is the same verdict/coverage split this whole
+addendum is about, arriving inside the tool written to stop it.
+
+## 2. A timeout that names the row
+
+Run 12 was killed at 36m52s and its log said **nothing**: `confidence.mjs`
+printed its table only at the end, so a run that never reaches the end reports
+neither a score nor the row it died on. The timeout was the one failure that
+could not be diagnosed from its own output.
+
+Each row now prints as it completes, with its duration:
+
+```
+  [   2s] PASS  decoders accept both real captures
+  [  13s] PASS  every governed commit paired source with outbox
+  ...
+  260/270 points = 96/100   (bar: 95)   18s
+```
+
+A killed run now shows exactly which rows finished and which was in flight. The
+record in `docs/confidence-log.jsonl` gains `seconds` and a per-row `rowSeconds`
+map, so "the gate got slower" — or faster — becomes a question with an answer
+rather than an impression.
+
+That second direction is the one this session paid for. Every ratchet in this
+repo guards against getting worse: citations, secrets, bare claims. None watches
+for a suspicious **speedup**, and a silently-skipped check looks exactly like
+one. The gate went short-circuited on 2026-08-24 and the only visible symptom
+was that it finished sooner. `rowSeconds` is the data a ratchet on that would
+need; the ratchet itself is not built yet, and is not claimed to be.
+
+Verified: `--quick` prints per-row seconds and a total, 13 rows timed, record
+written.

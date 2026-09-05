@@ -2,7 +2,7 @@
   "name": "field-laboratory",
   "version": "0.0.0",
   "private": true,
-  "description": "FIELD Laboratory — F# compiled to JavaScript via Fable.",
+  "description": "FIELD Laboratory \u2014 F# compiled to JavaScript via Fable.",
   "type": "module",
   "scripts": {
     "build": "dotnet fable src/Laboratory.fsproj --outDir build && node scripts/build-site.mjs",
@@ -77,7 +77,8 @@
     "check:computed-chrome": "URL='http://localhost:8080/?data=context-briefs-fixture' node scripts/computed-chrome-check.mjs",
     "check:viewport-overflow": "node scripts/viewport-overflow-check.mjs --self-test && node scripts/viewport-overflow-check.mjs",
     "check:red-main-issue": "node scripts/red-main-issue.mjs --self-test",
-    "check:red-main-rehearsal": "node scripts/red-main-rehearsal.mjs --self-test"
+    "check:red-main-rehearsal": "node scripts/red-main-rehearsal.mjs --self-test",
+    "check:short-circuit": "node scripts/short-circuit-check.mjs"
   },
   "dependencies": {
     "solid-js": "^1.9.14"

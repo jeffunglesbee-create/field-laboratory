@@ -57,5 +57,15 @@ npm run --silent check:import-purity
 # It also catches the shape this hook already guards elsewhere: a citation whose
 # line number moved because the SAME commit moved it.
 npm run --silent check:citations
+# Added 2026-09-05. `&&` and `.every` do two jobs at once -- they state a claim
+# AND they schedule the work -- and short-circuiting is correct for the claim,
+# wrong for the measurement. mutation-check's baseline stopped at its first
+# failing command for twelve days, so a RED gate ran FASTER than a green one,
+# its duration was read as the cost of a passing run, the job timeout was sized
+# against that number, and the next green run was cancelled having measured
+# nothing. The verdict was right the whole time; only the coverage was wrong,
+# which is why nothing caught it. Pure regex over scripts/, no network and no
+# build, so it belongs at the door.
+npm run --silent check:short-circuit
 
 echo "pre-commit: ok"
