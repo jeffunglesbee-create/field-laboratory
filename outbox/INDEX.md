@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `383b7f0` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | mutation-check: the baseline ran until the first failure and reported one name |
 | `aa89443` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | verify-full: raise the cap to 90, and re-measure the timings it was reasoned from |
 | `b58e8fa` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | proof-check: --only, added because the workaround for its absence was worse |
 | `e7a7d43` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The gate has been red since 2026-08-24, and two of its mutations had stopped biting |
