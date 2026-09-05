@@ -494,3 +494,71 @@ need; the ratchet itself is not built yet, and is not claimed to be.
 
 Verified: `--quick` prints per-row seconds and a total, 13 rows timed, record
 written.
+
+---
+
+# Addendum 6 — 530/530, and the record that could not land
+
+`verify-full` run 13 on `aa89443`:
+
+```
+  530/530 points = 100/100   (bar: 95)
+  Gate passed — every row, not a passing average.
+```
+
+All 23 rows. Both rows that had been red — `decoders accept both real captures`
+since 2026-08-24 and `breaking each invariant makes a check fail` since
+2026-08-31 — are green. Gate step 32m36s, `check:proof` 5m45s.
+
+That is the first passing gate this repository has measured since 2026-08-21,
+and the first ever measured with a green baseline behind it, so it is also the
+first honest number for what a passing run costs.
+
+## The step that lost it
+
+```
+CONFLICT (content): Merge conflict in docs/confidence-log.jsonl
+error: could not apply 455fc43... Record CI gate measurement of aa89443
+```
+
+The record never reached the repository. Half an hour of runner time produced a
+real measurement, printed it, and then dropped it on the order of two git
+commands.
+
+**Cause is structural, not a race that happened to bite.** The step committed
+the record and then `git pull --rebase`. Both sides of that rebase append a line
+to the end of the same file, so git sees two different last lines and calls it a
+content conflict — every time two runs overlap, by construction. The trigger
+here was mine: local commits pushed while run 13 was scoring, one of which
+carried a `--quick` record appended to the same file.
+
+## The fix: an append-only log is re-appended, not rebased
+
+The step now captures the ONE line the gate wrote, discards its local change,
+pulls a clean branch tip, appends that line to the end of it, and pushes. There
+is no merge to resolve because there is no divergent history — the record is
+data, and it commutes with every other append.
+
+Three attempts, and idempotent by run id: a retry that finds the id already
+present exits rather than writing a second copy.
+
+## What was NOT done, and why
+
+The obvious repair was to type run 13's record into `docs/confidence-log.jsonl`
+by hand. The number is real and sitting in the CI log verbatim.
+
+`confidence-record-check.mjs` opens by refusing exactly that:
+
+> The rows obey that. The SCORE did not. It left the gate as console output and
+> was re-typed into markdown by hand, at which point it was free again — the
+> exact property the gate was built to remove, reintroduced one layer up.
+
+Typing it into the log rather than into markdown is the same move one layer
+further down, and it would put a hand-written line into the one file whose whole
+value is that every line in it was written by a gate run. The log stays without
+run 13's record until a gate run writes one.
+
+`docs/confidence-log.jsonl` therefore currently ends with a `dirty: true`
+`--quick` record from this session's local run, and no full-run record since
+`fffbd7a`'s 91. That gap is the honest state and is left visible rather than
+filled in.

@@ -175,16 +175,67 @@ jobs:
         if: always()
         run: |
           set -euo pipefail
+
+          # AN APPEND-ONLY LOG MUST BE RE-APPENDED, NOT REBASED.
+          #
+          # This step used to commit the record and then
+          # `git pull --rebase`. Both sides of that rebase append a line to the
+          # end of the same file, so git sees two different last lines and calls
+          # it a content conflict — every time, by construction.
+          #
+          # It fired on 2026-09-05, run 13: the gate scored 530/530 and the step
+          # died with "CONFLICT (content): Merge conflict in
+          # docs/confidence-log.jsonl". The measurement was real, it was printed,
+          # and it never reached the repository — a run that costs half an hour
+          # of runner time producing no durable record because of the order of
+          # two git commands.
+          #
+          # The fix is to treat the file as what it is. Capture the ONE line the
+          # gate just wrote, get a clean checkout of whatever is now on the
+          # branch, append that line to the end of it, and push. There is no
+          # merge to resolve because there is no divergent history — the record
+          # is data, not a code change, and it commutes with every other append.
+          #
+          # Idempotent by run id: if a retry finds the id already present, the
+          # record landed on an earlier attempt and this exits without a second
+          # copy.
           if git diff --quiet -- docs/confidence-log.jsonl; then
             echo "the gate wrote no record — nothing to commit"
             exit 0
           fi
+
+          RECORD=$(git diff -- docs/confidence-log.jsonl | grep '^+' | grep -v '^+++' | sed 's/^+//')
+          if [ "$(printf '%s\n' "$RECORD" | grep -c .)" -ne 1 ]; then
+            echo "expected exactly one new record, got:"
+            printf '%s\n' "$RECORD"
+            exit 1
+          fi
+          RUN_ID=$(printf '%s' "$RECORD" | node -e \
+            'process.stdin.on("data",d=>console.log(JSON.parse(d.toString()).id))')
+          echo "record to land: $RUN_ID"
+
           git config user.name  'field-laboratory'
           git config user.email 'noreply@github.com'
-          git add docs/confidence-log.jsonl
-          git commit -m "Record CI gate measurement of ${GITHUB_SHA:0:7} [skip ci]"
-          # The scored tree must be the committed one, so rebase rather than
-          # merge: a merge commit would mean this record describes a tree that
-          # no longer exists at HEAD.
-          git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+          for attempt in 1 2 3; do
+            git checkout -- docs/confidence-log.jsonl
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+
+            if grep -qF "\"$RUN_ID\"" docs/confidence-log.jsonl; then
+              echo "attempt $attempt: $RUN_ID is already recorded — nothing to do"
+              exit 0
+            fi
+
+            printf '%s\n' "$RECORD" >> docs/confidence-log.jsonl
+            git add docs/confidence-log.jsonl
+            git commit -m "Record CI gate measurement of ${GITHUB_SHA:0:7} [skip ci]"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "attempt $attempt: recorded $RUN_ID"
+              exit 0
+            fi
+            echo "attempt $attempt: push rejected, someone else moved the branch — re-appending"
+            git reset --hard HEAD~1
+          done
+
+          echo "could not land the record after 3 attempts"
+          exit 1
