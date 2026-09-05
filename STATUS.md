@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `6f52bce` — [run 33987233794](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/33987233794)
+`live-check` (post-deploy, against the deployed page): **running** on `8aeef35`
 
 ## Is it published?
 
