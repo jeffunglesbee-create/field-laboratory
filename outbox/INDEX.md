@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `13bf4ef` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | separation-check: say that boundary 0 is the decided state, not a gap in one |
 | `a4d0593` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | A mount time that survives its own log, in a second ledger |
 | `11a4ebd` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The UI is checked at 2 cards; production serves 126 |
 | `6f52bce` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | verify-full: an append-only log is re-appended, not rebased |
