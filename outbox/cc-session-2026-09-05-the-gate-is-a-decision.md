@@ -334,3 +334,76 @@ as one — run 12 never printed, so nothing measured it.
 This is the same failure the session has been finding all day, in the workflow's
 own comments: a number that described the world when it was written, read later
 as though it still did.
+
+---
+
+# Addendum 4 — the baseline short-circuited, which is why a red gate ran faster
+
+Asked to find the hanging row. There isn't one, and the explanation I gave for
+the slowdown in Addendum 3 was wrong. Both corrections come from the same line.
+
+`scripts/mutation-check.mjs`, before today:
+
+```js
+const distinctExpects = [...new Set(selected.map(m => m.expect))]
+check('the unmutated tree passes every expectation',
+  distinctExpects.every(cmd => run(cmd)), ...)
+```
+
+**`.every` short-circuits.** `venue-coverage-check` had been failing since
+2026-08-24, so this line stopped at the first failing command and never ran the
+remaining twenty-odd — several of them browser rows. Fixing the venue made the
+baseline green, and it now runs all 22 to completion.
+
+The gate did not slow down. It started doing work it had been skipping for
+twelve days.
+
+## What I retract from Addendum 3
+
+**"The three repaired mutations added the time."** `cards-run-together` is the
+only `index.html` mutation in the suite, so repairing it added one
+`npm run build` and one browser row — about a minute. `outbox-missing` and
+`outbox-stub` always ran their `expect` regardless of whether their glob matched
+anything, so they added nothing at all. The explanation was plausible and
+unmeasured, which is the same fault as reading a stale timing table.
+
+**"A failing baseline means nothing below would mean anything."** True as a
+warning, and it does not abort: the loop over all 73 mutations runs either way.
+
+## The consequence that reached a decision
+
+26m44s from run 11 was **never a measurement of a passing gate**. It is the cost
+of a short-circuited one. I then sized the 90-minute cap partly against that
+number, treating it as a floor when it was not even that.
+
+A red baseline running FASTER than a green one is the property that made this
+invisible: every signal pointed at "the suite grew", and the suite had not grown.
+
+## The fix, and its mutation proof
+
+Run every distinct expectation, collect the failures, print the coverage with
+the verdict per Rule 91:
+
+```
+  baseline: ran 22 of 22 distinct expectation(s) from 73 mutation(s), 0 failing
+```
+
+On a green baseline this costs nothing — `.every` already ran all of them. On a
+red one it costs the remaining commands and buys the complete list of what is
+broken, instead of the first one.
+
+**Proved by breaking it (Rule 90).** Two distinct expectations pointed at
+non-existent rows, multi-select temporarily enabled to select both:
+
+```
+  baseline: ran 2 of 2 distinct expectation(s) from 2 mutation(s), 2 failing
+FAIL  the unmutated tree passes every expectation
+            $ node scripts/run-row.mjs "MUTATED ROW B"
+            $ node scripts/run-row.mjs "MUTATED ROW A"
+```
+
+Under `.every` that output names one command and stops. Harness restored after
+the proof; `grep -c "MUTATED ROW"` → 0.
+
+Green path verified separately: `--only outbox-stub` → `ran 1 of 1 … 0 failing`,
+2/2 checks passed.

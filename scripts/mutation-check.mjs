@@ -1155,11 +1155,36 @@ console.log(`\nMutation testing ${selected.length} invariant(s)\n`)
 // This is the safe kind of speedup and worth naming as such: it removes
 // REPEATED work, not work. Every distinct expectation still runs, and the
 // per-mutation loop below is untouched.
+//
+// `.every` SHORT-CIRCUITED, and that cost two different things.
+//
+// Measured 2026-09-05. `venue-coverage-check` had been failing since 2026-08-24,
+// so this line stopped at the first failing command and never ran the other
+// twenty-odd — several of them browser rows. Two consequences, both bad:
+//
+//   The report named ONE failing expectation when it could have named all of
+//   them. "A check was already failing" is a true sentence that withholds the
+//   list you need to fix it.
+//
+//   A RED baseline ran FASTER than a green one, which made 26m44s look like the
+//   cost of a passing gate when it was the cost of a short-circuited one. The
+//   45-minute job cap was then sized against that number and the next green run
+//   was cancelled at 36m52s with no measurement at all.
+//
+// So: run every distinct expectation, collect the failures, and print the
+// coverage with the verdict per Rule 91 — `22 of 22` on the way past, so a green
+// baseline and a truncated red one are never again the same output. On a green
+// baseline this costs nothing: `.every` already ran all of them.
 const distinctExpects = [...new Set(selected.map(m => m.expect))]
+const baselineFailures = distinctExpects.filter(cmd => !run(cmd))
+console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.length} `
+  + `distinct expectation(s) from ${selected.length} mutation(s), `
+  + `${baselineFailures.length} failing`)
 check('the unmutated tree passes every expectation',
-  distinctExpects.every(cmd => run(cmd)),
-  `a check was already failing, so nothing below would mean anything ` +
-  `(${distinctExpects.length} distinct expectation(s) from ${selected.length} mutation(s))`)
+  baselineFailures.length === 0,
+  `${baselineFailures.length} of ${distinctExpects.length} distinct expectation(s) ` +
+  `already failing, so nothing below would mean anything:\n` +
+  baselineFailures.map(c => `            $ ${c}`).join('\n'))
 
 for (const m of selected) {
   // A WORLD mutation changes something outside the source — a file the check
