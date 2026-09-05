@@ -316,6 +316,8 @@ let venuesWithoutParkFactors : string list =
     [
       // neutral site, no established run environment
       "Field of Dreams"
+      // neutral site, no established run environment
+      "Journey Bank Ballpark at Historic Bowman Field"
     ]
 
 /// Whether a venue is known to have no park factors, as opposed to unresolved.

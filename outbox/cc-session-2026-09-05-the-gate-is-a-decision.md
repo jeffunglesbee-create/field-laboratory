@@ -133,3 +133,90 @@ CI's job on this commit.
 
 None. The three approved items are done: this, the README correction, and
 `outbox/decision-2026-09-05-laboratory-no-graph-tool.md`.
+
+---
+
+# Addendum — the gate was already red, and had been for five days
+
+`verify-full` run 11 on `fffbd7a` scored **91/100 with two failing rows**. The
+record written by run `946e4c8c` on **2026-08-31** carries the identical two rows
+and the identical 91, and `f9ce6e43` on 2026-08-24 carries one of them. The three
+commits above are not the cause; they are what caused anyone to look.
+
+`verify-full`'s own header predicted this when the gate was split off the
+per-push path on 2026-08-17:
+
+> A gate failure can therefore land on main and sit there for up to a week
+> unless someone dispatches this.
+
+It sat for five days. The mitigation named beside that sentence — "the working
+practice in this repo is already to run the offline suite before pushing" — is
+what did not happen.
+
+`proof-check` in the same run: **76/76**, including the five new gate cases.
+
+## Three root causes, each fixed and each verified by the mutation that had
+## stopped biting
+
+**1. A venue nobody declared unfactored.** `data/brief-recency-corpus.json`
+carries `"Journey Bank Ballpark at Historic Bowman Field"` — MLB's Little League
+Classic at Williamsport, one game a year in a Double-A park. It resolves to no
+park factor and was not on the unfactored list, so `venue-coverage-check` failed
+the whole `decoders accept both real captures` row.
+
+Fixed in `scripts/generate-scouting.mjs`'s `NO_PARK_FACTORS`, beside
+`Field of Dreams`, then regenerated — the list is generated source, and a hand
+edit to `src/Scouting.fs` would have failed the "generated source matches its
+generator" row instead. Putting a fabricated 100/100 into the park table to
+silence the check is the thing that file already refuses to do.
+
+`node scripts/venue-coverage-check.mjs` → **4/4**, with the venue printed as
+declared rather than silently skipped.
+
+**2. A mutation anchored to CSS that was deliberately deleted.**
+`cards-run-together`'s `find` named `border: 1px solid var(--edge)` and
+`border-radius: 10px`. Commit `370bb8d` on 2026-08-26 — *"take the boxes back
+off — the check could only ever say 'add a border'"* — removed exactly those. The
+anchor matched nothing from that day, so the claim *"games on a panel are drawn
+as separate cards"* was undefended for ten days.
+
+**The first re-anchor was wrong, and its failure is the useful part.** It took
+`padding` and `background` off `.st-card`. That applied cleanly and the mutation
+SURVIVED, because `separation-check` measures a disjunction — `gap >= 4 ||
+border contrast >= 3.0` — and neither padding nor background is an arm of it.
+Breaking a property the check does not read is not a weaker mutation; it is not
+a mutation at all.
+
+`index.html` says so on the line above the rule: *"The gap is what
+`separation-check.mjs` measures."* Re-anchored to `.st-reports, .wx-rows`'s
+`gap: 1rem` → `gap: 0`. The gap arm then fails and the border arm is already 1.0,
+because these cards have had no border since `370bb8d`.
+
+`--only cards-run-together` → **2/2**, mutation caught.
+
+**3. The two outbox mutations survived because of a file added today.**
+`outboxToday` reads `outbox/*<today>*.md` and accepts ANY of them over 1500
+bytes. `outbox-missing` and `outbox-stub` moved or stubbed only
+`outbox/cc-*<today>*.md`. On any day carrying a second dated entry under another
+prefix, the row kept its evidence and both mutations survived — reported as
+"nothing defends this claim" when what was actually undefended was the
+mutations' own reach.
+
+Today was such a day: `decision-2026-09-05-laboratory-no-graph-tool.md` sat
+beside the session doc. Both globs widened to the predicate's own glob.
+
+`--only outbox-missing` → **2/2**. `--only outbox-stub` → **2/2**.
+
+## The shape, again
+
+Two of the three are the measuring apparatus rather than the product, and the
+third is a data gap the apparatus correctly caught. Rule 90 says a check that
+has only ever passed has proven nothing; the sharper form these three suggest is
+that **a check whose mutation has stopped applying is worse than one that never
+had a mutation**, because the row keeps reporting PASS and the mutation harness
+keeps reporting a number that includes it.
+
+`cards-run-together` failed loudly once the anchor was fixed — the harness's
+anchor-existence assertion is what caught it, and that assertion exists because
+of the "NOT CAUGHT with nothing mutated" defect recorded in Rule 90's table.
+That one worked exactly as written.

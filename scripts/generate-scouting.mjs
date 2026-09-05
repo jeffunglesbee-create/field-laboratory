@@ -108,6 +108,13 @@ const NO_PARK_FACTORS = {
   // Dyersville, Iowa. A neutral site MLB has used for a handful of
   // regular-season games; no established park factors exist for it.
   'Field of Dreams': 'neutral site, no established run environment',
+  // Williamsport, Pennsylvania. MLB's Little League Classic, one game a year
+  // at a Double-A park; no established park factors exist for it. Added
+  // 2026-09-05 after `venue-coverage-check` failed on it in
+  // data/brief-recency-corpus.json — the same shape as Field of Dreams, and
+  // the same refusal to invent a 100/100 to silence the check.
+  'Journey Bank Ballpark at Historic Bowman Field':
+    'neutral site, no established run environment',
 }
 
 // Parks that no imported name reaches, acknowledged rather than discovered

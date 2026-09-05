@@ -481,8 +481,25 @@ const MUTATIONS = [
     id: 'cards-run-together',
     file: 'index.html',
     claim: 'games on a panel are drawn as separate cards',
-    find: '  .st-card, .wx-row {\n    border: 1px solid var(--edge);\n    border-radius: 10px;\n    padding: 1rem 1.1rem;\n    background: var(--card);\n  }',
-    replace: '  .st-card, .wx-row { border: 0; padding: 0; background: transparent; }',
+    // RE-ANCHORED 2026-09-05. The old anchor named a border and a
+    // border-radius that `370bb8d` deleted on 2026-08-26 — "take the boxes back
+    // off — the check could only ever say 'add a border'". From that commit the
+    // find string matched nothing, so this claim was undefended for ten days and
+    // the gate row failed with "the mutation anchor still exists".
+    //
+    // It has to be the GAP. `separation-check` measures a disjunction —
+    // `gap >= 4 || border contrast >= 3.0` — and index.html says so where the
+    // rule lives: "The gap is what separation-check.mjs measures." A first
+    // re-anchor here took the padding and background off `.st-card` instead;
+    // the mutation applied cleanly and SURVIVED, because neither is an arm of
+    // that disjunction. Breaking a property the check does not read is not a
+    // weaker mutation, it is not a mutation at all.
+    //
+    // With `gap: 0` the gap arm fails and the border arm is already 1.0 — these
+    // cards have no border since 370bb8d — so the row goes red, which is the
+    // whole point of the claim.
+    find: '  .st-reports, .wx-rows {\n    display: grid;\n    gap: 1rem;\n  }',
+    replace: '  .st-reports, .wx-rows { display: grid; gap: 0; }',
     expect: 'node scripts/run-row.mjs "games on a panel are separated from each other"',
   },
 
@@ -512,14 +529,26 @@ const MUTATIONS = [
   {
     id: 'outbox-missing',
     claim: "a session that wrote no outbox is caught",
-    mutate: 'mkdir -p /tmp/mut-outbox && mv outbox/cc-*$(TZ=America/New_York date +%F)*.md /tmp/mut-outbox/ 2>/dev/null || true',
+    // WIDENED 2026-09-05, from `cc-*` to every dated entry.
+    //
+    // `outboxToday` reads `outbox/*<today>*.md` and takes ANY of them over 1500
+    // bytes. These two mutations moved only `cc-*`, so on any day carrying a
+    // second dated entry under another prefix the row kept its evidence and the
+    // mutation SURVIVED — reported as "nothing defends this claim" when what was
+    // actually undefended was the mutation's own reach.
+    //
+    // Found on 2026-09-05, when a `decision-2026-09-05-*.md` sat beside the
+    // session doc. The glob has to be the predicate's glob; anything narrower
+    // tests a claim the row does not make.
+    mutate: 'mkdir -p /tmp/mut-outbox && mv outbox/*$(TZ=America/New_York date +%F)*.md /tmp/mut-outbox/ 2>/dev/null || true',
     restore: 'mv /tmp/mut-outbox/*.md outbox/ 2>/dev/null || true; rmdir /tmp/mut-outbox 2>/dev/null || true',
     expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
   },
   {
     id: 'outbox-stub',
     claim: 'an empty stub does not count as a write-up',
-    mutate: 'mkdir -p /tmp/mut-stub && cp outbox/cc-*$(TZ=America/New_York date +%F)*.md /tmp/mut-stub/ 2>/dev/null; for f in outbox/cc-*$(TZ=America/New_York date +%F)*.md; do [ -e "$f" ] || continue; echo stub > "$f"; done',
+    // Widened with `outbox-missing` above, and for the same reason.
+    mutate: 'mkdir -p /tmp/mut-stub && cp outbox/*$(TZ=America/New_York date +%F)*.md /tmp/mut-stub/ 2>/dev/null; for f in outbox/*$(TZ=America/New_York date +%F)*.md; do [ -e "$f" ] || continue; echo stub > "$f"; done',
     restore: 'cp /tmp/mut-stub/*.md outbox/ 2>/dev/null || true; rm -rf /tmp/mut-stub',
     expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
   },
