@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e79832a` | 2026-09-05 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-05 [skip ci] |
+| `e79832a` | 2026-09-05 | [sport-vocabulary-2026-09-05T14-58-16-463Z.json](sport-vocabulary-2026-09-05T14-58-16-463Z.json) | drift-sentinel: ok on 2026-09-05 [skip ci] |
 | `6e5b6c4` | 2026-09-05 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-05 [skip ci] |
 | `6e5b6c4` | 2026-09-05 | [sport-vocabulary-2026-09-05T05-56-41-053Z.json](sport-vocabulary-2026-09-05T05-56-41-053Z.json) | drift-sentinel: ok on 2026-09-05 [skip ci] |
 | `a33e4ec` | 2026-09-04 | [decision-2026-09-04-laboratory-no-uplot.md](decision-2026-09-04-laboratory-no-uplot.md) | docs: field-laboratory does not get uPlot — decision, with the evidence |
