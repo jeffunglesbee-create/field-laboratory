@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a4d0593` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | A mount time that survives its own log, in a second ledger |
 | `11a4ebd` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The UI is checked at 2 cards; production serves 126 |
 | `6f52bce` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | verify-full: an append-only log is re-appended, not rebased |
 | `c9a783b` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | Short-circuit measurement is now unwritable, and a timeout names its row |
