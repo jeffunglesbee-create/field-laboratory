@@ -1,3 +1,5 @@
+import { execSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { pathToFileURL } from 'node:url'
 
 // Shared check harness.
@@ -40,6 +42,39 @@ export function createChecks() {
  * undefined on them. They are iterable, so Array.from converts. Wrapped here
  * because every consumer of the compiled decoders hits this.
  */
+/**
+ * What tree a measurement describes: HEAD, plus a digest of everything not in it.
+ *
+ * THE SHA IS NOT THE RUN. Extracted from `confidence.mjs` on 2026-09-05, where
+ * it was written after two records both said `1264e6f` — one scoring 91 with
+ * three failing rows, one scoring 100 — because HEAD was unchanged while the
+ * WORKING TREE was fixed between them. `git rev-parse HEAD` says nothing about
+ * uncommitted work, and a gate scores the tree, not the commit.
+ *
+ * Any file that writes a measurement to a ledger needs the same identity, or
+ * the ledgers cannot be joined and a dirty local run is indistinguishable from
+ * a clean CI one. `scale-check.mjs` is the second such file.
+ *
+ * A FUNCTION, not a module-level constant: `import-purity-check` requires that
+ * importing a module runs nothing, and shelling out to git at import time is
+ * exactly what that guard exists to catch.
+ */
+export const runIdentity = () => {
+  const gitOut = cmd => {
+    try { return execSync(cmd, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }) } catch { return '' }
+  }
+  const sha = gitOut('git rev-parse HEAD').trim() || null
+  const dirt = gitOut('git status --porcelain') + gitOut('git diff HEAD')
+  const digest = createHash('sha256').update(dirt).digest('hex')
+  return {
+    sha,
+    // Whether the measured tree was the committed one. A clean run is the only
+    // kind whose sha alone describes what was measured.
+    dirty: dirt.length > 0,
+    id: `${(sha ?? 'nohead').slice(0, 12)}-${digest.slice(0, 12)}`,
+  }
+}
+
 export const toArray = xs => (xs == null ? [] : Array.from(xs))
 
 /**

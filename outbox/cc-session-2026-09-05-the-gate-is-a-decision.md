@@ -662,3 +662,76 @@ that it measured nothing rather than reporting green.
 than the one it was written against. A budget that cannot be exceeded is not a
 budget. Now 5,000ms, ~13x, which absorbs a loaded CI runner and still fails
 anything with the wrong complexity.
+
+---
+
+# Addendum 8 — a mount time that survives its own log
+
+Run 15's peak step passed every assertion, including `the slate mounts inside
+5000ms`. The measured figure is **gone**: a step's stdout is byte-capped out of
+the log tail once a 39-minute gate runs after it, so the one CI measurement that
+mattered proved a boolean and nothing else.
+
+That budget has now been set twice by guess. 15,000ms against a single 390ms
+sandbox reading, corrected by hand to 5,000ms. Both were assertions about a
+distribution nobody had sampled — and the sampling was available all along.
+
+Two local runs, same tree, minutes apart:
+
+```
+mountMs 716
+mountMs 569
+```
+
+**1.8x spread within one machine.** Any budget derived from one reading is
+derived from noise, which is the argument for the ledger rather than a footnote
+to it.
+
+## `docs/scale-log.jsonl`
+
+`scale-check.mjs` now appends a record per run:
+
+```json
+{"id":"e936295eb64b-a09590850c58","sha":"e936295eb64b...","dirty":true,
+ "ci":false,"fixture":"context-2026-09-05","rows":126,"sports":8,
+ "cards":126,"groups":8,"mountMs":569,"budgetMs":5000}
+```
+
+`budgetMs` is recorded **with** the measurement on purpose. Without it a later
+reader cannot tell a 4000ms pass under a 5000ms budget from a 4000ms pass under
+a 15000ms one, and re-deriving the budget from data is the whole point.
+
+Written before the exit branch, so a run that BLOWS the budget is recorded too.
+A ledger that only captures passes cannot refuse a claim, which is the one thing
+it is for — the same reasoning `confidence.mjs` already carries.
+
+## `runIdentity`, extracted rather than copied
+
+Both ledgers key on HEAD plus a digest of everything not in HEAD. That logic was
+written inside `confidence.mjs` after two records both said `1264e6f` — one
+scoring 91, one scoring 100 — because HEAD was unchanged while the working tree
+was fixed between them.
+
+Copying it into `scale-check.mjs` would have produced two ledgers that look
+joinable and are not. It now lives in `checks.mjs` as `runIdentity()`, a
+function rather than a module-level constant because `import-purity-check`
+requires that importing a module runs nothing, and shelling out to git at import
+time is exactly what that guard exists to catch. `confidence.mjs` reads from it,
+and its now-dead `createHash` import is gone.
+
+## One commit lands both
+
+The record step was widened rather than duplicated. It builds a pending list of
+`(ledger, id, line)` triples, and on each attempt re-appends every line that is
+not already present, in one commit.
+
+One commit rather than two because both records describe the same run of the
+same tree, and splitting them lets a reader find one without the other. Still
+idempotent by run id, still three attempts, still the re-append that survived a
+real race on run 15 — main moved to `499a43a` mid-run and the record landed on
+attempt 1.
+
+The tab-delimited round-trip through a shell variable is the fragile part, so it
+was run in isolation before shipping: two rows in, two rows out, ledger, id and
+JSON line intact. Record lines are JSON with no tabs or newlines, which is what
+makes the delimiter safe.

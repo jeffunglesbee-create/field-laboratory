@@ -22,9 +22,21 @@
 // Usage:  URL='http://localhost:8080/?data=context-2026-09-05' node scripts/scale-check.mjs
 //         node scripts/scale-check.mjs --self-test
 
-import { readFileSync } from 'node:fs'
-import { existsSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { readFileSync, existsSync, appendFileSync } from 'node:fs'
+import { createChecks, isMain, runIdentity } from './checks.mjs'
+
+// Where each run's mount measurement is written.
+//
+// The budget below started at 15_000 against a single 390ms reading from one
+// sandbox, and was corrected to 5_000 by hand. Both numbers were guesses about
+// a distribution nobody had sampled: the CI run that mattered passed the
+// assertion and its figure was then unrecoverable, because a step's stdout is
+// byte-capped out of the log tail once a 39-minute gate runs after it.
+//
+// A number that only exists in a log is a number you will re-guess. Append-only
+// and keyed by `runIdentity`, the same as docs/confidence-log.jsonl, so a local
+// dirty run and a clean CI one are tellable apart and the two ledgers join.
+const RECORD_PATH = 'docs/scale-log.jsonl'
 
 /** Rows and sports a capture carries, read from the file the page will load. */
 export const fixtureShape = payload => {
@@ -129,5 +141,27 @@ if (isMain(import.meta.url)) {
   check('no page or console errors at this size', errors.length === 0, errors.join(' | '))
 
   await browser.close()
+
+  // Written BEFORE the exit branch, so a run that blows the budget is recorded
+  // too. A ledger that only ever captures passes cannot be used to refuse a
+  // claim, which is the one thing it is for — same reasoning as confidence.mjs.
+  const { sha, dirty, id } = runIdentity()
+  appendFileSync(RECORD_PATH, JSON.stringify({
+    id, sha, dirty,
+    ci: process.env.GITHUB_ACTIONS === 'true',
+    fixture,
+    rows: expected.rows,
+    sports: expected.sports.length,
+    cards: seen.cards,
+    groups: seen.groups.length,
+    mountMs,
+    // The budget this run was judged against, recorded WITH the measurement.
+    // Without it a later reader cannot tell a 4000ms pass under a 5000ms budget
+    // from a 4000ms pass under a 15000ms one, and the whole point of the ledger
+    // is to re-derive the budget from data.
+    budgetMs: MOUNT_BUDGET_MS,
+  }) + '\n')
+  console.log(`  recorded in ${RECORD_PATH} as run ${id}${dirty ? ' (tree dirty)' : ''}\n`)
+
   process.exit(summarize() === 0 ? 0 : 1)
 }

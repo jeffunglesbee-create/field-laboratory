@@ -199,64 +199,90 @@ jobs:
 
           # AN APPEND-ONLY LOG MUST BE RE-APPENDED, NOT REBASED.
           #
-          # This step used to commit the record and then
-          # `git pull --rebase`. Both sides of that rebase append a line to the
-          # end of the same file, so git sees two different last lines and calls
-          # it a content conflict — every time, by construction.
+          # This step used to commit the record and then `git pull --rebase`.
+          # Both sides of that rebase append a line to the end of the same file,
+          # so git sees two different last lines and calls it a content
+          # conflict — every time, by construction.
           #
           # It fired on 2026-09-05, run 13: the gate scored 530/530 and the step
           # died with "CONFLICT (content): Merge conflict in
           # docs/confidence-log.jsonl". The measurement was real, it was printed,
-          # and it never reached the repository — a run that costs half an hour
-          # of runner time producing no durable record because of the order of
-          # two git commands.
+          # and it never reached the repository — half an hour of runner time
+          # producing no durable record because of the order of two git commands.
           #
-          # The fix is to treat the file as what it is. Capture the ONE line the
-          # gate just wrote, get a clean checkout of whatever is now on the
-          # branch, append that line to the end of it, and push. There is no
-          # merge to resolve because there is no divergent history — the record
-          # is data, not a code change, and it commutes with every other append.
+          # The fix is to treat the file as what it is. Capture the ONE line each
+          # ledger just gained, get a clean checkout of whatever is now on the
+          # branch, append those lines, and push. There is no merge to resolve
+          # because there is no divergent history — a record is data, and it
+          # commutes with every other append. Run 15 proved it on a real race:
+          # main moved to 499a43a mid-run and the record still landed on
+          # attempt 1.
           #
-          # Idempotent by run id: if a retry finds the id already present, the
-          # record landed on an earlier attempt and this exits without a second
-          # copy.
-          if git diff --quiet -- docs/confidence-log.jsonl; then
-            echo "the gate wrote no record — nothing to commit"
+          # TWO LEDGERS as of 2026-09-05. `scale-check.mjs` writes the peak-slate
+          # mount time to docs/scale-log.jsonl, and its figure was previously
+          # unrecoverable: a step's stdout is byte-capped out of the log tail once
+          # a 39-minute gate runs after it, so the one CI measurement that
+          # mattered passed its assertion and then could not be read back.
+          #
+          # Both are landed by ONE commit rather than two, because they describe
+          # the same run of the same tree and splitting them would let a reader
+          # find one without the other.
+          LEDGERS="docs/confidence-log.jsonl docs/scale-log.jsonl"
+
+          PENDING=""
+          for LEDGER in $LEDGERS; do
+            git diff --quiet -- "$LEDGER" && continue
+            LINE=$(git diff -- "$LEDGER" | grep '^+' | grep -v '^+++' | sed 's/^+//')
+            if [ "$(printf '%s\n' "$LINE" | grep -c .)" -ne 1 ]; then
+              echo "expected exactly one new record in $LEDGER, got:"
+              printf '%s\n' "$LINE"
+              exit 1
+            fi
+            ID=$(printf '%s' "$LINE" | node -e \
+              'process.stdin.on("data",d=>console.log(JSON.parse(d.toString()).id))')
+            echo "record to land in $LEDGER: $ID"
+            PENDING="$PENDING$LEDGER\t$ID\t$LINE\n"
+          done
+
+          if [ -z "$PENDING" ]; then
+            echo "no ledger gained a record — nothing to commit"
             exit 0
           fi
-
-          RECORD=$(git diff -- docs/confidence-log.jsonl | grep '^+' | grep -v '^+++' | sed 's/^+//')
-          if [ "$(printf '%s\n' "$RECORD" | grep -c .)" -ne 1 ]; then
-            echo "expected exactly one new record, got:"
-            printf '%s\n' "$RECORD"
-            exit 1
-          fi
-          RUN_ID=$(printf '%s' "$RECORD" | node -e \
-            'process.stdin.on("data",d=>console.log(JSON.parse(d.toString()).id))')
-          echo "record to land: $RUN_ID"
 
           git config user.name  'field-laboratory'
           git config user.email 'noreply@github.com'
 
           for attempt in 1 2 3; do
-            git checkout -- docs/confidence-log.jsonl
+            for LEDGER in $LEDGERS; do git checkout -- "$LEDGER" 2>/dev/null || true; done
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
 
-            if grep -qF "\"$RUN_ID\"" docs/confidence-log.jsonl; then
-              echo "attempt $attempt: $RUN_ID is already recorded — nothing to do"
+            WROTE=0
+            while IFS=$'\t' read -r LEDGER ID LINE; do
+              [ -n "$LEDGER" ] || continue
+              # Idempotent by run id: a retry that finds the id already present
+              # leaves it alone rather than writing a second copy.
+              if grep -qF "\"$ID\"" "$LEDGER" 2>/dev/null; then
+                echo "attempt $attempt: $ID already in $LEDGER"
+                continue
+              fi
+              printf '%s\n' "$LINE" >> "$LEDGER"
+              git add "$LEDGER"
+              WROTE=1
+            done <<< "$(printf '%b' "$PENDING")"
+
+            if [ "$WROTE" -eq 0 ]; then
+              echo "attempt $attempt: every record was already landed — nothing to do"
               exit 0
             fi
 
-            printf '%s\n' "$RECORD" >> docs/confidence-log.jsonl
-            git add docs/confidence-log.jsonl
-            git commit -m "Record CI gate measurement of ${GITHUB_SHA:0:7} [skip ci]"
+            git commit -m "Record CI measurement of ${GITHUB_SHA:0:7} [skip ci]"
             if git push origin "HEAD:${GITHUB_REF_NAME}"; then
-              echo "attempt $attempt: recorded $RUN_ID"
+              echo "attempt $attempt: landed"
               exit 0
             fi
             echo "attempt $attempt: push rejected, someone else moved the branch — re-appending"
             git reset --hard HEAD~1
           done
 
-          echo "could not land the record after 3 attempts"
+          echo "could not land the record(s) after 3 attempts"
           exit 1
