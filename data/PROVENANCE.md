@@ -75,3 +75,5 @@ reporting, not a test to fix.
 - `context-2026-08-29.json` — captured 2026-08-29 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-08-29` by `scripts/capture-render-fixture.mjs`. 78 rows, 11 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NFL, Serie A, WNBA. Unedited — a hand-modified fixture is an invented one.
 
 - `context-2026-09-05.json` — captured 2026-09-05 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-05` by `scripts/capture-render-fixture.mjs`. 126 rows, 8 sports: Bundesliga, CFB, EPL, La Liga, Ligue 1, MLB, MLS, Serie A. Unedited — a hand-modified fixture is an invented one.
+
+- `tennis-live.json` — captured 2026-09-06 from `https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/matches/live` by `scripts/capture-tennis-fixture.mjs`. 11 live matches, 4 tournaments, 11 carrying sets_detail. Statuses seen: interrupted, live. Unedited — a hand-modified fixture is an invented one.

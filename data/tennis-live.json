@@ -1,0 +1,1271 @@
+[
+ {
+  "id": 49161,
+  "tournament": {
+   "id": 135,
+   "name": "US Open, Men",
+   "circuit": "ATP",
+   "category": "grand_slam",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 85,
+   "name": "Jakub Menšik",
+   "short_name": "J. Menšik",
+   "country_code": "CZ",
+   "country_name": "Czechia",
+   "gender": "M",
+   "current_ranking": {
+    "position": 18,
+    "points": 2445,
+    "type": "ATP"
+   }
+  },
+  "player2": {
+   "id": 86,
+   "name": "Learner Tien",
+   "short_name": "L. Tien",
+   "country_code": "US",
+   "country_name": "USA",
+   "gender": "M",
+   "current_ranking": {
+    "position": 15,
+    "points": 2565,
+    "type": "ATP"
+   }
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T02:10:00+00:00",
+  "status": "live",
+  "round_name": "Round of 32",
+  "player1_sets": 1,
+  "player2_sets": 1,
+  "sets_detail": [
+   {
+    "p1": 3,
+    "p2": 6
+   },
+   {
+    "p1": 6,
+    "p2": 1
+   },
+   {
+    "p1": 5,
+    "p2": 5
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 2.38,
+  "odds_player2": 1.5699999999999998,
+  "player1_games": 14,
+  "player2_games": 12,
+  "current_set": 3,
+  "current_game_p1": 5,
+  "current_game_p2": 5,
+  "current_point": "40-15",
+  "is_serving_p1": false,
+  "p1_aces": 13,
+  "p1_double_faults": 3,
+  "p1_first_serve_pct": 66.66666666666666,
+  "p1_first_serve_won_pct": 84.0909090909091,
+  "p1_second_serve_pct": 86.36363636363636,
+  "p1_second_serve_won_pct": 50,
+  "p1_break_points_saved_pct": 25,
+  "p1_break_points_converted_pct": 50,
+  "p1_return_points_won_pct": 40.65934065934066,
+  "p1_service_games": 13,
+  "p1_service_games_won": 10,
+  "p1_games_won": 14,
+  "p1_total_points_won": 85,
+  "p1_service_points_won": 48,
+  "p1_receiver_points_won": 37,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 8,
+  "p1_max_games_in_row": 6,
+  "p2_aces": 2,
+  "p2_double_faults": 4,
+  "p2_first_serve_pct": 63.73626373626373,
+  "p2_first_serve_won_pct": 60.3448275862069,
+  "p2_second_serve_pct": 88.23529411764706,
+  "p2_second_serve_won_pct": 57.57575757575758,
+  "p2_break_points_saved_pct": 50,
+  "p2_break_points_converted_pct": 75,
+  "p2_return_points_won_pct": 27.27272727272727,
+  "p2_service_games": 13,
+  "p2_service_games_won": 9,
+  "p2_games_won": 12,
+  "p2_total_points_won": 72,
+  "p2_service_points_won": 54,
+  "p2_receiver_points_won": 18,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 11,
+  "p2_max_games_in_row": 6,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 3,
+    "p2": 1
+   },
+   {
+    "set": 2,
+    "p1": 5,
+    "p2": 0
+   },
+   {
+    "set": 3,
+    "p1": 5,
+    "p2": 1
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 3,
+    "p2": 1
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 3
+   },
+   {
+    "set": 3,
+    "p1": 0,
+    "p2": 0
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49164,
+  "tournament": {
+   "id": 135,
+   "name": "US Open, Men",
+   "circuit": "ATP",
+   "category": "grand_slam",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 510,
+   "name": "Alexander Zverev",
+   "short_name": "A. Zverev",
+   "country_code": "DE",
+   "country_name": "Germany",
+   "gender": "M",
+   "current_ranking": {
+    "position": 2,
+    "points": 7790,
+    "type": "ATP"
+   }
+  },
+  "player2": {
+   "id": 208,
+   "name": "Alejandro Tabilo",
+   "short_name": "A. Tabilo",
+   "country_code": "CL",
+   "country_name": "Chile",
+   "gender": "M",
+   "current_ranking": {
+    "position": 28,
+    "points": 1688,
+    "type": "ATP"
+   }
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T02:40:00+00:00",
+  "status": "live",
+  "round_name": "Round of 32",
+  "player1_sets": 1,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 6,
+    "p2": 2
+   },
+   {
+    "p1": 4,
+    "p2": 3
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 1.19,
+  "odds_player2": 5.4,
+  "player1_games": 10,
+  "player2_games": 5,
+  "current_set": 2,
+  "current_game_p1": 4,
+  "current_game_p2": 3,
+  "current_point": "0-0",
+  "is_serving_p1": true,
+  "p1_aces": 4,
+  "p1_double_faults": 0,
+  "p1_first_serve_pct": 90.625,
+  "p1_first_serve_won_pct": 89.65517241379311,
+  "p1_second_serve_pct": 100,
+  "p1_second_serve_won_pct": 66.66666666666666,
+  "p1_break_points_saved_pct": null,
+  "p1_break_points_converted_pct": 42.857142857142854,
+  "p1_return_points_won_pct": 42.592592592592595,
+  "p1_service_games": 7,
+  "p1_service_games_won": 7,
+  "p1_games_won": 10,
+  "p1_total_points_won": 51,
+  "p1_service_points_won": 28,
+  "p1_receiver_points_won": 23,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 7,
+  "p1_max_games_in_row": 4,
+  "p2_aces": 4,
+  "p2_double_faults": 1,
+  "p2_first_serve_pct": 92.5925925925926,
+  "p2_first_serve_won_pct": 60,
+  "p2_second_serve_pct": 75,
+  "p2_second_serve_won_pct": 25,
+  "p2_break_points_saved_pct": 57.14285714285714,
+  "p2_break_points_converted_pct": null,
+  "p2_return_points_won_pct": 12.5,
+  "p2_service_games": 8,
+  "p2_service_games_won": 5,
+  "p2_games_won": 5,
+  "p2_total_points_won": 35,
+  "p2_service_points_won": 31,
+  "p2_receiver_points_won": 4,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 4,
+  "p2_max_games_in_row": 1,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 3,
+    "p2": 4
+   },
+   {
+    "set": 2,
+    "p1": 1,
+    "p2": 0
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 1
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 0
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49403,
+  "tournament": {
+   "id": 757,
+   "name": "Phan Thiet 3, Vietnam",
+   "circuit": "ATP",
+   "category": "challenger",
+   "surface": ""
+  },
+  "player1": {
+   "id": 2237,
+   "name": "Timofei Derepasko",
+   "short_name": "T. Derepasko",
+   "country_code": "RU",
+   "country_name": "Russia",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 5149,
+   "name": "Minhthien Nguyen",
+   "short_name": "M. Nguyen",
+   "country_code": "VN",
+   "country_name": "Vietnam",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T03:00:00+00:00",
+  "status": "live",
+  "round_name": "Qualification Round 1",
+  "player1_sets": 0,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 5,
+    "p2": 1
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 1.02,
+  "odds_player2": 15,
+  "player1_games": 5,
+  "player2_games": 1,
+  "current_set": 1,
+  "current_game_p1": 5,
+  "current_game_p2": 1,
+  "current_point": "15-40",
+  "is_serving_p1": false,
+  "p1_aces": 2,
+  "p1_double_faults": 1,
+  "p1_first_serve_pct": 50,
+  "p1_first_serve_won_pct": 100,
+  "p1_second_serve_pct": 85.71428571428571,
+  "p1_second_serve_won_pct": 71.42857142857143,
+  "p1_break_points_saved_pct": null,
+  "p1_break_points_converted_pct": 25,
+  "p1_return_points_won_pct": 50,
+  "p1_service_games": 3,
+  "p1_service_games_won": 3,
+  "p1_games_won": 5,
+  "p1_total_points_won": 28,
+  "p1_service_points_won": 12,
+  "p1_receiver_points_won": 16,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 8,
+  "p1_max_games_in_row": 3,
+  "p2_aces": 1,
+  "p2_double_faults": 5,
+  "p2_first_serve_pct": 37.5,
+  "p2_first_serve_won_pct": 75,
+  "p2_second_serve_pct": 75,
+  "p2_second_serve_won_pct": 35,
+  "p2_break_points_saved_pct": 75,
+  "p2_break_points_converted_pct": null,
+  "p2_return_points_won_pct": 14.285714285714285,
+  "p2_service_games": 4,
+  "p2_service_games_won": 2,
+  "p2_games_won": 2,
+  "p2_total_points_won": 18,
+  "p2_service_points_won": 16,
+  "p2_receiver_points_won": 2,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 3,
+  "p2_max_games_in_row": 1,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 2,
+    "p2": 1
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 1,
+    "p2": 5
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49402,
+  "tournament": {
+   "id": 757,
+   "name": "Phan Thiet 3, Vietnam",
+   "circuit": "ATP",
+   "category": "challenger",
+   "surface": ""
+  },
+  "player1": {
+   "id": 3822,
+   "name": "Noritaka Koizumi",
+   "short_name": "N. Koizumi",
+   "country_code": "JP",
+   "country_name": "Japan",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 1951,
+   "name": "Taisei Ichikawa",
+   "short_name": "T. Ichikawa",
+   "country_code": "JP",
+   "country_name": "Japan",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T03:00:00+00:00",
+  "status": "live",
+  "round_name": "Qualification Round 1",
+  "player1_sets": 0,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 2,
+    "p2": 4
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 2.33,
+  "odds_player2": 1.61,
+  "player1_games": 2,
+  "player2_games": 4,
+  "current_set": 1,
+  "current_game_p1": 3,
+  "current_game_p2": 4,
+  "current_point": "0-0",
+  "is_serving_p1": false,
+  "p1_aces": 0,
+  "p1_double_faults": 2,
+  "p1_first_serve_pct": 69.23076923076923,
+  "p1_first_serve_won_pct": 66.66666666666666,
+  "p1_second_serve_pct": 75,
+  "p1_second_serve_won_pct": 37.5,
+  "p1_break_points_saved_pct": 75,
+  "p1_break_points_converted_pct": 0,
+  "p1_return_points_won_pct": 36,
+  "p1_service_games": 3,
+  "p1_service_games_won": 2,
+  "p1_games_won": 2,
+  "p1_total_points_won": 25,
+  "p1_service_points_won": 15,
+  "p1_receiver_points_won": 9,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 3,
+  "p1_max_games_in_row": 1,
+  "p2_aces": 1,
+  "p2_double_faults": 2,
+  "p2_first_serve_pct": 76,
+  "p2_first_serve_won_pct": 73.68421052631578,
+  "p2_second_serve_pct": 66.66666666666666,
+  "p2_second_serve_won_pct": 33.33333333333333,
+  "p2_break_points_saved_pct": 100,
+  "p2_break_points_converted_pct": 25,
+  "p2_return_points_won_pct": 42.30769230769231,
+  "p2_service_games": 3,
+  "p2_service_games_won": 3,
+  "p2_games_won": 4,
+  "p2_total_points_won": 27,
+  "p2_service_points_won": 16,
+  "p2_receiver_points_won": 11,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 4,
+  "p2_max_games_in_row": 3,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 1
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 2,
+    "p2": 2
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49400,
+  "tournament": {
+   "id": 757,
+   "name": "Phan Thiet 3, Vietnam",
+   "circuit": "ATP",
+   "category": "challenger",
+   "surface": ""
+  },
+  "player1": {
+   "id": 5384,
+   "name": "Ethan Cook",
+   "short_name": "E. Cook",
+   "country_code": "AU",
+   "country_name": "Australia",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 6704,
+   "name": "Jesse Flores",
+   "short_name": "J. Flores",
+   "country_code": "CR",
+   "country_name": "Costa Rica",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T03:00:00+00:00",
+  "status": "live",
+  "round_name": "Qualification Round 1",
+  "player1_sets": 0,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 4,
+    "p2": 2
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 2.29,
+  "odds_player2": 1.63,
+  "player1_games": 4,
+  "player2_games": 2,
+  "current_set": 1,
+  "current_game_p1": 4,
+  "current_game_p2": 2,
+  "current_point": "15-30",
+  "is_serving_p1": false,
+  "p1_aces": 1,
+  "p1_double_faults": 0,
+  "p1_first_serve_pct": 57.692307692307686,
+  "p1_first_serve_won_pct": 66.66666666666666,
+  "p1_second_serve_pct": 100,
+  "p1_second_serve_won_pct": 54.54545454545454,
+  "p1_break_points_saved_pct": 100,
+  "p1_break_points_converted_pct": 33.33333333333333,
+  "p1_return_points_won_pct": 42.10526315789473,
+  "p1_service_games": 3,
+  "p1_service_games_won": 3,
+  "p1_games_won": 4,
+  "p1_total_points_won": 24,
+  "p1_service_points_won": 16,
+  "p1_receiver_points_won": 8,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 8,
+  "p1_max_games_in_row": 3,
+  "p2_aces": 2,
+  "p2_double_faults": 2,
+  "p2_first_serve_pct": 78.94736842105263,
+  "p2_first_serve_won_pct": 60,
+  "p2_second_serve_pct": 50,
+  "p2_second_serve_won_pct": 50,
+  "p2_break_points_saved_pct": 66.66666666666666,
+  "p2_break_points_converted_pct": 0,
+  "p2_return_points_won_pct": 38.46153846153847,
+  "p2_service_games": 3,
+  "p2_service_games_won": 2,
+  "p2_games_won": 2,
+  "p2_total_points_won": 21,
+  "p2_service_points_won": 11,
+  "p2_receiver_points_won": 10,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 7,
+  "p2_max_games_in_row": 1,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 1,
+    "p2": 2
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 2
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49401,
+  "tournament": {
+   "id": 757,
+   "name": "Phan Thiet 3, Vietnam",
+   "circuit": "ATP",
+   "category": "challenger",
+   "surface": ""
+  },
+  "player1": {
+   "id": 6705,
+   "name": "Nikita Ianin",
+   "short_name": "N. Ianin",
+   "country_code": "RU",
+   "country_name": "Russia",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 5352,
+   "name": "Taiyo Yamanaka",
+   "short_name": "T. Yamanaka",
+   "country_code": "JP",
+   "country_name": "Japan",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T03:00:00+00:00",
+  "status": "live",
+  "round_name": "Qualification Round 1",
+  "player1_sets": 0,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 2,
+    "p2": 4
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 3.15,
+  "odds_player2": 1.36,
+  "player1_games": 2,
+  "player2_games": 4,
+  "current_set": 1,
+  "current_game_p1": 2,
+  "current_game_p2": 4,
+  "current_point": "0-0",
+  "is_serving_p1": true,
+  "p1_aces": 2,
+  "p1_double_faults": 3,
+  "p1_first_serve_pct": 54.166666666666664,
+  "p1_first_serve_won_pct": 46.15384615384615,
+  "p1_second_serve_pct": 72.72727272727273,
+  "p1_second_serve_won_pct": 45.45454545454545,
+  "p1_break_points_saved_pct": 66.66666666666666,
+  "p1_break_points_converted_pct": 50,
+  "p1_return_points_won_pct": 37.5,
+  "p1_service_games": 3,
+  "p1_service_games_won": 1,
+  "p1_games_won": 2,
+  "p1_total_points_won": 17,
+  "p1_service_points_won": 11,
+  "p1_receiver_points_won": 6,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 4,
+  "p1_max_games_in_row": 2,
+  "p2_aces": 0,
+  "p2_double_faults": 1,
+  "p2_first_serve_pct": 68.75,
+  "p2_first_serve_won_pct": 63.63636363636363,
+  "p2_second_serve_pct": 80,
+  "p2_second_serve_won_pct": 60,
+  "p2_break_points_saved_pct": 50,
+  "p2_break_points_converted_pct": 33.33333333333333,
+  "p2_return_points_won_pct": 54.166666666666664,
+  "p2_service_games": 2,
+  "p2_service_games_won": 2,
+  "p2_games_won": 4,
+  "p2_total_points_won": 23,
+  "p2_service_points_won": 10,
+  "p2_receiver_points_won": 13,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 6,
+  "p2_max_games_in_row": 3,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 2,
+    "p2": 0
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 3,
+    "p2": 1
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49345,
+  "tournament": {
+   "id": 745,
+   "name": "UTR PTT Miami Women 01",
+   "circuit": "ATP",
+   "category": "utr",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 6674,
+   "name": "Marlene Foerster",
+   "short_name": "M. Foerster",
+   "country_code": "DE",
+   "country_name": "Germany",
+   "gender": "F",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 2833,
+   "name": "Amy Gray",
+   "short_name": "A. Gray",
+   "country_code": "US",
+   "country_name": "USA",
+   "gender": "F",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T13:00:00+00:00",
+  "status": "interrupted",
+  "round_name": "Semifinals",
+  "player1_sets": 1,
+  "player2_sets": 1,
+  "sets_detail": [
+   {
+    "p1": 6,
+    "p2": 3
+   },
+   {
+    "p1": 4,
+    "p2": 6
+   },
+   {
+    "p1": 3,
+    "p2": 4
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": null,
+  "odds_player2": null,
+  "player1_games": 13,
+  "player2_games": 13,
+  "current_set": 3,
+  "current_game_p1": 3,
+  "current_game_p2": 4,
+  "current_point": "0-0",
+  "is_serving_p1": false,
+  "p1_aces": 0,
+  "p1_double_faults": 5,
+  "p1_first_serve_pct": 73.11827956989248,
+  "p1_first_serve_won_pct": 63.23529411764706,
+  "p1_second_serve_pct": 80,
+  "p1_second_serve_won_pct": 24,
+  "p1_break_points_saved_pct": 62.5,
+  "p1_break_points_converted_pct": 37.5,
+  "p1_return_points_won_pct": 48.45360824742268,
+  "p1_service_games": 13,
+  "p1_service_games_won": 7,
+  "p1_games_won": 13,
+  "p1_total_points_won": 96,
+  "p1_service_points_won": 49,
+  "p1_receiver_points_won": 47,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 5,
+  "p1_max_games_in_row": 3,
+  "p2_aces": 1,
+  "p2_double_faults": 4,
+  "p2_first_serve_pct": 57.73195876288659,
+  "p2_first_serve_won_pct": 53.57142857142857,
+  "p2_second_serve_pct": 90.2439024390244,
+  "p2_second_serve_won_pct": 48.78048780487805,
+  "p2_break_points_saved_pct": 62.5,
+  "p2_break_points_converted_pct": 37.5,
+  "p2_return_points_won_pct": 47.31182795698925,
+  "p2_service_games": 13,
+  "p2_service_games_won": 7,
+  "p2_games_won": 13,
+  "p2_total_points_won": 94,
+  "p2_service_points_won": 50,
+  "p2_receiver_points_won": 44,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 5,
+  "p2_max_games_in_row": 4,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 0
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 0
+   },
+   {
+    "set": 3,
+    "p1": 0,
+    "p2": 1
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 1,
+    "p2": 1
+   },
+   {
+    "set": 2,
+    "p1": 1,
+    "p2": 1
+   },
+   {
+    "set": 3,
+    "p1": 3,
+    "p2": 2
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49348,
+  "tournament": {
+   "id": 741,
+   "name": "UTR PTT Miami Men 01",
+   "circuit": "ATP",
+   "category": "utr",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 3765,
+   "name": "Alexander Bernard",
+   "short_name": "A. Bernard",
+   "country_code": "US",
+   "country_name": "USA",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 1314,
+   "name": "Salvador Price",
+   "short_name": "S. Price",
+   "country_code": "CO",
+   "country_name": "Colombia",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T13:00:00+00:00",
+  "status": "interrupted",
+  "round_name": "Semifinals",
+  "player1_sets": 1,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 7,
+    "p2": 6,
+    "tiebreak": [
+     8,
+     6
+    ]
+   },
+   {
+    "p1": 3,
+    "p2": 0
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 1.33,
+  "odds_player2": 2.95,
+  "player1_games": 10,
+  "player2_games": 6,
+  "current_set": 2,
+  "current_game_p1": 3,
+  "current_game_p2": 0,
+  "current_point": "30-30",
+  "is_serving_p1": true,
+  "p1_aces": 1,
+  "p1_double_faults": 4,
+  "p1_first_serve_pct": 61.66666666666667,
+  "p1_first_serve_won_pct": 67.56756756756756,
+  "p1_second_serve_pct": 82.6086956521739,
+  "p1_second_serve_won_pct": 43.47826086956522,
+  "p1_break_points_saved_pct": 60,
+  "p1_break_points_converted_pct": 30.76923076923077,
+  "p1_return_points_won_pct": 51.61290322580645,
+  "p1_service_games": 7,
+  "p1_service_games_won": 5,
+  "p1_games_won": 10,
+  "p1_total_points_won": 67,
+  "p1_service_points_won": 35,
+  "p1_receiver_points_won": 32,
+  "p1_tiebreaks_won": 1,
+  "p1_max_points_in_row": 10,
+  "p1_max_games_in_row": 4,
+  "p2_aces": 0,
+  "p2_double_faults": 3,
+  "p2_first_serve_pct": 67.74193548387096,
+  "p2_first_serve_won_pct": 50,
+  "p2_second_serve_pct": 85,
+  "p2_second_serve_won_pct": 45,
+  "p2_break_points_saved_pct": 69.23076923076923,
+  "p2_break_points_converted_pct": 40,
+  "p2_return_points_won_pct": 41.66666666666667,
+  "p2_service_games": 8,
+  "p2_service_games_won": 4,
+  "p2_games_won": 6,
+  "p2_total_points_won": 55,
+  "p2_service_points_won": 30,
+  "p2_receiver_points_won": 25,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 5,
+  "p2_max_games_in_row": 4,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 1,
+    "p2": 0
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 0
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 4,
+    "p2": 2
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 1
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49350,
+  "tournament": {
+   "id": 741,
+   "name": "UTR PTT Miami Men 01",
+   "circuit": "ATP",
+   "category": "utr",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 6649,
+   "name": "Antonio Prat",
+   "short_name": "A. Prat",
+   "country_code": "ES",
+   "country_name": "Spain",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 3159,
+   "name": "Felix Felsmann",
+   "short_name": "F. Felsmann",
+   "country_code": "US",
+   "country_name": "USA",
+   "gender": "M",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T13:00:00+00:00",
+  "status": "interrupted",
+  "round_name": "Semifinals",
+  "player1_sets": 1,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 6,
+    "p2": 0
+   },
+   {
+    "p1": 3,
+    "p2": 1
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 1.09,
+  "odds_player2": 5.6,
+  "player1_games": 9,
+  "player2_games": 1,
+  "current_set": 2,
+  "current_game_p1": 3,
+  "current_game_p2": 1,
+  "current_point": "15-0",
+  "is_serving_p1": false,
+  "p1_aces": 6,
+  "p1_double_faults": 0,
+  "p1_first_serve_pct": 62.5,
+  "p1_first_serve_won_pct": 86.66666666666667,
+  "p1_second_serve_pct": 100,
+  "p1_second_serve_won_pct": 77.77777777777779,
+  "p1_break_points_saved_pct": null,
+  "p1_break_points_converted_pct": 80,
+  "p1_return_points_won_pct": 68.96551724137932,
+  "p1_service_games": 5,
+  "p1_service_games_won": 5,
+  "p1_games_won": 9,
+  "p1_total_points_won": 40,
+  "p1_service_points_won": 20,
+  "p1_receiver_points_won": 20,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 21,
+  "p1_max_games_in_row": 8,
+  "p2_aces": 0,
+  "p2_double_faults": 2,
+  "p2_first_serve_pct": 65.51724137931035,
+  "p2_first_serve_won_pct": 21.052631578947366,
+  "p2_second_serve_pct": 80,
+  "p2_second_serve_won_pct": 50,
+  "p2_break_points_saved_pct": 20,
+  "p2_break_points_converted_pct": null,
+  "p2_return_points_won_pct": 16.666666666666664,
+  "p2_service_games": 5,
+  "p2_service_games_won": 1,
+  "p2_games_won": 1,
+  "p2_total_points_won": 13,
+  "p2_service_points_won": 9,
+  "p2_receiver_points_won": 4,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 2,
+  "p2_max_games_in_row": 1,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 4,
+    "p2": 0
+   },
+   {
+    "set": 2,
+    "p1": 2,
+    "p2": 0
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 1
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 1
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49346,
+  "tournament": {
+   "id": 745,
+   "name": "UTR PTT Miami Women 01",
+   "circuit": "ATP",
+   "category": "utr",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 4631,
+   "name": "Patrycja Niewiadomska",
+   "short_name": "P. Niewiadomska",
+   "country_code": "PL",
+   "country_name": "Poland",
+   "gender": "F",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 6702,
+   "name": "Michaela Laki",
+   "short_name": "M. Laki",
+   "country_code": "GR",
+   "country_name": "Greece",
+   "gender": "F",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T13:00:00+00:00",
+  "status": "interrupted",
+  "round_name": "Semifinals",
+  "player1_sets": 1,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 7,
+    "p2": 6,
+    "tiebreak": [
+     7,
+     3
+    ]
+   },
+   {
+    "p1": 1,
+    "p2": 4
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 5.6,
+  "odds_player2": 1.1,
+  "player1_games": 8,
+  "player2_games": 10,
+  "current_set": 2,
+  "current_game_p1": 1,
+  "current_game_p2": 4,
+  "current_point": "15-40",
+  "is_serving_p1": true,
+  "p1_aces": 0,
+  "p1_double_faults": 2,
+  "p1_first_serve_pct": 67.21311475409836,
+  "p1_first_serve_won_pct": 63.41463414634146,
+  "p1_second_serve_pct": 90,
+  "p1_second_serve_won_pct": 40,
+  "p1_break_points_saved_pct": 62.5,
+  "p1_break_points_converted_pct": 50,
+  "p1_return_points_won_pct": 43.47826086956522,
+  "p1_service_games": 8,
+  "p1_service_games_won": 5,
+  "p1_games_won": 8,
+  "p1_total_points_won": 64,
+  "p1_service_points_won": 34,
+  "p1_receiver_points_won": 30,
+  "p1_tiebreaks_won": 1,
+  "p1_max_points_in_row": 6,
+  "p1_max_games_in_row": 2,
+  "p2_aces": 1,
+  "p2_double_faults": 7,
+  "p2_first_serve_pct": 56.52173913043478,
+  "p2_first_serve_won_pct": 58.97435897435898,
+  "p2_second_serve_pct": 76.66666666666667,
+  "p2_second_serve_won_pct": 53.333333333333336,
+  "p2_break_points_saved_pct": 50,
+  "p2_break_points_converted_pct": 37.5,
+  "p2_return_points_won_pct": 44.26229508196721,
+  "p2_service_games": 9,
+  "p2_service_games_won": 7,
+  "p2_games_won": 10,
+  "p2_total_points_won": 66,
+  "p2_service_points_won": 39,
+  "p2_receiver_points_won": 27,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 6,
+  "p2_max_games_in_row": 4,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 1
+   },
+   {
+    "set": 2,
+    "p1": 0,
+    "p2": 0
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 1,
+    "p2": 5
+   },
+   {
+    "set": 2,
+    "p1": 1,
+    "p2": 2
+   }
+  ],
+  "point_by_point_available": true
+ },
+ {
+  "id": 49337,
+  "tournament": {
+   "id": 745,
+   "name": "UTR PTT Miami Women 01",
+   "circuit": "ATP",
+   "category": "utr",
+   "surface": "hard"
+  },
+  "player1": {
+   "id": 3132,
+   "name": "Anna Perelman",
+   "short_name": "A. Perelman",
+   "country_code": "",
+   "country_name": "",
+   "gender": "F",
+   "current_ranking": null
+  },
+  "player2": {
+   "id": 6628,
+   "name": "Raquel González Vilar",
+   "short_name": "R. González Vilar",
+   "country_code": "ES",
+   "country_name": "Spain",
+   "gender": "F",
+   "current_ranking": null
+  },
+  "is_doubles": false,
+  "home_pair": null,
+  "away_pair": null,
+  "match_date": "2026-09-06T13:00:00+00:00",
+  "status": "interrupted",
+  "round_name": "Semifinals",
+  "player1_sets": 0,
+  "player2_sets": 0,
+  "sets_detail": [
+   {
+    "p1": 5,
+    "p2": 4
+   }
+  ],
+  "winner_id": null,
+  "odds_player1": 2.46,
+  "odds_player2": 1.46,
+  "player1_games": 5,
+  "player2_games": 4,
+  "current_set": 1,
+  "current_game_p1": 5,
+  "current_game_p2": 4,
+  "current_point": "0-0",
+  "is_serving_p1": false,
+  "p1_aces": 0,
+  "p1_double_faults": 0,
+  "p1_first_serve_pct": 83.33333333333334,
+  "p1_first_serve_won_pct": 52,
+  "p1_second_serve_pct": 100,
+  "p1_second_serve_won_pct": 40,
+  "p1_break_points_saved_pct": 0,
+  "p1_break_points_converted_pct": 100,
+  "p1_return_points_won_pct": 52.38095238095239,
+  "p1_service_games": 5,
+  "p1_service_games_won": 3,
+  "p1_games_won": 5,
+  "p1_total_points_won": 26,
+  "p1_service_points_won": 15,
+  "p1_receiver_points_won": 11,
+  "p1_tiebreaks_won": 0,
+  "p1_max_points_in_row": 4,
+  "p1_max_games_in_row": 2,
+  "p2_aces": 0,
+  "p2_double_faults": 3,
+  "p2_first_serve_pct": 52.38095238095239,
+  "p2_first_serve_won_pct": 36.36363636363637,
+  "p2_second_serve_pct": 70,
+  "p2_second_serve_won_pct": 60,
+  "p2_break_points_saved_pct": 0,
+  "p2_break_points_converted_pct": 100,
+  "p2_return_points_won_pct": 50,
+  "p2_service_games": 4,
+  "p2_service_games_won": 2,
+  "p2_games_won": 4,
+  "p2_total_points_won": 25,
+  "p2_service_points_won": 10,
+  "p2_receiver_points_won": 15,
+  "p2_tiebreaks_won": 0,
+  "p2_max_points_in_row": 3,
+  "p2_max_games_in_row": 1,
+  "aces_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 0
+   }
+  ],
+  "double_faults_per_set": [
+   {
+    "set": 1,
+    "p1": 0,
+    "p2": 3
+   }
+  ],
+  "point_by_point_available": true
+ }
+]
