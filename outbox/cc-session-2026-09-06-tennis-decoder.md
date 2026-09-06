@@ -132,3 +132,52 @@ that gap.
 Nothing in jubilant-bassoon. Replacing two hardcoded tournament windows with a
 live feed is a real product change and belongs in its own scoped commit with
 smoke, not appended to a probe session.
+
+---
+
+## Addendum — the recapture broke the suite, and that was my bug
+
+`capture-tennis-fixture.yml` ran again at 05:55 and replaced the fixture: eleven
+matches became eight, and Mensik's 6-1 second set was gone. Two rows went red.
+
+    NO TEETH  EVERY MATCH IN THE REAL CAPTURE DECODES
+    FAIL      ...and the capture is not empty, which forall would not catch
+    117/119
+
+Neither is a defect in the decoder. Both are the same authoring mistake: **I
+coupled two checks to the CONTENTS of a file a workflow rewrites.** One asserted
+`= 11` matches; the other's mutation was anchored to a specific set score. A
+recapture is the fixture working as designed, and it must never read as a
+regression in what the fixture tests.
+
+The guard did its job. `tennisLiveCorrupted` refused to claim a mutation it had
+not applied and reported NO TEETH, which is why this surfaced as an obvious red
+row instead of a check quietly passing on unmutated source for weeks.
+
+**Both fixed by making the checks functions of whatever the file holds.**
+
+The count assertion is now "not empty", which is the actual claim — `forall` is
+vacuous on an empty list, and that is the hole the row exists to close. A fixed
+count added nothing and broke on every capture.
+
+The mutation now sets the FIRST `"p1"` value to 99. A completed set of 99-n is
+illegal at any n, and a live set is capped at 7, so it is a decode error
+wherever that set sits in the array, for any capture. Re-proved by mutation:
+making the anchor unfindable returns 118/119 with the row reading NO TEETH;
+restoring it returns 119/119.
+
+## Coverage, restated after the recapture
+
+The 05:55 capture carries statuses `interrupted` and `live`. Still **no finished
+match**, so `Sets.Finished` remains exercised by constructed inputs only. Two
+captures, neither containing the shape. This is a timing problem, not a defect —
+it needs a capture taken while a completed match is still in the live feed.
+
+## Resolved this round
+
+- **`S D P. Dev` is real.** BSD's `short_name` for `S D Prajwal Dev` (IN). The
+  initials are the player's, correctly abbreviated. Not a rendering fault.
+- **The probe's 6-of-7 was the probe.** `\b` before a digit cannot match when
+  `textContent` glues the chip to the player name (`Ziegann0-0`). Reading the
+  `.leader-chip` element instead: 8 of 8.
+- **The en-dash `2-0 90'` is gone** from the card text at 05:55.

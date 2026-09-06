@@ -1326,8 +1326,15 @@ let tennis : Verify.Sealed list =
       // A capture that decoded zero matches would satisfy `List.forall` on an
       // empty list, and the row above would pass while proving nothing. This is
       // that hole, closed.
+      //
+      // NOT a fixed count. This asserted `= 11` against a file that
+      // capture-tennis-fixture.yml overwrites, so the next capture — eight
+      // matches instead of eleven — turned a correct suite red. A recapture is
+      // the fixture working as intended and must never read as a regression.
+      // What the row actually needs is that the list is not empty, which is
+      // exactly what makes forall vacuous.
       Verify.check "...and the capture is not empty, which forall would not catch"
-          (fun json -> List.length (Tennis.decodeAll json) = 11)
+          (fun json -> not (List.isEmpty (Tennis.decodeAll json)))
           Fixtures.tennisLive
           "[]" ]
 
