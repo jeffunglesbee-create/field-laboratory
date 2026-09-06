@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1073600` | 2026-09-06 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | feat: Draw.fs — the knockout draw, and one deleted case the type found |
 | `48b31ae` | 2026-09-06 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-06 [skip ci] |
 | `48b31ae` | 2026-09-06 | [sport-vocabulary-2026-09-06T15-19-31-360Z.json](sport-vocabulary-2026-09-06T15-19-31-360Z.json) | drift-sentinel: ok on 2026-09-06 [skip ci] |
 | `3fa8c04` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | fix: two checks were coupled to a file a workflow rewrites |
