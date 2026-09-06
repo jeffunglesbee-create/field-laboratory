@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `bb2365a` | 2026-09-06 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-06 [skip ci] |
+| `bb2365a` | 2026-09-06 | [sport-vocabulary-2026-09-06T06-08-53-232Z.json](sport-vocabulary-2026-09-06T06-08-53-232Z.json) | drift-sentinel: ok on 2026-09-06 [skip ci] |
 | `f80514a` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | feat: tennis as a shape, and the two invariants the capture refuted |
 | `6efcaf8` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | fixture: capture a real live tennis payload before modelling one |
 | `0b451c9` | 2026-09-06 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | outbox: close-out — the ledger identity fix verified in CI |
