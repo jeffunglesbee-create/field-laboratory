@@ -98,3 +98,40 @@ see the `NO TEETH` the tennis fixture row earned when its mutation was anchored
 to a set score the next capture overwrote. Two rows decode a real relay payload
 shape; **no captured slam edition is in the fixture set yet**, and the capture
 that would add one is a follow-up, wired in the same session.
+
+---
+
+## Follow-up, same session: a captured slam draw
+
+`scripts/capture-tennis-draw.mjs` + `capture-tennis-draw.yml` (dispatch-only).
+
+The eleven rows above use four-player mini draws, deliberately — a mutation has
+to be readable to be trustworthy. That leaves one thing unproven: that `Draw.fs`
+decodes an actual slam. This captures one.
+
+**Roland Garros WTA 2026, BSD tournament id 77.** Measured 2026-09-06 by
+`scripts/verify-tennis-draw.mjs` against the deployed route, it is the only one
+of the three editions checked that answers 200 and is canonical throughout:
+
+```
+ 77/2026   64 32 16 8 4 2 1   126 edges, all re-derived, 0 anomalies,
+                              champion Mirra Andreeva
+135/2025   409 — a player in two Round of 128 rows
+ 14/2026   409 — two players in two Round of 128 rows each
+```
+
+The two 409s are the relay's new player-twice guard firing, and **why they fire
+is being measured, not assumed** — `bsd-tennis-duplicate-rows` prints both rows
+of every duplicate across five editions. Either two editions leaked past the
+season partition (the guard is right, the partition is wrong) or a cancelled
+fixture sits beside its replacement (the guard is too strict). The second is the
+likely reading and also the convenient one, which is the reason to measure it.
+
+**Four refusals in the capture**, each naming what it protects:
+
+| refusal | what it protects |
+|---|---|
+| not HTTP 200 | an unreachable relay is not an empty draw |
+| fewer than 7 rounds | a partial draw verifies four rounds and reads as seven |
+| no Final winner | `champion()` is one of two read paths this fixture exists to run |
+| zero edges | every `List.forall` in the suite is vacuous on nothing |
