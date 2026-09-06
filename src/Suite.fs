@@ -1215,5 +1215,121 @@ let private teamTints =
           ([], [ "#000000" ])
           ([ "#da0308" ], [ "#000000" ]) ]
 
+
+/// Tennis: a scoreline that is an array, and the rules that constrain it.
+///
+/// Every row here was written AFTER `data/tennis-live.json` was captured, and
+/// two of the five invariants drafted before the capture did not survive it —
+/// see the header of `Tennis.fs`. The rows below are the ones the real payload
+/// supports.
+///
+/// COVERAGE, stated where the result is read (Rule 91). The capture carries
+/// statuses `live` and `interrupted` only. NO FINISHED MATCH is in it, so
+/// `Finished` is exercised by constructed inputs and not by a captured one. A
+/// finished tennis match is not a shape this fixture proves.
+let tennis : Verify.Sealed list =
+    [
+      // The set a match is CURRENTLY playing sits in the same array as the ones
+      // it has finished, with nothing marking it. What says which is which is
+      // the summary falling one short of the list — measured on all 11 rows.
+      Verify.check "the in-progress set is identified by the summary, not by a flag"
+          (fun (won, sets) ->
+              match Tennis.decode 1 "t" won sets with
+              | Ok m -> Tennis.inPlay m && Tennis.currentSet m = Some(5, 5)
+              | Error _ -> false)
+          // Menšik v Tien, US Open R32, exactly as captured: 1-1 in sets, third
+          // set live at 5-5.
+          (2, [ (3, 6, None); (6, 1, None); (5, 5, None) ])
+          // Same list, summary says all three are done. Then nothing is live.
+          (3, [ (3, 6, None); (6, 1, None); (5, 5, None) ])
+
+      // The summary and the list are two statements of the same fact, and a
+      // payload where they disagree by more than the one live set is not a
+      // match state — it is a decode error, and saying so is the point.
+      Verify.check "A SUMMARY THAT DISAGREES WITH THE SET LIST IS REFUSED"
+          (fun (won, sets) ->
+              match Tennis.decode 1 "t" won sets with
+              | Error(Tennis.SummaryDisagreesWithSets _) -> true
+              | _ -> false)
+          (0, [ (6, 3, None); (6, 4, None) ])
+          (2, [ (6, 3, None); (6, 4, None) ])
+
+      // The invariant the capture BROKE before it could ship. Applied to the
+      // whole array, "a set ends 6-n, 7-5 or 7-6" calls every live match
+      // corrupt: 5-5 is a perfectly good in-progress set. Applied to all but
+      // the last, it is true of all 11 captured rows.
+      Verify.check "a set BEFORE the last must be one a set can end on"
+          (fun (won, sets) ->
+              match Tennis.decode 1 "t" won sets with
+              | Error(Tennis.IllegalCompletedSet _) -> true
+              | _ -> false)
+          // 5-5 as a FINISHED first set is impossible.
+          (1, [ (5, 5, None); (2, 1, None) ])
+          // The same 5-5 as the LAST set is ordinary live play.
+          (0, [ (5, 5, None) ])
+
+      // A tiebreak is played at 6-6 and nowhere else, so it may accompany a 7-6
+      // and no other score. Both tiebreaks in the capture are on 7-6 sets.
+      Verify.check "a tiebreak belongs to a 7-6 set and no other"
+          (fun sets ->
+              match Tennis.decode 1 "t" 1 sets with
+              | Ok _ -> true
+              | Error _ -> false)
+          [ (7, 6, Some(8, 6)) ]
+          [ (6, 3, Some(7, 5)) ]
+
+      // The capture supplied this one; it was not guessed. `[8,6]` means a
+      // tiebreak is first to seven WIN BY TWO, not a race capped at seven.
+      Verify.check "A TIEBREAK IS WON BY TWO, so 7-6 in the breaker is refused"
+          (fun tb ->
+              match Tennis.decode 1 "t" 1 [ (7, 6, Some tb) ] with
+              | Ok _ -> true
+              | Error _ -> false)
+          (8, 6)
+          (7, 6)
+
+      // Sets won are RECOMPUTED from the completed sets rather than read back
+      // from the payload's summary. The summary chose which set is live; if the
+      // two could disagree afterwards, one of them would be decoration.
+      Verify.check "sets won are derived from the sets, not echoed from the summary"
+          (fun (won, sets) ->
+              match Tennis.decode 1 "t" won sets with
+              | Ok m -> Tennis.setsWon m = (1, 1)
+              | Error _ -> false)
+          (2, [ (3, 6, None); (6, 1, None); (5, 5, None) ])
+          (2, [ (6, 3, None); (6, 1, None); (5, 5, None) ])
+
+      // A finished match cannot be level. Reported rather than made
+      // unrepresentable: without a best-of — and the capture shows there is
+      // none, with `circuit` reading ATP on a women's match — "3-1 is
+      // impossible in a best-of-3" is not decidable here. "2-2 with nothing
+      // left to play" is, and it is what a decoder bug would actually produce.
+      Verify.check "A FINISHED MATCH CANNOT BE LEVEL"
+          (fun (won, sets) ->
+              match Tennis.decode 1 "t" won sets with
+              | Ok m -> Tennis.endedLevel m
+              | Error _ -> false)
+          (4, [ (6, 3, None); (3, 6, None); (6, 4, None); (4, 6, None) ])
+          (4, [ (6, 3, None); (3, 6, None); (6, 4, None); (6, 4, None) ])
+
+      // The whole captured payload decodes. Not a spot check on one row: every
+      // match in data/tennis-live.json, or this fails.
+      Verify.check "EVERY MATCH IN THE REAL CAPTURE DECODES"
+          (fun json -> Tennis.decodeAll json |> List.forall (fun r -> Result.isOk r))
+          Fixtures.tennisLive
+          // The same capture with one completed set changed to 5-1, a score no
+          // set can end on. The mutation guards its own anchor — see
+          // Fixtures.tennisLiveCorrupted. Written inline first, against a JSON
+          // shape the file does not use, and this row reported NO TEETH.
+          Fixtures.tennisLiveCorrupted
+
+      // A capture that decoded zero matches would satisfy `List.forall` on an
+      // empty list, and the row above would pass while proving nothing. This is
+      // that hole, closed.
+      Verify.check "...and the capture is not empty, which forall would not catch"
+          (fun json -> List.length (Tennis.decodeAll json) = 11)
+          Fixtures.tennisLive
+          "[]" ]
+
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints
+let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints @ tennis

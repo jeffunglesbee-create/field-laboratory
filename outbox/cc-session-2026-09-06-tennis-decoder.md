@@ -60,17 +60,72 @@ row-count floor while leaving the decoder verified against a shape the fixture
 does not contain — a fixture that looks captured and proves nothing, which is
 this session's recurring defect in a new costume.
 
-## Status
+## Status — DONE
 
-- `scripts/capture-tennis-fixture.mjs` — written, refusals in place.
-- `.github/workflows/capture-tennis-fixture.yml` — dispatch-only, no schedule.
-- `data/tennis-live.json` — NOT YET CAPTURED. The decoder is not written until
-  it exists.
-- Decoder and invariants — pending the fixture.
+- `data/tennis-live.json` — captured. 11 matches, 6 tournaments, all 11 carrying
+  `sets_detail`. Statuses seen: `live`, `interrupted`.
+- `src/Tennis.fs` — decoder and invariants. Builds with zero warnings.
+- `src/Suite.fs` — 9 new rows. **119/119 held.**
 
-Unblock criteria (Rule 74): dispatch `capture tennis fixture` while play is on;
-the fixture lands at `data/tennis-live.json` with a `data/PROVENANCE.md` entry
-naming the row count, tournament count and how many rows carry `sets_detail`.
+## What the capture refuted
+
+Five invariants were written down before the fixture existed. Two did not
+survive contact with it, and one fact was supplied that had not been guessed.
+
+**Refuted 1.** *"A completed set is 6-n, 7-5 or 7-6."* True of every set EXCEPT
+the last, which may be in progress and legitimately 5-5, 4-3 or 2-4. The
+in-progress set sits in the same array as the finished ones with nothing
+marking it — `[{3,6},{6,1},{5,5}]` at 1-1 in sets. Applied to the whole array,
+this invariant would have reported every live match in the fixture as corrupt.
+
+**Refuted 2.** *"Best-of decides the ceiling: 3 sets wins a best-of-5."* There
+is no best-of field, and it cannot be derived. `circuit` reads `"ATP"` on a
+WOMEN'S match in the capture — UTR PTT Miami Women, `gender: "F"` — so the
+obvious derivation is wrong on real rows. Not modelled. Inventing the rule
+would be worse than leaving the ceiling unchecked.
+
+**Supplied, not guessed.** `tiebreak` is an optional third key on a set, and
+one of the two in the capture reads `[8,6]` — so a tiebreak is first to seven
+WIN BY TWO, not a race capped at seven.
+
+What survived: the summary-versus-list relation, the legality of sets before
+the last, the tiebreak-belongs-to-7-6 rule, and that a finished match cannot be
+level.
+
+## The harness defect this produced, and how it surfaced
+
+The row `EVERY MATCH IN THE REAL CAPTURE DECODES` first reported **NO TEETH**.
+
+Its mutation was written inline in `Suite.fs` as a `.Replace` against
+`{"p1": 6, "p2": 1}` — the shape a JSON object has when you picture one. The
+capture is written by `JSON.stringify(payload, null, 1)`, so its real text is
+`"p1": 6,` then a newline then four spaces. The anchor matched nothing, the
+"corrupted" input was byte-identical to the clean one, and the row asserted
+nothing while looking like a check.
+
+This is exactly Rule 90's corollary: *a mutation that reports a result without
+having been applied is worse than no mutation.* It was caught only because
+`NoTeeth` is a verdict this suite can express. A plain boolean assertion would
+have gone green and stayed green.
+
+**The fix puts the guard in the value, not in a comment.**
+`Fixtures.tennisLiveCorrupted` counts its own anchor's occurrences and returns
+the ORIGINAL string unless there is exactly one. A broken anchor therefore
+makes the mutated and unmutated inputs identical, the row reports NO TEETH
+again, and the gate blocks. The harness cannot be told a mutation happened when
+it did not.
+
+Verified by mutating the guard itself: changing the anchor back to the
+inline-JSON shape takes the suite from 119/119 to 118/119 with that row reading
+NO TEETH. Restoring it returns 119/119.
+
+## Coverage, stated where the result is read (Rule 91)
+
+The capture carries statuses `live` and `interrupted` only. **No finished match
+is in it.** `Sets.Finished` is exercised by constructed inputs, not by a
+captured one, and `A FINISHED MATCH CANNOT BE LEVEL` is a claim about a shape
+this fixture does not contain. Re-capture during a completed session to close
+that gap.
 
 ## Not done here
 

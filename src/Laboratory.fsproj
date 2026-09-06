@@ -37,6 +37,10 @@
     <Compile Include="Journalism.fs" />
     <Compile Include="Corpus.fs" />
     <Compile Include="Scoreline.fs" />
+    <!-- Tennis scorelines: a per-set array, not a two-number score. Beside
+         Scoreline.fs because it is the same kind of thing — a shape whose
+         invariants are the sport's rules — and depends on nothing. -->
+    <Compile Include="Tennis.fs" />
     <!-- Venue weather. Above Desk.fs because it is self-contained. -->
     <Compile Include="Weather.fs" />
     <Compile Include="Venues.fs" />
