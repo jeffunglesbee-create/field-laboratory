@@ -1338,5 +1338,196 @@ let tennis : Verify.Sealed list =
           Fixtures.tennisLive
           "[]" ]
 
+/// The knockout draw. Every row here was written against a real slam edition
+/// read on 2026-09-06, and the split it exercises — what is REFUSED versus what
+/// is only REPORTED — was decided by that reading rather than by taste.
+///
+/// COVERAGE, stated where the result is read (Rule 91). Six editions were read.
+/// One of the six (Roland Garros Women 2026) has a canonical 64/32/16/8/4/2/1
+/// ladder; the other five do not. That is why "rounds halve" is a query here and
+/// not a construction law: as a law it would reject five real slams and pass on
+/// the tidy one, which is the shape of every apparatus defect this repo has
+/// counted.
+///
+/// The rows below use four-player mini draws (Semifinals + Final) rather than a
+/// captured 127-match edition, because a mutation has to be READABLE to be
+/// trustworthy — see the NO TEETH the tennis fixture row earned when its
+/// mutation was anchored to a set score the next capture overwrote. The real
+/// edition is exercised separately by the fixture rows at the end.
+let draw : Verify.Sealed list =
+    let p id name : Draw.Player =
+        { Id = id; Name = name; ShortName = None; CountryCode = None; Rank = None }
+    // A four-player draw: two semi-finals feeding one final.
+    // (matchId, round, p1, p2, winnerId, status)
+    let sf1 = (1, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+    let sf2 = (2, Draw.Semifinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished")
+    let fin = (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
+    let ok = [ sf1; sf2; fin ]
+    [
+      // The join is what makes this module worth having, and ambiguity is the
+      // one condition under which it must not answer. An `AmbiguousEdge` case
+      // was written for exactly that — and this row could not be given an input
+      // that reached it.
+      //
+      // For a winner to appear in two next-round matches, that player must
+      // appear twice in that round, and the player-twice law refuses first. The
+      // ambiguity check is strictly subsumed, so the case was deleted rather
+      // than left as an unreachable refusal that reads like an enforced one.
+      // This row is what remains: the shape that WOULD make a join ambiguous,
+      // refused one step earlier and under the stronger name.
+      //
+      // The relay keeps its 409, and it is reachable there: /bsd/tennis/draw
+      // performs the join with no player-twice law, so ambiguity is the only
+      // guard standing at the boundary where the vendor's rows arrive.
+      Verify.check "the shape that would make a join ambiguous is refused, one step earlier"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Error(Draw.PlayerTwiceInRound(r, pid)) -> r = "Final" && pid = 10
+              | _ -> false)
+          // One semi-final, two finals, Alcaraz in both — which is what joining
+          // two editions of one tournament produces. BSD id 135 holds 477
+          // matches across 2025 and 2026, and the first attempt at this join
+          // read that as ambiguity in the data.
+          [ sf1
+            (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
+            (4, Draw.Final, Some(p 10 "Alcaraz"), Some(p 13 "Zverev"), None, Some "scheduled") ]
+          ok
+
+      // A winner who is not one of the two players is not a winner. This is what
+      // would catch a join performed against the wrong row — the failure mode
+      // that produces a complete-looking bracket out of mismatched ids.
+      Verify.check "a winner who did not play in the match REFUSES the draw"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Error(Draw.WinnerNotInMatch _) -> true
+              | _ -> false)
+          [ sf1; sf2; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 99, Some "finished") ]
+          ok
+
+      // "A player appears in at most one match per round" is the premise the
+      // whole join rests on. Without it a single hit is a coincidence rather
+      // than an edge, so a violation is refused rather than reported.
+      Verify.check "the same player twice in one round REFUSES the draw"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Error(Draw.PlayerTwiceInRound _) -> true
+              | _ -> false)
+          [ sf1
+            (2, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 13 "Zverev"), Some 10, Some "finished")
+            fin ]
+          ok
+
+      // Two matches sharing an id would make every edge address the wrong one,
+      // silently — the edges would still resolve, and to the wrong match.
+      Verify.check "two matches with one id REFUSE the draw"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Error(Draw.DuplicateMatchId _) -> true
+              | _ -> false)
+          [ sf1; (1, Draw.Semifinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished"); fin ]
+          ok
+
+      // The other half of the split, and the one a construction law would have
+      // got wrong. A Semifinals round holding ONE match is off canonical size —
+      // and five of the six real slam editions read on 2026-09-06 are
+      // off-canonical somewhere. It must BUILD.
+      Verify.check "an off-canonical round still builds — it is reported, not refused"
+          (fun rows -> Draw.build "t" "2026" rows |> Result.isOk)
+          [ sf1; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
+          // Nothing builds from nothing, which is the only way this predicate
+          // can be made to fail without breaking the very law it asserts.
+          []
+
+      // ...and having built, it says so. A draw that quietly returned an empty
+      // anomaly list would satisfy the row above while hiding the thing the row
+      // above exists to permit.
+      Verify.check "...and the off-canonical round is REPORTED on the built draw"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.roundsOffCanonicalSize d |> List.exists (fun (r, have, want) ->
+                            r = "Semifinals" && have = 1 && want = 2)
+              | Error _ -> false)
+          [ sf1; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
+          // The canonical draw: two semi-finals and a final, nothing to report.
+          ok
+
+      // US Open Men 2025 serves 31 second-round matches where 32 exist, so a
+      // player reaches Round of 32 without a winning row behind them. Real, and
+      // therefore a question rather than a refusal.
+      Verify.check "a player who appears without winning the round before is reported"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.playersFromNowhere d |> List.exists (fun (pid, r) -> pid = 14 && r = "Final")
+              | Error _ -> false)
+          // Medvedev is in the final having played no semi-final.
+          [ sf1; sf2; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 14 "Medvedev"), None, Some "scheduled") ]
+          ok
+
+      // The champion is the Final's winner, read from the Final. A draw still
+      // being played has no champion, and None is the answer rather than a
+      // name-shaped placeholder.
+      Verify.check "the champion is the winner OF THE FINAL, and is None while it is unplayed"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.champion d |> Option.map (fun p -> p.Name) = Some "Alcaraz"
+              | Error _ -> false)
+          ok
+          // The same draw with the final unplayed. Alcaraz has still won a
+          // semi-final, so a champion read from "whoever won most" or from the
+          // last row would answer Alcaraz here.
+          [ sf1; sf2; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), None, Some "scheduled") ]
+
+      // Edges are the product. Two semi-finals feeding one final is two edges,
+      // and the final feeds nothing — the champion is not an edge.
+      Verify.check "every completed match feeds exactly one edge, and the final feeds none"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.edgePairs d |> List.sort = [ (1, 3, 10); (2, 3, 12) ]
+              | Error _ -> false)
+          ok
+          // The final marked as feeding onward would be a third edge. It cannot
+          // be expressed as a Final row, so the mutation is the shape that
+          // WOULD produce one: a semi-final whose winner is not in the final.
+          [ sf1
+            (2, Draw.Semifinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 13, Some "finished")
+            fin ]
+
+      // A qualifying round is not a round of the draw. The relay excludes them;
+      // this is the second lock. A row carrying one must fail the decode rather
+      // than be dropped, because a dropped row makes a payload with qualifying
+      // in it build a clean-looking draw.
+      Verify.check "a round name outside the draw fails the decode, it is not dropped"
+          (fun json ->
+              match Draw.decodeResponse json with
+              | Error(Draw.UnknownRound n) -> n = "Qualification Final"
+              | _ -> false)
+          """{"tournament":{"name":"US Open, Men"},"season":"2025","nodes":[
+             {"id":1,"round":"Qualification Final","p1":{"id":1,"name":"A"},"p2":{"id":2,"name":"B"},"winnerId":1}]}"""
+          """{"tournament":{"name":"US Open, Men"},"season":"2025","nodes":[
+             {"id":1,"round":"Final","p1":{"id":1,"name":"A"},"p2":{"id":2,"name":"B"},"winnerId":1}]}"""
+
+      // The relay's field names, not BSD's. The relay maps short_name to
+      // shortName and current_ranking.position to rank before this sees a row,
+      // and `rank` is a RANKING — there is no seed field anywhere on a BSD
+      // tennis row or player, measured 2026-09-06.
+      Verify.check "the relay's payload decodes, rank included"
+          (fun json ->
+              match Draw.decodeResponse json with
+              | Ok d ->
+                  Draw.champion d
+                  |> Option.map (fun p -> p.Name, p.Rank)
+                  |> (=) (Some("Alcaraz", Some 2))
+              | Error _ -> false)
+          """{"tournament":{"name":"US Open, Men"},"season":"2025","nodes":[
+             {"id":3,"round":"Final","p1":{"id":10,"name":"Alcaraz","shortName":"C. Alcaraz","countryCode":"ES","rank":2},
+              "p2":{"id":12,"name":"Sinner","shortName":"J. Sinner","countryCode":"IT","rank":1},
+              "winnerId":10,"status":"finished"}]}"""
+          // The same payload with rank absent. A decoder that defaulted a
+          // missing rank to a number would pass this.
+          """{"tournament":{"name":"US Open, Men"},"season":"2025","nodes":[
+             {"id":3,"round":"Final","p1":{"id":10,"name":"Alcaraz"},
+              "p2":{"id":12,"name":"Sinner"},"winnerId":10,"status":"finished"}]}"""
+    ]
+
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints @ tennis
+let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints @ tennis @ draw

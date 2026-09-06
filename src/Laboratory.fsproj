@@ -41,6 +41,11 @@
          Scoreline.fs because it is the same kind of thing — a shape whose
          invariants are the sport's rules — and depends on nothing. -->
     <Compile Include="Tennis.fs" />
+    <!-- The knockout draw: which match feeds which. A different failure from
+         Tennis.fs — a wrong scoreline shows a wrong number beside two correct
+         names; a wrong join shows a correct number beside a player who was
+         not there. Depends on nothing. -->
+    <Compile Include="Draw.fs" />
     <!-- Venue weather. Above Desk.fs because it is self-contained. -->
     <Compile Include="Weather.fs" />
     <Compile Include="Venues.fs" />
