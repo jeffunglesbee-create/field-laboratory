@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4bf3a5e` | 2026-09-06 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | runIdentity: a ledger append is a record of a measurement, not part of it |
 | `13bf4ef` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | separation-check: say that boundary 0 is the decided state, not a gap in one |
 | `a4d0593` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | A mount time that survives its own log, in a second ledger |
 | `11a4ebd` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The UI is checked at 2 cards; production serves 126 |
