@@ -64,7 +64,30 @@ export const runIdentity = () => {
     try { return execSync(cmd, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }) } catch { return '' }
   }
   const sha = gitOut('git rev-parse HEAD').trim() || null
-  const dirt = gitOut('git status --porcelain') + gitOut('git diff HEAD')
+  // THE LEDGERS ARE OUTPUTS, NOT INPUTS, so they are excluded from the digest.
+  //
+  // Measured 2026-09-06 on verify-full run 16. `scale-check` runs before the
+  // gate and appends to docs/scale-log.jsonl. That left the tree dirty, so
+  // `confidence.mjs` hashed a tree containing the ledger's own append, and the
+  // two records for one commit came out as:
+  //
+  //   scale       a4d059338685-e3b0c44298fc  dirty false
+  //   confidence  a4d059338685-eda79be1db9b  dirty TRUE
+  //
+  // e3b0c44298fc is the SHA-256 of the empty string — a clean checkout. The
+  // gate's record said dirty on a clean CI runner, purely because a measurement
+  // written minutes earlier was still uncommitted.
+  //
+  // That breaks the property verify-full's own comment relies on: "CI scoring
+  // commit X produces the SAME id as a local run of commit X", which is what
+  // lets two independent measurements of one tree corroborate each other.
+  //
+  // A ledger append is a RECORD of a measurement, never part of what was
+  // measured. Excluding it is the fix; ordering the steps differently would only
+  // move which ledger poisons which.
+  const LEDGERS = ":(exclude)docs/*-log.jsonl"
+  const dirt = gitOut(`git status --porcelain -- . '${LEDGERS}'`)
+    + gitOut(`git diff HEAD -- . '${LEDGERS}'`)
   const digest = createHash('sha256').update(dirt).digest('hex')
   return {
     sha,

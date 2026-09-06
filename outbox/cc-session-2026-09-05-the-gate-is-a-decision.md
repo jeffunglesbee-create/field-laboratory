@@ -806,3 +806,73 @@ is where the annotation had to go.
 Both candidate values are recorded above rather than discarded, so the next
 session that asks this question gets the numbers and the decision together
 instead of re-measuring and re-proposing.
+
+---
+
+# Addendum 10 — the ledger I added made the gate's own record say "dirty"
+
+Run 16 landed both records in one commit (`0f6a86e`), so the widened step works
+and the first `ci:true` mount figure exists:
+
+```
+scale       a4d059338685-e3b0c44298fc  dirty false  ci true   mountMs 316
+confidence  a4d059338685-eda79be1db9b  dirty TRUE             530/530 = 100
+```
+
+Same commit. **Two different run ids, and the gate's says the tree was dirty on
+a clean CI checkout.**
+
+`e3b0c44298fc` is the SHA-256 of the empty string — the scale record was taken
+on a genuinely clean tree. The gate's was not, because `scale-check` runs at step
+11 and appends to `docs/scale-log.jsonl`; by step 12 `confidence.mjs` was hashing
+a tree that contained the ledger's own append.
+
+**I introduced this defect three commits ago and it was invisible until the data
+arrived.** Every local test passed, because locally the tree is dirty anyway.
+
+## What it breaks
+
+`verify-full`'s own comment states the property:
+
+> a CLEAN run's id is `<sha>-<digest of everything not in HEAD>` … So CI scoring
+> commit X produces the SAME id as a local run of commit X, and
+> `confidence-record-check.mjs` then has two independent measurements of one tree
+> to compare.
+
+With the gate's id poisoned by a ledger write, that join no longer resolves. The
+comment continues: a disagreement between those two would mean "the gate is not
+a function of the tree" — "a worse finding than any single failing row". The
+mechanism for detecting it had been quietly disabled by an unrelated feature.
+
+## The fix
+
+A ledger append is a RECORD of a measurement, never part of what was measured.
+`runIdentity` now excludes `docs/*-log.jsonl` from both halves of the digest:
+
+```js
+const LEDGERS = ":(exclude)docs/*-log.jsonl"
+const dirt = gitOut(`git status --porcelain -- . '${LEDGERS}'`)
+  + gitOut(`git diff HEAD -- . '${LEDGERS}'`)
+```
+
+Reordering the steps was the alternative and it is worse: it only moves which
+ledger poisons which.
+
+## The test was wrong before it was right
+
+First attempt grepped the excluded diff for `scale-log` and found a match, which
+read as "the exclusion does not work on `git diff`". It was a false positive:
+the `checks.mjs` comment written moments earlier contains the string
+`scale-log.jsonl`, so the diff of the fix matched a grep for the thing the fix
+is about.
+
+Re-run against `--name-only`, which lists paths rather than content:
+
+```
+excluded diff:  scripts/checks.mjs
+plain diff:     docs/scale-log.jsonl scripts/checks.mjs
+```
+
+A check that agreed for the wrong reason, inside the verification of a fix for a
+check that reported the wrong thing. Worth recording as the day's last instance
+of the shape rather than quietly correcting.
