@@ -79,3 +79,5 @@ reporting, not a test to fix.
 - `tennis-live.json` — captured 2026-09-06 from `https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/matches/live` by `scripts/capture-tennis-fixture.mjs`. 11 live matches, 4 tournaments, 11 carrying sets_detail. Statuses seen: interrupted, live. Unedited — a hand-modified fixture is an invented one.
 
 - `tennis-live.json` — captured 2026-09-06 from `https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/matches/live` by `scripts/capture-tennis-fixture.mjs`. 8 live matches, 3 tournaments, 8 carrying sets_detail. Statuses seen: interrupted, live. Unedited — a hand-modified fixture is an invented one.
+
+- `tennis-draw.json` — captured 2026-09-06 from `https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/draw?tournament=77&season=2026` by `scripts/capture-tennis-draw.mjs`. Roland Garros 2026: 127 main-draw matches, 126 edges joined by winner identity, champion Mirra Andreeva. Ladder 64/32/16/8/4/2/1. Unedited — a hand-modified fixture is an invented one.
