@@ -876,3 +876,66 @@ plain diff:     docs/scale-log.jsonl scripts/checks.mjs
 A check that agreed for the wrong reason, inside the verification of a fix for a
 check that reported the wrong thing. Worth recording as the day's last instance
 of the shape rather than quietly correcting.
+
+---
+
+# Addendum 11 — close-out: the identity fix verified, and where the session ended
+
+`verify-full` run 17 on `7712dff`, both records landed by one commit `6b111b9`:
+
+```
+docs/scale-log.jsonl         7712dff827f6-e3b0c44298fc | dirty false | ci true
+docs/confidence-log.jsonl    7712dff827f6-e3b0c44298fc | dirty false
+```
+
+**Same id, both clean, digest half `e3b0c44298fc`** — the SHA-256 of the empty
+string. That was the pass condition written before the run, and it cannot be
+satisfied by accident: the digest names the state rather than asserting a
+boolean. Run 16, for contrast, produced `e3b0c44298fc` and `eda79be1db9b` for one
+commit, with the gate's record claiming a dirty tree on a clean CI checkout.
+
+The property `verify-full`'s own comment depends on — "CI scoring commit X
+produces the SAME id as a local run of commit X" — holds again. It had been
+silently disabled by a feature added three commits earlier in this same session.
+
+## Where this repo ended
+
+| | |
+|---|---|
+| confidence gate | **530/530 = 100**, four consecutive full runs |
+| gate duration | 2326s / 2341s, stable to within 1% |
+| slowest row | `breaking each invariant makes a check fail`, 1900s — 82% of the gate |
+| `proof-check` | 76/76; 3m26s–7m06s across five runs, a 2.1x spread |
+| peak slate | 126 cards, 8 sports, green on a runner in 9–12s |
+| mount time | 316ms (CI), 569/716ms (local), budget 5000ms |
+
+## What is deliberately NOT claimed
+
+**The mount budget stays at 5000ms.** Two `ci:true` samples is not a
+distribution. `proof-check`'s 2.1x spread on an unchanged step is the standing
+argument against moving a number off one reading — which is how 15,000ms was set
+in the first place. `docs/scale-log.jsonl` accumulates the samples on its own;
+the budget moves when there are enough of them, not because a run finished.
+
+**The speedup ratchet is not built.** `rowSeconds` is the data such a ratchet
+needs. Every ratchet in this repo guards against getting worse, and a silently
+skipped check looks exactly like getting faster — the `.every` short-circuit ran
+for twelve days and its only symptom was the suite finishing sooner. The data now
+exists. The guard does not.
+
+## The session's shape, counted rather than characterised
+
+Of the defects found today, the ones in the product were: a venue nobody
+declared, and a fabricated row deleted earlier. Everything else was the measuring
+apparatus — a mutation anchored to CSS deleted ten days before, two mutation
+globs narrower than the predicate they tested, a baseline that short-circuited,
+a page-wide scan for a number that matched a point spread, a failure message
+using a looser regex than its assertion, a ledger write that poisoned the
+identity of the run that wrote it, a probe whose extractor could not read the
+field it was extracting, and a checker that reported 6/6 and exited 1.
+
+Nine instruments, two products. The rules written from that count are 90
+(mutate first) and 91 (a sampling probe states its coverage); today added a third
+in practice, not yet in CLAUDE.md: **a number whose expected value is zero,
+printed without saying so, reads as a finding** — which is how a settled 2026-08-26
+design decision got re-opened from a `boundary 0/126` line that was correct.
