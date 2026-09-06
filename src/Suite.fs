@@ -1506,6 +1506,69 @@ let draw : Verify.Sealed list =
           """{"tournament":{"name":"US Open, Men"},"season":"2025","nodes":[
              {"id":1,"round":"Final","p1":{"id":1,"name":"A"},"p2":{"id":2,"name":"B"},"winnerId":1}]}"""
 
+      // ── the real capture ───────────────────────────────────────────────
+      //
+      // Roland Garros WTA 2026, 127 main-draw matches, captured from the
+      // deployed relay. The eleven rows above use four-player mini draws so
+      // their mutations stay readable; this is the one that proves the module
+      // decodes an actual slam.
+      Verify.check "A REAL SLAM DRAW DECODES AND BUILDS"
+          (fun json -> Draw.decodeResponse json |> Result.isOk)
+          Fixtures.tennisDraw
+          // The same capture with one match's round renamed to a qualifying
+          // round. The mutation derives its anchor from the file rather than
+          // naming a value in it — see Fixtures.tennisDrawCorrupted, and the
+          // NO TEETH the tennis fixture row earned for doing the opposite.
+          Fixtures.tennisDrawCorrupted
+
+      // A capture that decoded to a one-match draw would satisfy the row above
+      // while proving nothing about seven rounds. Not a fixed count: the
+      // capture workflow can be pointed at a different edition, and a suite
+      // coupled to the CONTENTS of a file a workflow rewrites turns a working
+      // recapture into a red run. What the row needs is that the ladder is a
+      // full one.
+      Verify.check "...and it is a WHOLE draw — seven rounds, not one match"
+          (fun json ->
+              match Draw.decodeResponse json with
+              | Ok d -> List.length (Draw.roundsPresent d) = 7 && Draw.matchCount d >= 127
+              | Error _ -> false)
+          Fixtures.tennisDraw
+          // A final and nothing else: decodes cleanly, and is not a draw.
+          """{"tournament":{"name":"x"},"season":"2026","nodes":[
+             {"id":1,"round":"Final","p1":{"id":1,"name":"A"},"p2":{"id":2,"name":"B"},"winnerId":1}]}"""
+
+      // 126 edges from 127 matches: every match feeds the next except the
+      // final. This is the product of the whole module and the number the
+      // relay's own verify run re-derives independently.
+      Verify.check "every match of the real draw but the final feeds exactly one edge"
+          (fun json ->
+              match Draw.decodeResponse json with
+              | Ok d -> Draw.edgeCount d = Draw.matchCount d - 1
+              | Error _ -> false)
+          Fixtures.tennisDraw
+          // A draw whose semi-final winner never reaches the final: three
+          // matches, one edge, and matchCount - 1 is two.
+          """{"tournament":{"name":"x"},"season":"2026","nodes":[
+             {"id":1,"round":"Semifinals","p1":{"id":10,"name":"A"},"p2":{"id":11,"name":"B"},"winnerId":10},
+             {"id":2,"round":"Semifinals","p1":{"id":12,"name":"C"},"p2":{"id":13,"name":"D"},"winnerId":12},
+             {"id":3,"round":"Final","p1":{"id":10,"name":"A"},"p2":{"id":99,"name":"E"},"winnerId":10}]}"""
+
+      // The real draw is canonical, which is what makes it the right capture:
+      // it is the one edition of the three the relay verifies where nothing is
+      // off size. A row asserting the OPPOSITE would be satisfied by any draw
+      // at all, so this asserts the empty list and falsifies with a real one.
+      Verify.check "the captured draw is canonical in every round"
+          (fun json ->
+              match Draw.decodeResponse json with
+              | Ok d -> Draw.roundsOffCanonicalSize d |> List.isEmpty
+              | Error _ -> false)
+          Fixtures.tennisDraw
+          // A semi-final round holding one match, which US Open Men 2025's
+          // Round of 64 is the real-world version of.
+          """{"tournament":{"name":"x"},"season":"2026","nodes":[
+             {"id":1,"round":"Semifinals","p1":{"id":10,"name":"A"},"p2":{"id":11,"name":"B"},"winnerId":10},
+             {"id":3,"round":"Final","p1":{"id":10,"name":"A"},"p2":{"id":12,"name":"C"},"winnerId":10}]}"""
+
       // The relay's field names, not BSD's. The relay maps short_name to
       // shortName and current_ranking.position to rank before this sees a row,
       // and `rank` is a RANKING — there is no seed field anywhere on a BSD

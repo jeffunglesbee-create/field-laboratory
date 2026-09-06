@@ -85,3 +85,53 @@ let tennisLiveCorrupted : string =
         while j < tennisLive.Length && System.Char.IsDigit tennisLive.[j] do j <- j + 1
         if j = valueStart then tennisLive   // no digits: not the shape we think
         else tennisLive.Substring(0, valueStart) + "99" + tennisLive.Substring(j)
+
+
+/// A COMPLETE slam draw, captured 2026-09-06 from
+/// `/bsd/tennis/draw?tournament=77&season=2026` by
+/// `scripts/capture-tennis-draw.mjs`.
+///
+/// Roland Garros WTA 2026: 127 main-draw matches, 126 edges joined by winner
+/// identity, champion Mirra Andreeva, zero anomalies. It was chosen because it
+/// is the only one of the three editions the relay's verify run checks that is
+/// canonical throughout — the capture REFUSES anything with fewer than seven
+/// rounds, no champion, or no edges, so this file cannot quietly become a
+/// partial draw that verifies four rounds and reads as seven.
+let tennisDraw : string =
+    readFileSync ("data/tennis-draw.json", "utf8")
+
+/// The captured draw with one match's round renamed to a qualifying round.
+///
+/// DERIVED FROM THE FILE, never anchored to a value in it — the same lesson
+/// `tennisLiveCorrupted` records, learned the expensive way when a mutation
+/// anchored to Mensik's 6-1 second set went NO TEETH the moment the capture
+/// workflow ran again.
+///
+/// The first `"round": "` value, whatever it happens to be, becomes
+/// `"Qualification Final"`. Qualifying is not part of the draw and `Draw.fs`
+/// refuses it rather than dropping the row, so this is a decode error wherever
+/// in the node list that match sits and whichever edition was captured.
+///
+/// The guard stays. If the anchor is absent this returns the ORIGINAL string,
+/// the two inputs become identical, and the row reports NO TEETH. The harness
+/// cannot be told a mutation happened when it did not.
+/// INSIDE `nodes`, not the first match in the file. The first version anchored
+/// on the first `"round": "` anywhere, which lands in the `rounds` SUMMARY
+/// TABLE — a sibling of `nodes` that `decodeResponse` never reads. The payload
+/// was mutated, the decode was unaffected, and the row reported NO TEETH.
+///
+/// That is the guard working exactly as designed, on exactly the mistake it was
+/// written for: the mutation was applied and changed nothing the check could
+/// see. A boolean would have said PASS.
+let tennisDrawCorrupted : string =
+    let nodesAt = tennisDraw.IndexOf("\"nodes\":")
+    if nodesAt < 0 then tennisDraw
+    else
+        let anchor = "\"round\": \""
+        let i = tennisDraw.IndexOf(anchor, nodesAt)
+        if i < 0 then tennisDraw
+        else
+            let valueStart = i + anchor.Length
+            let close = tennisDraw.IndexOf("\"", valueStart)
+            if close < 0 then tennisDraw
+            else tennisDraw.Substring(0, valueStart) + "Qualification Final" + tennisDraw.Substring(close)

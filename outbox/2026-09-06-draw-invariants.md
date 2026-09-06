@@ -135,3 +135,47 @@ likely reading and also the convenient one, which is the reason to measure it.
 | fewer than 7 rounds | a partial draw verifies four rounds and reads as seven |
 | no Final winner | `champion()` is one of two read paths this fixture exists to run |
 | zero edges | every `List.forall` in the suite is vacuous on nothing |
+
+---
+
+## The capture landed, and the mutation guard earned its keep again
+
+`data/tennis-draw.json` — Roland Garros WTA 2026, **127 main-draw matches, 126
+edges, zero anomalies, champion Mirra Andreeva**, captured from the deployed
+relay. Four fixture-backed rows added; **134/134 held** (was 130).
+
+The first version of `tennisDrawCorrupted` anchored on the first `"round": "`
+anywhere in the file. That lands in the `rounds` **summary table** — a sibling of
+`nodes` that `decodeResponse` never reads. The payload was mutated, the decode
+was unaffected, and the row reported `NO TEETH`.
+
+That is the guard working on exactly the mistake it exists for: the mutation
+**was** applied and changed nothing the check could see. A boolean would have
+said PASS. The anchor now finds `"nodes":` first and mutates the first round name
+after it.
+
+This is the second time in one session a mutation has been anchored to the wrong
+thing, and both times the `NO TEETH` verdict — not review, not reading — is what
+caught it.
+
+## The relay verify, after the cancelled-row fix
+
+**30/30, three editions, all 200:**
+
+```
+135/2025  64 31 16 8 4 2 1   123 edges, all re-derived, champion Carlos Alcaraz
+                             Round of 64 declared off-canonical
+ 77/2026  64 32 16 8 4 2 1   126 edges, all re-derived, champion Mirra Andreeva
+ 14/2026  64 32 16 8 4 2 1   126 edges, all re-derived, champion Carlos Alcaraz
+```
+
+The two 409s the earlier draft of this doc left open are resolved, and the answer
+was **not** the convenient one being assumed — it was measured. Six duplicate
+player-rounds across five editions, six of them a `cancelled` row beside its
+`finished` replacement, **zero with two live rows**. The shape names itself: the
+player keeps their slot and the opponent changes, which is a withdrawal.
+
+So the 65-and-66 first rounds were never the vendor doubling a round, and this
+document's own table above — which listed them as "two extra first-round rows" —
+was describing withdrawal rows without knowing it. Excluding cancelled rows puts
+every edition at 127 matches, exactly what a 128 draw holds.
