@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f80514a` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | feat: tennis as a shape, and the two invariants the capture refuted |
 | `6efcaf8` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | fixture: capture a real live tennis payload before modelling one |
 | `0b451c9` | 2026-09-06 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | outbox: close-out — the ledger identity fix verified in CI |
 | `4bf3a5e` | 2026-09-06 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | runIdentity: a ledger append is a record of a measurement, not part of it |
