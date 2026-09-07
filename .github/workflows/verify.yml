@@ -260,6 +260,14 @@ jobs:
       - name: Tabs, both pick panels, and the ADR-002 display check
         run: npm run check:tabs
 
+      # The Draw panel. Not a second copy of the F# suite's draw rows — those
+      # prove the invariants, this proves the page SAYS them. The verdict a round
+      # carries is the reason the surface exists: "not compared" and "compared
+      # and fine" rendered identically for two months, and nine of ten Masters
+      # draws were reported corrupt on the strength of it.
+      - name: The Draw panel says which rounds the canonical-size law skipped
+        run: npm run check:draw
+
       # Team tints, on the page rather than in the type system. Three of the four
       # defects this found were invisible to the F# suite BY CONSTRUCTION: the
       # suite measures contrast against `bg`, and team names sit on a card, so it

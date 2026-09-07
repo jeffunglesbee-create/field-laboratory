@@ -88,10 +88,10 @@ const waitPanel = async (panelId) => {
 // tab fails by identity, not by an off-by-one a reader has to decode.
 const EXPECTED_TABS = [
   'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick',
-  'tab-pickem', 'tab-weather', 'tab-stats', 'tab-briefs',
+  'tab-pickem', 'tab-weather', 'tab-stats', 'tab-briefs', 'tab-draw',
 ]
 const tabIds = await page.$$eval('.tabs [role="tab"]', ts => ts.map(t => t.id))
-check('the deployed page has all seven tabs', tabIds.length === EXPECTED_TABS.length,
+check('the deployed page has every tab this build ships', tabIds.length === EXPECTED_TABS.length,
   `found: ${JSON.stringify(tabIds)} — the tab build may not have deployed`)
 
 check('every expected tab is present by name',

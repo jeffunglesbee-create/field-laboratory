@@ -676,6 +676,80 @@
   .wx-error { color: var(--caution); }
   .wx-partial, .wx-unlocated, .wx-error__why { font-size: .7rem; opacity: .5; margin-top: .8rem; }
 
+
+  /* The Draw panel. A knockout bracket with the canonical-size law's verdict
+     printed beside every round.
+
+     THREE STATES, THREE TREATMENTS, and that is the whole design constraint.
+     A round can be compared and match, compared and be short, or NOT COMPARED —
+     the entry round because byes decide its size, the innermost round of an
+     unfinished draw because the calendar does. For two months "not compared"
+     rendered identically to "compared and fine", and nine of ten Masters draws
+     were reported corrupt on the strength of it. So the exempt state gets its
+     own colour rather than borrowing the quiet one: --violet is neither the
+     dim of a pass nor the red of a defect, which is exactly what it means. */
+  .dv-panel { max-width: 100%; }
+  .dv-head { margin-bottom: 1.25rem; }
+  .dv-head__title { margin: 0; font-size: 1rem; }
+  .dv-head__season { margin: .1rem 0 .8rem; font-size: .8rem; color: var(--dim-text); }
+  .dv-head__facts,
+  .dv-head__champion,
+  .dv-head__law,
+  .dv-head__nowhere {
+    margin: .25rem 0; font-size: .8rem; color: var(--dim-text); max-width: 78ch;
+  }
+  .dv-head__champion { color: var(--text); }
+  .dv-head__law[data-off-canonical="0"] { color: var(--dim-text); }
+  .dv-head__nowhere[data-from-nowhere="0"] { color: var(--dim-text); }
+  .dv-head__refused { margin: .25rem 0; font-size: .8rem; color: var(--caution); max-width: 78ch; }
+  .dv-match__refused {
+    margin: 0 0 .15rem; font-size: .62rem; letter-spacing: .04em;
+    text-transform: uppercase; color: var(--caution);
+  }
+  .dv-match[data-scoreline="refused"] { border-color: var(--caution); }
+  .dv-idle { font-size: .85rem; color: var(--dim-text); }
+  .dv-error { font-size: .85rem; color: var(--red); max-width: 70ch; }
+
+  /* Scrolls INSIDE the panel. A 128 draw is seven columns wide and the page
+     must not be what scrolls sideways — the viewport-overflow check asserts
+     that, and the tab strip above already had to be fixed for the same reason. */
+  .dv-tree {
+    display: flex; align-items: flex-start; gap: 1.25rem;
+    overflow-x: auto; padding-bottom: .75rem;
+  }
+  /* TOP-ALIGNED, not centred. The entry round holds 64 matches and the final
+     holds one; vertical centring would put the final 2,700px down the page,
+     level with nothing, and every inner round would need scrolling past to
+     reach. The client's bracket was changed to this for the same reason. */
+  .dv-round { flex: 0 0 15rem; }
+  .dv-round__head { position: sticky; top: calc(var(--tab-h) + var(--nav-h)); background: var(--bg); padding: .35rem 0 .5rem; z-index: 1; }
+  .dv-round__name {
+    margin: 0; font-family: var(--font-identity); font-size: .72rem;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--text);
+  }
+  .dv-round__note { margin: .15rem 0 0; font-size: .68rem; font-variant-numeric: tabular-nums; }
+  .dv-round__note--held { color: var(--dim-text); }
+  .dv-round__note--off { color: var(--red); }
+  .dv-round__note--exempt { color: var(--violet); }
+  .dv-round__matches { display: grid; gap: .4rem; }
+
+  .dv-match {
+    background: var(--card); border: 1px solid var(--dim);
+    border-radius: 3px; padding: .35rem .5rem;
+  }
+  /* The mark goes on the MATCH and reads on the player's own row, so a bracket
+     of 127 matches does not need a legend to be read. */
+  .dv-match[data-from-nowhere="true"] { border-left: 2px solid var(--violet); }
+  .dv-side {
+    display: grid; grid-template-columns: 1fr auto auto; gap: .4rem;
+    align-items: baseline; color: var(--dim-text); font-size: .8rem;
+  }
+  .dv-side--won { color: var(--text); font-weight: 600; }
+  .dv-side__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dv-side__name--none { color: var(--dim); }
+  .dv-side__cc { font-size: .62rem; letter-spacing: .06em; color: var(--dim); }
+  .dv-side__score { font-family: var(--font-identity); font-variant-numeric: tabular-nums; font-size: .72rem; }
+
   /* Typography roles (Typography.fs). Chakra Petch — the identity face — carries
      data, labels, badges and headers; DM Sans (the body default) carries team
      names and prose. Weight/size/tracking stay per-element; this assigns the
@@ -706,6 +780,7 @@
     <button role="tab" id="tab-weather" aria-controls="panel-weather" aria-selected="false" tabindex="-1">Weather</button>
     <button role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
     <button role="tab" id="tab-briefs" aria-controls="panel-briefs" aria-selected="false" tabindex="-1">Briefs</button>
+    <button role="tab" id="tab-draw" aria-controls="panel-draw" aria-selected="false" tabindex="-1">Draw</button>
   </div>
 
   <!-- Wired by Program.fs (wireDateNav). Navigation rewrites the URL with
@@ -745,6 +820,7 @@
   <div role="tabpanel" id="panel-weather" aria-labelledby="tab-weather" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-briefs" aria-labelledby="tab-briefs" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-draw" aria-labelledby="tab-draw" tabindex="0" hidden></div>
 
   <!-- Fable emits bare module specifiers for npm packages — `import {
        createSignal } from "solid-js"` — which browsers cannot resolve natively.

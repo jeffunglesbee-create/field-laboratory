@@ -48,8 +48,19 @@ const topTabs = () => page.$$(TABS)
 
 // --- the tablist -------------------------------------------------------------
 
-check('seven top-level tabs exist', (await topTabs()).length === 7,
-  `${(await topTabs()).length} tabs — Scoreboard, Field's Pick, Scout's Pick, Pick'em, Weather, Stats, Briefs`)
+// Named, not counted. `live-tabs-check.mjs` records why: a bare count said
+// "six" long after the Briefs tab made it seven, and stayed red without saying
+// WHICH tab was unaccounted for.
+const EXPECTED_TABS = [
+  'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick',
+  'tab-pickem', 'tab-weather', 'tab-stats', 'tab-briefs', 'tab-draw',
+]
+const tabIds = await page.$$eval(TABS, ts => ts.map(t => t.id))
+
+check('every expected top-level tab exists, by name',
+  EXPECTED_TABS.every(id => tabIds.includes(id)) && tabIds.length === EXPECTED_TABS.length,
+  `missing: ${JSON.stringify(EXPECTED_TABS.filter(id => !tabIds.includes(id)))}; ` +
+  `unexpected: ${JSON.stringify(tabIds.filter(id => !EXPECTED_TABS.includes(id)))}`)
 
 check('exactly one tab starts selected', (await selected()).length === 1,
   `selected: ${JSON.stringify(await selected())}`)
@@ -62,40 +73,33 @@ check('only one top-level tab is in the tab order',
   'a roving tabindex is what makes a tablist one stop instead of four')
 
 // Keyboard, which is the half most likely to be skipped.
-await page.focus('#tab-scoreboard')
-await page.keyboard.press('ArrowRight')
-check('ArrowRight moves selection to Field\'s Pick',
-  (await selected())[0] === 'tab-field-pick', `selected: ${(await selected())[0]}`)
-check('the Field\'s Pick panel became the visible one',
-  (await visiblePanels())[0] === 'panel-field-pick', `visible: ${(await visiblePanels())[0]}`)
-
-await page.keyboard.press('ArrowRight')
-check('ArrowRight again reaches Scout\'s Pick',
-  (await selected())[0] === 'tab-scout-pick', `selected: ${(await selected())[0]}`)
-
-await page.keyboard.press('ArrowRight')
-check('ArrowRight again reaches Pick\'em',
-  (await selected())[0] === 'tab-pickem', `selected: ${(await selected())[0]}`)
-
-await page.keyboard.press('ArrowRight')
-check('ArrowRight again reaches Weather',
-  (await selected())[0] === 'tab-weather', `selected: ${(await selected())[0]}`)
-
-await page.keyboard.press('ArrowRight')
-check('ArrowRight again reaches Stats',
-  (await selected())[0] === 'tab-stats', `selected: ${(await selected())[0]}`)
-
-await page.keyboard.press('ArrowRight')
-check('ArrowRight again reaches Briefs',
-  (await selected())[0] === 'tab-briefs', `selected: ${(await selected())[0]}`)
+//
+// WALKED FROM `EXPECTED_TABS`, not written out one press at a time. The
+// hand-written version asserted the order Scoreboard → … → Briefs and dead-ended
+// there, so adding the Draw tab turned two of its rows red — "selection wraps
+// rather than dead-ending" and "End jumps to the last tab" — over a tab strip
+// that was behaving perfectly. A check that has to be edited every time the
+// thing it checks grows is a check that will eventually be edited to agree.
+await page.focus(`#${EXPECTED_TABS[0]}`)
+for (let i = 1; i < EXPECTED_TABS.length; i++) {
+  await page.keyboard.press('ArrowRight')
+  check(`ArrowRight reaches ${EXPECTED_TABS[i]}`,
+    (await selected())[0] === EXPECTED_TABS[i], `selected: ${(await selected())[0]}`)
+  if (i === 1) {
+    check('the panel of the newly-selected tab became the visible one',
+      (await visiblePanels())[0] === EXPECTED_TABS[i].replace('tab-', 'panel-'),
+      `visible: ${(await visiblePanels())[0]}`)
+  }
+}
 
 await page.keyboard.press('ArrowRight')
 check('selection wraps rather than dead-ending',
-  (await selected())[0] === 'tab-scoreboard', `selected: ${(await selected())[0]}`)
+  (await selected())[0] === EXPECTED_TABS[0], `selected: ${(await selected())[0]}`)
 
 await page.keyboard.press('End')
 check('End jumps to the last tab',
-  (await selected())[0] === 'tab-briefs', `selected: ${(await selected())[0]}`)
+  (await selected())[0] === EXPECTED_TABS[EXPECTED_TABS.length - 1],
+  `selected: ${(await selected())[0]}`)
 
 // The Stats panel, and the bug it exists to not have. Production shows
 // "Tied — anyone's game" on every PRE-GAME card, beneath the win-loss records.

@@ -75,6 +75,7 @@
     <Compile Include="WeatherView.fs" />
     <Compile Include="StatsView.fs" />
     <Compile Include="BriefsView.fs" />
+    <Compile Include="DrawView.fs" />
     <Compile Include="Program.fs" />
     <!-- The F# suite and its node entry point. Below Program.fs because nothing
          imports them; `node build/VerifyMain.js` is a second entry, and it must

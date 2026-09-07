@@ -308,8 +308,68 @@ let entryRound (d: Draw) : RoundName option =
 let isComplete (d: Draw) : bool =
     d.Nodes |> List.exists (fun n -> n.Round = Final && n.WinnerId.IsSome)
 
+/// What the canonical-size law has to say about ONE round.
+///
+/// A union rather than a bool, because "not compared" is not "compared and
+/// fine", and the whole difficulty of this law is that three of its four
+/// answers look like a pass from the outside. Nine of ten masters_1000 entry
+/// rounds are `EntryRoundNotCompared`; reporting that as `AtCanonicalSize`
+/// would be a green light standing in for evidence, and reporting it as
+/// `OffCanonicalSize` is the bug this module already shipped once.
+///
+/// FS0025 is an error in this project, so a renderer must say what it draws for
+/// each of the four. It cannot fall through to "looks fine".
+type SizeVerdict =
+    /// Compared against the round's position, and it matched.
+    | AtCanonicalSize of size: int
+    /// Compared, and it did not match. The one true defect this law finds:
+    /// US Open Men 2025's Round of 64 = 31, Toronto 2025's Round of 32 = 15.
+    | OffCanonicalSize of have: int * want: int
+    /// NOT compared. The entry round holds whoever did not get a bye, so its
+    /// size is a property of the DRAW's size — 128, 96, 56 — and nothing in the
+    /// payload carries that.
+    | EntryRoundNotCompared of have: int
+    /// NOT compared. The innermost round of a draw still being played is short
+    /// because the matches have not happened yet.
+    | NotYetPlayedOut of have: int
+
+/// Every round present, with the law's verdict on each.
+///
+/// THE EXEMPTION RULE LIVES HERE AND NOWHERE ELSE. It used to live inside
+/// `roundsOffCanonicalSize` as a filter, which was correct and unreadable from
+/// outside: a renderer wanting to caption a round "entry round, not compared"
+/// had to re-derive `List.tryHead`/`isComplete`/`List.tryLast` for itself, and a
+/// second derivation of a rule this fiddly is a second rule. Now the query below
+/// is derived from this, so the page and the check cannot disagree about which
+/// rounds were exempt.
+///
+/// A one-round draw is `EntryRoundNotCompared`, not `NotYetPlayedOut`. Both
+/// exemptions apply and either is defensible; the entry round is checked first
+/// so the answer is deterministic rather than depending on list order.
+let roundVerdicts (d: Draw) : (RoundName * SizeVerdict) list =
+    let rounds = roundsPresent d
+    let entry = List.tryHead rounds
+    // The INNERMOST round, when the draw is not finished. Found on the live page
+    // minutes after the entry-round rule shipped: US Open Women 2026 was serving
+    // Quarterfinals=1 and the page said three were missing. They had not been
+    // played yet.
+    //
+    // Both exemptions are about the EDGES of what is known — the outer shaped by
+    // byes, the inner by the calendar. Everything between them stays checked,
+    // which is the whole point: US Open Men 2025's Round of 64 = 31 and Toronto
+    // 2025's Round of 32 = 15 are interior, real, and still found.
+    let openInnermost = if isComplete d then None else List.tryLast rounds
+    rounds
+    |> List.map (fun r ->
+        let have = sizeOfRound d r
+        let want = canonicalSize r
+        if Some r = entry then r, EntryRoundNotCompared have
+        elif Some r = openInnermost then r, NotYetPlayedOut have
+        elif have = want then r, AtCanonicalSize have
+        else r, OffCanonicalSize(have, want))
+
 /// Rounds whose match count is not what the round's position says it should be,
-/// EXCLUDING the entry round, which has no such number.
+/// EXCLUDING the two rounds that have no such number.
 ///
 /// REPORTED, NOT REFUSED, for the reason in this module's header. And excluding
 /// the entry round for a reason measured after that header was written: a
@@ -332,23 +392,15 @@ let isComplete (d: Draw) : bool =
 /// of 64 = 31. That is a match the vendor does not have, and it is what this
 /// function exists to find. A rule that explained it away would have hidden the
 /// only true positive in the set.
+///
+/// Derived from `roundVerdicts` rather than filtering the rounds a second time,
+/// so this and the page agree about the exemptions by construction.
 let roundsOffCanonicalSize (d: Draw) : (string * int * int) list =
-    let rounds = roundsPresent d
-    let entry = List.tryHead rounds
-    // ...and the INNERMOST round, when the draw is not finished. Found on the
-    // live page minutes after the entry-round rule shipped: US Open Women 2026
-    // was serving Quarterfinals=1 and the page said three were missing. They
-    // had not been played yet.
-    //
-    // Both exemptions are about the EDGES of what is known — the outer shaped
-    // by byes, the inner by the calendar. Everything between them stays
-    // checked, which is the whole point: US Open Men 2025's Round of 64 = 31
-    // and Toronto 2025's Round of 32 = 15 are interior, real, and still found.
-    let openInnermost = if isComplete d then None else List.tryLast rounds
-    rounds
-    |> List.filter (fun r -> Some r <> entry && Some r <> openInnermost)
-    |> List.map (fun r -> roundLabel r, sizeOfRound d r, canonicalSize r)
-    |> List.filter (fun (_, have, want) -> have <> want)
+    roundVerdicts d
+    |> List.choose (fun (r, v) ->
+        match v with
+        | OffCanonicalSize(have, want) -> Some(roundLabel r, have, want)
+        | AtCanonicalSize _ | EntryRoundNotCompared _ | NotYetPlayedOut _ -> None)
 
 /// Players who appear in a round without having won a match in the round before.
 ///
@@ -390,6 +442,64 @@ let pathOf (d: Draw) (playerId: int) =
     |> List.filter (fun n -> List.contains playerId (playersOf n))
     |> List.sortBy (fun n -> roundIndex n.Round)
     |> List.map (fun n -> n.Id, roundLabel n.Round, n.WinnerId = Some playerId)
+
+/// One match, as a caller may READ it.
+///
+/// A separate type from `Node`, whose fields stay private, and the distinction
+/// is not a formality. `Node`'s privacy is about CONSTRUCTION — nothing may
+/// assemble a draw that skipped `build`'s refusals — and a projection OUT does
+/// not weaken that: a `MatchView` written by hand is a `MatchView`, and no
+/// function in this module accepts one. Nothing can re-enter the draw through
+/// here.
+///
+/// It exists because without it a `Draw` could be counted, queried and reported
+/// on but not DRAWN — every accessor above answers a question about the shape,
+/// and none of them hands back the two names and the winner that a bracket
+/// prints. Same hole `Tennis.setScores` records filling on the scoreline side:
+/// the type held the value correctly and no caller could read it.
+type MatchView =
+    { Id: int
+      Round: RoundName
+      P1: Player option
+      P2: Player option
+      WinnerId: int option
+      Status: string option }
+
+/// Every match, entry round first and by id within a round.
+///
+/// Ordered HERE rather than at each call site. Two renderers sorting the same
+/// list two ways are two brackets that disagree about which match is first, and
+/// nothing would report the disagreement — both would look sorted.
+///
+/// Id order within a round is not draw order and is not claimed to be: BSD
+/// serves no draw position, so the top half of the bracket cannot be
+/// distinguished from the bottom. A renderer that presented this as seeding
+/// would be inventing the one thing the payload does not carry.
+let matches (d: Draw) : MatchView list =
+    d.Nodes
+    |> List.sortBy (fun n -> roundIndex n.Round, n.Id)
+    |> List.map (fun n ->
+        { Id = n.Id
+          Round = n.Round
+          P1 = n.P1
+          P2 = n.P2
+          WinnerId = n.WinnerId
+          Status = n.Status })
+
+/// The matches of one round, in the same order.
+let matchesInRound (d: Draw) (r: RoundName) : MatchView list =
+    matches d |> List.filter (fun m -> m.Round = r)
+
+/// A player id's name, from whichever match it appears in.
+///
+/// `playersFromNowhere` answers in ids, because an id is what the join is on and
+/// a name is not unique. A reader needs the name, so the lookup lives here next
+/// to the data rather than being rebuilt by every caller that reports one.
+let playerName (d: Draw) (playerId: int) : string option =
+    d.Nodes
+    |> List.collect (fun n -> [ n.P1; n.P2 ] |> List.choose id)
+    |> List.tryFind (fun p -> p.Id = playerId)
+    |> Option.map (fun p -> p.Name)
 
 // --- reading the relay's payload ---------------------------------------------
 //

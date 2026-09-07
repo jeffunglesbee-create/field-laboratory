@@ -117,6 +117,56 @@ let private loadWeatherOnce () =
                 WeatherView.fillCards outcome)
             |> ignore
 
+/// The relay's draw route.
+///
+/// THE PARAMETER IS `tournament`, NOT `tournament_id`. Measured on the relay
+/// side 2026-09-06 with a control: `tournament` filters and returns 400 rows all
+/// from one tournament; `tournament_id` and `tournament_ids` are both ACCEPTED,
+/// silently dropped, and return 366 rows from every tournament at once. Written
+/// here rather than remembered, because a draw built on the dropped spelling
+/// looks like a draw.
+let private RELAY_DRAW = "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/draw"
+
+/// Which draw the panel shows.
+///
+/// A COMMITTED CAPTURE BY DEFAULT, unlike every other surface here, and the
+/// asymmetry is deliberate. The slate has one obviously-right answer — today —
+/// and a draw does not: picking "the interesting tournament" would mean
+/// reproducing the client's tier ladder in F#, which is a second implementation
+/// of a rule that already exists and can already drift.
+///
+/// `data/tennis-draw.json` is a real Roland Garros WTA 2026, 127 matches, taken
+/// through the relay route above; `data/PROVENANCE.md` records when and how. It
+/// makes the default render deterministic, which is what the render checks pin
+/// themselves to, and it is a real draw rather than a fixture shaped to pass.
+///
+/// `?draw=<tournament id>&season=<YYYY>` fetches a live one. Season is optional
+/// at this end and load-bearing at the other: a BSD tournament id is a SERIES,
+/// so an unscoped id joins every year at once, and the relay is where that is
+/// handled.
+let private drawUrl () =
+    match queryParam "draw" with
+    | None -> "./data/tennis-draw.json"
+    | Some tid ->
+        match queryParam "season" with
+        | Some year -> sprintf "%s?tournament=%s&season=%s" RELAY_DRAW tid year
+        | None -> sprintf "%s?tournament=%s" RELAY_DRAW tid
+
+let mutable private drawLoaded = false
+
+/// Fetch the draw once, the first time the tab is shown.
+///
+/// Lazy for the same reason Weather is: it is its own network call, and a
+/// surface nobody opened should not have spent a request. Unlike Weather it
+/// still loads when `?data=` pins the slate to a capture — the draw's own
+/// default IS a capture, so there is no live call to suppress.
+let private loadDrawOnce () =
+    if not drawLoaded then
+        drawLoaded <- true
+        match document.getElementById "panel-draw" with
+        | null -> ()
+        | mount -> DrawView.load mount (drawUrl ()) |> Promise.start
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
@@ -485,7 +535,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-briefs" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-briefs"; "tab-draw" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
@@ -503,6 +553,7 @@ let private wireTabs () =
             tab.setAttribute ("aria-selected", (if selected then "true" else "false"))
             tab.setAttribute ("tabindex", (if selected then "0" else "-1"))
             if selected && tab.id = "tab-weather" then loadWeatherOnce ()
+            if selected && tab.id = "tab-draw" then loadDrawOnce ()
             match document.getElementById (tab.getAttribute "aria-controls") with
             | null -> ()
             | panel ->

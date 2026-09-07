@@ -927,6 +927,28 @@ const MUTATIONS = [
     replace: '    match Contest((Home, game.Home), (Away, game.Away)) with',
     expect: 'node scripts/pickem-check.mjs',
   },
+  // --- the Draw panel -------------------------------------------------------
+  //
+  // The canonical-size law has FOUR answers and two of them are "not compared".
+  // For two months the exempt ones rendered identically to a pass, and nine of
+  // ten Masters draws were reported corrupt on the strength of it. These break
+  // the exemption in both directions: remove it, and impose it everywhere.
+  {
+    id: 'entry-round-compared',
+    file: 'src/Draw.fs',
+    claim: 'the entry round has no canonical size and is never compared to one',
+    find: '        if Some r = entry then r, EntryRoundNotCompared have',
+    replace: '        if false then r, EntryRoundNotCompared have',
+    expect: "URL='http://localhost:8080/?tab=draw' node scripts/draw-render-check.mjs",
+  },
+  {
+    id: 'everything-exempt',
+    file: 'src/Draw.fs',
+    claim: 'the exemption covers two rounds, not the whole draw',
+    find: '        elif have = want then r, AtCanonicalSize have',
+    replace: '        elif true then r, EntryRoundNotCompared have',
+    expect: "URL='http://localhost:8080/?tab=draw' node scripts/draw-render-check.mjs",
+  },
   // The scoreline refusal, which is the finding this panel exists to surface:
   // match 36028's 6-4 set carrying `tiebreak: [40, 15]`. Both directions of the
   // classifier, because one that always answers the same case would satisfy
