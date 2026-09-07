@@ -305,8 +305,43 @@ see — **a boolean would have said PASS.**
 - `Sets.Finished` still has no captured match behind it — two captures, both
   `live`/`interrupted` only. Exercised by constructed inputs, and the coverage
   note in `Suite.fs` says so.
-- **`check:window` is red on main and it is not this work.** It picks tomorrow's
-  02:00 UTC, compares two future days, gets `0 games` from both, and reports
-  `FAIL — the zone choice made no difference here`. It could not answer, which
-  is not the same as a wrong answer. The honest verdict is UNPROVEN, and the fix
-  is to search for a candidate instant where at least one day has a slate.
+- ~~`check:window` is red on main~~ — **fixed below.**
+
+## `check:window`: it had not found a difference, it had failed to look
+
+Red on main, and not from this work. It took **tomorrow's** 02:00 UTC once
+today's had passed, so it compared two days that have not happened:
+
+```
+2026-09-07: 0 games
+2026-09-08: 0 games
+FAIL  the two days return different slates
+      → both returned 0 identical games — the zone choice made no difference
+```
+
+A future day has no slate. The check had not found a difference; it had failed
+to look somewhere one could exist, and reported the second as the first.
+
+**The fix.** Candidates are now 02:00 UTC on each of the last 10 days, newest
+first and all in the past, starting at yesterday — today's 02:00 may not have
+passed, and a day still being played is the empty case being avoided. It takes
+the first pair where the two days differ **and at least one carries a slate**.
+Days are cached, because one candidate's ET reading is the next one's UTC
+reading.
+
+**Three states, not two.**
+
+| state | meaning | exit |
+|---|---|---|
+| the slates differ | the zone choice changes the answer | 0 |
+| identical non-empty slates | a real failure | 1 |
+| no usable candidate | **UNPROVEN** — it does not assert | 0 |
+
+And one new check that cannot pass vacuously: **every candidate empty on both
+days** is a source that has stopped answering, not a quiet week. Ten in a row is
+not an off day, and it is the only place that would notice — the other two
+checks pass on nothing.
+
+Demonstrated failing, not asserted: run from the sandbox, where relay egress is
+403, it reports `HTTP 403` on both days, fails the new check by name, and exits
+1.
