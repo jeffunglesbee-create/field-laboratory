@@ -1323,6 +1323,76 @@ let tennis : Verify.Sealed list =
           // shape the file does not use, and this row reported NO TEETH.
           Fixtures.tennisLiveCorrupted
 
+      // ── Sets.Finished, from a real capture at last ──────────────────────
+      //
+      // The coverage note at the top of this list said `Finished` was exercised
+      // by constructed inputs only, because the live capture comes from
+      // /bsd/tennis/matches/live and carries `live` and `interrupted` and
+      // nothing else. That note is now out of date, and this is why.
+      Verify.check "A FINISHED SLAM DECODES, AND NOTHING IN IT IS STILL BEING PLAYED"
+          (fun json ->
+              let rows = Tennis.decodeDrawNodes json
+              let ok = rows |> List.filter Result.isOk
+              // A PROPORTION, not "all", and the reason is a real row: node
+              // 36028 carries "tiebreak": [40, 15] on a 6-4 set. 40 and 15 are
+              // game points, not a breaker, so `completedSet` refuses it —
+              // correctly. Asserting all 127 would be asserting something
+              // false about the vendor's data.
+              //
+              // Nine tenths rather than a count, because a count would couple
+              // this row to one capture's contents. That coupling is what took
+              // the tennis fixture row to NO TEETH when the capture workflow
+              // ran a second time.
+              not (List.isEmpty rows)
+              && List.length ok * 10 >= List.length rows * 9
+              && ok |> List.forall (fun r ->
+                     match r with
+                     | Ok m -> not (Tennis.inPlay m)
+                     | Error _ -> false))
+          Fixtures.tennisDraw
+          // Every set corrupted, not one — a proportion cannot be falsified by
+          // breaking a single match out of 127.
+          Fixtures.tennisDrawSetCorrupted
+
+      // The refusal above is not a shrug. Every failure must be a scoreline the
+      // sport cannot produce, named as such — not a decoder that gave up.
+      Verify.check "...and every match it refuses is refused for a stated reason"
+          (fun json ->
+              Tennis.decodeDrawNodes json
+              |> List.forall (fun r ->
+                     match r with
+                     | Ok _ -> true
+                     | Error(Tennis.IllegalCompletedSet _) -> true
+                     | Error _ -> false))
+          Fixtures.tennisDraw
+          // A payload whose sets list is empty: NoSets, which is a different
+          // error and must not be waved through by this row.
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":99,"p2":99}]}]}"""
+
+      // The three retirements. A match that ENDED on an unfinished set is not
+      // in play and is not finished — measured in the capture, not anticipated:
+      // 35384 (4-5), 35152 (3-6 6-0 4-1) and 35142 (7-6 2-1), all status
+      // `finished`, all stopping mid-set.
+      Verify.check "A RETIREMENT IS NEITHER IN PLAY NOR FINISHED"
+          (fun json ->
+              Tennis.decodeDrawNodes json
+              |> List.choose (fun r -> match r with Ok m -> Some m | Error _ -> None)
+              |> List.exists (fun m -> (Tennis.abandonedSet m).IsSome && not (Tennis.inPlay m)))
+          Fixtures.tennisDraw
+          // A draw of one match played out to a completed set. No retirement in
+          // it, so nothing should report an abandoned set — which is what makes
+          // this row fail if `abandonedSet` ever answers on a finished match.
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":6,"p2":3},{"p1":6,"p2":4}]}]}"""
+
+      // ...and it is 127 matches, not one. `forall` is vacuous on an empty
+      // list, and `decodeDrawNodes` DROPS nodes with no sets — so a capture of
+      // an unplayed draw would satisfy the row above by having nothing in it.
+      Verify.check "...and a finished slam is 127 matches, not a handful"
+          (fun json -> List.length (Tennis.decodeDrawNodes json) >= 127)
+          Fixtures.tennisDraw
+          // One node, played. Decodes cleanly, is not a slam.
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":6,"p2":3}]}]}"""
+
       // A capture that decoded zero matches would satisfy `List.forall` on an
       // empty list, and the row above would pass while proving nothing. This is
       // that hole, closed.

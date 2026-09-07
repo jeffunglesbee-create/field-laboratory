@@ -135,3 +135,56 @@ let tennisDrawCorrupted : string =
             let close = tennisDraw.IndexOf("\"", valueStart)
             if close < 0 then tennisDraw
             else tennisDraw.Substring(0, valueStart) + "Qualification Final" + tennisDraw.Substring(close)
+
+
+/// The captured draw with EVERY completed set changed to a score no set can end
+/// on.
+///
+/// Different anchor from `tennisDrawCorrupted`, and deliberately so. That one
+/// renames a round to break `Draw.decodeResponse`; this one corrupts SCORES to
+/// break `Tennis.decodeDrawNodes`. One file feeds two decoders and each needs a
+/// mutation its own decoder can see — a renamed round leaves every scoreline
+/// intact and would go NO TEETH here.
+///
+/// EVERY set, not one, and the reason is a real row in the capture. The suite
+/// row this falsifies asserts that MOST matches decode, not all: node 36028
+/// carries `"tiebreak": [40, 15]` on a 6-4 set, and 40 and 15 are game points,
+/// not a breaker. One vendor row is not a scoreline, `completedSet` refuses it
+/// correctly, and a row asserting "all 127 decode" would be asserting something
+/// false. So the assertion is a proportion — and a proportion cannot be
+/// falsified by corrupting one set out of 127.
+///
+/// DERIVED FROM THE FILE. Every `"p1": n` after the `"sets"` key becomes 9: no
+/// completed set ends at 9, and a live set is capped at 7, so it is illegal
+/// wherever it sits. Anchored past `"sets"` so it cannot land in the `rounds`
+/// summary table — the exact mistake `tennisDrawCorrupted` made and reported as
+/// NO TEETH.
+///
+/// The guard stays. If the anchor is absent this returns the ORIGINAL string,
+/// the two inputs become identical, and the row reports NO TEETH.
+let tennisDrawSetCorrupted : string =
+    let setsAt = tennisDraw.IndexOf("\"sets\":")
+    if setsAt < 0 then tennisDraw
+    else
+        let head = tennisDraw.Substring(0, setsAt)
+        let tail = tennisDraw.Substring(setsAt)
+        let anchor = "\"p1\": "
+        let sb = System.Text.StringBuilder()
+        let mutable i = 0
+        let mutable hits = 0
+        while i < tail.Length do
+            if i + anchor.Length <= tail.Length && tail.Substring(i, anchor.Length) = anchor then
+                let vs = i + anchor.Length
+                let mutable j = vs
+                while j < tail.Length && System.Char.IsDigit tail.[j] do j <- j + 1
+                if j > vs then
+                    sb.Append(anchor).Append("9") |> ignore
+                    hits <- hits + 1
+                    i <- j
+                else
+                    sb.Append(tail.[i]) |> ignore
+                    i <- i + 1
+            else
+                sb.Append(tail.[i]) |> ignore
+                i <- i + 1
+        if hits = 0 then tennisDraw else head + sb.ToString()

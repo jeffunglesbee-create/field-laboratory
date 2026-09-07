@@ -302,9 +302,66 @@ see — **a boolean would have said PASS.**
 
 ### Carry-forwards
 
-- `Sets.Finished` still has no captured match behind it — two captures, both
-  `live`/`interrupted` only. Exercised by constructed inputs, and the coverage
-  note in `Suite.fs` says so.
+- ~~`Sets.Finished` has no captured match behind it~~ — **closed below.**
+
+## `Sets.Finished`, and two things the data knew that the model did not
+
+The live capture comes from `/bsd/tennis/matches/live`, which by construction
+carries only matches in progress — both captures hold `live` and `interrupted`
+and nothing else. So the branch modelling a **completed** match was exercised by
+constructed inputs alone.
+
+`data/tennis-draw.json` closes it without a new workflow: a finished Roland
+Garros, 127 matches, every one played out. And the set shape is identical — the
+relay passes `sets_detail` through untouched, so `setDecoder` already reads it.
+`decodeDrawNodes` feeds them to a new `decodeFinal`, which is given a match
+known to have ended and so has no summary to reconcile.
+
+Running it against the real capture refuted the model twice.
+
+### Retirement is a third state
+
+Three of 127 refused, all `status: finished`, all stopping mid-set:
+
+```
+35384  R64   4-5
+35152  R128  3-6 6-0 4-1
+35142  R128  7-6 2-1
+```
+
+`4-5` is not a set anyone won. **The player retired.** The match is over with a
+set unplayed out — neither `Finished` nor `InPlay`.
+
+So `Sets` gains `Retired of completed * abandoned`, a third case rather than a
+flag, for the same reason `LiveSet` is not a `CompletedSet`: the abandoned set is
+not one a completed-set rule may be applied to, and now it cannot be. FS0025 is
+an error here, so every reader had to handle it — `currentSet` answers `None` (a
+retirement has no current set; `abandonedSet` is the different question), and
+`endedLevel` answers `false`, because a retirement at one set all is normal and
+flagging it would call every retirement corrupt.
+
+### One vendor row is not a scoreline
+
+The last failure was `IllegalCompletedSet(index 1, 6-4)` — and 6-4 is legal. The
+guard fired on the **tiebreak**:
+
+```
+node 36028  R16   4-6  6-4(40:15)  6-0
+```
+
+`tiebreak: [40, 15]`. Those are **game points**, not a breaker. `completedSet`
+allows a tiebreak only on a 7-6 and refused it, correctly.
+
+**Not repaired.** Inventing a rule to drop a tiebreak that looks wrong is the
+smoothing this repo refuses. The suite row asserts a **proportion** — nine tenths
+decode — because asserting all 127 would assert something false about the data.
+A second row requires every refusal to be an `IllegalCompletedSet`, so a decoder
+that simply gave up would not pass.
+
+The falsifier corrupts **every** set rather than one: a proportion cannot be
+falsified by breaking a single match out of 127.
+
+**142/142 held** (was 138).
 - ~~`check:window` is red on main~~ — **fixed below.**
 
 ## `check:window`: it had not found a difference, it had failed to look

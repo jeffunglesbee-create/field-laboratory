@@ -110,6 +110,22 @@ type Sets =
     private
     | Finished of CompletedSet list
     | InPlay of completed: CompletedSet list * current: LiveSet
+    /// A match that ENDED on an unfinished set: a retirement.
+    ///
+    /// MEASURED, not anticipated. `decodeDrawNodes` was written assuming a
+    /// finished match has only finished sets, and three of the 127 matches in
+    /// the captured Roland Garros refused it — all three `status: finished`,
+    /// all three stopping mid-set:
+    ///
+    ///   35384  R64   4-5
+    ///   35152  R128  3-6 6-0 4-1
+    ///   35142  R128  7-6 2-1
+    ///
+    /// 4-5 is not a set anyone won. The player retired, and the match is over
+    /// with a set unplayed out. A THIRD case rather than a flag on `Finished`,
+    /// for the same reason `LiveSet` is not a `CompletedSet`: the abandoned set
+    /// is not one a completed-set rule may be applied to, and here it cannot be.
+    | Retired of completed: CompletedSet list * abandoned: LiveSet
 
 /// A decoded match. Private case: `decode` is the only way to obtain one.
 type Match =
@@ -125,6 +141,9 @@ type DecodeError =
     | IllegalCompletedSet of index: int * p1: int * p2: int
     | IllegalLiveSet of p1: int * p2: int
     | SummaryDisagreesWithSets of claimedWon: int * setsInList: int
+    /// The final set of an ended match is neither a completed set nor a legal
+    /// score to abandon on.
+    | IllegalAbandonedSet of p1: int * p2: int
 
 /// Build a match from the shape BSD actually serves.
 ///
@@ -169,6 +188,39 @@ let decode (id: int) (tournament: string) (setsWon: int) (sets: (int * int * (in
     else
         Error(SummaryDisagreesWithSets(setsWon, n))
 
+/// Build a match KNOWN to have ended, from its set list alone.
+///
+/// Different question from `decode`, which is given a summary and uses it to
+/// decide which set is live. Here the match is over — the caller has a result —
+/// so there is no live set to identify and no summary to disagree with. What
+/// remains is whether the last set was played out.
+///
+/// Every set but the last must be a completed set; a match cannot resume after
+/// one was abandoned. The last is either completed, and the match is `Finished`,
+/// or it is a legal in-progress score, and the match is `Retired`. Anything else
+/// is neither and is refused.
+let decodeFinal (id: int) (tournament: string) (sets: (int * int * (int * int) option) list) : Result<Match, DecodeError> =
+    let n = List.length sets
+    if n = 0 then Error NoSets
+    else
+        let rec build i acc rest =
+            match rest with
+            | [] -> Ok(List.rev acc)
+            | (a, b, tb) :: tail ->
+                match completedSet a b tb with
+                | Some s -> build (i + 1) (s :: acc) tail
+                | None -> Error(IllegalCompletedSet(i, a, b))
+        match build 0 [] (List.truncate (n - 1) sets) with
+        | Error e -> Error e
+        | Ok cs ->
+            let (la, lb, ltb) = List.item (n - 1) sets
+            match completedSet la lb ltb with
+            | Some last -> Ok { Id = id; Tournament = tournament; Sets = Finished(cs @ [ last ]) }
+            | None ->
+                match liveSet la lb with
+                | Some ls -> Ok { Id = id; Tournament = tournament; Sets = Retired(cs, ls) }
+                | None -> Error(IllegalAbandonedSet(la, lb))
+
 // --- reading a decoded match -------------------------------------------------
 
 let matchId (m: Match) = m.Id
@@ -183,6 +235,7 @@ let setsWon (m: Match) : int * int =
         match m.Sets with
         | Finished cs -> cs
         | InPlay(cs, _) -> cs
+        | Retired(cs, _) -> cs
     let p1 = completed |> List.filter (fun s -> setWinner s = 1) |> List.length
     p1, List.length completed - p1
 
@@ -192,12 +245,23 @@ let currentSet (m: Match) : (int * int) option =
     match m.Sets with
     | Finished _ -> None
     | InPlay(_, ls) -> Some(livePair ls)
+    // A retirement HAS no current set — nobody is playing it. The score it
+    // stopped at is read with `abandonedSet`, which is a different question and
+    // deliberately a different name.
+    | Retired _ -> None
 
 /// Is this match still being played?
 let inPlay (m: Match) =
     match m.Sets with
     | Finished _ -> false
     | InPlay _ -> true
+    | Retired _ -> false
+
+/// Did this match end in a retirement, and on what score?
+let abandonedSet (m: Match) : (int * int) option =
+    match m.Sets with
+    | Finished _ | InPlay _ -> None
+    | Retired(_, ls) -> Some(livePair ls)
 
 /// A match that has ended level is not a match that has ended. Reported rather
 /// than made unrepresentable: without a best-of, "3-1 is impossible in a
@@ -206,6 +270,11 @@ let inPlay (m: Match) =
 let endedLevel (m: Match) =
     match m.Sets with
     | InPlay _ -> false
+    // A retirement at one set all is normal and not a defect — the match ended
+    // because someone stopped, not because the sets ran out. Reporting it as
+    // "ended level" would flag every retirement in a slam as corrupt, which is
+    // the mistake this module's header records making about live sets.
+    | Retired _ -> false
     | Finished _ ->
         let p1, p2 = setsWon m
         p1 = p2
@@ -254,6 +323,46 @@ let private rowDecoder : Decoder<Result<Match, DecodeError>> =
 /// A payload that is not a JSON array of objects yields an empty list, which
 /// the suite asserts against separately: `List.forall` is vacuously true on
 /// nothing, so "all decode" needs "and there are eleven" beside it.
+/// Decode the FINISHED matches of a captured draw.
+///
+/// WHY THIS EXISTS. `Sets.Finished` had no captured match behind it. The live
+/// capture comes from `/bsd/tennis/matches/live`, which by construction carries
+/// only matches in progress — the two captures taken hold `live` and
+/// `interrupted` and nothing else — so the one branch that models a COMPLETED
+/// match was exercised by constructed inputs alone, and the coverage note in
+/// `Suite.fs` said so rather than pretending otherwise.
+///
+/// The draw capture closes it without a new workflow. `data/tennis-draw.json`
+/// is a finished Roland Garros: 127 matches, every one played out. And the set
+/// shape is the SAME — the relay passes `sets_detail` through untouched, so
+/// each entry is `{p1, p2}` with an optional two-element `tiebreak`, which is
+/// exactly what `setDecoder` above already reads. Measured on the file, not
+/// assumed from the field name.
+///
+/// `setsWon` is the LENGTH of the list here, which is what makes every one of
+/// these decode as `Finished`: `decode` treats `setsWon = n` as "every set
+/// finished" and `setsWon = n - 1` as "the last is in play". A completed match
+/// has no set in play, so the summary equals the count by definition.
+let decodeDrawNodes (json: string) : Result<Match, DecodeError> list =
+    let nodeDec =
+        Decode.object (fun get ->
+            let id = get.Required.Field "id" Decode.int
+            let round = get.Optional.Field "round" Decode.string |> Option.defaultValue "?"
+            let sets = get.Optional.Field "sets" (Decode.list setDecoder)
+            id, round, sets)
+    match Decode.fromString (Decode.field "nodes" (Decode.list nodeDec)) json with
+    | Error _ -> []
+    | Ok rows ->
+        rows
+        // A node with no sets is a match not yet played, and this function is
+        // about the finished ones. Dropped rather than failed — but the suite
+        // asserts the surviving list is not empty, because `forall` on nothing
+        // is the hole this repo has filled three times.
+        |> List.choose (fun (id, round, sets) ->
+            match sets with
+            | Some s when not (List.isEmpty s) -> Some(decodeFinal id round s)
+            | _ -> None)
+
 let decodeAll (json: string) : Result<Match, DecodeError> list =
     match Decode.fromString (Decode.list rowDecoder) json with
     | Ok rows -> rows
