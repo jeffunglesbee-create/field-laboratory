@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `af77a19` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: check:window had not found a difference, it had failed to look |
+| `d3d509f` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | docs: session close-out for the draw invariants |
 | `6c474d3` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: the innermost round of a live draw has no canonical size either |
 | `fae1896` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: the entry round has no canonical size, and no slam could have caught it |
 | `1b093c1` | 2026-09-06 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | verify: Draw.fs against a real 127-match slam draw |
