@@ -227,3 +227,31 @@ semi-final — an inner round short by one, which is Toronto 2025 in miniature.
 whatever the draw, and the entry round is the outermost round *present* — not a
 fixed one, because Monte Carlo and Paris start at Round of 64 and a
 mid-tournament Indian Wells started at Round of 32.
+
+### And the mirror, found minutes later on the live page
+
+`tennis_draw_probe` ran against the deployed page right after the entry-round
+fix and came back PASS — with the anomaly line still showing:
+
+```
+136 US Open, Women 2026
+R128=64  R64=32  R32=16  R16=8  QF=1
+→ "Quarterfinals holds 1 matches where 4 make a full round"
+```
+
+Three quarter-finals were not missing. **They had not been played yet.**
+
+Same class of error, opposite edge. The test for still-being-played is the
+Final: a draw whose Final exists **and has a winner** is finished. A Final that
+is merely present is scheduled, not played — which is its own suite row.
+
+Both exemptions are about the edges of what is known — **the outer edge shaped by
+byes, the inner edge by the calendar.** Everything between them stays checked,
+which is the point: US Open Men 2025's `R64=31` and Toronto 2025's `R32=15` are
+interior, real, and still found.
+
+**138/138 held.** The relay carries `complete` and `openInnermostRound`, and
+`verify-tennis-draw` gained a guard on the guard: all four editions must read as
+complete, because if the Final's winner stopped being read every canonical
+figure would quietly go null and the other assertions would pass by being about
+nothing.

@@ -302,6 +302,12 @@ let sizeOfRound (d: Draw) (r: RoundName) =
 let entryRound (d: Draw) : RoundName option =
     roundsPresent d |> List.tryHead
 
+/// Has this draw finished? A Final that exists and has a winner, and nothing
+/// else. `Final` being PRESENT is not enough — it is scheduled before it is
+/// played, and a draw whose final is scheduled is still a draw in progress.
+let isComplete (d: Draw) : bool =
+    d.Nodes |> List.exists (fun n -> n.Round = Final && n.WinnerId.IsSome)
+
 /// Rounds whose match count is not what the round's position says it should be,
 /// EXCLUDING the entry round, which has no such number.
 ///
@@ -327,9 +333,20 @@ let entryRound (d: Draw) : RoundName option =
 /// function exists to find. A rule that explained it away would have hidden the
 /// only true positive in the set.
 let roundsOffCanonicalSize (d: Draw) : (string * int * int) list =
-    let entry = entryRound d
-    roundsPresent d
-    |> List.filter (fun r -> Some r <> entry)
+    let rounds = roundsPresent d
+    let entry = List.tryHead rounds
+    // ...and the INNERMOST round, when the draw is not finished. Found on the
+    // live page minutes after the entry-round rule shipped: US Open Women 2026
+    // was serving Quarterfinals=1 and the page said three were missing. They
+    // had not been played yet.
+    //
+    // Both exemptions are about the EDGES of what is known — the outer shaped
+    // by byes, the inner by the calendar. Everything between them stays
+    // checked, which is the whole point: US Open Men 2025's Round of 64 = 31
+    // and Toronto 2025's Round of 32 = 15 are interior, real, and still found.
+    let openInnermost = if isComplete d then None else List.tryLast rounds
+    rounds
+    |> List.filter (fun r -> Some r <> entry && Some r <> openInnermost)
     |> List.map (fun r -> roundLabel r, sizeOfRound d r, canonicalSize r)
     |> List.filter (fun (_, have, want) -> have <> want)
 

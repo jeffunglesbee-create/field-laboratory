@@ -1547,6 +1547,45 @@ let draw : Verify.Sealed list =
             (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
             (7, Draw.Final, Some(p 10 "Alcaraz"), Some(p 14 "Medvedev"), Some 10, Some "finished") ]
 
+      // The mirror. A draw still being played is filling its innermost round,
+      // and that round's size is not a fact about it yet. Found on the live
+      // page minutes after the entry-round rule shipped: US Open Women 2026
+      // served Quarterfinals=1 and the page said three were missing.
+      Verify.check "the innermost round of an UNFINISHED draw is not off-canonical"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.roundsOffCanonicalSize d |> List.isEmpty
+              | Error _ -> false)
+          // Four quarter-finals and ONE semi-final, no final at all: the
+          // semi-final round is still being played.
+          [ (1, Draw.Quarterfinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (2, Draw.Quarterfinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished")
+            (3, Draw.Quarterfinals, Some(p 14 "Medvedev"), Some(p 15 "Rune"), Some 14, Some "finished")
+            (4, Draw.Quarterfinals, Some(p 16 "Ruud"), Some(p 17 "Fritz"), Some 16, Some "finished")
+            (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
+          // The same shape with the final PLAYED. The draw is finished, the
+          // semi-final round is now interior, and one semi-final where two
+          // belong is a match that does not exist — US Open Men 2025's Round of
+          // 64 = 31 in miniature. It must still be found.
+          [ (1, Draw.Quarterfinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (2, Draw.Quarterfinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished")
+            (3, Draw.Quarterfinals, Some(p 14 "Medvedev"), Some(p 15 "Rune"), Some 14, Some "finished")
+            (4, Draw.Quarterfinals, Some(p 16 "Ruud"), Some(p 17 "Fritz"), Some 16, Some "finished")
+            (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
+            (7, Draw.Final, Some(p 10 "Alcaraz"), Some(p 14 "Medvedev"), Some 10, Some "finished") ]
+
+      // A Final that EXISTS is not a Final that has been played. It is
+      // scheduled before it is played, so the innermost exemption keys on the
+      // WINNER, not on the round being present.
+      Verify.check "a scheduled final does not make a draw complete"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> not (Draw.isComplete d)
+              | Error _ -> false)
+          [ sf1; sf2
+            (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), None, Some "scheduled") ]
+          ok
+
       // The entry round is the outermost one PRESENT, not Round of 128. Monte
       // Carlo and Paris start at Round of 64; Indian Wells, mid-tournament,
       // started at Round of 32.
