@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9d3f8fb` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | docs: the close-out header summarised the middle of the session, not the end |
 | `5306919` | 2026-09-07 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-07 [skip ci] |
 | `5306919` | 2026-09-07 | [sport-vocabulary-2026-09-07T06-16-35-135Z.json](sport-vocabulary-2026-09-07T06-16-35-135Z.json) | drift-sentinel: ok on 2026-09-07 [skip ci] |
 | `8483e23` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: two dead public values, and a floor picked by eye |
