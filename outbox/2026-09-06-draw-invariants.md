@@ -260,8 +260,14 @@ nothing.
 
 ## Session close-out
 
-**HEAD** `1073600` → `6c474d3` · **branch** `main` throughout · **138/138 held**
+**HEAD** `1073600` → `2b96b9c` · **branch** `main` throughout · **144/144 held**
 (was 119 at session start).
+
+> Corrected 2026-09-07: this header read `6c474d3` and `138/138`, which was
+> true when it was written and false by the time the section it heads was
+> finished. The subsections below keep their own counts on purpose — each
+> records what held at that point — but a close-out header is a summary of
+> the end state and this one had been left at the middle.
 
 ### What this repo holds now
 
