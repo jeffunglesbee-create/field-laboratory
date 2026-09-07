@@ -927,6 +927,26 @@ const MUTATIONS = [
     replace: '    match Contest((Home, game.Home), (Away, game.Away)) with',
     expect: 'node scripts/pickem-check.mjs',
   },
+  // The scoreline refusal, which is the finding this panel exists to surface:
+  // match 36028's 6-4 set carrying `tiebreak: [40, 15]`. Both directions of the
+  // classifier, because one that always answers the same case would satisfy
+  // whichever row was written first.
+  {
+    id: 'tiebreak-not-distinguished',
+    file: 'src/Tennis.fs',
+    claim: 'an illegal tiebreak on a legal set score is reported as a tiebreak',
+    find: '    | Some(x, y), Some _ -> IllegalTiebreak(i, a, b, x, y)',
+    replace: '    | Some(x, y), Some _ -> IllegalCompletedSet(i, a, b)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'everything-a-tiebreak',
+    file: 'src/Tennis.fs',
+    claim: 'an illegal set score with no tiebreak stays a set-score refusal',
+    find: '    | _ -> IllegalCompletedSet(i, a, b)',
+    replace: '    | _ -> IllegalTiebreak(i, a, b, 0, 0)',
+    expect: 'node build/VerifyMain.js',
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

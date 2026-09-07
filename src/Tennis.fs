@@ -144,6 +144,30 @@ type DecodeError =
     /// The final set of an ended match is neither a completed set nor a legal
     /// score to abandon on.
     | IllegalAbandonedSet of p1: int * p2: int
+    /// The set's GAMES are a legal way to end a set and its TIEBREAK is not.
+    ///
+    /// Split out of `IllegalCompletedSet` after the Draw panel printed the
+    /// latter's message over match 36028 of the captured Roland Garros: "set 2
+    /// is 6-4, which is not a score a set ends on". 6-4 ends sets all day. What
+    /// was wrong was `tiebreak: [40, 15]` — a GAME score, on a 6-4 set, which
+    /// cannot have a tiebreak at all because a tiebreak is played at 6-6 and
+    /// only there. One case for two defects meant the report named the half of
+    /// the row that was fine.
+    | IllegalTiebreak of index: int * p1: int * p2: int * breakerP1: int * breakerP2: int
+
+/// Why `completedSet` refused, for a caller that must report it.
+///
+/// `completedSet` answers with an option because a caller BUILDING a value does
+/// not need the reason. A caller building an ERROR does. Asked here, in one
+/// place, so the three refusal sites below cannot drift apart about which half
+/// of the row was wrong.
+///
+/// The test is exact rather than heuristic: if the games alone would have made a
+/// completed set, then the tiebreak is what `completedSet` rejected.
+let private completedSetError (i: int) (a: int) (b: int) (tb: (int * int) option) =
+    match tb, completedSet a b None with
+    | Some(x, y), Some _ -> IllegalTiebreak(i, a, b, x, y)
+    | _ -> IllegalCompletedSet(i, a, b)
 
 /// Build a match from the shape BSD actually serves.
 ///
@@ -164,7 +188,7 @@ let decode (id: int) (tournament: string) (setsWon: int) (sets: (int * int * (in
             | (a, b, tb) :: tail ->
                 match completedSet a b tb with
                 | Some s -> build (i + 1) (s :: acc) tail
-                | None -> Error(IllegalCompletedSet(i, a, b))
+                | None -> Error(completedSetError i a b tb)
         match build 0 [] sets with
         | Ok cs -> Ok { Id = id; Tournament = tournament; Sets = Finished cs }
         | Error e -> Error e
@@ -178,7 +202,7 @@ let decode (id: int) (tournament: string) (setsWon: int) (sets: (int * int * (in
             | (a, b, tb) :: tail ->
                 match completedSet a b tb with
                 | Some s -> build (i + 1) (s :: acc) tail
-                | None -> Error(IllegalCompletedSet(i, a, b))
+                | None -> Error(completedSetError i a b tb)
         match build 0 [] completed with
         | Error e -> Error e
         | Ok cs ->
@@ -209,7 +233,7 @@ let decodeFinal (id: int) (tournament: string) (sets: (int * int * (int * int) o
             | (a, b, tb) :: tail ->
                 match completedSet a b tb with
                 | Some s -> build (i + 1) (s :: acc) tail
-                | None -> Error(IllegalCompletedSet(i, a, b))
+                | None -> Error(completedSetError i a b tb)
         match build 0 [] (List.truncate (n - 1) sets) with
         | Error e -> Error e
         | Ok cs ->
@@ -361,7 +385,7 @@ let private rowDecoder : Decoder<Result<Match, DecodeError>> =
 /// these decode as `Finished`: `decode` treats `setsWon = n` as "every set
 /// finished" and `setsWon = n - 1` as "the last is in play". A completed match
 /// has no set in play, so the summary equals the count by definition.
-let decodeDrawNodes (json: string) : Result<Match, DecodeError> list =
+let decodeDrawNodesById (json: string) : (int * Result<Match, DecodeError>) list =
     let nodeDec =
         Decode.object (fun get ->
             let id = get.Required.Field "id" Decode.int
@@ -378,8 +402,24 @@ let decodeDrawNodes (json: string) : Result<Match, DecodeError> list =
         // is the hole this repo has filled three times.
         |> List.choose (fun (id, round, sets) ->
             match sets with
-            | Some s when not (List.isEmpty s) -> Some(decodeFinal id round s)
+            | Some s when not (List.isEmpty s) -> Some(id, decodeFinal id round s)
             | _ -> None)
+
+/// The same, without the ids.
+///
+/// THE ID-CARRYING VERSION IS THE PRIMARY ONE and this is derived from it, which
+/// is the opposite of how it was first written. `DecodeError` names WHAT was
+/// wrong and never WHICH match, so a caller holding only this list could report
+/// "1 scoreline refused" and could not say whose — which is what the Draw panel
+/// printed on its first render, over a real defect worth naming.
+///
+/// The defect, for the record, because it is why this exists: match 36028 of the
+/// captured Roland Garros is a 6-4 set carrying `tiebreak: [40, 15]`. 40-15 is a
+/// GAME score, and a 6-4 set has no tiebreak at all — a tiebreak is played at
+/// 6-6 and only there. `completedSet` refused it on the tiebreak rule, correctly,
+/// and the refusal was invisible until it could be pointed at.
+let decodeDrawNodes (json: string) : Result<Match, DecodeError> list =
+    decodeDrawNodesById json |> List.map snd
 
 let decodeAll (json: string) : Result<Match, DecodeError> list =
     match Decode.fromString (Decode.list rowDecoder) json with

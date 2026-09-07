@@ -1356,6 +1356,13 @@ let tennis : Verify.Sealed list =
 
       // The refusal above is not a shrug. Every failure must be a scoreline the
       // sport cannot produce, named as such — not a decoder that gave up.
+      //
+      // `IllegalTiebreak` ADDED 2026-09-07, and the reason is the row itself: the
+      // capture's one refusal is match 36028, whose second set is 6-4 carrying
+      // `tiebreak: [40, 15]`. That was reported as `IllegalCompletedSet` until
+      // the Draw panel printed the message out loud — "set 2 is 6-4, which is not
+      // a score a set ends on" — over a set whose games are perfectly legal. One
+      // case for two defects named the half of the row that was fine.
       Verify.check "...and every match it refuses is refused for a stated reason"
           (fun json ->
               Tennis.decodeDrawNodes json
@@ -1363,11 +1370,44 @@ let tennis : Verify.Sealed list =
                      match r with
                      | Ok _ -> true
                      | Error(Tennis.IllegalCompletedSet _) -> true
+                     | Error(Tennis.IllegalTiebreak _) -> true
                      | Error _ -> false))
           Fixtures.tennisDraw
           // A payload whose sets list is empty: NoSets, which is a different
           // error and must not be waved through by this row.
           """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":99,"p2":99}]}]}"""
+
+      // The split itself, on the shape that forced it. A 6-4 set carrying a
+      // tiebreak must report the TIEBREAK, because the games are legal and
+      // saying otherwise is a report about the wrong half of the row.
+      //
+      // The counterexample is the same set with the same illegal tiebreak on a
+      // score that is ALSO not a legal set — 4-3 — so it comes back as
+      // `IllegalCompletedSet`. That is what gives this row teeth: a
+      // `completedSetError` that always answered `IllegalTiebreak` whenever a
+      // tiebreak was present would pass the first input and fail this one.
+      Verify.check "an illegal tiebreak on a LEGAL set score is reported as a tiebreak"
+          (fun json ->
+              Tennis.decodeDrawNodes json
+              |> List.exists (fun r ->
+                     match r with
+                     | Error(Tennis.IllegalTiebreak _) -> true
+                     | Ok _ | Error _ -> false))
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":6,"p2":4,"tiebreak":[40,15]},{"p1":6,"p2":0}]}]}"""
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":4,"p2":3,"tiebreak":[40,15]},{"p1":6,"p2":0}]}]}"""
+
+      // ...and the other direction, so the pair cannot both be satisfied by a
+      // classifier that has stopped distinguishing. An illegal set score with NO
+      // tiebreak must stay `IllegalCompletedSet`.
+      Verify.check "...and an illegal set score with no tiebreak stays a set-score refusal"
+          (fun json ->
+              Tennis.decodeDrawNodes json
+              |> List.exists (fun r ->
+                     match r with
+                     | Error(Tennis.IllegalCompletedSet _) -> true
+                     | Ok _ | Error _ -> false))
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":4,"p2":3},{"p1":6,"p2":0}]}]}"""
+          """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":6,"p2":4,"tiebreak":[40,15]},{"p1":6,"p2":0}]}]}"""
 
       // The three retirements. A match that ENDED on an unfinished set is not
       // in play and is not finished — measured in the capture, not anticipated:
