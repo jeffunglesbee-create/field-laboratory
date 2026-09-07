@@ -179,3 +179,51 @@ So the 65-and-66 first rounds were never the vendor doubling a round, and this
 document's own table above — which listed them as "two extra first-round rows" —
 was describing withdrawal rows without knowing it. Excluding cancelled rows puts
 every edition at 127 matches, exactly what a 128 draw holds.
+
+---
+
+## The 128 ladder, and the tier that could not catch it
+
+`canonicalSize` is `1 <<< (6 - roundIndex)` — a 128 draw. Correct for a slam,
+wrong for everything else, and **every edition anything here had read was a
+slam**: 14, 15, 76, 77, 135, 136, 101, 102.
+
+A Masters 1000 is a **96 draw**: 32 players get a bye, so its first round holds
+32 matches where the ladder says 64. Read against the deployed relay, all ten
+`masters_1000` ids:
+
+```
+ 63 Madrid   67 Rome   130 Cincinnati   45 Miami
+693 Montreal 175 Shanghai 125 Toronto     R128=32 R64=32 R32=16 R16=8 4 2 1
+ 56 Monte Carlo   196 Paris               R64=24 R32=16 R16=8 4 2 1
+ 42 Indian Wells                          R32=16 R16=8 4 2 1
+```
+
+**Nine of ten were flagged off-canonical on their entry round, and not one was
+missing a match.** Byes only ever affect the entry round, so every round after
+it is exactly `2^(levels above the final)` whatever the draw size — and that
+held on all ten.
+
+The one apparent exception is why this stays a query rather than being dropped:
+**Toronto 2025 serves `Round of 32 = 15` where 16 belong.** Short by exactly one,
+in an *inner* round — the same shape as US Open Men 2025's `R64 = 31`. That is a
+match the vendor does not have, and it is precisely what the function exists to
+find. A rule that explained it away would have hidden the only true positive in
+the set.
+
+So `entryRound` is a new query, and `roundsOffCanonicalSize` excludes it.
+
+### Three rows broke, and that was the rule working
+
+`...and the off-canonical round is REPORTED` went red, and `the captured draw is
+canonical in every round` went **NO TEETH** — both because their inputs used a
+lone `Semifinals`, which is now the entry round and exempt.
+
+Neither is a defect in the rule. Both rows had asserted, without anyone noticing,
+that *an entry round reports*. The inputs are now four quarter-finals and one
+semi-final — an inner round short by one, which is Toronto 2025 in miniature.
+
+**136/136 held** (was 134). Two new rows: the entry round is never off-canonical
+whatever the draw, and the entry round is the outermost round *present* — not a
+fixed one, because Monte Carlo and Paris start at Round of 64 and a
+mid-tournament Indian Wells started at Round of 32.

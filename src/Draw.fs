@@ -64,6 +64,13 @@ open Thoth.Json
 //   and a player who appears in a round without having won one in the round
 //   before. Both are real and both are the DATA, not a decoding fault.
 //
+//   NEITHER REFUSED NOR REPORTED: the ENTRY round's size. It holds whoever did
+//   not get a bye, which is a property of the draw's size — 128, 96, 56 — and
+//   nothing in this payload carries that. A Masters 1000 is a 96 draw, so its
+//   first round is 32 matches where a 128 ladder says 64. Nine of ten
+//   masters_1000 ids were flagged on that round with not one match missing. It
+//   is reported as the number it is, and compared to nothing.
+//
 // NOT GUARANTEED. That the draw describes a real tournament. A self-consistent
 // fabrication decodes cleanly, and should — no type can reach the court.
 
@@ -116,9 +123,13 @@ let roundLabel (r: RoundName) =
     | Semifinals -> "Semifinals"
     | Final -> "Final"
 
-/// How many matches the round holds when nothing is missing or doubled.
+/// How many matches the round holds when nothing is missing or doubled, IF the
+/// draw is a full 128.
+///
 /// DERIVED from the index, not tabulated — a table is a second place for 64 to
-/// be wrong.
+/// be wrong. It is still only meaningful for rounds after the entry round: see
+/// `roundsOffCanonicalSize`, which is the only caller that should use it, and
+/// which excludes the entry round for that reason.
 let canonicalSize (r: RoundName) = 1 <<< (6 - roundIndex r)
 
 let nextRound (r: RoundName) =
@@ -283,14 +294,42 @@ let roundsPresent (d: Draw) =
 let sizeOfRound (d: Draw) (r: RoundName) =
     d.Nodes |> List.filter (fun n -> n.Round = r) |> List.length
 
-/// Rounds whose match count is not what the round's position says it should be.
+/// The outermost round this draw actually contains.
 ///
-/// REPORTED, NOT REFUSED, and the reason is in this module's header: five of the
-/// six real slam editions read on 2026-09-06 are off-canonical. A construction
-/// law here would reject reality and pass on the one edition that happens to be
-/// tidy.
+/// It holds whoever did not get a bye, so its size is a property of the draw's
+/// SIZE — 128, 96, 56 — and nothing here knows that. `canonicalSize` is a
+/// function of the round's position and is meaningless for this one round.
+let entryRound (d: Draw) : RoundName option =
+    roundsPresent d |> List.tryHead
+
+/// Rounds whose match count is not what the round's position says it should be,
+/// EXCLUDING the entry round, which has no such number.
+///
+/// REPORTED, NOT REFUSED, for the reason in this module's header. And excluding
+/// the entry round for a reason measured after that header was written: a
+/// Masters 1000 is a 96 draw, so its first round holds 32 matches where
+/// `canonicalSize RoundOf128` says 64. Read against the relay on 2026-09-06,
+/// NINE OF TEN masters_1000 ids were flagged on their entry round and not one
+/// was missing a match.
+///
+/// Byes only ever affect the entry round. Every round after it is exactly
+/// 2^(levels above the final) whatever the draw size, and that held on all ten:
+///
+///   Madrid, Rome, Cincinnati, Miami, Montreal, Shanghai, Toronto
+///                              R128=32 R64=32 R32=16 R16=8 QF=4 SF=2 F=1
+///   Monte Carlo, Paris          R64=24 R32=16 R16=8 QF=4 SF=2 F=1
+///   Indian Wells                R32=16 R16=8 QF=4 SF=2 F=1
+///
+/// The one apparent exception is why this stays a query rather than being
+/// dropped: Toronto 2025 serves Round of 32 = 15 where 16 belong. Short by
+/// exactly one, in an INNER round — the same shape as US Open Men 2025's Round
+/// of 64 = 31. That is a match the vendor does not have, and it is what this
+/// function exists to find. A rule that explained it away would have hidden the
+/// only true positive in the set.
 let roundsOffCanonicalSize (d: Draw) : (string * int * int) list =
+    let entry = entryRound d
     roundsPresent d
+    |> List.filter (fun r -> Some r <> entry)
     |> List.map (fun r -> roundLabel r, sizeOfRound d r, canonicalSize r)
     |> List.filter (fun (_, have, want) -> have <> want)
 

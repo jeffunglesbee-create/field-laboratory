@@ -1431,9 +1431,16 @@ let draw : Verify.Sealed list =
       // got wrong. A Semifinals round holding ONE match is off canonical size —
       // and five of the six real slam editions read on 2026-09-06 are
       // off-canonical somewhere. It must BUILD.
-      Verify.check "an off-canonical round still builds — it is reported, not refused"
+      Verify.check "a round short of its size still builds — it is reported, not refused"
           (fun rows -> Draw.build "t" "2026" rows |> Result.isOk)
-          [ sf1; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
+          // One semi-final where two belong: an INNER round short by one, which
+          // is exactly Toronto 2025's Round of 32 = 15.
+          [ (1, Draw.Quarterfinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (2, Draw.Quarterfinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished")
+            (3, Draw.Quarterfinals, Some(p 14 "Medvedev"), Some(p 15 "Rune"), Some 14, Some "finished")
+            (4, Draw.Quarterfinals, Some(p 16 "Ruud"), Some(p 17 "Fritz"), Some 16, Some "finished")
+            (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
+            (7, Draw.Final, Some(p 10 "Alcaraz"), Some(p 14 "Medvedev"), Some 10, Some "finished") ]
           // Nothing builds from nothing, which is the only way this predicate
           // can be made to fail without breaking the very law it asserts.
           []
@@ -1441,15 +1448,24 @@ let draw : Verify.Sealed list =
       // ...and having built, it says so. A draw that quietly returned an empty
       // anomaly list would satisfy the row above while hiding the thing the row
       // above exists to permit.
-      Verify.check "...and the off-canonical round is REPORTED on the built draw"
+      Verify.check "...and the short INNER round is REPORTED on the built draw"
           (fun rows ->
               match Draw.build "t" "2026" rows with
               | Ok d -> Draw.roundsOffCanonicalSize d |> List.exists (fun (r, have, want) ->
                             r = "Semifinals" && have = 1 && want = 2)
               | Error _ -> false)
+          [ (1, Draw.Quarterfinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (2, Draw.Quarterfinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished")
+            (3, Draw.Quarterfinals, Some(p 14 "Medvedev"), Some(p 15 "Rune"), Some 14, Some "finished")
+            (4, Draw.Quarterfinals, Some(p 16 "Ruud"), Some(p 17 "Fritz"), Some 16, Some "finished")
+            (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
+            (7, Draw.Final, Some(p 10 "Alcaraz"), Some(p 14 "Medvedev"), Some 10, Some "finished") ]
+          // The same one-semi-final shape with the quarter-finals removed. Now
+          // Semifinals IS the entry round, holds whoever did not get a bye, and
+          // has nothing to be short of. This row went red when that rule
+          // landed, on this exact input — which is the rule working, not the
+          // row: the old input asserted that an entry round reports.
           [ sf1; (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
-          // The canonical draw: two semi-finals and a final, nothing to report.
-          ok
 
       // US Open Men 2025 serves 31 second-round matches where 32 exist, so a
       // player reaches Round of 32 without a winning row behind them. Real, and
@@ -1506,6 +1522,48 @@ let draw : Verify.Sealed list =
           """{"tournament":{"name":"US Open, Men"},"season":"2025","nodes":[
              {"id":1,"round":"Final","p1":{"id":1,"name":"A"},"p2":{"id":2,"name":"B"},"winnerId":1}]}"""
 
+      // A 96-draw Masters: 32 players get a bye, so the first round holds 32
+      // matches where a 128 ladder says 64. Measured against the relay on
+      // 2026-09-06 — nine of ten masters_1000 ids were flagged on their entry
+      // round and not one was missing a match.
+      Verify.check "the ENTRY round's size is never off-canonical, whatever the draw"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.roundsOffCanonicalSize d |> List.isEmpty
+              | Error _ -> false)
+          // A Masters shape in miniature: an entry round of ONE match where
+          // Semifinals says two, feeding a final. Under the old rule this
+          // reported Semifinals=1 want 2.
+          [ (1, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (3, Draw.Final, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
+          // ...and an INNER round short by one still reports. Toronto 2025
+          // serves Round of 32 = 15 where 16 belong, and that is a match the
+          // vendor does not have. Two semi-finals, one quarter-final: the QF is
+          // the entry round and exempt, the SF is inner and one short of two.
+          [ (1, Draw.Quarterfinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (2, Draw.Quarterfinals, Some(p 12 "Sinner"), Some(p 13 "Zverev"), Some 12, Some "finished")
+            (3, Draw.Quarterfinals, Some(p 14 "Medvedev"), Some(p 15 "Rune"), Some 14, Some "finished")
+            (4, Draw.Quarterfinals, Some(p 16 "Ruud"), Some(p 17 "Fritz"), Some 16, Some "finished")
+            (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished")
+            (7, Draw.Final, Some(p 10 "Alcaraz"), Some(p 14 "Medvedev"), Some 10, Some "finished") ]
+
+      // The entry round is the outermost one PRESENT, not Round of 128. Monte
+      // Carlo and Paris start at Round of 64; Indian Wells, mid-tournament,
+      // started at Round of 32.
+      Verify.check "the entry round is the outermost round present, not a fixed one"
+          (fun rows ->
+              match Draw.build "t" "2026" rows with
+              | Ok d -> Draw.entryRound d = Some Draw.Quarterfinals
+              | Error _ -> false)
+          [ (1, Draw.Quarterfinals, Some(p 10 "Alcaraz"), Some(p 11 "Djokovic"), Some 10, Some "finished")
+            (5, Draw.Semifinals, Some(p 10 "Alcaraz"), Some(p 12 "Sinner"), Some 10, Some "finished") ]
+          // A draw that starts a round earlier. If entryRound returned a fixed
+          // round rather than the outermost present, both of these would answer
+          // the same thing.
+          [ (0, Draw.RoundOf16, Some(p 20 "A"), Some(p 21 "B"), Some 20, Some "finished")
+            (1, Draw.Quarterfinals, Some(p 20 "A"), Some(p 11 "Djokovic"), Some 20, Some "finished")
+            (5, Draw.Semifinals, Some(p 20 "A"), Some(p 12 "Sinner"), Some 20, Some "finished") ]
+
       // ── the real capture ───────────────────────────────────────────────
       //
       // Roland Garros WTA 2026, 127 main-draw matches, captured from the
@@ -1557,17 +1615,23 @@ let draw : Verify.Sealed list =
       // it is the one edition of the three the relay verifies where nothing is
       // off size. A row asserting the OPPOSITE would be satisfied by any draw
       // at all, so this asserts the empty list and falsifies with a real one.
-      Verify.check "the captured draw is canonical in every round"
+      Verify.check "the captured draw is canonical in every round after the entry round"
           (fun json ->
               match Draw.decodeResponse json with
               | Ok d -> Draw.roundsOffCanonicalSize d |> List.isEmpty
               | Error _ -> false)
           Fixtures.tennisDraw
-          // A semi-final round holding one match, which US Open Men 2025's
-          // Round of 64 is the real-world version of.
+          // An INNER round short by one — four quarter-finals and a single
+          // semi-final. The first version of this row used a lone semi-final
+          // and a final, which the entry-round rule made exempt: the row went
+          // NO TEETH the moment that rule landed, and said so.
           """{"tournament":{"name":"x"},"season":"2026","nodes":[
-             {"id":1,"round":"Semifinals","p1":{"id":10,"name":"A"},"p2":{"id":11,"name":"B"},"winnerId":10},
-             {"id":3,"round":"Final","p1":{"id":10,"name":"A"},"p2":{"id":12,"name":"C"},"winnerId":10}]}"""
+             {"id":1,"round":"Quarterfinals","p1":{"id":10,"name":"A"},"p2":{"id":11,"name":"B"},"winnerId":10},
+             {"id":2,"round":"Quarterfinals","p1":{"id":12,"name":"C"},"p2":{"id":13,"name":"D"},"winnerId":12},
+             {"id":3,"round":"Quarterfinals","p1":{"id":14,"name":"E"},"p2":{"id":15,"name":"F"},"winnerId":14},
+             {"id":4,"round":"Quarterfinals","p1":{"id":16,"name":"G"},"p2":{"id":17,"name":"H"},"winnerId":16},
+             {"id":5,"round":"Semifinals","p1":{"id":10,"name":"A"},"p2":{"id":12,"name":"C"},"winnerId":10},
+             {"id":7,"round":"Final","p1":{"id":10,"name":"A"},"p2":{"id":14,"name":"E"},"winnerId":10}]}"""
 
       // The relay's field names, not BSD's. The relay maps short_name to
       // shortName and current_ranking.position to rank before this sees a row,
