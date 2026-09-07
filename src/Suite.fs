@@ -1673,6 +1673,66 @@ let draw : Verify.Sealed list =
             (1, Draw.Quarterfinals, Some(p 20 "A"), Some(p 11 "Djokovic"), Some 20, Some "finished")
             (5, Draw.Semifinals, Some(p 20 "A"), Some(p 12 "Sinner"), Some 20, Some "finished") ]
 
+      // `pathOf` and `setScores` exist because a bracket prints both: which
+      // matches a player appeared in, and what the scores were. Neither had a
+      // caller until these rows, and `check:unused` said so by name.
+      //
+      // The champion's path is the draw's spine — one match per round, every
+      // one won, in order.
+      Verify.check "the champion's path is one match per round, all won, in order"
+          (fun json ->
+              match Draw.decodeResponse json with
+              | Error _ -> false
+              | Ok d ->
+                  match Draw.champion d with
+                  | None -> false
+                  | Some c ->
+                      let path = Draw.pathOf d c.Id
+                      // Seven rounds, every one a win, and no round twice —
+                      // which is the premise the whole winner-join rests on.
+                      List.length path = List.length (Draw.roundsPresent d)
+                      && path |> List.forall (fun (_, _, won) -> won)
+                      && (path |> List.map (fun (_, r, _) -> r) |> List.distinct |> List.length)
+                         = List.length path)
+          Fixtures.tennisDraw
+          // A two-match draw where the "champion" lost their semi-final: the
+          // final's winner never played the round before it. Decodes cleanly,
+          // and no path through it is all wins.
+          """{"tournament":{"name":"x"},"season":"2026","nodes":[
+             {"id":1,"round":"Semifinals","p1":{"id":10,"name":"A"},"p2":{"id":11,"name":"B"},"winnerId":11},
+             {"id":3,"round":"Final","p1":{"id":10,"name":"A"},"p2":{"id":11,"name":"B"},"winnerId":10}]}"""
+
+      // Every completed set of the real capture is a score a set can end on.
+      // Guaranteed by construction — `completedSet` is the only way to build
+      // one — so this is the guarantee being READ BACK rather than a new claim,
+      // and it is what gives `setScores` and `completedPair` a consumer.
+      Verify.check "every completed set read back from a real slam is a legal set score"
+          (fun json ->
+              let ms = Tennis.decodeDrawNodes json
+                       |> List.choose (fun r -> match r with Ok m -> Some m | Error _ -> None)
+              let legal (a, b) =
+                  let hi = max a b
+                  let lo = min a b
+                  (hi = 6 && lo <= 4) || (hi = 7 && (lo = 5 || lo = 6))
+              not (List.isEmpty ms)
+              && ms |> List.forall (fun m -> Tennis.setScores m |> List.forall legal)
+              // ...and it read something. `forall` on a match with no completed
+              // sets is vacuous, and a retirement in the first set has none.
+              //
+              // MORE SETS THAN MATCHES, which is true of any real tennis — the
+              // shortest completed match is two sets — and false of a read that
+              // returned nothing. The first version of this line said `> 300`,
+              // a number picked by eye; the capture holds 284 completed sets
+              // across 126 matches and the row went red. A floor guessed from
+              // the shape of the data is a floor that fails on the next capture.
+              && ms |> List.sumBy (fun m -> List.length (Tennis.setScores m))
+                 > List.length ms)
+          Fixtures.tennisDraw
+          // Every set corrupted to 9-n. If `setScores` returned the abandoned
+          // or live set alongside the completed ones, this is where it would
+          // show — those are exactly the scores that are not legal set scores.
+          Fixtures.tennisDrawSetCorrupted
+
       // ── the real capture ───────────────────────────────────────────────
       //
       // Roland Garros WTA 2026, 127 main-draw matches, captured from the

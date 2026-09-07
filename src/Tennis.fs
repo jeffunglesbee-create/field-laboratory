@@ -257,6 +257,24 @@ let inPlay (m: Match) =
     | InPlay _ -> true
     | Retired _ -> false
 
+/// Every COMPLETED set of a match, as game pairs in the order they were played.
+///
+/// The one way out of `Sets`, whose cases are private. Without it `completedPair`
+/// had no reachable caller — a match can be built and asked whether it is in
+/// play, but nothing could read the scoreline it was built from, which is the
+/// thing a bracket actually prints.
+///
+/// Completed sets only. A live set is not a score anyone has won and a retired
+/// match's abandoned set is not either; both are read by their own accessor, so
+/// no caller can mistake one for a result.
+let setScores (m: Match) : (int * int) list =
+    let completed =
+        match m.Sets with
+        | Finished cs -> cs
+        | InPlay(cs, _) -> cs
+        | Retired(cs, _) -> cs
+    completed |> List.map (fun s -> let a, b, _ = completedPair s in a, b)
+
 /// Did this match end in a retirement, and on what score?
 let abandonedSet (m: Match) : (int * int) option =
     match m.Sets with

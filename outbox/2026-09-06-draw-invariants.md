@@ -402,3 +402,35 @@ checks pass on nothing.
 Demonstrated failing, not asserted: run from the sandbox, where relay egress is
 403, it reports `HTTP 403` on both days, fails the new check by name, and exits
 1.
+
+### Two dead public values, and a floor picked by eye
+
+`check:unused` had been masked: it runs after `check:window` in the same chain,
+and window's failure exited first. With window fixed, it named two:
+
+```
+src/Draw.fs: pathOf
+src/Tennis.fs: completedPair
+```
+
+`pathOf` was mine and had never had a caller. `completedPair` was
+**unreachable** — the `Sets` cases are private, so nothing outside could obtain a
+`CompletedSet` to pass it.
+
+Both now have real consumers rather than deletions, because a bracket prints
+exactly these two things:
+
+- **`setScores`** — every completed set of a match, as game pairs. The one way
+  out of `Sets`. Completed only: a live set is not a score anyone won and a
+  retired match's abandoned set is not either, and each has its own accessor so
+  no caller can mistake one for a result.
+- **the champion's path** — one match per round, every one won, no round twice,
+  which is the premise the winner-join rests on.
+
+**The set-score row failed first, on a number I picked by eye.** It asserted more
+than 300 completed sets; the capture holds **284 across 126 matches**. A floor
+guessed from the shape of the data fails on the next capture, so it now asserts
+**more sets than matches** — true of any real tennis, since the shortest
+completed match is two sets, and false of a read that returned nothing.
+
+**144/144 held.**
