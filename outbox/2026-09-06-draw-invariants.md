@@ -255,3 +255,58 @@ interior, real, and still found.
 complete, because if the Final's winner stopped being read every canonical
 figure would quietly go null and the other assertions would pass by being about
 nothing.
+
+---
+
+## Session close-out
+
+**HEAD** `1073600` → `6c474d3` · **branch** `main` throughout · **138/138 held**
+(was 119 at session start).
+
+### What this repo holds now
+
+`src/Draw.fs` — the knockout draw as a type. 15 rows in `Suite.fs`, plus
+`data/tennis-draw.json`, a captured Roland Garros WTA 2026: 127 main-draw
+matches, 126 edges, champion Mirra Andreeva, zero anomalies.
+
+| refused — a `Draw` cannot exist with it | reported — a query on a valid draw |
+|---|---|
+| same player twice in one round | `roundsOffCanonicalSize` |
+| winner not one of the two players | `playersFromNowhere` |
+| two matches sharing an id | `entryRound`, `isComplete` |
+| a round name outside the seven | |
+
+### What the type found that nothing else did
+
+**`AmbiguousEdge` was unreachable.** The case was written for the condition the
+relay returns 409 on, and no input could reach it: a winner can only appear in
+two next-round matches if that player appears twice in that round, which
+`PlayerTwiceInRound` refuses first. Deleted here; the relay keeps both, because
+the reverse does not hold — two unplayed rows sharing a player produce no edge
+at all.
+
+The row did not merely pass. **It could not be written, and the reason was a
+fact about the design.**
+
+### Three rows broke, and each break was the rule working
+
+| row | what happened | why |
+|---|---|---|
+| `...the off-canonical round is REPORTED` | went red | its input used a lone `Semifinals`, now the entry round |
+| `the captured draw is canonical` | went **NO TEETH** | same cause |
+| `tennisDrawCorrupted` | went **NO TEETH** | anchored on the `rounds` summary table, which `decodeResponse` never reads |
+
+None was a defect in the rule. Two had been asserting, unnoticed, *that an entry
+round reports*. The third mutated a payload and changed nothing the check could
+see — **a boolean would have said PASS.**
+
+### Carry-forwards
+
+- `Sets.Finished` still has no captured match behind it — two captures, both
+  `live`/`interrupted` only. Exercised by constructed inputs, and the coverage
+  note in `Suite.fs` says so.
+- **`check:window` is red on main and it is not this work.** It picks tomorrow's
+  02:00 UTC, compares two future days, gets `0 games` from both, and reports
+  `FAIL — the zone choice made no difference here`. It could not answer, which
+  is not the same as a wrong answer. The honest verdict is UNPROVEN, and the fix
+  is to search for a candidate instant where at least one day has a slate.
