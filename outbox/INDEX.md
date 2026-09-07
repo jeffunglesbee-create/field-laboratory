@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8483e23` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: two dead public values, and a floor picked by eye |
 | `417e74e` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | feat: retirement is a third state, and one vendor row is not a scoreline |
 | `af77a19` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: check:window had not found a difference, it had failed to look |
 | `d3d509f` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | docs: session close-out for the draw invariants |
