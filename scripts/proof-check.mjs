@@ -59,6 +59,13 @@ const REGISTRY = 'src/Desk.fs'
 // cost again — see `livenessOf` below.
 //
 // So: in-repo, gitignored, and a marker naming what is applied right now.
+// The instant this run started. Captured ONCE into a top-level constant, which
+// is the shape `row-confidence.mjs` enforces and `gameStateAt` already follows:
+// a script that reads the clock where the value is used can straddle midnight
+// between two lines. Written into the marker so a later reader can see how long
+// a stranded run has been stranded.
+const STARTED_AT = new Date()
+
 const STATE_DIR = '.proof-state'
 const MARKER_FILE = join(STATE_DIR, 'active.json')
 const BACKUP = join(STATE_DIR, 'Scoreboard.fs.bak')
@@ -257,7 +264,7 @@ writeFileSync(`${BACKUP}.registry`, registrySource)
 // at nothing, which heals into the "backup is missing" dead end above.
 writeFileSync(MARKER_FILE, JSON.stringify({
   pid: process.pid,
-  startedAt: new Date().toISOString(),
+  startedAt: STARTED_AT.toISOString(),
   target: TARGET,
   registry: REGISTRY,
 }, null, 2) + '\n')

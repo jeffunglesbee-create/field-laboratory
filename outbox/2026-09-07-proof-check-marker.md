@@ -191,3 +191,42 @@ trade this file has repeatedly chosen and should keep choosing.
 
 None. `.proof-state/` is gitignored alongside `.mutation-state/`, which now
 carries the same durability property for the same reason.
+
+---
+
+## Follow-up, 30 minutes later: the marker's timestamp cost a gate row
+
+`guards` went red on `24bd739`, ten seconds into the run:
+
+```
+FAIL  every gate row is at or above 95
+      → doc claims are compiler-verified, not prose = 70
+```
+
+`row-confidence.mjs` scores a row `(hasTeeth ? 70 : 0) + (hasClock ? 0 : 30)`.
+This row has teeth — the two new mutations above, plus the existing
+`proof-doc-drift`. What it lost was the determinism half: the marker recorded
+
+```js
+startedAt: new Date().toISOString(),
+```
+
+at the point of use. That scanner's rule is not "never read the clock", it is
+**capture it once into a top-level constant**, because a script calling
+`new Date()` where the value is used can straddle midnight between two lines —
+which is how CI run 31456294086 failed, with `outboxToday` asking about a
+different day than the one the run started in.
+
+Fixed by hoisting:
+
+```js
+const STARTED_AT = new Date()
+```
+
+`23/23 rows at or above 95`.
+
+Worth recording for its shape rather than its size: a durability fix whose whole
+subject is "state that survives being interrupted" reached for the wall clock
+without capturing it, and the guard that noticed had already been written for
+exactly that mistake. It cost ten seconds of CI and one line, because the rule
+was standing and enforced rather than remembered.
