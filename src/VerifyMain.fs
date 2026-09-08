@@ -167,6 +167,15 @@ let private code =
         printfn "Suite NOT run: the harness failed its own self-test, so its verdicts mean nothing."
         1
     else
-        Verify.exitCode (Verify.runGate "F# suite" Suite.all)
+        // The captures, read from disk, BEFORE the suite is built.
+        //
+        // `Suite.groups ()` builds each row's inputs as it goes, and the tennis
+        // and draw rows carry `Fixtures.tennisDraw ()`. Loading here rather than
+        // at module level is what makes the ordering visible: an ES import is
+        // hoisted, so a module-level load would run after `Suite`'s own
+        // initialisation, not before it. That is why every group in `Suite.fs`
+        // is a function.
+        FixturesNode.loadAll ()
+        Verify.exitCode (Verify.runGate "F# suite" (Suite.all ()))
 
 exit code

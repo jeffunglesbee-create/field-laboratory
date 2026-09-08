@@ -927,6 +927,53 @@ const MUTATIONS = [
     replace: '    match Contest((Home, game.Home), (Away, game.Away)) with',
     expect: 'node scripts/pickem-check.mjs',
   },
+  // --- the Verify panel -----------------------------------------------------
+  //
+  // The suite on the page. Its own invariants are `build/VerifyMain.js`'s to
+  // prove; these break what only the PAGE can get wrong.
+  {
+    id: 'verify-panel-hides-the-counterexample',
+    file: 'src/SuiteView.fs',
+    claim: 'every row shows the input that must fail',
+    find: '                              (Verify.sealedShownMustFail c))',
+    replace: '                              "")',
+    expect: "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
+  },
+  {
+    // The defect the first build actually shipped: the elapsed time was computed
+    // as an ARGUMENT to render, so the subtraction ran before a single check did
+    // and the page said "146 checks ran in this browser in 0ms".
+    id: 'verify-panel-times-nothing',
+    file: 'src/SuiteView.fs',
+    claim: 'the timing is measured around the work, not before it',
+    find: '    let started = JS.Constructors.Date.now ()',
+    replace: '    let started = JS.Constructors.Date.now () + 1000000.0',
+    expect: "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
+  },
+  {
+    // A panel that only ever renders "held" has not shown that the runner can
+    // tell the other two apart, which is the whole argument for phase 1.
+    id: 'verify-panel-one-verdict',
+    file: 'src/SuiteView.fs',
+    claim: 'the runner demonstrates all three verdicts before the suite',
+    find: '    | Verify.NoTeeth -> "no teeth", "sv-verdict--noteeth"',
+    replace: '    | Verify.NoTeeth -> "held", "sv-verdict--held"',
+    expect: "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
+  },
+  {
+    // The suite must reach the page in full. Dropping a group is invisible to a
+    // reader and to every row-level assertion — AND it survived the first
+    // version of this mutation, because `Suite.all ()` is `Suite.groups ()`
+    // flattened: the node total and the page's row count fall together and go on
+    // agreeing. It is caught now by counting the DECLARATIONS in the source,
+    // which is a different derivation and can therefore disagree.
+    id: 'verify-panel-drops-a-group',
+    file: 'src/Suite.fs',
+    claim: 'every check DECLARED in the suite source reaches the page',
+    find: '      "Tennis draws", draw () ]',
+    replace: '      ]',
+    expect: "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
+  },
   // --- proof-check's run marker ---------------------------------------------
   //
   // The state machine that decides whether a killed run corrupts the tree. Both

@@ -167,6 +167,22 @@ let private loadDrawOnce () =
         | null -> ()
         | mount -> DrawView.load mount (drawUrl ()) |> Promise.start
 
+let mutable private verifyLoaded = false
+
+/// Run the F# suite in the browser, once, the first time the tab is shown.
+///
+/// Lazy for a reason the other lazy surface does not have. Weather is lazy
+/// because it is a network call nobody asked for; this is lazy because it FETCHES
+/// THREE CAPTURES AND RUNS 146 CHECKS over them, including a 127-match draw
+/// decoded by two separate decoders. That is work no reader of the scoreboard
+/// should pay for.
+let private loadVerifyOnce () =
+    if not verifyLoaded then
+        verifyLoaded <- true
+        match document.getElementById "panel-verify" with
+        | null -> ()
+        | mount -> SuiteView.load mount |> Promise.start
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
@@ -535,7 +551,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-briefs"; "tab-draw" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-briefs"; "tab-draw"; "tab-verify" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
@@ -554,6 +570,7 @@ let private wireTabs () =
             tab.setAttribute ("tabindex", (if selected then "0" else "-1"))
             if selected && tab.id = "tab-weather" then loadWeatherOnce ()
             if selected && tab.id = "tab-draw" then loadDrawOnce ()
+            if selected && tab.id = "tab-verify" then loadVerifyOnce ()
             match document.getElementById (tab.getAttribute "aria-controls") with
             | null -> ()
             | panel ->

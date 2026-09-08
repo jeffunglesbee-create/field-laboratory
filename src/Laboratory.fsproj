@@ -76,16 +76,27 @@
     <Compile Include="StatsView.fs" />
     <Compile Include="BriefsView.fs" />
     <Compile Include="DrawView.fs" />
-    <Compile Include="Program.fs" />
-    <!-- The F# suite and its node entry point. Below Program.fs because nothing
-         imports them; `node build/VerifyMain.js` is a second entry, and it must
-         not pull in Program's browser side effects. -->
     <!-- Binary frame ingest. Depends on nothing and is read only by Suite.fs,
          which is where every one of its public bindings is exercised. -->
     <Compile Include="PlayFrame.fs" />
-    <!-- Real captures read from disk, for the suite only. Above Suite.fs. -->
+    <!-- The captures, and the suite over them. MOVED ABOVE Program.fs on
+         2026-09-08. They sat below it because `Fixtures.fs` imported
+         `readFileSync` from `node:fs`, which made the whole chain node-only —
+         so 146 checks, each carrying a counterexample, ran in a terminal and
+         nothing on the page could show one. The import is now quarantined in
+         `FixturesNode.fs` below, and `Fixtures.fs` takes its bytes from
+         whichever host loaded them. Nothing else about the suite was
+         browser-hostile. -->
     <Compile Include="Fixtures.fs" />
     <Compile Include="Suite.fs" />
+    <!-- The Verify panel. Below Suite.fs, which it renders; above Program.fs,
+         which mounts it. -->
+    <Compile Include="SuiteView.fs" />
+    <Compile Include="Program.fs" />
+    <!-- The node entry point, and the node-only file read it needs. Below
+         Program.fs because nothing imports them; `node build/VerifyMain.js` is a
+         second entry, and it must not pull in Program's browser side effects. -->
+    <Compile Include="FixturesNode.fs" />
     <Compile Include="VerifyMain.fs" />
   </ItemGroup>
 

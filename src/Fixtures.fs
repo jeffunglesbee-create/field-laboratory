@@ -2,7 +2,7 @@ module Fixtures
 
 open Fable.Core
 
-// Real captures, read from disk at run time rather than embedded as literals.
+// Real captures, read at run time rather than embedded as literals.
 //
 // An embedded copy is a second source of truth that drifts silently: the file
 // on disk is what every other check decodes, and a literal pasted in here would
@@ -10,12 +10,51 @@ open Fable.Core
 // because generated source can be hand-edited; this is the same hazard with the
 // direction reversed.
 //
-// Node-only. Nothing in the browser bundle imports this module — it sits below
-// `Program.fs` and is reached solely from `Suite.fs` under `VerifyMain`, the
-// same arrangement the suite itself uses.
+// WHY THE BYTES ARE HANDED IN RATHER THAN READ HERE
+//
+// This module used to call `readFileSync` from `node:fs` directly, which made it
+// node-only, which made `Suite.fs` node-only, which is why the suite compiled
+// BELOW `Program.fs` and could never appear on the page. 146 checks, each
+// carrying a counterexample, ran in a terminal and landed in an outbox file; a
+// visitor to the laboratory saw a scoreboard.
+//
+// The import is the only thing that was node-specific. Everything else here is
+// string arithmetic. So the read is inverted: a host LOADS the bytes and this
+// module reads them from the registry below. `FixturesNode.fs` fills it with
+// `readFileSync` for `VerifyMain`; `SuiteView.fs` fills it with `fetch` for the
+// browser — the SAME files either way, `data/*.json`, which `build-site.mjs`
+// copies to `public/data/`. The principle in the paragraph above is unchanged:
+// still read at run time, still one source of truth, still no literal here.
+//
+// The fixtures are FUNCTIONS rather than values for the same reason. A
+// module-level `let x = read "..."` evaluates when the module is imported, and
+// in a browser that is before any fetch has resolved.
 
-[<Import("readFileSync", "node:fs")>]
-let private readFileSync (path: string, encoding: string) : string = jsNative
+/// The captures, by path. Empty until a host fills it.
+let mutable private loaded : Map<string, string> = Map.empty
+
+/// Every file this module needs. A host loads these and no others; naming them
+/// here rather than at each call site means a host cannot fill three of four and
+/// discover the fourth only when a row throws.
+let paths =
+    [ "data/statsapi-schedule-2026-06-29.json"
+      "data/tennis-live.json"
+      "data/tennis-draw.json" ]
+
+/// Hand this module a file's bytes.
+let load (path: string) (text: string) = loaded <- Map.add path text loaded
+
+/// THROWS rather than returning "" for a file nobody loaded.
+///
+/// An empty string decodes to nothing, every row over it reports a clean
+/// failure, and the suite would read as 146 real results about a payload that
+/// was never there. This repo has shipped three blank artifacts on exactly that
+/// shape. A thrown error names the file.
+let private read (path: string) : string =
+    match Map.tryFind path loaded with
+    | Some text -> text
+    | None ->
+        failwithf "fixture not loaded: %s — a host must call Fixtures.load for every path in Fixtures.paths before the suite runs" path
 
 /// Production's recorded statsapi schedule response.
 ///
@@ -24,8 +63,7 @@ let private readFileSync (path: string, encoding: string) : string = jsNative
 /// the relay reports for `docs/adapter-fixtures-mlb-ok.json` in
 /// jubilant-bassoon. Transcription is how the Comerica timezone error got in;
 /// a hash comparison is what makes it safe to do at all.
-let statsapiSchedule : string =
-    readFileSync ("data/statsapi-schedule-2026-06-29.json", "utf8")
+let statsapiSchedule () : string = read "data/statsapi-schedule-2026-06-29.json"
 
 /// The same games, in the envelope the LIVE endpoint actually returns.
 ///
@@ -36,12 +74,12 @@ let statsapiSchedule : string =
 [<Emit("JSON.stringify({ dates: [ { games: JSON.parse($0).games } ] })")>]
 let private nestGames (json: string) : string = jsNative
 
-let statsapiNested : string = nestGames statsapiSchedule
+let statsapiNested () : string = nestGames (statsapiSchedule ())
 
 /// The nested envelope carrying a CHANGED record, so "these two decode to the
 /// same thing" has an input for which it is false.
-let statsapiNestedAltered : string =
-    nestGames (statsapiSchedule.Replace("\"wins\": 39", "\"wins\": 40"))
+let statsapiNestedAltered () : string =
+    nestGames ((statsapiSchedule ()).Replace("\"wins\": 39", "\"wins\": 40"))
 
 /// A real live tennis payload, captured 2026-09-06 from
 /// `/bsd/tennis/matches/live` by `scripts/capture-tennis-fixture.mjs`.
@@ -50,8 +88,7 @@ let statsapiNestedAltered : string =
 /// statuses (`live`, `interrupted`); two sets carrying a `tiebreak` array. The
 /// capture REFUSES a payload where no match carries `sets_detail`, so this file
 /// cannot become one that exercises the decoder against a shape it lacks.
-let tennisLive : string =
-    readFileSync ("data/tennis-live.json", "utf8")
+let tennisLive () : string = read "data/tennis-live.json"
 
 /// The tennis capture with one set corrupted to a score no set can hold.
 ///
@@ -74,7 +111,10 @@ let tennisLive : string =
 /// The guard stays. If `"p1":` is not present at all, this returns the ORIGINAL
 /// string, the mutated and clean inputs become identical, and the row reports NO
 /// TEETH. The harness cannot be told a mutation happened when it did not.
-let tennisLiveCorrupted : string =
+let tennisLiveCorrupted () : string =
+    // Shadowed so the derivation below reads exactly as it did when this was a
+    // value. The guard it documents is unchanged.
+    let tennisLive = tennisLive ()
     let anchor = "\"p1\": "
     let i = tennisLive.IndexOf(anchor)
     if i < 0 then tennisLive
@@ -97,8 +137,7 @@ let tennisLiveCorrupted : string =
 /// canonical throughout — the capture REFUSES anything with fewer than seven
 /// rounds, no champion, or no edges, so this file cannot quietly become a
 /// partial draw that verifies four rounds and reads as seven.
-let tennisDraw : string =
-    readFileSync ("data/tennis-draw.json", "utf8")
+let tennisDraw () : string = read "data/tennis-draw.json"
 
 /// The captured draw with one match's round renamed to a qualifying round.
 ///
@@ -123,7 +162,8 @@ let tennisDraw : string =
 /// That is the guard working exactly as designed, on exactly the mistake it was
 /// written for: the mutation was applied and changed nothing the check could
 /// see. A boolean would have said PASS.
-let tennisDrawCorrupted : string =
+let tennisDrawCorrupted () : string =
+    let tennisDraw = tennisDraw ()
     let nodesAt = tennisDraw.IndexOf("\"nodes\":")
     if nodesAt < 0 then tennisDraw
     else
@@ -162,7 +202,8 @@ let tennisDrawCorrupted : string =
 ///
 /// The guard stays. If the anchor is absent this returns the ORIGINAL string,
 /// the two inputs become identical, and the row reports NO TEETH.
-let tennisDrawSetCorrupted : string =
+let tennisDrawSetCorrupted () : string =
+    let tennisDraw = tennisDraw ()
     let setsAt = tennisDraw.IndexOf("\"sets\":")
     if setsAt < 0 then tennisDraw
     else

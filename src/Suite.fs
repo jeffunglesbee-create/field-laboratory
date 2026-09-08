@@ -23,7 +23,7 @@ let private at (iso: string) = DateTimeOffset.Parse(iso, Globalization.CultureIn
 // down, so a build that returns it fails by construction.
 // ---------------------------------------------------------------------------
 
-let private zone =
+let private zone () =
     [ // 00:30 UTC on the 10th is 20:30 ET on the 9th. This is the window the
       // laboratory was broken in every night of US prime time: the page asked
       // for tomorrow's slate and `datePassed` went true for tonight's fixtures,
@@ -52,7 +52,7 @@ let private zone =
 // green, because no check named the AFL answer.
 // ---------------------------------------------------------------------------
 
-let private matchup =
+let private matchup () =
     [ Verify.check "AFL reads home first — the American convention is the bug"
           (fun (sport, expected) -> matchupText sport "Sydney" "Collingwood" = expected)
           (Sport.AFL, "Sydney v Collingwood")
@@ -135,7 +135,7 @@ let private matchup =
 // gradeable at all.
 // ---------------------------------------------------------------------------
 
-let private grading =
+let private grading () =
     [ Verify.check "a drawn game yields no verdict"
           (fun state -> Pickem.decide state Pickem.Home = None)
           (Final(2, 2, false))
@@ -158,7 +158,7 @@ let private grading =
 // to 1.018, and the 1.8% is the book's margin.
 // ---------------------------------------------------------------------------
 
-let private units =
+let private units () =
     [ Verify.check "a devigged pair sums to exactly 1"
           (fun (home, away) ->
               match Units.devig home away with
@@ -195,7 +195,7 @@ let private units =
 // Game state at fixed instants. `gameState` used to read the wall clock twice.
 // ---------------------------------------------------------------------------
 
-let private state =
+let private state () =
     let game (start: DateTimeOffset option) (finalized: string option) home away =
         { Id = "g1"
           Sport = Sport.MLB
@@ -254,7 +254,7 @@ let private state =
 // documents or in playground's source comments — not one I invented.
 // ---------------------------------------------------------------------------
 
-let private weather =
+let private weather () =
     let reading temp wind total rain =
         { Weather.Temperature = temp * 1.0<Weather.degF>
           Weather.FeelsLike = None
@@ -720,7 +720,7 @@ let private weather =
 // docs/STATS-PROOF.md and visible in the screenshot that prompted this build.
 // ---------------------------------------------------------------------------
 
-let private stats =
+let private stats () =
     [ // THE headline bug. "Tied — anyone's game" on all seven pre-game cards,
       // beneath the records, reading as a verdict on them: a 47-73 team called
       // even with a 73-46 team.
@@ -954,16 +954,16 @@ let private stats =
               match Schedule.decodeSchedule json with
               | Ok [ g ] -> Schedule.recordText (Schedule.recordOf (Schedule.homeOf g)) = "39–46"
               | _ -> false)
-          Fixtures.statsapiSchedule
-          (Fixtures.statsapiSchedule.Replace("\"wins\": 39", "\"wins\": 40"))
+          (Fixtures.statsapiSchedule ())
+          ((Fixtures.statsapiSchedule ()).Replace("\"wins\": 39", "\"wins\": 40"))
 
       // The nested wire shape. A decoder proven only against the flattened
       // fixture would pass everything here and fail on the first live call.
       Verify.check "the live dates[].games envelope decodes to the same thing"
           (fun (json: string) ->
-              Schedule.decodeSchedule json = Schedule.decodeSchedule Fixtures.statsapiSchedule)
-          Fixtures.statsapiNested
-          Fixtures.statsapiNestedAltered
+              Schedule.decodeSchedule json = Schedule.decodeSchedule (Fixtures.statsapiSchedule ()))
+          (Fixtures.statsapiNested ())
+          (Fixtures.statsapiNestedAltered ())
 
       // Production's Gap 2, which cannot be expressed here: `if (hT && aT)`
       // drops BOTH records when one nickname fails to match. The record is a
@@ -976,29 +976,29 @@ let private stats =
       // counterexample has to remove the thing the claim is about.
       Verify.check "a side with no record does not decode at all"
           (fun (json: string) -> (Schedule.decodeSchedule json).IsOk)
-          Fixtures.statsapiSchedule
-          (Fixtures.statsapiSchedule.Replace(
+          (Fixtures.statsapiSchedule ())
+          ((Fixtures.statsapiSchedule ()).Replace(
               "\"leagueRecord\": { \"wins\": 39, \"losses\": 46, \"ties\": 0, \"pct\": \".459\" },", ""))
 
       // And the field inside it, which is a different claim and needs its own
       // input: a record missing a number must not decode as a record.
       Verify.check "a record missing one of its numbers does not decode"
           (fun (json: string) -> (Schedule.decodeSchedule json).IsOk)
-          Fixtures.statsapiSchedule
-          (Fixtures.statsapiSchedule.Replace("\"losses\": 46,", ""))
+          (Fixtures.statsapiSchedule ())
+          ((Fixtures.statsapiSchedule ()).Replace("\"losses\": 46,", ""))
 
       // A blank name would render as a labelled row with nothing in it —
       // indistinguishable from a real pitcher to a reader.
       Verify.check "an empty pitcher name is refused, not rendered blank"
           (fun (json: string) -> (Schedule.decodeSchedule json).IsOk)
-          Fixtures.statsapiSchedule
-          (Fixtures.statsapiSchedule.Replace("\"fullName\": \"Shane Baz\"", "\"fullName\": \"   \""))
+          (Fixtures.statsapiSchedule ())
+          ((Fixtures.statsapiSchedule ()).Replace("\"fullName\": \"Shane Baz\"", "\"fullName\": \"   \""))
 
       // The join. statsapi says "Oriole Park at Camden Yards" and the slate
       // says something else entirely; both go through the alias table.
       Verify.check "a game is found by the venue name the OTHER payload uses"
           (fun (venue: string) ->
-              match Schedule.decodeSchedule Fixtures.statsapiSchedule with
+              match Schedule.decodeSchedule (Fixtures.statsapiSchedule ()) with
               | Ok games ->
                   match Schedule.tryFindAtVenue venue games with
                   | Some g -> Schedule.teamOf (Schedule.homeOf g) = "Baltimore Orioles"
@@ -1022,7 +1022,7 @@ let private stats =
 // are not.
 // ---------------------------------------------------------------------------
 
-let private route =
+let private route () =
     let rewrites (search, slug, expected) = Route.withTab search slug = expected
 
     [ Verify.check "a tab is appended and the date survives"
@@ -1093,7 +1093,7 @@ let private route =
 // cannot go green on a build that quietly does.
 // ---------------------------------------------------------------------------
 
-let private teamTints =
+let private teamTints () =
     let tint hex = Option.get (Palette.teamTint hex)
     // AGAINST THE CARD, not the page. Team names sit inside `.desk-card`, so
     // `bg` is the one surface they are never on — and a suite measuring `bg`
@@ -1227,7 +1227,7 @@ let private teamTints =
 /// statuses `live` and `interrupted` only. NO FINISHED MATCH is in it, so
 /// `Finished` is exercised by constructed inputs and not by a captured one. A
 /// finished tennis match is not a shape this fixture proves.
-let tennis : Verify.Sealed list =
+let private tennis () : Verify.Sealed list =
     [
       // The set a match is CURRENTLY playing sits in the same array as the ones
       // it has finished, with nothing marking it. What says which is which is
@@ -1316,12 +1316,12 @@ let tennis : Verify.Sealed list =
       // match in data/tennis-live.json, or this fails.
       Verify.check "EVERY MATCH IN THE REAL CAPTURE DECODES"
           (fun json -> Tennis.decodeAll json |> List.forall (fun r -> Result.isOk r))
-          Fixtures.tennisLive
+          (Fixtures.tennisLive ())
           // The same capture with one completed set changed to 5-1, a score no
           // set can end on. The mutation guards its own anchor — see
-          // Fixtures.tennisLiveCorrupted. Written inline first, against a JSON
+          // (Fixtures.tennisLiveCorrupted ()). Written inline first, against a JSON
           // shape the file does not use, and this row reported NO TEETH.
-          Fixtures.tennisLiveCorrupted
+          (Fixtures.tennisLiveCorrupted ())
 
       // ── Sets.Finished, from a real capture at last ──────────────────────
       //
@@ -1349,10 +1349,10 @@ let tennis : Verify.Sealed list =
                      match r with
                      | Ok m -> not (Tennis.inPlay m)
                      | Error _ -> false))
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // Every set corrupted, not one — a proportion cannot be falsified by
           // breaking a single match out of 127.
-          Fixtures.tennisDrawSetCorrupted
+          (Fixtures.tennisDrawSetCorrupted ())
 
       // The refusal above is not a shrug. Every failure must be a scoreline the
       // sport cannot produce, named as such — not a decoder that gave up.
@@ -1372,7 +1372,7 @@ let tennis : Verify.Sealed list =
                      | Error(Tennis.IllegalCompletedSet _) -> true
                      | Error(Tennis.IllegalTiebreak _) -> true
                      | Error _ -> false))
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // A payload whose sets list is empty: NoSets, which is a different
           // error and must not be waved through by this row.
           """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":99,"p2":99}]}]}"""
@@ -1418,7 +1418,7 @@ let tennis : Verify.Sealed list =
               Tennis.decodeDrawNodes json
               |> List.choose (fun r -> match r with Ok m -> Some m | Error _ -> None)
               |> List.exists (fun m -> (Tennis.abandonedSet m).IsSome && not (Tennis.inPlay m)))
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // A draw of one match played out to a completed set. No retirement in
           // it, so nothing should report an abandoned set — which is what makes
           // this row fail if `abandonedSet` ever answers on a finished match.
@@ -1429,7 +1429,7 @@ let tennis : Verify.Sealed list =
       // an unplayed draw would satisfy the row above by having nothing in it.
       Verify.check "...and a finished slam is 127 matches, not a handful"
           (fun json -> List.length (Tennis.decodeDrawNodes json) >= 127)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // One node, played. Decodes cleanly, is not a slam.
           """{"nodes":[{"id":1,"round":"Final","sets":[{"p1":6,"p2":3}]}]}"""
 
@@ -1445,7 +1445,7 @@ let tennis : Verify.Sealed list =
       // exactly what makes forall vacuous.
       Verify.check "...and the capture is not empty, which forall would not catch"
           (fun json -> not (List.isEmpty (Tennis.decodeAll json)))
-          Fixtures.tennisLive
+          (Fixtures.tennisLive ())
           "[]" ]
 
 /// The knockout draw. Every row here was written against a real slam edition
@@ -1464,7 +1464,7 @@ let tennis : Verify.Sealed list =
 /// trustworthy — see the NO TEETH the tennis fixture row earned when its
 /// mutation was anchored to a set score the next capture overwrote. The real
 /// edition is exercised separately by the fixture rows at the end.
-let draw : Verify.Sealed list =
+let private draw () : Verify.Sealed list =
     let p id name : Draw.Player =
         { Id = id; Name = name; ShortName = None; CountryCode = None; Rank = None }
     // A four-player draw: two semi-finals feeding one final.
@@ -1734,7 +1734,7 @@ let draw : Verify.Sealed list =
                       && path |> List.forall (fun (_, _, won) -> won)
                       && (path |> List.map (fun (_, r, _) -> r) |> List.distinct |> List.length)
                          = List.length path)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // A two-match draw where the "champion" lost their semi-final: the
           // final's winner never played the round before it. Decodes cleanly,
           // and no path through it is all wins.
@@ -1767,11 +1767,11 @@ let draw : Verify.Sealed list =
               // the shape of the data is a floor that fails on the next capture.
               && ms |> List.sumBy (fun m -> List.length (Tennis.setScores m))
                  > List.length ms)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // Every set corrupted to 9-n. If `setScores` returned the abandoned
           // or live set alongside the completed ones, this is where it would
           // show — those are exactly the scores that are not legal set scores.
-          Fixtures.tennisDrawSetCorrupted
+          (Fixtures.tennisDrawSetCorrupted ())
 
       // ── the real capture ───────────────────────────────────────────────
       //
@@ -1781,12 +1781,12 @@ let draw : Verify.Sealed list =
       // decodes an actual slam.
       Verify.check "A REAL SLAM DRAW DECODES AND BUILDS"
           (fun json -> Draw.decodeResponse json |> Result.isOk)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // The same capture with one match's round renamed to a qualifying
           // round. The mutation derives its anchor from the file rather than
-          // naming a value in it — see Fixtures.tennisDrawCorrupted, and the
+          // naming a value in it — see (Fixtures.tennisDrawCorrupted ()), and the
           // NO TEETH the tennis fixture row earned for doing the opposite.
-          Fixtures.tennisDrawCorrupted
+          (Fixtures.tennisDrawCorrupted ())
 
       // A capture that decoded to a one-match draw would satisfy the row above
       // while proving nothing about seven rounds. Not a fixed count: the
@@ -1799,7 +1799,7 @@ let draw : Verify.Sealed list =
               match Draw.decodeResponse json with
               | Ok d -> List.length (Draw.roundsPresent d) = 7 && Draw.matchCount d >= 127
               | Error _ -> false)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // A final and nothing else: decodes cleanly, and is not a draw.
           """{"tournament":{"name":"x"},"season":"2026","nodes":[
              {"id":1,"round":"Final","p1":{"id":1,"name":"A"},"p2":{"id":2,"name":"B"},"winnerId":1}]}"""
@@ -1812,7 +1812,7 @@ let draw : Verify.Sealed list =
               match Draw.decodeResponse json with
               | Ok d -> Draw.edgeCount d = Draw.matchCount d - 1
               | Error _ -> false)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // A draw whose semi-final winner never reaches the final: three
           // matches, one edge, and matchCount - 1 is two.
           """{"tournament":{"name":"x"},"season":"2026","nodes":[
@@ -1829,7 +1829,7 @@ let draw : Verify.Sealed list =
               match Draw.decodeResponse json with
               | Ok d -> Draw.roundsOffCanonicalSize d |> List.isEmpty
               | Error _ -> false)
-          Fixtures.tennisDraw
+          (Fixtures.tennisDraw ())
           // An INNER round short by one — four quarter-finals and a single
           // semi-final. The first version of this row used a lone semi-final
           // and a final, which the entry-round rule made exempt: the row went
@@ -1866,4 +1866,39 @@ let draw : Verify.Sealed list =
     ]
 
 /// Everything, in one list. Order is presentation only.
-let all : Verify.Sealed list = zone @ matchup @ grading @ units @ state @ weather @ stats @ route @ teamTints @ tennis @ draw
+/// The suite, in named groups.
+///
+/// ADDED FOR THE PAGE, and the flat `all` below is now DERIVED from it rather
+/// than assembled a second time. Two lists of the same eleven bindings would be
+/// two places to forget one, and forgetting one is not a compile error — it is a
+/// suite that runs 137 rows and reports 137/137, which is the arithmetic this
+/// repo already has a scar from.
+/// FUNCTIONS, not values, all the way down — and this is not a style choice.
+///
+/// A group's rows carry their inputs, and the tennis and draw inputs are
+/// `Fixtures.tennisDraw ()` and friends. A module-level `let zone = [ ... ]`
+/// evaluates when the module is IMPORTED, and ES module imports are hoisted:
+/// under node that is before `FixturesNode.loadAll ()` in `VerifyMain`'s body,
+/// and in a browser it is before any fetch has resolved. Either way the suite
+/// would throw while building itself, naming a fixture nobody had loaded yet.
+///
+/// So nothing here is built until a caller asks, by which time a host has filled
+/// the registry.
+let groups () : (string * Verify.Sealed list) list =
+    [ "Time zones", zone ()
+      "Matchups", matchup ()
+      "Grading", grading ()
+      "Units", units ()
+      "Game state", state ()
+      "Weather", weather ()
+      "Stats", stats ()
+      "Routing", route ()
+      "Team colours", teamTints ()
+      "Tennis scorelines", tennis ()
+      "Tennis draws", draw () ]
+
+/// The flat suite, DERIVED from the groups rather than assembled a second time.
+/// Two lists of the same eleven bindings would be two places to forget one, and
+/// forgetting one is not a compile error — it is a suite that runs 137 rows and
+/// reports 137/137, which is arithmetic this repo already has a scar from.
+let all () : Verify.Sealed list = groups () |> List.collect snd

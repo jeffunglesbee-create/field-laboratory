@@ -73,7 +73,35 @@ type Check<'input> =
 /// () -> Held)` would compile and would be a check that passes unconditionally
 /// with no predicate and no inputs, which is precisely the JavaScript harness's
 /// hole re-opened one level up.
-type Sealed = private Sealed of name: string * run: (unit -> Verdict)
+/// WHAT IT CARRIES, AND WHY IT GREW ON 2026-09-08.
+///
+/// It held a name and a thunk, which is everything a RUNNER needs and not enough
+/// for a reader. A page rendering "146 passed" is the same green badge every
+/// project on the internet has; what this repo has that they do not is a
+/// counterexample per check, and it was unreachable — `seal` erased the input
+/// type and the `MustFail` value with it.
+///
+/// So a sealed check also carries a RENDERING of both inputs, and the predicate
+/// pointed at each one separately. The renderings let the page show the input
+/// that must fail; the separate thunks let a reader FEED it and watch the
+/// predicate return false, which is the difference between a claim and a
+/// demonstration.
+///
+/// The case stays private, and that is untouched. `Sealed("looks fine", fun ()
+/// -> Held)` is still FS1093 — the arity is irrelevant when the access check
+/// fires first — so docs/CHECK-PROOF.md's case 5 still compiles to the error it
+/// claims.
+type Sealed =
+    private
+    | Sealed of
+        name: string *
+        run: (unit -> Verdict) *
+        /// The predicate applied to the input that MUST HOLD. True is correct.
+        onMustHold: (unit -> bool) *
+        /// The predicate applied to the input that MUST FAIL. False is correct.
+        onMustFail: (unit -> bool) *
+        shownMustHold: string *
+        shownMustFail: string
 
 /// The only constructor. Four arguments, no overloads, no optional parameters.
 let create (name: string) (predicate: 'input -> bool) (mustHold: 'input) (mustFail: 'input) : Check<'input> =
@@ -86,8 +114,61 @@ let run (c: Check<'input>) : Verdict =
     | false, _ -> Broke
     | true, true -> NoTeeth
 
+/// How an input is shown to a reader.
+///
+/// TRUNCATED, AND IT SAYS SO. Most inputs in this suite are whole captured
+/// payloads — `data/tennis-draw.json` is 127 matches — and a page that pasted
+/// one in would bury the row it belongs to. A silent truncation would be worse:
+/// a reader comparing two renderings that differ only past the cut would see
+/// them as identical, which is the "check whose subject is chosen by the check"
+/// shape this repo keeps finding. So the cut is marked and the full length is
+/// printed with it.
+let private shown (value: 'input) : string =
+    let text = sprintf "%A" value
+    let oneLine = text.Replace("\n", " ").Replace("\r", "")
+    if oneLine.Length <= 160 then oneLine
+    else sprintf "%s… (%d chars)" (oneLine.Substring(0, 160)) oneLine.Length
+
 /// Erase the input type so the check can join a suite.
-let seal (c: Check<'input>) : Sealed = Sealed(c.Name, fun () -> run c)
+///
+/// The two extra thunks close over the SAME predicate and the SAME inputs `run`
+/// uses. They are not a second copy of the check: `onMustFail ()` is literally
+/// the second half of `run`'s match, exposed so a reader can trigger it alone.
+/// A page that re-implemented "apply the predicate to the counterexample" would
+/// be a page that could disagree with the suite.
+let seal (c: Check<'input>) : Sealed =
+    Sealed(
+        c.Name,
+        (fun () -> run c),
+        (fun () -> c.Predicate c.MustHold),
+        (fun () -> c.Predicate c.MustFail),
+        shown c.MustHold,
+        shown c.MustFail)
+
+// --- reading a sealed check, for a renderer ---------------------------------
+//
+// Projections OUT. None of them is a way back in: there is no function anywhere
+// taking these values and producing a `Sealed`, a `Row` or a `Gate`, so the
+// construction guarantees at the top of this file are exactly as strong as they
+// were before the page existed.
+
+let sealedName (Sealed(name, _, _, _, _, _)) = name
+
+// There is deliberately NO `sealedRun`. It existed for one afternoon and was
+// removed the same day: a renderer using it ran every predicate a second time
+// and showed that second verdict beside a gate built from the first. `runRows`
+// is the only source of `Row`, so the only honest way to label a row is to read
+// the run that produced the gate — `rowPairs` below.
+
+/// Apply the predicate to the input that must hold. `true` is correct.
+let sealedOnMustHold (Sealed(_, _, holds, _, _, _)) = holds ()
+
+/// Apply the predicate to the input that must fail. `false` is correct, and a
+/// reader watching this return false is the whole point of the surface.
+let sealedOnMustFail (Sealed(_, _, _, fails, _, _)) = fails ()
+
+let sealedShownMustHold (Sealed(_, _, _, _, shownHold, _)) = shownHold
+let sealedShownMustFail (Sealed(_, _, _, _, _, shownFail)) = shownFail
 
 /// Build and seal in one step — the shape every suite uses.
 let check name predicate mustHold mustFail : Sealed = seal (create name predicate mustHold mustFail)
@@ -185,7 +266,7 @@ type Score = private Score of held: int * total: int
 
 /// Run every check in a suite. The only source of `Row` values.
 let runRows (suite: Sealed list) : Row list =
-    suite |> List.map (fun (Sealed(name, go)) -> Row(name, go ()))
+    suite |> List.map (fun (Sealed(name, go, _, _, _, _)) -> Row(name, go ()))
 
 /// The conjunction. Every row, not a passing average.
 let decide (rows: Row list) : Gate =
@@ -196,6 +277,22 @@ let decide (rows: Row list) : Gate =
     match failing with
     | [] -> Passed(Passing(List.length rows))
     | bad -> Blocked bad
+
+/// A row's name and what it did.
+///
+/// The projection a renderer needs, and the reason it exists rather than the
+/// renderer re-running each check: `runRows` is the ONLY source of `Row`, so a
+/// page that called `sealedRun` again for the pill beside each name would be
+/// running every predicate twice and displaying the SECOND result beside a gate
+/// built from the first. Two runs cannot disagree today — nothing in this suite
+/// is nondeterministic — and "cannot disagree today" is the shape of claim this
+/// repo keeps having to retract. One run, read twice.
+///
+/// It is not a way back in. `Row`'s case stays private and there is no function
+/// anywhere from a pair to a `Row`, so `decide [ "everything", Held ]` is as
+/// impossible as it was.
+let rowPairs (rows: Row list) : (string * Verdict) list =
+    rows |> List.map (fun (Row(name, verdict)) -> name, verdict)
 
 let heldCount (Passing n) = n
 
