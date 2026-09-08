@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `dec19b0` | 2026-09-08 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | fix: the run marker read the clock where it used it |
 | `24bd739` | 2026-09-08 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | fix: proof-check could not tell a killed run from a running one |
 | `e3d3a49` | 2026-09-07 | [2026-09-07-draw-panel.md](2026-09-07-draw-panel.md) | feat: the Draw panel — a bracket that says which rounds the law skipped |
 | `c988338` | 2026-09-07 | [2026-09-07-illegal-tiebreak.md](2026-09-07-illegal-tiebreak.md) | fix: an illegal tiebreak named the half of the row that was fine |
