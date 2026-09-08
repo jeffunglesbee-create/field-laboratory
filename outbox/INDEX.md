@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `181fa21` | 2026-09-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-08 [skip ci] |
+| `181fa21` | 2026-09-08 | [sport-vocabulary-2026-09-08T06-06-15-934Z.json](sport-vocabulary-2026-09-08T06-06-15-934Z.json) | drift-sentinel: ok on 2026-09-08 [skip ci] |
 | `9a3ccfc` | 2026-09-08 | [2026-09-08-verify-panel.md](2026-09-08-verify-panel.md) | feat: the Verify panel — 146 checks, each with the input that must fail |
 | `dec19b0` | 2026-09-08 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | fix: the run marker read the clock where it used it |
 | `24bd739` | 2026-09-08 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | fix: proof-check could not tell a killed run from a running one |
