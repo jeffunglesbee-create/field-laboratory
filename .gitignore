@@ -12,3 +12,9 @@ public/
 # applied. Present only mid-run, or after a run was killed — see the heal path
 # in that file. Never committed.
 .mutation-state/
+
+# Durable backups and the run marker written by scripts/proof-check.mjs while a
+# proof case is injected into src/Scoreboard.fs. Present only mid-run, or after a
+# run was killed — the marker carries the pid, so the next run can tell "killed,
+# heal it" from "still running, refuse". Never committed.
+.proof-state/

@@ -927,6 +927,29 @@ const MUTATIONS = [
     replace: '    match Contest((Home, game.Home), (Away, game.Away)) with',
     expect: 'node scripts/pickem-check.mjs',
   },
+  // --- proof-check's run marker ---------------------------------------------
+  //
+  // The state machine that decides whether a killed run corrupts the tree. Both
+  // directions, because "always heal" and "never proceed" are different bugs and
+  // a one-sided check could not tell them apart. The refuse direction is the one
+  // the 2026-09-07 incident needed: healing a file a LIVE run is about to
+  // rewrite is a race, not a fix.
+  {
+    id: 'proof-marker-always-heals',
+    file: 'scripts/proof-check.mjs',
+    claim: 'a marker whose process is still alive refuses rather than repairing',
+    find: "  return alive ? 'refuse' : 'heal'",
+    replace: "  return 'heal'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-never-proceeds',
+    file: 'scripts/proof-check.mjs',
+    claim: 'no marker on disk means there is nothing to heal or refuse',
+    find: "  if (!markerExists) return 'proceed'",
+    replace: "  if (false) return 'proceed'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
   // --- the Draw panel -------------------------------------------------------
   //
   // The canonical-size law has FOUR answers and two of them are "not compared".

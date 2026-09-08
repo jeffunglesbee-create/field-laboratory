@@ -23,9 +23,8 @@
 // a function, injected into a real source file, and compiled. The case passes
 // only if the build fails AND the stated error code appears.
 
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs'
 import { execSync } from 'node:child_process'
-import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createChecks } from './checks.mjs'
 
@@ -38,12 +37,31 @@ const DOCS = () => readdirSync('docs').filter(f => f.endsWith('-PROOF.md')).sort
 const TARGET = 'src/Scoreboard.fs'
 // The Sport union lives here, and the registry-completeness phase mutates it.
 const REGISTRY = 'src/Desk.fs'
-// Outside the repo on purpose. An earlier version kept the backup at
-// src/Scoreboard.fs.proofbak, and killing the run mid-compile left BOTH a
-// broken tracked source file and an untracked .proofbak sitting in src/. Hit
-// for real when a run was killed on a timeout. A checker that corrupts the
-// working tree when interrupted is worse than no checker.
-const BACKUP = join(tmpdir(), 'field-laboratory-proof-check.fs')
+// DURABLE, IN-REPO, GITIGNORED — and it took two incidents to get here.
+//
+// v1 kept the backup at `src/Scoreboard.fs.proofbak`. Killing the run mid-compile
+// left BOTH a broken tracked source file and an untracked `.proofbak` sitting in
+// src/, so the fix was to move it out of the repo entirely.
+//
+// v2 put it in `tmpdir()`, and that is the version this repo's own workflow
+// comment indicts. On 2026-08-15 a foreground timeout killed a run and
+// `let private __proof23` was COMMITTED to src/Scoreboard.fs in 217282b. The
+// injection compiled, passed the F#-warnings gate and fifteen further steps; the
+// only thing that noticed was the marker guard below, ninety seconds in — and by
+// then it could only refuse, because on a fresh runner tmpdir holds nothing. A
+// stranded injection was silent everywhere except the one place that could not
+// fix it.
+//
+// `mutation-check.mjs` had already reached the same conclusion and written it
+// down: a container restart wipes tmpdir, so "the tree kept the mutation, the
+// backup was gone, and nothing anywhere recorded that either thing had
+// happened." This file did not get the same treatment, and on 2026-09-07 it
+// cost again — see `livenessOf` below.
+//
+// So: in-repo, gitignored, and a marker naming what is applied right now.
+const STATE_DIR = '.proof-state'
+const MARKER_FILE = join(STATE_DIR, 'active.json')
+const BACKUP = join(STATE_DIR, 'Scoreboard.fs.bak')
 const MARKER = 'let private __proof'
 // Any top-level `let` in the target works as an anchor; this one is stable and
 // sits below every type the proof cases reference.
@@ -102,23 +120,147 @@ if (ONLY) {
 }
 const { check, summarize } = createChecks()
 
+/**
+ * Is a recorded pid a process that still exists?
+ *
+ * `process.kill(pid, 0)` sends no signal; it only asks. ESRCH means gone, EPERM
+ * means alive and owned by somebody else — which is still alive, and answering
+ * "dead" to EPERM would be the same class of wrong answer this file keeps
+ * having to fix.
+ */
+const isAlive = pid => {
+  if (!Number.isInteger(pid) || pid <= 0) return false
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (e) {
+    return e.code === 'EPERM'
+  }
+}
+
+/**
+ * What to do about the state on disk, as a value rather than as control flow.
+ *
+ * THREE OUTCOMES, AND THE THIRD IS THE ONE THAT COST A SESSION. On 2026-09-07
+ * the confidence gate was killed to unblock a commit; killing the parent left
+ * this script orphaned and STILL RUNNING, and src/Scoreboard.fs re-acquired its
+ * injection after three separate `git checkout --` restores. The compile error
+ * moved line by line each time, which is what finally identified it as live
+ * rather than stale. A repair path alone cannot help there: healing a file a
+ * live run is about to overwrite is a race, not a fix.
+ *
+ * So the marker records a PID, and a marker whose process is still alive is a
+ * REFUSAL rather than a repair. That is the answer the last incident needed, and
+ * it is not one a backup can give.
+ *
+ * Pure, so the self-test can exercise all three without a dotnet build in sight.
+ */
+const classifyState = ({ markerExists, pid, selfPid, alive }) => {
+  if (!markerExists) return 'proceed'
+  if (pid === selfPid) return 'proceed'
+  return alive ? 'refuse' : 'heal'
+}
+
+// --- self-test ---------------------------------------------------------------
+//
+// The state machine only. Everything below it needs a real compiler and minutes
+// of wall clock; this is the half that decides whether a killed run corrupts the
+// tree, and it is cheap enough to run before every real run.
+if (process.argv.includes('--self-test')) {
+  const { check: sc, summarize: ss } = createChecks()
+  const st = (markerExists, pid, alive) =>
+    classifyState({ markerExists, pid, selfPid: 4242, alive })
+
+  sc('no marker means proceed', st(false, null, false) === 'proceed',
+    `got ${st(false, null, false)}`)
+  sc('A MARKER WHOSE PROCESS IS STILL ALIVE REFUSES, it does not repair',
+    st(true, 99, true) === 'refuse',
+    `got ${st(true, 99, true)} — healing a file a live run is about to rewrite `
+    + 'is a race; this is the outcome the 2026-09-07 incident needed')
+  sc('a marker whose process is gone heals', st(true, 99, false) === 'heal',
+    `got ${st(true, 99, false)}`)
+  sc('our own marker is not somebody else\'s run', st(true, 4242, true) === 'proceed',
+    `got ${st(true, 4242, true)}`)
+
+  // liveness, against real pids rather than a stub — the one fact this file
+  // cannot get wrong without the refusal above being decorative.
+  sc('this process reads as alive', isAlive(process.pid), `pid ${process.pid}`)
+  sc('a pid that cannot exist reads as dead', !isAlive(2 ** 30), 'pid 2^30')
+  sc('a malformed pid reads as dead', !isAlive(null) && !isAlive(0) && !isAlive(-1),
+    'null, 0 and -1 must not be treated as running processes')
+
+  process.exit(ss())
+}
+
 // Repair before doing anything else, so a previous interrupted run cannot make
 // this one report against an injected tree.
-if (readFileSync(TARGET, 'utf8').includes(MARKER)) {
-  if (existsSync(BACKUP)) {
-    writeFileSync(TARGET, readFileSync(BACKUP, 'utf8'))
-    console.error(`proof-check: repaired ${TARGET} from a previous interrupted run`)
-  } else {
-    console.error(`proof-check: ${TARGET} contains injected proof code and no backup exists.`)
-    console.error('Restore it (git checkout) before re-running.')
+const injectedNow = readFileSync(TARGET, 'utf8').includes(MARKER)
+const priorState = existsSync(MARKER_FILE)
+  ? (() => { try { return JSON.parse(readFileSync(MARKER_FILE, 'utf8')) } catch { return {} } })()
+  : null
+
+switch (classifyState({
+  markerExists: priorState !== null,
+  pid: priorState?.pid,
+  selfPid: process.pid,
+  alive: isAlive(priorState?.pid),
+})) {
+  case 'refuse':
+    console.error(`proof-check: a proof run is ALREADY IN PROGRESS as pid ${priorState.pid}, `
+      + `started ${priorState.startedAt}.`)
+    console.error(`It has ${TARGET} injected right now. Starting a second run would `
+      + 'inject on top of it and neither could restore the original.')
+    console.error(`Wait for it, or: kill ${priorState.pid} && rm -rf ${STATE_DIR} `
+      + `&& git checkout -- ${TARGET} ${REGISTRY}`)
+    // No restore is registered yet, deliberately: exiting here must not touch
+    // the other run's backups.
     process.exit(1)
+    break
+
+  case 'heal': {
+    const from = f => (existsSync(f) ? readFileSync(f, 'utf8') : null)
+    const t = from(BACKUP)
+    const r = from(`${BACKUP}.registry`)
+    if (t === null) {
+      console.error(`proof-check: a previous run (pid ${priorState.pid}) was killed and its `
+        + 'backup is missing. Restore with: '
+        + `git checkout -- ${TARGET} ${REGISTRY}`)
+      process.exit(1)
+    }
+    writeFileSync(TARGET, t)
+    if (r !== null) writeFileSync(REGISTRY, r)
+    rmSync(STATE_DIR, { recursive: true, force: true })
+    console.error(`proof-check: HEALED — a previous run (pid ${priorState.pid}) was killed with `
+      + `${TARGET} injected. Restored it before measuring anything.`)
+    break
   }
+
+  case 'proceed':
+    // An injected tree with NO marker is the pre-2026-09-07 world: the state was
+    // lost entirely, so there is nothing to restore from and guessing would mean
+    // discarding whatever else is uncommitted in these files.
+    if (injectedNow) {
+      console.error(`proof-check: ${TARGET} contains injected proof code and no run state exists.`)
+      console.error(`Restore it (git checkout -- ${TARGET}) before re-running.`)
+      process.exit(1)
+    }
+    break
 }
 
 const source = readFileSync(TARGET, 'utf8')
 const registrySource = readFileSync(REGISTRY, 'utf8')
+mkdirSync(STATE_DIR, { recursive: true })
 writeFileSync(BACKUP, source)
 writeFileSync(`${BACKUP}.registry`, registrySource)
+// Written LAST of the three, so a marker on disk always has backups behind it.
+// The reverse order would leave a window where a kill produced a marker pointing
+// at nothing, which heals into the "backup is missing" dead end above.
+writeFileSync(MARKER_FILE, JSON.stringify({
+  pid: process.pid,
+  startedAt: new Date().toISOString(),
+  target: TARGET,
+  registry: REGISTRY,
+}, null, 2) + '\n')
 
 // The original is held in memory AND on disk outside the repo, and restored on
 // every exit path including signals — a plain try/finally does not run on
@@ -134,6 +276,10 @@ const restore = () => {
     writeFileSync(REGISTRY, registrySource)
     if (existsSync(BACKUP)) unlinkSync(BACKUP)
     if (existsSync(`${BACKUP}.registry`)) unlinkSync(`${BACKUP}.registry`)
+    // The marker goes with them. A marker outliving its backups is the dead end
+    // the write order above exists to avoid, and leaving one behind would make
+    // the NEXT run refuse against a pid that has exited.
+    rmSync(STATE_DIR, { recursive: true, force: true })
   } catch { /* best effort — the on-disk backups are the fallback */ }
 }
 process.on('exit', restore)

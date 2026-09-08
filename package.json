@@ -13,7 +13,7 @@
     "site": "node scripts/build-site.mjs",
     "check:live": "node scripts/render-check.mjs",
     "check:nav": "node scripts/nav-check.mjs",
-    "check:proof": "node scripts/proof-check.mjs",
+    "check:proof": "node scripts/proof-check.mjs --self-test && node scripts/proof-check.mjs",
     "check:deployed": "node scripts/live-grouping-check.mjs",
     "gate": "node scripts/confidence.mjs",
     "check:zone": "node scripts/zone-check.mjs",
