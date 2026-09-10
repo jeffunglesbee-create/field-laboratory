@@ -256,5 +256,24 @@ rather than error monitoring.
 | `live-check` | after `deploy`, daily | renders the **deployed** page and asserts on it |
 | `probe-url` | manual | reach a URL from a runner — the sandbox blocks `*.workers.dev` |
 
-Deployment needs a `CLOUDFLARE_API_TOKEN` secret that only a human can add —
-see `docs/DEPLOY.md`.
+Deployment needs a `CLOUDFLARE_API_TOKEN` secret. It is installed. The Courier
+OIDC bootstrap added it programmatically on 2026-08-10 with no human entering a
+credential — the Courier response, recorded verbatim, was
+`{"ok":true,"message":"Secret CLOUDFLARE_API_TOKEN created in
+jeffunglesbee-create/field-laboratory"}`. Execution record:
+`field-relay-nba/outbox/cc-session-2026-08-10-laboratory-secret-bootstrap.md`,
+which records itself DONE at **confidence 96** — that is the score as written,
+not a certainty. The deployed page answered HTTP 200 with 52,016 bytes and
+`<title>FIELD Laboratory — desk scoreboard</title>` when probed from a runner on
+2026-09-10 (`probe-url` run 34543475802; the sandbox cannot reach
+`*.workers.dev`, which is why that workflow exists). See `docs/DEPLOY.md`.
+
+That line read *"a secret that only a human can add"* for thirty-one days after
+the bootstrap retired the claim. It is a second instance of the shape recorded
+above — **a negative result kept past the evidence that retired it** — and this
+one had a reader: during the 2026-09-07 queue audit it was taken as evidence the
+bootstrap had not completed. The first instance cost this README twenty-five days
+of silence about `Verify.fs`; this one cost a wrong reading of live state, which
+is worse, because this repo has no `HANDOFF.md` and the README is doing that job
+by default. Recording it rather than correcting it silently is the point — a
+silent fix would be the same error a third time.
