@@ -697,6 +697,11 @@ jobs:
       # Tested with a sentinel printed AFTER the import rather than by checking
       # for output, because a module that exits 0 silently is indistinguishable
       # from a clean import — and that was the actual case.
+      - name: The README does not contradict STATUS.md about deployment
+        run: |
+          node scripts/deploy-claim-consistency-check.mjs --self-test
+          node scripts/deploy-claim-consistency-check.mjs
+
       - name: Importing a module never runs it
         run: npm run check:import-purity
 

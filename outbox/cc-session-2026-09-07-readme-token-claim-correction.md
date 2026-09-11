@@ -131,3 +131,72 @@ execution record was opened and its status and confidence read from it. The
 replacement satisfies each of Task 1's five clauses explicitly. The deduction is
 that "thirty-one days" and "twenty-five days" are computed from dates in the
 CC-CMD and the README rather than from git history directly.
+
+---
+
+# Follow-up automated — 2026-09-11
+
+The gap named in Task 3 is closed. `STATUS.md` probes site health, not secret
+presence — but a published site *implies* the secret exists, and that implication
+is checkable. `scripts/deploy-claim-consistency-check.mjs` asserts it:
+
+> **`STATUS.md` says published ⇒ `README.md` must not assert deployment is
+> waiting on a human.**
+
+It could have fired on 2026-08-10, the day the bootstrap ran.
+
+## It was tested against the real defect, not a fixture
+
+The historical line was put back into the real `README.md` and the check went
+red, then the file was restored byte-identical (`git diff --stat` empty):
+
+```
+STATUS.md publication: yes
+README.md blocking assertions: /only a human can (?:add|install|set)/i
+FAIL  the README does not say deployment waits on a human while STATUS.md says it shipped
+      → STATUS.md says published and README.md asserts /only a human can …/i.
+        One of them is stale. This is the 2026-08-10 -> 2026-09-10 defect recurring.
+exit=1
+```
+
+## The design problem worth recording
+
+**The corrected README quotes the claim it corrects.** Task 2's note contains
+`*"a secret that only a human can add"*` verbatim. A naive substring check fires
+on the repo recording its own correction — and the only way to make it green
+would be to delete the record, which is the silent correction this whole CC-CMD
+exists to prevent.
+
+So the check distinguishes an assertion from a quotation: fenced blocks, inline
+code, blockquotes and emphasised quoted spans are stripped before scanning. That
+is the same distinction this repo already draws in `staged-claims-check`
+(*"prose ABOUT staging is not a claim"*), followed rather than reinvented.
+
+## Three mutations, all caught
+
+| mutation | why it matters |
+|---|---|
+| a reshaped `STATUS.md` with no publication section | returns `unknown` and **fails**, rather than defaulting to "not published" and silently permitting any claim — absence must not read as success |
+| the same words inside a quotation | must **not** fire, or the fix forces deletion of its own record |
+| a neighbouring phrasing (`not yet deployed`) | a vocabulary matching only the sentence that already happened would pass the next variant of it |
+
+Self-test 10/10; live run 2/2.
+
+## Where it runs, and why both places
+
+- **`status.yml`** — immediately after `STATUS.md` is probed and rewritten, which
+  is the moment a README claim can become false.
+- **`verify.yml`** — beside the other doc-correctness gates.
+
+Both, deliberately: `verify.yml` carries `**/*.md` in `paths-ignore`, so a
+README-only edit does not trigger it — and a README-only edit is exactly how the
+2026-08-10 claim went stale for thirty-one days. A gate that cannot see the file
+it governs is the failure shape this repo catalogues.
+
+## Confidence
+
+**96.** The check fails on the real historical defect and passes on the corrected
+file; all three mutations are caught; the workflow gate parses both edited files
+(9/9). The deduction is that the blocking vocabulary is a list of phrasings, so a
+sufficiently different future sentence could evade it — the check narrows the
+surface rather than closing it, and says so here rather than claiming otherwise.

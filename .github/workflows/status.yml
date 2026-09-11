@@ -128,6 +128,16 @@ jobs:
       # be read, and it writes the reason into STATUS.md before failing. If these
       # two stopped on that failure, the reason would exist only in a run log —
       # which is how a status file that cannot read history goes on looking fine.
+      # STATUS.md has just been probed and rewritten, which is the moment a
+      # README claim about deployment can become false. Runs here rather than
+      # only in verify because verify has `**/*.md` in paths-ignore -- a README
+      # edit alone does not trigger it, and a README edit alone is exactly how
+      # the 2026-08-10 claim went stale for thirty-one days.
+      - name: The README does not contradict STATUS.md about deployment
+        run: |
+          node scripts/deploy-claim-consistency-check.mjs --self-test
+          node scripts/deploy-claim-consistency-check.mjs
+
       - name: Regenerate the outbox index
         if: always()
         run: node scripts/outbox-index.mjs
