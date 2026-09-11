@@ -38,8 +38,38 @@ Two findings worth carrying into the design:
    reproduces for La Liga / Serie A / Ligue 1 / EPL.
 2. **MLS has gone from two-way to NO odds at all** — 0 of 17 rows across both
    dates. Bundesliga is 0 of 2 while four other European leagues get full
-   three-way on the same date. This is `ODDS_SPORT_KEYS` coverage, not the
-   30/day ambient cap.
+   three-way on the same date.
+
+**CORRECTED 2026-09-11: this is not a coverage decision. It is a map
+divergence, and the key MLS needs already exists.**
+
+There are THREE separate sport->odds-key maps, none shared:
+
+| location | entries | keyed by |
+|---|---|---|
+| `index.js:6332` `ODDS_SPORT_KEYS` | 6 | `sport\|league` |
+| `index.js:6344` `ARCHIVE_SPORT_TO_ODDS_KEY` | 16 | short code |
+| `ambient-do.js:67` `ODDS_SPORT_KEYS` | its own copy | sport |
+| `wp-resolver.js:53` `ARCHIVE_SPORT_TO_ODDS_KEY` | its own copy | short code |
+
+The 16-entry archive map ALREADY CONTAINS `mls: 'soccer_usa_mls'`, twelve lines
+below the 6-entry map that omits it. It also has `bundesliga`, `nfl`, `cfb`,
+`serie a`, `afl`, `ipl`, `ufl`.
+
+`ambient-do.js:574` gates on the six-sport map — `if (!ODDS_SPORT_KEYS[sport])
+continue;` — and `:773` gates the closing-odds capture on the same map. So the
+ambient live path and the closing capture skip MLS, while the archive path
+(`index.js:6565`, `:6688`, `:14925`) would resolve it fine.
+
+`index.js:12875` already documents the divergence in a comment — "its
+`ODDS_SPORT_KEYS` is six sports" — and routes around it by calling
+`archiveSportToOddsKey` at that one site. Someone hit this and patched locally
+rather than reconciling.
+
+**So MLS odds can come from `soccer_usa_mls`.** The vendor covers it; the key is
+written down; the ambient path cannot see it. This is the multiple
+string-keyed registry condition Rule 50 exists to end, reproduced inside the
+odds layer across two files.
 
 ## TASK 0 — PROBE (read from HEAD, do not trust this document)
 
