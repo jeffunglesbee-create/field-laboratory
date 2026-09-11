@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a0f6b72` | 2026-09-11 | [cc-session-2026-09-07-readme-token-claim-correction.md](cc-session-2026-09-07-readme-token-claim-correction.md) | feat: the README cannot claim deployment is blocked while STATUS.md says it shipped |
+| `253feb0` | 2026-09-10 | [cc-session-2026-09-07-readme-token-claim-correction.md](cc-session-2026-09-07-readme-token-claim-correction.md) | docs: the README stopped claiming a human must install the deploy token |
 | `4f06665` | 2026-09-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-10 [skip ci] |
 | `51c8ec8` | 2026-09-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-10 [skip ci] |
 | `e708ad1` | 2026-09-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-09 [skip ci] |
