@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `7759a90` — [run 34813348294](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/34813348294)
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `9e1c9ac` — [run 34826862684](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/34826862684)
 
 ## Is it published?
 
