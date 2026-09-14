@@ -122,18 +122,67 @@ through `scripts/proof-check.mjs` rather than asserting it in prose.
 
 ## PHASE 2 — GATED, DO NOT BUILD
 
-The `Modelled` branch needs two decisions from Jeff that have not been made:
+The `Modelled` branch needs one decision from Jeff that has not been made:
+whether a modelled forecast publishes alongside the market-implied one, or
+instead of it. Record it as open in the outbox. Do not decide it.
 
-1. **Accuracy ledger.** Arc Signature Phase 2 (Drive `11DJ6W7h...`) proposed a
-   public record of predictions and misses. Its one real flaw is storing
-   `field_arc_accuracy` in `localStorage` — per-device, so no two users see the
-   same numbers and a fresh device shows none. If this forecaster carries a
-   ledger, it belongs in D1. **That is a design decision, not an implementation
-   detail.**
-2. Whether a modelled forecast is published alongside the market-implied one,
-   or instead of it.
+### Phase 2 carries a CHANGE RECORD, not an accuracy ledger
 
-Record both as open in the outbox. Do not decide them.
+Decided by Jeff 2026-09-11. This is not "were we right" — it is **what moved
+between one game and the next, and why**. No prediction obligation, no
+correctness claim.
+
+The reason it is load-bearing: a forecast that only ever shows its current value
+cannot distinguish "we always thought this" from "this moved hard last night."
+That is the same collapse as `closing_odds`, where "observed twice, unchanged"
+and "observed once" rendered identically until `captured_at` separated them.
+
+**The cause must be typed, because the causes are not interchangeable:**
+
+```fsharp
+type DeltaCause =
+    | ResultObserved of fixture          // a match was played
+    | MarketMoved                        // prices moved, no match played
+    | FixtureScheduled                   // the remaining slate changed
+    | SubstrateGained                    // odds appeared where there were none
+    | SubstrateLost                      // odds stopped arriving
+    | ModelRevised of note               // OUR CODE CHANGED
+    | Unchanged                          // first-class, not an absence
+```
+
+`ModelRevised` is the one that makes this worth building. **A number moving
+because reality moved and a number moving because we changed the model are
+indistinguishable in the output unless recorded at the time.** Without it, every
+revision silently rewrites history and no later reader can tell which happened.
+
+`Unchanged` is first-class for the same reason `unmoved` is a state in the odds
+sentinel — it is a true observation, and it must never alarm or be rendered as
+an absence.
+
+`SubstrateLost` is not hypothetical: MLS went from two-way odds to none at all
+across 17 rows, and nothing caught the transition.
+
+### Storage: D1, not `localStorage`
+
+The Arc Signature spec (Drive `11DJ6W7h...`) proposed a public record and then
+stored it in `localStorage` — per-device, so no two users see the same record and
+a fresh device shows none. A shared record must be shared storage. That flaw is
+not to be reproduced here.
+
+A change record also requires a PERSISTED PRIOR. There is nothing to diff
+against until one observation has been stored. State that plainly rather than
+rendering a first run as though nothing changed.
+
+### Open tension to surface, NOT to resolve in code
+
+The 2026-07-09 no-receipts UI spec lists `win probability swing +23` as an
+explicit BAD example. A change record is, literally, a swing.
+
+Resolve it by scope, and report it rather than deciding it: **the RECORD is
+complete; the RENDERING is named.** Store the full typed delta with its cause;
+surface it in prose that names what happened ("Arsenal strengthened after
+beating City") rather than exposing the arithmetic. If the design cannot hold
+that line, stop and report — do not ship a receipt.
 
 ## TASK 5 — Outbox manifest (last task)
 
