@@ -41,19 +41,48 @@ on an empty set.** File this as a separate finding; do not fix it here.
 
 ## TASK 0 — PROBE (read from HEAD, do not trust this document)
 
-1. **Establish whether remaining fixtures are reachable.** No EPL fixtures route
-   exists in `src/route-provenance.js` (`/cfl/fixtures` exists; there is no
-   soccer equivalent). Check `/context/date/{date}`, the ESPN scoreboard proxy,
-   and the archive. **A season projection is impossible without them.**
-   - If remaining fixtures ARE reachable, record the route and real shape.
-   - If they are NOT, say so plainly and build only what the substrate supports
-     (see Task 2 fallback). Do not synthesise a fixture list.
-2. Re-probe both usable substrates above and record real values. This document's
-   numbers are a starting point, not evidence.
-3. Confirm `Market.threeWay`'s actual signature and `SUM_EPS` at HEAD before
-   depending on them.
-4. Confirm `/soccer-fbref/epl.json` is still empty. If it has been refilled,
-   report that — it changes what is buildable but does NOT change Phase 1 scope.
+1. **Fixtures: RESOLVED 2026-09-11. Use `/fpl`.**
+   `/fpl` is a deployed relay route — `{ k: "proxy", s: "fantasy.premierleague.com", p: 1 }`
+   — and the client already consumes it (`field.js:19640`). It serves the full
+   season: `fixtures/` gives all 380 with `event` (GW 1–38), `kickoff_time`,
+   `team_h`/`team_a`; `bootstrap-static/` gives the team table.
+
+   FPL is the source because it is OPEN. The official Premier League API
+   (`footballapi.pulse.football.co.uk`) is not — `probe-fpl.yml` needs Playwright
+   interception for Pulse while plain curl works for FPL. The route is named for
+   its source deliberately; that is accurate, not a misnaming.
+
+   **This supersedes the earlier finding that fixtures were unreachable.**
+   `/context/date` has only a ~72-hour horizon for EPL (measured: 7 rows on
+   2026-09-12, 2 on 09-13, 1 on 09-14, 0 from 09-19 onward). `/fpl` does not.
+   **The season projection is therefore IN Phase 1, not deferred.**
+
+2. Re-probe the standings and odds substrates and record real values.
+   This document's numbers are a starting point, not evidence.
+3. Confirm `Market.threeWay`'s actual signature and `SUM_EPS` at HEAD.
+4. Confirm `/soccer-fbref/epl.json` is still empty. If refilled, report it — it
+   does NOT change Phase 1 scope.
+
+5. **Team identity: mostly built, one gap to verify.**
+   `relay src/identity-resolver.js` resolves FPL/ESPN/Odds-API names to a
+   canonical strip-form, and covers all three promoted 2026-27 clubs including
+   nicknames (`Sky Blues`, `Tractor Boys`, `Tigers`). Its note at `:376` records
+   the live symptom this was built for: "D1 holds only 'Coventry', so a feed
+   sending the full name cannot match — Arsenal v Coventry on 2026-08-21 is the
+   live instance, opening_odds NULL."
+
+   **The client map is stale.** `field.js:19869` `FPL_SHORT_NAME_MAP` has 12
+   entries: it still lists `Wolves`, who are NOT in the 2026-27 table, and
+   contains NONE of Coventry, Hull or Ipswich. Its lookup is
+   `MAP[t.short_name] || MAP[t.name] || t.name` — so an unmapped club falls
+   through to its raw FPL name, and "resolved" is indistinguishable from "fell
+   through" in the output (Rule 99).
+
+   Fetch `bootstrap-static/` and check what FPL actually returns for those three
+   clubs. Route through `resolveTeamKey()` rather than extending the client map,
+   unless the probe shows a case the resolver genuinely misses.
+   The live 2026-27 table (verified via `/espn-standings/soccer/eng.1/standings`,
+   20 clubs) includes Coventry City, Hull City, Ipswich Town and Sunderland.
 
 ## TASK 1 — `Forecast.fs`, provenance in the type
 
