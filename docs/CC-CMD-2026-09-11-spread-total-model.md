@@ -40,36 +40,23 @@ Two findings worth carrying into the design:
    dates. Bundesliga is 0 of 2 while four other European leagues get full
    three-way on the same date.
 
-**CORRECTED 2026-09-11: this is not a coverage decision. It is a map
-divergence, and the key MLS needs already exists.**
+**CAUSE IS UNDIAGNOSED. Four hypotheses have been tested and killed:**
 
-There are THREE separate sport->odds-key maps, none shared:
+| hypothesis | status |
+|---|---|
+| map divergence starves MLS | **DEAD** — `ambient-do.js` holds `mls: 'soccer_usa_mls'` and has since `043f4d6`; the relay's own `odds-sport-keys.js` header says so |
+| vendor does not cover it | **DEAD** — `/v4/sports` (zero-credit) lists `soccer_usa_mls` active, 88 of 88 sports active |
+| quota exhaustion | **DEAD** — Odds API dashboard showed 44,235 of 100,000 credits used |
+| game rows do not exist when the snapshot runs | **DEAD** — MLS has the LONGEST forward horizon of any sport (20 rows on 2026-09-12, 10 on 09-20, 15 on 09-26) and still gets zero |
 
-| location | entries | keyed by |
-|---|---|---|
-| `index.js:6332` `ODDS_SPORT_KEYS` | 6 | `sport\|league` |
-| `index.js:6344` `ARCHIVE_SPORT_TO_ODDS_KEY` | 16 | short code |
-| `ambient-do.js:67` `ODDS_SPORT_KEYS` | its own copy | sport |
-| `wp-resolver.js:53` `ARCHIVE_SPORT_TO_ODDS_KEY` | its own copy | short code |
+**Do not assume a cause.** Untested candidates: `ambient-do.js:572` gates on
+`info.state !== 'live'` so odds are fetched only for games already in progress;
+the `_getOddsCooldown` low tier (180s, MLS is named in it); or
+`/context/date` reading a different table than the ambient path writes to.
 
-The 16-entry archive map ALREADY CONTAINS `mls: 'soccer_usa_mls'`, twelve lines
-below the 6-entry map that omits it. It also has `bundesliga`, `nfl`, `cfb`,
-`serie a`, `afl`, `ipl`, `ufl`.
-
-`ambient-do.js:574` gates on the six-sport map — `if (!ODDS_SPORT_KEYS[sport])
-continue;` — and `:773` gates the closing-odds capture on the same map. So the
-ambient live path and the closing capture skip MLS, while the archive path
-(`index.js:6565`, `:6688`, `:14925`) would resolve it fine.
-
-`index.js:12875` already documents the divergence in a comment — "its
-`ODDS_SPORT_KEYS` is six sports" — and routes around it by calling
-`archiveSportToOddsKey` at that one site. Someone hit this and patched locally
-rather than reconciling.
-
-**So MLS odds can come from `soccer_usa_mls`.** The vendor covers it; the key is
-written down; the ambient path cannot see it. This is the multiple
-string-keyed registry condition Rule 50 exists to end, reproduced inside the
-odds layer across two files.
+A chat session reported three different mechanisms as the cause before the
+dashboard screenshot killed the third. **A mechanism that fits the evidence is
+not a cause.** Diagnose before fixing; this CC-CMD does not depend on the answer.
 
 ## TASK 0 — PROBE (read from HEAD, do not trust this document)
 
