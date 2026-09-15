@@ -217,24 +217,70 @@ but the dependency is COMPUTED per team, never asserted across the board.
 Arsenal's UCL number will not move on who wins the League Cup; a team sitting
 seventh might.
 
-### SUBSTRATE GAP — cup winners are not reachable
+### SUBSTRATE GAP — RESOLVED BY ENVELOPE, NO CUP FEED NEEDED
 
 Probed 2026-09-11: **no FA Cup route exists anywhere.** Not in
 `src/route-provenance.js`, not in the client. `eng.league_cup` (EFL Cup) IS in
 the client's `SOCCER_LEAGUES` (`field.js:15061`); `eng.fa` is absent entirely.
+Cup participation is also not derivable from a league table.
 
-Cup participation is also not derivable from a league table — it is the only part
-of the six outcomes that a simulated league cannot produce.
+**Do not build a cup model and do not add a feed.** The cascade only bites when a
+cup winner finishes OUTSIDE the European places. So the question is never "who
+wins the FA Cup" — it is "does the answer change if someone outside Europe does".
+That is answerable with the simulation already being run.
 
-So the cup-outcome input is a real modelling decision, and Task 0 must establish
-which is possible before anything is built:
-- enumerate plausible winners and report the sensitivity (needs no feed), OR
-- hold cup winners fixed at a stated assumption (weakest, must be labelled), OR
-- take a cup-winner distribution from a feed (needs an FA Cup source that does
-  not currently exist)
+**Compute the envelope.** For each simulated season, run `allocate` twice:
 
-Do not silently assume league-only allocation. That is confidently wrong in a way
-no amount of simulation fixes.
+- **floor** — no cup displacement at all (both cup winners already qualify)
+- **ceiling** — maximum plausible displacement (both cups won by teams
+  finishing outside the European places)
+
+Then, per team, compare the two:
+
+- **identical** — that team is CUP-INVARIANT. Report a clean number. No cup
+  model was needed, and that is a DERIVED fact, not an assumption.
+- **different** — that team's uncertainty is BOUNDED by the two ends. Report the
+  range. No cup winner is ever named.
+
+This converts an unbounded modelling problem into a bounded one the existing
+simulation already answers.
+
+**Expectation, to be MEASURED not asserted:** the teams most likely to win the FA
+Cup are the strong ones, who are also most likely to finish top seven where the
+berth displaces nothing. Displacement needs a cup won by a team finishing outside
+Europe — two anti-correlated events. The envelope is expected to be zero-width
+for most of the table. **Report the real per-team envelope widths; do not assume
+this.** If it is wide for many teams, that is a finding and this approach needs
+revisiting.
+
+**Only if the envelope proves wide** for teams that matter: cup-win probability
+derives from the SAME team-strength parameters the league simulation already
+uses — the FA Cup is a knockout among the same clubs. Still no feed. A feed would
+only add the draw. If a feed is ever genuinely warranted, `eng.fa` is ESPN's slug
+and takes the identical shape to `eng.league_cup`. One line, and not before the
+envelope proves it is needed.
+
+### TIEBREAK FIELDS — CONFIRMED PRESENT 2026-09-11
+
+Probed `/espn-standings/soccer/eng.1/standings`, Arsenal's stats block:
+
+```
+gamesPlayed 4 | wins 4 | ties 0 | losses 0 | points 12
+pointsFor 8   | pointsAgainst 1  | pointDifferential 7
+deductions 0  | rank 1
+```
+
+`pointsFor`/`pointsAgainst` are goals for and against — ESPN's generic stat names
+for a soccer table. So points, goal difference AND goals scored are all
+available. The simulation must emit SCORELINES to populate them.
+
+**`deductions` is present and must be carried.** Points deductions are real in
+the EPL, and a projection that ignores a live deduction is wrong for that club
+in every one of the six slices. Read it; do not assume zero.
+
+Head-to-head is the fourth tiebreak and is NOT in this payload. Determine
+whether simulated results can supply it; if not, say so and state which
+positions could be mis-ordered as a result.
 
 ### MARKET-IMPLIED CANNOT PROJECT A SEASON — correction
 
