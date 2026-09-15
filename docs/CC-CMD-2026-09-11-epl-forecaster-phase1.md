@@ -155,6 +155,106 @@ The `Modelled` branch needs one decision from Jeff that has not been made:
 whether a modelled forecast publishes alongside the market-implied one, or
 instead of it. Record it as open in the outbox. Do not decide it.
 
+### The six outcomes are ONE computation
+
+Title, Champions League, Europa League, Conference League, relegation and final
+position are not six forecasts. They are six slices of a single
+**final-position distribution**: a 20x20 matrix where `P[team][k]` is the
+probability that team finishes k-th.
+
+Simulate the season once; derive all six. Nothing is computed twice, and the six
+can never disagree with each other — which they inevitably would as six separate
+models.
+
+**The simulation must produce SCORELINES, not results.** EPL position is decided
+by points, then goal difference, then goals scored, then head-to-head. Arsenal
+and Manchester City are both on 12 points right now, separated only by GD
+(+7 v +6). A simulation that emits W/D/L cannot order them, and every slice above
+inherits that error. `pointDifferential` is in the standings payload; confirm
+whether goals-scored is, and if not, find it before building.
+
+### Allocation is a CASCADE, not a position->competition map
+
+A position map is wrong: the same position yields different competitions
+depending on cup outcomes. Domestic cup winners displace league spots **only if
+they have not already qualified for Europe by league position**.
+
+Ordered berths, ordered claimants, filled greedily, skipping anyone already
+allocated:
+
+```
+berths:    UCL x4 (or 5 by coefficient), EL x1, ECL x1
+claimants: FA Cup winner -> EL, League Cup winner -> ECL,
+           then league order 1, 2, 3, ...
+fill:      take next berth, take next UNALLOCATED claimant
+```
+
+A cup winner who already qualifies higher is skipped and the berth **flows down
+the table** rather than disappearing. Implement as
+`allocate: table -> cupWinners -> Map<Team, Competition>` — a fill loop, not a
+lookup.
+
+**Berth counts and claimant order are DATA, not code.** England's UCL allocation
+has been five in coefficient seasons; Conference League entry has moved position
+more than once. Hardcoding "top four" is the `FIELD_V2_SOURCES` failure exactly:
+true when written, silently wrong next season, still computing. Store as a table
+with a `Source` field naming where each rule came from, read per season.
+
+### Cup dependence is measured per team, not caveated wholesale
+
+Because a cup winner who already qualifies changes nothing, cup uncertainty only
+bites at the margin — the boundary between the last Europa place and the first
+non-qualifying one.
+
+For each simulated season, run the allocation under every plausible cup outcome.
+If a team's answer is identical across all of them, that team is
+**cup-independent** — report a clean number. If any outcome changes it, that team
+is **cup-dependent**, and that is stated.
+
+This is a sensitivity, not a caveat. Rule 99: "we know this" and "this depends on
+something not modelled" are different claims and must not render identically —
+but the dependency is COMPUTED per team, never asserted across the board.
+Arsenal's UCL number will not move on who wins the League Cup; a team sitting
+seventh might.
+
+### SUBSTRATE GAP — cup winners are not reachable
+
+Probed 2026-09-11: **no FA Cup route exists anywhere.** Not in
+`src/route-provenance.js`, not in the client. `eng.league_cup` (EFL Cup) IS in
+the client's `SOCCER_LEAGUES` (`field.js:15061`); `eng.fa` is absent entirely.
+
+Cup participation is also not derivable from a league table — it is the only part
+of the six outcomes that a simulated league cannot produce.
+
+So the cup-outcome input is a real modelling decision, and Task 0 must establish
+which is possible before anything is built:
+- enumerate plausible winners and report the sensitivity (needs no feed), OR
+- hold cup winners fixed at a stated assumption (weakest, must be labelled), OR
+- take a cup-winner distribution from a feed (needs an FA Cup source that does
+  not currently exist)
+
+Do not silently assume league-only allocation. That is confidently wrong in a way
+no amount of simulation fixes.
+
+### MARKET-IMPLIED CANNOT PROJECT A SEASON — correction
+
+An earlier revision of this document moved the season projection into Phase 1.
+That was wrong and is retracted. `/fpl` gives all 380 fixtures, but **odds exist
+only for fixtures with a D1 row, and that horizon is ~72 hours.** So
+`MarketImplied` covers roughly one matchday and `NoForecast` covers the other
+~370 fixtures.
+
+A market-derived SEASON projection is impossible by construction. Only the
+`Modelled` branch can project unplayed fixtures that have no prices.
+**Phase 1 is per-fixture market probabilities plus the current table. The season
+projection and all six outcomes are Phase 2.**
+
+### The club list is read, never hardcoded
+
+Three clubs promoted and three relegated every summer. Read the 20 from
+`/espn-standings/soccer/eng.1/standings`. A hardcoded list rots exactly as
+`FIELD_V2_SOURCES` did.
+
 ### Phase 2 carries a CHANGE RECORD, not an accuracy ledger
 
 Decided by Jeff 2026-09-11. This is not "were we right" — it is **what moved
