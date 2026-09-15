@@ -57,15 +57,65 @@ FIRST.** Do not start this until it has landed. A bad team join fails silently.
 4. Confirm `b8f1a0e` has landed and `/identity/mismatches?sports=EPL` reports
    no unmatched rows. If it has not, STOP.
 
-## PHASE 1 — MARKET-IMPLIED, PER-FIXTURE. Build this only.
+## PHASE 1 — THE RECORD, WITH MARKET-IMPLIED ROWS IN IT. Build this only.
 
-**A market-derived SEASON projection is impossible by construction.** An earlier
-revision of this document moved it into Phase 1 on discovering `/fpl`; that was
-wrong and is retracted. `/fpl` gives 380 fixtures, but odds reach ~72 hours, so
+**Do not build a forecaster and bolt a record on later. Build the record; the
+forecast is its latest row.**
+
+This supersedes an earlier revision that made the change record a Phase 2
+addition. That phasing was backwards. A forecast is a point observation; a change
+record is the sequence of them. If observations are stored with value,
+provenance, cause and timestamp, the current forecast is the head of the record
+and the change record is the diff between consecutive rows. One store, two views.
+
+Four consequences, and they are why this ordering is chosen:
+
+- A forecast **cannot exist without its provenance**, because it IS a row with
+  provenance columns. `MarketImplied` vs `Modelled` stops being a rendering
+  convention and becomes a column.
+- `ModelRevised` stops being a retrofit. It is a property of the row at write
+  time — the only moment it is knowable. A number moving because reality moved
+  and a number moving because we changed the model are indistinguishable
+  afterwards, permanently.
+- The "persisted prior" problem dissolves. There is always either a prior row or
+  explicitly none.
+- No separate storage design later. **D1 from the first commit.**
+
+It also inverts the risk. Shipping bare numbers first and adding memory later
+leaves the window with no record of how forecasts moved being exactly the window
+where the model is newest and moves most.
+
+### Scope stays small — only the SHAPE changes
+
+Phase 1 still computes only market-implied per-fixture three-way probabilities.
+`Modelled` is NOT built. But it lands as a **provenance value in an existing
+store**, not as a second phase with its own storage.
+
+**A market-derived SEASON projection remains impossible by construction.** An
+earlier revision moved it into Phase 1 on discovering `/fpl`; that was wrong and
+is retracted. `/fpl` gives 380 fixtures, but odds reach ~72 hours, so
 `MarketImplied` covers roughly one matchday and ~370 fixtures are `NoForecast`.
 Only the model can project unpriced fixtures.
 
-Phase 1 = per-fixture three-way implied probabilities + the current table.
+### The store
+
+One D1 table, **append-only**. One row per observation of one subject:
+
+```
+subject        fixture id, or team+outcome for a season slice
+value          the probability, or the NoForecast reason
+provenance     MarketImplied | Modelled | NoForecast
+cause          DeltaCause, stamped at write time
+observed_at
+```
+
+Append-only matters specifically: `codex_write` replaced content in place and
+destroyed 26 entry bodies on 2026-09-08, and the `codex_history` guard exists
+because of it. Do not build a store that can overwrite an observation.
+
+The `DeltaCause` union, the `Paired` type, the D1-not-`localStorage` reasoning
+and the no-receipts tension are specified under PHASE 2 below. **Read them now —
+they govern the schema written in Phase 1.**
 
 ### `Forecast.fs` — provenance in the type
 
@@ -107,6 +157,12 @@ consumer handling only `MarketImplied` fails to compile; verify via
 
 ### DONE CONDITION — Phase 1
 
+- D1 store exists, append-only, with provenance and cause columns.
+- **Two observations of the same subject recorded on different runs**, and the
+  diff between them produced with a correct `DeltaCause`. One observation proves
+  nothing about a record.
+- A first-run case shown explicitly reporting "no prior" rather than
+  "unchanged".
 - `Forecast` union with all three cases; `NoForecastReason` covers the four above.
 - Proof case compiles-and-fails as claimed, verified by `proof-check.mjs`.
 - Real matchday output pasted, with a named `NoForecast` case or a statement of
@@ -115,9 +171,11 @@ consumer handling only `MarketImplied` fails to compile; verify via
 
 ---
 
-## PHASE 2 — DESIGN IS SETTLED, DO NOT BUILD IN THIS SESSION
+## PHASE 2 — MODELLED. DESIGN IS SETTLED, DO NOT BUILD IN THIS SESSION.
 
-No open decisions remain. Gated only on Phase 1 shipping.
+No open decisions remain. Phase 2 adds `Modelled` as a provenance value in the
+store Phase 1 already built, plus the season simulation. It introduces NO new
+storage.
 
 ### The six outcomes are ONE computation
 
