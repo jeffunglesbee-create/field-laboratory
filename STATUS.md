@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **green** on `db82cf4` — but that is not `main` HEAD
+`live-check` (post-deploy, against the deployed page): **green** on `7a63281` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `db82cf4` — newest deployable `a0f6b72` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `0e61964` — newest deployable `a0f6b72` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
