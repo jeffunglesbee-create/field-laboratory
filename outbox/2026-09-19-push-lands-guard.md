@@ -97,3 +97,34 @@ pass with all three loops still silent.
 None deferred. The check is repo-local by design; the other three repos each
 carry their own copy (field-relay-nba `d831565`, jubilant-bassoon `f9bd55d4`,
 field-playground has zero loops and nothing to guard).
+
+---
+
+## Correction, same session: the first wiring never ran
+
+The guard was first wired as step 46 of `verify.yml`'s single 68-step
+`verify` job. It did not execute once.
+
+Step 24 — "The chrome, measured on the rendered page" — was already red on
+run 309, the commit immediately before. GitHub skips every subsequent step in
+a job after a failure, so steps 25 through 68 were all `skipped`, including
+the credential-literal guard that has lived there for weeks. Run 310 carried
+the new step into the same position behind the same red step.
+
+**A gate that cannot run is not a gate.** Same class as the placement
+argument already made above — a check whose trigger does not cover its input
+— one layer down: a check whose *job* does not reach it.
+
+Measured rather than inferred: of the last ten `verify` runs, five failed and
+one was cancelled. Parking a cheap invariant behind a dotnet build, a Chromium
+install and twenty render checks means it runs only when everything else
+already passed, which is when it is least needed.
+
+`push-lands` is now its own job in the same workflow. Checkout plus python3,
+no build, no node install, no browser. It runs in parallel with `verify` in a
+few seconds and nothing in that job can block it.
+
+The chrome-check failure itself is untouched and unexplained here — it
+predates this work and is not this change's to fix. It cannot be reproduced
+locally: the check drives a page at `localhost:8080` and the local run dies on
+`ERR_CONNECTION_REFUSED` before reaching any assertion.
