@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `a0f6b72` — [run 34545628862](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/34545628862)
+**FAILURE** on `5b240ac` — [run 35455285169](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/35455285169)
 
 ## Is the live artifact healthy?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `34592d1` (behind `main`) |
+| Cloudflare Workers | live | `34592d1` — behind newest deployable `5b240ac` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
