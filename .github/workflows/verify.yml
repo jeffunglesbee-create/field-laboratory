@@ -486,6 +486,35 @@ jobs:
       - name: No workflow installs a credential from a literal
         run: node scripts/check-no-literal-secret-writes.mjs --self-test && node scripts/check-no-literal-secret-writes.mjs
 
+      # 107 push-retry loops across four repos exited 0 when every attempt
+      # failed, because the loop's last command is `sleep` and `set -e` does not
+      # fire on a failing `&&` list -- it is a tested command. Three of them were
+      # here. The step went green and the artifact was silently lost, which is
+      # why no run count or commit census could measure the damage afterwards:
+      # the evidence of the failure is the absence of evidence.
+      #
+      # It checks that a landing verification FOLLOWS each loop and deliberately
+      # does NOT police the loop's shape. The 2026-09-19 sweep found five shapes
+      # by refusing to guess at a sixth, and the sixth turned up the same day --
+      # this check, ported to jubilant-bassoon, found two loops the sweep had
+      # missed because they push to a token URL rather than to `origin`.
+      # Enumerating shapes is exactly what has now proved incomplete six times.
+      #
+      # Here rather than in guards.yml for the reason that file's own
+      # script-orphans comment records: guards.yml's paths are docs/, outbox/
+      # and **/*.md, so it does not fire on `.github/workflows/**` -- the one
+      # change class this exists to catch. verify.yml's paths-ignore is the
+      # complement, so it does.
+      #
+      # Python, not .mjs, despite 286 .mjs to 7 .py in this tree: it parses
+      # workflow YAML, node has no yaml module, and extract-commit-loop.py is
+      # the existing precedent for exactly that.
+      - name: Every push-retry loop verifies the push landed
+        run: |
+          python3 scripts/check-push-lands.py --self-test
+          python3 scripts/mutate-push-lands.py
+          python3 scripts/check-push-lands.py
+
       # src/Prose.fs against the relay's real tokeniser, over all 592 briefs in
       # data/jq-mlb-game-corpus.json. Agreement is the test: a port that quietly
       # computed something more sensible than the thing it claims to reproduce
