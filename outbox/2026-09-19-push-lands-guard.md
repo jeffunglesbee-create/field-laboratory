@@ -94,9 +94,12 @@ pass with all three loops still silent.
 
 ## Residual
 
-None deferred. The check is repo-local by design; the other three repos each
-carry their own copy (field-relay-nba `d831565`, jubilant-bassoon `f9bd55d4`,
-field-playground has zero loops and nothing to guard).
+The check is repo-local by design. field-relay-nba carries it at `d831565`,
+jubilant-bassoon at `f9bd55d4`.
+
+**SUPERSEDED, same day:** this paragraph originally said "field-playground has
+zero loops and nothing to guard". The first half is false and the second half
+is true for a different reason. See the correction below.
 
 ---
 
@@ -128,3 +131,60 @@ The chrome-check failure itself is untouched and unexplained here — it
 predates this work and is not this change's to fix. It cannot be reproduced
 locally: the check drives a page at `localhost:8080` and the local run dies on
 `ERR_CONNECTION_REFUSED` before reaching any assertion.
+
+---
+
+## Correction: field-playground has 68 push loops, not zero
+
+`5b240ac`'s commit message closed the sweep with "field-playground carries
+none". That was the sweep's matcher not matching, recorded as a property of
+the repo — the same substitution the check's own header warns about, made in
+the sentence declaring the sweep complete.
+
+Measured with the check itself, then with the exact tail of every loop:
+
+| shape | count | what follows the loop |
+|---|---|---|
+| A | 56 | `exit 1` |
+| B | 8 | `echo "could not push after 5 attempts"` then `exit 1` |
+| C | 4 | a bare `git push` |
+
+All 68 use `if git push; then … exit 0; fi` or `git push && exit 0` inside the
+loop. **None uses `break`**, which is why the sweep's matcher and this check
+both see zero: `break` is half the predicate for "this is a retry loop".
+
+**Every one of the three is sound, proven rather than read.** Driven under the
+exact Actions shell against a bare remote whose `pre-receive` hook rejects the
+push:
+
+    shape A   ->  exit 1
+    shape B   ->  exit 1
+    shape C   ->  exit 1
+    the 107   ->  exit 0     the defect, for contrast
+
+Shape C is sound for the reason the check's own coverage line already states:
+a bare `git push` outside a loop fails under `set -e` on its own.
+
+So there was nothing to fix, and the check found nothing because there was
+nothing of its kind to find — but "zero loops" and "68 sound loops" are
+different facts and only the second one is true.
+
+### Why the guard is still not wired there
+
+Running this check against field-playground today returns `no-loops-found`,
+which it treats as a **failure** — correctly, by its own rule that an empty
+result from a repo that demonstrably has loops means the matcher broke.
+
+Widening it to count them would mean accepting `exit 1` after a loop as
+satisfying the check, and that is a weaker claim than the one this check makes
+here. `exit 1` proves the step **fails loudly**. `git merge-base --is-ancestor
+HEAD origin/main` proves the commit **reached main**, which is not the same
+thing — a push can succeed against the wrong ref. Conflating them would
+quietly lower the bar in the three repos where the stricter form is already
+live.
+
+Not done, and named rather than implied: field-playground's 68 loops fail
+loudly but are not verified as landed, and nothing guards the shape there. A
+follow-up would either teach the check both standards and report which one
+each loop meets, or move those loops to the merge-base form. Neither was
+asked for and neither is started.
