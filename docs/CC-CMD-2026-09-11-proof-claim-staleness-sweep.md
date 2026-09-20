@@ -11,6 +11,16 @@ Harness: `scripts/claim-check.mjs` (17/17 self-test, 8/8 mutations), wired as
 that was Task 2's instruction and remains an open judgement about what each
 document is arguing.
 
+**AND THIS DOCUMENT'S CORE PREMISE IS FALSE AT HEAD.** "`<!-- claim: -->`
+markers have NO such harness … that is the gap" — `scripts/docs-check.mjs` has a
+`CLAIMS` registry resolving all fourteen, wired at `verify.yml` step 36. It had
+gone dark: step 36 is one of 43 skipped behind a red step 24. Worse, running it
+does not help — its `ceiling.*` resolvers import `build/Ceiling.js`, a local F#
+copy holding the same stale 300/245 as the document, so it compares a copy
+against a copy and passes. What made `claim-check.mjs` catch what it misses is
+one decision: resolve against the relay, not a transcription of it. Full
+correction in the outbox entry.
+
 **Date:** 2026-09-11
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR

@@ -17,6 +17,87 @@ No stale document was fixed. That was the instruction and it is also the right
 call: rewriting a proof doc's numbers is a judgement about what the doc is
 arguing, which is a separate decision from detecting the drift.
 
+## CORRECTION, 2026-09-20, after this document was first written
+
+**The CC-CMD's core premise is false at HEAD, and this document repeated it.**
+
+CC-CMD-2026-09-11 says:
+
+> `<!-- claim: name = value -->` markers have NO such harness. They are numeric
+> assertions about production and nothing reads them. That is the gap.
+
+`scripts/docs-check.mjs` reads them. It has read them for some time: its header
+cites the same three examples the CC-CMD does — PROSE-PROOF's 1.75 and 91.2,
+CEILING-PROOF's "240 as 97.96% of 245", JOURNALISM-PROOF's 285 of 627 — and it
+carries a `CLAIMS` registry with a resolver for **all fourteen** markers. It is
+wired into `verify.yml` at step 36 as `npm run check:docs`.
+
+**It had gone dark.** Step 36 is one of the 43 steps skipped behind the red step
+24 described below. From outside, *"no harness exists"* and *"a harness that
+never runs"* are indistinguishable — which is this CC-CMD's own thesis, applied
+one level up, to the CC-CMD.
+
+### And running it does not fix it, which is the part worth keeping
+
+Run directly, on this tree, today:
+
+```
+PASS  every claim a document makes is still true
+3/3 checks passed
+```
+
+Green — on the same five markers this sweep reports STALE. The reason is one
+import:
+
+```
+scripts/docs-check.mjs:42
+import { maxOf, nominal, relayReachable, unreachable } from '../build/Ceiling.js'
+
+src/Ceiling.fs:67   Max = 300<point>
+src/Ceiling.fs:72   Max = 245<point>
+```
+
+| | nominal | reachable |
+|---|---|---|
+| relay `journalism-quality.js` — **the source** | 294 | 252 |
+| `src/Ceiling.fs` — a copy | 300 | 245 |
+| `CEILING-PROOF.md` — a copy of the copy | 300 | 245 |
+
+**`docs-check` compares copy #2 against copy #1, so it passes because both sides
+of its comparison are stale in the same direction.** This repo's CLAUDE.md asks
+one question for exactly this — *"Is this the source, or a copy of the source?"*
+— and the check built to keep document claims fresh does not ask it.
+
+### What that means for this CC-CMD
+
+**Fixing step 24 alone would have made this ask satisfiable without touching the
+real defect.** `docs-check` starts running, reports "every claim a document makes
+is still true", and four wrong numbers keep shipping under a green check.
+
+The only reason `claim-check.mjs` disagrees with it is the one design decision
+described under Task 0 below: **resolve against the source, not a copy.** That —
+and the second CI checkout that makes it possible — is the entire difference
+between the two harnesses. Not the parser, not the three states.
+
+### What I got wrong
+
+I inherited *"nothing reads these markers"* from the CC-CMD and **never grepped
+`scripts/` for a consumer of `<!-- claim:`**. Task 0.3 told me to read
+`proof-check.mjs` and `checks.mjs` and follow their conventions; I did, and
+stopped there. I re-probed every **value** in the document and never re-probed
+the **premise** that no harness existed — Rule 72, and Rule 100's corollary, on
+the day this same document records five other instances of that shape.
+
+### One thing this does NOT establish
+
+Whether `src/Ceiling.fs` is **stale** or is **deliberately encoding the
+historical scale the 240 bar was set against** is unresolved. Its whole argument
+is that a bar from one scale cannot judge a score from another, so 300/245 may
+be intentional history rather than drift. The CC-CMD's author read the markers as
+present-tense claims about the relay, and `CEILING-PROOF.md:18` supports that
+reading — but deciding it is precisely the "judgement about what the document is
+arguing" that Task 2 deferred, and it is still deferred.
+
 ## Task 0 — inventory and classification
 
 **The naive regex really does find zero.** Asserted, not described: the
@@ -41,7 +122,9 @@ for that reason — counting them would invent claims no document is making.
 `CC-CMD-*.md` is excluded from the sweep outright.
 
 **Every marker turned out CHECKABLE**, which was not the expected answer going
-in. Sources:
+in. (See the CORRECTION above: `docs-check.mjs` had already reached the same
+conclusion and built resolvers for all fourteen. Its `ceiling.*` resolvers read a
+local copy; these read the relay.) Sources:
 
 | marker family | source | reachable how |
 |---|---|---|
