@@ -4,6 +4,11 @@ Raised while answering "is the full odds package available in laboratory?" The
 answer turned out to be that laboratory is **ahead** of the client on odds — and
 that none of the work proving it is in the tab built to prove things.
 
+**Status:** FILED, not started. No `outbox/` record exists. Task 0's own probe
+re-run at HEAD 2026-09-20 still holds: `grep -cE
+"twoWay|threeWay|awayComplement|devig" src/Suite.fs` returns 4 (both are the
+`Units.devig` checks) and `grep -c winProbabilityKindFor src/Suite.fs` returns 0.
+
 ## What exists, and what the suite covers
 
 | model | where | Verify checks |
