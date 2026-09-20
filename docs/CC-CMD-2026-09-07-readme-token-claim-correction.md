@@ -8,6 +8,10 @@
 WRITE_ALLOWLIST (`docs/`, `HANDOFF.md`, `CODE_MAP.json`). Chat is structurally
 unable to make this edit.
 
+**Status:** CLOSED. Executed 2026-09-07; `outbox/cc-session-2026-09-07-readme-token-claim-correction.md`
+records it. `README.md` now states the secret is installed and pastes the
+verbatim Courier response rather than asserting it.
+
 ## CONTEXT
 
 The final line of `README.md` reads:
