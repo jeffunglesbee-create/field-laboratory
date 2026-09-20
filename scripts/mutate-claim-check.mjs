@@ -67,6 +67,20 @@ const MUTATIONS = [
    "    const ctx = (strip(lines[i - 1]) + ' ' + strip(line)).toLowerCase().replace(/\\s+/g, ' ')",
    "    const ctx = strip(line).toLowerCase().replace(/\\s+/g, ' ')",
    'the first of the three. A wrapped subject — "... The" / "FIELD app computes ..." — is invisible to a line-by-line match, which is the same blindness as the naive marker regex one layer up'],
+  ['C9 THE TRANSCRIPTION READER STOPS ANCHORING ON ITS BINDING',
+   "  const m = text.match(new RegExp(`\\\\blet\\\\s+${binding}\\\\s*:[^=]*=\\\\s*\\\\{[^}]*?\\\\bMax\\\\s*=\\\\s*(\\\\d+)<point>`, 's'))",
+   "  const m = text.match(/\\bMax\\s*=\\s*(\\d+)<point>/)",
+   'THE ONE THAT MATTERS for this half: nominal and relayReachable sit six lines apart, so a bare Max regex reads 300 for BOTH — relayReachable then reports DIVERGED against the wrong number, and a reader chasing 300-vs-252 is chasing a defect that is not there'],
+
+  ['C10 a divergence reads as agreement',
+   "  return local === live ? 'MATCHES' : 'DIVERGED'",
+   "  return 'MATCHES'",
+   'the copy and the source stop being compared at all, and the line that explains why two harnesses disagree becomes a line asserting they do not'],
+
+  ['C11 an unreadable copy reads as a match',
+   "  if (local === null || local === undefined) return 'UNCHECKABLE'",
+   "  if (false) return 'UNCHECKABLE'",
+   'null === null would then report MATCHES when NEITHER side was read — the UNCHECKABLE-is-never-HOLDS discipline, one section down'],
 ]
 
 const original = readFileSync(F, 'utf8')

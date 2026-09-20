@@ -186,6 +186,54 @@ const RESOLVERS = {
   },
 }
 
+// ── transcriptions ──────────────────────────────────────────────────────────
+//
+// WHY A SWEEP OF MARKERS IS NOT ENOUGH, and this was found the day after the
+// sweep shipped.
+//
+// `scripts/docs-check.mjs` resolves all fourteen of these same markers and has
+// for some time — the CC-CMD that asked for this harness said none existed, and
+// that was false at HEAD. Run it today and it reports
+// `every claim a document makes is still true`, 3/3 PASS, on the five markers
+// this file reports STALE.
+//
+// The fork is one import. `docs-check.mjs:42` reads the ceiling from
+// `build/Ceiling.js` — the compiled F# in THIS repo — while this file reads the
+// relay. `src/Ceiling.fs` hardcodes the same 300/245 the document does, so
+// docs-check compares a copy against a copy and passes.
+//
+// A READER SEEING TWO HARNESSES DISAGREE NEEDS TO KNOW WHY, and until now that
+// fact lived only in an outbox document — prose, unexecuted, which is the exact
+// condition this whole CC-CMD exists to end. So it is printed here, from the
+// source, every run.
+//
+// IT DOES NOT GATE, and that is deliberate rather than timid. Whether
+// `src/Ceiling.fs` is STALE or is deliberately encoding the historical scale the
+// 240 bar was set against is an open judgement — the module's whole argument is
+// that a bar from one scale cannot judge a score from another, so 300/245 may be
+// intentional history. Failing a build on an unresolved judgement is a red
+// nobody is permitted to fix.
+const TRANSCRIPTIONS = [
+  { file: 'src/Ceiling.fs', binding: 'nominal',        relay: 'NOMINAL_TOTAL' },
+  { file: 'src/Ceiling.fs', binding: 'relayReachable', relay: 'REACHABLE_CEILING' },
+]
+
+/** The `Max = N<point>` literal bound to `let <binding>`, or null. */
+export function transcribedMax(text, binding) {
+  // Anchored to the binding, not to the first Max in the file: two records sit
+  // six lines apart and a bare /Max = (\d+)/ would read nominal's 300 for both,
+  // which agrees with the relay for neither and disagrees for the wrong reason.
+  const m = text.match(new RegExp(`\\blet\\s+${binding}\\s*:[^=]*=\\s*\\{[^}]*?\\bMax\\s*=\\s*(\\d+)<point>`, 's'))
+  return m ? Number(m[1]) : null
+}
+
+/** MATCHES | DIVERGED | UNCHECKABLE — same discipline as the marker states. */
+export function transcriptionState(local, live) {
+  if (local === null || local === undefined) return 'UNCHECKABLE'
+  if (live === null || live === undefined) return 'UNCHECKABLE'
+  return local === live ? 'MATCHES' : 'DIVERGED'
+}
+
 // ── comparison ──────────────────────────────────────────────────────────────
 
 /**
@@ -358,6 +406,37 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       'a dated premise carries its verification; this one asserts the present tense with no date')
   }
 
+  // THE TRANSCRIPTION READER, anchored per binding.
+  const fsFixture = [
+    'let nominal: Scale<Nominal> =',
+    '    { Max = 300<point>; Name = "nominal" }',
+    'let relayReachable: Scale<RelayReachable> =',
+    '    { Max = 245<point>; Name = "relay" }',
+  ].join('\n')
+  // BOOLEAN FORM, and the first draft of these two got it wrong in both
+  // directions: createChecks' `check(name, pass, detail)` takes a boolean, and a
+  // (got, want) call passes the VALUE as `pass`. The null case failed correctly;
+  // the '300/245' case PASSED on a truthy string without comparing anything.
+  // A vacuous assertion in the file whose subject is vacuous assertions.
+  check('a transcribed Max is read for the binding it belongs to',
+    [transcribedMax(fsFixture, 'nominal'), transcribedMax(fsFixture, 'relayReachable')].join('/') === '300/245',
+    'a bare /Max = (\\d+)/ reads the FIRST literal for both bindings')
+  check('a binding that is not there reads null, not a neighbour\'s value',
+    transcribedMax(fsFixture, 'notABinding') === null,
+    'returning some other record\'s number would be a wrong answer, which is worse than none')
+  check('equal values MATCH', transcriptionState(245, 245) === 'MATCHES')
+  check('DIFFERENT VALUES DIVERGE', transcriptionState(245, 252) === 'DIVERGED',
+    'the live case today: src/Ceiling.fs holds 245, the relay reaches 252')
+  check('an unreadable local value is UNCHECKABLE, not a match',
+    transcriptionState(null, 252) === 'UNCHECKABLE',
+    'same discipline as the marker states: nothing verified is never agreement')
+  check('an unreachable relay is UNCHECKABLE too',
+    transcriptionState(245, null) === 'UNCHECKABLE',
+    'without the relay there is nothing to compare the copy against')
+  check('every declared transcription names a relay export that exists',
+    TRANSCRIPTIONS.every(t => typeof t.relay === 'string' && t.relay.length > 0),
+    'a transcription row with no source is a row that can only ever say UNCHECKABLE')
+
   // Every marker in the repo has a resolver, or the sweep silently shrinks.
   const unresolved = []
   for (const f of realDocs.filter(x => !x.startsWith('CC-CMD-'))) {
@@ -441,6 +520,37 @@ console.log(`${'-'.repeat(wd)}  ${'-'.repeat(wn)}  ${'-'.repeat(wc)}  ${'-'.repe
 for (const r of rows) {
   console.log(`${r.doc.padEnd(wd)}  ${r.name.padEnd(wn)}  ${r.claimed.padEnd(wc)}  ${r.live.padEnd(wl)}  ${r.state}` +
               (r.why ? `\n${' '.repeat(wd + wn + wc + wl + 8)}(${r.why})` : ''))
+}
+
+// ── transcriptions, printed beside the markers ──────────────────────────────
+const tRows = []
+for (const t of TRANSCRIPTIONS) {
+  const local = existsSync(t.file) ? transcribedMax(readFileSync(t.file, 'utf8'), t.binding) : null
+  const live = relay ? relay[t.relay] : null
+  tRows.push({
+    ...t, local, live,
+    state: transcriptionState(local, live),
+    why: !relay ? relayError : (local === null ? `no \`let ${t.binding}\` with a Max literal in ${t.file}` : ''),
+  })
+}
+if (tRows.length) {
+  console.log(`\nTRANSCRIPTIONS — a local copy of a value this repo does not own`)
+  for (const r of tRows) {
+    console.log(`  ${r.file}  ${r.binding.padEnd(15)} ${String(r.local ?? '—').padStart(4)}` +
+                `   vs relay ${r.relay} ${String(r.live ?? '—').padStart(4)}   ${r.state}` +
+                (r.why ? `\n      (${r.why})` : ''))
+  }
+  const div = tRows.filter(r => r.state === 'DIVERGED')
+  if (div.length) {
+    console.log(`\n  ${div.length} DIVERGED. This is why scripts/docs-check.mjs can report`)
+    console.log(`  "every claim a document makes is still true" while the table above says`)
+    console.log(`  STALE: it resolves ceiling.* through build/Ceiling.js, so it compares this`)
+    console.log(`  copy against a document holding the same numbers. Two copies agreeing is`)
+    console.log(`  not a claim being true.`)
+    console.log(`  NOT A FAILURE HERE: whether src/Ceiling.fs is stale or is deliberately`)
+    console.log(`  encoding the historical scale the 240 bar was set against is an open`)
+    console.log(`  judgement, and this does not make it.`)
+  }
 }
 
 const n = s => rows.filter(r => r.state === s).length

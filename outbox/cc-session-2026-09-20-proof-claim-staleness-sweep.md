@@ -362,6 +362,52 @@ CC-CMD-2026-09-11-spread-total-model.md
 CC-CMD-2026-09-12-odds-models-unverified.md
 ```
 
+## The sweep now prints the transcription, 2026-09-20
+
+The correction above lived only in this document — prose, unexecuted, which is
+the exact condition the CC-CMD exists to end. It is now printed from source on
+every run:
+
+```
+TRANSCRIPTIONS — a local copy of a value this repo does not own
+  src/Ceiling.fs  nominal          300   vs relay NOMINAL_TOTAL  294   DIVERGED
+  src/Ceiling.fs  relayReachable   245   vs relay REACHABLE_CEILING  252   DIVERGED
+
+  2 DIVERGED. This is why scripts/docs-check.mjs can report
+  "every claim a document makes is still true" while the table above says
+  STALE: it resolves ceiling.* through build/Ceiling.js, so it compares this
+  copy against a document holding the same numbers. Two copies agreeing is
+  not a claim being true.
+```
+
+**Three designs were considered and two rejected on measurement, not taste.**
+
+1. *A "does this resolver read a copy?" detector* — the thing I proposed out
+   loud. **Undecidable.** Whether an import is a transcription of another repo's
+   value is a judgement, not a property of the text.
+2. *Cross-check the two harnesses against each other* — the right idea, and
+   blocked: `docs-check.mjs` does not export its `CLAIMS` registry, and it
+   imports from `../build/` four times, so an agreement check needs the dotnet
+   build. That puts it in the `verify` job — the job that is red and skipping 43
+   steps. A check placed there is a check that does not run.
+3. **Read the transcription directly.** Two literals in one file, no build, no
+   import of the other harness, runs in the existing `claim-sweep` job.
+
+**It does not gate**, and that is deliberate rather than timid: whether
+`src/Ceiling.fs` is stale or is deliberately encoding the historical scale the
+240 bar was set against is still the open Task 2 judgement. Failing a build on an
+unresolved judgement is a red nobody is permitted to fix.
+
+**A sixth self-inflicted defect, in the file whose subject is this.** The first
+draft of two new assertions used a `(got, want)` form; `createChecks`' signature
+is `check(name, pass, detail)`. The `null` case failed correctly — and the other
+**passed on a truthy string `'300/245'` without comparing anything.** A vacuous
+assertion inside the harness built to catch vacuous assertions. Both now use the
+boolean form, and `C9` mutates the anchoring they cover.
+
+  self-test    24/24 (was 17/17)
+  mutations    11/11 caught (was 8/8)
+
 ## Automation
 
 `verify.yml` gains a `claim-sweep` job — its own job, for the reason
