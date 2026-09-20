@@ -2,16 +2,23 @@
 //
 // THE CLAIM UNDER TEST
 //
-// `journalism-quality.js` documents a 300-point rubric and its own reachable
-// total: the worker has no game object, so Dim 7 (Context, 25) and Dim 10
-// (Matchup, 30) return N/A and contribute zero. 55 of 300 points are unreachable
-// by construction.
+// `journalism-quality.js` derives a nominal rubric total and its own reachable
+// total: the worker has no game object, so ctx contributes 0 while margin and
+// finality abstain at their midpoints. The difference is unreachable by
+// construction.
 //
 // `/quality/report` applies a flat bar of 240 — reported as `below_240` /
 // `above_240` per brief_type and `below_flat_240_pct` per alert.
 //
-// 240 is 80% of 300 and 97.96% of 245. This measures that against the real
-// corpus rather than arguing it.
+// NO SCALE NUMBER IS WRITTEN DOWN HERE ANY MORE, and that is a correction, not
+// a style choice. This file asserted 300 / 245 / 55 / 97.96% / five / 196 as
+// literals. Those were the fifth copy of a chain that ran journalism-quality.js
+// -> src/Ceiling.fs -> CEILING-PROOF.md -> docs-check.mjs, and when the root
+// was corrected to 294 / 252 on 2026-09-20 this file was the one artefact NOT
+// updated with the other four — because it had not run in seven CI runs, parked
+// behind an unrelated red at step 25. Every condition below now derives from
+// the module, so the arithmetic is checked and the transcription is not
+// repeated. `claim-check.mjs` owns comparing Ceiling.fs against the relay.
 //
 // WHAT IS LOCAL AND WHAT IS OBSERVED
 //
@@ -50,10 +57,11 @@ const OBSERVED_2026_08_15 = {
   // A per-row MAXIMUM answers more than it looks like it does. If a row's max is
   // below a bar, then NO brief in that row cleared it — exact, not an estimate.
   // If a row's max is at or above a bar, then AT LEAST ONE did. So this settles
-  // "does anything clear 240" (no) and "does anything clear 196" (yes) without
+  // "does anything clear 240" (no) and "does anything clear four fifths of the
+  // reachable scale" (yes) without
   // D1 access, which this repo does not have and should not be given.
   //
-  // What it cannot give is a COUNT. "How many briefs clear 196" needs the row
+  // What it cannot give is a COUNT. "How many briefs clear that" needs the row
   // data, and that stays an open question for the relay's own query.
   maxScorePerRow: [
     122, 125, 130, 130, 148, 132, 171, 135, 179, 156, 148, 148, 153,
@@ -67,19 +75,24 @@ check('the corpus is present and the expected size',
 
 // ── the two scales ──────────────────────────────────────────────────────────
 
-check('the nominal rubric is 300 points and the relay can reach 245',
-  maxOf(nominal) === 300 && maxOf(relayReachable) === 245,
+check('the relay scale is strictly smaller than the nominal one',
+  maxOf(relayReachable) > 0 && maxOf(relayReachable) < maxOf(nominal),
   `${maxOf(nominal)} = ${nameOf(nominal)}; ${maxOf(relayReachable)} = ${nameOf(relayReachable)}`)
 
 // The scale's NAME carries the reason. A ceiling with no stated cause is a
 // magic number, and this one exists because of a specific runtime fact.
 check('each scale says why it is the size it is',
-  /game context/.test(nameOf(nominal)) && /Dims 7 and 10/.test(nameOf(relayReachable)),
+  /game context/.test(nameOf(nominal)) && /no game context/.test(nameOf(relayReachable)),
   `relay scale: "${nameOf(relayReachable)}"`)
 
-check('55 points are unreachable by construction, not by writing badly',
-  unreachable === 55,
-  `${unreachable} points — Dim 7 Context (25) + Dim 10 Matchup (30), both N/A without a game object`)
+// `unreachable` IS NOT ASSERTED, deliberately, and the same goes for `headroom`
+// and `atFraction` below. src/Ceiling.fs:85 defines
+// `unreachable = maxOf nominal - maxOf relayReachable`, so a check comparing it
+// against that same subtraction compares a value to itself and cannot fail —
+// the exact shape of the six vacuous assertions this repo counted on
+// 2026-09-05. The first version of this rewrite contained three of them, caught
+// by asking whether each could fail rather than by any of them going red.
+// Their VALUES still appear, in the detail lines of checks that can.
 
 // ── the crux ────────────────────────────────────────────────────────────────
 //
@@ -90,25 +103,39 @@ check('55 points are unreachable by construction, not by writing badly',
 const asDecided = demandedFraction(nominal, flatBarAsDecided)
 const asApplied = demandedFraction(relayReachable, flatBarAsApplied)
 
-check('240 was a four-fifths bar on the scale it was decided against',
-  Math.abs(asDecided - 0.8) < 5e-3,
+// 240 WAS DECIDED as four fifths of the rubric as it was then documented. The
+// rubric has since been measured at ${maxOf(nominal)}, so the bar is no longer
+// exactly four fifths of anything — which is why this asserts the NEIGHBOURHOOD
+// it was decided in rather than the equality it once had. Tightening this back
+// to 0.8 would be re-fitting the check to a number the source no longer holds.
+check('240 still sits in the four-fifths neighbourhood of the nominal scale',
+  asDecided > 0.75 && asDecided < 0.85,
   `${(asDecided * 100).toFixed(2)}% of ${maxOf(nominal)}`)
 
-check('the same 240 demands ~98% of the scale the relay actually scores on',
-  asApplied > 0.97 && asApplied < 0.99,
-  `${(asApplied * 100).toFixed(2)}% of ${maxOf(relayReachable)} — ` +
+// THE FINDING IS THE GAP, not either percentage. Both move when the scales are
+// re-measured; the distance between them is what makes the flat bar mean
+// something different from what it was chosen to mean.
+check('the same 240 demands a far larger share of the scale the relay scores on',
+  asApplied - asDecided > 0.1,
+  `${(asApplied * 100).toFixed(2)}% of ${maxOf(relayReachable)} vs ` +
+  `${(asDecided * 100).toFixed(2)}% of ${maxOf(nominal)} — ` +
   `a bar chosen as four fifths became lose-at-most-${headroom(relayReachable, flatBarAsApplied)}-points`)
 
-check('the headroom on the relay scale is five points across eight dimensions',
-  headroom(relayReachable, flatBarAsApplied) === 5,
-  `${headroom(relayReachable, flatBarAsApplied)} point(s), including a 36-point freshness term driven by a third-party API`)
+// The headroom is the whole margin eight dimensions have to share, and it is
+// stated in the detail above rather than asserted here: `headroom s t = s.Max - t`
+// (src/Ceiling.fs:132), so there is no second source to compare it against.
 
 // A four-fifths bar, resolved on the right scale, is a different number. This is
 // the arithmetic the module exists to make unavoidable — not a recommendation.
 const fourFifthsOfReachable = atFraction(relayReachable, 0.8)
-check('four fifths of the reachable scale is 196, not 240',
-  thresholdValue(fourFifthsOfReachable) === 196,
-  `0.8 x ${maxOf(relayReachable)} = ${thresholdValue(fourFifthsOfReachable)}; ` +
+const FOUR_FIFTHS = thresholdValue(fourFifthsOfReachable)
+// `FOUR_FIFTHS === Math.round(0.8 * max)` is NOT part of this condition:
+// `atFraction` is `int (round (Max * f))` (src/Ceiling.fs:104), so that half
+// would restate the implementation. What can fail is the ordering — a bar
+// chosen as four fifths sitting above four fifths.
+check('four fifths of the reachable scale is well below the applied bar',
+  FOUR_FIFTHS < thresholdValue(flatBarAsApplied),
+  `0.8 x ${maxOf(relayReachable)} = ${FOUR_FIFTHS}; ` +
   `the applied bar is ${thresholdValue(flatBarAsApplied)}`)
 
 // ── measured against the corpus ─────────────────────────────────────────────
@@ -130,13 +157,13 @@ check('no brief scored under the current formula clears the flat bar',
 
 // The pre-cutoff era is the control, and it is the reason this is a threshold
 // finding rather than a "briefs got worse" finding: under the OLD unclamped
-// Dim 4 some briefs exceeded even the documented 245 ceiling, which is what an
+// Dim 4 some briefs exceeded even the reachable ceiling, which is what an
 // unbounded term does. The bar was survivable then for an arithmetic reason,
 // not an editorial one.
-const preAbove245 = pre.filter(r => r.quality_score > 245)
+const preAboveCeiling = pre.filter(r => r.quality_score > maxOf(relayReachable))
 check('the old unclamped formula produced scores above the documented ceiling',
-  preAbove245.length > 0,
-  `${preAbove245.length} of ${pre.length} pre-cutoff briefs exceed ${maxOf(relayReachable)}, ` +
+  preAboveCeiling.length > 0,
+  `${preAboveCeiling.length} of ${pre.length} pre-cutoff briefs exceed ${maxOf(relayReachable)}, ` +
   `max ${Math.max(...pre.map(r => r.quality_score))} — an unbounded dimension, not better writing`)
 
 // ── the dated observation ───────────────────────────────────────────────────
@@ -145,7 +172,8 @@ check('the old unclamped formula produced scores above the documented ceiling',
 //
 // CC-CMD-2026-08-15-quality-bar-scale ships with a query designed to kill its
 // own recommendation: if any brief clears 240, the flat bar is a bar and the
-// recommendation is wrong; if nothing clears 196 either, a four-fifths bar
+// recommendation is wrong; if nothing clears four fifths of reachable either,
+// a four-fifths bar
 // merely relocates the problem and the CC-CMD is answering the wrong question.
 //
 // Both halves are settled by the per-row maxima above. Asserted here rather
@@ -164,11 +192,12 @@ check('nothing clears the flat bar — exactly, since a row max below it settles
   `0 of ${maxima.length} rows reach 240; best row max ${Math.max(...maxima)}`)
 
 // The discriminator. If this were also zero, the bar is not the problem.
-const clearing196 = maxima.filter(m => m >= 196)
+const clearingFourFifths = maxima.filter(m => m >= FOUR_FIFTHS)
 check('a four-fifths-of-reachable bar would discriminate, not merely relocate',
-  clearing196.length > 0,
-  `${clearing196.length} of ${maxima.length} rows reach 196 ` +
-  `(${clearing196.sort((a, b) => b - a).join(', ')}) — so 196 separates rows and 240 separates none`)
+  clearingFourFifths.length > 0,
+  `${clearingFourFifths.length} of ${maxima.length} rows reach ${FOUR_FIFTHS} ` +
+  `(${clearingFourFifths.sort((a, b) => b - a).join(', ')}) — ` +
+  `so ${FOUR_FIFTHS} separates rows and ${thresholdValue(flatBarAsApplied)} separates none`)
 
 check('the recorded /quality/report observation is internally consistent',
   OBSERVED_2026_08_15.rowsWithAnyAbove240 === 0 &&
