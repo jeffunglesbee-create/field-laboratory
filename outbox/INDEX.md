@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e6fa282` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: the sweep prints the transcription that makes the other harness green |
+| `9cc450d` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: correct the record — a claim harness already existed, and it is green-but-wrong |
+| `e37ec54` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: close the staleness-sweep CC-CMD, and record two pre-existing reds |
 | `94f3cac` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: make `<!-- claim: -->` markers executable, and sweep all 18 proof docs |
 | `3207f74` | 2026-09-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-20 [skip ci] |
 | `83a6dde` | 2026-09-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-20 [skip ci] |
