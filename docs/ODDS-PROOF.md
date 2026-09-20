@@ -245,5 +245,25 @@ its cause trains people to ignore the next one.
 - Not that line movement never happens. `Moved` is unreachable in the committed
   captures and is therefore the one branch here with no real-data coverage —
   recorded as untested rather than presented as working.
-- Nothing about `spread` or `total`, which are decoded by nobody. Only the
-  moneyline is modelled.
+- ~~Nothing about `spread` or `total`, which are decoded by nobody. Only the
+  moneyline is modelled.~~ **FALSE WHEN WRITTEN, corrected 2026-09-20.** Both
+  are modelled 127 lines above this one, and have been since `85afee8`
+  (2026-08-10): `Spread` is `Balanced`/`Unbalanced`, `TotalLine` is
+  `OneLine`/`TwoNumbers`, `spreadOf`/`totalOf`/`favouriteAgreement` decode them,
+  `src/Scoreboard.fs:171` (`spreadOf`) renders them, `scripts/drift-check.mjs:222`
+  (`spreadOf`) asserts on them, and the `<!-- proof: FS0025 -->` case above is the
+  compiler rejecting a consumer that handles only `OneLine`.
+
+  **This line cost a month.** `docs/CC-CMD-2026-09-11-spread-total-model.md`
+  quotes it as its entire justification — "that is the largest unmodelled
+  surface in the odds layer" — and specifies building what already existed. It
+  was filed 32 days after the work shipped, by a reader who trusted a document's
+  closing summary over its own body.
+
+  What IS still unmodelled, and is the real remainder: neither market carries a
+  price (see above), so there is no implied-probability path for either; and the
+  sentinel reports line SHAPE across the whole slate without reporting which
+  SPORTS carry odds at all.
+
+  The bounded claims above this one stayed true because each names the sample it
+  rests on. This one named nothing, so nothing contradicted it.

@@ -5,8 +5,31 @@
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** C (feature)
 
-**Status:** FILED, not started. Blocked on `guards` being green in this repo.
-Coverage figures below are dated 2026-09-11; re-probe before relying on them.
+**Status:** **SUPERSEDED 2026-09-20 for Task 1; Task 2 remains open.**
+
+Both halves of the original status were false by the time anyone read them.
+`guards` is green (runs 185-187). And **Task 1 was already complete when this
+document was filed** — `85afee8`, 2026-08-10, 32 days earlier: `Spread` is
+`Balanced`/`Unbalanced` and `TotalLine` is `OneLine`/`TwoNumbers` in
+`src/Desk.fs:1230` (`Balanced of homeHandicap`) and `src/Desk.fs:1242`
+(`OneLine of line: float`), decoded by `spreadOf`/`totalOf`, rendered at
+`src/Scoreboard.fs:171` (`spreadOf`), asserted on by `scripts/drift-check.mjs:222`
+(`spreadOf`), and proven by the `<!-- proof: FS0025 -->` case in
+`docs/ODDS-PROOF.md`.
+
+**The CONTEXT section below quotes a line that contradicted its own document.**
+`ODDS-PROOF.md` closed with "nothing about `spread` or `total`, which are decoded
+by nobody" while modelling both 127 lines above it. That line was corrected
+2026-09-20; this document is what it cost.
+
+**Still open, and genuinely absent:** Task 2 — the sentinel reports line SHAPE
+across the whole slate and never reports which SPORTS carry odds. Tasks 0.2 and
+0.3 need live data: no committed capture holds a single `spread` or `total` key,
+and the sandbox cannot reach the worker, so both need a runner.
+
+Coverage figures below are dated 2026-09-11 and were NOT re-probed — the odds
+layer changed on 09-12, 09-14, 09-16 and 09-19. Treat every number in them as
+unverified.
 
 ## CONTEXT
 
