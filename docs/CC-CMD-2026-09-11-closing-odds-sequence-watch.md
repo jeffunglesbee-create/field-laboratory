@@ -4,6 +4,15 @@
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** C (feature — automated verification)
+
+**Status:** SUPERSEDED. `docs/ODDS-PROOF.md` line 225 documents a sentinel that
+already measures odds shape on every run and logs six states
+(`both / not-sequenced / moved / unmoved / single / none`), files an issue only
+when every paired game is `NotASequence`, and closes itself on the first run
+showing a real sequence. This CC-CMD was filed without reading that far. Two
+fragments are worth folding into the existing sentinel if it does not already
+encode them: the criterion must require two DISTINCT probe DATES rather than two
+runs, and `UNCHANGED` must never alarm.
 **Why a CC-CMD:** `scripts/` is not in this repo's WRITE_ALLOWLIST (`docs/`,
 `HANDOFF.md`, `CODE_MAP.json`). Chat cannot edit the sentinel directly.
 
