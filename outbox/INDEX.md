@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f114a9f` | 2026-09-20 | [cc-session-2026-09-20-odds-coverage-census.md](cc-session-2026-09-20-odds-coverage-census.md) | feat: odds coverage census — which SPORTS carry prices, not just which shapes |
+| `f114a9f` | 2026-09-20 | [odds-coverage-series.json](odds-coverage-series.json) | feat: odds coverage census — which SPORTS carry prices, not just which shapes |
+| `d17fd4b` | 2026-09-20 | [2026-09-20-odds-proof-closing-line.md](2026-09-20-odds-proof-closing-line.md) | docs: ODDS-PROOF's closing line contradicted its own body, and cost a month |
 | `4d3f203` | 2026-09-20 | [2026-09-20-ceiling-corrected.md](2026-09-20-ceiling-corrected.md) | fix: the ceiling numbers are corrected in all four places, root first |
 | `d4786ba` | 2026-09-20 | [2026-09-20-ceiling-drift-verdict.md](2026-09-20-ceiling-drift-verdict.md) | docs: the deferred judgement resolves — Ceiling.fs is drift, and the root is the relay |
 | `e6fa282` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: the sweep prints the transcription that makes the other harness green |
