@@ -5,6 +5,9 @@
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** C (feature)
 
+**Status:** FILED, not started. Blocked on `guards` being green in this repo.
+Coverage figures below are dated 2026-09-11; re-probe before relying on them.
+
 ## CONTEXT
 
 `docs/ODDS-PROOF.md` closes with an explicit limit:
