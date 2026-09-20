@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `94f3cac` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: make `<!-- claim: -->` markers executable, and sweep all 18 proof docs |
 | `3207f74` | 2026-09-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-20 [skip ci] |
 | `83a6dde` | 2026-09-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-20 [skip ci] |
 | `32b9570` | 2026-09-19 | [2026-09-19-push-lands-guard.md](2026-09-19-push-lands-guard.md) | docs: field-playground has 68 push loops, not zero |
