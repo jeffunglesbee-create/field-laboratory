@@ -27,12 +27,19 @@ setups ("The part worth keeping"), colon reveals, dramatic fragments,
 superficial analysis, importance puffery, weasel attribution, synonym cycling,
 fake-profound endings.
 
-### Two carve-outs, agreed when adopted
+### Carve-outs
 
 - **Rule 8 applies to chat, not `outbox/`.** Error write-ups are the outbox's
   job and stay at full depth there. Terse in chat, complete in the outbox.
-- **Rule 9 caps prose lists, not measured data.** A 5-item cap would have
-  truncated the workflow-minutes table, and that table was the answer.
+- **Rule 9 no longer needs one.** The carve-out agreed on adoption read: "Rule 9
+  caps prose lists, not measured data — a 5-item cap would have truncated the
+  workflow-minutes table, and that table was the answer." On 2026-09-20 the
+  drift sentinel caught the published skill moving, and the new Rule 9 says the
+  same thing in its own words: *"Never omit relevant items when completeness
+  matters. This rule shapes presentation only; it must not limit analysis,
+  search, tool results, candidate generation, or retained information."*
+  Upstream adopted the exception, so there is nothing local left to except.
+  Recorded rather than deleted because the reason was a measurement.
 
 ## Standing instructions
 
