@@ -116,7 +116,14 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           RED_MAIN_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           RED_MAIN_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          # The run whose jobs carry the SKIP TAIL -- how many steps never ran
+          # behind the red. Empty on the daily backstop and on a manual
+          # dispatch, where there is no triggering run to read; the script
+          # reports the red without a cost rather than reporting a cost of zero.
+          RED_MAIN_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
+          node scripts/run-steps.mjs --self-test
+          node scripts/mutate-run-steps.mjs
           node scripts/red-main-issue.mjs --self-test
           node scripts/red-main-issue.mjs
 

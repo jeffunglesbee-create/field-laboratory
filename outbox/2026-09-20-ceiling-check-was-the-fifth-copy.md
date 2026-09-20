@@ -94,6 +94,7 @@ numbers move again, the four commands above are the proof to re-run.
 
 A check that has not run is not a passing check, and CI reports it the same way
 it reports a check that does not exist. Seven runs of `verify` showed one red
-step and 44 skips; nothing in that summary distinguished "44 checks are fine"
-from "44 checks are unexamined". The first red behind the unblock was a real
+step and 43 skips (corrected from 44, counted by reading rather than measured);
+nothing in that summary distinguished "43 checks are fine" from "43 checks are
+unexamined". The first red behind the unblock was a real
 defect that had been shipped and reported as fixed.

@@ -36,6 +36,7 @@
 
 import { createChecks, isMain } from './checks.mjs'
 import { readVerify } from './status.mjs'
+import { worstFailure, costLine } from './run-steps.mjs'
 
 /// The marker that makes the issue findable again next time. A title can be
 /// edited by a human; this is in the body and is what the lookup matches on.
@@ -147,7 +148,7 @@ export const settle = async (api, repo, marker, want, boundMs = 20000, sleep = m
  *
  * `api` is injected rather than constructed here for the same reason.
  */
-export const run = async ({ api, repo, green, sha, runUrl, failedStep,
+export const run = async ({ api, repo, green, sha, runUrl, failure,
                             marker = MARKER, titlePrefix = '', log = console.log,
                             sleep = ms => new Promise(r => setTimeout(r, ms)) }) => {
   const openIssue = await findOpen(api, repo, marker)
@@ -160,7 +161,7 @@ export const run = async ({ api, repo, green, sha, runUrl, failedStep,
     const made = await api(`/repos/${repo}/issues`, {
       method: 'POST',
       body: JSON.stringify({ title: `${titlePrefix}main is red — verify failed on ${sha.slice(0, 7)}`,
-                             body: body({ sha, runUrl, failedStep, marker }) }),
+                             body: body({ sha, runUrl, failure, marker }) }),
     })
     log(`  opened #${made.number}`)
     // See `settle`: without this the NEXT run reads a list that does not yet
@@ -172,7 +173,12 @@ export const run = async ({ api, repo, green, sha, runUrl, failedStep,
   if (verdict === 'comment') {
     await api(`/repos/${repo}/issues/${openIssue.number}/comments`, {
       method: 'POST',
-      body: JSON.stringify({ body: `Still red on \`${sha.slice(0, 7)}\`.\n\n${runUrl}` }),
+      // THE COST IS REPEATED ON EVERY COMMENT, not stated once when the issue
+      // opened. A red that persists is a bill that grows: seven runs of a
+      // 44-step tail is 308 unexamined step-runs, and a reader scrolling the
+      // thread should see that accumulating rather than infer it.
+      body: JSON.stringify({ body: `Still red on \`${sha.slice(0, 7)}\`.` +
+        (costLine(failure) ? `\n\n${costLine(failure)}` : '') + `\n\n${runUrl}` }),
     })
     log(`  commented on #${openIssue.number}`)
     return { verdict, issue: openIssue }
@@ -237,11 +243,22 @@ export const verdictOf = (v) => {
   return 'unreadable'
 }
 
-/** The issue body, kept to what makes the notification actionable. */
-export const body = ({ sha, runUrl, failedStep, marker = MARKER }) =>
+/**
+ * The issue body, kept to what makes the notification actionable.
+ *
+ * `failure` is run-steps.mjs's summary of the job that failed, and it carries
+ * THE COST: how many steps never ran behind the red. Before 2026-09-20 this
+ * body had a `failedStep` field that no workflow ever populated, so every
+ * sentinel issue said only "verify failed" — while step 25 sat red for seven
+ * runs with forty-four steps skipped behind it, two of them real defects.
+ *
+ * An unreadable run contributes NOTHING here rather than "0 skipped". See
+ * run-steps.mjs on why those are different claims.
+ */
+export const body = ({ sha, runUrl, failure, marker = MARKER }) =>
   `${marker}\n\n` +
   `\`verify\` failed on \`${sha.slice(0, 7)}\`.\n\n` +
-  (failedStep ? `**First failing step:** ${failedStep}\n\n` : '') +
+  (costLine(failure) ? `${costLine(failure)}\n\n` : '') +
   `${runUrl}\n\n` +
   `This issue closes itself when \`verify\` next passes on main. ` +
   `It is opened and closed by \`scripts/red-main-issue.mjs\`; ` +
@@ -311,10 +328,26 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   // The marker has to survive a round trip through the body, or the next run
   // cannot find the issue it just opened and opens another.
   check('the body carries the marker the search looks for',
-    body({ sha: 'abc1234def', runUrl: 'https://x/1', failedStep: 'S' }).includes(MARKER))
+    body({ sha: 'abc1234def', runUrl: 'https://x/1' }).includes(MARKER))
   check('the body names the commit and the run',
     body({ sha: 'abc1234def', runUrl: 'https://x/1' }).includes('abc1234') &&
     body({ sha: 'abc1234def', runUrl: 'https://x/1' }).includes('https://x/1'))
+  // THE COST LINE, in the body rather than only in a log. These four are the
+  // reason this file changed at all.
+  const tail = { failedStep: 'The chrome, measured on the rendered page',
+                 failedNumber: 25, total: 69, skipped: 44, ran: 25 }
+  check('THE SKIP COUNT AND ITS DENOMINATOR REACH THE ISSUE BODY',
+    /44 of 69 steps did not run/.test(body({ sha: 'x', runUrl: 'y', failure: tail })),
+    'seven sentinel issues said only "verify failed" while 44 steps went unexamined each time')
+  check('the body still names the first failing step',
+    body({ sha: 'x', runUrl: 'y', failure: tail }).includes('The chrome, measured on the rendered page'))
+  check('AN UNREADABLE RUN ADDS NOTHING, rather than claiming a clean tail',
+    !/did not run|Nothing was skipped/.test(body({ sha: 'x', runUrl: 'y', failure: null })),
+    '"0 skipped" from a run nobody read is a claim from no data')
+  check('a genuinely empty tail is stated, not left out',
+    /Nothing was skipped behind it/.test(
+      body({ sha: 'x', runUrl: 'y', failure: { failedStep: 'Build', failedNumber: 2, total: 8, skipped: 0, ran: 8 } })))
+
   check('a missing failing step does not render an empty heading',
     !body({ sha: 'abc1234def', runUrl: 'https://x/1' }).includes('First failing step'))
 
@@ -424,7 +457,10 @@ if (isMain(import.meta.url)) {
   const repo = process.env.GITHUB_REPOSITORY
   const sha = process.env.RED_MAIN_SHA || process.env.GITHUB_SHA || ''
   const runUrl = process.env.RED_MAIN_RUN_URL || ''
-  const failedStep = process.env.RED_MAIN_STEP || ''
+  // The run whose steps carry the cost. status.yml passes it on the
+  // workflow_run path; the daily backstop and manual dispatches have no run to
+  // point at, and report no cost rather than a zero one.
+  const runId = process.env.RED_MAIN_RUN_ID || ''
 
   if (!token || !repo) {
     console.log('  no GITHUB_TOKEN or GITHUB_REPOSITORY — nothing to do')
@@ -451,5 +487,23 @@ if (isMain(import.meta.url)) {
     process.exit(0)
   }
 
-  await run({ api: gh(token), repo, green: suite === 'green', sha, runUrl, failedStep })
+  // THE COST, read from the run's own jobs. Wrapped: a failed fetch must not
+  // stop the notification — a red reported without its bill is worth more than
+  // no red reported at all.
+  let failure = null
+  if (runId) {
+    try {
+      const jobs = await gh(token)(`/repos/${repo}/actions/runs/${runId}/jobs?per_page=100`)
+      failure = worstFailure(jobs?.jobs)
+      console.log(failure
+        ? `  cost: ${failure.skipped} of ${failure.total} steps skipped behind "${failure.failedStep}"`
+        : '  cost: no failed job with a named first failing step')
+    } catch (e) {
+      console.log(`  cost: UNREADABLE (${e}) — reporting the red without it`)
+    }
+  } else {
+    console.log('  cost: no run id passed — reporting the red without it')
+  }
+
+  await run({ api: gh(token), repo, green: suite === 'green', sha, runUrl, failure })
 }

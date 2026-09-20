@@ -12,8 +12,16 @@ FAIL  no :hover sits outside a (hover: hover) gate
 24/25 checks passed
 ```
 
-One check, out of twenty-five, in step 25 of a sixty-nine-step job. **Forty-four
-steps were skipped behind it**, every run, since the Verify panel shipped.
+One check, out of twenty-five, in step 25. **Forty-three of the job's
+sixty-eight steps were skipped behind it**, every run, since the Verify panel
+shipped.
+
+> **Corrected 2026-09-20**, later the same day. This paragraph first said
+> "forty-four steps, sixty-nine-step job". Both numbers were counted by reading
+> the run page rather than measured: 69 is the highest step NUMBER, which
+> includes the runner's own `Set up job`, and the tail is 43, not 44.
+> `scripts/run-steps.mjs` now computes both from the API payload — its first
+> output, against this very run, is what found the error.
 
 `.sv-run__button` is the Verify tab's run button, added when that panel was
 built. The rule beside it in the same block — `:focus-visible` — was written
