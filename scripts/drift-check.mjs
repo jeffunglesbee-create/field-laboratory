@@ -63,6 +63,13 @@ const { check, summarize } = createChecks()
 // Committed, because the transition alarm compares against EARLIER PROBED
 // DATES and a series held only in memory can never see a transition at all.
 const SERIES_PATH = 'outbox/odds-coverage-series.json'
+// ONE CLOCK READ, CAPTURED AT THE TOP. Reading the instant inline in the
+// reading below cost this file's two gate rows 30 points each on
+// row-confidence's determinism term, and the rule it broke is the one CI run
+// 31456294086 exists to enforce: a script that reads the clock more than once
+// can straddle a boundary between two of its own lines. Nothing here needs the
+// instant twice.
+const PROBED_AT = new Date().toISOString()
 let coverage = {}
 let coverageAlarms = []
 
@@ -335,7 +342,7 @@ if (decoded) {
   // The series is committed, so the comparison is against real earlier probes
   // rather than against whatever happens to be in memory.
   coverage = censusOf(games, g => sportMeta(g.Sport).Label)
-  const today = { date: payload?.Date ?? '(undecoded)', source, at: new Date().toISOString(), sports: coverage }
+  const today = { date: payload?.Date ?? '(undecoded)', source, at: PROBED_AT, sports: coverage }
   let series = []
   try { series = JSON.parse(readFileSync(SERIES_PATH, 'utf8')) } catch (_) { series = [] }
   coverageAlarms = transitions(series, today)
