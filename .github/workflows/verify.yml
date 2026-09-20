@@ -72,6 +72,54 @@ jobs:
           python3 scripts/mutate-push-lands.py
           python3 scripts/check-push-lands.py
 
+  # Its OWN job, for the reason push-lands above has one: a step buried in the
+  # long `verify` job is skipped whenever an earlier step is red, and a check
+  # that only runs on a green tree cannot report on a broken one. Checkout,
+  # node, three fast runs — about thirty seconds, against a `verify` job that is
+  # roughly three-quarters of this repo's Actions spend.
+  claim-sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # THE SECOND CHECKOUT IS LOAD-BEARING, not convenience. Four of the
+      # fourteen claim markers resolve against constants in field-relay-nba, and
+      # those four are the known-stale controls CEILING-PROOF.md carries. Without
+      # this the sweep reports them UNCHECKABLE and the run looks clean while the
+      # only markers anyone knew were wrong go unexamined.
+      #
+      # A read-only checkout of a public repo, pinned to nothing: the claim is
+      # about the CURRENT relay, so a pinned ref would re-create the staleness
+      # this whole harness detects.
+      - uses: actions/checkout@v4
+        with:
+          repository: jeffunglesbee-create/field-relay-nba
+          path: .relay-src
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Rule 90 order: the mutation harness runs BEFORE the sweep, so a
+      # classifier that cannot be made to fail never gets to produce a verdict.
+      - name: The claim harness can be made to fail
+        run: |
+          node scripts/claim-check.mjs --self-test
+          node scripts/mutate-claim-check.mjs
+
+      # Neither of these fails the build. STALE is a finding for a human —
+      # rewriting a proof doc's numbers is a judgement about what the doc is
+      # arguing, and that is a separate decision from detecting the drift.
+      # UNDATED likewise. A red nobody is permitted to fix is a red everyone
+      # learns to skip.
+      - name: Claim sweep
+        env:
+          RELAY_SRC: .relay-src
+        run: node scripts/claim-check.mjs
+
+      - name: Present-tense production premises
+        run: node scripts/claim-check.mjs --premises
+
   verify:
     runs-on: ubuntu-latest
     steps:
