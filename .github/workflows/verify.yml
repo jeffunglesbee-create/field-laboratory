@@ -177,6 +177,15 @@ jobs:
             exit 1
           fi
 
+      # Rule 90 order: the coverage census and its transition alarm are wired
+      # into drift-check below and into drift-sentinel's live run, so the
+      # mutation harness runs FIRST. An alarm that cannot be made to fire is
+      # indistinguishable from a slate that never lost odds.
+      - name: The odds-coverage census can be made to fail
+        run: |
+          node scripts/odds-coverage.mjs --self-test
+          node scripts/mutate-odds-coverage.mjs
+
       - name: Decoders accept the real captures
         run: |
           node scripts/drift-check.mjs --file data/context-2026-05-15.json

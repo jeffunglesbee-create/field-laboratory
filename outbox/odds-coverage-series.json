@@ -1,0 +1,113 @@
+[
+  {
+    "date": "2026-08-29",
+    "source": "data/context-2026-08-29.json",
+    "at": "2026-09-20T20:08:46.426Z",
+    "sports": {
+      "MLS": {
+        "rows": 28,
+        "withOdds": 26,
+        "withDraw": 26
+      },
+      "MLB": {
+        "rows": 15,
+        "withOdds": 14,
+        "withDraw": 0
+      },
+      "WNBA": {
+        "rows": 2,
+        "withOdds": 2,
+        "withDraw": 0
+      },
+      "EPL": {
+        "rows": 4,
+        "withOdds": 4,
+        "withDraw": 4
+      },
+      "La Liga": {
+        "rows": 3,
+        "withOdds": 3,
+        "withDraw": 3
+      },
+      "Serie A": {
+        "rows": 4,
+        "withOdds": 4,
+        "withDraw": 4
+      },
+      "Bundesliga": {
+        "rows": 6,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "Ligue 1": {
+        "rows": 5,
+        "withOdds": 3,
+        "withDraw": 3
+      },
+      "NFL": {
+        "rows": 2,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 8,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFL": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    },
+    "seed": true
+  },
+  {
+    "date": "2026-09-05",
+    "source": "data/context-2026-09-05.json",
+    "at": "2026-09-20T20:08:46.557Z",
+    "sports": {
+      "MLS": {
+        "rows": 21,
+        "withOdds": 18,
+        "withDraw": 18
+      },
+      "MLB": {
+        "rows": 15,
+        "withOdds": 14,
+        "withDraw": 0
+      },
+      "EPL": {
+        "rows": 7,
+        "withOdds": 6,
+        "withDraw": 6
+      },
+      "La Liga": {
+        "rows": 3,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "Serie A": {
+        "rows": 3,
+        "withOdds": 2,
+        "withDraw": 2
+      },
+      "Bundesliga": {
+        "rows": 6,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "Ligue 1": {
+        "rows": 3,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 68,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    },
+    "seed": true
+  }
+]
