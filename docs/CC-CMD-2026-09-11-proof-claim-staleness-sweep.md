@@ -1,5 +1,16 @@
 # Claude Code Command — Make `<!-- claim: -->` markers executable, and sweep all 18 proof docs
 
+**Status:** **CLOSED 2026-09-20** (`94f3cac`). All four done conditions met:
+the marker inventory is 14 across 5 docs (this document names 3 of the 4
+`ceiling.*` markers and does not mention `JLAYER-PLAN.md`); the sweep table is in
+`outbox/cc-session-2026-09-20-proof-claim-staleness-sweep.md`; the three
+`ceiling.*` controls report **STALE** — as does a fourth, `ceiling.nominal`, and
+`sports.modelled`; and `Desk.fs:1369` appears in the Task 3 list as UNDATED.
+Harness: `scripts/claim-check.mjs` (17/17 self-test, 8/8 mutations), wired as
+`verify.yml`'s `claim-sweep` job, green in CI run 312. No stale doc was fixed —
+that was Task 2's instruction and remains an open judgement about what each
+document is arguing.
+
 **Date:** 2026-09-11
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR

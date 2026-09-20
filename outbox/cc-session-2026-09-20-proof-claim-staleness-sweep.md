@@ -235,6 +235,50 @@ to exit **matched itself** — its own command line contained the pgrep pattern 
 so it could never terminate. The only real process left by then was a dev
 server.
 
+## Two things found after the commit, both pre-existing
+
+**1. `verify`'s main job has been RED for at least six consecutive runs,
+failing at the same step.** Not caused by this work — run 311 (`cbd6b4d`,
+2026-09-19) and run 312 (`94f3cac`, this commit) both fail at
+
+```
+step 24  The chrome, measured on the rendered page   FAILURE
+step 25-68                                           SKIPPED
+```
+
+Forty-three checks are skipped behind it, including *"Every claim a document
+makes is still true"*, *"No script a workflow depends on became unreachable"*
+and *"Importing a module never runs it"*.
+
+**That is the argument for `claim-sweep` being its own job, now demonstrated
+rather than asserted.** Had the sweep been a step inside `verify`, it would have
+been skipped on this very commit and reported nothing — the same shape as the
+push-lands guard wired at step 46 of a job whose step 24 was already red, which
+this repo fixed four days ago.
+
+Not fixed here: it is a rendering failure in a different subsystem, outside this
+CC-CMD, and diagnosing it is its own task.
+
+**2. Six CC-CMDs carried no `**Status:**` line**, which
+`scripts/cc-cmd-status-check.mjs` has been red on. That check exists because a
+session once read a stale "open" and rebuilt work that had already shipped —
+reintroducing two bugs the original had been corrected for one day earlier.
+
+The one this session executed now carries `**Status:** **CLOSED 2026-09-20**`
+with its four met done conditions, so 6 → 5.
+
+**The remaining five are deliberately untouched.** Inventing a status for a
+document whose state I have not verified is precisely the "claim with no
+verification" failure this whole session is about. They are listed, not fixed:
+
+```
+CC-CMD-2026-09-07-readme-token-claim-correction.md
+CC-CMD-2026-09-11-closing-odds-sequence-watch.md
+CC-CMD-2026-09-11-epl-forecaster-phase1.md
+CC-CMD-2026-09-11-spread-total-model.md
+CC-CMD-2026-09-12-odds-models-unverified.md
+```
+
 ## Automation
 
 `verify.yml` gains a `claim-sweep` job — its own job, for the reason
