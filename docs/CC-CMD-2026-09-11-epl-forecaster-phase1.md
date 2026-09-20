@@ -10,6 +10,10 @@ market-implied one. **Rule A (autonomous push) is NOT cleared** and is out of
 scope — pull-only, rendered on request. If the design drifts toward notification
 or badge-on-change, stop and report.
 
+**Status:** FILED, not started. Blocked on `guards` being green in this repo.
+Substrate figures below were probed 2026-09-11; today is 2026-09-19 and the odds
+layer changed on 09-12, 09-14, 09-16 and 09-19 — re-probe before building.
+
 > **Note on this document.** It was revised five times as probes came back and
 > was left self-contradictory; this is a coherent rewrite. Where an earlier
 > revision is retracted, the retraction is stated rather than silently removed.
