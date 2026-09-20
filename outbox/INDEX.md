@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4d3f203` | 2026-09-20 | [2026-09-20-ceiling-corrected.md](2026-09-20-ceiling-corrected.md) | fix: the ceiling numbers are corrected in all four places, root first |
+| `d4786ba` | 2026-09-20 | [2026-09-20-ceiling-drift-verdict.md](2026-09-20-ceiling-drift-verdict.md) | docs: the deferred judgement resolves — Ceiling.fs is drift, and the root is the relay |
 | `e6fa282` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: the sweep prints the transcription that makes the other harness green |
 | `9cc450d` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: correct the record — a claim harness already existed, and it is green-but-wrong |
 | `e37ec54` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: close the staleness-sweep CC-CMD, and record two pre-existing reds |
