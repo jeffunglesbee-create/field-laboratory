@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `950dcd8` | 2026-09-20 | [2026-09-20-verify-red-25-ungated-hover.md](2026-09-20-verify-red-25-ungated-hover.md) | fix: one ungated :hover held 44 verify steps hostage for seven runs |
 | `f114a9f` | 2026-09-20 | [cc-session-2026-09-20-odds-coverage-census.md](cc-session-2026-09-20-odds-coverage-census.md) | feat: odds coverage census — which SPORTS carry prices, not just which shapes |
 | `f114a9f` | 2026-09-20 | [odds-coverage-series.json](odds-coverage-series.json) | feat: odds coverage census — which SPORTS carry prices, not just which shapes |
 | `d17fd4b` | 2026-09-20 | [2026-09-20-odds-proof-closing-line.md](2026-09-20-odds-proof-closing-line.md) | docs: ODDS-PROOF's closing line contradicted its own body, and cost a month |
