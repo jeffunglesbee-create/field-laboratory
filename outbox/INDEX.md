@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7ddda3b` | 2026-09-20 | [2026-09-20-drift-check-clock-read.md](2026-09-20-drift-check-clock-read.md) | fix: the census read the clock inline, costing two gate rows 30 points each |
 | `19c55a1` | 2026-09-20 | [2026-09-20-ceiling-check-was-the-fifth-copy.md](2026-09-20-ceiling-check-was-the-fifth-copy.md) | fix: ceiling-check.mjs was the fifth copy, and went red the moment it could run |
 | `950dcd8` | 2026-09-20 | [2026-09-20-verify-red-25-ungated-hover.md](2026-09-20-verify-red-25-ungated-hover.md) | fix: one ungated :hover held 44 verify steps hostage for seven runs |
 | `f114a9f` | 2026-09-20 | [cc-session-2026-09-20-odds-coverage-census.md](cc-session-2026-09-20-odds-coverage-census.md) | feat: odds coverage census — which SPORTS carry prices, not just which shapes |
