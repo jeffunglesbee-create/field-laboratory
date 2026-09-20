@@ -1,34 +1,52 @@
 # CEILING-PROOF — a bar from one scale cannot judge a score from another
 
-`src/Ceiling.fs` claims that applying a threshold decided against a 300-point
-rubric to a scorer that tops out at 245 cannot be written in F#. This document
+`src/Ceiling.fs` claims that applying a threshold decided against a 294-point
+rubric to a scorer that tops out at 252 cannot be written in F#. This document
 is that claim compiled.
 
 Every case below is injected into a real source file and built by
 `scripts/proof-check.mjs`. A case passes only if the build **fails** with the
 stated error code.
 
-<!-- claim: ceiling.nominal = 300 -->
-<!-- claim: ceiling.relayReachable = 245 -->
-<!-- claim: ceiling.unreachable = 55 -->
-<!-- claim: ceiling.flatBarPctOfReachable = 97.96 -->
+<!-- claim: ceiling.nominal = 294 -->
+<!-- claim: ceiling.relayReachable = 252 -->
+<!-- claim: ceiling.unreachable = 42 -->
+<!-- claim: ceiling.flatBarPctOfReachable = 95.24 -->
 
 ## The defect, stated once
 
-`field-relay-nba/src/journalism-quality.js` documents its own reachable total:
+`field-relay-nba/src/journalism-quality.js` **derives** its own reachable total.
+`SLATE_CAPS` asks each game-dependent dimension what it returns with no game,
+and `REACHABLE_CEILING` sums `SCALE` with those caps substituted:
 
+```js
+export const SLATE_CAPS = {
+  ctx: 0,
+  margin:   marginAgreement(_NO_TEXT, null).score,     // 15 of 30
+  finality: finalityAgreement(_NO_TEXT, null).score,   // 10 of 20
+};
+export const REACHABLE_CEILING = Object.entries(SCALE)
+  .reduce((a, [k, v]) => a + (k in SLATE_CAPS ? SLATE_CAPS[k] : v), 0);
 ```
-// Worker runtime: no localStorage, no DOM, game object not available (relay
-// scores without game context — Dims 7/10 return N/A, ceiling reduces to 245)
-```
+
+Evaluated 2026-09-20: `NOMINAL_TOTAL` 294, `REACHABLE_CEILING` 252. So 42 points
+are out of reach without a game — `ctx` outright, `margin` and `finality` by
+abstaining at their midpoints.
+
+**This section used to quote a comment instead**, and the comment said
+"Dims 7/10 return N/A, ceiling reduces to 245". It sat six lines above the
+derivation that replaced it and was never updated; `src/Ceiling.fs` transcribed
+it, this document quoted `src/Ceiling.fs`, and `docs-check.mjs` compared the two
+copies and passed. The relay's comment was corrected 2026-09-20 (relay
+`1334b9d`) and now names the derivation rather than a number.
 
 `/quality/report` applies a flat bar of 240. Measured 2026-08-15 over the
 preceding seven days: `above_240` was **0** on all 25 brief_type/sport rows,
 `below_flat_240_pct` was **100** on all 10 alerts, and the best brief scored
 **230**.
 
-240 is 80% of 300. It is **97.96%** of 245. In JavaScript both are `number`, the
-comparison `score >= 240` is ordinary arithmetic, and nothing objects.
+240 is 81.6% of 294. It is **95.24%** of 252. In JavaScript both are `number`,
+the comparison `score >= 240` is ordinary arithmetic, and nothing objects.
 
 ### A score cannot be judged by a threshold from another scale
 
@@ -60,8 +78,8 @@ what makes "we always used 240" an insufficient defence.
 
 ### A fraction of one scale is not a fraction of another
 
-`atFraction` takes the scale, so "80%" resolves to 240 points on the nominal
-scale and 196 on the relay's. The bar cannot be carried across by writing the
+`atFraction` takes the scale, so "80%" resolves to 235 points on the nominal
+scale and 202 on the relay's. The bar cannot be carried across by writing the
 number down.
 
 <!-- proof: FS0001 -->
@@ -76,7 +94,7 @@ number down.
 ### The scale's maximum cannot be edited around
 
 `Scale` has private fields, so a caller cannot quietly restate the ceiling as
-300 to make the bar look reasonable.
+294 to make the bar look reasonable.
 
 <!-- proof: FS1093 -->
 
@@ -103,7 +121,7 @@ carries no scale and cannot be compared.
 scale — is the right editorial standard is a judgement about journalism, and no
 type decides it. This module makes the scale explicit; it does not pick one.
 
-**That 240 is unreachable in principle.** It is 5 points below a 245 ceiling, so
+**That 240 is unreachable in principle.** It is 12 points below a 252 ceiling, so
 it is reachable arithmetically. The measurement says no brief in seven days came
 within 10 points of it, across 25 brief_type/sport combinations. Those are
 different claims and only the second is established here.

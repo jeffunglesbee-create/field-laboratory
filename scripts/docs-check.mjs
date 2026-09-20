@@ -121,12 +121,35 @@ const CLAIMS = {
 
 const CLAIM_RE = /<!--\s*claim:\s*([A-Za-z0-9._]+)\s*=\s*([-\d.]+)\s*-->/g
 
+/**
+ * A marker inside a FENCED BLOCK is a quotation, not an assertion, and a
+ * CC-CMD quoting one is describing it rather than claiming it.
+ *
+ * Added 2026-09-20, when it bit. CC-CMD-2026-09-11 specifies a staleness sweep
+ * and quotes seven markers as examples of what had gone stale. Correcting the
+ * real markers in CEILING-PROOF.md left those quotations behind, and this
+ * script read them as live claims and failed — reporting a document as untrue
+ * for accurately recording what used to be true.
+ *
+ * scripts/claim-check.mjs made both exclusions from the start and is the reason
+ * this was diagnosable in one read rather than mistaken for a bad correction.
+ */
+const stripFenced = text => {
+  const out = []
+  let fenced = false
+  for (const line of text.split('\n')) {
+    if (/^\s*(```|~~~)/.test(line)) { fenced = !fenced; continue }
+    out.push(fenced ? '' : line)
+  }
+  return out.join('\n')
+}
+
 /** Every `<!-- claim: id = value -->` in a directory of markdown. */
 const claimsIn = dir =>
   readdirSync(dir)
-    .filter(f => f.endsWith('.md'))
+    .filter(f => f.endsWith('.md') && !f.startsWith('CC-CMD-'))
     .flatMap(f => {
-      const text = readFileSync(join(dir, f), 'utf8')
+      const text = stripFenced(readFileSync(join(dir, f), 'utf8'))
       return [...text.matchAll(CLAIM_RE)].map(m => ({
         file: `${dir}/${f}`, id: m[1], stated: Number(m[2]),
       }))
