@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `487e97a` | 2026-09-21 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
+| `487e97a` | 2026-09-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
+| `487e97a` | 2026-09-21 | [sport-vocabulary-2026-09-21T01-59-00-425Z.json](sport-vocabulary-2026-09-21T01-59-00-425Z.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
+| `5972399` | 2026-09-21 | [2026-09-21-the-collapse-alarm-is-a-transition.md](2026-09-21-the-collapse-alarm-is-a-transition.md) | fix: the collapse alarm fires on the transition, not every day it persists |
 | `e12b7a1` | 2026-09-21 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
 | `e12b7a1` | 2026-09-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
 | `e12b7a1` | 2026-09-21 | [sport-vocabulary-2026-09-21T01-51-13-820Z.json](sport-vocabulary-2026-09-21T01-51-13-820Z.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |

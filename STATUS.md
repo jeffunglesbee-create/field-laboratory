@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `19927f0` — but that is not `main` HEAD
+**running** on `5972399`
 
 ## Is the live artifact healthy?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `0fc1fe3` — behind newest deployable `b53e278` (deploy not landed) |
+| Cloudflare Workers | live | `0fc1fe3` — behind newest deployable `5972399` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`favourite-mismatch` on 2026-09-20 — 75 games, 0 malformed (105 runs logged)
+`favourite-mismatch` on 2026-09-20 — 75 games, 0 malformed (106 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
