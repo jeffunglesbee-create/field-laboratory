@@ -149,8 +149,23 @@ export const alarmLine = a =>
   `now ${a.nowWithOdds}/${a.nowRows} ` +
   `(${Math.round(rate({ withOdds: a.nowWithOdds, rows: a.nowRows }) * 100)}%)`
 
-/** Append `current`, replacing any reading for the same date, keeping `keep`. */
+/**
+ * Append `current`, replacing any reading for the same date, keeping `keep`.
+ *
+ * A PROBE THAT SAW NO SPORT IS NOT A READING. It is UNCHECKABLE — the third
+ * state, which is not zero. `vacuousReadings()` was written to NAME such a
+ * reading once it is committed; this is the other half, which stops one being
+ * committed at all. Measured 2026-09-21: the 06:37 UTC sentinel run probed the
+ * same day's slate before the relay had created it, got `sports: {}`, printed
+ * `ok`, and committed the empty reading (9cb4c34). `transitions()` cannot fire
+ * on it, so the history grew a row that looks like a measurement and is not.
+ *
+ * Returning the series UNCHANGED is the point: nothing was learned, so nothing
+ * is recorded, and the previous reading for that date — if one exists — is not
+ * overwritten by the absence of one.
+ */
 export function mergeSeries(series, current, keep = 60) {
+  if (!current || Object.keys(current.sports ?? {}).length === 0) return series ?? []
   const rest = (series ?? []).filter(r => r && r.date !== current.date)
   return [...rest, current].sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(-keep)
 }
@@ -279,7 +294,15 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('a re-probe of the same date REPLACES rather than duplicates',
     merged.length === 2 && JSON.stringify(merged[1].sports) === '{"b":2}', JSON.stringify(merged))
   check('the series stays sorted by date',
-    mergeSeries([{ date: '2026-09-10', sports: {} }], { date: '2026-09-01', sports: {} })[0].date === '2026-09-01')
+    mergeSeries([{ date: '2026-09-10', sports: { a: 1 } }], { date: '2026-09-01', sports: { b: 2 } })[0].date === '2026-09-01')
+
+  check('A PROBE THAT SAW NO SPORT IS NOT RECORDED',
+    mergeSeries([{ date: '2026-09-10', sports: { a: 1 } }], { date: '2026-09-21', sports: {} }).length === 1,
+    'the 06:37 UTC run on 2026-09-21 probed the day before its slate existed and committed sports:{}')
+  check('an empty probe does not overwrite the reading already held for that date',
+    JSON.stringify(mergeSeries([{ date: '2026-09-10', sports: { a: 1 } }], { date: '2026-09-10', sports: {} })) ===
+      JSON.stringify([{ date: '2026-09-10', sports: { a: 1 } }]),
+    'replacing a real reading with an absence is worse than recording one')
 
   check('A COMMITTED READING WITH NO SPORTS IS NAMED, not silently ignored',
     JSON.stringify(vacuousReadings([{ date: '2026-08-29', sports: {} }, { date: '2026-09-05', sports: { MLB: {} } }])) === '["2026-08-29"]',

@@ -90,6 +90,16 @@ const MUTATIONS = [
    "    .filter(r => r && Object.keys(r.sports ?? {}).length === 0)",
    "    .filter(r => false)",
    'THE DEFECT THIS WAS WRITTEN FROM: the committed seed carried sports:{} for both dates, so the alarm had nothing to compare against and printed PASS over a history incapable of failing'],
+
+  ['O14 AN EMPTY PROBE IS RECORDED AS A READING',
+   "  if (!current || Object.keys(current.sports ?? {}).length === 0) return series ?? []",
+   "  if (false) return series ?? []",
+   'the other half of O7: 9cb4c34 committed sports:{} from the 06:37 UTC run because the slate did not exist yet, and every such run adds a row that looks like a measurement of zero coverage and is a measurement of nothing'],
+
+  ['O15 an empty probe OVERWRITES the real reading held for that date',
+   "  if (!current || Object.keys(current.sports ?? {}).length === 0) return series ?? []",
+   "  if (!current) return series ?? []",
+   'a second run on a date already probed would replace 11 sports with none, destroying the reading the alarm compares against — worse than never probing'],
 ]
 
 const original = readFileSync(F, 'utf8')

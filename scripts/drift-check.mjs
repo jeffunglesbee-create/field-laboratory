@@ -86,7 +86,7 @@ let unmodelled = []
 let declaredUnmodelled = []
 let vocabulary = []
 let oddsShape = { withBoth: 0, notSequenced: 0, moved: 0, unmoved: 0, single: 0, none: 0 }
-let lineShape = { spreads: 0, unbalanced: 0, pickem: 0, oneSided: 0, priced: 0, unpriced: 0, halfPriced: 0, totals: 0, split: 0, compared: 0, mismatched: 0 }
+let lineShape = { spreads: 0, unbalanced: 0, pickem: 0, oneSided: 0, emptySpread: 0, priced: 0, unpriced: 0, halfPriced: 0, totals: 0, split: 0, oneSidedTotal: 0, emptyTotal: 0, compared: 0, mismatched: 0 }
 let mismatchDetail = []
 let sections = []
 let deskFill = { note: 0, local_note: 0, crew: 0, tags: 0, tagsMalformed: 0 }
@@ -214,12 +214,17 @@ if (decoded) {
   //
   // THESE ORDINALS ARE A TRANSCRIPTION of a union declared in another language,
   // which is the copy-of-the-source shape this repo keeps finding. They were
-  // re-read from `build/Desk.js` on 2026-09-21 when PickEm and OneSidedSpread
-  // were appended — Balanced and Unbalanced are still 0 and 1, because new
-  // cases go on the END. Inserting one at the top would silently re-label every
-  // count this sentinel has ever written to the drift log.
-  const SPREAD = { Balanced: 0, Unbalanced: 1, PickEm: 2, OneSidedSpread: 3 }
-  const TOTAL = { OneLine: 0, TwoNumbers: 1 }
+  // re-read from `build/Desk.js` on 2026-09-21 when EmptySpread, EmptyTotal and
+  // OneSidedTotal were appended — Balanced and Unbalanced are still 0 and 1,
+  // because new cases go on the END. Inserting one at the top would silently
+  // re-label every count this sentinel has ever written to the drift log.
+  //
+  // `EmptyTotal` is 2 and `OneSidedTotal` is 3, which is NOT the order they
+  // read in Desk.fs's prose: EmptyTotal was appended first and OneSidedTotal
+  // after it. Transcribing the comment order instead of the compiled tag table
+  // would have swapped them. Read from `build/Desk.js:1269`.
+  const SPREAD = { Balanced: 0, Unbalanced: 1, PickEm: 2, OneSidedSpread: 3, EmptySpread: 4 }
+  const TOTAL = { OneLine: 0, TwoNumbers: 1, EmptyTotal: 2, OneSidedTotal: 3 }
   const PRICING = { BothPriced: 0, NeitherPriced: 1, OnlyOnePriced: 2 }
   const AGREE = { Agrees: 0, Disagrees: 1, NotComparable: 2 }
   for (const g of games) {
@@ -232,16 +237,26 @@ if (decoded) {
         if (sp.tag === SPREAD.Unbalanced) lineShape.unbalanced += 1
         if (sp.tag === SPREAD.PickEm) lineShape.pickem += 1
         if (sp.tag === SPREAD.OneSidedSpread) lineShape.oneSided += 1
-        // The price beside the handicap, counted only where there is one.
-        const pr = spreadPricingOf(o)
-        if (pr.tag === PRICING.BothPriced) lineShape.priced += 1
-        if (pr.tag === PRICING.NeitherPriced) lineShape.unpriced += 1
-        if (pr.tag === PRICING.OnlyOnePriced) lineShape.halfPriced += 1
+        if (sp.tag === SPREAD.EmptySpread) lineShape.emptySpread += 1
+        // The price beside the handicap, counted only where there is one —
+        // and an EMPTY spread key is not one. Without this guard the single
+        // `{"home":null,"away":null}` row on 2026-08-29 lands in `unpriced`
+        // alongside five rows that carry a real handicap and no price, which
+        // is the same two-facts-one-number collapse `EmptySpread` was added to
+        // end, reappearing one field over. `emptySpread` is its own count.
+        if (sp.tag !== SPREAD.EmptySpread) {
+          const pr = spreadPricingOf(o)
+          if (pr.tag === PRICING.BothPriced) lineShape.priced += 1
+          if (pr.tag === PRICING.NeitherPriced) lineShape.unpriced += 1
+          if (pr.tag === PRICING.OnlyOnePriced) lineShape.halfPriced += 1
+        }
       }
       const tl = totalOf(o)
       if (tl != null) {
         lineShape.totals += 1
         if (tl.tag === TOTAL.TwoNumbers) lineShape.split += 1
+        if (tl.tag === TOTAL.OneSidedTotal) lineShape.oneSidedTotal += 1
+        if (tl.tag === TOTAL.EmptyTotal) lineShape.emptyTotal += 1
       }
       const ag = favouriteAgreement(o)
       if (ag.tag !== AGREE.NotComparable) {
@@ -364,7 +379,14 @@ if (decoded) {
   // the alarm reads — including by replaying a capture whose sports differ from
   // today's. The two committed captures were seeded deliberately, once, and are
   // marked `seed` in the file, and were written by `--file … --seed`.
+  //
+  // AND AN EMPTY PROBE WRITES NOTHING — `mergeSeries` refuses it. Said out loud
+  // here, because a run that silently records nothing and a run that records a
+  // reading look identical in the log otherwise, and the 06:37 UTC run on
+  // 2026-09-21 spent a probe on a slate the relay had not built yet.
   if (url || seed) {
+    if (Object.keys(coverage).length === 0)
+      console.log(`coverage: NOT RECORDED — the probe saw no sport on ${today.date}; unread, not zero`)
     try { writeFileSync(SERIES_PATH, JSON.stringify(mergeSeries(series, { ...today, seed: seed || undefined }), null, 2) + '\n') } catch (_) {}
   }
 
@@ -406,8 +428,8 @@ console.log(`keying:   ${[...keying.entries()].sort().map(([k, n]) => `${k}=${n}
 if (keyingExamples.length) for (const e of keyingExamples.slice(0, 8)) console.log(`  ${e}`)
 console.log(`desk:     note=${deskFill.note} local_note=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags} of ${games.length} games`)
 console.log(`sections: ${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ') || '—'}`)
-console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbalanced} pickem=${lineShape.pickem} one-sided=${lineShape.oneSided} totals=${lineShape.totals} split=${lineShape.split} favourite-compared=${lineShape.compared} mismatched=${lineShape.mismatched}`)
-console.log(`pricing:  priced=${lineShape.priced} unpriced=${lineShape.unpriced} half-priced=${lineShape.halfPriced}  (of ${lineShape.spreads} spread(s))`)
+console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbalanced} pickem=${lineShape.pickem} one-sided=${lineShape.oneSided} empty-key=${lineShape.emptySpread} totals=${lineShape.totals} split=${lineShape.split} total-one-sided=${lineShape.oneSidedTotal} total-empty-key=${lineShape.emptyTotal} favourite-compared=${lineShape.compared} mismatched=${lineShape.mismatched}`)
+console.log(`pricing:  priced=${lineShape.priced} unpriced=${lineShape.unpriced} half-priced=${lineShape.halfPriced}  (of ${lineShape.spreads - lineShape.emptySpread} priceable spread(s); ${lineShape.emptySpread} empty key(s) excluded)`)
 console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
 console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
 console.log(`coverage: ${Object.entries(coverage).sort().map(([k, v]) => `${k}=${v.withOdds}/${v.rows}${v.withDraw ? `(draw ${v.withDraw})` : ''}`).join(' ') || '—'}`)
@@ -455,7 +477,7 @@ const odds = `both=${oddsShape.withBoth} notseq=${oddsShape.notSequenced} moved=
 // questions only observation can answer.
 const cov = Object.entries(coverage).sort()
   .map(([k, v]) => `${k}:${v.withOdds}/${v.rows}${v.withDraw ? `d${v.withDraw}` : ''}`).join(' ')
-const lines = `spreads=${lineShape.spreads} unbal=${lineShape.unbalanced} pickem=${lineShape.pickem} onesided=${lineShape.oneSided} priced=${lineShape.priced} unpriced=${lineShape.unpriced} halfpriced=${lineShape.halfPriced} totals=${lineShape.totals} split=${lineShape.split} mismatch=${lineShape.mismatched}`
+const lines = `spreads=${lineShape.spreads} unbal=${lineShape.unbalanced} pickem=${lineShape.pickem} onesided=${lineShape.oneSided} emptyspread=${lineShape.emptySpread} priced=${lineShape.priced} unpriced=${lineShape.unpriced} halfpriced=${lineShape.halfPriced} totals=${lineShape.totals} split=${lineShape.split} onesidedtotal=${lineShape.oneSidedTotal} emptytotal=${lineShape.emptyTotal} mismatch=${lineShape.mismatched}`
 console.log(`RESULT|${source}|${status}|${games.length}|${malformed.length}|${note}|${sports}|${odds}|${lines}|cov=${cov}|${sections.map(s => `${s.name}=${s.state}${s.n ? `(${s.n})` : ''}`).join(' ')}|note=${deskFill.note} local=${deskFill.local_note} crew=${deskFill.crew} tags=${deskFill.tags}/${games.length}|${[...keying.entries()].sort().map(([k, n]) => `${k}=${n}`).join(' ')}`)
 
 process.exit(failures === 0 ? 0 : 1)

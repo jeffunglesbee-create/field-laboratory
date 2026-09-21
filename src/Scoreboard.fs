@@ -178,18 +178,32 @@ let private linesText (o: Odds) =
         | Some (OneSidedSpread(Some h, None)) -> sprintf " · SPREAD HOME ONLY (%+.1f)" h
         | Some (OneSidedSpread(None, Some a)) -> sprintf " · SPREAD AWAY ONLY (%+.1f)" a
         | Some (OneSidedSpread(_, _)) -> " · SPREAD MALFORMED"
+        // THE KEY WAS SERVED EMPTY. Not the same card as no spread at all
+        // (which is the `None` above and prints nothing), because the relay
+        // sending `{"home":null,"away":null}` is a fact about the relay.
+        | Some EmptySpread -> " · SPREAD KEY EMPTY"
     let total =
         match totalOf o with
         | None -> ""
         | Some (OneLine line) -> sprintf " · O/U %.1f" line
         | Some (TwoNumbers(over, under)) -> sprintf " · TOTAL SPLIT (%.1f / %.1f)" over under
+        | Some (OneSidedTotal(Some over, None)) -> sprintf " · TOTAL OVER ONLY (%.1f)" over
+        | Some (OneSidedTotal(None, Some under)) -> sprintf " · TOTAL UNDER ONLY (%.1f)" under
+        | Some (OneSidedTotal(_, _)) -> " · TOTAL MALFORMED"
+        | Some EmptyTotal -> " · TOTAL KEY EMPTY"
     // THE PRICE BESIDE THE HANDICAP, and only where there IS a handicap: a
     // price with no line to price is not a market, and `NeitherPriced` is the
-    // ordinary older shape (6 of 36 in the committed captures), not an anomaly
-    // to shout about.
+    // ordinary older shape (5 of 36 in the committed captures — corrected from
+    // 6 on 2026-09-21: the sixth is the `{"home":null,"away":null}` row, which
+    // is `EmptySpread` and reaches the branch above, not this one), not an
+    // anomaly to shout about.
     let pricing =
         match spreadOf o, spreadPricingOf o with
         | None, _ -> ""
+        // AN EMPTY KEY IS NOT A HANDICAP EITHER. `NeitherPriced` would print
+        // nothing here anyway on today's data; this branch is what makes that
+        // silence a decision rather than an accident of the observed shape.
+        | Some EmptySpread, _ -> ""
         | Some _, BothPriced(h, a) -> sprintf " (%+.0f / %+.0f)" h a
         | Some _, NeitherPriced -> ""
         | Some _, OnlyOnePriced(_, _) -> " · SPREAD PRICED ONE SIDE"

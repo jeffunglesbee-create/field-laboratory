@@ -258,8 +258,15 @@ const MUTATIONS = [
     id: 'ceiling-restated-as-nominal',
     file: 'src/Ceiling.fs',
     claim: 'the quality bar is measured against what the scorer can reach, not the rubric total',
-    find: '    { Max = 245<point>; Name = "relay',
-    replace: '    { Max = 300<point>; Name = "relay',
+    // RE-ANCHORED 2026-09-21. The anchor read `Max = 245` and `4d3f203`
+    // corrected the ceilings to 294 nominal / 252 relay, so it matched NOTHING
+    // and the row reported a failure rather than a verdict — which is the
+    // harness behaving correctly (Rule 90's corollary: NOT CAUGHT with no
+    // mutation applied is worse than no test) and the anchor being stale. The
+    // replacement is the nominal ceiling, which is what "the rubric total"
+    // now means.
+    find: '    { Max = 252<point>; Name = "relay',
+    replace: '    { Max = 294<point>; Name = "relay',
     expect: 'node scripts/ceiling-check.mjs',
   },
   {

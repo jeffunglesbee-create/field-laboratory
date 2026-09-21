@@ -157,7 +157,15 @@ type Odds =
       SpreadHomePrice: float option
       SpreadAwayPrice: float option
       TotalOver: float option
-      TotalUnder: float option }
+      TotalUnder: float option
+      // WHETHER THE KEY WAS THERE AT ALL, which the four `float option`s above
+      // cannot say. `spread: {"home":null,"away":null}` and no `spread` key
+      // produce identical Nones, and `EPL_2026-08-29_bournemouth_everton`
+      // `closing_odds` carries exactly the first. Measured 2026-09-21 by
+      // cross-checking `scripts/odds-shape-census.mjs` (18 spread keys on that
+      // slate) against `spreadOf` (17) — the disagreement WAS the finding.
+      SpreadKeyPresent: bool
+      TotalKeyPresent: bool }
 
 /// What the relay's two side-columns hold for a sport that stages an EVENT
 /// rather than a contest between two sides.
@@ -1001,7 +1009,11 @@ let oddsDecoder : Decoder<Odds> =
           SpreadHomePrice = get.Optional.At [ "spread"; "homePrice" ] Decode.float
           SpreadAwayPrice = get.Optional.At [ "spread"; "awayPrice" ] Decode.float
           TotalOver = get.Optional.At [ "total"; "over" ] Decode.float
-          TotalUnder = get.Optional.At [ "total"; "under" ] Decode.float })
+          TotalUnder = get.Optional.At [ "total"; "under" ] Decode.float
+          // `Decode.succeed true` ignores the value and reports only that the
+          // field decoded, so this is key PRESENCE and nothing else.
+          SpreadKeyPresent = (get.Optional.Field "spread" (Decode.succeed true)) |> Option.isSome
+          TotalKeyPresent = (get.Optional.Field "total" (Decode.succeed true)) |> Option.isSome })
 
 let gameDecoder : Decoder<Game> =
     Decode.object (fun get ->
@@ -1251,6 +1263,12 @@ type Spread =
     /// wire. Not observed in any committed capture; that is the argument for
     /// modelling it, not against.
     | OneSidedSpread of home: float option * away: float option
+    /// THE KEY IS THERE AND CARRIES NO USABLE NUMBER. Distinct from `None`,
+    /// which is the key being absent. One row on 2026-08-29 serves
+    /// `spread: {"home":null,"away":null}`; before this case the two were the
+    /// same `None`, and a census of "how many games have no handicap" could not
+    /// tell a relay that served nothing from one that served an empty object.
+    | EmptySpread
 
 /// The total.
 ///
@@ -1262,6 +1280,16 @@ type Spread =
 type TotalLine =
     | OneLine of line: float
     | TwoNumbers of over: float * under: float
+    /// The same distinction as `Spread.EmptySpread`, and the same game carries
+    /// it: `total: {"over":null,"under":null}`.
+    | EmptyTotal
+    /// ONE SIDE ONLY, the exact mirror of `OneSidedSpread` and here for the
+    /// same reason. `totalOf` reached `EmptyTotal` through a `| _ ->` catch-all,
+    /// so a payload holding `over` and not `under` would have been reported as
+    /// carrying NEITHER number — a collapse in the opposite direction from the
+    /// one this case list was extended to fix. Not observed in any committed
+    /// capture (0 of 106 odds payloads, 2026-09-21).
+    | OneSidedTotal of over: float option * under: float option
 
 /// Whether the handicap agrees with the moneyline about who is favoured.
 ///
@@ -1283,6 +1311,15 @@ type FavouriteAgreement =
 /// The prices were decoded into `Odds` and appeared in no union case, so a
 /// consumer could not tell the two apart.
 ///
+/// CORRECTED 2026-09-21: only FIVE of those 6 are unpriced handicaps. The sixth
+/// is `{"home":null,"away":null}` — the same key set with no handicap in it —
+/// which `EmptySpread` now separates, and which this type must not be asked
+/// about at all. `drift-check.mjs` counts pricing over PRICEABLE spreads and
+/// says so beside the number; on 2026-08-29 that reads 16 priced, 1 unpriced,
+/// of 17, with the 18th named as an empty key. Grouping by key set alone made
+/// an empty object read as a genuine unpriced market, which is the same
+/// two-facts-one-number collapse one field over.
+///
 /// `OnlyOnePriced` has never been observed. It is here for the same reason
 /// `Unbalanced` is: the shapes that would render something quietly wrong are
 /// the ones worth naming before they arrive.
@@ -1300,7 +1337,10 @@ let spreadOf (o: Odds) : Spread option =
     // `None` below and means the payload carried neither number.
     | Some h, None -> Some(OneSidedSpread(Some h, None))
     | None, Some a -> Some(OneSidedSpread(None, Some a))
-    | None, None -> None
+    // NEITHER NUMBER. Whether that is an empty object or no object at all is
+    // the one fact the float options cannot carry, so it is read from the
+    // presence flag rather than inferred from their absence.
+    | None, None -> if o.SpreadKeyPresent then Some EmptySpread else None
 
 let spreadPricingOf (o: Odds) : SpreadPricing =
     match o.SpreadHomePrice, o.SpreadAwayPrice with
@@ -1312,7 +1352,14 @@ let totalOf (o: Odds) : TotalLine option =
     match o.TotalOver, o.TotalUnder with
     | Some over, Some under when over = under -> Some(OneLine over)
     | Some over, Some under -> Some(TwoNumbers(over, under))
-    | _ -> None
+    // EXACTLY ONE SIDE. No catch-all here: the three remaining shapes are
+    // distinct facts and a `| _ ->` would have answered all three with the
+    // last one.
+    | Some over, None -> Some(OneSidedTotal(Some over, None))
+    | None, Some under -> Some(OneSidedTotal(None, Some under))
+    // NEITHER NUMBER — empty object, or no object at all. Same presence-flag
+    // read as `spreadOf`, for the same reason.
+    | None, None -> if o.TotalKeyPresent then Some EmptyTotal else None
 
 let favouriteAgreement (o: Odds) : FavouriteAgreement =
     match o.MoneylineHome, o.MoneylineAway, spreadOf o with
