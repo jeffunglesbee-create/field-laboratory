@@ -5,7 +5,25 @@
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** C (feature)
 
-**Status:** **SUPERSEDED 2026-09-20 for Task 1; Task 2 remains open.**
+**Status:** **CLOSED 2026-09-21.** All tasks done; manifest at
+`outbox/cc-session-2026-09-11-spread-total-model.md`.
+
+| task | outcome |
+|---|---|
+| 0.1 | model read at HEAD; `Balanced`/`Unbalanced`, `OneLine`/`TwoNumbers` were current |
+| 0.2 | shapes recorded verbatim — **from committed captures, no runner needed** |
+| 0.3 | two fresh live dates, `odds-shape-census.yml` run 1 |
+| 1 | `PickEm`, `OneSidedSpread`, `SpreadPricing` added; `TotalLine` unchanged |
+| 2 | per-sport coverage census in the drift sentinel, with a transition alarm |
+| 3 | `<!-- proof: FS0025 -->` case 35; `check:proof` 77/77; census for 3 dates |
+| 4 | this manifest |
+
+Four findings from the live dates are recorded and NOT acted on, because each
+is about the relay's payload composition rather than line shape: `spread` and
+`total` are no longer 1:1 (35 against 110 on 09-19), `moneyline` is no longer
+universal, `_kickoff` is new on the wire, and `_oddsProof` has dropped to 83 of
+161. **MLS's cause remains undiagnosed** — this session made the collapse
+visible and alarmed-on, which is not the same thing.
 
 Both halves of the original status were false by the time anyone read them.
 `guards` is green (runs 185-187). And **Task 1 was already complete when this
