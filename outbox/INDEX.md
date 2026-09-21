@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e12b7a1` | 2026-09-21 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
+| `e12b7a1` | 2026-09-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
+| `e12b7a1` | 2026-09-21 | [sport-vocabulary-2026-09-21T01-51-13-820Z.json](sport-vocabulary-2026-09-21T01-51-13-820Z.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
+| `b53e278` | 2026-09-21 | [2026-09-21-first-live-coverage-reading.md](2026-09-21-first-live-coverage-reading.md) | fix: the alarm printed PASS over MLS at 2 of 11, and the census broke the push |
 | `0fc1fe3` | 2026-09-20 | [2026-09-20-rule-9-upstream-adopted-the-carve-out.md](2026-09-20-rule-9-upstream-adopted-the-carve-out.md) | fix: the skill drifted because UPSTREAM moved, and it had adopted our carve-out |
 | `19927f0` | 2026-09-20 | [2026-09-20-ceiling-check-was-the-fifth-copy.md](2026-09-20-ceiling-check-was-the-fifth-copy.md) | feat: a red's skip tail reaches the notification, and measuring it found my count wrong |
 | `19927f0` | 2026-09-20 | [2026-09-20-the-skip-tail-reaches-the-notification.md](2026-09-20-the-skip-tail-reaches-the-notification.md) | feat: a red's skip tail reaches the notification, and measuring it found my count wrong |

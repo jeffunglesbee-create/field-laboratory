@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `0fc1fe3` — newest deployable `19927f0` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `0fc1fe3` — behind newest deployable `b53e278` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-09-20 — 74 games, 0 malformed (104 runs logged)
+`favourite-mismatch` on 2026-09-20 — 75 games, 0 malformed (105 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
