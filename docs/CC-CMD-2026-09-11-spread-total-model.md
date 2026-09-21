@@ -27,6 +27,15 @@ across the whole slate and never reports which SPORTS carry odds. Tasks 0.2 and
 0.3 need live data: no committed capture holds a single `spread` or `total` key,
 and the sandbox cannot reach the worker, so both need a runner.
 
+> **CORRECTED 2026-09-21.** The claim above that "no committed capture holds a
+> single `spread` or `total` key" is FALSE, and was never probed — by the
+> document's author or by me, who repeated it in three outbox files and two
+> commit messages. `scripts/odds-shape-census.mjs` reads the raw payload:
+> `data/games-2026-08-09.json` holds 4 of each, `data/context-2026-08-29.json`
+> holds 18 of each, `data/context-2026-09-05.json` holds 14 of each. Task 0.2
+> needed no runner and no live data. The measured shapes are in
+> `outbox/2026-09-21-spread-total-shapes.md`.
+
 Coverage figures below are dated 2026-09-11 and were NOT re-probed — the odds
 layer changed on 09-12, 09-14, 09-16 and 09-19. Treat every number in them as
 unverified.

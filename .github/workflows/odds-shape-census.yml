@@ -1,0 +1,80 @@
+# What shapes `spread` and `total` actually take on the wire.
+#
+# DISPATCH-ONLY, NO CRON. This answers a question (Task 0.2 of
+# docs/CC-CMD-2026-09-11-spread-total-model.md) rather than watching for a
+# regression, and a question that has been answered does not need asking daily.
+# The drift sentinel already carries the per-sport coverage census on a clock;
+# this is the shape census, which changes only when the relay's odds adapter
+# does.
+#
+# NODE ONLY — no dotnet, no Fable, no browser. It reads the raw payload
+# deliberately: the compiled decoders are a model, and anything they cannot
+# express is gone before you look. See the header of scripts/odds-shape-census.mjs.
+name: odds-shape-census
+
+on:
+  workflow_dispatch:
+    inputs:
+      dates:
+        description: 'Space-separated YYYY-MM-DD dates to probe'
+        required: true
+        default: '2026-09-20 2026-09-19'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: odds-shape-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Rule 90 order: the harness runs BEFORE the census produces a number, so
+      # a classifier that cannot be made to fail never gets to report a shape.
+      - name: The shape census can be made to fail
+        run: |
+          node scripts/odds-shape-census.mjs --self-test
+          node scripts/mutate-odds-shape-census.mjs
+
+      - name: Probe each date and record the shapes
+        run: |
+          OUT="outbox/odds-shape-census-$(date -u +%Y%m%dT%H%M%SZ).md"
+          {
+            echo "# Odds shape census"
+            echo
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "Probed at $(date -u +'%Y-%m-%d %H:%M UTC') against the live relay."
+            echo
+            echo 'Raw payload, not decoded — see scripts/odds-shape-census.mjs on why.'
+          } > "$OUT"
+          for D in ${{ github.event.inputs.dates }}; do
+            URL="https://field-relay-nba.jeffunglesbee.workers.dev/context/date/$D"
+            {
+              echo
+              echo "## $D"
+              echo
+              echo '```'
+            } >> "$OUT"
+            # A date the relay cannot serve is recorded as that, not skipped:
+            # an absent section would read as a date nobody probed.
+            set +e
+            node scripts/odds-shape-census.mjs --url "$URL" >> "$OUT" 2>&1
+            echo "exit=$?" >> "$OUT"
+            set -e
+            echo '```' >> "$OUT"
+          done
+          cat "$OUT"
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add "$OUT"
+          git diff --staged --quiet || git commit -m "odds-shape-census: ${{ github.event.inputs.dates }} [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main

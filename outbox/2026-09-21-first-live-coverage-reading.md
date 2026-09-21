@@ -114,3 +114,6 @@ an unmatched path under `bash -e` cannot abort the step before the push.
 - **Tasks 0.2 / 0.3** of the spread-total CC-CMD — the live payload now carries
   `spreads=25 totals=25`, so the shape data those tasks need is reachable from a
   runner. Not attempted here.
+  > **CORRECTED 2026-09-21.** "Reachable from a runner" understates it: three of
+  > the four COMMITTED captures already carry both keys, and Task 0.2 needed no
+  > network at all. See `outbox/2026-09-21-spread-total-shapes.md`.

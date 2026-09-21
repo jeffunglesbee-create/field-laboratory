@@ -156,7 +156,13 @@ each time. The first live run is the first datum about the current slate.
 
 ## Still open
 
-- **Tasks 0.2 and 0.3** — blocked. No committed capture holds a single `spread`
+> **CORRECTED 2026-09-21.** The blocker stated below is false. Three of the four
+> committed captures carry both keys — 4, 18 and 14 values each — and Task 0.2
+> was answerable here all along. I took the claim from the CC-CMD and repeated
+> it without running one command against `data/`. Measured shapes:
+> `outbox/2026-09-21-spread-total-shapes.md`.
+
+- **Tasks 0.2 and 0.3** — ~~blocked~~. No committed capture holds a single `spread`
   or `total` key, and the sandbox proxy denies CONNECT to
   `field-relay-nba.jeffunglesbee.workers.dev` (`connect_rejected`). Both need a
   runner. `drift-sentinel`'s next scheduled run is the cheapest route.
