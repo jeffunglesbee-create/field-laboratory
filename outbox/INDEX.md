@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0fc1fe3` | 2026-09-20 | [2026-09-20-rule-9-upstream-adopted-the-carve-out.md](2026-09-20-rule-9-upstream-adopted-the-carve-out.md) | fix: the skill drifted because UPSTREAM moved, and it had adopted our carve-out |
 | `19927f0` | 2026-09-20 | [2026-09-20-ceiling-check-was-the-fifth-copy.md](2026-09-20-ceiling-check-was-the-fifth-copy.md) | feat: a red's skip tail reaches the notification, and measuring it found my count wrong |
 | `19927f0` | 2026-09-20 | [2026-09-20-the-skip-tail-reaches-the-notification.md](2026-09-20-the-skip-tail-reaches-the-notification.md) | feat: a red's skip tail reaches the notification, and measuring it found my count wrong |
 | `19927f0` | 2026-09-20 | [2026-09-20-verify-red-25-ungated-hover.md](2026-09-20-verify-red-25-ungated-hover.md) | feat: a red's skip tail reaches the notification, and measuring it found my count wrong |
