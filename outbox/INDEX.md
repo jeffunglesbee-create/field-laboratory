@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9cb4c34` | 2026-09-21 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-21 [skip ci] |
+| `9cb4c34` | 2026-09-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-09-21 [skip ci] |
+| `9cb4c34` | 2026-09-21 | [sport-vocabulary-2026-09-21T06-38-02-164Z.json](sport-vocabulary-2026-09-21T06-38-02-164Z.json) | drift-sentinel: ok on 2026-09-21 [skip ci] |
 | `9e3b361` | 2026-09-21 | [cc-session-2026-09-11-spread-total-model.md](cc-session-2026-09-11-spread-total-model.md) | docs: CC-CMD-2026-09-11 closed — Tasks 0.3, 3 and 4 |
 | `c76ba26` | 2026-09-21 | [odds-shape-census-20260921T023554Z.md](odds-shape-census-20260921T023554Z.md) | odds-shape-census: 2026-09-20 2026-09-19 [skip ci] |
 | `cf9eab8` | 2026-09-21 | [2026-09-21-spread-total-shapes.md](2026-09-21-spread-total-shapes.md) | feat: Task 1 — PickEm, OneSidedSpread and SpreadPricing, from measured shapes |
