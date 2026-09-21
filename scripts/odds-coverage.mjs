@@ -104,8 +104,34 @@ export function transitions(series, current) {
     }
     if (!best) continue
     if (rate(now) >= rate(best) * COLLAPSED_TO) continue
+
+    // NEW OR CONTINUING — the difference between an alarm and wallpaper.
+    //
+    // A collapse that persists is one event, not one per probe. The day MLS
+    // fell from 86% to 18% is a finding; the ninth consecutive day of 18% is
+    // the same finding, and firing on it every run makes the sentinel red
+    // forever over a condition nobody in this repo can clear. That is the
+    // failure this file's own comments name twice, and yesterday's cost is on
+    // record: `verify` step 25 was red for seven runs and 43 checks behind it
+    // went unexamined, two of them real defects.
+    //
+    // The test is the READING IMMEDIATELY BEFORE this one, by date. If the
+    // sport was still covered then, this probe is the transition. If it was
+    // already below coverage, the fall happened earlier and was reported then.
+    // Recovery re-arms it: a sport that climbs back above the covered floor and
+    // falls again reports a second, genuinely new collapse.
+    let prev = null
+    for (const past of series ?? []) {
+      if (!past || past.date >= current.date) continue
+      const p = past.sports?.[sport]
+      if (!p || p.rows === 0) continue
+      if (!prev || past.date > prev.date) prev = { date: past.date, ...p }
+    }
+    const state = !prev || rate(prev) >= WAS_COVERED ? 'new' : 'continuing'
+
     out.push({
       sport,
+      state,
       lastSeen: best.date,
       lastWithOdds: best.withOdds,
       lastRows: best.rows,
@@ -209,6 +235,33 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('THE MOST RECENT COVERED READING IS THE ONE COMPARED AGAINST',
     transitions(mlsHistory, mlsLive)[0].lastSeen === '2026-09-05',
     'the oldest would overstate the drop by the ordinary decline in between')
+
+  // NEW vs CONTINUING, using the real MLS numbers plus the reading the
+  // 2026-09-20 probe itself wrote.
+  check('THE DAY IT FELL IS A NEW COLLAPSE',
+    transitions(mlsHistory, mlsLive)[0].state === 'new')
+  const afterTheFall = [...mlsHistory, { date: '2026-09-20', sports: { MLS: { rows: 11, withOdds: 2, withDraw: 2 } } }]
+  check('THE NEXT DAY AT THE SAME LEVEL IS CONTINUING, NOT A SECOND EVENT',
+    transitions(afterTheFall, { date: '2026-09-21', sports: { MLS: { rows: 12, withOdds: 3, withDraw: 3 } } })[0].state === 'continuing',
+    'firing daily on a condition nobody here can clear is how the sentinel becomes wallpaper')
+  check('RECOVERY RE-ARMS IT: a second fall after a recovery reads new again',
+    transitions([...afterTheFall, { date: '2026-09-25', sports: { MLS: { rows: 10, withOdds: 9, withDraw: 9 } } }],
+      { date: '2026-09-26', sports: { MLS: { rows: 10, withOdds: 1, withDraw: 1 } } })[0].state === 'new',
+    'otherwise one collapse silences the alarm for that sport forever')
+  // A LATER-DATED READING MUST NOT DECIDE AN EARLIER PROBE'S STATE. Re-probing
+  // 2026-09-20 after 2026-09-25 has already been recorded is an ordinary thing
+  // to do; if the later reading were consulted, this collapse would be filed as
+  // already-reported and silenced on the run that first saw it.
+  check('THE NEW/CONTINUING TEST IGNORES READINGS DATED AFTER THE PROBE',
+    transitions([
+      { date: '2026-09-05', sports: { MLS: { rows: 21, withOdds: 18, withDraw: 18 } } },
+      { date: '2026-09-25', sports: { MLS: { rows: 11, withOdds: 2, withDraw: 2 } } },
+    ], { date: '2026-09-20', sports: { MLS: { rows: 11, withOdds: 2, withDraw: 2 } } })[0].state === 'new',
+    'the 09-25 reading is collapsed; consulting it would make the 09-20 probe read continuing and never fire')
+
+  check('a sport with no earlier reading at all reads new, not continuing',
+    transitions([{ date: '2026-09-01', sports: { Y: { rows: 4, withOdds: 4, withDraw: 0 } } }],
+      { date: '2026-09-10', sports: { Y: { rows: 4, withOdds: 0, withDraw: 0 } } })[0].state === 'new')
 
   check('A MODERATE DECLINE DOES NOT FIRE',
     transitions(mlsHistory, { date: '2026-09-20', sports: { MLS: { rows: 10, withOdds: 6, withDraw: 6 } } }).length === 0,

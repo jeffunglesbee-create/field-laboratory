@@ -46,10 +46,20 @@ const MUTATIONS = [
    "    if (false) continue",
    'a league with no games on the slate reads as a league starved of odds, so every winter fires'],
 
-  ['O4 history stops being ordered by date',
-   "      if (!past || past.date >= current.date) continue",
-   "      if (!past) continue",
+  // ANCHORED ON THREE LINES. Two loops over `series` now share the date guard,
+  // so the one-line anchor matched twice and the harness refused to report a
+  // verdict — correctly: NOT CAUGHT with nothing mutated is worse than no test.
+  // The WAS_COVERED line is what distinguishes the baseline loop from the
+  // previous-reading loop; O13 covers the other one.
+  ['O4 the BASELINE search stops being ordered by date',
+   "      if (!past || past.date >= current.date) continue\n      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue",
+   "      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue",
    'probing an OLD date today would count as history for a newer one, so re-probing 2026-09-01 after 2026-09-10 invents a transition that never happened'],
+
+  ['O13 the PREVIOUS-READING search stops being ordered by date',
+   "      if (!past || past.date >= current.date) continue\n      const p = past.sports?.[sport]\n      if (!p || p.rows === 0) continue",
+   "      const p = past.sports?.[sport]\n      if (!p || p.rows === 0) continue",
+   'the reading that decides new-vs-continuing could come from AFTER the probe, so a later recovery would file a present collapse as already-reported and silence it'],
 
   ['O5 a game with two snapshots counts as two coverages',
    "    row.withOdds += 1",
@@ -60,6 +70,21 @@ const MUTATIONS = [
    "  const rest = (series ?? []).filter(r => r && r.date !== current.date)",
    "  const rest = (series ?? [])",
    'the same date accumulates readings, and the most recent one stops being findable by date'],
+
+  ['O10 EVERY COLLAPSE READS AS NEW — the sentinel goes red forever',
+   "    const state = !prev || rate(prev) >= WAS_COVERED ? 'new' : 'continuing'",
+   "    const state = 'new'",
+   'THE ONE THIS SPLIT EXISTS FOR: MLS at 18% fails the step on day 9 exactly as on day 1, the whole sentinel job fails every run, and the next real finding is invisible behind it — verify step 25, one workflow over'],
+
+  ['O11 every collapse reads as CONTINUING — the alarm never fires at all',
+   "    const state = !prev || rate(prev) >= WAS_COVERED ? 'new' : 'continuing'",
+   "    const state = 'continuing'",
+   'the other half: nothing is ever fatal, and a collapse is a line in a log nobody fails on'],
+
+  ['O12 a recovery does not re-arm the alarm',
+   "      if (!prev || past.date > prev.date) prev = { date: past.date, ...p }",
+   "      if (!prev) prev = { date: past.date, ...p }",
+   'the earliest reading becomes the test instead of the latest, so a sport that recovers and falls again is filed as still-falling and the second collapse is never reported'],
 
   ['O7 A READING WITH NO SPORTS PASSES AS HISTORY',
    "    .filter(r => r && Object.keys(r.sports ?? {}).length === 0)",

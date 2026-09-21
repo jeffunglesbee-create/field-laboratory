@@ -369,9 +369,16 @@ if (decoded) {
     vacuous.length === 0,
     vacuous.length ? `readings carrying no sports: ${vacuous.join(', ')} — regenerate with --file <capture> --seed` : '')
 
-  check('no sport lost odds coverage it previously had',
-    coverageAlarms.length === 0,
-    coverageAlarms.map(alarmLine).join(' | '))
+  // FATAL ON THE TRANSITION ONLY. A collapse that persists is the same event
+  // on its second day, and failing this step every run would fail the whole
+  // sentinel job every run — the shape that cost `verify` seven runs and 43
+  // unexamined checks behind one red on 2026-09-20. The continuing ones are
+  // printed above and carried in the drift log's `cov=` field, so the condition
+  // stays visible as data while the alarm stays a transition.
+  const newCollapses = coverageAlarms.filter(a => a.state === 'new')
+  check('no sport newly lost the odds coverage it had',
+    newCollapses.length === 0,
+    newCollapses.map(alarmLine).join(' | '))
 
   check('every game has an id and both teams',
     games.every(g => g.Id && g.Home && g.Away),
@@ -390,7 +397,7 @@ console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbal
 console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
 console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
 console.log(`coverage: ${Object.entries(coverage).sort().map(([k, v]) => `${k}=${v.withOdds}/${v.rows}${v.withDraw ? `(draw ${v.withDraw})` : ''}`).join(' ') || '—'}`)
-if (coverageAlarms.length) for (const a of coverageAlarms) console.log(`  ODDS COLLAPSED  ${alarmLine(a)}`)
+if (coverageAlarms.length) for (const a of coverageAlarms) console.log(`  ${a.state === 'new' ? 'ODDS COLLAPSED ' : 'STILL COLLAPSED'}  ${alarmLine(a)}`)
 console.log(`  coverage is per PROBED DATE — a sport that loses odds and regains them between two probes is invisible.`)
 if (malformed.length) for (const m of malformed) console.log(`  ${m}`)
 console.log()
