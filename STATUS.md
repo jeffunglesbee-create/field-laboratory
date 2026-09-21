@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `cf9eab8` — [run 35554415118](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/35554415118)
+**FAILURE** on `0a8100e` — [run 35642271637](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/35642271637)
 
 ## Is the live artifact healthy?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `de53750` — newest deployable `cf9eab8` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `de53750` — behind newest deployable `0a8100e` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
