@@ -170,11 +170,29 @@ let private linesText (o: Odds) =
         // got five disagreeing copies in production.
         | Some (Balanced h) -> sprintf " · H %+.1f" h
         | Some (Unbalanced(h, a)) -> sprintf " · SPREAD UNBALANCED (%+.1f / %+.1f)" h a
+        // PICK'EM, stated rather than printed as "H +0.0". A zero handicap
+        // reads on a card as a handicap of nothing, which is not what it means.
+        | Some PickEm -> " · PICK'EM"
+        // ONE SIDE ONLY. Named, because the alternative is a card showing half
+        // a handicap as though it were a whole one.
+        | Some (OneSidedSpread(Some h, None)) -> sprintf " · SPREAD HOME ONLY (%+.1f)" h
+        | Some (OneSidedSpread(None, Some a)) -> sprintf " · SPREAD AWAY ONLY (%+.1f)" a
+        | Some (OneSidedSpread(_, _)) -> " · SPREAD MALFORMED"
     let total =
         match totalOf o with
         | None -> ""
         | Some (OneLine line) -> sprintf " · O/U %.1f" line
         | Some (TwoNumbers(over, under)) -> sprintf " · TOTAL SPLIT (%.1f / %.1f)" over under
+    // THE PRICE BESIDE THE HANDICAP, and only where there IS a handicap: a
+    // price with no line to price is not a market, and `NeitherPriced` is the
+    // ordinary older shape (6 of 36 in the committed captures), not an anomaly
+    // to shout about.
+    let pricing =
+        match spreadOf o, spreadPricingOf o with
+        | None, _ -> ""
+        | Some _, BothPriced(h, a) -> sprintf " (%+.0f / %+.0f)" h a
+        | Some _, NeitherPriced -> ""
+        | Some _, OnlyOnePriced(_, _) -> " · SPREAD PRICED ONE SIDE"
     let agreement =
         match favouriteAgreement o with
         | Agrees
@@ -182,7 +200,7 @@ let private linesText (o: Odds) =
         | Disagrees(mlHome, spHome) ->
             sprintf " · FAVOURITE MISMATCH (ML says %s, handicap says %s)"
                 (if mlHome then "home" else "away") (if spHome then "home" else "away")
-    spread + total + agreement
+    spread + pricing + total + agreement
 
 /// The desk slot: the four editorial fields.
 ///

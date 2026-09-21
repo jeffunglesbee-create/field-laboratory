@@ -24,8 +24,12 @@ const MUTATIONS = [
    "  catch (e) { return { state: 'absent', value: null } }",
    'THE ONE THAT MATTERS: "no spread on this slate" and "the payload did not parse" become the same sentence, and a decoding failure is filed as a coverage fact'],
 
+  // RE-ANCHORED 2026-09-21 when signatureOf gained the all-null branch. The old
+  // anchor quoted the two-line body verbatim and stopped matching; the harness
+  // reported FAIL/NOTHING MUTATED rather than NOT CAUGHT, which is the whole
+  // point of that distinction.
   ['C2 distinct shapes merge into one group',
-   "  const keys = Object.keys(v).sort()\n  return keys.length ? `{${keys.join(',')}}` : '{}'",
+   "  if (!keys.length) return '{}'",
    "  return typeof v",
    'THE OTHER ONE: {home,away} and {home,away,homePrice} become one "object", and the union built from this output forgets the shape that appeared once'],
 
@@ -48,6 +52,11 @@ const MUTATIONS = [
    "    out.push(`  NO VALUE OF \\`${c.field}\\` APPEARED. That is a finding about this slate, not proof the field never exists.`)",
    "    out.push('')",
    'silence reads as "the tool did not run", and the absence stops being a recorded observation'],
+
+  ['C8 AN ALL-NULL OBJECT COUNTS AS A POPULATED ONE',
+   "  const allNull = keys.every(k => v[k] === null)\n  return `{${keys.join(',')}}${allNull ? ' ALL NULL' : ''}`",
+   "  return `{${keys.join(',')}}`",
+   'THE ONE MEASURED ON REAL DATA: spread:{home:null,away:null} on EPL_2026-08-29_bournemouth_everton reads as a genuine unpriced handicap, and a census of "how many spreads are unpriced" is off by one in the direction that matters'],
 
   ['C7 null and an empty object become the same shape',
    "  if (v === null) return 'null'",

@@ -1227,9 +1227,30 @@ let gameState (g: Game) : GameState = gameStateAt DateTimeOffset.UtcNow g
 /// implicit — every fixture rendered away-first because `%s @ %s` carried no
 /// convention with it. A signed handicap with an unstated side is the same
 /// mistake waiting.
+///
+/// FOUR CASES, and the last two were added 2026-09-21 from a measured shape
+/// census (`scripts/odds-shape-census.mjs`, `outbox/2026-09-21-spread-total-shapes.md`).
+///
+/// NEW CASES ARE APPENDED, NEVER INSERTED. `scripts/drift-check.mjs` reads the
+/// tag as an ORDINAL — `const SPREAD = { Balanced: 0, Unbalanced: 1 }` — which
+/// is a transcription of this declaration's order into another language. Adding
+/// a case at the top would silently re-label every count it has ever recorded.
 type Spread =
     | Balanced of homeHandicap: float
     | Unbalanced of home: float * away: float
+    /// A zero handicap is not a handicap, it is the absence of one, and no
+    /// favourite can be read from it. `favouriteAgreement` used to carry a
+    /// `when h <> 0.0` guard to say so; a guard that exists because the type
+    /// cannot is the type being wrong.
+    | PickEm
+    /// ONE SIDE ONLY. The relay serves `spread` as a pair; a payload carrying
+    /// one half is not a handicap and must not read as "no spread at all".
+    /// `spreadOf` returned `None` for both, which is the absence collapse this
+    /// repo has `scripts/check-absence-collapse.mjs` for — "the field is
+    /// missing" and "the field is half there" are different facts about the
+    /// wire. Not observed in any committed capture; that is the argument for
+    /// modelling it, not against.
+    | OneSidedSpread of home: float option * away: float option
 
 /// The total.
 ///
@@ -1253,11 +1274,39 @@ type FavouriteAgreement =
     | Disagrees of moneylineFavoursHome: bool * handicapFavoursHome: bool
     | NotComparable
 
+/// Whether the handicap carries a price, which the handicap alone cannot say.
+///
+/// MEASURED, NOT ANTICIPATED. The shape census over four committed captures
+/// found 30 spreads carrying `homePrice`/`awayPrice` and 6 carrying neither —
+/// `{away,awayPrice,home,homePrice}` and `{away,home}` — and both shapes appear
+/// IN THE SAME CAPTURE (2026-08-29 holds 16 of the first and 2 of the second).
+/// The prices were decoded into `Odds` and appeared in no union case, so a
+/// consumer could not tell the two apart.
+///
+/// `OnlyOnePriced` has never been observed. It is here for the same reason
+/// `Unbalanced` is: the shapes that would render something quietly wrong are
+/// the ones worth naming before they arrive.
+type SpreadPricing =
+    | BothPriced of home: float * away: float
+    | NeitherPriced
+    | OnlyOnePriced of home: float option * away: float option
+
 let spreadOf (o: Odds) : Spread option =
     match o.SpreadHome, o.SpreadAway with
+    | Some 0.0, Some 0.0 -> Some PickEm
     | Some h, Some a when h = -a -> Some(Balanced h)
     | Some h, Some a -> Some(Unbalanced(h, a))
-    | _ -> None
+    // EXACTLY ONE SIDE. Distinguished from "no spread" above, which is the
+    // `None` below and means the payload carried neither number.
+    | Some h, None -> Some(OneSidedSpread(Some h, None))
+    | None, Some a -> Some(OneSidedSpread(None, Some a))
+    | None, None -> None
+
+let spreadPricingOf (o: Odds) : SpreadPricing =
+    match o.SpreadHomePrice, o.SpreadAwayPrice with
+    | Some h, Some a -> BothPriced(h, a)
+    | None, None -> NeitherPriced
+    | h, a -> OnlyOnePriced(h, a)
 
 let totalOf (o: Odds) : TotalLine option =
     match o.TotalOver, o.TotalUnder with
@@ -1267,7 +1316,10 @@ let totalOf (o: Odds) : TotalLine option =
 
 let favouriteAgreement (o: Odds) : FavouriteAgreement =
     match o.MoneylineHome, o.MoneylineAway, spreadOf o with
-    | Some mh, Some ma, Some (Balanced h) when h <> 0.0 ->
+    // NO `when h <> 0.0` GUARD. A zero handicap is `PickEm` now, which falls to
+    // the catch-all below as NotComparable. The guard existed because the type
+    // could not say it; the type says it.
+    | Some mh, Some ma, Some (Balanced h) ->
         match impliedOfMoneyline mh, impliedOfMoneyline ma with
         | Some ih, Some ia ->
             // The separation must exceed the book's own margin before either

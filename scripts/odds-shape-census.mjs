@@ -34,14 +34,31 @@ export function readNested(v) {
   catch (e) { return { state: 'unparseable', value: v.slice(0, 120) } }
 }
 
-/** The key set of a value, as a stable signature. Scalars and arrays say so. */
+/**
+ * The key set of a value, as a stable signature. Scalars and arrays say so.
+ *
+ * AN ALL-NULL OBJECT IS ITS OWN SHAPE, and that was added 2026-09-21 after this
+ * tool missed one. Cross-checking its count against `spreadOf`'s on
+ * `data/context-2026-08-29.json` gave 18 against 17, and the extra was
+ * `EPL_2026-08-29_bournemouth_everton` `closing_odds` carrying
+ * `spread: {"home":null,"away":null}`. Grouping by key set alone, that is
+ * indistinguishable from a real unpriced handicap — the same `{away,home}` —
+ * so a reader counting shapes would have folded a present-but-empty payload in
+ * with six genuine ones.
+ *
+ * The key being present and every value being null is a different wire fact
+ * from the key being absent AND from the key carrying numbers. Three facts,
+ * three signatures.
+ */
 export function signatureOf(v) {
   if (v === null) return 'null'
   if (Array.isArray(v)) return `array[${v.length}]`
   const t = typeof v
   if (t !== 'object') return t
   const keys = Object.keys(v).sort()
-  return keys.length ? `{${keys.join(',')}}` : '{}'
+  if (!keys.length) return '{}'
+  const allNull = keys.every(k => v[k] === null)
+  return `{${keys.join(',')}}${allNull ? ' ALL NULL' : ''}`
 }
 
 /**
@@ -121,6 +138,14 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     signatureOf({ b: 1, a: 2 }) === '{a,b}',
     'unsorted keys would split one shape into several')
   check('an array reports its length, not its keys', signatureOf([1, 2, 3]) === 'array[3]')
+  check('AN ALL-NULL OBJECT IS NOT THE SAME SHAPE AS A POPULATED ONE',
+    signatureOf({ home: null, away: null }) === '{away,home} ALL NULL' &&
+    signatureOf({ home: -1.5, away: 1.5 }) === '{away,home}',
+    'EPL_2026-08-29_bournemouth_everton closing_odds carries spread:{home:null,away:null} and was counted as a real handicap')
+  check('one null among numbers is NOT all-null',
+    signatureOf({ home: -1.5, away: null }) === '{away,home}',
+    'a half-present pair is a different finding again, and OneSidedSpread is where it belongs')
+
   check('null is distinct from an empty object',
     signatureOf(null) === 'null' && signatureOf({}) === '{}')
   check('a scalar reports its type', signatureOf(4.5) === 'number' && signatureOf('x') === 'string')

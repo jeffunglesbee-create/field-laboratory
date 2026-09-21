@@ -46,9 +46,25 @@ model, and anything it cannot express is gone before you look.
      {"home":-1.5,"away":1.5,"homePrice":169,"awayPrice":-207}   2026-08-29
      {"home":1.5,"away":-1.5,"homePrice":-157,"awayPrice":130}   2026-09-05
 
- 6×  {away,home}
+ 5×  {away,home}
      {"home":-1.5,"away":1.5}                                    2026-08-09, 2026-08-29
+
+ 1×  {away,home} ALL NULL
+     {"home":null,"away":null}                                   2026-08-29
 ```
+
+> **CORRECTED the same day, by cross-checking two tools.** The first count here
+> said `6× {away,home}`. `spreadOf` counted 17 spreads on 2026-08-29 where this
+> census counted 18, and the extra was
+> `EPL_2026-08-29_bournemouth_everton` `closing_odds` carrying
+> `spread: {"home":null,"away":null}` — the key present, both values null. The
+> census grouped by key set alone, so a present-but-empty payload read as a
+> genuine unpriced handicap. `signatureOf` now names an all-null object as its
+> own shape; `C8` mutates that branch away and is caught. **The same game
+> carries `total: {"over":null,"under":null}`.**
+>
+> Neither tool was wrong about what it measured. The disagreement was the
+> finding, and only running both produced it.
 
 The priced and unpriced forms coexist **in the same capture** — 2026-08-29 has
 16 of the first and 2 of the second. A model handling only the priced shape
@@ -145,3 +161,87 @@ as the premise this document corrects.
   cover (absent side, unbalanced pair, zero line, missing price) are named in
   the CC-CMD and none of them appear in any capture, which is the argument for
   modelling them rather than against it.
+
+---
+
+# Task 1 — the unions, built from the shapes above
+
+**Committed the same day.** `Spread` and `TotalLine` already existed
+(`Balanced`/`Unbalanced`, `OneLine`/`TwoNumbers`, since `85afee8` on 2026-08-10).
+What did not exist was any case for three of the four degenerate shapes the
+CC-CMD names — **absent side, zero line, missing price** — and the fourth,
+unbalanced pair, was already there.
+
+## What changed
+
+| added | why, from the measurement |
+|---|---|
+| `Spread.PickEm` | a zero handicap names no favourite. `favouriteAgreement` carried a `when h <> 0.0` guard to say so; a guard that exists because the type cannot is the type being wrong. The guard is gone. |
+| `Spread.OneSidedSpread of float option * float option` | `spreadOf` returned `None` for "no `spread` key" AND for "one side present" — two wire facts in one absence, which is what `check-absence-collapse.mjs` exists to find |
+| `SpreadPricing` (`BothPriced` / `NeitherPriced` / `OnlyOnePriced`) | **30 priced against 5 unpriced, both shapes in the same capture.** The prices were decoded into `Odds` and appeared in no union case, so no consumer could tell them apart |
+
+`TotalLine` is unchanged. `over === under` in every sample and there are no
+total-price fields on the wire, so there was nothing measured to add.
+
+**New cases are APPENDED, never inserted.** `scripts/drift-check.mjs` reads the
+tag as an ordinal — `{ Balanced: 0, Unbalanced: 1 }` — which is a transcription
+of an F# declaration into JavaScript. The ordinals were re-read from
+`build/Desk.js` after the change rather than assumed: `Balanced 0, Unbalanced 1,
+PickEm 2, OneSidedSpread 3`.
+
+## The compiler refused the incomplete consumer, twice
+
+First on its own, during the build:
+
+```
+./src/Scoreboard.fs(165,15): warning FSHARP: Incomplete pattern matches on this
+expression. For example, the value 'Some (OneSidedSpread (_, _))' may indicate a
+case not covered by the pattern(s). (code 25)
+```
+
+`verify` treats an F# warning as an error, so that build does not ship. Then as
+a committed proof case, `<!-- proof: FS0025 -->` in `ODDS-PROOF.md`, asserting
+that a consumer handling only `BothPriced`/`NeitherPriced` is rejected. Verified
+by `scripts/proof-check.mjs` — **77/77, up from 76** — not by prose.
+
+## The sentinel now counts them
+
+```
+data/games-2026-08-09.json
+  lines:   spreads=4  unbalanced=0 pickem=0 one-sided=0 totals=4  split=0
+  pricing: priced=0  unpriced=4  half-priced=0   (of 4 spread(s))
+
+data/context-2026-08-29.json
+  lines:   spreads=17 unbalanced=0 pickem=0 one-sided=0 totals=17 split=0
+  pricing: priced=16 unpriced=1  half-priced=0   (of 17 spread(s))
+
+data/context-2026-09-05.json
+  lines:   spreads=14 unbalanced=0 pickem=0 one-sided=0 totals=14 split=0
+  pricing: priced=14 unpriced=0  half-priced=0   (of 14 spread(s))
+```
+
+`pickem`, `one-sided` and `half-priced` are zero on every committed capture.
+That is the point: they are the shapes that would otherwise be discovered by a
+card rendering something quietly wrong.
+
+## What remains unmodelled, stated plainly
+
+**`spreadOf` still collapses two facts into `None`.** "No `spread` key at all"
+and "`spread: {home: null, away: null}`" both arrive as `None`, because the
+`Odds` record decodes `SpreadHome: float option` and the key-presence fact is
+gone before `spreadOf` sees it. `OneSidedSpread` closed the half-present case;
+this one needs a decoder change, not a union change, and is not attempted here.
+It is real and measured — one row on 2026-08-29 carries it.
+
+`TotalLine` has the same shape of gap for the same reason.
+
+## Verification
+
+| check | result |
+|---|---|
+| `npm run build` | clean, **zero F# warnings** |
+| `check:proof` | **77/77** (was 76) |
+| `odds-shape-census.mjs --self-test` | **19/19** (was 17) |
+| `mutate-odds-shape-census.mjs` | **8/8 caught** (was 7) |
+| `drift-check` on three captures | counts above, exits unchanged |
+| citations, import-purity, short-circuit, script-orphans, workflows, rows, docs | all PASS |

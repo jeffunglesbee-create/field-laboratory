@@ -206,6 +206,42 @@ whole point of modelling `TwoNumbers` and `Unbalanced` at all: they are the
 cases that would otherwise be discovered by a card rendering something quietly
 wrong.
 
+### The same refusal, for the price and the half-spread
+
+Added 2026-09-21 from a measured shape census over four committed captures
+(`scripts/odds-shape-census.mjs`). Two shapes the wire actually carries were
+indistinguishable in the model:
+
+```
+30×  {away,awayPrice,home,homePrice}    6×  {away,home}
+```
+
+Both appear in the SAME capture — 2026-08-29 holds 16 of the first and 2 of the
+second — so "does this handicap carry a price" was a real question the type
+could not answer. `SpreadPricing` answers it, and refuses a consumer that
+assumes the priced shape:
+
+<!-- proof: FS0025 -->
+```fsharp
+match spreadPricingOf { g with Sport = g.Sport } with
+| BothPriced(h, a) -> sprintf "%+.0f/%+.0f" h a
+| NeitherPriced -> ""
+```
+```
+error FS0025: Incomplete pattern matches on this expression. For example, the
+value 'OnlyOnePriced (_, _)' may indicate a case not covered by the pattern(s).
+```
+
+`OnlyOnePriced` has never been observed. Neither has `OneSidedSpread`, and
+neither had `Unbalanced` when it was written.
+
+`spreadOf` previously returned `None` for a payload carrying one side of the
+pair AND for a payload carrying neither — two different facts about the wire
+collapsed into one absence, which is what `scripts/check-absence-collapse.mjs`
+exists to find. `OneSidedSpread` separates them, and `PickEm` retires the
+`when h <> 0.0` guard `favouriteAgreement` was carrying because the type could
+not say that a zero handicap names no favourite.
+
 ## ADR-002 position
 
 Clean, and worth stating rather than assuming, since this renders numbers next
