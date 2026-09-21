@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **green** on `9e3b361` — but that is not `main` HEAD
+`live-check` (post-deploy, against the deployed page): **green** on `ebcc715` — but that is not `main` HEAD
 
 ## Is it published?
 
