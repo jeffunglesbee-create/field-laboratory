@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b81b5c8` | 2026-09-21 | [2026-09-21-first-live-coverage-reading.md](2026-09-21-first-live-coverage-reading.md) | feat: Task 0.2 answered from committed captures — the blocker was never real |
+| `b81b5c8` | 2026-09-21 | [2026-09-21-spread-total-shapes.md](2026-09-21-spread-total-shapes.md) | feat: Task 0.2 answered from committed captures — the blocker was never real |
+| `b81b5c8` | 2026-09-21 | [cc-session-2026-09-20-odds-coverage-census.md](cc-session-2026-09-20-odds-coverage-census.md) | feat: Task 0.2 answered from committed captures — the blocker was never real |
 | `487e97a` | 2026-09-21 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
 | `487e97a` | 2026-09-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
 | `487e97a` | 2026-09-21 | [sport-vocabulary-2026-09-21T01-59-00-425Z.json](sport-vocabulary-2026-09-21T01-59-00-425Z.json) | drift-sentinel: favourite-mismatch on 2026-09-20 [skip ci] |
