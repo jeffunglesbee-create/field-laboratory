@@ -62,6 +62,29 @@ export function censusOf(games, labelOf) {
  * @param current  { date, sports } — the reading just taken
  * @returns [{ sport, lastSeen, lastWithOdds, nowRows }]
  */
+/**
+ * A sport was covered if MOST of its rows carried a price. Below this it was
+ * already patchy, and a fall from patchy to none is not the regression this
+ * alarm is for.
+ */
+const WAS_COVERED = 0.5
+/**
+ * ...and it has collapsed if it now carries less than a third of the rate it
+ * had. 0.31 rather than a round third so that an exact one-third reading — a
+ * real number a small slate can produce — reads as a fall, not as a fire.
+ *
+ * THESE TWO NUMBERS ARE THE JUDGEMENT IN THIS FILE, and they are set from the
+ * measurement that forced them, not from taste. On 2026-09-21 the first live
+ * probe read MLS at 2 of 11 (18%) against 26 of 28 (93%) and 18 of 21 (86%) in
+ * the committed history. The CC-CMD this was built for describes exactly that
+ * event — "MLS went from two-way prices to 0 of 17" — and the first version of
+ * this function, which fired only on withOdds === 0, printed PASS over it.
+ * Missing the case by two games is missing it.
+ */
+const COLLAPSED_TO = 0.31
+
+const rate = c => (c.rows > 0 ? c.withOdds / c.rows : 0)
+
 export function transitions(series, current) {
   const out = []
   for (const [sport, now] of Object.entries(current.sports ?? {})) {
@@ -69,21 +92,36 @@ export function transitions(series, current) {
     // odds. Alarming on it would fire every time a league is out of season —
     // the standing red this design exists to avoid.
     if (now.rows === 0) continue
-    if (now.withOdds > 0) continue
-    // The most recent EARLIER reading in which this sport carried odds. Earlier
+    // The most recent EARLIER reading in which this sport was COVERED. Earlier
     // by DATE, not by position: a probe of an older date run today must not
     // count as "before" a probe of a newer date run last week.
     let best = null
     for (const past of series ?? []) {
       if (!past || past.date >= current.date) continue
       const p = past.sports?.[sport]
-      if (!p || p.withOdds <= 0) continue
-      if (!best || past.date > best.date) best = { date: past.date, withOdds: p.withOdds }
+      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue
+      if (!best || past.date > best.date) best = { date: past.date, ...p }
     }
-    if (best) out.push({ sport, lastSeen: best.date, lastWithOdds: best.withOdds, nowRows: now.rows })
+    if (!best) continue
+    if (rate(now) >= rate(best) * COLLAPSED_TO) continue
+    out.push({
+      sport,
+      lastSeen: best.date,
+      lastWithOdds: best.withOdds,
+      lastRows: best.rows,
+      nowWithOdds: now.withOdds,
+      nowRows: now.rows,
+    })
   }
   return out.sort((a, b) => a.sport.localeCompare(b.sport))
 }
+
+/** One line per alarm, with both rates, because a bare count is not a finding. */
+export const alarmLine = a =>
+  `${a.sport}: ${a.lastWithOdds}/${a.lastRows} ` +
+  `(${Math.round(rate({ withOdds: a.lastWithOdds, rows: a.lastRows }) * 100)}%) on ${a.lastSeen}, ` +
+  `now ${a.nowWithOdds}/${a.nowRows} ` +
+  `(${Math.round(rate({ withOdds: a.nowWithOdds, rows: a.nowRows }) * 100)}%)`
 
 /** Append `current`, replacing any reading for the same date, keeping `keep`. */
 export function mergeSeries(series, current, keep = 60) {
@@ -149,6 +187,37 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('A LATER-DATED READING IS NOT "EARLIER" JUST BECAUSE IT RAN FIRST',
     transitions([{ date: '2026-09-20', sports: { MLS: { rows: 8, withOdds: 8, withDraw: 0 } } }], now).length === 0,
     'probing an old date today must not count as history for a newer one')
+  // THE LIVE CASE, from drift-sentinel run 35551910512 on the 2026-09-20 slate.
+  // These are the real committed numbers, not invented ones.
+  const mlsHistory = [
+    { date: '2026-08-29', sports: { MLS: { rows: 28, withOdds: 26, withDraw: 26 } } },
+    { date: '2026-09-05', sports: { MLS: { rows: 21, withOdds: 18, withDraw: 18 } } },
+  ]
+  const mlsLive = { date: '2026-09-20', sports: { MLS: { rows: 11, withOdds: 2, withDraw: 2 } } }
+  check('MLS AT 2 OF 11 AGAINST 18 OF 21 FIRES — the case that printed PASS',
+    transitions(mlsHistory, mlsLive).length === 1,
+    '93% then 86% then 18%; the first version alarmed only on zero and missed it by two games')
+  check('the alarm carries BOTH rates, not just the new one',
+    /18\/21 \(86%\) on 2026-09-05, now 2\/11 \(18%\)/.test(alarmLine(transitions(mlsHistory, mlsLive)[0])),
+    alarmLine(transitions(mlsHistory, mlsLive)[0]))
+  // THE MOST RECENT COVERED READING IS THE COMPARISON, not the oldest or the
+  // best. The first version of this assertion expected 26/28 from 08-29 and
+  // failed against 18/21 from 09-05 — the assertion was wrong, not the code.
+  // Quoting the oldest reading would overstate every drop by whatever decline
+  // happened in between, and a reader would chase a supply failure that was
+  // partly ordinary movement.
+  check('THE MOST RECENT COVERED READING IS THE ONE COMPARED AGAINST',
+    transitions(mlsHistory, mlsLive)[0].lastSeen === '2026-09-05',
+    'the oldest would overstate the drop by the ordinary decline in between')
+
+  check('A MODERATE DECLINE DOES NOT FIRE',
+    transitions(mlsHistory, { date: '2026-09-20', sports: { MLS: { rows: 10, withOdds: 6, withDraw: 6 } } }).length === 0,
+    '60% against 86% is a slate with fewer priced games, not a supply collapse — and a red nobody can clear is ignored')
+  check('A SPORT THAT WAS ALREADY PATCHY IS NOT A REGRESSION WHEN IT REACHES ZERO',
+    transitions([{ date: '2026-09-01', sports: { X: { rows: 10, withOdds: 3, withDraw: 0 } } }],
+      { date: '2026-09-10', sports: { X: { rows: 8, withOdds: 0, withDraw: 0 } } }).length === 0,
+    '30% was never coverage; alarming here makes every thin market a standing red')
+
   check('the alarm names when it last saw odds',
     transitions(past, now)[0].lastSeen === '2026-09-01', JSON.stringify(transitions(past, now)[0]))
 

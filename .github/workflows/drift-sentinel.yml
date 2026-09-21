@@ -300,6 +300,19 @@ jobs:
           # under `bash -e`, so folding an unmatched glob into the line above
           # would abort the step before the drift-log commit ever ran.
           git add outbox/sport-vocabulary-*.json || echo "(no vocabulary artifact this run)"
+          # THE COVERAGE SERIES, which a --url run rewrites.
+          #
+          # Measured 2026-09-21, run 35551910512: the census added this file,
+          # nothing staged it, and `git pull --rebase` two lines below died with
+          # "cannot pull with rebase: You have unstaged changes". The commit was
+          # made and then thrown away with the runner -- the drift-log row AND
+          # the first live coverage reading, both lost, on a step whose whole
+          # job is to persist them.
+          #
+          # Guarded like the line above for the same reason: on a --file replay
+          # or a run where the census produced nothing, an unmatched path under
+          # `bash -e` would abort the step before the push.
+          git add outbox/odds-coverage-series.json || echo "(no coverage series this run)"
           git diff --staged --quiet || git commit -m "drift-sentinel: $STATUS on ${{ steps.sentinel.outputs.date }} [skip ci]"
           git pull --rebase origin main
           git push origin HEAD:main

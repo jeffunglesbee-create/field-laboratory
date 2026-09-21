@@ -21,15 +21,25 @@ if (!passes()) { console.log(`FAIL — ${F} --self-test is already red on clean 
 console.log(`baseline: ${F} --self-test passes on current source\n`)
 
 const MUTATIONS = [
-  ['O1 A SPORT THAT NEVER CARRIED ODDS NOW ALARMS',
-   "    if (best) out.push({ sport, lastSeen: best.date, lastWithOdds: best.withOdds, nowRows: now.rows })",
-   "    out.push({ sport, lastSeen: best?.date ?? 'never', lastWithOdds: best?.withOdds ?? 0, nowRows: now.rows })",
-   'THE ONE THAT MATTERS: every sport that has never had odds goes red and stays red. An alarm nobody can clear is one everybody learns to skip, which is how the next real transition is missed'],
+  ['O1 A SPORT THAT WAS NEVER COVERED NOW ALARMS',
+   "      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue",
+   "      if (!p || p.rows === 0) continue",
+   'THE ONE THAT MATTERS: every thin market that ever priced one game goes red the day it prices none. An alarm nobody can clear is one everybody learns to skip, which is how the next real collapse is missed'],
 
   ['O2 the transition alarm never fires at all',
-   "    if (now.withOdds > 0) continue",
+   "    if (rate(now) >= rate(best) * COLLAPSED_TO) continue",
    "    continue",
-   'THE OTHER ONE: MLS goes 8-of-8 to 0-of-9 and the sentinel says nothing — the exact failure this was built for'],
+   'THE OTHER ONE: MLS goes 18-of-21 to 2-of-11 and the sentinel says nothing — the exact failure this was built for, and the one the first version shipped'],
+
+  ['O8 ONLY A TOTAL LOSS FIRES — the defect this rule was rewritten from',
+   "    if (rate(now) >= rate(best) * COLLAPSED_TO) continue",
+   "    if (now.withOdds > 0) continue",
+   'the live 2026-09-20 reading: MLS 2 of 11 against 18 of 21 printed PASS, because two priced games are not zero priced games'],
+
+  ['O9 the comparison quotes the OLDEST covered reading, not the most recent',
+   "      if (!best || past.date > best.date) best = { date: past.date, ...p }",
+   "      if (!best || past.date < best.date) best = { date: past.date, ...p }",
+   'every drop is overstated by whatever ordinary decline happened in between, and a reader chases a supply failure that was partly seasonal'],
 
   ['O3 an out-of-season sport alarms',
    "    if (now.rows === 0) continue",

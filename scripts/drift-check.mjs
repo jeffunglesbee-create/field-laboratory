@@ -19,7 +19,7 @@
 import { readFile } from 'node:fs/promises'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createChecks, toArray, NESTED } from './checks.mjs'
-import { censusOf, transitions, mergeSeries, vacuousReadings } from './odds-coverage.mjs'
+import { censusOf, transitions, mergeSeries, vacuousReadings, alarmLine } from './odds-coverage.mjs'
 import { decodePayload, sportMeta, oddsStory, spreadOf, totalOf, favouriteAgreement, dateKeying, fieldDayIso } from '../build/Desk.js'
 
 const args = process.argv.slice(2)
@@ -371,7 +371,7 @@ if (decoded) {
 
   check('no sport lost odds coverage it previously had',
     coverageAlarms.length === 0,
-    coverageAlarms.map(a => `${a.sport}: ${a.lastWithOdds} with odds on ${a.lastSeen}, now 0 of ${a.nowRows}`).join(' | '))
+    coverageAlarms.map(alarmLine).join(' | '))
 
   check('every game has an id and both teams',
     games.every(g => g.Id && g.Home && g.Away),
@@ -390,7 +390,7 @@ console.log(`lines:    spreads=${lineShape.spreads} unbalanced=${lineShape.unbal
 console.log(`odds:     both=${oddsShape.withBoth} not-sequenced=${oddsShape.notSequenced} moved=${oddsShape.moved} unmoved=${oddsShape.unmoved} single=${oddsShape.single} none=${oddsShape.none}`)
 console.log(`sports:   ${vocabulary.map(v => `${v.label}${v.modelled ? '' : ' [UNMODELLED]'}=${v.n}`).join(' ') || '—'}`)
 console.log(`coverage: ${Object.entries(coverage).sort().map(([k, v]) => `${k}=${v.withOdds}/${v.rows}${v.withDraw ? `(draw ${v.withDraw})` : ''}`).join(' ') || '—'}`)
-if (coverageAlarms.length) for (const a of coverageAlarms) console.log(`  LOST ODDS  ${a.sport}: ${a.lastWithOdds} with odds on ${a.lastSeen}, now 0 of ${a.nowRows}`)
+if (coverageAlarms.length) for (const a of coverageAlarms) console.log(`  ODDS COLLAPSED  ${alarmLine(a)}`)
 console.log(`  coverage is per PROBED DATE — a sport that loses odds and regains them between two probes is invisible.`)
 if (malformed.length) for (const m of malformed) console.log(`  ${m}`)
 console.log()
