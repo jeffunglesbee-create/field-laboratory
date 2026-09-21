@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9e3b361` | 2026-09-21 | [cc-session-2026-09-11-spread-total-model.md](cc-session-2026-09-11-spread-total-model.md) | docs: CC-CMD-2026-09-11 closed — Tasks 0.3, 3 and 4 |
+| `c76ba26` | 2026-09-21 | [odds-shape-census-20260921T023554Z.md](odds-shape-census-20260921T023554Z.md) | odds-shape-census: 2026-09-20 2026-09-19 [skip ci] |
 | `cf9eab8` | 2026-09-21 | [2026-09-21-spread-total-shapes.md](2026-09-21-spread-total-shapes.md) | feat: Task 1 — PickEm, OneSidedSpread and SpreadPricing, from measured shapes |
 | `b81b5c8` | 2026-09-21 | [2026-09-21-first-live-coverage-reading.md](2026-09-21-first-live-coverage-reading.md) | feat: Task 0.2 answered from committed captures — the blocker was never real |
 | `b81b5c8` | 2026-09-21 | [2026-09-21-spread-total-shapes.md](2026-09-21-spread-total-shapes.md) | feat: Task 0.2 answered from committed captures — the blocker was never real |
