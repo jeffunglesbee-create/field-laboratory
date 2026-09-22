@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1b63f8a` | 2026-09-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-22 [skip ci] |
+| `1b63f8a` | 2026-09-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-09-22 [skip ci] |
+| `1b63f8a` | 2026-09-22 | [sport-vocabulary-2026-09-22T16-43-44-109Z.json](sport-vocabulary-2026-09-22T16-43-44-109Z.json) | drift-sentinel: ok on 2026-09-22 [skip ci] |
 | `ac0bf28` | 2026-09-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-22 [skip ci] |
 | `ac0bf28` | 2026-09-22 | [sport-vocabulary-2026-09-22T06-26-25-301Z.json](sport-vocabulary-2026-09-22T06-26-25-301Z.json) | drift-sentinel: ok on 2026-09-22 [skip ci] |
 | `0a8100e` | 2026-09-21 | [2026-09-21-the-empty-key-and-the-empty-probe.md](2026-09-21-the-empty-key-and-the-empty-probe.md) | feat: an empty key is not a missing key, in the odds model and in the sentinel's own history |
