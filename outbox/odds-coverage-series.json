@@ -203,5 +203,32 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-09-22",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-22",
+    "at": "2026-09-22T16:43:35.316Z",
+    "sports": {
+      "NHL": {
+        "rows": 10,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "MLB": {
+        "rows": 16,
+        "withOdds": 16,
+        "withDraw": 0
+      },
+      "WNBA": {
+        "rows": 5,
+        "withOdds": 5,
+        "withDraw": 0
+      },
+      "EFL Trophy": {
+        "rows": 23,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    }
   }
 ]
