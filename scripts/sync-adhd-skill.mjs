@@ -33,10 +33,12 @@ const SKILL_PATH = '.claude/skills/i-have-adhd/SKILL.md'
 const DRY_RUN = process.argv.includes('--dry-run')
 const SELF_TEST = process.argv.includes('--self-test')
 
-const DEFAULT_TARGETS = [
-  'jeffunglesbee-create/field-relay-nba',
-  'jeffunglesbee-create/jubilant-bassoon',
-]
+// IMPORTED, NOT RETYPED. This list held two repos while skill-drift-check.mjs
+// watched three, so field-playground was a sibling the sentinel could report
+// DRIFTED and this script could never fix. Measured 2026-09-23: all three had
+// the pre-2026-09-20 Rule 9 and only two were in this array.
+import { SIBLINGS } from './skill-drift-check.mjs'
+const DEFAULT_TARGETS = SIBLINGS.map(r => `jeffunglesbee-create/${r}`)
 
 /// utf8 identity — the "verbatim" test, exact to the byte.
 const identical = (a, b) => a === b
@@ -78,6 +80,19 @@ if (SELF_TEST) {
     requiredFrontmatter('---\nname: i-have-adhd\ndisable-model-invocation: true\n---\nb') &&
     !requiredFrontmatter('not a skill'),
     'a malformed source would be pushed to another repo')
+
+  // THE DENOMINATOR, ASSERTED. The import above makes these lists structurally
+  // one, but the failure being prevented is someone re-hardcoding the array —
+  // which is how it came to hold two of three siblings in the first place. A
+  // sync that cannot reach a repo the sentinel watches is a red nobody can act
+  // on. Naming the missed repo explicitly, because it is the one that was lost.
+  check('every sibling the drift check watches is a sync target',
+    SIBLINGS.every(r => DEFAULT_TARGETS.includes(`jeffunglesbee-create/${r}`)) &&
+    DEFAULT_TARGETS.length === SIBLINGS.length,
+    'the sync targets and the drift-check siblings disagree')
+  check('field-playground specifically is a target',
+    DEFAULT_TARGETS.includes('jeffunglesbee-create/field-playground'),
+    'field-playground drifted for three days while being outside the sync denominator')
 
   process.exit(summarize() === 0 ? 0 : 1)
 }

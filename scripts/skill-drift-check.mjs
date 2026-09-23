@@ -109,7 +109,13 @@ export const rosterGaps = (onDisk, roster) =>
   onDisk.filter(n => !roster.some(s => s.name === n))
 
 const OWNER = 'jeffunglesbee-create'
-const SIBLINGS = ['field-relay-nba', 'jubilant-bassoon', 'field-playground']
+/// ONE DEFINITION, TWO CALLERS. sync-adhd-skill.mjs carried its own list and it
+/// held two of these three — so field-playground was a repo this check could
+/// report DRIFTED and that sync could never fix. Measured 2026-09-23: all three
+/// siblings had the pre-2026-09-20 Rule 9, and only two were reachable by the
+/// mechanism built to correct it. A denominator that disagrees with the one it
+/// feeds is the same defect as two implementations of one rule.
+export const SIBLINGS = ['field-relay-nba', 'jubilant-bassoon', 'field-playground']
 
 /// The verdict for one sibling, given the reference bytes and what the fetch
 /// returned. `remote` is null when the fetch did not yield a body.

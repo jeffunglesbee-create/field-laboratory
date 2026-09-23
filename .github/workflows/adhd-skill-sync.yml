@@ -24,7 +24,10 @@ on:
         default: true
       targets:
         description: 'Comma-separated owner/repo to install into'
-        default: 'jeffunglesbee-create/field-relay-nba,jeffunglesbee-create/jubilant-bassoon'
+        # Must list every sibling skill-drift-check.mjs watches, or the
+        # sentinel can report a DRIFTED repo this workflow cannot fix.
+        # field-playground was missing until 2026-09-23.
+        default: 'jeffunglesbee-create/field-relay-nba,jeffunglesbee-create/jubilant-bassoon,jeffunglesbee-create/field-playground'
 
 concurrency:
   group: adhd-skill-sync
