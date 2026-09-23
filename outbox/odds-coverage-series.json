@@ -230,5 +230,32 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-09-23",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-23",
+    "at": "2026-09-23T16:38:14.411Z",
+    "sports": {
+      "NHL": {
+        "rows": 4,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "MLB": {
+        "rows": 16,
+        "withOdds": 16,
+        "withDraw": 0
+      },
+      "WNBA": {
+        "rows": 2,
+        "withOdds": 2,
+        "withDraw": 0
+      },
+      "MLS": {
+        "rows": 1,
+        "withOdds": 1,
+        "withDraw": 1
+      }
+    }
   }
 ]
