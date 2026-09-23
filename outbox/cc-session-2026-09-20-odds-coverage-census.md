@@ -166,5 +166,32 @@ each time. The first live run is the first datum about the current slate.
   or `total` key, and the sandbox proxy denies CONNECT to
   `field-relay-nba.jeffunglesbee.workers.dev` (`connect_rejected`). Both need a
   runner. `drift-sentinel`'s next scheduled run is the cheapest route.
-- **The 200-credit targeted fill** — not done, and not started without an
-  explicit instruction naming the credit spend.
+- **The 200-credit targeted fill** — ~~not done, and not started without an
+  explicit instruction naming the credit spend.~~ **CORRECTED 2026-09-23: it
+  had already run when this line was written.** Run `35418498902`, 2026-09-19
+  03:26:09Z, mode `*** APPLY — WILL SPEND CREDITS ***`: 10 pairs, 200 credits,
+  143 `odds_history` rows. Artifact
+  `field-relay-nba outbox/targeted-odds-fill-20260919T032609Z.log`, verified
+  independently by the plan shrinking 130 → 126 pairs rather than by the run's
+  own claim.
+
+  This line was written a day after the run, by a session that could not see
+  the relay repo. It then sat here as a standing request to spend 200 credits
+  on data already bought — and on 2026-09-23 a session read it, put it to the
+  owner as an open item, and was approved to run it. The log stopped it, not
+  the record.
+
+  The relay carries the same correction as a test fixture:
+  `field-relay-nba scripts/check-handoff-claims.mjs:118-123` reproduces the
+  HANDOFF heading that kept saying "verified and UNRUN, dispatch it" for ten
+  hours after the fill landed. That gate guards HANDOFF only. **An outbox
+  session doc in a different repo is outside every gate either repo has**, and
+  this is what that costs.
+
+  Known dead spend if a next fill is authorised: `2026-08-22 nfl` and
+  `2026-08-28 nfl` returned 272 events with **0 in window**, and
+  `2026-09-12 cfb` priced 0 of 13. Nothing records a pair that proved empty,
+  so they sit at the top of the plan by game count and **60 of the next 200
+  credits are already known to buy nothing**. Tracked in
+  `field-relay-nba HANDOFF.md` as `OPEN — a pair with 0 events in window will
+  fail identically forever`, marked `NOT built`.
