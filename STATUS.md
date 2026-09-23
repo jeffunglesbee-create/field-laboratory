@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `19927f0` — but that is not `main` HEAD
+**FAILURE** on `0a59bf8` — [run 35805213030](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/35805213030)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `5074615`
+`live-check` (post-deploy, against the deployed page): **green** on `5074615` — but that is not `main` HEAD
 
 ## Is it published?
 
