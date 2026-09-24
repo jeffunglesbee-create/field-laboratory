@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f1fe54b` | 2026-09-24 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-09-24 [skip ci] |
+| `f1fe54b` | 2026-09-24 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-09-24 [skip ci] |
+| `f1fe54b` | 2026-09-24 | [sport-vocabulary-2026-09-24T16-57-23-790Z.json](sport-vocabulary-2026-09-24T16-57-23-790Z.json) | drift-sentinel: odds-coverage-lost on 2026-09-24 [skip ci] |
 | `2f0f01b` | 2026-09-24 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-09-24 [skip ci] |
 | `2f0f01b` | 2026-09-24 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-09-24 [skip ci] |
 | `2f0f01b` | 2026-09-24 | [sport-vocabulary-2026-09-24T06-20-25-581Z.json](sport-vocabulary-2026-09-24T06-20-25-581Z.json) | drift-sentinel: odds-coverage-lost on 2026-09-24 [skip ci] |
