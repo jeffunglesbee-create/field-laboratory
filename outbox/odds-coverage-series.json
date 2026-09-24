@@ -261,9 +261,39 @@
   {
     "date": "2026-09-24",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-24",
-    "at": "2026-09-24T06:20:13.552Z",
+    "at": "2026-09-24T16:57:10.090Z",
     "sports": {
       "MLS": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 11,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "MLB": {
+        "rows": 12,
+        "withOdds": 12,
+        "withDraw": 0
+      },
+      "WNBA": {
+        "rows": 5,
+        "withOdds": 5,
+        "withDraw": 0
+      },
+      "NFL": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "PGA Tour": {
         "rows": 1,
         "withOdds": 0,
         "withDraw": 0
