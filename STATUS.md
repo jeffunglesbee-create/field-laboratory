@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `875acf6`
+`live-check` (post-deploy, against the deployed page): **green** on `c5ca645`
 
 ## Is it published?
 
