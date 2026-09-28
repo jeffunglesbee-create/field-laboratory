@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `a03f24b`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `a03f24b` — [run 36444809000](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/36444809000)
 
 ## Is it published?
 
@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`ok` on 2026-09-28 — 0 games, 0 malformed (121 runs logged)
+`ok` on 2026-09-28 — 2 games, 0 malformed (122 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
