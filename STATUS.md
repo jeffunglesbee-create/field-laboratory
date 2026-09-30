@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `0a59bf8` — [run 35805213030](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/35805213030)
+**FAILURE** on `a0f6b72` — [run 34545628862](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/34545628862)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `cf2f7cb`
+`live-check` (post-deploy, against the deployed page): **green** on `cf2f7cb` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`odds-coverage-lost` on 2026-09-30 — 1 games, 0 malformed (125 runs logged)
+`ok` on 2026-09-30 — 10 games, 0 malformed (126 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
