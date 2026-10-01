@@ -1,0 +1,132 @@
+{
+  "probed_at": "2026-10-01T18:19:29.277Z",
+  "relay_vocabulary": [
+    "AFL",
+    "Bundesliga",
+    "CFB",
+    "CFL",
+    "EFL Cup",
+    "EFL Trophy",
+    "EPL",
+    "FIFA World Cup",
+    "IPL",
+    "La Liga",
+    "Ligue 1",
+    "MLB",
+    "MLS",
+    "NBA",
+    "NFL",
+    "NHL",
+    "PGA Tour",
+    "Serie A",
+    "UEFA Champions League",
+    "UEFA Champions League Qualifying",
+    "UEFA Europa Conference League",
+    "UEFA Europa Conference League Qualifying",
+    "UEFA Europa League",
+    "UEFA Europa League Qualifying",
+    "UFL",
+    "WNBA",
+    "golf",
+    "wnba"
+  ],
+  "modelled": [
+    "AFL",
+    "Bundesliga",
+    "CFB",
+    "CFL",
+    "EFL Cup",
+    "EFL Trophy",
+    "EPL",
+    "FIFA World Cup",
+    "La Liga",
+    "Ligue 1",
+    "MLB",
+    "MLS",
+    "NBA",
+    "NFL",
+    "NHL",
+    "Serie A",
+    "UEFA Champions League",
+    "UEFA Champions League Qualifying",
+    "UEFA Europa Conference League",
+    "UEFA Europa Conference League Qualifying",
+    "UEFA Europa League",
+    "UEFA Europa League Qualifying",
+    "WNBA",
+    "golf",
+    "wnba"
+  ],
+  "declared_unmodelled": [
+    {
+      "label": "IPL",
+      "why": "unlike golf this IS a two-sided contest -- Delhi Capitals v Lucknow Super Giants, 2026-05-11 -- so the obstacle is the c"
+    },
+    {
+      "label": "PGA Tour",
+      "why": "NOT A SPORT. PGA Tour is a LEAGUE within golf, alongside the Korn Ferry, Champions, LPGA and DP World tours, and these r"
+    },
+    {
+      "label": "UFL",
+      "why": "the label is in the relay's vocabulary but sport-vocabulary-check sampled no regular_season_games row for it on 2026-08-"
+    }
+  ],
+  "missing": [],
+  "samples": {
+    "IPL": [
+      {
+        "id": "2026-05-11-ipl-delhi-luckno",
+        "sport": "IPL",
+        "league": "IPL 2026 — Match 53",
+        "date": "2026-05-11",
+        "home": "Delhi Capitals",
+        "away": "Lucknow Super Giants",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Arun Jaitley Stadium, Delhi",
+        "streams": "resolveBundle:IPL",
+        "note": null,
+        "tags": "[]",
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-06-15 16:04:12",
+        "drama_peak": null,
+        "espn_event_id": null,
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": null,
+        "importance": null,
+        "inplay_odds": null
+      }
+    ],
+    "PGA Tour": [
+      {
+        "id": "PGA Tour_2026-10-01_e401850915",
+        "sport": "PGA Tour",
+        "league": "PGA Tour",
+        "date": "2026-10-01",
+        "home": null,
+        "away": null,
+        "home_score": null,
+        "away_score": null,
+        "venue": null,
+        "streams": "ESPN+, Golf Chnl",
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-10-01 10:01:11",
+        "drama_peak": null,
+        "espn_event_id": "401850915",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-10-01T04:00Z",
+        "importance": null,
+        "inplay_odds": null
+      }
+    ],
+    "UFL": []
+  },
+  "error": null,
+  "sample_errors": {}
+}
