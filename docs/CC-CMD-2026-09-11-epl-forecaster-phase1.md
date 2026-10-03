@@ -10,13 +10,42 @@ market-implied one. **Rule A (autonomous push) is NOT cleared** and is out of
 scope — pull-only, rendered on request. If the design drifts toward notification
 or badge-on-change, stop and report.
 
-**Status:** FILED, not started. Blocked on `guards` being green in this repo.
-Substrate figures below were probed 2026-09-11; today is 2026-09-19 and the odds
-layer changed on 09-12, 09-14, 09-16 and 09-19 — re-probe before building.
+**Status:** FILED, not started. `guards` is green as of 2026-09-21 and no longer
+blocks. **Substrate re-probed 2026-10-03 and the phases are now SWAPPED.**
 
-> **Note on this document.** It was revised five times as probes came back and
-> was left self-contradictory; this is a coherent rewrite. Where an earlier
-> revision is retracted, the retraction is stated rather than silently removed.
+## RE-PROBE 2026-10-03 — WHY THE PHASES SWAPPED
+
+| input | 2026-09-11 | 2026-10-03 |
+|---|---|---|
+| standings | 20 clubs, P4 | **holds** — 20 clubs, P5. City 15pts GF13, Arsenal 12, Brighton 10 |
+| `/fpl` fixtures | full season, 380 | route unchanged and deployed |
+| **EPL odds** | ~72-hour horizon | **ZERO** |
+| fbref xG | empty | **still empty, 3.5 months stale** (`updated 2026-06-23`, `teams: 0`, still labelled 2025-2026) |
+
+`/context/date` returns **no EPL rows on any date probed** — 10-03, 10-04, 10-05,
+10-17, 10-24 — while the table shows 5 played. Today's 75 rows are CFB 54,
+NHL 13, MLB 4, golf 1, NBA 1, EFL Trophy 1, CFL 1. Oct 17 and Oct 24 return MLS
+only; Oct 4 and Oct 5 return zero rows entirely.
+
+**Supply is not the cause.** Vendor `soccer_epl` present and active,
+`requests_remaining 98530`. Relay budget 600 of 3800 daily,
+`ceiling_reached_at: null`, `by_site_sum 600`, `unaccounted 0`.
+
+**Unresolved, and it gates trusting any odds volume figure:** `/budget/odds`
+reports `degraded_open: { events: 444, credits: 2565 }` today — credits that
+reached the vendor while a guard fell open and the counter never moved. Four
+times the counted spend, and it does not reconcile with the provider's
+`requests_used: 1470`. Three sources, three totals.
+
+**THE LESSON THIS DOCUMENT IS AN INSTANCE OF.** Phase 1 was built on the LEAST
+stable input and deferred the most stable one. Market-implied was chosen for
+carrying "no model risk" — but a model with no data to run on is a worse risk
+than a simple model, and that is what happened. Standings and `/fpl` have not
+moved in three weeks; odds went to zero in days.
+
+> **Note on this document.** It was revised repeatedly as probes came back. Where
+> an earlier revision is retracted, the retraction is stated rather than silently
+> removed.
 
 ## SUBSTRATE — probed live 2026-09-11, not assumed
 
@@ -58,10 +87,18 @@ FIRST.** Do not start this until it has landed. A bad team join fails silently.
 2. Confirm `Market.threeWay`'s signature and `SUM_EPS` at HEAD.
 3. Confirm `/soccer-fbref/epl.json` is still empty. If refilled, report it — it
    does not change scope.
-4. Confirm `b8f1a0e` has landed and `/identity/mismatches?sports=EPL` reports
-   no unmatched rows. If it has not, STOP.
+4. **Confirm EPL rows exist somewhere before relying on any odds path.** As of
+   2026-10-03 `/context/date` returns zero EPL rows on every date probed. Two
+   readings remain unseparated: EPL rows are not being written to the archive, or
+   they are no longer on this path. Settle which before writing any
+   `MarketImplied` code. **This does NOT block Phase 1**, which needs only
+   standings and `/fpl`.
+5. Team identity is handled by `src/odds-name-match.js` (relay, 2026-09-16,
+   80 of 80 on its fixture). The earlier instruction to wait for `b8f1a0e` is
+   RETRACTED — that CC-CMD was superseded and never ran. Verify EPL names resolve
+   through the matcher; do not wait on it.
 
-## PHASE 1 — THE RECORD, WITH MARKET-IMPLIED ROWS IN IT. Build this only.
+## PHASE 1 — THE RECORD, WITH **MODELLED** ROWS IN IT. Build this only.
 
 **Do not build a forecaster and bolt a record on later. Build the record; the
 forecast is its latest row.**
@@ -89,17 +126,33 @@ It also inverts the risk. Shipping bare numbers first and adding memory later
 leaves the window with no record of how forecasts moved being exactly the window
 where the model is newest and moves most.
 
-### Scope stays small — only the SHAPE changes
+### Scope — MODELLED first, market second
 
-Phase 1 still computes only market-implied per-fixture three-way probabilities.
-`Modelled` is NOT built. But it lands as a **provenance value in an existing
-store**, not as a second phase with its own storage.
+**SWAPPED 2026-10-03.** Phase 1 computes `Modelled` per-fixture probabilities
+from standings + `/fpl` fixtures. `MarketImplied` is NOT built in Phase 1; it
+becomes a second provenance value in the same store when odds return.
 
-**A market-derived SEASON projection remains impossible by construction.** An
-earlier revision moved it into Phase 1 on discovering `/fpl`; that was wrong and
-is retracted. `/fpl` gives 380 fixtures, but odds reach ~72 hours, so
-`MarketImplied` covers roughly one matchday and ~370 fixtures are `NoForecast`.
-Only the model can project unpriced fixtures.
+Three reasons this is the better ordering, not merely the possible one:
+
+- **`NoForecast` stops being the dominant state.** Under market-implied it was
+  ~370 of 380 fixtures. Under modelled it is near zero — every fixture gets a
+  projection, because the model does not need a price to exist.
+- **The `Paired` type already assumed it.** `ModelOnly` was specced as the
+  dominant case while market sat in the foundation. The types were right and the
+  phasing contradicted them.
+- **`SubstrateLost` already anticipated it.** Odds vanishing should be a RECORDED
+  EVENT in the store, not a broken build. With the model underneath, the odds
+  disappearance becomes a row — which is the entire point of building the record
+  first.
+
+The season projection and the six outcomes remain PHASE 2. Phase 1 is per-fixture
+only: one modelled three-way probability per scheduled fixture, written as a row.
+
+**Keep the model simple and say what it is.** Phase 1 is not the place for a
+sophisticated rating system. Points, goal difference and goals scored from the
+standings, plus home advantage, is enough to produce a three-way probability that
+normalises. State the method in the outbox so a later reader can tell a model
+revision from a reality change — which is what `ModelRevised` exists to record.
 
 ### The store
 
