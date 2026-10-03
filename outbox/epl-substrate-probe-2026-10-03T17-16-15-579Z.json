@@ -1,0 +1,707 @@
+{
+  "at": "2026-10-03T17:16:15.579Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "probed_date": "2026-10-03",
+  "sources": {
+    "standings": {
+      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings",
+      "http": 200,
+      "bytes": 68780,
+      "error": null,
+      "state": "present",
+      "fields": {
+        "name": "English Premier League",
+        "season": 2026,
+        "entries": 20,
+        "stat_keys_seen": [
+          "deductions",
+          "gamesPlayed",
+          "losses",
+          "pointDifferential",
+          "points",
+          "pointsAgainst",
+          "pointsFor",
+          "ties",
+          "wins"
+        ],
+        "deductions_present_on": 20,
+        "first_three": [
+          {
+            "team": "Manchester City",
+            "abbrev": "MNC",
+            "stats": {
+              "gamesPlayed": 5,
+              "losses": 0,
+              "pointDifferential": 8,
+              "points": 15,
+              "pointsAgainst": 5,
+              "pointsFor": 13,
+              "ties": 0,
+              "wins": 5,
+              "deductions": 0
+            }
+          },
+          {
+            "team": "Arsenal",
+            "abbrev": "ARS",
+            "stats": {
+              "gamesPlayed": 5,
+              "losses": 1,
+              "pointDifferential": 4,
+              "points": 12,
+              "pointsAgainst": 4,
+              "pointsFor": 8,
+              "ties": 0,
+              "wins": 4,
+              "deductions": 0
+            }
+          },
+          {
+            "team": "Brighton & Hove Albion",
+            "abbrev": "BHA",
+            "stats": {
+              "gamesPlayed": 5,
+              "losses": 1,
+              "pointDifferential": 11,
+              "points": 10,
+              "pointsAgainst": 5,
+              "pointsFor": 16,
+              "ties": 1,
+              "wins": 3,
+              "deductions": 0
+            }
+          }
+        ],
+        "teams": [
+          "Manchester City",
+          "Arsenal",
+          "Brighton & Hove Albion",
+          "Brentford",
+          "Leeds United",
+          "Liverpool",
+          "Everton",
+          "Hull City",
+          "Newcastle United",
+          "Chelsea",
+          "Ipswich Town",
+          "Manchester United",
+          "Nottingham Forest",
+          "Sunderland",
+          "Crystal Palace",
+          "Aston Villa",
+          "AFC Bournemouth",
+          "Coventry City",
+          "Fulham",
+          "Tottenham Hotspur"
+        ],
+        "abbrevs": [
+          "MNC",
+          "ARS",
+          "BHA",
+          "BRE",
+          "LEE",
+          "LIV",
+          "EVE",
+          "HUL",
+          "NEW",
+          "CHE",
+          "IPS",
+          "MAN",
+          "NFO",
+          "SUN",
+          "CRY",
+          "AVL",
+          "BOU",
+          "COV",
+          "FUL",
+          "TOT"
+        ],
+        "name_to_abbrev": {
+          "Manchester City": "MNC",
+          "Arsenal": "ARS",
+          "Brighton & Hove Albion": "BHA",
+          "Brentford": "BRE",
+          "Leeds United": "LEE",
+          "Liverpool": "LIV",
+          "Everton": "EVE",
+          "Hull City": "HUL",
+          "Newcastle United": "NEW",
+          "Chelsea": "CHE",
+          "Ipswich Town": "IPS",
+          "Manchester United": "MAN",
+          "Nottingham Forest": "NFO",
+          "Sunderland": "SUN",
+          "Crystal Palace": "CRY",
+          "Aston Villa": "AVL",
+          "AFC Bournemouth": "BOU",
+          "Coventry City": "COV",
+          "Fulham": "FUL",
+          "Tottenham Hotspur": "TOT"
+        }
+      }
+    },
+    "fpl_fixtures": {
+      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/fpl/fixtures",
+      "http": 200,
+      "bytes": 231760,
+      "error": null,
+      "state": "present",
+      "fields": {
+        "fixtures": 380,
+        "unscheduled_event_null": 0,
+        "finished": 50,
+        "gameweeks_seen": 38,
+        "keys_on_first": [
+          "code",
+          "event",
+          "finished",
+          "finished_provisional",
+          "id",
+          "kickoff_time",
+          "minutes",
+          "provisional_start_time",
+          "pulse_id",
+          "started",
+          "stats",
+          "team_a",
+          "team_a_difficulty",
+          "team_a_score",
+          "team_h",
+          "team_h_difficulty",
+          "team_h_score"
+        ],
+        "first_three_scheduled": [
+          {
+            "id": 1,
+            "event": 1,
+            "kickoff_time": "2026-08-21T19:00:00Z",
+            "team_h": 1,
+            "team_a": 7,
+            "finished": true
+          },
+          {
+            "id": 4,
+            "event": 1,
+            "kickoff_time": "2026-08-22T11:30:00Z",
+            "team_h": 11,
+            "team_a": 16,
+            "finished": true
+          },
+          {
+            "id": 3,
+            "event": 1,
+            "kickoff_time": "2026-08-22T14:00:00Z",
+            "team_h": 9,
+            "team_a": 8,
+            "finished": true
+          }
+        ]
+      }
+    },
+    "fpl_bootstrap": {
+      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/fpl/bootstrap-static",
+      "http": 200,
+      "bytes": 1778810,
+      "error": null,
+      "state": "present",
+      "fields": {
+        "teams": 20,
+        "keys_on_first": [
+          "code",
+          "draw",
+          "form",
+          "id",
+          "link_url",
+          "loss",
+          "name",
+          "played",
+          "points",
+          "position",
+          "pulse_id",
+          "short_name",
+          "strength",
+          "strength_attack_away",
+          "strength_attack_home",
+          "strength_defence_away",
+          "strength_defence_home",
+          "strength_overall_away",
+          "strength_overall_home",
+          "team_division",
+          "unavailable",
+          "win"
+        ],
+        "id_to_name": {
+          "1": "Arsenal",
+          "2": "Aston Villa",
+          "3": "Bournemouth",
+          "4": "Brentford",
+          "5": "Brighton",
+          "6": "Chelsea",
+          "7": "Coventry City",
+          "8": "Crystal Palace",
+          "9": "Everton",
+          "10": "Fulham",
+          "11": "Hull City",
+          "12": "Ipswich Town",
+          "13": "Leeds",
+          "14": "Liverpool",
+          "15": "Man City",
+          "16": "Man Utd",
+          "17": "Newcastle",
+          "18": "Nott'm Forest",
+          "19": "Spurs",
+          "20": "Sunderland"
+        },
+        "short_names": {
+          "1": "ARS",
+          "2": "AVL",
+          "3": "BOU",
+          "4": "BRE",
+          "5": "BHA",
+          "6": "CHE",
+          "7": "COV",
+          "8": "CRY",
+          "9": "EVE",
+          "10": "FUL",
+          "11": "HUL",
+          "12": "IPS",
+          "13": "LEE",
+          "14": "LIV",
+          "15": "MCI",
+          "16": "MUN",
+          "17": "NEW",
+          "18": "NFO",
+          "19": "TOT",
+          "20": "SUN"
+        },
+        "table_populated_on": 0,
+        "table": {
+          "1": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 2,
+            "form": null
+          },
+          "2": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 16,
+            "form": null
+          },
+          "3": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 17,
+            "form": null
+          },
+          "4": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 4,
+            "form": null
+          },
+          "5": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 3,
+            "form": null
+          },
+          "6": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 10,
+            "form": null
+          },
+          "7": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 18,
+            "form": null
+          },
+          "8": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 15,
+            "form": null
+          },
+          "9": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 7,
+            "form": null
+          },
+          "10": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 19,
+            "form": null
+          },
+          "11": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 8,
+            "form": null
+          },
+          "12": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 11,
+            "form": null
+          },
+          "13": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 5,
+            "form": null
+          },
+          "14": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 6,
+            "form": null
+          },
+          "15": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 1,
+            "form": null
+          },
+          "16": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 12,
+            "form": null
+          },
+          "17": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 9,
+            "form": null
+          },
+          "18": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 13,
+            "form": null
+          },
+          "19": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 20,
+            "form": null
+          },
+          "20": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 14,
+            "form": null
+          }
+        },
+        "strength": {
+          "1": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 5,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "2": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "3": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "4": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "5": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "6": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "7": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 2,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "8": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "9": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "10": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "11": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 2,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "12": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 2,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "13": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "14": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "15": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 5,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "16": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "17": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "18": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "19": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "20": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          }
+        },
+        "strength_distinct_overall_home": 3
+      }
+    },
+    "fbref_epl": {
+      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/soccer-fbref/epl.json",
+      "http": 200,
+      "bytes": 498,
+      "error": null,
+      "state": "empty",
+      "fields": {
+        "competition": "Premier League 2025-26",
+        "updated": "2026-06-23T01:58:47.173751+00:00",
+        "teams": 0
+      }
+    },
+    "context_today": {
+      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-03",
+      "http": 200,
+      "bytes": 259420,
+      "error": null,
+      "state": "present",
+      "fields": {
+        "rows": 75,
+        "by_sport": {
+          "golf": 1,
+          "NBA": 1,
+          "NHL": 13,
+          "MLB": 4,
+          "EFL Trophy": 1,
+          "CFB": 54,
+          "CFL": 1
+        },
+        "epl_rows": 0,
+        "epl_labels_looked_for": [
+          "EPL",
+          "Premier League",
+          "English Premier League"
+        ]
+      }
+    }
+  },
+  "join": {
+    "espn": 20,
+    "fpl": 20,
+    "matched": 13,
+    "espn_unmatched": [
+      "Manchester City",
+      "Brighton & Hove Albion",
+      "Leeds United",
+      "Newcastle United",
+      "Manchester United",
+      "Nottingham Forest",
+      "Tottenham Hotspur"
+    ],
+    "fpl_unmatched": [
+      "Brighton",
+      "Leeds",
+      "Man City",
+      "Man Utd",
+      "Newcastle",
+      "Nott'm Forest",
+      "Spurs"
+    ],
+    "exact_normalised_strategy": "lowercase, & -> and, punctuation -> space, drop FC/AFC, collapse spaces"
+  }
+}

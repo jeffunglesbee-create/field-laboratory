@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-03T17:14:34.520Z",
+  "at": "2026-10-03T17:16:15.579Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
   "probed_date": "2026-10-03",
   "sources": {
@@ -93,7 +93,51 @@
           "Coventry City",
           "Fulham",
           "Tottenham Hotspur"
-        ]
+        ],
+        "abbrevs": [
+          "MNC",
+          "ARS",
+          "BHA",
+          "BRE",
+          "LEE",
+          "LIV",
+          "EVE",
+          "HUL",
+          "NEW",
+          "CHE",
+          "IPS",
+          "MAN",
+          "NFO",
+          "SUN",
+          "CRY",
+          "AVL",
+          "BOU",
+          "COV",
+          "FUL",
+          "TOT"
+        ],
+        "name_to_abbrev": {
+          "Manchester City": "MNC",
+          "Arsenal": "ARS",
+          "Brighton & Hove Albion": "BHA",
+          "Brentford": "BRE",
+          "Leeds United": "LEE",
+          "Liverpool": "LIV",
+          "Everton": "EVE",
+          "Hull City": "HUL",
+          "Newcastle United": "NEW",
+          "Chelsea": "CHE",
+          "Ipswich Town": "IPS",
+          "Manchester United": "MAN",
+          "Nottingham Forest": "NFO",
+          "Sunderland": "SUN",
+          "Crystal Palace": "CRY",
+          "Aston Villa": "AVL",
+          "AFC Bournemouth": "BOU",
+          "Coventry City": "COV",
+          "Fulham": "FUL",
+          "Tottenham Hotspur": "TOT"
+        }
       }
     },
     "fpl_fixtures": {
@@ -229,7 +273,373 @@
           "18": "NFO",
           "19": "TOT",
           "20": "SUN"
-        }
+        },
+        "table_populated_on": 0,
+        "table": {
+          "1": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 2,
+            "form": null
+          },
+          "2": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 16,
+            "form": null
+          },
+          "3": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 17,
+            "form": null
+          },
+          "4": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 4,
+            "form": null
+          },
+          "5": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 3,
+            "form": null
+          },
+          "6": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 10,
+            "form": null
+          },
+          "7": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 18,
+            "form": null
+          },
+          "8": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 15,
+            "form": null
+          },
+          "9": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 7,
+            "form": null
+          },
+          "10": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 19,
+            "form": null
+          },
+          "11": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 8,
+            "form": null
+          },
+          "12": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 11,
+            "form": null
+          },
+          "13": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 5,
+            "form": null
+          },
+          "14": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 6,
+            "form": null
+          },
+          "15": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 1,
+            "form": null
+          },
+          "16": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 12,
+            "form": null
+          },
+          "17": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 9,
+            "form": null
+          },
+          "18": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 13,
+            "form": null
+          },
+          "19": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 20,
+            "form": null
+          },
+          "20": {
+            "played": 0,
+            "win": 0,
+            "draw": 0,
+            "loss": 0,
+            "points": 0,
+            "position": 14,
+            "form": null
+          }
+        },
+        "strength": {
+          "1": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 5,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "2": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "3": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "4": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "5": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "6": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "7": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 2,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "8": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "9": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "10": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "11": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 2,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "12": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 2,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "13": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "14": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "15": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 5,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "16": {
+            "strength": null,
+            "overall_home": 4,
+            "overall_away": 4,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "17": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "18": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "19": {
+            "strength": null,
+            "overall_home": 2,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          },
+          "20": {
+            "strength": null,
+            "overall_home": 3,
+            "overall_away": 3,
+            "attack_home": 0,
+            "attack_away": 0,
+            "defence_home": 0,
+            "defence_away": 0
+          }
+        },
+        "strength_distinct_overall_home": 3
       }
     },
     "fbref_epl": {
