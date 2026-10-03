@@ -70,6 +70,11 @@ export function extractStandings(j) {
       deductions_present_on: rows.filter(r => 'deductions' in r.stats).length,
       first_three: rows.slice(0, 3),
       teams: rows.map(r => r.team).filter(Boolean),
+      // ABBREVIATIONS IN FULL. The first live run matched 13 of 20 clubs by
+      // name ("Manchester City" vs "Man City"), so the join has to be decided
+      // on a field that might be stable rather than on normalising harder.
+      abbrevs: rows.map(r => r.abbrev),
+      name_to_abbrev: Object.fromEntries(rows.map(r => [r.team, r.abbrev])),
     },
   }
 }
@@ -100,6 +105,22 @@ export function extractFplBootstrap(j) {
       keys_on_first: teams[0] ? Object.keys(teams[0]).sort() : [],
       id_to_name: Object.fromEntries(teams.map(t => [t.id, t.name])),
       short_names: Object.fromEntries(teams.map(t => [t.id, t.short_name])),
+      // Does FPL carry its own table? If `played` is nonzero for most clubs,
+      // Phase 1 can run inside FPL's id space and the 13-of-20 name join
+      // disappears. If it is zeroed, the join is unavoidable and must be an
+      // explicit alias map. ASSERTED NOWHERE -- read here and decided from it.
+      table_populated_on: teams.filter(t => (t.played ?? 0) > 0).length,
+      table: Object.fromEntries(teams.map(t => [t.id, {
+        played: t.played, win: t.win, draw: t.draw, loss: t.loss,
+        points: t.points, position: t.position, form: t.form,
+      }])),
+      strength: Object.fromEntries(teams.map(t => [t.id, {
+        strength: t.strength,
+        overall_home: t.strength_overall_home, overall_away: t.strength_overall_away,
+        attack_home: t.strength_attack_home, attack_away: t.strength_attack_away,
+        defence_home: t.strength_defence_home, defence_away: t.strength_defence_away,
+      }])),
+      strength_distinct_overall_home: new Set(teams.map(t => t.strength_overall_home)).size,
     },
   }
 }
@@ -197,6 +218,9 @@ function selfTest() {
   t('standings: reports deductions presence per row, not as a global boolean',
     st.fields.deductions_present_on === 1, String(st.fields.deductions_present_on))
   t('standings: an empty entries list is not contentful', extractStandings({}).contentful === false)
+  t('standings: carries every abbreviation, not a sample',
+    st.fields.abbrevs.length === 2 && st.fields.name_to_abbrev['Arsenal'] === 'ARS',
+    JSON.stringify(st.fields.abbrevs))
 
   // FPL fixtures, including the event:null case NoForecastReason needs.
   const fx = extractFplFixtures([
@@ -210,9 +234,19 @@ function selfTest() {
   t('fpl fixtures: a bare [] is not contentful', extractFplFixtures([]).contentful === false)
 
   // bootstrap
-  const bs = extractFplBootstrap({ teams: [{ id: 1, name: 'Arsenal', short_name: 'ARS' }] })
+  const bs = extractFplBootstrap({ teams: [
+    { id: 1, name: 'Arsenal', short_name: 'ARS', played: 5, points: 12, strength_overall_home: 1300 },
+    { id: 2, name: 'Aston Villa', short_name: 'AVL', played: 0, points: 0, strength_overall_home: 1200 },
+  ] })
   t('fpl bootstrap: builds the id -> name map', bs.fields.id_to_name[1] === 'Arsenal')
   t('fpl bootstrap: no teams is not contentful', extractFplBootstrap({ teams: [] }).contentful === false)
+  t('fpl bootstrap: counts only clubs whose table row is POPULATED',
+    bs.fields.table_populated_on === 1, String(bs.fields.table_populated_on))
+  t('fpl bootstrap: an all-zero table reports 0 populated, not absent',
+    extractFplBootstrap({ teams: [{ id: 1, played: 0 }, { id: 2, played: 0 }] }).fields.table_populated_on === 0)
+  t('fpl bootstrap: a single strength value across all clubs is reported as 1 distinct',
+    extractFplBootstrap({ teams: [{ id: 1, strength_overall_home: 1200 }, { id: 2, strength_overall_home: 1200 }] })
+      .fields.strength_distinct_overall_home === 1)
 
   // context/date — and the games OBJECT, not a bare array. This repo has
   // already paid for reading it as an array once (seed-coverage run 33134550309).
