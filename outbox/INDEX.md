@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c906ad3` | 2026-10-03 | [epl-substrate-probe-2026-10-03T17-16-15-579Z.json](epl-substrate-probe-2026-10-03T17-16-15-579Z.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
+| `c906ad3` | 2026-10-03 | [epl-substrate-probe-latest.json](epl-substrate-probe-latest.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
+| `cdeab51` | 2026-10-03 | [epl-substrate-probe-2026-10-03T17-14-34-520Z.json](epl-substrate-probe-2026-10-03T17-14-34-520Z.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
+| `cdeab51` | 2026-10-03 | [epl-substrate-probe-latest.json](epl-substrate-probe-latest.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
 | `a6972d6` | 2026-10-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-03 [skip ci] |
 | `a6972d6` | 2026-10-03 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-03 [skip ci] |
 | `76ca1c9` | 2026-10-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-03 [skip ci] |
