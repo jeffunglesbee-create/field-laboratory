@@ -1,0 +1,46 @@
+# Task 0 of docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md.
+#
+# WHY CI: the dev sandbox reaches neither *.workers.dev nor
+# fantasy.premierleague.com — both measured at HTTP 000 on 2026-10-03, so the
+# five sources Phase 1 is written against cannot be read from a session at all.
+# The CC-CMD's Task 0 is explicit that its own numbers are "a starting point,
+# not evidence"; this is where the evidence comes from. DISPATCH ONLY.
+#
+# NO BUILD STEP. The probe imports nothing from the compiled F#, so neither
+# `dotnet tool restore` nor `npm run build` is needed. Its only dependency is
+# node's own fetch.
+name: probe-epl-substrate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # SELF-TEST FIRST, and it gates the live read. The extractors decide what
+      # the manifest says; if they are broken the live numbers are fiction, and
+      # a run that reports fiction is worse than a run that does not happen.
+      - name: Probe
+        run: |
+          node scripts/probe-epl-substrate.mjs --self-test
+          node scripts/probe-epl-substrate.mjs
+      # `always()` because the probe exits non-zero when a source Phase 1 NEEDS
+      # is unusable — which is exactly the run whose artifact must survive.
+      - name: Commit the artifact
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/epl-substrate-probe-*.json || true
+          git diff --staged --quiet || git commit -m "probe: EPL substrate for forecaster Phase 1 [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
