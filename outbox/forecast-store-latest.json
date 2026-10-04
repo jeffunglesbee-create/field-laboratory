@@ -1,0 +1,78 @@
+{
+  "at": "2026-10-04T15:25:07.498Z",
+  "method": "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30",
+  "rows_total": 30,
+  "subjects": 10,
+  "newest": [
+    {
+      "subject": "epl-fixture-51",
+      "value": "0.739796/0.121319/0.138885",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-52",
+      "value": "0.070333/0.080587/0.849080",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-53",
+      "value": "0.809496/0.095781/0.094723",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-57",
+      "value": "0.787519/0.103947/0.108535",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-60",
+      "value": "0.031709/0.052090/0.916201",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-59",
+      "value": "0.839507/0.084334/0.076158",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-55",
+      "value": "0.347410/0.265136/0.387454",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-56",
+      "value": "0.382856/0.267558/0.349586",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-58",
+      "value": "0.082397/0.088256/0.829347",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    },
+    {
+      "subject": "epl-fixture-54",
+      "value": "0.077372/0.085105/0.837523",
+      "provenance": "Modelled",
+      "cause": "Unchanged",
+      "observed_at": "2026-10-04T15:25:07.498Z"
+    }
+  ]
+}
