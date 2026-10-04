@@ -22,8 +22,8 @@ console.log(`baseline: ${F} --self-test passes on current source\n`)
 
 const MUTATIONS = [
   ['O1 A SPORT THAT WAS NEVER COVERED NOW ALARMS',
-   "      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue",
-   "      if (!p || p.rows === 0) continue",
+   "      if (!p || p.rows === 0 || !measurable(p) || rate(p) < WAS_COVERED) continue",
+   "      if (!p || p.rows === 0 || !measurable(p)) continue",
    'THE ONE THAT MATTERS: every thin market that ever priced one game goes red the day it prices none. An alarm nobody can clear is one everybody learns to skip, which is how the next real collapse is missed'],
 
   ['O2 the transition alarm never fires at all',
@@ -41,10 +41,12 @@ const MUTATIONS = [
    "      if (!best || past.date < best.date) best = { date: past.date, ...p }",
    'every drop is overstated by whatever ordinary decline happened in between, and a reader chases a supply failure that was partly seasonal'],
 
-  ['O3 an out-of-season sport alarms',
-   "    if (now.rows === 0) continue",
-   "    if (false) continue",
-   'a league with no games on the slate reads as a league starved of odds, so every winter fires'],
+  // O3 ('an out-of-season sport alarms') is GONE, not disabled. It pinned a
+  // separate `if (now.rows === 0) continue`, and the row floor subsumes zero —
+  // the branch was redundant, so the mutation changed no output on any input.
+  // O16 now covers the merged skip, and the self-test still asserts that an
+  // absent sport does not alarm. A dead mutation left in place reports CAUGHT
+  // for free and inflates the count (Rule 63).
 
   // ANCHORED ON THREE LINES. Two loops over `series` now share the date guard,
   // so the one-line anchor matched twice and the harness refused to report a
@@ -52,13 +54,13 @@ const MUTATIONS = [
   // The WAS_COVERED line is what distinguishes the baseline loop from the
   // previous-reading loop; O13 covers the other one.
   ['O4 the BASELINE search stops being ordered by date',
-   "      if (!past || past.date >= current.date) continue\n      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue",
-   "      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue",
+   "      if (!past || past.date >= current.date) continue\n      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || !measurable(p) || rate(p) < WAS_COVERED) continue",
+   "      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || !measurable(p) || rate(p) < WAS_COVERED) continue",
    'probing an OLD date today would count as history for a newer one, so re-probing 2026-09-01 after 2026-09-10 invents a transition that never happened'],
 
   ['O13 the PREVIOUS-READING search stops being ordered by date',
-   "      if (!past || past.date >= current.date) continue\n      const p = past.sports?.[sport]\n      if (!p || p.rows === 0) continue",
-   "      const p = past.sports?.[sport]\n      if (!p || p.rows === 0) continue",
+   "      if (!past || past.date >= current.date) continue\n      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || !measurable(p)) continue",
+   "      const p = past.sports?.[sport]\n      if (!p || p.rows === 0 || !measurable(p)) continue",
    'the reading that decides new-vs-continuing could come from AFTER the probe, so a later recovery would file a present collapse as already-reported and silence it'],
 
   ['O5 a game with two snapshots counts as two coverages',
@@ -100,6 +102,32 @@ const MUTATIONS = [
    "  if (!current || Object.keys(current.sports ?? {}).length === 0) return series ?? []",
    "  if (!current) return series ?? []",
    'a second run on a date already probed would replace 11 sports with none, destroying the reading the alarm compares against — worse than never probing'],
+
+  // ── the row floor ────────────────────────────────────────────────────────
+  ['O16 A ONE-ROW SLATE ALARMS AGAIN — the flapping this floor was added for',
+   '    if (!measurable(now)) continue',
+   '    if (false) continue',
+   'MLS fielded one unpriced fixture and a 100-point fall fired; drift-sentinel alternated in and out of the new-decay list four times in five days on exactly this'],
+
+  ['O17 a one-row BASELINE counts as evidence the sport was covered',
+   '      if (!p || p.rows === 0 || !measurable(p) || rate(p) < WAS_COVERED) continue',
+   '      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue',
+   'a single priced fixture reads 100% and becomes the thing a later slate is judged against; nothing was established to have been lost'],
+
+  ['O18 THE FLOOR IS RAISED TO 4 AND SUPPRESSES A REAL COLLAPSE',
+   'const MIN_ROWS = 3',
+   'const MIN_ROWS = 4',
+   "La Liga's 3/3 -> 0/3 is the smallest genuine alarm in the committed history; at 4 it disappears, which is the failure mode of guarding too hard and is why the number is 3"],
+
+  ['O19 the floor excludes the row count it is named for',
+   'const measurable = c => (c && c.rows >= MIN_ROWS)',
+   'const measurable = c => (c && c.rows > MIN_ROWS)',
+   'an off-by-one here silently becomes a floor of 4 and takes La Liga with it, while the constant still reads 3'],
+
+  ['O20 a thin PREVIOUS reading decides new vs continuing',
+   '      if (!p || p.rows === 0 || !measurable(p)) continue\n      if (!prev || past.date > prev.date) prev = { date: past.date, ...p }',
+   '      if (!p || p.rows === 0) continue\n      if (!prev || past.date > prev.date) prev = { date: past.date, ...p }',
+   'a one-row reading sits below the covered floor by arithmetic, so a first sighting of a real collapse would be filed as `continuing` and never fire'],
 ]
 
 const original = readFileSync(F, 'utf8')

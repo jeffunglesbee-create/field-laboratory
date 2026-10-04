@@ -82,8 +82,41 @@ const WAS_COVERED = 0.5
  * Missing the case by two games is missing it.
  */
 const COLLAPSED_TO = 0.31
+/**
+ * ...and neither rate means anything below this many rows.
+ *
+ * A one-row sport can only ever read 0% or 100%, so every `1/1 -> 0/1` is a
+ * 100-point fall and fires as a new collapse, and every `0/1 -> 1/1` re-arms
+ * it. Both thresholds above are rates, and a rate with a denominator of one is
+ * a coin, not a measurement.
+ *
+ * THE NUMBER IS 3 BECAUSE OF WHAT IT WOULD SUPPRESS, not because it reads well.
+ * Replaying `transitions()` over all 16 committed readings produces SIX alarms
+ * in the whole history:
+ *
+ *   2026-09-05  La Liga   3/3   -> 0/3     substantive
+ *   2026-09-05  Ligue 1   3/5   -> 0/3     substantive
+ *   2026-09-20  MLS      18/21  -> 2/11    substantive — the case the thresholds were set from
+ *   2026-09-24  MLS       1/1   -> 0/1     NOISE
+ *   2026-09-27  MLS      27/29  -> 0/11    substantive
+ *   2026-10-02  MLS       1/1   -> 0/1     NOISE
+ *
+ * A floor of 3 on BOTH SIDES drops exactly the two noise rows and keeps all
+ * four real ones. La Liga's 3/3 is what pins it: at 4 that alarm disappears
+ * too. The bound is measured from the committed history, and
+ * scripts/replay-odds-coverage.mjs re-derives this table on demand so the
+ * number can be re-checked rather than trusted.
+ *
+ * WHY BOTH SIDES. A one-row BASELINE is not evidence a sport was covered, and
+ * a one-row CURRENT slate cannot show that it stopped being. Guarding only the
+ * baseline would still fire on `20/22 -> 0/1`, which is a thin slate rather
+ * than a supply failure.
+ */
+const MIN_ROWS = 3
 
 const rate = c => (c.rows > 0 ? c.withOdds / c.rows : 0)
+/** Enough rows for a rate to mean anything. `rows === 0` is absence, handled separately. */
+const measurable = c => (c && c.rows >= MIN_ROWS)
 
 export function transitions(series, current) {
   const out = []
@@ -91,7 +124,18 @@ export function transitions(series, current) {
     // A sport with no rows at all is absent from the slate, not starved of
     // odds. Alarming on it would fire every time a league is out of season —
     // the standing red this design exists to avoid.
-    if (now.rows === 0) continue
+    // TWO DIFFERENT FACTS, ONE OUTCOME. `rows === 0` is a sport absent from the
+    // slate — out of season, not starved. `0 < rows < MIN_ROWS` is a slate too
+    // thin for a rate to mean anything. Neither is news, and keeping them as
+    // separate branches left the first unreachable once the floor arrived: its
+    // mutation went dead, which is how the redundancy was found rather than by
+    // reading (Rule 63).
+    //
+    // The distinction survives where it is READ rather than where it is acted
+    // on: scripts/replay-odds-coverage.mjs lists every thin slate it suppressed
+    // and deliberately excludes the absent ones, so a floor that starts hiding
+    // real events is visible instead of silent.
+    if (!measurable(now)) continue
     // The most recent EARLIER reading in which this sport was COVERED. Earlier
     // by DATE, not by position: a probe of an older date run today must not
     // count as "before" a probe of a newer date run last week.
@@ -99,7 +143,7 @@ export function transitions(series, current) {
     for (const past of series ?? []) {
       if (!past || past.date >= current.date) continue
       const p = past.sports?.[sport]
-      if (!p || p.rows === 0 || rate(p) < WAS_COVERED) continue
+      if (!p || p.rows === 0 || !measurable(p) || rate(p) < WAS_COVERED) continue
       if (!best || past.date > best.date) best = { date: past.date, ...p }
     }
     if (!best) continue
@@ -124,7 +168,7 @@ export function transitions(series, current) {
     for (const past of series ?? []) {
       if (!past || past.date >= current.date) continue
       const p = past.sports?.[sport]
-      if (!p || p.rows === 0) continue
+      if (!p || p.rows === 0 || !measurable(p)) continue
       if (!prev || past.date > prev.date) prev = { date: past.date, ...p }
     }
     const state = !prev || rate(prev) >= WAS_COVERED ? 'new' : 'continuing'
@@ -309,6 +353,63 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     'the hand-written seed carried sports:{} for both dates and the alarm could not fire')
   check('a populated history is not flagged',
     vacuousReadings([{ date: '2026-09-05', sports: { MLB: { rows: 1, withOdds: 1, withDraw: 0 } } }]).length === 0)
+
+  // ── THE ROW FLOOR, from the two real alarms it exists to drop ────────────
+  //
+  // Both of these are verbatim from outbox/odds-coverage-series.json. They are
+  // the reason drift-sentinel alternated in and out of the new-decay list four
+  // times in five days: MLS fielded one fixture, it carried no price, and a
+  // 100-point fall fired.
+  check('THE 2026-10-02 NOISE ALARM: 1/1 -> 0/1 no longer fires',
+    transitions([{ date: '2026-10-01', sports: { MLS: { rows: 1, withOdds: 1, withDraw: 1 } } }],
+      { date: '2026-10-02', sports: { MLS: { rows: 1, withOdds: 0, withDraw: 0 } } }).length === 0,
+    'a one-row sport can only read 0% or 100%; every flip is a 100-point fall')
+  check('THE 2026-09-24 NOISE ALARM: the same shape a week earlier',
+    transitions([{ date: '2026-09-23', sports: { MLS: { rows: 1, withOdds: 1, withDraw: 1 } } }],
+      { date: '2026-09-24', sports: { MLS: { rows: 1, withOdds: 0, withDraw: 0 } } }).length === 0)
+
+  // THE BINDING CASE. La Liga at 3/3 -> 0/3 is the smallest alarm in the whole
+  // committed history that is real. If this stops firing the floor is too high.
+  check('LA LIGA 3/3 -> 0/3 STILL FIRES — this is what pins the floor at 3, not 4',
+    transitions([{ date: '2026-08-29', sports: { 'La Liga': { rows: 3, withOdds: 3, withDraw: 3 } } }],
+      { date: '2026-09-05', sports: { 'La Liga': { rows: 3, withOdds: 0, withDraw: 0 } } }).length === 1,
+    'a floor of 4 would suppress a genuine collapse, which is the failure mode of guarding too hard')
+  check('Ligue 1 3/5 -> 0/3 still fires',
+    transitions([{ date: '2026-08-29', sports: { 'Ligue 1': { rows: 5, withOdds: 3, withDraw: 3 } } }],
+      { date: '2026-09-05', sports: { 'Ligue 1': { rows: 3, withOdds: 0, withDraw: 0 } } }).length === 1)
+
+  // BOTH SIDES, and the asymmetric cases are the point of guarding both.
+  check('A THIN CURRENT SLATE AGAINST A FAT BASELINE DOES NOT FIRE',
+    transitions([{ date: '2026-09-26', sports: { MLS: { rows: 29, withOdds: 27, withDraw: 27 } } }],
+      { date: '2026-10-02', sports: { MLS: { rows: 1, withOdds: 0, withDraw: 0 } } }).length === 0,
+    '27/29 then 0/1 is one unpriced fixture, not a supply failure — guarding only the baseline would still fire here')
+  check('A ONE-ROW BASELINE IS NOT EVIDENCE A SPORT WAS COVERED',
+    transitions([{ date: '2026-09-30', sports: { MLS: { rows: 1, withOdds: 1, withDraw: 1 } } }],
+      { date: '2026-10-02', sports: { MLS: { rows: 11, withOdds: 0, withDraw: 0 } } }).length === 0,
+    'nothing was established to have been lost')
+  check('...and the real 27/29 baseline behind it still fires on the same 0/11',
+    transitions([
+      { date: '2026-09-26', sports: { MLS: { rows: 29, withOdds: 27, withDraw: 27 } } },
+      { date: '2026-09-30', sports: { MLS: { rows: 1, withOdds: 1, withDraw: 1 } } },
+    ], { date: '2026-10-02', sports: { MLS: { rows: 11, withOdds: 0, withDraw: 0 } } }).length === 1,
+    'the thin reading is skipped as a baseline, not treated as the end of history')
+
+  // The floor must not quietly become the alarm. Exactly 3 rows is measurable.
+  check('exactly MIN_ROWS rows is measurable, not borderline-excluded',
+    transitions([{ date: '2026-09-01', sports: { Z: { rows: 3, withOdds: 3, withDraw: 0 } } }],
+      { date: '2026-09-10', sports: { Z: { rows: 3, withOdds: 0, withDraw: 0 } } }).length === 1)
+  check('two rows on either side is below the floor',
+    transitions([{ date: '2026-09-01', sports: { Z: { rows: 2, withOdds: 2, withDraw: 0 } } }],
+      { date: '2026-09-10', sports: { Z: { rows: 2, withOdds: 0, withDraw: 0 } } }).length === 0)
+
+  // THE NEW/CONTINUING TEST IS GUARDED TOO. A one-row previous reading would
+  // otherwise decide which of the two an alarm is, on a coin.
+  check('a thin previous reading does not decide new vs continuing',
+    transitions([
+      { date: '2026-09-05', sports: { MLS: { rows: 21, withOdds: 18, withDraw: 18 } } },
+      { date: '2026-09-19', sports: { MLS: { rows: 1, withOdds: 0, withDraw: 0 } } },
+    ], { date: '2026-09-20', sports: { MLS: { rows: 11, withOdds: 2, withDraw: 2 } } })[0].state === 'new',
+    'the 09-19 one-row reading would read as already-below-covered and file a first sighting as continuing')
 
   console.log('')
   const failed = summarize()

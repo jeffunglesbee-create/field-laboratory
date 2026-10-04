@@ -186,6 +186,24 @@ jobs:
           node scripts/odds-coverage.mjs --self-test
           node scripts/mutate-odds-coverage.mjs
 
+      # THE EVIDENCE FOR MIN_ROWS, re-derived rather than cited.
+      #
+      # `MIN_ROWS = 3` is a judgement number, and odds-coverage.mjs insists its
+      # thresholds come from measurement. The measurement is a replay over the
+      # committed series: six alarms in the history, four substantive, two of
+      # the `1/1 -> 0/1` shape that the floor drops. La Liga's `3/3 -> 0/3`
+      # pins it at 3 rather than 4.
+      #
+      # The history grows daily, so a number justified by a replay nobody
+      # re-runs is a number justified by prose. This re-runs it, names every
+      # slate the floor suppressed, and fails if any surviving alarm rests on a
+      # slate under the floor.
+      - name: The row floor still matches what the history says
+        run: |
+          node scripts/replay-odds-coverage.mjs --self-test
+          node scripts/mutate-replay-odds-coverage.mjs
+          node scripts/replay-odds-coverage.mjs
+
       - name: Decoders accept the real captures
         run: |
           node scripts/drift-check.mjs --file data/context-2026-05-15.json
