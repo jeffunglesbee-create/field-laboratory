@@ -193,6 +193,30 @@ async function main() {
   }
   console.log(`\n  wrote ${written} row(s) to ${TABLE}`)
   console.log(`  causes: ${Object.entries(causes).map(([k, v]) => `${k}=${v}`).join(' ') || '(none)'}`)
+
+  // READ THE ROWS BACK, and commit them. "wrote 10 row(s)" is the writer's own
+  // account of what it did; the store's account is what the store returns. A
+  // step that reports success over a crash has already happened once in this
+  // workflow today, so the done condition gets an artifact rather than a log
+  // line (Rule 89).
+  const stored = (await d1(SQL_LATEST)).results ?? []
+  const total = (await d1(`SELECT COUNT(*) AS n FROM ${TABLE}`)).results?.[0]?.n ?? null
+  console.log(`\n  READ BACK from ${TABLE}: ${total} row(s) total, ${stored.length} subject(s)`)
+  console.log('  subject                provenance    cause         value')
+  for (const r of stored)
+    console.log(`  ${String(r.subject).padEnd(22)}${String(r.provenance).padEnd(14)}`
+      + `${String(r.cause).padEnd(14)}${r.value}`)
+  mkdirSync('outbox', { recursive: true })
+  writeFileSync('outbox/forecast-store-latest.json', JSON.stringify(
+    { at, method: METHOD, rows_total: total, subjects: stored.length, newest: stored }, null, 2))
+
+  // The store must hold MORE rows than subjects once a second run has landed.
+  // Equal counts would mean the writer is replacing rather than appending —
+  // the one property the schema exists to guarantee.
+  if (total !== null && stored.length > 0 && total < stored.length) {
+    console.log('\nFAIL: fewer rows than subjects. The store is not accumulating.')
+    return 1
+  }
   console.log('\nCOVERAGE: the first LIMIT unfinished fixtures, one observation each. It')
   console.log('does NOT forecast finished fixtures and does NOT read any market price —')
   console.log('MarketImplied is a second provenance for the same store when odds return.')

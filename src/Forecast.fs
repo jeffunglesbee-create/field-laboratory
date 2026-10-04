@@ -186,13 +186,21 @@ let forecastOf (event: int) (home: TableRow) (away: TableRow) : Forecast =
     forecastFor (Some event) (Some home) (Some away)
 
 /// The three-way as a plain triple, for a writer that has to serialise it.
-/// Returns an empty list for anything that is not a priced forecast, so a
+/// Returns an empty array for anything that is not a priced forecast, so a
 /// `NoForecast` cannot be written as three zeroes.
-let triple (f: Forecast) : float list =
+///
+/// AN ARRAY, NOT AN F# LIST, and that is a boundary fact rather than taste.
+/// Fable compiles `float list` to a linked-list object with no `length`, so
+/// `t.length === 3` in the JS writer read `undefined` and every priced fixture
+/// printed as three dashes beside a `Modelled` provenance. The STORED values
+/// were correct throughout — the writer serialises through its own reader, not
+/// through this — so the defect was confined to the printed table. `float[]`
+/// compiles to a real JS array.
+let triple (f: Forecast) : float[] =
     match f with
     | MarketImplied m | Modelled { Market = m } ->
-        [ float (Market.threeWayHome m); float (Market.threeWayDraw m); float (Market.threeWayAway m) ]
-    | NoForecast _ -> []
+        [| float (Market.threeWayHome m); float (Market.threeWayDraw m); float (Market.threeWayAway m) |]
+    | NoForecast _ -> [||]
 
 // ── the record ────────────────────────────────────────────────────────────
 
