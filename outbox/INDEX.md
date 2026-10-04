@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ad5e932` | 2026-10-04 | [epl-substrate-probe-2026-10-04T01-01-34-958Z.json](epl-substrate-probe-2026-10-04T01-01-34-958Z.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
+| `ad5e932` | 2026-10-04 | [epl-substrate-probe-latest.json](epl-substrate-probe-latest.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
 | `2cede31` | 2026-10-03 | [cc-session-2026-10-03-epl-forecaster-phase1.md](cc-session-2026-10-03-epl-forecaster-phase1.md) | docs: Task 0 complete, Phase 1 reported not built |
 | `c906ad3` | 2026-10-03 | [epl-substrate-probe-2026-10-03T17-16-15-579Z.json](epl-substrate-probe-2026-10-03T17-16-15-579Z.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
 | `c906ad3` | 2026-10-03 | [epl-substrate-probe-latest.json](epl-substrate-probe-latest.json) | probe: EPL substrate for forecaster Phase 1 [skip ci] |
