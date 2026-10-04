@@ -207,3 +207,109 @@ on a public Worker that fronts every D1 table in the project.
 - `probe-fpl.yml`, which the CC-CMD refers to as existing, **does not exist in
   this repo**. `.github/workflows/` has no FPL probe other than the one added
   today.
+
+---
+
+# ADDENDUM — 2026-10-04
+
+**HEAD progression:** `2cede31` → `54d2472` (Task 0 finished) → `d92d03d`
+(`Forecast.fs` + proof doc) → `521b52c` (the store and its writer).
+
+Approved by the owner on 2026-10-04: "all approved for task 0 and phase 1".
+
+## TASK 0 IS COMPLETE. Two items were open; both are now measured.
+
+### 0.1 — odds on TWO dates, not one
+
+The dates are chosen from finished `/fpl` fixtures rather than the calendar.
+Nothing has been played since `2026-09-20T15:30:00Z`, so two arbitrary dates
+would both read zero and prove nothing — the vacuity that has already produced
+one false finding in this project.
+
+| date | state | rows | EPL rows |
+|---|---|---|---|
+| 2026-09-19 | present | 141 | **5** |
+| 2026-09-20 | present | 75 | **4** |
+
+Both dates also carried La Liga, Serie A, Bundesliga and Ligue 1.
+
+### THIS CORRECTS THE SUBSTRATE FINDING THAT SWAPPED THE PHASES
+
+The CC-CMD's re-probe table records **"EPL odds: ZERO"** in a column beside
+`standings: holds`, which reads as a supply failure. It is not one.
+
+- EPL rows DO reach `/context/date` — 5 and 4 on the two dates above. That
+  settles Task 0.4's two unseparated readings outright: the rows are written,
+  and they are on this path. Recent zeroes are correct, because no EPL fixture
+  has been played since GW5.
+- The last EPL fixtures that existed were **PRICED**. This repo's own committed
+  `outbox/odds-coverage-series.json` for 2026-09-20 reads
+  `EPL {rows: 4, withOdds: 3, withDraw: 3}` — three-way prices, draws included,
+  on three of four fixtures. La Liga 4/5, Ligue 1 3/3, Serie A 3/5 the same day.
+
+**The phase swap still stands**, and on its own merit: Phase 1 is per-fixture
+modelled, the model needs no price to exist, and there are no EPL fixtures to
+price until GW6. What does not stand is reading the zero as odds supply having
+failed. Measured two independent ways, from a runner and from a committed
+artifact written six days before the claim.
+
+### 0.5 — the relay's own matcher, which was never run
+
+`src/odds-name-match.js` in field-relay-nba, fetched rather than
+reimplemented — the ask is whether names resolve through THAT file, so a second
+copy here would measure the copy.
+
+**12 of 20.** Worse than this repo's own normaliser at 13. It fails on
+Manchester City/Man City, Manchester United/Man Utd, Tottenham Hotspur/Spurs,
+Nottingham Forest/Nott'm Forest, and four more.
+
+Its cited "80 of 80 on its fixture" is true of ITS fixture — archive names
+against vendor names. ESPN-standings against FPL-bootstrap is a different pair.
+That claim was inherited and acted on without being tested, which is the Rule 72
+violation the CC-CMD itself warns about.
+
+### 0.2 and 0.3, recorded here because the first manifest omitted 0.2
+
+- `Market.threeWay` at `src/Market.fs:59`, signature
+  `float<prob> -> float<prob> -> float<prob> -> ThreeWay option`.
+  `SUM_EPS = 1e-9` at `src/Market.fs:42`.
+- `/soccer-fbref/epl.json`: `teams: 0`, `updated 2026-06-23T01:58:47Z`. Still
+  empty, unchanged, out of scope per the CC-CMD.
+
+## PHASE 1 — built, with one external dependency outstanding
+
+| done condition | state |
+|---|---|
+| `Forecast` union, all three cases; `NoForecastReason` covers four | **done** — `src/Forecast.fs`, compiles clean, zero F# warnings |
+| Proof case compiles-and-fails, verified by `proof-check.mjs` | **done** — `docs/FORECAST-PROOF.md`, four FS0025 cases |
+| D1 store exists, append-only, provenance and cause columns | schema written and EXECUTED on node:sqlite, 21 checks. **Not created live** |
+| Two observations of one subject across runs, diffed | writer built; needs the live store |
+| First-run case reports "no prior", not "unchanged" | `DeltaOutcome.NoPrior` is a separate type from `DeltaCause`, suite-checked against a real prior |
+| Real matchday output | `--dry-run` prints it; needs a runner with the model built |
+| Task 0.4 confirmed | **done**, and settled rather than asserted (above) |
+
+### The one thing blocking a live store
+
+`forecast_observations` must be added to `ALLOWED_TABLES` in **field-relay-nba
+`src/index.js:15908`**. Without it the DDL and every INSERT return
+403 `table not allowed`.
+
+**That edit was refused by this environment's permission gate** — the relay's
+`src/` is classified as a shared resource, and the refusal is about the tool's
+authority, not about the change. The owner approved Phase 1; a session could not
+execute this part of it.
+
+The writer does not paper over it: `scripts/forecast-run.mjs` names that exact
+file and line in its own error path rather than appearing to succeed, and
+`--dry-run` prints the rows it would write.
+
+## Residual
+
+- The join refuses rather than degrades. The two-entry abbreviation alias
+  (MNC→MCI, MAN→MUN) is measured, not a naming scheme, and the run writes
+  nothing unless all 20 clubs resolve.
+- Whether ESPN's `points` is net of a deduction is UNSETTLED and refuses: all 20
+  clubs read 0, so the payload cannot decide it, and a deducted club stops the
+  run rather than being modelled under a guessed reading.
+- `verify.yml` has been red since 2026-09-21 for reasons that predate this work
+  (`check:history`, and the claim harness). The forecast steps pass inside it.
