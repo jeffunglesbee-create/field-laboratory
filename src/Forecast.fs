@@ -95,7 +95,11 @@ type TableRow =
 // row written under these constants is distinguishable from a row written
 // under later ones.
 
-let [<Literal>] METHOD = "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"
+// NOT `[<Literal>]`. Fable INLINES a literal at every use site and emits no
+// export for it, so `import { METHOD }` failed at run time with "does not
+// provide an export named 'METHOD'" while the F# compiled clean and the suite
+// passed — the value is only missing at the JS boundary.
+let METHOD = "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"
 
 let private HOME_ADVANTAGE = 0.30
 let private DRAW_BASE = 0.28

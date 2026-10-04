@@ -59,10 +59,16 @@ jobs:
       # A scheduled run is a DRY RUN until the input says otherwise, so the
       # cron cannot start writing the day the allow-list entry lands without
       # someone deciding it should.
+      # `set -o pipefail` IS LOAD-BEARING. A pipeline's exit code is its LAST
+      # command, so `node ... | tee` reports tee's success and the step goes
+      # green over a crashed writer. Measured on the first run: the import of
+      # METHOD threw, nothing was written, and this step said success.
       - name: Forecast
+        shell: bash
         env:
           RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
         run: |
+          set -o pipefail
           node scripts/forecast-run.mjs ${{ inputs.write == true && ' ' || '--dry-run' }} \
             2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
 
