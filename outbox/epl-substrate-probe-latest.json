@@ -1,7 +1,7 @@
 {
-  "at": "2026-10-03T17:16:15.579Z",
+  "at": "2026-10-04T01:01:34.958Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
-  "probed_date": "2026-10-03",
+  "probed_date": "2026-10-04",
   "sources": {
     "standings": {
       "url": "https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings",
@@ -195,13 +195,66 @@
             "team_a": 8,
             "finished": true
           }
-        ]
+        ],
+        "finished_kickoffs": [
+          "2026-08-21T19:00:00Z",
+          "2026-08-22T11:30:00Z",
+          "2026-08-22T14:00:00Z",
+          "2026-08-22T14:00:00Z",
+          "2026-08-22T14:00:00Z",
+          "2026-08-22T16:30:00Z",
+          "2026-08-23T13:00:00Z",
+          "2026-08-23T13:00:00Z",
+          "2026-08-23T15:30:00Z",
+          "2026-08-24T19:00:00Z",
+          "2026-08-28T19:00:00Z",
+          "2026-08-29T11:30:00Z",
+          "2026-08-29T14:00:00Z",
+          "2026-08-29T14:00:00Z",
+          "2026-08-29T16:30:00Z",
+          "2026-08-30T13:00:00Z",
+          "2026-08-30T13:00:00Z",
+          "2026-08-30T13:00:00Z",
+          "2026-08-30T15:30:00Z",
+          "2026-08-31T19:00:00Z",
+          "2026-09-04T19:00:00Z",
+          "2026-09-05T11:30:00Z",
+          "2026-09-05T14:00:00Z",
+          "2026-09-05T14:00:00Z",
+          "2026-09-05T14:00:00Z",
+          "2026-09-05T14:00:00Z",
+          "2026-09-05T14:00:00Z",
+          "2026-09-05T16:30:00Z",
+          "2026-09-06T13:00:00Z",
+          "2026-09-06T15:30:00Z",
+          "2026-09-12T14:00:00Z",
+          "2026-09-12T14:00:00Z",
+          "2026-09-12T14:00:00Z",
+          "2026-09-12T14:00:00Z",
+          "2026-09-12T14:00:00Z",
+          "2026-09-12T16:30:00Z",
+          "2026-09-12T19:00:00Z",
+          "2026-09-13T13:00:00Z",
+          "2026-09-13T15:30:00Z",
+          "2026-09-14T19:00:00Z",
+          "2026-09-18T19:00:00Z",
+          "2026-09-19T11:30:00Z",
+          "2026-09-19T14:00:00Z",
+          "2026-09-19T14:00:00Z",
+          "2026-09-19T14:00:00Z",
+          "2026-09-19T16:30:00Z",
+          "2026-09-20T13:00:00Z",
+          "2026-09-20T13:00:00Z",
+          "2026-09-20T13:00:00Z",
+          "2026-09-20T15:30:00Z"
+        ],
+        "last_finished_kickoff": "2026-09-20T15:30:00Z"
       }
     },
     "fpl_bootstrap": {
       "url": "https://field-relay-nba.jeffunglesbee.workers.dev/fpl/bootstrap-static",
       "http": 200,
-      "bytes": 1778810,
+      "bytes": 1778697,
       "error": null,
       "state": "present",
       "fields": {
@@ -655,23 +708,75 @@
       }
     },
     "context_today": {
-      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-03",
+      "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-04",
       "http": 200,
-      "bytes": 259420,
+      "bytes": 131308,
       "error": null,
-      "state": "present",
+      "state": "empty",
       "fields": {
+        "rows": 0,
+        "by_sport": {},
+        "epl_rows": 0,
+        "epl_labels_looked_for": [
+          "EPL",
+          "Premier League",
+          "English Premier League"
+        ]
+      }
+    }
+  },
+  "odds_two_dates": {
+    "chosen_from": "finished /fpl fixtures",
+    "dates": [
+      "2026-09-19",
+      "2026-09-20"
+    ],
+    "readings": {
+      "2026-09-19": {
+        "http": 200,
+        "state": "present",
+        "rows": 141,
+        "by_sport": {
+          "MLS": 17,
+          "golf": 2,
+          "NHL": 7,
+          "MLB": 15,
+          "WNBA": 3,
+          "EPL": 5,
+          "La Liga": 4,
+          "Serie A": 4,
+          "Bundesliga": 5,
+          "Ligue 1": 5,
+          "CFB": 71,
+          "wnba": 1,
+          "CFL": 2
+        },
+        "epl_rows": 5,
+        "epl_labels_looked_for": [
+          "EPL",
+          "Premier League",
+          "English Premier League"
+        ]
+      },
+      "2026-09-20": {
+        "http": 200,
+        "state": "present",
         "rows": 75,
         "by_sport": {
-          "golf": 1,
-          "NBA": 1,
-          "NHL": 13,
-          "MLB": 4,
-          "EFL Trophy": 1,
-          "CFB": 54,
-          "CFL": 1
+          "MLS": 11,
+          "golf": 2,
+          "NHL": 7,
+          "MLB": 15,
+          "WNBA": 5,
+          "EPL": 4,
+          "La Liga": 5,
+          "Serie A": 5,
+          "Bundesliga": 3,
+          "Ligue 1": 3,
+          "NFL": 14,
+          "wnba": 1
         },
-        "epl_rows": 0,
+        "epl_rows": 4,
         "epl_labels_looked_for": [
           "EPL",
           "Premier League",
@@ -703,5 +808,31 @@
       "Spurs"
     ],
     "exact_normalised_strategy": "lowercase, & -> and, punctuation -> space, drop FC/AFC, collapse spaces"
+  },
+  "join_relay_matcher": {
+    "ran": true,
+    "espn": 20,
+    "fpl": 20,
+    "matched": 12,
+    "espn_unmatched": [
+      "Manchester City",
+      "Brighton & Hove Albion",
+      "Leeds United",
+      "Newcastle United",
+      "Manchester United",
+      "Nottingham Forest",
+      "AFC Bournemouth",
+      "Tottenham Hotspur"
+    ],
+    "fpl_unmatched": [
+      "Bournemouth",
+      "Brighton",
+      "Leeds",
+      "Man City",
+      "Man Utd",
+      "Newcastle",
+      "Nott'm Forest",
+      "Spurs"
+    ]
   }
 }
