@@ -1881,25 +1881,19 @@ let private forecast () =
     let weak = club "Weak" 5 2 3 11
     let priced f = match f with | Forecast.Modelled _ -> true | _ -> false
     let reason f = match f with | Forecast.NoForecast r -> Some r | _ -> None
-    let home f =
-        match f with
-        | Forecast.Modelled m -> float (Market.threeWayHome m.Market)
-        | _ -> nan
-    let away f =
-        match f with
-        | Forecast.Modelled m -> float (Market.threeWayAway m.Market)
-        | _ -> nan
-    let draw f =
-        match f with
-        | Forecast.Modelled m -> float (Market.threeWayDraw m.Market)
-        | _ -> nan
+    let home f = match f with | Forecast.Modelled m -> float (Market.threeWayHome m.Market) | _ -> nan
+    let away f = match f with | Forecast.Modelled m -> float (Market.threeWayAway m.Market) | _ -> nan
+    let draw f = match f with | Forecast.Modelled m -> float (Market.threeWayDraw m.Market) | _ -> nan
+    let at (h: Forecast.TableRow) (a: Forecast.TableRow) = Forecast.forecastFor (Some 6) (Some h) (Some a)
+    let obs tag = { Forecast.Subject = "fx"; Forecast.Forecast = Forecast.unscheduled; Forecast.ObservedAt = tag }
 
     [ // FPL's `event: null`. The counterexample is the OTHER refusal, not a
       // number: reading an unscheduled fixture as a failed join sends a reader
       // to the matcher when the answer is in the fixture list.
       Verify.check "an unscheduled fixture is FixtureUnscheduled, never a failed join"
-          (fun event -> reason (Forecast.forecastFor event (Some strong) (Some weak))
-                        = Some Forecast.FixtureUnscheduled)
+          (fun event ->
+              let f = Forecast.forecastFor event (Some strong) (Some weak)
+              reason f = Some Forecast.FixtureUnscheduled)
           None
           (Some 6)
 
@@ -1907,8 +1901,8 @@ let private forecast () =
       // distinction decides whether a reader looks at FPL or at the matcher.
       Verify.check "a club missing from the table is SubstrateUnreachable, not unscheduled"
           (fun (h: Forecast.TableRow option) ->
-              reason (Forecast.forecastFor (Some 6) h (Some weak))
-              = Some Forecast.SubstrateUnreachable)
+              let f = Forecast.forecastFor (Some 6) h (Some weak)
+              reason f = Some Forecast.SubstrateUnreachable)
           None
           (Some strong)
 
@@ -1919,15 +1913,15 @@ let private forecast () =
           5
 
       Verify.check "a scheduled fixture with both clubs joined is priced"
-          (fun (h, a) -> priced (Forecast.forecastFor (Some 6) (Some h) (Some a)))
+          (fun (h, a) -> priced (at h a))
           (strong, weak)
           (club "Nil" 0 0 0 0, weak)
 
-      // Direction. The counterexample is the same fixture reversed, so a model
+      // Direction. The counterexample is the same fixture REVERSED, so a model
       // that ignored its inputs entirely would fail rather than pass twice.
       Verify.check "the stronger club at home is favoured over the weaker visitor"
           (fun (h, a) ->
-              let f = Forecast.forecastFor (Some 6) (Some h) (Some a)
+              let f = at h a
               home f > away f)
           (strong, weak)
           (weak, strong)
@@ -1936,37 +1930,36 @@ let private forecast () =
       // `Market.threeWay` exists: a mismatch has fewer draws than a level tie.
       Verify.check "the draw share shrinks as the gap widens"
           (fun (h, a) ->
-              draw (Forecast.forecastFor (Some 6) (Some h) (Some a))
-              < draw (Forecast.forecastFor (Some 6) (Some strong) (Some strong)))
+              let level = draw (at strong strong)
+              draw (at h a) < level)
           (strong, weak)
           (strong, strong)
 
       // A deduction is carried, and the question it raises is surfaced rather
       // than answered by guessing which reading of `points` ESPN serves.
       Verify.check "a club carrying a points deduction is named, not silently modelled"
-          (fun d -> Forecast.deductionsUnsettled [ Forecast.makeRow "D" "D" 5 10 8 4 d ] = [ "D" ])
-          -6
+          (fun d ->
+              let rows = [ Forecast.makeRow "D" "D" 5 10 8 4 d ]
+              Forecast.deductionsUnsettled rows = [ "D" ])
+          (-6)
           0
 
       // THE FIRST RUN IS NOT AN UNCHANGED ONE. The counterexample is a real
       // prior, so a diff that always said NoPrior would fail here.
       Verify.check "a first observation reports no prior, never Unchanged"
           (fun (prior: Forecast.Observation option) ->
-              Forecast.diff prior
-                  { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t1" }
-                  { ResultSince = None; ModelNote = None } = Forecast.NoPrior)
+              let ctx = { Forecast.ResultSince = None; Forecast.ModelNote = None }
+              Forecast.diff prior (obs "t1") ctx = Forecast.NoPrior)
           None
-          (Some { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t0" })
+          (Some (obs "t0"))
 
       // OUR CHANGE OUTRANKS REALITY'S. If the model moved, attributing the
       // delta to a played match is the error ModelRevised exists to stop, so
       // the counterexample supplies a result and no model note.
       Verify.check "a model revision outranks a result when both are true"
           (fun (note, result) ->
-              match Forecast.diff
-                        (Some { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t0" })
-                        { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t1" }
-                        { ResultSince = result; ModelNote = note } with
+              let ctx = { Forecast.ResultSince = result; Forecast.ModelNote = note }
+              match Forecast.diff (Some (obs "t0")) (obs "t1") ctx with
               | Forecast.Delta (Forecast.ModelRevised _) -> true
               | _ -> false)
           (Some "table-v2", Some "fx-1")
