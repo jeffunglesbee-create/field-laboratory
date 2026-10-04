@@ -19,15 +19,29 @@ blocks. **Substrate re-probed 2026-10-03 and the phases are now SWAPPED.**
 |---|---|---|
 | standings | 20 clubs, P4 | **holds** — 20 clubs, P5. City 15pts GF13, Arsenal 12, Brighton 10 |
 | `/fpl` fixtures | full season, 380 | route unchanged and deployed |
-| **EPL odds** | ~72-hour horizon | **ZERO** |
+| **EPL odds** | ~72-hour horizon | **zero — because EPL has not played since GW5** |
 | fbref xG | empty | **still empty, 3.5 months stale** (`updated 2026-06-23`, `teams: 0`, still labelled 2025-2026) |
 
-`/context/date` returns **no EPL rows on any date probed** — 10-03, 10-04, 10-05,
-10-17, 10-24 — while the table shows 5 played. Today's 75 rows are CFB 54,
-NHL 13, MLB 4, golf 1, NBA 1, EFL Trophy 1, CFL 1. Oct 17 and Oct 24 return MLS
-only; Oct 4 and Oct 5 return zero rows entirely.
+### CORRECTION — the odds zero is NOT a defect
 
-**Supply is not the cause.** Vendor `soccer_epl` present and active,
+An earlier revision of this section reported EPL rows "missing from the archive"
+and treated it as substrate failure. **That was wrong.** Three independent
+sources agree there have simply been no fixtures:
+
+- `/espn-standings/soccer/eng.1/standings` — every club reads **P5**
+- `/archive/date/` — last EPL rows **2026-09-20** (4 of them), zero since
+- `/fpl fixtures/` — 380 total, **50 finished = exactly GW1–GW5, all complete**,
+  GW6 onward zero finished. Last finished kickoff **2026-09-20T15:30:00Z**
+
+The archive is correct to hold no rows. Odds for GW6 should appear as GW6
+approaches, inside the ~72-hour horizon that was always the real measurement.
+
+**The disconfirming evidence was in hand before the claim was made** — the
+standings read P5 in the probe immediately preceding it. Five played and last
+rows on 09-20 agree with each other. Absence was read as defect without checking
+whether there were fixtures to be absent: `empty != broken`.
+
+**Supply was never the cause.** Vendor `soccer_epl` present and active,
 `requests_remaining 98530`. Relay budget 600 of 3800 daily,
 `ceiling_reached_at: null`, `by_site_sum 600`, `unaccounted 0`.
 
@@ -37,11 +51,13 @@ reached the vendor while a guard fell open and the counter never moved. Four
 times the counted spend, and it does not reconcile with the provider's
 `requests_used: 1470`. Three sources, three totals.
 
-**THE LESSON THIS DOCUMENT IS AN INSTANCE OF.** Phase 1 was built on the LEAST
-stable input and deferred the most stable one. Market-implied was chosen for
-carrying "no model risk" — but a model with no data to run on is a worse risk
-than a simple model, and that is what happened. Standings and `/fpl` have not
-moved in three weeks; odds went to zero in days.
+**THE PHASE SWAP STANDS, ON DIFFERENT GROUNDS.** The original justification —
+"odds went to zero" — was a misread (see CORRECTION above). The swap is still
+right for the reason that survives: `MarketImplied` can only ever cover fixtures
+inside the ~72-hour pricing horizon, so it leaves ~370 of 380 fixtures as
+`NoForecast` by construction. A foundation whose dominant state is "no answer" is
+the wrong foundation, whether or not the current zero is seasonal. Standings and
+`/fpl` cover all 380 every day of the season.
 
 > **Note on this document.** It was revised repeatedly as probes came back. Where
 > an earlier revision is retracted, the retraction is stated rather than silently
@@ -87,12 +103,11 @@ FIRST.** Do not start this until it has landed. A bad team join fails silently.
 2. Confirm `Market.threeWay`'s signature and `SUM_EPS` at HEAD.
 3. Confirm `/soccer-fbref/epl.json` is still empty. If refilled, report it — it
    does not change scope.
-4. **Confirm EPL rows exist somewhere before relying on any odds path.** As of
-   2026-10-03 `/context/date` returns zero EPL rows on every date probed. Two
-   readings remain unseparated: EPL rows are not being written to the archive, or
-   they are no longer on this path. Settle which before writing any
-   `MarketImplied` code. **This does NOT block Phase 1**, which needs only
-   standings and `/fpl`.
+4. **EPL fixture state — RESOLVED 2026-10-03, do not re-litigate.** GW1–GW5 are
+   complete and nothing has been played since `2026-09-20T15:30:00Z`. Zero EPL
+   rows in the archive is correct, not a defect. Before reading any future zero
+   as substrate failure, check `/fpl fixtures/` for whether fixtures exist in the
+   window at all.
 5. Team identity is handled by `src/odds-name-match.js` (relay, 2026-09-16,
    80 of 80 on its fixture). The earlier instruction to wait for `b8f1a0e` is
    RETRACTED — that CC-CMD was superseded and never ran. Verify EPL names resolve
