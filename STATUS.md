@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `5ad2627`
+**FAILURE** on `5ad2627` — [run 37167622091](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/37167622091)
 
 ## Is the live artifact healthy?
 
