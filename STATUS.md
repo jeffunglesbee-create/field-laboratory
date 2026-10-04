@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `d92d03d`
+**FAILURE** on `d92d03d` — [run 37166882654](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/37166882654)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `d92d03d` — [run 37166891418](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/37166891418)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `4e98447` — [run 37167034279](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/37167034279)
 
 ## Is it published?
 
