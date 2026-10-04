@@ -29,7 +29,21 @@ jobs:
       # SELF-TEST FIRST, and it gates the live read. The extractors decide what
       # the manifest says; if they are broken the live numbers are fiction, and
       # a run that reports fiction is worse than a run that does not happen.
+      # TASK 0.5 needs field-relay-nba's matcher, and REIMPLEMENTING IT WOULD
+      # ANSWER THE WRONG QUESTION: the ask is whether EPL names resolve through
+      # THAT file, so a second copy here would be measuring the copy. The repo
+      # is public, so the one file is fetched. If the fetch fails the probe
+      # reports NOT RUN rather than a silent zero.
+      - name: Fetch the relay's team matcher
+        continue-on-error: true
+        run: |
+          curl -sSL --max-time 20 -o /tmp/odds-name-match.mjs \
+            https://raw.githubusercontent.com/jeffunglesbee-create/field-relay-nba/main/src/odds-name-match.js
+          wc -c /tmp/odds-name-match.mjs
+
       - name: Probe
+        env:
+          RELAY_MATCHER_PATH: /tmp/odds-name-match.mjs
         run: |
           node scripts/probe-epl-substrate.mjs --self-test
           node scripts/probe-epl-substrate.mjs

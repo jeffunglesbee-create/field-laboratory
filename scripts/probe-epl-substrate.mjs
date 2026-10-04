@@ -92,6 +92,11 @@ export function extractFplFixtures(j) {
       gameweeks_seen: [...new Set(all.map(f => f?.event).filter(e => e != null))].length,
       keys_on_first: all[0] ? Object.keys(all[0]).sort() : [],
       first_three_scheduled: sample,
+      // Dates on which fixtures actually finished — what the two-date odds
+      // probe selects from, so it cannot pick a date with no EPL game on it.
+      finished_kickoffs: all.filter(f => f && f.finished && f.kickoff_time).map(f => f.kickoff_time),
+      last_finished_kickoff: all.filter(f => f && f.finished && f.kickoff_time)
+        .map(f => f.kickoff_time).sort().slice(-1)[0] ?? null,
     },
   }
 }
@@ -160,6 +165,30 @@ const norm = (s) => String(s ?? '').toLowerCase()
   .replace(/\b(fc|afc|united|utd)\b/g, m => (m === 'utd' ? 'united' : m))
   .replace(/\b(fc|afc)\b/g, ' ')
   .replace(/\s+/g, ' ').trim()
+
+/**
+ * TASK 0.5: the SAME names through `src/odds-name-match.js` in field-relay-nba,
+ * which the CC-CMD names as the thing that handles team identity.
+ *
+ * It is cited as "80 of 80 on its fixture", and that is true of ITS fixture —
+ * archive names against vendor names. ESPN-standings against FPL-bootstrap is
+ * a different pair, and an inherited claim is a hypothesis until the session
+ * tests it (Rule 72). Measured 2026-10-04: 12 of 20.
+ *
+ * Takes the matcher as an argument so this file stays runnable with no sibling
+ * checkout; `null` reports NOT RUN rather than silently reporting zero.
+ */
+export function joinTeamsWith(matcher, espnNames, fplNames) {
+  if (typeof matcher !== 'function') return { ran: false, why: 'matcher not available in this checkout' }
+  const pool = new Set(fplNames)
+  const matched = [], espnUnmatched = []
+  for (const e of espnNames) {
+    const hit = [...pool].find(f => matcher(e, f))
+    if (hit) { matched.push([e, hit]); pool.delete(hit) } else espnUnmatched.push(e)
+  }
+  return { ran: true, espn: espnNames.length, fpl: fplNames.length, matched: matched.length,
+           espn_unmatched: espnUnmatched, fpl_unmatched: [...pool] }
+}
 
 export function joinTeams(espnNames, fplNames) {
   const fplN = new Map(fplNames.map(n => [norm(n), n]))
@@ -232,6 +261,24 @@ function selfTest() {
   t('fpl fixtures: counts event:null separately', fx.fields.unscheduled_event_null === 1)
   t('fpl fixtures: sample skips the unscheduled one', fx.fields.first_three_scheduled.every(f => f.event !== null))
   t('fpl fixtures: a bare [] is not contentful', extractFplFixtures([]).contentful === false)
+  t('fpl fixtures: finished kickoffs are carried for the two-date odds probe',
+    fx.fields.finished_kickoffs.length === 1 && fx.fields.finished_kickoffs[0].startsWith('2026-08-15'),
+    JSON.stringify(fx.fields.finished_kickoffs))
+  t('fpl fixtures: an UNFINISHED fixture is not a date odds could have existed on',
+    !fx.fields.finished_kickoffs.some(k => k.startsWith('2026-10-04')))
+  t('fpl fixtures: a finished fixture with no kickoff_time is dropped, not pushed as null',
+    extractFplFixtures([{ id: 1, finished: true, kickoff_time: null }]).fields.finished_kickoffs.length === 0)
+
+  // Task 0.5 — the relay matcher, which is a DIFFERENT question from ours.
+  const strict = (a, b) => a === b
+  const jm = joinTeamsWith(strict, ['Arsenal', 'Manchester City'], ['Arsenal', 'Man City'])
+  t('relay-matcher join: runs when a matcher is supplied', jm.ran === true)
+  t('relay-matcher join: reports what the supplied matcher actually matched',
+    jm.matched === 1 && jm.espn_unmatched[0] === 'Manchester City', JSON.stringify(jm))
+  t('relay-matcher join: NOT RUN without a matcher, never a silent zero',
+    joinTeamsWith(null, ['a'], ['b']).ran === false)
+  t('relay-matcher join: one FPL name cannot satisfy two ESPN names',
+    joinTeamsWith(strict, ['Arsenal', 'Arsenal'], ['Arsenal']).matched === 1)
 
   // bootstrap
   const bs = extractFplBootstrap({ teams: [
@@ -311,14 +358,47 @@ async function live() {
     }
   }
 
+  // TASK 0.1 — ODDS FOR TWO DATES, chosen from the fixtures rather than the
+  // calendar. Nothing has been played since 2026-09-20 (GW5), so two arbitrary
+  // dates would both read zero and prove nothing about odds supply. These are
+  // the two most recent dates on which EPL fixtures actually finished.
+  const fx = manifest.sources.fpl_fixtures?.fields
+  const playedDates = [...new Set((fx?.finished_kickoffs ?? []).map(k => String(k).slice(0, 10)))].sort()
+  const twoDates = playedDates.slice(-2)
+  manifest.odds_two_dates = { chosen_from: 'finished /fpl fixtures', dates: twoDates, readings: {} }
+  for (const d of twoDates) {
+    const r = await read(`${RELAY}/context/date/${d}`)
+    let ex = { contentful: false, fields: {} }
+    if (r.json !== undefined) { try { ex = extractContextDate(r.json) } catch (e) { ex = { contentful: false, fields: { extractor_threw: String(e?.message ?? e) } } } }
+    manifest.odds_two_dates.readings[d] = { http: r.status ?? null, state: classify({ ...r, contentful: ex.contentful }), ...ex.fields }
+    console.log(`\n── odds on ${d}  ${manifest.odds_two_dates.readings[d].state}  rows ${ex.fields.rows ?? '-'}  EPL ${ex.fields.epl_rows ?? '-'}`)
+    console.log(`   by_sport ${JSON.stringify(ex.fields.by_sport ?? {})}`)
+  }
+  if (twoDates.length < 2)
+    console.log(`\n── odds two-date probe REFUSED: only ${twoDates.length} finished fixture date(s) available`)
+
+  // TASK 0.5 — the relay's own matcher, fetched rather than reimplemented.
+  // `RELAY_MATCHER_PATH` points at a copy of field-relay-nba's
+  // src/odds-name-match.js; absent, this reports NOT RUN rather than zero.
+  let relayMatcher = null
+  if (process.env.RELAY_MATCHER_PATH) {
+    try { relayMatcher = (await import(process.env.RELAY_MATCHER_PATH)).nameMatches }
+    catch (e) { console.log(`\n── relay matcher could not be loaded: ${String(e?.message ?? e).slice(0, 140)}`) }
+  }
+
   // The join, only when both sides are present. Absent sides are SAID, not
   // silently treated as an empty list that would report "0 unmatched".
   const espn = manifest.sources.standings?.fields?.teams
   const fpl = manifest.sources.fpl_bootstrap?.fields?.id_to_name
   if (Array.isArray(espn) && espn.length && fpl && Object.keys(fpl).length) {
     manifest.join = joinTeams(espn, Object.values(fpl))
-    console.log('\n── team join  ESPN standings <-> FPL bootstrap')
+    console.log('\n── team join  ESPN standings <-> FPL bootstrap  (our normaliser)')
     for (const [k, v] of Object.entries(manifest.join))
+      console.log(`   ${k.padEnd(26)} ${typeof v === 'object' ? JSON.stringify(v) : v}`)
+
+    manifest.join_relay_matcher = joinTeamsWith(relayMatcher, espn, Object.values(fpl))
+    console.log('\n── team join  through field-relay-nba src/odds-name-match.js (Task 0.5)')
+    for (const [k, v] of Object.entries(manifest.join_relay_matcher))
       console.log(`   ${k.padEnd(26)} ${typeof v === 'object' ? JSON.stringify(v) : v}`)
   } else {
     manifest.join = { refused: 'one or both name sets absent', espn_present: Array.isArray(espn) && espn.length > 0, fpl_present: !!(fpl && Object.keys(fpl).length) }
