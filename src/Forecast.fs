@@ -153,6 +153,43 @@ let forecastFor (event: int option) (home: TableRow option) (away: TableRow opti
             | _ -> NoForecast SubstrateUnreachable
         | _ -> NoForecast SubstrateUnreachable
 
+// ── the boundary the JS writer calls across ───────────────────────────────
+//
+// OPTIONS DO NOT CROSS THE FABLE BOUNDARY CLEANLY, and faking one from JS would
+// put a provenance decision in JavaScript — which is the whole thing the union
+// exists to prevent. So the refusals are exported as values and the caller
+// picks one; every `Forecast` in the store was still constructed here.
+//
+// `scripts/forecast-run.mjs` imports these rather than reimplementing the
+// maths. A second copy of the model in JS would drift from the one the suite
+// proves, and the number written to the store would then be about the copy.
+
+/// Build a `TableRow` from primitives. JS cannot construct an F# record.
+let makeRow team abbrev played points goalsFor goalsAgainst deductions : TableRow =
+    { Team = team; Abbrev = abbrev; Played = played
+      Points = points; GoalsFor = goalsFor; GoalsAgainst = goalsAgainst
+      Deductions = deductions }
+
+/// FPL carries this fixture with `event: null`.
+let unscheduled : Forecast = NoForecast FixtureUnscheduled
+
+/// One or both clubs did not join to a standings row. The fixture is
+/// scheduled; our join failed, and those are different facts.
+let unjoined : Forecast = NoForecast SubstrateUnreachable
+
+/// The ordinary path: a scheduled fixture with both clubs joined.
+let forecastOf (event: int) (home: TableRow) (away: TableRow) : Forecast =
+    forecastFor (Some event) (Some home) (Some away)
+
+/// The three-way as a plain triple, for a writer that has to serialise it.
+/// Returns an empty list for anything that is not a priced forecast, so a
+/// `NoForecast` cannot be written as three zeroes.
+let triple (f: Forecast) : float list =
+    match f with
+    | MarketImplied m | Modelled { Market = m } ->
+        [ float (Market.threeWayHome m); float (Market.threeWayDraw m); float (Market.threeWayAway m) ]
+    | NoForecast _ -> []
+
 // ── the record ────────────────────────────────────────────────────────────
 
 /// Why a number moved. `Unchanged` is FIRST-CLASS, for the same reason

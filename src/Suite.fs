@@ -1868,6 +1868,110 @@ let private draw () : Verify.Sealed list =
 /// Everything, in one list. Order is presentation only.
 /// The suite, in named groups.
 ///
+// ---------------------------------------------------------------------------
+// The forecaster. Provenance is a case, so the counterexample for every one of
+// these is a DIFFERENT case rather than a different number — which is the
+// property `docs/FORECAST-PROOF.md` proves at the compiler and these prove at
+// runtime.
+// ---------------------------------------------------------------------------
+
+let private forecast () =
+    let club name played points gf ga = Forecast.makeRow name name played points gf ga 0
+    let strong = club "Strong" 5 15 13 5
+    let weak = club "Weak" 5 2 3 11
+    let priced f = match f with | Forecast.Modelled _ -> true | _ -> false
+    let reason f = match f with | Forecast.NoForecast r -> Some r | _ -> None
+    let home f =
+        match f with
+        | Forecast.Modelled m -> float (Market.threeWayHome m.Market)
+        | _ -> nan
+    let away f =
+        match f with
+        | Forecast.Modelled m -> float (Market.threeWayAway m.Market)
+        | _ -> nan
+    let draw f =
+        match f with
+        | Forecast.Modelled m -> float (Market.threeWayDraw m.Market)
+        | _ -> nan
+
+    [ // FPL's `event: null`. The counterexample is the OTHER refusal, not a
+      // number: reading an unscheduled fixture as a failed join sends a reader
+      // to the matcher when the answer is in the fixture list.
+      Verify.check "an unscheduled fixture is FixtureUnscheduled, never a failed join"
+          (fun event -> reason (Forecast.forecastFor event (Some strong) (Some weak))
+                        = Some Forecast.FixtureUnscheduled)
+          None
+          (Some 6)
+
+      // The mirror. The abbreviation join fails on two real clubs, so this
+      // distinction decides whether a reader looks at FPL or at the matcher.
+      Verify.check "a club missing from the table is SubstrateUnreachable, not unscheduled"
+          (fun (h: Forecast.TableRow option) ->
+              reason (Forecast.forecastFor (Some 6) h (Some weak))
+              = Some Forecast.SubstrateUnreachable)
+          None
+          (Some strong)
+
+      // A promoted club before a ball is kicked. Played = 0 is not strength 0.
+      Verify.check "a club that has played nothing yields no rating and no forecast"
+          (fun played -> Forecast.rating (club "New" played 0 0 0) = None)
+          0
+          5
+
+      Verify.check "a scheduled fixture with both clubs joined is priced"
+          (fun (h, a) -> priced (Forecast.forecastFor (Some 6) (Some h) (Some a)))
+          (strong, weak)
+          (club "Nil" 0 0 0 0, weak)
+
+      // Direction. The counterexample is the same fixture reversed, so a model
+      // that ignored its inputs entirely would fail rather than pass twice.
+      Verify.check "the stronger club at home is favoured over the weaker visitor"
+          (fun (h, a) ->
+              let f = Forecast.forecastFor (Some 6) (Some h) (Some a)
+              home f > away f)
+          (strong, weak)
+          (weak, strong)
+
+      // THE SHAPE A TWO-WAY MODEL CANNOT EXPRESS, and the reason
+      // `Market.threeWay` exists: a mismatch has fewer draws than a level tie.
+      Verify.check "the draw share shrinks as the gap widens"
+          (fun (h, a) ->
+              draw (Forecast.forecastFor (Some 6) (Some h) (Some a))
+              < draw (Forecast.forecastFor (Some 6) (Some strong) (Some strong)))
+          (strong, weak)
+          (strong, strong)
+
+      // A deduction is carried, and the question it raises is surfaced rather
+      // than answered by guessing which reading of `points` ESPN serves.
+      Verify.check "a club carrying a points deduction is named, not silently modelled"
+          (fun d -> Forecast.deductionsUnsettled [ Forecast.makeRow "D" "D" 5 10 8 4 d ] = [ "D" ])
+          -6
+          0
+
+      // THE FIRST RUN IS NOT AN UNCHANGED ONE. The counterexample is a real
+      // prior, so a diff that always said NoPrior would fail here.
+      Verify.check "a first observation reports no prior, never Unchanged"
+          (fun (prior: Forecast.Observation option) ->
+              Forecast.diff prior
+                  { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t1" }
+                  { ResultSince = None; ModelNote = None } = Forecast.NoPrior)
+          None
+          (Some { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t0" })
+
+      // OUR CHANGE OUTRANKS REALITY'S. If the model moved, attributing the
+      // delta to a played match is the error ModelRevised exists to stop, so
+      // the counterexample supplies a result and no model note.
+      Verify.check "a model revision outranks a result when both are true"
+          (fun (note, result) ->
+              match Forecast.diff
+                        (Some { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t0" })
+                        { Subject = "fx"; Forecast = Forecast.unscheduled; ObservedAt = "t1" }
+                        { ResultSince = result; ModelNote = note } with
+              | Forecast.Delta (Forecast.ModelRevised _) -> true
+              | _ -> false)
+          (Some "table-v2", Some "fx-1")
+          (None, Some "fx-1") ]
+
 /// ADDED FOR THE PAGE, and the flat `all` below is now DERIVED from it rather
 /// than assembled a second time. Two lists of the same eleven bindings would be
 /// two places to forget one, and forgetting one is not a compile error — it is a
@@ -1885,7 +1989,8 @@ let private draw () : Verify.Sealed list =
 /// So nothing here is built until a caller asks, by which time a host has filled
 /// the registry.
 let groups () : (string * Verify.Sealed list) list =
-    [ "Time zones", zone ()
+    [ "Forecasts", forecast ()
+      "Time zones", zone ()
       "Matchups", matchup ()
       "Grading", grading ()
       "Units", units ()

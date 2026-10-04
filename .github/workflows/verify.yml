@@ -704,6 +704,14 @@ jobs:
       # shown can fail is a green light, not a guard.
       # "Written but never read back": a public value nothing reads, and the
       # unit conversions ODDS-PROOF makes claims about, now exercised.
+      # The forecast store's SQL, EXECUTED rather than described. Append-only is
+      # a property of the statements — there is no UPDATE and deliberately no
+      # unique key an ON CONFLICT could hang off — and asserting that in prose
+      # is how a store that can overwrite ships with a comment saying it cannot.
+      # `codex_write` destroyed 26 entry bodies on 2026-09-08 doing exactly that.
+      - name: The forecast store cannot overwrite an observation
+        run: node scripts/check-forecast-store.mjs
+
       - name: No value is written without being read back
         run: npm run check:unused
 
