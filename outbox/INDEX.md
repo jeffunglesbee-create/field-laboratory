@@ -115,574 +115,302 @@ would describe, so listing itself would always be one commit stale.
 | `d17fd4b` | 2026-09-20 | [2026-09-20-odds-proof-closing-line.md](2026-09-20-odds-proof-closing-line.md) | docs: ODDS-PROOF's closing line contradicted its own body, and cost a month |
 | `4d3f203` | 2026-09-20 | [2026-09-20-ceiling-corrected.md](2026-09-20-ceiling-corrected.md) | fix: the ceiling numbers are corrected in all four places, root first |
 | `d4786ba` | 2026-09-20 | [2026-09-20-ceiling-drift-verdict.md](2026-09-20-ceiling-drift-verdict.md) | docs: the deferred judgement resolves — Ceiling.fs is drift, and the root is the relay |
-| `e6fa282` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: the sweep prints the transcription that makes the other harness green |
-| `9cc450d` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: correct the record — a claim harness already existed, and it is green-but-wrong |
-| `e37ec54` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: close the staleness-sweep CC-CMD, and record two pre-existing reds |
-| `94f3cac` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | feat: make `<!-- claim: -->` markers executable, and sweep all 18 proof docs |
-| `3207f74` | 2026-09-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-20 [skip ci] |
-| `83a6dde` | 2026-09-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-20 [skip ci] |
-| `32b9570` | 2026-09-19 | [2026-09-19-push-lands-guard.md](2026-09-19-push-lands-guard.md) | docs: field-playground has 68 push loops, not zero |
-| `cbd6b4d` | 2026-09-19 | [2026-09-19-push-lands-guard.md](2026-09-19-push-lands-guard.md) | ci: the push-lands guard was wired where it could not run |
-| `606d936` | 2026-09-19 | [2026-09-19-push-lands-guard.md](2026-09-19-push-lands-guard.md) | ci: guard the push-retry loops |
-| `4d0ecf6` | 2026-09-19 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-19 [skip ci] |
-| `6c9c7a3` | 2026-09-19 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-19 [skip ci] |
-| `98be50e` | 2026-09-18 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-18 [skip ci] |
-| `e40d458` | 2026-09-18 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-18 [skip ci] |
-| `03520bb` | 2026-09-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-17 [skip ci] |
-| `ceb8e55` | 2026-09-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-17 [skip ci] |
-| `eb168b5` | 2026-09-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-16 [skip ci] |
-| `3a0452e` | 2026-09-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-16 [skip ci] |
-| `81c476e` | 2026-09-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-15 [skip ci] |
-| `db52269` | 2026-09-15 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-15 [skip ci] |
-| `a5083c9` | 2026-09-14 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-14 [skip ci] |
-| `02a5fca` | 2026-09-14 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-14 [skip ci] |
-| `dd1f42b` | 2026-09-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-13 [skip ci] |
-| `6f9ca5e` | 2026-09-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-13 [skip ci] |
-| `7e8ffa9` | 2026-09-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-12 [skip ci] |
-| `844a124` | 2026-09-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-12 [skip ci] |
-| `2e054c0` | 2026-09-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-11 [skip ci] |
-| `56a1a55` | 2026-09-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-11 [skip ci] |
-| `a0f6b72` | 2026-09-11 | [cc-session-2026-09-07-readme-token-claim-correction.md](cc-session-2026-09-07-readme-token-claim-correction.md) | feat: the README cannot claim deployment is blocked while STATUS.md says it shipped |
-| `253feb0` | 2026-09-10 | [cc-session-2026-09-07-readme-token-claim-correction.md](cc-session-2026-09-07-readme-token-claim-correction.md) | docs: the README stopped claiming a human must install the deploy token |
-| `4f06665` | 2026-09-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-10 [skip ci] |
-| `51c8ec8` | 2026-09-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-10 [skip ci] |
-| `e708ad1` | 2026-09-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-09 [skip ci] |
-| `f31d2a3` | 2026-09-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-09 [skip ci] |
-| `3e06f81` | 2026-09-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-08 [skip ci] |
-| `3e06f81` | 2026-09-08 | [sport-vocabulary-2026-09-08T16-27-13-224Z.json](sport-vocabulary-2026-09-08T16-27-13-224Z.json) | drift-sentinel: ok on 2026-09-08 [skip ci] |
-| `181fa21` | 2026-09-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-08 [skip ci] |
-| `181fa21` | 2026-09-08 | [sport-vocabulary-2026-09-08T06-06-15-934Z.json](sport-vocabulary-2026-09-08T06-06-15-934Z.json) | drift-sentinel: ok on 2026-09-08 [skip ci] |
-| `9a3ccfc` | 2026-09-08 | [2026-09-08-verify-panel.md](2026-09-08-verify-panel.md) | feat: the Verify panel — 146 checks, each with the input that must fail |
-| `dec19b0` | 2026-09-08 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | fix: the run marker read the clock where it used it |
-| `24bd739` | 2026-09-08 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | fix: proof-check could not tell a killed run from a running one |
-| `e3d3a49` | 2026-09-07 | [2026-09-07-draw-panel.md](2026-09-07-draw-panel.md) | feat: the Draw panel — a bracket that says which rounds the law skipped |
-| `c988338` | 2026-09-07 | [2026-09-07-illegal-tiebreak.md](2026-09-07-illegal-tiebreak.md) | fix: an illegal tiebreak named the half of the row that was fine |
-| `d050cc7` | 2026-09-07 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-07 [skip ci] |
-| `d050cc7` | 2026-09-07 | [sport-vocabulary-2026-09-07T17-39-19-168Z.json](sport-vocabulary-2026-09-07T17-39-19-168Z.json) | drift-sentinel: ok on 2026-09-07 [skip ci] |
-| `9d3f8fb` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | docs: the close-out header summarised the middle of the session, not the end |
-| `5306919` | 2026-09-07 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-07 [skip ci] |
-| `5306919` | 2026-09-07 | [sport-vocabulary-2026-09-07T06-16-35-135Z.json](sport-vocabulary-2026-09-07T06-16-35-135Z.json) | drift-sentinel: ok on 2026-09-07 [skip ci] |
-| `8483e23` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: two dead public values, and a floor picked by eye |
-| `417e74e` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | feat: retirement is a third state, and one vendor row is not a scoreline |
-| `af77a19` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: check:window had not found a difference, it had failed to look |
-| `d3d509f` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | docs: session close-out for the draw invariants |
-| `6c474d3` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: the innermost round of a live draw has no canonical size either |
-| `fae1896` | 2026-09-07 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fix: the entry round has no canonical size, and no slam could have caught it |
-| `1b093c1` | 2026-09-06 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | verify: Draw.fs against a real 127-match slam draw |
-| `25db9b6` | 2026-09-06 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | fixture: capture a complete slam draw for Draw.fs |
-| `1073600` | 2026-09-06 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | feat: Draw.fs — the knockout draw, and one deleted case the type found |
-| `48b31ae` | 2026-09-06 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-06 [skip ci] |
-| `48b31ae` | 2026-09-06 | [sport-vocabulary-2026-09-06T15-19-31-360Z.json](sport-vocabulary-2026-09-06T15-19-31-360Z.json) | drift-sentinel: ok on 2026-09-06 [skip ci] |
-| `3fa8c04` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | fix: two checks were coupled to a file a workflow rewrites |
-| `bb2365a` | 2026-09-06 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-06 [skip ci] |
-| `bb2365a` | 2026-09-06 | [sport-vocabulary-2026-09-06T06-08-53-232Z.json](sport-vocabulary-2026-09-06T06-08-53-232Z.json) | drift-sentinel: ok on 2026-09-06 [skip ci] |
-| `f80514a` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | feat: tennis as a shape, and the two invariants the capture refuted |
-| `6efcaf8` | 2026-09-06 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | fixture: capture a real live tennis payload before modelling one |
-| `0b451c9` | 2026-09-06 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | outbox: close-out — the ledger identity fix verified in CI |
-| `4bf3a5e` | 2026-09-06 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | runIdentity: a ledger append is a record of a measurement, not part of it |
-| `13bf4ef` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | separation-check: say that boundary 0 is the decided state, not a gap in one |
-| `a4d0593` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | A mount time that survives its own log, in a second ledger |
-| `11a4ebd` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The UI is checked at 2 cards; production serves 126 |
-| `6f52bce` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | verify-full: an append-only log is re-appended, not rebased |
-| `c9a783b` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | Short-circuit measurement is now unwritable, and a timeout names its row |
-| `383b7f0` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | mutation-check: the baseline ran until the first failure and reported one name |
-| `aa89443` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | verify-full: raise the cap to 90, and re-measure the timings it was reasoned from |
-| `b58e8fa` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | proof-check: --only, added because the workaround for its absence was worse |
-| `e7a7d43` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The gate has been red since 2026-08-24, and two of its mutations had stopped biting |
-| `fae60b4` | 2026-09-05 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | The gate is a decision, not a score: a passing witness no number can mint |
-| `bb5725a` | 2026-09-05 | [decision-2026-09-05-laboratory-no-graph-tool.md](decision-2026-09-05-laboratory-no-graph-tool.md) | docs: field-laboratory does not get a graph tool — the edge counts |
-| `e79832a` | 2026-09-05 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-05 [skip ci] |
-| `e79832a` | 2026-09-05 | [sport-vocabulary-2026-09-05T14-58-16-463Z.json](sport-vocabulary-2026-09-05T14-58-16-463Z.json) | drift-sentinel: ok on 2026-09-05 [skip ci] |
-| `6e5b6c4` | 2026-09-05 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-05 [skip ci] |
-| `6e5b6c4` | 2026-09-05 | [sport-vocabulary-2026-09-05T05-56-41-053Z.json](sport-vocabulary-2026-09-05T05-56-41-053Z.json) | drift-sentinel: ok on 2026-09-05 [skip ci] |
-| `a33e4ec` | 2026-09-04 | [decision-2026-09-04-laboratory-no-uplot.md](decision-2026-09-04-laboratory-no-uplot.md) | docs: field-laboratory does not get uPlot — decision, with the evidence |
-| `5084637` | 2026-09-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-04 [skip ci] |
-| `5084637` | 2026-09-04 | [sport-vocabulary-2026-09-04T16-09-55-854Z.json](sport-vocabulary-2026-09-04T16-09-55-854Z.json) | drift-sentinel: ok on 2026-09-04 [skip ci] |
-| `f74e42e` | 2026-09-04 | [2026-09-03-font-family-guard.md](2026-09-03-font-family-guard.md) | check: assert the rendered font-family, because "two fonts only" never reached the page |
-| `279df96` | 2026-09-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-04 [skip ci] |
-| `279df96` | 2026-09-04 | [sport-vocabulary-2026-09-04T06-07-53-007Z.json](sport-vocabulary-2026-09-04T06-07-53-007Z.json) | drift-sentinel: ok on 2026-09-04 [skip ci] |
-| `1e39026` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: the 416-row gap is 397 of OUR OWN rows misfiled, and 19 genuine unknowns |
-| `6739e3b` | 2026-09-03 | [unrecognised-id-shapes-latest.json](unrecognised-id-shapes-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `6a5c48c` | 2026-09-03 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | probe: measure the 416-row gap between `unrecognised` and dash-scheme |
-| `89e9b4e` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: WNBA executed — the archive holds ZERO mixed-scheme clusters |
-| `27bc4b9` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `6a70ad9` | 2026-09-03 | [wnba-merge-latest.json](wnba-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `65d07e5` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: WNBA dry run clean — 2 pairs, zero references, four writes |
-| `698e561` | 2026-09-03 | [wnba-merge-latest.json](wnba-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `58306f4` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: generalise by sport — the name had stopped being true |
-| `58306f4` | 2026-09-03 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | merge: generalise by sport — the name had stopped being true |
-| `6304cd6` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: EXECUTED — 51 MLS duplicates merged, verified by the instrument that found them |
-| `b2a1595` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `34230b6` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `a16d237` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: fifth dry run clean — 112 repoint, 45 drop, every gate green |
-| `32e9f4a` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `15b6998` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: classify each reference per row — repoint where unmatched, drop duplicates |
-| `ac0c42a` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: the loser's audit row is a byte-identical duplicate, which inverts the repoint |
-| `dd669e9` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `d4278aa` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: sample both sides, because 43 of 51 pairs carry references on each |
-| `9ccdbfd` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `4cbe748` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: repoint the references instead of orphaning them, and a third table found |
-| `f1e63d1` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `6598e1d` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: the dry run blocked on 47 orphaned change_log rows, and found a defect of mine |
-| `38a1462` | 2026-09-03 | [mls-merge-latest.json](mls-merge-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `5a179aa` | 2026-09-03 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | merge: build the MLS pair merge, dry run by default |
-| `3aa95e1` | 2026-09-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-03 [skip ci] |
-| `3aa95e1` | 2026-09-03 | [sport-vocabulary-2026-09-03T16-14-52-971Z.json](sport-vocabulary-2026-09-03T16-14-52-971Z.json) | drift-sentinel: ok on 2026-09-03 [skip ci] |
-| `187cd32` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: the five disagreeing venues are naming, measured not inferred |
-| `d254468` | 2026-09-03 | [mls-pair-discriminators-latest.json](mls-pair-discriminators-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `b8b61bd` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: RESOLVED — all 51 MLS pairs are one fixture, and the slate says so |
-| `c0bf5e9` | 2026-09-03 | [mls-pair-discriminators-latest.json](mls-pair-discriminators-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `99bdc7a` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | outbox: restore the recon section a shell expansion ate |
-| `4243954` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: the MLS pairs are resolvable — the slate answers what four fields could not |
-| `c20cc90` | 2026-09-03 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | probe: is `indistinguishable` the data, or the instrument? |
-| `7d65a80` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: WIDER THAN FILED — 51 MLS, and 2 WNBA under a third id scheme |
-| `23a61f7` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: archive-wide scheme duplicates [skip ci] |
-| `547a649` | 2026-09-03 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | probe: is "every one MLS" true of the archive, or only of the 30-day window? |
-| `547a649` | 2026-09-03 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | probe: is "every one MLS" true of the archive, or only of the 30-day window? |
-| `b66d754` | 2026-09-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-03 [skip ci] |
-| `b66d754` | 2026-09-03 | [sport-vocabulary-2026-09-03T06-00-35-709Z.json](sport-vocabulary-2026-09-03T06-00-35-709Z.json) | drift-sentinel: ok on 2026-09-03 [skip ci] |
-| `237100d` | 2026-09-02 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-02 [skip ci] |
-| `237100d` | 2026-09-02 | [sport-vocabulary-2026-09-02T16-24-18-733Z.json](sport-vocabulary-2026-09-02T16-24-18-733Z.json) | drift-sentinel: ok on 2026-09-02 [skip ci] |
-| `2830664` | 2026-09-02 | [id-scheme-migration-exposure-2026-09-02T07-02-14-445Z.txt](id-scheme-migration-exposure-2026-09-02T07-02-14-445Z.txt) | probe: id-scheme migration exposure [skip ci] |
-| `003cf53` | 2026-09-02 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-02 [skip ci] |
-| `003cf53` | 2026-09-02 | [sport-vocabulary-2026-09-02T06-01-43-789Z.json](sport-vocabulary-2026-09-02T06-01-43-789Z.json) | drift-sentinel: ok on 2026-09-02 [skip ci] |
-| `6fc18a3` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | ci: re-pin to 72 — the alias lands and the resolvable set is empty |
-| `44b0227` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
-| `3212c36` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | feat: an alias table, written down, with its evidence attached |
-| `383a865` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | ci: re-pin to 71 — pagination alone resolved all six CFB cards |
-| `ace687e` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
-| `cf9492f` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | fix: pass limit=900 to ESPN's teams endpoint — CFB was truncated at 50 |
-| `5167cde` | 2026-09-02 | [alternate-colours-2026-09-02T03-00-53-611Z.json](alternate-colours-2026-09-02T03-00-53-611Z.json) | probe: alternate colours against the frozen capture [skip ci] |
-| `5167cde` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
-| `5167cde` | 2026-09-02 | [plain-card-causes-2026-09-02T03-00-57-895Z.json](plain-card-causes-2026-09-02T03-00-57-895Z.json) | probe: alternate colours against the frozen capture [skip ci] |
-| `5167cde` | 2026-09-02 | [plain-card-causes-console.txt](plain-card-causes-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
-| `59e3981` | 2026-09-02 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | probe: which of the thirteen plain cards are a limit of the source, not the rule |
-| `5f48cdc` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | ci: re-pin to 65 after the 2026-08-29 slate sweep |
-| `8477085` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
-| `74b64b3` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | ci: assert the team tints on the DEPLOYED page, not only the built one |
-| `b6937d0` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | feat: the desk reads each club's second colour, and 62 of 78 cards now tint |
-| `b9df02e` | 2026-09-02 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | generated: team colours table [skip ci] |
-| `cb6f859` | 2026-09-02 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | feat: Palette.choosePair, and the table gains each club's second colour |
-| `5b8d9b9` | 2026-09-02 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | docs: the corrected alternate-colour reading — all three cards recover |
-| `71ce99d` | 2026-09-02 | [alternate-colours-2026-09-02T00-07-05-656Z.json](alternate-colours-2026-09-02T00-07-05-656Z.json) | probe: alternate colours against the frozen capture [skip ci] |
-| `71ce99d` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
-| `6032923` | 2026-09-02 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | fix: an ambiguous name is not a match, and D.C. United proves it |
-| `c8d2b28` | 2026-09-02 | [alternate-colours-2026-09-02T00-00-24-744Z.json](alternate-colours-2026-09-02T00-00-24-744Z.json) | probe: alternate colours against the frozen capture [skip ci] |
-| `c8d2b28` | 2026-09-02 | [alternate-colours-console.txt](alternate-colours-console.txt) | probe: alternate colours against the frozen capture [skip ci] |
-| `7b4bc5d` | 2026-09-01 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | probe: does a club's alternate colour recover a card that renders plain? |
-| `f5401ea` | 2026-09-01 | [2026-09-01-team-colours-regenerated.md](2026-09-01-team-colours-regenerated.md) | ci: re-pin the tinted count to 36, the table's first pairwise regeneration |
-| `b625cb4` | 2026-09-01 | [generated-team-colours-2026-09-01.md](generated-team-colours-2026-09-01.md) | generated: team colours table [skip ci] |
-| `951761d` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | fix: attribute only when there is a failure to attribute |
-| `5f97823` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | fix: attribute a weather failure from the page's window, not from a later probe |
-| `7a44543` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-38-51-294Z.json](open-meteo-egress-2026-09-01T21-38-51-294Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
-| `7a44543` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
-| `36d407f` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | probe: measure resource timing at the real origin, and for a timed-out request |
-| `801bc29` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-34-49-910Z.json](open-meteo-egress-2026-09-01T21-34-49-910Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
-| `801bc29` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
-| `3257799` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | probe: what render-check can see about the page's own Open-Meteo requests |
-| `615260c` | 2026-09-01 | [open-meteo-egress-2026-09-01T21-30-29-625Z.json](open-meteo-egress-2026-09-01T21-30-29-625Z.json) | probe: open-meteo egress from node vs the browser [skip ci] |
-| `615260c` | 2026-09-01 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | probe: open-meteo egress from node vs the browser [skip ci] |
-| `bce3973` | 2026-09-01 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | probe: which stack cannot reach Open-Meteo, node's or the browser's |
-| `00155ae` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | fix: delete contrastWithBg, which the card-surface move orphaned |
-| `52c7bc6` | 2026-09-01 | [2026-09-01-history-guard-on-the-runner.md](2026-09-01-history-guard-on-the-runner.md) | ci: the outbox guard reaches the runner, and the generator carries its own entry |
-| `406b2eb` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-17-23-500Z.png](team-tints-2026-09-01T20-17-23-500Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-17-55-243Z.png](team-tints-2026-09-01T20-17-55-243Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-18-12-162Z.png](team-tints-2026-09-01T20-18-12-162Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-18-29-705Z.png](team-tints-2026-09-01T20-18-29-705Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-18-48-056Z.png](team-tints-2026-09-01T20-18-48-056Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-19-23-814Z.png](team-tints-2026-09-01T20-19-23-814Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-19-56-374Z.png](team-tints-2026-09-01T20-19-56-374Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-20-14-779Z.png](team-tints-2026-09-01T20-20-14-779Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-20-32-527Z.png](team-tints-2026-09-01T20-20-32-527Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-20-51-867Z.png](team-tints-2026-09-01T20-20-51-867Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-10-308Z.png](team-tints-2026-09-01T20-21-10-308Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-35-997Z.png](team-tints-2026-09-01T20-21-35-997Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-39-045Z.png](team-tints-2026-09-01T20-21-39-045Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-21-58-437Z.png](team-tints-2026-09-01T20-21-58-437Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `406b2eb` | 2026-09-01 | [team-tints-2026-09-01T20-22-16-742Z.png](team-tints-2026-09-01T20-22-16-742Z.png) | ci: team tints in verify, and the check no longer shares the bug's blind spot |
-| `b0241f0` | 2026-09-01 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | docs: repair two citations the render shifted |
-| `b0241f0` | 2026-09-01 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | docs: repair two citations the render shifted |
-| `d917dc9` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | ui: team tints on the desk, resolved pairwise per card |
-| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-09-07-993Z.png](team-tints-2026-09-01T20-09-07-993Z.png) | ui: team tints on the desk, resolved pairwise per card |
-| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-10-12-339Z.png](team-tints-2026-09-01T20-10-12-339Z.png) | ui: team tints on the desk, resolved pairwise per card |
-| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-10-49-391Z.png](team-tints-2026-09-01T20-10-49-391Z.png) | ui: team tints on the desk, resolved pairwise per card |
-| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-13-35-188Z.png](team-tints-2026-09-01T20-13-35-188Z.png) | ui: team tints on the desk, resolved pairwise per card |
-| `d917dc9` | 2026-09-01 | [team-tints-2026-09-01T20-14-42-209Z.png](team-tints-2026-09-01T20-14-42-209Z.png) | ui: team tints on the desk, resolved pairwise per card |
-| `da5e5f7` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | generator: a colour identifying two clubs identifies neither |
-| `ad1d1aa` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | generator: the club colours table, fuzzy here and exact at runtime |
-| `f9ae81c` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-47-22-768Z.txt](team-colour-coverage-2026-09-01T19-47-22-768Z.txt) | probe: team-colour coverage [skip ci] |
-| `bfe0e78` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | probe: key the league lookup on the relay's label, not the F# union name |
-| `5e217ce` | 2026-09-01 | [team-colour-coverage-2026-09-01T19-44-40-527Z.txt](team-colour-coverage-2026-09-01T19-44-40-527Z.txt) | probe: team-colour coverage [skip ci] |
-| `cfdb4d9` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | probe: how much of the desk can actually be tinted |
-| `e3eb1d7` | 2026-09-01 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | palette: team colours as a derived tint — the hue, not the hex |
-| `69fe415` | 2026-09-01 | [cc-session-2026-09-01-watcher-blind-spot-fix.md](cc-session-2026-09-01-watcher-blind-spot-fix.md) | watch: the duplicate watcher can see the class it was closing over |
-| `f8ef9de` | 2026-09-01 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-01 [skip ci] |
-| `f8ef9de` | 2026-09-01 | [sport-vocabulary-2026-09-01T16-26-08-537Z.json](sport-vocabulary-2026-09-01T16-26-08-537Z.json) | drift-sentinel: ok on 2026-09-01 [skip ci] |
-| `0ade237` | 2026-09-01 | [dash-scheme-writer-2026-09-01T16-06-43-389Z.txt](dash-scheme-writer-2026-09-01T16-06-43-389Z.txt) | probe: dash-scheme writer [skip ci] |
-| `8f1ebd8` | 2026-09-01 | [cc-session-2026-09-01-dash-scheme-writer.md](cc-session-2026-09-01-dash-scheme-writer.md) | probe: is the dash-scheme MLS writer stale or still running? |
-| `73d32a9` | 2026-09-01 | [fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt](fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt) | probe: fixture-identity duplicates [skip ci] |
-| `5f84930` | 2026-09-01 | [cc-session-2026-09-01-fixture-identity-blind-spot.md](cc-session-2026-09-01-fixture-identity-blind-spot.md) | probe: duplicates the event-id watcher cannot see |
-| `8deca4b` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt](id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt) | probe: id-scheme migration exposure [skip ci] |
-| `3135175` | 2026-09-01 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-09-01 [skip ci] |
-| `3135175` | 2026-09-01 | [sport-vocabulary-2026-09-01T06-22-05-077Z.json](sport-vocabulary-2026-09-01T06-22-05-077Z.json) | drift-sentinel: ok on 2026-09-01 [skip ci] |
-| `778a656` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: bound the vertical chrome budget, an axis nothing measured |
-| `b197a10` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: date-change behaviour, and four control affordances |
-| `37d747a` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: the tab is in the URL, and Route.fs is where its grammar lives |
-| `f6cc6b5` | 2026-09-01 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | docs: repair two anchored citations whose line numbers moved |
-| `9c0b64f` | 2026-09-01 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | ux: a failure can no longer look like progress |
-| `c5ec179` | 2026-09-01 | [cc-session-2026-09-01-device-affordances.md](cc-session-2026-09-01-device-affordances.md) | ui: three device affordances, and a guard against faking the fourth |
-| `1560b68` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: corrected exposure artifact, and 5 became 4 on its own |
-| `1560b68` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | probe: corrected exposure artifact, and 5 became 4 on its own |
-| `a302994` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt](id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt) | probe: id-scheme migration exposure [skip ci] |
-| `dd2acf8` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: today is not the future, and the advice was wrong because of it |
-| `23176d1` | 2026-09-01 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | probe: id-scheme migration exposure [skip ci] |
-| `7358ab9` | 2026-09-01 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | probe: what the numeric-id key would strand, swept forward |
-| `a54ac39` | 2026-09-01 | [espn-id-collisions-2026-09-01T02-09-31-408Z.txt](espn-id-collisions-2026-09-01T02-09-31-408Z.txt) | probe: espn_event_id collision safety [skip ci] |
-| `75c0138` | 2026-09-01 | [cc-session-2026-09-01-espn-id-refined.md](cc-session-2026-09-01-espn-id-refined.md) | probe: refined espn_event_id rule (numeric ids only) + coverage, and a verdict that cannot pass on an empty slate |
-| `a5641f8` | 2026-09-01 | [cc-would-keying-on-event-id-merge-two-games-2026-08-31.md](cc-would-keying-on-event-id-merge-two-games-2026-08-31.md) | probe: the espn_event_id proposal is UNSAFE as filed — golf shares one id per tournament |
-| `d0de361` | 2026-09-01 | [espn-id-collisions-2026-09-01T01-53-20-167Z.txt](espn-id-collisions-2026-09-01T01-53-20-167Z.txt) | probe: espn_event_id collision safety [skip ci] |
-| `6233edc` | 2026-09-01 | [cc-would-keying-on-event-id-merge-two-games-2026-08-31.md](cc-would-keying-on-event-id-merge-two-games-2026-08-31.md) | probe: would keying on espn_event_id merge two different games? |
-| `2683add` | 2026-08-31 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-31 [skip ci] |
-| `2683add` | 2026-08-31 | [sport-vocabulary-2026-08-31T19-02-44-979Z.json](sport-vocabulary-2026-08-31T19-02-44-979Z.json) | drift-sentinel: ok on 2026-08-31 [skip ci] |
-| `f28ebf7` | 2026-08-31 | [cc-id-consumer-enumeration-2026-08-31.md](cc-id-consumer-enumeration-2026-08-31.md) | docs: enumerate every consumer of regular_season_games.id |
-| `70ab5bc` | 2026-08-31 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | docs: relay duplicate filed as field-relay-nba#1, and the blocker was inherited |
-| `d2e364f` | 2026-08-31 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | watch: file a self-closing duplicate-fixture ticket on the relay |
-| `262f6f2` | 2026-08-31 | [cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md](cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md) | drift-check: zero rows is an empty slate, not a broken decoder |
-| `f62288f` | 2026-08-31 | [cc-one-failure-per-run-2026-08-31.md](cc-one-failure-per-run-2026-08-31.md) | check: no stats cards is two facts, and the file already knew that |
-| `5bcc1db` | 2026-08-31 | [cc-one-failure-per-run-2026-08-31.md](cc-one-failure-per-run-2026-08-31.md) | live-check: let one run report every page assertion, not just the first |
-| `c3bd838` | 2026-08-31 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-31 [skip ci] |
-| `c3bd838` | 2026-08-31 | [sport-vocabulary-2026-08-31T07-09-49-162Z.json](sport-vocabulary-2026-08-31T07-09-49-162Z.json) | drift-sentinel: ok on 2026-08-31 [skip ci] |
-| `cbcfaf3` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: the Scout's Pick panel has two states, and one was unassertable |
-| `38075f0` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | live-check: move the daily beat to an hour the slate exists |
-| `ceacd3a` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: an empty slate is a state, not a TimeoutError |
-| `44e82a9` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: two cards agreeing is the rule holding, not a defect |
-| `e08c8e1` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: three cards, one fixture — filter, not find |
-| `34de9e9` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: make the failing row print the keys both matchers see |
-| `8b647bd` | 2026-08-31 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | check: split '(no card / no kind)' into the two failures it hid |
-| `9b8568a` | 2026-08-31 | [cc-a-roster-that-could-not-audit-itself-2026-08-31.md](cc-a-roster-that-could-not-audit-itself-2026-08-31.md) | check: the skill roster is audited against the directory |
-| `d1730c1` | 2026-08-31 | [cc-a-bucket-that-collapsed-two-states-2026-08-31.md](cc-a-bucket-that-collapsed-two-states-2026-08-31.md) | check: split cross-repo from deleted-here, and abort on a shallow clone |
-| `af7483d` | 2026-08-31 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | check: citations can now repair what they have only reported |
-| `af7483d` | 2026-08-31 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | check: citations can now repair what they have only reported |
-| `af7483d` | 2026-08-31 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | check: citations can now repair what they have only reported |
-| `e3ec02e` | 2026-08-30 | [cc-the-spec-settled-the-tablet-question-2026-08-30.md](cc-the-spec-settled-the-tablet-question-2026-08-30.md) | check: pin the L1 and L2 column contracts, which were both being violated |
-| `fd29fcb` | 2026-08-30 | [cc-the-grid-floor-goes-to-400-2026-08-30.md](cc-the-grid-floor-goes-to-400-2026-08-30.md) | desk: raise the grid floor to min(400px, 100%) |
-| `4442ddc` | 2026-08-30 | [cc-the-flipped-card-was-double-wide-2026-08-30.md](cc-the-flipped-card-was-double-wide-2026-08-30.md) | desk: a flipped card no longer spans two columns |
-| `41447b9` | 2026-08-30 | [cc-the-rehearsal-is-on-a-clock-2026-08-30.md](cc-the-rehearsal-is-on-a-clock-2026-08-30.md) | drift-sentinel: rehearse the red-main write paths weekly |
-| `1e84f07` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | docs: the rehearsal is green, 16/16, with the lag measured |
-| `c71ce45` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | status: the sentinel waits for its own write to become visible |
-| `25ae6b7` | 2026-08-30 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | status: print what the issue lookup actually returns |
-| `a545691` | 2026-08-30 | [cc-three-branches-that-first-run-during-the-outage-2026-08-30.md](cc-three-branches-that-first-run-during-the-outage-2026-08-30.md) | status: rehearse the sentinel's write paths against the real API |
-| `919e92f` | 2026-08-30 | [cc-a-red-main-now-reaches-someone-2026-08-30.md](cc-a-red-main-now-reaches-someone-2026-08-30.md) | status: a red main opens an issue, a green main closes it |
-| `10f6187` | 2026-08-30 | [cc-status-went-quiet-when-it-had-something-to-say-2026-08-29.md](cc-status-went-quiet-when-it-had-something-to-say-2026-08-29.md) | status: refresh on a RED verify, which is when the file went stale |
-| `b96a3aa` | 2026-08-30 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-30 [skip ci] |
-| `b96a3aa` | 2026-08-30 | [sport-vocabulary-2026-08-30T16-30-28-254Z.json](sport-vocabulary-2026-08-30T16-30-28-254Z.json) | drift-sentinel: ok on 2026-08-30 [skip ci] |
-| `96ce742` | 2026-08-30 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-30 [skip ci] |
-| `96ce742` | 2026-08-30 | [sport-vocabulary-2026-08-30T06-54-38-854Z.json](sport-vocabulary-2026-08-30T06-54-38-854Z.json) | drift-sentinel: ok on 2026-08-30 [skip ci] |
-| `1b14f81` | 2026-08-30 | [cc-eight-tap-targets-under-the-floor-2026-08-29.md](cc-eight-tap-targets-under-the-floor-2026-08-29.md) | chrome: raise eight tap targets to the 44px floor, and assert both |
-| `42e793d` | 2026-08-30 | [cc-the-registry-had-no-way-to-walk-it-2026-08-29.md](cc-the-registry-had-no-way-to-walk-it-2026-08-29.md) | registry: add allSports, and stop grading 28 sports against a list of seven |
-| `5e53284` | 2026-08-30 | [cc-the-catalog-corrects-my-press-feedback-2026-08-29.md](cc-the-catalog-corrects-my-press-feedback-2026-08-29.md) | chrome: finish the press feedback to ITEM 4, including the card I excluded |
-| `d630a9f` | 2026-08-30 | [cc-my-contrast-pass-could-not-see-opacity-2026-08-29.md](cc-my-contrast-pass-could-not-see-opacity-2026-08-29.md) | chrome: grade contrast with opacity composited, not just the colour token |
-| `16c3980` | 2026-08-30 | [cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md](cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md) | chrome: press with the spec's scale(0.98), and grade the value not its presence |
-| `55d850f` | 2026-08-30 | [cc-the-five-words-match-the-spec-2026-08-29.md](cc-the-five-words-match-the-spec-2026-08-29.md) | palette: pin the five semantic colours to the spec that defines them |
-| `b0a713d` | 2026-08-30 | [cc-four-viewport-docs-and-one-hard-number-2026-08-29.md](cc-four-viewport-docs-and-one-hard-number-2026-08-29.md) | type: cap brief prose at FIELD's own 65ch lock, not a borrowed 68 |
-| `832c750` | 2026-08-30 | [cc-the-no-overflow-invariant-is-now-asserted-2026-08-29.md](cc-the-no-overflow-invariant-is-now-asserted-2026-08-29.md) | check: assert no canonical viewport overflows horizontally |
-| `917b8c1` | 2026-08-30 | [cc-every-portrait-phone-scrolled-sideways-2026-08-29.md](cc-every-portrait-phone-scrolled-sideways-2026-08-29.md) | viewport: the tab bar was pushing every portrait phone sideways |
-| `f59aaec` | 2026-08-30 | [cc-the-motion-passes-were-vacuous-2026-08-29.md](cc-the-motion-passes-were-vacuous-2026-08-29.md) | chrome: gate :hover to fine pointers, and give every pressable an :active |
-| `c645101` | 2026-08-30 | [cc-the-driver-collapsed-three-states-into-two-2026-08-29.md](cc-the-driver-collapsed-three-states-into-two-2026-08-29.md) | fix: a null verdict is NOT OBSERVABLE, not a regression |
-| `b89cc43` | 2026-08-30 | [cc-dim-was-a-border-colour-doing-text-work-2026-08-29.md](cc-dim-was-a-border-colour-doing-text-work-2026-08-29.md) | palette: split dimText out of dim, at the bar TEXT actually needs |
-| `afc5495` | 2026-08-30 | [cc-the-phase-rule-verified-live-2026-08-29.md](cc-the-phase-rule-verified-live-2026-08-29.md) | check: prove the phase rule against the deployed page, not a fixture |
-| `4c0e0fb` | 2026-08-30 | [cc-scrollcraft-installed-2026-08-29.md](cc-scrollcraft-installed-2026-08-29.md) | skills: install scrollcraft from nateherkai/scroll-craft |
-| `1565d8d` | 2026-08-30 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
-| `1565d8d` | 2026-08-30 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
-| `1565d8d` | 2026-08-30 | [2026-08-28-fetch-silently-empty-probe.md](2026-08-28-fetch-silently-empty-probe.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
-| `1565d8d` | 2026-08-30 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
-| `1565d8d` | 2026-08-30 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
-| `1565d8d` | 2026-08-30 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | docs: repair six moved citations, anchor the bare one, gate it at the door |
-| `c338742` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | census: page jq-density-census, and correct the claim that it was truncated |
-| `4b00a5b` | 2026-08-29 | [cc-the-recap-on-a-finished-game-2026-08-29.md](cc-the-recap-on-a-finished-game-2026-08-29.md) | fix: on a finished game, show the brief written after it finished |
-| `64ac887` | 2026-08-29 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | capture: page /archive/query instead of asking for 100 and taking 50 |
-| `dbcbb0b` | 2026-08-29 | [cc-the-soccer-set-was-four-2026-08-29.md](cc-the-soccer-set-was-four-2026-08-29.md) | fix: ask the registry which competitions are soccer, not a four-element literal |
-| `5790c36` | 2026-08-29 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | fix: model game_live and bracket_delta, and read the observed set instead of a copy |
-| `39461f6` | 2026-08-29 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | capture: project updated_at, and let the capture choose its destination |
-| `17b8977` | 2026-08-29 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | fix: three new modules ran and exited on import; guard them with isMain |
-| `12b80e7` | 2026-08-29 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | ci: catch the clobber — a script a workflow depended on going unreachable |
-| `12b80e7` | 2026-08-29 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | ci: catch the clobber — a script a workflow depended on going unreachable |
-| `5359445` | 2026-08-29 | [2026-08-29-reading-is-a-simulation-of-execution.md](2026-08-29-reading-is-a-simulation-of-execution.md) | docs: reading is a simulation of execution — the rule, and a fifth instance |
-| `c031a81` | 2026-08-29 | [2026-08-29-cfb-the-four-undone-things.md](2026-08-29-cfb-the-four-undone-things.md) | fix: the fixture capture wrote to build output, not the tracked source |
-| `3015b09` | 2026-08-29 | [2026-08-29-cfb-the-four-undone-things.md](2026-08-29-cfb-the-four-undone-things.md) | feat: capture a real multi-sport render fixture; probe the unscoped briefs |
-| `0a017ca` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
-| `0a017ca` | 2026-08-29 | [sport-vocabulary-2026-08-29T16-35-10-556Z.json](sport-vocabulary-2026-08-29T16-35-10-556Z.json) | drift-sentinel: favourite-mismatch on 2026-08-29 [skip ci] |
-| `44a61b9` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-29 [skip ci] |
-| `44a61b9` | 2026-08-29 | [sport-vocabulary-2026-08-29T07-58-07-674Z.json](sport-vocabulary-2026-08-29T07-58-07-674Z.json) | drift-sentinel: ok on 2026-08-29 [skip ci] |
-| `fbc7c56` | 2026-08-29 | [2026-08-28-bundesliga-modelled.md](2026-08-28-bundesliga-modelled.md) | feat: model Bundesliga — the last of the big five |
-| `5616d4b` | 2026-08-29 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
-| `5616d4b` | 2026-08-29 | [sport-vocabulary-2026-08-29T00-47-21-350Z.json](sport-vocabulary-2026-08-29T00-47-21-350Z.json) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
-| `b2d3599` | 2026-08-28 | [2026-08-28-fetch-silently-empty-probe.md](2026-08-28-fetch-silently-empty-probe.md) | probe: where else does a failed fetch read as an empty answer |
-| `7550233` | 2026-08-28 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
-| `854dde6` | 2026-08-28 | [2026-08-28-spread-price-landed-and-two-regressions.md](2026-08-28-spread-price-landed-and-two-regressions.md) | census: name the verdict, and stop a lost push race discarding it |
-| `9604e77` | 2026-08-28 | [2026-08-28-spread-price-landed-and-two-regressions.md](2026-08-28-spread-price-landed-and-two-regressions.md) | docs: promote spread-price on a second DATE, and record two regressions |
-| `a20b7a4` | 2026-08-28 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-28 [skip ci] |
-| `cb1c051` | 2026-08-28 | [2026-08-27-cfb-modelled.md](2026-08-27-cfb-modelled.md) | feat: model CFB — the sport the registry could never have observed |
-| `c98b915` | 2026-08-28 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: close the seed-coverage ask, and file the drift it uncovered |
-| `eb016ee` | 2026-08-28 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: audit every CC-CMD's status, and make the marker greppable |
-| `145f74d` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-27 [skip ci] |
-| `145f74d` | 2026-08-27 | [sport-vocabulary-2026-08-27T22-07-49-625Z.json](sport-vocabulary-2026-08-27T22-07-49-625Z.json) | drift-sentinel: ok on 2026-08-27 [skip ci] |
-| `7796a98` | 2026-08-27 | [2026-08-27-playframe-frozen-and-the-days-accounting.md](2026-08-27-playframe-frozen-and-the-days-accounting.md) | docs: correct the [skip ci] claim — status.yml does not run on push |
-| `ed7095e` | 2026-08-27 | [2026-08-27-playframe-frozen-and-the-days-accounting.md](2026-08-27-playframe-frozen-and-the-days-accounting.md) | docs: freeze PlayFrame, and account for the day |
-| `6f23c76` | 2026-08-27 | [2026-08-27-the-frame-says-which-frame-it-is.md](2026-08-27-the-frame-says-which-frame-it-is.md) | feat: the frame says which frame it is — a versioned layout that refuses |
-| `498999e` | 2026-08-27 | [2026-08-27-epa-as-producer-fills-two-of-five.md](2026-08-27-epa-as-producer-fills-two-of-five.md) | feat: the frame can say "absent" — epa.js fills two of its five fields |
-| `a8dbd51` | 2026-08-27 | [2026-08-27-preconnect-removed.md](2026-08-27-preconnect-removed.md) | fix: remove the preconnect tag — the reading that added it was refuted |
-| `2a58138` | 2026-08-27 | [2026-08-27-the-retry-verified-on-the-hang-path.md](2026-08-27-the-retry-verified-on-the-hang-path.md) | docs: the timing line, read — the retry measured end to end [skip ci] |
-| `f6e8d3a` | 2026-08-27 | [2026-08-27-the-retry-verified-on-the-hang-path.md](2026-08-27-the-retry-verified-on-the-hang-path.md) | docs: the retry verified on a run that actually hung [skip ci] |
-| `f606aee` | 2026-08-27 | [2026-08-27-the-first-wave-recovers-on-the-second-ask.md](2026-08-27-the-first-wave-recovers-on-the-second-ask.md) | fix: retry what never answered — the host recovers inside one page load |
-| `2408ed3` | 2026-08-27 | [2026-08-27-i-read-the-wrong-build.md](2026-08-27-i-read-the-wrong-build.md) | fix: report which build the render check measured — I read the wrong one |
-| `c6ceb27` | 2026-08-27 | [2026-08-27-the-arbiter-went-silent-when-it-worked.md](2026-08-27-the-arbiter-went-silent-when-it-worked.md) | fix: print the open-meteo timings on every run, not only on a failing one |
-| `f7c0248` | 2026-08-27 | [2026-08-27-the-first-wave-pays-for-everyone.md](2026-08-27-the-first-wave-pays-for-everyone.md) | fix: preconnect Open-Meteo — the first wave was paying DNS+TCP+TLS for the slate |
-| `55b87ad` | 2026-08-27 | [2026-08-27-playframe-producer-and-the-metric-that-does-not-exist.md](2026-08-27-playframe-producer-and-the-metric-that-does-not-exist.md) | feat: the PlayFrame producer, and the metric classification it needs |
-| `f6caae3` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-27 [skip ci] |
-| `f6caae3` | 2026-08-27 | [sport-vocabulary-2026-08-27T11-37-23-914Z.json](sport-vocabulary-2026-08-27T11-37-23-914Z.json) | drift-sentinel: ok on 2026-08-27 [skip ci] |
-| `005e515` | 2026-08-27 | [2026-08-27-playframe-binary-ingest.md](2026-08-27-playframe-binary-ingest.md) | feat: PlayFrame — binary frame ingest, with the suite as its only consumer |
-| `b4815c7` | 2026-08-27 | [2026-08-27-closing-odds-promoted-on-a-second-date.md](2026-08-27-closing-odds-promoted-on-a-second-date.md) | docs: close closing-odds; promoted on the second DISTINCT probe date |
-| `4ad24cc` | 2026-08-27 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
-| `4ad24cc` | 2026-08-27 | [sport-vocabulary-2026-08-27T03-04-16-848Z.json](sport-vocabulary-2026-08-27T03-04-16-848Z.json) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
-| `82ce843` | 2026-08-27 | [2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md](2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md) | fix: bound the slate, not each wave; the deadline was a quotient of maxInFlight |
-| `e479727` | 2026-08-27 | [2026-08-27-weather-fetch-had-no-deadline.md](2026-08-27-weather-fetch-had-no-deadline.md) | fix: give the weather fetch a deadline; a hung request stalled the whole slate |
-| `2d3f54d` | 2026-08-27 | [2026-08-27-verify-159-weather-attribution.md](2026-08-27-verify-159-weather-attribution.md) | fix: a total weather failure carries what each request reported |
-| `7f9c78a` | 2026-08-27 | [2026-08-27-adjudication-by-price.md](2026-08-27-adjudication-by-price.md) | feat: the spread price reaches the census; 0 of 13 can be settled with it |
-| `944722f` | 2026-08-27 | [2026-08-27-the-ledger-found-its-own-answer.md](2026-08-27-the-ledger-found-its-own-answer.md) | fix: point the chrome check at the fixture that was already there |
-| `d968c59` | 2026-08-26 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census: the asymmetry test came back 10-0 |
-| `d968c59` | 2026-08-26 | [2026-08-26-the-asymmetry-is-total.md](2026-08-26-the-asymmetry-is-total.md) | census: the asymmetry test came back 10-0 |
-| `961e3be` | 2026-08-26 | [favourite-band-census-20260826T185716Z.txt](favourite-band-census-20260826T185716Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
-| `f52cca6` | 2026-08-26 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | feat: UNREADABLE was two states wearing one name |
-| `e6464e8` | 2026-08-26 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | ci: guards.yml — the guard set's trigger did not cover its inputs |
-| `13a384b` | 2026-08-26 | [2026-08-26-not-observable-is-a-number.md](2026-08-26-not-observable-is-a-number.md) | feat: 'not observable' is a counted gap, not a note |
-| `bc4fe0c` | 2026-08-26 | [2026-08-26-one-passing-answer.md](2026-08-26-one-passing-answer.md) | fix: the boundary assertion had one passing answer, and it was the wrong one |
-| `d4d4628` | 2026-08-26 | [2026-08-26-two-runs-is-one-observation.md](2026-08-26-two-runs-is-one-observation.md) | docs: two consecutive sentinel runs read the same slate — not promoting |
-| `30a91da` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
-| `30a91da` | 2026-08-26 | [sport-vocabulary-2026-08-26T13-04-42-108Z.json](sport-vocabulary-2026-08-26T13-04-42-108Z.json) | drift-sentinel: favourite-mismatch on 2026-08-26 [skip ci] |
-| `370bb8d` | 2026-08-26 | [2026-08-26-more-ai-not-less.md](2026-08-26-more-ai-not-less.md) | fix: take the boxes back off — the check could only ever say 'add a border' |
-| `38d185b` | 2026-08-26 | [2026-08-26-invisible-boxes.md](2026-08-26-invisible-boxes.md) | feat: find boxes that share their backdrop's fill — four were invisible |
-| `cebc64f` | 2026-08-26 | [2026-08-26-soccer-draw-landed.md](2026-08-26-soccer-draw-landed.md) | docs: the soccer draw price landed — close the ask and promote it to fatal |
-| `8035663` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | feat: delete the container outlines, and make separation-check measure instead of count |
-| `ec07af0` | 2026-08-26 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
-| `ec07af0` | 2026-08-26 | [sport-vocabulary-2026-08-26T02-42-52-050Z.json](sport-vocabulary-2026-08-26T02-42-52-050Z.json) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
-| `bbd3034` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | docs: the container outline contributes 15/255 on 0.5% of pixels — measured, not argued |
-| `ce108da` | 2026-08-26 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | feat: a control boundary you can actually see, at the one contrast bar with a standard behind it |
-| `2d1ebce` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | docs: withdraw last night's '.st-row--gap needs a prompt' — the design was deliberately replaced |
-| `7a85068` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | feat: measure the chrome on the rendered page; delete the code that modelled the cascade |
-| `f540050` | 2026-08-26 | [2026-08-26-secret-guard-three-repos.md](2026-08-26-secret-guard-three-repos.md) | fix: five of my scripts ran and exited at import time |
-| `a703211` | 2026-08-26 | [2026-08-26-secret-guard-three-repos.md](2026-08-26-secret-guard-three-repos.md) | fix: the literal-secret guard carried the real Odds API key here too |
-| `9380b70` | 2026-08-26 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | fix: five chrome defects the unslop-ui checklist found, and a guard for three of them |
-| `314d68a` | 2026-08-26 | [2026-08-26-skill-drift-check.md](2026-08-26-skill-drift-check.md) | feat: compare the shared skills across repos — nothing did |
-| `4b7d1b6` | 2026-08-26 | [2026-08-26-spread-price-capture.md](2026-08-26-spread-price-capture.md) | feat: the sentinel follows up the spread-price ask, gated on capture time |
-| `5a8eeaa` | 2026-08-25 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | docs: run 3 disproves my own 'another sport's odds' finding |
-| `e1345d5` | 2026-08-25 | [favourite-band-census-20260825T232152Z.txt](favourite-band-census-20260825T232152Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
-| `4cc746e` | 2026-08-25 | [2026-08-25-odds-plausibility.md](2026-08-25-odds-plausibility.md) | census: the misjoined-odds ask did not need D1 after all |
-| `a36339d` | 2026-08-25 | [2026-08-25-literal-secret-writes.md](2026-08-25-literal-secret-writes.md) | feat: no workflow may install a credential from a literal |
-| `3dbee71` | 2026-08-25 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census run 2: the disagreements are one-sided, and three rows hold the wrong sport's odds |
-| `068ca6f` | 2026-08-25 | [favourite-band-census-20260825T215041Z.txt](favourite-band-census-20260825T215041Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
-| `a23ee68` | 2026-08-25 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | census: the band is empty at 49.1%, and the disagreements are one-sided |
-| `cf6c173` | 2026-08-25 | [favourite-band-census-20260825T214523Z.txt](favourite-band-census-20260825T214523Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
-| `1724cc8` | 2026-08-25 | [2026-08-25-favourite-band.md](2026-08-25-favourite-band.md) | feat: census the band favouriteAgreement declines to judge |
-| `89136fa` | 2026-08-25 | [2026-08-25-citation-check.md](2026-08-25-citation-check.md) | feat: a doc citation must be anchored, because line numbers rot |
-| `20e36ec` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
-| `20e36ec` | 2026-08-25 | [sport-vocabulary-2026-08-25T12-58-57-174Z.json](sport-vocabulary-2026-08-25T12-58-57-174Z.json) | drift-sentinel: favourite-mismatch on 2026-08-25 [skip ci] |
-| `574fb97` | 2026-08-25 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | docs: recommend against the PGA Tour archive DELETE, with the reasoning |
-| `f486ce4` | 2026-08-25 | [2026-08-25-tbc-venue.md](2026-08-25-tbc-venue.md) | fix: a slate with no venue is not a venue-table coverage gap |
-| `53a0a7e` | 2026-08-25 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | probe: the golf/tour ask reports its own cessation, twice a day |
-| `393d601` | 2026-08-25 | [cc-session-2026-08-25-non-contest.md](cc-session-2026-08-25-non-contest.md) | fix: an event card called a finished round scheduled, and the score gate said so |
-| `b131aa6` | 2026-08-25 | [cc-session-2026-08-25-non-contest.md](cc-session-2026-08-25-non-contest.md) | feat: model golf as a non-contest, and stop handing out a pair that is not one |
-| `3fe77fa` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `3fe77fa` | 2026-08-25 | [sport-vocabulary-2026-08-25T02-34-39-865Z.json](sport-vocabulary-2026-08-25T02-34-39-865Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `60ba8d6` | 2026-08-25 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `60ba8d6` | 2026-08-25 | [sport-vocabulary-2026-08-25T01-24-34-105Z.json](sport-vocabulary-2026-08-25T01-24-34-105Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `4ea140f` | 2026-08-25 | [2026-08-25-non-contest-probe.md](2026-08-25-non-contest-probe.md) | probe: sample the declared-unmodelled labels too, and read the whole row |
-| `9a852ae` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `9a852ae` | 2026-08-24 | [sport-vocabulary-2026-08-24T23-21-49-484Z.json](sport-vocabulary-2026-08-24T23-21-49-484Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `3fb2f1a` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `3fb2f1a` | 2026-08-24 | [sport-vocabulary-2026-08-24T13-02-19-141Z.json](sport-vocabulary-2026-08-24T13-02-19-141Z.json) | drift-sentinel: ok on 2026-08-24 [skip ci] |
-| `94de698` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `94de698` | 2026-08-24 | [sport-vocabulary-2026-08-24T03-02-29-986Z.json](sport-vocabulary-2026-08-24T03-02-29-986Z.json) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `992fa55` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `992fa55` | 2026-08-24 | [sport-vocabulary-2026-08-24T02-41-25-435Z.json](sport-vocabulary-2026-08-24T02-41-25-435Z.json) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `2835350` | 2026-08-24 | [2026-08-24-vocabulary-artifact-staged.md](2026-08-24-vocabulary-artifact-staged.md) | ci: the vocabulary check's own measurement is committed, not discarded |
-| `0ee7c6b` | 2026-08-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `b642808` | 2026-08-23 | [2026-08-23-relay-credential-out-of-source.md](2026-08-23-relay-credential-out-of-source.md) | fix: the relay credential leaves this repo's source |
-| `d4aabb6` | 2026-08-23 | [2026-08-23-boundary-orphaned.md](2026-08-23-boundary-orphaned.md) | fix: the boundary named a commit its own push deleted |
-| `a5c7510` | 2026-08-23 | [2026-08-23-falsifiable-verifiers.md](2026-08-23-falsifiable-verifiers.md) | feat: every verifier must reject a known-bad payload |
-| `3226819` | 2026-08-23 | [2026-08-23-staged-verifier.md](2026-08-23-staged-verifier.md) | feat: a staged claim must name a verifier that exists and runs |
-| `1bba8a9` | 2026-08-23 | [2026-08-23-contamination-baseline.md](2026-08-23-contamination-baseline.md) | fix: the cessation probe could never have observed a cessation |
-| `80f2e12` | 2026-08-23 | [2026-08-23-closing-odds-followup.md](2026-08-23-closing-odds-followup.md) | feat: register the closing-odds ask with the follow-up probe |
-| `f4cac61` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `c31b94e` | 2026-08-23 | [2026-08-23-sport-vocabulary.md](2026-08-23-sport-vocabulary.md) | feat: guard the outbox rule at commit time, not in the history report |
-| `2059a30` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `bb716aa` | 2026-08-23 | [cc-render-check-tolerate-open-meteo-2026-08-23.md](cc-render-check-tolerate-open-meteo-2026-08-23.md) | render-check: tolerate an Open-Meteo outage in verify, with teeth intact |
-| `1ef7f20` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-23 [skip ci] |
-| `428d200` | 2026-08-23 | [cc-surface-live-check-in-status-2026-08-23.md](cc-surface-live-check-in-status-2026-08-23.md) | status: surface live-check health in STATUS.md so a red cannot hide for a day |
-| `c1d341d` | 2026-08-23 | [cc-live-tabs-render-wait-2026-08-23.md](cc-live-tabs-render-wait-2026-08-23.md) | live-tabs-check: wait for the SPA to render before reading the pick panels |
-| `3c051e5` | 2026-08-23 | [cc-soccer-three-way-odds-2026-08-23.md](cc-soccer-three-way-odds-2026-08-23.md) | File the soccer three-way odds CC-CMD and wire its automated follow-up |
-| `514644f` | 2026-08-23 | [cc-mutation-anchor-drift-2026-08-23.md](cc-mutation-anchor-drift-2026-08-23.md) | Mutation check: repoint the cards-run-together anchor at the tokenised CSS |
-| `de63a93` | 2026-08-23 | [cc-live-page-networkidle-2026-08-23.md](cc-live-page-networkidle-2026-08-23.md) | live-check: wait for what the check needs, not for a page that never idles |
-| `0b47a38` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-22 [skip ci] |
-| `ed5d6b9` | 2026-08-23 | [cc-ligue1-seriea-modelled-2026-08-23.md](cc-ligue1-seriea-modelled-2026-08-23.md) | Model Ligue 1 and Serie A: the sentinel asked for them by name |
-| `58d7a45` | 2026-08-23 | [cc-winprob-on-the-card-2026-08-23.md](cc-winprob-on-the-card-2026-08-23.md) | Render a real per-card win probability through Market |
-| `3e974c6` | 2026-08-23 | [cc-live-check-verdict-2026-08-23.md](cc-live-check-verdict-2026-08-23.md) | docs: outbox entry for the live-check verdict fix |
-| `ebc28db` | 2026-08-23 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
-| `ac33623` | 2026-08-23 | [cc-market-shape-2026-08-23.md](cc-market-shape-2026-08-23.md) | Market shape as a type: a two-way complement cannot be taken on a three-way market |
-| `06c37db` | 2026-08-23 | [cc-status-deploy-landed-2026-08-23.md](cc-status-deploy-landed-2026-08-23.md) | STATUS answers 'did the deploy land?'; share the deployable rule; fix an import-purity bug |
-| `7998656` | 2026-08-23 | [cc-pre-commit-gate-2026-08-23.md](cc-pre-commit-gate-2026-08-23.md) | Add a pre-commit gate: cheap checks before the commit exists |
-| `91f1727` | 2026-08-23 | [cc-deploy-landed-2026-08-23.md](cc-deploy-landed-2026-08-23.md) | deploy-landed: prove the published artifact is the newest deployable commit |
-| `37f2ae6` | 2026-08-23 | [cc-wire-the-desk-2026-08-23.md](cc-wire-the-desk-2026-08-23.md) | Wire the desk to the typed palette and type system |
-| `9f884d1` | 2026-08-23 | [cc-typography-as-types-2026-08-23.md](cc-typography-as-types-2026-08-23.md) | Typography: FIELD's type system as types, with proofs |
-| `6dd5444` | 2026-08-23 | [cc-relay-brief-watch-runner-2026-08-22.md](cc-relay-brief-watch-runner-2026-08-22.md) | Palette: FIELD's semantic color system as types, with proofs |
-| `6dd5444` | 2026-08-23 | [cc-the-palette-as-types-2026-08-23.md](cc-the-palette-as-types-2026-08-23.md) | Palette: FIELD's semantic color system as types, with proofs |
-| `e9ddf18` | 2026-08-22 | [cc-relay-brief-watch-runner-2026-08-22.md](cc-relay-brief-watch-runner-2026-08-22.md) | Runner: self-closing brief-defect ticket on the relay, cross-repo, no PR [skip ci] |
-| `51f0488` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
-| `3cd248c` | 2026-08-22 | [cc-adhd-skill-sync-runner-2026-08-22.md](cc-adhd-skill-sync-runner-2026-08-22.md) | status: refresh [skip ci] |
-| `6e325e0` | 2026-08-22 | [cc-adhd-skill-install-automation-2026-08-22.md](cc-adhd-skill-install-automation-2026-08-22.md) | Automate cross-repo skill install on a runner (adhd-skill-sync) [skip ci] |
-| `6e325e0` | 2026-08-22 | [cc-adhd-skill-sync-runner-2026-08-22.md](cc-adhd-skill-sync-runner-2026-08-22.md) | Automate cross-repo skill install on a runner (adhd-skill-sync) [skip ci] |
-| `dd58bee` | 2026-08-22 | [cc-adhd-skill-install-automation-2026-08-22.md](cc-adhd-skill-install-automation-2026-08-22.md) | Automate i-have-adhd skill install + drift-verify; file CC-CMD for sibling repos [skip ci] |
-| `606c22d` | 2026-08-22 | [cc-automate-contamination-followup-2026-08-22.md](cc-automate-contamination-followup-2026-08-22.md) | Add i-have-adhd skill (verbatim from ayghri/i-have-adhd) |
-| `ab17013` | 2026-08-22 | [cc-automate-contamination-followup-2026-08-22.md](cc-automate-contamination-followup-2026-08-22.md) | cc-cmd-followup: automate the brief-sport-contamination follow-up; fold soccer stat-model framing into upstream asks [skip ci] |
-| `cf9a930` | 2026-08-22 | [cc-the-stalemate-that-led-three-nil-2026-08-22.md](cc-the-stalemate-that-led-three-nil-2026-08-22.md) | Briefs: catch a stated lead called a stalemate (the Brentford card) |
-| `972d665` | 2026-08-22 | [cc-the-tab-count-that-said-six-2026-08-22.md](cc-the-tab-count-that-said-six-2026-08-22.md) | live-tabs-check: assert seven tabs by name, not a stale count of six |
-| `73cee8c` | 2026-08-22 | [cc-the-brief-that-played-the-wrong-sport-2026-08-22.md](cc-the-brief-that-played-the-wrong-sport-2026-08-22.md) | Briefs: catch cross-sport contamination (a soccer brief naming the NBA/DRTG) |
-| `eeb2e23` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-22 [skip ci] |
-| `b1ec662` | 2026-08-22 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-21 [skip ci] |
-| `9b30e83` | 2026-08-21 | [cc-one-snapshot-states-its-time-2026-08-21.md](cc-one-snapshot-states-its-time-2026-08-21.md) | Odds: a one-snapshot line states when it was captured |
-| `2628ca2` | 2026-08-21 | [cc-the-desk-models-the-premier-league-2026-08-21.md](cc-the-desk-models-the-premier-league-2026-08-21.md) | Model the Premier League: Sport.EPL, added the day it first rendered |
-| `b1a0948` | 2026-08-21 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-21 [skip ci] |
-| `3c668d0` | 2026-08-21 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Brief data-quality CC-CMD rev 3; re-correct the join claim to measured |
-| `8b2e991` | 2026-08-21 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-20 [skip ci] |
-| `ef46c2a` | 2026-08-20 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Brief data-quality CC-CMD rev 2; correct the espn_event_id claim |
-| `dd7d751` | 2026-08-20 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | Differentiation note + brief data-quality CC-CMD, from an ESPN/AP side-by-side |
-| `55ea1eb` | 2026-08-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | Correct the UEFA ask: stale premise, wrong probe, confirmed labels |
-| `ed8451d` | 2026-08-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-20 [skip ci] |
-| `483a05d` | 2026-08-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | File the ask for UEFA club competitions; defer modelling on evidence |
-| `e3c2056` | 2026-08-20 | [cc-the-table-had-no-soccer-2026-08-20.md](cc-the-table-had-no-soccer-2026-08-20.md) | Add the eight MLS venues an all-soccer slate left uncovered |
-| `c0de801` | 2026-08-20 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-19 [skip ci] |
-| `eeab035` | 2026-08-20 | [cc-the-flip-that-did-not-flip-2026-08-20.md](cc-the-flip-that-did-not-flip-2026-08-20.md) | Fix the flip: a grid never held the preserve-3d it was handed |
-| `c615b27` | 2026-08-20 | [cc-the-briefs-tab-2026-08-20.md](cc-the-briefs-tab-2026-08-20.md) | Journalism in the UI, stage 4: the Briefs tab |
-| `6731f7d` | 2026-08-20 | [cc-provenance-and-anchoring-on-the-card-2026-08-20.md](cc-provenance-and-anchoring-on-the-card-2026-08-20.md) | Journalism in the UI, stage 3: provenance and anchoring on the brief |
-| `42a742a` | 2026-08-19 | [cc-the-verdict-on-the-brief-2026-08-19.md](cc-the-verdict-on-the-brief-2026-08-19.md) | Journalism in the UI, stage 2: the scoreline verdict, and the flip CSS that never shipped |
-| `ca10f76` | 2026-08-19 | [cc-the-card-turns-to-the-brief-2026-08-19.md](cc-the-card-turns-to-the-brief-2026-08-19.md) | Journalism in the UI, stage 1: the card flips to reveal the brief |
-| `9ec8f38` | 2026-08-19 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-19 [skip ci] |
-| `ba4a541` | 2026-08-19 | [cc-scores-do-not-decrease-2026-08-19.md](cc-scores-do-not-decrease-2026-08-19.md) | Scores do not decrease: check briefs against the games they describe |
-| `f9e1422` | 2026-08-19 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-18 [skip ci] |
-| `60c84a4` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-18 [skip ci] |
-| `7eca209` | 2026-08-18 | [cc-an-alarm-that-cannot-clear-2026-08-18.md](cc-an-alarm-that-cannot-clear-2026-08-18.md) | Declare golf unmodelled, model La Liga, retire a landed ask, scan the whole tree |
-| `0f235f7` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
-| `9f8628d` | 2026-08-18 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
-| `37f1daf` | 2026-08-18 | [cc-a-promise-does-not-scan-files-2026-08-18.md](cc-a-promise-does-not-scan-files-2026-08-18.md) | Redact the relay credential, and make the refusal mechanical |
-| `646e925` | 2026-08-17 | [cc-the-gate-caught-three-2026-08-17.md](cc-the-gate-caught-three-2026-08-17.md) | Fix three gate failures, and the tail -1 bypass I rebuilt inside the check |
-| `0aadf8c` | 2026-08-17 | [cc-a-score-must-be-measured-2026-08-17.md](cc-a-score-must-be-measured-2026-08-17.md) | A confidence score must be measured, not typed |
-| `0aadf8c` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | A confidence score must be measured, not typed |
-| `0aadf8c` | 2026-08-17 | [cc-the-boundary-moved-2026-08-17.md](cc-the-boundary-moved-2026-08-17.md) | A confidence score must be measured, not typed |
-| `0aadf8c` | 2026-08-17 | [cc-the-runner-never-arrived-2026-08-17.md](cc-the-runner-never-arrived-2026-08-17.md) | A confidence score must be measured, not typed |
-| `0ce952f` | 2026-08-17 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-17 [skip ci] |
-| `ee441b6` | 2026-08-17 | [cc-the-boundary-moved-2026-08-17.md](cc-the-boundary-moved-2026-08-17.md) | Move the history boundary to 829f2ac/18, and stop it masking twenty steps |
-| `653a399` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | Record the re-dispatch: 358 joined on a runner, and verify halts at step 24 |
-| `1009ed3` | 2026-08-17 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | One column, seven key spaces: the brief-to-game join was 6.2% because it was wrong |
-| `829f2ac` | 2026-08-17 | [cc-the-runner-never-arrived-2026-08-17.md](cc-the-runner-never-arrived-2026-08-17.md) | Report: the capture did not fail, the runner never arrived |
-| `82390e2` | 2026-08-17 | [cc-followup-automation-2026-08-17.md](cc-followup-automation-2026-08-17.md) | Automate the CC-CMD follow-up: filing is not the end of the process |
-| `8069f83` | 2026-08-17 | [cc-phase2-rubric-2026-08-17.md](cc-phase2-rubric-2026-08-17.md) | Phase 2: a score cannot say which rubric produced it |
-| `16cc73d` | 2026-08-17 | [cc-phase5-docs-check-2026-08-17.md](cc-phase5-docs-check-2026-08-17.md) | Phase 5: documents that stop being true stop the build |
-| `55d2585` | 2026-08-17 | [cc-stub-generator-2026-08-17.md](cc-stub-generator-2026-08-17.md) | Add the stub Generator Phase 3 was supposed to have |
-| `1d9d063` | 2026-08-17 | [cc-verify-split-2026-08-17.md](cc-verify-split-2026-08-17.md) | Split verify: two steps were the whole job |
-| `d8317d3` | 2026-08-17 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-16 [skip ci] |
-| `893faa1` | 2026-08-16 | [cc-actions-budget-2026-08-16.md](cc-actions-budget-2026-08-16.md) | Cut Actions spend: delete the duplicate mutation run, slow the status backstop |
-| `14cf45a` | 2026-08-16 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-16 [skip ci] |
-| `4608884` | 2026-08-16 | [cc-gate-explains-itself-2026-08-16.md](cc-gate-explains-itself-2026-08-16.md) | Make a failing gate row say why, not just which |
-| `3760c7e` | 2026-08-16 | [cc-phase3-journalism-2026-08-16.md](cc-phase3-journalism-2026-08-16.md) | Phase 3: the J-layer types, and the plan out of the chat log |
-| `4195acb` | 2026-08-16 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-15 [skip ci] |
-| `906bdef` | 2026-08-16 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | Run the CC-CMD's falsifying test instead of only shipping it |
-| `9d66cf6` | 2026-08-16 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | The quality bar is 98% of what the scorer can reach |
-| `7779ba8` | 2026-08-15 | [cc-espn-not-an-authority-2026-08-15.md](cc-espn-not-an-authority-2026-08-15.md) | ESPN confirmed NFL/CFL and falsified the instrument that confirmed them |
-| `d729c35` | 2026-08-15 | [cc-nfl-sport-registry-2026-08-15.md](cc-nfl-sport-registry-2026-08-15.md) | Model NFL and CFL; derive the convention on a runner, not by assertion |
-| `ddd32f6` | 2026-08-15 | [cc-outlet-false-positive-2026-08-15.md](cc-outlet-false-positive-2026-08-15.md) | A broadcast channel number was read as a leaked pick score |
-| `817b451` | 2026-08-15 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-15 [skip ci] |
-| `70e59f8` | 2026-08-15 | [cc-stranded-injection-2026-08-15.md](cc-stranded-injection-2026-08-15.md) | Catch a stranded proof injection before it costs a job |
-| `2f42fc6` | 2026-08-15 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-14 [skip ci] |
-| `217282b` | 2026-08-15 | [cc-weather-burst-2026-08-15.md](cc-weather-burst-2026-08-15.md) | Bound the weather fan-out; it was bursting and earning a 429 |
-| `40f442c` | 2026-08-15 | [cc-oracle-provenance-2026-08-15.md](cc-oracle-provenance-2026-08-15.md) | Close Phase 1's soft links; measure what Phase 2 is blocked on |
-| `8fd151e` | 2026-08-15 | [cc-prose-units-2026-08-14.md](cc-prose-units-2026-08-14.md) | Phase 1: the JQ unit error, refused by the compiler |
-| `a1aed79` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-14 [skip ci] |
-| `2cc73ea` | 2026-08-14 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-13 [skip ci] |
-| `5ca7194` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Wait for the page, not for the network, in schedule-live-check |
-| `59927f8` | 2026-08-14 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Restore the teeth the tolerant decoder took from drift-check |
-| `bd6ed5d` | 2026-08-13 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | Fix the inverted exit code that took verify red |
-| `bd62427` | 2026-08-13 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | One null side no longer blanks the whole slate |
-| `a5ac5a3` | 2026-08-13 | [cc-jq-density-census-2026-08-13.md](cc-jq-density-census-2026-08-13.md) | Census the mlb_game brief corpus either side of the JQ scoring redesign |
-| `e855dad` | 2026-08-13 | [drift-log.md](drift-log.md) | drift-sentinel: decode-failed on 2026-08-13 [skip ci] |
-| `3dcbe89` | 2026-08-13 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | Recover the one section three stale branches were still holding |
-| `3a27eef` | 2026-08-13 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | Build the pitcher and records rows, and unpin a fixture date that expired |
-| `0883c9e` | 2026-08-13 | [cc-venue-aliases-2026-08-12.md](cc-venue-aliases-2026-08-12.md) | Venue aliases: the park lookup was verified on 2 of 30 |
-| `327fee3` | 2026-08-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-12 [skip ci] |
-| `df1cbf8` | 2026-08-13 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | The Stats rows are production's real numbers, not invented ones |
-| `0b5dd96` | 2026-08-12 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | Two mutations were sitting in the tree, and the gate blamed the product |
-| `a6a2948` | 2026-08-12 | [cc-games-ran-together-2026-08-12.md](cc-games-ran-together-2026-08-12.md) | The games ran together, because neither new panel had any CSS at all |
-| `afb0474` | 2026-08-12 | [cc-the-runner-lost-open-meteo-2026-08-12.md](cc-the-runner-lost-open-meteo-2026-08-12.md) | The runner lost Open-Meteo, and the check was crashing rather than failing |
-| `e36d326` | 2026-08-12 | [cc-stats-tab-in-fsharp-2026-08-12.md](cc-stats-tab-in-fsharp-2026-08-12.md) | The Stats tab in F#, with production's tie bug made unrepresentable |
-| `40c6868` | 2026-08-12 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | Measure where the gate's time goes, and remove the repeated work |
-| `201a20c` | 2026-08-12 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | The fix disarmed the guard that caught it, and check:live could not start |
-| `66ec1f5` | 2026-08-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-12 [skip ci] |
-| `44c2206` | 2026-08-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-11 [skip ci] |
-| `ed701a6` | 2026-08-12 | [cc-weather-on-the-card-2026-08-11.md](cc-weather-on-the-card-2026-08-11.md) | Weather on the game card, with the expectation derived rather than guessed |
-| `f72e1fa` | 2026-08-11 | [cc-comerica-is-in-detroit-2026-08-11.md](cc-comerica-is-in-detroit-2026-08-11.md) | Comerica Park is in Detroit — the planet check caught its own author |
-| `6874f89` | 2026-08-11 | [cc-checked-against-the-planet-2026-08-11.md](cc-checked-against-the-planet-2026-08-11.md) | The venue table, checked against the planet — and the proof case CI caught |
-| `8fc40c3` | 2026-08-11 | [cc-weather-not-a-port-2026-08-11.md](cc-weather-not-a-port-2026-08-11.md) | Weather in F#, built from playground and from how it failed in production |
-| `ec28b51` | 2026-08-11 | [cc-the-harness-on-a-runner-2026-08-11.md](cc-the-harness-on-a-runner-2026-08-11.md) | Record the runner result that closes ba65230's docking |
-| `ba65230` | 2026-08-11 | [cc-the-harness-in-fsharp-2026-08-11.md](cc-the-harness-in-fsharp-2026-08-11.md) | The check harness, in F#, with the counterexample made compulsory |
-| `98d000f` | 2026-08-11 | [cc-the-other-half-of-the-answer-2026-08-11.md](cc-the-other-half-of-the-answer-2026-08-11.md) | The README carried only the wins, and then argued for them |
-| `f553bc7` | 2026-08-11 | [cc-the-run-was-not-stuck-2026-08-11.md](cc-the-run-was-not-stuck-2026-08-11.md) | The run was not stuck — the endpoint was stale |
-| `25d0f8b` | 2026-08-11 | [cc-what-the-runner-answered-2026-08-11.md](cc-what-the-runner-answered-2026-08-11.md) | What the runner answered: 401, 404, and a green main written by CI |
-| `090397c` | 2026-08-11 | [cc-the-fetch-that-had-never-run-2026-08-11.md](cc-the-fetch-that-had-never-run-2026-08-11.md) | The fetch that had never run, and the two things running it showed |
-| `5d41454` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | "Not claimed" was a loophole, and I used it |
-| `03063ff` | 2026-08-11 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | The gate failed a commit because the day rolled over mid-run |
-| `771cf8e` | 2026-08-11 | [cc-written-but-never-read-back-2026-08-11.md](cc-written-but-never-read-back-2026-08-11.md) | Written but never read back: four values nothing had ever observed |
-| `6c92660` | 2026-08-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-11 [skip ci] |
-| `73ffdd0` | 2026-08-11 | [cc-the-gate-was-an-average-2026-08-10.md](cc-the-gate-was-an-average-2026-08-10.md) | Cumulative, and it rotted as it grew: the gate is now a conjunction |
-| `bfddd4d` | 2026-08-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `20cee99` | 2026-08-11 | [cc-drama-sparkline-2026-08-10.md](cc-drama-sparkline-2026-08-10.md) | Drama sparkline, with both of its bugs made unreachable |
-| `6d9a990` | 2026-08-11 | [cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md](cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md) | live-check inherited deploy's trigger without deploy's guard |
-| `531b0a8` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Seal the pass reason: the relay was sending a score and its threshold |
-| `ec0fe70` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Ask mechanically whether the checks are worth anything |
-| `69f02ef` | 2026-08-11 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | Take the clock out of gameState, and fix two half-working things |
-| `4c2935b` | 2026-08-11 | [cc-pickem-the-actual-one-2026-08-10.md](cc-pickem-the-actual-one-2026-08-10.md) | Pick'em: the pick that was actually meant, plus playground's latent bug |
-| `d1668aa` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Confirm the deployed tabs, and check the transcription against its source |
-| `4123040` | 2026-08-11 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | Record the live pick route result from the runner |
-| `5d7a2c9` | 2026-08-11 | [cc-both-picks-in-a-tab-system-2026-08-10.md](cc-both-picks-in-a-tab-system-2026-08-10.md) | Both picks, in tabs — and they disagree with each other on purpose |
-| `e25a897` | 2026-08-10 | [cc-false-positives-claim-correction-2026-08-10.md](cc-false-positives-claim-correction-2026-08-10.md) | "Standing false positives" was the wrong name for them |
-| `e25a897` | 2026-08-10 | [cc-history-boundary-claim-correction-2026-08-10.md](cc-history-boundary-claim-correction-2026-08-10.md) | "Standing false positives" was the wrong name for them |
-| `6da936e` | 2026-08-10 | [cc-history-boundary-claim-correction-2026-08-10.md](cc-history-boundary-claim-correction-2026-08-10.md) | The boundary was not frozen the way the comment said it was |
-| `047a1de` | 2026-08-10 | [cc-outbox-split-and-audit-fixes-2026-08-10.md](cc-outbox-split-and-audit-fixes-2026-08-10.md) | One outbox document per piece of work, and three defects a review found |
-| `dc4f26d` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Fix the correlation FIELD's gate suppressed instead of fixing |
-| `6b79a88` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | The gate's denominator was editable by the thing it was grading |
-| `814388a` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Run the window check in a job that builds, and catch the class of mistake |
-| `e9bc4ca` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | The gate could not detect an undocumented commit; now it can |
-| `a288961` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | The zone check was false confidence; mutation testing caught it |
-| `6040da4` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `82475ca` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Make the zone a type: the lab was UTC, FIELD is ET |
-| `35c1151` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `c66c556` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Decode note/tags/crew/local_note — tags is a fourth double-encoded field |
-| `d5c23ba` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Decode briefs/series/standings; an empty array that means two things |
-| `c8de5b2` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `f520eeb` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | The favourite invariant was too strict; the data was fine |
-| `071ace6` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: favourite-mismatch on 2026-08-10 [skip ci] |
-| `f6e6345` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `85afee8` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Decode spread and total; the total is one line written twice |
-| `5f0c170` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `03568bf` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Decode closing_odds, and find that it is not a closing line |
-| `116b7a0` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `8c69b2b` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: unmodelled-sport on 2026-08-10 [skip ci] |
-| `c713924` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Make Sport a real union type, and fix the two bugs that exposed |
-| `9eff5d0` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Give every production claim its evidence, closing the last rubric row |
-| `f6c3ed4` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Make the confidence gate and the proof doc mechanical, and verify the live page |
-| `82419e8` | 2026-08-10 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | Seal the drama arc too, and write the session outbox |
-| `bce8c60` | 2026-08-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-10 [skip ci] |
-| `939234d` | 2026-08-09 | [cc-session-2026-08-09-drift-sentinel-and-reactive-staleness.md](cc-session-2026-08-09-drift-sentinel-and-reactive-staleness.md) | outbox: the sentinel answered the open question on day one |
-| `5e41ddb` | 2026-08-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-08-09 [skip ci] |
-| `f3996f9` | 2026-08-09 | [drift-log.md](drift-log.md) | drift-sentinel: malformed on 2026-08-09 [skip ci] |
-| `0977051` | 2026-08-09 | [cc-session-2026-08-09-dotnet-sdk-and-desk-scoreboard.md](cc-session-2026-08-09-dotnet-sdk-and-desk-scoreboard.md) | outbox: desk scoreboard session — proof, and an honest account of the limits |
-| `c1ce86e` | 2026-08-09 | [cc-session-2026-08-09-fix-cloud-setup-and-scaffold-fable.md](cc-session-2026-08-09-fix-cloud-setup-and-scaffold-fable.md) | Scaffold real F#/Fable project and move project setup to a SessionStart hook |
+| `df16684` | 2026-09-20 | [2026-08-23-boundary-orphaned.md](2026-08-23-boundary-orphaned.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-23-closing-odds-followup.md](2026-08-23-closing-odds-followup.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-23-contamination-baseline.md](2026-08-23-contamination-baseline.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-23-falsifiable-verifiers.md](2026-08-23-falsifiable-verifiers.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-23-relay-credential-out-of-source.md](2026-08-23-relay-credential-out-of-source.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-23-sport-vocabulary.md](2026-08-23-sport-vocabulary.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-23-staged-verifier.md](2026-08-23-staged-verifier.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-24-vocabulary-artifact-staged.md](2026-08-24-vocabulary-artifact-staged.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-citation-check.md](2026-08-25-citation-check.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-favourite-band-result.md](2026-08-25-favourite-band-result.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-favourite-band.md](2026-08-25-favourite-band.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-golf-followup-automated.md](2026-08-25-golf-followup-automated.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-literal-secret-writes.md](2026-08-25-literal-secret-writes.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-non-contest-probe.md](2026-08-25-non-contest-probe.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-odds-plausibility.md](2026-08-25-odds-plausibility.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-25-tbc-venue.md](2026-08-25-tbc-venue.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-chrome-audit.md](2026-08-26-chrome-audit.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-control-boundary.md](2026-08-26-control-boundary.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-invisible-boxes.md](2026-08-26-invisible-boxes.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-more-ai-not-less.md](2026-08-26-more-ai-not-less.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-not-observable-is-a-number.md](2026-08-26-not-observable-is-a-number.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-one-passing-answer.md](2026-08-26-one-passing-answer.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-secret-guard-three-repos.md](2026-08-26-secret-guard-three-repos.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-skill-drift-check.md](2026-08-26-skill-drift-check.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-soccer-draw-landed.md](2026-08-26-soccer-draw-landed.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-spread-price-capture.md](2026-08-26-spread-price-capture.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-the-asymmetry-is-total.md](2026-08-26-the-asymmetry-is-total.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-the-guards-trigger.md](2026-08-26-the-guards-trigger.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-26-two-runs-is-one-observation.md](2026-08-26-two-runs-is-one-observation.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-adjudication-by-price.md](2026-08-27-adjudication-by-price.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-cc-cmd-status-audit.md](2026-08-27-cc-cmd-status-audit.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-cfb-modelled.md](2026-08-27-cfb-modelled.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-closing-odds-promoted-on-a-second-date.md](2026-08-27-closing-odds-promoted-on-a-second-date.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-epa-as-producer-fills-two-of-five.md](2026-08-27-epa-as-producer-fills-two-of-five.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-i-read-the-wrong-build.md](2026-08-27-i-read-the-wrong-build.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-playframe-binary-ingest.md](2026-08-27-playframe-binary-ingest.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-playframe-frozen-and-the-days-accounting.md](2026-08-27-playframe-frozen-and-the-days-accounting.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-playframe-producer-and-the-metric-that-does-not-exist.md](2026-08-27-playframe-producer-and-the-metric-that-does-not-exist.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-preconnect-removed.md](2026-08-27-preconnect-removed.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-seed-coverage-closed.md](2026-08-27-seed-coverage-closed.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-the-arbiter-went-silent-when-it-worked.md](2026-08-27-the-arbiter-went-silent-when-it-worked.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-the-first-wave-pays-for-everyone.md](2026-08-27-the-first-wave-pays-for-everyone.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-the-first-wave-recovers-on-the-second-ask.md](2026-08-27-the-first-wave-recovers-on-the-second-ask.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-the-frame-says-which-frame-it-is.md](2026-08-27-the-frame-says-which-frame-it-is.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-the-ledger-found-its-own-answer.md](2026-08-27-the-ledger-found-its-own-answer.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-the-retry-verified-on-the-hang-path.md](2026-08-27-the-retry-verified-on-the-hang-path.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-verify-159-weather-attribution.md](2026-08-27-verify-159-weather-attribution.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md](2026-08-27-weather-deadline-was-coupled-to-the-wave-count.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-27-weather-fetch-had-no-deadline.md](2026-08-27-weather-fetch-had-no-deadline.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-28-bundesliga-modelled.md](2026-08-28-bundesliga-modelled.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-28-fetch-silently-empty-probe.md](2026-08-28-fetch-silently-empty-probe.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-28-spread-price-landed-and-two-regressions.md](2026-08-28-spread-price-landed-and-two-regressions.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-29-cfb-the-four-undone-things.md](2026-08-29-cfb-the-four-undone-things.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-08-29-reading-is-a-simulation-of-execution.md](2026-08-29-reading-is-a-simulation-of-execution.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-01-alternate-colour-probe.md](2026-09-01-alternate-colour-probe.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-01-history-guard-on-the-runner.md](2026-09-01-history-guard-on-the-runner.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-01-open-meteo-egress-probe.md](2026-09-01-open-meteo-egress-probe.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-01-team-colours-regenerated.md](2026-09-01-team-colours-regenerated.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-02-alternate-colours-built.md](2026-09-02-alternate-colours-built.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-02-plain-card-causes.md](2026-09-02-plain-card-causes.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-03-archive-scheme-duplicates.md](2026-09-03-archive-scheme-duplicates.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-03-font-family-guard.md](2026-09-03-font-family-guard.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-03-mls-merge.md](2026-09-03-mls-merge.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-03-mls-pair-discriminators.md](2026-09-03-mls-pair-discriminators.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-03-unrecognised-id-shapes.md](2026-09-03-unrecognised-id-shapes.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-03-wnba-merge.md](2026-09-03-wnba-merge.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-06-draw-invariants.md](2026-09-06-draw-invariants.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-07-draw-panel.md](2026-09-07-draw-panel.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-07-illegal-tiebreak.md](2026-09-07-illegal-tiebreak.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-07-proof-check-marker.md](2026-09-07-proof-check-marker.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-08-verify-panel.md](2026-09-08-verify-panel.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [2026-09-19-push-lands-guard.md](2026-09-19-push-lands-guard.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [alternate-colours-2026-09-02T00-00-24-744Z.json](alternate-colours-2026-09-02T00-00-24-744Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [alternate-colours-2026-09-02T00-07-05-656Z.json](alternate-colours-2026-09-02T00-07-05-656Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [alternate-colours-2026-09-02T03-00-53-611Z.json](alternate-colours-2026-09-02T03-00-53-611Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [alternate-colours-console.txt](alternate-colours-console.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [archive-scheme-duplicates-latest.json](archive-scheme-duplicates-latest.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-a-bucket-that-collapsed-two-states-2026-08-31.md](cc-a-bucket-that-collapsed-two-states-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md](cc-a-newer-doc-supersedes-two-numbers-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-a-promise-does-not-scan-files-2026-08-18.md](cc-a-promise-does-not-scan-files-2026-08-18.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-a-red-main-now-reaches-someone-2026-08-30.md](cc-a-red-main-now-reaches-someone-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-a-roster-that-could-not-audit-itself-2026-08-31.md](cc-a-roster-that-could-not-audit-itself-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-a-score-must-be-measured-2026-08-17.md](cc-a-score-must-be-measured-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-actions-budget-2026-08-16.md](cc-actions-budget-2026-08-16.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-an-alarm-that-cannot-clear-2026-08-18.md](cc-an-alarm-that-cannot-clear-2026-08-18.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-archive-query-offset-2026-08-29.md](cc-archive-query-offset-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-both-picks-in-a-tab-system-2026-08-10.md](cc-both-picks-in-a-tab-system-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-checked-against-the-planet-2026-08-11.md](cc-checked-against-the-planet-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-comerica-is-in-detroit-2026-08-11.md](cc-comerica-is-in-detroit-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-deploy-landed-2026-08-23.md](cc-deploy-landed-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-differentiating-on-trust-2026-08-20.md](cc-differentiating-on-trust-2026-08-20.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-dim-was-a-border-colour-doing-text-work-2026-08-29.md](cc-dim-was-a-border-colour-doing-text-work-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-drama-sparkline-2026-08-10.md](cc-drama-sparkline-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-eight-tap-targets-under-the-floor-2026-08-29.md](cc-eight-tap-targets-under-the-floor-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-espn-not-an-authority-2026-08-15.md](cc-espn-not-an-authority-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-every-portrait-phone-scrolled-sideways-2026-08-29.md](cc-every-portrait-phone-scrolled-sideways-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-false-positives-claim-correction-2026-08-10.md](cc-false-positives-claim-correction-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-followup-automation-2026-08-17.md](cc-followup-automation-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md](cc-four-tabs-and-the-clock-in-gamestate-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-four-viewport-docs-and-one-hard-number-2026-08-29.md](cc-four-viewport-docs-and-one-hard-number-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-games-ran-together-2026-08-12.md](cc-games-ran-together-2026-08-12.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-gate-explains-itself-2026-08-16.md](cc-gate-explains-itself-2026-08-16.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-history-boundary-claim-correction-2026-08-10.md](cc-history-boundary-claim-correction-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-id-consumer-enumeration-2026-08-31.md](cc-id-consumer-enumeration-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-jq-density-census-2026-08-13.md](cc-jq-density-census-2026-08-13.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-ligue1-seriea-modelled-2026-08-23.md](cc-ligue1-seriea-modelled-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md](cc-live-check-fired-on-a-skipped-deploy-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-live-check-verdict-2026-08-23.md](cc-live-check-verdict-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-live-page-networkidle-2026-08-23.md](cc-live-page-networkidle-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-live-tabs-render-wait-2026-08-23.md](cc-live-tabs-render-wait-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-market-shape-2026-08-23.md](cc-market-shape-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-mutation-anchor-drift-2026-08-23.md](cc-mutation-anchor-drift-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-my-contrast-pass-could-not-see-opacity-2026-08-29.md](cc-my-contrast-pass-could-not-see-opacity-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-nfl-sport-registry-2026-08-15.md](cc-nfl-sport-registry-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-no-card-was-two-failures-2026-08-31.md](cc-no-card-was-two-failures-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-nothing-unresolved-2026-08-12.md](cc-nothing-unresolved-2026-08-12.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-one-column-seven-key-spaces-2026-08-17.md](cc-one-column-seven-key-spaces-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-one-failure-per-run-2026-08-31.md](cc-one-failure-per-run-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-one-snapshot-states-its-time-2026-08-21.md](cc-one-snapshot-states-its-time-2026-08-21.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-oracle-provenance-2026-08-15.md](cc-oracle-provenance-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-outbox-split-and-audit-fixes-2026-08-10.md](cc-outbox-split-and-audit-fixes-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-outlet-false-positive-2026-08-15.md](cc-outlet-false-positive-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-phase2-rubric-2026-08-17.md](cc-phase2-rubric-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-phase3-journalism-2026-08-16.md](cc-phase3-journalism-2026-08-16.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-phase5-docs-check-2026-08-17.md](cc-phase5-docs-check-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-pick-live-on-a-runner-2026-08-10.md](cc-pick-live-on-a-runner-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-pickem-the-actual-one-2026-08-10.md](cc-pickem-the-actual-one-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-pitcher-records-rows-2026-08-13.md](cc-pitcher-records-rows-2026-08-13.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-pre-commit-gate-2026-08-23.md](cc-pre-commit-gate-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-prose-units-2026-08-14.md](cc-prose-units-2026-08-14.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-provenance-and-anchoring-on-the-card-2026-08-20.md](cc-provenance-and-anchoring-on-the-card-2026-08-20.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-quality-ceiling-2026-08-15.md](cc-quality-ceiling-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-render-check-tolerate-open-meteo-2026-08-23.md](cc-render-check-tolerate-open-meteo-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-rows-the-desk-cannot-name-2026-08-13.md](cc-rows-the-desk-cannot-name-2026-08-13.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-scores-do-not-decrease-2026-08-19.md](cc-scores-do-not-decrease-2026-08-19.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-scrollcraft-installed-2026-08-29.md](cc-scrollcraft-installed-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-08-09-dotnet-sdk-and-desk-scoreboard.md](cc-session-2026-08-09-dotnet-sdk-and-desk-scoreboard.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-08-09-drift-sentinel-and-reactive-staleness.md](cc-session-2026-08-09-drift-sentinel-and-reactive-staleness.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-08-09-fix-cloud-setup-and-scaffold-fable.md](cc-session-2026-08-09-fix-cloud-setup-and-scaffold-fable.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md](cc-session-2026-08-10-grouping-datenav-and-amnesty-gate.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-08-25-non-contest.md](cc-session-2026-08-25-non-contest.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-dash-scheme-writer.md](cc-session-2026-09-01-dash-scheme-writer.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-device-affordances.md](cc-session-2026-09-01-device-affordances.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-espn-id-refined.md](cc-session-2026-09-01-espn-id-refined.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-fixture-identity-blind-spot.md](cc-session-2026-09-01-fixture-identity-blind-spot.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-id-scheme-exposure.md](cc-session-2026-09-01-id-scheme-exposure.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-team-tints.md](cc-session-2026-09-01-team-tints.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-ux-pass.md](cc-session-2026-09-01-ux-pass.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-01-watcher-blind-spot-fix.md](cc-session-2026-09-01-watcher-blind-spot-fix.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-05-the-gate-is-a-decision.md](cc-session-2026-09-05-the-gate-is-a-decision.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-06-tennis-decoder.md](cc-session-2026-09-06-tennis-decoder.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-07-readme-token-claim-correction.md](cc-session-2026-09-07-readme-token-claim-correction.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-session-2026-09-20-proof-claim-staleness-sweep.md](cc-session-2026-09-20-proof-claim-staleness-sweep.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-soccer-three-way-odds-2026-08-23.md](cc-soccer-three-way-odds-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-stats-tab-in-fsharp-2026-08-12.md](cc-stats-tab-in-fsharp-2026-08-12.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-status-deploy-landed-2026-08-23.md](cc-status-deploy-landed-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-status-went-quiet-when-it-had-something-to-say-2026-08-29.md](cc-status-went-quiet-when-it-had-something-to-say-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-stranded-injection-2026-08-15.md](cc-stranded-injection-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-stub-generator-2026-08-17.md](cc-stub-generator-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-surface-live-check-in-status-2026-08-23.md](cc-surface-live-check-in-status-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-boundary-moved-2026-08-17.md](cc-the-boundary-moved-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-brief-that-played-the-wrong-sport-2026-08-22.md](cc-the-brief-that-played-the-wrong-sport-2026-08-22.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-briefs-tab-2026-08-20.md](cc-the-briefs-tab-2026-08-20.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-card-turns-to-the-brief-2026-08-19.md](cc-the-card-turns-to-the-brief-2026-08-19.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-catalog-corrects-my-press-feedback-2026-08-29.md](cc-the-catalog-corrects-my-press-feedback-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-checker-knew-the-repair-2026-08-31.md](cc-the-checker-knew-the-repair-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-clobber-has-a-detector-2026-08-29.md](cc-the-clobber-has-a-detector-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-desk-models-the-premier-league-2026-08-21.md](cc-the-desk-models-the-premier-league-2026-08-21.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-driver-collapsed-three-states-into-two-2026-08-29.md](cc-the-driver-collapsed-three-states-into-two-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-fetch-that-had-never-run-2026-08-11.md](cc-the-fetch-that-had-never-run-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-five-words-match-the-spec-2026-08-29.md](cc-the-five-words-match-the-spec-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-fix-disarmed-the-guard-2026-08-12.md](cc-the-fix-disarmed-the-guard-2026-08-12.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-flip-that-did-not-flip-2026-08-20.md](cc-the-flip-that-did-not-flip-2026-08-20.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-flipped-card-was-double-wide-2026-08-30.md](cc-the-flipped-card-was-double-wide-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-gate-caught-three-2026-08-17.md](cc-the-gate-caught-three-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-gate-crossed-midnight-2026-08-11.md](cc-the-gate-crossed-midnight-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-gate-was-an-average-2026-08-10.md](cc-the-gate-was-an-average-2026-08-10.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-grid-floor-goes-to-400-2026-08-30.md](cc-the-grid-floor-goes-to-400-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-harness-in-fsharp-2026-08-11.md](cc-the-harness-in-fsharp-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-harness-on-a-runner-2026-08-11.md](cc-the-harness-on-a-runner-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-motion-passes-were-vacuous-2026-08-29.md](cc-the-motion-passes-were-vacuous-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-no-overflow-invariant-is-now-asserted-2026-08-29.md](cc-the-no-overflow-invariant-is-now-asserted-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-other-half-of-the-answer-2026-08-11.md](cc-the-other-half-of-the-answer-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-palette-as-types-2026-08-23.md](cc-the-palette-as-types-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-phase-rule-verified-live-2026-08-29.md](cc-the-phase-rule-verified-live-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-recap-on-a-finished-game-2026-08-29.md](cc-the-recap-on-a-finished-game-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-registry-checked-its-own-vintage-2026-08-29.md](cc-the-registry-checked-its-own-vintage-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-registry-had-no-way-to-walk-it-2026-08-29.md](cc-the-registry-had-no-way-to-walk-it-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-rehearsal-found-a-duplicate-2026-08-30.md](cc-the-rehearsal-found-a-duplicate-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-rehearsal-is-on-a-clock-2026-08-30.md](cc-the-rehearsal-is-on-a-clock-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-relay-has-no-uefa-2026-08-20.md](cc-the-relay-has-no-uefa-2026-08-20.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-relay-serves-one-fixture-twice-2026-08-31.md](cc-the-relay-serves-one-fixture-twice-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-run-was-not-stuck-2026-08-11.md](cc-the-run-was-not-stuck-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-runner-lost-open-meteo-2026-08-12.md](cc-the-runner-lost-open-meteo-2026-08-12.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-runner-never-arrived-2026-08-17.md](cc-the-runner-never-arrived-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-soccer-set-was-four-2026-08-29.md](cc-the-soccer-set-was-four-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-spec-settled-the-tablet-question-2026-08-30.md](cc-the-spec-settled-the-tablet-question-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-stalemate-that-led-three-nil-2026-08-22.md](cc-the-stalemate-that-led-three-nil-2026-08-22.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-tab-count-that-said-six-2026-08-22.md](cc-the-tab-count-that-said-six-2026-08-22.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-table-had-no-soccer-2026-08-20.md](cc-the-table-had-no-soccer-2026-08-20.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-the-verdict-on-the-brief-2026-08-19.md](cc-the-verdict-on-the-brief-2026-08-19.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-three-branches-that-first-run-during-the-outage-2026-08-30.md](cc-three-branches-that-first-run-during-the-outage-2026-08-30.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-two-clients-two-briefs-2026-08-29.md](cc-two-clients-two-briefs-2026-08-29.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-typography-as-types-2026-08-23.md](cc-typography-as-types-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-venue-aliases-2026-08-12.md](cc-venue-aliases-2026-08-12.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-verify-split-2026-08-17.md](cc-verify-split-2026-08-17.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-weather-burst-2026-08-15.md](cc-weather-burst-2026-08-15.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-weather-not-a-port-2026-08-11.md](cc-weather-not-a-port-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-weather-on-the-card-2026-08-11.md](cc-weather-on-the-card-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-what-the-runner-answered-2026-08-11.md](cc-what-the-runner-answered-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-winprob-on-the-card-2026-08-23.md](cc-winprob-on-the-card-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-wire-the-desk-2026-08-23.md](cc-wire-the-desk-2026-08-23.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-would-keying-on-event-id-merge-two-games-2026-08-31.md](cc-would-keying-on-event-id-merge-two-games-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-written-but-never-read-back-2026-08-11.md](cc-written-but-never-read-back-2026-08-11.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md](cc-zero-rows-was-not-a-broken-decoder-2026-08-31.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [dash-scheme-writer-2026-09-01T16-06-43-389Z.txt](dash-scheme-writer-2026-09-01T16-06-43-389Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [decision-2026-09-04-laboratory-no-uplot.md](decision-2026-09-04-laboratory-no-uplot.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [decision-2026-09-05-laboratory-no-graph-tool.md](decision-2026-09-05-laboratory-no-graph-tool.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [drift-log.md](drift-log.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [espn-id-collisions-2026-09-01T01-53-20-167Z.txt](espn-id-collisions-2026-09-01T01-53-20-167Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [espn-id-collisions-2026-09-01T02-09-31-408Z.txt](espn-id-collisions-2026-09-01T02-09-31-408Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [favourite-band-census-20260825T214523Z.txt](favourite-band-census-20260825T214523Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [favourite-band-census-20260825T215041Z.txt](favourite-band-census-20260825T215041Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [favourite-band-census-20260825T232152Z.txt](favourite-band-census-20260825T232152Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [favourite-band-census-20260826T185716Z.txt](favourite-band-census-20260826T185716Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt](fixture-identity-duplicates-2026-09-01T15-21-01-424Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [generated-team-colours-2026-09-01.md](generated-team-colours-2026-09-01.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [generated-team-colours-2026-09-02.md](generated-team-colours-2026-09-02.md) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt](id-scheme-migration-exposure-2026-09-01T02-41-20-876Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt](id-scheme-migration-exposure-2026-09-01T03-41-39-110Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt](id-scheme-migration-exposure-2026-09-01T15-12-00-671Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [id-scheme-migration-exposure-2026-09-02T07-02-14-445Z.txt](id-scheme-migration-exposure-2026-09-02T07-02-14-445Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [mls-merge-latest.json](mls-merge-latest.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [mls-pair-discriminators-latest.json](mls-pair-discriminators-latest.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [open-meteo-egress-2026-09-01T21-30-29-625Z.json](open-meteo-egress-2026-09-01T21-30-29-625Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [open-meteo-egress-2026-09-01T21-34-49-910Z.json](open-meteo-egress-2026-09-01T21-34-49-910Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [open-meteo-egress-2026-09-01T21-38-51-294Z.json](open-meteo-egress-2026-09-01T21-38-51-294Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [open-meteo-egress-console.txt](open-meteo-egress-console.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [plain-card-causes-2026-09-02T03-00-57-895Z.json](plain-card-causes-2026-09-02T03-00-57-895Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [plain-card-causes-console.txt](plain-card-causes-console.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-24T02-41-25-435Z.json](sport-vocabulary-2026-08-24T02-41-25-435Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-24T03-02-29-986Z.json](sport-vocabulary-2026-08-24T03-02-29-986Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-24T13-02-19-141Z.json](sport-vocabulary-2026-08-24T13-02-19-141Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-24T23-21-49-484Z.json](sport-vocabulary-2026-08-24T23-21-49-484Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-25T01-24-34-105Z.json](sport-vocabulary-2026-08-25T01-24-34-105Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-25T02-34-39-865Z.json](sport-vocabulary-2026-08-25T02-34-39-865Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-25T12-58-57-174Z.json](sport-vocabulary-2026-08-25T12-58-57-174Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-26T02-42-52-050Z.json](sport-vocabulary-2026-08-26T02-42-52-050Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-26T13-04-42-108Z.json](sport-vocabulary-2026-08-26T13-04-42-108Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-27T03-04-16-848Z.json](sport-vocabulary-2026-08-27T03-04-16-848Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-27T11-37-23-914Z.json](sport-vocabulary-2026-08-27T11-37-23-914Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-27T22-07-49-625Z.json](sport-vocabulary-2026-08-27T22-07-49-625Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-29T00-47-21-350Z.json](sport-vocabulary-2026-08-29T00-47-21-350Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-29T07-58-07-674Z.json](sport-vocabulary-2026-08-29T07-58-07-674Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-29T16-35-10-556Z.json](sport-vocabulary-2026-08-29T16-35-10-556Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-30T06-54-38-854Z.json](sport-vocabulary-2026-08-30T06-54-38-854Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-30T16-30-28-254Z.json](sport-vocabulary-2026-08-30T16-30-28-254Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-31T07-09-49-162Z.json](sport-vocabulary-2026-08-31T07-09-49-162Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-08-31T19-02-44-979Z.json](sport-vocabulary-2026-08-31T19-02-44-979Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-01T06-22-05-077Z.json](sport-vocabulary-2026-09-01T06-22-05-077Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-01T16-26-08-537Z.json](sport-vocabulary-2026-09-01T16-26-08-537Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-02T06-01-43-789Z.json](sport-vocabulary-2026-09-02T06-01-43-789Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-02T16-24-18-733Z.json](sport-vocabulary-2026-09-02T16-24-18-733Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-03T06-00-35-709Z.json](sport-vocabulary-2026-09-03T06-00-35-709Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-03T16-14-52-971Z.json](sport-vocabulary-2026-09-03T16-14-52-971Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-04T06-07-53-007Z.json](sport-vocabulary-2026-09-04T06-07-53-007Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-04T16-09-55-854Z.json](sport-vocabulary-2026-09-04T16-09-55-854Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-05T05-56-41-053Z.json](sport-vocabulary-2026-09-05T05-56-41-053Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-05T14-58-16-463Z.json](sport-vocabulary-2026-09-05T14-58-16-463Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-06T06-08-53-232Z.json](sport-vocabulary-2026-09-06T06-08-53-232Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-06T15-19-31-360Z.json](sport-vocabulary-2026-09-06T15-19-31-360Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-07T06-16-35-135Z.json](sport-vocabulary-2026-09-07T06-16-35-135Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-07T17-39-19-168Z.json](sport-vocabulary-2026-09-07T17-39-19-168Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-08T06-06-15-934Z.json](sport-vocabulary-2026-09-08T06-06-15-934Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [sport-vocabulary-2026-09-08T16-27-13-224Z.json](sport-vocabulary-2026-09-08T16-27-13-224Z.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-colour-coverage-2026-09-01T19-44-40-527Z.txt](team-colour-coverage-2026-09-01T19-44-40-527Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-colour-coverage-2026-09-01T19-47-22-768Z.txt](team-colour-coverage-2026-09-01T19-47-22-768Z.txt) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-09-07-993Z.png](team-tints-2026-09-01T20-09-07-993Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-10-12-339Z.png](team-tints-2026-09-01T20-10-12-339Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-10-49-391Z.png](team-tints-2026-09-01T20-10-49-391Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-13-35-188Z.png](team-tints-2026-09-01T20-13-35-188Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-14-42-209Z.png](team-tints-2026-09-01T20-14-42-209Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-17-23-500Z.png](team-tints-2026-09-01T20-17-23-500Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-17-55-243Z.png](team-tints-2026-09-01T20-17-55-243Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-18-12-162Z.png](team-tints-2026-09-01T20-18-12-162Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-18-29-705Z.png](team-tints-2026-09-01T20-18-29-705Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-18-48-056Z.png](team-tints-2026-09-01T20-18-48-056Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-19-23-814Z.png](team-tints-2026-09-01T20-19-23-814Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-19-56-374Z.png](team-tints-2026-09-01T20-19-56-374Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-20-14-779Z.png](team-tints-2026-09-01T20-20-14-779Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-20-32-527Z.png](team-tints-2026-09-01T20-20-32-527Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-20-51-867Z.png](team-tints-2026-09-01T20-20-51-867Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-21-10-308Z.png](team-tints-2026-09-01T20-21-10-308Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-21-35-997Z.png](team-tints-2026-09-01T20-21-35-997Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-21-39-045Z.png](team-tints-2026-09-01T20-21-39-045Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-21-58-437Z.png](team-tints-2026-09-01T20-21-58-437Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [team-tints-2026-09-01T20-22-16-742Z.png](team-tints-2026-09-01T20-22-16-742Z.png) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [unrecognised-id-shapes-latest.json](unrecognised-id-shapes-latest.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
+| `df16684` | 2026-09-20 | [wnba-merge-latest.json](wnba-merge-latest.json) | docs: add required Status line to closing-odds-sequence-watch (superseded) [skip ci] |
