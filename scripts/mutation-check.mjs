@@ -1295,14 +1295,52 @@ console.log(`\nMutation testing ${selected.length} invariant(s)\n`)
 // baseline and a truncated red one are never again the same output. On a green
 // baseline this costs nothing: `.every` already ran all of them.
 const distinctExpects = [...new Set(selected.map(m => m.expect))]
-const baselineFailures = distinctExpects.filter(cmd => !run(cmd))
+// WHY AND WHAT, not just which. A failing command's name moves the question
+// rather than answering it, and the output is the half nobody can get back.
+const baselineResults = distinctExpects.map(cmd => {
+  try {
+    execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
+    return { cmd, passed: true }
+  } catch (e) {
+    // The tail, because a check's verdict is at the END of its output and the
+    // head is setup noise.
+    const text = `${e.stdout ?? ''}${e.stderr ?? ''}`.trimEnd()
+    return { cmd, passed: false, status: e.status ?? null,
+             tail: text.split("\n").slice(-30).join("\n") }
+  }
+})
+const baselineFailures = baselineResults.filter(r => !r.passed).map(r => r.cmd)
 console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.length} `
   + `distinct expectation(s) from ${selected.length} mutation(s), `
   + `${baselineFailures.length} failing`)
+
+// THE ARTIFACT, and it is the point of this block rather than a nicety.
+//
+// This number is computed on every run and has been unreadable twice. The
+// detail below is printed into a log 1,300 lines deep inside a 50-minute job;
+// on 2026-10-04 two verify-full runs reported `2 of 39` and `1 of 39` failing
+// and NEITHER log tail reached the command list — three separate attempts to
+// retrieve it failed, including running the expectations locally, where all 14
+// runnable ones are ERR_MODULE_NOT_FOUND without the Fable build.
+//
+// A measurement that exists only in a truncated log is not a measurement
+// anyone can act on. Written unconditionally, pass or fail, so a green run
+// records the baseline it was green against.
+mkdirSync('outbox', { recursive: true })
+writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({
+  at: new Date().toISOString(),
+  ran: distinctExpects.length,
+  from_mutations: selected.length,
+  failing: baselineFailures.length,
+  results: baselineResults,
+}, null, 2) + '\n')
+console.log('  wrote outbox/mutation-baseline-latest.json')
+
 check('the unmutated tree passes every expectation',
   baselineFailures.length === 0,
   `${baselineFailures.length} of ${distinctExpects.length} distinct expectation(s) ` +
-  `already failing, so nothing below would mean anything:\n` +
+  `already failing, so nothing below would mean anything ` +
+  `(full output in outbox/mutation-baseline-latest.json):\n` +
   baselineFailures.map(c => `            $ ${c}`).join('\n'))
 
 for (const m of selected) {

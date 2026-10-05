@@ -192,6 +192,40 @@ jobs:
       # Runs even when the gate fails: a failing measurement is exactly what a
       # record has to be able to hold, and a log of passes only cannot refuse
       # anything.
+      # BEFORE the ledger step, and as its own commit rather than folded into
+      # that retry loop. The loop asserts "exactly one new record" per ledger —
+      # correct for an append-only jsonl and wrong for a whole-file artifact —
+      # so adding this there would have meant rewriting a loop that already
+      # survives a real mid-run race.
+      #
+      # WHY IT EXISTS AT ALL. The gate's mutation row reports `N of M
+      # expectation(s) already failing` and the command list is printed into a
+      # log 1,300 lines deep in a 50-minute job. On 2026-10-04 two runs reported
+      # it and neither log tail reached the list. Three attempts to retrieve it
+      # failed, including running the expectations locally — all of them need
+      # the Fable build. The measurement existed every time and was never
+      # readable.
+      - name: Keep the mutation baseline
+        if: always()
+        run: |
+          set -euo pipefail
+          test -f outbox/mutation-baseline-latest.json || {
+            echo "no baseline artifact this run — the gate did not reach the mutation row"
+            exit 0
+          }
+          git config user.name  'field-laboratory'
+          git config user.email 'noreply@github.com'
+          git add outbox/mutation-baseline-latest.json
+          git diff --staged --quiet && { echo "baseline unchanged"; exit 0; }
+          git commit -m "Record the mutation baseline of ${GITHUB_SHA:0:7} [skip ci]"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((attempt * 3))
+          done
+          echo "could not land the baseline artifact after 3 attempts"
+          exit 1
+
       - name: Record this measurement
         if: always()
         run: |
