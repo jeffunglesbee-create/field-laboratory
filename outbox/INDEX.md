@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `55c80eb` | 2026-10-05 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-05 [skip ci] |
+| `55c80eb` | 2026-10-05 | [sport-vocabulary-2026-10-05T07-16-46-051Z.json](sport-vocabulary-2026-10-05T07-16-46-051Z.json) | drift-sentinel: ok on 2026-10-05 [skip ci] |
 | `901f00e` | 2026-10-05 | [cc-session-2026-10-05-mutation-baseline-artifact.md](cc-session-2026-10-05-mutation-baseline-artifact.md) | feat: commit the mutation baseline, so it stops being unreadable |
 | `740e22e` | 2026-10-04 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-04T21:55 [skip ci] |
 | `df48496` | 2026-10-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-04 [skip ci] |
