@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-05T14:01:36.434Z",
+  "ran": 1,
+  "from_mutations": 1,
+  "failing": 0,
+  "results": [
+    {
+      "cmd": "node -e \"process.exit(0)\"",
+      "passed": true
+    }
+  ]
+}
