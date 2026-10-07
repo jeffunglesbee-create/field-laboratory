@@ -640,10 +640,35 @@
   {
     "date": "2026-10-07",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-07",
-    "at": "2026-10-07T07:23:23.785Z",
+    "at": "2026-10-07T18:46:14.477Z",
     "sports": {
       "MLS": {
         "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NBA": {
+        "rows": 5,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 3,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "MLB": {
+        "rows": 4,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "WNBA": {
+        "rows": 2,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 2,
         "withOdds": 0,
         "withDraw": 0
       }
