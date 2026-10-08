@@ -28,7 +28,7 @@
 // re-measures; doing that to `.desk-card__score` would leave the page mutated
 // for every check that runs after it. The real node is only READ, for its
 // computed face and axis.
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { createChecks, isMain } from './checks.mjs'
 
 // `playwright` is imported INSIDE the live branch, not at the top like its
@@ -54,6 +54,56 @@ export const strictlyRising = (ws) =>
  *  satisfy `strictlyRising` on three of four points. */
 export const WEIGHTS = [100, 400, 700, 1000]
 
+/** Where the committed manifest goes. One file, overwritten — the nine other
+ *  `*-latest.json` artifacts in outbox/ are the convention. */
+export const MANIFEST_PATH = 'outbox/axis-manifest-latest.json'
+
+/** The manifest, as data. A pure function of the measurement, for two reasons:
+ *  the self-test can assert every published field without a browser, and the
+ *  committed artifact cannot disagree with the printed numbers because both
+ *  read the same object.
+ *
+ *  WHY THERE IS NO WALL-CLOCK FIELD, which is a design decision and not an
+ *  omission. status.yml's own commit step states the rule this follows:
+ *  "STATUS.md carries no timestamp precisely so this stays quiet — its git
+ *  history should read as a log of things happening, not one commit a day
+ *  saying nothing." A timestamp here would make every live-check run a commit,
+ *  including the ~365 a year that re-measure an unchanged page and find the
+ *  same widths. `deployedCommit` dates the manifest by the thing it describes:
+ *  the file changes when the served bytes change or the widths change, and
+ *  git's commit date supplies the when.
+ *
+ *  AND NOT `runIdentity()` from checks.mjs, although its docstring says "any
+ *  file that writes a measurement to a ledger needs the same identity". It
+ *  digests THIS tree, and this tree contains the previous manifest commit, so
+ *  every run would differ from the last for a reason having nothing to do with
+ *  the page. The subject of this measurement is the deployed artifact. */
+export const manifestOf = (m, { deployedCommit, failed } = {}) => ({
+  url: m.url ?? null,
+  deployedCommit: deployedCommit || null,
+  scoreFamily: m.scoreFamily ?? null,
+  scoreAxis: m.scoreFvs ?? null,
+  scoreFontSize: m.scoreFontSize ?? null,
+  dmSansLoaded: m.dmSansLoaded === true,
+  weights: m.weights ?? null,
+  variableWidths: m.variableWidths ?? null,
+  controlWidths: m.controlWidths ?? null,
+  variableRises: strictlyRising(m.variableWidths),
+  controlRises: strictlyRising(m.controlWidths),
+  checksFailed: typeof failed === 'number' ? failed : null,
+  // Rule 91: the denominator travels with the result. A reader who finds
+  // `variableRises: true` and nothing else infers the whole typography system
+  // was measured; one page, one element, one axis is what was measured.
+  coverage: {
+    pages: 1,
+    element: '.desk-card__score',
+    weightsSwept: Array.isArray(m.weights) ? m.weights.length : null,
+    axesSwept: ['wght'],
+    otherRolesSwept: 0,
+    otherSizesSwept: 0,
+  },
+})
+
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const { check, summarize } = createChecks()
   check('a rising sweep is rising', strictlyRising([10, 11, 12, 13]))
@@ -78,6 +128,39 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('four weights are swept, spanning the declared range',
     WEIGHTS.length === 4 && WEIGHTS[0] === 100 && WEIGHTS[3] === 1000,
     `swept ${JSON.stringify(WEIGHTS)}`)
+
+  // THE COMMITTED ARTIFACT, field by field, with no browser. Every one of these
+  // is something a reader of outbox/axis-manifest-latest.json will believe.
+  const sample = {
+    url: 'https://field-laboratory.jeffunglesbee.workers.dev/',
+    scoreFamily: '"DM Sans", system-ui, sans-serif',
+    scoreFvs: "'wght' 700", scoreFontSize: '32px', dmSansLoaded: true,
+    weights: WEIGHTS, variableWidths: [100, 110, 120, 130],
+    controlWidths: [120, 120, 120, 120],
+  }
+  const man = manifestOf(sample, { deployedCommit: 'abc123abc123', failed: 0 })
+  check('the manifest records the variable face as rising', man.variableRises === true)
+  check('THE MANIFEST RECORDS THE CONTROL AS NOT RISING',
+    man.controlRises === false,
+    'a manifest reporting the control as rising would publish the measurement as undiscriminating')
+  check('a rising CONTROL is published as rising, not quietly dropped',
+    manifestOf({ ...sample, controlWidths: [100, 110, 120, 130] }, {}).controlRises === true,
+    'the field must track what was measured, not the answer that was wanted')
+  check('an absent deployed commit is null, never an empty string',
+    manifestOf(sample, {}).deployedCommit === null,
+    'missing and empty are different facts')
+  check('the failure count is carried, and null when it was not supplied',
+    man.checksFailed === 0 && manifestOf(sample, {}).checksFailed === null)
+  check('the manifest carries NO wall-clock field',
+    !Object.keys(man).some(k => /^(at|now|date|time|timestamp|generated)$/i.test(k)),
+    'a timestamp would make every run a commit — see the note on manifestOf')
+  check('the manifest states its own coverage where the result is read',
+    man.coverage.weightsSwept === WEIGHTS.length && man.coverage.axesSwept.length === 1 &&
+    man.coverage.otherRolesSwept === 0,
+    `coverage ${JSON.stringify(man.coverage)}`)
+  check('the manifest path is in outbox/, which is non-deployable',
+    MANIFEST_PATH.startsWith('outbox/') && MANIFEST_PATH.endsWith('.json'),
+    `a manifest outside outbox/ would make its own commit deployable and retrigger this check: ${MANIFEST_PATH}`)
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -144,13 +227,22 @@ if (isMain(import.meta.url)) {
     `Chakra Petch widths ${JSON.stringify(measured.controlWidths)} rose strictly too, so a ` +
     'rising width is not evidence of a working axis')
 
-  // THE NUMBERS, PRINTED — not committed, and that is a decision rather than an
-  // omission. Every workflow in this repo that commits an outbox artifact
-  // declares `permissions: contents: write`; live-check.yml declares none and is
-  // read-only by design. Granting a read-only workflow write access to publish a
-  // manifest costs more than the manifest is worth, so the measurement goes to
-  // the run log and the check's own exit code does the enforcing. If a committed
-  // artifact is wanted later, the permission is the decision to make, not this.
+  // THE NUMBERS, PRINTED, AND WITH `--manifest` ALSO COMMITTED.
+  //
+  // This comment used to say the opposite — that the measurement belonged in the
+  // run log and granting live-check.yml write access "costs more than the
+  // manifest is worth". What settled it was trying to read the numbers back. A
+  // run log is not reachable from every client that can read the repository:
+  // `runs/<id>/logs` answers with a redirect to blob storage, and the GitHub
+  // client in the authoring sandbox refuses it, so for three days the only
+  // evidence the axis worked was a green step conclusion and the widths behind
+  // it could not be quoted.
+  //
+  // It also claimed live-check.yml was "read-only by design". It declared no
+  // `permissions:` block at all, which means its token took the repository
+  // default — and the endpoint that reports that default is one the sandbox
+  // proxy refuses, so from here the claim was neither verified nor verifiable.
+  // It now declares `contents: write` explicitly, which removes the question.
   console.log('')
   console.log(`  page        : ${measured.url}`)
   console.log(`  score face  : ${measured.scoreFamily}`)
@@ -163,6 +255,20 @@ if (isMain(import.meta.url)) {
     'and the control. It does NOT check any other role, size, or the wdth/slnt axes — ' +
     'dm-sans-variable.woff2 carries wght alone.')
 
+  const failed = summarize()
+
+  // WRITTEN ON FAILURE TOO, and that is the case it is for. A run whose widths
+  // came back equal is the run whose numbers someone needs; publishing only the
+  // green ones would leave the interesting measurement in the place that cannot
+  // be read. `--manifest` is opt-in so that `verify` and a local run leave no
+  // artifact behind — one path, named here, so the workflow that commits it and
+  // the script that writes it cannot drift apart.
+  if (process.argv.includes('--manifest')) {
+    writeFileSync(MANIFEST_PATH, JSON.stringify(
+      manifestOf(measured, { deployedCommit: process.env.DEPLOYED_SHA, failed }), null, 2) + '\n')
+    console.log(`  manifest    : ${MANIFEST_PATH}`)
+  }
+
   await browser.close()
-  process.exit(summarize() === 0 ? 0 : 1)
+  process.exit(failed === 0 ? 0 : 1)
 }

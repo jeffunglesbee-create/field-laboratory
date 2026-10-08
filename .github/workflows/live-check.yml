@@ -40,6 +40,19 @@ on:
   schedule:
     - cron: '37 3 * * *'
 
+# ADDED 2026-10-08, for one step: committing the axis widths to outbox/.
+#
+# This workflow declared no `permissions:` block at all for its whole life, and
+# scripts/axis-check.mjs described that as "read-only by design". No block means
+# the token takes the REPOSITORY default, which is a setting and not a design —
+# so the claim was unverified, and the endpoint that reports it
+# (actions/permissions/workflow) is one the authoring sandbox's proxy refuses.
+# Declaring it is what makes the answer readable from the file.
+#
+# Narrow on purpose: `contents` only, and every other step here is a read.
+permissions:
+  contents: write
+
 concurrency:
   group: live-check
   cancel-in-progress: true
@@ -166,11 +179,18 @@ jobs:
       # owner's browser downloads — a variable face can be correct in public/
       # and absent from the deployed asset, and only this step can tell.
       - name: The score's weight axis interpolates on the DEPLOYED page
+        id: axis
         if: "!cancelled() && steps.landed.outcome == 'success'"
+        env:
+          # The commit the widths describe, from the stamp step's own read of
+          # /version.txt — the published artifact, not this runner's HEAD. Absent
+          # it the manifest records `null`, which is a different fact from a
+          # commit that happened to be empty.
+          DEPLOYED_SHA: ${{ steps.stamp.outputs.sha }}
         run: |
           node scripts/axis-check.mjs --self-test
           URL='https://field-laboratory.jeffunglesbee.workers.dev/' \
-            node scripts/axis-check.mjs
+            node scripts/axis-check.mjs --manifest
 
       - name: The deployed page groups by sport
         # Runs even if a SIBLING assertion failed, but not if the artifact under
@@ -223,6 +243,61 @@ jobs:
         # Does NOT fail on a slate with no MLB games — it reports and asserts
         # nothing, because "no baseball today" is a fact about the day.
         run: URL=https://field-laboratory.jeffunglesbee.workers.dev/ node scripts/schedule-live-check.mjs
+
+      # THE WIDTHS, IN THE TREE. The run log has them too, and that turned out
+      # not to be enough: `runs/<id>/logs` answers with a redirect to blob
+      # storage which the authoring sandbox's GitHub client refuses, so for three
+      # days the proof that the axis interpolates was a green step conclusion
+      # whose numbers could not be quoted. Anything that can read the repository
+      # can read an artifact in it.
+      #
+      # Runs when the axis step ran at all, pass or fail — a run whose widths
+      # came back equal is exactly the run whose numbers are wanted.
+      #
+      # Quiet by construction: the manifest carries no wall-clock field, so a run
+      # that re-measures an unchanged page and finds the same widths stages
+      # nothing and commits nothing. Same rule as status.yml's STATUS.md step,
+      # and the same reason — "its git history should read as a log of things
+      # happening, not one commit a day saying nothing".
+      #
+      # outbox/ is in verify.yml's paths-ignore and in deployable.mjs's
+      # `isIgnored`, so this commit triggers no workflow and does not become the
+      # newest deployable commit — it cannot retrigger the check that wrote it.
+      #
+      # LAST IN THE JOB, after every page assertion, because `git pull --rebase`
+      # rewrites the working tree. The steps below it read source — the grouping
+      # check, the brief-phase rule, the pick tabs — while `build/` is gitignored
+      # and survives a rebase untouched. Had this sat where the axis step is, a
+      # concurrent push to main would have left those checks reading one source
+      # and asserting against a build of another, which is this repo's recorded
+      # Bundesliga failure in a new place.
+      - name: Commit the measured widths
+        if: "!cancelled() && steps.axis.outcome != 'skipped'"
+        run: |
+          MANIFEST=outbox/axis-manifest-latest.json
+          if [ ! -f "$MANIFEST" ]; then
+            # Three distinct facts, not one. A PASSING axis check that wrote
+            # nothing means --manifest stopped reaching the script, which is a
+            # green check publishing no evidence. A FAILING one means the page
+            # never rendered and there was nothing to measure; that is already
+            # reported by the step above and does not need a second red.
+            if [ "${{ steps.axis.outcome }}" = 'success' ]; then
+              echo "::error::the axis check passed and wrote no $MANIFEST"
+              exit 1
+            fi
+            echo "::warning::no $MANIFEST — the axis check failed before measuring; see the step above"
+            exit 0
+          fi
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add "$MANIFEST"
+          if git diff --staged --quiet; then
+            echo "::notice::same deployed commit, same widths — nothing to commit"
+            exit 0
+          fi
+          git commit -m "probe: the score's weight axis on the deployed page [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main
 
       # The window simulation (npm run check:window) does NOT live here. It runs
       # in `verify`, which also has relay egress.

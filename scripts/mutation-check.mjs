@@ -1046,6 +1046,34 @@ const MUTATIONS = [
     replace: '    | _ -> IllegalTiebreak(i, a, b, 0, 0)',
     expect: 'node build/VerifyMain.js',
   },
+  {
+    // The axis manifest is committed to outbox/ by live-check, which makes it
+    // the only readable evidence that the score's weight axis interpolates on
+    // the deployed page — the run log holds the same numbers and the authoring
+    // sandbox cannot fetch it. Pinning the control to a constant publishes a
+    // manifest that says the measurement discriminates whatever it measured.
+    // If this survives, nothing checks that the published field tracks the
+    // sweep rather than the answer that was wanted.
+    id: 'axis-manifest-control-pinned',
+    file: 'scripts/axis-check.mjs',
+    claim: 'the manifest reports the control sweep it measured, not a constant',
+    find: '  controlRises: strictlyRising(m.controlWidths),',
+    replace: '  controlRises: false,',
+    expect: 'node scripts/axis-check.mjs --self-test',
+  },
+  {
+    // One wall-clock field and every live-check run commits — the daily
+    // schedule plus every deploy, forever, each saying the page is unchanged.
+    // status.yml states the rule for STATUS.md ("a log of things happening, not
+    // one commit a day saying nothing") and this manifest obeys it by carrying
+    // no such field. If this survives, that property is prose and not a check.
+    id: 'axis-manifest-timestamped',
+    file: 'scripts/axis-check.mjs',
+    claim: 'the committed manifest carries no wall-clock field, so a quiet run stays quiet',
+    find: '  url: m.url ?? null,',
+    replace: '  at: new Date().toISOString(),\n  url: m.url ?? null,',
+    expect: 'node scripts/axis-check.mjs --self-test',
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
