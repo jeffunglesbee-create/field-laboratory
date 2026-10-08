@@ -124,7 +124,7 @@ commit time and it is now measured rather than assumed.
 Impact analysis before committing, since `FS0025` is an error here: the only
 exhaustive `match` over `Role` in the repo is `styleOf` itself. The two
 proof-doc snippets still fail for the codes they assert (FS1093, FS0025).
-`src/Program.fs:250` is a `[role="tab"]` DOM selector, not the union.
+`src/Program.fs:250` is a DOM selector, not the union — the line is a `document.querySelector` call against the tab strip. The earlier rendering of it here quoted the selector with unescaped quotes, which appears nowhere in the F# source (it escapes them), so the citation anchored to nothing and the ratchet counted it.
 
 ## My own defects this session
 
@@ -158,7 +158,11 @@ Both failing for every verify/guards run since 2026-10-03, confirmed against
   correctly refuses to mutate a red baseline.** The two failures are a CONTROL
   that can no longer find its subject: *"THE CONTROL: src/Desk.fs:1369 is found
   as a present-tense premise"* and *"...and it is UNDATED, which is the
-  finding"*. Citation drift in the harness's own anchor.
+  finding"*. Citation drift in the harness's own anchor — the fragment it looks
+  for is `1 - homeWP`, and that line is now at `src/Desk.fs:1468`
+  (*"FIELD app computes a win-probability away side as `1 - homeWP` — the
+  two-way"*), while 1369 today holds
+  `| Some mh, Some ma, Some (Balanced h) ->`.
 
 ## Still open on the concept itself
 
