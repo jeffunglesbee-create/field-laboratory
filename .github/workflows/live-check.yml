@@ -161,6 +161,17 @@ jobs:
           URL='https://field-laboratory.jeffunglesbee.workers.dev/?data=context-2026-08-29' \
             node scripts/team-tint-render-check.mjs
 
+      # THE SAME SCRIPT AS verify's, one hop further out. verify proves the axis
+      # on the build this runner just made; this proves it on the bytes the
+      # owner's browser downloads — a variable face can be correct in public/
+      # and absent from the deployed asset, and only this step can tell.
+      - name: The score's weight axis interpolates on the DEPLOYED page
+        if: "!cancelled() && steps.landed.outcome == 'success'"
+        run: |
+          node scripts/axis-check.mjs --self-test
+          URL='https://field-laboratory.jeffunglesbee.workers.dev/' \
+            node scripts/axis-check.mjs
+
       - name: The deployed page groups by sport
         # Runs even if a SIBLING assertion failed, but not if the artifact under
         # test is unknown — see the block above `Render the deployed page`.

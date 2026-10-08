@@ -375,6 +375,16 @@ jobs:
       - name: The chrome, measured on the rendered page
         run: npm run check:computed-chrome
 
+      # The score's weight axis, measured by its CONSEQUENCE — text width across
+      # wght 100/400/700/1000, strictly rising, with a Chakra Petch control that
+      # must NOT rise. A variable woff2 declared with a single font-weight loads,
+      # synthesises every weight off one instance, interpolates nothing, and
+      # still shows font-variation-settings in computed style; checking the
+      # property would pass on that. Its twin in live-check.yml runs the same
+      # script against the deployed page.
+      - name: The score's weight axis interpolates
+        run: npm run check:axis
+
       - name: Tabs, both pick panels, and the ADR-002 display check
         run: npm run check:tabs
 
