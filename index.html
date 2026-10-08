@@ -490,7 +490,16 @@
   }
   .desk-card__header { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; opacity: .5; }
   .desk-card__teams { font-weight: 600; margin: .4rem 0 .1rem; }
-  .desk-card__score { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: 700; }
+  /* `font-weight: 700` was a literal here. It is now the AXIS DEFAULT, set
+     through font-variation-settings so that the one declaration the score's
+     weight travels on is the one a driver would later write — rather than a
+     driver's `font-variation-settings` silently losing to a `font-weight`
+     further down the cascade. 700 is `Typography.styleOf Score`'s weight; a
+     check holds the two to each other. */
+  .desk-card__score {
+    font-size: 2rem; font-variant-numeric: tabular-nums;
+    font-variation-settings: 'wght' 700;
+  }
   .desk-card__status { font-size: .8rem; opacity: .75; }
   .desk-card__drama, .desk-card__odds, .desk-card__winprob { font-size: .75rem; opacity: .55; margin-top: .3rem; }
   .desk-card__winprob { font-variant-numeric: tabular-nums; }
@@ -857,8 +866,17 @@
   .desk-card__header, .sport-group__title, .st-card__title, .st-row__label,
   .desk-card__brief-kind, .desk-card__flip-hint, .pk-legend,
   .pk-chip, .desk-card__verdict,
-  .desk-card__score, #viewed-date, .briefs-stat__value {
+  #viewed-date, .briefs-stat__value {
     font-family: var(--font-identity);
+  }
+  /* THE SCORE LEFT THE IDENTITY GROUP on 2026-10-08, and it is the only member
+     that did. Chakra Petch ships static instances only — no `wght` axis — so a
+     score set in it cannot vary its weight at all. DM Sans Variable carries
+     `wght 100 1000`, and --font-score comes from Typography's `Score` role.
+     #viewed-date and .briefs-stat__value stay on the identity face: they are
+     `Data`, which did not move. */
+  .desk-card__score {
+    font-family: var(--font-score);
   }
   .desk-card__score, #viewed-date, .briefs-stat__value {
     font-variant-numeric: tabular-nums;

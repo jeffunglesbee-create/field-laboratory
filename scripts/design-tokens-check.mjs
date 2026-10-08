@@ -78,8 +78,46 @@ check('--font-body equals Typography.fontFamily(DmSans)',
   tokenFrom(css, 'font-body') === body,
   `page: ${tokenFrom(css, 'font-body')}, module: ${body}`)
 
+// ── the score's face comes from the Score role ──────────────────────────────
+
+// --font-score is a THIRD token resolving to the same string as --font-body
+// today, because both are DM Sans. Checked against the role rather than against
+// --font-body: they are equal by coincidence of the current design, and reading
+// one off the other would make a future divergence invisible.
+const scoreRole = Array.from(Typography.allRoles).find(
+  r => Typography.isTabular(r) && /DM Sans/.test(Typography.fontFamily(Typography.fontOf(r))))
+check('a tabular role is set in DM Sans (the Score role exists)',
+  scoreRole !== undefined, 'no tabular DM Sans role found in allRoles')
+if (scoreRole !== undefined) {
+  const scoreFont = Typography.fontFamily(Typography.fontOf(scoreRole))
+  check('--font-score equals Typography.fontFamily(fontOf Score)',
+    tokenFrom(css, 'font-score') === scoreFont,
+    `page: ${tokenFrom(css, 'font-score')}, module: ${scoreFont}`)
+}
+
+// ── THE AXIS IS DECLARED AS A RANGE ─────────────────────────────────────────
+
+// The single most load-bearing check in this change, and the one failure that
+// reports nothing on its own: a variable woff2 declared with a SINGLE
+// `font-weight` loads and renders every weight by SYNTHESISING them off one
+// instance. `font-variation-settings: 'wght' 420` then moves nothing, the
+// browser logs nothing, and the page looks approximately right. Only the range
+// in the @font-face enables real interpolation.
+{
+  const dmFace = (css.match(/@font-face\{[^}]*dm-sans-variable\.woff2[^}]*\}/) || [])[0] || ''
+  const range = (dmFace.match(/font-weight:\s*(\d+)\s+(\d+)/) || []).slice(1).map(Number)
+  check('the DM Sans @font-face declares a wght RANGE, not a single weight',
+    range.length === 2, `font-weight in that @font-face: ${
+      (dmFace.match(/font-weight:\s*([^;]+)/) || [])[1] || '(absent)'}`)
+  check('the declared range equals Typography.SCORE_WGHT_MIN..MAX',
+    range[0] === Typography.SCORE_WGHT_MIN && range[1] === Typography.SCORE_WGHT_MAX,
+    `page ${range.join('..')} vs module ${Typography.SCORE_WGHT_MIN}..${Typography.SCORE_WGHT_MAX}`)
+}
+
 // The self-hosted fonts are actually shipped — no silent network dependency.
-const fonts = ['chakra-petch-600', 'chakra-petch-700', 'dm-sans-300', 'dm-sans-400']
+// dm-sans-variable replaced dm-sans-300 and dm-sans-400 on 2026-10-08: one file
+// carrying wght 100-1000 instead of two instances, +9,024 bytes net.
+const fonts = ['chakra-petch-600', 'chakra-petch-700', 'dm-sans-variable']
 for (const f of fonts) {
   check(`self-hosted font ${f}.woff2 is present and declared`,
     existsSync(`public/fonts/${f}.woff2`) && css.includes(`fonts/${f}.woff2`),

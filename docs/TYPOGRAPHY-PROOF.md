@@ -51,9 +51,19 @@ match Typography.ChakraPetch with
 
 **It is** evidence that the seal, the per-role registry, and the two-font limit
 hold at compile time. The runtime facts a compiler cannot state — that every role
-resolves to one of the two faces, that `Data` carries tabular numerals, that
-every font stack ends in a real generic fallback — are proven over the compiled
-module in `scripts/typography-check.mjs`.
+resolves to one of the two faces, that the numeric roles carry tabular numerals,
+that every font stack ends in a real generic fallback — are proven over the
+compiled module in `scripts/typography-check.mjs`.
+
+**Amended 2026-10-08.** The score moved from Chakra Petch to DM Sans Variable,
+because Chakra Petch ships static instances only and a score set in it cannot
+vary its weight. `Score` is a NEW `Role` case, so all three proofs above still
+hold unchanged and that is not a coincidence: adding a case to `Role` makes
+proof 2's incomplete match *more* incomplete, and `Font` is still a closed union
+of two — the variable face is DM Sans's own file, not a third family. "Two fonts
+only" was never at risk. What did change is one sentence of prose above, and the
+count of tabular roles, which is now two: `Data` for percentages and standings,
+`Score` for the game score.
 
 **It is not** a claim that the right role is chosen at every call site; as with
 color and units, the compiler protects the interior, and which role a piece of

@@ -838,6 +838,78 @@ for (const r of distinctStray)
 
 check('no page errors during any of this', errors.length === 0, errors.join('; '))
 
+// ── the score's weight axis is REAL, measured by its consequence ────────────
+//
+// Added 2026-10-08 with the move of the score from Chakra Petch to DM Sans
+// Variable. This file's own header states why it cannot stop at the property:
+// "a check that asserted `preserve-3d` was SET and passed while the render did
+// nothing — the property was there, its effect was not."
+//
+// The same trap is wide open here, and worse. A variable woff2 whose @font-face
+// declares a SINGLE font-weight loads fine and renders every weight by
+// SYNTHESISING it off one instance. `font-variation-settings: 'wght' 420` is
+// then present in computed style, reports no error, and interpolates nothing.
+// So this measures the consequence: text width across the axis.
+//
+// Four values, strictly increasing. A real `wght` axis widens the glyphs
+// continuously; a synthesised face gives the same width for every value it was
+// not cut at. Two values could pass on a lucky pair of instances — four with
+// strict monotonicity cannot.
+//
+// SYNTHETIC NODES, not the live score. The sweep has to set an inline style and
+// re-measure; doing that to `.desk-card__score` would leave the page mutated for
+// every check after this one. The real node is only READ, for its computed face.
+const axis = await page.evaluate(async () => {
+  await document.fonts.ready
+  const score = document.querySelector('.desk-card__score')
+  const cs = score ? getComputedStyle(score) : null
+  const size = cs ? cs.fontSize : '32px'
+
+  const sweep = (familyVar) => {
+    const probe = document.createElement('div')
+    probe.textContent = '104 - 104'
+    probe.style.cssText = `position:absolute;left:-9999px;top:0;white-space:pre;` +
+      `font-size:${size};font-family:var(${familyVar});font-variant-numeric:tabular-nums`
+    document.body.appendChild(probe)
+    const widths = [100, 400, 700, 1000].map((w) => {
+      probe.style.fontVariationSettings = `'wght' ${w}`
+      return Math.round(probe.getBoundingClientRect().width * 100) / 100
+    })
+    probe.remove()
+    return widths
+  }
+
+  return {
+    scoreFamily: cs ? cs.fontFamily : null,
+    scoreFvs: cs ? cs.fontVariationSettings : null,
+    dmSansLoaded: document.fonts.check(`700 ${size} 'DM Sans'`),
+    variableWidths: sweep('--font-score'),
+    staticWidths: sweep('--font-identity'),
+  }
+})
+
+const strictlyRising = ws => ws.every((w, i) => i === 0 || w > ws[i - 1])
+
+check('the score is computed in DM Sans, not the identity face',
+  /DM Sans/.test(axis.scoreFamily || ''), `computed font-family: ${axis.scoreFamily}`)
+check('the DM Sans face actually loaded at the score size',
+  axis.dmSansLoaded === true, 'document.fonts.check says DM Sans is not available')
+check('the score carries its weight on the axis, not font-weight',
+  /wght/.test(axis.scoreFvs || ''), `computed font-variation-settings: ${axis.scoreFvs}`)
+check('THE AXIS INTERPOLATES: width rises strictly across wght 100/400/700/1000',
+  strictlyRising(axis.variableWidths),
+  `widths ${JSON.stringify(axis.variableWidths)} — equal or non-monotonic means the ` +
+  `@font-face declared a single weight and the browser is synthesising, not interpolating`)
+
+// THE NEGATIVE CONTROL, same shape as the Comic Sans one above. Chakra Petch
+// ships static instances only, so the identical sweep over --font-identity must
+// NOT rise — otherwise the measurement is picking up something other than the
+// axis (layout jitter, a transition, subpixel noise) and its green says nothing.
+check('the control face does NOT interpolate — the measurement discriminates',
+  !strictlyRising(axis.staticWidths),
+  `Chakra Petch widths ${JSON.stringify(axis.staticWidths)} rose strictly too, so a rising ` +
+  `width is not evidence of a working axis`)
+
 await browser.close()
 process.exit(summarize() === 0 ? 0 : 1)
 })()
