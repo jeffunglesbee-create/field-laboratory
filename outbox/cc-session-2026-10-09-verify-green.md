@@ -449,3 +449,56 @@ Rule 91 applies to the cap as well: GitHub renders at most ten error annotations
 per step, so an eleventh would vanish. Past the cap the **count of what was left
 out is itself annotated**, where the reader can see it, rather than being
 dropped.
+
+---
+
+## Green, and the chain drives itself again
+
+```
+verify   #343  8c4cda0  -> success     (first green since 2026-10-03 — six days)
+  JOB verify      -> success
+  JOB push-lands  -> success
+  JOB claim-sweep -> success
+guards   #212, #213    -> success
+```
+
+Then, with no dispatch from this session — `verify` going green is what
+`deploy` triggers on:
+
+```
+deploy      #915  2cced76  -> success
+live-check  #958  2cced76  -> success
+   success   The deployed build stamp matches main
+   success   The deploy landed (published is the newest deployable commit)
+   success   The score's weight axis interpolates on the DEPLOYED page
+   success   Commit the measured widths
+
+outbox/axis-manifest-latest.json
+   deployedCommit 2cced76   variable [125,137,146,149]   control [133,133,133,133]
+```
+
+The widths are identical across three deployed builds now and the control is
+flat to the pixel in every one of them. Only `deployedCommit` moves, which is
+the one thing the manifest was designed to move on.
+
+### `Render check against the LIVE slate`, honestly
+
+It failed on #341 — the first run it had executed in over ten — and passed on
+#343. I do not know what #341's cause was: it is a live-slate check, the
+annotation channel did not exist yet, and the log was unreadable. Stated as
+transient rather than fixed. The next time it fails, its reason arrives as an
+annotation, which is the whole point of the change above.
+
+### What was red at the start of this session, and what each turned out to be
+
+| gate | cause | status |
+|---|---|---|
+| `check:rows` | one bare `new Date()` in the mutation harness, from `901f00e` | fixed, mutation-guarded |
+| `claim-sweep` | a control pinned to `src/Desk.fs:1369`; the premise moved to 1468 | fixed, 11/11 mutations |
+| `check:citations` | two bare citations I wrote the day before, both factually wrong | fixed |
+| `check:import-purity` | three scripts ran their work on import | fixed, entry points re-proven |
+| `check:history` | twelve commits with no paired entry, from an uninstalled guard | boundary moved, second guard shipped |
+
+Five causes, no overlap, and four of the five were invisible until the step in
+front of them went green — which is why the thirteen-step fail-fast tail was
+worth unmasking before any of them.
