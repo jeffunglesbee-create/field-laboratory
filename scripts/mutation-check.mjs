@@ -792,6 +792,27 @@ const MUTATIONS = [
   },
 
   {
+    // THE SAME RULE, TURNED ON THIS FILE. `gate-day-per-row` above pins the
+    // gate's own day; nothing pinned the harness's. 901f00e added the baseline
+    // artifact with a bare `new Date()` in its object literal, row-confidence
+    // flagged the clock read, "breaking each invariant makes a check fail"
+    // dropped 100 -> 70, and verify was red for four days — on the commit whose
+    // purpose was making this very baseline readable.
+    //
+    // expect is `row-confidence.mjs` and NOT `run-row.mjs`: this row's own
+    // command is the 83-mutation suite, so run-row either takes its verdict
+    // from the last full gate run or costs fifty minutes. Neither can fail for
+    // the reason this mutation exists. The scorer runs in a second and drops the
+    // row directly.
+    id: 'harness-reads-the-clock-twice',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the harness captures its one clock read, so the scorer's own row stays at 100",
+    find: '  at: BASELINE_AT.toISOString(),',
+    replace: '  at: new Date().toISOString(),',
+    expect: 'node scripts/row-confidence.mjs',
+  },
+
+  {
     id: 'red-main-softened',
     file: 'scripts/status.mjs',
     claim: 'a failing verify run is reported as failing',
@@ -1354,9 +1375,19 @@ console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.leng
 // A measurement that exists only in a truncated log is not a measurement
 // anyone can act on. Written unconditionally, pass or fail, so a green run
 // records the baseline it was green against.
+//
+// ONE CLOCK READ, CAPTURED. `row-confidence.mjs`'s nondeterminism scan permits a
+// clock read only in the shape this repo settled on — captured once into a
+// `const NAME = new Date()` and then pure — and the bare `new Date()` that used
+// to sit in the object literal below is what dropped the row "breaking each
+// invariant makes a check fail" from 100 to 70 on 2026-10-05. That is 901f00e,
+// this block's own commit: the change that made the baseline readable broke the
+// gate that scores the harness, and verify stayed red for four days on it.
+const BASELINE_AT = new Date()
+
 mkdirSync('outbox', { recursive: true })
 writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({
-  at: new Date().toISOString(),
+  at: BASELINE_AT.toISOString(),
   ran: distinctExpects.length,
   from_mutations: selected.length,
   failing: baselineFailures.length,
