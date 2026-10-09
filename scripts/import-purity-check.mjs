@@ -44,6 +44,31 @@ import { createChecks, isMain } from './checks.mjs'
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 const SENTINEL = 'IMPORT_PURITY_SENTINEL'
 
+/**
+ * Scripts that do their work at MODULE SCOPE, and so must declare no export.
+ *
+ * `exportingModules` below picks this probe's set with `/^export /m`, and the
+ * probe IMPORTS every member of it. A script with no `isMain` guard runs when
+ * imported, so one `export` keyword is enough to enrol it here — and for a
+ * script whose body is a test harness, that is not a side effect, it is the
+ * harness running.
+ *
+ * MEASURED 2026-10-09, not theorised. A single `export` added to
+ * `scripts/mutation-check.mjs` made this probe execute the whole 86-mutation
+ * suite: 506 seconds inside a pre-commit hook, `run-row.mjs` and
+ * `proof-check.mjs` spawned as children, and `src/Scoreboard.fs` left carrying
+ * an injected `__proof76` body when the probe was killed. A ten-second guard
+ * became a source-mutating half-hour because of one keyword.
+ *
+ * The long answer is an `isMain` guard around those bodies. Until then the
+ * guard is this list, asked at the door — where the answer is still cheap.
+ */
+export const UNGUARDED_SCRIPTS = ['mutation-check.mjs']
+
+/** Which module-scope scripts have acquired an export they must not have. */
+export const wronglyExporting = (discovered, unguarded = UNGUARDED_SCRIPTS) =>
+  unguarded.filter(u => discovered.some(d => d === u || d.endsWith(`/${u}`)))
+
 /** Files in a directory that declare a top-level export. */
 export const exportingModules = dir =>
   readdirSync(dir)
@@ -125,6 +150,18 @@ if (SELF_TEST) {
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
+  check('a module-scope script that acquires an export is named',
+    wronglyExporting(['a.mjs', 'mutation-check.mjs'], ['mutation-check.mjs'])
+      .join() === 'mutation-check.mjs')
+  check('...and one that stays unexported is not',
+    wronglyExporting(['a.mjs'], ['mutation-check.mjs']).length === 0)
+  check('a path-qualified discovery still matches the basename',
+    wronglyExporting(['scripts/mutation-check.mjs'], ['mutation-check.mjs']).length === 1,
+    'exportingModules returns bare names today; a future join must not switch this off')
+  check('THE LIST IS NOT EMPTY, or this guard is vacuous',
+    UNGUARDED_SCRIPTS.length > 0,
+    'an empty list makes the check free and silent')
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -132,7 +169,23 @@ if (SELF_TEST) {
 
 if (isMain(import.meta.url)) {
   const { check, summarize } = createChecks()
-  const modules = exportingModules('scripts')
+  const discovered = exportingModules('scripts')
+
+  // ASKED FIRST, AND THE OFFENDERS ARE NEVER IMPORTED.
+  //
+  // Order is the whole fix. A module-scope script that has acquired an export
+  // is in `discovered`, so probing it RUNS it — 506 seconds and a mutated
+  // src/ tree, measured 2026-10-09. Reporting that after the probe would mean
+  // surviving the probe first. So the verdict comes before, and the offenders
+  // are excluded from the set either way: a failing check must not also be the
+  // thing that hangs.
+  const wrong = wronglyExporting(discovered)
+  check('no module-scope script has acquired an export, which would make this probe RUN it',
+    wrong.length === 0,
+    `${wrong.join(', ')} declares an export and has no isMain guard, so importing it ` +
+    'runs its body. Drop the export, or guard the body with isMain first.')
+
+  const modules = discovered.filter(d => !wrong.some(w => d === w || d.endsWith(`/${w}`)))
 
   // Non-vacuity. Every module being pure is free when none are discovered, and
   // a discovery regex that stopped matching would report exactly that.
@@ -149,6 +202,7 @@ if (isMain(import.meta.url)) {
   check('importing a module never runs it or exits the process',
     impure.length === 0,
     impure.map(({ m, r }) => `${m}: ${r.why}`).join('\n      → '))
+
 
   process.exit(summarize() === 0 ? 0 : 1)
 }

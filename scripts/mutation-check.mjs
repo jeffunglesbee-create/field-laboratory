@@ -1110,6 +1110,20 @@ const MUTATIONS = [
     expect: 'node scripts/axis-check.mjs --self-test',
   },
   {
+    // The gate runs `--only known-survivor` immediately after the full suite,
+    // and the baseline used to be written unconditionally — so the committed
+    // artifact was the one-mutation run's, every time. verify-full #25 scored
+    // 530/530 and recorded `ran: 1`. If this survives, nothing stops the full
+    // suite's measurement being destroyed by the command that follows it.
+    id: 'baseline-written-by-any-run',
+    file: 'scripts/mutation-check.mjs',
+    claim: 'only a FULL run writes the baseline artifact, so --only cannot overwrite it',
+    find: 'const ownsBaseline = (only) => only === null',
+    replace: 'const ownsBaseline = (only) => true',
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+
+  {
     // One wall-clock field and every live-check run commits — the daily
     // schedule plus every deploy, forever, each saying the page is unchanged.
     // status.yml states the rule for STATUS.md ("a log of things happening, not
@@ -1153,6 +1167,43 @@ const applyMutation = (source, m) => {
 const selected = ONLY
   ? MUTATIONS.filter(m => m.id === ONLY)
   : MUTATIONS.filter(m => !m.selfTestOnly)
+
+/**
+ * Does this run own outbox/mutation-baseline-latest.json?
+ *
+ * ONLY A FULL RUN DOES, and the reason is a defect found on 2026-10-09. The
+ * gate row "breaking each invariant makes a check fail" runs three commands in
+ * order:
+ *
+ *   ok('node scripts/mutation-check.mjs --self-test') &&
+ *   ok('node scripts/mutation-check.mjs') &&                <- writes 86 of 86
+ *   fails('node scripts/mutation-check.mjs --only known-survivor')   <- writes 1 of 1
+ *
+ * The baseline was written unconditionally, so the third command overwrote the
+ * second's record moments after it was made. `verify-full` #25 passed 530/530
+ * and committed `ran: 1, from_mutations: 1` — the artifact whose own comment
+ * says "a green run records the baseline it was green against" recorded the
+ * wrong run, every time, for as long as it has existed.
+ *
+ * Worse than losing it: `ran: 1` has no visible denominator, so the file reads
+ * as a baseline of one expectation that passed rather than as the remains of
+ * one that covered 86. That is Rule 91 by construction.
+ *
+ * An `--only` run says it is not writing, rather than silently not writing:
+ * absent-because-not-applicable and absent-because-broken are different facts.
+ *
+ * NOT EXPORTED, AND THAT IS LOAD-BEARING. This file does its work at module
+ * scope — there is no `isMain` guard around 1400 lines of it — and
+ * `import-purity-check.mjs` probes only the scripts that export something. The
+ * first version of this const carried `export`, which put this file in that
+ * probe's set, and importing it RAN THE WHOLE 86-MUTATION SUITE: measured at
+ * 506 seconds inside a pre-commit hook, with `run-row.mjs` and `proof-check.mjs`
+ * spawned as children and `src/Scoreboard.fs` left carrying an injected
+ * `__proof76` body when the probe was killed. One `export` keyword turned a
+ * ten-second guard into a source-mutating half-hour. The self-test is in this
+ * same file and needs no export.
+ */
+const ownsBaseline = (only) => only === null
 
 // --- restore safety ----------------------------------------------------------
 // Backups outside src/, and handlers on every exit path. proof-check learned
@@ -1327,6 +1378,13 @@ if (process.argv.includes('--self-test')) {
   check('a clean tree reports nothing to heal', heal({ rebuild: false }) === false,
     'heal() claimed to heal a tree with no marker — it would fire on every run')
 
+  check('A FULL RUN OWNS THE BASELINE ARTIFACT', ownsBaseline(null) === true,
+    'the full suite is the only run whose baseline describes the whole suite')
+  check('AN --only RUN DOES NOT, so it cannot overwrite the full record',
+    ownsBaseline('known-survivor') === false,
+    'the gate runs `--only known-survivor` straight after the full suite; if it ' +
+    'writes, the committed baseline is 1 of 1 and the full one is gone')
+
   rmSync(victim, { force: true })
   rmSync(backup, { force: true })
   clearActive()
@@ -1412,15 +1470,21 @@ console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.leng
 // gate that scores the harness, and verify stayed red for four days on it.
 const BASELINE_AT = new Date()
 
-mkdirSync('outbox', { recursive: true })
-writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({
-  at: BASELINE_AT.toISOString(),
-  ran: distinctExpects.length,
-  from_mutations: selected.length,
-  failing: baselineFailures.length,
-  results: baselineResults,
-}, null, 2) + '\n')
-console.log('  wrote outbox/mutation-baseline-latest.json')
+if (ownsBaseline(ONLY)) {
+  mkdirSync('outbox', { recursive: true })
+  writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({
+    at: BASELINE_AT.toISOString(),
+    scope: 'full',
+    ran: distinctExpects.length,
+    from_mutations: selected.length,
+    failing: baselineFailures.length,
+    results: baselineResults,
+  }, null, 2) + '\n')
+  console.log('  wrote outbox/mutation-baseline-latest.json')
+} else {
+  console.log(`  baseline NOT written: --only ${ONLY} covers ${distinctExpects.length} ` +
+    `expectation(s) of the full suite, and the artifact is the full run's`)
+}
 
 check('the unmutated tree passes every expectation',
   baselineFailures.length === 0,

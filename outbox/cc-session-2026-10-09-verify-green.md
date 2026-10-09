@@ -570,3 +570,140 @@ to appear in the cited file reads as anchored. The window is the mechanism and
 the mechanism has a false-negative mode. Nothing to fix today — the ratchet is
 at 0, so the next bare citation fails whether or not any particular one could
 have been smuggled past by position.
+
+---
+
+## verify-full #25 — green, 530/530, and it exposed a defect by passing
+
+```
+verify-full #25 on f272b49 -> success        (first green since before 2026-09-21)
+docs/confidence-log.jsonl, newest entry:
+  sha      f272b495e8be03b640396a37c769754692de0170
+  earned   530 / 530  => 100
+  failing  none
+```
+
+Five consecutive failures preceded it, back to 2026-09-21: the full 86-mutation
+suite and the confidence gate had not passed in nearly three weeks. All 86 ran,
+all 23 rows scored, nothing failing. Job 57 minutes against a 90-minute cap —
+close enough to be worth watching as the suite grows.
+
+### The defect it exposed, which only a PASSING run could show
+
+It committed `outbox/mutation-baseline-latest.json` reading `ran: 1,
+from_mutations: 1`.
+
+The gate row runs three commands in this order:
+
+```js
+run: () => ok('node scripts/mutation-check.mjs --self-test') &&
+           ok('node scripts/mutation-check.mjs') &&                        // 86 of 86
+           fails('node scripts/mutation-check.mjs --only known-survivor')  // 1 of 1
+```
+
+The baseline was written **unconditionally** on every invocation, so the third
+command overwrote the second's record moments after it was made. The artifact
+whose own comment reads *"A measurement that exists only in a truncated log is
+not a measurement anyone can act on … Written unconditionally, pass or fail, so
+a green run records the baseline it was green against"* has been recording the
+wrong run for as long as it has existed.
+
+I had read that file earlier in this session and called it "three days stale".
+It was not stale. It was being clobbered, every run, by the command after the
+one that filled it.
+
+**Worse than losing the measurement:** `ran: 1` carries no visible denominator,
+so the file reads as a baseline of one expectation that passed rather than as
+the remains of one that covered 86. Rule 91 violated by construction, in the
+artifact built to satisfy it.
+
+### The fix
+
+`ownsBaseline(ONLY)` — only a full run writes it. An `--only` run **says** it is
+not writing, because absent-because-not-applicable and absent-because-broken are
+different facts:
+
+```
+  baseline NOT written: --only baseline-written-by-any-run covers 1 expectation(s)
+  of the full suite, and the artifact is the full run's
+```
+
+And the written object now carries `scope: 'full'`, so a reader can tell a full
+record from any other without inferring it from the counts.
+
+Verified end-to-end rather than by reading: the committed baseline's sha256
+prefix was `19df2dcd087374a3` before an `--only` run and `19df2dcd087374a3`
+after it. Unchanged.
+
+Two self-tests (6/6 now) and one mutation row, `baseline-written-by-any-run`
+(87 rows), which flips `ownsBaseline` to `() => true` and is caught by *"AN
+--only RUN DOES NOT, so it cannot overwrite the full record"* — against an
+unmutated positive control.
+
+The done condition is the committed artifact reading `scope: "full"` with both
+counts at the full suite's. That needs one more `verify-full` run, dispatched in
+this session rather than left as a carry-forward.
+
+### The first attempt at that fix cost 506 seconds and mutated src/
+
+`ownsBaseline` was written with an `export` keyword in front of it. That one word
+was enough to do this:
+
+```
+ 1453  510s  node scripts/import-purity-check.mjs
+ 1650  506s  node --input-type=module -e await import("./scripts/mutation-check.mjs")
+ 4637  475s  node scripts/run-row.mjs "doc claims are compiler-verified, not prose"
+ 4644  475s  node scripts/proof-check.mjs
+```
+
+`import-purity-check.mjs` probes only the scripts that declare a top-level
+export, and it probes them **by importing them**. `mutation-check.mjs` has no
+`isMain` guard — 1400 lines of harness run at module scope. So the export
+enrolled it in the probe's set, and the probe ran the entire 86-mutation suite
+inside a pre-commit hook: `run-row.mjs` and `proof-check.mjs` spawned as
+children and a commit hanging for over eight minutes.
+
+**And it survived the first SIGTERM.** Killing its parent shell orphaned it onto
+PID 1, where it kept marching through the suite for another four minutes. It was
+mutating a different source file at each look:
+
+| when | file | state |
+|---|---|---|
+| at the kill | `src/Scoreboard.fs` | an injected `__proof76` body from the killed `proof-check` — no marker |
+| | `src/Scout.fs` | `Answer = Unanswerable "player milestone data (production reads BDL; not in /context/date)"` rewritten to `Answer = DoesNotQualify "no milestone"` — no marker |
+| +4 min | `src/Journalism.fs` | `proxy-silent-becomes-false` applied, marker present |
+| +4 min | `src/Scoreline.fs` | applied, marker present |
+
+`kill -TERM` was ignored for 20 seconds; `kill -KILL` ended it. Healed with
+`git checkout -- src/` and the stale `.mutation-state` removed by hand; then
+`check:clean-source` 3/3 and a clean rebuild.
+
+Two findings in that table, not one. The marker-less pair is the hazard
+`gate-checks.mjs` already documents for SIGKILL — *"a stranded mutation … the
+gate would have gone GREEN on a deliberately broken invariant"* — observed here
+with no signal delivered at all, because the probe's import was mid-`proof-check`
+rather than mid-mutation. And a harness that ignores SIGTERM while rewriting
+`src/` is worth a guard of its own. Recorded, not fixed: both belong in a commit
+about the harness's signal handling, not this one.
+
+**The guard.** `UNGUARDED_SCRIPTS = ['mutation-check.mjs']` in
+`import-purity-check.mjs`, with `wronglyExporting()` asked **before** the probe
+and the offenders excluded from the probe set either way. Order is the entire
+fix: a check that reports this after probing would have to survive the probe
+first, and a failing check must not also be the thing that hangs.
+
+Measured in both directions:
+
+| state | result | wall |
+|---|---|---|
+| no export (as shipped) | 3/3 pass | **5s** |
+| the export restored | `FAIL  no module-scope script has acquired an export…`, offender named, never imported | **5s** |
+
+5 seconds instead of 506, with the reason printed. Four self-tests, including
+*"THE LIST IS NOT EMPTY, or this guard is vacuous"* — an empty list would make
+the whole check free and silent.
+
+This is the sixth instance today of one class — a module that does its work at
+import time — after the three found in `forecast-run.mjs`,
+`probe-epl-substrate.mjs` and `replay-odds-coverage.mjs` this morning. I caused
+this one, an hour after fixing those, with a keyword.
