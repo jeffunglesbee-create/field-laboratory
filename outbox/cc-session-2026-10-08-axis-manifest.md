@@ -175,3 +175,57 @@ spot for a module that runs something and finishes. Both artifacts were reverted
 rather than committed — a local run's output that no workflow performed.
 
 Not fixed here. It needs its own commit and its own mutation.
+
+---
+
+## The widths, as committed
+
+`c3310cf` — written by `live-check` against
+`https://field-laboratory.jeffunglesbee.workers.dev/`, serving
+`aa1e9b5d576ca814d95be8bbdec273565da6d2b4`. `outbox/axis-manifest-latest.json`:
+
+| `wght` | DM Sans Variable (`--font-score`) | Chakra Petch control (`--font-identity`) |
+|---|---|---|
+| 100 | 125 | 133 |
+| 400 | 137 | 133 |
+| 700 | 146 | 133 |
+| 1000 | 149 | 133 |
+
+The string measured is `104 - 104` at the score's own computed 32px.
+`variableRises: true`, `controlRises: false`, `checksFailed: 0`,
+`dmSansLoaded: true`, `scoreAxis: "wght" 700`, and the computed family is
+`"DM Sans", system-ui, -apple-system, sans-serif`.
+
+**The control is flat to the pixel.** Four identical measurements, 133 each —
+so the 24px spread on the variable face is the axis and not layout jitter,
+subpixel noise or a transition. That was the one thing a green boolean could
+never say.
+
+**The rise decelerates: +12, +9, +3.** DM Sans's upper weights widen less than
+its lower ones. A linear expectation would have been wrong, which is a second
+reason the assertion is strict monotonicity and not a slope.
+
+## Both halves of the mechanism, measured live rather than argued
+
+| run | state | outcome |
+|---|---|---|
+| the first (on `aa1e9b5`) | a new deployed commit | wrote the manifest, committed `c3310cf` |
+| #952 (on `f15884e`) | the SAME deployed commit, the same widths | *"same deployed commit, same widths — nothing to commit"* |
+
+One manifest commit from two runs. The quietness property — the reason the file
+carries no wall-clock field — is now a measurement rather than an argument from
+`status.yml`'s precedent.
+
+Run #950 was **cancelled** before either: `concurrency: cancel-in-progress:
+true` on `live-check` means a `workflow_run`-triggered run displaces a
+dispatch. The chain helper retries on `cancelled` and tracks runs by **id**,
+which is the fix for the defect that had it reporting a different run's
+conclusion as its dispatch's.
+
+## Still red, and not fixed here
+
+`verify` fails at `claim-sweep` — *"The claim harness can be made to fail"* —
+and did so before this work. It is fixed in the commit after this one, for one
+reason: a red `verify` means `deploy` never fires, so the post-deploy check that
+writes this manifest cannot run on its own. Its own entry is
+`outbox/cc-session-2026-10-09-claim-control-anchor.md`.
