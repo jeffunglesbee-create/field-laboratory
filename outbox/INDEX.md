@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d704fcc` | 2026-10-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-09 [skip ci] |
 | `33db373` | 2026-10-09 | [cc-session-2026-10-09-setup-script-cannot-be-automated.md](cc-session-2026-10-09-setup-script-cannot-be-automated.md) | feat: assert the session bootstrap ran, since the setup-script field cannot |
 | `b24593c` | 2026-10-09 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of e1303e6 [skip ci] |
 | `e1303e6` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: only a full run owns the mutation baseline, and guard what that cost |
