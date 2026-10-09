@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8c4cda0` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | feat: every check's failure reason survives into an annotation |
+| `16280f9` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | docs: move the history boundary a fifth time, d917dc9/24 -> aa1e9b5/36 |
+| `d94db01` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: a second delivery for the outbox guard, independent of core.hooksPath |
 | `3900a1a` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | ci: every report in verify's tail runs, even after one fails |
 | `147ac8a` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: three scripts ran their work on import |
 | `d0fdf33` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: check:rows was red on one bare clock read in the mutation harness |
