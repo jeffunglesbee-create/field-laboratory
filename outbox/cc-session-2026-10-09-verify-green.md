@@ -351,3 +351,47 @@ at all. `docs/SETUP-SCRIPT.md` has the text.
 **Verify it after a fresh session, in one command:** stage a source file with no
 outbox entry and run `git commit`; the guard is live if the command never
 reaches the shell — no `pre-commit: fast gate…` line.
+
+---
+
+## The boundary moved — the fifth move, twelve commits
+
+`docs/history-boundary.txt`: `d917dc9 / 24` → `aa1e9b5 / 36`. The file requires
+the reason to be said here as well as in it, so:
+
+**Why history before `aa1e9b5` stopped being governed.** Twelve commits across
+three sessions shipped `src/` or `scripts/` with no `outbox/` entry in the same
+commit. The rule is per-commit and settled at commit time by design, so a later
+entry does not pair with any of them — `6e00b19`'s own subject reads *"docs: the
+outbox entry `d2205eb` owed"*, which is the right thing to have written and is
+not a substitute. The only remedy the repository sanctions is this file, and the
+only alternative is a permanently red `main`; that choice is spelled out in the
+08-17 entry and has not changed.
+
+**The boundary is `aa1e9b5`** because it is the first commit after the last
+violation that obeys the rule affirmatively: two scripts beside
+`outbox/cc-session-2026-10-08-axis-manifest.md`. The six commits in between touch
+no source at all, so the boundary lands on a commit that demonstrates the rule
+rather than one that merely avoids it.
+
+**36 = 24 + 12**, derived and then measured:
+
+```
+Per-commit source/outbox correlation over 1857 commits
+  rule effective at : aa1e9b5
+  predating the rule: 36 (declared 36 in docs/history-boundary.txt)
+
+PASS  the rule boundary has not moved
+PASS  every governed commit changed source and outbox together
+```
+
+Derived locally, with the depth confirmed first — the rule both earlier entries
+set after a shallow clone produced a meaningless number. This clone began the
+session at **279** commits, where `check:history` cannot even find `d917dc9`;
+`git fetch --unshallow` took two seconds and 1847 commits. CI remains the
+authority if the two ever disagree.
+
+**What the file now says to do if it moves a sixth time:** look at the
+environment's Setup script field, not at the commits. Three of the five moves
+now have the same cause — a guard whose delivery did not run — and the fifth
+could not even prove its own replacement guard fires.

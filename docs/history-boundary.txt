@@ -330,4 +330,125 @@
 #
 # The governed violation count is 0 again.
 
-d917dc977c0ea97d4b301978709fd21ceb5b901c  24
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-10-09, FROM d917dc9 / 24 TO aa1e9b5d576ca814d95be8bbdec273565da6d2b4 / 36
+#
+# The fifth move, and by far the largest: TWELVE commits, four times the biggest
+# previous one. The 09-01 entry said what to do when it happened again: "If it
+# moves a fifth time..." — it did not say that. It said, of the fourth: "the
+# guard above was bypassed or removed, and THAT is the thing to investigate —
+# not the commits." That instruction is answered below, from a measurement
+# rather than from a guess, and the answer is the same one the 08-23 entry gave,
+# one level further out again.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — twelve commits across three sessions:
+#
+#   f9d85e7  feat: the axis is held on the DEPLOYED page, not only on the build
+#   d2205eb  feat: the score moves to DM Sans Variable, and gets a weight axis
+#   f28913d  fix: a Fable list has no .length, and read the rows back from the store
+#   5ad2627  fix: METHOD was inlined away, and the step went green over the crash
+#   f04f443  fix: the forecast suite group did not parse
+#   521b52c  feat: the forecast store and the writer that fills it
+#   d92d03d  feat: Forecast — provenance in the type, with the record it belongs to
+#   54d2472  probe: finish Task 0 — odds for two dates, and the relay's own matcher
+#   5f4e002  fix: a one-row sport cannot carry a coverage rate, so stop alarming on one
+#   e461943  probe: carry the fields the team-join decision needs
+#   345d030  probe: EPL forecaster substrate, read on a runner
+#   0a59bf8  fix: the skill sync could not reach a repo the drift check watches
+#
+# Three sessions: 09-23 (one), 10-03/10-04 (nine), 10-08 (two). Every one is
+# authored `FIELD CI`, the local commit identity — NOT the `Claude` identity the
+# committing workflows use. So this is not the machine-authored class the fourth
+# move addressed; the runner-side guard that move shipped is still holding.
+#
+# Two of the twelve are mine, written the day before this entry. The work IS
+# documented — 6e00b19's own subject reads "docs: the outbox entry d2205eb owed"
+# — and by this rule's per-commit design that entry does not pair with it,
+# exactly as the 08-17 and 08-23 moves recorded for their own commits.
+#
+# WHY THE GUARD DID NOT FIRE, WHICH IS THE ONLY INTERESTING PART
+#
+# Measured at the start of the 2026-10-09 session, before anything was changed:
+#
+#   which dotnet              NOT ON PATH
+#   ls node_modules | wc -l   0
+#   ls build/                 (absent)
+#   git config core.hooksPath (empty)
+#
+# `.githooks/pre-commit` runs `check:staged-outbox` and is the right guard for
+# this class. It runs only when `core.hooksPath` points at `.githooks`, and the
+# only thing that sets that is `scripts/install_pkgs.sh`, called from the
+# `SessionStart` hook in `.claude/settings.json`. Nothing was installed, so the
+# script had not run, so the guard was not in the path — for the whole session,
+# and on the evidence of the dates, for two earlier ones.
+#
+# That is verbatim the 08-23 diagnosis, which this file already predicted would
+# recur: "not one lapse repeated three times, but one missing install that
+# removed the guard for a whole session." The 09-01 move then found the same
+# sentence one level out (a local guard cannot cover a remote committer). This
+# move finds it one level out again: a guard delivered by a session-start hook
+# cannot cover a session where the hook did not run.
+#
+# WHAT SHIPPED SO THE SIXTH MOVE DOES NOT HAPPEN
+#
+#   scripts/hook-staged-outbox.sh   the SAME predicate, asked from a second,
+#                                   independent delivery: a PreToolUse hook on
+#                                   Bash, filtered `if: Bash(git commit*)`, read
+#                                   straight out of .claude/settings.json. No
+#                                   install step, no `git config`, no npm
+#                                   packages. Exit 2 blocks; a guard that cannot
+#                                   run also exits 2, because failing open is the
+#                                   state that produced these twelve.
+#                                   `--no-verify` passes through, since that
+#                                   override is documented in
+#                                   staged-outbox-check.mjs's own message.
+#   .claude/settings.json           SessionStart matcher widened from
+#                                   `startup|resume` to
+#                                   `startup|resume|clear|compact`. The session
+#                                   that found this was continued from a
+#                                   compacted conversation.
+#
+# AND THE HONEST LIMIT OF THAT, because it is the thing to check next. The new
+# hook is pipe-tested in all three outcomes and schema-validated, and it was NOT
+# observed to fire: a deliberately-violating `git commit` still printed
+# "pre-commit: fast gate…", which means the Bash command ran and the GIT hook
+# blocked it. A settings-file hook added mid-session needs a config reload or a
+# fresh session. So the second delivery is in place and unproven, and the fact
+# that it could not be proven is itself the same finding — the hook path is
+# unreliable here.
+#
+# The remedy with no hook in it is already written down in this repository and
+# cannot be applied by a session: paste `scripts/install_pkgs.sh` into the
+# ENVIRONMENT's Setup script field, which runs before Claude Code launches and
+# which the environment cache makes free after the first run. docs/SETUP-SCRIPT.md
+# has the text. If this file moves a sixth time, that field is the first thing to
+# look at, and the commits are again not the thing to investigate.
+#
+# WHY aa1e9b5 IS THE BOUNDARY
+#
+# First commit after the last violation that obeys the rule affirmatively: it
+# ships scripts/axis-check.mjs and scripts/computed-chrome-check.mjs BESIDE
+# outbox/cc-session-2026-10-08-axis-manifest.md. The six commits between f9d85e7
+# and it touch no source at all (four status refreshes, a forecast run, and a
+# docs-only citation fix), so the boundary lands on a commit that demonstrates
+# the rule rather than one that merely avoids it — the property the 08-23 entry
+# required and the 09-01 entry restated.
+#
+# HOW 36 WAS DERIVED
+#
+# 24 + 12. `check:history` reported "predating the rule: 24 (declared 24)"
+# against boundary d917dc9 over 1847 commits and named exactly twelve governed
+# violations. Moving past them moves each from governed to predating.
+#
+# DERIVED LOCALLY, AND THE DEPTH WAS CONFIRMED FIRST, which both earlier entries
+# require. This clone began the session SHALLOW at 279 commits — where
+# check:history cannot even find d917dc9 and fails with the unknown-boundary
+# error — and `git fetch --unshallow` took it to 1847 in two seconds. CI remains
+# the authority if the two ever disagree. For the next session: the 08-23 entry's
+# rule stands, and this session is the fourth piece of evidence for it. Confirm
+# `git log --oneline | wc -l` is in the hundreds before believing any local
+# number, and if it is not, unshallow — it is cheap.
+#
+# The governed violation count is 0 again.
+
+aa1e9b5d576ca814d95be8bbdec273565da6d2b4  36
