@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e1303e6` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: only a full run owns the mutation baseline, and guard what that cost |
+| `38070c0` | 2026-10-09 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of f272b49 [skip ci] |
+| `c12635e` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | docs: the last bare citation, and the ratchet to zero |
+| `f272b49` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | docs: close the session entry — verify is green and the chain self-drives |
+| `612feb5` | 2026-10-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8c4cda0` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | feat: every check's failure reason survives into an annotation |
 | `16280f9` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | docs: move the history boundary a fifth time, d917dc9/24 -> aa1e9b5/36 |
 | `d94db01` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: a second delivery for the outbox guard, independent of core.hooksPath |
