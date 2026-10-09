@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `63f9778` | 2026-10-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-09 [skip ci] |
+| `63f9778` | 2026-10-09 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-09 [skip ci] |
+| `895139f` | 2026-10-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4076043` | 2026-10-09 | [cc-session-2026-10-09-setup-script-cannot-be-automated.md](cc-session-2026-10-09-setup-script-cannot-be-automated.md) | docs: the setup-script outage, confirmed live from inside a working session |
 | `9a82810` | 2026-10-09 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-09T13:44 [skip ci] |
 | `2000641` | 2026-10-09 | [cc-session-2026-10-09-setup-script-cannot-be-automated.md](cc-session-2026-10-09-setup-script-cannot-be-automated.md) | fix: the setup-script field held a bare npm install; guard the block instead |
