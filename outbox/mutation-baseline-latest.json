@@ -1,11 +1,180 @@
 {
-  "at": "2026-10-09T04:14:35.348Z",
-  "ran": 1,
-  "from_mutations": 1,
+  "at": "2026-10-09T05:02:03.005Z",
+  "scope": "full",
+  "ran": 43,
+  "from_mutations": 89,
   "failing": 0,
   "results": [
     {
-      "cmd": "node -e \"process.exit(0)\"",
+      "cmd": "node scripts/pickem-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/state-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/pick-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/spark-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/prose-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/corpus-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/docs-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/journalism-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/scoreline-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/scoreline-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/ceiling-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/sport-registry-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/outlet-scan-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/brief-flip-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/weather-burst-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"decoders accept both real captures\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"decoders still REJECT the corrupted fixture\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"render checks pass on both captures\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"grouping and date navigation pass\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"build is clean, zero F#/NuGet warnings\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"doc claims are compiler-verified, not prose\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"workflow jobs can run the scripts they invoke\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"the F# harness refuses a check with no counterexample\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"games on a panel are separated from each other\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"FIELD-zone day is correct at fixed instants\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"every governed commit paired source with outbox\"",
+      "passed": true
+    },
+    {
+      "cmd": "bash -c '! node scripts/mutation-check.mjs --only known-survivor'",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"every gate row has teeth and is deterministic\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"pick'em grades only finished games\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"generated source matches its generator and data\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"no value is written without being read back\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/checks.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/row-confidence.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/run-row.mjs \"a red main is reported, not softened\"",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/?tab=draw' node scripts/draw-render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node build/VerifyMain.js",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/axis-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutation-check.mjs --self-test",
       "passed": true
     }
   ]
