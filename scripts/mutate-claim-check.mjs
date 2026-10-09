@@ -61,7 +61,7 @@ const MUTATIONS = [
   ['C7 the premise scanner stops collapsing whitespace',
    "    const ctx = (strip(lines[i - 1]) + ' ' + strip(line)).toLowerCase().replace(/\\s+/g, ' ')",
    "    const ctx = (strip(lines[i - 1]) + ' ' + strip(line)).toLowerCase()",
-   'the third of three fixes one sentence needed. Without it the window reads "the  field app" with two spaces, Desk.fs:1369 escapes, and the scan reports fewer undated premises than exist'],
+   'the third of three fixes one sentence needed. Without it the window reads "the  field app" with two spaces, the wrapped `1 - homeWP` premise in Desk.fs escapes, and the scan reports fewer undated premises than exist'],
 
   ['C8 the premise scanner stops looking at the previous line',
    "    const ctx = (strip(lines[i - 1]) + ' ' + strip(line)).toLowerCase().replace(/\\s+/g, ' ')",

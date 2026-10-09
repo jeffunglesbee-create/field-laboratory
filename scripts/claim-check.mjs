@@ -397,12 +397,37 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     wrapped.length === 1 && wrapped[0].line === 2,
     JSON.stringify(wrapped))
   if (existsSync('src/Desk.fs')) {
-    const real = premisesIn(readFileSync('src/Desk.fs', 'utf8'), 'src/Desk.fs')
-    check('THE CONTROL: src/Desk.fs:1369 is found as a present-tense premise',
-      real.some(p => p.line === 1369),
+    const body = readFileSync('src/Desk.fs', 'utf8')
+    const real = premisesIn(body, 'src/Desk.fs')
+
+    // ANCHORED ON THE SUBJECT'S TEXT, NOT ITS LINE NUMBER.
+    //
+    // This control read `real.some(p => p.line === 1369)` and went red on
+    // 2026-10-03, where it stayed for six days and took the `claim-sweep` job
+    // with it. Nothing was wrong with the scanner: the premise had moved to
+    // 1468 and the control could no longer find its own subject. A control
+    // pinned to a line number is guaranteed to reach that state eventually,
+    // and while it is there it is indistinguishable from the scanner breaking.
+    //
+    // It is also the exact failure this file's own check:citations guards
+    // against in documents — a citation that quotes nothing cannot survive its
+    // subject moving — committed in the harness that exists to catch it.
+    //
+    // The subject is the `1 - homeWP` premise CC-CMD-2026-09-11 names. Its line
+    // is looked up, and whether it is THERE is now a separate check from
+    // whether the scanner finds it: a deleted subject and a blind scanner are
+    // different facts and used to produce the same two failures.
+    const SUBJECT = '1 - homeWP'
+    const at = body.split('\n').findIndex(l => l.includes(SUBJECT)) + 1
+    check(`THE CONTROL HAS A SUBJECT: \`${SUBJECT}\` is in src/Desk.fs`,
+      at > 0,
+      `the control cannot run — its subject is not in the file at all, so the two checks ` +
+      `below would fail for a reason that has nothing to do with the scanner`)
+    check(`THE CONTROL: src/Desk.fs:${at || '?'} is found as a present-tense premise`,
+      at > 0 && real.some(p => p.line === at),
       `lines found: ${real.map(p => p.line).join(', ') || 'none'}`)
     check('...and it is UNDATED, which is the finding',
-      real.some(p => p.line === 1369 && !p.dated),
+      at > 0 && real.some(p => p.line === at && !p.dated),
       'a dated premise carries its verification; this one asserts the present tense with no date')
   }
 
