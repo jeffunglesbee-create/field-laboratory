@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d52f43f` | 2026-10-09 | [cc-session-2026-10-08-axis-manifest.md](cc-session-2026-10-08-axis-manifest.md) | docs: the measured widths, in the entry that promised them |
+| `3795612` | 2026-10-09 | [cc-session-2026-10-09-claim-control-anchor.md](cc-session-2026-10-09-claim-control-anchor.md) | fix: the claim harness's own control was pinned to a line number |
 | `c3310cf` | 2026-10-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `aa1e9b5` | 2026-10-08 | [cc-session-2026-10-08-axis-manifest.md](cc-session-2026-10-08-axis-manifest.md) | feat: the axis widths become an artifact in the tree, not only a run log |
 | `a6c5b52` | 2026-10-08 | [cc-session-2026-10-08-score-dm-sans-variable.md](cc-session-2026-10-08-score-dm-sans-variable.md) | docs: anchor the two citations yesterday's entry left bare |
