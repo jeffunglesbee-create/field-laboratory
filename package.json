@@ -25,6 +25,7 @@
     "check:confidence-record": "node scripts/confidence-record-check.mjs --self-test && node scripts/confidence-record-check.mjs",
     "check:secrets": "node scripts/exposed-secret-check.mjs --self-test && node scripts/exposed-secret-check.mjs",
     "check:import-purity": "node scripts/import-purity-check.mjs --self-test && node scripts/import-purity-check.mjs",
+    "check:harness": "node scripts/checks.mjs --self-test",
     "check:adhd-skill": "node scripts/install-adhd-skill.mjs --self-test && node scripts/install-adhd-skill.mjs --check",
     "sync:adhd-skill": "node scripts/sync-adhd-skill.mjs --self-test && node scripts/sync-adhd-skill.mjs",
     "watch:relay-briefs": "node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs",

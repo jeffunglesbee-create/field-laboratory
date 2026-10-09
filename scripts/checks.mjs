@@ -16,6 +16,50 @@ import { pathToFileURL } from 'node:url'
 // named pass/fail results, print them uniformly, exit non-zero if any failed.
 // So that part is shared, and the probes stay separate.
 
+/**
+ * A failure, restated as a GitHub Actions error annotation.
+ *
+ * WHY: a run's failure reason is printed to the log, and a log is not reachable
+ * from every client that can reach the run. `runs/<id>/logs` answers with a
+ * redirect to blob storage, and the GitHub client in this project's authoring
+ * sandbox refuses it — so for six days in October 2026 the reasons behind red
+ * `verify` steps were unreadable from the place the fixes were being written,
+ * and each one cost a full CI round to discover. Annotations come back from
+ * `check-runs/<id>/annotations`, which that same client CAN read; measured on
+ * run 37874593207, where the only annotations present were the runner's own
+ * ("Process completed with exit code 1") because nothing emitted any.
+ *
+ * It needs no `permissions:` grant and writes no file, which is why it is here
+ * rather than in each script.
+ *
+ * ESCAPING IS NOT OPTIONAL. An annotation is one line; a `%`, a newline or a
+ * carriage return in the detail silently truncates or corrupts it. `%` is
+ * replaced FIRST, or the `%0A` introduced for a newline would itself be
+ * re-escaped to `%250A`. A property value escapes `:` and `,` as well, since
+ * both are separators in the command's own syntax.
+ */
+export const escapeAnnotationData = s =>
+  String(s).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')
+
+export const escapeAnnotationProp = s =>
+  escapeAnnotationData(s).replace(/:/g, '%3A').replace(/,/g, '%2C')
+
+/** How many failures are annotated. GitHub renders at most ten error
+ *  annotations per step, so an eleventh would be silently dropped — the count
+ *  of what was left out is annotated instead, where the reader can see it. */
+export const ANNOTATION_CAP = 10
+
+export const annotationsFor = (failed, cap = ANNOTATION_CAP) => {
+  const out = failed.slice(0, cap).map(c =>
+    `::error title=${escapeAnnotationProp(c.name)}::` +
+    escapeAnnotationData(c.detail ?? 'no detail was given'))
+  if (failed.length > cap) {
+    out.push(`::error title=annotations truncated::${failed.length - cap} ` +
+      `further failure(s) are in the log only; the cap is ${cap}`)
+  }
+  return out
+}
+
 export function createChecks() {
   const checks = []
 
@@ -32,6 +76,11 @@ export function createChecks() {
       }
       const failed = checks.filter(c => !c.pass)
       console.log(`\n${checks.length - failed.length}/${checks.length} checks passed`)
+      // ON A RUNNER, ALSO AS AN ANNOTATION — the only machine-readable channel a
+      // failure reason survives into. See annotationsFor.
+      if (failed.length && process.env.GITHUB_ACTIONS === 'true') {
+        for (const line of annotationsFor(failed)) console.log(line)
+      }
       return failed.length
     },
   }
@@ -146,4 +195,44 @@ export const isMain = url => {
   const entry = process.argv[1]
   if (!entry) return false
   return url === pathToFileURL(entry).href
+}
+
+// THE HARNESS'S OWN SELF-TEST, under isMain so importing this module still runs
+// nothing — the rule check:import-purity exists for, and which three scripts
+// broke on 2026-10-09 by ending in a bare top-level process.exit().
+//
+// Usage:  node scripts/checks.mjs --self-test
+if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
+  const { check, summarize } = createChecks()
+
+  check('a failure becomes one ::error:: line',
+    annotationsFor([{ name: 'n', detail: 'd' }]).length === 1)
+  check('the check name is the annotation TITLE and the detail its message',
+    annotationsFor([{ name: 'the axis interpolates', detail: 'widths [1,1,1,1]' }])[0] ===
+      '::error title=the axis interpolates::widths [1,1,1,1]')
+  check('A COLON IN THE NAME IS ESCAPED — it separates properties',
+    annotationsFor([{ name: 'a:b', detail: 'd' }])[0] === '::error title=a%3Ab::d',
+    'an unescaped colon in a property value truncates the annotation')
+  check('a COMMA in the name is escaped too',
+    annotationsFor([{ name: 'a,b', detail: 'd' }])[0] === '::error title=a%2Cb::d')
+  check('a NEWLINE in the detail is escaped — an annotation is one line',
+    annotationsFor([{ name: 'n', detail: 'one\ntwo' }])[0] === '::error title=n::one%0Atwo')
+  check('a carriage return is escaped',
+    annotationsFor([{ name: 'n', detail: 'one\rtwo' }])[0] === '::error title=n::one%0Dtwo')
+  check('PERCENT IS ESCAPED FIRST, or the %0A it introduces is re-escaped',
+    annotationsFor([{ name: 'n', detail: '50%\n' }])[0] === '::error title=n::50%25%0A',
+    "replacing newlines before % yields %250A and the reader sees a literal '%0A'")
+  check('a colon in the DETAIL is left alone — only properties need it escaped',
+    annotationsFor([{ name: 'n', detail: 'a:b' }])[0] === '::error title=n::a:b')
+  check('a missing detail says so rather than printing undefined',
+    annotationsFor([{ name: 'n' }])[0] === '::error title=n::no detail was given')
+  // Rule 91: the cap's own denominator is annotated, not swallowed.
+  const many = Array.from({ length: ANNOTATION_CAP + 3 }, (_, i) => ({ name: `n${i}`, detail: 'd' }))
+  const capped = annotationsFor(many)
+  check(`past the cap of ${ANNOTATION_CAP}, the OVERFLOW IS ANNOTATED, not dropped silently`,
+    capped.length === ANNOTATION_CAP + 1 && /3 further failure\(s\)/.test(capped[ANNOTATION_CAP]),
+    `got ${capped.length} line(s): ${JSON.stringify(capped.slice(-1))}`)
+  check('a clean run annotates nothing', annotationsFor([]).length === 0)
+
+  process.exit(summarize() === 0 ? 0 : 1)
 }

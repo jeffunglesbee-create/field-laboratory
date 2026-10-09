@@ -792,6 +792,33 @@ const MUTATIONS = [
   },
 
   {
+    // The annotation channel is now how every other check's failure reason
+    // reaches a reader who cannot fetch run logs. Escaping `%` AFTER the
+    // newline turns the `%0A` just introduced into `%250A`, so the reader sees
+    // a literal "%0A" instead of a line break — the detail is still there and
+    // is no longer what it says. If this survives, the escaping order is
+    // asserted nowhere and the subtlest way to corrupt the channel is open.
+    id: 'annotation-escapes-percent-last',
+    file: 'scripts/checks.mjs',
+    claim: 'the annotation escaper replaces % first, before the %0A it introduces',
+    find: "  String(s).replace(/%/g, '%25').replace(/\\r/g, '%0D').replace(/\\n/g, '%0A')",
+    replace: "  String(s).replace(/\\r/g, '%0D').replace(/\\n/g, '%0A').replace(/%/g, '%25')",
+    expect: 'node scripts/checks.mjs --self-test',
+  },
+
+  {
+    // A colon separates an annotation's properties, so a check name containing
+    // one truncates the title and takes the message with it. Every check name
+    // in this repo is prose and several contain colons.
+    id: 'annotation-prop-keeps-its-colon',
+    file: 'scripts/checks.mjs',
+    claim: 'a colon in a check name is escaped before it becomes an annotation property',
+    find: "  escapeAnnotationData(s).replace(/:/g, '%3A').replace(/,/g, '%2C')",
+    replace: "  escapeAnnotationData(s).replace(/,/g, '%2C')",
+    expect: 'node scripts/checks.mjs --self-test',
+  },
+
+  {
     // THE SAME RULE, TURNED ON THIS FILE. `gate-day-per-row` above pins the
     // gate's own day; nothing pinned the harness's. 901f00e added the baseline
     // artifact with a bare `new Date()` in its object literal, row-confidence

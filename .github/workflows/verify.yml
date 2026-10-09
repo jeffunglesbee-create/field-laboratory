@@ -882,6 +882,15 @@ jobs:
           node scripts/deploy-claim-consistency-check.mjs --self-test
           node scripts/deploy-claim-consistency-check.mjs
 
+      # The shared harness's own annotation emitter. It is the channel every
+      # OTHER check's failure reason now travels through, so a break in it is
+      # silent by construction: the reasons simply stop arriving.
+      - name: The check harness escapes its annotations
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:harness
+
       - name: Importing a module never runs it
         # Runs even if a SIBLING report failed — see the block above
         # `Every gate row has teeth`.

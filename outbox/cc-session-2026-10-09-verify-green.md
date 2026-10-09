@@ -395,3 +395,57 @@ authority if the two ever disagree.
 environment's Setup script field, not at the commits. Three of the five moves
 now have the same cause — a guard whose delivery did not run — and the fifth
 could not even prove its own replacement guard fires.
+
+---
+
+## Every check's failure reason is now readable without the log
+
+The one blocker left after the boundary move is `Render check against the LIVE
+slate`, and its reason could not be read: `runs/<id>/logs` answers with a
+redirect to blob storage that this sandbox's GitHub client refuses, and the
+annotations endpoint — which that client CAN read — carried only the runner's
+own line.
+
+```
+$ gh api .../check-runs/113640147415/annotations
+  failure  .github:130  Process completed with exit code 1.
+  failure  .github:44   Process completed with exit code 1.
+```
+
+Nothing emitted any annotation, so nothing was there to read. That is now fixed
+once, in the shared harness, for every script that uses it.
+
+`scripts/checks.mjs`'s `summarize()` emits one `::error::` line per failed
+check when `GITHUB_ACTIONS === 'true'`. No `permissions:` grant, no file
+written, no change to any individual script.
+
+**Escaping is the whole substance of it.** An annotation is one line, and `%`,
+`\n` and `\r` in a detail silently truncate or corrupt it; `:` and `,` separate
+the command's own properties, so a check name containing either loses its title
+and takes the message with it. `%` is replaced **first**, or the `%0A` just
+introduced for a newline is itself re-escaped to `%250A` and the reader sees a
+literal `%0A`.
+
+11 self-tests on the pure function, plus the integration half in both
+directions, because a pure function nothing calls annotates nothing:
+
+```
+GITHUB_ACTIONS=true  ->  ::error title=a failing check%3A the axis did not rise::widths [133,133,133,133]
+(unset)              ->  0 annotations
+```
+
+Note the `%3A`: the colon in that check's own name, escaped.
+
+### Two mutations, both caught
+
+| id | mutation | caught by |
+|---|---|---|
+| `annotation-escapes-percent-last` | `%` escaped after the newline | *"PERCENT IS ESCAPED FIRST, or the %0A it introduces is re-escaped"* |
+| `annotation-prop-keeps-its-colon` | the `:` escape dropped from property values | *"A COLON IN THE NAME IS ESCAPED — it separates properties"* |
+
+86 mutation rows now, and each ran against an unmutated positive control first.
+
+Rule 91 applies to the cap as well: GitHub renders at most ten error annotations
+per step, so an eleventh would vanish. Past the cap the **count of what was left
+out is itself annotated**, where the reader can see it, rather than being
+dropped.
