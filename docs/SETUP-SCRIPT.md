@@ -375,6 +375,35 @@ same eight lines — its `npm install` has no `cd` and the primary working
 directory is `/home/user` — but not the exit code, because every step is
 guarded with `|| true` and it ends `exit 0`.
 
+### Confirmed live from inside a working session, 2026-10-09 14:28Z
+
+The earlier sections infer the field's state from a dead session someone else
+created. It is directly measurable: `create_session` into the same environment,
+no repositories attached, then read `last_init_error`.
+
+```
+session_0122e1H1XzRrpfT9Aa9WnTmo
+  created     2026-10-09T14:28:19Z
+  init failed 2026-10-09T14:28:22Z          ← 3 seconds
+  error_kind "init_script"   message "Setup script failed"
+  recoverable "false"        tags: config:no-git-repo
+```
+
+**Three seconds, not fifty-one.** The 2026-09-22 death took 51 s because
+`sources_processing` cloned four repositories first; with none attached the init
+script is reached immediately. That difference is itself the mechanism proof:
+the failure does not depend on any repository, and `config:no-git-repo` rules out
+every repo-side cause in one shot — the same discriminator the 2026-08-26
+section used, repeated deliberately.
+
+It also means **any working session can take this measurement**, which is the
+part nobody had. The 61 days were not 61 days of an undiagnosable problem; they
+were 61 days of nobody creating a throwaway session and reading one field. That
+session was archived immediately after; its record keeps the evidence.
+
+For whoever opens the log: use this session id rather than an older one. Its
+failure is minutes old.
+
 ### What is checked now
 
 `scripts/setup-script-check.mjs` parses the block at the top of this file and

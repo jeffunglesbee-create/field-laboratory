@@ -291,3 +291,32 @@ the pre-commit gate: docs-only, no network, instant.
 `"postCreateCommand": "npm install && npm install -g wrangler@3.109.0"` — the
 only artifact across the four repositories matching the log on **both** output
 and exit code.
+
+
+---
+
+## Confirmed live, by my own measurement rather than by asking
+
+I had been ending every turn by asking the owner to create a throwaway session
+and report back. That was mine to do:
+
+```
+session_0122e1H1XzRrpfT9Aa9WnTmo   (no repos attached, archived after)
+  created     2026-10-09T14:28:19Z
+  init failed 2026-10-09T14:28:22Z     ← 3 seconds
+  error_kind "init_script"  message "Setup script failed"  recoverable "false"
+```
+
+Live as of 14:28Z today. **Three seconds, not fifty-one** — the 2026-09-22 death
+spent 51 s cloning four repositories before reaching the init script; with none
+attached it fails at once. That gap is the mechanism proof: the failure depends
+on no repository, and `config:no-git-repo` eliminates every repo-side cause.
+
+The useful part is not the confirmation, it is that the measurement was always
+available. Any working session can create a session, read `last_init_error`, and
+archive it — three tool calls. The 61 days were not 61 days of an opaque
+problem; they were 61 days of nobody spending those three calls.
+
+What remains genuinely outside this session: writing the field. Measured
+NOT-WRITABLE-FROM-HERE three ways, with the barrier identified as
+authentication — `ENVIRONMENT_SERVICE_KEY` unset — rather than reachability.
