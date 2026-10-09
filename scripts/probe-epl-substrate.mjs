@@ -30,6 +30,7 @@
 // the classifier's verdict on a source nobody has eyes on.
 
 import { writeFileSync, mkdirSync } from 'node:fs'
+import { isMain } from './checks.mjs'
 
 const RELAY = process.env.RELAY_URL || 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const TIMEOUT_MS = 30_000
@@ -429,5 +430,12 @@ async function live() {
   return 0
 }
 
-const code = process.argv.includes('--self-test') ? selfTest() : await live()
-process.exit(code)
+// GUARDED. This file ended in a bare top-level `process.exit(...)`, so importing
+// it — which `check:import-purity` does to every script — terminated the
+// importing process before any code after the import ran. Same defect, same
+// shape, in three scripts at once; `staged-outbox-check.mjs`'s own header
+// records three earlier instances and the guard that catches them.
+if (isMain(import.meta.url)) {
+  const code = process.argv.includes('--self-test') ? selfTest() : await live()
+  process.exit(code)
+}

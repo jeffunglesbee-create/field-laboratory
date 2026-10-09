@@ -109,3 +109,63 @@ uses. The reason is in the row's comment: this row's own command is the
 83-mutation suite, so `run-row.mjs` would either take its verdict from the last
 full gate run or cost fifty minutes — neither can fail for the reason the
 mutation exists. The scorer runs in one second and drops the row directly.
+
+---
+
+## check:import-purity — three scripts ran their work on import
+
+With `node_modules` installed, the purity probe reads differently from the way it
+read yesterday. Yesterday it named `team-tint-render-check.mjs` and
+`viewport-overflow-check.mjs`; both import `playwright` at module scope and
+`node_modules` was empty, so that pair was an artifact of the sandbox. With deps
+present they pass, and three real offenders appear:
+
+```
+→ scripts/forecast-run.mjs:         the import terminated the process (exit 1)
+→ scripts/probe-epl-substrate.mjs:  the import terminated the process (exit 1)
+→ scripts/replay-odds-coverage.mjs: the import terminated the process (exit 0)
+```
+
+Each ended in a bare top-level `process.exit(...)` with no entry-point guard, so
+importing it ran its work and killed the importing process. This is the fourth,
+fifth and sixth instances of a class `staged-outbox-check.mjs`'s own header
+already records three of: *"Three modules written in one session … each exported
+functions and each did its work at import time."*
+
+It also explains an observation filed yesterday as a loose end — that running
+`npm run check:import-purity` wrote `outbox/epl-substrate-probe-latest.json` and
+a fresh timestamped probe file. It was `probe-epl-substrate.mjs` reaching the
+relay from inside the purity probe's own import. Now it cannot.
+
+All three now carry `if (isMain(import.meta.url))`, the guard the rest of this
+repo uses.
+
+### The guard that passed for the wrong reason
+
+The first version of this fix put the explanatory comment immediately before the
+new `if`, and the note's trailing newline had been stripped — so
+`...catches them.if (isMain(import.meta.url)) {` was **one comment line**.
+
+`probe-epl-substrate.mjs` and `replay-odds-coverage.mjs` failed loudly, with a
+dangling `}`: `SyntaxError: Unexpected token '}'`.
+
+`forecast-run.mjs` **passed**. Its call was a single line with no braces, so
+commenting out the `if` commented out the entry point entirely: the file imported
+cleanly because it no longer did anything at all. One of the three was green for
+precisely the reason that made it broken, and the check could not tell.
+
+So both halves are now asserted, not one:
+
+```
+forecast-run           IMPORT CLEAN   and `node scripts/forecast-run.mjs` reaches main() (TypeError: fetch failed — sandbox egress)
+replay-odds-coverage   IMPORT CLEAN   and --self-test  11/11
+probe-epl-substrate    IMPORT CLEAN   and --self-test  37/37
+```
+
+A guard that silences a script satisfies "importing never runs it" perfectly.
+`grep -n '^if (isMain(import.meta.url))'` on all three confirms the line is code
+and not comment.
+
+```
+PASS  importing a module never runs it or exits the process      2/2
+```

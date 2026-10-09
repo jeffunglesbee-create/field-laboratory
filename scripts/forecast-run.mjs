@@ -27,6 +27,7 @@ import {
   diff, deductionsUnsettled, METHOD,
 } from '../build/Forecast.js'
 import { TABLE, DDL, DDL_INDEX, SQL_INSERT, SQL_LATEST, rowOf } from './forecast-store.mjs'
+import { isMain } from './checks.mjs'
 
 const RELAY = process.env.RELAY_URL || 'https://field-relay-nba.jeffunglesbee.workers.dev'
 const SECRET = process.env.RELAY_SHARED_SECRET || ''
@@ -227,4 +228,9 @@ async function main() {
 const CAUSE_NAMES = ['ResultObserved', 'MarketMoved', 'FixtureScheduled',
                      'SubstrateGained', 'SubstrateLost', 'ModelRevised', 'Unchanged']
 
-process.exit(await main())
+// GUARDED. This file ended in a bare top-level `process.exit(...)`, so importing
+// it — which `check:import-purity` does to every script — terminated the
+// importing process before any code after the import ran. Same defect, same
+// shape, in three scripts at once; `staged-outbox-check.mjs`'s own header
+// records three earlier instances and the guard that catches them.
+if (isMain(import.meta.url)) process.exit(await main())

@@ -23,6 +23,7 @@
 
 import { execFileSync } from 'node:child_process'
 import { transitions, alarmLine } from './odds-coverage.mjs'
+import { isMain } from './checks.mjs'
 
 const SERIES = 'outbox/odds-coverage-series.json'
 // Kept in step with odds-coverage.mjs by assertion, not by hope: `floorAgrees`
@@ -131,4 +132,11 @@ function live() {
   return 0
 }
 
-process.exit(process.argv.includes('--self-test') ? selfTest() : live())
+// GUARDED. This file ended in a bare top-level `process.exit(...)`, so importing
+// it — which `check:import-purity` does to every script — terminated the
+// importing process before any code after the import ran. Same defect, same
+// shape, in three scripts at once; `staged-outbox-check.mjs`'s own header
+// records three earlier instances and the guard that catches them.
+if (isMain(import.meta.url)) {
+  process.exit(process.argv.includes('--self-test') ? selfTest() : live())
+}
