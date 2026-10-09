@@ -293,3 +293,61 @@ sessions'. And the durable fix is not mine to make: the repo's own
 environment menu in the session title bar, then Edit) as the proper home for the
 bootstrap, where the environment cache makes it free and no hook has to fire.
 Absorbing twelve before that field is filled invites a sixth move.
+
+---
+
+## A second delivery for the outbox guard, and what it proved about the first
+
+The twelve violations below all have one cause: `.githooks/pre-commit` runs only
+when `core.hooksPath` points at it, and the only thing that sets that is
+`scripts/install_pkgs.sh` from the `SessionStart` hook. It had not run.
+
+`scripts/hook-staged-outbox.sh` asks the same predicate from a different
+delivery — a `PreToolUse` hook on `Bash`, filtered with
+`"if": "Bash(git commit*)"`, read straight out of `.claude/settings.json` with
+no install step, no `git config`, and no npm packages (`staged-outbox-check.mjs`
+imports only `./checks.mjs` and shells out to git).
+
+Three outcomes, pipe-tested with the real stdin payload:
+
+| staged | command | exit | effect |
+|---|---|---|---|
+| nothing | `git commit -m x` | 0 | allowed |
+| `scripts/hook-staged-outbox.sh` alone | `git commit -m x` | **2** | **blocked** |
+| the same violation | `git commit --no-verify -m x` | 0 | allowed |
+
+Exit 2 is what blocks, so a guard that *cannot* run exits 2 as well — failing
+open is the state that produced twelve violations. `--no-verify` passes through
+untouched because that is the override `staged-outbox-check.mjs`'s own error
+message documents.
+
+`SessionStart`'s matcher also widened from `startup|resume` to
+`startup|resume|clear|compact`. This session was continued from a compacted
+conversation, and nothing was installed.
+
+### It is NOT proven to fire, and that is the finding
+
+Attempting a deliberately-violating commit with the hook written and
+schema-validated (`jq -e` returns the command, exit 0):
+
+```
+$ git commit -m "probe: does the PreToolUse guard fire"
+pre-commit: fast gate…
+```
+
+The Bash command **ran**. A `PreToolUse` hook that fired would have stopped it
+before the shell saw it; what blocked the commit was the git hook, now that
+`core.hooksPath` is set. So the new guard was not live in this session — a
+settings-file hook added mid-session needs a config reload (`/hooks`) or a fresh
+session, which a session cannot do to itself.
+
+That is worth more than the hook. It says the hook-delivery path is itself
+unreliable here, which is the same fact as the bootstrap not having run, and it
+is the strongest argument for the remedy this repo already documents and that no
+session can apply: `scripts/install_pkgs.sh` pasted into the environment's
+**Setup script** field, which runs before Claude Code launches and needs no hook
+at all. `docs/SETUP-SCRIPT.md` has the text.
+
+**Verify it after a fresh session, in one command:** stage a source file with no
+outbox entry and run `git commit`; the guard is live if the command never
+reaches the shell — no `pre-commit: fast gate…` line.
