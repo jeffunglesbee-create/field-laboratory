@@ -192,9 +192,15 @@ actually observed.
 
 1. **`Sport.Golf` becomes `Modelled = true`, `Omission = None`.** That is the
    deliverable: the section heading stops reading `golf · N · UNMODELLED SPORT`.
-2. **`scripts/sport-registry-check.mjs:92`** asserts `golf.Modelled === false`.
-   That assertion flips, and its comment records that the reason changed —
+2. **`scripts/sport-registry-check.mjs`** asserted `golf.Modelled === false`.
+   That assertion flipped, and its comment records that the reason changed —
    golf was never unmodellable, it was un-*renderable* under a contest.
+   *Updated 2026-10-09: this shipped the same day the doc was filed. The check
+   now reads `golf.Modelled === true && golf.Label === 'golf' && golf.Omission == null`,
+   under the name `golf is modelled, and as a non-contest`. The line number this
+   item used to carry — `:92` — had drifted onto an unrelated check, which is
+   what `check:citations` exists to catch; it was this repository's last bare
+   citation, and the budget drops to 0 in the same commit.*
 3. **`Game.League` gets its first renderer.** Golf's tour is already decoded and
    used in exactly one place (`Scout.fs:233`), never shown. `league="PGA Tour"`
    on the golf row is the correct tour identity and belongs on the card.

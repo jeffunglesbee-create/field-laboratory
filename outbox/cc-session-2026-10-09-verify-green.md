@@ -502,3 +502,71 @@ annotation, which is the whole point of the change above.
 Five causes, no overlap, and four of the five were invisible until the step in
 front of them went green — which is why the thirteen-step fail-fast tail was
 worth unmasking before any of them.
+
+---
+
+## The citation ratchet is at zero
+
+`docs/citation-budget.txt`: `1` → `0`. The last bare citation in the repository
+is gone, and it was not a formatting problem.
+
+`docs/NON-CONTEST-DESIGN.md` item 2 read: *"`scripts/sport-registry-check.mjs:92`
+asserts `golf.Modelled === false`. That assertion flips..."* — written on
+2026-08-25 as a plan. Two things had since gone stale. The assertion **flipped
+the same day** (the doc's own header says `Status: BUILT 2026-08-25, same day`),
+so it now reads `golf.Modelled === true && golf.Label === 'golf' && golf.Omission == null`
+under the check named `golf is modelled, and as a non-contest`. And `:92` had
+drifted onto `check('score ordering agrees with the matchup text for every sport',`,
+an unrelated check — the exact drift `check:citations` exists to catch, sitting
+inside the budget that tolerated one.
+
+The item is now in past tense, anchored on the assertion's real text, and dated.
+
+### The first mutation of this was DEAD, and the reason is a property of the checker
+
+Breaking it on purpose, at budget 0, by re-inserting
+a one-line `See sport-registry-check.mjs:92 ...` above the Guards
+section:
+
+```
+MUTATION APPLIED: one bare citation re-introduced
+0 bare
+PASS  bare citations do not grow (budget 0)
+```
+
+Not caught — and not because the ratchet is blind. The insertion point sits
+within 400 characters of the Guards section's own backticked fragments, one of
+which is present in `scripts/sport-registry-check.mjs`, so the citation
+**anchored by accident**. The mutation changed no output, which makes it a dead
+mutation; this repo's rule is to re-aim it, never to leave it green.
+
+Re-aimed with 630 characters of plain prose between the citation and the nearest
+backtick:
+
+```
+BARE  docs/NON-CONTEST-DESIGN.md  ->  scripts/sport-registry-check.mjs:92
+FAIL  bare citations do not grow (budget 0)
+```
+
+(Line 92 of that file today is
+`check('score ordering agrees with the matchup text for every sport',` — which
+anchors the citation printed above and is also what the stale `:92` had drifted
+onto.)
+
+Then restored: `bare 0`, `PASS`.
+
+**The ratchet then bit this very entry, at the door.** Writing *about* a bare
+citation creates bare citations: the prose above quoted the offending
+`path:line` twice, `classify` strips neither backticks nor fenced blocks, and
+the pre-commit gate refused the commit with `2 bare against a budget of 0`.
+Fixed by dropping the `scripts/` prefix from the synthetic example and anchoring
+the probe output on the real line-92 text. Three minutes after the budget
+reached 0 it blocked a commit for exactly the class it exists for, before CI —
+which is what the gate being installed in this session buys.
+
+Worth keeping as a fact about the checker rather than a defect in it: anchoring
+is proximity-based, so a citation near an unrelated quoted fragment that happens
+to appear in the cited file reads as anchored. The window is the mechanism and
+the mechanism has a false-negative mode. Nothing to fix today — the ratchet is
+at 0, so the next bare citation fails whether or not any particular one could
+have been smuggled past by position.
