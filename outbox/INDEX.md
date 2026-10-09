@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `147ac8a` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: three scripts ran their work on import |
+| `d0fdf33` | 2026-10-09 | [cc-session-2026-10-09-verify-green.md](cc-session-2026-10-09-verify-green.md) | fix: check:rows was red on one bare clock read in the mutation harness |
+| `5fa96a2` | 2026-10-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d52f43f` | 2026-10-09 | [cc-session-2026-10-08-axis-manifest.md](cc-session-2026-10-08-axis-manifest.md) | docs: the measured widths, in the entry that promised them |
 | `3795612` | 2026-10-09 | [cc-session-2026-10-09-claim-control-anchor.md](cc-session-2026-10-09-claim-control-anchor.md) | fix: the claim harness's own control was pinned to a line number |
 | `c3310cf` | 2026-10-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
