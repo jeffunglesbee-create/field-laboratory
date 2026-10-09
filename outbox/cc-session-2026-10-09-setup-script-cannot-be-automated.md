@@ -195,3 +195,99 @@ makes the un-bootstrapped state *say so* rather than closing the gap.
    from `SessionStart` at a cost of ~30 seconds on a cold VM.
 3. Re-enable `trig_01F5beAeTgNKG9v9a4s6Sxus`, whose title already says this is
    what it was waiting for.
+
+
+---
+
+# DIAGNOSED — the human read the log, and it was a bare `npm install`
+
+Everything above this line is inference from outside the field. The owner opened
+the failed session and pasted the log the same day:
+
+```
+Setup script failed with exit code 254.
+npm error path /home/user/package.json
+npm error enoent Could not read package.json
+```
+
+One cause, no ambiguity. Three things the log settles that nothing in this
+session could:
+
+**It is `npm install`, not `npm ci`.** Reproduced byte-identically in an empty
+directory: eight lines, same order, exit 254. `npm ci` there exits 1 with
+`EUSAGE` and writes nothing.
+
+**The fossil is still on disk**, and it dates the death to the millisecond:
+
+```
+$ cat /home/user/package-lock.json
+{ "name": "user", "lockfileVersion": 3, "requires": true, "packages": {} }
+born 2026-09-22 00:36:55.760264789 +0000
+```
+
+`"name": "user"` is `basename /home/user` — the lockfile `npm install` writes in
+an empty directory — created **26.6 ms** before `environment_init_failed`.
+
+**Sixty-one days, not forty-three.** `docs/CC-CMD-2026-08-09-fix-cloud-setup-and-scaffold-fable.md`
+recorded the same eight lines and the same exit code on 2026-08-09 and named the
+cause: *"If that field still contains a bare `npm install`, it will keep failing
+sessions until a human edits it there directly."* The 2026-08-26 section of
+`docs/SETUP-SCRIPT.md` reads as a fresh mystery; it was a recurrence of a
+diagnosed one, and the recurrence was diagnosed again today.
+
+## What I got wrong, and it was load-bearing
+
+I wrote that the setup script "provisions the VM before/outside any repository
+checkout". **It runs inside the same `env_init` phase, after checkout.** The
+failed boot's own ordering:
+
+```
+00:36:54.312  sources_processing_completed  {"duration_ms":51855,"success_count":4}
+00:36:55.760  package-lock.json written     (1.448 s later)
+00:36:55.787  environment_init_failed
+```
+
+All four repositories were on disk when npm ran. The conclusion survives — there
+is still no `package.json` at `/home/user`, `/home` or `/`, and npm resolves one
+only by walking UP — but the variable is the **working directory**, not checkout
+ordering.
+
+**And that error was baked into the remedy I had just recommended.** The doc's
+block carried `timeout 240`, sized as though the setup script had its own clock.
+It shares `env_init` with a checkout measured at 51.855 s (jubilant-bassoon
+alone 42.49 s / 465,871,184 bytes), so 52 + 240 left ~8 s of margin against the
+~300 s phase budget. A slow clone day would have turned the fix into a phase
+timeout: the same dead container, with no npm error left to point at. Corrected
+to `timeout 120`.
+
+One more correction: I said `install_pkgs.sh` "cannot produce this log". It can
+produce the log *text* — its `npm install` has no `cd` and the primary working
+directory is `/home/user` — but not the exit code, because every step is guarded
+`|| true` and it ends `exit 0`. Right conclusion, overstated reason.
+
+## So the automatable part turned out to exist after all
+
+The field cannot be written from a session. **The text a human is told to copy
+can be**, and that text is the only thing between the next paste and the same
+outage. `scripts/setup-script-check.mjs` refuses a block that names npm, yarn or
+pnpm, names a repository path, declares no timeout or one above 120 s, or does
+not end in a bare `exit 0`.
+
+It earned its place on its first run against real content:
+
+```
+FAIL  the documented paste block cannot kill a session the way the field did
+      - timeout 240s exceeds 120s; env_init is shared with checkout
+        (measured 52s) against a ~300s budget
+```
+
+It was not written to pass. 11 self-tests — one of which is the 61-day outage as
+a fixture — plus a mutation row that lets npm back in and is caught. Wired into
+the pre-commit gate: docs-only, no network, instant.
+
+## The likely source of the pasted text
+
+`jubilant-bassoon/.devcontainer/devcontainer.json` carries
+`"postCreateCommand": "npm install && npm install -g wrangler@3.109.0"` — the
+only artifact across the four repositories matching the log on **both** output
+and exit code.

@@ -11,7 +11,7 @@ icon above the message box) → gear icon on the environment → **Setup script*
 
 ```bash
 #!/bin/bash
-timeout 240 bash -c '
+timeout 120 bash -c '
   apt-get -o DPkg::Lock::Timeout=60 update
   apt-get -o DPkg::Lock::Timeout=60 install -y --no-install-recommends dotnet-sdk-10.0
 ' || echo "setup: .NET SDK install did not complete; the SessionStart hook will retry."
@@ -40,9 +40,19 @@ now — see "Reproduced on demand" below.** What was ruled out by direct test:
 
 So the hardening targets what could not be ruled out:
 
-- `timeout 240` caps the whole install below the ~5-minute budget, so a hang —
-  the most likely remaining cause, e.g. apt lock contention with a boot-time
-  `apt-daily` job — fails fast instead of blowing the budget.
+- `timeout 120` caps the whole install so a hang — e.g. apt lock contention
+  with a boot-time `apt-daily` job — fails fast instead of blowing the budget.
+  **It was 240 until 2026-10-09, and 240 was sized against a mechanism that is
+  wrong.** The setup script does not get its own clock: the init script runs
+  INSIDE the same `env_init` phase as the repository checkout, and after it.
+  Measured on this environment's only `session_mode: "new"` boot —
+  `sources_processing` 51.855 s, of which `jubilant-bassoon` alone was 42.49 s
+  for 465,871,184 bytes — so 52 + 240 left about 8 seconds of margin against the
+  ~300 s phase budget, on an environment whose largest clone keeps growing. A
+  slow clone day would have converted this remedy into a phase timeout: the same
+  dead container, with no npm error left to point at.
+  `scripts/setup-script-check.mjs` now refuses any block above 120 s, and it
+  caught this one on its first run.
 - `-o DPkg::Lock::Timeout=60` makes apt wait a bounded time for the dpkg lock
   rather than potentially blocking indefinitely.
 - An explicit `exit 0` on its own line removes any dependence on operator
@@ -273,3 +283,102 @@ environment down when it is wrong. Emptying it moves provisioning to the copy
 that is version-controlled.
 
 Populate the field again once its log has been read and the cause is known.
+
+
+---
+
+## DIAGNOSED 2026-10-09 — the field held a bare `npm install`
+
+The remedy section above ends "Open the failed session and expand the 'Ran
+setup script' step. That log is the evidence; everything above is inference."
+A human did that on 2026-10-09 and pasted it:
+
+```
+Setup script failed with exit code 254.
+Script output:
+npm error code ENOENT
+npm error syscall open
+npm error path /home/user/package.json
+npm error errno -2
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/home/user/package.json'
+npm error enoent This is related to npm not being able to find a file.
+npm error enoent
+npm error A complete log of this run can be found in: /root/.npm/_logs/2026-10-09T12_22_09_287Z-debug-0.log
+```
+
+That is the whole cause. The field ran `npm install` with working directory
+`/home/user`, where there is no `package.json` and never will be.
+
+### `npm install`, not `npm ci`, and the difference is decidable
+
+Reproduced byte-identically in an empty directory — same eight lines, same
+order, same wording, exit 254. `npm ci` is excluded two ways:
+
+| command | empty dir | exit | leaves behind |
+|---|---|---|---|
+| `npm install` | the eight lines above | **254** | `package-lock.json` named after the cwd's basename |
+| `npm ci` | `EUSAGE` + usage help | 1 | nothing |
+
+### And the fossil is still on disk
+
+```
+$ cat /home/user/package-lock.json
+{ "name": "user", "lockfileVersion": 3, "requires": true, "packages": {} }
+$ stat -c 'born %w' /home/user/package-lock.json
+born 2026-09-22 00:36:55.760264789 +0000
+```
+
+`"name": "user"` is `basename /home/user`. It is the lockfile `npm install`
+writes in an empty directory, and it was written **26.6 ms** before
+`environment_init_failed` on the only `session_mode: "new"` boot this
+environment has logged.
+
+### The mechanism, corrected
+
+An earlier draft of this analysis said the setup script "runs before and outside
+any repository checkout." **It does not.** The init script runs inside the same
+`env_init` phase, after checkout. The failed boot's own event order:
+
+```
+00:36:02.452  env_init_started
+00:36:54.312  sources_processing_completed   {"duration_ms":51855,"success_count":4}
+00:36:55.760  ← /home/user/package-lock.json written   (1.448 s later)
+00:36:55.787  environment_init_failed       {"session_mode":"new"}
+00:36:55.787  end_task_run_failure
+```
+
+All four repositories were fully on disk when npm ran. So checkout ordering is
+not the variable and never was — **the working directory is.** `npm` resolves a
+`package.json` only by walking UP, and there is none at `/home/user`, `/home` or
+`/`; the four repositories clone into subdirectories, each with its own. The
+ENOENT is deterministic, which is why the deaths were deterministic.
+
+That correction is not pedantry. It is what mis-sized the `timeout` above.
+
+### Sixty-one days, and this file already knew
+
+`docs/CC-CMD-2026-08-09-fix-cloud-setup-and-scaffold-fable.md` records the same
+eight lines and the same exit code on **2026-08-09**, and names the cause
+exactly: *"If that field still contains a bare `npm install`, it will keep
+failing sessions until a human edits it there directly."* It did, and it kept
+failing, for 61 days. The 2026-08-26 section above reads as a new mystery; it
+was a recurrence of a diagnosed one.
+
+### The most likely source of the pasted text
+
+`jubilant-bassoon/.devcontainer/devcontainer.json` carries
+`"postCreateCommand": "npm install && npm install -g wrangler@3.109.0"`. It is
+the only artifact across the four repositories that matches the pasted log on
+**both** output and exit code: a bare `npm install`, unguarded, with `&&`
+short-circuiting so 254 propagates. `scripts/install_pkgs.sh` can produce the
+same eight lines — its `npm install` has no `cd` and the primary working
+directory is `/home/user` — but not the exit code, because every step is
+guarded with `|| true` and it ends `exit 0`.
+
+### What is checked now
+
+`scripts/setup-script-check.mjs` parses the block at the top of this file and
+refuses it for naming npm, yarn or pnpm, for naming a repository path, for
+declaring no timeout or one above 120 s, or for not ending in a bare `exit 0`.
+The field cannot be read or written from a session; the text a human is told to
+copy can be, and that is the part that was wrong.

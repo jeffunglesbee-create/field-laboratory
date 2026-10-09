@@ -1110,6 +1110,21 @@ const MUTATIONS = [
     expect: 'node scripts/axis-check.mjs --self-test',
   },
   {
+    // The field held a bare `npm install` for 61 days (2026-08-09 -> 2026-10-09)
+    // and killed every new session in the environment. The field itself cannot
+    // be read from a session; the block a human copies out of the doc can be,
+    // and that block is the only thing standing between the next paste and the
+    // same outage. If this survives, npm can return to the documented block
+    // with nothing objecting.
+    id: 'paste-block-tolerates-npm',
+    file: 'scripts/setup-script-check.mjs',
+    claim: 'the documented paste block is refused for naming npm',
+    find: "  if (/\\bnpm\\b/.test(block)) out.push('names npm",
+    replace: "  if (false && /\\bnpm\\b/.test(block)) out.push('names npm",
+    expect: 'node scripts/setup-script-check.mjs --self-test',
+  },
+
+  {
     // npm runs `prebuild` before `build` with nothing naming it, so a walk
     // that follows only named invocations calls a pre-script an orphan while
     // npm executes it on every build. Measured: this is how

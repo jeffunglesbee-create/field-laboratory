@@ -67,5 +67,11 @@ npm run --silent check:citations
 # which is why nothing caught it. Pure regex over scripts/, no network and no
 # build, so it belongs at the door.
 npm run --silent check:short-circuit
+# Added 2026-10-09. The block docs/SETUP-SCRIPT.md tells a human to paste into
+# the cloud environment Setup script field held a bare `npm install` for 61 days
+# and killed every new session in that environment; the field cannot be read or
+# written from a session, but the text someone copies from can be. Docs-only
+# scan, no network, instant, so it belongs at the door.
+npm run --silent check:setup-script
 
 echo "pre-commit: ok"
