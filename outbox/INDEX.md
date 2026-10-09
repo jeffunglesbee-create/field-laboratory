@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `aa1e9b5` | 2026-10-08 | [cc-session-2026-10-08-axis-manifest.md](cc-session-2026-10-08-axis-manifest.md) | feat: the axis widths become an artifact in the tree, not only a run log |
+| `a6c5b52` | 2026-10-08 | [cc-session-2026-10-08-score-dm-sans-variable.md](cc-session-2026-10-08-score-dm-sans-variable.md) | docs: anchor the two citations yesterday's entry left bare |
 | `15f34e6` | 2026-10-08 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-08T23:33 [skip ci] |
 | `6e00b19` | 2026-10-08 | [cc-session-2026-10-08-score-dm-sans-variable.md](cc-session-2026-10-08-score-dm-sans-variable.md) | docs: the outbox entry d2205eb owed |
 | `99d0f4e` | 2026-10-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-08 [skip ci] |
