@@ -169,3 +169,127 @@ and not comment.
 ```
 PASS  importing a module never runs it or exits the process      2/2
 ```
+
+---
+
+## The reason this took four days to see: verify hides its own tail
+
+`check:rows` is green in CI as of run #340, and the run is still red — at
+`check:history`, with **eleven steps behind it skipped**.
+
+That is the shape of the whole week. A failing step ends the job, and this tail
+is thirteen independent reports in a row:
+
+| run | died at | steps skipped behind it |
+|---|---|---|
+| #335–#339 | Doc citations are anchored | 27 |
+| #340 | Source and outbox changed together | 11 |
+
+So each round of this session could see exactly one failure, and finding the
+next cost a full run. `check:rows`'s reason was invisible until the two steps in
+front of it were green.
+
+`live-check.yml` already carries the fix, with the reasoning written out:
+*"EVERY PAGE ASSERTION RUNS, EVEN AFTER ONE FAILS … a failing step ends the
+job, so a run reported exactly ONE of them. That is arithmetic, not luck, and it
+cost seven rounds."*
+
+**And `docs/history-boundary.txt` claims verify was already fixed this way:**
+
+> Separately, and not a substitute for any of the above: verify.yml used to run
+> this check mid-suite, so its failure skipped the twenty steps after it. That
+> is fixed independently — a violation is now reported without masking the rest
+> of the suite, whether or not the boundary ever moves again.
+
+It is not fixed. `check:history` sits at line 767 of `verify.yml` with eleven
+steps after it and no gate, and `grep -n continue-on-error` on that file returns
+nothing. The claim was written as an intention and has been read since as a
+fact — the same source-versus-copy substitution this repo's own rule names,
+with a document standing in for the workflow.
+
+Thirteen steps now carry
+`if: "!cancelled() && steps.build.outcome == 'success'"`. Gated on the build and
+not `always()`: a step whose module graph never compiled fails for a reason that
+says nothing about the commit, and thirteen such failures at once is worse than
+one honest skip.
+
+## check:history — twelve governed violations, and the cause is not attention
+
+This is the one thing in this entry NOT fixed, and the reason is that the
+remedy is a governance decision rather than a repair.
+
+On a full clone (1847 commits), `check:history` names twelve commits that
+changed `src/` or `scripts/` with no `outbox/` entry in the same commit:
+
+| commit | when | author | first source paths |
+|---|---|---|---|
+| `f9d85e7` | 10-08 23:31 | FIELD CI | `scripts/axis-check.mjs` |
+| `d2205eb` | 10-08 22:49 | FIELD CI | `scripts/build-site.mjs` |
+| `f28913d` | 10-04 15:24 | FIELD CI | `src/Forecast.fs` |
+| `5ad2627` | 10-04 01:18 | FIELD CI | `src/Forecast.fs` |
+| `f04f443` | 10-04 01:13 | FIELD CI | `src/Suite.fs` |
+| `521b52c` | 10-04 01:11 | FIELD CI | `scripts/forecast-run.mjs` |
+| `d92d03d` | 10-04 01:04 | FIELD CI | `src/Forecast.fs` |
+| `54d2472` | 10-04 01:01 | FIELD CI | `scripts/probe-epl-substrate.mjs` |
+| `5f4e002` | 10-04 00:49 | FIELD CI | `scripts/mutate-odds-coverage.mjs` |
+| `e461943` | 10-03 17:16 | FIELD CI | `scripts/probe-epl-substrate.mjs` |
+| `345d030` | 10-03 17:14 | FIELD CI | `scripts/probe-epl-substrate.mjs` |
+| `0a59bf8` | 09-23 01:10 | FIELD CI | `scripts/skill-drift-check.mjs` |
+
+Two are mine, from yesterday. All twelve are `FIELD CI` — local sessions, not
+the `Claude` identity the committing workflows use, so this is not the
+machine-authored class the fourth boundary move addressed.
+
+### The cause, measured rather than inferred
+
+At the start of THIS session:
+
+```
+which dotnet              NOT ON PATH
+ls node_modules | wc -l   0
+ls build/                 (absent)
+git config core.hooksPath  (empty)
+```
+
+`scripts/install_pkgs.sh` is the only thing that runs
+`git config core.hooksPath .githooks`, and `.githooks/pre-commit` is the only
+thing that runs `check:staged-outbox` — the guard that catches this class at the
+one moment it is still answerable. Nothing was installed, so the script did not
+run, so the guard was not in the path. Three sessions' worth of violations,
+three separate dates, one missing bootstrap each time.
+
+`docs/history-boundary.txt` already wrote this diagnosis, on 2026-08-23, for the
+third move:
+
+> `.githooks/pre-commit` exists in this repo … It did not run, because
+> `git config core.hooksPath .githooks` was never set in this session … An
+> opt-in guard that nothing opted into produces exactly this shape: not one
+> lapse repeated three times, but one missing install that removed the guard for
+> a whole session.
+
+And the fourth move said what to do when it recurred: *"the guard above was
+bypassed or removed, and THAT is the thing to investigate — not the commits."*
+
+`core.hooksPath` is set now, and the pre-commit gate ran on every commit in this
+session — its output is in the run log above each of them.
+
+### Why the boundary was NOT moved
+
+The file's sanctioned remedy is to move the boundary and the count together,
+named. Derived, so it is one edit if wanted:
+
+- **boundary** → `aa1e9b5` — the first commit after `f9d85e7` that ships source
+  (2 scripts) *beside* an outbox entry, which is the property the fourth move
+  required: *"the boundary lands on a commit that demonstrates the rule rather
+  than one that merely avoids it."*
+- **count** → `24 + 12 = 36`, derived on a full clone (1847 commits, not the
+  279-commit shallow one that makes this number meaningless).
+
+Not done, for two reasons. The file escalates away from absorption at exactly
+this point — four moves have each promised the next violation would fail, and
+twelve at once is four times the largest prior move, ten of them other
+sessions'. And the durable fix is not mine to make: the repo's own
+`docs/SETUP-SCRIPT.md` names the environment's **Setup script** field (the cloud
+environment menu in the session title bar, then Edit) as the proper home for the
+bootstrap, where the environment cache makes it free and no hook has to fire.
+Absorbing twelve before that field is filled invites a sixth move.

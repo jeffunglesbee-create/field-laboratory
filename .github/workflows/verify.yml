@@ -163,6 +163,7 @@ jobs:
           dotnet tool restore
 
       - name: Build (F# -> JS, then assemble public/)
+        id: build
         run: npm run build
 
       - name: Fail on any F# compiler warning
@@ -737,11 +738,39 @@ jobs:
       - name: Games are separated from each other
         run: npm run check:separation
 
+      # EVERY REPORT BELOW RUNS, EVEN AFTER ONE FAILS.
+      #
+      # These thirteen are independent — each reads files, git, or a third-party
+      # API, and none consumes a sibling's output. A failing step ends the job,
+      # so for six days this tail reported exactly one failure at a time and
+      # hid the rest: run #335 died at the citation step and skipped 27 steps;
+      # #340 died here at check:history and skipped 11. The fix for check:rows
+      # could not even be SEEN until the two steps in front of it were green,
+      # and each round cost a full run.
+      #
+      # That is arithmetic, not luck, and live-check.yml already carries the
+      # same fix with the same reasoning for its page assertions.
+      #
+      # docs/history-boundary.txt claims this was already done — "verify.yml
+      # used to run this check mid-suite, so its failure skipped the twenty
+      # steps after it. That is fixed independently." It was not: check:history
+      # sits at line 767 with eleven steps behind it and no gate. The claim was
+      # written as an intention and read afterwards as a fact.
+      #
+      # GATED ON THE BUILD, not `always()`. A step whose module graph never
+      # compiled fails for a reason that says nothing about the commit, and
+      # thirteen such failures at once is worse than one honest skip.
       - name: Every gate row has teeth
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:rows
 
       # A red main must be visible in the repo, not only in the Actions tab.
       - name: A red main is reported, not softened
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:status
 
       # Exact per-commit source/outbox correlation over the FULL history — the
@@ -765,6 +794,9 @@ jobs:
       # The fail-fast minutes this gives up are negligible: every step above it
       # totals under two minutes.
       - name: Source and outbox changed together, every commit
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:history
 
       # Beside check:history for the same reason it sits here: both ask whether
@@ -784,6 +816,9 @@ jobs:
       # It does NOT make that executor honest -- a probe can run and still lie,
       # which is a different defect with a different fix (baselines).
       - name: A staged claim names a verifier that exists and runs
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:staged-verifier
 
       # A confidence score in an outbox entry must be a measurement, not a claim.
@@ -807,6 +842,9 @@ jobs:
       # be trusted, and neither can be answered by anything the steps above
       # measure.
       - name: A confidence score is measured, not asserted
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:confidence-record
 
       # Hash-pinned tripwire for credentials known to be exposed. It exists
@@ -823,6 +861,9 @@ jobs:
       # It does NOT purge history and does not pretend to: the value is still
       # readable at 41f0b33, and only rotation ends that.
       - name: No tracked file carries a known-exposed credential
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:secrets
 
       # Importing a module must not run it. Three scripts here did their real
@@ -834,11 +875,17 @@ jobs:
       # for output, because a module that exits 0 silently is indistinguishable
       # from a clean import — and that was the actual case.
       - name: The README does not contradict STATUS.md about deployment
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: |
           node scripts/deploy-claim-consistency-check.mjs --self-test
           node scripts/deploy-claim-consistency-check.mjs
 
       - name: Importing a module never runs it
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:import-purity
 
 
@@ -852,6 +899,9 @@ jobs:
       # Safe on an empty day: the card assertion compares against the decoded
       # game count rather than requiring at least one.
       - name: Render check against the LIVE slate
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: |
           for i in $(seq 1 20); do
             curl -sf -o /dev/null http://localhost:8080/ && break
@@ -865,6 +915,9 @@ jobs:
       # not fatal (the bundle may not exist for a given date); a 200 the decoder
       # cannot read is fatal, which is the actual assertion.
       - name: Pick decoder against the LIVE analytics route
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:pick-live
 
       # The transcription, checked against its own source. Requests the same
@@ -872,6 +925,9 @@ jobs:
       # boards field by field — the only thing that can tell a faithful
       # transcription from a plausible one.
       - name: Pick shape — the transcription vs the real relay
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:pick-shape
 
       # The GitHub-API read behind STATUS.md's "did the suite pass on main?"
@@ -889,9 +945,15 @@ jobs:
       # answers "is this commit correct"; drift-sentinel runs the SAME check
       # without the flag, daily, and there an outage is the finding.
       - name: Weather against the LIVE Open-Meteo API
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: node scripts/weather-live-check.mjs --tolerate-unreachable
 
       - name: Status read against the LIVE GitHub API
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:status-live
         env:
           GITHUB_TOKEN: ${{ github.token }}
