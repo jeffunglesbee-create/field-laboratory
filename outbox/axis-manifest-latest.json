@@ -1,0 +1,39 @@
+{
+  "url": "https://field-laboratory.jeffunglesbee.workers.dev/",
+  "deployedCommit": "aa1e9b5d576ca814d95be8bbdec273565da6d2b4",
+  "scoreFamily": "\"DM Sans\", system-ui, -apple-system, sans-serif",
+  "scoreAxis": "\"wght\" 700",
+  "scoreFontSize": "32px",
+  "dmSansLoaded": true,
+  "weights": [
+    100,
+    400,
+    700,
+    1000
+  ],
+  "variableWidths": [
+    125,
+    137,
+    146,
+    149
+  ],
+  "controlWidths": [
+    133,
+    133,
+    133,
+    133
+  ],
+  "variableRises": true,
+  "controlRises": false,
+  "checksFailed": 0,
+  "coverage": {
+    "pages": 1,
+    "element": ".desk-card__score",
+    "weightsSwept": 4,
+    "axesSwept": [
+      "wght"
+    ],
+    "otherRolesSwept": 0,
+    "otherSizesSwept": 0
+  }
+}
