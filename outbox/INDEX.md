@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2000641` | 2026-10-09 | [cc-session-2026-10-09-setup-script-cannot-be-automated.md](cc-session-2026-10-09-setup-script-cannot-be-automated.md) | fix: the setup-script field held a bare npm install; guard the block instead |
+| `ccde435` | 2026-10-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d704fcc` | 2026-10-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-09 [skip ci] |
 | `33db373` | 2026-10-09 | [cc-session-2026-10-09-setup-script-cannot-be-automated.md](cc-session-2026-10-09-setup-script-cannot-be-automated.md) | feat: assert the session bootstrap ran, since the setup-script field cannot |
 | `b24593c` | 2026-10-09 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of e1303e6 [skip ci] |
