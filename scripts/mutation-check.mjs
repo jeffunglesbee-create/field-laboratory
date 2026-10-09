@@ -1110,6 +1110,35 @@ const MUTATIONS = [
     expect: 'node scripts/axis-check.mjs --self-test',
   },
   {
+    // npm runs `prebuild` before `build` with nothing naming it, so a walk
+    // that follows only named invocations calls a pre-script an orphan while
+    // npm executes it on every build. Measured: this is how
+    // session-ready-check.mjs read as unreachable. Dropping the lifecycle hop
+    // restores that blindness, and the orphan ledger is the file that decides
+    // whether a script is deliberately retired or accidentally orphaned.
+    id: 'orphan-walk-skips-lifecycle-scripts',
+    file: 'scripts/check-script-orphans.mjs',
+    claim: 'the reachability walk follows npm pre/post lifecycle scripts, which nothing names',
+    find: '    for (const n of [`pre${name}`, `post${name}`]) walk(n)',
+    replace: '    for (const n of []) walk(n)',
+    expect: 'node scripts/check-script-orphans.mjs --self-test',
+  },
+
+  {
+    // An un-bootstrapped session is only dangerous because it is INVISIBLE:
+    // nothing in the repo distinguished it from a bootstrapped one, and twelve
+    // commits shipped source with no outbox entry from exactly that state on
+    // 2026-10-08/09. Reporting `unset` as `installed` restores the invisibility
+    // while leaving the check green, which is the one failure mode that matters.
+    id: 'readiness-calls-an-unset-guard-installed',
+    file: 'scripts/session-ready-check.mjs',
+    claim: 'the readiness probe distinguishes an installed outbox guard from an absent one',
+    find: "  guard: hooksPath === '.githooks' ? 'installed'",
+    replace: "  guard: 'installed' || hooksPath === '.githooks' ? 'installed'",
+    expect: 'node scripts/session-ready-check.mjs --self-test',
+  },
+
+  {
     // The gate runs `--only known-survivor` immediately after the full suite,
     // and the baseline used to be written unconditionally — so the committed
     // artifact was the one-mutation run's, every time. verify-full #25 scored

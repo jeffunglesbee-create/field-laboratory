@@ -5,6 +5,7 @@
   "description": "FIELD Laboratory \u2014 F# compiled to JavaScript via Fable.",
   "type": "module",
   "scripts": {
+    "prebuild": "node scripts/session-ready-check.mjs",
     "build": "dotnet fable src/Laboratory.fsproj --outDir build && node scripts/build-site.mjs",
     "serve": "node scripts/serve.mjs",
     "check": "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
@@ -26,6 +27,7 @@
     "check:secrets": "node scripts/exposed-secret-check.mjs --self-test && node scripts/exposed-secret-check.mjs",
     "check:import-purity": "node scripts/import-purity-check.mjs --self-test && node scripts/import-purity-check.mjs",
     "check:harness": "node scripts/checks.mjs --self-test",
+    "check:session": "node scripts/session-ready-check.mjs --self-test && node scripts/session-ready-check.mjs",
     "check:adhd-skill": "node scripts/install-adhd-skill.mjs --self-test && node scripts/install-adhd-skill.mjs --check",
     "sync:adhd-skill": "node scripts/sync-adhd-skill.mjs --self-test && node scripts/sync-adhd-skill.mjs",
     "watch:relay-briefs": "node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs",

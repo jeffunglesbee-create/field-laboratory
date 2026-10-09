@@ -885,6 +885,17 @@ jobs:
       # The shared harness's own annotation emitter. It is the channel every
       # OTHER check's failure reason now travels through, so a break in it is
       # silent by construction: the reasons simply stop arriving.
+      # The readiness probe's RUNNER branch. Locally it asserts
+      # `core.hooksPath -> .githooks`; on a runner that config is correctly
+      # absent and the workflows call staged-outbox-check.mjs explicitly
+      # instead, so the probe must report rather than fail. This step is the
+      # only place that branch runs.
+      - name: The session readiness probe is honest on a runner
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:session
+
       - name: The check harness escapes its annotations
         # Runs even if a SIBLING report failed — see the block above
         # `Every gate row has teeth`.

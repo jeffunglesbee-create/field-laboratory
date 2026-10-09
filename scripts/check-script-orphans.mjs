@@ -68,6 +68,36 @@ export function stripJsComments (t) {
   return t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1')
 }
 
+/**
+ * Every scripts/*.mjs reachable from a set of npm script names, one hop at a
+ * time through package.json.
+ *
+ * Extracted from the main block on 2026-10-09 so the lifecycle rule below can
+ * be self-tested; it was inline and therefore unprovable.
+ *
+ * NPM LIFECYCLE SCRIPTS ARE REACHED WITHOUT BEING NAMED. npm runs `prebuild`
+ * before `build` and `postbuild` after it, and nothing in any workflow or in
+ * `build`'s own command refers to either — so a `pre*` script was invisible to
+ * this walk and read as an orphan while npm ran it on every build. Found by
+ * adding a `prebuild`: the checker called scripts/session-ready-check.mjs
+ * unreachable while `npm run build` was printing its output two lines up. That
+ * is this file's own failure mode — a detector whose name and measurement
+ * disagree — for the fifth recorded time.
+ */
+export function reachableFiles (scripts, entryNames) {
+  const reached = new Set()
+  const seen = new Set()
+  const walk = name => {
+    if (seen.has(name) || !(name in scripts)) return
+    seen.add(name)
+    for (const f of scriptFiles(scripts[name])) reached.add(f)
+    for (const n of npmRunNames(scripts[name])) walk(n)
+    for (const n of [`pre${name}`, `post${name}`]) walk(n)
+  }
+  for (const n of entryNames) walk(n)
+  return reached
+}
+
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const T = (l, ok) => check(l, ok)
   T('npm run names are extracted', npmRunNames('run: npm run check:sports\n npm run check').join(',') === 'check:sports,check')
@@ -91,6 +121,20 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   T('...and the forward direction alone would NOT have caught it',
     'check:sports' in before && 'check:sports' in after,
     'the key survived, so every npm run still resolved')
+  // THE LIFECYCLE RULE, which was inline and unprovable until this commit.
+  const lc = { build: 'node scripts/build-site.mjs', prebuild: 'node scripts/ready.mjs',
+               postbuild: 'node scripts/after.mjs' }
+  const lcReached = reachableFiles(lc, ['build'])
+  T('A `prebuild` IS REACHABLE WHENEVER `build` IS, though nothing names it',
+    lcReached.has('ready.mjs'),
+    'npm runs prebuild before build; a walk that only follows named invocations calls it an orphan')
+  T('...and so is a `postbuild`', lcReached.has('after.mjs'))
+  T('the entry script itself is still reached', lcReached.has('build-site.mjs'))
+  T('a lifecycle name with no script does not invent an edge',
+    reachableFiles({ build: 'node scripts/build-site.mjs' }, ['build']).size === 1)
+  T('the walk terminates on a self-referential lifecycle name',
+    reachableFiles({ prebuild: 'npm run prebuild && node scripts/x.mjs' }, ['prebuild']).has('x.mjs'),
+    'prebuild naming itself must not loop forever')
   console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'}  ${pass}/${pass + fail} self-test(s)\n`)
   process.exit(fail === 0 ? 0 : 1)
 }
@@ -123,15 +167,15 @@ if (isMain(import.meta.url)) {
 
   // BACKWARD. Reachability is one hop through package.json: a script command may
   // name another npm script (`npm run a && npm run b`), so follow those too.
-  const reached = new Set()
-  const seen = new Set()
-  const walk = name => {
-    if (seen.has(name) || !(name in scripts)) return
-    seen.add(name)
-    for (const f of scriptFiles(scripts[name])) reached.add(f)
-    for (const n of npmRunNames(scripts[name])) walk(n)
-  }
-  for (const n of npmRunNames(wfText)) walk(n)
+  // The pre-commit hook is a second entry point, read rather than guessed —
+  // see the note below. Its `npm run` names join the workflows' as roots so one
+  // reachability walk covers both; a separate post-hoc walk is what broke when
+  // the walk moved into reachableFiles.
+  const HOOK = ['.githooks/pre-commit', 'scripts/pre-commit'].find(existsSync)
+  if (!HOOK) console.log('  note: no pre-commit hook found; its scripts are not counted as reachable')
+  const hookText = HOOK ? readFileSync(HOOK, 'utf8') : ''
+  const reached = reachableFiles(scripts, [...npmRunNames(wfText), ...npmRunNames(hookText)])
+  for (const f of scriptFiles(hookText)) reached.add(f)
   // A workflow may also invoke a script DIRECTLY -- `node scripts/serve.mjs &`,
   // `node scripts/drift-check.mjs` -- without going through package.json at all.
   // The first version of this check walked only `npm run` and reported 33
@@ -187,13 +231,6 @@ if (isMain(import.meta.url)) {
   //
   // A missing optional file and a missing REQUIRED one are different, so this
   // says which it found.
-  const HOOK = ['.githooks/pre-commit', 'scripts/pre-commit'].find(existsSync)
-  if (!HOOK) console.log('  note: no pre-commit hook found; its scripts are not counted as reachable')
-  if (HOOK) {
-    const hook = readFileSync(HOOK, 'utf8')
-    for (const f of scriptFiles(hook)) reached.add(f)
-    for (const n of npmRunNames(hook)) walk(n)
-  }
 
   const onDisk = readdirSync('scripts').filter(f => /\.m?js$/.test(f))
   const unreachable = onDisk.filter(f => !reached.has(f))
