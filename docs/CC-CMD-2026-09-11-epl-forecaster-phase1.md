@@ -10,8 +10,36 @@ market-implied one. **Rule A (autonomous push) is NOT cleared** and is out of
 scope — pull-only, rendered on request. If the design drifts toward notification
 or badge-on-change, stop and report.
 
-**Status:** FILED, not started. `guards` is green as of 2026-09-21 and no longer
-blocks. **Substrate re-probed 2026-10-03 and the phases are now SWAPPED.**
+**Status:** PARTIAL. Phase 1 BUILT 2026-10-03/04 — `src/Forecast.fs` (268 lines:
+`NoForecastReason`, `ModelledForecast`, `threeWayFrom`, `forecastFor`,
+`METHOD = "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"`) and
+`scripts/forecast-run.mjs`, recorded in
+`outbox/cc-session-2026-10-03-epl-forecaster-phase1.md` and
+`outbox/cc-session-2026-10-04-epl-forecaster-phase1.md`.
+
+**This line read "FILED, not started" for six days after the code shipped.**
+Corrected 2026-10-10. The error class is the one `check:docs` and the
+proof-claim staleness sweep exist for — a status asserted once and never
+re-checked — and it is why a reader spent a session planning work that was
+already done. `guards` is green as of 2026-09-21 and no longer blocks.
+**Substrate re-probed 2026-10-03 and the phases are now SWAPPED.**
+
+**Not yet done, and the reason is the store, not the model:** the D1 write path
+exists (`POST /d1/execute`, `forecast_observations` allow-listed in relay
+`src/index.js:15936` on 2026-10-04) but `.github/workflows/forecast-run.yml`
+passes `${{ inputs.write == true && ' ' || '--dry-run' }}`, and `inputs` is
+empty on the `schedule` event — so the twice-daily cron (`41 6,18 * * *`) has
+only ever dry-run. No observation has been stored unless someone dispatched it
+manually with `write: true`. The workflow states the intent: "cron cannot start
+writing the day the allow-list entry lands without someone deciding it should."
+That decision is the owner's and is the gate on closing this document.
+
+**Phase 2 input unblocked 2026-10-10:** the fbref xG this document records as
+empty and 3.5 months stale is no longer the only source. BSD serves per-event
+xG today — measured on event 223324: `expected_goals` 1.39/1.69, `xg.actual`,
+`expected_goals_on_target`, `big_chances`, `ball_possession` — and `has_xg` is a
+flag on every event row. See `field-relay-nba` CC-CMD-2026-10-10-bsd-measure-
+before-building (Task 2) for the `teams/{id}/form/` shape this still needs.
 
 ## RE-PROBE 2026-10-03 — WHY THE PHASES SWAPPED
 
