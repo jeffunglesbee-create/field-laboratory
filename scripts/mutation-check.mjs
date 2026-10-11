@@ -1233,6 +1233,35 @@ const MUTATIONS = [
   },
 
   {
+    // A 200 IS NOT A CORPUS.
+    //
+    // Run 38145971449 read 120 dates, reported "0 unavailable", and saw 140
+    // games where the healthy relay serves 1341 — it sat between two FAILED
+    // relay deploys and every response was a 200. That reading was then
+    // recorded as a BASELINE in field-relay-nba's misjoined-opening-odds
+    // document, and every later comparison was against a tenth of the archive.
+    //
+    // Deleting the comparison restores exactly that: a degraded run publishes a
+    // number, and nothing objects.
+    id: 'census-trusts-a-collapsed-corpus',
+    file: 'scripts/favourite-band-census.mjs',
+    claim: 'a census whose corpus collapsed refuses rather than publishing a number',
+    find: '  if (before === 0) return null;\n  return after < before * floorRatio',
+    replace: '  if (before === 0) return null;\n  return false && after < before * floorRatio',
+    expect: 'node scripts/favourite-band-census.mjs --self-test',
+  },
+  {
+    // The floor is half. Loosening it to a tenth passes the real collapse —
+    // 1.17 games a date against 11.18 — while still looking like a guard.
+    id: 'census-collapse-floor-loosened',
+    file: 'scripts/favourite-band-census.mjs',
+    claim: 'the collapse floor is tight enough to catch the one that actually happened',
+    find: 'export function collapsedSince(prev, now, floorRatio = 0.5) {',
+    replace: 'export function collapsedSince(prev, now, floorRatio = 0.05) {',
+    expect: 'node scripts/favourite-band-census.mjs --self-test',
+  },
+
+  {
     // THE PIN MUST NOT BECOME A PERMANENT EXEMPTION.
     //
     // docs/adhd-skill-pin.json accepts one divergence between the installed
