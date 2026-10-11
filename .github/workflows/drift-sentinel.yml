@@ -142,6 +142,14 @@ jobs:
         if: always()
         run: npm run check:adhd-skill
 
+      # A pinned divergence must keep SAYING it diverged. The step above exits 0
+      # while docs/adhd-skill-pin.json is in force, and an exit code is all a
+      # sentinel reads — so nothing there would notice the run going quiet. This
+      # checks the OUTPUT names the divergence, both hashes and the reason.
+      - name: A pinned skill divergence is still reported
+        if: always()
+        run: npm run check:adhd-pin-reports
+
       # THE RED-MAIN SENTINEL'S WRITE PATHS, once a week.
       #
       # scripts/red-main-issue.mjs opens an issue when main goes red and closes

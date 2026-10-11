@@ -1,0 +1,14 @@
+{
+ "skill": ".claude/skills/i-have-adhd/SKILL.md",
+ "pinnedAt": "2026-10-11",
+ "localSha256": "3170b16ace00aecb0dd7feb54c0b5aa642e7502acda06ecd24fd89a11c7127e9",
+ "acceptedUpstreamSha256": "88955c019bbb1419ff4b49dbb1f80a867467de6233d7865af2e06a7d7b76c7d3",
+ "reason": "Upstream reworded ONE illustrative example in Rule 1. No rule text, no behaviour and no carve-out changed, and the owner asked for the installed skill to stay as it is. The divergence is accepted at exactly these two hashes: a hand-edit of the local copy, or any further upstream move, is still fatal.",
+ "divergence": [
+  "Rule 1, the 'Good:' example line.",
+  "ours:     Good: \"Run `npm install jsonwebtoken`, then edit `src/auth.ts:42`.\"",
+  "upstream: Good: \"Edit `src/auth.ts:42` to update the token validation.\""
+ ],
+ "measuredBytes": { "local": 7207, "upstream": 7201 },
+ "clearThePinBy": "Deleting this file. Do that once the local copy and upstream agree again, or once the owner wants upstream's wording."
+}

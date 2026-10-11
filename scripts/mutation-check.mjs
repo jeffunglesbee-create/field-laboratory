@@ -1233,6 +1233,47 @@ const MUTATIONS = [
   },
 
   {
+    // THE PIN MUST NOT BECOME A PERMANENT EXEMPTION.
+    //
+    // docs/adhd-skill-pin.json accepts one divergence between the installed
+    // i-have-adhd skill and upstream, at two named hashes. The whole value of
+    // naming BOTH is that a later hand-edit of the local copy is not covered —
+    // and a hand-edit is the exact failure install-adhd-skill.mjs was written
+    // to rule out. Dropping the local half turns a narrow exemption into
+    // "ignore this file", with the pin's prose still claiming otherwise.
+    id: 'pin-blesses-a-hand-edit',
+    file: 'scripts/install-adhd-skill.mjs',
+    claim: 'a pinned divergence does not cover a later edit of the local copy',
+    find: '  if (localOk && upstreamOk) return \'pinned\'',
+    replace: '  if (upstreamOk) return \'pinned\'',
+    expect: 'node scripts/install-adhd-skill.mjs --self-test',
+  },
+  {
+    // The other half. A divergence accepted against one upstream revision is
+    // not accepted against the next: upstream could rewrite the rules
+    // tomorrow and the pin would keep reporting ok, because the local file
+    // never moved. The check would then be measuring nothing while printing a
+    // reason that was true about a different document.
+    id: 'pin-blesses-a-moved-upstream',
+    file: 'scripts/install-adhd-skill.mjs',
+    claim: 'a divergence accepted for one upstream revision is not accepted for the next',
+    find: '  if (localOk && upstreamOk) return \'pinned\'',
+    replace: '  if (localOk) return \'pinned\'',
+    expect: 'node scripts/install-adhd-skill.mjs --self-test',
+  },
+  {
+    // A pin is only honest if it keeps saying so. Silencing the report turns an
+    // accepted difference into a clean bill of health, and an exemption nobody
+    // is reminded of is an exemption nobody revisits.
+    id: 'pin-goes-quiet',
+    file: 'scripts/install-adhd-skill.mjs',
+    claim: 'a pinned run REPORTS the divergence rather than printing ok',
+    find: "      console.log(`ok — ${DEST} DIVERGES from source, and the divergence is pinned.`)",
+    replace: "      console.log(`ok — ${DEST} is byte-identical to source`)",
+    expect: 'node scripts/check-adhd-pin-reports.mjs',
+  },
+
+  {
     // A check script killed while its own output is still in flight.
     //
     // `process.exit()` drops pending asynchronous stdout writes, and to a pipe

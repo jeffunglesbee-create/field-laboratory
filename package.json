@@ -29,6 +29,7 @@
     "check:harness": "node scripts/checks.mjs --self-test",
     "check:session": "node scripts/session-ready-check.mjs --self-test && node scripts/session-ready-check.mjs",
     "check:setup-script": "node scripts/setup-script-check.mjs --self-test && node scripts/setup-script-check.mjs",
+    "check:adhd-pin-reports": "node scripts/check-adhd-pin-reports.mjs --self-test && node scripts/check-adhd-pin-reports.mjs",
     "check:adhd-skill": "node scripts/install-adhd-skill.mjs --self-test && node scripts/install-adhd-skill.mjs --check",
     "sync:adhd-skill": "node scripts/sync-adhd-skill.mjs --self-test && node scripts/sync-adhd-skill.mjs",
     "watch:relay-briefs": "node scripts/relay-brief-watch.mjs --self-test && node scripts/relay-brief-watch.mjs",
