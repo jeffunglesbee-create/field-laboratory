@@ -196,3 +196,55 @@ in a file.
 `check:sport-vocabulary` needs `RELAY_SHARED_SECRET`, which this sandbox does
 not have. `check:adhd-skill` reports the installed skill has drifted from source
 — last touched by `0fc1fe3`. Neither script is in this diff.
+
+---
+
+## Manifest
+
+| | |
+|---|---|
+| **HEAD at start** | `68b5d05` |
+| `9af2778` | the whole change — `finish()`, 65 conversions, the guard, the probe, two mutations |
+| **verify** | run `38161351907` — **86 steps, 0 failures** |
+| **guards** | run `38161351864` — success |
+
+The three new steps ran green on a CI runner, not only in this sandbox:
+
+```
+34 success No check script kills itself mid-write
+35 success The truncation probe can still tell the difference
+32 success The Verify panel shows the counterexample that gives each row teeth
+```
+
+Step 32 is the one the whole thread started from. It is now green for the
+second push running, which is corroboration rather than proof — the race it was
+losing shows up under load, and a green CI run is one sample of a loaded
+machine.
+
+### Counts
+
+| | |
+|---|---|
+| report-ending exits before | **127** |
+| converted to `finish()` | **65** |
+| terminal report exits remaining | **0** |
+| early exits, ratcheted | **61** |
+| guard self-tests | **18** |
+| probe self-tests | **14** |
+| mutations added | **2**, both caught |
+| scripts scanned by the guard | **138** |
+
+### Residual
+
+Nothing deferred, and no second document. The 61 early exits are a stated
+decision with a ratchet and a probe behind it, not unfinished work — if one of
+those programs grows past the threshold, `probe:exit-truncation` is the thing
+that will say so, and it names its own coverage when it does.
+
+### Noticed, not touched
+
+`drift-sentinel` run `38160306402` fails on *"The i-have-adhd skill is still
+verbatim"*, and `check:adhd-skill` reports the same locally. It predates this
+work — the skill was last touched by `0fc1fe3`, whose message says upstream
+moved. Left alone deliberately: it is a different question, and
+`sync:adhd-skill` would overwrite a file whose drift may be the point.
