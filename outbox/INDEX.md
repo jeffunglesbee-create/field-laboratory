@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ec479e2` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | feat: a predicted XI, and the six other things that request can return |
+| `ec479e2` | 2026-10-11 | [lineups-confirmed.png](lineups-confirmed.png) | feat: a predicted XI, and the six other things that request can return |
+| `ec479e2` | 2026-10-11 | [lineups-predicted.png](lineups-predicted.png) | feat: a predicted XI, and the six other things that request can return |
+| `ec479e2` | 2026-10-11 | [lineups-render-manifest.json](lineups-render-manifest.json) | feat: a predicted XI, and the six other things that request can return |
+| `345da31` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `3ef6a64` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | fixture: capture a real lineups payload in a named state |
 | `0264139` | 2026-10-11 | [favourite-band-census-20261011T140909Z.txt](favourite-band-census-20261011T140909Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
 | `7200e55` | 2026-10-11 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-11T13:30 [skip ci] |
