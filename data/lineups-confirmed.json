@@ -1,0 +1,429 @@
+{
+ "event_id": 5327,
+ "lineup_status": "confirmed",
+ "beta": false,
+ "lineups": {
+  "home": {
+   "team_id": 275,
+   "team_name": "Charlotte FC",
+   "formation": "4-2-3-1",
+   "confidence": null,
+   "players": [
+    {
+     "id": 9216,
+     "name": "Kristijan Kahlina",
+     "short_name": "K. Kahlina",
+     "position": "G",
+     "jersey_number": 1,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9222,
+     "name": "Nathan Byrne",
+     "short_name": "N. Byrne",
+     "position": "D",
+     "jersey_number": 14,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 12102,
+     "name": "Morrison Agyemang",
+     "short_name": "A. Morrison",
+     "position": "D",
+     "jersey_number": 44,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9688,
+     "name": "Henry Kessler",
+     "short_name": "H. Kessler",
+     "position": "D",
+     "jersey_number": 22,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9706,
+     "name": "David Schnegg",
+     "short_name": "D. Schnegg",
+     "position": "D",
+     "jersey_number": 23,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9234,
+     "name": "Ashley Westwood",
+     "short_name": "A. Westwood",
+     "position": "M",
+     "jersey_number": 8,
+     "captain": true,
+     "ai_score": null
+    },
+    {
+     "id": 9249,
+     "name": "Brandt Bronico",
+     "short_name": "B. Bronico",
+     "position": "M",
+     "jersey_number": 13,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9270,
+     "name": "Liel Abada",
+     "short_name": "L. Abada",
+     "position": "M",
+     "jersey_number": 11,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9765,
+     "name": "Pep Biel",
+     "short_name": "P. Biel",
+     "position": "M",
+     "jersey_number": 16,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 8966,
+     "name": "Allan Saint-Maximin",
+     "short_name": "A. Saint-Maximin",
+     "position": "M",
+     "jersey_number": 10,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9261,
+     "name": "Idan Toklomati",
+     "short_name": "I. Toklomati",
+     "position": "F",
+     "jersey_number": 9,
+     "captain": false,
+     "ai_score": null
+    }
+   ],
+   "substitutes": [
+    {
+     "id": 9231,
+     "name": "Harry Toffolo",
+     "short_name": "H. Toffolo",
+     "position": "D",
+     "jersey_number": 15,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9070,
+     "name": "Luca De La Torre",
+     "short_name": "L. D. L. Torre",
+     "position": "M",
+     "jersey_number": 17,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 48313,
+     "name": "Will Cleary",
+     "short_name": "W. Cleary",
+     "position": "D",
+     "jersey_number": 35,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 15449,
+     "name": "Rodolfo Aloko",
+     "short_name": "R. Aloko",
+     "position": "F",
+     "jersey_number": 37,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9238,
+     "name": "Djibril Diani",
+     "short_name": "D. Diani",
+     "position": "M",
+     "jersey_number": 28,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 12101,
+     "name": "Tyler Miller",
+     "short_name": "T. Miller",
+     "position": "G",
+     "jersey_number": 21,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9285,
+     "name": "Andrew Privett",
+     "short_name": "A. Privett",
+     "position": "D",
+     "jersey_number": 4,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 143009,
+     "name": "Nathan Richmond",
+     "short_name": "N. Richmond",
+     "position": "F",
+     "jersey_number": 71,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9304,
+     "name": "Tyger Smalls",
+     "short_name": "T. Smalls",
+     "position": "F",
+     "jersey_number": 25,
+     "captain": false,
+     "ai_score": null
+    }
+   ]
+  },
+  "away": {
+   "team_id": 286,
+   "team_name": "FC Dallas",
+   "formation": "3-4-2-1",
+   "confidence": null,
+   "players": [
+    {
+     "id": 9673,
+     "name": "Daniel",
+     "short_name": "Daniel",
+     "position": "G",
+     "jersey_number": 42,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9322,
+     "name": "Osaze Urhoghide",
+     "short_name": "O. Urhoghide",
+     "position": "D",
+     "jersey_number": 3,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9341,
+     "name": "Lalas Abubakar",
+     "short_name": "L. Abubakar",
+     "position": "D",
+     "jersey_number": 5,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9323,
+     "name": "Nolan Norris",
+     "short_name": "N. Norris",
+     "position": "D",
+     "jersey_number": 32,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 12135,
+     "name": "Herman Johansson",
+     "short_name": "H. Johansson",
+     "position": "M",
+     "jersey_number": 14,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9326,
+     "name": "Kaick",
+     "short_name": "Kaick",
+     "position": "M",
+     "jersey_number": 55,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9329,
+     "name": "Christian Cappis",
+     "short_name": "C. Cappis",
+     "position": "M",
+     "jersey_number": 12,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9325,
+     "name": "Shaq Moore",
+     "short_name": "S. Moore",
+     "position": "M",
+     "jersey_number": 18,
+     "captain": true,
+     "ai_score": null
+    },
+    {
+     "id": 13542,
+     "name": "Joaquín Valiente",
+     "short_name": "J. Valiente",
+     "position": "F",
+     "jersey_number": 21,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9337,
+     "name": "Patrickson Delgado",
+     "short_name": "P. Delgado",
+     "position": "F",
+     "jersey_number": 8,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9332,
+     "name": "Logan Farrington",
+     "short_name": "L. Farrington",
+     "position": "F",
+     "jersey_number": 23,
+     "captain": false,
+     "ai_score": null
+    }
+   ],
+   "substitutes": [
+    {
+     "id": 9320,
+     "name": "Sebastien Ibeagha",
+     "short_name": "S. Ibeagha",
+     "position": "D",
+     "jersey_number": 25,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 4138,
+     "name": "Santiago Moreno",
+     "short_name": "S. Moreno",
+     "position": "F",
+     "jersey_number": 10,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9331,
+     "name": "Petar Musa",
+     "short_name": "P. Musa",
+     "position": "F",
+     "jersey_number": 9,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9330,
+     "name": "Bernard Kamungo",
+     "short_name": "B. Kamungo",
+     "position": "F",
+     "jersey_number": 77,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 83038,
+     "name": "Daniel Job",
+     "short_name": "D. Job",
+     "position": "M",
+     "jersey_number": 7,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9611,
+     "name": "Jonathan Sirois",
+     "short_name": "J. Sirois",
+     "position": "G",
+     "jersey_number": 40,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 12136,
+     "name": "Ran Binyamin",
+     "short_name": "R. Binyamin",
+     "position": "M",
+     "jersey_number": 6,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9328,
+     "name": "Ramiro",
+     "short_name": "Ramiro",
+     "position": "M",
+     "jersey_number": 17,
+     "captain": false,
+     "ai_score": null
+    },
+    {
+     "id": 9343,
+     "name": "Sam Sarver",
+     "short_name": "S. Sarver",
+     "position": "F",
+     "jersey_number": 28,
+     "captain": false,
+     "ai_score": null
+    }
+   ]
+  }
+ },
+ "unavailable_players": {
+  "home": [
+   {
+    "id": 13572,
+    "name": "Aron John",
+    "short_name": "A. John",
+    "status": "injured",
+    "reason": "Shoulder Injury"
+   },
+   {
+    "id": 9261,
+    "name": "Idan Toklomati",
+    "short_name": "I. Toklomati",
+    "status": "injured",
+    "reason": "Knee Injury"
+   },
+   {
+    "id": 59029,
+    "name": "Nimfasha Berchimas",
+    "short_name": "N. Berchimas",
+    "status": "injured",
+    "reason": "Broken Foot"
+   },
+   {
+    "id": 9229,
+    "name": "Tim Ream",
+    "short_name": "T. Ream",
+    "status": "suspended",
+    "reason": "red_card_suspension"
+   }
+  ],
+  "away": [
+   {
+    "id": 24022,
+    "name": "Kaka Scabin",
+    "short_name": "K. Scabin",
+    "status": "injured",
+    "reason": "Knee Injury"
+   }
+  ]
+ },
+ "updated_at": "2026-10-11T01:42:09Z"
+}

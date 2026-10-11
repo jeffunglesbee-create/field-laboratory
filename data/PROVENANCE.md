@@ -81,3 +81,55 @@ reporting, not a test to fix.
 - `tennis-live.json` — captured 2026-09-06 from `https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/matches/live` by `scripts/capture-tennis-fixture.mjs`. 8 live matches, 3 tournaments, 8 carrying sets_detail. Statuses seen: interrupted, live. Unedited — a hand-modified fixture is an invented one.
 
 - `tennis-draw.json` — captured 2026-09-06 from `https://field-relay-nba.jeffunglesbee.workers.dev/bsd/tennis/draw?tournament=77&season=2026` by `scripts/capture-tennis-draw.mjs`. Roland Garros 2026: 127 main-draw matches, 126 edges joined by winner identity, champion Mirra Andreeva. Ladder 64/32/16/8/4/2/1. Unedited — a hand-modified fixture is an invented one.
+
+## `lineups-predicted.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/220230/lineups
+→ 200 application/json, 5853 bytes
+X-Lineup-State: predicted  X-Lineup-Fill: served
+```
+
+Captured by `scripts/capture-lineups-fixture.mjs predicted 2026-10-11`. Complete and
+untruncated — the whole response body, byte for byte. The script refuses to write
+if the relay's headers and the body disagree about the state, because the renderer
+derives the state from the body (a committed fixture has no headers).
+
+**What it exercises.**
+
+- `lineup_status` genuinely `"predicted"`
+- `beta` genuinely `true`
+- sides `away, home` with 11 and 11 players and 12 and 12 substitutes
+- `unavailable_players` present with 2 side(s)
+
+**What it does not exercise.** The non-answers. `status-absent`,
+`status-unrecognised`, `served-empty` and `upstream-failed` are not reachable by
+capture — the vendor does not serve them on demand — so the decoder's branches for
+them are covered by unit tests over synthetic bodies, which is a different and
+weaker kind of evidence, and is said here rather than left to be assumed.
+
+## `lineups-confirmed.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5327/lineups
+→ 200 application/json, 5973 bytes
+X-Lineup-State: confirmed  X-Lineup-Fill: served
+```
+
+Captured by `scripts/capture-lineups-fixture.mjs confirmed 2026-10-10`. Complete and
+untruncated — the whole response body, byte for byte. The script refuses to write
+if the relay's headers and the body disagree about the state, because the renderer
+derives the state from the body (a committed fixture has no headers).
+
+**What it exercises.**
+
+- `lineup_status` genuinely `"confirmed"`
+- `beta` genuinely `false`
+- sides `away, home` with 11 and 11 players and 9 and 9 substitutes
+- `unavailable_players` present with 2 side(s)
+
+**What it does not exercise.** The non-answers. `status-absent`,
+`status-unrecognised`, `served-empty` and `upstream-failed` are not reachable by
+capture — the vendor does not serve them on demand — so the decoder's branches for
+them are covered by unit tests over synthetic bodies, which is a different and
+weaker kind of evidence, and is said here rather than left to be assumed.

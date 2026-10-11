@@ -1,0 +1,415 @@
+{
+ "event_id": 220230,
+ "lineup_status": "predicted",
+ "beta": true,
+ "lineups": {
+  "home": {
+   "team_id": 4784,
+   "team_name": "Boyacá Chicó FC",
+   "formation": "4-1-4-1",
+   "confidence": 0.85,
+   "players": [
+    {
+     "id": 91559,
+     "name": "David Agudelo",
+     "short_name": "D. Agudelo",
+     "position": "G",
+     "jersey_number": 1,
+     "ai_score": 0.763
+    },
+    {
+     "id": 87194,
+     "name": "Cristian Blanco",
+     "short_name": "C. Blanco",
+     "position": "D",
+     "jersey_number": 14,
+     "ai_score": 0.648
+    },
+    {
+     "id": 19038,
+     "name": "Jefferson Mena",
+     "short_name": "J. Mena",
+     "position": "D",
+     "jersey_number": 4,
+     "ai_score": 0.854
+    },
+    {
+     "id": 91560,
+     "name": "Jhonier Alomía",
+     "short_name": "J. Alomía",
+     "position": "D",
+     "jersey_number": 5,
+     "ai_score": 0.656
+    },
+    {
+     "id": 91558,
+     "name": "Cristián Mosquera",
+     "short_name": "C. Mosquera",
+     "position": "M",
+     "jersey_number": 24,
+     "ai_score": 0.784
+    },
+    {
+     "id": 74757,
+     "name": "Santiago Mera",
+     "short_name": "S. Mera",
+     "position": "M",
+     "jersey_number": 16,
+     "ai_score": 0.79
+    },
+    {
+     "id": 86792,
+     "name": "Estiven Sarria",
+     "short_name": "E. Sarria",
+     "position": "M",
+     "jersey_number": 17,
+     "ai_score": 0.749
+    },
+    {
+     "id": 74745,
+     "name": "Juan Diaz",
+     "short_name": "J. Diaz",
+     "position": "M",
+     "jersey_number": 6,
+     "ai_score": 0.861
+    },
+    {
+     "id": 74751,
+     "name": "Sebastian Salazar",
+     "short_name": "S. Salazar",
+     "position": "M",
+     "jersey_number": 8,
+     "ai_score": 0.784
+    },
+    {
+     "id": 87182,
+     "name": "Jacobo Pimentel",
+     "short_name": "J. Pimentel",
+     "position": "M",
+     "jersey_number": 21,
+     "ai_score": 0.498
+    },
+    {
+     "id": 38816,
+     "name": "Alejandro Maya",
+     "short_name": "A. Maya",
+     "position": "M",
+     "jersey_number": 22,
+     "ai_score": 0.411
+    }
+   ],
+   "substitutes": [
+    {
+     "id": 74853,
+     "name": "Yesus Cabrera",
+     "short_name": "Yesus Cabrera",
+     "position": "M",
+     "jersey_number": 10,
+     "ai_score": 0.365
+    },
+    {
+     "id": 74739,
+     "name": "Sebastián Palma",
+     "short_name": "J. Palma",
+     "position": "D",
+     "jersey_number": 25,
+     "ai_score": 0.332
+    },
+    {
+     "id": 74772,
+     "name": "Branndon Zapata",
+     "short_name": "B. Zapata",
+     "position": "G",
+     "jersey_number": 12,
+     "ai_score": 0.327
+    },
+    {
+     "id": 91556,
+     "name": "Sander Navarro",
+     "short_name": "S. Navarro",
+     "position": "D",
+     "jersey_number": 15,
+     "ai_score": 0.307
+    },
+    {
+     "id": 87180,
+     "name": "Isaac Camargo",
+     "short_name": "I. Camargo",
+     "position": "F",
+     "jersey_number": 9,
+     "ai_score": 0.299
+    },
+    {
+     "id": 87181,
+     "name": "Felipe Cifuentes",
+     "short_name": "F. Cifuentes",
+     "position": "F",
+     "jersey_number": 7,
+     "ai_score": 0.295
+    },
+    {
+     "id": 87195,
+     "name": "Daniel Polanco",
+     "short_name": "D. Polanco",
+     "position": "D",
+     "jersey_number": 2,
+     "ai_score": 0.29
+    },
+    {
+     "id": 74755,
+     "name": "Delio Ramírez",
+     "short_name": "D. Ramírez",
+     "position": "M",
+     "jersey_number": 11,
+     "ai_score": 0.25
+    },
+    {
+     "id": 98100,
+     "name": "Sebastián Viveros",
+     "short_name": "S. Viveros",
+     "position": "M",
+     "jersey_number": 20,
+     "ai_score": 0.243
+    },
+    {
+     "id": 74742,
+     "name": "Juan Quiceno",
+     "short_name": "J. Quiceno",
+     "position": "D",
+     "jersey_number": 3,
+     "ai_score": 0.233
+    },
+    {
+     "id": 205885,
+     "name": "Jeronimo Pimentel",
+     "short_name": "J. Pimentel",
+     "position": "M",
+     "jersey_number": 19,
+     "ai_score": 0.05
+    },
+    {
+     "id": 94528,
+     "name": "Luis Carabalí Carrera",
+     "short_name": "L. C. Carrera",
+     "position": "F",
+     "jersey_number": 29,
+     "ai_score": 0.01
+    }
+   ]
+  },
+  "away": {
+   "team_id": 4635,
+   "team_name": "Cúcuta Deportivo",
+   "formation": "5-4-1",
+   "confidence": 0.791,
+   "players": [
+    {
+     "id": 74782,
+     "name": "Federico Abadía",
+     "short_name": "F. Abadía",
+     "position": "G",
+     "jersey_number": 12,
+     "ai_score": 0.87
+    },
+    {
+     "id": 74833,
+     "name": "Brayan Montaño",
+     "short_name": "B. Montaño",
+     "position": "D",
+     "jersey_number": 30,
+     "ai_score": 0.787
+    },
+    {
+     "id": 74834,
+     "name": "Jhon Quiñónes",
+     "short_name": "J. Quiñónes",
+     "position": "D",
+     "jersey_number": 4,
+     "ai_score": 0.616
+    },
+    {
+     "id": 74786,
+     "name": "Diego Calcaterra",
+     "short_name": "D. Calcaterra",
+     "position": "D",
+     "jersey_number": 3,
+     "ai_score": 0.461
+    },
+    {
+     "id": 74784,
+     "name": "Yair Joao Abonia Vasquez",
+     "short_name": "J. Abonia",
+     "position": "D",
+     "jersey_number": 26,
+     "ai_score": 0.67
+    },
+    {
+     "id": 92741,
+     "name": "Gustavo Torres",
+     "short_name": "G. Torres",
+     "position": "M",
+     "jersey_number": 11,
+     "ai_score": 0.623
+    },
+    {
+     "id": 74794,
+     "name": "Victor Mejia",
+     "short_name": "V. Mejia",
+     "position": "M",
+     "jersey_number": 5,
+     "ai_score": 0.646
+    },
+    {
+     "id": 74797,
+     "name": "Leider Berdugo",
+     "short_name": "L. Berdugo",
+     "position": "M",
+     "jersey_number": 10,
+     "ai_score": 0.749
+    },
+    {
+     "id": 92742,
+     "name": "Carlos Rentería",
+     "short_name": "C. Rentería",
+     "position": "M",
+     "jersey_number": 77,
+     "ai_score": 0.65
+    },
+    {
+     "id": 74851,
+     "name": "Juan Ceballos",
+     "short_name": "J. Ceballos",
+     "position": "M",
+     "jersey_number": 8,
+     "ai_score": 0.535
+    },
+    {
+     "id": 74800,
+     "name": "Jaime Peralta",
+     "short_name": "J. Peralta",
+     "position": "F",
+     "jersey_number": 9,
+     "ai_score": 0.679
+    }
+   ],
+   "substitutes": [
+    {
+     "id": 74831,
+     "name": "Mauricio Duarte",
+     "short_name": "M. Duarte",
+     "position": "D",
+     "jersey_number": 27,
+     "ai_score": 0.413
+    },
+    {
+     "id": 74862,
+     "name": "Leison Ochoa",
+     "short_name": "l. ochoa",
+     "position": "D",
+     "jersey_number": 17,
+     "ai_score": 0.394
+    },
+    {
+     "id": 74308,
+     "name": "Kevin Tamayo",
+     "short_name": "K. Tamayo",
+     "position": "D",
+     "jersey_number": 14,
+     "ai_score": 0.373
+    },
+    {
+     "id": 74692,
+     "name": "Hernán Lópes",
+     "short_name": "H. Lópes",
+     "position": "D",
+     "jersey_number": 2,
+     "ai_score": 0.354
+    },
+    {
+     "id": 30624,
+     "name": "Marlon Carabali",
+     "short_name": "M. Carabali",
+     "position": "M",
+     "jersey_number": 21,
+     "ai_score": 0.352
+    },
+    {
+     "id": 87031,
+     "name": "Dayan Pérez",
+     "short_name": "D. Pérez",
+     "position": "M",
+     "jersey_number": 20,
+     "ai_score": 0.347
+    },
+    {
+     "id": 74832,
+     "name": "Lucas Ríos",
+     "short_name": "L. Ríos",
+     "position": "M",
+     "jersey_number": 29,
+     "ai_score": 0.313
+    },
+    {
+     "id": 74806,
+     "name": "Sebastián Tamara",
+     "short_name": "S. Tamara",
+     "position": "M",
+     "jersey_number": 33,
+     "ai_score": 0.28
+    },
+    {
+     "id": 74238,
+     "name": "Jader Manyoma",
+     "short_name": "J. Manyoma",
+     "position": "M",
+     "jersey_number": 7,
+     "ai_score": 0.274
+    },
+    {
+     "id": 74802,
+     "name": "Jhonatan Agudelo",
+     "short_name": "J. Agudelo",
+     "position": "F",
+     "jersey_number": 32,
+     "ai_score": 0.274
+    },
+    {
+     "id": 13909,
+     "name": "Jesus Diaz",
+     "short_name": "J. Diaz",
+     "position": "M",
+     "jersey_number": 31,
+     "ai_score": 0.238
+    },
+    {
+     "id": 74792,
+     "name": "Kevin Londoño",
+     "short_name": "K. Londoño",
+     "position": "M",
+     "jersey_number": 16,
+     "ai_score": 0.226
+    }
+   ]
+  }
+ },
+ "unavailable_players": {
+  "home": [],
+  "away": [
+   {
+    "id": 74836,
+    "name": "Hassler Smith Beltrán Vera",
+    "short_name": "H. S. B. Vera",
+    "status": "injured",
+    "reason": "Broken Toe"
+   },
+   {
+    "id": 74653,
+    "name": "Samir Mayo",
+    "short_name": "S. Mayo",
+    "status": "injured",
+    "reason": "Knock Injury"
+   }
+  ]
+ },
+ "updated_at": "2026-10-11T14:34:03Z"
+}
