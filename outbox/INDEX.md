@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `50ea07d` | 2026-10-11 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `50ea07d` | 2026-10-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `68b5d05` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | docs: the predicted-XI session manifest |
+| `0ceaf02` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `7eb8ff6` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | fix: process.exitCode, not process.exit — the tail of a pipe is not optional |
 | `0420b03` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ec479e2` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | feat: a predicted XI, and the six other things that request can return |
