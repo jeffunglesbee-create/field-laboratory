@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `54285cc` | 2026-10-11 | [cc-session-2026-10-11-exit-drains.md](cc-session-2026-10-11-exit-drains.md) | docs: the exit-drains session manifest |
+| `9af2778` | 2026-10-11 | [cc-session-2026-10-11-exit-drains.md](cc-session-2026-10-11-exit-drains.md) | fix: a check script must not be killed while its output is in flight |
+| `9af2778` | 2026-10-11 | [exit-truncation-probe-latest.json](exit-truncation-probe-latest.json) | fix: a check script must not be killed while its output is in flight |
 | `50ea07d` | 2026-10-11 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
 | `50ea07d` | 2026-10-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
 | `68b5d05` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | docs: the predicted-XI session manifest |
