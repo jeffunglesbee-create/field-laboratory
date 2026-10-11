@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `51edb91` | 2026-10-11 | [cc-session-2026-10-11-schedule-path-respects-verify.md](cc-session-2026-10-11-schedule-path-respects-verify.md) | docs: close out the schedule-path CC-CMD with its manifest and honest coverage |
+| `7dea1d0` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d730ed6` | 2026-10-11 | [cc-session-2026-10-11-schedule-path-respects-verify.md](cc-session-2026-10-11-schedule-path-respects-verify.md) | feat: the hourly deploy respects verify, as the push path already does |
 | `79565c2` | 2026-10-11 | [cc-session-2026-10-11-red-verdict-carries-its-step.md](cc-session-2026-10-11-red-verdict-carries-its-step.md) | docs: close out the red-verdict CC-CMD, and record what is not proven live |
 | `ace6354` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
