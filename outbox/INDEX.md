@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `78c6a89` | 2026-10-11 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `78c6a89` | 2026-10-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `78c6a89` | 2026-10-11 | [sport-vocabulary-2026-10-11T18-23-02-057Z.json](sport-vocabulary-2026-10-11T18-23-02-057Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `29e73e2` | 2026-10-11 | [cc-session-2026-10-11-adhd-skill-pin.md](cc-session-2026-10-11-adhd-skill-pin.md) | feat: pin the i-have-adhd divergence instead of erasing it |
+| `ba5528d` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `00c751c` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `54285cc` | 2026-10-11 | [cc-session-2026-10-11-exit-drains.md](cc-session-2026-10-11-exit-drains.md) | docs: the exit-drains session manifest |
 | `9af2778` | 2026-10-11 | [cc-session-2026-10-11-exit-drains.md](cc-session-2026-10-11-exit-drains.md) | fix: a check script must not be killed while its output is in flight |
