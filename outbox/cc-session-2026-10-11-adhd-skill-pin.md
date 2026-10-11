@@ -140,3 +140,37 @@ hand-edited local copy, blessing a moved upstream, and going quiet.
   discovered later.
 - **One upstream revision observed.** The accepted hash is what upstream served
   on 2026-10-11. Nothing says it is stable.
+
+---
+
+## The sentinel is still red, and the skill is not why
+
+Dispatched after the push — run `38163516333`:
+
+```
+ 8 success The i-have-adhd skill is still verbatim
+ 9 success A pinned skill divergence is still reported
+15 failure Fail if the sentinel failed
+```
+
+Step 15 is `if: always() && steps.sentinel.outputs.code != '0'`. It reacts to
+step 5, the live-payload sentinel, which reported **`odds-coverage-lost`**.
+
+**An earlier characterisation of mine was incomplete and is corrected here.**
+Run `38160306402` was described as red *on the skill drift*. It had TWO failing
+steps — the skill one and this one — and only the first was the skill's. The
+odds condition is independent, predates this work, and recurs in the drift log
+on 2026-10-07, 10-10 and twice on 10-11:
+
+```
+| 2026-10-11 17:36 | 2026-10-11 | 46 | odds-coverage-lost | … NFL:0/13 NBA:0/4 NHL:0/3 La Liga:0/4 …
+```
+
+Not chased here. It is a live-data question with its own history, and widening
+this change to cover it would be the "while I'm here" the repo's own Rule 69
+prohibits. Stated so the next reader does not re-dispatch the sentinel expecting
+green and conclude the pin failed.
+
+**What the pin was asked to do, it does:** the skill-verbatim step passes, the
+divergence is reported in full on every run, and both fatal directions were
+shown firing.
