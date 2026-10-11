@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9c83f43` | 2026-10-11 | [cc-session-2026-10-11-census-trusted-a-200.md](cc-session-2026-10-11-census-trusted-a-200.md) | docs: the census reference landed, 29.68 games per present date |
+| `09aa3fb` | 2026-10-11 | [favourite-band-census-20261011T184334Z.txt](favourite-band-census-20261011T184334Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
+| `09aa3fb` | 2026-10-11 | [favourite-band-census-latest.json](favourite-band-census-latest.json) | census: the band favouriteAgreement declines to judge [skip ci] |
 | `6a79087` | 2026-10-11 | [cc-session-2026-10-11-census-trusted-a-200.md](cc-session-2026-10-11-census-trusted-a-200.md) | ci: the census reference must be committed, or every run is a first run |
 | `534912c` | 2026-10-11 | [favourite-band-census-20261011T184153Z.txt](favourite-band-census-20261011T184153Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
 | `bd305e3` | 2026-10-11 | [cc-session-2026-10-11-census-trusted-a-200.md](cc-session-2026-10-11-census-trusted-a-200.md) | fix: the census trusted a 200, and a degraded run became a baseline |
