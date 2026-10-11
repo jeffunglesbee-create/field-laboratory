@@ -656,3 +656,61 @@ Filed as `docs/CC-CMD-2026-10-11-process-exit-drops-the-annotation.md` rather
 than fixed here: it changes the exit behaviour of 136 scripts, which needs its
 own impact analysis and its own mutation. Rule 87.4 — a second document, not a
 carry-forward.
+
+---
+
+## Manifest
+
+| | |
+|---|---|
+| **HEAD at start** | `0264139` |
+| **HEAD at end** | `7eb8ff6` |
+| `3ef6a64` | the capture script and its workflow, Task 1's reasoning in this doc |
+| `ec479e2` | the surface — `Lineups.fs`, `LineupsView.fs`, the panel, the guard, the checks, the mutations, the screenshots |
+| `7eb8ff6` | `process.exitCode` instead of `process.exit`, and the second CC-CMD |
+| **verify** | run `38156590522` — **84 steps, 0 failures, 1 skipped** |
+| **deploy** | run `38156829549` — success |
+| **live-check** | run `38156886113` — success |
+| **fixture capture** | run `38151980047` — both states written |
+| **relay probes** | `38118474339`, `38151345923`, `38151411240` |
+| **relay document** | closed at `6ce2f8b` in field-relay-nba |
+
+The three lineups steps ran green on a CI Chromium, not only on the one in this
+sandbox:
+
+```
+32 success The Verify panel shows the counterexample that gives each row teeth
+34 success Lineups is pull only
+35 success The lineups panel's own checks
+36 success Lineups, on the rendered page
+37 success Keep the lineups screenshots either way
+```
+
+Step 32 is the one that was red before the `process.exitCode` fix, and steps
+34–36 are the ones that never ran at all on that attempt because everything
+after a failure is skipped — which is worth noting on its own: **a red step
+early in a long job means the steps after it have not been shown to pass.**
+
+### Counts
+
+| | |
+|---|---|
+| F# suite rows | 155 → **191** — the Lineups group is **36** of them, measured from `Suite.groups ()` rather than counted by eye |
+| browser assertions on the panel | **56** |
+| pull-only guard assertions | **10** (+17 self-tests) |
+| capture script self-tests | **18** |
+| mutations added | **5**, all caught (one only after a fix) |
+| anchored citations in docs | 471 → **485**, bare still **0** |
+
+### Residual
+
+Two things, both proxy failures rather than deferred work:
+
+1. **`upstream-failed` has never been exercised against a real failing relay.**
+   There is no way to ask a working relay to fail. It is covered in the F# suite
+   over a body that will not decode and in the view by a fetch that throws.
+2. **The non-answers are routed, not captured**, for the same reason. Stated in
+   the check's own header and in each fixture's provenance entry.
+
+One second document, filed rather than carried forward:
+`docs/CC-CMD-2026-10-11-process-exit-drops-the-annotation.md`.
