@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `00c751c` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `54285cc` | 2026-10-11 | [cc-session-2026-10-11-exit-drains.md](cc-session-2026-10-11-exit-drains.md) | docs: the exit-drains session manifest |
 | `9af2778` | 2026-10-11 | [cc-session-2026-10-11-exit-drains.md](cc-session-2026-10-11-exit-drains.md) | fix: a check script must not be killed while its output is in flight |
 | `9af2778` | 2026-10-11 | [exit-truncation-probe-latest.json](exit-truncation-probe-latest.json) | fix: a check script must not be killed while its output is in flight |
