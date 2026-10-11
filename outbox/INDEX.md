@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d730ed6` | 2026-10-11 | [cc-session-2026-10-11-schedule-path-respects-verify.md](cc-session-2026-10-11-schedule-path-respects-verify.md) | feat: the hourly deploy respects verify, as the push path already does |
+| `79565c2` | 2026-10-11 | [cc-session-2026-10-11-red-verdict-carries-its-step.md](cc-session-2026-10-11-red-verdict-carries-its-step.md) | docs: close out the red-verdict CC-CMD, and record what is not proven live |
+| `ace6354` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f86292b` | 2026-10-11 | [cc-session-2026-10-11-red-verdict-carries-its-step.md](cc-session-2026-10-11-red-verdict-carries-its-step.md) | feat: a red verdict names its failing step and what it hid |
 | `7329560` | 2026-10-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `6129bb6` | 2026-10-10 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-10T21:59 [skip ci] |
