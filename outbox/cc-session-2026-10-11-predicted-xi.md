@@ -578,3 +578,81 @@ until it is added to both. `live-tabs-check.mjs` records why the list is named:
 
 Added in position, between Stats and Briefs, which also fixed the two ArrowRight
 assertions that walk the list in order.
+
+---
+
+## The red CI run, and why a green re-run did not close it
+
+`verify` run `38155172428` went red on step 32, **The Verify panel shows the
+counterexample that gives each row teeth**, and every step after it was skipped —
+including all three lineups steps, which therefore never ran in CI on that
+attempt.
+
+Six assertions failed at once, all of the same shape:
+
+```
+every row sits in a group — none is orphaned outside one
+    191 rows inside groups, 3 rows on the page
+the page reports the same total the node suite does
+    data-total="191", node says 3
+every check DECLARED in the suite source reaches the page
+    src/Suite.fs declares 191 checks; 3 ran.
+```
+
+The page was right. The **node count** was wrong.
+
+`nodeSuiteCount()` runs `node build/VerifyMain.js` through `execSync` and takes
+the LAST `N/N checks held` line, because `VerifyMain` prints two — phase 1's
+deliberate 1/3 counting probe and phase 2's real total. On that run everything
+after line 18 was missing, so the last line *was* the probe's.
+
+### Reproduced before anything was changed
+
+```
+--- via execSync, 5 times:
+2 191
+2 191
+1 3      <- 13146 bytes of output, tail lost
+2 191
+2 191
+```
+
+`process.exit()` terminates immediately and drops pending asynchronous stdout
+writes. To a terminal or a file Node's stdout is synchronous and nothing is
+lost; to a PIPE it is not. `src/VerifyMain.fs` now sets `process.exitCode` and
+lets Node drain and exit with the same status — 40 of 40 runs clean, and the
+`lineups-unrecognised-falls-through` mutation still catches a broken suite,
+which is the proof the gate did not go soft.
+
+### The re-run
+
+Attempt 2 passed. That is corroboration, not the reason to move on: a green
+re-run of a race says nothing about whether the race exists, and this one was
+measured at roughly one in five before the fix. The repository's own rule is
+that "flake" is not a root cause — a re-run confirms an unrelated failure, it
+does not explain one.
+
+The second failing step, **Weather against the LIVE Open-Meteo API**, reported
+`request failed — fetch failed` on all four venues and is a genuine external
+outage. It passed on the re-run and nothing in this diff touches it.
+
+### And the general case, which is bigger and is not this document's
+
+Every script in `scripts/` ends `process.exit(summarize() === 0 ? 0 : 1)`, and
+`summarize()` prints the `::error` annotations immediately before it. Measured,
+400 passing rows and one failing, through `execSync`, 30 runs:
+
+```
+runs where the ::error annotation was LOST: 5 of 30
+```
+
+That is the channel `checks.mjs` exists to protect — its header says a job log
+is unreachable from this sandbox and annotations are the only machine-readable
+substitute. Roughly one failing check in six currently publishes nothing, and a
+red step with no annotation looks exactly like a red step whose script emitted
+none.
+
+Filed as `docs/CC-CMD-2026-10-11-process-exit-drops-the-annotation.md` rather
+than fixed here: it changes the exit behaviour of 136 scripts, which needs its
+own impact analysis and its own mutation. Rule 87.4 — a second document, not a
+carry-forward.

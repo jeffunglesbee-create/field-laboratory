@@ -24,7 +24,33 @@ open Fable.Core
 // harness has been shown blind is not evidence of anything, so reporting it
 // would be the "green light standing in for evidence" move again.
 
-[<Emit("process.exit($0)")>]
+// `process.exitCode`, NOT `process.exit()`, and the difference is a flake that
+// took a CI failure to find.
+//
+// `process.exit()` terminates immediately and DROPS pending asynchronous stdout
+// writes. When this program's output goes to a terminal or a file the writes are
+// synchronous and nothing is lost; when it goes to a PIPE — which is what
+// `execSync` gives it — they are not, and the tail of the output can simply
+// disappear.
+//
+// MEASURED 2026-10-11, after `verify` run 38155172428 went red on a green tree.
+// `scripts/verify-render-check.mjs` reads this program's count through
+// `execSync` and takes the LAST `N/N checks held` line. Five identical runs:
+//
+//   run 1  2 lines seen, last total 191
+//   run 2  2 lines seen, last total 191
+//   run 3  1 line  seen, last total 3      <- everything after line 18 lost
+//   run 4  2 lines seen, last total 191
+//   run 5  2 lines seen, last total 191
+//
+// On run 3 the only surviving count was phase 1's deliberate 1/3 counting
+// probe, so the panel check compared a 191-row page against a "3-row suite" and
+// failed six assertions at once. Nothing was wrong with the suite, the page, or
+// the build.
+//
+// Setting `process.exitCode` lets Node drain stdout and exit on its own with
+// the same status, which is the fix rather than a retry around the symptom.
+[<Emit("process.exitCode = $0")>]
 let private exit (code: int) : unit = jsNative
 
 // --- phase 1: can the harness still tell the difference? --------------------
