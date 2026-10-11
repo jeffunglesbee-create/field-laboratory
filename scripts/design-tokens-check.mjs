@@ -10,7 +10,7 @@
 // Runs after the build (it reads public/), like the other build-dependent checks.
 
 import { readFileSync, existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import * as Palette from '../build/Palette.js'
 import * as Typography from '../build/Typography.js'
 
@@ -130,4 +130,4 @@ check('no external font is hotlinked (offline-honest)',
   !/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(css),
   'the page references a font CDN')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

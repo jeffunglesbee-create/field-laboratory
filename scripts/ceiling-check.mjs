@@ -30,7 +30,7 @@
 // date so it reads as evidence with an age, not as a live fact.
 
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import {
   nominal, relayReachable, maxOf, unreachable,
   score, threshold, atFraction, passes,
@@ -220,4 +220,4 @@ check('a score and a threshold on the same scale still compare',
   scoreValue(roundTrip) === postMax,
   `same-scale comparison is unaffected; the wrapped score reads back as ${scoreValue(roundTrip)}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

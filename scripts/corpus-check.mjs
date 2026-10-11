@@ -15,7 +15,7 @@
 // provenance the store does not record.
 
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 // F# list, not JS array. `List.filter` over an array silently finds nothing —
 // the same trap that made sport-registry-check report 0 distinct coordinates,
 // and the reason the non-vacuity assertions below are first.
@@ -108,4 +108,4 @@ check('a stored score carries its value and its attribution back out',
   `raw ${rawValue(stampedTwo)}, stamped tag ${attributionOf(stampedTwo).tag}, ` +
   `inferred tag ${attributionOf(stored[0]).tag}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

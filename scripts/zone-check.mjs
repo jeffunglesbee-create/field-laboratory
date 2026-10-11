@@ -19,7 +19,7 @@
 // covered: does `fieldToday()` actually reach the zone logic, and is the zone
 // logic actually right.
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { fieldToday, fieldDayAt, fieldDayIso, fieldDayShift, fieldDayOfIso } from '../build/Desk.js'
 
 /** The same conversion the F# side emits, applied to an arbitrary instant. */
@@ -134,4 +134,4 @@ check('a well-formed date is accepted',
 
 console.log(`\nnow: ${NOW.toISOString()}  ET day ${etDay(NOW)}  UTC day ${utcDay(NOW)}`)
 console.log(`(these agree outside 00:00-04:00 UTC, which is why this file tests fixed instants)\n`)
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

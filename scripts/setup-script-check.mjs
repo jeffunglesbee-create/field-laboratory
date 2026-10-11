@@ -26,7 +26,7 @@
 // never will, because the four repos clone into SUBDIRECTORIES and npm resolves
 // a package.json only by walking UP.
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const DOC = 'docs/SETUP-SCRIPT.md'
 
@@ -116,5 +116,5 @@ if (isMain(import.meta.url)) {
   check('the documented paste block cannot kill a session the way the field did',
     bad.length === 0,
     bad.map(o => `\n        - ${o}`).join(''))
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

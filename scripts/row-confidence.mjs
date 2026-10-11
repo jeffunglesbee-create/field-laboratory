@@ -35,7 +35,7 @@
 
 import { readFileSync } from 'node:fs'
 import { rows } from './gate-checks.mjs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const BAR = 95
 
@@ -196,4 +196,4 @@ if (below.length > 0) {
 const { check, summarize } = createChecks()
 check(`every gate row is at or above ${BAR}`, below.length === 0,
   below.map(r => `${r.name} = ${r.score}`).join('\n      → '))
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

@@ -22,7 +22,7 @@
 //
 // Usage:  node scripts/run-steps.mjs --self-test
 
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 /**
  * The first failing step and what it cost, from one job's `steps` array.
@@ -135,5 +135,5 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('the line says what a skip is, not just how many',
     /look identical from the outside/.test(line))
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

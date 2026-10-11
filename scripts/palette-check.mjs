@@ -16,7 +16,7 @@
 // Self-test first: the contrast math has to be shown to discriminate, or a
 // broken ratio function would pass every color forever.
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import {
   allSemantics, tokenOf, cssValue, accentOf, accentCss,
   dramaScale, advancementScale,
@@ -273,4 +273,4 @@ check('dim text is dimmer than body text but still above a 2:1 floor',
   dimRatio >= 2.0 && dimRatio < textRatio,
   `dim ${dimRatio?.toFixed(2)}:1 vs text ${textRatio?.toFixed(2)}:1`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

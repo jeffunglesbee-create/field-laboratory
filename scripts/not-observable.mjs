@@ -14,7 +14,7 @@
 // Usage:  node scripts/not-observable.mjs [--self-test]
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 export const LEDGER = 'docs/not-observable.txt'
 
@@ -97,6 +97,6 @@ if (isMain(import.meta.url)) {
     // stale entry survives until the next source commit.
     console.log(`\n  not checked here: whether a declared gap has closed — that needs`)
     console.log(`  the rendered page (computed-chrome-check.mjs, source pushes only).`)
-    process.exit(summarize() === 0 ? 0 : 1)
+    finish(summarize())
   }
 }

@@ -30,7 +30,7 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const BASE = (process.env.URL || 'http://localhost:8080').replace(/\/+$/, '')
 
@@ -294,5 +294,5 @@ if (isMain(import.meta.url) && !SELF_TEST) {
   console.log(`  manifest: outbox/lineups-render-manifest.json`)
 
   await browser.close()
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

@@ -17,7 +17,7 @@
 
 import { chromium } from 'playwright'
 import { existsSync } from 'node:fs'
-import { createChecks, fieldDay } from './checks.mjs'
+import { createChecks, fieldDay, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 // The slate's date, which MUST be in the future.
@@ -271,4 +271,4 @@ check('picks survive a reload', (await banner()) === before,
 check('no page errors throughout', pageErrors.length === 0, pageErrors.join(' | '))
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

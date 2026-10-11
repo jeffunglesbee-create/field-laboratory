@@ -27,7 +27,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
 
@@ -1233,6 +1233,37 @@ const MUTATIONS = [
   },
 
   {
+    // A check script killed while its own output is still in flight.
+    //
+    // `process.exit()` drops pending asynchronous stdout writes, and to a pipe
+    // — execSync, a CI log runner — that means the tail of a run vanishes.
+    // `checks.mjs` prints the ::error annotations immediately before exiting,
+    // so the lost tail is the only machine-readable record of WHY a step went
+    // red. Measured on the compiled F# suite: 5 of 20 piped runs under load.
+    //
+    // Restoring the pattern is a one-word edit that looks like a tidy-up. If
+    // this survives, `finish()` is a convention and not a rule.
+    id: 'exit-kills-a-script-mid-write',
+    file: 'scripts/workflow-check.mjs',
+    claim: 'no check script ends by killing itself while its output is in flight',
+    find: '\nfinish(summarize())',
+    replace: '\nprocess.exit(summarize() === 0 ? 0 : 1)',
+    expect: 'node scripts/check-exit-drains.mjs',
+  },
+  {
+    // The other half. The early exits are frozen at a count rather than
+    // converted, because converting them would let a --self-test run fall
+    // through into a live half that needs a browser or the network. A ratchet
+    // that cannot detect growth is a number in a file.
+    id: 'early-exit-ratchet-grows',
+    file: 'scripts/glyph-check.mjs',
+    claim: 'a NEW early process.exit(summarize()) cannot be added unnoticed',
+    find: "const PICTOGRAPH =",
+    replace: "if (false) process.exit(summarize())\nconst PICTOGRAPH =",
+    expect: 'node scripts/check-exit-drains.mjs',
+  },
+
+  {
     // THE PREDICTED XI, and the five mutations that would each produce a page
     // that looks right. docs/CC-CMD-2026-10-11-predicted-xi-render-decision.md
     // in field-relay-nba commissioned this surface; its done condition 4 is "no
@@ -1771,4 +1802,4 @@ for (const m of selected) {
 restore()
 run('npm run build')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

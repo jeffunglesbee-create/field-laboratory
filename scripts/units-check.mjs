@@ -11,7 +11,7 @@
 //
 // Usage:  node scripts/units-check.mjs
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { toPct, toProb, devig, formatWinProbability } from '../build/Units.js'
 
 const { check, summarize } = createChecks()
@@ -56,4 +56,4 @@ check('devig refuses a market that sums to zero', devig(0, 0) === undefined,
 check('devig refuses a negative total', devig(-0.5, 0.4) === undefined,
   `a negative total produced ${JSON.stringify(devig(-0.5, 0.4))}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

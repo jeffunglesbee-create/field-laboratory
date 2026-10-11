@@ -14,7 +14,7 @@
 
 import { chromium } from 'playwright'
 import { existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const URL_BASE = process.env.URL || 'https://field-laboratory.jeffunglesbee.workers.dev/'
 const { check, summarize } = createChecks()
@@ -234,4 +234,4 @@ console.log(`\n  Field's Pick says: ${fieldText.replace(/\s+/g, ' ').slice(0, 18
 console.log(`  Scout's Pick says: ${scoutText.replace(/\s+/g, ' ').slice(0, 180)}\n`)
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

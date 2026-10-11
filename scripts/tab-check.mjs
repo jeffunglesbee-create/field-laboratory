@@ -16,7 +16,7 @@
 
 import { chromium } from 'playwright'
 import { existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const URL_BASE = process.env.URL || 'http://localhost:8080/?data=games-2026-08-09'
 const { check, summarize } = createChecks()
@@ -406,4 +406,4 @@ check('stepping a day returns to the top of the slate',
 check('no page errors during any of this', failures.length === 0, failures.join(' | '))
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

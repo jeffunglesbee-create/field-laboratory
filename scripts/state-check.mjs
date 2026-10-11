@@ -17,7 +17,7 @@
 //
 // Usage:  node scripts/state-check.mjs
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { decodePayload, gameStateAt } from '../build/Desk.js'
 
 const { check, summarize } = createChecks()
@@ -133,4 +133,4 @@ for (const [label, impl] of Object.entries(WRONG)) {
       : caught.map(c => `${c.name}: wrong impl says ${impl(c.game, c.at)}, table wants ${c.expect}`).join(' | '))
 }
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

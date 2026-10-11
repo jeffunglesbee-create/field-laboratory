@@ -23,7 +23,7 @@
 // briefs agree" assertion true. The corpus size is asserted first.
 
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { tokens, FIXTURES } from './jq-tokenizer.mjs'
 import {
   tokenise, namesOf, numeralsOf, sentencesOf, perSentenceOf,
@@ -173,4 +173,4 @@ check('the dimension weights match the relay',
   specificityWeight === 30.0 && densityWeight === 16.0,
   `spec ${specificityWeight}, density ${densityWeight}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

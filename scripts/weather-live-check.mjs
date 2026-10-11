@@ -18,7 +18,7 @@
 
 import { forecastUrl, coordinates, decodeReading, falling, describeConditions } from '../build/Weather.js'
 import { all as allVenues } from '../build/Venues.js'
-import { toArray } from './checks.mjs'
+import { toArray, finish } from './checks.mjs'
 import { createChecks } from './checks.mjs'
 
 const { check, summarize } = createChecks()
@@ -197,4 +197,4 @@ check('the sign-flipped probe got an answer to compare', wrongErr === null, wron
 check('a sign-flipped coordinate does NOT resolve to the declared zone',
   wrongErr === null && wrongZone !== 'America/New_York', `it resolved to ${wrongZone} anyway`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

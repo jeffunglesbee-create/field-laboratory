@@ -32,7 +32,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 // The session's pre-installed browser, as every other probe here does it.
 // Playwright's default is the headless shell, which is not what is on this box.
@@ -198,4 +198,4 @@ check('the names are distinct, so the regions are tellable apart',
 check('no page errors during any of this', errors.length === 0, errors.join('; '))
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

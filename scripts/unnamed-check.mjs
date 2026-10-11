@@ -22,7 +22,7 @@
 // Nothing may disappear without being counted. A check that only asserted "the
 // payload decodes" would pass on an implementation that dropped every row.
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { decodePayload } from '../build/Desk.js'
 
 const { check, summarize } = createChecks()
@@ -113,4 +113,4 @@ check('postseason rows are counted in the same total',
 // about checks that report a confident answer without testing what they claim,
 // and the exit line had exactly that defect while the assertions above it were
 // sound. The passing count is not the contract; the exit code is.
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

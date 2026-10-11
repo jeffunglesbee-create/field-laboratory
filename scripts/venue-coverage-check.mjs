@@ -28,7 +28,7 @@
 //             than a broken build. The drift sentinel runs this one.
 
 import { readFileSync, readdirSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { tryParkByVenue, isKnownUnfactored, venuesWithoutParkFactors } from '../build/Scouting.js'
 
 const args = process.argv.slice(2)
@@ -138,4 +138,4 @@ check('every venue declared unfactored actually appears in a capture',
 check('the statsapi name for Camden Yards resolves', resolve('Oriole Park at Camden Yards'),
   '"Oriole Park at Camden Yards" does not resolve — the form statsapi actually returns')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

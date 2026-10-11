@@ -31,7 +31,7 @@
 // Usage:  node scripts/status-live-check.mjs      (requires GITHUB_TOKEN)
 
 import { readVerify } from './status.mjs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 
@@ -85,4 +85,4 @@ check('a runner with no token blames the step, not the history',
 check('the successful and rejected reads say different things', real.text !== bad.text,
   `both said: ${real.text}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

@@ -8,7 +8,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const URL = process.env.URL || 'https://field-laboratory.jeffunglesbee.workers.dev/'
 
@@ -95,4 +95,4 @@ check('no page or console errors', errors.length === 0, errors.join('; ') || 'no
 console.log(`\nURL: ${URL}`)
 console.log(`${snap.status}   [${snap.viewed}]`)
 console.log(`sections: ${snap.groups.map(g => `${g.sport}(${g.cards})`).join(' ') || '—'}\n`)
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

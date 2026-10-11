@@ -11,7 +11,7 @@ import { chromium } from 'playwright'
 import { all as weatherVenues } from '../build/Venues.js'
 import { forecastUrl, coordinates } from '../build/Weather.js'
 import { requestCapMs, slateDeadlineMs } from '../build/WeatherView.js'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
 
@@ -659,4 +659,4 @@ if (!pinned) {
   } // end: this slate names at least one real venue
 }
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

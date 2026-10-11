@@ -35,7 +35,7 @@
 import { readFileSync, readdirSync, writeFileSync, rmSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import {
   tokenise, shippedRawDensity, shippedDensity,
 } from '../build/Prose.js'
@@ -220,4 +220,4 @@ check('every claim a document makes is still true',
   stale.map(c => `${c.file}: ${c.id} says ${c.stated}, actual ${c.actual}`).join('; ') ||
   `${found.length} claim(s) re-derived and matching`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

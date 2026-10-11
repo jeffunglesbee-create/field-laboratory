@@ -18,7 +18,7 @@
 
 import { execSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 /**
  * The suite's own count, from the run that gates commits.
@@ -206,4 +206,4 @@ check('the panel does not scroll the page sideways', overflow.doc <= overflow.wi
 check('no page errors', pageErrors.length === 0, pageErrors.join('\n'))
 
 await browser.close()
-process.exit(summarize())
+finish(summarize())

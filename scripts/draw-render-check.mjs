@@ -17,7 +17,7 @@
 //         node scripts/draw-render-check.mjs --self-test
 
 import { existsSync, readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const CAPTURE = 'data/tennis-draw.json'
 
@@ -164,4 +164,4 @@ check('the bracket scrolls inside its own container, not the page',
 check('no page errors', pageErrors.length === 0, pageErrors.join('\n'))
 
 await browser.close()
-process.exit(summarize())
+finish(summarize())

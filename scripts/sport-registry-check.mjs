@@ -23,7 +23,7 @@
 
 import { readFileSync } from 'node:fs'
 import { sportOfString, sportMeta, matchupText, presentByMatchup, allSports } from '../build/Desk.js'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 
@@ -194,4 +194,4 @@ check('an unrecognised sport is reported unmodelled, not guessed',
   matchupText(sportOfString('kabaddi'), 'Cowboys', 'Eagles') === 'Cowboys vs Eagles',
   `Modelled=${unknown.Modelled}, text=${matchupText(sportOfString('kabaddi'), 'Cowboys', 'Eagles')}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

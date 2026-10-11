@@ -60,6 +60,58 @@ export const annotationsFor = (failed, cap = ANNOTATION_CAP) => {
   return out
 }
 
+/**
+ * End a check script: set the status, do not kill the process.
+ *
+ * WHY THIS EXISTS. `process.exit()` terminates immediately and DROPS pending
+ * asynchronous stdout writes. To a terminal or a file Node's stdout writes are
+ * synchronous and nothing is lost; to a PIPE — `execSync`, or a CI log runner —
+ * they are not. Setting `process.exitCode` instead lets Node drain stdout and
+ * exit on its own with the same status.
+ *
+ * MEASURED 2026-10-11 by `scripts/exit-truncation-probe.mjs`, and the
+ * measurement is narrower than the rule, which is worth knowing before anyone
+ * widens either. Twenty runs of each real program, through a pipe, idle and
+ * then with eight CPU burners on four cores:
+ *
+ *   build/VerifyMain.js        13146B   idle 0/20   loaded 5/20
+ *   check-doc-citations.mjs     3021B   idle 0/20   loaded 0/20
+ *   palette-check.mjs           1909B   idle 0/20   loaded 0/20
+ *   design-tokens-check.mjs     1535B   idle 0/20   loaded 0/20
+ *   typography-check.mjs        1310B   idle 0/20   loaded 0/20
+ *   sport-registry-check.mjs     834B   idle 0/20   loaded 0/20
+ *
+ * So ONE program in this repository has ever been shown to lose its tail, at
+ * 13 KB on a loaded machine. No `createChecks` script has — they print 0.8 to
+ * 3 KB, and nothing at that size was lost in 240 piped runs. The document this
+ * came from was filed on a figure from a 400-row synthetic script ("the error
+ * annotation was LOST 5 times in 30 runs") and that figure does not describe
+ * anything here.
+ *
+ * LOAD IS THE TRIGGER, NOT SIZE ALONE. The same 13 KB lost nothing idle. And a
+ * bare loop printing 13 KB loses nothing even loaded — the program that lost
+ * output also loads thirty modules and reads four fixtures off disk. The race
+ * is between the last write draining and the process being told to die, and
+ * the amount of other work in flight is a term in it.
+ *
+ * WHAT WAS TRIED AND REJECTED. Writing the tail with `fs.writeSync(1, ...)` so
+ * nothing is ever pending: on a pipe it throws EAGAIN and takes the process
+ * down with it — 21 of 30 runs under load, worse than the bug.
+ *
+ * `process.exitCode` ALSO FIXES A SECOND THING quietly. Four call sites wrote
+ * `process.exit(summarize())`, which exits with the FAILURE COUNT as the status
+ * — that is where a "Process completed with exit code 6" came from — and a
+ * count above 255 wraps, so 256 failures would have reported success. This maps
+ * every outcome to 0 or 1.
+ *
+ * IT DOES NOT STOP EXECUTION, which `process.exit()` does. Only use it where
+ * the script is finished; an early exit that must prevent the live half from
+ * running still needs to terminate.
+ */
+export const finish = (failures) => {
+  process.exitCode = failures === 0 ? 0 : 1
+}
+
 export function createChecks() {
   const checks = []
 
@@ -234,5 +286,5 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     `got ${capped.length} line(s): ${JSON.stringify(capped.slice(-1))}`)
   check('a clean run annotates nothing', annotationsFor([]).length === 0)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

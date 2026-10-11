@@ -39,7 +39,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 const SENTINEL = 'IMPORT_PURITY_SENTINEL'
@@ -204,5 +204,5 @@ if (isMain(import.meta.url)) {
     impure.map(({ m, r }) => `${m}: ${r.why}`).join('\n      → '))
 
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

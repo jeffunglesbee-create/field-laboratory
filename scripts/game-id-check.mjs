@@ -18,7 +18,7 @@
 // data refresh unless something is holding the old numbers.
 
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import {
   SCHEMES, schemeOf, indexGames, resolveGame, joinCensus, formatCensus,
 } from './game-id-scheme.mjs'
@@ -173,4 +173,4 @@ check('the joinable base is large enough to build a scoreline check on',
   result.joined >= 300,
   `${result.joined} joined brief(s)`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

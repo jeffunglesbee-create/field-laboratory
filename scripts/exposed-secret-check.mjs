@@ -44,7 +44,7 @@ import { execSync } from 'node:child_process'
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 const PINS_PATH = 'docs/exposed-secrets.sha256'
@@ -235,5 +235,5 @@ check('no file in the working tree contains a known-exposed credential',
   found.length === 0,
   found.join('\n      → '))
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())
 }

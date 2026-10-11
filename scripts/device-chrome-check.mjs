@@ -25,7 +25,7 @@
 //         node scripts/device-chrome-check.mjs --self-test
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 /** The `:active` rule's transform must be answerable by an OS-level request. */
 export const reducedMotionCovers = (css) => {
@@ -168,5 +168,5 @@ if (isMain(import.meta.url)) {
   check(`env(safe-area) and viewport-fit=cover are paired or both absent (env:${sa.env} cover:${sa.cover})`,
     sa.ok)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

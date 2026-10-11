@@ -77,7 +77,7 @@
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 const { check, summarize } = createChecks()
@@ -502,5 +502,5 @@ if (scored.length === 0) {
   console.log('  an unmeasured number is worse than no number.\n')
 }
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())
 }

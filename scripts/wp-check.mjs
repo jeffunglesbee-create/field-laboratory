@@ -9,7 +9,7 @@
 // Self-test first: the approx helper the checks lean on must be shown to
 // discriminate, or every comparison would pass vacuously.
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import {
   twoWay, threeWay, twoWayHome, twoWayAway,
   threeWayHome, threeWayDraw, threeWayAway,
@@ -98,4 +98,4 @@ check('no usable prices resolves to none',
   winProbabilityKindFor(false, 0, 0, 0) === 'none',
   `got ${winProbabilityKindFor(false, 0, 0, 0)}`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

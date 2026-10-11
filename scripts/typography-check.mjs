@@ -19,7 +19,7 @@
 // Self-test first: the "ends in a generic family" helper must discriminate, or a
 // stack with no fallback would pass.
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { readFileSync } from 'node:fs'
 import {
   allFonts, fontFamily, allRoles, styleOf, fontOf, isTabular, cssFont,
@@ -170,4 +170,4 @@ const upperDecls = ROLES.map(r => cssFont(styleOf(r))).filter(d => /text-transfo
 check('the label/badge roles emit an uppercase transform',
   upperDecls.length >= 2, `${upperDecls.length} uppercase role(s)`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

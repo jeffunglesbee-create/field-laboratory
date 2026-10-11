@@ -4,7 +4,64 @@
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** B (gap) — a reporting channel that fails silently, at a measured rate
-**Status:** FILED, not started.
+**Status:** DONE 2026-10-11. Five tasks, four done conditions. Session doc:
+`outbox/cc-session-2026-10-11-exit-drains.md`.
+
+**TASK 0 REFUTED THE FIGURE THIS DOCUMENT WAS FILED ON, which is what it was
+for.** The "5 of 30" below came from one synthetic script printing 400 rows.
+Nothing in this repository prints 400 rows. Measured by
+`scripts/exit-truncation-probe.mjs`, twenty piped runs of each real program,
+idle and then under eight CPU burners on four cores:
+
+```
+build/VerifyMain.js        13146B   idle 0/20   loaded 5/20
+check-doc-citations.mjs     3021B   idle 0/20   loaded 0/20
+palette-check.mjs           1909B   idle 0/20   loaded 0/20
+design-tokens-check.mjs     1535B   idle 0/20   loaded 0/20
+typography-check.mjs        1310B   idle 0/20   loaded 0/20
+sport-registry-check.mjs     834B   idle 0/20   loaded 0/20
+```
+
+**One** program here has ever been shown to lose its tail, and it is the one
+already fixed. No `createChecks` script lost anything in 240 piped runs. So the
+claim "roughly one failing check in six publishes no annotation" is not true of
+this repository, and the sentence stands below only because deleting it would
+hide that it was published.
+
+**LOAD IS THE TRIGGER, NOT SIZE.** The same 13 KB loses nothing idle. And a bare
+loop printing 13 KB loses nothing even loaded — the program that lost output
+also loads thirty modules and reads four fixtures off disk. The race is between
+the last write draining and the process being told to die; the work in flight is
+a term in it, which is why a CI runner shows what an idle sandbox does not.
+
+**TASK 1 — `finish()` in `checks.mjs`.** Sets `process.exitCode` and returns. It
+also closes a second thing quietly: four sites wrote `process.exit(summarize())`,
+exiting with the FAILURE COUNT as the status — the "exit code 6" seen in the run
+that opened this — and a count above 255 wraps to 0.
+
+**TASK 2 — 65 of 127 sites converted, and the other 62 deliberately not.**
+`process.exit()` also STOPS, and `finish()` does not. Sixty-one of the remaining
+are early exits inside `if (SELF_TEST)` blocks whose live half is not separately
+guarded; converting them would let `--self-test` fall through into a run that
+needs a browser or the network. Restructuring sixty-one blocks into if/else is a
+large diff against a loss nothing has exhibited, so they are frozen at a count
+instead. **0 terminal report exits remain.**
+
+**TASK 3 — `scripts/check-exit-drains.mjs`.** Terminal report exits are FATAL
+(must be 0); early ones are a RATCHET at `docs/early-exit-budget.txt` = 61,
+which also fails if the budget drifts loose. 18 self-tests.
+
+**TASK 4 — two mutations, both caught.** Restoring a terminal `process.exit`
+in `workflow-check.mjs`, and adding a new early one to `glyph-check.mjs`.
+
+**What was tried and rejected, by measurement rather than by argument:** writing
+the tail with `fs.writeSync(1, ...)` so nothing is ever pending. On a pipe it
+throws EAGAIN and takes the process down — 21 of 30 runs under load, worse than
+the bug.
+
+---
+
+**Status as filed:** FILED, not started.
 
 **Required by Rule 87.4.** `field-relay-nba/docs/CC-CMD-2026-10-11-predicted-xi-render-decision.md`
 hit this while closing, fixed the one instance that blocked it

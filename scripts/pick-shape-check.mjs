@@ -18,7 +18,7 @@
 //         DATES=2026-07-07,2026-07-08 node scripts/pick-shape-check.mjs
 
 import { readFileSync } from 'node:fs'
-import { createChecks, toArray, fieldDay } from './checks.mjs'
+import { createChecks, toArray, fieldDay, finish } from './checks.mjs'
 import { decodeBundle, decodePick, leadershipNote, entryMatchup } from '../build/Pick.js'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev/analytics/newspaper/'
@@ -145,4 +145,4 @@ if (found.date === FIXTURE_DATE) {
   console.log(`        ${found.date} instead.\n`)
 }
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

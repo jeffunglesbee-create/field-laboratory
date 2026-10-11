@@ -38,7 +38,7 @@
 //
 // Usage:  GITHUB_TOKEN=… GITHUB_REPOSITORY=owner/repo node scripts/red-main-rehearsal.mjs
 
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 import { MARKER, gh, run, findOpen } from './red-main-issue.mjs'
 
 /// Deliberately NOT a superstring of MARKER. If it contained the live marker,
@@ -160,5 +160,5 @@ if (isMain(import.meta.url)) {
     `swept ${swept} stray issue(s)`)
 
   console.log(`\n  rehearsal issue: ${afterClose.html_url} (closed), ${swept} stray closed\n`)
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

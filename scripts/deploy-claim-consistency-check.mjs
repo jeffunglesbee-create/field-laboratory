@@ -22,7 +22,7 @@
 // this stays quiet.
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
 
@@ -140,5 +140,5 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     `STATUS.md says published and README.md asserts ${claims.join(', ')}. `
     + 'One of them is stale. This is the 2026-08-10 -> 2026-09-10 defect recurring.')
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

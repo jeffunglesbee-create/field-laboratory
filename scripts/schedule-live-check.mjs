@@ -21,7 +21,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
 
@@ -147,4 +147,4 @@ if (seen.pitchers.length === 0) {
     `blank or one-character: ${JSON.stringify(seen.pitchers.filter(t => !t || t.length <= 1))}`)
 }
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

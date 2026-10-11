@@ -1,0 +1,93 @@
+{
+ "runs": 20,
+ "ladder": [
+  {
+   "bytes": 1000,
+   "exit": 0,
+   "exitCode": 0
+  },
+  {
+   "bytes": 2000,
+   "exit": 0,
+   "exitCode": 0
+  },
+  {
+   "bytes": 4000,
+   "exit": 0,
+   "exitCode": 0
+  },
+  {
+   "bytes": 8000,
+   "exit": 0,
+   "exitCode": 0
+  },
+  {
+   "bytes": 16000,
+   "exit": 1,
+   "exitCode": 0
+  },
+  {
+   "bytes": 32000,
+   "exit": 0,
+   "exitCode": 0
+  },
+  {
+   "bytes": 64000,
+   "exit": 0,
+   "exitCode": 0
+  }
+ ],
+ "scripts": [
+  {
+   "target": "build/VerifyMain.js",
+   "bytes": 13146,
+   "marker": "191/191 checks held",
+   "idle": 0,
+   "loaded": 5
+  },
+  {
+   "target": "scripts/check-doc-citations.mjs",
+   "bytes": 3021,
+   "marker": "PASS  bare citations do not grow (budget 0)",
+   "idle": 0,
+   "loaded": 0
+  },
+  {
+   "target": "scripts/palette-check.mjs",
+   "bytes": 1909,
+   "marker": "35/35 checks passed",
+   "idle": 0,
+   "loaded": 0
+  },
+  {
+   "target": "scripts/design-tokens-check.mjs",
+   "bytes": 1535,
+   "marker": "25/25 checks passed",
+   "idle": 0,
+   "loaded": 0
+  },
+  {
+   "target": "scripts/typography-check.mjs",
+   "bytes": 1310,
+   "marker": "22/22 checks passed",
+   "idle": 0,
+   "loaded": 0
+  },
+  {
+   "target": "scripts/sport-registry-check.mjs",
+   "bytes": 834,
+   "marker": "14/14 checks passed",
+   "idle": 0,
+   "loaded": 0
+  }
+ ],
+ "verdict": {
+  "realProgramsMeasured": 6,
+  "realProgramsLosingATail": 1,
+  "namesLosing": [
+   "build/VerifyMain.js"
+  ],
+  "ladderFirstLossBytes": 16000,
+  "largestRealBytes": 13146
+ }
+}

@@ -43,7 +43,7 @@
 //         node scripts/short-circuit-check.mjs --self-test
 
 import { readFileSync, readdirSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 // This file quotes every banned form above, in prose, on purpose. Scanning it
 // would flag its own documentation — so comments are stripped before scanning,
@@ -127,5 +127,5 @@ if (isMain(import.meta.url)) {
       ? `${found.length} site(s) — use all(...) from gate-checks.mjs, or .filter() when collecting failures`
       : '')
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

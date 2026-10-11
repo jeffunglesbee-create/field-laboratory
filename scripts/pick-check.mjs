@@ -9,7 +9,7 @@
 // Usage:  node scripts/pick-check.mjs
 
 import { readFileSync } from 'node:fs'
-import { createChecks, toArray } from './checks.mjs'
+import { createChecks, toArray, finish } from './checks.mjs'
 import { decodePick, decodeBundle, leadershipNote, entryMatchup, compareRank,
          passReasonCarriesNumber, passReasonText } from '../build/Pick.js'
 
@@ -125,4 +125,4 @@ check('a shuffled response still finds the same three-way tie',
   ok(reordered) && value(reordered).fields[0].Leadership.fields?.[0] === 3,
   'tie detection depended on arrival order')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

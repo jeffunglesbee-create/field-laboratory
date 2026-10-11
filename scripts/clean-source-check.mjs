@@ -34,7 +34,7 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 
@@ -67,4 +67,4 @@ check('no source file carries injected proof code',
     ? `${dirty.join(', ')} — restore with: git checkout -- ${dirty.map(f => join(SRC, f)).join(' ')}`
     : `${sources.length} file(s) clean`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

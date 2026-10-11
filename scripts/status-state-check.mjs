@@ -26,7 +26,7 @@
 //         node scripts/status-state-check.mjs --self-test
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 /** Every failure string must sit inside a reportFailed call's neighbourhood. */
 export const routedAs = (js, needle, fn, window = 260) => {
@@ -130,5 +130,5 @@ if (isMain(import.meta.url)) {
   check('the ordinary lines are dimmed by colour instead', sc.restDimmed)
   check('the status line is announced', /id="decode-status"[^>]*role="status"/.test(html))
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

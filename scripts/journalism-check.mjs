@@ -23,7 +23,7 @@
 //    reproduced rather than reconciled.
 
 import { readFileSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { startAsPromise } from '../build/fable_modules/fable-library-js.5.13.0/Async.js'
 import {
   ProxyResponse, stubGenerator,
@@ -337,4 +337,4 @@ check('an unknown brief_type is reported unmodelled, not guessed',
   briefTypeName(briefTypeOfString('wc_match')) === 'wc_match',
   'Unmodelled carries the raw string rather than mapping to a neighbour')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

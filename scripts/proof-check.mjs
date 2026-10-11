@@ -26,7 +26,7 @@
 import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { join } from 'node:path'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 import { readdirSync } from 'node:fs'
 
@@ -362,4 +362,4 @@ if (baselineClean) {
 }
 
 console.log(`\ndocs/*-PROOF.md: ${cases.length} claimed rejection(s), each compiled for real\n`)
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

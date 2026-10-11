@@ -22,7 +22,7 @@
 // source asks to be re-run", not "no timer can possibly fire".
 
 import { readFileSync, existsSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 /** The files that make up this surface. A file added here without being added
  *  to the list is the gap, so the list is asserted non-empty and present. */
@@ -188,5 +188,5 @@ if (IS_MAIN && !SELF_TEST) {
   console.log(`               called library arms on its own.\n`)
 
   check('the scan was not vacuous', scanned === SOURCES.length + 2, `scanned ${scanned}`)
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

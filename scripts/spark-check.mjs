@@ -17,7 +17,7 @@
 
 import { chromium } from 'playwright'
 import { existsSync, readFileSync } from 'node:fs'
-import { createChecks, toArray } from './checks.mjs'
+import { createChecks, toArray, finish } from './checks.mjs'
 import { decodePayload, gameStateAt, amnestyZone, sparklineBars, barHeightStyle } from '../build/Desk.js'
 
 const { check, summarize } = createChecks()
@@ -210,4 +210,4 @@ await probe.close()
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '))
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

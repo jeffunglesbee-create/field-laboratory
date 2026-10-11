@@ -24,7 +24,7 @@
 import { readFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { isIgnored } from './deployable.mjs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 export const WORKFLOW = '.github/workflows/verify.yml'
 
@@ -117,5 +117,5 @@ if (isMain(import.meta.url)) {
     bad.length === 0, `${bad.length} disagreement(s)`)
   check('the corpus is not vacuous', corpus.length > EDGE_CASES.length,
     `${tracked.length} tracked paths read from git`)
-  process.exit(summarize('ignore parity'))
+  finish(summarize('ignore parity'))
 }

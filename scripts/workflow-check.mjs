@@ -15,7 +15,7 @@
 // Usage:  node scripts/workflow-check.mjs
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const WORKFLOWS = '.github/workflows'
 
@@ -253,6 +253,6 @@ check('THE DETECTOR CATCHES A GUARD THAT MATCHES NO CRON',
 check('a workflow with crons yields them',
   cronsOf(scheduled).length === 2, cronsOf(scheduled).join(', '))
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())
 
 }

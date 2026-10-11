@@ -8,7 +8,7 @@
 // So the fetch stays unexercised and everything downstream of it does not. These
 // are the actual shapes this session saw, transcribed from the runs named below.
 import { verifyVerdict, stepClause, readVerify, readLiveCheck, verifyRunsUrl, liveCheckRunsUrl } from './status.mjs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 const HEAD = '03063ff0000000000000000000000000000000aa'
@@ -207,4 +207,4 @@ const lc3 = await readLiveCheck({ token: '', repo: '', head: HEAD, inCI: false, 
 check('live-check outside CI is not a problem, same as verify',
   lc3.problem === null && /outside CI/.test(lc3.text), JSON.stringify(lc3))
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

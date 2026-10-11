@@ -23,7 +23,7 @@
 //         node scripts/scale-check.mjs --self-test
 
 import { readFileSync, existsSync, appendFileSync } from 'node:fs'
-import { createChecks, isMain, runIdentity } from './checks.mjs'
+import { createChecks, isMain, runIdentity, finish } from './checks.mjs'
 
 // Where each run's mount measurement is written.
 //
@@ -163,5 +163,5 @@ if (isMain(import.meta.url)) {
   }) + '\n')
   console.log(`  recorded in ${RECORD_PATH} as run ${id}${dirty ? ' (tree dirty)' : ''}\n`)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

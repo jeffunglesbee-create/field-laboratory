@@ -26,7 +26,7 @@
 // Usage:  node scripts/unused-check.mjs
 
 import { readFileSync, readdirSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const SRC = 'src'
 const files = readdirSync(SRC).filter(f => f.endsWith('.fs'))
@@ -99,4 +99,4 @@ check('every public value is read back somewhere',
   orphans.length === 0,
   orphans.join('\n      → '))
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

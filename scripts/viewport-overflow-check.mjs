@@ -40,7 +40,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/?data=context-2026-08-29'
 
@@ -273,5 +273,5 @@ if (isMain(import.meta.url)) {
     failures.join(' | '))
 
   await browser.close()
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

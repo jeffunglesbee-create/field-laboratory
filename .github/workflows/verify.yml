@@ -434,6 +434,20 @@ jobs:
       - name: Team tints, on the rendered page
         run: npm run check:team-tints
 
+      # A check script must not be killed while its own output is in flight.
+      # process.exit() drops pending stdout writes to a pipe, and checks.mjs
+      # prints its ::error annotations immediately before exiting — so the lost
+      # tail is the only machine-readable record of why a step went red. The
+      # terminal form is fatal; the early form is a ratchet, for the reason the
+      # script's own header measures.
+      - name: No check script kills itself mid-write
+        run: npm run check:exit-drains
+
+      # The probe's own checks only. The full measurement spawns CPU burners
+      # and takes minutes, so it is dispatch-only: npm run probe:exit-truncation.
+      - name: The truncation probe can still tell the difference
+        run: npm run check:exit-truncation
+
       # The lineups surface is PULL ONLY, and done condition 4 of the
       # commissioning document is a property of one diff. This is the part that
       # still holds a week later: no timer, no socket, no listener, and a

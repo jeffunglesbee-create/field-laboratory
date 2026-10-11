@@ -42,7 +42,7 @@
 //         node scripts/sport-convention-live-check.mjs --tolerate-unreachable
 
 import { sportOfString, presentByMatchup, matchupText } from '../build/Desk.js'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 const TOLERATE = process.argv.includes('--tolerate-unreachable')
@@ -237,4 +237,4 @@ check('rendered text and score ordering agree, for every sport',
   textWrong.map(r => `${r.sport}: "${matchupText(sportOfString(r.sport), 'Cowboys', 'Eagles')}" but order ${r.lab}`)
     .join('; ') || 'text and order agree everywhere')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

@@ -16,7 +16,7 @@
 // Usage:  node scripts/pick-live-check.mjs
 //         DATE=2026-07-07 node scripts/pick-live-check.mjs
 
-import { createChecks, fieldDay, toArray } from './checks.mjs'
+import { createChecks, fieldDay, toArray, finish } from './checks.mjs'
 import { decodeBundle, decodePick, leadershipNote } from '../build/Pick.js'
 
 const DATE = process.env.DATE || fieldDay()
@@ -83,4 +83,4 @@ check('the transcribed fixture still decodes to a Picked board',
   fixture.tag === 0 && fixture.fields[0].tag === 2,
   'the committed transcription no longer decodes')
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

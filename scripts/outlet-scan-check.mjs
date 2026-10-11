@@ -34,7 +34,7 @@
 
 import { chromium } from 'playwright'
 import { existsSync } from 'node:fs'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 
@@ -134,4 +134,4 @@ check('this file tests the same pattern and selector live-tabs-check uses',
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '))
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

@@ -39,7 +39,7 @@
 
 import { readFileSync, existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const ROOT = new URL('..', import.meta.url).pathname
 const URL_BASE = process.env.URL || 'http://localhost:8080/'
@@ -385,4 +385,4 @@ check('a wet reading names precipitation on the chip',
   `${wet.cards} card(s), ${wetChips.length} filled: ${JSON.stringify(wetChips)}`)
 
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

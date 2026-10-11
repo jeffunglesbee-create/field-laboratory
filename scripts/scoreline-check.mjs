@@ -53,7 +53,7 @@
 // Usage:  node scripts/scoreline-check.mjs [--self-test]
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain, toArray } from './checks.mjs'
+import { createChecks, isMain, toArray, finish } from './checks.mjs'
 import { observed, final, judge, isFinding, wasChecked, finalPair, scorelinesIn, contradictoryLevelClaim } from '../build/Scoreline.js'
 import { resolveGame, indexGames } from './game-id-scheme.mjs'
 
@@ -237,5 +237,5 @@ if (isMain(import.meta.url)) {
     findings.length === 0,
     findings.slice(0, 10).join('\n      → '))
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

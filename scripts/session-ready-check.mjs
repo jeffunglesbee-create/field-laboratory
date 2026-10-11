@@ -25,7 +25,7 @@
 // moment anything asks, instead of surfacing as a permanent history violation.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const quiet = (cmd, args) => {
   try { return execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() }
@@ -133,5 +133,5 @@ if (isMain(import.meta.url)) {
     console.log(`  note: dotnet=${r.dotnet} deps=${r.deps} — \`npm run build\` will not work yet. ${REMEDY}`)
   }
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

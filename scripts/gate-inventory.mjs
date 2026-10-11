@@ -68,7 +68,7 @@ export const diffAgainst = (inventory, rows) => {
 // against deletion, so the deletion case is the case that matters.
 // ---------------------------------------------------------------------------
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { createChecks } = await import('./checks.mjs')
+  const { createChecks, finish } = await import('./checks.mjs')
   const { rows } = await import('./gate-checks.mjs')
   const { check, summarize } = createChecks()
 
@@ -126,5 +126,5 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   check(`${INVENTORY_PATH} parses`, Array.isArray(real) && real.length > 0,
     typeof real === 'string' ? real : 'parsed to an empty list')
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

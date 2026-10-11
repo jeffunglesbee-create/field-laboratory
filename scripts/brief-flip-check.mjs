@@ -22,7 +22,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const BASE = process.env.URL || 'http://localhost:8080/'
 const URL = `${BASE}${BASE.includes('?') ? '&' : '?'}data=context-briefs-fixture`
@@ -189,4 +189,4 @@ check('the tab carries an anchoring aggregate and a quality-vs-245 line',
 check('no page or console errors', errors.length === 0, errors.join(' | '))
 
 await browser.close()
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

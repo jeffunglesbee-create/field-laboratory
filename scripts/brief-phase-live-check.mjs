@@ -35,7 +35,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, isMain, finish } from './checks.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
 const RELAY = process.env.RELAY || 'https://field-relay-nba.jeffunglesbee.workers.dev'
@@ -395,5 +395,5 @@ if (isMain(import.meta.url)) {
     wrong.length === 0,
     wrong.slice(0, 5).join(' | '))
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

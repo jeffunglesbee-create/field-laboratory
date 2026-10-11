@@ -14,7 +14,7 @@
 //
 // Needs relay egress, so this runs on a CI runner, not in the dev sandbox.
 
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 import { fieldDayAt, fieldDayIso } from '../build/Desk.js'
 
 const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev/context/date/'
@@ -151,4 +151,4 @@ if (!chosen) {
 console.log(process.env.AT
   ? `(instant supplied via AT=${process.env.AT})`
   : '(instant chosen automatically — set AT=<iso> to pick one)')
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())

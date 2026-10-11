@@ -28,7 +28,7 @@
 import { fetchSlate } from '../build/WeatherView.js'
 import { all, weatherEligible, distinctLocations } from '../build/Venues.js'
 import { ofArray } from '../build/fable_modules/fable-library-js.5.13.0/List.js'
-import { createChecks } from './checks.mjs'
+import { createChecks, finish } from './checks.mjs'
 
 const { check, summarize } = createChecks()
 
@@ -177,4 +177,4 @@ check('...and a slate that was refused everywhere is EveryFetchFailed, not empty
   refused.outcome.tag === 2,
   `tag ${refused.outcome.tag} (2 is EveryFetchFailed)`)
 
-process.exit(summarize() === 0 ? 0 : 1)
+finish(summarize())
