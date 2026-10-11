@@ -156,3 +156,39 @@ measures nothing.
 
 Caught by looking for the file rather than by trusting the green run. Fixed by
 adding the `.json` to the step's `git add`.
+
+### The reference landed, and the ratchet is armed
+
+Census `38164985807`, `outbox/favourite-band-census-latest.json`:
+
+```json
+{
+ "days": 120,
+ "present": 120,
+ "empty": 0,
+ "failed": 0,
+ "gamesSeen": 3562,
+ "comparableRows": 1341
+}
+```
+
+**29.68 games per present date.** The next census compares against that; the
+degraded run's 1.17 is 4% of it, far under the 50% floor.
+
+The "first run is unguarded" residual noted above is closed: that run has now
+happened, and it happened on a healthy relay.
+
+---
+
+## Manifest
+
+| | |
+|---|---|
+| `bd305e3` | three states, the collapse ratchet, 14 self-tests, 2 mutations |
+| `ce97b9d` *(field-relay-nba)* | done condition 3 corrected |
+| the workflow fix | the reference `.json` is staged, or every run is a first run |
+| census runs | `38164136622` (the real reading), `38164854448` (states print), `38164985807` (reference lands) |
+
+**Three dispatches, and each one found the next thing.** The first gave the real
+number and exposed the bad baseline. The second proved the states print and the
+reference did not persist. The third armed the ratchet.
