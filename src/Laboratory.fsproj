@@ -70,6 +70,7 @@
     <Compile Include="Route.fs" />
     <Compile Include="Desk.fs" />
     <Compile Include="Pick.fs" />
+    <Compile Include="Lineups.fs" />
     <Compile Include="Scout.fs" />
     <Compile Include="Pickem.fs" />
     <Compile Include="Stats.fs" />
@@ -78,6 +79,7 @@
     <Compile Include="PickemView.fs" />
     <Compile Include="WeatherView.fs" />
     <Compile Include="StatsView.fs" />
+    <Compile Include="LineupsView.fs" />
     <Compile Include="BriefsView.fs" />
     <Compile Include="DrawView.fs" />
     <!-- Binary frame ingest. Depends on nothing and is read only by Suite.fs,

@@ -53,7 +53,7 @@ const topTabs = () => page.$$(TABS)
 // WHICH tab was unaccounted for.
 const EXPECTED_TABS = [
   'tab-scoreboard', 'tab-field-pick', 'tab-scout-pick',
-  'tab-pickem', 'tab-weather', 'tab-stats', 'tab-briefs', 'tab-draw', 'tab-verify',
+  'tab-pickem', 'tab-weather', 'tab-stats', 'tab-lineups', 'tab-briefs', 'tab-draw', 'tab-verify',
 ]
 const tabIds = await page.$$eval(TABS, ts => ts.map(t => t.id))
 

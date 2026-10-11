@@ -1981,6 +1981,430 @@ let private forecast () =
 ///
 /// So nothing here is built until a caller asks, by which time a host has filled
 /// the registry.
+// ---------------------------------------------------------------------------
+// Lineups. Seven answers to one request, and the thing being asserted is that
+// they stay seven.
+//
+// Every MustFail here is a DIFFERENT CASE OF THE SAME TYPE rather than
+// malformed input, which is the only way these checks have teeth: the failure
+// mode this guards against is not a decoder that throws, it is a decoder that
+// quietly resolves a non-answer to a sheet. So "an empty sheet is not a missing
+// one" is checked by handing it the missing one and requiring the predicate to
+// refuse — not by handing it nonsense.
+// ---------------------------------------------------------------------------
+
+let private lineups () =
+    // Inline rather than read from data/lineups-*.json ON PURPOSE. Those two
+    // files are rewritten by capture-lineups-fixture.yml every time it runs, and
+    // src/Fixtures.fs records what happens to a check anchored on a captured
+    // value: the tennis suite dropped 119 -> 117 when a recapture changed a
+    // scoreline the assertions named. The bodies below are the SHAPES, which are
+    // the contract; the captures exercise the real bytes in the render check.
+    let served = """{"lineups":{"home":{"team_name":"H","formation":"4-4-2","confidence":0.8,"players":[{"name":"A","position":"G","jersey_number":1,"ai_score":0.7}],"substitutes":[]},"away":{"team_name":"A","players":[{"name":"B"}],"substitutes":[]}}"""
+    let body status = sprintf """%s,"lineup_status":%s}""" served status
+    let predicted = body "\"predicted\""
+    let confirmed = body "\"confirmed\""
+    let unstated = served + "}"
+    let nulled = body "null"
+    let blankStatus = body "\"\""
+    let unknown = body "\"probable\""
+    let emptySheet = """{"lineups":{},"lineup_status":"predicted"}"""
+    let noKey = """{"lineup_status":"predicted"}"""
+    let nullSheet = """{"lineups":null,"lineup_status":"predicted"}"""
+    let garbage = """{"lineups":{"home":"""
+    // A name on the sheet AND on the injury list, and the same shape without it.
+    let clash =
+        """{"lineup_status":"confirmed","lineups":{"home":{"team_name":"H","players":[{"name":"A"}],"substitutes":[]},"away":{"team_name":"A","players":[{"name":"B"}],"substitutes":[]}},"unavailable_players":{"home":[{"name":"A","status":"injured","reason":"Knee Injury"}],"away":[]}}"""
+    let noClash =
+        """{"lineup_status":"confirmed","lineups":{"home":{"team_name":"H","players":[{"name":"A"}],"substitutes":[]},"away":{"team_name":"A","players":[{"name":"B"}],"substitutes":[]}},"unavailable_players":{"home":[{"name":"Z","status":"injured","reason":"Knee Injury"}],"away":[]}}"""
+    let clashUnstated =
+        """{"lineups":{"home":{"team_name":"H","players":[{"name":"A"}],"substitutes":[]},"away":{"team_name":"A","players":[{"name":"B"}],"substitutes":[]}},"unavailable_players":{"home":[{"name":"A","status":"injured","reason":"Knee Injury"}],"away":[]}}"""
+
+    let answerOf (json: string) = (Lineups.fromString json).Answer
+
+    /// A real decoded side, so a `Sheet` can be constructed for the
+    /// standings-iteration check below without hand-building a record.
+    let aSide =
+        match Lineups.sidesOf (answerOf predicted) with
+        | Some(h, _) -> h
+        | None -> failwith "the predicted fixture body must decode to two sides"
+
+    let isPredictedSheet json =
+        match answerOf json with
+        | Lineups.Sheet(Lineups.Standing.Predicted, _, _) -> true
+        | _ -> false
+
+    let isConfirmedSheet json =
+        match answerOf json with
+        | Lineups.Sheet(Lineups.Standing.Confirmed, _, _) -> true
+        | _ -> false
+
+    let isAnySheet json =
+        match answerOf json with
+        | Lineups.Sheet _ -> true
+        | _ -> false
+
+    let is (expected: Lineups.Answer) json = answerOf json = expected
+
+    [ // --- the two answers ------------------------------------------------
+      Verify.check "a predicted body decodes as a PREDICTED sheet" isPredictedSheet predicted confirmed
+      Verify.check "a confirmed body decodes as a CONFIRMED sheet" isConfirmedSheet confirmed predicted
+
+      // --- the five non-answers, each refusing a different neighbour ------
+      //
+      // THE ONE THAT MATTERS MOST. `status-unrecognised` is the non-answer the
+      // commissioning document does not name — it lists three. A decoder built
+      // to three falls through on the fourth, and falling through means drawing
+      // the sheet under whichever standing the fall-through lands on. A sheet
+      // drawn as confirmed over a status nobody has seen is the fabrication the
+      // document exists to prevent.
+      Verify.check "an unrecognised status is NOT a sheet of a known kind"
+          (fun json -> not (isAnySheet json))
+          unknown
+          predicted
+
+      Verify.check "an unrecognised status KEEPS THE WORD, so the page can name it"
+          (fun json ->
+              match answerOf json with
+              | Lineups.SheetOfUnknownKind(s, _, _) -> s = "probable"
+              | _ -> false)
+          unknown
+          unstated
+
+      Verify.check "an absent status is UNSTATED, never predicted"
+          (fun json ->
+              match answerOf json with
+              | Lineups.SheetOfUnstatedKind _ -> true
+              | _ -> false)
+          unstated
+          predicted
+
+      Verify.check "a NULL status is unstated too, not a sheet"
+          (fun json ->
+              match answerOf json with
+              | Lineups.SheetOfUnstatedKind _ -> true
+              | _ -> false)
+          nulled
+          confirmed
+
+      Verify.check "an EMPTY-STRING status is unstated as well — the third of Rule 99's four"
+          (fun json ->
+              match answerOf json with
+              | Lineups.SheetOfUnstatedKind _ -> true
+              | _ -> false)
+          blankStatus
+          predicted
+
+      // --- the three fills that are not a sheet ---------------------------
+      //
+      // Each MustFail is one of the OTHER two, so none of these can pass by
+      // being generically "not a sheet".
+      Verify.check "an EMPTY lineups object is served-empty, not a missing key"
+          (is Lineups.ServedEmpty)
+          emptySheet
+          noKey
+
+      Verify.check "a MISSING lineups key is not-in-payload, not served-empty"
+          (is Lineups.NotInPayload)
+          noKey
+          emptySheet
+
+      Verify.check "an explicit NULL lineups is its own case, not served-empty"
+          (is Lineups.ExplicitlyNull)
+          nullSheet
+          emptySheet
+
+      Verify.check "...and not a missing key either"
+          (is Lineups.ExplicitlyNull)
+          nullSheet
+          noKey
+
+      // --- the failure -----------------------------------------------------
+      //
+      // A body that will not parse means the state is UNKNOWN. Rendering it as
+      // an empty sheet tells the reader nobody has been named, which the payload
+      // never said.
+      Verify.check "a body that does not decode is UPSTREAM FAILED, not an empty sheet"
+          (fun json ->
+              match answerOf json with
+              | Lineups.UpstreamFailed _ -> true
+              | _ -> false)
+          garbage
+          emptySheet
+
+      // --- the seven sentences differ -------------------------------------
+      //
+      // Task 3: the non-answers "must not render as a thin team sheet" and they
+      // are not each other. If two of these ever collapse to the same string,
+      // two different facts are being reported identically, which is the defect
+      // in a different place.
+      Verify.check "ALL SEVEN HEADLINES ARE DISTINCT"
+          (fun (answers: Lineups.Answer list) ->
+              let said = answers |> List.map Lineups.headline
+              List.length (List.distinct said) = List.length said)
+          [ answerOf predicted
+            answerOf confirmed
+            answerOf unstated
+            answerOf unknown
+            answerOf emptySheet
+            answerOf noKey
+            answerOf nullSheet ]
+          [ answerOf predicted; answerOf predicted ]
+
+      // None of the seven may say the phrase the relay's own source forbids.
+      //
+      // THIS CHECK FAILED ON ITS FIRST RUN, on the code it was written against,
+      // and it is the reason `headline` no longer interpolates anything into
+      // the failure sentence. The original wrote the upstream detail into its
+      // prose, so `UpstreamFailed "no lineup announced"` produced a page that
+      // said the phrase in its own voice — through a field the page does not
+      // control. The sentences are fixed text now and the detail is a separate
+      // diagnostic line.
+      //
+      // The predicate takes SENTENCES rather than answers so it has a
+      // counterexample at all: once the sentences are fixed, no `Answer` can
+      // produce the phrase, and a check with no reachable failure is the
+      // toothless shape this harness refuses.
+      Verify.check "NO headline says \"no lineup announced\""
+          (fun (said: string list) ->
+              said |> List.forall (fun t -> not (t.Contains "no lineup announced")))
+          [ Lineups.headline (answerOf predicted)
+            Lineups.headline (answerOf confirmed)
+            Lineups.headline (answerOf unstated)
+            Lineups.headline (answerOf unknown)
+            Lineups.headline (answerOf emptySheet)
+            Lineups.headline (answerOf noKey)
+            Lineups.headline (answerOf nullSheet)
+            Lineups.headline (Lineups.UpstreamFailed "no lineup announced") ]
+          [ Lineups.headline (answerOf predicted)
+            "the vendor reports no lineup announced for this fixture" ]
+
+      // The specific defect, asserted directly: the upstream detail does not
+      // reach the sentence.
+      //
+      // The assertion is "the detail does not APPEAR", which is weaker than
+      // "the detail is not interpolated" for a detail that happens to be a
+      // substring of the fixed wording — which is exactly what the MustFail
+      // below is, and why it fails. That boundary is stated rather than left
+      // for a reader to discover.
+      Verify.check "an upstream detail does not reach the headline"
+          (fun (detail: string) ->
+              not ((Lineups.headline (Lineups.UpstreamFailed detail)).Contains detail))
+          "the response did not decode: Expecting an object at $.lineups"
+          "The request failed."
+
+      // ...and it is still reported, in its own channel.
+      Verify.check "the detail is REPORTED, in a diagnostic rather than in prose"
+          (fun (a: Lineups.Answer) -> Option.isSome (Lineups.failureDetail a))
+          (Lineups.UpstreamFailed "boom")
+          (answerOf predicted)
+
+      // A status is a token, not a sentence. The word survives so the page can
+      // name what it refused; a sentence smuggled through the same field does
+      // not survive intact.
+      Verify.check "an unrecognised status survives as a TOKEN"
+          (fun (raw: string) -> Lineups.safeToken raw = Some "probable")
+          "probable"
+          "probable lineup, per the vendor"
+
+      Verify.check "a status with nothing token-shaped in it yields None, not an empty quote"
+          (fun (raw: string) -> Option.isNone (Lineups.safeToken raw))
+          "   ...   "
+          "xi"
+
+      // --- the mark is a property of the row ------------------------------
+      Verify.check "a predicted sheet and a confirmed one carry DIFFERENT row marks"
+          (fun (a: Lineups.Answer, b: Lineups.Answer) ->
+              match Lineups.markFor a, Lineups.markFor b with
+              | Some x, Some y -> x <> y
+              | _ -> false)
+          (answerOf predicted, answerOf confirmed)
+          (answerOf predicted, answerOf predicted)
+
+      Verify.check "an answer with no players has NO row mark rather than a default one"
+          (fun (a: Lineups.Answer) -> Option.isNone (Lineups.markFor a))
+          (answerOf emptySheet)
+          (answerOf predicted)
+
+      Verify.check "a sheet of unstated kind is marked as such, not as either answer"
+          (fun (a: Lineups.Answer) -> Lineups.markFor a = Some Lineups.KindNotStated)
+          (answerOf unstated)
+          (answerOf confirmed)
+
+      // THE TWO CHECKS ABOVE COMPARE CASES, AND THE PAGE PRINTS WORDS.
+      //
+      // That gap was not noticed by reading. It was found by mutation
+      // (`lineups-mark-says-one-thing`): changing `markWord Announced` from
+      // "confirmed" to "predicted" left every check above green, because
+      // `Unannounced <> Announced` is still true — while every row of a
+      // CONFIRMED team sheet rendered the word "predicted". Which is the
+      // commissioning document's opening sentence, arrived at through the one
+      // layer its checks were not looking at.
+      //
+      // So the word is asserted as well as the case. A mark is only a treatment
+      // if what it prints differs.
+      Verify.check "THE THREE MARKS PRINT THREE DIFFERENT WORDS"
+          (fun (marks: Lineups.RowMark list) ->
+              let words = marks |> List.map Lineups.markWord
+              List.length (List.distinct words) = List.length words)
+          [ Lineups.Unannounced; Lineups.Announced; Lineups.KindNotStated ]
+          [ Lineups.Unannounced; Lineups.Announced; Lineups.Unannounced ]
+
+      Verify.check "...and a predicted sheet's WORD is not a confirmed sheet's"
+          (fun (a: Lineups.Answer, b: Lineups.Answer) ->
+              match Lineups.markFor a, Lineups.markFor b with
+              | Some x, Some y -> Lineups.markWord x <> Lineups.markWord y
+              | _ -> false)
+          (answerOf predicted, answerOf confirmed)
+          (answerOf predicted, answerOf predicted)
+
+      // The colours are the redundant channel and must not collapse either —
+      // same failure one layer over.
+      Verify.check "...and they resolve to different palette tokens"
+          (fun (a: Lineups.Answer, b: Lineups.Answer) ->
+              match Lineups.markFor a, Lineups.markFor b with
+              | Some x, Some y -> Lineups.markSemantic x <> Lineups.markSemantic y
+              | _ -> false)
+          (answerOf predicted, answerOf confirmed)
+          (answerOf predicted, answerOf predicted)
+
+      // EVERY standing, iterated rather than spelled out. A third `Standing`
+      // added without a distinct word would pass the pairwise check above,
+      // which only knows about two.
+      //
+      // The predicate takes the list so it HAS a counterexample: the property
+      // holds for every real `Standing`, so a predicate over `Standing` alone
+      // could not be made to fail and would have no teeth.
+      Verify.check "EVERY standing yields a mark, and no two standings share a word"
+          (fun (standings: Lineups.Standing list) ->
+              let words =
+                  standings
+                  |> List.map (fun st -> Lineups.markFor (Lineups.Sheet(st, aSide, aSide)))
+                  |> List.choose id
+                  |> List.map Lineups.markWord
+              List.length words = List.length standings
+              && List.length (List.distinct words) = List.length words)
+          Lineups.allStandings
+          [ Lineups.Standing.Predicted; Lineups.Standing.Predicted ]
+
+      // `hasPlayers` and `markFor` are two functions over the same seven cases
+      // and they must agree. Disagreement is either a marked sheet with nothing
+      // to mark, or rows drawn with no mark on them — the second being the
+      // failure this whole surface exists to prevent.
+      //
+      // Expectations are carried in the input so a wrong one is a real
+      // counterexample, rather than a property no list of answers can violate.
+      Verify.check "hasPlayers and markFor AGREE on all seven answers"
+          (fun (pairs: (Lineups.Answer * bool) list) ->
+              pairs
+              |> List.forall (fun (a, expected) ->
+                  Lineups.hasPlayers a = expected
+                  && Option.isSome (Lineups.markFor a) = expected))
+          [ answerOf predicted, true
+            answerOf confirmed, true
+            answerOf unstated, true
+            answerOf unknown, true
+            answerOf emptySheet, false
+            answerOf noKey, false
+            answerOf nullSheet, false
+            Lineups.UpstreamFailed "boom", false ]
+          [ answerOf predicted, true
+            answerOf emptySheet, true ]
+
+      // --- the name seal ---------------------------------------------------
+      //
+      // A nameless row renders as a player who has not been announced, which the
+      // payload did not say. The MustFail is a real name: a predicate that
+      // dropped everything would pass the first half and fail here.
+      Verify.check "a BLANK name is dropped rather than rendered as an empty row"
+          (fun (raw: string) -> Option.isNone (Lineups.tryPlayerName raw))
+          "   "
+          "Kristijan Kahlina"
+
+      Verify.check "an empty name is dropped too"
+          (fun (raw: string) -> Option.isNone (Lineups.tryPlayerName raw))
+          ""
+          "A"
+
+      Verify.check "a player with no usable name does not shorten the sheet silently"
+          (fun json ->
+              match Lineups.playersSeen (answerOf json) with
+              | Some(h, _) -> h = 1
+              | None -> false)
+          predicted
+          emptySheet
+
+      // --- the score is sealed ---------------------------------------------
+      //
+      // There is no formatter for a SealedScore, so "the number is not printed"
+      // is a compile-time property and cannot be asserted at runtime. What CAN
+      // be asserted is the thing the seal exists to enable: presence, used as
+      // corroboration and nothing else.
+      Verify.check "a predicted sheet's players carry a model score"
+          (fun json ->
+              match Lineups.sidesOf (answerOf json) with
+              | Some(h, _) -> h.Players |> List.forall (fun p -> Lineups.isScored p.Score)
+              | None -> false)
+          predicted
+          emptySheet
+
+      // --- corroboration reports, never overrides --------------------------
+      Verify.check "a CONFIRMED sheet still carrying model scores is reported as a disagreement"
+          (fun (json: string) -> not (List.isEmpty (Lineups.disagreements(Lineups.fromString json))))
+          confirmed
+          predicted
+
+      // The standing itself is NOT changed by the disagreement. The vendor's
+      // statement stands; the note is for the reader.
+      Verify.check "...and the standing is NOT rewritten by it"
+          isConfirmedSheet
+          confirmed
+          predicted
+
+      // --- a name on both lists --------------------------------------------
+      //
+      // NOT HYPOTHETICAL. data/lineups-confirmed.json names Idan Toklomati in
+      // Charlotte FC's starting eleven and lists him under unavailable_players
+      // as "injured · Knee Injury" — on a CONFIRMED sheet, the kind this page
+      // tells the reader is the names as submitted. Both halves rendered, side
+      // by side, and nothing said so.
+      //
+      // The MustFail is the SAME SHAPE with a different name on the injury
+      // list, so the check cannot pass by firing on any sheet that has an
+      // unavailable list at all.
+      Verify.check "A NAME ON THE SHEET AND ON THE INJURY LIST IS REPORTED"
+          (fun (json: string) ->
+              Lineups.disagreements (Lineups.fromString json)
+              |> List.exists (fun n -> n.Contains "AND listed unavailable"))
+          clash
+          noClash
+
+      // It is a fact about two lists, not about the standing, so it must fire
+      // on a sheet whose kind the vendor never stated.
+      Verify.check "...on a sheet of unstated kind too, where there is no standing to contradict"
+          (fun (json: string) ->
+              Lineups.disagreements (Lineups.fromString json)
+              |> List.exists (fun n -> n.Contains "AND listed unavailable"))
+          clashUnstated
+          noClash
+
+      // Reported, never resolved. Which half is wrong is the vendor's question
+      // and dropping either would be this page answering it.
+      Verify.check "...and NEITHER half is dropped — the player stays on the sheet"
+          (fun (json: string) ->
+              match Lineups.sidesOf (Lineups.fromString json).Answer with
+              | Some(h, _) -> h.Players |> List.exists (fun p -> Lineups.playerName p.Name = "A")
+              | None -> false)
+          clash
+          emptySheet
+
+      Verify.check "...and stays on the injury list"
+          (fun (json: string) ->
+              (Lineups.fromString json).UnavailableHome
+              |> List.exists (fun u -> Lineups.playerName u.Who = "A"))
+          clash
+          noClash ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -1993,7 +2417,8 @@ let groups () : (string * Verify.Sealed list) list =
       "Routing", route ()
       "Team colours", teamTints ()
       "Tennis scorelines", tennis ()
-      "Tennis draws", draw () ]
+      "Tennis draws", draw ()
+      "Lineups", lineups () ]
 
 /// The flat suite, DERIVED from the groups rather than assembled a second time.
 /// Two lists of the same eleven bindings would be two places to forget one, and

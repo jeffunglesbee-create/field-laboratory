@@ -167,6 +167,76 @@ let private loadDrawOnce () =
         | null -> ()
         | mount -> DrawView.load mount (drawUrl ()) |> Promise.start
 
+/// The lineups route. `/bsd/events/<id>/lineups` on the relay, which forwards
+/// BSD's shape unchanged and reports the state in response headers.
+///
+/// The headers are not read here. `?data=` and `?xi=predicted` pin this page to
+/// a file, and a file has no headers — so `Lineups.fromString` derives the state
+/// from the body, and `scripts/capture-lineups-fixture.mjs` refuses to write a
+/// capture whose headers and body disagree. See `Lineups.fs`.
+let private RELAY_LINEUPS = "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/"
+
+/// Where the Lineups panel gets its payload.
+type private XiSource =
+    | XiCapture of string
+    | XiLive of string
+    /// A `?xi=` this page cannot make sense of. NOT a fallback to a capture:
+    /// quietly showing yesterday's predicted sheet under a parameter that asked
+    /// for something else is the silent-wrongness shape this repository keeps
+    /// finding.
+    | XiRefused of string
+
+/// Which lineup the panel shows.
+///
+/// A COMMITTED CAPTURE BY DEFAULT, the same asymmetry `drawUrl` carries and for
+/// an additional reason. There is no obviously-right event: the slate has one —
+/// today — and a lineup does not, because the relay serves one event at a time
+/// and picking "the interesting fixture" would mean reproducing a ranking rule
+/// that already exists elsewhere.
+///
+/// The two captures are the real thing. `data/lineups-predicted.json` is event
+/// 220230 pre-match and `data/lineups-confirmed.json` is event 5327 played, both
+/// taken through the relay route above; `data/PROVENANCE.md` records when and
+/// how. They make the default render deterministic AND they are the two states
+/// the commissioning document's done condition 2 needs a screenshot of —
+/// `confirmed` is not reachable on a pre-match event, so one page with one
+/// parameter is the only way to photograph both on the same afternoon.
+///
+/// `?xi=<event id>` fetches that event live. Digits only: a URL assembled from
+/// arbitrary query text is a request this page did not intend to make.
+let private lineupsSource () =
+    match queryParam "xi" with
+    | None -> XiCapture "./data/lineups-predicted.json"
+    | Some "predicted" -> XiCapture "./data/lineups-predicted.json"
+    | Some "confirmed" -> XiCapture "./data/lineups-confirmed.json"
+    | Some raw when raw <> "" && raw |> Seq.forall System.Char.IsDigit ->
+        XiLive(sprintf "%s%s/lineups" RELAY_LINEUPS raw)
+    | Some raw ->
+        XiRefused(
+            sprintf
+                "?xi=%s is neither \"predicted\", \"confirmed\", nor an event id. Nothing was fetched."
+                (Lineups.safeToken raw |> Option.defaultValue "<nothing printable>"))
+
+let mutable private lineupsLoaded = false
+
+/// Fetch the lineup ONCE, the first time the tab is shown.
+///
+/// Lazy for the reason the draw is: a surface nobody opened should not have
+/// spent a request. Once, and never again — no interval, no retry, no
+/// diff-on-change. The commissioning document's first stop condition is that
+/// this is served on pull only, and `scripts/check-lineups-pull-only.mjs` fails
+/// the build if a timer appears on this path.
+let private loadLineupsOnce () =
+    if not lineupsLoaded then
+        lineupsLoaded <- true
+        match document.getElementById "panel-lineups" with
+        | null -> ()
+        | mount ->
+            match lineupsSource () with
+            | XiCapture url -> LineupsView.load mount url |> Promise.start
+            | XiLive url -> LineupsView.load mount url |> Promise.start
+            | XiRefused why -> LineupsView.renderRefusal mount why
+
 let mutable private verifyLoaded = false
 
 /// Run the F# suite in the browser, once, the first time the tab is shown.
@@ -551,7 +621,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-briefs"; "tab-draw"; "tab-verify" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-verify" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
@@ -570,6 +640,7 @@ let private wireTabs () =
             tab.setAttribute ("tabindex", (if selected then "0" else "-1"))
             if selected && tab.id = "tab-weather" then loadWeatherOnce ()
             if selected && tab.id = "tab-draw" then loadDrawOnce ()
+            if selected && tab.id = "tab-lineups" then loadLineupsOnce ()
             if selected && tab.id = "tab-verify" then loadVerifyOnce ()
             match document.getElementById (tab.getAttribute "aria-controls") with
             | null -> ()

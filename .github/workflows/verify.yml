@@ -434,6 +434,42 @@ jobs:
       - name: Team tints, on the rendered page
         run: npm run check:team-tints
 
+      # The lineups surface is PULL ONLY, and done condition 4 of the
+      # commissioning document is a property of one diff. This is the part that
+      # still holds a week later: no timer, no socket, no listener, and a
+      # capture workflow with no schedule. Costs nothing - it reads four source
+      # regions and never touches the network.
+      - name: Lineups is pull only
+        run: npm run check:lineups-pull-only
+
+      # The Lineups panel, on the page. Two real captured payloads for the two
+      # states the commissioning document needs a screenshot of, and five routed
+      # bodies for the non-answers the vendor will not serve on request.
+      #
+      # It is here rather than in a workflow of its own because the browser is
+      # already installed and the server is already running by this point — the
+      # Actions budget note in CLAUDE.md makes a second Chromium install for one
+      # panel the wrong trade.
+      - name: The lineups panel's own checks
+        run: node scripts/lineups-render-check.mjs --self-test
+
+      - name: Lineups, on the rendered page
+        run: node scripts/lineups-render-check.mjs
+
+      # Unlike the tints screenshot, these two are the ARTIFACT A GREEN RUN
+      # PRODUCES: done condition 2 of the commissioning document is "a predicted
+      # XI is visually distinguishable from a confirmed one in a committed
+      # screenshot of each", so the pair is the evidence and not the debris.
+      - name: Keep the lineups screenshots either way
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lineups-screenshots
+          path: |
+            outbox/lineups-*.png
+            outbox/lineups-render-manifest.json
+          if-no-files-found: ignore
+
       # The screenshot is the artifact a red run needs and a green run does not.
       - name: Keep the screenshot when the tints check fails
         if: failure()

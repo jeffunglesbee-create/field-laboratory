@@ -1231,6 +1231,78 @@ const MUTATIONS = [
     replace: '  at: new Date().toISOString(),\n  url: m.url ?? null,',
     expect: 'node scripts/axis-check.mjs --self-test',
   },
+
+  {
+    // THE PREDICTED XI, and the five mutations that would each produce a page
+    // that looks right. docs/CC-CMD-2026-10-11-predicted-xi-render-decision.md
+    // in field-relay-nba commissioned this surface; its done condition 4 is "no
+    // cron, no watch, no diff-on-change anywhere in the diff", which is a
+    // property of one diff and so is a property nothing enforces a week later.
+    //
+    // A panel that refreshes itself reads as an improvement in review. It is
+    // the thing the relay deliberately does not do: Rule A is not cleared, and
+    // a lineup that changes an hour before kickoff is the most
+    // notification-shaped object this feature introduces. If this survives, the
+    // stop condition is prose.
+    id: 'lineups-polls',
+    file: 'src/LineupsView.fs',
+    claim: 'the lineups panel fetches once and never re-arms',
+    find: '        render mount reply\n    }',
+    replace: '        render mount reply\n        window.setInterval((fun () -> render mount reply), 60000) |> ignore\n    }',
+    expect: 'node scripts/check-lineups-pull-only.mjs',
+  },
+  {
+    // The other half of the same stop condition. A scheduled capture is a watch
+    // by another name, and it would be the obvious thing to add the first time
+    // someone wants the fixtures kept fresh.
+    id: 'lineups-capture-scheduled',
+    file: '.github/workflows/capture-lineups-fixture.yml',
+    claim: 'the lineups capture is dispatch-only — nothing puts it on a timer',
+    find: 'on:\n  workflow_dispatch:',
+    replace: 'on:\n  schedule:\n    - cron: "*/15 * * * *"\n  workflow_dispatch:',
+    expect: 'node scripts/check-lineups-pull-only.mjs',
+  },
+  {
+    // THE FABRICATION, in one line. `lineup_status` is a vendor field and the
+    // document names three non-answers; there are five, and this is the one it
+    // does not name. A status nobody has seen falling through to `predicted`
+    // draws a team sheet under a word this page never verified — and every
+    // other check still passes, because the sheet is well-formed. If this
+    // survives, "seven cases" is a type and not a guarantee.
+    id: 'lineups-unrecognised-falls-through',
+    file: 'src/Lineups.fs',
+    claim: 'an unrecognised lineup_status is never resolved to a sheet of a known kind',
+    find: '                | Some other -> SheetOfUnknownKind(other, home, away)',
+    replace: '                | Some _ -> Sheet(Standing.Predicted, home, away)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // Rule 99's four states, collapsed by one arrow. The relay sends
+    // `served-empty` separately from `absent` and says in its own source that
+    // they "must not be smoothed into either"; this smooths them. The page then
+    // tells a reader the response carried no lineups when the vendor in fact
+    // answered with an empty sheet — two different facts, one sentence.
+    id: 'lineups-empty-is-absent',
+    file: 'src/Lineups.fs',
+    claim: 'an empty lineups object stays distinct from a missing one',
+    find: '            | FillEmpty -> ServedEmpty',
+    replace: '            | FillEmpty -> NotInPayload',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The treatment itself. One word changed and a confirmed team sheet and a
+    // model's guess carry the same mark on every row — which is the exact
+    // outcome the commissioning document opens with: "a predicted XI rendered
+    // identically to a confirmed one is a fabrication with a team sheet's
+    // authority". Nothing crashes, every row still renders, and the page is
+    // wrong in the only way that matters.
+    id: 'lineups-mark-says-one-thing',
+    file: 'src/Lineups.fs',
+    claim: 'a predicted sheet and a confirmed one carry different marks on every row',
+    find: '    | Announced -> "confirmed"',
+    replace: '    | Announced -> "predicted"',
+    expect: 'node build/VerifyMain.js',
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

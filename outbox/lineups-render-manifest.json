@@ -1,0 +1,117 @@
+{
+ "base": "http://localhost:8080",
+ "states": {
+  "predicted": {
+   "answer": "predicted",
+   "headline": "Predicted, not announced. Every name below is the vendor's model output, not a team sheet.",
+   "rows": 46,
+   "markedRows": 46,
+   "marks": [
+    "predicted"
+   ],
+   "everyRowMarked": true,
+   "gridDrawn": true,
+   "oneMarkWordOnly": true,
+   "teams": [
+    "Boyacá Chicó FC",
+    "Cúcuta Deportivo"
+   ],
+   "unavailableNamed": 2,
+   "unavailableWithReason": 2,
+   "markColours": [
+    "rgb(245, 158, 11)"
+   ],
+   "disagreements": 0,
+   "screenshot": "outbox/lineups-predicted.png"
+  },
+  "confirmed": {
+   "answer": "confirmed",
+   "headline": "Confirmed team sheet. These are the names as submitted.",
+   "rows": 40,
+   "markedRows": 40,
+   "marks": [
+    "confirmed"
+   ],
+   "everyRowMarked": true,
+   "gridDrawn": true,
+   "oneMarkWordOnly": true,
+   "teams": [
+    "Charlotte FC",
+    "FC Dallas"
+   ],
+   "unavailableNamed": 5,
+   "unavailableWithReason": 5,
+   "markColours": [
+    "rgb(106, 106, 138)"
+   ],
+   "disagreements": 1,
+   "screenshot": "outbox/lineups-confirmed.png"
+  }
+ },
+ "nonAnswers": {
+  "served-empty": {
+   "answer": "served-empty",
+   "headline": "The vendor answered with an empty sheet. Something was served and it contained no players — which is not the same as nothing being announced.",
+   "rows": 0,
+   "markedRows": 0,
+   "marks": [],
+   "everyRowMarked": false,
+   "gridDrawn": false,
+   "oneMarkWordOnly": false
+  },
+  "not-in-payload": {
+   "answer": "not-in-payload",
+   "headline": "The response carried no lineups at all. The question was not answered, and it was not refused either.",
+   "rows": 0,
+   "markedRows": 0,
+   "marks": [],
+   "everyRowMarked": false,
+   "gridDrawn": false,
+   "oneMarkWordOnly": false
+  },
+  "explicitly-null": {
+   "answer": "explicitly-null",
+   "headline": "The vendor named the lineups field and left it empty. That is a stated absence, not a missing response.",
+   "rows": 0,
+   "markedRows": 0,
+   "marks": [],
+   "everyRowMarked": false,
+   "gridDrawn": false,
+   "oneMarkWordOnly": false
+  },
+  "kind-not-stated": {
+   "answer": "kind-not-stated",
+   "headline": "Players were served and the vendor did not say whether this is announced or predicted. It is not safe to read as either.",
+   "rows": 2,
+   "markedRows": 2,
+   "marks": [
+    "kind not stated"
+   ],
+   "everyRowMarked": true,
+   "gridDrawn": true,
+   "oneMarkWordOnly": true
+  },
+  "kind-unrecognised": {
+   "answer": "kind-unrecognised",
+   "headline": "Players were served under a status this page has never seen: \"probable\". Treated as neither announced nor predicted.",
+   "rows": 2,
+   "markedRows": 2,
+   "marks": [
+    "kind not stated"
+   ],
+   "everyRowMarked": true,
+   "gridDrawn": true,
+   "oneMarkWordOnly": true
+  },
+  "not-requested": {
+   "answer": "not-requested",
+   "headline": "No request was made, so nothing is known about any lineup. This is not an empty team sheet and not a failed call.",
+   "rows": 0,
+   "markedRows": 0,
+   "marks": [],
+   "everyRowMarked": false,
+   "gridDrawn": false,
+   "oneMarkWordOnly": false
+  }
+ }
+}

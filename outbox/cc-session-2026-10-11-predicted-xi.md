@@ -208,3 +208,373 @@ capture that tried three of forty events must not read as a survey.
 
 `capture-lineups-fixture.yml` is `workflow_dispatch` only. The document's first
 stop condition is pull-only, and a scheduled capture is a watch by another name.
+
+---
+
+## Where the renderer lives
+
+Not a `Stats.Row` case. Three reasons, one of them a landmine:
+
+1. An XI is eleven rows a side plus substitutes. `Row` is a label and a value.
+2. `scripts/schedule-live-check.mjs` identifies pitcher rows **by exclusion**
+   against a hardcoded list of the other eight labels. A tenth `Row` case whose
+   label is not added there would be counted as a pitcher row and then asserted
+   against "every pitcher row carries a name" — passing the wrong assertion
+   rather than failing.
+3. `.st-row` declares three grid tracks and emits two children. A third element
+   would land in a track whose layout has never been exercised.
+
+So it is a surface of its own, following the `panel-field-pick` precedent
+exactly — its own module, its own fixture when pinned, and a failure that must
+not take the slate down:
+
+```fsharp
+                let pickUrl =
+                    match queryParam "data" with
+                    | Some _ -> "./data/pick-2026-07-07.json"
+                    | None -> RELAY_PICK + payload.Date
+```
+
+`src/Lineups.fs` (the model, the decoder, the treatment) and
+`src/LineupsView.fs` (the drawing), with `panel-lineups` and a `Lineups` tab.
+
+---
+
+## Task 2 — the treatment, and the number that is not shown
+
+### An inference of mine that the bytes refuted
+
+Partway through this session I concluded from the relay probe's key-path list
+that `confidence` and `ai_score` are present on a confirmed sheet and therefore
+cannot distinguish the two states. The captures say the opposite:
+
+| | predicted (220230) | confirmed (5327) |
+|---|---|---|
+| `lineup_status` | `"predicted"` | `"confirmed"` |
+| `beta` | `true` | `false` |
+| `confidence` | 0.791 / 0.85 | **`null` / `null`** |
+| `ai_score` | 22 of 22 populated, 0.411–0.87 | **0 of 22 populated** |
+| `captain` | absent | present |
+
+The key exists and the value is null — Rule 99's four states, and the probe's
+`innerKeyPaths` was the copy while the bytes were the source. Four signals agree
+on both captures, which is why `disagreements` reports a divergence rather than
+resolving one.
+
+It was recorded in a working note and never published. The corollary to Rule 100
+is that believing an untested premise costs nothing and publishing it costs a
+reader's trust; this one was caught on the near side of that line, by reading
+the file instead of the summary of the file.
+
+### The treatment
+
+**A word in each row's own column, twenty-two times a side.**
+
+```fsharp
+    let word = child node (el "div" "lu-row__mark" (markWord mark))
+```
+
+Not a badge on the card. A legend in a header does not survive being separated
+from the card, and a row that is screenshot, quoted, or read aloud on its own
+carries no mark at all. With the column, the two sheets differ on every single
+line.
+
+The colour is the **redundant** channel — `Semantic.Caution`, the amber this
+palette already assigns to "bracket trap / injury", painted from
+`Palette.tokenOf` rather than from a hex in the stylesheet. A reader who cannot
+distinguish amber reads the same word.
+
+### The numbers are not rendered, and cannot be
+
+```fsharp
+type SealedScore = private SealedScore of float
+```
+
+`Pick.SealedRank`'s seal, for its reason and one more. The document says
+"showing a number without saying what it ranges over is its own defect". The
+observed interval can be stated; what the number MEASURES cannot — the vendor
+does not say whether 0.87 is a likelihood of starting, a rating of form, or the
+model's confidence in its own guess, and a team-sheet reader would take those
+three very differently.
+
+There is deliberately no formatter. "Do not print the score" is a compile error,
+not a review note. The render check asserts the six observed values are absent
+from the panel's text anyway, because that is where a future formatter would
+show up.
+
+---
+
+## Task 3 — five non-answers, not three
+
+The document names three: `status-absent`, `served-empty`, `upstream-failed`.
+The relay emits **five** `X-Lineup-State` values and **four** `X-Lineup-Fill`
+values:
+
+```js
+                    const state = (st === undefined || st === null || st === '')
+                        ? 'status-absent'
+                        : (st === 'predicted' || st === 'confirmed') ? st : `status-unrecognised:${st}`;
+```
+
+`status-unrecognised:<word>` is the one the document does not name, and it is
+the dangerous one: a renderer built to three falls through on the fourth, and
+falling through means drawing the sheet under whichever standing the
+fall-through lands on. So `Answer` has **seven** cases, and the reason they are
+separate is the inverse of `Desk.Section`'s reason for joining its own:
+
+```fsharp
+/// Naming it `EmptyOrFailed` is the honest model. It is deliberately awkward to
+/// read, because the ambiguity is real and hiding it behind the word `Empty`
+/// would be inventing certainty the payload does not carry.
+```
+
+`Section` folds empty and failed together because the wire cannot tell them
+apart. The lineups route can — it sends `served-empty` separately from `absent`
+separately from `null` — so following the payload means separating them here.
+Same principle, opposite outcome, stated rather than copied.
+
+Measured on the rendered page: five routed bodies, five distinct `data-answer`
+values, five distinct sentences, and **no grid on the three that carry no
+players**. The two that do carry players draw them marked `kind not stated`,
+because a sheet whose kind nobody stated is still a sheet.
+
+An eighth path exists and is not one of the seven: a `?xi=` this page cannot
+read renders `not-requested`. The `Answer` type models what the vendor said, and
+a malformed local parameter is not something the vendor said.
+
+### The check that failed on its own first run
+
+`Suite.fs`'s "NO headline says \"no lineup announced\"" went red immediately,
+against the code it was written for. `headline` interpolated the upstream
+failure detail into its prose, so a detail carrying that phrase came back out as
+the page's own words — through a field the page does not control. The sentences
+are fixed text now and the detail is a separate diagnostic line, following
+`Pick.passReasonText`:
+
+```fsharp
+/// The only renderable form. Fixed text: none of the relay's sentence survives,
+/// because there is no way to know which parts of a free-text field are safe.
+```
+
+A `lineup_status` is a token rather than a sentence, so `safeToken` keeps the
+word and drops everything a word cannot contain — which is what lets the page
+name the status it refused instead of saying "unknown".
+
+---
+
+## Task 4 — beside the XI, and a contradiction it exposed
+
+**Beside the XI.** Measured: 2 named players on the predicted capture, 5 on the
+confirmed, **7 of 7 carrying a non-null reason** (six injuries, one suspension).
+It is the only part of this payload that is a fact in both states — eleven names
+are a prediction on one sheet and a team sheet on the other, while an injury is
+an injury either way. A reason is also a thing a reader can check against the
+row in front of them, which a reason echoed into generated prose is not.
+
+An earlier reading of mine said `unavailable_players` was absent on finished
+events. It is not: the relay probe computes that figure from pre-match bodies
+only (`if (s.state === 'pre-match' && r.ok) bodiesPre.push(r.body)`), and the
+finished run had no pre-match events, so the zero was an empty denominator. The
+probe's own note said so — "UNMEASURED, not zero" — and it was read as a claim
+about finished events. Corrected before anything was built on it.
+
+### What rendering it beside the XI revealed
+
+```
+CONTRADICTION home: Idan Toklomati is in the STARTING XI and listed injured (Knee Injury)
+```
+
+On a **confirmed** sheet — the kind this page tells the reader is the names as
+submitted. Both halves drew, side by side, and the page said nothing. A reader
+who scans the eleven and then the injury list has to notice the repetition
+themselves.
+
+So `disagreements` now reports it, for any answer that carries sides rather than
+only for a stated standing, and the panel prints it above the sheets:
+
+> **THE PAYLOAD DISAGREES WITH ITSELF**
+> Idan Toklomati is named on Charlotte FC's sheet AND listed unavailable
+
+Reported, never resolved. Which half is wrong is the vendor's question, and
+dropping either one would be this page answering it.
+
+---
+
+## Done conditions
+
+### 1. One owner, named, with the reason beside the code
+
+field-laboratory. The reason is the header of `src/Lineups.fs`, not this
+document — a reason in an outbox is a reason the next reader of the code does
+not have.
+
+### 2. A predicted XI is visually distinguishable from a confirmed one, in a committed screenshot of each
+
+`outbox/lineups-predicted.png` and `outbox/lineups-confirmed.png`, both rendered
+from captured bytes with nothing intercepted.
+
+Two screenshots that happen to differ prove nothing unless the thing that
+differs is the treatment, so the check asserts the comparison rather than two
+separate passes:
+
+```
+PASS  DONE CONDITION 2 — the two sheets carry DIFFERENT mark words on every row
+PASS  ...and different painted colours, as the redundant channel
+PASS  ...and different headlines
+```
+
+| | predicted | confirmed |
+|---|---|---|
+| rows drawn | 46 | 40 |
+| rows carrying a mark | 46 | 40 |
+| distinct mark words | `["predicted"]` | `["confirmed"]` |
+| painted colour | `rgb(245, 158, 11)` | `rgb(106, 106, 138)` |
+| teams | Boyacá Chicó FC, Cúcuta Deportivo | Charlotte FC, FC Dallas |
+| unavailable named / with a reason | 2 / 2 | 5 / 5 |
+| disagreements reported | 0 | 1 |
+
+The counts come from `outbox/lineups-render-manifest.json`, which carries
+booleans rather than prose — `everyRowMarked`, `gridDrawn`, `oneMarkWordOnly`.
+
+### 3. The non-answers render as different things, each stated
+
+Five, not three.
+
+| routed body | `data-answer` | grid drawn |
+|---|---|---|
+| `{"lineups":{}}` | `served-empty` | no |
+| no `lineups` key | `not-in-payload` | no |
+| `{"lineups":null}` | `explicitly-null` | no |
+| players, no `lineup_status` | `kind-not-stated` | yes, marked *kind not stated* |
+| players, `lineup_status:"probable"` | `kind-unrecognised` | yes, marked *kind not stated* |
+
+plus `upstream-failed`, which needs a failing relay and is asserted in the F#
+suite over a body that will not decode, and `not-requested`, which is this
+page's own refusal and not one of the vendor's seven.
+
+```
+PASS  DONE CONDITION 3 — the five non-answers render as FIVE distinct data-answer values
+PASS  ...and five distinct sentences
+PASS  ...and none of the five is the predicted sheet's sentence
+```
+
+### 4. No cron, no watch, no diff-on-change anywhere in the diff
+
+True of this diff, and — because that is a property of one diff and nothing
+enforces it a week later — `scripts/check-lineups-pull-only.mjs` holds it
+afterwards. It scans `src/Lineups.fs`, `src/LineupsView.fs`, `Program.fs`'s
+lineups section between two named markers, and the capture workflow, for timers,
+sockets, visibility listeners and schedule blocks.
+
+It prints its own denominator, because a green line must not read as "nothing
+anywhere polls this":
+
+```
+  scanned 4 of 4 lineups source region(s):
+    src/Lineups.fs, src/LineupsView.fs, src/Program.fs (sliced), .github/workflows/capture-lineups-fixture.yml
+  NOT scanned: build/ and public/ (compiled copies), and any timer a
+               called library arms on its own.
+```
+
+A missing marker is a FAILURE rather than a pass over an empty string — the
+`beforeFetch` lesson from the golf session, where a scan that found nothing read
+as a scan that found nothing wrong.
+
+---
+
+## Rule 90 — what the mutations found
+
+Five mutations added to `scripts/mutation-check.mjs`. Each is a change that
+leaves a page which looks right.
+
+| mutation | what it does | caught by |
+|---|---|---|
+| `lineups-polls` | `setInterval` re-renders the panel every minute | `check-lineups-pull-only` |
+| `lineups-capture-scheduled` | a `*/15` cron on the capture workflow | `check-lineups-pull-only` |
+| `lineups-unrecognised-falls-through` | an unseen `lineup_status` resolves to `predicted` | the F# suite |
+| `lineups-empty-is-absent` | `served-empty` folded into `not-in-payload` | the F# suite |
+| `lineups-mark-says-one-thing` | `markWord Announced` returns `"predicted"` | **survived, first run** |
+
+### The one that survived
+
+`lineups-mark-says-one-thing` passed every check in the F# suite. The two checks
+written for exactly this invariant were:
+
+```fsharp
+      Verify.check "a predicted sheet and a confirmed one carry DIFFERENT row marks"
+          (fun (a: Lineups.Answer, b: Lineups.Answer) ->
+              match Lineups.markFor a, Lineups.markFor b with
+              | Some x, Some y -> x <> y
+```
+
+`x <> y` compares `RowMark` **cases**. `markWord` prints **words**. Changing the
+word left `Unannounced <> Announced` true, so both checks stayed green while
+every row of a confirmed team sheet rendered the word `predicted` — which is
+this feature's commissioning document in one line, reached through the one layer
+its own checks were not looking at.
+
+It is the second time in this session a check of mine turned out to be asserting
+the right thing one level away from where the defect lives. The first was the
+headline interpolating an upstream string, caught on the check's first run. Both
+were found by making the code wrong on purpose; neither was found by reading.
+
+Three checks added — the three marks print three distinct words, a predicted
+sheet's word is not a confirmed sheet's, and the two resolve to different palette
+tokens — and the mutation is now caught. 5 of 5.
+
+---
+
+## What is NOT covered, stated rather than left to be inferred
+
+- **`upstream-failed` is never exercised against a real failing relay.** It is
+  asserted in the F# suite over a body that will not decode, and in the view by
+  a fetch that throws. A relay that 502s has not been observed by this page.
+- **The non-answers are routed, not captured.** The vendor does not serve them
+  on request, so five of the seven cases rest on synthetic bodies through the
+  same decoder the live path uses. That is weaker evidence than the two
+  captures, and `data/PROVENANCE.md` says so in each fixture's own entry.
+- **`check-lineups-pull-only` reads source, not `build/`.** It cannot see a
+  timer a called library arms on its own. Its printed coverage says so.
+- **One confirmed sheet, one predicted sheet.** Two events on one afternoon.
+  `confidence` and `ai_score` being null on a confirmed sheet is 2 sides and 22
+  players of evidence, not a survey of the vendor's policy.
+- **`captain` is present on the confirmed capture and absent on the predicted
+  one.** Observed, not used, and not modelled — a fourth signal nobody needs
+  while three agree.
+
+---
+
+## Two defects the repo's own checks caught before the push
+
+Both were in the parts of the diff that are not F#, which is where this session
+had the least help from the compiler.
+
+**`--font-data` does not exist.** The stylesheet asked for
+`font-family: var(--font-data)` twice — for the shirt-and-position cell and the
+formation. `build-site.mjs` emits exactly four font tokens and that is not one of
+them:
+
+```
+  --font-identity:${identityFont};--font-body:${bodyFont};--font-score:${scoreFont};
+```
+
+`check:computed-chrome` reads the rendered page rather than the source and said
+so in the terms that matter: *"var() with no declaration resolves to nothing,
+silently"*. Both are `--font-identity` now, which is the token `.dv-side__score`
+already uses for a tabular number.
+
+A source-level check could not have found this. Only the browser knows a custom
+property resolved to nothing.
+
+**The tab registry is named, not counted.** `tab-check.mjs` and
+`live-tabs-check.mjs` each carry an explicit list, and a new tab is a failure
+until it is added to both. `live-tabs-check.mjs` records why the list is named:
+
+```
+// Named, not counted. `live-tabs-check.mjs` records why: a bare count said
+// "six" long after the Briefs tab made it seven, and stayed red without saying
+// WHICH tab was unaccounted for.
+```
+
+Added in position, between Stats and Briefs, which also fixed the two ArrowRight
+assertions that walk the list in order.

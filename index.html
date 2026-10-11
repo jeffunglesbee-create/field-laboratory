@@ -686,6 +686,76 @@
   .wx-partial, .wx-unlocated, .wx-error__why { font-size: .7rem; opacity: .5; margin-top: .8rem; }
 
 
+  /* The Lineups panel. A starting XI, and the mark that says what kind it is.
+
+     THE MARK IS A COLUMN, NOT A BADGE. Every player row is three tracks —
+     shirt-and-position, name, and the row's own word — so the word appears
+     twenty-two times on a sheet rather than once on the card. That is the
+     commissioning document's Task 2 in CSS: "make it a property of the row
+     rather than a legend elsewhere on the page." A row cropped out of a
+     screenshot, or read aloud on its own, keeps it.
+
+     The colour comes from Palette.fs through an inline style on each mark cell,
+     not from a class here, for the reason the token comment at :root gives: the
+     page's colours ARE the typed registry. `markSemantic` maps Unannounced to
+     Semantic.Caution, which is the amber this palette already assigns to
+     "bracket trap / injury". The WORD is the primary channel and the colour is
+     the redundant one — a reader who cannot distinguish amber reads the same
+     text.
+
+     NO GRID FOR A NON-ANSWER. `.lu-sides` is emitted only for the three answers
+     that carry players, so the five that do not cannot render as a thin team
+     sheet. There is deliberately no `.lu-sides--empty`. */
+  .lu-panel { max-width: 100%; }
+  .lu-headline { font-size: .9rem; max-width: 70ch; margin: .2rem 0 .8rem; }
+  .lu-detail { font-size: .72rem; color: var(--dim-text); max-width: 70ch; margin: -.4rem 0 .8rem; }
+  .lu-disagree { margin: 0 0 1rem; padding: .6rem .7rem; background: var(--card2); }
+  .lu-disagree__label {
+    font-size: .64rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--caution); margin-bottom: .3rem;
+  }
+  .lu-disagree__note { font-size: .78rem; }
+  .lu-sides { display: grid; gap: 1.25rem; }
+  .lu-side { background: var(--card); padding: .9rem 1rem; }
+  .lu-side__head { display: flex; gap: .6rem; align-items: baseline; margin-bottom: .6rem; }
+  .lu-side__team { font-weight: 600; font-size: 1rem; }
+  .lu-side__formation {
+    font-size: .7rem; letter-spacing: .06em; color: var(--dim-text);
+    font-family: var(--font-identity);
+  }
+  .lu-rows { display: grid; gap: .25rem; }
+  .lu-rows--subs { margin-top: .2rem; opacity: .72; }
+  .lu-row { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: .6rem; align-items: baseline; }
+  .lu-row__slot {
+    font-size: .7rem; color: var(--dim-text); font-family: var(--font-identity);
+    font-variant-numeric: tabular-nums;
+  }
+  .lu-row__name { font-size: .85rem; }
+  /* No colour here. The inline style from Palette.fs sets it per mark, and a
+     colour in this rule would be a second source for one value. */
+  .lu-row__mark {
+    font-size: .62rem; text-transform: uppercase; letter-spacing: .07em;
+    white-space: nowrap;
+  }
+  .lu-subs__label {
+    font-size: .62rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--dim-text); margin-top: .7rem;
+  }
+  .lu-unavails { display: grid; gap: 1rem; margin-top: 1.25rem; }
+  .lu-unavail__label {
+    font-size: .62rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--caution); margin-bottom: .35rem;
+  }
+  .lu-unavail__rows { display: grid; gap: .25rem; }
+  .lu-unavail__row { display: grid; grid-template-columns: 1fr auto; gap: .6rem; align-items: baseline; }
+  .lu-unavail__who { font-size: .82rem; }
+  .lu-unavail__why { font-size: .7rem; color: var(--dim-text); text-align: right; }
+  .lu-updated { font-size: .68rem; color: var(--dim-text); margin-top: 1.25rem; }
+  @media (min-width: 46rem) {
+    .lu-sides { grid-template-columns: 1fr 1fr; }
+    .lu-unavails { grid-template-columns: 1fr 1fr; }
+  }
+
   /* The Draw panel. A knockout bracket with the canonical-size law's verdict
      printed beside every round.
 
@@ -896,6 +966,7 @@
     <button role="tab" id="tab-pickem" aria-controls="panel-pickem" aria-selected="false" tabindex="-1">Pick'em</button>
     <button role="tab" id="tab-weather" aria-controls="panel-weather" aria-selected="false" tabindex="-1">Weather</button>
     <button role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" tabindex="-1">Stats</button>
+    <button role="tab" id="tab-lineups" aria-controls="panel-lineups" aria-selected="false" tabindex="-1">Lineups</button>
     <button role="tab" id="tab-briefs" aria-controls="panel-briefs" aria-selected="false" tabindex="-1">Briefs</button>
     <button role="tab" id="tab-draw" aria-controls="panel-draw" aria-selected="false" tabindex="-1">Draw</button>
     <button role="tab" id="tab-verify" aria-controls="panel-verify" aria-selected="false" tabindex="-1">Verify</button>
@@ -938,6 +1009,7 @@
   <div role="tabpanel" id="panel-weather" aria-labelledby="tab-weather" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-stats" aria-labelledby="tab-stats" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-briefs" aria-labelledby="tab-briefs" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-lineups" aria-labelledby="tab-lineups" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-draw" aria-labelledby="tab-draw" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-verify" aria-labelledby="tab-verify" tabindex="0" hidden></div>
 

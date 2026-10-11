@@ -71,6 +71,8 @@
     "check:sports": "node scripts/sport-registry-check.mjs",
     "fix:citations": "node scripts/check-doc-citations.mjs --fix",
     "check:citations": "node scripts/check-doc-citations.mjs --self-test && node scripts/check-doc-citations.mjs",
+    "check:lineups-pull-only": "node scripts/check-lineups-pull-only.mjs --self-test && node scripts/check-lineups-pull-only.mjs",
+    "check:lineups": "node scripts/lineups-render-check.mjs --self-test && node scripts/lineups-render-check.mjs",
     "check:ceiling": "node scripts/ceiling-check.mjs",
     "check:journalism": "node scripts/journalism-check.mjs",
     "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs",
