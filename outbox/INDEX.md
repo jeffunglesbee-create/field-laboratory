@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7eb8ff6` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | fix: process.exitCode, not process.exit — the tail of a pipe is not optional |
+| `0420b03` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ec479e2` | 2026-10-11 | [cc-session-2026-10-11-predicted-xi.md](cc-session-2026-10-11-predicted-xi.md) | feat: a predicted XI, and the six other things that request can return |
 | `ec479e2` | 2026-10-11 | [lineups-confirmed.png](lineups-confirmed.png) | feat: a predicted XI, and the six other things that request can return |
 | `ec479e2` | 2026-10-11 | [lineups-predicted.png](lineups-predicted.png) | feat: a predicted XI, and the six other things that request can return |
