@@ -1,0 +1,72 @@
+name: capture lineups fixture
+
+# Dispatch-only, NO schedule.
+#
+# docs/CC-CMD-2026-10-11-predicted-xi-render-decision.md's first stop condition
+# is "no cron, no watch, no diff-on-change": a lineup that changes an hour
+# before kickoff is the most notification-shaped object this feature introduces,
+# and the relay serves it on pull only. A schedule here would be a watch by
+# another name, so there is no `schedule:` block and the guard
+# scripts/check-lineups-pull-only.mjs fails the build if one appears.
+#
+# CI because the sandbox 403s *.workers.dev at CONNECT.
+
+on:
+  workflow_dispatch:
+    inputs:
+      state:
+        description: 'Which state to capture.'
+        required: true
+        type: choice
+        options: [predicted, confirmed, both]
+        default: both
+      date:
+        description: 'YYYY-MM-DD. Empty = today for predicted, yesterday for confirmed.'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      # The capture can still fail. Rule 90: a script whose checks have only
+      # ever passed has proven nothing, so its own self-test runs first and a
+      # red self-test stops the capture rather than writing a fixture nobody
+      # has reason to trust.
+      - name: The capture's own checks
+        run: node scripts/capture-lineups-fixture.mjs --self-test
+
+      - name: Capture predicted
+        if: inputs.state == 'predicted' || inputs.state == 'both'
+        run: node scripts/capture-lineups-fixture.mjs predicted ${{ inputs.date }}
+
+      - name: Capture confirmed
+        if: inputs.state == 'confirmed' || inputs.state == 'both'
+        run: node scripts/capture-lineups-fixture.mjs confirmed ${{ inputs.date }}
+
+      - name: Commit the fixtures
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add data/lineups-*.json data/PROVENANCE.md
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "fixture: capture real predicted and confirmed lineups payloads [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && break
+            sleep $((i * 5))
+          done
+          # The loop above exits 0 when EVERY attempt fails: its last command is
+          # `sleep`, and `set -e` does not fire because a failing `&&` list is a
+          # tested command. Without this line a lost fixture reports as a green
+          # step. Copied deliberately from capture-render-fixture.yml, which
+          # carries the same note for the same reason.
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
