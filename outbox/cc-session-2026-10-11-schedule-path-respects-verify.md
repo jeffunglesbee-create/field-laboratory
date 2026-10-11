@@ -119,6 +119,62 @@ makes main green.
 
 What changed is only this: self-healing now means *verified* self-healing.
 
+**Correction, measured after the push.** The paragraph above was written while
+`verify` was red on `2000641`, and it did not survive contact. Main went green
+before this landed, so the hourly deploy did not stop refreshing anything — the
+gate's first live exercise was an **allow**. The cost described above is real
+and will be paid the next time main is red; it was simply not paid today, and
+saying otherwise would be a prediction reported as an outcome.
+
 ## Carry-forwards
 
 **None.**
+
+## Manifest (Rule 87.5)
+
+| | |
+|---|---|
+| commit | `d730ed6` — *the hourly deploy respects verify, as the push path already does* |
+| verify | run **38101153916**, `completed success` on `d730ed6` |
+| deploy | run **38101307573**, event `workflow_run`, `completed success` on `d730ed6` |
+| close-out | this doc + the CC-CMD's own `Status:` block |
+
+**Done-condition probe output — the two new checks running in CI, not just
+locally:**
+
+```
+success  isIgnored and paths-ignore still describe the same set
+success  The deploy gate can still refuse
+```
+
+**The gate, live, in the deploy run's own step list:**
+
+```
+ 3. success  Is deployment configured?
+ 4. success  Does verify allow this deploy?     ← new
+ 5. success  Is the live site already on this commit?
+```
+
+### Coverage of the done conditions, with the denominator (Rule 91)
+
+| | proven by |
+|---|---|
+| 2 — green verdict deploys | **live**, run 38101307573 |
+| 4 — `workflow_dispatch` ungated | **source**, `gateApplies(e) => e === 'schedule'`, plus the comment in the file |
+| 5 — one predicate backs both | **source + check**, `mayDeploy` imported by `verifyVerdict` and the gate; `status-verdict-check` 39/39 |
+| 6 — parity check fails on divergence | **live mutation**, `ignore-parity-drifts-unnoticed` caught; 699 paths, 0 disagreements |
+| 7 — unreadable treated as `go` is caught | **live mutation**, caught |
+| 1 — red verdict skips and names the step | **self-test + mutation only.** No live red run has exercised it. |
+| 3 — in-flight / stalled / unreadable are three distinct summaries | **self-test + mutation only**, same reason |
+
+**Two of seven are not yet proven against a real failing run.** The next red
+main proves them for free, since the gate runs on every scheduled deploy. Not
+filed as a carry-forward: nothing is deferred, there is simply no red run to
+read yet, and manufacturing one would mean breaking main on purpose.
+
+## Residual
+
+**None deferred.** Two defects the spec did not anticipate were found and fixed
+in the same commit (`deploy.yml` had no `permissions:` block; its checkout was
+shallow, which would have dropped the `head_sha` filter and reintroduced the
+defect). Both are described in the CC-CMD's `Status:` block.

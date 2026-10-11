@@ -4,7 +4,35 @@
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** B (correctness) — one gate that applies on one trigger and not the others
-**Status:** FILED, not started.
+**Status:** DONE 2026-10-11. All seven tasks, all seven done conditions, no stop
+condition hit. Commit `d730ed6`; verify run 38101153916 green on it; the deploy
+it triggered (run 38101307573, `workflow_run`) ran the new gate step live and
+allowed the publish. Session doc:
+`outbox/cc-session-2026-10-11-schedule-path-respects-verify.md`.
+
+**Two defects the spec did not anticipate, both found while implementing it:**
+
+1. `deploy.yml` had **no `permissions:` block at all**. The gate reads
+   `actions/workflows/verify.yml/runs`, which an undeclared default may or may
+   not cover — the same "an undeclared default is a setting, not a design" note
+   `live-check.yml` already carries. Now declared: `contents: read`,
+   `actions: read`.
+2. Its checkout was **shallow**. `newestDeployableCommit()` walks history, so at
+   depth 1 it returns `null`, and a null sha drops the `&head_sha=` filter —
+   which silently reintroduces the exact "newest run, wrong commit" defect this
+   document exists to fix. Fixed on both sides: `fetch-depth: 0`, **and** a
+   guard in the gate that refuses to query at all without a sha rather than
+   querying unfiltered.
+
+The second one is the keystone's shape in a new place: the gate would have gone
+on answering, with a verdict about different code.
+
+**Stop condition 4 was cleared by measurement before any code was written.**
+`&head_sha=` filters rather than falling back: `head_sha=f86292b…` →
+`total_count=1`; `head_sha=79565c2…` (a docs-only commit verify never ran on)
+→ `0`; a garbage sha → `0`. BSD's tennis date parameters returned 200 with an
+unfiltered page; this one returns an empty set, which is the behaviour the gate
+needs.
 
 **Owner decision, taken 2026-10-10:** the schedule path SHOULD respect verify.
 A current site does not beat a verified one. This document implements that and
@@ -144,6 +172,15 @@ documents that bear on that are
 nameable at all), `outbox/cc-session-2026-10-09-verify-green.md` (the
 `check:history` boundary question, unresolved and governance-level), and
 `outbox/cc-session-2026-10-09-claim-control-anchor.md`.
+
+**What actually happened, 2026-10-11.** The predicted first effect did not
+occur: main went green before this shipped. `verify` run 38101153916 passed on
+`d730ed6`, and the deploy that run triggered consulted the gate, got `go`, and
+published. So the gate's first live exercise was an allow, not a skip — which
+proves the happy path and leaves done condition 1's skip path proven only by
+`deploy-gate.mjs`'s own self-tests and the caught mutation, not by a live red
+run. That is the honest coverage statement; Rule 91 wants the denominator where
+the result is read.
 
 ## Stop conditions
 
