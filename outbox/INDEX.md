@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d97e8fe` | 2026-10-11 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `d97e8fe` | 2026-10-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
+| `dbf572c` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `51edb91` | 2026-10-11 | [cc-session-2026-10-11-schedule-path-respects-verify.md](cc-session-2026-10-11-schedule-path-respects-verify.md) | docs: close out the schedule-path CC-CMD with its manifest and honest coverage |
 | `7dea1d0` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d730ed6` | 2026-10-11 | [cc-session-2026-10-11-schedule-path-respects-verify.md](cc-session-2026-10-11-schedule-path-respects-verify.md) | feat: the hourly deploy respects verify, as the push path already does |
