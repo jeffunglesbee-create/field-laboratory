@@ -25,6 +25,16 @@ on:
     - cron: '17 * * * *'
   workflow_dispatch:
 
+# Declared, not inherited. This workflow had no `permissions:` block at all, so
+# it ran on whatever the repository default happens to be — and live-check.yml's
+# own block carries the note this follows: an undeclared default is a setting,
+# not a design. Narrow on purpose: the deploy authenticates to Cloudflare with a
+# SECRET, not with this token, and makes no git write. `actions: read` is new and
+# is the one thing the verify gate below needs.
+permissions:
+  contents: read
+  actions: read
+
 concurrency:
   group: deploy
   cancel-in-progress: true
@@ -36,7 +46,15 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
+      # Full history: the verify gate below asks about the newest DEPLOYABLE
+      # commit, and `newestDeployableCommit()` walks `git log` to find it. On a
+      # shallow clone it returns null, and a null sha would drop the head_sha
+      # filter and answer about whatever verify ran last — the exact defect the
+      # gate exists to fix. The script refuses to guess in that case; this makes
+      # sure it never has to.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Is deployment configured?
         id: token
@@ -90,9 +108,38 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           echo "::notice::CLOUDFLARE_API_TOKEN not visible to Actions.${FOUND:+ Found instead:$FOUND}"
 
+      # THE VERIFY GATE, and it applies to the hourly `schedule` only.
+      #
+      # Measured 2026-10-10: verify was FAILURE on 2000641 while this workflow
+      # deployed 7a9f48f on a schedule trigger, and live-check then failed on
+      # it. The day before, main equally red, the job SKIPPED — because that
+      # day's trigger was workflow_run from a failed verify. Same red main,
+      # opposite outcomes, decided by which trigger happened to fire.
+      #
+      # workflow_run is NOT gated here: the job-level `if` above already
+      # required verify success, and that condition is correct.
+      #
+      # workflow_dispatch is NOT gated, DELIBERATELY. A human asking for a
+      # deploy is a human overriding this on purpose, and the dispatch is
+      # recorded in the run history. Gating it would remove the only manual
+      # route to publishing a known-red commit, which is sometimes the right
+      # thing to do.
+      #
+      # Skips, never fails — the same reason the token step above skips. The red
+      # already exists, on verify, where it belongs; a second red here would
+      # train everyone to ignore both.
+      - name: Does verify allow this deploy?
+        id: gate
+        if: steps.token.outputs.configured == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/deploy-gate.mjs --self-test
+          node scripts/deploy-gate.mjs
+
       - name: Is the live site already on this commit?
         id: live
-        if: steps.token.outputs.configured == 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true'
         run: |
           URL=https://field-laboratory.jeffunglesbee.workers.dev/version.txt
           LIVE=$(curl -sSL --max-time 20 "$URL" 2>/dev/null | tr -d '[:space:]' || true)
@@ -105,24 +152,24 @@ jobs:
           fi
 
       - uses: actions/setup-dotnet@v4
-        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true' && steps.live.outputs.current != 'true'
         with:
           dotnet-version: '10.0.x'
 
       - uses: actions/setup-node@v4
-        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true' && steps.live.outputs.current != 'true'
         with:
           node-version: '22'
 
       - name: Build
-        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true' && steps.live.outputs.current != 'true'
         run: |
           npm ci
           dotnet tool restore
           npm run build
 
       - name: Verify the built site before publishing it
-        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true' && steps.live.outputs.current != 'true'
         run: |
           test -s public/index.html
           test -s public/build/Program.js
@@ -132,14 +179,14 @@ jobs:
           echo "public/ looks complete: $(find public -type f | wc -l) files"
 
       - name: Deploy
-        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true' && steps.live.outputs.current != 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy
 
       - name: Confirm the deployed page actually serves
-        if: steps.token.outputs.configured == 'true' && steps.live.outputs.current != 'true'
+        if: steps.token.outputs.configured == 'true' && steps.gate.outputs.proceed == 'true' && steps.live.outputs.current != 'true'
         run: |
           URL=https://field-laboratory.jeffunglesbee.workers.dev
           for i in 1 2 3 4 5; do

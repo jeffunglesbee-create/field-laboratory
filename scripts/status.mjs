@@ -148,9 +148,39 @@ export const stepClause = (summary) => {
  * Pure, still: the caller does the fetching. That is why
  * `status-verdict-check.mjs` can exercise every branch offline.
  */
+/**
+ * THE ONE CLASSIFICATION. `'go' | 'red' | 'in-flight' | 'unknown'`.
+ *
+ * `verifyVerdict` renders prose for STATUS.md and the deploy gate decides
+ * whether to publish, and BOTH read this. A gate that parsed the prose could
+ * drift from it silently — the string says one thing, the decision does
+ * another, and nothing compares them. One measurement, two renderings, which
+ * is the rule CONTRACTS.md and nfl-epa-transcription-check.mjs exist for.
+ *
+ * `unknown` IS NOT `red` AND IT IS NOT `go`. A run nobody could read tells you
+ * nothing about the code, and both of the other answers are claims.
+ *
+ * THE STALL WINDOW IS WHY 'in-flight' AND 'unknown' DIVIDE WHERE THEY DO.
+ * STALL_MINUTES exists because run 31501321990 FINISHED SUCCESSFULLY at
+ * 14:40:55 while the runs endpoint this reads reported it `in_progress` with
+ * `updated_at` frozen at 14:24:25 for over ninety minutes. So "still running"
+ * past that window is not still running — it is a stale answer from the
+ * endpoint, which is unreadable, not in-flight. Re-deriving the constant here
+ * would let the two halves disagree about when that happens.
+ */
+export const mayDeploy = (run, now = null) => {
+  if (!run) return 'unknown'
+  if (run.status !== 'completed') {
+    const idleMs = now ? new Date(now) - new Date(run.updated_at) : 0
+    return idleMs > STALL_MINUTES * 60_000 ? 'unknown' : 'in-flight'
+  }
+  return run.conclusion === 'success' ? 'go' : 'red'
+}
+
 export const verifyVerdict = (run, head, now = null, summary = undefined) => {
   const sha = run.head_sha.slice(0, 7)
   const stale = head && run.head_sha !== head
+  const decision = mayDeploy(run, now)
   if (run.status !== 'completed') {
     // A run that has been "running" for an hour is not in progress, and
     // "**running**" reads as neutral — the softening this section exists to
@@ -170,14 +200,17 @@ export const verifyVerdict = (run, head, now = null, summary = undefined) => {
     //
     // I called it stuck after reading one endpoint. The jobs endpoint disagreed
     // and I had not asked it. One source, one direction — again.
+    // The elapsed time is recomputed only to SAY how long; whether that counts
+    // as stalled is `mayDeploy`'s answer, so the prose and the gate cannot
+    // disagree about where the window falls.
     const idleMs = now ? new Date(now) - new Date(run.updated_at) : 0
-    if (idleMs > STALL_MINUTES * 60_000) {
+    if (decision === 'unknown') {
       return `**STALLED** on \`${sha}\` — no update for ${Math.round(idleMs / 60_000)} minutes`
         + ` — [run ${run.id}](${run.html_url})`
     }
     return `**running** on \`${sha}\``
   }
-  if (run.conclusion === 'success') {
+  if (decision === 'go') {
     return `**green** on \`${sha}\`${stale ? ' — but that is not `main` HEAD' : ''}`
   }
   // Named and shouted, not softened. A red main is the fact this exists for —
@@ -186,8 +219,23 @@ export const verifyVerdict = (run, head, now = null, summary = undefined) => {
     + ` — [run ${run.id}](${run.html_url})`
 }
 
-export const verifyRunsUrl = repo =>
+/**
+ * `headSha` asks for the verdict on ONE commit, which is the only question the
+ * deploy gate can answer honestly: a docs commit on top of a deployable one
+ * does not trigger verify, so the NEWEST run can be about older code than
+ * GITHUB_SHA, and gating on it would read a verdict about different code.
+ *
+ * MEASURED 2026-10-11 before being relied on, because "accepted and silently
+ * dropped" is this project's standing lesson from BSD's tennis date params —
+ * four names returned HTTP 200 with the same unfiltered page:
+ *   head_sha=f86292b…  -> total_count 1, the matching run
+ *   head_sha=79565c2…  -> total_count 0  (a docs-only commit; no verify run)
+ *   head_sha=000000…   -> total_count 0
+ * It filters, and it returns an empty list rather than falling back.
+ */
+export const verifyRunsUrl = (repo, headSha = null) =>
   `https://api.github.com/repos/${repo}/actions/workflows/verify.yml/runs?branch=main&per_page=1`
+  + (headSha ? `&head_sha=${headSha}` : '')
 
 // live-check is the post-deploy check against the DEPLOYED artifact. It went red
 // on every commit for over a day (the pick panels read before the SPA rendered
@@ -263,44 +311,47 @@ export const readStepSummary = async ({ token, repo, runId, fetchImpl = fetch })
   }
 }
 
-const readWorkflowConclusion = async ({ token, repo, head, inCI, now = null, fetchImpl = fetch, runsUrl, noun }) => {
+const readWorkflowConclusion = async ({ token, repo, head, inCI, now = null, fetchImpl = fetch, runsUrl, noun, headSha = null }) => {
   if (!token || !repo) {
     // On a runner this is a misconfigured step, not a missing fact — and it is
     // exactly what happened above. Outside CI there is no history to read and
     // nothing is wrong.
     return inCI
       ? { text: 'unreadable — this step ran without `GITHUB_TOKEN`/`GITHUB_REPOSITORY`, so no read was attempted',
-          problem: 'no token on a runner' }
+          problem: 'no token on a runner', decision: 'unknown' }
       : { text: 'not read — rendered outside CI, where there is no workflow history to read',
-          problem: null }
+          problem: null, decision: 'unknown' }
   }
 
   let res
   try {
-    res = await fetchImpl(runsUrl(repo),
+    res = await fetchImpl(runsUrl(repo, headSha),
       { headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' } })
   } catch (e) {
-    return { text: `unreadable — the workflow-history request failed: ${e.message}`, problem: e.message }
+    return { text: `unreadable — the workflow-history request failed: ${e.message}`, problem: e.message, decision: 'unknown' }
   }
   if (!res.ok) {
-    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: `HTTP ${res.status}` }
+    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: `HTTP ${res.status}`, decision: 'unknown' }
   }
 
   let run
   try {
     run = (await res.json()).workflow_runs?.[0]
   } catch (e) {
-    return { text: `unreadable — the workflow-history response did not parse: ${e.message}`, problem: e.message }
+    return { text: `unreadable — the workflow-history response did not parse: ${e.message}`, problem: e.message, decision: 'unknown' }
   }
   // An empty list is an answer, not a failure: a repo with no run of this kind yet.
-  if (!run) return { text: `no ${noun} run has been recorded for \`main\` yet`, problem: null }
+  // No run for this sha is UNKNOWN, not go. On a head_sha query it means
+  // verify never ran on the commit about to be published — which is exactly
+  // the case a gate must not wave through.
+  if (!run) return { text: `no ${noun} run has been recorded for \`main\`${headSha ? ` at \`${headSha.slice(0, 7)}\`` : ''} yet`, problem: null, decision: 'unknown' }
   // Only a RED run has a failing step to name, and only then is the extra read
   // worth making. `undefined` for every other case means the clause is omitted
   // rather than claimed as unknown — a green run has no step to not-know.
   const summary = (run.status === 'completed' && run.conclusion && run.conclusion !== 'success')
     ? await readStepSummary({ token, repo, runId: run.id, fetchImpl })
     : undefined
-  return { text: verifyVerdict(run, head, now, summary), problem: null }
+  return { text: verifyVerdict(run, head, now, summary), problem: null, decision: mayDeploy(run, now), run }
 }
 
 // Nothing below runs on import.

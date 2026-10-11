@@ -47,6 +47,8 @@
     "check:palette": "node scripts/palette-check.mjs --self-test && node scripts/palette-check.mjs",
     "check:device-chrome": "node scripts/device-chrome-check.mjs --self-test && node scripts/device-chrome-check.mjs index.html",
     "check:status-state": "node scripts/status-state-check.mjs --self-test && node scripts/status-state-check.mjs",
+    "check:ignore-parity": "node scripts/check-ignore-parity.mjs --self-test && node scripts/check-ignore-parity.mjs",
+    "check:deploy-gate": "node scripts/deploy-gate.mjs --self-test",
     "check:wp": "node scripts/wp-check.mjs --self-test && node scripts/wp-check.mjs",
     "check:typography": "node scripts/typography-check.mjs --self-test && node scripts/typography-check.mjs",
     "check:design-tokens": "node scripts/design-tokens-check.mjs --self-test && node scripts/design-tokens-check.mjs",

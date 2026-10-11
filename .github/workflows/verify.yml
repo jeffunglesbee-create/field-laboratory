@@ -315,6 +315,19 @@ jobs:
       - name: A failure looks like a failure
         run: npm run check:status-state
 
+      # THE KEYSTONE. `isIgnored` and this file's own paths-ignore must keep
+      # describing the same set, because the deploy gate asks verify for the
+      # newest DEPLOYABLE commit's verdict and that question is only exact while
+      # they agree. Edit either side alone and the gate silently starts
+      # consulting a verdict that may not exist for the commit being published —
+      # invisibly, because a missing run reads as "unknown" and the deploy just
+      # stops, hourly, for a reason nobody connects to a one-line path change.
+      - name: isIgnored and paths-ignore still describe the same set
+        run: npm run check:ignore-parity
+
+      - name: The deploy gate can still refuse
+        run: npm run check:deploy-gate
+
       # The win-probability market-shape model, over the real compiled Market.fs:
       # constructors validate the sum, the two-way complement is correct where
       # allowed, and on a real de-vigged three-way market the two-way complement

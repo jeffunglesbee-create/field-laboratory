@@ -792,6 +792,43 @@ const MUTATIONS = [
   },
 
   {
+    // Done condition 7 of docs/CC-CMD-2026-10-10-schedule-path-respects-verify.md.
+    // An unreadable verify verdict must NEVER deploy. If this survives, the
+    // gate is asserting that red stops a deploy and nothing more — and the
+    // dangerous case is not red, which is loud, but unknown, which is quiet:
+    // a verdict nobody could read, waved through hourly, looks exactly like a
+    // healthy site.
+    id: 'unreadable-verdict-treated-as-go',
+    file: 'scripts/deploy-gate.mjs',
+    claim: 'an unreadable verify verdict does not deploy',
+    find: "    default:\n      return {\n        proceed: false,",
+    replace: "    default:\n      return {\n        proceed: true,",
+    expect: 'node scripts/deploy-gate.mjs --self-test',
+  },
+
+  {
+    // The other half of the same distinction: in-flight is a SKIP, not a go.
+    // A verify still running says nothing about the code yet.
+    id: 'in-flight-verdict-treated-as-go',
+    file: 'scripts/deploy-gate.mjs',
+    claim: 'a verify still in flight does not deploy',
+    find: "    case 'in-flight':\n      return {\n        proceed: false,",
+    replace: "    case 'in-flight':\n      return {\n        proceed: true,",
+    expect: 'node scripts/deploy-gate.mjs --self-test',
+  },
+
+  {
+    // The keystone. Drop one glob from verify.yml and the gate starts asking
+    // about commits verify never ran on — silently, because a missing run
+    // reads as "unknown" and the deploy just stops.
+    id: 'ignore-parity-drifts-unnoticed',
+    file: 'scripts/deployable.mjs',
+    claim: 'isIgnored and verify.yml paths-ignore are checked for divergence',
+    find: "export const isIgnored = f => f.startsWith('docs/') || f.startsWith('outbox/') || f.endsWith('.md')",
+    replace: "export const isIgnored = f => f.startsWith('docs/') || f.endsWith('.md')",
+    expect: 'node scripts/check-ignore-parity.mjs',
+  },
+  {
     // Rule 90, and the ONE mutation docs/CC-CMD-2026-10-10-red-verdict-carries-its-step.md
     // names: the unreadable state must not render as a zero. If this survives,
     // status-verdict-check.mjs is asserting the TEMPLATE rather than the
