@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6a79087` | 2026-10-11 | [cc-session-2026-10-11-census-trusted-a-200.md](cc-session-2026-10-11-census-trusted-a-200.md) | ci: the census reference must be committed, or every run is a first run |
+| `534912c` | 2026-10-11 | [favourite-band-census-20261011T184153Z.txt](favourite-band-census-20261011T184153Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
+| `bd305e3` | 2026-10-11 | [cc-session-2026-10-11-census-trusted-a-200.md](cc-session-2026-10-11-census-trusted-a-200.md) | fix: the census trusted a 200, and a degraded run became a baseline |
+| `696e61e` | 2026-10-11 | [favourite-band-census-20261011T183142Z.txt](favourite-band-census-20261011T183142Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
+| `0b9b0ea` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `c58720a` | 2026-10-11 | [cc-session-2026-10-11-adhd-skill-pin.md](cc-session-2026-10-11-adhd-skill-pin.md) | docs: the sentinel is still red, and the skill is not why |
 | `78c6a89` | 2026-10-11 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
 | `78c6a89` | 2026-10-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-11 [skip ci] |
