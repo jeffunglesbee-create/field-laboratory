@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `ec479e2` at "The Verify panel shows the counterexample that gives each row teeth" — 31 of 79 steps did not run behind it — [run 38155172428](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38155172428)
+**green** on `ec479e2` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `ec479e2` — failing step unknown: the run's steps could not be read — [run 38155361893](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38155361893)
+`live-check` (post-deploy, against the deployed page): **running** on `47e01fb`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `bb112d5` — behind newest deployable `ec479e2` (deploy not landed) |
+| Cloudflare Workers | live | `47e01fb` — newest deployable `ec479e2` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
