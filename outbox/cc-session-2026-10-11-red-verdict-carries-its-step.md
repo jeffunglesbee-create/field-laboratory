@@ -93,6 +93,37 @@ was made pure in the first place.
 an unparseable body, a run with no failing job. All four are "I could not tell",
 and returning `{skipped: 0}` from any of them would be a claim from no data.
 
+## Verified on a runner, and what is NOT verified live
+
+`status.yml` dispatched at `f86292b`: **`Probe and render` success**, STATUS.md
+re-rendered by the new code. The green path takes the `undefined` branch and
+omits the clause, which is what it should do.
+
+**The red path is not proven against a live red main, and that is deliberate.**
+Manufacturing a red `verify` to watch the line render would cost a CI run and
+break main to test a renderer. `verifyVerdict` is pure precisely because there
+is no route to api.github.com from this sandbox — the function was made pure
+for that reason before this change — so `status-verdict-check.mjs` exercises
+all four states offline, and the mutation proves the one that matters cannot
+silently become a zero. That is the repo's own established pattern for this
+function, not a shortcut around a missing check.
+
+What a live red WOULD add: confirmation that the jobs endpoint returns the
+shape `worstFailure` expects under this token. `red-main-issue.mjs` makes that
+exact call in the same job today and its own check passes, which is the
+strongest evidence available without a red main.
+
+### A detail the spec got slightly wrong, and the fix
+
+The CC-CMD says the summary arrives via "the same `RED_MAIN_RUN_ID` already in
+`status.yml`'s env". It is in the env of the SENTINEL step, not the render step.
+Widening the render step's env would have worked and would have inherited the
+variable's blind spot — `RED_MAIN_RUN_ID` is empty on the daily backstop and on
+a manual dispatch, exactly the runs where a red can sit unexplained longest.
+
+`readStepSummary` takes the run id from the run object `readVerify` already
+holds instead, so it works on every trigger.
+
 ## Carry-forwards
 
 **None.**

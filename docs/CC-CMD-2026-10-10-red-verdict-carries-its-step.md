@@ -4,7 +4,16 @@
 **Repo:** field-laboratory
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Type:** B (gap) — a measurement that exists and cannot be read
-**Status:** FILED, not started.
+**Status:** DONE 2026-10-11. All four tasks, all four done conditions, no stop
+condition hit. Session doc:
+`outbox/cc-session-2026-10-11-red-verdict-carries-its-step.md`.
+
+One scope note the document did not anticipate: it says the summary arrives via
+"the same `RED_MAIN_RUN_ID` already in `status.yml`'s env". That variable is on
+the SENTINEL step, not the render step. Rather than widen the render step's env,
+`readStepSummary` takes the run id from the run object `readVerify` already
+holds — which also fixes the case the env var cannot cover, since
+`RED_MAIN_RUN_ID` is empty on the daily backstop and on a manual dispatch.
 
 ## Why this exists
 
