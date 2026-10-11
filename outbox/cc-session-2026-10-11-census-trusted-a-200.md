@@ -129,3 +129,30 @@ while the guard still looked present.
 - **One failure mode, not all of them.** A relay serving half its archive
   consistently, from the first reference onward, would never trip a comparison
   against itself. The check catches a change, not a steady-state lie.
+
+---
+
+## The ratchet shipped without its reference, and the first run proved it
+
+Census `38164854448`, the first on the fixed script:
+
+```
+120 date(s) read, 0 unavailable, 1341 game(s) with a comparable moneyline+handicap pair
+  served games: 120 date(s) present, 0 EMPTY (200 with no games), 3562 game(s) seen before the comparable-pair filter
+```
+
+The three states print. **On a healthy relay all 120 dates are `present` and
+none is `empty`** — which is the shape the degraded run could not have had.
+
+Then `outbox/favourite-band-census-latest.json` did not appear in the commit.
+The workflow's commit step stages `outbox/favourite-band-census-*.txt` and
+nothing else, so the reference the ratchet needs was written on the runner and
+thrown away with it.
+
+**Every run would have been a first run**, and a first run cannot collapse by
+definition — so the guard would have reported nothing, forever, while looking
+present. That is the same failure as the original: a mechanism that exists and
+measures nothing.
+
+Caught by looking for the file rather than by trusting the green run. Fixed by
+adding the `.json` to the step's `git add`.

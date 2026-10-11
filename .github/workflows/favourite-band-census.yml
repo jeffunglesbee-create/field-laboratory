@@ -63,7 +63,11 @@ jobs:
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
-          git add outbox/favourite-band-census-*.txt
+          # The .json too. It is the REFERENCE the next run compares against —
+          # `collapsedSince` has nothing to compare to without it, so every run
+          # would be a first run and a collapsed corpus would publish unopposed.
+          # That is how the 14:08Z degraded reading became a baseline.
+          git add outbox/favourite-band-census-*.txt outbox/favourite-band-census-latest.json
           git diff --staged --quiet || git commit -m "census: the band favouriteAgreement declines to judge [skip ci]"
           # Rebase-and-retry, not a bare push. Run 33175050237 measured the
           # census correctly, committed the artifact on the runner, then lost a
