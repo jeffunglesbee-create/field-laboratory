@@ -7,7 +7,7 @@
 //
 // So the fetch stays unexercised and everything downstream of it does not. These
 // are the actual shapes this session saw, transcribed from the runs named below.
-import { verifyVerdict, readVerify, readLiveCheck, verifyRunsUrl, liveCheckRunsUrl } from './status.mjs'
+import { verifyVerdict, stepClause, readVerify, readLiveCheck, verifyRunsUrl, liveCheckRunsUrl } from './status.mjs'
 import { createChecks } from './checks.mjs'
 
 const { check, summarize } = createChecks()
@@ -19,10 +19,58 @@ const failed = {
   conclusion: 'failure', id: 31456294086,
   html_url: 'https://github.com/x/y/actions/runs/31456294086',
 }
+const green0 = { head_sha: HEAD, status: 'completed', conclusion: 'success', id: 1, html_url: '' }
 const v1 = verifyVerdict(failed, HEAD)
 check('a failed run is named in capitals, not softened', /\*\*FAILURE\*\*/.test(v1), v1)
 check('...and links the run so it can be opened', /31456294086/.test(v1), v1)
 check('...and does not read as green', !/green/i.test(v1), v1)
+
+// ── the failing step, and the three states of knowing it ────────────────────
+//
+// The measurement existed and could not be read: `run-steps.mjs` computed the
+// failing step and its skip tail, and the only importer was `red-main-issue`,
+// so it landed in a private issue and never in STATUS.md. Twice in two days a
+// session hit a red main, confirmed the cascade was correct, and could not name
+// the step.
+//
+// Each state is asserted for what it SAYS, not just that it differs — a check
+// that only compares renderings passes when both are wrong.
+
+const summary = { total: 30, ran: 3, skipped: 27, failedStep: 'Doc citations are anchored', failedNumber: 3 }
+const known = verifyVerdict(failed, HEAD, null, summary)
+check('a red verdict names the failing step', /Doc citations are anchored/.test(known), known)
+check('...and says how much is hidden behind it', /27 of 30 steps did not run/.test(known), known)
+check('...and still links the run', /31456294086/.test(known), known)
+
+// STATE 2 — looked up, unreadable. The one the mutation targets.
+const unknown = verifyVerdict(failed, HEAD, null, null)
+check('an unreadable step list SAYS so', /failing step unknown/.test(unknown), unknown)
+check('...and NEVER prints a zero skip count', !/\b0 of\b|\b0 steps\b|0 skipped/.test(unknown), unknown)
+check('...and is not silently identical to a known-clean run',
+  unknown !== verifyVerdict(failed, HEAD, null, { ...summary, skipped: 0 }), unknown)
+
+// STATE 3 — no lookup attempted. A green run has no step to not-know, and the
+// daily backstop has no triggering run to read.
+const nolookup = verifyVerdict(failed, HEAD, undefined, undefined)
+check('no lookup attempted omits the clause entirely',
+  !/failing step/.test(nolookup) && !/did not run/.test(nolookup), nolookup)
+check('a green run carries no step clause', !/failing step/.test(verifyVerdict(green0, HEAD)), '')
+
+// STATE 4 — the mixed case: a job that failed with no step marked failure
+// (cancellation, runner loss) still has a real tail.
+const mixed = verifyVerdict(failed, HEAD, null, { total: 44, ran: 0, skipped: 44, failedStep: null, failedNumber: null })
+check('a failed job with no named step still reports its tail',
+  /failing step unknown/.test(mixed) && /44 of 44 steps did not run/.test(mixed), mixed)
+
+// And the clause in isolation, so a template change cannot hide a state change.
+check('clause: nothing skipped says so rather than going silent',
+  / — nothing was skipped behind it/.test(stepClause({ total: 5, ran: 5, skipped: 0, failedStep: 'X', failedNumber: 1 })),
+  stepClause({ total: 5, ran: 5, skipped: 0, failedStep: 'X', failedNumber: 1 }))
+check('clause: a non-numeric skip count is unknown, not zero',
+  /skip tail could not be read/.test(stepClause({ total: 5, failedStep: 'X', skipped: undefined })),
+  stepClause({ total: 5, failedStep: 'X', skipped: undefined }))
+check('clause: undefined and null are DIFFERENT renderings',
+  stepClause(undefined) !== stepClause(null), `${JSON.stringify(stepClause(undefined))} vs ${JSON.stringify(stepClause(null))}`)
 
 // Run 31501321990 — green, and it IS head.
 const green = { head_sha: HEAD, status: 'completed', conclusion: 'success', id: 1, html_url: '' }

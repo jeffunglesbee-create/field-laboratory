@@ -10,6 +10,7 @@
 // real fact changes, so its git history is a log of things actually happening.
 
 import { readFile, writeFile } from 'node:fs/promises'
+import { worstFailure } from './run-steps.mjs'
 import { newestDeployableCommit, containsCommit } from './deployable.mjs'
 
 /// The "Serving commit" cell for a live target. The old text said only "(behind
@@ -106,7 +107,48 @@ try {
  */
 export const STALL_MINUTES = 45
 
-export const verifyVerdict = (run, head, now = null) => {
+/**
+ * The failing-step clause for a red verdict, or nothing.
+ *
+ * THREE STATES, and the third is not zero (Rule 99). `stepSummary` already
+ * draws this line in its own header — "A run whose steps cannot be read reports
+ * `null`, never zero. 'Nothing was skipped' and 'I could not tell' are
+ * different claims." — and the whole value of carrying the summary here is
+ * lost if the clause flattens them:
+ *
+ *   undefined  no lookup was attempted. Omit the clause. A green run never
+ *              reaches it, and a red one reached on a backstop with no
+ *              triggering run has nothing to look up.
+ *   null       a lookup WAS attempted and the steps could not be read. Say so.
+ *              Omitting it here would read identically to a run with nothing
+ *              skipped, which is the substitution this exists to prevent.
+ *   object     render the step and its tail.
+ *
+ * The fourth shape is real and not hypothetical: a job can fail with no step
+ * marked `failure` — a cancellation or a runner loss — leaving `failedStep`
+ * null while `skipped` is a genuine count. That names the tail without
+ * claiming a step.
+ */
+export const stepClause = (summary) => {
+  if (summary === undefined) return ''
+  if (summary === null) return ' — failing step unknown: the run\'s steps could not be read'
+  const where = summary.failedStep ? ` at "${summary.failedStep}"` : ' — failing step unknown'
+  if (typeof summary.skipped !== 'number') return `${where}, and the skip tail could not be read`
+  if (summary.skipped === 0) return `${where} — nothing was skipped behind it`
+  return `${where} — ${summary.skipped} of ${summary.total} steps did not run behind it`
+}
+
+/**
+ * `summary` is the step summary for a red run, and it is the point of this
+ * change: the failing step's name and its skip tail were already computed by
+ * `run-steps.mjs`, in the same job, under the same token, and landed only in a
+ * private GitHub issue. A session reading STATUS.md got a conclusion, a sha and
+ * a link, and twice in two days could not name the step that was red.
+ *
+ * Pure, still: the caller does the fetching. That is why
+ * `status-verdict-check.mjs` can exercise every branch offline.
+ */
+export const verifyVerdict = (run, head, now = null, summary = undefined) => {
   const sha = run.head_sha.slice(0, 7)
   const stale = head && run.head_sha !== head
   if (run.status !== 'completed') {
@@ -138,8 +180,10 @@ export const verifyVerdict = (run, head, now = null) => {
   if (run.conclusion === 'success') {
     return `**green** on \`${sha}\`${stale ? ' — but that is not `main` HEAD' : ''}`
   }
-  // Named and shouted, not softened. A red main is the fact this exists for.
-  return `**${run.conclusion.toUpperCase()}** on \`${sha}\` — [run ${run.id}](${run.html_url})`
+  // Named and shouted, not softened. A red main is the fact this exists for —
+  // and now it carries WHICH step, and how much the red is hiding behind it.
+  return `**${run.conclusion.toUpperCase()}** on \`${sha}\`${stepClause(summary)}`
+    + ` — [run ${run.id}](${run.html_url})`
 }
 
 export const verifyRunsUrl = repo =>
@@ -191,6 +235,34 @@ export const readVerify = async (opts) =>
 export const readLiveCheck = async (opts) =>
   readWorkflowConclusion({ ...opts, runsUrl: liveCheckRunsUrl, noun: 'live-check' })
 
+/**
+ * The failing step and skip tail for one run, or `null` if they cannot be read.
+ *
+ * NO NEW PERMISSION AND NO NEW CALL CLASS. `status.yml` already declares
+ * `actions: read` — for reading verify's conclusion, the read directly above —
+ * and `red-main-issue.mjs` already makes exactly this jobs request in the same
+ * job under the same token. This adds a second consumer of a read that happens
+ * today, not a new kind of access.
+ *
+ * EVERY failure path returns `null`, deliberately: a throw, a non-200, an
+ * unparseable body and a run with no failing job are all "I could not tell",
+ * and `stepClause` renders that as unknown rather than as nothing-skipped.
+ * Returning `{skipped: 0}` from any of them would be a claim from no data.
+ */
+export const readStepSummary = async ({ token, repo, runId, fetchImpl = fetch }) => {
+  if (!token || !repo || !runId) return null
+  try {
+    const res = await fetchImpl(
+      `https://api.github.com/repos/${repo}/actions/runs/${runId}/jobs?per_page=100`,
+      { headers: { authorization: `Bearer ${token}`, accept: 'application/vnd.github+json' } })
+    if (!res.ok) return null
+    const body = await res.json()
+    return worstFailure(body?.jobs) ?? null
+  } catch {
+    return null
+  }
+}
+
 const readWorkflowConclusion = async ({ token, repo, head, inCI, now = null, fetchImpl = fetch, runsUrl, noun }) => {
   if (!token || !repo) {
     // On a runner this is a misconfigured step, not a missing fact — and it is
@@ -222,7 +294,13 @@ const readWorkflowConclusion = async ({ token, repo, head, inCI, now = null, fet
   }
   // An empty list is an answer, not a failure: a repo with no run of this kind yet.
   if (!run) return { text: `no ${noun} run has been recorded for \`main\` yet`, problem: null }
-  return { text: verifyVerdict(run, head, now), problem: null }
+  // Only a RED run has a failing step to name, and only then is the extra read
+  // worth making. `undefined` for every other case means the clause is omitted
+  // rather than claimed as unknown — a green run has no step to not-know.
+  const summary = (run.status === 'completed' && run.conclusion && run.conclusion !== 'success')
+    ? await readStepSummary({ token, repo, runId: run.id, fetchImpl })
+    : undefined
+  return { text: verifyVerdict(run, head, now, summary), problem: null }
 }
 
 // Nothing below runs on import.

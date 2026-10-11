@@ -792,6 +792,20 @@ const MUTATIONS = [
   },
 
   {
+    // Rule 90, and the ONE mutation docs/CC-CMD-2026-10-10-red-verdict-carries-its-step.md
+    // names: the unreadable state must not render as a zero. If this survives,
+    // status-verdict-check.mjs is asserting the TEMPLATE rather than the
+    // distinction between "nothing was skipped behind it" and "I could not
+    // tell" — and that distinction is the entire reason the step summary was
+    // carried into the verdict at all.
+    id: 'unreadable-step-list-renders-as-zero',
+    file: 'scripts/status.mjs',
+    claim: 'an unreadable step list says so, and never prints a skip count of zero',
+    find: "  if (summary === null) return ' \u2014 failing step unknown: the run\\'s steps could not be read'",
+    replace: "  if (summary === null) return ' \u2014 0 of 0 steps did not run behind it'",
+    expect: 'node scripts/status-verdict-check.mjs',
+  },
+  {
     // The annotation channel is now how every other check's failure reason
     // reaches a reader who cannot fetch run logs. Escaping `%` AFTER the
     // newline turns the `%0A` just introduced into `%250A`, so the reader sees
