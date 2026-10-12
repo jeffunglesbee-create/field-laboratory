@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d272797` | 2026-10-11 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-11T22:27 [skip ci] |
+| `e9a6ae6` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `368f9b2` | 2026-10-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `9c83f43` | 2026-10-11 | [cc-session-2026-10-11-census-trusted-a-200.md](cc-session-2026-10-11-census-trusted-a-200.md) | docs: the census reference landed, 29.68 games per present date |
 | `09aa3fb` | 2026-10-11 | [favourite-band-census-20261011T184334Z.txt](favourite-band-census-20261011T184334Z.txt) | census: the band favouriteAgreement declines to judge [skip ci] |
