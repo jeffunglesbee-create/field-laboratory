@@ -1,9 +1,9 @@
 {
-  "at": "2026-10-09T05:02:03.005Z",
+  "at": "2026-10-12T14:40:58.920Z",
   "scope": "full",
-  "ran": 43,
-  "from_mutations": 89,
-  "failing": 0,
+  "ran": 54,
+  "from_mutations": 108,
+  "failing": 1,
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -111,7 +111,9 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
-      "passed": true
+      "passed": false,
+      "status": 1,
+      "tail": "FAIL  this session wrote its outbox"
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
@@ -139,6 +141,18 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"no value is written without being read back\"",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/deploy-gate.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-ignore-parity.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/status-verdict-check.mjs",
       "passed": true
     },
     {
@@ -174,7 +188,39 @@
       "passed": true
     },
     {
+      "cmd": "node scripts/setup-script-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-script-orphans.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/session-ready-check.mjs --self-test",
+      "passed": true
+    },
+    {
       "cmd": "node scripts/mutation-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/favourite-band-census.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/install-adhd-skill.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-adhd-pin-reports.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-exit-drains.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-lineups-pull-only.mjs",
       "passed": true
     }
   ]
