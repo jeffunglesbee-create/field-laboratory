@@ -991,10 +991,45 @@
   {
     "date": "2026-10-15",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-15",
-    "at": "2026-10-15T06:01:55.407Z",
+    "at": "2026-10-15T16:44:54.584Z",
     "sports": {
       "MLS": {
         "rows": 9,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NBA": {
+        "rows": 2,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 11,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "MLB": {
+        "rows": 2,
+        "withOdds": 2,
+        "withDraw": 0
+      },
+      "UEFA Europa League": {
+        "rows": 18,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "UEFA Europa Conference League": {
+        "rows": 18,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NFL": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 3,
         "withOdds": 0,
         "withDraw": 0
       }
