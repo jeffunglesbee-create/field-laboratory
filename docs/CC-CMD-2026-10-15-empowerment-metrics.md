@@ -314,6 +314,44 @@ discrete shot events, so the derivative is exactly zero almost everywhere by
 construction; the trigger fired on most of most matches and meant nothing. It
 also tested exact equality on `float32`.
 
+## Build constraints from Task 0's final run (38881438378)
+
+Measured 2026-10-16, recorded in
+`outbox/cc-session-2026-10-16-empowerment-task0.md`. Carried here because
+whoever builds Task 2 reads this task, not the outbox.
+
+**`momentum` is a territory proxy — at HALF grain.** With each half's shot and
+xG difference partialled out, its half mean tracks final-third entries
+r **0.584** (t 12.3) and possession share r **0.735** (t 18.6) over **298
+halves**. It is not an echo of the shotmap: 571 shot-free stretches, excess
+direction changes 35.1%.
+
+**Its minute values are validated only in aggregate.** The correlations above
+are between half means and half totals. Nothing established that a single
+minute's `v` means territory in that minute, and `LockedOn` is a
+window-level verdict. **Do not read one minute's momentum as that minute's
+territory** without measuring it first.
+
+**The active-play window is UNMEASURED below the minute.** The spec says
+stoppages must be excluded or dead time counts as suppression. The feed carries
+**six incident types** — substitution, card, goal, period, injuryTime,
+varDecision — and **none of them is a throw-in, goal kick, or uncarded foul**.
+Nothing in the payload carries a clock below the minute. So a 4-minute window
+cannot be restricted to active play with what exists.
+
+That is a **distinct outcome from `Quiet`**, and it must not collapse into it.
+A window that cannot be measured is not a window in which nothing happened. If
+the build cannot exclude dead time, give it a case of its own — the same move
+`Quiet` itself was for.
+
+**Two alignment facts the window arithmetic must respect:**
+
+- Momentum agrees with the shooting team most strongly at the row **one minute
+  AFTER** the shot. A window joined on the shot minute is off by one against
+  the quantity it is correlating with.
+- **Added time has one momentum row for the whole added period.** A rolling
+  4-minute window spanning added time is not spanning four minutes of it.
+
 ---
 
 # TASK 3 — Second Wind (gated on 0.3)
@@ -345,6 +383,40 @@ render as its opposite either.
 
 The 45-second trigger is **dropped** — that is one shift, not a fatigue
 threshold. Use accumulated TOI from the shift charts.
+
+## Build constraints from Task 0's final run (38881438378)
+
+Measured 2026-10-16 over 16 of 32 finals, games of 2026-10-13 to 10-15.
+
+**The join resolves, and the pooled number hides two classes that do not.**
+4023/4271 actor plays resolve with the actor on ice (**94.2%**); the same join
+with its clock moved 600 s inside the same period confirms **20.5%**, so the
+rate is real and not a chance artifact.
+
+**But the 94.2% is a pool.** Broken out:
+
+| play type | confirmed |
+|---|---|
+| goals | **23 / 101** |
+| penalties | **0 / 133** |
+
+**Task 3 must not credit either through `onIceAt` membership as it stands.**
+The scorer's shift ends on the goal second and the interval is end-exclusive,
+so the scorer is routinely *not* on ice at his own goal. Penalties resolve at
+zero, which is a different failure again and is not explained by the same
+mechanism.
+
+A metric about high-leverage contribution that silently drops 78 of 101 goals
+is measuring something other than what it says. **Either fix the boundary for
+these classes and show the fix moves the number, or exclude them explicitly and
+name the exclusion in the type** — Rule 91, and the `Insufficient` principle
+above applied to coverage rather than sample size.
+
+**`onIceAt` has no period filter.** Actor plays on a period-end second are
+counted without one. Establish what that does to the rate before relying on it.
+
+**Source:** `api.nhle.com/stats/rest/en/shiftcharts`. The documented form
+`/nhl-stats/shiftcharts` is refused by the allow-list — use the working one.
 
 ---
 
