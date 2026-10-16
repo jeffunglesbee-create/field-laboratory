@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `62a3aa3` | 2026-10-16 | [empowerment-flow-probe-latest.json](empowerment-flow-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `62a3aa3` | 2026-10-16 | [empowerment-gravity-probe-latest.json](empowerment-gravity-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `62a3aa3` | 2026-10-16 | [empowerment-second-wind-probe-latest.json](empowerment-second-wind-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `62a3aa3` | 2026-10-16 | [empowerment-tactical-lock-probe-latest.json](empowerment-tactical-lock-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `2b4a93f` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | probe: empowerment Task 0.4 must show territory, not only "not an echo" |
 | `42ac0ce` | 2026-10-16 | [empowerment-flow-probe-latest.json](empowerment-flow-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
 | `42ac0ce` | 2026-10-16 | [empowerment-gravity-probe-latest.json](empowerment-gravity-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
 | `42ac0ce` | 2026-10-16 | [empowerment-second-wind-probe-latest.json](empowerment-second-wind-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
