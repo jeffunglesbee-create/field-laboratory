@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `09e7e58` | 2026-10-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-16 [skip ci] |
+| `09e7e58` | 2026-10-16 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-16 [skip ci] |
+| `a6fb542` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | docs: record the owner's four Flow rulings, and two questions they leave |
+| `56619c9` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | docs: record the owner's Task 1 ruling, Flow is shots-only |
+| `9d4281d` | 2026-10-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `9069d74` | 2026-10-16 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-16T11:54 [skip ci] |
 | `341c7d7` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | docs: empowerment Task 0 done, every stop condition stated |
 | `62a3aa3` | 2026-10-16 | [empowerment-flow-probe-latest.json](empowerment-flow-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
