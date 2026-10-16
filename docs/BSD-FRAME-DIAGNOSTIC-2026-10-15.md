@@ -98,16 +98,76 @@ reproduced here for CC to lift. Inputs are `/bsd/r2/read?key=bsd/wc26/{id}/
 # always exclude or flag goal_type == "ownGoal"
 ```
 
+---
+
+# 223324 verified — the contract was wrong all along
+
+The October event's own capture survives in the relay repo at
+`scripts/fixtures/bsd-223324-coordinates.json` (52,255 bytes), named by the
+contract's own `verifier` field. Same diagnostic:
+
+| field | 223324 (October) | wc26 (June) | agree? |
+|---|---|---|---|
+| `shotmap[].pos.x` home | med **16.5** (7.4–30.8) | med 14.9 | yes |
+| `shotmap[].pos.x` away | med **12.0** (2.3–22.8) | med 14.1 | yes |
+| `shotmap[].gm.x` | 32/32 zero | 189/189 zero | yes |
+| `sequence[]` **away** goal | shot **7.3**, gk **5.4** | shot ~4.6, gk ~1.2 | yes |
+| `sequence[]` **home** goal | **none in the capture** | shot ~87.8, gk ~98.8 | — |
+
+**223324 contains exactly one goal with a sequence, and it is an away goal.**
+
+## Why that single goal could never have established the claim
+
+For the **away** side the two candidate frames are **numerically identical**:
+
+- *Shared absolute frame*: away attacks toward x=0, so the shooter reads low and
+  the goal being attacked — with its keeper — also sits at x≈0.
+- *Per-team target-goal-relative*: x=0 **is** the goal you attack, so the shooter
+  reads low and the keeper reads low.
+
+Both predict `shot 7.3, gk 5.4`. The observation cannot discriminate them.
+
+Only a **home** goal separates the two — shared absolute predicts ~88/~99,
+per-team predicts ~12/~2 — and 223324 has none.
+
+**So the contract did not describe a different October frame. It generalized a
+`perTeam: true` claim from a sample structurally incapable of testing it.** The
+wc26 home goals are the first data that could, and they say shared absolute.
+
+This is Rule 91 (SAMPLE-COVERAGE-A), and it is the same shape as this repo's own
+`check:nav` note — *both committed captures are single-sport, so grouping "works"
+on them in exactly the shape a broken grouping would also produce.*
+
+## Correcting this document's own recommendation
+
+An earlier revision of this file said *"one October capture in R2 would settle
+it, and there is none."* **That was wrong.** The October capture exists, it is
+now read, and it settles nothing by itself — because the discriminating case is
+a **home goal sequence**, not a date.
+
+The requirement is therefore: **capture any match containing a home goal with a
+sequence, and re-run this diagnostic.** Date and competition are irrelevant.
+Recorded rather than silently amended, because the wrong version of this
+requirement would have sent the capture-path work after the wrong thing.
+
 ## Required before any type is written
 
-1. **Do not trust `/bsd/contract`'s `frames` block for
-   `incidents[].sequence[].pos`.** It is measurably wrong on these captures.
-   Either the relay contract is corrected, or the decoder carries the measured
-   frame and says why.
-2. The contract was verified against **event 223324 (October)**; these are
-   **June** captures. It is still unestablished whether the October event uses a
-   *different* frame or whether the contract was simply wrong about this field
-   all along. **Two different facts.** One October capture in R2 would settle it,
-   and there is none.
+1. **`/bsd/contract`'s `frames` block is wrong for
+   `incidents[].sequence[].pos`** — not stale, not October-specific, wrong since
+   it was written. Correct the relay contract, or have the decoder carry the
+   measured frame and say why.
+2. The discriminating evidence is **home goal sequences**. Any new capture used
+   to re-verify must contain one, or it proves nothing — the same way 223324
+   proved nothing.
 3. `ownGoal` gets its own case before any coordinate from a goal sequence is
    consumed.
+
+## One tool limitation found while checking
+
+`/bsd/r2/list` **ignores a `limit` parameter**, returns 100 keys, and exposes no
+cursor. It does report `truncated: true`, which is the honest half.
+
+So "R2 holds `wc26` only" is **supported but not proven**: R2 list is lexical and
+all 100 first keys are `bsd/wc26/`, which rules out anything sorting earlier
+(`bsd/epl/`, `bsd/mls/`). It cannot rule out keys sorting after `bsd/wc26/8...`.
+State it that way.
