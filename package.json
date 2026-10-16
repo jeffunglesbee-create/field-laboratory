@@ -89,7 +89,7 @@
     "check:boundary": "node scripts/boundary-reachable-check.mjs --self-test && node scripts/boundary-reachable-check.mjs",
     "check:glyph": "node scripts/glyph-check.mjs --self-test && node scripts/glyph-check.mjs",
     "check:computed-chrome": "URL='http://localhost:8080/?data=context-briefs-fixture' node scripts/computed-chrome-check.mjs",
-    "check:axis": "node scripts/axis-check.mjs --self-test && URL='http://localhost:8080/' node scripts/axis-check.mjs",
+    "check:axis": "node scripts/axis-check.mjs --self-test && URL='http://localhost:8080/?data=games-2026-08-09' node scripts/axis-check.mjs",
     "check:viewport-overflow": "node scripts/viewport-overflow-check.mjs --self-test && node scripts/viewport-overflow-check.mjs",
     "check:red-main-issue": "node scripts/red-main-issue.mjs --self-test",
     "check:red-main-rehearsal": "node scripts/red-main-rehearsal.mjs --self-test",
