@@ -134,8 +134,10 @@ per-team predicts ~12/~2 — and 223324 has none.
 `perTeam: true` claim from a sample structurally incapable of testing it.** The
 wc26 home goals are the first data that could, and they say shared absolute.
 
-This is Rule 91 (SAMPLE-COVERAGE-A), and it is the same shape as this repo's own
-`check:nav` note — *both committed captures are single-sport, so grouping "works"
+This is **SAMPLE-COVERAGE-A** (`field-relay-nba/CLAUDE.md`) — cited by tag and
+file because three registries diverge above 88 and this repo's own STANDARDS.md
+numbers Rule 91 as SCOPE-LEGIBLE-A, a different rule. It is the same shape as
+this repo's own `check:nav` note — *both committed captures are single-sport, so grouping "works"
 on them in exactly the shape a broken grouping would also produce.*
 
 ## Correcting this document's own recommendation
