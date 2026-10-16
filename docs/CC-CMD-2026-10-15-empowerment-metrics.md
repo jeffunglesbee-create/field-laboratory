@@ -73,6 +73,12 @@ the task stops with that finding written down. Do not substitute wall-clock
 timestamps for possession order without proving they order correctly — the `gml`
 axis lesson is that a declared field can be false while a derived one is correct.
 
+> **RESOLVED 2026-10-15 — REJECTED for soccer, locked.** `average_positions` is
+> populated in captures (the empty surface was the live route, not the data),
+> and it is still a **match-long mean, one coordinate per player**.
+> Instantaneous gravity is not derivable from it. Build the off-ball concept on
+> **NFL BDB tracking**. Do not revisit for soccer without a new data source.
+
 ## 0.2 — Gravity Well: off-ball XY, or on-ball only?
 
 **Decision constraint is data availability.** Determine whether the vendor API
@@ -135,6 +141,51 @@ metric has no denominator and Task 2 cannot be built.
 
 **Stop condition:** if no territory proxy exists in the payload, Tactical Lock
 reduces to "the opponent did not shoot," which is not a lock, and the task stops.
+
+---
+
+---
+
+# Task 0 outcome — 2026-10-15
+
+All four probes run. Full results in `docs/TASK0-RESULTS-2026-10-15-empowerment-metrics.md`;
+frame work in `docs/BSD-FRAME-DIAGNOSTIC-2026-10-15.md`.
+
+| task | gate | outcome |
+|---|---|---|
+| 1 Flow | reconstructible? | **CLEAR** — `shotmap[].xg` on 34/34, ordered by `min`/`added`, team by `home` |
+| 2 Tactical Lock | window + territory | **CLEAR** — `xg_per_minute` (cumulative) + `momentum` |
+| 3 Second Wind | shift lengths | **CLEAR** — NHL shift charts |
+| 4 Gravity Well | off-ball XY | **REJECTED** for soccer; NFL BDB |
+
+**Field names are `min` and `home`, not `minute` and `is_home`.** Querying the
+latter returns a clean false negative on all 34 shots.
+
+## The R2 constraint — accepted
+
+R2 holds `wc26` only, 2026-06-25 to 2026-07-19. **Build `InFlow` and `LockedOn`
+as post-hoc states over finished matches.** This disposes of the amnesty
+question by construction — a finished match is the amnesty zone — but the
+accessibility amendment above still applies in full.
+
+A live capture path for current fixtures is filed separately as a prerequisite
+for any live rendering. **Do not build toward live in this CC-CMD.**
+
+## The frame finding — binding on Tasks 1, 2 and 4
+
+Measured over 8 matches, 189 shots, 11 goals, both teams:
+
+- `shotmap[].pos` — contract **holds** (both sides cluster low, med ~14).
+- `shotmap[].gm.x` — contract **holds** (189/189 zero).
+- `incidents[].sequence[].pos` — contract is **wrong**. It is a shared absolute
+  pitch frame (home med 87.8, away med 4.6), not per-team target-goal-relative.
+
+These two frames **share a key name and a shape**. Mixing them silently mirrors
+the away team — no error, a plausible wrong answer. Carry the frame in the type.
+
+**`goal_type: "ownGoal"` is a frame discontinuity** and needs its own case: the
+sequence records the attacking move while `is_home` marks the credited team, and
+on an own goal those are opposite sides.
 
 ---
 
@@ -281,16 +332,30 @@ rejected. This repo's whole thesis is that a data flow cannot be grepped but can
 be typed, and its own audit record already says "string-search RUWT audits are
 not reliable."
 
-## One consequence to carry back, not to resolve here
+## Accessibility amendment — ruled 2026-10-15
 
-A strictly non-text encoding has **no accessible alternative**. An `aria-label`,
-`title`, or visually-hidden caption is a narrative string, so the ruling as
-written forbids the mechanism a screen reader needs, and FIELD is a PWA.
+The original ruling forbade the mechanism a screen reader needs. Amended:
 
-This is a downstream effect of the ruling, not a re-litigation of it. Do not
-resolve it by quietly adding a label — that would violate the ruling — and do not
-resolve it by shipping an inaccessible encoding without saying so. **Record it in
-the session outbox and surface it to the owner.**
+> `aria-label` and `sr-only` text are explicitly **permitted and required**.
+> They are exempt from the "no narrative strings" rule, provided they strictly
+> describe the math and state (e.g. "InFlow state active"), not vendor
+> commentary.
+
+**Required, not optional.** A node carrying one of these three states and no
+accessible name is a defect, not a style choice.
+
+The exemption is narrow and the boundary is the hard part: `aria-label` is the
+one sanctioned place a string may describe these states, which makes it the one
+place vendor commentary could re-enter through the back door. Keep it
+mechanical — state name plus the number that produced it, generated from the
+value, never hand-written per card and never adjectival. "InFlow state active,
+sequential xG 0.42" is the shape. "Senegal are rampant" is the thing the whole
+ADR exists to stop.
+
+Build it as a projection the type owns: one total function from the state to its
+accessible name, so there is exactly one string site per metric and a reviewer
+has one place to look. That keeps the earlier "no string projection" structure
+intact for every other path.
 
 ---
 
