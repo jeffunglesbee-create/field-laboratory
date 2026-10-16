@@ -894,7 +894,10 @@ const MUTATIONS = [
     id: 'red-main-softened',
     file: 'scripts/status.mjs',
     claim: 'a failing verify run is reported as failing',
-    find: "  return `**${run.conclusion.toUpperCase()}** on \\`${sha}\\` — [run ${run.id}](${run.html_url})`",
+    // Re-anchored 2026-10-16: d730ed6 split this return over two lines and
+    // added the failing step, so the old one-line anchor matched nothing and
+    // the mutation reported a missing anchor instead of running.
+    find: "  return `**${run.conclusion.toUpperCase()}** on \\`${sha}\\`${stepClause(summary)}`\n    + ` — [run ${run.id}](${run.html_url})`",
     replace: "  return `**green** on \\`${sha}\\``",
     expect: 'node scripts/run-row.mjs "a red main is reported, not softened"',
   },
@@ -905,8 +908,10 @@ const MUTATIONS = [
     id: 'stalled-run-reads-as-running',
     file: 'scripts/status.mjs',
     claim: 'a run stuck in progress is called stalled, not running',
-    find: '    if (idleMs > STALL_MINUTES * 60_000) {',
-    replace: '    if (false) {',
+    // Re-anchored 2026-10-16: d730ed6 moved the stall test into `mayDeploy`
+    // as a ternary. Same mutation: the stall branch can never be taken.
+    find: "    return idleMs > STALL_MINUTES * 60_000 ? 'unknown' : 'in-flight'",
+    replace: "    return false ? 'unknown' : 'in-flight'",
     expect: 'node scripts/run-row.mjs "a red main is reported, not softened"',
   },
 
@@ -1018,8 +1023,10 @@ const MUTATIONS = [
     id: 'unreadable-history-swallowed',
     file: 'scripts/status.mjs',
     claim: 'a workflow-history read that the API rejects is reported as a problem',
-    find: "    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: `HTTP ${res.status}` }",
-    replace: "    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: null }",
+    // Re-anchored 2026-10-16: d730ed6 added `decision: 'unknown'` to this
+    // return. The mutation still drops only the problem.
+    find: "    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: `HTTP ${res.status}`, decision: 'unknown' }",
+    replace: "    return { text: `unreadable — the workflow-history API answered ${res.status}`, problem: null, decision: 'unknown' }",
     expect: 'node scripts/run-row.mjs "a red main is reported, not softened"',
   },
 
@@ -1076,8 +1083,10 @@ const MUTATIONS = [
     id: 'verify-panel-drops-a-group',
     file: 'src/Suite.fs',
     claim: 'every check DECLARED in the suite source reaches the page',
-    find: '      "Tennis draws", draw () ]',
-    replace: '      ]',
+    // Re-anchored 2026-10-16: ec479e2 appended "Lineups" after "Tennis draws".
+    // Same mutation: the last declared group never reaches the page.
+    find: '      "Tennis draws", draw ()\n      "Lineups", lineups () ]',
+    replace: '      "Tennis draws", draw () ]',
     expect: "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
   },
   // --- proof-check's run marker ---------------------------------------------
