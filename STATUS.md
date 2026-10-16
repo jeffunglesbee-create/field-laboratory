@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `7e2585b` at "The score's weight axis interpolates" — 36 of 81 steps did not run behind it — [run 38853525495](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38853525495)
+**green** on `c0c6e0c` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `1ba6f6f`
+`live-check` (post-deploy, against the deployed page): **running** on `42ac0ce`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `0814996` — behind newest deployable `7e2585b` (deploy not landed) |
+| Cloudflare Workers | live | `c0c6e0c` — newest deployable ✓ |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

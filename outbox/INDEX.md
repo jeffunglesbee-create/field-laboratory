@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `42ac0ce` | 2026-10-16 | [empowerment-flow-probe-latest.json](empowerment-flow-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `42ac0ce` | 2026-10-16 | [empowerment-gravity-probe-latest.json](empowerment-gravity-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `42ac0ce` | 2026-10-16 | [empowerment-second-wind-probe-latest.json](empowerment-second-wind-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `42ac0ce` | 2026-10-16 | [empowerment-tactical-lock-probe-latest.json](empowerment-tactical-lock-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `c0c6e0c` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | probe: empowerment Task 0 revised after its first run's verdicts were attacked |
+| `d99bf50` | 2026-10-16 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | fix: verify's axis check renders a pinned capture, not the live slate |
 | `fb3cb7b` | 2026-10-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-16 [skip ci] |
 | `d63e822` | 2026-10-16 | [empowerment-flow-probe-latest.json](empowerment-flow-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
 | `d63e822` | 2026-10-16 | [empowerment-gravity-probe-latest.json](empowerment-gravity-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
