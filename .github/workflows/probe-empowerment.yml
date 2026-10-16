@@ -1,0 +1,65 @@
+# Task 0 of docs/CC-CMD-2026-10-15-empowerment-metrics.md: the four probes that
+# decide which empowerment metrics get types and which are written down as
+# rejected. DISPATCH ONLY.
+#
+# WHY CI: the dev sandbox reaches neither *.workers.dev nor the NHL APIs, so the
+# R2 captures and the shift charts cannot be read from a session. No secret is
+# needed: /bsd/r2/* and the NHL endpoints are unauthenticated.
+#
+# Two files are fetched from field-relay-nba rather than copied, because the
+# question is about THOSE files: src/nhl-onice.js is the join 0.3 tests, and
+# src/index.js is where the R2 writer's competition slugs come from. A copy here
+# would measure the copy. If either fetch fails the artifact says so.
+name: probe-empowerment
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch the relay's on-ice join and its source of competition slugs
+        continue-on-error: true
+        run: |
+          for f in nhl-onice.js index.js; do
+            curl -sSLf --max-time 30 -o "/tmp/relay-$f" \
+              "https://raw.githubusercontent.com/jeffunglesbee-create/field-relay-nba/main/src/$f"
+            wc -c "/tmp/relay-$f"
+          done
+
+      # SELF-TEST FIRST, and it gates the live read: the analysers decide what
+      # the artifacts say, and a broken one writes fiction.
+      - name: Probe
+        env:
+          NHL_ONICE_PATH: /tmp/relay-nhl-onice.js
+          RELAY_INDEX_PATH: /tmp/relay-index.js
+        run: |
+          node scripts/probe-empowerment.mjs --self-test
+          node scripts/probe-empowerment.mjs
+
+      - name: Commit the artifacts
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/empowerment-*-probe-latest.json || true
+          git diff --staged --quiet && { echo "nothing to commit"; exit 0; }
+          git commit -m "probe: empowerment metrics Task 0, four stop conditions [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin HEAD:main && break
+            sleep $((i * 5))
+          done
+          # The loop exits 0 when every attempt fails (its last command is sleep),
+          # so the landing is checked, not assumed.
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main || { echo "::error::artifacts did not land on main"; exit 1; }
