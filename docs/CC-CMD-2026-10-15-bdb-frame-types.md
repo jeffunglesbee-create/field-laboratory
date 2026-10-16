@@ -4,6 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Blocked by:** `field-relay-nba docs/CC-CMD-2026-10-15-build-bdb-frames.md`
+**Status:** BLOCKED, not started — the route named above is filed in field-relay-nba and not built.
 
 Do not start until that route is live. There is nothing to decode before it.
 

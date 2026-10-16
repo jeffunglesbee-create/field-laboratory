@@ -4,6 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-15, by chat, authored against HEAD and verified reads
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
+**Status:** PARTIAL. Task 0 re-run on a runner 2026-10-16 (four `-latest` artifacts, `outbox/cc-session-2026-10-16-empowerment-task0.md`); Tasks 1-4 not started.
 
 ---
 
