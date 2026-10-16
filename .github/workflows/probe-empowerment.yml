@@ -21,19 +21,25 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
+      # Both files at ONE relay commit, and that commit recorded in the
+      # artifacts: a join measured from a moving `main` cannot say which
+      # revision of onIceAt produced its number.
       - name: Fetch the relay's on-ice join and its source of competition slugs
         continue-on-error: true
         run: |
+          sha=$(git ls-remote https://github.com/jeffunglesbee-create/field-relay-nba refs/heads/main | cut -f1)
+          echo "RELAY_SHA=$sha" >> "$GITHUB_ENV"
+          echo "relay main is $sha"
           for f in nhl-onice.js index.js; do
             curl -sSLf --max-time 30 -o "/tmp/relay-$f" \
-              "https://raw.githubusercontent.com/jeffunglesbee-create/field-relay-nba/main/src/$f"
+              "https://raw.githubusercontent.com/jeffunglesbee-create/field-relay-nba/$sha/src/$f"
             wc -c "/tmp/relay-$f"
           done
 
