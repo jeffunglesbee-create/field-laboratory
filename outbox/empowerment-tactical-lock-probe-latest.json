@@ -1,6 +1,6 @@
 {
   "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
-  "ran_at": "2026-10-16T07:39:13.836Z",
+  "ran_at": "2026-10-16T09:35:05.514Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
   "relay_sha": "a39d61e2c9586ceeecd826583e77cf8d4a0650f6",
   "task": "0.4 Tactical Lock",
@@ -8,12 +8,12 @@
     "text": "no territory proxy exists in the payload",
     "consequence_text": "Tactical Lock reduces to \"the opponent did not shoot\", which is not a lock",
     "met": false,
-    "reason": "momentum is a territory proxy, not an echo: in 571 shot-free stretches it changes direction beyond what any decaying or cumulative function of shots can (excess 805/2292, 35.1%), and no single shot age explains its changes (best 6 min, 21.4%). Direction positive = home on top (2568/3336 one-team shot minutes). Present in 149/150 captures (xg_per_minute 150/150)",
+    "reason": "momentum is a per-minute territory proxy: it is not an echo of the shots (in 571 shot-free stretches, excess direction changes 805/2292, 35.1%; best single shot age 21.4%), and with each half's shot and xG difference partialled out its half mean still tracks the payload's own territory measures: final third entries r = 0.584 (t 12.33, 298 halves); ball possession r = 0.735 (t 18.61, 298 halves). Direction positive = home on top (2568/3336 one-team shot minutes). Present in 149/150 captures (xg_per_minute 150/150)",
     "verdict": "NOT MET"
   },
   "active_play_window": {
     "verdict": "UNMEASURED below the minute",
-    "reason": "the spec asks for a 4-minute window over ACTIVE play with stoppages excluded. xg_per_minute and momentum are per minute; shots carry no clock finer than (min, added) (shotmap keys: added, block, body, gm, gml, gtype, home, min, player_id, pos, sit, type, xg, xg_estimated, xgot); incidents with a sub-minute clock: none. So a stoppage can be located to its minute and that minute excluded, but dead ball inside a minute cannot be removed.",
+    "reason": "the spec asks for a 4-minute window over ACTIVE play with stoppages excluded. xg_per_minute and momentum are per minute; shots carry no clock finer than (min, added) (shotmap keys: added, block, body, gm, gml, gtype, home, min, player_id, pos, sit, type, xg, xg_estimated, xgot); incidents with a sub-minute clock: none. Only 6 incident types exist (period, injuryTime, card, goal, substitution, varDecision): throw-ins, goal kicks, corners and uncarded fouls leave no incident, so most dead ball cannot be excluded even at minute grain, and none can inside a minute. This field is not a stop condition and does not fail the run.",
     "windows_with_a_stoppage_incident": {
       "windows": 12600,
       "with_stoppage_incident": 5324,
@@ -167,10 +167,11 @@
   "verdict": {
     "met": false,
     "verdict": "NOT MET",
-    "reason": "momentum is a territory proxy, not an echo: in 571 shot-free stretches it changes direction beyond what any decaying or cumulative function of shots can (excess 805/2292, 35.1%), and no single shot age explains its changes (best 6 min, 21.4%). Direction positive = home on top (2568/3336 one-team shot minutes). Present in 149/150 captures (xg_per_minute 150/150)",
+    "reason": "momentum is a per-minute territory proxy: it is not an echo of the shots (in 571 shot-free stretches, excess direction changes 805/2292, 35.1%; best single shot age 21.4%), and with each half's shot and xG difference partialled out its half mean still tracks the payload's own territory measures: final third entries r = 0.584 (t 12.33, 298 halves); ball possession r = 0.735 (t 18.61, 298 halves). Direction positive = home on top (2568/3336 one-team shot minutes). Present in 149/150 captures (xg_per_minute 150/150)",
     "thresholds": {
       "sign": ">= 30 one-team minutes at >= 60%",
       "territory": ">= 30 quiet stretches of 3+; echo if it moves in < 10% of their minutes, or (with >= 30 changes) its excess-reversal rate is < 0.02, or one shot age explains > 60% of its changes",
+      "validation": ">= 100 halves; partial r >= 0.2 with t >= 3 against final-third entries or possession",
       "origin": "this probe's bars, not the spec's; the counts are printed so a reader can apply another"
     },
     "territory": {
@@ -197,6 +198,30 @@
       },
       "pearson_v_vs_xg_diff_in_shot_minutes": 0.34,
       "xg_pairs": 3381
+    },
+    "territory_validation": {
+      "halves": 298,
+      "definition": "per half: momentum mean (home-positive) against the home-minus-away difference in final-third entries and in possession, each with the half's shot and xG difference partialled out",
+      "final_third_entries": {
+        "n": 298,
+        "raw_r": 0.703,
+        "partial_r_given_shots_and_xg": 0.584,
+        "t": 12.33,
+        "partialled_out": "shots and xG",
+        "shots_vs_measure_r": 0.518
+      },
+      "ball_possession": {
+        "n": 298,
+        "raw_r": 0.812,
+        "partial_r_given_shots_and_xg": 0.735,
+        "t": 18.61,
+        "partialled_out": "shots and xG",
+        "shots_vs_measure_r": 0.583
+      },
+      "tracks": [
+        "final_third_entries",
+        "ball_possession"
+      ]
     },
     "momentum_sign": {
       "agree_if_positive_is_home": 2568,
@@ -247,8 +272,9 @@
       "captures_where_they_fold_into_the_45_or_90_row": 119,
       "captures_with_fractional_momentum_rows": 146,
       "max_added_minutes_seen": 10,
-      "consequence": "xg_per_minute folds 45+N into m=45 and 90+N into m=90, so a window of 4 rows ending at 45 or 90 can cover 4 + N minutes of play. A 4-minute active-play window has to be built from the shotmap's (min, added), not from row counts."
+      "consequence": "xg_per_minute folds 45+N into m=45 and 90+N into m=90, and momentum has ONE row (45.5, 90.5) for the whole added period. A 4-minute window has to take its xG from the shotmap's (min, added); inside added time there is no per-minute territory figure at all."
     },
+    "alignment": "momentum agrees with the shooting team most at the row ONE minute after the shot (see lag_profile k=+1): a window pairing per-minute xG with momentum should read momentum one row later",
     "reconcile_shotmap_vs_xg_per_minute": {
       "match": 3509,
       "miss": 0,

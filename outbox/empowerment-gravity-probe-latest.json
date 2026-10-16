@@ -1,14 +1,14 @@
 {
   "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
-  "ran_at": "2026-10-16T07:39:13.836Z",
+  "ran_at": "2026-10-16T09:35:05.514Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
   "relay_sha": "a39d61e2c9586ceeecd826583e77cf8d4a0650f6",
   "task": "0.2 Gravity Well",
   "stop_condition": {
     "text": "soccer provides on-ball data only",
     "met": true,
-    "reason": "every coordinate path found in 150 captures is on-ball (one event) or a match average (one point per player per match); no array of 2+ identified players under one time key, in any shape the detector reads (objects, tuples, numeric strings). POPULATION: R2 captures only: stats.json + incidents.json for 150 captures ({\"in-play\":138,\"finished\":11,\"unmarked\":1}), average-positions.json for 9 of 9 populated files. NOT READ: the BSD WebSocket livedata feed (websocket_plus), which the capture writer never stores; its frame shape has never been captured anywhere in FIELD",
-    "population": "R2 captures only: stats.json + incidents.json for 150 captures ({\"in-play\":138,\"finished\":11,\"unmarked\":1}), average-positions.json for 9 of 9 populated files. NOT READ: the BSD WebSocket livedata feed (websocket_plus), which the capture writer never stores; its frame shape has never been captured anywhere in FIELD",
+    "reason": "every coordinate path found in 150 captures is on-ball (one event, or a goal build-up whose elements are successive actions) or a match average (one point per player per match); no snapshot of 2+ identified players at one instant, in any shape the detector reads (direct or nested {x,y}, numeric strings, number tuples). POPULATION: R2 captures only: stats.json + incidents.json for 150 captures ({\"in-play\":138,\"finished\":11,\"unmarked\":1}; 1 of them a full post-final tracking-tier stats payload, i.e. one carrying average_positions), average-positions.json for 9 of 9 populated files. NOT READ: the BSD WebSocket livedata feed (websocket_plus), which the capture writer never stores; its frame shape has never been captured anywhere in FIELD",
+    "population": "R2 captures only: stats.json + incidents.json for 150 captures ({\"in-play\":138,\"finished\":11,\"unmarked\":1}; 1 of them a full post-final tracking-tier stats payload, i.e. one carrying average_positions), average-positions.json for 9 of 9 populated files. NOT READ: the BSD WebSocket livedata feed (websocket_plus), which the capture writer never stores; its frame shape has never been captured anywhere in FIELD",
     "consequence_if_met": "Gravity Well rejected for soccer and built for NFL instead (the spec's instruction; the owner locked the soccer rejection 2026-10-15). The NFL half is INHERITED evidence, not measured by this run: see `nfl`.",
     "verdict": "MET"
   },
@@ -68,6 +68,15 @@
       "kind": "on-ball (goal build-up)",
       "by_stage": {
         "in-play": 125,
+        "finished": 6
+      }
+    },
+    {
+      "path": "incidents[].sequence[](action-sequence)",
+      "captures": 123,
+      "kind": "on-ball (action sequence)",
+      "by_stage": {
+        "in-play": 117,
         "finished": 6
       }
     },

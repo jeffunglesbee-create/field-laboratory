@@ -1,16 +1,16 @@
 {
   "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
-  "ran_at": "2026-10-16T07:39:13.836Z",
+  "ran_at": "2026-10-16T09:35:05.514Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
   "relay_sha": "a39d61e2c9586ceeecd826583e77cf8d4a0650f6",
   "task": "0.3 Second Wind (NHL)",
   "stop_condition": {
     "text": "the interval join cannot resolve a majority of events",
     "met": false,
-    "reason": "4023 of 4271 plays that name a player resolve to an on-ice set CONTAINING that player (94.2%); with the clock moved 600 s the same test confirms 20.5%, so the join resolves a majority, and not by chance; 16 of 16 sampled finals joined (newest 16 of 32 FINAL/OFF games on /v1/scoreboard/now, dates 2026-10-12 to 2026-10-22)",
+    "reason": "4023 of 4271 plays that name a player resolve to an on-ice set CONTAINING that player (94.2%); with the clock moved 600 s the same test confirms 20.5%, so the join resolves a majority, and not by chance; 16 of 16 sampled finals joined (newest 16 of 32 FINAL/OFF games on /v1/scoreboard/now; sampled games dated 2026-10-13 to 2026-10-15, board window 2026-10-12 to 2026-10-22)",
     "verdict": "NOT MET"
   },
-  "coverage": "16 of 16 sampled finals joined (newest 16 of 32 FINAL/OFF games on /v1/scoreboard/now, dates 2026-10-12 to 2026-10-22); 0 lacked play-by-play or shift rows and are availability, not join failures; every timed play in the joined games",
+  "coverage": "16 of 16 sampled finals joined (newest 16 of 32 FINAL/OFF games on /v1/scoreboard/now; sampled games dated 2026-10-13 to 2026-10-15, board window 2026-10-12 to 2026-10-22); 0 lacked play-by-play or shift rows and are availability, not join failures; every timed play in the joined games",
   "identity": {
     "actor_bearing_plays": 4271,
     "resolved_with_actor_on_ice": 4023,
@@ -128,6 +128,8 @@
       "committedByPlayerId",
       "playerId"
     ],
+    "actor_plays_on_a_period_end_second": 0,
+    "event_instant_classes": "goals and penalties are timed at a stoppage second, where the scorer's or offender's shift may end; see by_type before Task 3 uses either",
     "four_state_note": "resolved_but_actor_absent is a body count that matches situationCode with the actor NOT on ice. Reused as-is, the four-state vocabulary would label these plays `resolved`: an answer-shaped miss Task 3 has to keep apart."
   },
   "excluded": {
