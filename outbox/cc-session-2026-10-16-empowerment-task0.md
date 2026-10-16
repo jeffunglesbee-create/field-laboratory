@@ -34,9 +34,19 @@ store, 0 failed pages.
 - **Flow (Task 1):** the owner ruled the shots-only version in on
   2026-10-16. Under it, timed opponent incidents no longer interrupt a run
   (up to 310 same-team pairs hold one, counted with no break at a period),
-  and four questions it leaves open are listed under Task 1 in the CC-CMD. 535-556 runs of
-  3+ own-team shots, the range set by 62 mixed-team minutes (counted over
-  shots of any xG, ending runs at every period break; both still open). 171 of 2422
+  and the owner ruled the four questions it left open the same day: a
+  mixed-team minute breaks a run, runs break at half time and extra time,
+  0-xG own shots are skipped and "the 13 estimated values" count (the 13 in
+  the 150 read; over 786 not measured), and all 786
+  captures are used. Recorded verbatim under Task 1 in the CC-CMD. Before
+  those rulings the probe counted 535-556 runs of 3+ own-team shots over 150
+  of 786 captures, the range set by 62 mixed-team minutes, over shots of any
+  xG; rulings 1, 3 and 4 each change that basis, and no count was made under
+  them. Two questions are asked of the owner before Task 1 starts, under
+  Task 1 in the CC-CMD: whether a run breaks at extra time's own interval
+  (105'/106'), where the probe broke; and what gates `InFlow`'s render
+  (nothing beyond the 2026-10-15 non-text ruling, the match being over, or
+  the capture recording full time, 47 of 786). 171 of 2422
   same-team shot pairs have a `fast-break` second shot, i.e. an opponent
   possession the narrowing calls uninterrupted. xG on 4125/4125 shots, 13
   estimated.

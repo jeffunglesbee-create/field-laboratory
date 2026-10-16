@@ -181,6 +181,11 @@ as post-hoc states over finished matches.** This disposes of the amnesty
 question by construction — a finished match is the amnesty zone — but the
 accessibility amendment above still applies in full.
 
+> **CC, 2026-10-16.** For `InFlow`, Task 1 ruling 4 replaces the
+> finished-only reading of this sentence (47 of 786 captures record full
+> time) with all 786. `InFlow`'s amnesty position is asked of the owner
+> under Task 1's rulings.
+
 A live capture path for current fixtures is filed separately as a prerequisite
 for any live rendering. **Do not build toward live in this CC-CMD.**
 
@@ -256,22 +261,54 @@ version of Flow?", the owner answered "Yes".
 >   is newest-first in all 150 captures and agreed with a goal's build-up in 35
 >   of 36 checks. Over all 786 non-shell captures (incidents read
 >   for 784): 734 stop in play, 47 are of a finished match.
+
+**Ruled 2026-10-16 (owner), the four questions the shots-only ruling left
+open, verbatim:**
+
+1. **Minute Ambiguity:** Break the run. If both teams shoot in the same
+   minute, chronological certainty is lost. A mathematically ambiguous state
+   cannot sustain Flow.
+2. **Period Breaks:** Break the run at half-time and extra-time. Flow is a
+   physical state that does not survive a 15-minute locker room pause.
+3. **0-xG & Estimates:** Skip 0-xG own shots (they do not reset the
+   counter). Count the 13 estimated values.
+4. **Match State:** Use all 786 captures. Flow is an instantaneous state; a
+   match does not need to be finished for a team to achieve it in the 30th
+   minute.
+
+> **CC, 2026-10-16 — what these rulings change.**
 >
-> **Open, for the owner, before Task 1 decides any of them:**
+> - **The run count.** 535-556 was counted over 150 of 786 captures, over
+>   shots of any xG, with each mixed-team minute tried in every order. Ruling
+>   1 makes those minutes breaks, ruling 3 drops 0-xG own shots (how many
+>   there are was not measured), and ruling 4 widens the set to all 786. The
+>   range no longer applies, and no count was made under the rulings. "The
+>   13 estimated values" are the 13 in the 150 read. Over 786, neither the
+>   estimated count nor `xg` coverage was measured; Task 1 measures both
+>   first, and a shot with no `xg` number, if any exists, goes to the owner
+>   before a run treats it either way.
+> - **Ruling 2.** The probe ended runs at 46', 91' and 106' (half time, into
+>   extra time, and extra time's own interval): 158 breaks. Ruling 2 names
+>   half time and extra time; it does not name the 106' interval, listed
+>   below. It answers the "never across a period break" point above, and
+>   ruling 3 answers the "positive xG" point.
+> - **Ruling 4** supersedes "over finished matches" in the R2 section for
+>   `InFlow`. That section's "Do not build toward live" is not addressed by
+>   it and stands.
+> - **Ruling 4 and the amnesty zone, facts only.** 734 of the 786 captures
+>   stop in play; 47 record full time. `amnestyZone` returns its witness for
+>   any `Final` `GameState`. Nothing in `src/` builds a `GameState` from a
+>   BSD soccer capture. The 2026-10-15 ADR-002 ruling below conditions on
+>   non-text encodings and names no game state.
 >
-> 1. A run whose existence depends on the order inside a mixed-team minute
->    (it changes the count in 20 of 150 captures). `TeamState` has no case
->    for it.
-> 2. Whether a run may cross a period break (half time, or into or across
->    extra time). The probe ended runs at all of them.
-> 3. Whether "positive xG" carries over, and if so whether an own-team shot
->    with xG 0 ends a run or is passed over; and whether the 13 estimated xG
->    values count.
-> 4. Whether Task 1 runs over all captures or only finished ones, given
->    "post-hoc over finished matches". Read literally, the standing R2 ruling
->    already gives finished-only: 47 of 786 captures, 11 of the 150 sampled.
->    The question is whether to revisit that ruling now that its premise has
->    been measured.
+> **Open, for the owner. Task 1 has not started; both are asked before it
+> does.**
+>
+> 1. Does a run also break at extra time's own interval (105'/106')? The
+>    probe broke there; rulings 1 and 2 settle every other boundary.
+> 2. What gates `InFlow`'s render? (a) Nothing beyond the 2026-10-15
+>    non-text ruling; (b) the match being over at render time; or (c) the
+>    capture recording full time, 47 of 786.
 
 From the original task (the R2 section above rules `InFlow` post-hoc, not
 live):
