@@ -241,7 +241,7 @@ repo's `*-PROOF.md` convention.
 
 ---
 
-# ADR-002 / amnesty — settle this in Task 0, it gates three tasks
+# ADR-002 / amnesty — RULED 2026-10-15, no longer blocking
 
 `InFlow`, `LockedOn` and `SecondWind` are **live composite verdicts about a team
 or player, rendered as visual encodings** — a pulsing line, a saturated node,
@@ -254,14 +254,43 @@ violation.
 violation accidentally — `dramaText` ran for every card at every state, and the
 output was compliant only by accident of the committed captures all being Final.
 
-**Determine in Task 0 whether these three need an amnesty witness**, on the same
-footing as `dramaText`. If they do, each render function must demand a witness
-only a legal state produces, and `docs/AMNESTY-PROOF.md` gains cases for them.
+## The ruling
 
-RUWT PERMITTED #4 explicitly clears win-probability *display*. It does not
-obviously clear a derived composite verdict about a named player built on top of
-WP. **Do not resolve this by reading the two documents as agreeing.** If it is
-genuinely ambiguous, stop and say so rather than picking the permissive reading.
+The owner ruled on 2026-10-15:
+
+> RUWT PERMITTED #4 extends to derived composite verdicts about named players,
+> provided the output is strictly restricted to non-text visual encodings
+> (geometry, color, opacity). No narrative strings are permitted. The compliance
+> block is cleared.
+
+**The compliance block is cleared. Do not stop on it.** The earlier instruction
+in this document to halt if the question was ambiguous is superseded.
+
+## What the ruling still constrains
+
+The clearance is conditional, and the condition is enforceable at the type level
+rather than by reviewer discipline. **No narrative strings.** `InFlow`,
+`LockedOn` and `SecondWind` may reach the DOM only as geometry, color or
+opacity.
+
+Build that as a boundary, not a convention: the render path for these three
+takes a value that **has no string projection** — no `ToString`, no interpolation
+site, no label field — so emitting one is a compile error rather than a code
+review catch. `docs/AMNESTY-PROOF.md` gains cases proving the string path is
+rejected. This repo's whole thesis is that a data flow cannot be grepped but can
+be typed, and its own audit record already says "string-search RUWT audits are
+not reliable."
+
+## One consequence to carry back, not to resolve here
+
+A strictly non-text encoding has **no accessible alternative**. An `aria-label`,
+`title`, or visually-hidden caption is a narrative string, so the ruling as
+written forbids the mechanism a screen reader needs, and FIELD is a PWA.
+
+This is a downstream effect of the ruling, not a re-litigation of it. Do not
+resolve it by quietly adding a label — that would violate the ruling — and do not
+resolve it by shipping an inaccessible encoding without saying so. **Record it in
+the session outbox and surface it to the owner.**
 
 ---
 
