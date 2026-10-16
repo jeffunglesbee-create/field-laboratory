@@ -1,20 +1,124 @@
 {
   "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
-  "ran_at": "2026-10-16T05:00:46.303Z",
+  "ran_at": "2026-10-16T07:39:13.836Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "relay_sha": "a39d61e2c9586ceeecd826583e77cf8d4a0650f6",
   "task": "0.3 Second Wind (NHL)",
   "stop_condition": {
     "text": "the interval join cannot resolve a majority of events",
     "met": false,
-    "reason": "4017 of 4271 plays that name a player resolve to an on-ice set CONTAINING that player (94.1%), across 16 of 16 finals with play-by-play and shift rows",
+    "reason": "4023 of 4271 plays that name a player resolve to an on-ice set CONTAINING that player (94.2%); with the clock moved 600 s the same test confirms 20.5%, so the join resolves a majority, and not by chance; 16 of 16 sampled finals joined (newest 16 of 32 FINAL/OFF games on /v1/scoreboard/now, dates 2026-10-12 to 2026-10-22)",
     "verdict": "NOT MET"
   },
-  "coverage": "16 of 16 final games on /v1/scoreboard/now joined (cap 16); 0 lacked play-by-play or shift rows and are availability, not join failures; every timed play in the joined games",
+  "coverage": "16 of 16 sampled finals joined (newest 16 of 32 FINAL/OFF games on /v1/scoreboard/now, dates 2026-10-12 to 2026-10-22); 0 lacked play-by-play or shift rows and are availability, not join failures; every timed play in the joined games",
   "identity": {
     "actor_bearing_plays": 4271,
-    "resolved_with_actor_on_ice": 4017,
+    "resolved_with_actor_on_ice": 4023,
     "resolved_but_actor_absent": 80,
-    "not_resolved": 174,
+    "not_resolved": 168,
+    "not_resolved_by_state": {
+      "disagrees-with-situation": 164,
+      "instant-in-no-interval": 4
+    },
+    "by_type": {
+      "faceoff": {
+        "bearing": 932,
+        "confirmed": 926,
+        "resolvedActorAbsent": 0,
+        "notResolved": 6
+      },
+      "missed-shot": {
+        "bearing": 473,
+        "confirmed": 467,
+        "resolvedActorAbsent": 0,
+        "notResolved": 6
+      },
+      "hit": {
+        "bearing": 684,
+        "confirmed": 679,
+        "resolvedActorAbsent": 3,
+        "notResolved": 2
+      },
+      "giveaway": {
+        "bearing": 503,
+        "confirmed": 498,
+        "resolvedActorAbsent": 4,
+        "notResolved": 1
+      },
+      "shot-on-goal": {
+        "bearing": 801,
+        "confirmed": 788,
+        "resolvedActorAbsent": 2,
+        "notResolved": 11
+      },
+      "blocked-shot": {
+        "bearing": 514,
+        "confirmed": 513,
+        "resolvedActorAbsent": 0,
+        "notResolved": 1
+      },
+      "goal": {
+        "bearing": 101,
+        "confirmed": 23,
+        "resolvedActorAbsent": 56,
+        "notResolved": 22
+      },
+      "penalty": {
+        "bearing": 133,
+        "confirmed": 0,
+        "resolvedActorAbsent": 15,
+        "notResolved": 118
+      },
+      "takeaway": {
+        "bearing": 130,
+        "confirmed": 129,
+        "resolvedActorAbsent": 0,
+        "notResolved": 1
+      }
+    },
+    "by_period": {
+      "1": {
+        "bearing": 1371,
+        "confirmed": 1294,
+        "resolvedActorAbsent": 25,
+        "notResolved": 52
+      },
+      "2": {
+        "bearing": 1447,
+        "confirmed": 1367,
+        "resolvedActorAbsent": 27,
+        "notResolved": 53
+      },
+      "3": {
+        "bearing": 1386,
+        "confirmed": 1317,
+        "resolvedActorAbsent": 28,
+        "notResolved": 41
+      },
+      "OT": {
+        "bearing": 67,
+        "confirmed": 45,
+        "resolvedActorAbsent": 0,
+        "notResolved": 22
+      }
+    },
+    "decorrelated_control": {
+      "bearing": 4204,
+      "confirmed": 861,
+      "resolvedActorAbsent": 1992,
+      "notResolved": 1351,
+      "share": 0.205,
+      "overtime_plays_excluded": 95,
+      "how": "the same plays and shift charts with the clock moved 600 s inside the same period; overtime left out of the denominator"
+    },
+    "games_with_toi_95pct_within_5s": {
+      "games": 13,
+      "bearing": 3436,
+      "confirmed": 3251,
+      "resolvedActorAbsent": 69,
+      "notResolved": 116,
+      "share": 0.946
+    },
     "actor_keys_in_priority": [
       "scoringPlayerId",
       "shootingPlayerId",
@@ -24,7 +128,7 @@
       "committedByPlayerId",
       "playerId"
     ],
-    "why": "a resolved set is a body count that agrees with situationCode; it is an identity only when the play's own actor is in it"
+    "four_state_note": "resolved_but_actor_absent is a body count that matches situationCode with the actor NOT on ice. Reused as-is, the four-state vocabulary would label these plays `resolved`: an answer-shaped miss Task 3 has to keep apart."
   },
   "excluded": {
     "boundary_markers": [
@@ -36,41 +140,41 @@
     "actorless_plays": 791,
     "regular_season_shootout_plays": 31
   },
-  "onice_module": "/tmp/relay-nhl-onice.js",
+  "onice_module": {
+    "path": "/tmp/relay-nhl-onice.js",
+    "sha256": "85634ad97ab5d7ff5a1b550b77573b63ee436f467b1a4216d8c11cdd7ea45928",
+    "relay_sha": "a39d61e2c9586ceeecd826583e77cf8d4a0650f6"
+  },
   "states_events_body_count": {
-    "resolved": 4864,
-    "disagrees-with-situation": 188,
-    "instant-in-no-interval": 10
+    "resolved": 4872,
+    "disagrees-with-situation": 186,
+    "instant-in-no-interval": 4
   },
   "states_all_plays": {
-    "resolved": 4950,
-    "disagrees-with-situation": 196,
-    "instant-in-no-interval": 39
+    "resolved": 4958,
+    "disagrees-with-situation": 194,
+    "instant-in-no-interval": 33
   },
   "states_by_type": {
     "faceoff": {
-      "resolved": 922,
-      "disagrees-with-situation": 8,
-      "instant-in-no-interval": 2
+      "resolved": 926,
+      "disagrees-with-situation": 6
     },
     "missed-shot": {
       "resolved": 467,
       "disagrees-with-situation": 6
     },
     "hit": {
-      "resolved": 681,
-      "disagrees-with-situation": 2,
-      "instant-in-no-interval": 1
+      "resolved": 682,
+      "disagrees-with-situation": 2
     },
     "giveaway": {
-      "resolved": 501,
-      "disagrees-with-situation": 1,
-      "instant-in-no-interval": 1
+      "resolved": 502,
+      "disagrees-with-situation": 1
     },
     "stoppage": {
-      "resolved": 722,
-      "disagrees-with-situation": 18,
-      "instant-in-no-interval": 2
+      "resolved": 724,
+      "disagrees-with-situation": 18
     },
     "shot-on-goal": {
       "resolved": 790,
@@ -100,13 +204,14 @@
   },
   "toi_from_shifts_vs_boxscore": {
     "players": 610,
-    "within_5s": 584,
+    "within_5s": 601,
     "missing_from_shifts_with_ice_time": 0,
     "dressed_not_played_excluded": 30
   },
   "games": [
     {
       "id": 2026020103,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 769,
@@ -116,17 +221,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8482118,
+            "official": 816,
+            "fromShifts": 816,
+            "delta": 0
+          },
+          {
+            "id": 8481754,
+            "official": 782,
+            "fromShifts": 782,
+            "delta": 0
+          },
+          {
+            "id": 8473986,
+            "official": 978,
+            "fromShifts": 978,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 290,
         "confirmed": 272,
         "resolvedActorAbsent": 7,
         "notResolved": 11
+      },
+      "control": {
+        "bearing": 290,
+        "confirmed": 51,
+        "resolvedActorAbsent": 144,
+        "notResolved": 95
       }
     },
     {
       "id": 2026020104,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 781,
@@ -136,17 +268,44 @@
         "players": 39,
         "within5s": 39,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 1
+        "dressedNotPlayed": 1,
+        "worst": [
+          {
+            "id": 8477960,
+            "official": 1384,
+            "fromShifts": 1384,
+            "delta": 0
+          },
+          {
+            "id": 8478550,
+            "official": 1440,
+            "fromShifts": 1440,
+            "delta": 0
+          },
+          {
+            "id": 8479675,
+            "official": 1027,
+            "fromShifts": 1027,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 267,
         "confirmed": 256,
         "resolvedActorAbsent": 2,
         "notResolved": 9
+      },
+      "control": {
+        "bearing": 267,
+        "confirmed": 58,
+        "resolvedActorAbsent": 117,
+        "notResolved": 92
       }
     },
     {
       "id": 2026020105,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 703,
@@ -156,17 +315,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8484227,
+            "official": 1250,
+            "fromShifts": 1250,
+            "delta": 0
+          },
+          {
+            "id": 8477505,
+            "official": 1200,
+            "fromShifts": 1200,
+            "delta": 0
+          },
+          {
+            "id": 8476624,
+            "official": 703,
+            "fromShifts": 703,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 267,
         "confirmed": 251,
         "resolvedActorAbsent": 9,
         "notResolved": 7
+      },
+      "control": {
+        "bearing": 267,
+        "confirmed": 49,
+        "resolvedActorAbsent": 137,
+        "notResolved": 81
       }
     },
     {
       "id": 2026020106,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 685,
@@ -176,17 +362,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8471214,
+            "official": 794,
+            "fromShifts": 794,
+            "delta": 0
+          },
+          {
+            "id": 8484186,
+            "official": 895,
+            "fromShifts": 895,
+            "delta": 0
+          },
+          {
+            "id": 8478440,
+            "official": 1136,
+            "fromShifts": 1136,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 244,
         "confirmed": 225,
         "resolvedActorAbsent": 7,
         "notResolved": 12
+      },
+      "control": {
+        "bearing": 244,
+        "confirmed": 43,
+        "resolvedActorAbsent": 113,
+        "notResolved": 88
       }
     },
     {
       "id": 2026020107,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 764,
@@ -196,17 +409,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8482768,
+            "official": 947,
+            "fromShifts": 947,
+            "delta": 0
+          },
+          {
+            "id": 8475754,
+            "official": 1382,
+            "fromShifts": 1382,
+            "delta": 0
+          },
+          {
+            "id": 8486171,
+            "official": 867,
+            "fromShifts": 867,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 263,
         "confirmed": 252,
         "resolvedActorAbsent": 5,
         "notResolved": 6
+      },
+      "control": {
+        "bearing": 257,
+        "confirmed": 57,
+        "resolvedActorAbsent": 135,
+        "notResolved": 65
       }
     },
     {
       "id": 2026020108,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 826,
@@ -216,17 +456,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8476925,
+            "official": 1069,
+            "fromShifts": 1069,
+            "delta": 0
+          },
+          {
+            "id": 8479772,
+            "official": 327,
+            "fromShifts": 327,
+            "delta": 0
+          },
+          {
+            "id": 8477426,
+            "official": 1033,
+            "fromShifts": 1033,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 266,
         "confirmed": 251,
         "resolvedActorAbsent": 6,
         "notResolved": 9
+      },
+      "control": {
+        "bearing": 261,
+        "confirmed": 56,
+        "resolvedActorAbsent": 138,
+        "notResolved": 67
       }
     },
     {
       "id": 2026020109,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 798,
@@ -236,17 +503,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8481596,
+            "official": 1024,
+            "fromShifts": 1024,
+            "delta": 0
+          },
+          {
+            "id": 8482116,
+            "official": 1430,
+            "fromShifts": 1430,
+            "delta": 0
+          },
+          {
+            "id": 8480208,
+            "official": 1200,
+            "fromShifts": 1200,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 252,
         "confirmed": 243,
         "resolvedActorAbsent": 2,
         "notResolved": 7
+      },
+      "control": {
+        "bearing": 227,
+        "confirmed": 59,
+        "resolvedActorAbsent": 102,
+        "notResolved": 66
       }
     },
     {
       "id": 2026020111,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 781,
@@ -256,17 +550,44 @@
         "players": 38,
         "within5s": 36,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8480995,
+            "official": 844,
+            "fromShifts": 919,
+            "delta": 75
+          },
+          {
+            "id": 8481624,
+            "official": 897,
+            "fromShifts": 932,
+            "delta": 35
+          },
+          {
+            "id": 8483752,
+            "official": 925,
+            "fromShifts": 925,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 262,
         "confirmed": 248,
         "resolvedActorAbsent": 2,
         "notResolved": 12
+      },
+      "control": {
+        "bearing": 255,
+        "confirmed": 47,
+        "resolvedActorAbsent": 129,
+        "notResolved": 79
       }
     },
     {
       "id": 2026020112,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 762,
@@ -276,17 +597,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8480801,
+            "official": 1199,
+            "fromShifts": 1199,
+            "delta": 0
+          },
+          {
+            "id": 8477935,
+            "official": 1195,
+            "fromShifts": 1195,
+            "delta": 0
+          },
+          {
+            "id": 8477933,
+            "official": 1337,
+            "fromShifts": 1337,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 257,
         "confirmed": 243,
         "resolvedActorAbsent": 5,
         "notResolved": 9
+      },
+      "control": {
+        "bearing": 253,
+        "confirmed": 43,
+        "resolvedActorAbsent": 124,
+        "notResolved": 86
       }
     },
     {
       "id": 2026020113,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 747,
@@ -296,17 +644,44 @@
         "players": 39,
         "within5s": 39,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 1
+        "dressedNotPlayed": 1,
+        "worst": [
+          {
+            "id": 8476474,
+            "official": 646,
+            "fromShifts": 646,
+            "delta": 0
+          },
+          {
+            "id": 8479996,
+            "official": 887,
+            "fromShifts": 887,
+            "delta": 0
+          },
+          {
+            "id": 8480002,
+            "official": 852,
+            "fromShifts": 852,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 256,
         "confirmed": 238,
         "resolvedActorAbsent": 8,
         "notResolved": 10
+      },
+      "control": {
+        "bearing": 256,
+        "confirmed": 62,
+        "resolvedActorAbsent": 115,
+        "notResolved": 79
       }
     },
     {
       "id": 2026020110,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 762,
@@ -316,17 +691,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8480326,
+            "official": 415,
+            "fromShifts": 415,
+            "delta": 0
+          },
+          {
+            "id": 8477429,
+            "official": 1068,
+            "fromShifts": 1068,
+            "delta": 0
+          },
+          {
+            "id": 8482078,
+            "official": 1305,
+            "fromShifts": 1305,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 262,
         "confirmed": 251,
         "resolvedActorAbsent": 3,
         "notResolved": 8
+      },
+      "control": {
+        "bearing": 262,
+        "confirmed": 40,
+        "resolvedActorAbsent": 106,
+        "notResolved": 116
       }
     },
     {
       "id": 2026020114,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 754,
@@ -336,17 +738,44 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8477987,
+            "official": 831,
+            "fromShifts": 831,
+            "delta": 0
+          },
+          {
+            "id": 8484197,
+            "official": 799,
+            "fromShifts": 799,
+            "delta": 0
+          },
+          {
+            "id": 8478413,
+            "official": 647,
+            "fromShifts": 647,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 284,
         "confirmed": 269,
         "resolvedActorAbsent": 4,
         "notResolved": 11
+      },
+      "control": {
+        "bearing": 280,
+        "confirmed": 80,
+        "resolvedActorAbsent": 106,
+        "notResolved": 94
       }
     },
     {
       "id": 2026020115,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 747,
@@ -356,17 +785,44 @@
         "players": 38,
         "within5s": 34,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8477424,
+            "official": 3768,
+            "fromShifts": 4068,
+            "delta": 300
+          },
+          {
+            "id": 8480835,
+            "official": 1025,
+            "fromShifts": 1074,
+            "delta": 49
+          },
+          {
+            "id": 8476869,
+            "official": 1173,
+            "fromShifts": 1207,
+            "delta": 34
+          }
+        ]
       },
       "actor": {
         "bearing": 295,
         "confirmed": 266,
         "resolvedActorAbsent": 5,
         "notResolved": 24
+      },
+      "control": {
+        "bearing": 279,
+        "confirmed": 51,
+        "resolvedActorAbsent": 125,
+        "notResolved": 103
       }
     },
     {
       "id": 2026020116,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 729,
@@ -376,17 +832,44 @@
         "players": 38,
         "within5s": 37,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8474567,
+            "official": 891,
+            "fromShifts": 929,
+            "delta": 38
+          },
+          {
+            "id": 8482121,
+            "official": 452,
+            "fromShifts": 455,
+            "delta": 3
+          },
+          {
+            "id": 8481553,
+            "official": 887,
+            "fromShifts": 887,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 280,
         "confirmed": 260,
         "resolvedActorAbsent": 8,
         "notResolved": 12
+      },
+      "control": {
+        "bearing": 280,
+        "confirmed": 50,
+        "resolvedActorAbsent": 115,
+        "notResolved": 115
       }
     },
     {
       "id": 2026020117,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
       "shiftRows": 841,
@@ -396,33 +879,86 @@
         "players": 38,
         "within5s": 38,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8479365,
+            "official": 823,
+            "fromShifts": 823,
+            "delta": 0
+          },
+          {
+            "id": 8480842,
+            "official": 622,
+            "fromShifts": 622,
+            "delta": 0
+          },
+          {
+            "id": 8478472,
+            "official": 768,
+            "fromShifts": 768,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 248,
         "confirmed": 240,
         "resolvedActorAbsent": 3,
         "notResolved": 5
+      },
+      "control": {
+        "bearing": 248,
+        "confirmed": 63,
+        "resolvedActorAbsent": 131,
+        "notResolved": 54
       }
     },
     {
       "id": 2026020118,
+      "gameType": 2,
       "pbp": "present",
       "shifts": "present",
-      "shiftRows": 739,
+      "shiftRows": 748,
       "joined": true,
       "toi": {
         "state": "present",
         "players": 38,
-        "within5s": 19,
+        "within5s": 36,
         "missingFromShifts": 0,
-        "dressedNotPlayed": 2
+        "dressedNotPlayed": 2,
+        "worst": [
+          {
+            "id": 8475343,
+            "official": 867,
+            "fromShifts": 874,
+            "delta": 7
+          },
+          {
+            "id": 8475188,
+            "official": 982,
+            "fromShifts": 989,
+            "delta": 7
+          },
+          {
+            "id": 8478403,
+            "official": 916,
+            "fromShifts": 916,
+            "delta": 0
+          }
+        ]
       },
       "actor": {
         "bearing": 278,
-        "confirmed": 252,
+        "confirmed": 258,
         "resolvedActorAbsent": 4,
-        "notResolved": 22
+        "notResolved": 16
+      },
+      "control": {
+        "bearing": 278,
+        "confirmed": 52,
+        "resolvedActorAbsent": 155,
+        "notResolved": 71
       }
     }
   ]

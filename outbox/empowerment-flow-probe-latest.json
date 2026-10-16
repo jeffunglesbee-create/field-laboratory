@@ -1,27 +1,56 @@
 {
   "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
-  "ran_at": "2026-10-16T05:00:46.303Z",
+  "ran_at": "2026-10-16T07:39:13.836Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "relay_sha": "a39d61e2c9586ceeecd826583e77cf8d4a0650f6",
   "task": "0.1 Flow",
   "stop_condition": {
     "text": "shots carry no within-match ordering key, or carry no opponent-event interleaving",
-    "met": true,
-    "reason": "the payload carries no per-event possession: between two shots only opponent SHOTS are visible (shotmap) and incidents carry goals, cards, substitutions and periods; no pass, turnover or possession event in 150 captures",
-    "verdict": "MET"
+    "met": false,
+    "reason": "every shot carries min (+added) in 150/150 captures, and the opponent interleaves in 150/150 (its shots) and in 310 same-team shot pairs (a timed incident). What interleaves is SHOTS and timed incidents only (card, goal, substitution, varDecision): no event with a minute and a team says who had the ball. Flow is reconstructible as the shots-only narrowing the owner adopted 2026-10-15: at least 526 runs of 3+ own-team shots under every within-minute order, up to 547 under the most favourable (the order changes the count in 20 captures).",
+    "disjuncts": {
+      "no_ordering_key": false,
+      "no_opponent_event_interleaving": false
+    },
+    "spec_also_says": "Do not substitute wall-clock timestamps for possession order without proving they order correctly (see verdict.narrowed_variant: within-minute order is proven for one team only, and mixed-team minutes are split out as order-dependent).",
+    "verdict": "NOT MET"
   },
-  "coverage": "150 captures with a non-empty shotmap; 150 of 786 non-shell R2 captures read; 142 of them were captured IN PLAY (a period marker reads is_live true), so their last minutes can be missing  (newest 15 per competition, 10 competitions); census COMPLETE for 10 slugs, 278 list calls. Slugs come from the relay writer's V2_LEAGUES map + wc26 + the first competition under each letter.",
+  "coverage": "150 captures with a non-empty shotmap; stats.json read for 150 of 786 non-shell captures (newest 15 per competition, 10 competitions; by stage {\"in-play\":138,\"finished\":11,\"unmarked\":1}); incidents.json read for 784 of 784 that have one; 943 reads; census COMPLETE: 10 slugs found by walking the store (997 list calls), 2184 list calls in all.",
   "verdict": {
-    "met": true,
-    "verdict": "MET",
-    "reading": "as SPECIFIED: three xG events with no opponent EVENT interleaved, which needs possession attribution",
-    "reason": "the payload carries no per-event possession: between two shots only opponent SHOTS are visible (shotmap) and incidents carry goals, cards, substitutions and periods; no pass, turnover or possession event in 150 captures",
+    "met": false,
+    "verdict": "NOT MET",
+    "disjuncts": {
+      "no_ordering_key": false,
+      "no_opponent_event_interleaving": false
+    },
+    "reason": "every shot carries min (+added) in 150/150 captures, and the opponent interleaves in 150/150 (its shots) and in 310 same-team shot pairs (a timed incident). What interleaves is SHOTS and timed incidents only (card, goal, substitution, varDecision): no event with a minute and a team says who had the ball. Flow is reconstructible as the shots-only narrowing the owner adopted 2026-10-15: at least 526 runs of 3+ own-team shots under every within-minute order, up to 547 under the most favourable (the order changes the count in 20 captures).",
+    "readings": {
+      "as_written": "NOT MET",
+      "possession_level": "MET: no incident with a minute and a team is a possession event; `pass` occurs only inside goal build-ups (incidents[].sequence[], 441 goals), whose elements carry no clock key and 5 of which name both teams",
+      "decides": "as_written. The possession-level reading is recorded because it is the question behind the spec, and it is why the narrowing exists."
+    },
     "narrowed_variant": {
-      "definition": "three consecutive own-team SHOTS with no opposing SHOT between (the narrowing docs/TASK0-RESULTS-2026-10-15 proposed); an owner decision, not this probe's",
-      "reconstructible": true,
-      "ordering_key": "min (+added) on every shot in 150/150 captures",
-      "both_teams": "150/150 captures",
-      "own_team_within_minute_order": "NOT proven: sequence checks agree 35, disagree 1",
-      "cross_team_within_minute_order": "UNORDERED: no independent source orders two teams' shots inside one minute; 62 mixed-team tied minutes across 4125 shots"
+      "definition": "three consecutive own-team SHOTS with no opposing SHOT between: the narrowing docs/TASK0-RESULTS-2026-10-15 proposed and the CC-CMD's \"Task 0 outcome\" adopted",
+      "runs": {
+        "at_least_under_every_order": 526,
+        "at_most_under_any_order": 547,
+        "captures_where_order_changes_the_count": 20,
+        "mixed_team_buckets": 62,
+        "captures_over_arrangement_cap": 0,
+        "unknown_side_shots": 0,
+        "untimed_shots": 0
+      },
+      "own_team_within_minute_order": "array order newest-first; goal build-up sequences agree 35, disagree 1",
+      "cross_team_within_minute_order": "UNORDERED: nothing orders two teams' shots inside one minute (62 mixed-team buckets), so every arrangement is tried and runs are reported as a range",
+      "shotmap_minute_vs_goal_incident": {
+        "goals": 471,
+        "sameMinute": 463,
+        "otherMinute": 8,
+        "missing": 0,
+        "deltaMinutes": {
+          "1": 8
+        }
+      }
     },
     "within_minute_order": {
       "array_order_by_capture": {
@@ -34,15 +63,60 @@
       "tied_shots": 1086,
       "mixed_team_tied_minutes": 62,
       "shots": 4125
+    },
+    "sequence_census": {
+      "event_types": {
+        "cross": 93,
+        "goal": 441,
+        "save": 27,
+        "ball-touch": 25,
+        "pass": 851,
+        "ball-movement": 81,
+        "tackle": 15,
+        "throw-in": 9,
+        "miss": 10,
+        "interception": 14,
+        "free-kick": 2,
+        "post": 1,
+        "clearance": 1
+      },
+      "element_keys": [
+        "assist",
+        "body",
+        "end",
+        "event",
+        "gk",
+        "gm",
+        "pid",
+        "player",
+        "pos"
+      ],
+      "goals_with_sequence": 441,
+      "naming_both_teams": 5,
+      "elements_sided": 1177,
+      "elements_unsided": 393
     }
   },
-  "event_types_between_shots": [
+  "event_types_seen": [
     "incidents:card",
     "incidents:goal",
     "incidents:injuryTime",
     "incidents:period",
     "incidents:substitution",
     "incidents:varDecision",
+    "sequence:ball-movement",
+    "sequence:ball-touch",
+    "sequence:clearance",
+    "sequence:cross",
+    "sequence:free-kick",
+    "sequence:goal",
+    "sequence:interception",
+    "sequence:miss",
+    "sequence:pass",
+    "sequence:post",
+    "sequence:save",
+    "sequence:tackle",
+    "sequence:throw-in",
     "shotmap:block",
     "shotmap:blocked-off-line",
     "shotmap:goal",
@@ -53,35 +127,107 @@
   "context_date": {
     "date": "2026-10-15",
     "state": "present",
+    "top_level_keys": [
+      "ok",
+      "date",
+      "games",
+      "briefs",
+      "series",
+      "standings"
+    ],
+    "games_in_payload": 64,
     "shot_or_xg_keys": [],
+    "walk": "every element, no depth cap",
     "note": "/context/date is the laboratory's own input; the spec asks what it serves. Flow can only come from /bsd/r2/read stats.json."
   },
+  "capture_stage": {
+    "definition": "finished = a period incident whose text matches /^(FT|AET|AP|PEN|Ended|Full[ -]?time|After extra time|After penalties)$/i; in-play = a period incident with is_live true; the club writer fires at minute 80+ and drops finished events, so in-play is expected",
+    "totals": {
+      "in-play": 734,
+      "finished": 47,
+      "no-incidents-file": 2,
+      "unmarked": 3
+    },
+    "by_competition": {
+      "bundesliga": {
+        "in-play": 43,
+        "finished": 2
+      },
+      "eflchamp": {
+        "in-play": 115,
+        "finished": 4
+      },
+      "epl": {
+        "in-play": 59,
+        "finished": 1
+      },
+      "europa": {
+        "finished": 1,
+        "in-play": 37
+      },
+      "laliga": {
+        "in-play": 78
+      },
+      "ligue1": {
+        "in-play": 53,
+        "finished": 1
+      },
+      "mls": {
+        "in-play": 211,
+        "no-incidents-file": 2,
+        "finished": 2
+      },
+      "seriea": {
+        "in-play": 57,
+        "finished": 3
+      },
+      "ucl": {
+        "in-play": 58,
+        "finished": 10
+      },
+      "wc26": {
+        "finished": 23,
+        "in-play": 23,
+        "unmarked": 3
+      }
+    },
+    "period_texts": {
+      "Second half (is_live true)": 733,
+      "HT (is_live false)": 783,
+      "FT (is_live false)": 47,
+      "Extra time (is_live true)": 14,
+      "First half (is_live true)": 1,
+      "ET (is_live false)": 3,
+      "Second half (is_live false)": 3,
+      "PEN (is_live false)": 1
+    }
+  },
   "by_competition": {
-    "epl": {
-      "present": 15
-    },
-    "mls": {
-      "present": 15
-    },
-    "ucl": {
-      "present": 15
-    },
-    "europa": {
+    "bundesliga": {
       "present": 15
     },
     "eflchamp": {
       "present": 15
     },
+    "epl": {
+      "present": 15
+    },
+    "europa": {
+      "present": 15
+    },
     "laliga": {
+      "present": 15
+    },
+    "ligue1": {
+      "present": 15
+    },
+    "mls": {
       "present": 15
     },
     "seriea": {
       "present": 15
     },
-    "bundesliga": {
-      "present": 15
-    },
-    "ligue1": {
+    "ucl": {
       "present": 15
     },
     "wc26": {
@@ -89,41 +235,18 @@
     }
   },
   "r2_census": {
-    "epl": {
-      "events": 60,
-      "first_upload": "2026-08-21T20:50:19.059Z",
-      "last_upload": "2026-10-12T20:50:58.495Z",
-      "with_stats": 60,
+    "bundesliga": {
+      "events": 45,
+      "first_upload": "2026-08-28T20:25:59.282Z",
+      "last_upload": "2026-10-11T17:25:26.493Z",
+      "with_stats": 45,
       "shell_stats_under_1000_bytes": 0,
       "avg_positions_file_populated": 0,
-      "avg_positions_file_empty": 0
-    },
-    "mls": {
-      "events": 215,
-      "first_upload": "2026-07-17T01:35:25.783Z",
-      "last_upload": "2026-10-15T04:40:56.514Z",
-      "with_stats": 215,
-      "shell_stats_under_1000_bytes": 0,
-      "avg_positions_file_populated": 2,
-      "avg_positions_file_empty": 49
-    },
-    "ucl": {
-      "events": 99,
-      "first_upload": "2026-07-15T20:45:42.290Z",
-      "last_upload": "2026-10-14T20:55:57.001Z",
-      "with_stats": 99,
-      "shell_stats_under_1000_bytes": 31,
-      "avg_positions_file_populated": 3,
-      "avg_positions_file_empty": 47
-    },
-    "europa": {
-      "events": 108,
-      "first_upload": "2026-07-16T19:35:26.291Z",
-      "last_upload": "2026-10-15T20:55:55.909Z",
-      "with_stats": 108,
-      "shell_stats_under_1000_bytes": 70,
-      "avg_positions_file_populated": 0,
-      "avg_positions_file_empty": 37
+      "avg_positions_file_empty": 0,
+      "file_kinds": [
+        "incidents.json",
+        "stats.json"
+      ]
     },
     "eflchamp": {
       "events": 119,
@@ -132,7 +255,39 @@
       "with_stats": 119,
       "shell_stats_under_1000_bytes": 0,
       "avg_positions_file_populated": 2,
-      "avg_positions_file_empty": 0
+      "avg_positions_file_empty": 0,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
+    },
+    "epl": {
+      "events": 60,
+      "first_upload": "2026-08-21T20:50:19.059Z",
+      "last_upload": "2026-10-12T20:50:58.495Z",
+      "with_stats": 60,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 0,
+      "file_kinds": [
+        "incidents.json",
+        "stats.json"
+      ]
+    },
+    "europa": {
+      "events": 108,
+      "first_upload": "2026-07-16T19:35:26.291Z",
+      "last_upload": "2026-10-15T20:55:55.909Z",
+      "with_stats": 108,
+      "shell_stats_under_1000_bytes": 70,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 37,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
     },
     "laliga": {
       "events": 78,
@@ -141,25 +296,11 @@
       "with_stats": 78,
       "shell_stats_under_1000_bytes": 0,
       "avg_positions_file_populated": 0,
-      "avg_positions_file_empty": 0
-    },
-    "seriea": {
-      "events": 60,
-      "first_upload": "2026-08-22T18:25:18.977Z",
-      "last_upload": "2026-10-12T20:40:58.589Z",
-      "with_stats": 60,
-      "shell_stats_under_1000_bytes": 0,
-      "avg_positions_file_populated": 1,
-      "avg_positions_file_empty": 0
-    },
-    "bundesliga": {
-      "events": 45,
-      "first_upload": "2026-08-28T20:25:59.282Z",
-      "last_upload": "2026-10-11T17:25:26.493Z",
-      "with_stats": 45,
-      "shell_stats_under_1000_bytes": 0,
-      "avg_positions_file_populated": 0,
-      "avg_positions_file_empty": 0
+      "avg_positions_file_empty": 0,
+      "file_kinds": [
+        "incidents.json",
+        "stats.json"
+      ]
     },
     "ligue1": {
       "events": 54,
@@ -168,7 +309,54 @@
       "with_stats": 54,
       "shell_stats_under_1000_bytes": 0,
       "avg_positions_file_populated": 1,
-      "avg_positions_file_empty": 0
+      "avg_positions_file_empty": 0,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
+    },
+    "mls": {
+      "events": 215,
+      "first_upload": "2026-07-17T01:35:25.783Z",
+      "last_upload": "2026-10-15T04:40:56.514Z",
+      "with_stats": 215,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 2,
+      "avg_positions_file_empty": 49,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
+    },
+    "seriea": {
+      "events": 60,
+      "first_upload": "2026-08-22T18:25:18.977Z",
+      "last_upload": "2026-10-12T20:40:58.589Z",
+      "with_stats": 60,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 1,
+      "avg_positions_file_empty": 0,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
+    },
+    "ucl": {
+      "events": 99,
+      "first_upload": "2026-07-15T20:45:42.290Z",
+      "last_upload": "2026-10-14T20:55:57.001Z",
+      "with_stats": 99,
+      "shell_stats_under_1000_bytes": 31,
+      "avg_positions_file_populated": 3,
+      "avg_positions_file_empty": 47,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
     },
     "wc26": {
       "events": 49,
@@ -177,15 +365,34 @@
       "with_stats": 49,
       "shell_stats_under_1000_bytes": 0,
       "avg_positions_file_populated": 0,
-      "avg_positions_file_empty": 3
+      "avg_positions_file_empty": 3,
+      "file_kinds": [
+        "average-positions.json",
+        "incidents.json",
+        "stats.json"
+      ]
     }
   },
   "r2_census_meta": {
     "complete": true,
-    "list_calls": 278,
+    "list_calls": 2184,
+    "slug_walk_calls": 997,
     "capped": false,
     "failed_pages": [],
-    "slugs_from_relay_source": [
+    "non_digit_event_ids": [],
+    "slugs_found": [
+      "bundesliga",
+      "eflchamp",
+      "epl",
+      "europa",
+      "laliga",
+      "ligue1",
+      "mls",
+      "seriea",
+      "ucl",
+      "wc26"
+    ],
+    "slugs_in_relay_source": [
       "epl",
       "mls",
       "ucl",
@@ -197,15 +404,33 @@
       "ligue1"
     ],
     "source_file": "/tmp/relay-index.js",
-    "first_letter_sweep": [
-      "bundesliga",
-      "eflchamp",
-      "laliga",
-      "mls",
-      "seriea",
-      "ucl",
+    "in_source_not_in_store": [],
+    "in_store_not_in_source": [
       "wc26"
-    ],
-    "swept_but_not_in_source": []
+    ]
+  },
+  "r2_list_mechanism": {
+    "no_prefix": {
+      "state": "present",
+      "keys": 100,
+      "first": "bsd/wc26/8341/incidents.json",
+      "last": "bsd/wc26/8390/incidents.json",
+      "truncated": true
+    },
+    "empty_prefix": {
+      "state": "present",
+      "keys": 100,
+      "first": "bsd/wc26/8341/incidents.json",
+      "last": "bsd/wc26/8390/incidents.json",
+      "truncated": true
+    },
+    "prefix_bsd": {
+      "state": "present",
+      "keys": 100,
+      "first": "bsd/bundesliga/213668/incidents.json",
+      "last": "bsd/eflchamp/213978/incidents.json",
+      "truncated": true
+    },
+    "reading": "a listing with NO prefix answers from bsd/wc26/; with prefix=bsd/ it starts at the first competition. A first page taken without a prefix shows wc26 only, whatever else the store holds."
   }
 }
