@@ -1,5 +1,15 @@
 # Task 0 results — 2026-10-15
 
+> **SUPERSEDED 2026-10-16 (CC) by the four `-latest` artifacts** —
+> `outbox/empowerment-{flow,gravity,second-wind,tactical-lock}-probe-latest.json`,
+> run 38881438378, summarised in `outbox/cc-session-2026-10-16-empowerment-task0.md`.
+> This pass read one event. Its "blocking finding" does not hold: R2 holds 887
+> events in 10 competitions through 2026-10-15 (a listing with no prefix answers
+> from `bsd/wc26/`). The gates it called CLEAR came out NOT MET (Flow, Tactical
+> Lock, Second Wind) and the one it called REJECTED came out MET (Gravity Well,
+> soccer). The verdicts agree; the evidence under them is now measured. Kept
+> unedited below as the record of what was read.
+
 Probes for `CC-CMD-2026-10-15-empowerment-metrics.md`, run against the live
 relay and R2. Read-only throughout; no types written.
 

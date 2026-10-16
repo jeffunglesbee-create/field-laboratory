@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-15, by chat, authored against HEAD and verified reads
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
-**Status:** PARTIAL. Task 0 re-run on a runner 2026-10-16 (four `-latest` artifacts, `outbox/cc-session-2026-10-16-empowerment-task0.md`); Tasks 1-4 not started.
+**Status:** PARTIAL. Task 0 DONE 2026-10-16: four `-latest` artifacts from run 38881438378, summarised in `outbox/cc-session-2026-10-16-empowerment-task0.md`; Tasks 1-4 not started.
 
 ---
 
@@ -163,6 +163,18 @@ frame work in `docs/BSD-FRAME-DIAGNOSTIC-2026-10-15.md`.
 latter returns a clean false negative on all 34 shots.
 
 ## The R2 constraint — accepted
+
+> **CC, 2026-10-16 — the measured premise under this ruling.** The ruling
+> stands; two facts it rests on do not. (1) R2 does not hold wc26 only: a full
+> walk finds **887 events in 10 competitions** (bundesliga, eflchamp, epl,
+> europa, laliga, ligue1, mls, seriea, ucl, wc26), uploads 2026-06-25 to
+> 2026-10-15. `/bsd/r2/list` with no prefix answers from `bsd/wc26/`, which is
+> why a first page showed only wc26. (2) Only **47 of 786** non-shell captures
+> are of a finished match; 734 were taken while the second half was live,
+> because the club writer fires from minute 80 and drops finished events. So
+> "post-hoc over finished matches" is post-hoc over records that mostly stop
+> before full time. Source: `outbox/empowerment-flow-probe-latest.json`
+> (`r2_census`, `r2_list_mechanism`, `capture_stage`), run 38881438378.
 
 R2 holds `wc26` only, 2026-06-25 to 2026-07-19. **Build `InFlow` and `LockedOn`
 as post-hoc states over finished matches.** This disposes of the amnesty

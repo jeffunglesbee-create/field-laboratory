@@ -2,9 +2,54 @@
 
 **CC-CMD:** `docs/CC-CMD-2026-10-15-empowerment-metrics.md`, TASK 0 (four probes).
 No type was written; Tasks 1-4 are not started.
-**State:** probe revised TWICE. The first run's verdicts were attacked and
-four did not hold; the second run's were attacked and 0.4's step from "not
-an echo" to "territory proxy" was untested. The third run is the next commit.
+**State:** Task 0 DONE. Final run 38881438378 (head `2b4a93f`, relay
+`a39d61e`), four `-latest` artifacts in `outbox/`, every stop condition
+stated. The probe was revised twice before its verdicts were trusted; each
+revision was forced by an adversarial review of the run before it. Gate run
+`62a3aa313c49-eaa739de3f34` passed every row before this write-up was committed.
+
+## Stop conditions, final run
+
+| probe | stop condition (spec text) | verdict | on what |
+|---|---|---|---|
+| 0.1 Flow | shots carry no within-match ordering key, or carry no opponent-event interleaving | **NOT MET** | `min` (+`added`) on every shot in 150/150 captures; the opponent interleaves in 150/150 (its shots) and in 310 same-team pairs (a timed incident) |
+| 0.2 Gravity Well | soccer provides on-ball data only | **MET** (R2 captures) | every coordinate path in 150 captures + 9 average-positions files is on-ball or a match average; the BSD WebSocket feed is not stored anywhere and was not read (`docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md`) |
+| 0.3 Second Wind | the interval join cannot resolve a majority of events | **NOT MET** | 4023/4271 actor plays resolve with the actor on ice (94.2%); the same join with its clock moved 600 s confirms 20.5%; 16 of 32 finals, games of 2026-10-13 to 10-15 |
+| 0.4 Tactical Lock | no territory proxy exists in the payload | **NOT MET** | `momentum` is not an echo of the shots (571 shot-free stretches, excess direction changes 35.1%) and, shots and xG partialled out, its half mean tracks final-third entries r 0.584 (t 12.3) and possession r 0.735 (t 18.6) over 298 halves |
+
+Denominators (Rule 91): stats read for 150 of 786 non-shell captures, the
+newest 15 per competition, 10 competitions; incidents read for all 784 that
+have one. R2 census complete: 887 events, 10 slugs found by walking the
+store, 0 failed pages.
+
+## What the build has to carry, from the same artifacts
+
+- **Two premises in the CC-CMD's "Task 0 outcome" do not hold.** R2 holds 887
+  events in 10 competitions through 2026-10-15, not wc26 only (a listing with
+  no prefix answers from `bsd/wc26/`, which is how the first pass saw only
+  that). And only **47 of 786** captures are of a finished match: the club
+  writer fires from minute 80 and drops finished events, so 734 stop while the
+  second half is live. "Post-hoc over finished matches" is post-hoc over
+  records that mostly end before full time.
+- **Flow (Task 1):** reconstructible only as the shots-only narrowing, which
+  Task 1's text does not yet state; that is the owner's call. 535-556 runs of
+  3+ own-team shots, the range set by 62 mixed-team minutes. 171 of 2422
+  same-team shot pairs have a `fast-break` second shot, i.e. an opponent
+  possession the narrowing calls uninterrupted. xG on 4125/4125 shots, 13
+  estimated.
+- **Tactical Lock (Task 2):** momentum agrees with the shooting team most at
+  the row one minute AFTER the shot; added time has one momentum row for the
+  whole added period; the active-play window is UNMEASURED below the minute
+  (only 6 incident types exist, so throw-ins, goal kicks and uncarded fouls
+  cannot be excluded). Momentum's territory meaning is validated at half
+  grain, its minute values only in aggregate.
+- **Second Wind (Task 3):** the pooled 94% hides two event classes the join
+  gets wrong. Goals confirm 23/101 (the scorer's shift ends on the goal
+  second, end exclusive) and penalties 0/133. Task 3 must not credit either
+  through `onIceAt` membership as it stands.
+- **Frame:** `incidents[].sequence[].pos` is ONE shared frame (home scorers
+  high x 246/246, away low x 181/181), against `/bsd/contract`'s declared
+  target-goal-relative frame; the owner's frame diagnostic agrees.
 Getting the gate green needed four stale mutation anchors fixed first,
 recorded separately in `outbox/mutation-anchors-2026-10-16.md`.
 
