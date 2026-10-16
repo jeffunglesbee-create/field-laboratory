@@ -133,3 +133,56 @@ derives the state from the body (a committed fixture has no headers).
 capture — the vendor does not serve them on demand — so the decoder's branches for
 them are covered by unit tests over synthetic bodies, which is a different and
 weaker kind of evidence, and is said here rather than left to be assumed.
+
+## `bdb-event-frames-2022-w2.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/nflverse/bdb_event_frames.json
+→ 200, 1816808 bytes, X-Source: r2   (the relay's own verify, 2026-10-16T18:24:47Z)
+sha256 6be5a28298239af6a5709929bbd0b52d0d96625d5f3ebfeb6482de0ae3f9d249
+```
+
+**Copied, not captured by a lab script.** This sandbox cannot reach
+`*.workers.dev` (the agent proxy refuses the CONNECT), so the file was copied
+byte for byte with `cp` — never parsed and re-serialised — from the artifact the
+builder committed: jubilant-bassoon `outbox/nfl/bdb_event_frames.json` at
+58b59a2a. That is the object the relay route serves from R2:
+
+- **Builder:** jubilant-bassoon `scripts/build-bdb-frames.py` at commit 7726fab0,
+  run 38945906448. Its report, `outbox/bdb-event-frames-build-latest.json`,
+  records `artifact.sha256` as the hash above, `artifact.bytes` 1816808, and an
+  R2 read-back of the same bytes with `sha256_matches: true`. The copy's sha256
+  was computed after the copy and equals both.
+- **Route:** field-relay-nba `outbox/verify-bdb-event-frames-latest.json`
+  (relay commit 24cec24): 11 of 11 checks held at 2026-10-16T18:24:47Z on the
+  deployed route: HTTP 200, 1816808 bytes, `X-Source: r2`, no `targetYear`. That
+  verification counted the served bytes; it did not hash them, so "the served
+  body equals this file" rests on the byte count plus the R2 read-back hash.
+- `scripts/gravity-census.mjs` refuses to report unless this file's sha256 is
+  the one recorded on the line above.
+
+**Envelope.** `season` 2022 (a JSON number), `sourceDataset` "kaggle
+alexandermeau/nfl-big-data-bowl-archived-data-2025", `week` 2, `events`
+`ball_snap` and `pass_forward`, `playFilter` "ball_snap only on plays with
+isDropback TRUE or a pass_forward frame; pass_forward on every play that has
+one", `coordinateConvention` frame `offense-right`, units `yards` (left-direction
+plays rotated 180 degrees by the builder), `scope` 7 of 16 games (gameIds
+2022091500 and 2022091800 to 2022091805, 14 teams). No `targetYear`.
+
+**What it exercises.** 1036 rows: 545 `ball_snap` instants and 491 `pass_forward`
+instants, every release with its play's snap, 22 players per instant with
+`nflId`, `team`, `pos`, `side`, `x`, `y`. 54 plays are snap-only (dropbacks with
+no forward pass). In 32 snap instants, all in game 2022091803, two offensive
+players carry the label C.
+
+**What it does not exercise.**
+
+- The ball. The builder keeps the football's rows for its convention check and
+  does not emit them, so the target receiver and the release point are unknown.
+- Role flags. `wasRunningRoute`, `wasInitialPassRusher`, `routeRan` and the
+  targeted receiver are in the source dataset and not in the artifact, so route
+  runners and coverage are line-geometry proxies (see `src/Gravity.fs`).
+- 9 of the week's 16 games. Whole games were dropped in gameId order to stay
+  under the relay's 2,000,000-byte ceiling.
+- Any season but 2022 and any week but 2. The R2 key reads `nfl/2026/` because
+  of the relay's routing year; nothing here reads it.

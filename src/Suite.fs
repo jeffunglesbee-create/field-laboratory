@@ -2405,6 +2405,1134 @@ let private lineups () =
           clash
           noClash ]
 
+// ---------------------------------------------------------------------------
+// Flow (docs/CC-CMD-2026-10-15-empowerment-metrics.md, Task 1). Every input is
+// JSON text or a clock: the Verify tab prints inputs with %A, and Flow's
+// verdict never exists outside its module as a value. A verdict is read back
+// only through the witness, as its accessible name or its opacity, which is
+// what a renderer would see.
+// ---------------------------------------------------------------------------
+
+let private flowRow (home: bool) (minute: int) (added: int) (xg: string) (extra: string) =
+    let addedPart = if added > 0 then sprintf ",\"added\":%d" added else ""
+    sprintf "{\"min\":%d%s,\"home\":%b,\"xg\":%s,\"type\":\"miss\",\"sit\":\"regular\"%s}" minute addedPart home xg extra
+
+let private homeShot minute xg = flowRow true minute 0 xg ""
+let private awayShot minute xg = flowRow false minute 0 xg ""
+let private homeAdded minute added xg = flowRow true minute added xg ""
+
+/// A stats.json body. The shotmap is newest-first, as BSD writes it.
+let private flowStats (rows: string list) =
+    sprintf "{\"event_id\":7001,\"shotmap\":[%s]}" (rows |> List.rev |> String.concat ",")
+
+let private flowPeriod (text: string) (minute: int) (live: bool) (score: (int * int) option) =
+    let scorePart =
+        match score with
+        | Some(h, a) -> sprintf ",\"home_score\":%d,\"away_score\":%d" h a
+        | None -> ""
+    sprintf "{\"type\":\"period\",\"text\":\"%s\",\"minute\":%d,\"is_live\":%b%s}" text minute live scorePart
+
+let private flowIncidentsOf (eventId: int) (periods: string list) =
+    sprintf "{\"event_id\":%d,\"incidents\":[%s]}" eventId (String.concat "," periods)
+
+let private flowIncidents = flowIncidentsOf 7001
+
+let private fullTime = flowIncidents [ flowPeriod "HT" 45 false (Some(0, 0)); flowPeriod "FT" 90 false (Some(1, 0)) ]
+let private secondHalfLive = flowIncidents [ flowPeriod "HT" 45 false (Some(0, 0)); flowPeriod "Second half" 90 true (Some(0, 0)) ]
+let private extraTimeLive =
+    flowIncidents [ flowPeriod "HT" 45 false (Some(0, 0)); flowPeriod "FT" 90 false (Some(1, 1)); flowPeriod "Extra time" 120 true (Some(1, 1)) ]
+
+/// The capture's own event row: kickoff 23:30 ET on 1 July, which is 03:30 UTC
+/// on the 2nd, so a UTC-day reading of it would be a day late.
+let private flowEventRow (id: int) = sprintf "{\"id\":%d,\"event_date\":\"2026-07-02T03:30:00Z\"}" id
+let private flowNow = at "2026-07-10T12:00:00Z"
+
+let private flowClock minute added : Flow.Clock = { Minute = minute; Added = added }
+
+/// The witness for a capture of event 7001, through its kickoff (the only route).
+let private flowWitness (rows: string list) (incidents: string) =
+    Flow.witnessAfterKickoff (Flow.decodeCapture (flowStats rows) (Some incidents)) (flowEventRow 7001) flowNow
+
+/// The accessible name a renderer would get. "no witness" when there is none.
+let private flowLabel (rows: string list) (incidents: string) (clock: Flow.Clock) =
+    match flowWitness rows incidents with
+    | Some f -> Flow.ariaLabel f Flow.Home clock
+    | None -> "no witness"
+
+let private flowPulse (rows: string list) (clock: Flow.Clock) =
+    match flowWitness rows fullTime with
+    | Some f -> Flow.pulseStyle f Flow.Home clock
+    | None -> "no witness"
+
+let private disjointed = "Disjointed state active"
+let private flowAt14 = "InFlow state active, sequential xG 0.42"
+
+let private flowReads (rows: string list) (incidents: string option) (clock: Flow.Clock) =
+    match Flow.readingAt (Flow.decodeCapture (flowStats rows) incidents) Flow.Home clock with
+    | Flow.Recorded -> "recorded"
+    | Flow.NotRead -> "not read"
+    | Flow.NotRecorded -> "not recorded"
+
+let private flowCensusOf (rows: string list) (incidents: string) =
+    Flow.flowCensus (Flow.decodeCapture (flowStats rows) (Some incidents))
+
+let private flow () =
+    let run = [ homeShot 10 "0.10"; homeShot 12 "0.12"; homeShot 14 "0.20" ]
+    [ Verify.check "two own shots are not Flow"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = disjointed)
+          [ homeShot 10 "0.10"; homeShot 12 "0.12" ]
+          run
+
+      Verify.check "three own shots make InFlow, carrying their summed xG"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = flowAt14)
+          run
+          [ homeShot 10 "0.10"; homeShot 14 "0.20" ]
+
+      Verify.check "an opposing shot between ends the run"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = disjointed)
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; awayShot 13 "0.05"; homeShot 14 "0.20" ]
+          run
+
+      Verify.check "an opposing shot of 0 xG ends the run too"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = disjointed)
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; awayShot 13 "0"; homeShot 14 "0.20" ]
+          run
+
+      Verify.check "an own shot of 0 xG is not counted"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = disjointed)
+          [ homeShot 10 "0.10"; homeShot 12 "0"; homeShot 14 "0.20" ]
+          run
+
+      Verify.check "an own shot of 0 xG does not reset the run"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = flowAt14)
+          [ homeShot 10 "0.10"; homeShot 11 "0"; homeShot 12 "0.12"; homeShot 14 "0.20" ]
+          [ homeShot 10 "0.10"; awayShot 11 "0"; homeShot 12 "0.12"; homeShot 14 "0.20" ]
+
+      Verify.check "an estimated xG is counted at its value"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = flowAt14)
+          [ homeShot 10 "0.10"; flowRow true 12 0 "0.12" ",\"xg_estimated\":true"; homeShot 14 "0.20" ]
+          [ homeShot 10 "0.10"; flowRow true 12 0 "0.13" ",\"xg_estimated\":true"; homeShot 14 "0.20" ]
+
+      Verify.check "a minute in which both teams shot breaks the run"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = disjointed)
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; homeShot 13 "0.05"; awayShot 13 "0.05"; homeShot 14 "0.20" ]
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; homeShot 13 "0.05"; homeShot 14 "0.20" ]
+
+      Verify.check "the shots in a shared minute count for neither team"
+          (fun rows -> flowLabel rows fullTime (flowClock 15 0) = disjointed)
+          [ homeShot 13 "0.10"; awayShot 13 "0.05"; homeShot 14 "0.12"; homeShot 15 "0.20" ]
+          [ homeShot 13 "0.10"; homeShot 14 "0.12"; homeShot 15 "0.20" ]
+
+      Verify.check "a run does not cross half time"
+          (fun (rows, clock) -> flowLabel rows fullTime clock = disjointed)
+          ([ homeShot 44 "0.1"; homeAdded 45 2 "0.1"; homeShot 46 "0.1" ], flowClock 46 0)
+          ([ homeShot 44 "0.1"; homeShot 45 "0.1"; homeAdded 45 2 "0.1" ], flowClock 45 2)
+
+      Verify.check "first-half stoppage is still the first half"
+          (fun (rows, clock) -> flowLabel rows fullTime clock = "InFlow state active, sequential xG 0.30")
+          ([ homeShot 44 "0.1"; homeShot 45 "0.1"; homeAdded 45 2 "0.1" ], flowClock 45 2)
+          ([ homeShot 44 "0.1"; homeAdded 45 2 "0.1"; homeShot 46 "0.1" ], flowClock 46 0)
+
+      Verify.check "a second-half run starts at 46'"
+          (fun rows -> flowLabel rows fullTime (flowClock 48 0) = "InFlow state active, sequential xG 0.30")
+          [ homeAdded 45 1 "0.1"; homeAdded 45 2 "0.1"; homeShot 46 "0.1"; homeShot 47 "0.1"; homeShot 48 "0.1" ]
+          [ homeAdded 45 1 "0.1"; homeAdded 45 2 "0.1"; homeShot 46 "0.1"; awayShot 47 "0.1"; homeShot 48 "0.1" ]
+
+      Verify.check "InFlow ends at the half-time whistle, with no later shot needed"
+          (fun clock -> flowLabel [ homeShot 43 "0.1"; homeShot 44 "0.1"; homeShot 45 "0.1" ] fullTime clock = disjointed)
+          (flowClock 46 0)
+          (flowClock 45 0)
+
+      Verify.check "a run does not cross full time into extra time"
+          (fun (rows, clock) -> flowLabel rows extraTimeLive clock = disjointed)
+          ([ homeShot 89 "0.1"; homeAdded 90 3 "0.1"; homeShot 91 "0.1" ], flowClock 91 0)
+          ([ homeShot 89 "0.1"; homeShot 90 "0.1"; homeAdded 90 3 "0.1" ], flowClock 90 3)
+
+      Verify.check "a run does not cross extra time's own interval"
+          (fun (rows, clock) -> flowLabel rows extraTimeLive clock = disjointed)
+          ([ homeShot 104 "0.1"; homeAdded 105 1 "0.1"; homeShot 106 "0.1" ], flowClock 106 0)
+          ([ homeShot 104 "0.1"; homeShot 105 "0.1"; homeAdded 105 1 "0.1" ], flowClock 105 1)
+
+      Verify.check "a run in extra time's second period starts at 106'"
+          (fun rows -> flowLabel rows extraTimeLive (flowClock 108 0) = "InFlow state active, sequential xG 0.30")
+          [ homeAdded 105 1 "0.1"; homeShot 106 "0.1"; homeShot 107 "0.1"; homeShot 108 "0.1" ]
+          [ homeAdded 105 1 "0.1"; homeShot 106 "0.1"; awayShot 107 "0.1"; homeShot 108 "0.1" ]
+
+      Verify.check "a shot with no xG number leaves the capture unread"
+          (fun rows -> flowReads rows (Some fullTime) (flowClock 12 0) = "not read")
+          [ homeShot 10 "null"; homeShot 12 "0.1" ]
+          [ homeShot 10 "0.1"; homeShot 12 "0.1" ]
+
+      Verify.check "a numeric string where a minute belongs leaves the capture unread"
+          (fun rows -> flowReads rows (Some fullTime) (flowClock 12 0) = "not read")
+          [ "{\"min\":\"10\",\"home\":true,\"xg\":0.1,\"type\":\"miss\"}"; homeShot 12 "0.1" ]
+          [ "{\"min\":10,\"home\":true,\"xg\":0.1,\"type\":\"miss\"}"; homeShot 12 "0.1" ]
+
+      Verify.check "an own-goal row is not a shot by the side it names"
+          (fun rows -> flowLabel rows fullTime (flowClock 14 0) = disjointed)
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; flowRow true 14 0 "0.20" ",\"gtype\":\"own\"" ]
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; flowRow true 14 0 "0.20" ",\"gtype\":\"regular\"" ]
+
+      Verify.check "an own-goal row with no xG does not leave the capture unread"
+          (fun rows -> flowReads rows (Some fullTime) (flowClock 12 0) = "recorded")
+          [ flowRow true 10 0 "null" ",\"gtype\":\"own\""; homeShot 12 "0.1" ]
+          [ flowRow true 10 0 "null" ",\"gtype\":\"regular\""; homeShot 12 "0.1" ]
+
+      Verify.check "a shootout kick is not a shot in the match"
+          (fun sit ->
+              let kick m = flowRow true m 0 "0.79" (sprintf ",\"sit\":\"%s\"" sit)
+              let n = flowCensusOf [ kick 122; kick 123; kick 124 ] extraTimeLive
+              n.FlowRuns = 0 && n.ShootoutKicks = 3)
+          "shootout"
+          "penalty"
+
+      Verify.check "a minute after an in-play capture's last shot is not recorded"
+          (fun incidents -> flowReads [ homeShot 10 "0.1"; homeShot 20 "0.1" ] (Some incidents) (flowClock 30 0) = "not recorded")
+          secondHalfLive
+          fullTime
+
+      Verify.check "a full-time marker extends the record only when it is at 90'"
+          (fun minute ->
+              let incidents = flowIncidents [ flowPeriod "HT" 45 false (Some(0, 0)); flowPeriod "FT" minute false (Some(1, 0)) ]
+              flowReads [ homeShot 10 "0.1"; homeShot 20 "0.1" ] (Some incidents) (flowClock 30 0) = "not recorded")
+          45
+          90
+
+      Verify.check "incidents of another event are not this capture's"
+          (fun eventId ->
+              let incidents = flowIncidentsOf eventId [ flowPeriod "HT" 45 false (Some(0, 0)); flowPeriod "FT" 90 false (Some(1, 0)) ]
+              let c = Flow.decodeCapture (flowStats [ homeShot 10 "0.1"; homeShot 20 "0.1" ]) (Some incidents)
+              Flow.readingAt c Flow.Home (flowClock 30 0) = Flow.NotRecorded && (Flow.flowCensus c).Stage = "mismatched")
+          7002
+          7001
+
+      Verify.check "a shot past 90' in a full-time capture is still recorded"
+          (fun clock -> flowReads [ homeShot 80 "0.1"; homeShot 92 "0.1" ] (Some fullTime) clock = "recorded")
+          (flowClock 92 0)
+          (flowClock 93 0)
+
+      Verify.check "minute 0 is not a minute of the match"
+          (fun clock -> flowReads [ homeShot 10 "0.1" ] (Some fullTime) clock = "not recorded")
+          (flowClock 0 0)
+          (flowClock 10 0)
+
+      Verify.check "a full-time marker alone does not make a witness: the kickoff needs two FIELD days"
+          (fun now ->
+              (Flow.witnessAfterKickoff (Flow.decodeCapture (flowStats run) (Some fullTime)) (flowEventRow 7001) now).IsSome)
+          (at "2026-07-03T04:30:00Z")
+          (at "2026-07-03T03:59:00Z")
+
+      Verify.check "the kickoff route needs two FIELD days for a capture taken in play too"
+          (fun now ->
+              (Flow.witnessAfterKickoff (Flow.decodeCapture (flowStats run) (Some secondHalfLive)) (flowEventRow 7001) now).IsSome)
+          (at "2026-07-03T04:30:00Z")
+          (at "2026-07-03T03:59:00Z")
+
+      Verify.check "the kickoff route reads only the capture's own event row"
+          (fun row -> (Flow.witnessAfterKickoff (Flow.decodeCapture (flowStats run) (Some secondHalfLive)) row flowNow).IsSome)
+          (flowEventRow 7001)
+          (flowEventRow 7002)
+
+      Verify.check "a capture whose shots could not all be read gets no witness"
+          (fun rows -> (flowWitness rows fullTime).IsNone)
+          [ homeShot 10 "null"; homeShot 12 "0.1" ]
+          [ homeShot 10 "0.1"; homeShot 12 "0.1" ]
+
+      Verify.check "the pulse is the run's xG as an opacity"
+          (fun rows -> flowPulse rows (flowClock 14 0) = "opacity: 0.42")
+          run
+          [ homeShot 10 "0.10"; homeShot 12 "0.12"; homeShot 14 "0.30" ]
+
+      Verify.check "the pulse is capped at one xG"
+          (fun rows -> flowPulse rows (flowClock 14 0) = "opacity: 1.00")
+          [ homeShot 10 "0.5"; homeShot 12 "0.5"; homeShot 14 "0.5" ]
+          run
+
+      Verify.check "Disjointed draws nothing"
+          (fun rows -> flowPulse rows (flowClock 14 0) = "")
+          [ homeShot 10 "0.10"; homeShot 12 "0.12" ]
+          run
+
+      // The witness of an InFlow minute, printed every way a value can be: each
+      // piece must be a type or case name, never the capture inside it or a
+      // number. The counterexample is the capture's own JSON.
+      Verify.check "a witness and a reading print as names, never what they hold"
+          (fun (pieces: string list) ->
+              pieces |> List.forall (fun p -> List.contains p [ "Finished"; "\"Finished\""; "Recorded"; "\"Recorded\"" ]))
+          (match flowWitness run fullTime with
+           | Some f when Flow.ariaLabel f Flow.Home (flowClock 14 0) = flowAt14 ->
+               let r = Flow.readingAt (Flow.decodeCapture (flowStats run) (Some fullTime)) Flow.Home (flowClock 14 0)
+               [ string f; sprintf "%A" f; sprintf "%O" f; $"{f}"; Fable.Core.JS.JSON.stringify f
+                 string r; sprintf "%A" r; $"{r}"; Fable.Core.JS.JSON.stringify r ]
+           | _ -> [ "no InFlow witness to print" ])
+          [ Fable.Core.JS.JSON.stringify (flowStats run) ]
+
+      Verify.check "a census counts every shot, read or not"
+          (fun rows ->
+              let n = flowCensusOf rows fullTime
+              n.Shots = 3 && n.Positive = 2 && n.WithoutXg = 1 && not n.Read)
+          [ homeShot 10 "0.1"; homeShot 12 "null"; homeShot 14 "0.2" ]
+          [ homeShot 10 "0.1"; homeShot 12 "0.3"; homeShot 14 "0.2" ]
+
+      Verify.check "a census counts estimated xG"
+          (fun rows -> (flowCensusOf rows fullTime).Estimated = 1)
+          [ homeShot 10 "0.1"; flowRow true 12 0 "0.12" ",\"xg_estimated\":true" ]
+          [ homeShot 10 "0.1"; homeShot 12 "0.12" ]
+
+      Verify.check "a census reports its breaks at each of the three boundaries"
+          (fun rows ->
+              let n = flowCensusOf rows extraTimeLive
+              [ n.SeparatorsHalfTime; n.SeparatorsFullTime; n.SeparatorsExtraInterval
+                n.FlowClosedAtHalfTime; n.FlowClosedAtFullTime; n.FlowClosedAtExtraInterval ] = [ 1; 1; 1; 1; 1; 1 ])
+          [ homeShot 41 "0.1"; homeShot 42 "0.1"; homeShot 43 "0.1"; awayShot 50 "0.1"
+            homeShot 88 "0.1"; homeShot 89 "0.1"; homeShot 90 "0.1"; awayShot 95 "0.1"
+            homeShot 102 "0.1"; homeShot 103 "0.1"; homeShot 104 "0.1"; awayShot 110 "0.1" ]
+          [ homeShot 41 "0.1"; homeShot 42 "0.1"; homeShot 43 "0.1"; awayShot 50 "0.1"
+            homeShot 88 "0.1"; homeShot 89 "0.1"; homeShot 90 "0.1" ]
+
+      Verify.check "a census counts every boundary a gap crosses"
+          (fun rows ->
+              let n = flowCensusOf rows extraTimeLive
+              n.SeparatorsFullTime = 1 && n.SeparatorsExtraInterval = 1)
+          [ homeShot 89 "0.1"; awayShot 110 "0.1" ]
+          [ homeShot 89 "0.1"; awayShot 100 "0.1" ]
+
+      Verify.check "a census closes every run exactly once"
+          (fun rows ->
+              let n = flowCensusOf rows fullTime
+              n.FlowRuns = 3
+              && n.FlowClosedByOpponent + n.FlowClosedByOpponentZeroXg + n.FlowClosedByShared + n.FlowClosedAtHalfTime
+                 + n.FlowClosedAtFullTime + n.FlowClosedAtExtraInterval + n.FlowClosedAtExtraEnd + n.FlowClosedByCaptureEnd = 3)
+          [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0"
+            homeShot 20 "0.1"; homeShot 21 "0.1"; homeShot 22 "0.1"; awayShot 23 "0.1"
+            homeShot 30 "0.1"; homeShot 31 "0.1"; homeShot 32 "0.1" ]
+          [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0" ]
+
+      Verify.check "a census does not count a run still open at an in-play capture's end as closed at a boundary"
+          (fun rows -> (flowCensusOf rows secondHalfLive).FlowClosedAtHalfTime = 1)
+          [ homeShot 43 "0.1"; homeShot 44 "0.1"; homeShot 45 "0.1"; homeShot 46 "0.1" ]
+          [ homeShot 43 "0.1"; homeShot 44 "0.1"; homeShot 45 "0.1" ]
+
+      Verify.check "a census names a run ended by a 0-xG opposing shot"
+          (fun rows -> (flowCensusOf rows fullTime).FlowClosedByOpponentZeroXg = 1)
+          [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0" ]
+          [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0.05" ] ]
+
+// Gravity Well (NFL) and the vintage-typed frames it is decoded through.
+//
+// INLINE ENVELOPES, NOT THE CAPTURE, and for two reasons beyond the lineups
+// one above. The capture is 1.8 MB, and every Fixtures path is fetched when
+// the Verify tab opens. And this panel prints each row's must-hold input as
+// visible text: an input built from wells would put drawn counts and
+// accessible names in a <dd>, where the 2026-10-15 ADR-002 ruling allows them
+// only in aria-label. So every input below is envelope text or a season; the
+// wells, labels and encodings are computed INSIDE the predicates. What only
+// the whole capture can show (every play accounted for, conservation on all
+// 489 measured plays) is scripts/gravity-census.mjs.
+//
+// PLAY 1, the shape most rows read (yards, offense-right):
+//
+//   snap      C50 (50,26)  WR1 (49,5)  WR2 (49,48)  WR3 (49,30)  RB4 (45,26)
+//             CB11 (61,6)  CB12 (61,47)  SS13 (62,40)  ILB14 (55,30)
+//   release   C50 (49,26)  WR1 (60,10)  WR2 (60,45)  WR3 (56,30)  RB4 (50,20)
+//             CB11 (62,12) CB12 (62,40)  SS13 (70,14)  ILB14 (57,31)
+//
+// The line is C50's snap x, 50. RB4 at the release is exactly on it, so he is
+// not a route runner. Nearest runner at the release: CB11 WR1, CB12 WR2, SS13
+// WR1, ILB14 WR3; at the snap: CB11 WR1, CB12 WR2, SS13 WR2, ILB14 WR3. So
+// SS13 moved from WR2 to WR1: WR1 drew 1 of 4, WR2 ceded 1, WR3 is level.
+// ---------------------------------------------------------------------------
+
+let private gravityWell () : Verify.Sealed list =
+    let season (year: int) = year * 1<Vintage.season>
+    let current = season 2026
+    let shown = season 2022
+
+    let player (nflId: int, pos: string, side: string, x: float, y: float) =
+        sprintf """{"nflId":%d,"team":"%s","pos":"%s","side":"%s","x":%s,"y":%s}"""
+            nflId (if side = "offense" then "OFF" else "DEF") pos side (string x) (string y)
+    let row (gameId: int) (playId: int) (event: string) players =
+        sprintf """{"gameId":%d,"playId":%d,"event":"%s","players":[%s]}"""
+            gameId playId event (players |> List.map player |> String.concat ",")
+    let envelopeWith (head: string) (frame: string) (units: string) (rows: string list) =
+        sprintf """{%s"coordinateConvention":{"frame":"%s","units":"%s"},"data":[%s]}"""
+            head frame units (String.concat "," rows)
+    let stated = "\"season\":2022,\"sourceDataset\":\"suite inline\","
+    let envelope rows = envelopeWith stated "offense-right" "yards" rows
+    let moved (nflId: int) (x: float) players =
+        players |> List.map (fun (id, pos, side, px, py) -> if id = nflId then (id, pos, side, x, py) else (id, pos, side, px, py))
+    let without (nflId: int) players = players |> List.filter (fun (id, _, _, _, _) -> id <> nflId)
+
+    let snap1 =
+        [ 50, "C", "offense", 50.0, 26.0
+          1, "WR", "offense", 49.0, 5.0
+          2, "WR", "offense", 49.0, 48.0
+          3, "WR", "offense", 49.0, 30.0
+          4, "RB", "offense", 45.0, 26.0
+          11, "CB", "defense", 61.0, 6.0
+          12, "CB", "defense", 61.0, 47.0
+          13, "SS", "defense", 62.0, 40.0
+          14, "ILB", "defense", 55.0, 30.0 ]
+    let release1 =
+        [ 50, "C", "offense", 49.0, 26.0
+          1, "WR", "offense", 60.0, 10.0
+          2, "WR", "offense", 60.0, 45.0
+          3, "WR", "offense", 56.0, 30.0
+          4, "RB", "offense", 50.0, 20.0
+          11, "CB", "defense", 62.0, 12.0
+          12, "CB", "defense", 62.0, 40.0
+          13, "SS", "defense", 70.0, 14.0
+          14, "ILB", "defense", 57.0, 31.0 ]
+    let rows1 = [ row 1 1 "ball_snap" snap1; row 1 1 "pass_forward" release1 ]
+    let play1 = envelope rows1
+    // Nobody moved between the instants (the snapper keeps his snap spot): the
+    // play has no counterfactual difference, so every route runner is Level.
+    let still = envelope [ row 1 1 "ball_snap" (moved 50 50.0 release1); row 1 1 "pass_forward" release1 ]
+    // Only one route runner past the line.
+    let sole = envelope [ row 1 1 "ball_snap" snap1; row 1 1 "pass_forward" (release1 |> moved 2 48.0 |> moved 3 48.0) ]
+    // A second C at the snap, behind the first, and the same with him ahead.
+    let twoCentres x = envelope [ row 1 1 "ball_snap" (snap1 @ [ 51, "C", "offense", x, 24.3 ]); row 1 1 "pass_forward" release1 ]
+    // Six plays, each refused for a different reason, in the order tested.
+    let refusals (ilbAtSnap: bool) =
+        [ row 2 1 "ball_snap" snap1
+          row 2 2 "pass_forward" release1
+          row 2 3 "ball_snap" (without 50 snap1)
+          row 2 3 "pass_forward" release1
+          row 2 4 "ball_snap" snap1
+          row 2 4 "pass_forward" (release1 |> moved 1 48.0 |> moved 2 48.0 |> moved 3 48.0)
+          row 2 5 "ball_snap" snap1
+          row 2 5 "pass_forward" (release1 |> moved 11 49.0 |> moved 12 49.0 |> moved 13 49.0 |> moved 14 49.0)
+          row 2 6 "ball_snap" (if ilbAtSnap then snap1 else without 14 snap1)
+          row 2 6 "pass_forward" release1 ]
+
+    let decoded (text: string) = Gridiron.decodeFrames current text
+    let unitPayload (text: string) = Vintage.decodeEnvelope current (Thoth.Json.Decode.succeed ()) text
+    let onlyPlay (text: string) =
+        match decoded text |> Result.map (Vintage.valueAt shown) with
+        | Ok(Ok [ play ]) -> Some play
+        | _ -> None
+    let results (text: string) =
+        match decoded text with
+        | Ok t ->
+            match Gravity.measuredAt shown t with
+            | Ok measured -> measured |> List.map (fun m -> m.Result)
+            | Error _ -> []
+        | Error _ -> []
+    let archive (text: string) =
+        match decoded text with
+        | Ok t -> Gravity.archivedAt shown t
+        | Error _ -> None
+    let names (text: string) (ids: int list) =
+        match archive text with
+        | Some a -> ids |> List.map (Gravity.accessibleName a 1 1)
+        | None -> []
+    let drawnIn (name: string) =
+        let marker = "defenders drawn "
+        match name.IndexOf marker with
+        | -1 -> None
+        | i ->
+            let rest = name.Substring(i + marker.Length)
+            Some(int (rest.Substring(0, rest.IndexOf ' ')))
+    let refusedAs (fragment: string) (text: string) =
+        match decoded text with
+        | Error(Vintage.Malformed m) -> m.Contains fragment
+        | _ -> false
+    let printings (values: obj list) =
+        values |> List.collect (fun v -> [ string v; sprintf "%A" v; $"{v}"; Fable.Core.JS.JSON.stringify v ])
+    let trackedPrinted =
+        match decoded play1 with
+        | Ok t -> printings [ box t ]
+        | Error _ -> []
+    let wellsPrinted =
+        match decoded play1 with
+        | Ok t ->
+            let wells =
+                match Gravity.measuredAt shown t with
+                | Ok measured ->
+                    measured
+                    |> List.collect (fun m ->
+                        match m.Result with
+                        | Gravity.Measured receivers -> receivers |> List.map (fun r -> box r.Well)
+                        | Gravity.Unmeasured _ -> [])
+                | Error _ -> []
+            printings (wells @ (Gravity.archivedAt shown t |> Option.toList |> List.map box))
+        | Error _ -> []
+    let unquoted (s: string) = s.Trim('"')
+
+    [ // --- the envelope: what stamps a value with its season ---------------
+      Verify.check "an envelope with no season is refused, never stamped with the current year"
+          (fun (text: string) -> decoded text = Error Vintage.NoSeason)
+          (envelopeWith "\"sourceDataset\":\"suite inline\"," "offense-right" "yards" rows1)
+          play1
+
+      // Thoth's integer decoder parses "2022" as 2022. The builder writes a
+      // number, so a string is a different payload, refused rather than read.
+      Verify.check "a season written as a string is refused, not parsed into a stamp"
+          (fun (text: string) ->
+              match unitPayload text with
+              | Error(Vintage.Malformed m) -> m.Contains "season is not a JSON number"
+              | _ -> false)
+          """{"season":"2022","sourceDataset":"suite inline"}"""
+          """{"season":2022,"sourceDataset":"suite inline"}"""
+
+      Verify.check "a missing or blank sourceDataset is refused"
+          (fun (texts: string list) -> texts |> List.forall (fun text -> unitPayload text = Error Vintage.NoSourceDataset))
+          [ """{"season":2022}"""; """{"season":2022,"sourceDataset":""}"""; """{"season":2022,"sourceDataset":"  "}""" ]
+          [ """{"season":2022,"sourceDataset":"suite inline"}""" ]
+
+      Verify.check "a season later than the current one is refused, not stamped current"
+          (fun (now: int<Vintage.season>) ->
+              match Gridiron.decodeFrames now play1 with
+              | Error(Vintage.FutureSeason _) -> true
+              | _ -> false)
+          (season 2021)
+          (season 2022)
+
+      Verify.check "an earlier season is an archive; the current season is not, whatever season is asked"
+          (fun (cases: (int<Vintage.season> * int<Vintage.season> * bool) list) ->
+              cases
+              |> List.forall (fun (now, asked, expected) ->
+                  match Gridiron.decodeFrames now play1 with
+                  | Ok t -> (Vintage.archiveAt asked t).IsSome = expected
+                  | Error _ -> false))
+          [ season 2026, season 2022, true
+            season 2022, season 2022, false
+            season 2026, season 2026, false
+            season 2026, season 2021, false ]
+          [ season 2022, season 2022, true ]
+
+      Verify.check "a tracked value is released only at its own season"
+          (fun (asked: int<Vintage.season>) ->
+              match decoded play1 with
+              | Ok t -> Result.isOk (Vintage.valueAt asked t)
+              | Error _ -> false)
+          (season 2022)
+          (season 2026)
+
+      Verify.check "a month belongs to the NFL season by the August rule"
+          (fun (cases: (int * int * int) list) ->
+              cases |> List.forall (fun (year, month, expected) -> Vintage.nflSeasonOf year month = season expected))
+          [ 2027, 1, 2026; 2026, 7, 2025; 2026, 8, 2026; 2026, 12, 2026 ]
+          [ 2027, 1, 2027 ]
+
+      Verify.check "a tracked value prints its type name and nothing it carries"
+          (fun (printed: string list) ->
+              not printed.IsEmpty && printed |> List.forall (fun p -> unquoted p = "Vintage.Tracked"))
+          trackedPrinted
+          [ "Tracked ([{ GameId = 1; PlayId = 1; Snapped = Some [...] }], Archive 2022)" ]
+
+      // --- the frames payload: refused by name, never read past -----------
+      Verify.check "a coordinate frame other than offense-right, or units other than yards, is refused by name"
+          (fun (texts: string list) -> texts |> List.forall (refusedAs "coordinateConvention."))
+          [ envelopeWith stated "raw" "yards" rows1; envelopeWith stated "offense-right" "meters" rows1 ]
+          [ play1 ]
+
+      Verify.check "an event this decoder does not read is refused, not read as another"
+          (refusedAs "event pass_arrived")
+          (envelope [ row 1 1 "ball_snap" snap1; row 1 1 "pass_arrived" release1 ])
+          play1
+
+      Verify.check "a play carrying the same event twice is refused, not resolved"
+          (refusedAs "same event twice")
+          (envelope [ row 1 1 "ball_snap" snap1; row 1 1 "ball_snap" snap1; row 1 1 "pass_forward" release1 ])
+          play1
+
+      Verify.check "a side other than offense or defense is refused, not guessed"
+          (refusedAs "neither offense nor defense")
+          (envelope
+              [ row 1 1 "ball_snap" (snap1 |> List.map (fun (id, pos, side, x, y) -> if id = 11 then (id, pos, "special", x, y) else (id, pos, side, x, y)))
+                row 1 1 "pass_forward" release1 ])
+          play1
+
+      // --- the geometry ----------------------------------------------------
+      Verify.check "past the line means strictly beyond the snapper's x at the snap"
+          (fun (text: string) ->
+              match onlyPlay text with
+              | Some play ->
+                  match play.Snapped |> Option.bind Gridiron.snapperAt, play.Released with
+                  | Some line, Some released ->
+                      let past = released |> List.map (fun p -> p.NflId, Gridiron.pastLine (Gridiron.toScrimmage line p.At))
+                      past = [ 50, false; 1, true; 2, true; 3, true; 4, false; 11, true; 12, true; 13, true; 14, true ]
+                  | _ -> false
+              | None -> false)
+          play1
+          (envelope [ row 1 1 "ball_snap" snap1; row 1 1 "pass_forward" (moved 4 50.5 release1) ])
+
+      Verify.check "the snapper is the forward-most offensive C at the snap"
+          (fun (text: string) ->
+              match onlyPlay text |> Option.bind (fun play -> play.Snapped) with
+              | Some snapped ->
+                  match Gridiron.snapperAt snapped, snapped |> List.tryFind (fun p -> p.NflId = 50) with
+                  | Some line, Some c50 -> float (Gridiron.distanceSq line c50.At) = 0.0
+                  | _ -> false
+              | None -> false)
+          (twoCentres 49.4)
+          (twoCentres 50.6)
+
+      // --- which plays are measured, and why the others are not -----------
+      Verify.check "every unmeasurable play names its own reason, in a fixed order"
+          (fun (text: string) ->
+              let expected =
+                  [ Gravity.Unmeasured Gravity.NoReleaseFrame
+                    Gravity.Unmeasured Gravity.NoSnapFrame
+                    Gravity.Unmeasured Gravity.NoSnapper
+                    Gravity.Unmeasured Gravity.NoRouteRunner
+                    Gravity.Unmeasured Gravity.NoCoverage
+                    Gravity.Unmeasured(Gravity.MissingAtSnap 14) ]
+              results text = expected)
+          (envelope (refusals false))
+          (envelope (refusals true))
+
+      Verify.check "a lone route runner is SoleRouteRunner, not a zero"
+          (fun (text: string) -> results text = [ Gravity.Unmeasured Gravity.SoleRouteRunner ])
+          sole
+          play1
+
+      Verify.check "the census accounts for every play exactly once"
+          (fun (text: string) ->
+              match decoded text with
+              | Ok t ->
+                  match Gravity.gravityCensus shown t with
+                  | Ok c ->
+                      c.Plays = 7 && c.MeasuredPlays = 1 && c.NoReleaseFramePlays = 1 && c.NoSnapFramePlays = 1
+                      && c.NoSnapperPlays = 1 && c.NoRouteRunnerPlays = 1 && c.NoCoveragePlays = 1
+                      && c.MissingAtSnapPlays = 1 && c.ConservationFailures = 0
+                  | Error _ -> false
+              | Error _ -> false)
+          (envelope (rows1 @ refusals false))
+          (envelope (refusals false))
+
+      // --- the wells ------------------------------------------------------
+      Verify.check "the receiver who gains a defender is Drawing and the one who loses him is Ceding"
+          (fun (text: string) ->
+              let expected =
+                  [ Some "Drawing state active, defenders drawn 1 of 4"
+                    Some "Ceding state active, defenders drawn -1 of 4"
+                    Some "Level state active, defenders drawn 0 of 4"
+                    Some "NotRouteRunner state active" ]
+              names text [ 1; 2; 3; 4 ] = expected)
+          play1
+          still
+
+      Verify.check "drawn cancels within a play: one receiver's gain is another's loss"
+          (fun (text: string) ->
+              let drawn = names text [ 1; 2; 3; 4 ] |> List.choose id |> List.choose drawnIn
+              not drawn.IsEmpty && List.sum drawn = 0 && drawn |> List.exists (fun d -> d <> 0))
+          play1
+          still
+
+      // --- what may reach the page ----------------------------------------
+      Verify.check "Drawing, Level, Ceding and NotRouteRunner are drawn four different ways"
+          (fun (text: string) ->
+              match archive text with
+              | Some a ->
+                  let drawnAs = [ 1; 2; 3; 4 ] |> List.map (Gravity.encodeWell a 1 1)
+                  let expected =
+                      [ Some { Gravity.Opacity = 0.25; Gravity.Shape = Gravity.Expanding }
+                        Some { Gravity.Opacity = 0.25; Gravity.Shape = Gravity.Contracting }
+                        Some { Gravity.Opacity = 0.0; Gravity.Shape = Gravity.Steady }
+                        None ]
+                  List.length (List.distinct drawnAs) = 4 && drawnAs = expected
+              | None -> false)
+          play1
+          still
+
+      Verify.check "the gravity witness is granted to an archive season at that season, and to nothing else"
+          (fun (cases: (int<Vintage.season> * int<Vintage.season> * bool) list) ->
+              cases
+              |> List.forall (fun (now, asked, expected) ->
+                  match Gridiron.decodeFrames now play1 with
+                  | Ok t -> (Gravity.archivedAt asked t).IsSome = expected
+                  | Error _ -> false))
+          [ season 2026, season 2022, true
+            season 2022, season 2022, false
+            season 2026, season 2026, false
+            season 2027, season 2026, false ]
+          [ season 2022, season 2022, true ]
+
+      Verify.check "a well and its witness print their type names and nothing they carry"
+          (fun (printed: string list) ->
+              List.contains "Gravity.Archived" printed
+              && List.contains "Gravity.Well" printed
+              && printed |> List.forall (fun p -> unquoted p = "Gravity.Well" || unquoted p = "Gravity.Archived"))
+          wellsPrinted
+          [ "Drawing { AtRelease = 2; AtSnap = 1; Coverage = 4 }" ] ]
+
+// Second Wind (NHL). CC-CMD 2026-10-15 Task 3, src/Stamina.fs.
+//
+// Every input below is a raw shape: counts, clock strings, JSON text. None is a
+// reading or a label, so the Verify tab never prints one. Boundary values are
+// written here as literals and never read from the module, so a threshold
+// mutation cannot move a row's input along with the code it breaks.
+//
+// Every classification goes the whole way: a synthetic finished game is
+// decoded, windowed, witnessed, and read through `staminaLabel` or
+// `staminaMark`, which are the only ways a reading leaves the module.
+//
+// The "declining" population (1250 first, 1000 last in every band, an expected
+// last-third share of 4/9) is a TEST INPUT. The measured 2025-26 population is
+// not declining under this measure: last/first is 1.06, 1.00 and 1.04 across
+// the three bands (premise run 38962367310).
+// ---------------------------------------------------------------------------
+
+let private secondWind () =
+    let clock (seconds: int) = sprintf "%02d:%02d" (seconds / 60) (seconds % 60)
+    let play (key: string) (details: string) (period: int) (at: string) =
+        sprintf """{"typeDescKey":"%s","periodDescriptor":{"number":%d},"timeInPeriod":"%s","details":{%s}}""" key period at details
+    let shot (player: int) (period: int) (at: string) = play "shot-on-goal" (sprintf "\"shootingPlayerId\":%d" player) period at
+    let goal (player: int) (period: int) (at: string) = play "goal" (sprintf "\"scoringPlayerId\":%d" player) period at
+    let penalty (player: int) (period: int) (at: string) = play "penalty" (sprintf "\"committedByPlayerId\":%d" player) period at
+    let skater (id: int) (position: string) = sprintf """{"playerId":%d,"positionCode":"%s"}""" id position
+    let game (state: string) (scored: bool) (plays: string list) (roster: string list) =
+        sprintf """{"id":1,"gameType":2,"gameState":"%s",%s"plays":[%s],"rosterSpots":[%s]}"""
+            state
+            (if scored then "\"homeTeam\":{\"score\":3},\"awayTeam\":{\"score\":2}," else "")
+            (String.concat "," plays)
+            (String.concat "," roster)
+    let row (gameId: int) (typeCode: int) (player: int) (period: int) (from: string) (until: string) =
+        sprintf """{"gameId":%d,"typeCode":%d,"playerId":%d,"period":%d,"startTime":"%s","endTime":"%s"}""" gameId typeCode player period from until
+    let chartWith (total: int) (rows: string list) = sprintf """{"data":[%s],"total":%d}""" (String.concat "," rows) total
+    let chart (rows: string list) = chartWith (List.length rows) rows
+    // Player 10's period-3 shifts, 40 s each: 120 s of regulation ice.
+    let third = [ row 1 517 10 3 "00:00" "00:40"; row 1 517 10 3 "05:00" "05:40"; row 1 517 10 3 "10:00" "10:40" ]
+
+    let windowed (pbpJson: string) (chartJson: string) : Stamina.Windowed option =
+        match Stamina.staminaPlayByPlay pbpJson, Stamina.staminaShifts chartJson with
+        | Ok p, Ok c ->
+            match Stamina.staminaPlayerGames p c with
+            | Ok w -> Some w
+            | Error _ -> None
+        | _ -> None
+    let countsOf (player: int) (w: Stamina.Windowed option) =
+        w
+        |> Option.bind (fun w -> w.Players |> List.tryFind (fun g -> g.Player = player))
+        |> Option.map (fun g -> g.FirstThird, g.LastThird)
+    let coverageOf (clockShift: int) (plays: string list) (rows: string list) : Stamina.CreditCoverage option =
+        match Stamina.staminaPlayByPlay (game "OFF" true plays [ skater 10 "C" ]), Stamina.staminaShifts (chart rows) with
+        | Ok p, Ok c -> Some(Stamina.staminaCoverage clockShift p c)
+        | _ -> None
+
+    let pg (toi: int) (first: int) (last: int) : Stamina.PlayerGame =
+        { Stamina.OfGame = 0; Player = 0; RegulationToi = toi; FirstThird = first; LastThird = last }
+    let population (spec: (int * int * int) list) = Stamina.staminaCurve (spec |> List.map (fun (toi, first, last) -> pg toi first last))
+    let everyBand (first: int) (last: int) = [ 600, first, last; 900, first, last; 1200, first, last ]
+    let declining = everyBand 1250 1000
+    let level = everyBand 1000 1000
+
+    // One skater with `toi` seconds of regulation ice in a single P1 shift,
+    // `first` attempts at 00:01 and `last` attempts one second before his
+    // shift ends, in a game the vendor says is OFF with both scores.
+    let finishedWith (toi: int) (first: int) (last: int) : Stamina.FinishedGame option =
+        let plays = List.replicate first (shot 10 1 "00:01") @ List.replicate last (shot 10 1 (clock (toi - 1)))
+        match Stamina.staminaPlayByPlay (game "OFF" true plays [ skater 10 "C" ]), Stamina.staminaShifts (chart [ row 1 517 10 1 "00:00" (clock toi) ]) with
+        | Ok p, Ok c -> Stamina.staminaWitness p c
+        | _ -> None
+    let labelOf spec (toi: int, first: int, last: int) : string option =
+        match population spec, finishedWith toi first last with
+        | Ok curve, Some finished -> Stamina.staminaLabel curve finished 10
+        | _ -> None
+    let stateOf spec reading = labelOf spec reading |> Option.map (fun (label: string) -> label.Split(' ').[0])
+    let markOf spec (toi: int, first: int, last: int) : Stamina.Mark option =
+        match population spec, finishedWith toi first last with
+        | Ok curve, Some finished -> Stamina.staminaMark curve finished 10
+        | _ -> None
+
+    let witnessed (state: string) (scored: bool) : bool option =
+        match Stamina.staminaPlayByPlay (game state scored [ shot 10 1 "00:10" ] [ skater 10 "C" ]), Stamina.staminaShifts (chart [ row 1 517 10 1 "00:00" "00:40" ]) with
+        | Ok p, Ok c -> Some(Stamina.staminaWitness p c |> Option.isSome)
+        | _ -> None
+
+    [ // --- the reading: Insufficient, and the two denominators ------------
+      Verify.check "below the fewest attempts at which BOTH verdicts are reachable the reading is Insufficient, naming the count"
+          (fun (toi, first, last) ->
+              labelOf declining (toi, first, last) = Some(sprintf "Insufficient state active, %d attempts in the first and last thirds" (first + last)))
+          (900, 0, 6)
+          (900, 0, 7)
+
+      Verify.check "Insufficient is a sibling of Fatiguing, not a fall-through to it, and draws no tick"
+          (fun reading -> stateOf declining reading = Some "Insufficient" && markOf declining reading = Some Stamina.TrackOnly)
+          (900, 6, 0)
+          (900, 7, 0)
+
+      Verify.check "SecondWind and Fatiguing each need their own tail at 2.5% against the band's expected share"
+          (fun (toward, away) -> stateOf declining toward = Some "SecondWind" && stateOf declining away = Some "Fatiguing")
+          ((900, 1, 7), (900, 8, 0))
+          ((900, 2, 6), (900, 7, 1))
+
+      Verify.check "flat is not the null: level thirds against a band whose last third is lower read SecondWind"
+          (fun reading -> stateOf declining reading = Some "SecondWind")
+          (900, 200, 200)
+          (900, 222, 178)
+
+      Verify.check "level thirds against a level band read PopulationRate, a case of its own and not Fatiguing"
+          (fun (bandFirst, bandLast) -> stateOf (everyBand bandFirst bandLast) (900, 200, 200) = Some "PopulationRate")
+          (1000, 1000)
+          (1250, 1000)
+
+      Verify.check "a band's expected share, its last-to-first ratio and its fewest readable attempts come from its own counts"
+          (fun (bandFirst, bandLast) ->
+              match population (everyBand bandFirst bandLast) with
+              | Ok curve ->
+                  let readings = Stamina.staminaBands curve
+                  List.length readings = 3
+                  && readings
+                     |> List.forall (fun b ->
+                         abs (b.ExpectedShare - 1000.0 / 2250.0) < 1e-12 && abs (b.PopulationRatio - 0.8) < 1e-12 && b.EligibleFrom = 7)
+              | Error _ -> false)
+          (1250, 1000)
+          (1000, 1000)
+
+      // Bands by position: 0 under 720 s, 1 from 720 to 1079 s, 2 from 1080 s.
+      Verify.check "bands cut at 12 and 18 minutes of regulation ice"
+          (fun (cases: (int * int) list) ->
+              let bands = [ Stamina.Band.Under12; Stamina.Band.From12To18; Stamina.Band.From18 ]
+              cases |> List.forall (fun (toi, band) -> Stamina.staminaBand toi = List.item band bands))
+          [ 719, 0; 720, 1; 1079, 1; 1080, 2 ]
+          [ 720, 0 ]
+
+      Verify.check "a population curve exists only when every band has 1000 attempts in each third, and the curves these rows use clear it"
+          (fun (specs: (int * int * int) list list) -> specs |> List.forall (fun spec -> Result.isOk (population spec)))
+          [ declining; level ]
+          [ declining; [ 600, 999, 1000; 900, 1000, 1000; 1200, 1000, 1000 ] ]
+
+      Verify.check "1300 attempts all in the first third is not SecondWind: the tails do not underflow to zero"
+          (fun reading ->
+              match stateOf declining reading with
+              | Some state -> state <> "SecondWind"
+              | None -> false)
+          (900, 1300, 0)
+          (900, 0, 1300)
+
+      // --- the two projections ---------------------------------------------
+      Verify.check "a label is the state's name and the counts that produced it, and nothing else"
+          (fun reading -> labelOf declining reading = Some "SecondWind state active, last third 7 attempts against 3.6 expected")
+          (900, 1, 7)
+          (900, 2, 6)
+
+      Verify.check "a verdict's mark is the band's expected share and the skater's observed share, drawn at full strength"
+          (fun reading ->
+              match markOf declining reading with
+              | Some(Stamina.Ticks(expected, observed, opacity)) ->
+                  abs (expected - 1000.0 / 2250.0) < 1e-12 && abs (observed - 0.875) < 1e-12 && opacity = 1.0
+              | _ -> false)
+          (900, 1, 7)
+          (900, 2, 6)
+
+      // --- windows over the skater's own ice time ---------------------------
+      Verify.check "the first third ends before one third of the skater's regulation ice, not of the game clock"
+          (fun at -> countsOf 10 (windowed (game "OFF" true [ shot 10 3 at ] [ skater 10 "C" ]) (chart third)) |> Option.map fst = Some 1)
+          "00:39"
+          "00:40"
+
+      Verify.check "the last third begins at two thirds of it"
+          (fun at -> countsOf 10 (windowed (game "OFF" true [ shot 10 3 at ] [ skater 10 "C" ]) (chart third)) |> Option.map snd = Some 1)
+          "05:40"
+          "05:39"
+
+      Verify.check "overtime is outside the windows: its attempts are counted apart and its shifts add no regulation ice"
+          (fun period ->
+              match windowed (game "OFF" true [ shot 10 period "00:10" ] [ skater 10 "C" ]) (chart (third @ [ row 1 517 10 period "01:00" "01:30" ])) with
+              | Some w ->
+                  w.BeyondRegulation = 1
+                  && w.Players |> List.exists (fun g -> g.Player = 10 && g.RegulationToi = 120 && g.FirstThird = 0 && g.LastThird = 0)
+              | None -> false)
+          4
+          3
+
+      Verify.check "a goalie on the roster is not a player-game, though his shift chart covers the period"
+          (fun position ->
+              match windowed (game "OFF" true [] [ skater 30 position ]) (chart [ row 1 517 30 1 "00:00" "20:00" ]) with
+              | Some w -> List.isEmpty w.Players
+              | None -> false)
+          "G"
+          "D"
+
+      Verify.check "a goal counts for its scorer by name even when his shift ends on that second"
+          (fun scorer ->
+              countsOf 10 (windowed (game "OFF" true [ goal scorer 1 "00:40" ] [ skater 10 "C" ]) (chart [ row 1 517 10 1 "00:00" "00:40" ])) = Some(0, 1))
+          10
+          99
+
+      Verify.check "a penalty is excluded by name: counted apart, credits no window"
+          (fun (call: string) ->
+              let w = windowed (game "OFF" true [ call ] [ skater 10 "C" ]) (chart [ row 1 517 10 1 "00:00" "00:40" ])
+              (w |> Option.map (fun w -> w.PenaltiesNotCredited)) = Some 1 && countsOf 10 w = Some(0, 0))
+          (penalty 10 1 "00:20")
+          (shot 10 1 "00:20")
+
+      Verify.check "an attempt by a skater with no regulation shift is NoShiftData, never windowed"
+          (fun shooter ->
+              match windowed (game "OFF" true [ shot shooter 3 "00:20" ] [ skater 10 "C"; skater 11 "D" ]) (chart third) with
+              | Some w -> w.NoShiftData = 1 && not (w.Players |> List.exists (fun g -> g.Player = 11))
+              | None -> false)
+          11
+          10
+
+      Verify.check "a non-shift row is counted, not summed into ice time"
+          (fun (rows: string list) ->
+              match windowed (game "OFF" true [] [ skater 10 "C" ]) (chart rows) with
+              | Some w -> w.NonShiftRows = 1 && w.Players |> List.exists (fun g -> g.Player = 10 && g.RegulationToi = 120)
+              | None -> false)
+          (third @ [ row 1 505 10 3 "00:50" "00:50" ])
+          third
+
+      Verify.check "a chart shorter than its own total is refused, and so is another game's chart"
+          (fun (charts: string list) ->
+              match Stamina.staminaPlayByPlay (game "OFF" true [] [ skater 10 "C" ]) with
+              | Ok p ->
+                  charts
+                  |> List.forall (fun c ->
+                      match Stamina.staminaShifts c with
+                      | Ok shifts -> Result.isError (Stamina.staminaPlayerGames p shifts)
+                      | Error _ -> true)
+              | Error _ -> false)
+          [ chartWith 4 third; chart [ row 2 517 10 3 "00:00" "00:40" ] ]
+          [ chartWith 4 third; chart third ]
+
+      // --- the boundary, measured -------------------------------------------
+      Verify.check "a goal on its scorer's shift-end second is end-inclusive, not start-inclusive"
+          (fun at ->
+              match coverageOf 0 [ goal 10 1 at ] [ row 1 517 10 1 "00:00" "00:40" ] with
+              | Some c -> c.Goals.EndInclusive = 1 && c.Goals.StartInclusive = 0
+              | None -> false)
+          "00:40"
+          "00:20"
+
+      Verify.check "an instant at a period's 20:00 is in no interval when only the next period's 00:00 shift touches it"
+          (fun (rows: string list) ->
+              match coverageOf 0 [ shot 10 1 "20:00" ] rows with
+              | Some c -> c.OtherAttempts.InstantInNoInterval = 1
+              | None -> false)
+          [ row 1 517 10 2 "00:00" "00:40" ]
+          [ row 1 517 10 2 "00:00" "00:40"; row 1 517 10 1 "19:30" "20:00" ]
+
+      Verify.check "the moved-clock control moves an instant inside its own period, wrapping past its end"
+          (fun clockShift ->
+              match coverageOf clockShift [ shot 10 1 "15:20" ] [ row 1 517 10 1 "05:00" "05:40" ] with
+              | Some c -> c.OtherAttempts.StartInclusive = 1 && c.OtherAttempts.InstantInNoInterval = 0
+              | None -> false)
+          600
+          0
+
+      // --- the witness --------------------------------------------------------
+      Verify.check "every vendor state word decodes, an unseen one included, so no witness row can pass on a decode error"
+          (fun (bodies: string list) -> bodies |> List.forall (fun body -> Result.isOk (Stamina.staminaPlayByPlay body)))
+          [ for state in [ "FUT"; "PRE"; "LIVE"; "CRIT"; "FINAL"; "OFF"; "SUSP" ] -> game state true [ shot 10 1 "00:10" ] [ skater 10 "C" ] ]
+          [ game "OFF" true [] [ skater 10 "C" ]; """{"gameState":"OFF","plays":[],"rosterSpots":[]}""" ]
+
+      Verify.check "only FINAL or OFF with both scores yields the witness; LIVE, CRIT, PRE, FUT, an unseen word and a scoreless final do not"
+          (fun (cases: (string * bool * bool) list) -> cases |> List.forall (fun (state, scored, expected) -> witnessed state scored = Some expected))
+          [ "OFF", true, true
+            "FINAL", true, true
+            "OFF", false, false
+            "FINAL", false, false
+            "LIVE", true, false
+            "CRIT", true, false
+            "PRE", true, false
+            "FUT", true, false
+            "SUSP", true, false ]
+          [ "LIVE", true, true ] ]
+
+// Tactical Lock (empowerment Task 2). No real window reaches the spec's table:
+// every capture's windows hold dead time that cannot be taken out, and no
+// territory reading exists at window grain. So the table, its refusals and its
+// string paths are held here on evidence written by hand, and the census
+// function is held on captures written inline.
+// ---------------------------------------------------------------------------
+
+let private tacticalLock () =
+    // A witness for drawing and naming. The compiler checks that one is held,
+    // not where it came from: this one is minted from a Final written here,
+    // which compiles in any module (docs/AMNESTY-PROOF.md says so).
+    let finished = Option.get (amnestyZone (Final(0, 0, false)))
+    // TEST BARS, not a threshold: no measurable window exists to set one from.
+    // Binary fractions, and so is every input that must land exactly on one.
+    // Fable compiles `float32 x` to `x * 1`, with no rounding to single
+    // precision: 0.10 typed in a check stays 0.1 while a 0.10f bar is
+    // 0.10000000149011612, so an "equal to the bar" input written in decimals
+    // sits below the bar and tests nothing. A mutation found exactly that.
+    let bars = Option.get (TacticalLock.lockBars 0.5f<Units.xg> 0.125f<Units.xg>)
+
+    let barsOf (total: float, best: float) =
+        TacticalLock.lockBars (float32 total * 1.0f<Units.xg>) (float32 best * 1.0f<Units.xg>)
+
+    // A window as plain data, so the Verify page prints evidence and never a state.
+    let evidence (territory: string, chances: float list) =
+        let xs = chances |> List.map (fun x -> float32 x * 1.0f<Units.xg>)
+
+        match territory with
+        | "dead" -> TacticalLock.DeadTimeIn
+        | "high" -> TacticalLock.ActivePlayOnly(TacticalLock.OpponentHigh, xs)
+        | "low" -> TacticalLock.ActivePlayOnly(TacticalLock.OpponentLow, xs)
+        | other -> failwithf "no such window: %s" other
+
+    let verdict window = TacticalLock.lockClassify bars (evidence window)
+    let drawn window = TacticalLock.lockShapeOf (TacticalLock.lockEncode finished (verdict window))
+    let named window = TacticalLock.lockAriaLabel finished (verdict window)
+
+    let locked = verdict ("high", [ 0.05; 0.04 ])
+    let encoded = TacticalLock.lockEncode finished locked
+    let shape = TacticalLock.lockShapeOf encoded
+
+    // One window per cell of the spec's table, plus both unmeasured cases.
+    let table =
+        [ "dead", []
+          "low", [ 0.05 ]
+          "high", [ 0.05; 0.04 ]
+          "high", [ 0.5 ]
+          "low", [ 0.5 ]
+          "high", [ -1.0 ] ]
+
+    // The same windows, each pair swapped.
+    let permuted =
+        [ "low", [ 0.05 ]
+          "dead", []
+          "high", [ 0.5 ]
+          "high", [ 0.05; 0.04 ]
+          "high", [ -1.0 ]
+          "low", [ 0.5 ] ]
+
+    let census (stats: string, incidents: string option) =
+        match TacticalLock.lockWindows stats incidents with
+        | Ok w -> Some(w.TeamWindows, w.RestartsUnclocked, w.ShotsUnclocked, w.Unmeasured, w.Clocked, w.LockedOnPossible, w.XgMissing)
+        | Error _ -> None
+
+    // Shaped like a real capture: a clock below the minute on a PERIOD incident
+    // (the premise pass found `period_second` on 66 incident objects) and a
+    // throw-in inside a goal's build-up, neither of which places a stoppage.
+    let unclockedStats =
+        """{"event_id":1,"shotmap":[{"min":46,"home":false,"xg":0.31},{"min":12,"home":true,"xg":0.05},{"min":7,"home":false,"xg":null}],"momentum":[{"m":1,"v":4},{"m":50,"v":-3}]}"""
+
+    let unclockedIncidents =
+        """{"incidents":[{"type":"period","text":"HT","minute":45,"period_second":2700},{"type":"goal","minute":12,"is_home":true,"sequence":[{"event":"throw-in"}]}]}"""
+
+    let clockedRestart = """{"incidents":[{"type":"throw-in","minute":2,"period_second":95}]}"""
+
+    let clockedShots =
+        """{"shotmap":[{"min":5,"home":true,"xg":0.2,"sec":20},{"min":6,"home":false,"xg":null,"sec":40}],"momentum":[{"m":8,"v":1}]}"""
+
+    let oneShotUnclocked =
+        """{"shotmap":[{"min":5,"home":true,"xg":0.2,"sec":20},{"min":6,"home":false,"xg":null}],"momentum":[{"m":8,"v":1}]}"""
+
+    [ // The exact mapping, both ways round. A check that only says "not a lock"
+      // lets Quiet vanish, or under siege read as Quiet, and still pass.
+      Verify.check "each window is drawn as exactly its own state's shape"
+          (fun windows ->
+              List.map drawn windows = [ TacticalLock.LockShape.Hatch
+                                         TacticalLock.LockShape.Ring
+                                         TacticalLock.LockShape.Shield
+                                         TacticalLock.LockShape.OpenArc
+                                         TacticalLock.LockShape.OpenArc
+                                         TacticalLock.LockShape.Stipple ])
+          table
+          permuted
+
+      Verify.check "each window is named exactly by its own state and the numbers that produced it"
+          (fun windows ->
+              List.map named windows = [ "ActivePlayUnmeasured state active"
+                                         "Quiet state active"
+                                         "LockedOn state active, opponent xG 0.09, opponent best chance xG 0.05"
+                                         "Searching state active"
+                                         "Searching state active"
+                                         "ChanceUnmeasured state active" ])
+          table
+          permuted
+
+      // Quiet is the sibling the original spec collapsed into the lock: the same
+      // chances, told apart only by the territory denominator.
+      Verify.check "few chances with the territory low is Quiet, not a lock"
+          (fun window -> drawn window = TacticalLock.LockShape.Ring)
+          ("low", [ 0.05; 0.04 ])
+          ("high", [ 0.05; 0.04 ])
+
+      Verify.check "many chances with the territory high is under siege, never Quiet or a lock"
+          (fun window -> drawn window = TacticalLock.LockShape.OpenArc)
+          ("high", [ 0.5 ])
+          ("high", [ 0.05 ])
+
+      // A chance with no number is not a small chance. NaN fails every
+      // comparison, so without its own case it falls to whichever branch the
+      // comparison's else happens to be.
+      Verify.check "a chance whose xG is not a number, territory low, is unmeasured, never Quiet"
+          (fun window -> drawn window = TacticalLock.LockShape.Stipple)
+          ("low", [ 0.04; nan ])
+          ("low", [ 0.04 ])
+
+      Verify.check "a negative chance is unmeasured, never a lock with a negative number in its name"
+          (fun window -> TacticalLock.lockAriaLabel finished (verdict window) = "ChanceUnmeasured state active")
+          ("high", [ -1.0 ])
+          ("high", [ 0.05 ])
+
+      // The constructor refuses a chance that EXCEEDS the bar. Equal does not.
+      Verify.check "a best chance equal to the best-chance bar still locks; one over it does not"
+          (fun window -> drawn window = TacticalLock.LockShape.Shield)
+          ("high", [ 0.125 ])
+          ("high", [ 0.126 ])
+
+      // Eight sixteenths sum to the total bar exactly, each one under the
+      // best-chance bar, so only the total is at its boundary.
+      Verify.check "a total equal to the total bar still locks; one more small chance does not"
+          (fun window -> drawn window = TacticalLock.LockShape.Shield)
+          ("high", List.replicate 8 0.0625)
+          ("high", List.replicate 9 0.0625)
+
+      // A best chance is part of the total, so it never exceeds it: under a
+      // best-chance bar at or above the total bar, the refusal refuses nothing.
+      Verify.check "bars refuse a best-chance bar at or above the total bar"
+          (fun pair -> Option.isNone (barsOf pair))
+          (0.5, 0.5)
+          (0.5, 0.125)
+
+      Verify.check "bars refuse a best-chance bar that is negative or not a number"
+          (fun pairs -> pairs |> List.forall (fun pair -> Option.isNone (barsOf pair)))
+          [ 0.5, -0.01; 0.5, nan ]
+          [ 0.5, 0.0 ]
+
+      // The paths the compiler cannot refuse. The counterexamples are what
+      // Fable writes for these values with the overrides removed (measured).
+      Verify.check "a state, its encoding and its shape print only their type names"
+          (fun (printed: string list) ->
+              printed = [ "DefenseState"; "DefenseState"; "DefenseState"
+                          "LockEncoding"; "LockEncoding"; "LockEncoding"
+                          "LockShape"; "LockShape"; "LockShape" ])
+          [ string locked; sprintf "%A" locked; $"{locked}"
+            string encoded; sprintf "%A" encoded; $"{encoded}"
+            string shape; sprintf "%A" shape; $"{shape}" ]
+          [ "LockedOn (0.09, 0.05)"; "LockedOn (0.09, 0.05)"; "LockedOn (0.09, 0.05)"
+            "LockEncoding Shield"; "LockEncoding Shield"; "LockEncoding Shield"
+            "Shield"; "Shield"; "Shield" ]
+
+      Verify.check "a state, its encoding and its shape serialise to JSON as their type names only"
+          (fun (json: string list) -> json = [ "\"DefenseState\""; "\"LockEncoding\""; "\"LockShape\"" ])
+          [ Fable.Core.JS.JSON.stringify locked
+            Fable.Core.JS.JSON.stringify encoded
+            Fable.Core.JS.JSON.stringify shape ]
+          [ """["LockedOn",0.09,0.05]"""
+            """["LockEncoding","Shield"]"""
+            "\"Shield\"" ]
+
+      // The census. 50 minutes is 44 windows on Task 0's grid, two defences each.
+      Verify.check "a capture with no clocked restart leaves every window unmeasured"
+          (fun capture -> census capture = Some(88, 88, 0, 88, 0, 0, 4))
+          (unclockedStats, Some unclockedIncidents)
+          (unclockedStats, Some clockedRestart)
+
+      // Clocked windows, so the territory alone is missing. Judged high, a window
+      // with no opponent shot locks at zero; one holding a shot with no xG
+      // number does not lock at all.
+      Verify.check "a clocked capture never counts a window whose chance has no xG as a possible lock"
+          (fun capture -> census capture = Some(10, 0, 0, 0, 10, 7, 3))
+          (clockedShots, Some clockedRestart)
+          (oneShotUnclocked, Some clockedRestart)
+
+      Verify.check "a capture with no shotmap is unreadable, not a capture of empty windows"
+          (fun (stats: string) ->
+              match TacticalLock.lockWindows stats None with
+              | Error _ -> true
+              | Ok _ -> false)
+          """{"event_id":1,"momentum":[{"m":30,"v":2}]}"""
+          """{"shotmap":[],"momentum":[{"m":30,"v":2}]}""" ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -2416,9 +3544,13 @@ let groups () : (string * Verify.Sealed list) list =
       "Stats", stats ()
       "Routing", route ()
       "Team colours", teamTints ()
+      "Tactical Lock", tacticalLock ()
       "Tennis scorelines", tennis ()
       "Tennis draws", draw ()
-      "Lineups", lineups () ]
+      "Lineups", lineups ()
+      "Flow", flow ()
+      "Gravity Well", gravityWell ()
+      "Second Wind", secondWind () ]
 
 /// The flat suite, DERIVED from the groups rather than assembled a second time.
 /// Two lists of the same eleven bindings would be two places to forget one, and

@@ -1,0 +1,68 @@
+# Gravity Well over every play of the committed BDB frames capture.
+#
+# The Suite tests Gravity on inline envelopes of a few plays each (see the
+# Gravity Well group in src/Suite.fs for why). What only the whole capture can
+# answer -- every play accounted for, drawn cancelling on every measured play,
+# every accessible name in its one sanctioned form -- is
+# scripts/gravity-census.mjs, and this runs it on a runner and commits its
+# artifact, outbox/gravity-census-latest.json.
+#
+# Dispatch-only. The capture is committed and changes only when someone
+# replaces it (data/PROVENANCE.md), so there is nothing for a timer to watch.
+# No network: the script reads data/ and the Fable build, nothing else.
+name: gravity-census
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gravity-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the decoders
+        run: |
+          dotnet tool restore
+          dotnet fable src/Laboratory.fsproj --outDir build
+
+      # Exits non-zero on any failed check (an unaccounted play, a play whose
+      # drawn does not cancel, a malformed accessible name, a capture whose
+      # sha256 is not the one data/PROVENANCE.md records). The artifact is
+      # written either way, so a red run still leaves its numbers to read.
+      - name: Census
+        run: |
+          set -o pipefail
+          npm run census:gravity 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit the census
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/gravity-census-latest.json
+          git diff --staged --quiet || git commit -m "census: Gravity Well over the 2022 week-2 frames capture [skip ci]"
+          # Rebase-and-retry, as favourite-band-census.yml does and for the same
+          # reason: this repo has many concurrent writers, and a lost push race
+          # must not be reported as a failed census.
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          echo "::error::census artifact could not be pushed after 3 attempts"
+          exit 1

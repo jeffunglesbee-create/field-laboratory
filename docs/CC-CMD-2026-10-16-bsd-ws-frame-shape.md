@@ -50,6 +50,16 @@ frames:
 3. The key union of a coordinate element, and whether any element carries a
    player or team identifier (`player_id|pid|id|team|side|home`).
 4. For each `frame.uts`, the count of distinct identifiers.
+5. For empowerment Task 2 (Tactical Lock), two more facts:
+   - every restart event type the frames carry, with counts: any `frame.type`
+     or field value naming a throw-in, goal kick, free kick, corner or foul;
+   - the clock grain of `frame.uts`: its unit, and the smallest nonzero step
+     between consecutive frames.
+
+   Together these say whether a 4-minute window could exclude dead time. The
+   R2 captures cannot: they have no clock below the minute on any shot and no
+   restart incident type (field-relay-nba run 38962367310,
+   `outbox/empowerment-premises-latest.json`, `soccer.T`).
 
 **Verdict:** if any frame holds 2 or more identified coordinates at one `uts`,
 the WS feed is off-ball-instant and 0.2's population note becomes a NOT MET

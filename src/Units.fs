@@ -37,6 +37,24 @@ type drama
 [<Measure>]
 type implied
 
+/// Expected goals: BSD's `xg` on a soccer shot, the modelled chance that one
+/// shot scores. Deliberately not `prob`. Flow SUMS a run's xG, which is a
+/// meaningful quantity for shots and a meaningless one for win probabilities;
+/// under separate measures the two cannot be added to each other by accident.
+[<Measure>]
+type xg
+
+/// Yards: the unit Big Data Bowl tracking is published in, stated as data by
+/// the frames envelope (`coordinateConvention.units`). An NFL field is 120 by
+/// 53.3 yards by rule, so this is the native unit, not a normalisation of one.
+///
+/// There is deliberately no meters measure beside it. The original Gravity
+/// brief's "more than 4.0 meters" has no home here, and docs/GRAVITY-PROOF.md
+/// compiles that absence: a meters literal is a compile error, and the case is
+/// written so that declaring a meters measure in this module turns it red.
+[<Measure>]
+type yd
+
 /// The only sanctioned way to cross from probability to percentage.
 let toPct (p: float<prob>) : float<pct> = p * 100.0<pct/prob>
 

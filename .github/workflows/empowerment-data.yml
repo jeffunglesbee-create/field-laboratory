@@ -1,0 +1,97 @@
+name: empowerment data
+
+# docs/CC-CMD-2026-10-15-empowerment-metrics.md: the population runs and the
+# fixture captures for Tasks 1-4, through the compiled F#. DISPATCH ONLY, and no
+# schedule: the CC-CMD says "Do not build toward live", and a scheduled read of
+# match captures would be a watch by another name.
+#
+# WHY CI: the dev sandbox reaches neither *.workers.dev (the R2 captures, via the
+# relay) nor the NHL APIs. Every script below runs its own --self-test first, and
+# a red self-test stops the step before anything is written (Rule 90).
+#
+# ONE job, steps in order, ONE commit at the end: two steps both rewrite
+# data/PROVENANCE.md, and two jobs pushing it would race.
+
+on:
+  workflow_dispatch:
+    inputs:
+      capture:
+        description: 'Also write the soccer and NHL fixtures under data/ (verbatim bytes).'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      # `dotnet tool restore` is not optional: Fable is a dotnet LOCAL tool and
+      # `npm run build` shells out to it. The scripts below import build/*.js.
+      - name: Install and build
+        run: |
+          npm ci
+          dotnet tool restore
+          npm run build
+
+      - name: Flow census (Task 1)
+        if: always()
+        run: |
+          node scripts/flow-census.mjs --self-test
+          if [ "${{ inputs.capture }}" = "true" ]; then
+            node scripts/flow-census.mjs --capture
+          else
+            node scripts/flow-census.mjs
+          fi
+
+      # Second Wind (Task 3): the fixture capture needs no build; the population
+      # run imports build/Stamina.js, built above. The population always writes
+      # its artifact and exits 1 if one of its gates fails; the commit step
+      # below runs regardless, so a refused population still lands as a result.
+      - name: Second Wind fixture (Task 3)
+        if: inputs.capture
+        run: |
+          node scripts/capture-nhl-fixture.mjs --self-test
+          node scripts/capture-nhl-fixture.mjs
+
+      - name: Second Wind population (Task 3)
+        if: always()
+        run: |
+          node scripts/second-wind-population.mjs --self-test
+          node scripts/second-wind-population.mjs
+
+      - name: Commit what was written
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          # One path at a time: `git add` given a missing pathspec stages
+          # nothing at all, which once lost a whole report.
+          for p in outbox/flow-census-latest.json outbox/second-wind-population-latest.json data/PROVENANCE.md \
+                   data/bsd-flow-finished-stats.json data/bsd-flow-finished-incidents.json \
+                   data/bsd-flow-inplay-stats.json data/bsd-flow-inplay-incidents.json \
+                   data/nhl-second-wind-pbp.json data/nhl-second-wind-shifts.json; do
+            if [ -e "$p" ]; then git add "$p"; fi
+          done
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "data: empowerment census and fixtures (run $GITHUB_RUN_ID) [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && break
+            sleep $((i * 5))
+          done
+          # The loop above exits 0 when every attempt fails: its last command is
+          # `sleep`. Copied from capture-lineups-fixture.yml for that reason.
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main \
+            || { echo "FAIL: push did not land after retries"; exit 1; }

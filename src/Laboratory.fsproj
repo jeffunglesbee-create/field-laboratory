@@ -74,6 +74,24 @@
     <Compile Include="Scout.fs" />
     <Compile Include="Pickem.fs" />
     <Compile Include="Stats.fs" />
+    <Compile Include="Flow.fs" />
+    <!-- Vintage-typed BDB frames and Gravity Well. Immediately above
+         Scoreboard.fs because docs/VINTAGE-PROOF.md and docs/GRAVITY-PROOF.md
+         inject their cases there, and above Suite.fs, which tests them. They
+         depend only on Thoth.Json, Units and each other, top to bottom. -->
+    <Compile Include="Vintage.fs" />
+    <Compile Include="Gridiron.fs" />
+    <Compile Include="Gravity.fs" />
+    <!-- Second Wind (NHL). Above Scoreboard.fs because docs/STAMINA-PROOF.md and
+         docs/AMNESTY-PROOF.md inject cases that name it there; below Desk.fs,
+         whose amnesty witness it holds. Above Suite.fs, which checks it. No node
+         API, so the Verify tab runs it in a browser too. -->
+    <Compile Include="Stamina.fs" />
+    <!-- Tactical Lock (empowerment Task 2). Below Desk.fs: drawing and naming a
+         state demand its AmnestyZone. Immediately above Scoreboard.fs because
+         docs/LOCK-PROOF.md and docs/AMNESTY-PROOF.md inject their cases there.
+         Read by Suite.fs, and by node through build/TacticalLock.js. -->
+    <Compile Include="TacticalLock.fs" />
     <Compile Include="Scoreboard.fs" />
     <Compile Include="PickView.fs" />
     <Compile Include="PickemView.fs" />

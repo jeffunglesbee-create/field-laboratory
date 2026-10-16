@@ -1,0 +1,268 @@
+{
+  "census": "gravity-well",
+  "generated": "2026-10-16T22:01:30.479Z",
+  "run": {
+    "sha": "8eaf5a0598611c4e756058677f8d145d3be8ad8a",
+    "dirty": true,
+    "id": "8eaf5a059861-a9f2fc6687e1"
+  },
+  "source": {
+    "file": "data/bdb-event-frames-2022-w2.json",
+    "bytes": 1816808,
+    "sha256": "6be5a28298239af6a5709929bbd0b52d0d96625d5f3ebfeb6482de0ae3f9d249",
+    "season": 2022,
+    "week": 2,
+    "games": "7 of 16",
+    "currentSeason": 2026
+  },
+  "coverage": "545 of 545 plays accounted for (489 measured, 54 noReleaseFrame, 2 soleRouteRunner); 7 of 16 games of 2022 week 2; per receiver per play; no per-player roll-up",
+  "definition": {
+    "instant": "pass_forward (the release); the same play's ball_snap supplies the line and the counterfactual",
+    "line": "the forward-most offensive player labelled C, at ball_snap",
+    "routeRunner": "offense WR/TE/RB/FB strictly past the line at the release (a line-geometry proxy: wasRunningRoute is not in the artifact)",
+    "coverage": "defense strictly past the line at the release (the same proxy: wasInitialPassRusher is not in the artifact)",
+    "drawn": "defenders nearest him at the release minus defenders nearest him at the snap, over the same defenders and runners",
+    "tie": "the lower nflId",
+    "adjustment": "NOT position-adjusted: relative to the receiver's own snap alignment on the play, not to players at his position"
+  },
+  "accounting": {
+    "plays": 545,
+    "measured": 489,
+    "noReleaseFrame": 54,
+    "noSnapFrame": 0,
+    "noSnapper": 0,
+    "noRouteRunner": 0,
+    "noCoverage": 0,
+    "soleRouteRunner": 2,
+    "missingAtSnap": 0,
+    "snapRows": 545,
+    "releaseRows": 491
+  },
+  "invariants": {
+    "conservationFailures": 0,
+    "tiesAtSnap": 0,
+    "tiesAtRelease": 0
+  },
+  "premises": {
+    "twoCentrePlays": 32,
+    "twoCentreDenominator": "545 snap instants",
+    "coverageDefenders": 3362,
+    "reassigned": 1119,
+    "lineLabelledInCoverage": 131,
+    "lineLabelledReassigned": 59,
+    "lineLabelledNote": "DE/DT/NT labels only: a LOWER BOUND on linemen in the coverage proxy; edge rushers labelled OLB and anyone just past the line are in pastLine below",
+    "pastLine": [
+      {
+        "role": "route runner",
+        "pos": "FB",
+        "underOneYard": 3,
+        "oneToTwoYards": 5,
+        "twoYardsOrMore": 8
+      },
+      {
+        "role": "route runner",
+        "pos": "RB",
+        "underOneYard": 32,
+        "oneToTwoYards": 28,
+        "twoYardsOrMore": 103
+      },
+      {
+        "role": "route runner",
+        "pos": "TE",
+        "underOneYard": 36,
+        "oneToTwoYards": 38,
+        "twoYardsOrMore": 406
+      },
+      {
+        "role": "route runner",
+        "pos": "WR",
+        "underOneYard": 32,
+        "oneToTwoYards": 40,
+        "twoYardsOrMore": 1192
+      },
+      {
+        "role": "coverage",
+        "pos": "CB",
+        "underOneYard": 3,
+        "oneToTwoYards": 5,
+        "twoYardsOrMore": 1201
+      },
+      {
+        "role": "coverage",
+        "pos": "DB",
+        "underOneYard": 0,
+        "oneToTwoYards": 0,
+        "twoYardsOrMore": 6
+      },
+      {
+        "role": "coverage",
+        "pos": "DE",
+        "underOneYard": 23,
+        "oneToTwoYards": 6,
+        "twoYardsOrMore": 24
+      },
+      {
+        "role": "coverage",
+        "pos": "DT",
+        "underOneYard": 36,
+        "oneToTwoYards": 15,
+        "twoYardsOrMore": 12
+      },
+      {
+        "role": "coverage",
+        "pos": "FS",
+        "underOneYard": 4,
+        "oneToTwoYards": 8,
+        "twoYardsOrMore": 607
+      },
+      {
+        "role": "coverage",
+        "pos": "ILB",
+        "underOneYard": 19,
+        "oneToTwoYards": 20,
+        "twoYardsOrMore": 455
+      },
+      {
+        "role": "coverage",
+        "pos": "MLB",
+        "underOneYard": 1,
+        "oneToTwoYards": 5,
+        "twoYardsOrMore": 96
+      },
+      {
+        "role": "coverage",
+        "pos": "NT",
+        "underOneYard": 11,
+        "oneToTwoYards": 1,
+        "twoYardsOrMore": 3
+      },
+      {
+        "role": "coverage",
+        "pos": "OLB",
+        "underOneYard": 21,
+        "oneToTwoYards": 15,
+        "twoYardsOrMore": 227
+      },
+      {
+        "role": "coverage",
+        "pos": "SS",
+        "underOneYard": 1,
+        "oneToTwoYards": 4,
+        "twoYardsOrMore": 533
+      }
+    ]
+  },
+  "byPos": [
+    {
+      "pos": "FB",
+      "routeRunners": 16,
+      "drawing": 4,
+      "level": 9,
+      "ceding": 3,
+      "notRouteRunner": 19,
+      "drawnSum": 3,
+      "meanDrawn": 0.188
+    },
+    {
+      "pos": "RB",
+      "routeRunners": 163,
+      "drawing": 74,
+      "level": 64,
+      "ceding": 25,
+      "notRouteRunner": 326,
+      "drawnSum": 79,
+      "meanDrawn": 0.485
+    },
+    {
+      "pos": "TE",
+      "routeRunners": 480,
+      "drawing": 103,
+      "level": 161,
+      "ceding": 216,
+      "notRouteRunner": 121,
+      "drawnSum": -199,
+      "meanDrawn": -0.415
+    },
+    {
+      "pos": "WR",
+      "routeRunners": 1264,
+      "drawing": 379,
+      "level": 582,
+      "ceding": 303,
+      "notRouteRunner": 49,
+      "drawnSum": 117,
+      "meanDrawn": 0.093
+    }
+  ],
+  "notRouteRunnerByPos": {
+    "FB": 19,
+    "RB": 326,
+    "TE": 121,
+    "WR": 49
+  },
+  "labels": {
+    "receivers": 2438,
+    "wellFormed": 2438
+  },
+  "encodings": {
+    "encoded": 1923,
+    "unencoded": 515,
+    "opacityInRange": 1923
+  },
+  "held": 13,
+  "of": 13,
+  "results": [
+    {
+      "name": "the data file name states a season and a week",
+      "pass": true
+    },
+    {
+      "name": "the capture's sha256 is the one data/PROVENANCE.md records for bdb-event-frames-2022-w2.json",
+      "pass": true
+    },
+    {
+      "name": "the capture decodes",
+      "pass": true
+    },
+    {
+      "name": "the census is released at the named season 2022",
+      "pass": true
+    },
+    {
+      "name": "the 2022 capture yields the archive witness, because 2022 is before the current season 2026",
+      "pass": true
+    },
+    {
+      "name": "...and the witness is refused at the current season 2026",
+      "pass": true
+    },
+    {
+      "name": "every play is measured or refused for exactly one reason: 489 + 56 = 545",
+      "pass": true
+    },
+    {
+      "name": "the decoder kept every row: 545 snap and 491 release instants, 545 and 491 in the raw text",
+      "pass": true
+    },
+    {
+      "name": "a play with no release instant is refused as NoReleaseFrame, one with no snap as NoSnapFrame",
+      "pass": true
+    },
+    {
+      "name": "at least one play is measured",
+      "pass": true
+    },
+    {
+      "name": "drawn sums to zero on every measured play: 489 of 489",
+      "pass": true
+    },
+    {
+      "name": "every receiver's accessible name has the sanctioned form: 2438 of 2438",
+      "pass": true
+    },
+    {
+      "name": "every route runner is encoded and every NotRouteRunner is not: 1923 of 1923, 515 of 515",
+      "pass": true
+    }
+  ]
+}

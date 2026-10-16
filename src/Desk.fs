@@ -1620,12 +1620,13 @@ let dateKeying (g: Game) : DateKeying =
 /// composite-value flow into DOM catches this class of bug."
 ///
 /// A data flow cannot be grepped. It can be typed. The case below is private,
-/// so `amnestyZone` is the only source of a value of this type, and it hands
-/// one out for `Final` alone — which makes "no live-state call site" a
+/// so the two functions after it are the only sources of a value of this type:
+/// `amnestyZone` hands one out for `Final` alone, and `amnestyZoneAfterKickoff`
+/// for a kickoff two FIELD days gone — which makes "no live-state call site" a
 /// compile error rather than an audit finding.
 type AmnestyZone = private | AmnestyZone
 
-/// The only way to obtain the witness.
+/// The first way to obtain the witness: a game known to be Final.
 let amnestyZone (state: GameState) : AmnestyZone option =
     match state with
     | Final _ -> Some AmnestyZone
@@ -1634,6 +1635,20 @@ let amnestyZone (state: GameState) : AmnestyZone option =
     // whichever branch happens to be the wildcard.
     | Scheduled -> None
     | InProgress _ -> None
+
+/// The second, and only other, way to obtain the witness. Added for Flow
+/// (docs/CC-CMD-2026-10-15-empowerment-metrics.md, Task 1, ruling 2(b)): a
+/// match whose kickoff FIELD day is at least two days before `now`'s FIELD day
+/// is over, because a whole Eastern day has passed since its kickoff day ended.
+/// One day is not enough: a late kickoff on day D is still in play after
+/// midnight. It takes no score on purpose. A score read while a match was in
+/// play is not known to be the final one, and putting it into `Final` to reach
+/// the first route would assert that it is.
+let amnestyZoneAfterKickoff (kickoff: DateTimeOffset) (now: DateTimeOffset) : AmnestyZone option =
+    if fieldDayIsBefore (fieldDayAt kickoff) (fieldDayShift -1 (fieldDayAt now)) then
+        Some AmnestyZone
+    else
+        None
 
 /// The only way a drama score becomes a string anywhere in this program.
 ///

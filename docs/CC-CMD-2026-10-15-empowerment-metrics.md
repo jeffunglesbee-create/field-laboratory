@@ -121,6 +121,16 @@ clock counting up. Artifact: `outbox/nhl-shiftcharts-probe-latest.json`, run
 Note the allow-list trap recorded there: `/stats/rest/en/shiftcharts` is the
 working form; the documented `/nhl-stats/shiftcharts` is refused.
 
+> **CC, 2026-10-16 — stale since 2026-10-11.** field-relay-nba commit
+> `bf284b0` ("fix: /nhl-stats/shiftcharts reaches the path its own document
+> promises", 2026-10-11) made the documented relay form work. That repo's
+> `outbox/live-route-probe-latest.json` (probed 20261011T073330Z) records
+> `/nhl-stats/shiftcharts?cayenneExp=gameId=2026020053&final=1` answering 200
+> with 692 rows and `X-NhlStats-State: vendor`, and a path outside the
+> allow-list refused 403. Not re-probed today. Task 3 bypasses the relay
+> either way: it reads `api.nhle.com/stats/rest/en/shiftcharts` directly, the
+> route Task 0 proved in run 38881438378.
+
 **Confirm instead:** that the interval join from shift to event is sound, and
 reuse the four states that work already defined — `resolved`,
 `disagrees-with-situation`, `no-shift-data`, `instant-in-no-interval`. Do not
@@ -352,6 +362,79 @@ before being recorded, are the ruling.
    enforces this CC-CMD's own scope, "Do not build toward live"; the
    live-capture CC-CMD is where it is revisited.
 
+> **CC, 2026-10-16 — the premises, measured over every capture before any
+> type was built (lab Rule 100).** field-relay-nba
+> `scripts/empowerment-premises.mjs`; every figure below is from ONE run,
+> 38963130231 (artifact `outbox/empowerment-premises-latest.json` there at
+> relay commit `e09b74e`): 789 non-shell captures read whole, 786 of them
+> uploaded by Task 0's census time.
+>
+> - **xG.** A number on 20,932 of 21,055 shotmap rows. 123 rows carry
+>   `xg: null`, in 9 captures; 5 of the 123 are own-goal rows. **No row has
+>   `xg` 0**, so ruling 3's skip has nothing to act on in today's store; it is
+>   built and tested anyway. 496 rows are `xg_estimated`, not 13 (the 13 were
+>   the 150-capture sample).
+> - **Stoppage encoding.** `min` plus `added` at 45 (686 shots), 90 (777),
+>   **105 (8)** and 120 (13), and nowhere else; no shot past 90' in a capture
+>   without an extra-time marker. So 105+N is BSD's encoding at extra time's
+>   interval, as at 45 and 90, and 106 is a sound boundary (delegated ruling 1's
+>   condition, met).
+> - **Period markers, by set.** HT + Second half (live) 736; FT + HT 30;
+>   Extra time (live) + FT + HT 14; ET + FT + HT 2; ET + FT + HT + PEN 1;
+>   HT + Second half (not live) 3; First half (live) 1; none 2. **FT at 90' sits
+>   beside an extra-time marker in all 17 extra-time captures**, at a level score
+>   in 14: BSD writes full time at 90' before extra time as well.
+> - **Kickoff.** Every capture carries `event_id` (stats.json 789 of 789,
+>   incidents.json 787 of 787 that have one), and every capture's BSD event row
+>   carries `event_date` (789 of 789 joined; 968 rows fetched for ten league
+>   ids). Ruling 2(b)'s condition, "measure that every capture carries a kickoff
+>   time before relying on this route", is met through the capture's own
+>   `event_id`.
+> - **Own goals.** 74 own-goal incidents; the shotmap books 70 of them as a
+>   goal row on the credited side (`gtype` "own", 73 rows in all), 0 on the
+>   other side.
+> - **Shootout kicks.** 8 rows with `sit` "shootout", at minutes 122-129 of the
+>   one capture that reached a shootout.
+> - **Shared minutes.** 308, in 260 captures (counted over every row, own goals
+>   and unread captures included, so the census's count will differ).
+>
+> **CC, 2026-10-16 — what was built, and the decisions the measurements and
+> one adversarial review forced (taken by delegation, "Go with Claude's best
+> recommendations"; each is listed again in the session doc for the owner).**
+>
+> - `src/Flow.fs`: `decodeCapture`, `readingAt`, `witnessAfterKickoff`,
+>   `ariaLabel`, `pulseStyle`, `flowCensus`; `xg` in `src/Units.fs`. Shots-only
+>   Flow as ruled, never across 45'/46', 90'/91' or 105'/106'; a run still
+>   open after the last shot ends at its period's boundary.
+> - **The verdict never leaves `Flow` as a value.** `TeamState` is a private
+>   type and `readingAt` carries no state; the verdict reaches a page only
+>   through `ariaLabel` and `pulseStyle`, which demand the witness. A first
+>   version exposed the state as an opaque value; the review showed Thoth's
+>   auto encoder, Fable reflection and boxed equality all read it.
+> - **The witness is Flow's own (`Finished`) and holds its capture**, so a
+>   witness for one match cannot label another. **Its one route is the
+>   kickoff**: the capture's own event row, two FIELD days after kickoff,
+>   through a new `Desk.amnestyZoneAfterKickoff` that takes no score. A
+>   full-time route (ruling 2(b)'s first option) was built and then removed:
+>   because FT is written at 90' before extra time too, a knockout match
+>   captured in that break carries exactly the "regulation finish" shape while
+>   still in play, and its score would have gone into `Final`.
+> - **A capture's two files must name one event**: an incidents file whose
+>   `event_id` differs from the stats file's is ignored and counted.
+> - **Own-goal rows and shootout kicks are set aside**, counted, and seen by
+>   no run: an own goal is booked to a team that did not shoot it, and a
+>   shootout kick is not a shot in the match. Neither ruling covers them; the
+>   frame finding above already said an own goal "needs its own case".
+> - **A shot with no `xg` number leaves its whole capture unread**, and the
+>   census lists those captures by slug and id. That is this section's own
+>   instruction ("goes to the owner before a run treats it either way"), and
+>   it is the open owner question: how should a run treat such a shot?
+> - Proofs: `docs/FLOW-PROOF.md` (5 cases) and the "Flow" section of
+>   `docs/AMNESTY-PROOF.md` (5 cases, plus what no type here can stop: a
+>   made-up event row or clock, and reflection). 41 Suite rows; 18 mutations.
+> - Nothing renders `InFlow`: no tab, no DOM node. The witness requirement is
+>   inherited by whoever builds one.
+
 From the original task (the R2 section above rules `InFlow` post-hoc, not
 live):
 
@@ -431,6 +514,65 @@ the build cannot exclude dead time, give it a case of its own — the same move
 - **Added time has one momentum row for the whole added period.** A rolling
   4-minute window spanning added time is not spanning four minutes of it.
 
+> **CC, 2026-10-16 — Task 2 built. No real window can construct a lock.**
+>
+> - **Built.** `src/TacticalLock.fs` holds the following:
+>   - `DefenseState`, private: `Searching | Quiet | LockedOn of suppressed *
+>     bestChanceAllowed | ActivePlayUnmeasured | ChanceUnmeasured`.
+>   - One lock constructor. It takes the opponent's best chance and refuses
+>     when either xG bar is exceeded.
+>   - `Bars`, behind a smart constructor.
+>   - The shape encoding and the accessible name, both behind
+>     `Desk.AmnestyZone`.
+>   - `lockWindows`, which counts one capture's windows by classifying them.
+>
+>   Proofs: `docs/LOCK-PROOF.md` (5 cases) and a Tactical Lock section in
+>   `docs/AMNESTY-PROOF.md` (4 cases). The Suite gains 15 checks, and
+>   `scripts/mutation-check.mjs` gains 8 mutations.
+> - **The premise, over every capture.** This replaces Task 0's 150-capture
+>   sample for Task 2. Source: field-relay-nba run 38962367310,
+>   `outbox/empowerment-premises-latest.json`, key `soccer.T`. It read
+>   stats.json for 788 of 788 non-shell captures and incidents.json for 786.
+>   - **Clocks.** The only key finer than the minute is `period_second`, on 66
+>     incident objects; which incident types carry it was not recorded. No shot
+>     carries a clock finer than `min`/`added`.
+>   - **Incident types.** period 1589, card 2830, goal 2378, injuryTime 1298,
+>     substitution 7240, varDecision 220. None is a throw-in, goal kick or foul.
+>   - **Restarts.** They appear only in goals' `sequence[]`: throw-in 64 and
+>     free-kick 2, of 8166 events. None of the 8166 carries a time key.
+> - **The result.** No stoppage can be placed on a clock, so every window
+>   keeps its dead time and classifies as `ActivePlayUnmeasured`. `LockedOn`
+>   has no real window to stand on, and neither do `Quiet` or `Searching`.
+>   Under done condition 2 that is a measured result, not a gap.
+> - **Section 0.4's territory denominator.** There is none at window grain
+>   either. Final-third entries and possession are reported per half or per
+>   match, and `momentum` is validated at half grain only. The module header
+>   reconciles this with "Task 2 cannot be built" in three ways:
+>   - `ActivePlayOnly` evidence is a test seam. It lets the table and the
+>     private constructor be tested (done condition 5).
+>   - `Territory` is a judgement handed in, never read from momentum.
+>   - The bars are uncalibrated to any window length. No production value
+>     ships.
+> - **Delegated decision F: the accessible name.** It names the numbers for
+>   what they are: "LockedOn state active, opponent xG 0.09, opponent best
+>   chance xG 0.05". The type keeps the spec's field names. **Owner
+>   question:** what does `suppressed` mean? Either the xG the opponent was
+>   held to, which is what the code stores (their summed window xG), or an
+>   amount taken away from an expected level, which needs an expected-xG
+>   model that nothing here measures.
+> - **Delegated decision G: territory**, as above. Two further choices sit
+>   with it:
+>   - An xG that is not a finite number at or above zero is its own case,
+>     `ChanceUnmeasured`. The same premise pass found `xg` null on 123 of
+>     21020 shots (`soccer.P1`).
+>   - Both high-xG cells of the table are `Searching`.
+> - **The gate.** Classifying is not gated: a census may compute a verdict
+>   for every capture. Drawing and naming a state require the witness. Where
+>   the witness came from is not compiler-checked.
+> - **Reopening the window** needs sub-minute clocks and typed restarts.
+>   `docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md` now asks the WebSocket
+>   frames for both (its done condition 5).
+
 ---
 
 # TASK 3 — Second Wind (gated on 0.3)
@@ -506,6 +648,83 @@ counted without one. Establish what that does to the rate before relying on it.
 **Source:** `api.nhle.com/stats/rest/en/shiftcharts`. The documented form
 `/nhl-stats/shiftcharts` is refused by the allow-list — use the working one.
 
+> **CC, 2026-10-16 — the refusal above is stale.** field-relay-nba commit
+> `bf284b0` made `/nhl-stats/shiftcharts` work on 2026-10-11; see the CC note
+> under Task 0.3. The source line stands: Task 3 reads the vendor host directly.
+
+> **CC, 2026-10-16 — Task 3 as built, and what the premises said first.**
+> Module `src/Stamina.fs`; checks in the Suite's "Second Wind" group; compile
+> proofs in `docs/STAMINA-PROOF.md` and the Second Wind section of
+> `docs/AMNESTY-PROOF.md`; session record `outbox/second-wind-2026-10-16.md`.
+>
+> - **The premises, measured before the types.** field-relay-nba run
+>   38962367310, its `outbox/empowerment-premises-latest.json` key `nhl`
+>   (run 38963130231 reproduced that key with identical values). 2025-26 regular
+>   season, ids 2025020001+4k, k = 0..327: 328 of 328 play-by-play and 328 of
+>   328 shift charts read; `gameState` OFF on all 328, `gameType` 2 on all 328.
+>   13118 roster spots, 0 without `positionCode` (G 1311). Attempts: goal
+>   2102, shot-on-goal 16298, missed 9872, blocked 10071; 0 without a credited
+>   key, 0 without a clock, 737 beyond regulation (period 4 or later), 5
+>   credited to a goalie, 0 to a non-roster id, 0 to a skater with no
+>   regulation shift. Penalties 2429, 71 without `committedByPlayerId`. Shift
+>   charts: 0 total-against-rows mismatches, 0 games without rows, typeCode
+>   517 on 247474 rows and 505 on 2125, 0 unreadable 517 times, 0 ending
+>   before they start, 0 of zero length, 0 from another game, 2316 shifts in
+>   period 4 or later. Regulation ice per skater-game (11807): p5 543 s, p10
+>   631, p25 800, p50 989, p75 1173, p90 1334, p95 1431.
+> - **A premise this task states is refuted under this measure.** "Most
+>   players decline late, so flat is not the null" is not what individual shot
+>   attempts show. Thirds of each skater's own regulation ice (first: 3τ < T;
+>   last: 3τ >= 2T), credited attempts in periods 1-3, skaters only: under
+>   720 s, 1971 skater-games, first third 1061, last 1122; 720-1079 s, 5505,
+>   5308 and 5286; 1080 s and over, 4331, 5791 and 5999. By ice-time decile the
+>   last/first ratio runs 1.11, 1.02, 0.96, 1.00, 1.00, 1.02, 0.98, 1.09, 0.98,
+>   1.06. The population does not decline under this measure; it is flat to
+>   slightly rising. The metric still works, because each band's expected
+>   last-third share is measured, not assumed (0.514, 0.499 and 0.509 for these
+>   counts, read through `staminaBands`). The Suite's "declining" curves are
+>   test inputs and are not described as typical. The sentence "a player
+>   dropping 5% where the league drops 20% has a second wind" describes a
+>   population this season did not produce.
+> - **Goals and penalties.** Attempts are credited by name: `scoringPlayerId`
+>   for a goal, `shootingPlayerId` for a shot on goal, a missed shot and a
+>   blocked shot. Nothing is credited through on-ice membership, so the 23/101
+>   goal failure cannot arise and every goal counts. Penalties are excluded by
+>   name: they are not in `AttemptKind`, and every call is counted as
+>   `PenaltiesNotCredited`. The boundary these build constraints describe is
+>   measured rather than relied on: `staminaCoverage` counts named credit
+>   against the credited player's own shifts under [a,b), under (a,b] and in no
+>   interval, with a same-period guard `onIceAt` lacks and the +600 s control,
+>   per class (goals, other attempts, penalties). The population script
+>   reports it; it gates the integrity of named credit for non-goal attempts.
+> - **A fourth case, `PopulationRate`.** The type above has three cases. An
+>   exact binomial test on the skater's own split has three outcomes at every
+>   n, and "one holding flat against a flat baseline has nothing" is the
+>   third. Folding it into `Fatiguing` would rebuild the absence-defined state
+>   this document opens by naming; Rule 99 puts it beside the others. CC added
+>   it; the owner may rule otherwise.
+> - **`Insufficient`.** Below the fewest attempts at which BOTH verdicts are
+>   reachable at 2.5% in the skater's band. For the measured shares that is 6
+>   attempts in the first and last thirds together, in every band. Derived from
+>   the counts above, not separately measured: about 2.1 attempts per
+>   skater-game fall in those two thirds (24567 over 11807), so `Insufficient`
+>   will be most readings.
+> - **Question for the owner: the case word in the label.** The accessibility
+>   amendment requires "state name plus the number that produced it", so the
+>   one string reads, for example, `Fatiguing state active, last third 0
+>   attempts against 3.6 expected`. That puts this task's own case word into UI
+>   copy, against "Nothing in the type, the docs, or the UI copy may assert
+>   conditioning, fitness or biology". `SecondWind` is the same kind of
+>   metaphor, more weakly. No check exempts either word. A mechanical
+>   alternative, ready if ruled: the label says `BelowPopulationRate`,
+>   `AbovePopulationRate` and `AtPopulationRate` where it now says
+>   `Fatiguing`, `SecondWind` and `PopulationRate`, and the case names stay.
+> - **Filed, not built.** A denser contribution measure (on-ice CF/60):
+>   `docs/CC-CMD-2026-10-16-second-wind-denser-measure.md`, an owner
+>   decision. Found while building: `SealedDrama`, `DramaBar` and `SealedArc`
+>   print their numbers through `%A` under Fable:
+>   `docs/CC-CMD-2026-10-16-sealed-drama-string-path.md`.
+
 ---
 
 # TASK 4 — Gravity Well (gated on 0.2)
@@ -526,6 +745,20 @@ error, and add a `docs/GRAVITY-PROOF.md` showing the rejection, matching this
 repo's `*-PROOF.md` convention.
 
 **0-100 normalized only. No fabricated meters.**
+
+> **CC, 2026-10-16 — the NFL build uses yards, and they are not a
+> normalisation.** The sentence above was written for soccer, whose BSD
+> coordinates are 0-100 shares of a pitch whose size the payload does not
+> carry. Big Data Bowl tracking is published in yards: the frames envelope
+> states `coordinateConvention.units: "yards"` (and `frame: "offense-right"`),
+> the builder verified that convention before upload (x 910/910 and 895/895,
+> y 53/53 and 57/57; jubilant-bassoon `outbox/bdb-event-frames-build-latest.json`,
+> run 38945906448), and the committed capture's x runs 4.41 to 123.49 and y
+> 0.04 to 52.75 on a field 120 by 53.3 yards by rule. So the principle is kept
+> as "native units only": a `yd` measure in `src/Units.fs`, a decoder that
+> refuses any other unit by name, no meters measure, and no radius at all (the
+> brief's 4.0 m is not converted). `docs/GRAVITY-PROOF.md` compiles yards
+> against a bare number (FS0001) and meters having no unit (FS0039).
 
 ---
 

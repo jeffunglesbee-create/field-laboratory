@@ -88,7 +88,18 @@ jobs:
     # 90 keeps that ratio against the 36m52s floor. It is deliberately a ceiling
     # on a runaway and not a target: if a run approaches it, the suite has grown
     # again and the number needs re-measuring rather than raising by reflex.
-    timeout-minutes: 90
+    #
+    # RE-MEASURED 2026-10-16, RAISED 90 -> 240, for work that is new: the four
+    # empowerment metrics (docs/CC-CMD-2026-10-15-empowerment-metrics.md) add 46
+    # mutations and 47 proof cases. The last two CI runs before them took 60.0
+    # and 61.5 min, and local gates had matched CI within a few minutes
+    # (3559-4058 s). At about 45 s a mutation and 8.5 s a proof case, run twice
+    # here (check:proof, then the gate's proof row), that is roughly +35 and +14
+    # min: about 110 min. 240 keeps roughly the old 2x ratio. The measured
+    # duration of the first full gate with all four is recorded in
+    # outbox/cc-session-2026-10-15-empowerment-metrics.md; if a run approaches
+    # this number, re-measure again.
+    timeout-minutes: 240
     steps:
       # Full history: the gate's history rows walk to the root, and a shallow
       # clone would silently make them pass on one commit.
