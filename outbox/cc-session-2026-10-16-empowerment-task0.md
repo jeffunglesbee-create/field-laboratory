@@ -42,11 +42,12 @@ store, 0 failed pages.
   those rulings the probe counted 535-556 runs of 3+ own-team shots over 150
   of 786 captures, the range set by 62 mixed-team minutes, over shots of any
   xG; rulings 1, 3 and 4 each change that basis, and no count was made under
-  them. Two questions are asked of the owner before Task 1 starts, under
-  Task 1 in the CC-CMD: whether a run breaks at extra time's own interval
-  (105'/106'), where the probe broke; and what gates `InFlow`'s render
-  (nothing beyond the 2026-10-15 non-text ruling, the match being over, or
-  the capture recording full time, 47 of 786). 171 of 2422
+  them. The two questions those rulings left were ruled the same day by
+  delegation ("Go with Claude's best recommendations"): a run also breaks at
+  extra time's own interval (105'/106'), and `InFlow` renders only once the
+  match is over, implemented as the `AmnestyZone` witness, plus the non-text
+  rule. Both are under Task 1 in the CC-CMD, with how Task 1 must obtain the
+  witness (a full-time incident, or a kickoff day at least two days back). 171 of 2422
   same-team shot pairs have a `fast-break` second shot, i.e. an opponent
   possession the narrowing calls uninterrupted. xG on 4125/4125 shots, 13
   estimated.

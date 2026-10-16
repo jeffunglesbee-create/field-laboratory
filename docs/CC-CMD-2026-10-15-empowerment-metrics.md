@@ -183,8 +183,9 @@ accessibility amendment above still applies in full.
 
 > **CC, 2026-10-16.** For `InFlow`, Task 1 ruling 4 replaces the
 > finished-only reading of this sentence (47 of 786 captures record full
-> time) with all 786. `InFlow`'s amnesty position is asked of the owner
-> under Task 1's rulings.
+> time) with all 786. `InFlow`'s amnesty position is ruled under Task 1
+> (2026-10-16, by delegation): an `AmnestyZone` witness, plus the non-text
+> rule.
 
 A live capture path for current fixtures is filed separately as a prerequisite
 for any live rendering. **Do not build toward live in this CC-CMD.**
@@ -300,15 +301,56 @@ open, verbatim:**
 >   any `Final` `GameState`. Nothing in `src/` builds a `GameState` from a
 >   BSD soccer capture. The 2026-10-15 ADR-002 ruling below conditions on
 >   non-text encodings and names no game state.
->
-> **Open, for the owner. Task 1 has not started; both are asked before it
-> does.**
->
-> 1. Does a run also break at extra time's own interval (105'/106')? The
->    probe broke there; rulings 1 and 2 settle every other boundary.
-> 2. What gates `InFlow`'s render? (a) Nothing beyond the 2026-10-15
->    non-text ruling; (b) the match being over at render time; or (c) the
->    capture recording full time, 47 of 786.
+
+**Ruled 2026-10-16 (owner), by delegation.** CC asked the two questions
+below, as written here; the owner answered "Go with Claude's best
+recommendations". CC's recommendations, each argued against by a reviewer
+before being recorded, are the ruling.
+
+1. *Asked:* "Does a run also break at extra time's own interval
+   (105'/106')? The probe broke there; rulings 1 and 2 settle every other
+   boundary."
+
+   **Yes.** A run never crosses a period boundary: 45'/46', 90'/91' or
+   105'/106'. Grounds: ruling 2 is about period breaks, and the owner
+   applied it to the extra-time boundary as well as half time. Not grounds:
+   the probe's 158 breaks (they count a rule the probe applied and are not
+   split by boundary) and ruling 1 (the order at 105'/106' is not
+   ambiguous). Task 1 reports its breaks per boundary, and checks that BSD
+   encodes stoppage in the first half of extra time as `min` 105 plus
+   `added`, as it does at 45' and 90', before relying on 106 as the
+   boundary.
+
+2. *Asked:* "What gates `InFlow`'s render? (a) Nothing beyond the
+   2026-10-15 non-text ruling; (b) the match being over at render time; or
+   (c) the capture recording full time, 47 of 786."
+
+   **(b), plus the 2026-10-15 non-text rule.** Of the three it is the most
+   restrictive option that still lets ruling 4's 786 captures render after
+   the match. (a) would leave "Do not build toward live" enforced by prose
+   while 734 captures stop in play; (c) would cut the render to 47 and undo
+   ruling 4. CC implements (b) as this repo's `AmnestyZone` witness. Nothing
+   in `src/` builds a `GameState` from a BSD capture, so Task 1 obtains the
+   witness under these constraints:
+   - From a full-time period incident in the capture (47 of 786), or from
+     the match's kickoff FIELD day being at least two days before today's,
+     so that a whole Eastern day has passed since the kickoff day ended. A
+     kickoff day merely before today's is not enough: a match that kicks off
+     late on Eastern day D is still in play after midnight. The kickoff day
+     is taken from the kickoff, never from the upload's UTC date. Measure
+     that every capture carries a kickoff time before relying on this route.
+   - Never by putting a capture's score into `Final` when the capture stops
+     in play: for 734 of 786 captures that score is not known to be the
+     final one.
+   - If this needs a second way to obtain the witness in `Desk.fs`,
+     `docs/AMNESTY-PROOF.md` is revised in the same commit. It gains a
+     compile-checked case proving the witness cannot be built except through
+     that function, and a runtime check, made to fail on purpose (Rule 90),
+     that a capture whose match is not over at render time gets no witness.
+
+   The 2026-10-15 ruling's text names no game state. Here the witness
+   enforces this CC-CMD's own scope, "Do not build toward live"; the
+   live-capture CC-CMD is where it is revisited.
 
 From the original task (the R2 section above rules `InFlow` post-hoc, not
 live):
