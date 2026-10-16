@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d63e822` | 2026-10-16 | [empowerment-flow-probe-latest.json](empowerment-flow-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `d63e822` | 2026-10-16 | [empowerment-gravity-probe-latest.json](empowerment-gravity-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `d63e822` | 2026-10-16 | [empowerment-second-wind-probe-latest.json](empowerment-second-wind-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `d63e822` | 2026-10-16 | [empowerment-tactical-lock-probe-latest.json](empowerment-tactical-lock-probe-latest.json) | probe: empowerment metrics Task 0, four stop conditions [skip ci] |
+| `7e2585b` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | probe: empowerment metrics Task 0, all four stop conditions on a runner |
+| `e986d11` | 2026-10-16 | [mutation-anchors-2026-10-16.md](mutation-anchors-2026-10-16.md) | fix: re-anchor four mutations that matched nothing since 2026-10-11 |
+| `92bf0f5` | 2026-10-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `2d8b302` | 2026-10-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `58e29a5` | 2026-10-15 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-15T21:46 [skip ci] |
 | `fe6079a` | 2026-10-15 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
