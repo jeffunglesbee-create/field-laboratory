@@ -2,8 +2,9 @@
 
 **CC-CMD:** `docs/CC-CMD-2026-10-15-empowerment-metrics.md`, TASK 0 (four probes).
 No type was written; Tasks 1-4 are not started.
-**State:** probe REVISED after its first live run was attacked and four
-verdict claims did not hold (below). The revision's run is the next commit.
+**State:** probe revised TWICE. The first run's verdicts were attacked and
+four did not hold; the second run's were attacked and 0.4's step from "not
+an echo" to "territory proxy" was untested. The third run is the next commit.
 Getting the gate green needed four stale mutation anchors fixed first,
 recorded separately in `outbox/mutation-anchors-2026-10-16.md`.
 
@@ -88,6 +89,31 @@ commit, recorded in every artifact as `relay_sha`).
   reproduced 6 more defects, all fixed before the gate: two-order run counting,
   overtime left in the control's denominator, the slow/busy/inverted territory
   failures, and four minor census and join holes.
+
+## Second run (c0c6e0c, run 38868561110), and the third revision
+
+Five skeptics (workflow `wf_36abfca5-f0e`) attacked the second run's
+verdicts. 0.1, 0.2 and 0.3 held. 0.4 did not: "momentum is not an echo of
+the shots" was shown, but an echo plus integer jitter is also "not an echo",
+and nothing tested that momentum carries TERRITORY. The payload carries the
+spec's own named measures (final-third entries, possession share) only per
+half, so the third revision validates momentum against them: its half mean
+against each, with the half's shot and xG difference partialled out.
+Momentum that tracks neither is MET ("reduces to the opponent did not
+shoot"); one that cannot be computed is UNMEASURED.
+
+Also from that round: Flow runs no longer cross half time; the shot `sit`
+field is censused (a fast-break shot after an own-team shot implies an
+unseen opponent possession); xG coverage is reported; a goal build-up is
+recognised as a sequence of actions by its shape, not by its path name;
+Second Wind prints the sampled games' own dates and counts actor plays on a
+period-end second (`onIceAt` has no period filter).
+
+The v3 self-test has 109 checks; 70/70 mutations are caught by a failing
+check. The harness now refuses to report unless the unmutated self-test
+passes, and counts a crash apart from a catch. That rule exists because one
+pass printed 70/70 while the self-test was crashing on a use-before-define:
+every "catch" was the crash.
 
 ## Found on the way, not Task 0
 

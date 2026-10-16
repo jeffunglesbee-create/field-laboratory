@@ -202,6 +202,7 @@ const TEAMLESS = new Set(['period', 'injuryTime'])
  * no single order contains together; a reviewer reproduced both.
  */
 export const ARRANGEMENT_CAP = 4096
+export const periodOf = (tm) => (tm < 46 ? 1 : tm < 91 ? 2 : tm < 106 ? 3 : 4)   // t = min + added/100, so 45+3 = 45.03 is period 1
 const uniquePerms = (labels) => {
   const out = new Set()
   const rec = (rest, acc) => {
@@ -232,7 +233,10 @@ export function flowRuns(shots) {
   const timedShots = shots.filter(s => Number.isFinite(s.min))
   const buckets = new Map()
   for (const s of timedShots) { const k = `${s.min}+${s.added ?? 0}`; (buckets.get(k) ?? buckets.set(k, { t: t(s), labels: [] }).get(k)).labels.push(lab(s)) }
-  const options = [...buckets.values()].sort((a, b) => a.t - b.t).map(b => bucketOptions(b.labels))
+  // A run never crosses a period break: a '|' between halves is a label no
+  // team shares, so it ends whatever run is open (45+N stays in the first half).
+  const sorted = [...buckets.values()].sort((a, b) => a.t - b.t)
+  const options = sorted.flatMap((b, i) => (i > 0 && periodOf(b.t) !== periodOf(sorted[i - 1].t) ? [['|'], bucketOptions(b.labels)] : [bucketOptions(b.labels)]))
   const total = options.reduce((n, o) => n * o.length, 1)
   const limit = Math.min(total, ARRANGEMENT_CAP)
   let minRuns = Infinity, maxRuns = -Infinity
@@ -243,7 +247,7 @@ export function flowRuns(shots) {
     for (let i = idx.length - 1; i >= 0; i--) { if (++idx[i] < options[i].length) break; idx[i] = 0 }
   }
   return { minRuns: Number.isFinite(minRuns) ? minRuns : 0, maxRuns: Number.isFinite(maxRuns) ? maxRuns : 0, arrangements: total, capped: total > ARRANGEMENT_CAP,
-    mixedBuckets: options.filter(o => o.length > 1).length, unknownSide: timedShots.filter(s => lab(s) === 'x').length, untimed: shots.length - timedShots.length }
+    mixedBuckets: options.filter(o => o.length > 1).length, periodBreaks: options.filter(o => o[0] === '|').length, unknownSide: timedShots.filter(s => lab(s) === 'x').length, untimed: shots.length - timedShots.length }
 }
 
 /** One capture's shotmap, judged for what Flow needs. */
@@ -344,7 +348,13 @@ export function flowOf(stats, incidents) {
     if (sides.size > 1) seq.bothTeams++
   }
   seq.keys = [...seqKeys].sort()
-  return { state: 'present', shots: shots.length, withMin, withXg, teams: teams.size, order, desc, asc, eq, tiedShots, mixedTies,
+  // A shot's own `sit` can name a turnover the event list never records: a
+  // fast-break shot that follows its own team's shot implies the opponent had
+  // the ball in between. Counted, because the narrowing calls that pair "uninterrupted".
+  const sits = {}; let fastBreakAfterOwnShot = 0
+  for (const x of shots) if (x.sit != null) sits[x.sit] = (sits[x.sit] ?? 0) + 1
+  for (let i = 1; i < ordered.length; i++) if (ordered[i].sit === 'fast-break' && ordered[i].home === ordered[i - 1].home) fastBreakAfterOwnShot++
+  return { state: 'present', sits, fastBreakAfterOwnShot, xgEstimated: shots.filter(x => x.xg_estimated === true).length, shots: shots.length, withMin, withXg, teams: teams.size, order, desc, asc, eq, tiedShots, mixedTies,
     seqAgree: agree, seqDisagree: disagree, goalJoin, runs: flowRuns(shots),
     interleave: { sameTeamPairs, pairsWithOpponentIncident, timedTypes }, seq }
 }
@@ -377,13 +387,14 @@ export function verdictFlow(rows) {
   const runs = { at_least_under_every_order: sum(present, r => r.runs.minRuns), at_most_under_any_order: sum(present, r => r.runs.maxRuns),
     captures_where_order_changes_the_count: present.filter(r => r.runs.maxRuns > r.runs.minRuns).length,
     mixed_team_buckets: sum(present, r => r.runs.mixedBuckets), captures_over_arrangement_cap: present.filter(r => r.runs.capped).length,
-    unknown_side_shots: sum(present, r => r.runs.unknownSide), untimed_shots: sum(present, r => r.runs.untimed) }
+    unknown_side_shots: sum(present, r => r.runs.unknownSide), untimed_shots: sum(present, r => r.runs.untimed), period_breaks: sum(present, r => r.runs.periodBreaks) }
+  const sitTotals = {}; for (const r of present) for (const [k, n] of Object.entries(r.sits)) sitTotals[k] = (sitTotals[k] ?? 0) + n
   const gj = present.reduce((o, r) => { for (const k of ['goals', 'sameMinute', 'otherMinute', 'missing']) o[k] += r.goalJoin[k]; for (const [d, n] of Object.entries(r.goalJoin.deltaMinutes)) o.deltaMinutes[d] = (o.deltaMinutes[d] ?? 0) + n; return o }, { goals: 0, sameMinute: 0, otherMinute: 0, missing: 0, deltaMinutes: {} })
   const verdict = met ? 'MET' : 'NOT MET'
   return {
     met, verdict, disjuncts,
     reason: met ? (disjuncts.no_ordering_key ? `shots lack min in ${present.length - keyed}/${present.length} captures` : `no capture shows an opponent event between two shots (both teams' shots in ${bothTeams}/${present.length})`)
-      : `every shot carries min (+added) in ${keyed}/${present.length} captures, and the opponent interleaves in ${bothTeams}/${present.length} (its shots) and in ${oppIncidentPairs} same-team shot pairs (a timed incident). What interleaves is SHOTS and timed incidents only (${timedTypes.join(', ')}): no event with a minute and a team says who had the ball. Flow is reconstructible as the shots-only narrowing the owner adopted 2026-10-15: at least ${runs.at_least_under_every_order} runs of 3+ own-team shots under every within-minute order, up to ${runs.at_most_under_any_order} under the most favourable (the order changes the count in ${runs.captures_where_order_changes_the_count} captures).`,
+      : `every shot carries min (+added) in ${keyed}/${present.length} captures, and the opponent interleaves in ${bothTeams}/${present.length} (its shots) and in ${oppIncidentPairs} same-team shot pairs (a timed incident). What interleaves is SHOTS and timed incidents only (${timedTypes.join(', ')}): no event with a minute and a team says who had the ball. Flow is reconstructible only as the shots-only narrowing docs/TASK0-RESULTS-2026-10-15 proposed: at least ${runs.at_least_under_every_order} runs of 3+ own-team shots under every within-minute order, up to ${runs.at_most_under_any_order} under the most favourable (the order changes the count in ${runs.captures_where_order_changes_the_count} captures).`,
     readings: {
       as_written: verdict,
       possession_level: possTimed.length === 0
@@ -392,7 +403,7 @@ export function verdictFlow(rows) {
       decides: 'as_written. The possession-level reading is recorded because it is the question behind the spec, and it is why the narrowing exists.',
     },
     narrowed_variant: {
-      definition: 'three consecutive own-team SHOTS with no opposing SHOT between: the narrowing docs/TASK0-RESULTS-2026-10-15 proposed and the CC-CMD\'s "Task 0 outcome" adopted',
+      definition: 'three consecutive own-team SHOTS with no opposing SHOT between, never across a period break: the narrowing docs/TASK0-RESULTS-2026-10-15 proposed, which the CC-CMD\'s "Task 0 outcome" cites; Task 1 in the CC-CMD still states the un-narrowed rule, so the narrowing is an owner decision',
       runs,
       own_team_within_minute_order: `array order ${Object.keys(orders).length === 1 ? Object.keys(orders)[0] : JSON.stringify(orders)}; goal build-up sequences agree ${agree}, disagree ${disagree}`,
       cross_team_within_minute_order: `UNORDERED: nothing orders two teams' shots inside one minute (${runs.mixed_team_buckets} mixed-team buckets), so every arrangement is tried and runs are reported as a range`,
@@ -400,6 +411,9 @@ export function verdictFlow(rows) {
     },
     within_minute_order: { array_order_by_capture: orders, goal_sequence_checks_agree: agree, disagree },
     ties: { tied_shots: sum(present, r => r.tiedShots), mixed_team_tied_minutes: sum(present, r => r.mixedTies), shots: sum(present, r => r.shots) },
+    shot_situation: { sit_values: sitTotals, fast_break_shots_following_an_own_team_shot: sum(present, r => r.fastBreakAfterOwnShot), same_team_adjacent_pairs: sum(present, r => r.interleave.sameTeamPairs),
+      meaning: 'each such shot implies an opponent possession between two own-team shots that the event list does not record; the shots-only narrowing counts that pair as uninterrupted' },
+    xg_coverage: { shots: sum(present, r => r.shots), with_xg: sum(present, r => r.withXg), xg_estimated: sum(present, r => r.xgEstimated) },
     sequence_census: { event_types: seqTypes, element_keys: seqKeys, goals_with_sequence: sum(present, r => r.seq.goalsWithSequence), naming_both_teams: sum(present, r => r.seq.bothTeams), elements_sided: sum(present, r => r.seq.sided), elements_unsided: sum(present, r => r.seq.unsided) },
   }
 }
@@ -426,11 +440,18 @@ export function coordinatePaths(obj, path = '', out = new Map(), parentTimed = f
   const bump = (p) => out.set(p, (out.get(p) ?? 0) + 1)
   if (Array.isArray(obj)) {
     if (obj.length >= 2 && obj.length <= 3 && obj.every(n => typeof n === 'number')) { bump(`${path}(tuple)`); return out }
-    const pts = obj.filter(hasXY)
-    const ids = new Set(pts.map(idOf).filter(v => v != null))
-    if (ids.size >= 2) {
+    // Several identified points under one time key. Directly ({x,y} on the
+    // element) or nested one level ({pos:{x,y}}); a nested array whose
+    // elements each carry an ACTION key is a sequence of successive on-ball
+    // actions (a goal build-up), not a snapshot of players at one instant.
+    const nestedXY = (el) => el && typeof el === 'object' && !Array.isArray(el) && Object.values(el).some(hasXY)
+    for (const [pts, nested] of [[obj.filter(hasXY), false], [obj.filter(el => !hasXY(el) && nestedXY(el)), true]]) {
+      const ids = new Set(pts.map(idOf).filter(v => v != null))
+      if (ids.size < 2) continue
       const t0 = pts.length ? timeOf(pts[0]) : null
-      if (parentTimed || (t0 != null && pts.every(p => timeOf(p) === t0))) bump(`${path}[](timed-multi-player)`)
+      if (!(parentTimed || (t0 != null && pts.every(p => timeOf(p) === t0)))) continue
+      const actions = nested && pts.every(el => ['event', 'type', 'action'].some(k => typeof el[k] === 'string'))
+      bump(`${path}[](${actions ? 'action-sequence' : 'timed-multi-player'})`)
     }
     for (const el of obj.slice(0, 60)) coordinatePaths(el, path + '[]', out, parentTimed)
     return out
@@ -443,6 +464,7 @@ export function coordinatePaths(obj, path = '', out = new Map(), parentTimed = f
 
 export function classifyCoordPath(p) {
   if (/\(timed-multi-player\)$/.test(p)) return 'off-ball-instant'
+  if (/\(action-sequence\)$/.test(p)) return 'on-ball (action sequence)'
   if (/\b(frames?|tracking|positions_at|snapshots?)\b/.test(p)) return 'off-ball-instant'
   if (/^average_positions\.(home|away)\[\]$/.test(p) || /^(home|away)\[\]$/.test(p)) return 'match-average'
   if (/^shotmap\[\]\.(pos|gm|block)$/.test(p)) return 'on-ball (shot)'
@@ -474,7 +496,7 @@ export function verdictGravity(paths, withCoords, population = '') {
   const reason = withCoords === 0 ? 'no capture with any coordinate was read; nothing was measured'
     : offBall.length ? `off-ball-instant paths found: ${offBall.map(p => p.path).join(', ')}`
     : unclassified.length ? `UNCLASSIFIED coordinate paths were not examined: ${unclassified.map(p => p.path).join(', ')}`
-    : `every coordinate path found in ${withCoords} captures is on-ball (one event) or a match average (one point per player per match); no array of 2+ identified players under one time key, in any shape the detector reads (objects, tuples, numeric strings)${population ? `. POPULATION: ${population}` : ''}`
+    : `every coordinate path found in ${withCoords} captures is on-ball (one event, or a goal build-up whose elements are successive actions) or a match average (one point per player per match); no snapshot of 2+ identified players at one instant, in any shape the detector reads (direct or nested {x,y}, numeric strings, number tuples)${population ? `. POPULATION: ${population}` : ''}`
   return { met, reason }
 }
 
@@ -507,7 +529,7 @@ const newActor = () => ({ bearing: 0, confirmed: 0, resolvedActorAbsent: 0, notR
 /** Tally onIceAt's four states over a game's plays. `onIceAt` is injected. */
 export function joinTally(onIceAt, pbp, shifts) {
   const home = pbp?.homeTeam?.id
-  const tally = { all: {}, events: {}, byType: {}, actor: newActor(), actorByType: {}, actorByPeriod: {}, notResolvedByState: {}, shootoutExcluded: 0, actorless: 0, excludedFromControl: 0 }
+  const tally = { all: {}, events: {}, byType: {}, actor: newActor(), actorByType: {}, actorByPeriod: {}, notResolvedByState: {}, shootoutExcluded: 0, actorless: 0, excludedFromControl: 0, actorAtPeriodEnd: 0 }
   const bump = (o, k) => { o[k] = (o[k] ?? 0) + 1 }
   for (const p of pbp?.plays ?? []) {
     const period = p.periodDescriptor?.number
@@ -521,6 +543,7 @@ export function joinTally(onIceAt, pbp, shifts) {
     const bt = tally.byType[p.typeDescKey] ??= {}; bump(bt, r.state)
     const actor = actorOf(p)
     if (actor === null) { tally.actorless++; continue }
+    if (p.timeInPeriod === '20:00' && period <= 3) tally.actorAtPeriodEnd++   // onIceAt has no period filter: this second can read the next period's line
     const buckets = [tally.actor, tally.actorByType[p.typeDescKey] ??= newActor(), tally.actorByPeriod[period >= 4 ? 'OT' : String(period)] ??= newActor()]
     for (const b of buckets) b.bearing++
     if (r.state !== 'resolved') { for (const b of buckets) b.notResolved++; bump(tally.notResolvedByState, r.state); continue }
@@ -552,9 +575,9 @@ export function verdictSecondWind(actor, control) {
   // stop a MAJORITY being credited when chance could explain it.
   if (share <= 0.5) return { met: true, share, controlShare, reason: `${actor.confirmed} of ${actor.bearing} plays that name a player resolve to an on-ice set CONTAINING that player (${pct(actor.confirmed, actor.bearing)}): not a majority` }
   if (controlShare === null) return { met: null, share, controlShare, reason: 'no decorrelated control was run, so the share cannot be told from chance' }
-  if (controlShare > 0.5) return { met: null, share, controlShare, reason: `the decorrelated control still confirms ${pct(control.confirmed, control.bearing)}, so a majority here proves nothing` }
+  if (controlShare > 0.5) return { met: null, share, controlShare, reason: `the decorrelated control still confirms ${pct(control?.confirmed, control?.bearing)}, so a majority here proves nothing` }
   return { met: false, share, controlShare,
-    reason: `${actor.confirmed} of ${actor.bearing} plays that name a player resolve to an on-ice set CONTAINING that player (${pct(actor.confirmed, actor.bearing)}); with the clock moved 600 s the same test confirms ${pct(control.confirmed, control.bearing)}, so the join resolves a majority, and not by chance` }
+    reason: `${actor.confirmed} of ${actor.bearing} plays that name a player resolve to an on-ice set CONTAINING that player (${pct(actor.confirmed, actor.bearing)}); with the clock moved 600 s the same test confirms ${pct(control?.confirmed, control?.bearing)}, so the join resolves a majority, and not by chance` }
 }
 
 /** Sum of shift durations per player, against the boxscore's toi. */
@@ -667,6 +690,26 @@ export function lockOf(stats, incidents) {
     out.series = { v: [...vAt], shots: shotmap.filter(s => Number.isFinite(s.min) && typeof s.home === 'boolean').map(s => [s.min, s.home ? 'h' : 'a']),
       xgDiff: (xpm ?? []).filter(r => Number.isInteger(r.m) && vAt.has(r.m)).map(r => [(r.xg_home ?? 0) - (r.xg_away ?? 0), vAt.get(r.m)]) }
   }
+  // TERRITORY AT HALF GRAIN. The spec's own named denominators (final-third
+  // entries, possession share) are in the payload only per half. Momentum's
+  // half mean is set beside them, with the half's shot and xG difference, so
+  // the pooled test can ask whether momentum tracks territory beyond shots.
+  const halfStats = (h) => stats?.stats?.[h === 1 ? 'first_half' : 'second_half']
+  const numOf = (v) => (typeof v === 'number' ? v : typeof v?.value === 'number' ? v.value : null)
+  out.halves = []
+  if (mom?.length) for (const h of [1, 2]) {
+    const inHalf = (m) => (h === 1 ? m >= 1 && m <= 45 : m >= 46 && m <= 90)
+    const vs = mom.filter(r => Number.isInteger(r.m) && inHalf(r.m) && Number.isFinite(r.v)).map(r => r.v)
+    const hs = shotmap.filter(x => Number.isFinite(x.min) && inHalf(x.min) && typeof x.home === 'boolean')
+    const st = halfStats(h)
+    const fte = [numOf(st?.home?.final_third_entries), numOf(st?.away?.final_third_entries)]
+    const pos = [numOf(st?.home?.ball_possession), numOf(st?.away?.ball_possession)]
+    if (vs.length < 10) continue
+    out.halves.push({ momMean: vs.reduce((a, b) => a + b, 0) / vs.length,
+      shotDiff: hs.filter(x => x.home).length - hs.filter(x => !x.home).length,
+      xgDiff: hs.reduce((a, x) => a + (typeof x.xg === 'number' ? (x.home ? x.xg : -x.xg) : 0), 0),
+      fteDiff: fte.every(v => v !== null) ? fte[0] - fte[1] : null, possDiff: pos.every(v => v !== null) ? pos[0] - pos[1] : null })
+  }
   // ACTIVE PLAY. Which minutes hold a stoppage-type incident, and does any
   // incident carry a clock finer than the minute?
   const STOP = new Set(['goal', 'card', 'substitution', 'varDecision', 'injuryTime'])
@@ -769,11 +812,64 @@ export function territoryTest(seriesList) {
   }
 }
 
+/**
+ * NOT AN ECHO IS NOT YET TERRITORY. A series that is shots plus noise also
+ * moves where nobody shoots, so the quiet-stretch tests above can only rule an
+ * echo IN, never territory in. The payload carries the spec's own named
+ * territory measures at half grain (final-third entries, possession share), so
+ * momentum's half mean is regressed on them with the half's shot and xG
+ * difference partialled out. Momentum is a territory proxy only if it still
+ * tracks one of them once shots are accounted for.
+ */
+export const TERRITORY_MIN_HALVES = 100
+export const TERRITORY_MIN_PARTIAL_R = 0.2
+export const TERRITORY_MIN_T = 3
+
+/** Residuals of y after an OLS fit on intercept + the given columns. */
+function residuals(y, cols) {
+  const n = y.length, X = y.map((_, i) => [1, ...cols.map(c => c[i])]), k = X[0].length
+  const A = Array.from({ length: k }, (_, a) => Array.from({ length: k }, (_, b) => X.reduce((q, r) => q + r[a] * r[b], 0)))
+  const v = Array.from({ length: k }, (_, a) => X.reduce((q, r, i) => q + r[a] * y[i], 0))
+  for (let i = 0; i < k; i++) {                                   // Gauss-Jordan, tiny k
+    let piv = i; for (let r = i + 1; r < k; r++) if (Math.abs(A[r][i]) > Math.abs(A[piv][i])) piv = r
+    ;[A[i], A[piv]] = [A[piv], A[i]]; [v[i], v[piv]] = [v[piv], v[i]]
+    if (Math.abs(A[i][i]) < 1e-12) return null
+    for (let r = 0; r < k; r++) if (r !== i) { const f = A[r][i] / A[i][i]; for (let c = 0; c < k; c++) A[r][c] -= f * A[i][c]; v[r] -= f * v[i] }
+  }
+  const beta = v.map((x, i) => x / A[i][i])
+  return y.map((yi, i) => yi - X[i].reduce((q, xv, j) => q + xv * beta[j], 0))
+}
+const corr = (a, b) => { const n = a.length; if (n < 3) return null; const ma = a.reduce((q, x) => q + x, 0) / n, mb = b.reduce((q, x) => q + x, 0) / n
+  let sab = 0, saa = 0, sbb = 0; for (let i = 0; i < n; i++) { sab += (a[i] - ma) * (b[i] - mb); saa += (a[i] - ma) ** 2; sbb += (b[i] - mb) ** 2 }
+  return saa && sbb ? sab / Math.sqrt(saa * sbb) : null }
+
+export function territoryValidation(halves, positiveIsHome = true) {
+  const out = { halves: halves.length, definition: 'per half: momentum mean (home-positive) against the home-minus-away difference in final-third entries and in possession, each with the half\'s shot and xG difference partialled out' }
+  for (const [name, key] of [['final_third_entries', 'fteDiff'], ['ball_possession', 'possDiff']]) {
+    const hs = halves.filter(h => h[key] !== null && Number.isFinite(h[key]))
+    const m = hs.map(h => (positiveIsHome ? 1 : -1) * h.momMean), y = hs.map(h => h[key])
+    // Shots and xG together; if they are collinear the fit is singular, and
+    // shots alone are used instead (named in the output) rather than no answer.
+    let ctrl = [hs.map(h => h.shotDiff), hs.map(h => h.xgDiff)], used = 'shots and xG'
+    let rm = hs.length >= 5 ? residuals(m, ctrl) : null, ry = hs.length >= 5 ? residuals(y, ctrl) : null
+    if (hs.length >= 5 && (!rm || !ry)) { ctrl = [ctrl[0]]; used = 'shots only (xG collinear)'; rm = residuals(m, ctrl); ry = residuals(y, ctrl) }
+    const pr = rm && ry ? corr(rm, ry) : null
+    const df = hs.length - 2 - ctrl.length
+    const tStat = pr !== null && df > 0 && Math.abs(pr) < 1 ? pr * Math.sqrt(df / (1 - pr * pr)) : null
+    out[name] = { n: hs.length, raw_r: corr(m, y) === null ? null : +corr(m, y).toFixed(3), partial_r_given_shots_and_xg: pr === null ? null : +pr.toFixed(3),
+      t: tStat === null ? null : +tStat.toFixed(2), partialled_out: used, shots_vs_measure_r: corr(ctrl[0], y) === null ? null : +corr(ctrl[0], y).toFixed(3) }
+  }
+  const pass = (o) => o.n >= TERRITORY_MIN_HALVES && o.partial_r_given_shots_and_xg !== null && o.partial_r_given_shots_and_xg >= TERRITORY_MIN_PARTIAL_R && o.t >= TERRITORY_MIN_T
+  const enough = [out.final_third_entries, out.ball_possession].some(o => o.n >= TERRITORY_MIN_HALVES && o.partial_r_given_shots_and_xg !== null)
+  out.tracks = enough ? [['final_third_entries', out.final_third_entries], ['ball_possession', out.ball_possession]].filter(([, o]) => pass(o)).map(([k]) => k) : null
+  return out
+}
+
 // A territory proxy is only a denominator once its DIRECTION is known.
 export const SIGN_MIN_MINUTES = 30
 export const SIGN_MIN_SHARE = 0.6
 
-export function verdictLock(rows, territory = null, signByComp = {}) {
+export function verdictLock(rows, territory = null, signByComp = {}, validation = null) {
   const n = rows.length
   if (n === 0) return { met: null, verdict: 'UNMEASURED', reason: 'no capture was read; nothing was measured' }
   const mom = rows.filter(r => r.momentum === 'present').length
@@ -797,20 +893,25 @@ export function verdictLock(rows, territory = null, signByComp = {}) {
   else if (staticEcho) { met = true; reason = `momentum does not move where nobody shoots: it changes in ${T.changes_in_stretches} of ${T.transitions_in_stretches_of_3_plus} minutes of ${T.stretches_of_3_plus} shot-free stretches (${pct(T.changes_in_stretches, T.transitions_in_stretches_of_3_plus)}), as a running count of shots would. So Tactical Lock reduces to "the opponent did not shoot"` }
   else if (smoothEcho || windowEcho) { met = true; reason = `momentum behaves like an ECHO of the shots where nobody shoots: ${smoothEcho ? `excess direction changes ${T.excess_reversals}/${T.possible_excess} (${pct(T.excess_reversals, T.possible_excess)}), which a decaying or cumulative function of shots also gives` : ''}${smoothEcho && windowEcho ? '; and ' : ''}${windowEcho ? `${pct(T.best_age_share * 100, 100)} of its changes sit exactly ${T.best_single_shot_age} minutes after a shot, as a shot-window count's would` : ''}. So Tactical Lock reduces to "the opponent did not shoot"` }
   else if (!established) { met = null; reason = `momentum moves on its own where nobody shoots (excess direction changes ${pct(T.excess_reversals, T.possible_excess)}, best single shot age explains ${pct(T.best_age_share * 100, 100)} of changes) but its DIRECTION is not established (${signAgree} vs ${signDis} over ${signN} one-team minutes)` }
-  else { met = false; reason = `momentum is a territory proxy, not an echo: in ${T.stretches_of_3_plus} shot-free stretches it changes direction beyond what any decaying or cumulative function of shots can (excess ${T.excess_reversals}/${T.possible_excess}, ${pct(T.excess_reversals, T.possible_excess)}), and no single shot age explains its changes (best ${T.best_single_shot_age} min, ${pct(T.best_age_share * 100, 100)}). Direction ${direction} (${Math.max(signAgree, signDis)}/${signN} one-team shot minutes)${compsAgainst.length ? `, EXCEPT ${compsAgainst.join(', ')}, whose own minutes point the other way` : ''}. Present in ${mom}/${n} captures (xg_per_minute ${xpm}/${n})` }
+  else if (!validation || validation.tracks === null) { met = null; reason = `momentum is not an echo of the shots, but whether it measures TERRITORY is untested: fewer than ${TERRITORY_MIN_HALVES} halves carry the payload's own final-third or possession figures (${validation?.halves ?? 0} halves read)` }
+  else if ((validation.tracks ?? []).length === 0) { met = true; reason = `momentum is not an echo of the shots, but it does not track territory either: with each half's shot and xG difference partialled out, its half mean against final-third entries gives r = ${validation.final_third_entries.partial_r_given_shots_and_xg} (t ${validation.final_third_entries.t}, ${validation.final_third_entries.n} halves) and against possession r = ${validation.ball_possession.partial_r_given_shots_and_xg} (t ${validation.ball_possession.t}). The payload's territory measures exist only per half, so at window grain Tactical Lock reduces to "the opponent did not shoot"` }
+  else { met = false; const vt = (k) => `${k.replace(/_/g, ' ')} r = ${validation[k].partial_r_given_shots_and_xg} (t ${validation[k].t}, ${validation[k].n} halves)`
+    reason = `momentum is a per-minute territory proxy: it is not an echo of the shots (in ${T.stretches_of_3_plus} shot-free stretches, excess direction changes ${T.excess_reversals}/${T.possible_excess}, ${pct(T.excess_reversals, T.possible_excess)}; best single shot age ${pct(T.best_age_share * 100, 100)}), and with each half's shot and xG difference partialled out its half mean still tracks the payload's own territory measures: ${validation.tracks.map(vt).join('; ')}. Direction ${direction} (${Math.max(signAgree, signDis)}/${signN} one-team shot minutes)${compsAgainst.length ? `, EXCEPT ${compsAgainst.join(', ')}, whose own minutes point the other way` : ''}. Present in ${mom}/${n} captures (xg_per_minute ${xpm}/${n})` }
   return {
     met, verdict: met === true ? 'MET' : met === false ? 'NOT MET' : 'UNMEASURED', reason,
     thresholds: { sign: `>= ${SIGN_MIN_MINUTES} one-team minutes at >= ${100 * SIGN_MIN_SHARE}%`,
       territory: `>= ${TERRITORY_MIN_STRETCHES} quiet stretches of 3+; echo if it moves in < ${100 * TERRITORY_MIN_MOVING}% of their minutes, or (with >= ${TERRITORY_MIN_CHANGES} changes) its excess-reversal rate is < ${TERRITORY_MIN_EXCESS}, or one shot age explains > ${100 * TERRITORY_MAX_AGE_SHARE}% of its changes`,
+      validation: `>= ${TERRITORY_MIN_HALVES} halves; partial r >= ${TERRITORY_MIN_PARTIAL_R} with t >= ${TERRITORY_MIN_T} against final-third entries or possession`,
       origin: 'this probe\'s bars, not the spec\'s; the counts are printed so a reader can apply another' },
-    territory,
+    territory, territory_validation: validation,
     momentum_sign: { agree_if_positive_is_home: signAgree, against: signDis, minutes: signN, direction, competitions_pointing_the_other_way: compsAgainst,
       by_direction: rows.reduce((o, r) => { for (const [k, v] of Object.entries(r.mom?.sign ?? {})) o[k] = (o[k] ?? 0) + v; return o }, {}) },
     lag_profile: rows.reduce((o, r) => { for (const [k, v] of Object.entries(r.mom?.lag ?? {})) { const e = o[k] ??= { agree: 0, against: 0 }; e.agree += v.agree; e.against += v.against } return o }, {}),
     half_time_marked: rows.filter(r => r.halfTimeMarked).length,
     added_time: { shots_in_45plus_or_90plus: sum(rows, r => r.xpm?.addedTimeShots), captures_where_they_fold_into_the_45_or_90_row: rows.filter(r => r.xpm?.addedFoldsIntoRow === true).length,
       captures_with_fractional_momentum_rows: rows.filter(r => (r.mom?.fractionalRows ?? 0) > 0).length, max_added_minutes_seen: Math.max(0, ...rows.map(r => r.xpm?.maxAdded ?? 0)),
-      consequence: 'xg_per_minute folds 45+N into m=45 and 90+N into m=90, so a window of 4 rows ending at 45 or 90 can cover 4 + N minutes of play. A 4-minute active-play window has to be built from the shotmap\'s (min, added), not from row counts.' },
+      consequence: 'xg_per_minute folds 45+N into m=45 and 90+N into m=90, and momentum has ONE row (45.5, 90.5) for the whole added period. A 4-minute window has to take its xG from the shotmap\'s (min, added); inside added time there is no per-minute territory figure at all.' },
+    alignment: 'momentum agrees with the shooting team most at the row ONE minute after the shot (see lag_profile k=+1): a window pairing per-minute xG with momentum should read momentum one row later',
     reconcile_shotmap_vs_xg_per_minute: { match: sum(rows, r => r.xpm?.reconcileMatch), miss: sum(rows, r => r.xpm?.reconcileMiss), shot_minute_without_row: sum(rows, r => r.xpm?.shotMinuteWithoutRow) },
   }
 }
@@ -907,6 +1008,10 @@ async function selfTest() {
   const unk = flowRuns(S([[1, 'H'], [2, 'H'], [3, '?'], [4, 'H']]))
   ok('a shot of unknown side is tried as both teams', unk.minRuns === 0 && unk.maxRuns === 1 && unk.unknownSide === 1)
   ok('two teams alternating make no run', flowRuns(S([[1, 'H'], [2, 'A'], [3, 'H'], [4, 'A']])).maxRuns === 0)
+  ok('NEGATIVE CONTROL: a run does not cross half time', flowRuns([{ min: 44, home: true }, { min: 45, added: 2, home: true }, { min: 46, home: true }]).maxRuns === 0
+    && flowRuns([{ min: 43, home: true }, { min: 44, home: true }, { min: 45, added: 2, home: true }]).maxRuns === 1)
+  ok('a fast-break shot after an own-team shot is counted as an unseen opponent possession',
+    flowOf({ shotmap: [{ min: 30, home: true, sit: 'fast-break' }, { min: 20, home: true, sit: 'fast-break' }, { min: 10, home: false, sit: 'regular' }] }, {}).fastBreakAfterOwnShot === 1)
   ok('NEGATIVE CONTROL: a shot with no boolean side does not hide the other team',
     verdictFlow([flowOf({ shotmap: [{ min: 1, home: true }, { min: 2, home: false }, { min: 3, home: null }] }, { incidents: [] })]).met === false)
   const gj2 = flowOf({ shotmap: [{ min: 20, home: true, type: 'goal', player_id: 7 }, { min: 5, home: false, type: 'miss', player_id: 9 }] },
@@ -923,6 +1028,11 @@ async function selfTest() {
   ok('NEGATIVE CONTROL: frames of tuple coordinates are off-ball', verdictGravity(asPaths({ frames: [{ uts: 1, coordinates: [[1, 2], [3, 4]] }] }), 1).met === false)
   ok('NEGATIVE CONTROL: a timed array of identified players is off-ball, whatever it is named',
     verdictGravity(asPaths({ snaps: [{ t: 1, crowd: [{ x: 1, y: 2, player_id: 7 }, { x: 3, y: 4, player_id: 8 }] }] }), 1).met === false)
+  ok('a goal build-up (nested pos, an action per element, under a timed incident) is an on-ball action sequence',
+    verdictGravity(asPaths({ incidents: [{ type: 'goal', minute: 73, sequence: [{ event: 'pass', pid: 1, pos: { x: 60, y: 40 } }, { event: 'goal', pid: 2, pos: { x: 90, y: 50 } }] }] }), 1).met === true
+    && asPaths({ incidents: [{ type: 'goal', minute: 73, sequence: [{ event: 'pass', pid: 1, pos: { x: 60, y: 40 } }, { event: 'goal', pid: 2, pos: { x: 90, y: 50 } }] }] }).some(p => p.kind === 'on-ball (action sequence)'))
+  ok('NEGATIVE CONTROL: nested positions of identified players at one instant, with no action, are off-ball',
+    verdictGravity(asPaths({ snaps: [{ t: 5, players: [{ pid: 1, pos: { x: 1, y: 2 } }, { pid: 2, pos: { x: 3, y: 4 } }] }] }), 1).met === false)
   ok('goal frame: keeper at the shooter end', goalFrameOf({ incidents: [{ type: 'goal', is_home: true, sequence: [{ event: 'pass', pos: { x: 60, y: 40 }, end: { x: 78, y: 50 } }, { event: 'goal', pos: { x: 80, y: 50 }, gk: { x: 98, y: 50 } }] }] })[0].sameEnd === true)
   ok('goal frame: build-up and last pass are carried', (() => { const g = goalFrameOf({ incidents: [{ type: 'goal', is_home: true, sequence: [{ event: 'pass', pos: { x: 60, y: 40 }, end: { x: 78, y: 50 } }, { event: 'goal', pos: { x: 80, y: 50 }, gk: { x: 98, y: 50 } }] }] })[0]; return g.advancedFromFirst === 20 && g.lastPassEndX === 78 && g.gkHigh })())
   ok('gravity: nothing read is UNMEASURED', verdictGravity([], 0).met === null)
@@ -953,6 +1063,7 @@ async function selfTest() {
   ok('an actor in the resolved set is confirmed', idJoin.actor.confirmed === 2)
   ok('NEGATIVE CONTROL: a resolved count WITHOUT the actor is not confirmed', idJoin.actor.resolvedActorAbsent === 1)
   ok('a play naming nobody is outside the identity denominator', idJoin.actor.bearing === 3 && idJoin.actorless === 1)
+  ok('an actor play on a period-end second is counted', joinTally(() => ({ state: 'resolved', home: [7], away: [] }), { homeTeam: { id: 1 }, gameType: 2, plays: [{ typeDescKey: 'hit', periodDescriptor: { number: 1 }, timeInPeriod: '20:00', details: { hittingPlayerId: 7 } }] }, [{}]).actorAtPeriodEnd === 1)
   ok('identity is broken out by type and by period', idJoin.actorByType.goal.resolvedActorAbsent === 1 && idJoin.actorByPeriod['1'].confirmed === 2 && idJoin.actorByPeriod['3'].bearing === 1)
   ok('elapsed seconds use the period offset', elapsedOf(2, '01:05') === 1265)
   let seen = null
@@ -1015,12 +1126,34 @@ async function selfTest() {
   ok('NEGATIVE CONTROL: an echo with a sign-inverted subset is still MET (the test does not use the sign)', verdictLock(signed, territoryTest(series(echoes['fast decay (tau 1.5)'], 12, 3))).met === true)
   let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
   const walkV = (() => { const out = []; let v = 0; for (let i = 0; i < 85; i++) { v = clamp(v * 0.8 + (rnd() - 0.5) * 60); out.push(v) } return (m) => out[m - 1] })()
-  ok('momentum that moves on its own where nobody shoots is a territory proxy, NOT MET', verdictLock(signed, territoryTest(series(walkV))).met === false)
-  ok('...even when the team on top shoots often', verdictLock(signed, territoryTest(series((m) => (m <= 45 ? 1 : -1) * (40 + (m % 7)) + kern(m, d => (d === 0 ? 20 : 0))))).met === false)
-  ok('direction unproven on a real proxy is UNMEASURED', verdictLock([{ momentum: 'present', mom: { signAgreesHomePositive: 10, signDisagrees: 9 } }], territoryTest(series(walkV))).met === null)
+  // NOT AN ECHO IS NOT YET TERRITORY: half-grain validation against the
+  // payload's own final-third and possession figures, shots partialled out.
+  let s2 = 11; const r2 = () => (s2 = (s2 * 1103515245 + 12345) % 2147483648) / 2147483648
+  const halvesOf = (momFn) => Array.from({ length: 150 }, () => { const shotDiff = Math.round((r2() - 0.5) * 12), fteDiff = Math.round((r2() - 0.5) * 40), possDiff = Math.round((r2() - 0.5) * 30)
+    const xgDiff = shotDiff * 0.1 + (r2() - 0.5) * 0.4; return { momMean: momFn({ shotDiff, fteDiff, possDiff }), shotDiff, xgDiff, fteDiff, possDiff } })
+  const tracking = territoryValidation(halvesOf(({ shotDiff, fteDiff }) => 1.5 * fteDiff + 3 * shotDiff + (r2() - 0.5) * 20))
+  const shotsOnly = territoryValidation(halvesOf(({ shotDiff }) => 3 * shotDiff + (r2() - 0.5) * 10))
+  ok('momentum that tracks final-third entries beyond shots is validated', tracking.tracks.includes('final_third_entries'))
+  ok('NEGATIVE CONTROL: shots plus noise tracks no territory measure once shots are partialled out', shotsOnly.tracks.length === 0)
+  ok('momentum that moves on its own AND tracks territory is a proxy, NOT MET', verdictLock(signed, territoryTest(series(walkV)), {}, tracking).met === false)
+  ok('...even when the team on top shoots often', verdictLock(signed, territoryTest(series((m) => (m <= 45 ? 1 : -1) * (40 + (m % 7)) + kern(m, d => (d === 0 ? 20 : 0)))), {}, tracking).met === false)
+  ok('NEGATIVE CONTROL: not an echo but tracking no territory measure is MET (reduces to "did not shoot")', verdictLock(signed, territoryTest(series(walkV)), {}, shotsOnly).met === true)
+  ok('NEGATIVE CONTROL: not an echo with no validation run is UNMEASURED, never NOT MET', verdictLock(signed, territoryTest(series(walkV))).met === null)
+  const collinear = territoryValidation(Array.from({ length: 300 }, () => { const terr = (r2() - 0.5) * 40, shotDiff = Math.round(terr / 6 + (r2() - 0.5) * 6)
+    return { momMean: terr * 0.8 + (r2() - 0.5) * 15, shotDiff, xgDiff: shotDiff * 0.1, fteDiff: Math.round(terr + (r2() - 0.5) * 10), possDiff: Math.round(terr * 0.5 + (r2() - 0.5) * 10) } }))
+  ok('NEGATIVE CONTROL: collinear shots and xG still give a partial correlation, not a silent "tracks nothing"', collinear.final_third_entries.partial_r_given_shots_and_xg !== null && collinear.tracks.includes('final_third_entries'))
+  const viaShots = territoryValidation(halvesOf(({ shotDiff }) => 3 * shotDiff + (r2() - 0.5) * 10).map(h => ({ ...h, fteDiff: 6 * h.shotDiff + Math.round((r2() - 0.5) * 8) })))
+  ok('NEGATIVE CONTROL: momentum that tracks territory only THROUGH shots is not validated', viaShots.final_third_entries.raw_r > 0.5 && viaShots.tracks.length === 0)
+  const flat = territoryValidation(Array.from({ length: 150 }, () => ({ momMean: r2(), shotDiff: 0, xgDiff: 0, fteDiff: Math.round(r2() * 10), possDiff: null })))
+  ok('NEGATIVE CONTROL: a validation that cannot be computed is UNMEASURED, never "tracks nothing"', flat.tracks === null && verdictLock(signed, territoryTest(series(walkV)), {}, flat).met === null)
+  ok('direction unproven on a validated proxy is UNMEASURED', verdictLock([{ momentum: 'present', mom: { signAgreesHomePositive: 10, signDisagrees: 9 } }], territoryTest(series(walkV)), {}, tracking).met === null)
+  ok('too few halves to validate is UNMEASURED', verdictLock(signed, territoryTest(series(walkV)), {}, territoryValidation(halvesOf(() => 1).slice(0, 20))).met === null)
+  ok('a half row is built from per-half stats, shots and momentum', (() => { const st = { shotmap: [{ min: 10, home: true, xg: 0.2 }, { min: 50, home: false, xg: 0.1 }], momentum: Array.from({ length: 90 }, (_, i) => ({ m: i + 1, v: i < 45 ? 10 : -10 })), xg_per_minute: [],
+    stats: { first_half: { home: { final_third_entries: 30, ball_possession: 55 }, away: { final_third_entries: 20, ball_possession: 45 } }, second_half: { home: { final_third_entries: { value: 10 } }, away: { final_third_entries: 25 } } } }
+    const h = lockOf(st, {}).halves; return h.length === 2 && h[0].momMean === 10 && h[0].fteDiff === 10 && h[0].possDiff === 10 && h[0].shotDiff === 1 && h[1].fteDiff === -15 && h[1].possDiff === null })())
   const busy = { v: Array.from({ length: 85 }, (_, i) => [i + 1, walkV(i + 1)]), shots: Array.from({ length: 28 }, (_, i) => [3 * i + 1, i % 2 ? 'a' : 'h']), xgDiff: [] }
   ok('too little quiet play is UNMEASURED, never a verdict', verdictLock(signed, territoryTest(Array(12).fill(busy))).met === null)
-  ok('a competition whose own minutes point the other way is named', /EXCEPT ucl/.test(verdictLock(signed, territoryTest(series(walkV)), { ucl: { homeOnlyPos: 5, homeOnlyNeg: 30, awayOnlyNeg: 4, awayOnlyPos: 25 } }).reason))
+  ok('a competition whose own minutes point the other way is named', /EXCEPT ucl/.test(verdictLock(signed, territoryTest(series(walkV)), { ucl: { homeOnlyPos: 5, homeOnlyNeg: 30, awayOnlyNeg: 4, awayOnlyPos: 25 } }, tracking).reason))
   ok('NEGATIVE CONTROL: match-stat counters are not coordinate names', keyCensus({ stats: { home: { long_balls: { value: 1 }, blocked_shots: 2 }, location: 'x' } }, COORD_NAME, '', new Set(), 0, { slice: Infinity, depth: Infinity }).size === 1)
   ok('keyCensus finds shot and xg keys', keyCensus({ games: [{ xg_home: 1, odds: 2 }] }, /shot|xg/i).has('games[].xg_home'))
   ok('keyCensus with no slice reaches the 7th element', keyCensus({ g: Array.from({ length: 8 }, (_, i) => (i === 7 ? { shots: 1 } : {})) }, /shot/i, '', new Set(), 0, { slice: Infinity, depth: Infinity }).has('g[].shots'))
@@ -1180,7 +1313,8 @@ async function live() {
   const named = new Set()
   for (const r of read) { for (const p of keyCensus(r.stats, COORD_NAME, '', new Set(), 0, full)) named.add(p); if (r.incidents) for (const p of keyCensus(r.incidents, COORD_NAME, '', new Set(), 0, full)) named.add(p) }
   const namedWithoutShape = [...named].filter(n => !paths.some(p => p.path === n || p.path.startsWith(n + '.') || p.path.startsWith(n + '[]') || p.path.startsWith(n + '(')))
-  const population = `R2 captures only: stats.json + incidents.json for ${read.length} captures (${JSON.stringify(byStage(read))}), average-positions.json for ${avgRead.length} of ${avgTargets.length} populated files. NOT READ: the BSD WebSocket livedata feed (websocket_plus), which the capture writer never stores; its frame shape has never been captured anywhere in FIELD`
+  const fullPostFinal = read.filter(r => ['home', 'away'].some(k => Array.isArray(r.stats?.average_positions?.[k]) && r.stats.average_positions[k].length)).length
+  const population = `R2 captures only: stats.json + incidents.json for ${read.length} captures (${JSON.stringify(byStage(read))}; ${fullPostFinal} of them a full post-final tracking-tier stats payload, i.e. one carrying average_positions), average-positions.json for ${avgRead.length} of ${avgTargets.length} populated files. NOT READ: the BSD WebSocket livedata feed (websocket_plus), which the capture writer never stores; its frame shape has never been captured anywhere in FIELD`
   const vg = verdictGravity(paths, withCoords, population)
   const frames = read.flatMap(r => goalFrameOf(r.incidents).map(g => ({ ...g, comp: r.comp })))
   const nonOwn = frames.filter(g => !g.own)
@@ -1214,7 +1348,7 @@ async function live() {
   }
   const board = await getJson(`${NHL_WEB}/v1/scoreboard/now`, j => Array.isArray(j?.gamesByDate))
   const boardDates = board.state === 'present' ? board.json.gamesByDate.map(d => d.date) : []
-  const finalsAll = board.state === 'present' ? board.json.gamesByDate.flatMap(d => d.games ?? []).filter(g => ['FINAL', 'OFF'].includes(g.gameState)) : []
+  const finalsAll = board.state === 'present' ? board.json.gamesByDate.flatMap(d => (d.games ?? []).map(g => ({ ...g, _date: d.date }))).filter(g => ['FINAL', 'OFF'].includes(g.gameState)) : []
   const finals = finalsAll.slice(-NHL_GAME_CAP)
   const games = []
   if (typeof onIceAt === 'function') {
@@ -1241,7 +1375,7 @@ async function live() {
   const cleanToi = joinedGames.filter(g => g.toi?.state === 'present' && g.toi.within5s / g.toi.players >= 0.95)
   const cleanActor = cleanToi.reduce((o, g) => addActor(o, g.tally.actor), newActor())
   const vsw = verdictSecondWind(actor, controlActor)
-  const sampled = `${joinedGames.length} of ${finals.length} sampled finals joined (newest ${NHL_GAME_CAP} of ${finalsAll.length} FINAL/OFF games on /v1/scoreboard/now, dates ${boardDates[0] ?? '?'} to ${boardDates[boardDates.length - 1] ?? '?'})`
+  const sampled = `${joinedGames.length} of ${finals.length} sampled finals joined (newest ${NHL_GAME_CAP} of ${finalsAll.length} FINAL/OFF games on /v1/scoreboard/now; sampled games dated ${finals[0]?._date ?? '?'} to ${finals[finals.length - 1]?._date ?? '?'}, board window ${boardDates[0] ?? '?'} to ${boardDates[boardDates.length - 1] ?? '?'})`
   verdicts.push(artifact('second-wind', { ...base, task: '0.3 Second Wind (NHL)',
     stop_condition: { text: 'the interval join cannot resolve a majority of events', met: vsw.met,
       reason: actor.bearing === 0 ? `no actor-bearing play was joined: onIceAt ${typeof onIceAt === 'function' ? 'loaded' : 'NOT loaded (' + onIceSrc + ')'}, scoreboard ${board.state}; ${sampled}` : `${vsw.reason}; ${sampled}` },
@@ -1252,6 +1386,8 @@ async function live() {
         overtime_plays_excluded: joinedGames.reduce((n, g) => n + g.controlTally.excludedFromControl, 0), how: 'the same plays and shift charts with the clock moved 600 s inside the same period; overtime left out of the denominator' },
       games_with_toi_95pct_within_5s: { games: cleanToi.length, ...cleanActor, share: cleanActor.bearing ? +(cleanActor.confirmed / cleanActor.bearing).toFixed(3) : null },
       actor_keys_in_priority: ACTOR_KEYS,
+      actor_plays_on_a_period_end_second: joinedGames.reduce((n, g) => n + g.tally.actorAtPeriodEnd, 0),
+      event_instant_classes: 'goals and penalties are timed at a stoppage second, where the scorer\'s or offender\'s shift may end; see by_type before Task 3 uses either',
       four_state_note: 'resolved_but_actor_absent is a body count that matches situationCode with the actor NOT on ice. Reused as-is, the four-state vocabulary would label these plays `resolved`: an answer-shaped miss Task 3 has to keep apart.' },
     excluded: { boundary_markers: [...BOUNDARY], actorless_plays: joinedGames.reduce((n, g) => n + g.tally.actorless, 0), regular_season_shootout_plays: joinedGames.reduce((n, g) => n + g.tally.shootoutExcluded, 0) },
     onice_module: { path: onIceSrc, sha256: onIceSha, relay_sha: process.env.RELAY_SHA || null },
@@ -1265,7 +1401,8 @@ async function live() {
   const signByComp = {}
   for (const r of lockRows) { const o = signByComp[r.comp] ??= { homeOnlyPos: 0, homeOnlyNeg: 0, awayOnlyNeg: 0, awayOnlyPos: 0 }; for (const [k, v] of Object.entries(r.mom?.sign ?? {})) o[k] += v }
   const territory = territoryTest(lockRows.map(r => r.series).filter(Boolean))
-  const vl = verdictLock(lockRows, territory, signByComp)
+  const validation = territoryValidation(lockRows.flatMap(r => r.halves ?? []), sum(lockRows, r => r.mom?.signAgreesHomePositive) >= sum(lockRows, r => r.mom?.signDisagrees))
+  const vl = verdictLock(lockRows, territory, signByComp, validation)
   const territoryKeys = new Set(); for (const r of read) for (const p of keyCensus(r.stats, /possess|territor|third|box|entr|attack|danger|pressure/i, '', new Set(), 0, full)) territoryKeys.add(p)
   const incKeys = {}
   for (const r of read) for (const i of r.incidents?.incidents ?? []) { const o = incKeys[i.type] ??= { rows: 0, keys: new Set(), period_second: 0, length: 0 }; o.rows++; for (const k of Object.keys(i)) o.keys.add(k); if (i.period_second != null) o.period_second++; if (i.length != null) o.length++ }
@@ -1275,7 +1412,7 @@ async function live() {
   verdicts.push(artifact('tactical-lock', { ...base, task: '0.4 Tactical Lock',
     stop_condition: { text: 'no territory proxy exists in the payload', consequence_text: 'Tactical Lock reduces to "the opponent did not shoot", which is not a lock', met: vl.met, reason: vl.reason },
     active_play_window: { verdict: 'UNMEASURED below the minute',
-      reason: `the spec asks for a 4-minute window over ACTIVE play with stoppages excluded. xg_per_minute and momentum are per minute; shots carry no clock finer than (min, added) (shotmap keys: ${[...shotKeys].sort().join(', ')}); incidents with a sub-minute clock: ${subMinute.length ? subMinute.join(', ') : 'none'}. So a stoppage can be located to its minute and that minute excluded, but dead ball inside a minute cannot be removed.`,
+      reason: `the spec asks for a 4-minute window over ACTIVE play with stoppages excluded. xg_per_minute and momentum are per minute; shots carry no clock finer than (min, added) (shotmap keys: ${[...shotKeys].sort().join(', ')}); incidents with a sub-minute clock: ${subMinute.length ? subMinute.join(', ') : 'none'}. Only ${Object.keys(incKeys).length} incident types exist (${Object.keys(incKeys).join(', ')}): throw-ins, goal kicks, corners and uncarded fouls leave no incident, so most dead ball cannot be excluded even at minute grain, and none can inside a minute. This field is not a stop condition and does not fail the run.`,
       windows_with_a_stoppage_incident: { windows: sum(lockRows, r => r.activePlay.windows), with_stoppage_incident: sum(lockRows, r => r.activePlay.withStoppageIncident), types: ['goal', 'card', 'substitution', 'varDecision', 'injuryTime'] },
       incident_key_census: Object.fromEntries(Object.entries(incKeys).map(([ty, o]) => [ty, { rows: o.rows, keys: [...o.keys].sort(), with_period_second: o.period_second, with_length: o.length }])) },
     territory_named_keys_in_stats: [...territoryKeys].sort(),
