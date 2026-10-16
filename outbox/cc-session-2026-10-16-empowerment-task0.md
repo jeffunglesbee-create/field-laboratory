@@ -12,7 +12,7 @@ revision was forced by an adversarial review of the run before it. Gate run
 
 | probe | stop condition (spec text) | verdict | on what |
 |---|---|---|---|
-| 0.1 Flow | shots carry no within-match ordering key, or carry no opponent-event interleaving | **NOT MET** | `min` (+`added`) on every shot in 150/150 captures; the opponent interleaves in 150/150 (its shots) and in 310 same-team pairs (a timed incident) |
+| 0.1 Flow | shots carry no within-match ordering key, or carry no opponent-event interleaving | **NOT MET** | `min` (+`added`) on every shot in 150/150 captures; both teams shot in 150/150, and a timed opponent incident falls between two same-team shots in 310 pairs |
 | 0.2 Gravity Well | soccer provides on-ball data only | **MET** (R2 captures) | every coordinate path in 150 captures + 9 average-positions files is on-ball or a match average; the BSD WebSocket feed is not stored anywhere and was not read (`docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md`) |
 | 0.3 Second Wind | the interval join cannot resolve a majority of events | **NOT MET** | 4023/4271 actor plays resolve with the actor on ice (94.2%); the same join with its clock moved 600 s confirms 20.5%; 16 of 32 finals, games of 2026-10-13 to 10-15 |
 | 0.4 Tactical Lock | no territory proxy exists in the payload | **NOT MET** | `momentum` is not an echo of the shots (571 shot-free stretches, excess direction changes 35.1%) and, shots and xG partialled out, its half mean tracks final-third entries r 0.584 (t 12.3) and possession r 0.735 (t 18.6) over 298 halves |
@@ -31,9 +31,12 @@ store, 0 failed pages.
   writer fires from minute 80 and drops finished events, so 734 stop while the
   second half is live. "Post-hoc over finished matches" is post-hoc over
   records that mostly end before full time.
-- **Flow (Task 1):** reconstructible only as the shots-only narrowing, which
-  Task 1's text does not yet state; that is the owner's call. 535-556 runs of
-  3+ own-team shots, the range set by 62 mixed-team minutes. 171 of 2422
+- **Flow (Task 1):** the owner ruled the shots-only version in on
+  2026-10-16. Under it, timed opponent incidents no longer interrupt a run
+  (up to 310 same-team pairs hold one, counted with no break at a period),
+  and four questions it leaves open are listed under Task 1 in the CC-CMD. 535-556 runs of
+  3+ own-team shots, the range set by 62 mixed-team minutes (counted over
+  shots of any xG, ending runs at every period break; both still open). 171 of 2422
   same-team shot pairs have a `fast-break` second shot, i.e. an opponent
   possession the narrowing calls uninterrupted. xG on 4125/4125 shots, 13
   estimated.

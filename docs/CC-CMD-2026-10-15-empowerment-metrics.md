@@ -210,7 +210,71 @@ type TeamState =
     | InFlow of sequentialXg: float32<xg>
 ```
 
-Three consecutive positive xG events with no opponent event interleaved.
+~~Three consecutive positive xG events with no opponent event interleaved.~~
+
+**Ruled 2026-10-16 (owner):** asked "should Task 1 adopt the shots-only
+version of Flow?", the owner answered "Yes".
+
+> **CC, 2026-10-16 — what the ruling rests on, from Task 0's final run**
+> (38881438378, `outbox/empowerment-flow-probe-latest.json`). Every figure
+> below, except where marked as over all 786, is over the sample the probe
+> read: `stats.json` for 150 of 786 non-shell captures, the newest 15 per
+> competition, 11 of them finished.
+>
+> - **The shots-only version.** `docs/TASK0-RESULTS-2026-10-15-empowerment-metrics.md`
+>   states it as "three consecutive own-team shots with no opposing shot
+>   between them", derived from a quotation of the struck line that omits
+>   "positive", so it never considered that clause; the ruling does not say
+>   whether it carries over. The artifact's `narrowed_variant.definition` adds
+>   "never across a period break": a constraint the probe applied, not part
+>   of the ruling.
+> - **What it gives up.** The stop condition as written was NOT MET
+>   (`verdict.readings.as_written`): both teams shot in 150 of 150 captures,
+>   and a timed opponent incident (card, goal, substitution, VAR decision)
+>   falls strictly between the minutes of two same-team shots in 310 pairs.
+>   Under shots-only those incidents do not interrupt a run. The 310 pairs
+>   shots with no break at a period, so it is an upper bound: pairs that
+>   straddle half time are in it, and were not counted apart. No run count was
+>   made with them as interruptions. The probe's own reason calls Flow
+>   reconstructible "only as the shots-only narrowing"; what is certain is
+>   narrower: no incident with a minute and a team is a possession event
+>   (`verdict.readings.possession_level`).
+> - **What it cannot see.** A shot's `sit` can say `fast-break`. In 171 of 2422
+>   same-team adjacent pairs, as the probe pairs them (array order inside a
+>   minute, no break at a period), the second shot does. Across minutes that
+>   implies the opponent had the ball between the two shots; inside a minute
+>   the probe's "second" shot is the earlier one (the array is newest-first),
+>   so it implies nothing, and the 171 mixes both. An indication, not a figure
+>   to build on. TASK0-RESULTS (chat) asks that `InFlow` not be read as "this team
+>   controlled the game" and that the narrowing be named in the type's doc
+>   comment.
+> - **Measured.** 535 to 556 runs of 3+ own-team shots, depending on how the 62
+>   mixed-team minutes are ordered; the probe counted shots of any xG value and
+>   ended runs at every period break (158 breaks: half time and the
+>   extra-time boundaries). `xg` is a number on 4125 of 4125 shots, 13 of them
+>   `xg_estimated: true`; how many are above zero was not measured. The array
+>   is newest-first in all 150 captures and agreed with a goal's build-up in 35
+>   of 36 checks. Over all 786 non-shell captures (incidents read
+>   for 784): 734 stop in play, 47 are of a finished match.
+>
+> **Open, for the owner, before Task 1 decides any of them:**
+>
+> 1. A run whose existence depends on the order inside a mixed-team minute
+>    (it changes the count in 20 of 150 captures). `TeamState` has no case
+>    for it.
+> 2. Whether a run may cross a period break (half time, or into or across
+>    extra time). The probe ended runs at all of them.
+> 3. Whether "positive xG" carries over, and if so whether an own-team shot
+>    with xG 0 ends a run or is passed over; and whether the 13 estimated xG
+>    values count.
+> 4. Whether Task 1 runs over all captures or only finished ones, given
+>    "post-hoc over finished matches". Read literally, the standing R2 ruling
+>    already gives finished-only: 47 of 786 captures, 11 of the 150 sampled.
+>    The question is whether to revisit that ruling now that its premise has
+>    been measured.
+
+From the original task (the R2 section above rules `InFlow` post-hoc, not
+live):
 
 - The value is a unit-carrying quantity, not a bare `float32`.
 - `InFlow` is a **live composite verdict**, so see the amnesty section below
