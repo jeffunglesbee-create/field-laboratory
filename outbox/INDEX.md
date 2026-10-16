@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8eaf5a0` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | docs: the owner's delegated rulings on Flow's two remaining questions |
+| `cbafc89` | 2026-10-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `09e7e58` | 2026-10-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-16 [skip ci] |
 | `09e7e58` | 2026-10-16 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-16 [skip ci] |
 | `a6fb542` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | docs: record the owner's four Flow rulings, and two questions they leave |
