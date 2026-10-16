@@ -1,0 +1,79 @@
+{
+  "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
+  "ran_at": "2026-10-16T05:00:46.303Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "task": "0.2 Gravity Well",
+  "stop_condition": {
+    "text": "soccer provides on-ball data only -> Gravity Well rejected for soccer, built for NFL",
+    "met": true,
+    "reason": "every coordinate path in 150 captures is on-ball (one event) or a match average (one point per player per match); none carries several players at one instant",
+    "verdict": "MET"
+  },
+  "coverage": "150 captures carrying coordinates; 150 of 786 non-shell R2 captures read; 142 of them were captured IN PLAY (a period marker reads is_live true), so their last minutes can be missing  (newest 15 per competition, 10 competitions); census COMPLETE for 10 slugs, 278 list calls. Slugs come from the relay writer's V2_LEAGUES map + wc26 + the first competition under each letter.",
+  "coordinate_paths": [
+    {
+      "path": "shotmap[].gm",
+      "captures": 150,
+      "kind": "on-ball (shot)"
+    },
+    {
+      "path": "shotmap[].pos",
+      "captures": 150,
+      "kind": "on-ball (shot)"
+    },
+    {
+      "path": "shotmap[].block",
+      "captures": 150,
+      "kind": "on-ball (shot)"
+    },
+    {
+      "path": "incidents[].sequence[].pos",
+      "captures": 131,
+      "kind": "on-ball (goal build-up)"
+    },
+    {
+      "path": "incidents[].sequence[].gk",
+      "captures": 131,
+      "kind": "on-ball (goal build-up)"
+    },
+    {
+      "path": "incidents[].sequence[].gm",
+      "captures": 131,
+      "kind": "on-ball (goal build-up)"
+    },
+    {
+      "path": "incidents[].sequence[].end",
+      "captures": 122,
+      "kind": "on-ball (goal build-up)"
+    },
+    {
+      "path": "average_positions.away[]",
+      "captures": 1,
+      "kind": "match-average"
+    },
+    {
+      "path": "average_positions.home[]",
+      "captures": 1,
+      "kind": "match-average"
+    }
+  ],
+  "goal_frame_check": {
+    "goals_with_pos_and_gk": 439,
+    "non_own": 427,
+    "home_scorers": 246,
+    "home_scorer_high_x": 246,
+    "away_scorers": 181,
+    "away_scorer_low_x": 181,
+    "contract_declares": "target-goal-relative",
+    "shared_frame": true,
+    "reading": "ONE SHARED frame, home attacks high x (home 246/246 high-x, away 181/181 low-x); CONTRADICTS /bsd/contract, which declares target-goal-relative (under that frame BOTH sides would score near x=0). Its confirming example is an AWAY goal, which reads the same under both frames."
+  },
+  "nfl": {
+    "status": "INHERITED, not re-measured here",
+    "evidence": [
+      "jubilant-bassoon outbox/bdb-schema-probe.txt (2026-08-15): tracking cols gameId, playId, nflId, displayName, frameId, frameType, time, jerseyNumber, club, playDirection, x, y, s, a, dis, o, dir, event; 400,000 rows sampled",
+      "jubilant-bassoon outbox/cc-session-2026-08-15-p3-bdb-sep-route.md: avgSepYds built from receiver-to-defender distance at pass_arrived, which needs off-ball defender XY at that frame",
+      "archived dataset alexandermeau/nfl-big-data-bowl-archived-data-2025 is the 2022 SEASON; Kaggle credentials live in jubilant-bassoon, not here"
+    ]
+  }
+}

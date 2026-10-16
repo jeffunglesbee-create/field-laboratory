@@ -1,0 +1,252 @@
+{
+  "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
+  "ran_at": "2026-10-16T05:00:46.303Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "task": "0.4 Tactical Lock",
+  "stop_condition": {
+    "text": "no territory proxy exists in the payload",
+    "met": false,
+    "reason": "momentum present in 149/150 captures (xg_per_minute 150/150), and its sign points at the shooting team in 2568/3336 one-team minutes (77%): positive = home on top",
+    "verdict": "NOT MET"
+  },
+  "coverage": "150 of 786 non-shell R2 captures read; 142 of them were captured IN PLAY (a period marker reads is_live true), so their last minutes can be missing  (newest 15 per competition, 10 competitions); census COMPLETE for 10 slugs, 278 list calls. Slugs come from the relay writer's V2_LEAGUES map + wc26 + the first competition under each letter.",
+  "verdict": {
+    "met": false,
+    "verdict": "NOT MET",
+    "reason": "momentum present in 149/150 captures (xg_per_minute 150/150), and its sign points at the shooting team in 2568/3336 one-team minutes (77%): positive = home on top",
+    "momentum_sign": {
+      "agree_if_positive_is_home": 2568,
+      "against": 768,
+      "minutes": 3336,
+      "direction": "positive = home on top"
+    },
+    "half_time_marked": 150,
+    "added_time": {
+      "shots_in_45plus_or_90plus": 289,
+      "captures_where_they_fold_into_the_45_or_90_row": 119,
+      "captures_with_fractional_momentum_rows": 146,
+      "max_added_minutes_seen": 10,
+      "consequence": "xg_per_minute folds 45+N into m=45 and 90+N into m=90, so a window of 4 rows ending at 45 or 90 can cover 4 + N minutes of play. A 4-minute active-play window has to be built from the shotmap's (min, added), not from row counts."
+    },
+    "reconcile_shotmap_vs_xg_per_minute": {
+      "match": 3509,
+      "miss": 0,
+      "shot_minute_without_row": 0
+    }
+  },
+  "by_competition": {
+    "epl": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "mls": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "ucl": {
+      "read": 15,
+      "momentum": 14,
+      "xg_per_minute": 15
+    },
+    "europa": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "eflchamp": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "laliga": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "seriea": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "bundesliga": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "ligue1": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    },
+    "wc26": {
+      "read": 15,
+      "momentum": 15,
+      "xg_per_minute": 15
+    }
+  },
+  "xg_per_minute_shapes_first10": [
+    {
+      "comp": "epl",
+      "event": "209588",
+      "rows": 25,
+      "mMin": 6,
+      "mMax": 90,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 1,
+      "maxAdded": 2,
+      "reconcileMatch": 25,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209592",
+      "rows": 20,
+      "mMin": 2,
+      "mMax": 78,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 1,
+      "maxAdded": 1,
+      "reconcileMatch": 20,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209590",
+      "rows": 19,
+      "mMin": 5,
+      "mMax": 89,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 4,
+      "maxAdded": 4,
+      "reconcileMatch": 20,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209589",
+      "rows": 24,
+      "mMin": 3,
+      "mMax": 80,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 5,
+      "maxAdded": 6,
+      "reconcileMatch": 25,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209593",
+      "rows": 18,
+      "mMin": 3,
+      "mMax": 90,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 2,
+      "maxAdded": 4,
+      "reconcileMatch": 20,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209591",
+      "rows": 19,
+      "mMin": 16,
+      "mMax": 90,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 3,
+      "maxAdded": 4,
+      "reconcileMatch": 21,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209594",
+      "rows": 24,
+      "mMin": 7,
+      "mMax": 90,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 2,
+      "maxAdded": 3,
+      "reconcileMatch": 25,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209587",
+      "rows": 15,
+      "mMin": 2,
+      "mMax": 88,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 1,
+      "maxAdded": 2,
+      "reconcileMatch": 15,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209586",
+      "rows": 23,
+      "mMin": 4,
+      "mMax": 87,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 4,
+      "maxAdded": 5,
+      "reconcileMatch": 24,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    },
+    {
+      "comp": "epl",
+      "event": "209585",
+      "rows": 21,
+      "mMin": 8,
+      "mMax": 90,
+      "dupMinutes": 0,
+      "hasCumAway": true,
+      "hasCumHome": true,
+      "addedTimeShots": 1,
+      "maxAdded": 2,
+      "reconcileMatch": 21,
+      "reconcileMiss": 0,
+      "shotMinuteWithoutRow": 0,
+      "addedFoldsIntoRow": true
+    }
+  ],
+  "active_play": "xg_per_minute and momentum are per MINUTE, with added time folded (see verdict.added_time). A window stays inside one half by splitting at the HT period marker; dead ball inside a minute is not observable at this grain."
+}

@@ -1,0 +1,429 @@
+{
+  "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
+  "ran_at": "2026-10-16T05:00:46.303Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "task": "0.3 Second Wind (NHL)",
+  "stop_condition": {
+    "text": "the interval join cannot resolve a majority of events",
+    "met": false,
+    "reason": "4017 of 4271 plays that name a player resolve to an on-ice set CONTAINING that player (94.1%), across 16 of 16 finals with play-by-play and shift rows",
+    "verdict": "NOT MET"
+  },
+  "coverage": "16 of 16 final games on /v1/scoreboard/now joined (cap 16); 0 lacked play-by-play or shift rows and are availability, not join failures; every timed play in the joined games",
+  "identity": {
+    "actor_bearing_plays": 4271,
+    "resolved_with_actor_on_ice": 4017,
+    "resolved_but_actor_absent": 80,
+    "not_resolved": 174,
+    "actor_keys_in_priority": [
+      "scoringPlayerId",
+      "shootingPlayerId",
+      "hittingPlayerId",
+      "blockingPlayerId",
+      "winningPlayerId",
+      "committedByPlayerId",
+      "playerId"
+    ],
+    "why": "a resolved set is a body count that agrees with situationCode; it is an identity only when the play's own actor is in it"
+  },
+  "excluded": {
+    "boundary_markers": [
+      "period-start",
+      "period-end",
+      "game-end",
+      "shootout-complete"
+    ],
+    "actorless_plays": 791,
+    "regular_season_shootout_plays": 31
+  },
+  "onice_module": "/tmp/relay-nhl-onice.js",
+  "states_events_body_count": {
+    "resolved": 4864,
+    "disagrees-with-situation": 188,
+    "instant-in-no-interval": 10
+  },
+  "states_all_plays": {
+    "resolved": 4950,
+    "disagrees-with-situation": 196,
+    "instant-in-no-interval": 39
+  },
+  "states_by_type": {
+    "faceoff": {
+      "resolved": 922,
+      "disagrees-with-situation": 8,
+      "instant-in-no-interval": 2
+    },
+    "missed-shot": {
+      "resolved": 467,
+      "disagrees-with-situation": 6
+    },
+    "hit": {
+      "resolved": 681,
+      "disagrees-with-situation": 2,
+      "instant-in-no-interval": 1
+    },
+    "giveaway": {
+      "resolved": 501,
+      "disagrees-with-situation": 1,
+      "instant-in-no-interval": 1
+    },
+    "stoppage": {
+      "resolved": 722,
+      "disagrees-with-situation": 18,
+      "instant-in-no-interval": 2
+    },
+    "shot-on-goal": {
+      "resolved": 790,
+      "disagrees-with-situation": 11
+    },
+    "blocked-shot": {
+      "resolved": 513,
+      "disagrees-with-situation": 1
+    },
+    "goal": {
+      "resolved": 79,
+      "disagrees-with-situation": 18,
+      "instant-in-no-interval": 4
+    },
+    "penalty": {
+      "disagrees-with-situation": 121,
+      "resolved": 15
+    },
+    "delayed-penalty": {
+      "resolved": 45,
+      "disagrees-with-situation": 1
+    },
+    "takeaway": {
+      "resolved": 129,
+      "disagrees-with-situation": 1
+    }
+  },
+  "toi_from_shifts_vs_boxscore": {
+    "players": 610,
+    "within_5s": 584,
+    "missing_from_shifts_with_ice_time": 0,
+    "dressed_not_played_excluded": 30
+  },
+  "games": [
+    {
+      "id": 2026020103,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 769,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 290,
+        "confirmed": 272,
+        "resolvedActorAbsent": 7,
+        "notResolved": 11
+      }
+    },
+    {
+      "id": 2026020104,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 781,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 39,
+        "within5s": 39,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 1
+      },
+      "actor": {
+        "bearing": 267,
+        "confirmed": 256,
+        "resolvedActorAbsent": 2,
+        "notResolved": 9
+      }
+    },
+    {
+      "id": 2026020105,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 703,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 267,
+        "confirmed": 251,
+        "resolvedActorAbsent": 9,
+        "notResolved": 7
+      }
+    },
+    {
+      "id": 2026020106,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 685,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 244,
+        "confirmed": 225,
+        "resolvedActorAbsent": 7,
+        "notResolved": 12
+      }
+    },
+    {
+      "id": 2026020107,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 764,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 263,
+        "confirmed": 252,
+        "resolvedActorAbsent": 5,
+        "notResolved": 6
+      }
+    },
+    {
+      "id": 2026020108,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 826,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 266,
+        "confirmed": 251,
+        "resolvedActorAbsent": 6,
+        "notResolved": 9
+      }
+    },
+    {
+      "id": 2026020109,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 798,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 252,
+        "confirmed": 243,
+        "resolvedActorAbsent": 2,
+        "notResolved": 7
+      }
+    },
+    {
+      "id": 2026020111,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 781,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 36,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 262,
+        "confirmed": 248,
+        "resolvedActorAbsent": 2,
+        "notResolved": 12
+      }
+    },
+    {
+      "id": 2026020112,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 762,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 257,
+        "confirmed": 243,
+        "resolvedActorAbsent": 5,
+        "notResolved": 9
+      }
+    },
+    {
+      "id": 2026020113,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 747,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 39,
+        "within5s": 39,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 1
+      },
+      "actor": {
+        "bearing": 256,
+        "confirmed": 238,
+        "resolvedActorAbsent": 8,
+        "notResolved": 10
+      }
+    },
+    {
+      "id": 2026020110,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 762,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 262,
+        "confirmed": 251,
+        "resolvedActorAbsent": 3,
+        "notResolved": 8
+      }
+    },
+    {
+      "id": 2026020114,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 754,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 284,
+        "confirmed": 269,
+        "resolvedActorAbsent": 4,
+        "notResolved": 11
+      }
+    },
+    {
+      "id": 2026020115,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 747,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 34,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 295,
+        "confirmed": 266,
+        "resolvedActorAbsent": 5,
+        "notResolved": 24
+      }
+    },
+    {
+      "id": 2026020116,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 729,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 37,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 280,
+        "confirmed": 260,
+        "resolvedActorAbsent": 8,
+        "notResolved": 12
+      }
+    },
+    {
+      "id": 2026020117,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 841,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 38,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 248,
+        "confirmed": 240,
+        "resolvedActorAbsent": 3,
+        "notResolved": 5
+      }
+    },
+    {
+      "id": 2026020118,
+      "pbp": "present",
+      "shifts": "present",
+      "shiftRows": 739,
+      "joined": true,
+      "toi": {
+        "state": "present",
+        "players": 38,
+        "within5s": 19,
+        "missingFromShifts": 0,
+        "dressedNotPlayed": 2
+      },
+      "actor": {
+        "bearing": 278,
+        "confirmed": 252,
+        "resolvedActorAbsent": 4,
+        "notResolved": 22
+      }
+    }
+  ]
+}

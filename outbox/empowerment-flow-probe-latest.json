@@ -1,0 +1,211 @@
+{
+  "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
+  "ran_at": "2026-10-16T05:00:46.303Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "task": "0.1 Flow",
+  "stop_condition": {
+    "text": "shots carry no within-match ordering key, or carry no opponent-event interleaving",
+    "met": true,
+    "reason": "the payload carries no per-event possession: between two shots only opponent SHOTS are visible (shotmap) and incidents carry goals, cards, substitutions and periods; no pass, turnover or possession event in 150 captures",
+    "verdict": "MET"
+  },
+  "coverage": "150 captures with a non-empty shotmap; 150 of 786 non-shell R2 captures read; 142 of them were captured IN PLAY (a period marker reads is_live true), so their last minutes can be missing  (newest 15 per competition, 10 competitions); census COMPLETE for 10 slugs, 278 list calls. Slugs come from the relay writer's V2_LEAGUES map + wc26 + the first competition under each letter.",
+  "verdict": {
+    "met": true,
+    "verdict": "MET",
+    "reading": "as SPECIFIED: three xG events with no opponent EVENT interleaved, which needs possession attribution",
+    "reason": "the payload carries no per-event possession: between two shots only opponent SHOTS are visible (shotmap) and incidents carry goals, cards, substitutions and periods; no pass, turnover or possession event in 150 captures",
+    "narrowed_variant": {
+      "definition": "three consecutive own-team SHOTS with no opposing SHOT between (the narrowing docs/TASK0-RESULTS-2026-10-15 proposed); an owner decision, not this probe's",
+      "reconstructible": true,
+      "ordering_key": "min (+added) on every shot in 150/150 captures",
+      "both_teams": "150/150 captures",
+      "own_team_within_minute_order": "NOT proven: sequence checks agree 35, disagree 1",
+      "cross_team_within_minute_order": "UNORDERED: no independent source orders two teams' shots inside one minute; 62 mixed-team tied minutes across 4125 shots"
+    },
+    "within_minute_order": {
+      "array_order_by_capture": {
+        "newest-first": 150
+      },
+      "goal_sequence_checks_agree": 35,
+      "disagree": 1
+    },
+    "ties": {
+      "tied_shots": 1086,
+      "mixed_team_tied_minutes": 62,
+      "shots": 4125
+    }
+  },
+  "event_types_between_shots": [
+    "incidents:card",
+    "incidents:goal",
+    "incidents:injuryTime",
+    "incidents:period",
+    "incidents:substitution",
+    "incidents:varDecision",
+    "shotmap:block",
+    "shotmap:blocked-off-line",
+    "shotmap:goal",
+    "shotmap:miss",
+    "shotmap:post",
+    "shotmap:save"
+  ],
+  "context_date": {
+    "date": "2026-10-15",
+    "state": "present",
+    "shot_or_xg_keys": [],
+    "note": "/context/date is the laboratory's own input; the spec asks what it serves. Flow can only come from /bsd/r2/read stats.json."
+  },
+  "by_competition": {
+    "epl": {
+      "present": 15
+    },
+    "mls": {
+      "present": 15
+    },
+    "ucl": {
+      "present": 15
+    },
+    "europa": {
+      "present": 15
+    },
+    "eflchamp": {
+      "present": 15
+    },
+    "laliga": {
+      "present": 15
+    },
+    "seriea": {
+      "present": 15
+    },
+    "bundesliga": {
+      "present": 15
+    },
+    "ligue1": {
+      "present": 15
+    },
+    "wc26": {
+      "present": 15
+    }
+  },
+  "r2_census": {
+    "epl": {
+      "events": 60,
+      "first_upload": "2026-08-21T20:50:19.059Z",
+      "last_upload": "2026-10-12T20:50:58.495Z",
+      "with_stats": 60,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 0
+    },
+    "mls": {
+      "events": 215,
+      "first_upload": "2026-07-17T01:35:25.783Z",
+      "last_upload": "2026-10-15T04:40:56.514Z",
+      "with_stats": 215,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 2,
+      "avg_positions_file_empty": 49
+    },
+    "ucl": {
+      "events": 99,
+      "first_upload": "2026-07-15T20:45:42.290Z",
+      "last_upload": "2026-10-14T20:55:57.001Z",
+      "with_stats": 99,
+      "shell_stats_under_1000_bytes": 31,
+      "avg_positions_file_populated": 3,
+      "avg_positions_file_empty": 47
+    },
+    "europa": {
+      "events": 108,
+      "first_upload": "2026-07-16T19:35:26.291Z",
+      "last_upload": "2026-10-15T20:55:55.909Z",
+      "with_stats": 108,
+      "shell_stats_under_1000_bytes": 70,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 37
+    },
+    "eflchamp": {
+      "events": 119,
+      "first_upload": "2026-08-14T20:50:57.402Z",
+      "last_upload": "2026-10-14T20:50:59.042Z",
+      "with_stats": 119,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 2,
+      "avg_positions_file_empty": 0
+    },
+    "laliga": {
+      "events": 78,
+      "first_upload": "2026-08-15T19:30:02.196Z",
+      "last_upload": "2026-10-12T21:01:02.660Z",
+      "with_stats": 78,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 0
+    },
+    "seriea": {
+      "events": 60,
+      "first_upload": "2026-08-22T18:25:18.977Z",
+      "last_upload": "2026-10-12T20:40:58.589Z",
+      "with_stats": 60,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 1,
+      "avg_positions_file_empty": 0
+    },
+    "bundesliga": {
+      "events": 45,
+      "first_upload": "2026-08-28T20:25:59.282Z",
+      "last_upload": "2026-10-11T17:25:26.493Z",
+      "with_stats": 45,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 0
+    },
+    "ligue1": {
+      "events": 54,
+      "first_upload": "2026-08-21T20:40:19.071Z",
+      "last_upload": "2026-10-11T20:35:26.470Z",
+      "with_stats": 54,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 1,
+      "avg_positions_file_empty": 0
+    },
+    "wc26": {
+      "events": 49,
+      "first_upload": "2026-06-25T22:08:16.191Z",
+      "last_upload": "2026-07-19T22:01:03.416Z",
+      "with_stats": 49,
+      "shell_stats_under_1000_bytes": 0,
+      "avg_positions_file_populated": 0,
+      "avg_positions_file_empty": 3
+    }
+  },
+  "r2_census_meta": {
+    "complete": true,
+    "list_calls": 278,
+    "capped": false,
+    "failed_pages": [],
+    "slugs_from_relay_source": [
+      "epl",
+      "mls",
+      "ucl",
+      "europa",
+      "eflchamp",
+      "laliga",
+      "seriea",
+      "bundesliga",
+      "ligue1"
+    ],
+    "source_file": "/tmp/relay-index.js",
+    "first_letter_sweep": [
+      "bundesliga",
+      "eflchamp",
+      "laliga",
+      "mls",
+      "seriea",
+      "ucl",
+      "wc26"
+    ],
+    "swept_but_not_in_source": []
+  }
+}
