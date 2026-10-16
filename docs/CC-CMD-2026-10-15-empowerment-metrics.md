@@ -457,8 +457,12 @@ type Stamina =
    wind; one holding flat against a flat baseline has nothing.
 
 `Insufficient` is a **sibling case, not a silent fall-through to `Fatiguing`**
-(Rule 91, SAMPLE-COVERAGE-A). One late event is not a second wind, and must not
-render as its opposite either.
+(Rule 99, DISTINGUISHABILITY-A — absence must be a sibling of the value). One
+late event is not a second wind, and must not render as its opposite either.
+
+That is the structural half. The reporting half is **SAMPLE-COVERAGE-A**
+(`field-relay-nba/CLAUDE.md`): print `checked N of M`. Widening the type and
+leaving the printed result silent satisfies neither.
 
 The 45-second trigger is **dropped** — that is one shift, not a fatigue
 threshold. Use accumulated TOI from the shift charts.
@@ -488,8 +492,13 @@ mechanism.
 A metric about high-leverage contribution that silently drops 78 of 101 goals
 is measuring something other than what it says. **Either fix the boundary for
 these classes and show the fix moves the number, or exclude them explicitly and
-name the exclusion in the type** — Rule 91, and the `Insufficient` principle
-above applied to coverage rather than sample size.
+name the exclusion in the type** — **SAMPLE-COVERAGE-A**
+(`field-relay-nba/CLAUDE.md`), whose remedy is to print the denominator, with
+the `Insufficient` principle above applied to coverage rather than sample size.
+
+**Citation note.** Three rule registries diverge above 88 and STANDARDS.md says
+to cite SAMPLE-COVERAGE-A by tag and file, never as a bare "Rule 91" — in this
+repo's own STANDARDS.md, Rule 91 is SCOPE-LEGIBLE-A, a different rule.
 
 **`onIceAt` has no period filter.** Actor plays on a period-end second are
 counted without one. Establish what that does to the rate before relying on it.
