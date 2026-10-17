@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `2b4a93f` — but that is not `main` HEAD
+**running** on `5e65e87`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `8eaf5a0`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `5e65e87` — failing step unknown: the run's steps could not be read — [run 38984759744](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38984759744)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `8eaf5a0` — newest deployable `2b4a93f` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `8eaf5a0` — behind newest deployable `5e65e87` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

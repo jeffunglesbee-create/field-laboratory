@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5e65e87` | 2026-10-17 | [2026-10-16-empowerment-rule-citations.md](2026-10-16-empowerment-rule-citations.md) | docs: cite SAMPLE-COVERAGE-A by tag and file in the empowerment comments |
+| `b6f1fcf` | 2026-10-16 | [cc-session-2026-10-15-bdb-frame-types.md](cc-session-2026-10-15-bdb-frame-types.md) | feat: the four empowerment metrics, measured before they were typed |
+| `b6f1fcf` | 2026-10-16 | [flow-2026-10-16.md](flow-2026-10-16.md) | feat: the four empowerment metrics, measured before they were typed |
+| `b6f1fcf` | 2026-10-16 | [gravity-census-latest.json](gravity-census-latest.json) | feat: the four empowerment metrics, measured before they were typed |
+| `b6f1fcf` | 2026-10-16 | [gravity-well-2026-10-16.md](gravity-well-2026-10-16.md) | feat: the four empowerment metrics, measured before they were typed |
+| `b6f1fcf` | 2026-10-16 | [second-wind-2026-10-16.md](second-wind-2026-10-16.md) | feat: the four empowerment metrics, measured before they were typed |
+| `b6f1fcf` | 2026-10-16 | [tactical-lock-2026-10-16.md](tactical-lock-2026-10-16.md) | feat: the four empowerment metrics, measured before they were typed |
+| `7f6472d` | 2026-10-16 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-16T21:42 [skip ci] |
+| `92fb3b1` | 2026-10-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8eaf5a0` | 2026-10-16 | [cc-session-2026-10-16-empowerment-task0.md](cc-session-2026-10-16-empowerment-task0.md) | docs: the owner's delegated rulings on Flow's two remaining questions |
 | `cbafc89` | 2026-10-16 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `09e7e58` | 2026-10-16 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-16 [skip ci] |
