@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d7fadc0` | 2026-10-17 | [deploy-gate-held-2026-10-17.md](deploy-gate-held-2026-10-17.md) | fix: the hourly deploy gate says a skip-directive tree is held, not unreadable |
 | `dc91ac6` | 2026-10-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-17 [skip ci] |
 | `dc91ac6` | 2026-10-17 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-17 [skip ci] |
 | `dc91ac6` | 2026-10-17 | [sport-vocabulary-2026-10-17T15-21-50-408Z.json](sport-vocabulary-2026-10-17T15-21-50-408Z.json) | drift-sentinel: ok on 2026-10-17 [skip ci] |
