@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `319c1c6` | 2026-10-17 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-17 [skip ci] |
+| `319c1c6` | 2026-10-17 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-17 [skip ci] |
+| `319c1c6` | 2026-10-17 | [sport-vocabulary-2026-10-17T05-46-20-363Z.json](sport-vocabulary-2026-10-17T05-46-20-363Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-17 [skip ci] |
+| `e411de0` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `075f4b4` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ebb8fea` | 2026-10-17 | [cc-session-2026-10-15-empowerment-metrics.md](cc-session-2026-10-15-empowerment-metrics.md) | docs: close the empowerment metrics CC-CMD, with its session doc last |
 | `ebb8fea` | 2026-10-17 | [flow-2026-10-16.md](flow-2026-10-16.md) | docs: close the empowerment metrics CC-CMD, with its session doc last |
