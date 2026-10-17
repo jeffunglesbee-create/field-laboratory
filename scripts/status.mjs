@@ -11,7 +11,7 @@
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { worstFailure } from './run-steps.mjs'
-import { newestDeployableCommit, containsCommit } from './deployable.mjs'
+import { newestLandableCommit, containsCommit } from './deployable.mjs'
 
 /// The "Serving commit" cell for a live target. The old text said only "(behind
 /// `main`)" whenever the published commit differed from HEAD — which is the
@@ -399,7 +399,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   // The newest deployable commit — computed once, so the table can say whether a
   // published artifact that is behind HEAD is correctly behind (docs on top) or
   // a deploy that did not land.
-  const deployable = newestDeployableCommit()
+  // LANDABLE, not path-deployable: the same predicate as deploy-landed-check, so
+  // a skip-directive data commit on top is not reported as a deploy not landed.
+  const deployable = newestLandableCommit().sha
 
   const lines = [
     '# Status',

@@ -606,11 +606,15 @@ jobs:
         run: node scripts/check-script-orphans.mjs --self-test && node scripts/check-script-orphans.mjs
 
       # The deploy-landed classifier — is the published artifact the newest
-      # DEPLOYABLE commit, not merely main HEAD (docs/[skip ci] commits correctly
-      # do not deploy). Only the self-test runs here; the live assertion runs in
-      # live-check, post-deploy, where the site can be reached.
+      # LANDABLE commit (path-deployable AND no skip directive: the commits
+      # verify runs on), not merely main HEAD. Only the self-test and its
+      # mutations run here; the live assertion runs in live-check, post-deploy,
+      # where the site can be reached. The mutations include the naive fix that
+      # stops at the first skipped commit and hides a code commit beneath it.
       - name: The deploy-landed classifier discriminates
-        run: node scripts/deploy-landed-check.mjs --self-test
+        run: |
+          node scripts/deploy-landed-check.mjs --self-test
+          node scripts/mutate-deploy-landed.mjs
 
       # The gate's row inventory guard, self-tested. Its own assertions run here
       # rather than only inside the gate, so a broken guard is a named failure
