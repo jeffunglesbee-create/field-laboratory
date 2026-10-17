@@ -1,0 +1,36 @@
+{
+  "check": "frames-route",
+  "generated": "2026-10-17T02:32:25.468Z",
+  "run": {
+    "sha": "db75760e555f4a5a5f013680b01fe5e24f3e6f00",
+    "dirty": true,
+    "id": "db75760e555f-685ce2ba532c"
+  },
+  "source": {
+    "kind": "route",
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/nflverse/bdb_event_frames.json",
+    "xSource": "r2"
+  },
+  "committed": "data/bdb-event-frames-2022-w2.json",
+  "status": 200,
+  "servedBytes": 1816808,
+  "committedBytes": 1816808,
+  "servedSha256": "6be5a28298239af6a5709929bbd0b52d0d96625d5f3ebfeb6482de0ae3f9d249",
+  "committedSha256": "6be5a28298239af6a5709929bbd0b52d0d96625d5f3ebfeb6482de0ae3f9d249",
+  "match": true,
+  "coverage": "1 of 1 route (/nflverse/bdb_event_frames.json); no other nflverse file",
+  "checks": [
+    {
+      "name": "the route answered 200",
+      "pass": true
+    },
+    {
+      "name": "the served byte count is the committed one",
+      "pass": true
+    },
+    {
+      "name": "the served sha256 is the committed file's",
+      "pass": true
+    }
+  ]
+}
