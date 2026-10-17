@@ -14,7 +14,8 @@ the constructors.
 
 ## A verdict cannot be minted without the test that earns it
 
-`Stamina` has four cases, each private. `SecondWind` and `Fatiguing` carry the
+`Stamina` has four cases, each private. `SecondWind` and `TrailingRate` (the
+spec's `Fatiguing`, renamed by the owner's 2026-10-16 ruling) carry the
 `Evidence` that passed a 2.5% binomial tail against the band's expected share,
 and `PopulationRate` carries the evidence that passed neither. The only code
 that builds one is `staminaOf`, which is private too, so no reading exists

@@ -3245,13 +3245,13 @@ let private secondWind () =
           (900, 0, 6)
           (900, 0, 7)
 
-      Verify.check "Insufficient is a sibling of Fatiguing, not a fall-through to it, and draws no tick"
+      Verify.check "Insufficient is a sibling of TrailingRate, not a fall-through to it, and draws no tick"
           (fun reading -> stateOf declining reading = Some "Insufficient" && markOf declining reading = Some Stamina.TrackOnly)
           (900, 6, 0)
           (900, 7, 0)
 
-      Verify.check "SecondWind and Fatiguing each need their own tail at 2.5% against the band's expected share"
-          (fun (toward, away) -> stateOf declining toward = Some "SecondWind" && stateOf declining away = Some "Fatiguing")
+      Verify.check "SecondWind and TrailingRate each need their own tail at 2.5% against the band's expected share"
+          (fun (toward, away) -> stateOf declining toward = Some "SecondWind" && stateOf declining away = Some "TrailingRate")
           ((900, 1, 7), (900, 8, 0))
           ((900, 2, 6), (900, 7, 1))
 
@@ -3260,7 +3260,7 @@ let private secondWind () =
           (900, 200, 200)
           (900, 222, 178)
 
-      Verify.check "level thirds against a level band read PopulationRate, a case of its own and not Fatiguing"
+      Verify.check "level thirds against a level band read PopulationRate, a case of its own and not TrailingRate"
           (fun (bandFirst, bandLast) -> stateOf (everyBand bandFirst bandLast) (900, 200, 200) = Some "PopulationRate")
           (1000, 1000)
           (1250, 1000)

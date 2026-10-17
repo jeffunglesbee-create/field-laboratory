@@ -1707,11 +1707,11 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
-    id: 'stamina-insufficient-is-fatiguing',
+    id: 'stamina-insufficient-is-trailing',
     file: 'src/Stamina.fs',
-    claim: 'Insufficient is a sibling of Fatiguing, not a fall-through to it',
+    claim: 'Insufficient is a sibling of TrailingRate, not a fall-through to it',
     find: '        Insufficient n',
-    replace: '        Fatiguing { InFirst = game.FirstThird; InLast = game.LastThird; ExpectedShare = expected }',
+    replace: '        TrailingRate { InFirst = game.FirstThird; InLast = game.LastThird; ExpectedShare = expected }',
     expect: 'node build/VerifyMain.js',
   },
   {
@@ -1725,9 +1725,9 @@ const MUTATIONS = [
   {
     id: 'stamina-population-rate-folded',
     file: 'src/Stamina.fs',
-    claim: 'a split within the band rate is PopulationRate, its own case, never Fatiguing',
+    claim: 'a split within the band rate is PopulationRate, its own case, never TrailingRate',
     find: '        else PopulationRate evidence',
-    replace: '        else Fatiguing evidence',
+    replace: '        else TrailingRate evidence',
     expect: 'node build/VerifyMain.js',
   },
   {
@@ -1768,6 +1768,15 @@ const MUTATIONS = [
     claim: 'the binomial tails are summed in log space, so a long split cannot underflow to SecondWind',
     find: '    let mutable logMass = float n * log rest',
     replace: '    let mutable logMass = log (pown rest n)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The owner's 2026-10-16 ruling: no conditioning term in the accessible name.
+    id: 'stamina-label-trailing-rate',
+    file: 'src/Stamina.fs',
+    claim: 'the label names the lower tail TrailingRate, never the conditioning word the owner ruled out',
+    find: '        | TrailingRate e -> counted "TrailingRate" e',
+    replace: '        | TrailingRate e -> counted "Fatiguing" e',
     expect: 'node build/VerifyMain.js',
   },
   // --- Second Wind over the committed NHL capture (real bytes) ---

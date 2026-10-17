@@ -8,9 +8,10 @@ module Stamina
 // a claim about a body. No biometric input exists anywhere in this pipeline, so
 // nothing here, in the docs, or in the one string this module emits may assert
 // conditioning, fitness or biology (spec, Task 3 opening paragraph). The case
-// names `Stamina`, `Fatiguing` and `SecondWind` are the spec's words; whether
-// the label may carry `Fatiguing` is an open owner question, recorded in the
-// CC note under Task 3 and in outbox/second-wind-2026-10-16.md.
+// names `Stamina` and `SecondWind` are the spec's words. `TrailingRate` was the
+// spec's `Fatiguing` until the owner ruled on 2026-10-16 (CC-CMD Task 3) to keep
+// conditioning terms out of the accessible name; whether `SecondWind` follows
+// is the question that ruling leaves open.
 //
 // CREDITED BY NAME, NEVER BY MEMBERSHIP. A goal goes to `scoringPlayerId`; a
 // shot on goal, a missed shot and a blocked shot go to `shootingPlayerId`.
@@ -50,14 +51,14 @@ module Stamina
 //
 // INSUFFICIENT IS A SIBLING. Below the fewest attempts at which BOTH verdicts
 // are reachable at 2.5% in the skater's band, the reading is `Insufficient`,
-// never a fall-through to `Fatiguing` (Task 3, "a sibling case, not a silent
+// never a fall-through to `TrailingRate` (Task 3, "a sibling case, not a silent
 // fall-through"; Rule 99, DISTINGUISHABILITY-A).
 //
 // THE FOURTH CASE. `PopulationRate` is the spec's "holding flat against a flat
 // baseline has nothing": a skater whose split is within the band's rate. Task
 // 3's second denominator, plus Rule 99 (absence is a sibling of the value). An
 // exact binomial test has three outcomes at every n, and folding the third into
-// `Fatiguing` would recreate the absence-defined state the spec names as the
+// `TrailingRate` would recreate the absence-defined state the spec names as the
 // shared defect.
 //
 // VOCABULARY. The words that mean what Task 0.3's four on-ice states mean reuse
@@ -492,7 +493,7 @@ type Stamina =
     private // no reading is minted outside this module
     | Insufficient of events: int
     | PopulationRate of Evidence
-    | Fatiguing of Evidence
+    | TrailingRate of Evidence
     | SecondWind of Evidence
 
 /// P(X >= k) and P(X <= k) for X ~ Binomial(n, share), by the pmf recurrence
@@ -520,7 +521,7 @@ let private staminaOf (curve: Curve) (game: PlayerGame) : Stamina =
         let evidence = { InFirst = game.FirstThird; InLast = game.LastThird; ExpectedShare = expected }
         let upper, lower = binomialTails n expected game.LastThird
         if upper <= tail then SecondWind evidence
-        elif lower <= tail then Fatiguing evidence
+        elif lower <= tail then TrailingRate evidence
         else PopulationRate evidence
 
 // ---- the witness, bound to the game it came from ----------------------------
@@ -581,7 +582,7 @@ let staminaMark (curve: Curve) (game: FinishedGame) (player: int) : Mark option 
         match reading with
         | Insufficient _ -> TrackOnly
         | PopulationRate e -> ticks e 0.5
-        | Fatiguing e -> ticks e 1.0
+        | TrailingRate e -> ticks e 1.0
         | SecondWind e -> ticks e 1.0)
 
 /// THE one string site for this metric (accessibility amendment): the state's
@@ -595,5 +596,5 @@ let staminaLabel (curve: Curve) (game: FinishedGame) (player: int) : string opti
         match reading with
         | Insufficient events -> sprintf "Insufficient state active, %d attempts in the first and last thirds" events
         | PopulationRate e -> counted "PopulationRate" e
-        | Fatiguing e -> counted "Fatiguing" e
+        | TrailingRate e -> counted "TrailingRate" e
         | SecondWind e -> counted "SecondWind" e)
