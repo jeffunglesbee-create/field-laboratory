@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ebb8fea` | 2026-10-17 | [cc-session-2026-10-15-empowerment-metrics.md](cc-session-2026-10-15-empowerment-metrics.md) | docs: close the empowerment metrics CC-CMD, with its session doc last |
+| `ebb8fea` | 2026-10-17 | [flow-2026-10-16.md](flow-2026-10-16.md) | docs: close the empowerment metrics CC-CMD, with its session doc last |
 | `d9f2cce` | 2026-10-17 | [2026-10-16-second-wind-trailing-rate.md](2026-10-16-second-wind-trailing-rate.md) | feat: Second Wind's lower tail is TrailingRate, as the owner ruled |
 | `69a5ac2` | 2026-10-17 | [cc-session-2026-10-16-deploy-landed-skip-ci.md](cc-session-2026-10-16-deploy-landed-skip-ci.md) | docs: deploy-landed write-up, its follow-up CC-CMD, and a status word guards needed |
 | `da5134a` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
