@@ -58,4 +58,19 @@ With that commit removed: `Deploy proceeding — verify is green on `d9f2cce``.
 
 ## Gate
 
-GATE_PENDING
+Full gate on a runner (the sandbox has no .NET 10 or Playwright packages):
+`verify-full` run 39044130530 scored **530/530 = 100** on `dc63004`.
+
+The first attempt, run 39040753116 on `1176e6d`, scored 500/530 = 94, and was
+not landed. Cause: this file was dated `2026-10-16`, the CC-CMD's day, while the
+gate's FIELD day was 2026-10-17. That failed "this session wrote its outbox"
+and, through the mutation row's own unmutated baseline, "breaking each
+invariant makes a check fail". Renamed, amended, re-scored.
+
+Landed as `d7fadc0`: the same diff rebased over six docs/outbox-only commits
+on main, alone in its push so the push head did not carry the skip directive.
+On `d7fadc0`, all green:
+- verify 39050631131
+- guards 39050631124
+- deploy 39050837010
+- live-check 39050891097

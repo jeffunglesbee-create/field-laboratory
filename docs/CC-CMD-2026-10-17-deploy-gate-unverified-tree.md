@@ -5,7 +5,7 @@
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Filed:** 2026-10-17 by CC, from `docs/CC-CMD-2026-10-16-deploy-landed-skip-ci.md`
 (Rule 87.4: its one residual, which needs an owner decision)
-**Status:** FILED, not started — needs the owner's ruling below first.
+**Status:** DONE 2026-10-17 — option 1 (owner ruling), `d7fadc0`, gate 100 (run 39044130530). Write-up: `outbox/deploy-gate-held-2026-10-17.md`.
 
 ## The behaviour
 
