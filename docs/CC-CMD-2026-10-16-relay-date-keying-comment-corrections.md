@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** >= 95 before any commit
 **Filed:** 2026-10-16 by chat, read from `src/Program.fs` (blob `c5fc49e`) and `src/Desk.fs` (blob `d4b3f53`) at `70b8bd6`
-**Status:** NOT STARTED — not dispatched.
+**Status:** FILED, not started — not dispatched.
 **Companion:** `field-relay-nba/docs/CC-CMD-2026-10-16-cfl-archive-date-keying.md` — the data fix. This CC-CMD is comments only and does not depend on that one landing first.
 
 Comments only, in `src/*.fs`. No behaviour changes. Note that `src/**` is not in

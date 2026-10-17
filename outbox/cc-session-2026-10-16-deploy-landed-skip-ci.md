@@ -1,7 +1,7 @@
 # deploy-landed: what a deploy can actually publish
 
 CC-CMD: `docs/CC-CMD-2026-10-16-deploy-landed-skip-ci.md`
-Base: `e654f81` · Branch: main
+Base: `e654f81` → `fc96759` · Branch: main
 
 ## Task 0 — what gates a deploy, measured
 
@@ -88,11 +88,72 @@ with their reason" and "an unmeasured spelling is not honoured".
 
 ## Gate and verification
 
-RUNNER_RESULTS_PENDING
+- **Confidence gate, full, on a runner:** the sandbox has no .NET 10 (dot.net
+  is blocked by the proxy) and no Playwright packages, so a local run scored
+  23 on environment alone, and `--quick` is by its own words not a pass. The
+  candidate `53da77f` was pushed to this session's branch only and scored by
+  `verify-full` run 38998337325: **530/530 = 100** (record
+  `53da77fe4082-4d9259f625ec`). Only then was it fast-forwarded to main,
+  alone, so that its push head did not carry the skip directive.
+- **verify on main failed once, and not on this change:** run 39001492200 went
+  red on "Doc citations are anchored". The cause was `src/Desk.fs:53` cited bare
+  in `docs/CC-CMD-2026-10-16-relay-date-keying-comment-corrections.md`, which
+  landed docs-only in `e654f81`, so no verify had seen it. It was anchored in
+  `fc96759`; verify run 39001824719 was green; deploy 39002017194 published it;
+  live-check 39002242847 was green.
+- **Done condition, `live-check` green on a HEAD whose newest commits carry
+  the skip directive** (run 39002242847, HEAD `da5134a`):
 
-## Residual, recorded not deferred
+```
+  published:          fc96759
+  newest deployable:  53da77f
+  HEAD:               da5134a
+
+  newest deployable is 53da77f; walked past 6 newer commit(s):
+    da5134a  docs-only (verify paths-ignore)
+    2e50577  docs-only (verify paths-ignore)
+    fc96759  docs-only (verify paths-ignore)
+    6e52bca  docs-only (verify paths-ignore)
+    d0568e3  docs-only (verify paths-ignore)
+    f83de49  docs-only (verify paths-ignore)
+
+  ✓ LANDED — published fc96759 is a non-deployable commit on top of 53da77f; its tree contains every deployable change.
+```
+
+- **The path-deployable case, which those commits are not:** a local,
+  never-pushed commit `data/__landable_probe.json` with the directive, on top
+  of the deployed `fc96759`. The old predicate gave newest deployable =
+  the probe commit, so behind (the false red). The new one gave `53da77f`,
+  contained in published, so landed, walking past the probe as "skip
+  directive". Not dispatched for real: `empowerment-data.yml` is dispatch-only
+  by design, and running it would write census data only to make a test.
+
+## Premises in the CC-CMD that did not hold
+
+- "Two scheduled producers": `empowerment-data.yml` and `gravity-census.yml`
+  have no `schedule`, only `workflow_dispatch`, and `gravity-census` writes
+  only `outbox/` (docs-only either way). The recurrence is per dispatch of
+  `empowerment-data`, not per day.
+- "No deploy ran for it and none ever will": true, but because verify never
+  runs on it. `deploy.yml` has no condition on the message.
+- The `315d848` red was a real verify failure on `5e65e87` (see Task 0.4).
+
+## Process note
+
+An earlier `git checkout e654f81 --` with no paths detached HEAD. The next
+commits were made on the detached HEAD, and a `git push origin main` was
+rejected because it pushed the stale branch ref. Nothing was lost: HEAD
+contained `origin/main`, `main` was moved to it, and the push landed
+`fc96759`.
+
+## Residual, filed as its own CC-CMD (Rule 87.4)
 
 On a commit carrying the directive, `deploy-gate.mjs` reads "could NOT BE READ"
 every hour until the next verified commit. That is safe, because nothing
 unverified ships, but it is noisy. Changing it means deciding whether unverified
-data may publish. That is an owner decision, so it is not taken here.
+data may publish, so it is an owner decision:
+`docs/CC-CMD-2026-10-17-deploy-gate-unverified-tree.md`, three options,
+recommending the one that changes words and not what ships.
+
+README "answer so far": not updated. It is about the type-system thesis, and
+nothing here bears on it.

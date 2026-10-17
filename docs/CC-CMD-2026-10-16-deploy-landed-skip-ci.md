@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Filed:** 2026-10-16 by chat
-**Status:** FILED, not started — not dispatched.
+**Status:** DONE 2026-10-17 — `53da77f` (gate 100, run 38998337325); live-check green with skip-directive commits on top (run 39002242847). Write-up: `outbox/cc-session-2026-10-16-deploy-landed-skip-ci.md`.
 
 ## The failure, verbatim
 
