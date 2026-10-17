@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `5e65e87`
+**FAILURE** on `5e65e87` at "Weather against the LIVE Open-Meteo API" — 1 of 81 steps did not run behind it — [run 38984732123](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38984732123)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `5e65e87` — failing step unknown: the run's steps could not be read — [run 38984759744](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38984759744)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `c64251c` — failing step unknown: the run's steps could not be read — [run 38985036647](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38985036647)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `8eaf5a0` — behind newest deployable `5e65e87` (deploy not landed) |
+| Cloudflare Workers | live | `8eaf5a0` — behind newest deployable `c64251c` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
