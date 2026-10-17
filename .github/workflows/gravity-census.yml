@@ -9,7 +9,11 @@
 #
 # Dispatch-only. The capture is committed and changes only when someone
 # replaces it (data/PROVENANCE.md), so there is nothing for a timer to watch.
-# No network: the script reads data/ and the Fable build, nothing else.
+# The census has no network: it reads data/ and the Fable build, nothing else.
+# One step does read the network, on purpose: scripts/frames-route-check.mjs
+# hashes what the relay's /nflverse/bdb_event_frames.json serves against the
+# committed capture, which was copied from the builder and until 2026-10-17 was
+# tied to the route only by a byte count.
 name: gravity-census
 
 on:
@@ -50,12 +54,23 @@ jobs:
           set -o pipefail
           npm run census:gravity 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
 
+      # The route against the committed bytes. Its own self-test first, so a
+      # comparison that cannot fail never reports a match (Rule 90, MUTATE-FIRST-A,
+      # field-relay-nba/CLAUDE.md). Runs whatever the census said.
+      - name: The served frames are the committed capture
+        if: always()
+        run: |
+          node scripts/frames-route-check.mjs --self-test
+          node scripts/frames-route-check.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+        shell: bash -eo pipefail {0}
+
       - name: Commit the census
         if: always()
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
           git add outbox/gravity-census-latest.json
+          if [ -e outbox/frames-route-latest.json ]; then git add outbox/frames-route-latest.json; fi
           git diff --staged --quiet || git commit -m "census: Gravity Well over the 2022 week-2 frames capture [skip ci]"
           # Rebase-and-retry, as favourite-band-census.yml does and for the same
           # reason: this repo has many concurrent writers, and a lost push race

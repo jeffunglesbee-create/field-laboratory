@@ -39,7 +39,13 @@ let mutable private loaded : Map<string, string> = Map.empty
 let paths =
     [ "data/statsapi-schedule-2026-06-29.json"
       "data/tennis-live.json"
-      "data/tennis-draw.json" ]
+      "data/tennis-draw.json"
+      "data/nhl-second-wind-pbp.json"
+      "data/nhl-second-wind-shifts.json"
+      "data/bsd-flow-finished-stats.json"
+      "data/bsd-flow-finished-incidents.json"
+      "data/bsd-flow-inplay-stats.json"
+      "data/bsd-flow-inplay-incidents.json" ]
 
 /// Hand this module a file's bytes.
 let load (path: string) (text: string) = loaded <- Map.add path text loaded
@@ -229,3 +235,76 @@ let tennisDrawSetCorrupted () : string =
                 sb.Append(tail.[i]) |> ignore
                 i <- i + 1
         if hits = 0 then tennisDraw else head + sb.ToString()
+
+
+/// One finished NHL regular-season game that went past regulation: its
+/// play-by-play and its shift chart, captured verbatim by
+/// `scripts/capture-nhl-fixture.mjs` (data/PROVENANCE.md names the game). The
+/// capture workflow rewrites both files, so the rows over them are relational
+/// and never anchored to a value inside them.
+let nhlPlayByPlay () : string = read "data/nhl-second-wind-pbp.json"
+
+let nhlShiftChart () : string = read "data/nhl-second-wind-shifts.json"
+
+/// The shift chart with its `total` rewritten to 1, so it disagrees with its own
+/// rows. DERIVED from the file: if `"total":` is absent this returns the
+/// ORIGINAL string, the two inputs are identical, and the row reports NO TEETH.
+let nhlShiftChartTruncated () : string =
+    let chart = nhlShiftChart ()
+    let anchor = "\"total\":"
+    let i = chart.IndexOf(anchor)
+    if i < 0 then chart
+    else
+        let valueStart = i + anchor.Length
+        let mutable j = valueStart
+        while j < chart.Length && (System.Char.IsDigit chart.[j] || chart.[j] = ' ') do j <- j + 1
+        if j = valueStart then chart
+        else chart.Substring(0, valueStart) + "1" + chart.Substring(j)
+
+/// The play-by-play with its own top-level `gameState` rewritten to LIVE: the
+/// same bytes, captured as if the game were still in play. DERIVED from the
+/// file; the first `"gameState":"` is the top-level key in the vendor's order.
+/// If the anchor is absent this returns the ORIGINAL string: NO TEETH.
+let nhlPlayByPlayLive () : string =
+    let pbp = nhlPlayByPlay ()
+    let anchor = "\"gameState\":\""
+    let i = pbp.IndexOf(anchor)
+    if i < 0 then pbp
+    else
+        let valueStart = i + anchor.Length
+        let close = pbp.IndexOf('"', valueStart)
+        if close < 0 then pbp
+        else pbp.Substring(0, valueStart) + "LIVE" + pbp.Substring(close)
+
+
+/// Two BSD soccer captures, each a stats file and its incidents file, captured
+/// verbatim by `scripts/flow-census.mjs --capture` (data/PROVENANCE.md names
+/// both events): one whose incidents carry a non-live full-time marker, and one
+/// last uploaded while its match was in play. The capture workflow rewrites all
+/// four, so the rows over them are relational and never anchored to a value
+/// inside them.
+let bsdFlowFinishedStats () : string = read "data/bsd-flow-finished-stats.json"
+
+let bsdFlowFinishedIncidents () : string = read "data/bsd-flow-finished-incidents.json"
+
+let bsdFlowInPlayStats () : string = read "data/bsd-flow-inplay-stats.json"
+
+let bsdFlowInPlayIncidents () : string = read "data/bsd-flow-inplay-incidents.json"
+
+/// The finished stats with the first shotmap row's `xg` rewritten to null: the
+/// same match, with one shot the vendor did not price. DERIVED from the file.
+/// The search starts at `"shotmap":` because the file's first `"xg":` keys are
+/// the team totals under `stats`, which precede it. If either anchor is absent
+/// this returns the ORIGINAL string: NO TEETH.
+let bsdFlowFinishedStatsXgNull () : string =
+    let stats = bsdFlowFinishedStats ()
+    let shotmap = stats.IndexOf("\"shotmap\":")
+    let anchor = "\"xg\":"
+    let i = if shotmap < 0 then -1 else stats.IndexOf(anchor, shotmap)
+    if i < 0 then stats
+    else
+        let valueStart = i + anchor.Length
+        let mutable j = valueStart
+        while j < stats.Length && (System.Char.IsDigit stats.[j] || stats.[j] = '.' || stats.[j] = '-') do j <- j + 1
+        if j = valueStart then stats
+        else stats.Substring(0, valueStart) + "null" + stats.Substring(j)

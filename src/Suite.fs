@@ -2476,6 +2476,36 @@ let private flowReads (rows: string list) (incidents: string option) (clock: Flo
 let private flowCensusOf (rows: string list) (incidents: string) =
     Flow.flowCensus (Flow.decodeCapture (flowStats rows) (Some incidents))
 
+/// Read from a committed capture's raw text with a generic decoder, never
+/// through Flow, so a row can set Flow's answer against something Flow did not
+/// compute: the shotmap's row count, the capture's own event id, and the clock
+/// of its latest shotmap row. -1 or None when the text has no such field.
+let private rawShotRows (stats: string) =
+    match Thoth.Json.Decode.fromString (Thoth.Json.Decode.field "shotmap" (Thoth.Json.Decode.list Thoth.Json.Decode.value)) stats with
+    | Ok rows -> List.length rows
+    | Error _ -> -1
+
+let private rawEventId (stats: string) =
+    match Thoth.Json.Decode.fromString (Thoth.Json.Decode.field "event_id" Thoth.Json.Decode.int) stats with
+    | Ok id -> id
+    | Error _ -> -1
+
+let private rawLastShot (stats: string) : Flow.Clock option =
+    let clock =
+        Thoth.Json.Decode.object (fun get ->
+            ({ Minute = get.Required.Field "min" Thoth.Json.Decode.int
+               Added = get.Optional.Field "added" Thoth.Json.Decode.int |> Option.defaultValue 0 } : Flow.Clock))
+    match Thoth.Json.Decode.fromString (Thoth.Json.Decode.field "shotmap" (Thoth.Json.Decode.list clock)) stats with
+    | Ok [] -> None
+    | Ok clocks -> Some(List.max clocks)
+    | Error _ -> None
+
+let private isRecorded (r: Flow.Reading) =
+    match r with
+    | Flow.Recorded -> true
+    | Flow.NotRead -> false
+    | Flow.NotRecorded -> false
+
 let private flow () =
     let run = [ homeShot 10 "0.10"; homeShot 12 "0.12"; homeShot 14 "0.20" ]
     [ Verify.check "two own shots are not Flow"
@@ -2716,7 +2746,73 @@ let private flow () =
       Verify.check "a census names a run ended by a 0-xG opposing shot"
           (fun rows -> (flowCensusOf rows fullTime).FlowClosedByOpponentZeroXg = 1)
           [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0" ]
-          [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0.05" ] ]
+          [ homeShot 10 "0.1"; homeShot 11 "0.1"; homeShot 12 "0.1"; awayShot 13 "0.05" ]
+
+      // --- the committed captures (real bytes) ---------------------------------
+      // Relational: the capture workflow rewrites all four files, so no row is
+      // anchored to a value inside them. What a row sets Flow's answer against is
+      // read from the raw text by rawShotRows, rawEventId or rawLastShot, never
+      // by Flow. Every input is JSON text, an id or an option of text, as above.
+      Verify.check "the committed finished capture is read, and every shotmap row is counted once"
+          (fun (stats: string) ->
+              let n = Flow.flowCensus (Flow.decodeCapture stats (Some(Fixtures.bsdFlowFinishedIncidents ())))
+              n.Read && rawShotRows stats > 0 && n.Shots = rawShotRows stats)
+          (Fixtures.bsdFlowFinishedStats ())
+          (Fixtures.bsdFlowFinishedStatsXgNull ())
+
+      // The full-time route to a recorded minute, on the vendor's own marker
+      // rather than on flowPeriod's. The clock one added minute past the last
+      // shot is covered by nothing but that marker.
+      Verify.check "the finished capture's own FT marker records the clock just past its last shot; with no incidents file it is not recorded"
+          (fun (incidents: string option) ->
+              let stats = Fixtures.bsdFlowFinishedStats ()
+              match rawLastShot stats with
+              | Some last when last.Minute <= 90 ->
+                  let past = { last with Added = last.Added + 1 }
+                  let c = Flow.decodeCapture stats incidents
+                  isRecorded (Flow.readingAt c Flow.Home past) && isRecorded (Flow.readingAt c Flow.Away past)
+              | _ -> false)
+          (Some(Fixtures.bsdFlowFinishedIncidents ()))
+          None
+
+      Verify.check "the finished capture's stats and incidents name one event; its stats beside the in-play capture's incidents do not"
+          (fun (incidents: string) ->
+              (Flow.flowCensus (Flow.decodeCapture (Fixtures.bsdFlowFinishedStats ()) (Some incidents))).Stage <> "mismatched")
+          (Fixtures.bsdFlowFinishedIncidents ())
+          (Fixtures.bsdFlowInPlayIncidents ())
+
+      // The event id is the capture's own, read from its raw text. The kickoff
+      // and `now` are flowEventRow's and flowNow's, eight FIELD days apart.
+      Verify.check "the finished capture's own event id joins its event row to the witness; the in-play capture's id does not"
+          (fun (eventId: int) ->
+              let c = Flow.decodeCapture (Fixtures.bsdFlowFinishedStats ()) (Some(Fixtures.bsdFlowFinishedIncidents ()))
+              Option.isSome (Flow.witnessAfterKickoff c (flowEventRow eventId) flowNow))
+          (rawEventId (Fixtures.bsdFlowFinishedStats ()))
+          (rawEventId (Fixtures.bsdFlowInPlayStats ()))
+
+      // What a renderer would receive, minute by minute, on a real match. The
+      // labels and pulses are computed here and only compared, never returned.
+      Verify.check "through the witness, minutes 1-90 of the finished capture name both teams in a sanctioned form, InFlow at least once and exactly where the pulse draws"
+          (fun (stats: string) ->
+              let c = Flow.decodeCapture stats (Some(Fixtures.bsdFlowFinishedIncidents ()))
+              match Flow.witnessAfterKickoff c (flowEventRow (rawEventId stats)) flowNow with
+              | None -> false
+              | Some f ->
+                  let readings =
+                      [ for side in [ Flow.Home; Flow.Away ] do
+                            for minute in 1..90 do
+                                let clock = flowClock minute 0
+                                yield Flow.ariaLabel f side clock, Flow.pulseStyle f side clock ]
+                  let inFlow (label: string) = label.StartsWith "InFlow state active, sequential xG "
+                  let sanctioned (label: string) =
+                      label = disjointed
+                      || label = "Flow not recorded at this minute"
+                      || label = "Flow not read"
+                      || System.Text.RegularExpressions.Regex.IsMatch(label, @"^InFlow state active, sequential xG \d+\.\d\d$")
+                  readings |> List.forall (fun (label, pulse) -> sanctioned label && (inFlow label = (pulse <> "")))
+                  && readings |> List.exists (fun (label, _) -> inFlow label))
+          (Fixtures.bsdFlowFinishedStats ())
+          (Fixtures.bsdFlowFinishedStatsXgNull ()) ]
 
 // Gravity Well (NFL) and the vintage-typed frames it is decoded through.
 //
@@ -3331,7 +3427,34 @@ let private secondWind () =
             "PRE", true, false
             "FUT", true, false
             "SUSP", true, false ]
-          [ "LIVE", true, true ] ]
+          [ "LIVE", true, true ]
+
+      // --- the committed capture (real bytes) ----------------------------------
+      Verify.check "the committed NHL capture decodes and windows: 30 or more skaters, an attempt past regulation"
+          (fun (pbpJson: string, chartJson: string) ->
+              match windowed pbpJson chartJson with
+              | Some w -> List.length w.Players >= 30 && w.BeyondRegulation >= 1
+              | None -> false)
+          (Fixtures.nhlPlayByPlay (), Fixtures.nhlShiftChart ())
+          (Fixtures.nhlPlayByPlay (), Fixtures.nhlShiftChartTruncated ())
+
+      Verify.check "on the capture, named credit sits inside the shooter's own shifts for 95% of other attempts; the +600 s control does not"
+          (fun clockShift ->
+              match Stamina.staminaPlayByPlay (Fixtures.nhlPlayByPlay ()), Stamina.staminaShifts (Fixtures.nhlShiftChart ()) with
+              | Ok p, Ok c ->
+                  let other = (Stamina.staminaCoverage clockShift p c).OtherAttempts
+                  other.Bearing > 0 && float (other.Bearing - other.InstantInNoInterval) >= 0.95 * float other.Bearing
+              | _ -> false)
+          0
+          600
+
+      Verify.check "the capture's own gameState yields the witness; the same bytes marked LIVE do not"
+          (fun (pbpJson: string) ->
+              match Stamina.staminaPlayByPlay pbpJson, Stamina.staminaShifts (Fixtures.nhlShiftChart ()) with
+              | Ok p, Ok c -> Option.isSome (Stamina.staminaWitness p c)
+              | _ -> false)
+          (Fixtures.nhlPlayByPlay ())
+          (Fixtures.nhlPlayByPlayLive ()) ]
 
 // Tactical Lock (empowerment Task 2). No real window reaches the spec's table:
 // every capture's windows hold dead time that cannot be taken out, and no

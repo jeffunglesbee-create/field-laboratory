@@ -1559,6 +1559,43 @@ const MUTATIONS = [
     replace: "type Finished =\n    { Of: Capture\n      Zone: AmnestyZone }",
     expect: "node scripts/proof-check.mjs --only FLOW-PROOF",
   },
+  // --- Flow over the committed BSD captures (real bytes) ---
+  {
+    // The real-bytes row sets this against rawShotRows, a generic decode of the same text.
+    id: "flow-census-counts-every-row",
+    file: "src/Flow.fs",
+    claim: "the census counts every shotmap row once, read or not",
+    find: "      Shots = List.length c.Raws\n",
+    replace: "      Shots = List.length c.Raws + 1\n",
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // flow-full-time-at-90 loosens the marker; this removes the route it opens.
+    id: "flow-full-time-route-records",
+    file: "src/Flow.fs",
+    claim: "a seen full-time marker records the clock past the last shot, up to 90'",
+    find: "|| (sawFullTime c && at < periodEnd SecondHalf))",
+    replace: "|| false)",
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The one sanctioned string form, checked minute by minute on the real capture.
+    id: "flow-label-two-decimals",
+    file: "src/Flow.fs",
+    claim: "an InFlow accessible name carries sequential xG to two decimals and no more",
+    find: "sprintf \"InFlow state active, sequential xG %.2f\"",
+    replace: "sprintf \"InFlow state active, sequential xG %.3f\"",
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // A renderer reading only the opacity would show nothing while the name said InFlow.
+    id: "flow-pulse-draws-inflow",
+    file: "src/Flow.fs",
+    claim: "the pulse draws exactly where the accessible name says InFlow",
+    find: "    | State(InFlow x) -> sprintf \"opacity: %.2f\" (min 1.0 (float (x / 1.0f<xg>)))",
+    replace: "    | State(InFlow x) -> \"\"",
+    expect: 'node build/VerifyMain.js',
+  },
   // --- Gravity Well (NFL) and the vintage-typed BDB frames: ten records, the budget (verify-full's 90-minute ceiling) ---
   {
     // bdb-frame-types Task 6, first direction. A public Vintage lets any caller write `Current 2022` and
@@ -1731,6 +1768,34 @@ const MUTATIONS = [
     claim: 'the binomial tails are summed in log space, so a long split cannot underflow to SecondWind',
     find: '    let mutable logMass = float n * log rest',
     replace: '    let mutable logMass = log (pown rest n)',
+    expect: 'node build/VerifyMain.js',
+  },
+  // --- Second Wind over the committed NHL capture (real bytes) ---
+  {
+    // The real-bytes row's counterexample is the capture with its total rewritten to 1.
+    id: "stamina-chart-total-checked",
+    file: "src/Stamina.fs",
+    claim: "a shift chart whose total disagrees with its own rows is refused",
+    find: "        if total <> List.length rows then",
+    replace: "        if false then",
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The committed game went past regulation; the row requires an attempt there.
+    id: "stamina-overtime-counted",
+    file: "src/Stamina.fs",
+    claim: "attempts past regulation are counted, not dropped",
+    find: "BeyondRegulation = pbp.Attempts |> List.filter (fun a -> a.AttemptPeriod > 3) |> List.length",
+    replace: "BeyondRegulation = 0",
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // Without the shift the +600 s control covers as much as the real clock, and the row has no control.
+    id: "stamina-coverage-clock-shift",
+    file: "src/Stamina.fs",
+    claim: "the coverage control moves every instant by its shift",
+    find: "        let later = t + clockShift\n",
+    replace: "        let later = t\n",
     expect: 'node build/VerifyMain.js',
   },
   // --- Tactical Lock (empowerment Task 2): table, refusals, seal ---
