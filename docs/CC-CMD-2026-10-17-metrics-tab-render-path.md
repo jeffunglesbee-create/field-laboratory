@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** >= 95 before any commit
 **Filed:** 2026-10-17 by chat, read from `src/*.fs` and `index.html` at `61110a4`
-**Status:** NOT STARTED — not dispatched.
+**Status:** FILED, not dispatched.
 **Owner decision on file:** "On their own to start" (2026-10-17) — a tab of their own, not additions to Scoreboard or Stats.
 
 ---
@@ -216,6 +216,24 @@ places. Then `Gravity.archivedAt`, then per receiver `Gravity.encodeWell` →
 1.8 MB, so: fetch once, on first expand of this section only, and keep the
 decoded result. Of 545 plays, 489 are measured; show a bounded set of plays, not
 all 545, and say in visible text how many of the 545 the panel is showing.
+
+**The unencoded fifth must be on the page as its own state.**
+`outbox/gravity-census-latest.json` reports `encodings` as 1,923 encoded and
+**515 unencoded** of 2,438 receivers, with `opacityInRange` 1,923. A panel that
+draws only what `encodeWell` returns silently drops 21% of the receivers it
+measured, and a reader cannot tell a receiver who drew nothing from one the
+encoder refused. Carry the unencoded count in visible text (it is a census
+count, not a verdict about a named player) and give those receivers a mark that
+is not the zero-drawn mark.
+
+Position is NOT adjusted for, and that is accepted — `drawn` is a within-player
+difference against his own snap alignment, so position tendency cancels for a
+per-play reading. It does not cancel across players: `byPos` means are FB
++0.188, RB +0.485, TE **−0.415**, WR +0.093, so drawn = 0 sits above a TE's
+expectation and below an RB's. **This panel therefore shows per-play readings
+and must not rank or compare receivers**, in the encoding or in the accessible
+name. A cross-player view needs the per-position expectation `byPos` already
+measures, and FB's 16 observations cannot carry one.
 
 `Vintage` is the gate on this path. `encodeWell` takes an `Archived`, which only
 `archivedAt` mints and only for an archive season. If the displaying season and
