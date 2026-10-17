@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d2aed99` | 2026-10-17 | [frames-route-latest.json](frames-route-latest.json) | census: Gravity Well over the 2022 week-2 frames capture [skip ci] |
+| `d2aed99` | 2026-10-17 | [gravity-census-latest.json](gravity-census-latest.json) | census: Gravity Well over the 2022 week-2 frames capture [skip ci] |
+| `db75760` | 2026-10-17 | [2026-10-16-empowerment-real-bytes.md](2026-10-16-empowerment-real-bytes.md) | feat: the empowerment metrics on real bytes, and the frames route hashed |
 | `c64251c` | 2026-10-17 | [flow-census-latest.json](flow-census-latest.json) | data: empowerment census and fixtures (run 38984743564) [skip ci] |
 | `c64251c` | 2026-10-17 | [second-wind-population-latest.json](second-wind-population-latest.json) | data: empowerment census and fixtures (run 38984743564) [skip ci] |
 | `85db9fe` | 2026-10-17 | [gravity-census-latest.json](gravity-census-latest.json) | census: Gravity Well over the 2022 week-2 frames capture [skip ci] |

@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `5e65e87` at "Weather against the LIVE Open-Meteo API" — 1 of 81 steps did not run behind it — [run 38984732123](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/38984732123)
+**green** on `db75760` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `315d848`
+`live-check` (post-deploy, against the deployed page): **running** on `d2aed99`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `8eaf5a0` — behind newest deployable `c64251c` (deploy not landed) |
+| Cloudflare Workers | live | `d2aed99` — newest deployable `db75760` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
