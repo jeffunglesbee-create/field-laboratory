@@ -17,25 +17,33 @@ corrections are bundled into one commit for that reason.
 
 This repo's `Desk.fs` states the relay's `date` keying as a measurement from an
 18-game slate. That measurement has now been re-run against the whole
-`field-archive` table (`regular_season_games`, 2026-10-16), per-row, against
-both candidate keyings rather than as an inequality:
+`field-archive` table (`regular_season_games`, re-probed 2026-10-17T14:10Z),
+per-row, against both candidate keyings rather than as an inequality:
 
 | sport | rows where UTC day ≠ ET day | `date` = ET day | `date` = UTC day |
 |---|---|---|---|
-| MLB | 332 | 332 | 0 |
-| MLS | 126 | 126 | 0 |
+| MLB | 333 | 333 | 0 |
+| MLS | 133 | 133 | 0 |
 | WNBA | 104 | 104 | 0 |
-| CFB | 91 | 91 | 0 |
-| NHL | 72 | 72 | 0 |
+| CFB | 100 | 100 | 0 |
+| NHL | 76 | 76 | 0 |
 | NBA | 35 | 35 | 0 |
 | NFL | 34 | 34 | 0 |
-| **CFL** | **12** | **0** | **12** |
+| **CFL** | **13** | **0** | **13** |
 | FIFA World Cup | 6 | 6 | 0 |
 
-800 ET, 12 UTC, 0 ambiguous. The twelve CFL rows are stamped one day ahead,
-primary key included, by a writer that slices the vendor's UTC timestamp
+821 ET, 13 UTC, 0 ambiguous. The CFL rows are stamped one day ahead, primary
+key included, by a writer that slices the vendor's UTC timestamp
 (`field-relay-nba/src/index.js:8947`). They are being migrated under the
 companion CC-CMD.
+
+**The UTC count is a dated observation, not a constant.** It was 12 at
+2026-10-16 and 13 at 2026-10-17: the writer is unfixed and accrues one row per
+CFL game kicking off after 20:00 ET. Every comment below is therefore written
+to name the mechanism and the measurement date, never a bare count that the
+next late CFL kickoff falsifies. If the re-probe in TASK 0 returns a different
+number, that is expected — what must hold is the shape: all UTC-keyed rows CFL,
+none keyed as neither.
 
 Separately: of 138 AFL rows, **138 have an empty `start_time`.**
 
@@ -61,7 +69,7 @@ Both halves of the second clause are false.
    removed it.
 2. **"matching how the relay keys its slates"** — the relay does not key its
    slates in UTC, so even as a claim about the old code this was wrong. It keys
-   on the ET day for 800 of 812 discriminating rows and on UTC for 12.
+   on the ET day for 821 of 834 discriminating rows and on UTC for 13 (2026-10-17).
 
 Replace with:
 
@@ -74,7 +82,8 @@ Replace with:
 /// the relay it claimed to match does not key in UTC either. A comment naming
 /// the exact zone the code below had stopped using survived because nothing
 /// reads a comment. Verified against the relay's own data, not its source:
-/// 800 of 812 archive rows whose UTC and ET days differ carry the ET day.
+/// 821 of 834 archive rows whose UTC and ET days differ carry the ET day
+/// (measured 2026-10-17).
 let private viewedDate () =
     queryParam "date" |> Option.defaultValue (Desk.fieldDayIso (Desk.fieldToday ()))
 ```
@@ -121,7 +130,8 @@ Keep the measurement. Append what it establishes and what it does not:
 ///      The discriminating form compares each row against BOTH candidates:
 ///      `date = ET-day(start_time)` versus `date = UTC-day(start_time)`, over
 ///      the rows where those two differ. Run that way over the whole archive:
-///      800 ET, 12 UTC, 0 ambiguous. All 12 were CFL, 100% of CFL's
+///      821 ET, 13 UTC, 0 ambiguous at 2026-10-17. Every UTC-keyed row was
+///      CFL, 100% of CFL's
 ///      discriminating rows, from a writer that sliced the vendor's UTC
 ///      timestamp. Fixed under
 ///      field-relay-nba CC-CMD-2026-10-16-cfl-archive-date-keying, which also
@@ -157,8 +167,8 @@ Replace with:
 
 ```fsharp
 /// This ASSERTS the relay's `date` is a FIELD-zone day. Measured per row over
-/// the whole archive on 2026-10-16: true for 800 of 812 rows whose UTC and ET
-/// days differ, and FALSE for 12 — all CFL, stamped from the vendor's UTC
+/// the whole archive on 2026-10-17: true for 821 of 834 rows whose UTC and ET
+/// days differ, and FALSE for 13 — all CFL, stamped from the vendor's UTC
 /// timestamp, primary key included, fixed under field-relay-nba
 /// CC-CMD-2026-10-16-cfl-archive-date-keying. Until that migration lands this
 /// function returns a day that is one ahead for a CFL game kicking off after
@@ -190,7 +200,8 @@ Then re-run the measurement the new comments assert, against live
 `field-archive` (`cc49101c-0569-4d41-8e7a-be139cde4f26`):
 
 ```sql
--- expect 800 ET / 12 UTC / 0 neither, all 12 UTC rows CFL
+-- shape, not count: every UTC-keyed row CFL, keyed_ET+keyed_UTC = the row
+-- count for each sport, nothing keyed as neither. 821/13/0 at 2026-10-17.
 SELECT sport,
   COUNT(*) AS discriminating_rows,
   SUM(CASE WHEN date = date(start_time,'-4 hours') THEN 1 ELSE 0 END) AS keyed_ET,
@@ -208,7 +219,7 @@ FROM regular_season_games WHERE sport = 'AFL';
 ```
 
 **If the companion relay CC-CMD has already landed**, `keyed_UTC` will be 0 and
-the twelve rows will be migrated. That does not make these comments wrong — they
+the set will be migrated. That does not make these comments wrong — they
 are written as history with a pointer to the fix — but CORRECTION 3's closing
 sentence ("Until that migration lands…") must then be changed to past tense.
 Check `field-relay-nba` HEAD for that CC-CMD's commits before deciding, and say
@@ -224,7 +235,7 @@ number zero). Do not carry that offset into any code.
 ## FORBIDDEN
 
 - **No behaviour changes.** Not to `viewedDate`, not to `fieldDayAt`,
-  `fieldToday`, `dayInFieldZone` or `fieldDayOfIso`. The twelve wrong rows are
+  `fieldToday`, `dayInFieldZone` or `fieldDayOfIso`. The mis-keyed rows are
   the relay's data defect and are fixed there. Adding a CFL special case, a
   tolerance, or a retry-on-adjacent-day here would hide a defect this repo does
   not own.
