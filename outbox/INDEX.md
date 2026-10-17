@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `53da77f` | 2026-10-17 | [cc-session-2026-10-16-deploy-landed-skip-ci.md](cc-session-2026-10-16-deploy-landed-skip-ci.md) | fix: deploy-landed asks what a deploy can publish, not what touched a path |
+| `8f2619d` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d2aed99` | 2026-10-17 | [frames-route-latest.json](frames-route-latest.json) | census: Gravity Well over the 2022 week-2 frames capture [skip ci] |
 | `d2aed99` | 2026-10-17 | [gravity-census-latest.json](gravity-census-latest.json) | census: Gravity Well over the 2022 week-2 frames capture [skip ci] |
 | `db75760` | 2026-10-17 | [2026-10-16-empowerment-real-bytes.md](2026-10-16-empowerment-real-bytes.md) | feat: the empowerment metrics on real bytes, and the frames route hashed |
