@@ -51,7 +51,7 @@ module Stamina
 // INSUFFICIENT IS A SIBLING. Below the fewest attempts at which BOTH verdicts
 // are reachable at 2.5% in the skater's band, the reading is `Insufficient`,
 // never a fall-through to `Fatiguing` (Task 3, "a sibling case, not a silent
-// fall-through"; Rule 91).
+// fall-through"; Rule 99, DISTINGUISHABILITY-A).
 //
 // THE FOURTH CASE. `PopulationRate` is the spec's "holding flat against a flat
 // baseline has nothing": a skater whose split is within the band's rate. Task
@@ -474,7 +474,8 @@ let staminaBands (curve: Curve) : BandReading list =
           PopulationRatio = float k.LastThirds / float k.FirstThirds
           EligibleFrom = eligibleFrom k })
 
-/// Thresholds, for the CI artifact only (Rule 91: printed beside the numbers).
+/// Thresholds, for the CI artifact only (SAMPLE-COVERAGE-A, field-relay-nba/CLAUDE.md:
+/// printed beside the numbers).
 /// Suite rows must not read this: a row whose boundary came from here would
 /// move with a threshold mutation and never fail.
 let staminaRule = {| Tail = tail; SupportFloor = supportFloor |}

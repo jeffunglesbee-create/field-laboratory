@@ -206,7 +206,7 @@ if (isMain(import.meta.url)) {
   }, null, 2) + '\n')
   console.log(`wrote ${OUT}`)
   // The coverage sentence is printed beside the verdict, so a PASS is never
-  // read as more than it is over (Rule 91).
+  // read as more than it is over (SAMPLE-COVERAGE-A, field-relay-nba/CLAUDE.md).
   console.log(`coverage: ${coverage}\n`)
 
   finish(summarize())

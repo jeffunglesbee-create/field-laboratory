@@ -10,7 +10,8 @@
 //
 // What it writes:
 //   outbox/flow-census-latest.json — counts only: no team, no xG value, no
-//     verdict about anyone. Its coverage line states N of N (Rule 91).
+//     verdict about anyone. Its coverage line states N of N (SAMPLE-COVERAGE-A,
+//     field-relay-nba/CLAUDE.md).
 //   with --capture, four fixtures under data/ (verbatim bytes, never
 //     re-serialised) and their data/PROVENANCE.md sections:
 //       bsd-flow-finished-{stats,incidents}.json — the newest capture that
