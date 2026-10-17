@@ -1,10 +1,10 @@
 {
   "census": "gravity-well",
-  "generated": "2026-10-16T22:01:30.479Z",
+  "generated": "2026-10-17T00:06:20.903Z",
   "run": {
-    "sha": "8eaf5a0598611c4e756058677f8d145d3be8ad8a",
-    "dirty": true,
-    "id": "8eaf5a059861-a9f2fc6687e1"
+    "sha": "5e65e87508badd410c22c58eb330afe78d60024c",
+    "dirty": false,
+    "id": "5e65e87508ba-e3b0c44298fc"
   },
   "source": {
     "file": "data/bdb-event-frames-2022-w2.json",
