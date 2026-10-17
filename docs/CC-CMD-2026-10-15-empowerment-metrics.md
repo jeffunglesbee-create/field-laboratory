@@ -584,18 +584,51 @@ type, the docs, or the UI copy may assert conditioning, fitness or biology.
 
 ```fsharp
 type Stamina =
+    private
     | Insufficient of events: int
-    | Fatiguing
-    | SecondWind
+    | PopulationRate of Evidence
+    | TrailingRate of Evidence      // was `Fatiguing` — renamed, ruled 2026-10-16
+    | SecondWind of Evidence
 ```
+
+**Ruled 2026-10-16 (owner), both questions the build raised:**
+
+1. **`PopulationRate` is retained** as the fourth union case. The population
+   was measured **flat**, so below / at / above baseline are three real
+   readings. Without the middle case a player performing exactly as expected
+   is forced into one of the outer two, neither of which is true — absence
+   collapsing in the verdict layer of a module built to prevent it.
+
+2. **`Fatiguing` is renamed `TrailingRate`**, "to keep biological and
+   conditioning terms out of the `aria-label` and UI copy." That resolves the
+   contradiction this document carried: the accessibility amendment asks for
+   "state name plus the number that produced it", while this task bans any UI
+   copy asserting conditioning or biology. `Fatiguing` sat on both sides.
+   The rename removes the conflict rather than weakening either rule.
+
+**Still open, flagged not resolved.** `SecondWind` is itself a physiological
+term — literally a term for recovered breathing under exertion — and it now
+sits beside `Insufficient`, `PopulationRate` and `TrailingRate`, three neutral
+names. `SecondWind state active` in an `aria-label` makes the same kind of
+claim `Fatiguing` was renamed to avoid, and it is the *positive* verdict, so
+it is the one most likely to be read aloud about a named player. The symmetric
+name is `LeadingRate`. **Not renamed here**: the ruling named one case, and
+the feature is called Second Wind in product language, which may be the
+intent. Owner's call.
 
 **Two denominators, both required:**
 
 1. **Within-player.** Late-window contribution against *that player's own*
    early-match baseline. Paired and self-referential, which removes the
    between-player confounders for free.
-2. **Against the population decline curve.** Most players decline late, so flat
-   is not the null. A player dropping 5% where the league drops 20% has a second
+2. **Against the population baseline.** ~~Most players decline late, so flat is
+   not the null.~~ **REFUTED by measurement, 2026-10-16.** Over 328 games and
+   11,807 skater-games the last/first attempt ratio is **1.06 / 1.00 / 1.04**
+   by ice-time band, and by decile 1.11, 1.02, 0.96, 1.00, 1.00, 1.02, 0.98,
+   1.09, 0.98, 1.06 — flat to slightly rising. The requirement stands **only
+   because each band's expected last-third share is measured** (0.514, 0.499,
+   0.509), never assumed. The structure was right; the assumed value for it was
+   wrong. A player dropping 5% where the league drops 20% has a second
    wind; one holding flat against a flat baseline has nothing.
 
 `Insufficient` is a **sibling case, not a silent fall-through to `Fatiguing`**
