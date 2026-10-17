@@ -83,7 +83,7 @@ let private viewedDate () =
 
 ## CORRECTION 2 — `src/Desk.fs:53`–`57`, the ZONE-PROOF measurement
 
-Current, verbatim:
+Current, verbatim (the comment containing `Measured, not assumed: across a live 18-game slate`):
 
 ```fsharp
 ///   1. What zone does the relay's `date` column use? A property of the data.
