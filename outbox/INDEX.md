@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `544b6b4` | 2026-10-17 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of dc63004 [skip ci] |
+| `c966e33` | 2026-10-17 | [deploy-gate-held-2026-10-17.md](deploy-gate-held-2026-10-17.md) | docs: the deploy-gate held outcome's gate result, and its CC-CMD marked DONE |
+| `6817325` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d7fadc0` | 2026-10-17 | [deploy-gate-held-2026-10-17.md](deploy-gate-held-2026-10-17.md) | fix: the hourly deploy gate says a skip-directive tree is held, not unreadable |
 | `dc91ac6` | 2026-10-17 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-17 [skip ci] |
 | `dc91ac6` | 2026-10-17 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-17 [skip ci] |
