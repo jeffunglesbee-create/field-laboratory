@@ -1,0 +1,204 @@
+{
+  "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
+  "task": 1,
+  "ran_at": "2026-10-17T00:06:14.539Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "run_id": "38984743564",
+  "premises": "field-relay-nba outbox/empowerment-premises-latest.json (run 38963130231)",
+  "coverage": "791 of 791 non-shell captures read and decoded through build/Flow.js (786 uploaded at or before Task 0's census at 2026-10-16T09:35:05.514Z); 10 slugs, 2184 list calls",
+  "population": {
+    "non_shell_now": 791,
+    "uploaded_by_task0": 786,
+    "read": 791,
+    "by_competition": {
+      "bundesliga": {
+        "captures": 46,
+        "read": 46,
+        "flow_runs": 184
+      },
+      "eflchamp": {
+        "captures": 120,
+        "read": 120,
+        "flow_runs": 380
+      },
+      "epl": {
+        "captures": 60,
+        "read": 60,
+        "flow_runs": 226
+      },
+      "europa": {
+        "captures": 38,
+        "read": 38,
+        "flow_runs": 112
+      },
+      "laliga": {
+        "captures": 79,
+        "read": 79,
+        "flow_runs": 243
+      },
+      "ligue1": {
+        "captures": 55,
+        "read": 55,
+        "flow_runs": 193
+      },
+      "mls": {
+        "captures": 215,
+        "read": 215,
+        "flow_runs": 760
+      },
+      "seriea": {
+        "captures": 61,
+        "read": 61,
+        "flow_runs": 239
+      },
+      "ucl": {
+        "captures": 68,
+        "read": 64,
+        "flow_runs": 246
+      },
+      "wc26": {
+        "captures": 49,
+        "read": 49,
+        "flow_runs": 149
+      }
+    }
+  },
+  "stage": {
+    "by_stage": {
+      "in-play": 739,
+      "full-time-seen": 47,
+      "no-incidents": 2,
+      "unmarked": 3
+    },
+    "note": "no stage is a witness: the only route to one is the capture's own event row two FIELD days after kickoff"
+  },
+  "shots": {
+    "rows": 21117,
+    "raw_rows": 21117,
+    "own_goal_rows": 73,
+    "shootout_kicks": 8,
+    "positive": 20918,
+    "zero": 0,
+    "estimated": 431,
+    "without_xg": 118,
+    "raw_without_xg": 118,
+    "added_at": {
+      "45": 684,
+      "90": 783,
+      "105": 8,
+      "120": 13,
+      "elsewhere": 0
+    }
+  },
+  "unread": {
+    "captures": 4,
+    "note": "a shot with no xG number leaves its whole capture unread; these go to the owner before any run treats them",
+    "list": [
+      {
+        "slug": "ucl",
+        "id": "210771",
+        "without_xg": 17,
+        "without_minute": 0,
+        "without_side": 0,
+        "malformed": 0
+      },
+      {
+        "slug": "ucl",
+        "id": "210772",
+        "without_xg": 35,
+        "without_minute": 0,
+        "without_side": 0,
+        "malformed": 0
+      },
+      {
+        "slug": "ucl",
+        "id": "210773",
+        "without_xg": 39,
+        "without_minute": 0,
+        "without_side": 0,
+        "malformed": 0
+      },
+      {
+        "slug": "ucl",
+        "id": "210774",
+        "without_xg": 27,
+        "without_minute": 0,
+        "without_side": 0,
+        "malformed": 0
+      }
+    ]
+  },
+  "flow": {
+    "captures_read": 787,
+    "captures_with_flow_run": 781,
+    "flow_runs": 2732,
+    "shared_minutes": 306,
+    "closed_by": {
+      "opponent_shot": 2026,
+      "opponent_shots_of_zero_xg_only": 0,
+      "shared_minute": 88,
+      "half_time": 299,
+      "full_time": 17,
+      "extra_time_interval": 5,
+      "end_of_extra_time": 0,
+      "capture_end": 297
+    },
+    "boundaries": {
+      "half_time": {
+        "separators": 784,
+        "same_team_splits": 396,
+        "flow_runs_ended": 299
+      },
+      "full_time": {
+        "separators": 16,
+        "same_team_splits": 10,
+        "flow_runs_ended": 17
+      },
+      "extra_time_interval": {
+        "separators": 15,
+        "same_team_splits": 11,
+        "flow_runs_ended": 5
+      }
+    },
+    "zero_inside_flow_runs": 0,
+    "estimated_inside_flow_runs": 263
+  },
+  "tactical_lock": {
+    "TeamWindows": 132798,
+    "RestartsUnclocked": 132798,
+    "ShotsUnclocked": 0,
+    "Unmeasured": 132798,
+    "Clocked": 0,
+    "LockedOnPossible": 0,
+    "XgMissing": 310,
+    "refused": 0,
+    "refused_list": [],
+    "note": "window counts from TacticalLock.lockWindows; Unmeasured and LockedOnPossible come from lockClassify, never from a literal"
+  },
+  "fixtures": {
+    "finished": "bundesliga/213708",
+    "in_play": "europa/601226",
+    "files": [
+      {
+        "path": "data/bsd-flow-finished-stats.json",
+        "bytes": 20629,
+        "sha256": "8b32776eb042ec96393bcc0565a23e647e2e628769ba23b5e743eaae7f9cafa2"
+      },
+      {
+        "path": "data/bsd-flow-finished-incidents.json",
+        "bytes": 4859,
+        "sha256": "cf327cb385aa3c18ef473d607b3c371fb047307f3f9f274bf50a48ad3ad59922"
+      },
+      {
+        "path": "data/bsd-flow-inplay-stats.json",
+        "bytes": 14577,
+        "sha256": "b1becb3e8565ee5751d41fe7ee32bdaea472a7eb84e834e4cf6adc493f4cf34f"
+      },
+      {
+        "path": "data/bsd-flow-inplay-incidents.json",
+        "bytes": 2141,
+        "sha256": "c4a96597e2925eb52cfa3434d6688ac3a667f8f049e04cbc356e607e3c352eb0"
+      }
+    ]
+  }
+}

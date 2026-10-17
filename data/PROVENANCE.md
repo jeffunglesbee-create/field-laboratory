@@ -186,3 +186,64 @@ players carry the label C.
   under the relay's 2,000,000-byte ceiling.
 - Any season but 2022 and any week but 2. The R2 key reads `nfl/2026/` because
   of the relay's routing year; nothing here reads it.
+
+## `bsd-flow-finished-stats.json` and `bsd-flow-finished-incidents.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/r2/read?key=bsd/bundesliga/213708/stats.json
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/r2/read?key=bsd/bundesliga/213708/incidents.json
+data/bsd-flow-finished-stats.json: 20629 bytes, sha256 8b32776eb042ec96393bcc0565a23e647e2e628769ba23b5e743eaae7f9cafa2
+data/bsd-flow-finished-incidents.json: 4859 bytes, sha256 cf327cb385aa3c18ef473d607b3c371fb047307f3f9f274bf50a48ad3ad59922
+R2 upload 2026-10-10T15:30:26.790Z; captured 2026-10-17T00:06:14.539Z; run 38984743564
+```
+
+Captured by `scripts/flow-census.mjs --capture`: the R2 bytes as served, written as text and never re-serialised. Chosen by rule, not by hand: the newest-uploaded capture that recorded full time in regulation (FT at 90', no live or extra-time marker), read whole, holding at least one Flow run, one shared minute and one half-time separator.
+
+**What it exercises.** Stage `full-time-seen`; 41 shotmap rows (41 positive xG, 0 estimated); 5 Flow run(s); 2 shared minute(s); separators at half time 1, full time 0.
+
+**What it does not exercise.** A capture with no xG on a shot (those stay unread and are listed in outbox/flow-census-latest.json), an own-goal row or a shootout kick unless counted above, the witness (its only route is the event row, which is not part of a capture), and a capture taken in extra time.
+
+## `bsd-flow-inplay-stats.json` and `bsd-flow-inplay-incidents.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/r2/read?key=bsd/europa/601226/stats.json
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/r2/read?key=bsd/europa/601226/incidents.json
+data/bsd-flow-inplay-stats.json: 14577 bytes, sha256 b1becb3e8565ee5751d41fe7ee32bdaea472a7eb84e834e4cf6adc493f4cf34f
+data/bsd-flow-inplay-incidents.json: 2141 bytes, sha256 c4a96597e2925eb52cfa3434d6688ac3a667f8f049e04cbc356e607e3c352eb0
+R2 upload 2026-10-15T20:55:55.909Z; captured 2026-10-17T00:06:14.539Z; run 38984743564
+```
+
+Captured by `scripts/flow-census.mjs --capture`: the R2 bytes as served, written as text and never re-serialised. Chosen by rule, not by hand: the newest-uploaded capture taken in play (a live period marker, no full time), read whole, holding at least one Flow run, uploaded at least 24 h before the run.
+
+**What it exercises.** Stage `in-play`; 22 shotmap rows (22 positive xG, 0 estimated); 1 Flow run(s); 0 shared minute(s); separators at half time 1, full time 0.
+
+**What it does not exercise.** A capture with no xG on a shot (those stay unread and are listed in outbox/flow-census-latest.json), an own-goal row or a shootout kick unless counted above, the witness (its only route is the event row, which is not part of a capture), and a capture taken in extra time.
+
+<!-- nhl-second-wind:start -->
+## `nhl-second-wind-pbp.json` and `nhl-second-wind-shifts.json`
+
+```
+GET https://api-web.nhle.com/v1/gamecenter/2026020115/play-by-play
+→ 200 application/json, 149977 bytes, sha256 4947545b64ea06bd53643dc33ed1fd0705d3649c34331300b347d4889942aa4f
+GET https://api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId=2026020115
+→ 200 application/json, 265898 bytes, sha256 5ec092661690c7c110fe18ba8ee7521c6ca7305c8e224732cbc25a0a0626ecb2
+```
+
+Captured by `scripts/capture-nhl-fixture.mjs`: game 2026020115, dated 2026-10-15 on
+`/v1/scoreboard/now`, the newest game on the board whose own play-by-play is
+regular season (gameType 2), FINAL or OFF with both scores, and has a play past
+regulation. Both response bodies are written as received, byte for byte.
+
+**What it exercises.**
+
+- gameState `OFF`, final score 2-3
+- 369 plays: 5 goals, 65 shots on goal, 44 missed, 44 blocked, 8 penalties
+- 30 play(s) in period 4 or later, which the windows count apart and never window
+- 747 shift-chart rows by typeCode: 517 747
+
+**What it does not exercise.** A game in play: the witness refusals for LIVE,
+CRIT, PRE, FUT and an unseen word are covered by inline bodies in the Suite. Nor
+the relay's `/nhl` and `/nhl-stats` routes, which this capture bypasses. The
+reference population (328 games of 2025-26) is not committed; its per-payload
+hashes are in `outbox/second-wind-population-latest.json`.
+<!-- nhl-second-wind:end -->
