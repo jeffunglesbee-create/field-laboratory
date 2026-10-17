@@ -29,9 +29,25 @@
 
 import { appendFileSync } from 'node:fs'
 import { readVerify, readStepSummary } from './status.mjs'
-import { newestDeployableCommit } from './deployable.mjs'
+import { newestDeployableCommit, carriesSkipDirective } from './deployable.mjs'
+import { execFileSync } from 'node:child_process'
 import { costLine } from './run-steps.mjs'
 import { createChecks, isMain } from './checks.mjs'
+
+/**
+ * HELD is the fifth outcome, added by docs/CC-CMD-2026-10-17-deploy-gate-
+ * unverified-tree.md (owner ruling: option 1, words not behaviour). A census
+ * commit lands under data/ with the skip directive, so verify never runs on
+ * it, and until the next verified commit every hourly run used to say "could
+ * NOT BE READ" — the heading meant for a verdict nobody can fetch. The cause
+ * is known and correct, so it gets its own words. What ships is unchanged:
+ * held does not proceed, exactly as unknown did not.
+ *
+ * Only an `unknown` verdict is reinterpreted. If verify DID record a verdict
+ * on that commit (a dispatch, say), the real verdict stands.
+ */
+export const reinterpret = (decision, skipDirective) =>
+  decision === 'unknown' && skipDirective ? 'held' : decision
 
 /**
  * FOUR outcomes, and the fourth is not "go".
@@ -59,6 +75,15 @@ export const gateSummary = ({ decision, sha, text, problem, stepCost = '' }) => 
         proceed: false,
         heading: `Deploy skipped — verify is still running on ${at}`,
         body: `${text}\n\nNot red: in flight. The hourly cron retries, so this costs at most an hour.`,
+      }
+    case 'held':
+      return {
+        proceed: false,
+        heading: `Deploy held — ${at} carries the skip directive, so verify never runs on it`,
+        body: `${at} is the newest change to the published tree and verify has no verdict on it, by `
+          + `design: its commit message asked CI to skip. Its bytes are held back, not lost — the `
+          + `next verified commit publishes them, with verify having seen them.\n\n`
+          + `Not red, not unreadable. Nothing unverified is published.`,
       }
     default:
       return {
@@ -88,8 +113,21 @@ function selfTest () {
   const red = gateSummary({ decision: 'red', sha: 'abc1234', text: 't' })
   const flight = gateSummary({ decision: 'in-flight', sha: 'abc1234', text: 't' })
   const unknown = gateSummary({ decision: 'unknown', sha: 'abc1234', text: 't', problem: 'HTTP 403' })
-  check('red, in-flight and unreadable are THREE DISTINCT headings',
-    new Set([red.heading, flight.heading, unknown.heading]).size === 3)
+  const held = gateSummary({ decision: 'held', sha: 'abc1234', text: 't' })
+  check('red, in-flight, unreadable and held are FOUR DISTINCT headings',
+    new Set([red.heading, flight.heading, unknown.heading, held.heading]).size === 4)
+  check('MUTATION: a HELD tree does not proceed — option 1 changes words, not what ships',
+    held.proceed === false)
+  check('a held skip names the commit and says why, without the unreadable wording',
+    /abc1234/.test(held.heading) && /skip directive/.test(held.heading) && !/NOT BE READ/.test(held.heading), held.heading)
+  check('...and says its bytes wait for a verified commit',
+    /next verified commit/.test(held.body), held.body)
+  check('an unknown verdict on a skip-directive commit is HELD',
+    reinterpret('unknown', true) === 'held')
+  check('MUTATION: an unknown verdict on an ordinary commit stays UNKNOWN',
+    reinterpret('unknown', false) === 'unknown')
+  check('MUTATION: a REAL verdict on a skip-directive commit is not overridden',
+    reinterpret('red', true) === 'red' && reinterpret('go', true) === 'go' && reinterpret('in-flight', true) === 'in-flight')
   check('an in-flight skip does not read as red', !/RED/.test(flight.heading), flight.heading)
   check('an unreadable skip says so in capitals, not quietly',
     /could NOT BE READ/.test(unknown.heading), unknown.heading)
@@ -176,7 +214,13 @@ if (isMain(import.meta.url)) {
         runId: res.run.id,
       }))
     : ''
-  const g = gateSummary({ decision: res.decision, sha, text: res.text, problem: res.problem, stepCost })
+  // A git read of one commit message; if it cannot be read the verdict stays
+  // `unknown`, never `held` — not knowing is not a reason.
+  let skipDirective = false
+  try { skipDirective = carriesSkipDirective(execFileSync('git', ['log', '-1', '--format=%B', sha], { encoding: 'utf8' })) }
+  catch (e) { console.log(`could not read ${sha.slice(0, 7)}'s message (${String(e.message).slice(0, 80)}); verdict stays as read`) }
+  const decision = reinterpret(res.decision, skipDirective)
+  const g = gateSummary({ decision, sha, text: res.text, problem: res.problem, stepCost })
   emit(g.proceed, g.heading, g.body)
   process.exit(0)
 }
