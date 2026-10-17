@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d9f2cce` | 2026-10-17 | [2026-10-16-second-wind-trailing-rate.md](2026-10-16-second-wind-trailing-rate.md) | feat: Second Wind's lower tail is TrailingRate, as the owner ruled |
+| `69a5ac2` | 2026-10-17 | [cc-session-2026-10-16-deploy-landed-skip-ci.md](cc-session-2026-10-16-deploy-landed-skip-ci.md) | docs: deploy-landed write-up, its follow-up CC-CMD, and a status word guards needed |
+| `da5134a` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d0568e3` | 2026-10-17 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 53da77f [skip ci] |
 | `53da77f` | 2026-10-17 | [cc-session-2026-10-16-deploy-landed-skip-ci.md](cc-session-2026-10-16-deploy-landed-skip-ci.md) | fix: deploy-landed asks what a deploy can publish, not what touched a path |
 | `8f2619d` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
