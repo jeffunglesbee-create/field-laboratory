@@ -1,9 +1,9 @@
 {
-  "at": "2026-10-12T14:40:58.920Z",
+  "at": "2026-10-17T03:39:51.383Z",
   "scope": "full",
-  "ran": 54,
-  "from_mutations": 108,
-  "failing": 1,
+  "ran": 58,
+  "from_mutations": 161,
+  "failing": 0,
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -111,9 +111,7 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
-      "passed": false,
-      "status": 1,
-      "tail": "FAIL  this session wrote its outbox"
+      "passed": true
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
@@ -221,6 +219,22 @@
     },
     {
       "cmd": "node scripts/check-lineups-pull-only.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --only FLOW-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --only VINTAGE-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --only STAMINA-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --only LOCK-PROOF",
       "passed": true
     }
   ]
