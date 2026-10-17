@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Filed:** 2026-10-16 by chat
-**Status:** NOT STARTED — not dispatched.
+**Status:** FILED, not started — not dispatched.
 
 ## The failure, verbatim
 
