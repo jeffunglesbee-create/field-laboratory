@@ -326,7 +326,9 @@ jobs:
         run: npm run check:ignore-parity
 
       - name: The deploy gate can still refuse
-        run: npm run check:deploy-gate
+        run: |
+          npm run check:deploy-gate
+          node scripts/mutate-deploy-gate.mjs
 
       # The win-probability market-shape model, over the real compiled Market.fs:
       # constructors validate the sum, the two-way complement is correct where
