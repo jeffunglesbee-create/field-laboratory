@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d0568e3` | 2026-10-17 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 53da77f [skip ci] |
 | `53da77f` | 2026-10-17 | [cc-session-2026-10-16-deploy-landed-skip-ci.md](cc-session-2026-10-16-deploy-landed-skip-ci.md) | fix: deploy-landed asks what a deploy can publish, not what touched a path |
 | `8f2619d` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d2aed99` | 2026-10-17 | [frames-route-latest.json](frames-route-latest.json) | census: Gravity Well over the 2022 week-2 frames capture [skip ci] |
