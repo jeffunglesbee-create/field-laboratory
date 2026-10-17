@@ -46,8 +46,10 @@ happened to be compliant by accident of the data rather than by construction.
 
 The gate makes it structural: the drama score is sealed at the decode boundary,
 and the one function that can render it demands a witness only a `Final` game
-produces. Three deliberate violations, including forging the witness, are
-rejected by the compiler with real errors.
+produces — or, since 2026-10-16, a kickoff two FIELD days gone
+(`Desk.amnestyZoneAfterKickoff`, the route Flow's witness takes). Three
+deliberate violations, including forging the witness, are rejected by the
+compiler with real errors.
 
 That is a legal boundary rather than a correctness one, which is what makes it
 the strongest evidence here. Production holds it with a design doc, a manual
@@ -114,6 +116,48 @@ games as Final**.
 cleanly — the original defect straight past a type that only guarded the unwrap.
 Lifting the date at the decode boundary is what made the claim true. See
 `docs/ZONE-PROOF.md`.
+
+**The empowerment metrics: four built, measured before they were typed, and
+two of their premises were wrong** (`docs/CC-CMD-2026-10-15-empowerment-metrics.md`).
+Every premise the four designs rested on was counted over the whole population
+first: 789 BSD soccer captures and 328 NHL games (field-relay-nba run
+38963130231). No shot in the store has xG 0 (0 of 21,055 shotmap rows), which
+leaves one of the owner's Flow rulings with nothing to act on yet. And Second Wind was specified against a late-game decline that does not
+exist under its measure: a skater's last third of ice time carries attempts
+level with their first third or above it in every band (last over first 1.057,
+0.996, 1.036).
+
+- **Flow** (`docs/FLOW-PROOF.md`, and a Flow section in `docs/AMNESTY-PROOF.md`).
+  The verdict is a private type: outside `src/Flow.fs` there is no value to
+  print, compare, serialise or reflect on, and it reaches a page only as one
+  accessible name and one opacity, both demanding a witness that holds its own
+  capture. The first build gave that witness on the capture's own full-time
+  marker. BSD writes that marker at 90' before extra time too, so a review
+  showed a knockout match captured in the break would have been unlocked while
+  still in play. That route was removed; the witness now comes only from the
+  kickoff, two FIELD days gone. Over 791 captures, 787 are read and 4 (all UCL)
+  wait on the owner because a shot has no xG.
+- **Tactical Lock** (`docs/LOCK-PROOF.md`). Built, with its honest answer: no
+  capture carries a clock below the minute or a restart event, so dead time
+  cannot be taken out of a four-minute window, and all 132,798 real windows
+  classify as `ActivePlayUnmeasured`, its own case and never `Quiet`.
+- **Second Wind** (`docs/STAMINA-PROOF.md`). A skater's last-third attempts
+  against their own first third and against their band's measured share, at
+  2.5% per tail. At about two attempts per skater-game in those thirds, against
+  the six a reading needs, `Insufficient` is the usual answer (11,232 of 11,807
+  skater-games), and it is a sibling case rather than a quiet `TrailingRate`
+  (the spec's `Fatiguing`, renamed by the owner on 2026-10-16 to keep
+  conditioning terms out of the accessible name).
+- **Gravity Well** (`docs/GRAVITY-PROOF.md`, `docs/VINTAGE-PROOF.md`). NFL, on
+  Big Data Bowl frames: the coverage defenders each route runner draws at the
+  release against what their snap alignment alone drew. A snap position cannot
+  be set against a release one, or one coordinate frame against another, and a
+  frames value cannot be read without naming its season. Over the committed
+  2022 week-2 capture, 489 of 545 plays are measured and the drawn counts
+  cancel on all 489. It is not position-adjusted, and the doc comment says so.
+
+**The caveat:** nothing renders any of the four. Each witness is a requirement
+a renderer inherits, not a tested path to the DOM.
 
 ## The other half of the answer: where it does nothing
 

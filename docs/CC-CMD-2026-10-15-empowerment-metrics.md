@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-15, by chat, authored against HEAD and verified reads
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
-**Status:** PARTIAL. Task 0 DONE 2026-10-16: four `-latest` artifacts from run 38881438378, summarised in `outbox/cc-session-2026-10-16-empowerment-task0.md`; Tasks 1-4 not started.
+**Status:** DONE 2026-10-17. Task 0 DONE 2026-10-16: four `-latest` artifacts from run 38881438378, summarised in `outbox/cc-session-2026-10-16-empowerment-task0.md`. Tasks 1-4 built, none rejected: Flow (`src/Flow.fs`), Tactical Lock (`src/TacticalLock.fs`, every real window `ActivePlayUnmeasured`), Second Wind (`src/Stamina.fs`; `Fatiguing` renamed `TrailingRate` per the 2026-10-16 ruling, `d9f2cce`), Gravity Well (`src/Vintage.fs`, `src/Gridiron.fs`, `src/Gravity.fs`). Gate 530/530 on runs 8eaf5a059861-0bf25d1ca66a (`b6f1fcf`), c64251c249b0-5f020ec3320c (`db75760`) and db75760e555f-bdb15544bdf3 (`d9f2cce`). Follow-ups filed: `docs/CC-CMD-2026-10-16-second-wind-denser-measure.md`, `docs/CC-CMD-2026-10-16-sealed-drama-string-path.md`, `docs/CC-CMD-2026-10-17-weather-live-http-outage.md`. Session doc: `outbox/cc-session-2026-10-15-empowerment-metrics.md`.
 
 ---
 
