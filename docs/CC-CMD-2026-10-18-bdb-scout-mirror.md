@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (plus one producer field in jubilant-bassoon)
 **Confidence gate:** `npm run gate` >= 95 before any commit to main
 **Filed:** 2026-10-18 by CC, at the owner's request ("mirrored")
-**Status:** IN PROGRESS
+**Status:** DONE 2026-10-18. Gate 530/530 (run 39144224022), on main as `4793504` and `a83ccf8`, census 14/14 (run 39150782464). Session doc: `outbox/cc-session-2026-10-18-bdb-scout-mirror.md`.
 
 ## Why
 
@@ -84,7 +84,8 @@ three defects in this work has a typed counterpart that cannot be written:
 ## Done condition
 
 - `npm run gate` >= 95 on a runner, on the commit fast-forwarded to main.
-- The census prints `named 1626 · ambiguous 11 · starters with a floor 71/128`
-  and agrees with jubilant-bassoon's live probe (run 39139761152:
+- The census prints `named 1626 · ambiguous 11` and the starters with a floor
+  (71/128 on the 2026-10-12 chart; measured 68/128 on the captured 2026-10-18
+  chart), and agrees with jubilant-bassoon's live probe (run 39139761152:
   `T.Lawrence ≥19.4` for JAX).
 - Every mutation in Task 5 is caught.

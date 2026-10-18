@@ -57,7 +57,24 @@ would have refused all of them with `NoSourceDataset`.
   - the Verify panel passes;
   - the only red row was this commit's own missing outbox entry, which this
     document now supplies.
-- The gate, main and the census are recorded below once run.
+- **Gate:** `verify-full` run 39144224022 on the candidate `0b9d59e` scored
+  **530/530 = 100**. The mutation baseline is recorded, including the 5 new
+  records.
+- **Main:** landed as `4793504` and `a83ccf8`, then the records `0a1a291` and
+  `a47d801`, pushed separately so the code's push head did not carry the skip
+  directive. Main had gained only STATUS, a CC-CMD and INDEX since the
+  candidate's base, so the gated tree's source is the landed source.
+- **Census, from main (`bdb-census.yml` run 39150782464): 14/14 PASS.**
+  - All four sha256 values match PROVENANCE, and all four files decode through
+    the mint.
+  - Speed is released at 2022 and refused at 2026.
+  - `named 1626 · ambiguous 11`, equal to the client's own count of the same
+    file. Josh Allen and Lamar Jackson carry no floor.
+  - **Every team's line equals the client's: checked 32 of 32 teams.**
+  - The labels carry the season.
+  - Starters with a floor: **68/128** on this week's chart. The CC-CMD's 71/128
+    was the 2026-10-12 chart. The lines are the live probe's (run 39139761152),
+    e.g. `JAX T.Lawrence ≥19.4`.
 
 ## What the types do not hold
 
