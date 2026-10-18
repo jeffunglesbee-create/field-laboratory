@@ -3656,6 +3656,125 @@ let private tacticalLock () =
           """{"event_id":1,"momentum":[{"m":30,"v":2}]}"""
           """{"shotmap":[],"momentum":[{"m":30,"v":2}]}""" ]
 
+// BDB scout rows (NFL). docs/CC-CMD-2026-10-18-bdb-scout-mirror.md, src/Bdb.fs.
+//
+// Inline envelopes, as the gravity block above, and for its reasons: the
+// capture is 1648 rows, and every input here is printed on the Verify page.
+// The whole-capture claims (1626 named, 11 shared, the starters that carry a
+// floor) are scripts/bdb-census.mjs. Speeds are the 2022 file's own values for
+// these names: Metcalf 19.64, Allen BUF 20.31 / JAX 18, Walker 22.09,
+// Mahomes 19.29.
+// ---------------------------------------------------------------------------
+
+let private bdbScout () =
+    let season (year: int) = year * 1<Vintage.season>
+    let now = season 2026
+    let archive = season 2022
+
+    let speedRow (id: int, name: string, team: string, mph: string) =
+        sprintf "\"%d\":{\"name\":\"%s\",\"team\":\"%s\",\"maxSpeedMph\":%s}" id name team mph
+    let speedFile (head: string) rows =
+        sprintf "{%s\"data\":{%s}}" head (rows |> List.map speedRow |> String.concat ",")
+    let stated = "\"season\":2022,\"sourceDataset\":\"suite inline\","
+    let shared =
+        [ 1, "DK Metcalf", "SEA", "19.64"
+          2, "Josh Allen", "BUF", "20.31"
+          3, "Josh Allen", "JAX", "18"
+          4, "Kenneth Walker", "SEA", "22.09"
+          5, "Patrick Mahomes", "KC", "19.29" ]
+    let distinct = shared |> List.filter (fun (id, _, _, _) -> id <> 3)
+    let fileShared = speedFile stated shared
+    let fileDistinct = speedFile stated distinct
+    let metcalfUntracked = speedFile stated (shared |> List.map (fun (id, n, t, v) -> if id = 1 then (id, n, t, "null") else (id, n, t, v)))
+
+    let chartOf (starters: (string * (string * string) list) list) =
+        let team (abbr: string, ps: (string * string) list) =
+            sprintf "\"%s\":{%s}" abbr (ps |> List.map (fun (pos, n) -> sprintf "\"%s\":\"%s\"" pos n) |> String.concat ",")
+        sprintf "{\"season\":2026,\"sourceDataset\":\"suite inline\",\"data\":{%s}}" (starters |> List.map team |> String.concat ",")
+    let chart =
+        chartOf
+            [ "PIT", [ "QB", "Aaron Rodgers"; "WR", "DK Metcalf" ]
+              "BUF", [ "QB", "Josh Allen" ]
+              "KC", [ "QB", "Patrick Mahomes"; "RB", "Kenneth Walker III" ] ]
+    let chartSwapped = chartOf [ "KC", [ "QB", "Kenneth Walker III"; "RB", "Patrick Mahomes" ] ]
+
+    let indexOf (text: string) =
+        Bdb.decodeSpeed now text |> Result.toOption |> Option.bind (Bdb.speedIndex archive)
+    let chartFrom (text: string) =
+        Bdb.decodeDepthChart now text |> Result.toOption |> Option.bind (fun t -> Vintage.valueAt now t |> Result.toOption)
+    let side (speeds: string) (charts: string) (team: string) (nick: string) =
+        match indexOf speeds, chartFrom charts with
+        | Some idx, Some c -> Some(Bdb.speedSide idx c team nick)
+        | _ -> None
+
+    [ Verify.check "a name two 2022 rows share carries no floor, and a unique name keeps its own"
+          (fun (text: string) ->
+              match indexOf text with
+              | Some idx -> (Bdb.floorOf idx "Josh Allen").IsNone && (Bdb.floorOf idx "DK Metcalf").IsSome
+              | None -> false)
+          fileShared
+          fileDistinct
+
+      Verify.check "loading the file again leaves every floor it held: no load reads another's names"
+          (fun (loads: string list) ->
+              match loads |> List.map indexOf with
+              | Some first :: rest -> rest |> List.forall (fun i -> i |> Option.map Bdb.indexCounts = Some(Bdb.indexCounts first))
+              | _ -> false)
+          [ fileShared; fileShared; fileShared ]
+          [ fileShared; fileDistinct ]
+
+      Verify.check "a floor reaches the page with its mark: D.Metcalf ≥19.6"
+          (fun (text: string) -> side text chart "PIT" "Steelers" = Some "Steelers D.Metcalf ≥19.6")
+          fileShared
+          metcalfUntracked
+
+      Verify.check "a starter whose name two 2022 players share shows no value, not either one's"
+          (fun (text: string) -> side text chart "BUF" "Bills" = Some "Bills —")
+          fileShared
+          fileDistinct
+
+      Verify.check "starters are listed in position order, not by speed: the QB before a faster RB"
+          (fun (charts: string) -> side fileShared charts "KC" "Chiefs" = Some "Chiefs P.Mahomes ≥19.3 · K.Walker III ≥22.1")
+          chart
+          chartSwapped
+
+      Verify.check "the speed row is labelled with the season it was released at, and only an archive is released"
+          (fun (asked: int<Vintage.season>) ->
+              match Bdb.decodeSpeed now fileShared |> Result.toOption |> Option.bind (Bdb.speedIndex asked) with
+              | Some idx -> Bdb.speedLabel idx = "Speed floor mph (2022)"
+              | None -> false)
+          archive
+          now
+
+      Verify.check "Tendencies is labelled (2022), and a file that says 2026 does not reach that row"
+          (fun (head: string) ->
+              let text = sprintf "{%s\"data\":{\"CIN\":{\"team\":\"CIN\",\"plays\":551,\"dropbackRate\":0.648,\"playActionRate\":0.103,\"topFormation\":\"SHOTGUN\"}}}" head
+              match Bdb.decodeTendency now text |> Result.toOption |> Option.bind (Bdb.tendencyRow archive) with
+              | Some row -> row.Label = "Tendencies (2022)" && row.ByTeam.ContainsKey "CIN"
+              | None -> false)
+          stated
+          "\"season\":2026,\"sourceDataset\":\"suite inline\","
+
+      Verify.check "an envelope with no sourceDataset is refused by name, as the six files were until 2026-10-18"
+          (fun (head: string) ->
+              match Bdb.decodeSpeed now (speedFile head shared) with
+              | Error Vintage.NoSourceDataset -> true
+              | _ -> false)
+          "\"season\":2022,\"source\":\"kaggle x (BDB tracking)\","
+          stated
+
+      Verify.check "the join key: D.J. Moore is DJ Moore and Kyle Pitts Sr. is Kyle Pitts"
+          (fun (pairs: (string * string) list) -> pairs |> List.forall (fun (a, b) -> Bdb.nameKey a = Bdb.nameKey b))
+          [ "D.J. Moore", "DJ Moore"; "Kyle Pitts Sr.", "Kyle Pitts"; "Kenneth Walker III", "Kenneth Walker" ]
+          [ "Josh Allen", "Josh Jacobs" ]
+
+      Verify.check "a floor prints its type name and not its speed"
+          (fun (printed: string list) -> printed |> List.forall (fun p -> p = "Bdb.SpeedFloor"))
+          (match indexOf fileShared |> Option.bind (fun idx -> Bdb.floorOf idx "DK Metcalf") with
+           | Some f -> [ string f ]
+           | None -> [ "no floor" ])
+          [ "19.64" ] ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -3673,7 +3792,8 @@ let groups () : (string * Verify.Sealed list) list =
       "Lineups", lineups ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
-      "Second Wind", secondWind () ]
+      "Second Wind", secondWind ()
+      "BDB scout", bdbScout () ]
 
 /// The flat suite, DERIVED from the groups rather than assembled a second time.
 /// Two lists of the same eleven bindings would be two places to forget one, and

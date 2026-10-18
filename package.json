@@ -69,6 +69,7 @@
     "check:prose": "node scripts/prose-check.mjs",
     "check:census": "node scripts/jq-density-census.mjs --verify-tokenizer --from-disk",
     "census:gravity": "node scripts/gravity-census.mjs",
+    "census:bdb": "node scripts/bdb-census.mjs",
     "check:weather-burst": "node scripts/weather-burst-check.mjs",
     "check:clean-source": "node scripts/clean-source-check.mjs",
     "check:outlet-scan": "node scripts/outlet-scan-check.mjs",

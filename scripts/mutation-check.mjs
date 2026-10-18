@@ -1086,8 +1086,9 @@ const MUTATIONS = [
     // Re-anchored 2026-10-16: ec479e2 appended "Lineups" after "Tennis draws",
     // then the empowerment groups were appended after "Lineups". Same
     // mutation: the last declared group never reaches the page.
-    find: '      "Gravity Well", gravityWell ()\n      "Second Wind", secondWind () ]',
-    replace: '      "Gravity Well", gravityWell () ]',
+    // Re-anchored 2026-10-18: "BDB scout" appended after "Second Wind".
+    find: '      "Second Wind", secondWind ()\n      "BDB scout", bdbScout () ]',
+    replace: '      "Second Wind", secondWind () ]',
     expect: "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
   },
   // --- proof-check's run marker ---------------------------------------------
@@ -1688,6 +1689,52 @@ const MUTATIONS = [
     find: "        | Level p -> Some { Opacity = share p; Shape = Steady }",
     replace: "        | Level _ -> None",
     expect: "node build/VerifyMain.js",
+  },
+  // --- BDB scout rows (NFL), docs/CC-CMD-2026-10-18-bdb-scout-mirror.md: src/Bdb.fs, its Suite group, docs/BDB-PROOF.md ---
+  {
+    // The seal. A public SpeedFloor lets a caller build one from any number and print it bare.
+    id: 'bdb-floor-public',
+    file: 'src/Bdb.fs',
+    claim: 'a speed floor cannot be built or taken apart outside its module',
+    find: '    private\n    | SpeedFloor of float<mph>',
+    replace: '    | SpeedFloor of float<mph>',
+    expect: 'node scripts/proof-check.mjs --only BDB-PROOF',
+  },
+  {
+    // The mark. A floor rendered as a bare number reads as a current measurement.
+    id: 'bdb-floor-mark-dropped',
+    file: 'src/Bdb.fs',
+    claim: 'a floor reaches text with its "≥"',
+    find: 'let floorText (SpeedFloor v) = sprintf "≥%.1f" (float v)',
+    replace: 'let floorText (SpeedFloor v) = sprintf "%.1f" (float v)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // Ambiguity. Keeping the last row for a shared name gives Josh Allen BUF the JAX edge rusher's speed.
+    id: 'bdb-shared-name-kept',
+    file: 'src/Bdb.fs',
+    claim: 'a name two 2022 rows share carries no floor',
+    find: '            elif seen.ContainsKey k then seen.Add(k, None)\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // Order. Ranked by speed, the row ranks only the players tracked in 2022.
+    id: 'bdb-starters-ranked-by-speed',
+    file: 'src/Bdb.fs',
+    claim: 'starters are listed in position order, not by speed',
+    find: '            starters |> Map.tryFind pos |> Option.bind (fun name -> floorOf idx name |> Option.map (fun f -> name, f)))',
+    replace: '            starters |> Map.tryFind pos |> Option.bind (fun name -> floorOf idx name |> Option.map (fun f -> name, f)))\n        |> List.sortByDescending (fun (_, SpeedFloor v) -> v)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The season. A label without it reads as this season beside current rows.
+    id: 'bdb-label-unseasoned',
+    file: 'src/Bdb.fs',
+    claim: 'the speed row is labelled with the season it was released at',
+    find: 'let speedLabel (SpeedIndex(season, _)) = sprintf "Speed floor mph (%d)" (int season)',
+    replace: 'let speedLabel (SpeedIndex(season, _)) = "Speed floor mph"',
+    expect: 'node build/VerifyMain.js',
   },
   // Second Wind (NHL), CC-CMD 2026-10-15 Task 3: src/Stamina.fs, its Suite group and docs/STAMINA-PROOF.md.
   {

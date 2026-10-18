@@ -81,6 +81,7 @@
          depend only on Thoth.Json, Units and each other, top to bottom. -->
     <Compile Include="Vintage.fs" />
     <Compile Include="Gridiron.fs" />
+    <Compile Include="Bdb.fs" />
     <Compile Include="Gravity.fs" />
     <!-- Second Wind (NHL). Above Scoreboard.fs because docs/STAMINA-PROOF.md and
          docs/AMNESTY-PROOF.md inject cases that name it there; below Desk.fs,

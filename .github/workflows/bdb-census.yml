@@ -1,0 +1,81 @@
+# The BDB scout rows (src/Bdb.fs) over the whole served files, and against the
+# client's own algorithm. docs/CC-CMD-2026-10-18-bdb-scout-mirror.md, Task 3.
+#
+# Dispatch-only. With `capture: true` it first copies the four files the relay
+# SERVES into data/ (not jubilant-bassoon's committed copies: the served bytes
+# are the source) and commits them. A run without capture reads data/ only.
+name: bdb-census
+
+on:
+  workflow_dispatch:
+    inputs:
+      capture:
+        description: 'Re-capture the four served files into data/ first'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bdb-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Capture the served files
+        if: inputs.capture
+        run: |
+          set -euo pipefail
+          R=https://field-relay-nba.jeffunglesbee.workers.dev/nflverse
+          curl -fsS "$R/bdb_speed.json"                -o data/bdb-speed-2022.json
+          curl -fsS "$R/bdb_tendency_fingerprint.json" -o data/bdb-tendency-fingerprint-2022.json
+          curl -fsS "$R/bdb_time_to_throw.json"        -o data/bdb-time-to-throw-2022.json
+          curl -fsS "$R/depth-charts.json"             -o data/depth-charts-2026.json
+          for f in data/bdb-speed-2022.json data/bdb-tendency-fingerprint-2022.json data/bdb-time-to-throw-2022.json data/depth-charts-2026.json; do
+            echo "$f $(wc -c < "$f") bytes sha256 $(sha256sum "$f" | cut -d' ' -f1)" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+
+      - uses: actions/setup-dotnet@v4
+        if: ${{ !inputs.capture }}
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Build the decoders
+        if: ${{ !inputs.capture }}
+        run: |
+          dotnet tool restore
+          dotnet fable src/Laboratory.fsproj --outDir build
+
+      # Exits non-zero on any failed check. The artifact is written either way.
+      - name: Census
+        if: ${{ !inputs.capture }}
+        run: |
+          set -o pipefail
+          npm run census:bdb 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add data/bdb-speed-2022.json data/bdb-tendency-fingerprint-2022.json data/bdb-time-to-throw-2022.json data/depth-charts-2026.json 2>/dev/null || true
+          if [ -e outbox/bdb-census-latest.json ]; then git add outbox/bdb-census-latest.json; fi
+          git diff --staged --quiet && exit 0
+          git commit -m "census: BDB scout rows over the served files [skip ci]"
+          BRANCH="${GITHUB_REF_NAME}"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "$BRANCH" && git push origin "HEAD:$BRANCH" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "$BRANCH"
+          git merge-base --is-ancestor HEAD "origin/$BRANCH" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
