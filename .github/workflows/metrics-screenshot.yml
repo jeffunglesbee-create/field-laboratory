@@ -1,0 +1,63 @@
+# The Metrics tab, rendered and photographed, with the render check's verdict.
+# docs/CC-CMD-2026-10-17-metrics-tab-render-path.md, done condition 3: "a
+# screenshot of panel-metrics with all four sections expanded, written to
+# outbox/, so the result is visible without running anything."
+#
+# verify.yml runs the same check on every push and uploads the image as an
+# artifact. This commits it, which a reader without Actions access can open.
+# Dispatch-only.
+name: metrics-screenshot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: |
+          npm ci
+          dotnet tool restore
+      - name: Build
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Serve the built site
+        run: |
+          node scripts/serve.mjs &
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+      - name: Render check and screenshot
+        run: |
+          set -o pipefail
+          npm run check:metrics 2>&1 | tee outbox/metrics-render-latest.txt | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/metrics-tab-latest.png outbox/metrics-render-latest.txt 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "metrics: the tab rendered and photographed [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
