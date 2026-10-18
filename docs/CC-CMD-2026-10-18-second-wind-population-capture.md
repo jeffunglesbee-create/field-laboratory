@@ -6,7 +6,7 @@
 **Filed:** 2026-10-18 by CC, as Rule 87.4 requires, from
 `docs/CC-CMD-2026-10-17-metrics-tab-render-path.md` TASK 3. That task's premise
 did not hold.
-**Status:** FILED, needs an owner decision (below).
+**Status:** DONE 2026-10-18. The owner chose option 1. Captured in run 39159881789 (328 games, 131 MB); gate 530/530 (run 39160589637); on main as `ce240fe`; render check 14/14 with all four cases (run 39168034291). Session doc: `outbox/cc-session-2026-10-18-second-wind-population.md`.
 
 ## What was measured
 

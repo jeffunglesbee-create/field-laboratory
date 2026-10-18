@@ -37,4 +37,34 @@ curve is formed in the browser from the same bytes the census decoded.
   `TrackOnly` subject must have no tick and each `Ticks` subject must have two,
   and the population must be fetched once, only on expand. Self-test 27/27.
 
-Gate, main and the screenshot are recorded below once run.
+## Verification
+
+| step | run | result |
+|---|---|---|
+| `verify.yml` on `849e70f` | (dispatch) | all green, including the four-case Metrics check against the real build |
+| `verify-full`, the gate | 39160589637 | **530/530 = 100** |
+| main | — | `f87d338`, `8b6db8d` (data), `ce240fe`, with source byte-identical to the gated `849e70f`; then records `00c1a4a` and `5c225d1` |
+| `metrics-screenshot.yml` from main | 39168034291 | render check **14/14**, self-test **27/27**; `outbox/metrics-tab-latest.png` |
+
+**The browser reproduced the census.** The page formed the curve from the
+committed bytes and read every skater-game. Its counts are 11,807 skater-games:
+11,232 Insufficient, 551 PopulationRate, 15 SecondWind, 9 TrailingRate. That is
+the node census to the unit, by a second run of the same F# over the same bytes
+in a different runtime.
+
+**The four subjects, first in game order:**
+- Insufficient: game 2025020001, player 8473422, a bare track.
+- PopulationRate: game 2025020001, player 8473419, two ticks at half opacity.
+- SecondWind: game 2025020089, player 8471214, observed far right of expected.
+- TrailingRate: game 2025020161, player 8479525, observed far left.
+
+Each state name is in the subject's accessible name only. The visible text
+names the game and the player id, and the census counts.
+
+## Cost, as chosen
+
+- 131,448,424 bytes added to the repository and to every deployed build.
+- 657 requests, made once when a reader first opens the Second Wind section.
+- On the runner the section loaded inside the check's 180 s budget. On a phone
+  over mobile data it will be slow. The owner chose this knowingly, and it
+  stays out of every other path: nothing fetches before the section opens.
