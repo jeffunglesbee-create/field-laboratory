@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `64c58b4` | 2026-10-18 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-18 [skip ci] |
+| `64c58b4` | 2026-10-18 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-18 [skip ci] |
+| `64c58b4` | 2026-10-18 | [sport-vocabulary-2026-10-18T06-09-22-837Z.json](sport-vocabulary-2026-10-18T06-09-22-837Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-18 [skip ci] |
+| `82b3d6c` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `5a18c2a` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8750709` | 2026-10-17 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `14dab3c` | 2026-10-17 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-17T20:57 [skip ci] |
