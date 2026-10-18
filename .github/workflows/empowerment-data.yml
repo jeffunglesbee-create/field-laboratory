@@ -20,6 +20,11 @@ on:
         required: true
         type: boolean
         default: false
+      population:
+        description: 'Also write all 328 Second Wind games under data/nhl-second-wind-population/ (verbatim bytes, about 136 MB).'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -69,7 +74,11 @@ jobs:
         if: always()
         run: |
           node scripts/second-wind-population.mjs --self-test
-          node scripts/second-wind-population.mjs
+          if [ "${{ inputs.population }}" = "true" ]; then
+            node scripts/second-wind-population.mjs --capture-population
+          else
+            node scripts/second-wind-population.mjs
+          fi
 
       - name: Commit what was written
         if: always()
@@ -84,14 +93,17 @@ jobs:
                    data/nhl-second-wind-pbp.json data/nhl-second-wind-shifts.json; do
             if [ -e "$p" ]; then git add "$p"; fi
           done
+          if [ -d data/nhl-second-wind-population ]; then git add data/nhl-second-wind-population; fi
           git diff --cached --quiet && echo "no change" && exit 0
           git commit -m "data: empowerment census and fixtures (run $GITHUB_RUN_ID) [skip ci]"
+          # The ref this run was dispatched on, not main: a run on a candidate
+          # branch must not rebase that branch's ungated code onto main.
           for i in 1 2 3; do
-            git pull --rebase --autostash origin main && git push origin main && break
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
             sleep $((i * 5))
           done
           # The loop above exits 0 when every attempt fails: its last command is
           # `sleep`. Copied from capture-lineups-fixture.yml for that reason.
-          git fetch -q origin main
-          git merge-base --is-ancestor HEAD origin/main \
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
             || { echo "FAIL: push did not land after retries"; exit 1; }
