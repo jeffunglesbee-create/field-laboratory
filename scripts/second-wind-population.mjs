@@ -29,14 +29,19 @@
 // counts. The witness is a finished game's, so these are post-game readings,
 // and they are in-sample: the curve is built from the same player-games.
 //
-// It never writes data/. The artifact is outbox/second-wind-population-latest.json,
-// written whether or not the gates pass, because a refusal is a result.
+// The artifact is outbox/second-wind-population-latest.json, written whether or
+// not the gates pass, because a refusal is a result. It writes data/ only under
+// `--capture-population` (owner, 2026-10-18, option 1 of
+// docs/CC-CMD-2026-10-18-second-wind-population-capture.md): then every game's
+// two payloads are written VERBATIM, the very text the census decoded, to
+// data/nhl-second-wind-population/, with a manifest of their sha256s. The
+// Metrics tab forms its curve from those bytes and nothing else.
 //
 // CI-only: the sandbox cannot reach the NHL hosts. `--self-test` runs the whole
 // pipeline through build/Stamina.js against a fake fetch.
 
 import { createHash } from 'node:crypto'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { createChecks, finish, isMain, toArray } from './checks.mjs'
 import { ofArray } from '../build/fable_modules/fable-library-js.5.13.0/List.js'
 import {
@@ -412,11 +417,50 @@ const selfTest = async check => {
     JSON.stringify(moved.artifact.premises.reproduces_premise_run))
 }
 
+export const POPULATION_DIR = 'data/nhl-second-wind-population'
+
+/** A fetch that also keeps every successful body, keyed by URL. */
+const keeping = (get, kept) => async url => {
+  const r = await get(url)
+  if (r.ok) kept.set(url, r.text)
+  return r
+}
+
+/** Writes each decoded game's two payloads verbatim, and a sha256 manifest. */
+const writePopulation = (kept, ids, artifact) => {
+  mkdirSync(POPULATION_DIR, { recursive: true })
+  const notDecoded = new Set([...(artifact.population?.refused || []), ...(artifact.population?.not_served || [])].map(g => g.id ?? g))
+  const measured = new Map((artifact.payloads || []).map(g => [g.id, g]))
+  const games = []
+  for (const id of ids) {
+    const pbp = kept.get(pbpUrl(id)), shifts = kept.get(shiftsUrl(id))
+    if (pbp == null || shifts == null) continue
+    writeFileSync(`${POPULATION_DIR}/${id}-pbp.json`, pbp)
+    writeFileSync(`${POPULATION_DIR}/${id}-shifts.json`, shifts)
+    // The bytes written are the bytes the census measured, or the capture is a
+    // second, unmeasured fetch wearing the census's name.
+    if (measured.get(id)?.pbp_sha256 !== sha256(pbp) || measured.get(id)?.shifts_sha256 !== sha256(shifts))
+      throw new Error(`capture ${id}: the written bytes are not the bytes the census decoded`)
+    games.push({ id, decoded: !notDecoded.has(id),
+      pbp_sha256: sha256(pbp), pbp_bytes: Buffer.byteLength(pbp),
+      shifts_sha256: sha256(shifts), shifts_bytes: Buffer.byteLength(shifts) })
+  }
+  const manifest = { captured_at: RAN_AT.toISOString(), run_id: process.env.GITHUB_RUN_ID ?? null,
+    source: { pbp: `${NHL_WEB}/v1/gamecenter/<id>/play-by-play`, shifts: `${NHL_STATS}/stats/rest/en/shiftcharts?cayenneExp=gameId=<id>` },
+    first_id: FIRST_ID, stride: STRIDE, requested: ids.length, written: games.length,
+    total_bytes: games.reduce((n, g) => n + g.pbp_bytes + g.shifts_bytes, 0), games }
+  writeFileSync(`${POPULATION_DIR}/MANIFEST.json`, JSON.stringify(manifest, null, 1) + '\n')
+  console.log(`  wrote ${games.length} games (${manifest.total_bytes} bytes) to ${POPULATION_DIR}`)
+}
+
 const live = async check => {
   const ids = Array.from({ length: GAMES }, (_, k) => FIRST_ID + STRIDE * k)
   const fixture = existsSync(FIXTURE.pbp) && existsSync(FIXTURE.shifts)
     ? { pbp: readFileSync(FIXTURE.pbp, 'utf8'), shifts: readFileSync(FIXTURE.shifts, 'utf8') } : null
-  const { artifact, gates } = await measure({ ids, get: fetchText, fixture })
+  const capture = process.argv.includes('--capture-population')
+  const kept = new Map()
+  const { artifact, gates } = await measure({ ids, get: capture ? keeping(fetchText, kept) : fetchText, fixture })
+  if (capture) writePopulation(kept, ids, artifact)
   const out = { ran_at: RAN_AT.toISOString(), run_id: process.env.GITHUB_RUN_ID ?? null, ...artifact, gates }
   writeFileSync(OUT, JSON.stringify(out, null, 1) + '\n')
   console.log(`\n  ${artifact.coverage}`)
