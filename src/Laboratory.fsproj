@@ -101,6 +101,9 @@
     <Compile Include="LineupsView.fs" />
     <Compile Include="BriefsView.fs" />
     <Compile Include="DrawView.fs" />
+    <!-- The Metrics tab (docs/CC-CMD-2026-10-17-metrics-tab-render-path.md): a mount of
+         Flow, Stamina, Gravity and TacticalLock, all above it. -->
+    <Compile Include="MetricsView.fs" />
     <!-- Binary frame ingest. Depends on nothing and is read only by Suite.fs,
          which is where every one of its public bindings is exercised. -->
     <Compile Include="PlayFrame.fs" />

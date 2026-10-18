@@ -951,6 +951,33 @@
   .desk-card__score, #viewed-date, .briefs-stat__value {
     font-variant-numeric: tabular-nums;
   }
+
+  /* METRICS TAB (src/MetricsView.fs). Geometry and opacity carry each reading.
+     A Flow cell is a short bar, and its fill opacity is Flow.pulseStyle's: a
+     minute with no InFlow reading has no fill. A Gravity mark's fill is
+     --mx-fill from Gravity.encodeWell, and its shape class is the well's shape.
+     An unencoded receiver is a dashed outline with no fill, so it cannot be read
+     as a receiver who drew nothing (a solid outline at zero fill). */
+  .mx-panel { max-width: 100%; }
+  .mx-provenance { font-size: .72rem; color: var(--dim-text); max-width: 70ch; }
+  .mx-provenance--top { margin: 0 0 1rem; }
+  .mx-section { margin: 0 0 1rem; padding: .5rem .7rem; background: var(--card2); }
+  .mx-title { cursor: pointer; font-weight: 600; }
+  .mx-stated { font-size: .8rem; max-width: 70ch; }
+  .mx-error { font-size: .8rem; color: var(--caution); }
+  .mx-flow-subject h4 { font-size: .8rem; margin: .6rem 0 .3rem; }
+  .mx-flow-strip { display: flex; align-items: center; gap: 1px; margin: .15rem 0; }
+  .mx-flow-side { font-size: .7rem; width: 3rem; color: var(--dim-text); }
+  .mx-flow-cell { display: inline-block; width: 4px; height: 14px; background: var(--discovery); opacity: 0; outline: 1px solid var(--edge-strong); outline-offset: -1px; }
+  .mx-flow-cell--nowitness { width: 60px; opacity: 1; background: none; outline-style: dashed; }
+  .mx-play { display: flex; align-items: center; gap: .35rem; margin: .2rem 0; flex-wrap: wrap; }
+  .mx-play-id { font-size: .7rem; color: var(--dim-text); width: 12rem; }
+  .mx-well { position: relative; display: inline-block; width: 16px; height: 16px; border: 1px solid var(--text); }
+  .mx-well::after { content: ""; position: absolute; inset: 2px; background: var(--discovery); opacity: var(--mx-fill, 0); }
+  .mx-well[data-well="expanding"] { border-radius: 50%; }
+  .mx-well[data-well="steady"] { border-radius: 2px; }
+  .mx-well[data-well="contracting"] { transform: rotate(45deg) scale(.8); }
+  .mx-well[data-well="unencoded"] { border-style: dashed; border-color: var(--dim-text); }
 </style>
 </head>
 <body>
@@ -969,6 +996,7 @@
     <button role="tab" id="tab-lineups" aria-controls="panel-lineups" aria-selected="false" tabindex="-1">Lineups</button>
     <button role="tab" id="tab-briefs" aria-controls="panel-briefs" aria-selected="false" tabindex="-1">Briefs</button>
     <button role="tab" id="tab-draw" aria-controls="panel-draw" aria-selected="false" tabindex="-1">Draw</button>
+    <button role="tab" id="tab-metrics" aria-controls="panel-metrics" aria-selected="false" tabindex="-1">Metrics</button>
     <button role="tab" id="tab-verify" aria-controls="panel-verify" aria-selected="false" tabindex="-1">Verify</button>
   </div>
 
@@ -1011,6 +1039,7 @@
   <div role="tabpanel" id="panel-briefs" aria-labelledby="tab-briefs" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-lineups" aria-labelledby="tab-lineups" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-draw" aria-labelledby="tab-draw" tabindex="0" hidden></div>
+  <div role="tabpanel" id="panel-metrics" aria-labelledby="tab-metrics" tabindex="0" hidden></div>
   <div role="tabpanel" id="panel-verify" aria-labelledby="tab-verify" tabindex="0" hidden></div>
 
   <!-- Fable emits bare module specifiers for npm packages — `import {

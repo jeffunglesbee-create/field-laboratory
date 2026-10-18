@@ -420,6 +420,22 @@ jobs:
       - name: The Verify panel shows the counterexample that gives each row teeth
         run: npm run check:verify-panel
 
+      # The four empowerment metrics were 530/530 and on no page for two days,
+      # because nothing asked whether they rendered
+      # (docs/CC-CMD-2026-10-17-metrics-tab-render-path.md). This asks, on the DOM:
+      # the eleventh tab, every Flow strip named, Gravity fetched once and only on
+      # expand, and no accessible name in the visible text.
+      - name: The Metrics tab renders what the modules hand it, and nothing more
+        run: npm run check:metrics
+
+      - name: Keep the Metrics screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: metrics-tab
+          path: outbox/metrics-tab-latest.png
+          if-no-files-found: ignore
+
       # Team tints, on the page rather than in the type system. Three of the four
       # defects this found were invisible to the F# suite BY CONSTRUCTION: the
       # suite measures contrast against `bg`, and team names sit on a card, so it

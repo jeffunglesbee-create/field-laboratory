@@ -253,6 +253,18 @@ let private loadVerifyOnce () =
         | null -> ()
         | mount -> SuiteView.load mount |> Promise.start
 
+let mutable private metricsLoaded = false
+
+/// The Metrics tab, on its first selection only, as the Verify tab is loaded.
+/// Nothing on it fetches at page load; inside it, the 1.8 MB Gravity capture
+/// waits for its own section (MetricsView.fs).
+let private loadMetricsOnce () =
+    if not metricsLoaded then
+        metricsLoaded <- true
+        match document.getElementById "panel-metrics" with
+        | null -> ()
+        | mount -> MetricsView.load mount |> Promise.start
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
@@ -621,7 +633,7 @@ let private wireDateNav () =
 /// not a tablist to a screen reader, and this page has three surfaces that say
 /// contradictory things — knowing which one you are on is load-bearing.
 let private wireTabs () =
-    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-verify" ]
+    let ids = [ "tab-scoreboard"; "tab-field-pick"; "tab-scout-pick"; "tab-pickem"; "tab-weather"; "tab-stats"; "tab-lineups"; "tab-briefs"; "tab-draw"; "tab-metrics"; "tab-verify" ]
 
     let tabs () =
         ids |> List.choose (fun id ->
@@ -641,6 +653,7 @@ let private wireTabs () =
             if selected && tab.id = "tab-weather" then loadWeatherOnce ()
             if selected && tab.id = "tab-draw" then loadDrawOnce ()
             if selected && tab.id = "tab-lineups" then loadLineupsOnce ()
+            if selected && tab.id = "tab-metrics" then loadMetricsOnce ()
             if selected && tab.id = "tab-verify" then loadVerifyOnce ()
             match document.getElementById (tab.getAttribute "aria-controls") with
             | null -> ()

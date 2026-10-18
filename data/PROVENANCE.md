@@ -339,3 +339,47 @@ run 39142925192).
 
 **What it exercises.** `src/Bdb.fs` through `scripts/bdb-census.mjs`, which
 refuses to report unless this file's sha256 is the one recorded above.
+
+## `bsd-flow-event-213708.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/by-date?date=2026-10-10&league_id=5
+→ 200; the row with `"id":213708`, 3178 bytes   (2026-10-18)
+sha256 59f071155f8c8206c85a1c58462013ac2b8121ef379d63312faba7b5afc1f152
+```
+
+**The row as served, cut from the response by its own braces.** It is not
+re-serialised. jubilant-bassoon `scripts/lab-flow-event-rows.mjs` (runs
+39148931854 and 39149405673) wrote it to `outbox/lab-flow-event-rows/`, and it
+was copied here with `cp`. FC Augsburg v FC Bayern München, `event_date` 2026-10-10T13:30:00+00:00, `status` finished, `period` FT.
+
+**Why it is here.** `Flow.witnessAfterKickoff` takes a capture's own event row
+as its only route to a witness, so `bsd-flow-finished-*` (whose `event_id` is 213708) is
+drawn on the Metrics tab only with this row beside it.
+
+**Measured while capturing.** The relay's `/bsd/events/by-date` ignores
+`offset`: offset=50 returns page one, with `previous` null. A day with more than
+50 events therefore hides the rest, which is why 213708 was found only with a
+league filter.
+
+## `bsd-flow-event-601226.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/by-date?date=2026-10-15&league_id=83
+→ 200; the row with `"id":601226`, 2241 bytes   (2026-10-18)
+sha256 b4e1ea2c6154b1f12c38ac3729323252b6c14472135a706bf5a1001dd27d4bfc
+```
+
+**The row as served, cut from the response by its own braces.** It is not
+re-serialised. jubilant-bassoon `scripts/lab-flow-event-rows.mjs` (runs
+39148931854 and 39149405673) wrote it to `outbox/lab-flow-event-rows/`, and it
+was copied here with `cp`. GNK Dinamo Zagreb v RSC Anderlecht, `event_date` 2026-10-15T19:00:00+00:00, `status` finished, `period` FT.
+
+**Why it is here.** `Flow.witnessAfterKickoff` takes a capture's own event row
+as its only route to a witness, so `bsd-flow-inplay-*` (whose `event_id` is 601226) is
+drawn on the Metrics tab only with this row beside it.
+
+**Measured while capturing.** The relay's `/bsd/events/by-date` ignores
+`offset`: offset=50 returns page one, with `previous` null. A day with more than
+50 events therefore hides the rest, which is why 213708 was found only with a
+league filter.

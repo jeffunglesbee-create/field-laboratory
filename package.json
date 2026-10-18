@@ -36,6 +36,7 @@
     "check:pick": "node scripts/pick-check.mjs",
     "check:tabs": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
     "check:draw": "node scripts/draw-render-check.mjs --self-test && URL='http://localhost:8080/?tab=draw' node scripts/draw-render-check.mjs",
+    "check:metrics": "node scripts/metrics-render-check.mjs --self-test && URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
     "check:verify-panel": "node scripts/verify-render-check.mjs --self-test && URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
     "check:team-tints": "node scripts/team-tint-render-check.mjs --self-test && URL='http://localhost:8080/?data=context-2026-08-29' node scripts/team-tint-render-check.mjs",
     "check:brief-flip": "node scripts/brief-flip-check.mjs",
