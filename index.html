@@ -978,6 +978,15 @@
   .mx-well[data-well="steady"] { border-radius: 2px; }
   .mx-well[data-well="contracting"] { transform: rotate(45deg) scale(.8); }
   .mx-well[data-well="unencoded"] { border-style: dashed; border-color: var(--dim-text); }
+  /* Second Wind: a track the width of the row. TrackOnly is the bare track; a
+     Ticks track carries two ticks at Stamina.staminaMark's own fractions. The
+     expected tick is a thin full-height line and the observed one a thicker
+     block, so the two stay apart where they coincide. */
+  .mx-subject { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; }
+  .mx-track { position: relative; display: inline-block; width: 240px; height: 14px; border: 1px solid var(--edge-strong); }
+  .mx-tick { position: absolute; top: 0; height: 100%; background: var(--discovery); }
+  .mx-tick--expected { width: 1px; background: var(--text); }
+  .mx-tick--observed { width: 4px; margin-left: -2px; }
 </style>
 </head>
 <body>

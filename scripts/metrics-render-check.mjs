@@ -10,19 +10,17 @@
 // it a snapshot that must pass and, per predicate, one that must fail. A check
 // that has only ever passed has proven nothing (field-relay-nba Rule 90).
 //
-// WHAT CHANGED FROM THE COMMAND, MEASURED. TASK 6.3 asked for all four Second
-// Wind cases on screen. The committed capture is one game, which cannot form
-// the population curve (Stamina.staminaCurve refuses under 1,000 attempts in a
-// third), and under the season's curve that game holds no SecondWind and no
-// TrailingRate reading (outbox/second-wind-population-latest.json, `fixture`).
-// So the section is a stated absence, like Tactical Lock, and this asserts that:
-// no marks, and the follow-up command named. The four-case assertion belongs to
-// docs/CC-CMD-2026-10-18-second-wind-population-capture.md.
+// SECOND WIND, TASK 6.3. One committed game could not form the population
+// curve, so the section was first a stated absence. On 2026-10-18 the owner
+// chose to commit the population itself (option 1 of
+// docs/CC-CMD-2026-10-18-second-wind-population-capture.md), and this now
+// asserts all four cases, each from a committed game, and that the 656 files
+// are fetched once, only on the section's first expand.
 //
 // Usage:  URL=http://localhost:8080/ node scripts/metrics-render-check.mjs
 //         node scripts/metrics-render-check.mjs --self-test
 
-import { existsSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { createChecks, finish, isMain } from './checks.mjs'
 
 export const EXPECTED_TABS = [
@@ -31,7 +29,8 @@ export const EXPECTED_TABS = [
 ]
 export const FLOW_SUBJECTS = ['finished', 'inplay']
 export const FRAMES = 'bdb-event-frames-2022-w2.json'
-const FOLLOW_UP = 'CC-CMD-2026-10-18-second-wind-population-capture'
+export const STAMINA_STATES = ['Insufficient', 'PopulationRate', 'SecondWind', 'TrailingRate']
+export const POPULATION = 'nhl-second-wind-population/'
 
 /** Each predicate: snapshot -> [pass, detail]. */
 export const PREDICATES = {
@@ -58,9 +57,19 @@ export const PREDICATES = {
     FLOW_SUBJECTS.every(sub => s.flowStrips.filter(x => x.subject === sub).some(x => x.cells.some(c => c.style.trim() !== ''))),
     JSON.stringify(s.flowStrips.map(x => `${x.subject}/${x.side}: ${x.cells.filter(c => c.style.trim() !== '').length} styled`))],
 
-  'Second Wind draws no mark and names the command that would let it': s => [
-    s.secondWind.present && s.secondWind.marks === 0 && s.secondWind.text.includes(FOLLOW_UP),
-    JSON.stringify({ ...s.secondWind, text: s.secondWind.text.slice(0, 120) })],
+  'Second Wind draws all four cases, and a bare track is told from a ticked one by its geometry': s => {
+    const of = st => s.secondWind.tracks.find(t => t.aria.includes(`${st} state active`))
+    const found = STAMINA_STATES.map(of)
+    return [found.every(Boolean)
+      && found.every(t => (t.mark === 'track-only' && t.ticks === 0) || (t.mark === 'ticks' && t.ticks === 2))
+      && found[0].mark === 'track-only' && found.slice(1).every(t => t.mark === 'ticks'),
+      JSON.stringify(STAMINA_STATES.map((st, i) => `${st}: ${found[i] ? `${found[i].mark}/${found[i].ticks}` : 'absent'}`))]
+  },
+
+  'Second Wind fetches nothing before its section opens, then the manifest and every game once': s => [
+    s.secondWind.fetchesBefore === 0 && s.secondWind.expectedFetches > 1
+      && s.secondWind.fetchesAfter === s.secondWind.expectedFetches,
+    `before ${s.secondWind.fetchesBefore}, after ${s.secondWind.fetchesAfter}, expected ${s.secondWind.expectedFetches}`],
 
   'Tactical Lock draws no mark and cites both proofs': s => [
     s.tacticalLock.present && s.tacticalLock.marks === 0
@@ -100,7 +109,15 @@ export const goodSnapshot = () => {
     afterArrow: { selected: 'tab-metrics', visiblePanels: ['panel-metrics'] }, afterEnd: 'tab-verify',
     fetchedBeforeTab: [],
     flowStrips: FLOW_SUBJECTS.flatMap(sub => [strip(sub, 'home'), strip(sub, 'away')]),
-    secondWind: { present: true, marks: 0, text: `filed as docs/${FOLLOW_UP}.md` },
+    secondWind: {
+      tracks: [
+        { mark: 'track-only', ticks: 0, aria: 'Game 1, player 2: Insufficient state active, 1 attempts' },
+        { mark: 'ticks', ticks: 2, aria: 'Game 1, player 3: PopulationRate state active, last third 3' },
+        { mark: 'ticks', ticks: 2, aria: 'Game 1, player 4: SecondWind state active, last third 9' },
+        { mark: 'ticks', ticks: 2, aria: 'Game 1, player 5: TrailingRate state active, last third 0' },
+      ],
+      fetchesBefore: 0, fetchesAfter: 657, expectedFetches: 657,
+    },
     tacticalLock: { present: true, marks: 0, text: 'docs/LOCK-PROOF.md, docs/AMNESTY-PROOF.md' },
     gravity: {
       marksBefore: 0, framesFetchesBefore: 0, framesFetchesAfter: 1,
@@ -119,7 +136,8 @@ export const MUTATIONS = {
   'nothing on the tab is fetched before the tab is opened': s => { s.fetchedBeforeTab = ['data/bsd-flow-finished-stats.json'] },
   'every Flow subject has a home and an away strip, each a witnessed minute strip with a named cell per minute': s => { s.flowStrips[1].cells[0].aria = '' },
   'each Flow subject draws at least one minute with a non-empty style (an InFlow pulse)': s => { s.flowStrips.filter(x => x.subject === 'inplay').forEach(x => x.cells.forEach(c => { c.style = '' })) },
-  'Second Wind draws no mark and names the command that would let it': s => { s.secondWind.marks = 1 },
+  'Second Wind draws all four cases, and a bare track is told from a ticked one by its geometry': s => { s.secondWind.tracks[0] = { ...s.secondWind.tracks[0], mark: 'ticks', ticks: 2 } },
+  'Second Wind fetches nothing before its section opens, then the manifest and every game once': s => { s.secondWind.fetchesAfter = 657 * 2 },
   'Tactical Lock draws no mark and cites both proofs': s => { s.tacticalLock.marks = 1 },
   'Gravity draws nothing and fetches nothing before its section is expanded': s => { s.gravity.framesFetchesBefore = 1 },
   'Gravity fetches the 1.8 MB capture exactly once, on expand, and draws marks of more than one opacity': s => { s.gravity.framesFetchesAfter = 2 },
@@ -186,6 +204,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   })))
   const sectionOf = key => page.$eval(`${panel} [data-metric="${key}"]`, d => ({ present: true, marks: d.querySelectorAll('[role="img"]').length, text: d.innerText }))
   const frames = () => requests.filter(u => u.includes(FRAMES)).length
+  const population = () => requests.filter(u => u.includes(POPULATION)).length
+  const manifest = JSON.parse(readFileSync(`data/${POPULATION}MANIFEST.json`, 'utf8'))
+  const populationBefore = population()
 
   s.gravity = {
     marksBefore: await page.$$eval(`${panel} [data-metric="gravity"] .mx-well`, m => m.length),
@@ -194,14 +215,21 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   for (const key of ['second-wind', 'gravity', 'tactical-lock'])
     await page.$eval(`${panel} [data-metric="${key}"]`, d => { d.open = true })
   await page.waitForSelector(`${panel} [data-metric="gravity"] .mx-well, ${panel} [data-metric="gravity"] .mx-error`, { timeout: 60000 })
+  await page.waitForSelector(`${panel} [data-metric="second-wind"] .mx-track, ${panel} [data-metric="second-wind"] [data-state]`, { timeout: 180000 })
   await page.waitForLoadState('networkidle')
   // Close and reopen: a second expand must not fetch again.
-  await page.$eval(`${panel} [data-metric="gravity"]`, d => { d.open = false })
-  await page.$eval(`${panel} [data-metric="gravity"]`, d => { d.open = true })
+  for (const key of ['gravity', 'second-wind']) {
+    await page.$eval(`${panel} [data-metric="${key}"]`, d => { d.open = false })
+    await page.$eval(`${panel} [data-metric="${key}"]`, d => { d.open = true })
+  }
   await page.waitForTimeout(500)
   s.gravity.framesFetchesAfter = frames()
   s.gravity.marks = await page.$$eval(`${panel} [data-metric="gravity"] .mx-well`, ms => ms.map(m => ({ well: m.dataset.well, style: m.getAttribute('style') || '' })))
-  s.secondWind = await sectionOf('second-wind')
+  s.secondWind = {
+    tracks: await page.$$eval(`${panel} [data-metric="second-wind"] .mx-track`, ts => ts.map(t => ({
+      mark: t.dataset.mark, ticks: t.querySelectorAll('.mx-tick').length, aria: t.getAttribute('aria-label') || '' }))),
+    fetchesBefore: populationBefore, fetchesAfter: population(), expectedFetches: 1 + 2 * manifest.games.length,
+  }
   s.tacticalLock = await sectionOf('tactical-lock')
   s.ariaLabels = await page.$$eval(`${panel} [aria-label]`, ns => ns.map(n => n.getAttribute('aria-label')))
   s.innerText = await page.$eval(panel, p => p.innerText)
