@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e701ba4` | 2026-10-18 | [cc-session-2026-10-18-second-wind-population.md](cc-session-2026-10-18-second-wind-population.md) | docs: Second Wind DONE: 328 games committed, gate 530/530, four cases drawn |
+| `544baf7` | 2026-10-18 | [metrics-render-latest.txt](metrics-render-latest.txt) | metrics: the tab rendered and photographed [skip ci] |
+| `544baf7` | 2026-10-18 | [metrics-tab-latest.png](metrics-tab-latest.png) | metrics: the tab rendered and photographed [skip ci] |
+| `00c1a4a` | 2026-10-18 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 849e70f [skip ci] |
+| `ce240fe` | 2026-10-18 | [cc-session-2026-10-18-second-wind-population.md](cc-session-2026-10-18-second-wind-population.md) | feat: Second Wind on the Metrics tab draws all four cases from the population |
+| `8b6db8d` | 2026-10-18 | [flow-census-latest.json](flow-census-latest.json) | data: empowerment census and fixtures (run 39159881789) [skip ci] |
+| `8b6db8d` | 2026-10-18 | [second-wind-population-latest.json](second-wind-population-latest.json) | data: empowerment census and fixtures (run 39159881789) [skip ci] |
+| `f87d338` | 2026-10-18 | [cc-session-2026-10-18-second-wind-population.md](cc-session-2026-10-18-second-wind-population.md) | feat: second-wind-population --capture-population writes the 328 games verbatim |
+| `5146eeb` | 2026-10-18 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-18T21:01 [skip ci] |
+| `c3134a9` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e09fb0b` | 2026-10-18 | [cc-session-2026-10-17-metrics-tab.md](cc-session-2026-10-17-metrics-tab.md) | docs: Metrics tab DONE: gate 530/530, render check 13/13, README updated |
 | `e50ca3e` | 2026-10-18 | [metrics-render-latest.txt](metrics-render-latest.txt) | metrics: the tab rendered and photographed [skip ci] |
 | `e50ca3e` | 2026-10-18 | [metrics-tab-latest.png](metrics-tab-latest.png) | metrics: the tab rendered and photographed [skip ci] |
