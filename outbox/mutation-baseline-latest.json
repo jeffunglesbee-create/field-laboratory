@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-17T15:52:23.582Z",
+  "at": "2026-10-18T16:54:19.921Z",
   "scope": "full",
-  "ran": 58,
-  "from_mutations": 162,
+  "ran": 59,
+  "from_mutations": 167,
   "failing": 0,
   "results": [
     {
@@ -227,6 +227,10 @@
     },
     {
       "cmd": "node scripts/proof-check.mjs --only VINTAGE-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --only BDB-PROOF",
       "passed": true
     },
     {
