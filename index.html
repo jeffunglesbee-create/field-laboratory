@@ -972,8 +972,8 @@
   .mx-flow-cell--nowitness { width: 60px; opacity: 1; background: none; outline-style: dashed; }
   .mx-play { display: flex; align-items: center; gap: .35rem; margin: .2rem 0; flex-wrap: wrap; }
   .mx-play-id { font-size: .7rem; color: var(--dim-text); width: 12rem; }
-  .mx-well { position: relative; display: inline-block; width: 16px; height: 16px; border: 1px solid var(--text); }
-  .mx-well::after { content: ""; position: absolute; inset: 2px; background: var(--discovery); opacity: var(--mx-fill, 0); }
+  .mx-well { --mx-fill: 0; position: relative; display: inline-block; width: 16px; height: 16px; border: 1px solid var(--text); }
+  .mx-well::after { content: ""; position: absolute; inset: 2px; background: var(--discovery); opacity: var(--mx-fill); }
   .mx-well[data-well="expanding"] { border-radius: 50%; }
   .mx-well[data-well="steady"] { border-radius: 2px; }
   .mx-well[data-well="contracting"] { transform: rotate(45deg) scale(.8); }
