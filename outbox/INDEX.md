@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e09fb0b` | 2026-10-18 | [cc-session-2026-10-17-metrics-tab.md](cc-session-2026-10-17-metrics-tab.md) | docs: Metrics tab DONE: gate 530/530, render check 13/13, README updated |
+| `e50ca3e` | 2026-10-18 | [metrics-render-latest.txt](metrics-render-latest.txt) | metrics: the tab rendered and photographed [skip ci] |
+| `e50ca3e` | 2026-10-18 | [metrics-tab-latest.png](metrics-tab-latest.png) | metrics: the tab rendered and photographed [skip ci] |
+| `db08fd7` | 2026-10-18 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8e5d2b9 [skip ci] |
+| `5d9a3e1` | 2026-10-18 | [cc-session-2026-10-17-metrics-tab.md](cc-session-2026-10-17-metrics-tab.md) | feat: the Metrics tab mounts Flow, Gravity Well, Second Wind and Tactical Lock |
+| `8364546` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `aa2cb27` | 2026-10-18 | [cc-session-2026-10-18-bdb-scout-mirror.md](cc-session-2026-10-18-bdb-scout-mirror.md) | docs: BDB scout mirror DONE: gate 530/530, landed, census 14/14 |
 | `e506e16` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4076ada` | 2026-10-18 | [bdb-census-latest.json](bdb-census-latest.json) | census: BDB scout rows over the served files [skip ci] |
