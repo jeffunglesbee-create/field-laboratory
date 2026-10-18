@@ -13,8 +13,10 @@ PASS  holds on the good snapshot: every Flow subject has a home and an away stri
 PASS  fails on its mutation: every Flow subject has a home and an away strip, each a witnessed minute strip with a named cell per minute
 PASS  holds on the good snapshot: each Flow subject draws at least one minute with a non-empty style (an InFlow pulse)
 PASS  fails on its mutation: each Flow subject draws at least one minute with a non-empty style (an InFlow pulse)
-PASS  holds on the good snapshot: Second Wind draws no mark and names the command that would let it
-PASS  fails on its mutation: Second Wind draws no mark and names the command that would let it
+PASS  holds on the good snapshot: Second Wind draws all four cases, and a bare track is told from a ticked one by its geometry
+PASS  fails on its mutation: Second Wind draws all four cases, and a bare track is told from a ticked one by its geometry
+PASS  holds on the good snapshot: Second Wind fetches nothing before its section opens, then the manifest and every game once
+PASS  fails on its mutation: Second Wind fetches nothing before its section opens, then the manifest and every game once
 PASS  holds on the good snapshot: Tactical Lock draws no mark and cites both proofs
 PASS  fails on its mutation: Tactical Lock draws no mark and cites both proofs
 PASS  holds on the good snapshot: Gravity draws nothing and fetches nothing before its section is expanded
@@ -28,14 +30,15 @@ PASS  fails on its mutation: no accessible name, and no state phrase, appears in
 PASS  holds on the good snapshot: every drawn node carries a non-empty accessible name
 PASS  fails on its mutation: every drawn node carries a non-empty accessible name
 
-25/25 checks passed
+27/27 checks passed
 flow strips 4, styled cells 24; gravity marks 60 (15 unencoded); screenshot outbox/metrics-tab-latest.png
 PASS  the tablist names eleven tabs, Metrics directly before Verify, which stays last
 PASS  one tab selected, one in the tab order, and ArrowRight from Draw shows only the Metrics panel
 PASS  nothing on the tab is fetched before the tab is opened
 PASS  every Flow subject has a home and an away strip, each a witnessed minute strip with a named cell per minute
 PASS  each Flow subject draws at least one minute with a non-empty style (an InFlow pulse)
-PASS  Second Wind draws no mark and names the command that would let it
+PASS  Second Wind draws all four cases, and a bare track is told from a ticked one by its geometry
+PASS  Second Wind fetches nothing before its section opens, then the manifest and every game once
 PASS  Tactical Lock draws no mark and cites both proofs
 PASS  Gravity draws nothing and fetches nothing before its section is expanded
 PASS  Gravity fetches the 1.8 MB capture exactly once, on expand, and draws marks of more than one opacity
@@ -44,4 +47,4 @@ PASS  no accessible name, and no state phrase, appears in the panel's visible te
 PASS  every drawn node carries a non-empty accessible name
 PASS  no page error while the tab rendered
 
-13/13 checks passed
+14/14 checks passed
