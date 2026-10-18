@@ -1,30 +1,30 @@
 {
   "cc_cmd": "docs/CC-CMD-2026-10-15-empowerment-metrics.md",
   "task": 1,
-  "ran_at": "2026-10-17T00:06:14.539Z",
+  "ran_at": "2026-10-18T19:41:38.056Z",
   "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
-  "run_id": "38984743564",
+  "run_id": "39159881789",
   "premises": "field-relay-nba outbox/empowerment-premises-latest.json (run 38963130231)",
-  "coverage": "791 of 791 non-shell captures read and decoded through build/Flow.js (786 uploaded at or before Task 0's census at 2026-10-16T09:35:05.514Z); 10 slugs, 2184 list calls",
+  "coverage": "853 of 853 non-shell captures read and decoded through build/Flow.js (786 uploaded at or before Task 0's census at 2026-10-16T09:35:05.514Z); 10 slugs, 2542 list calls",
   "population": {
-    "non_shell_now": 791,
+    "non_shell_now": 853,
     "uploaded_by_task0": 786,
-    "read": 791,
+    "read": 853,
     "by_competition": {
       "bundesliga": {
-        "captures": 46,
-        "read": 46,
-        "flow_runs": 184
+        "captures": 54,
+        "read": 54,
+        "flow_runs": 210
       },
       "eflchamp": {
-        "captures": 120,
-        "read": 120,
-        "flow_runs": 380
+        "captures": 131,
+        "read": 131,
+        "flow_runs": 419
       },
       "epl": {
-        "captures": 60,
-        "read": 60,
-        "flow_runs": 226
+        "captures": 69,
+        "read": 69,
+        "flow_runs": 253
       },
       "europa": {
         "captures": 38,
@@ -32,24 +32,24 @@
         "flow_runs": 112
       },
       "laliga": {
-        "captures": 79,
-        "read": 79,
-        "flow_runs": 243
+        "captures": 86,
+        "read": 86,
+        "flow_runs": 272
       },
       "ligue1": {
-        "captures": 55,
-        "read": 55,
-        "flow_runs": 193
+        "captures": 62,
+        "read": 62,
+        "flow_runs": 221
       },
       "mls": {
-        "captures": 215,
-        "read": 215,
-        "flow_runs": 760
+        "captures": 229,
+        "read": 229,
+        "flow_runs": 802
       },
       "seriea": {
-        "captures": 61,
-        "read": 61,
-        "flow_runs": 239
+        "captures": 67,
+        "read": 67,
+        "flow_runs": 264
       },
       "ucl": {
         "captures": 68,
@@ -65,26 +65,26 @@
   },
   "stage": {
     "by_stage": {
-      "in-play": 739,
-      "full-time-seen": 47,
+      "in-play": 795,
+      "full-time-seen": 53,
       "no-incidents": 2,
       "unmarked": 3
     },
     "note": "no stage is a witness: the only route to one is the capture's own event row two FIELD days after kickoff"
   },
   "shots": {
-    "rows": 21117,
-    "raw_rows": 21117,
-    "own_goal_rows": 73,
+    "rows": 22777,
+    "raw_rows": 22777,
+    "own_goal_rows": 76,
     "shootout_kicks": 8,
-    "positive": 20918,
+    "positive": 22575,
     "zero": 0,
     "estimated": 431,
     "without_xg": 118,
     "raw_without_xg": 118,
     "added_at": {
-      "45": 684,
-      "90": 783,
+      "45": 732,
+      "90": 834,
       "105": 8,
       "120": 13,
       "elsewhere": 0
@@ -129,30 +129,30 @@
     ]
   },
   "flow": {
-    "captures_read": 787,
-    "captures_with_flow_run": 781,
-    "flow_runs": 2732,
-    "shared_minutes": 306,
+    "captures_read": 849,
+    "captures_with_flow_run": 842,
+    "flow_runs": 2948,
+    "shared_minutes": 342,
     "closed_by": {
-      "opponent_shot": 2026,
+      "opponent_shot": 2179,
       "opponent_shots_of_zero_xg_only": 0,
-      "shared_minute": 88,
-      "half_time": 299,
-      "full_time": 17,
+      "shared_minute": 97,
+      "half_time": 331,
+      "full_time": 19,
       "extra_time_interval": 5,
       "end_of_extra_time": 0,
-      "capture_end": 297
+      "capture_end": 317
     },
     "boundaries": {
       "half_time": {
-        "separators": 784,
-        "same_team_splits": 396,
-        "flow_runs_ended": 299
+        "separators": 846,
+        "same_team_splits": 432,
+        "flow_runs_ended": 331
       },
       "full_time": {
         "separators": 16,
         "same_team_splits": 10,
-        "flow_runs_ended": 17
+        "flow_runs_ended": 19
       },
       "extra_time_interval": {
         "separators": 15,
@@ -164,10 +164,10 @@
     "estimated_inside_flow_runs": 263
   },
   "tactical_lock": {
-    "TeamWindows": 132798,
-    "RestartsUnclocked": 132798,
+    "TeamWindows": 143214,
+    "RestartsUnclocked": 143214,
     "ShotsUnclocked": 0,
-    "Unmeasured": 132798,
+    "Unmeasured": 143214,
     "Clocked": 0,
     "LockedOnPossible": 0,
     "XgMissing": 310,
@@ -175,30 +175,5 @@
     "refused_list": [],
     "note": "window counts from TacticalLock.lockWindows; Unmeasured and LockedOnPossible come from lockClassify, never from a literal"
   },
-  "fixtures": {
-    "finished": "bundesliga/213708",
-    "in_play": "europa/601226",
-    "files": [
-      {
-        "path": "data/bsd-flow-finished-stats.json",
-        "bytes": 20629,
-        "sha256": "8b32776eb042ec96393bcc0565a23e647e2e628769ba23b5e743eaae7f9cafa2"
-      },
-      {
-        "path": "data/bsd-flow-finished-incidents.json",
-        "bytes": 4859,
-        "sha256": "cf327cb385aa3c18ef473d607b3c371fb047307f3f9f274bf50a48ad3ad59922"
-      },
-      {
-        "path": "data/bsd-flow-inplay-stats.json",
-        "bytes": 14577,
-        "sha256": "b1becb3e8565ee5751d41fe7ee32bdaea472a7eb84e834e4cf6adc493f4cf34f"
-      },
-      {
-        "path": "data/bsd-flow-inplay-incidents.json",
-        "bytes": 2141,
-        "sha256": "c4a96597e2925eb52cfa3434d6688ac3a667f8f049e04cbc356e607e3c352eb0"
-      }
-    ]
-  }
+  "fixtures": null
 }
