@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `aa2cb27` | 2026-10-18 | [cc-session-2026-10-18-bdb-scout-mirror.md](cc-session-2026-10-18-bdb-scout-mirror.md) | docs: BDB scout mirror DONE: gate 530/530, landed, census 14/14 |
+| `e506e16` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4076ada` | 2026-10-18 | [bdb-census-latest.json](bdb-census-latest.json) | census: BDB scout rows over the served files [skip ci] |
 | `0a1a291` | 2026-10-18 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 0b9d59e [skip ci] |
 | `4793504` | 2026-10-18 | [cc-session-2026-10-18-bdb-scout-mirror.md](cc-session-2026-10-18-bdb-scout-mirror.md) | feat: mirror the NFL BDB scout rows into the laboratory |
