@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** >= 95 before any commit
 **Filed:** 2026-10-17 by chat, read from `src/*.fs` and `index.html` at `61110a4`
-**Status:** FILED, not dispatched.
+**Status:** DONE 2026-10-18, except TASK 3's four cases, whose premise did not hold. That part is filed as `docs/CC-CMD-2026-10-18-second-wind-population-capture.md`. Gate 530/530 (run 39151424842); on main as `5d9a3e1`; render check 13/13 (run 39158838265). Session doc: `outbox/cc-session-2026-10-17-metrics-tab.md`.
 **Owner decision on file:** "On their own to start" (2026-10-17) — a tab of their own, not additions to Scoreboard or Stats.
 
 ---

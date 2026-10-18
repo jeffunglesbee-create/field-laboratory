@@ -156,8 +156,22 @@ level with their first third or above it in every band (last over first 1.057,
   2022 week-2 capture, 489 of 545 plays are measured and the drawn counts
   cancel on all 489. It is not position-adjusted, and the doc comment says so.
 
-**The caveat:** nothing renders any of the four. Each witness is a requirement
-a renderer inherits, not a tested path to the DOM.
+**The caveat, now partly retired (2026-10-18,
+`docs/CC-CMD-2026-10-17-metrics-tab-render-path.md`).** The four were 530/530
+for two days with no pixel on the page, because no done condition asked for
+one. A Metrics tab now mounts them, and `scripts/metrics-render-check.mjs`
+asserts on the DOM that no accessible name reaches the visible text.
+- **Flow** draws both committed captures minute by minute.
+  - Mounting it found that no Flow capture in this repository could be
+    witnessed at all: the witness needs the capture's own BSD event row, and
+    none had been committed.
+- **Gravity** draws 12 of 545 plays, unranked, on the first expand of its
+  section. The 515 receivers with no encoding have a mark of their own.
+- **Tactical Lock** is stated, not drawn.
+- **Second Wind** is stated too, for a measured reason. A curve needs 1,000
+  attempts per third per band, and the committed game has 36 skater-games,
+  none of them in the two rarer states. What it would take is filed as its own
+  command.
 
 ## The other half of the answer: where it does nothing
 

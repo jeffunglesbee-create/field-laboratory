@@ -54,4 +54,54 @@ on 2026-10-18; the file name is the command's.
 
 ## Verification
 
-Recorded below once the runner has built and served it.
+| step | run | result |
+|---|---|---|
+| `verify.yml` on the first candidate | 39150793897 | built; red on "The chrome, measured on the rendered page". Cause: `--mx-fill` was set only inline, and that check fails a `var()` that no stylesheet declares. Fixed in `3d71ee8` |
+| `verify.yml` on the fixed candidate | (dispatch on `f8911d6`) | **all green**, including "The Metrics tab renders what the modules hand it" and the chrome check |
+| `verify-full`, the confidence gate | 39151424842 on `8e5d2b9` | **530/530 = 100** in 4,993 s; mutation baseline recorded |
+| main | — | `5d9a3e1`, `3d71ee8`, `222a043` (source byte-identical to the gated `8e5d2b9`; main had gained only STATUS, docs and outbox), then records `db08fd7` and `9abc5d9` |
+| `metrics-screenshot.yml` from main | 39158838265 | render check **13/13**; self-test **25/25**; `outbox/metrics-tab-latest.png`, `outbox/metrics-render-latest.txt` |
+
+## Done conditions
+
+1. `metrics-render-check.mjs --self-test` gives 25/25, and the real run gives
+   13/13 against a served build. **Met.**
+2. `npm run check:tabs` passes with eleven tabs (the verify run above). **Met.**
+3. The screenshot of `panel-metrics` with all four sections expanded is
+   `outbox/metrics-tab-latest.png`. **Met.**
+4. `npm run gate` gives 530/530 = 100. **Met.**
+5. This document, and the README's "answer so far". **Met.**
+
+## What the screenshot shows, read rather than asserted
+
+- **Flow, Bundesliga 213708:** both sides pulse. Away has three runs, the last
+  one late. The render check counted 24 styled minutes across all four strips.
+- **Flow, Europa 601226 (captured in play):** Home draws no minute and Away
+  draws one short run. Both strips are witnessed, so this is the metric's own
+  reading: "Every other reading draws nothing" (`Flow.pulseStyle`).
+  - **A gap, kept rather than hidden:** a minute with no pulse is invisible, so
+    a strip with no InFlow minute looks empty. Its accessible names still say
+    `Disjointed` or `not recorded` minute by minute. Making the track itself
+    visible is a design choice this command did not make.
+- **Gravity:** 12 plays and 60 marks, 15 of them unencoded (dashed). Circles,
+  squares and diamonds are `Expanding`, `Steady` and `Contracting`; a fill is
+  `encodeWell`'s opacity, and an empty solid square is a receiver who drew
+  nothing.
+  - The visible counts, `545`, `489`, and `515 of 2438`, are summed from
+    `gravityCensus`'s tallies. They match `outbox/gravity-census-latest.json`.
+- **Second Wind and Tactical Lock:** text with census counts, no marks.
+
+## What did not go as the command said
+
+- **TASK 3's four Second Wind cases.** Not built; the measured reason is in
+  TASK 0 above. Filed as `docs/CC-CMD-2026-10-18-second-wind-population-capture.md`,
+  with an owner decision on how to commit a population.
+- **TASK 6.3.** It was rewritten to assert the stated absence. The four-case
+  assertion moves to that command.
+- **Flow needed data the command did not list:** two BSD event rows, now in
+  `data/`.
+- **A relay defect found on the way:** `/bsd/events/by-date` ignores `offset`
+  and caches nothing. Filed as field-relay-nba
+  `docs/CC-CMD-2026-10-18-bsd-by-date-offset-and-cache.md`. My first capture
+  run paged against it and re-fetched page one on every busy day; that cost is
+  recorded in jubilant-bassoon `outbox/cc-session-2026-10-18-lab-bdb-mirror-producer.md`.
