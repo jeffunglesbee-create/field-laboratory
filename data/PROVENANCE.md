@@ -247,3 +247,95 @@ the relay's `/nhl` and `/nhl-stats` routes, which this capture bypasses. The
 reference population (328 games of 2025-26) is not committed; its per-payload
 hashes are in `outbox/second-wind-population-latest.json`.
 <!-- nhl-second-wind:end -->
+
+## `bdb-speed-2022.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/nflverse/bdb_speed.json
+→ 200, 154615 bytes   (2026-10-18T16:11:38Z)
+sha256 70472e9ac0ee3e15a6ac60af29a9df56f1b0040e6d8a04a702940ab05e3ca301
+```
+
+**Captured from the served route, by a runner.** The sandbox cannot reach
+`*.workers.dev`, so jubilant-bassoon's `lab-bdb-capture.yml` (run 39143837171)
+fetched it with `curl` and committed the bytes to its
+`outbox/lab-bdb-capture/`. They were copied here with `cp`, never parsed or
+re-serialised, and the sha256 above was recomputed after the copy and equals
+that run's manifest. These are the served bytes, not the builder's committed
+copy. The builders gained `sourceDataset` in jubilant-bassoon 39305c07 and
+were re-run that day (`bdb-update.yml` run 39142923156, `nfl-ngs-update.yml`
+run 39142925192).
+
+**Envelope.** `season` 2022, `sourceDataset` "kaggle alexandermeau/nfl-big-data-bowl-archived-data-2025", `metric` max_speed_mph. 1648 rows keyed by BDB nflId: `name`, `team` (the 2022 club), `maxSpeedMph`, `maxSpeedYps`.
+
+**What it exercises.** `src/Bdb.fs` through `scripts/bdb-census.mjs`, which
+refuses to report unless this file's sha256 is the one recorded above.
+
+## `bdb-tendency-fingerprint-2022.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/nflverse/bdb_tendency_fingerprint.json
+→ 200, 3888 bytes   (2026-10-18T16:11:38Z)
+sha256 f13c87b6191e1facc013e35f2856b7b7f0f755c8186e79ba0f625c8022891dc3
+```
+
+**Captured from the served route, by a runner.** The sandbox cannot reach
+`*.workers.dev`, so jubilant-bassoon's `lab-bdb-capture.yml` (run 39143837171)
+fetched it with `curl` and committed the bytes to its
+`outbox/lab-bdb-capture/`. They were copied here with `cp`, never parsed or
+re-serialised, and the sha256 above was recomputed after the copy and equals
+that run's manifest. These are the served bytes, not the builder's committed
+copy. The builders gained `sourceDataset` in jubilant-bassoon 39305c07 and
+were re-run that day (`bdb-update.yml` run 39142923156, `nfl-ngs-update.yml`
+run 39142925192).
+
+**Envelope.** `season` 2022, the same `sourceDataset`, `metric` tendency_fingerprint. 32 rows keyed by team: `plays`, `dropbackRate`, `playActionRate`, `topFormation`.
+
+**What it exercises.** `src/Bdb.fs` through `scripts/bdb-census.mjs`, which
+refuses to report unless this file's sha256 is the one recorded above.
+
+## `bdb-time-to-throw-2022.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/nflverse/bdb_time_to_throw.json
+→ 200, 2373 bytes   (2026-10-18T16:11:38Z)
+sha256 03e0099327a10cfa0e00a341ce24d1115bb4d8e35c7e5d8906e9367eb618b100
+```
+
+**Captured from the served route, by a runner.** The sandbox cannot reach
+`*.workers.dev`, so jubilant-bassoon's `lab-bdb-capture.yml` (run 39143837171)
+fetched it with `curl` and committed the bytes to its
+`outbox/lab-bdb-capture/`. They were copied here with `cp`, never parsed or
+re-serialised, and the sha256 above was recomputed after the copy and equals
+that run's manifest. These are the served bytes, not the builder's committed
+copy. The builders gained `sourceDataset` in jubilant-bassoon 39305c07 and
+were re-run that day (`bdb-update.yml` run 39142923156, `nfl-ngs-update.yml`
+run 39142925192).
+
+**Envelope.** `season` 2022, the same `sourceDataset`, `metric` time_to_throw. 32 rows keyed by team: `dropbacks`, `avgTimeToThrow`.
+
+**What it exercises.** `src/Bdb.fs` through `scripts/bdb-census.mjs`, which
+refuses to report unless this file's sha256 is the one recorded above.
+
+## `depth-charts-2026.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/nflverse/depth-charts.json
+→ 200, 20937 bytes   (2026-10-18T16:11:38Z)
+sha256 24eb9cdbe17ab707ee30dd78a40c6a14ea91f608521b6794485028e40f9ab8bb
+```
+
+**Captured from the served route, by a runner.** The sandbox cannot reach
+`*.workers.dev`, so jubilant-bassoon's `lab-bdb-capture.yml` (run 39143837171)
+fetched it with `curl` and committed the bytes to its
+`outbox/lab-bdb-capture/`. They were copied here with `cp`, never parsed or
+re-serialised, and the sha256 above was recomputed after the copy and equals
+that run's manifest. These are the served bytes, not the builder's committed
+copy. The builders gained `sourceDataset` in jubilant-bassoon 39305c07 and
+were re-run that day (`bdb-update.yml` run 39142923156, `nfl-ngs-update.yml`
+run 39142925192).
+
+**Envelope.** `season` 2026, `sourceDataset` "nflverse depth_charts parquet". 32 teams, each a map from depth-chart position (`QB`, `RB`, `WR`, `TE`, …) to the starter's name. Current data: it changes weekly, so this capture is one week's chart.
+
+**What it exercises.** `src/Bdb.fs` through `scripts/bdb-census.mjs`, which
+refuses to report unless this file's sha256 is the one recorded above.
