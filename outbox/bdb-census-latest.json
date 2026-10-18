@@ -1,0 +1,237 @@
+{
+  "generatedAt": "2026-10-18T17:42:34.045Z",
+  "current": 2026,
+  "archive": 2022,
+  "files": {
+    "speed": "data/bdb-speed-2022.json",
+    "tendency": "data/bdb-tendency-fingerprint-2022.json",
+    "timeToThrow": "data/bdb-time-to-throw-2022.json",
+    "depth": "data/depth-charts-2026.json"
+  },
+  "named": 1626,
+  "ambiguous": 11,
+  "startersWithFloor": 68,
+  "skillStarters": 128,
+  "teamsChecked": 32,
+  "summary": "named 1626 · ambiguous 11 · starters with a floor 68/128 · checked 32 of 32 teams against the client",
+  "lines": [
+    {
+      "team": "ARI",
+      "typed": "ARI J.Brissett ≥18.8 · T.McBride ≥18.0",
+      "client": "ARI J.Brissett ≥18.8 · T.McBride ≥18.0"
+    },
+    {
+      "team": "ATL",
+      "typed": "ATL D.London ≥18.8 · K.Pitts Sr. ≥19.5",
+      "client": "ATL D.London ≥18.8 · K.Pitts Sr. ≥19.5"
+    },
+    {
+      "team": "BAL",
+      "typed": "BAL D.Henry ≥20.6 · M.Andrews ≥19.4",
+      "client": "BAL D.Henry ≥20.6 · M.Andrews ≥19.4"
+    },
+    {
+      "team": "BUF",
+      "typed": "BUF J.Cook III ≥18.9 · D.Moore ≥20.5",
+      "client": "BUF J.Cook III ≥18.9 · D.Moore ≥20.5"
+    },
+    {
+      "team": "CAR",
+      "typed": "CAR C.Hubbard ≥17.0 · T.Tremble ≥18.2",
+      "client": "CAR C.Hubbard ≥17.0 · T.Tremble ≥18.2"
+    },
+    {
+      "team": "CHI",
+      "typed": "CHI D'Andre Swift ≥20.6",
+      "client": "CHI D'Andre Swift ≥20.6"
+    },
+    {
+      "team": "CIN",
+      "typed": "CIN J.Burrow ≥18.2 · Ja'Marr Chase ≥20.1 · M.Gesicki ≥18.0",
+      "client": "CIN J.Burrow ≥18.2 · Ja'Marr Chase ≥20.1 · M.Gesicki ≥18.0"
+    },
+    {
+      "team": "CLE",
+      "typed": "CLE —",
+      "client": "CLE —"
+    },
+    {
+      "team": "DAL",
+      "typed": "DAL D.Prescott ≥18.3 · J.Williams ≥18.6 · C.Lamb ≥20.6 · J.Ferguson ≥16.8",
+      "client": "DAL D.Prescott ≥18.3 · J.Williams ≥18.6 · C.Lamb ≥20.6 · J.Ferguson ≥16.8"
+    },
+    {
+      "team": "DEN",
+      "typed": "DEN J.K. Dobbins ≥17.4 · J.Waddle ≥20.9 · E.Engram ≥19.4",
+      "client": "DEN J.K. Dobbins ≥17.4 · J.Waddle ≥20.9 · E.Engram ≥19.4"
+    },
+    {
+      "team": "DET",
+      "typed": "DET J.Goff ≥19.2 · Amon-Ra St. Brown ≥21.1",
+      "client": "DET J.Goff ≥19.2 · Amon-Ra St. Brown ≥21.1"
+    },
+    {
+      "team": "GB",
+      "typed": "GB C.Watson ≥21.1",
+      "client": "GB C.Watson ≥21.1"
+    },
+    {
+      "team": "HOU",
+      "typed": "HOU D.Montgomery ≥17.7 · N.Collins ≥20.7 · D.Schultz ≥17.4",
+      "client": "HOU D.Montgomery ≥17.7 · N.Collins ≥20.7 · D.Schultz ≥17.4"
+    },
+    {
+      "team": "IND",
+      "typed": "IND D.Jones ≥18.9 · J.Taylor ≥18.1",
+      "client": "IND D.Jones ≥18.9 · J.Taylor ≥18.1"
+    },
+    {
+      "team": "JAX",
+      "typed": "JAX T.Lawrence ≥19.4",
+      "client": "JAX T.Lawrence ≥19.4"
+    },
+    {
+      "team": "KC",
+      "typed": "KC P.Mahomes ≥19.3 · K.Walker III ≥22.1 · T.Kelce ≥18.9",
+      "client": "KC P.Mahomes ≥19.3 · K.Walker III ≥22.1 · T.Kelce ≥18.9"
+    },
+    {
+      "team": "LA",
+      "typed": "LA M.Stafford ≥19.0 · C.Parkinson ≥18.7",
+      "client": "LA M.Stafford ≥19.0 · C.Parkinson ≥18.7"
+    },
+    {
+      "team": "LAC",
+      "typed": "LAC J.Herbert ≥18.4",
+      "client": "LAC J.Herbert ≥18.4"
+    },
+    {
+      "team": "LV",
+      "typed": "LV K.Cousins ≥18.3",
+      "client": "LV K.Cousins ≥18.3"
+    },
+    {
+      "team": "MIA",
+      "typed": "MIA M.Willis ≥19.4 · G.Dulcich ≥18.8",
+      "client": "MIA M.Willis ≥19.4 · G.Dulcich ≥18.8"
+    },
+    {
+      "team": "MIN",
+      "typed": "MIN K.Murray ≥20.1 · A.Jones Sr. ≥20.1 · J.Jefferson ≥20.1 · T.J. Hockenson ≥18.1",
+      "client": "MIN K.Murray ≥20.1 · A.Jones Sr. ≥20.1 · J.Jefferson ≥20.1 · T.J. Hockenson ≥18.1"
+    },
+    {
+      "team": "NE",
+      "typed": "NE R.Stevenson ≥20.3 · A.J. Brown ≥20.3 · H.Henry ≥18.1",
+      "client": "NE R.Stevenson ≥20.3 · A.J. Brown ≥20.3 · H.Henry ≥18.1"
+    },
+    {
+      "team": "NO",
+      "typed": "NO A.Kamara ≥19.9 · C.Olave ≥21.2 · J.Johnson ≥18.4",
+      "client": "NO A.Kamara ≥19.9 · C.Olave ≥21.2 · J.Johnson ≥18.4"
+    },
+    {
+      "team": "NYG",
+      "typed": "NYG J.Winston ≥16.1 · I.Likely ≥18.7",
+      "client": "NYG J.Winston ≥16.1 · I.Likely ≥18.7"
+    },
+    {
+      "team": "NYJ",
+      "typed": "NYJ G.Smith ≥20.0 · B.Hall ≥21.9 · G.Wilson ≥19.7",
+      "client": "NYJ G.Smith ≥20.0 · B.Hall ≥21.9 · G.Wilson ≥19.7"
+    },
+    {
+      "team": "PHI",
+      "typed": "PHI S.Barkley ≥21.1 · D.Smith ≥20.6 · D.Goedert ≥19.3",
+      "client": "PHI S.Barkley ≥21.1 · D.Smith ≥20.6 · D.Goedert ≥19.3"
+    },
+    {
+      "team": "PIT",
+      "typed": "PIT A.Rodgers ≥18.1 · J.Warren ≥19.0 · D.Metcalf ≥19.6",
+      "client": "PIT A.Rodgers ≥18.1 · J.Warren ≥19.0 · D.Metcalf ≥19.6"
+    },
+    {
+      "team": "SEA",
+      "typed": "SEA —",
+      "client": "SEA —"
+    },
+    {
+      "team": "SF",
+      "typed": "SF B.Purdy ≥16.7 · C.McCaffrey ≥19.6 · M.Evans ≥20.3 · G.Kittle ≥19.2",
+      "client": "SF B.Purdy ≥16.7 · C.McCaffrey ≥19.6 · M.Evans ≥20.3 · G.Kittle ≥19.2"
+    },
+    {
+      "team": "TB",
+      "typed": "TB B.Mayfield ≥17.4 · C.Otton ≥16.8",
+      "client": "TB B.Mayfield ≥17.4 · C.Otton ≥16.8"
+    },
+    {
+      "team": "TEN",
+      "typed": "TEN T.Pollard ≥21.1",
+      "client": "TEN T.Pollard ≥21.1"
+    },
+    {
+      "team": "WAS",
+      "typed": "WAS T.McLaurin ≥20.5",
+      "client": "WAS T.McLaurin ≥20.5"
+    }
+  ],
+  "results": [
+    {
+      "name": "bdb-speed-2022.json: sha256 is the one data/PROVENANCE.md records",
+      "pass": true
+    },
+    {
+      "name": "bdb-tendency-fingerprint-2022.json: sha256 is the one data/PROVENANCE.md records",
+      "pass": true
+    },
+    {
+      "name": "bdb-time-to-throw-2022.json: sha256 is the one data/PROVENANCE.md records",
+      "pass": true
+    },
+    {
+      "name": "depth-charts-2026.json: sha256 is the one data/PROVENANCE.md records",
+      "pass": true
+    },
+    {
+      "name": "all four captures decode through Vintage.decodeEnvelope",
+      "pass": true
+    },
+    {
+      "name": "the speed index is released at 2022",
+      "pass": true
+    },
+    {
+      "name": "and not at the current season 2026",
+      "pass": true
+    },
+    {
+      "name": "the depth chart is released at the current season 2026",
+      "pass": true
+    },
+    {
+      "name": "named 1626 · ambiguous 11: the client's own count of the same file",
+      "pass": true
+    },
+    {
+      "name": "Josh Allen: a name two 2022 players share carries no floor",
+      "pass": true
+    },
+    {
+      "name": "Lamar Jackson: a name two 2022 players share carries no floor",
+      "pass": true
+    },
+    {
+      "name": "every team's line matches the client's: checked 32 of 32 teams",
+      "pass": true
+    },
+    {
+      "name": "labels carry the season: Speed floor mph (2022), Tendencies (2022), Time to throw (2022)",
+      "pass": true
+    },
+    {
+      "name": "a team row is not released at the current season 2026",
+      "pass": true
+    }
+  ]
+}
