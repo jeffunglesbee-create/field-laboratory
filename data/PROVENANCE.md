@@ -383,3 +383,33 @@ drawn on the Metrics tab only with this row beside it.
 `offset`: offset=50 returns page one, with `previous` null. A day with more than
 50 events therefore hides the rest, which is why 213708 was found only with a
 league filter.
+
+## `nhl-second-wind-population/`
+
+```
+GET https://api-web.nhle.com/v1/gamecenter/<id>/play-by-play
+GET https://api.nhle.com/stats/rest/en/shiftcharts?cayenneExp=gameId=<id>
+ids 2025020001 + 4k, k = 0..327 (2025-26 regular season, every fourth game)
+328 of 328 games written, 656 files, 131,448,424 bytes; run 39159881789
+per-file sha256: nhl-second-wind-population/MANIFEST.json
+```
+
+**The census's own bytes.** `scripts/second-wind-population.mjs
+--capture-population` (in `empowerment-data.yml`) kept every response body
+the census decoded and wrote it verbatim. It stops the run if a written file's
+sha256 is not the one the census recorded for that game. The same run
+reproduced the census exactly:
+- 328 of 328 games decoded and witnessed;
+- 11,807 skater-games: Insufficient 11,232, PopulationRate 551, SecondWind 15,
+  TrailingRate 9;
+- 7/7 gates (`outbox/second-wind-population-latest.json`).
+
+**Why it is here.** The owner chose this on 2026-10-18, option 1 of
+`docs/CC-CMD-2026-10-18-second-wind-population-capture.md`. The Metrics tab
+forms the Second Wind curve with `Stamina.staminaCurve` from these bytes on
+its section's first expand, and draws one subject per state. One committed
+game could not form a curve at all.
+
+**Cost, stated.** 131 MB in the repository's history, and the same weight on
+the deployed site, fetched by a browser only when that section is opened.
+

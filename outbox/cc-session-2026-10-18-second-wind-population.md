@@ -15,4 +15,26 @@ curve is formed in the browser from the same bytes the census decoded.
   Before, it rebased onto main and pushed to main, so a dispatch on a candidate
   branch would have landed that branch's ungated code.
 
-Results are recorded below as each step runs.
+## Results
+
+- **Capture:** `empowerment-data.yml` run 39159881789, dispatched on the
+  session branch with `population: true`.
+  - 328 of 328 games written: 656 files, 131,448,424 bytes, all decoded.
+  - The census is reproduced exactly: 11,807 skater-games, 11,232 / 551 / 15 / 9,
+    7/7 gates.
+  - The data commit `755168c` landed on the branch, not main.
+- **View:** the Second Wind section fetches `MANIFEST.json` and the 656 files on
+  its first expand, eight in flight at a time.
+  - Each game is decoded with `staminaPlayByPlay` / `staminaShifts` and
+    windowed with `staminaPlayerGames`. The curve comes from `staminaCurve`
+    over every game's `PlayerGame` rows.
+  - Every skater-game is read through its own game's `staminaWitness`. One
+    subject per state is selected by the leading words of `staminaLabel`; the
+    first in game order is drawn with `staminaMark`.
+  - `TrackOnly` draws a bare track. `Ticks` draws two ticks at the module's
+    fractions and opacity: a thin expected tick and a thicker observed one.
+- **Render check:** the Second Wind predicate now requires all four cases. The
+  `TrackOnly` subject must have no tick and each `Ticks` subject must have two,
+  and the population must be fetched once, only on expand. Self-test 27/27.
+
+Gate, main and the screenshot are recorded below once run.

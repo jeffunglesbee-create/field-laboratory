@@ -139,17 +139,115 @@ let private loadFlow (body: HTMLElement) =
 
 // --- Second Wind ----------------------------------------------------------------
 
-/// Stated, not drawn. A reading needs a population curve, and
-/// `Stamina.staminaCurve` refuses one under 1,000 attempts in a third in any
-/// band. The committed capture is one game. Counts are the census's
-/// (run 38984743564, outbox/second-wind-population-latest.json), not computed
-/// here.
-let private secondWindText (body: HTMLElement) =
-    let p (text: string) = child body (el "p" "mx-stated" text) |> ignore
-    p "Built and proven (docs/STAMINA-PROOF.md). Not drawn here: a reading needs a population curve, and the curve is formed only from at least 1,000 attempts in each third of each of three time-on-ice bands."
-    p "The committed capture is one game, NHL 2026020115, with 36 skater-games. It cannot form a curve on its own, so no player in it can be read from what this repository holds."
-    p "The season census (run 38984743564) read 328 games, 11,807 skater-games: 11,232 with too few attempts to read, 551 at the population's rate, 15 above it, 9 below it. Under that curve, the committed game's 36 hold none of the last two."
-    p "Drawing one of each case needs the population and the games that hold them committed here. That is filed as its own command: docs/CC-CMD-2026-10-18-second-wind-population-capture.md."
+/// The population, committed verbatim (owner, 2026-10-18, option 1 of
+/// docs/CC-CMD-2026-10-18-second-wind-population-capture.md): 328 games, about
+/// 136 MB, fetched on the section's first expand and never before. The curve is
+/// formed here by `Stamina.staminaCurve` from those bytes, the same way the
+/// census forms it, and each subject is read through its own game's witness.
+let private populationDir = "data/nhl-second-wind-population"
+
+/// The four states, in the order drawn. The prefix is `Stamina.staminaLabel`'s
+/// own leading words. Subjects are SELECTED by it, never relabelled with it.
+let private secondWindStates = [ "Insufficient"; "PopulationRate"; "SecondWind"; "TrailingRate" ]
+
+type private Game =
+    { Id: int
+      Witness: Stamina.FinishedGame option
+      Players: Stamina.PlayerGame list }
+
+/// Fetch with a bounded number in flight, preserving order.
+let private getAll (paths: string list) : JS.Promise<Result<string, string> list> =
+    promise {
+        let arr = List.toArray paths
+        let out : Result<string, string> array = Array.create arr.Length (Error "not fetched")
+        let next = ref 0
+        let worker () =
+            promise {
+                while next.Value < arr.Length do
+                    let i = next.Value
+                    next.Value <- i + 1
+                    let! r = get arr.[i]
+                    out.[i] <- r
+            }
+        let! _ = Promise.all [ for _ in 1..8 -> worker () ]
+        return List.ofArray out
+    }
+
+let private stateOf (label: string) =
+    secondWindStates |> List.tryFind (fun st -> label.StartsWith(st + " state active"))
+
+/// A track the width of the row. `TrackOnly` is the bare track; `Ticks` puts two
+/// ticks at the module's own fractions, at its opacity. Nothing is rescaled.
+let private staminaTrack (parent: HTMLElement) (mark: Stamina.Mark) (label: string) =
+    let track = child parent (el "span" "mx-track" "")
+    track.setAttribute ("role", "img")
+    track.setAttribute ("aria-label", label)
+    match mark with
+    | Stamina.TrackOnly -> track.setAttribute ("data-mark", "track-only")
+    | Stamina.Ticks(expected, observed, opacity) ->
+        track.setAttribute ("data-mark", "ticks")
+        for cls, at in [ "mx-tick mx-tick--expected", expected; "mx-tick mx-tick--observed", observed ] do
+            let tick = child track (el "span" cls "")
+            tick.setAttribute ("style", sprintf "left: %.4f%%; opacity: %.2f" (at * 100.0) opacity)
+
+let private loadSecondWind (body: HTMLElement) =
+    promise {
+        let status = child body (el "p" "mx-stated" "Fetching the 328 committed games…")
+        let! manifest = get (populationDir + "/MANIFEST.json")
+        match manifest with
+        | Error e -> failed body e
+        | Ok text ->
+            let ids =
+                match Thoth.Json.Decode.fromString (Thoth.Json.Decode.field "games" (Thoth.Json.Decode.list (Thoth.Json.Decode.field "id" Thoth.Json.Decode.int))) text with
+                | Ok ids -> ids
+                | Error _ -> []
+            let paths = ids |> List.collect (fun id -> [ sprintf "%s/%d-pbp.json" populationDir id; sprintf "%s/%d-shifts.json" populationDir id ])
+            let! texts = getAll paths
+            let games =
+                List.zip ids (List.chunkBySize 2 texts)
+                |> List.choose (fun (id, pair) ->
+                    match pair with
+                    | [ Ok pbpText; Ok shiftsText ] ->
+                        match Stamina.staminaPlayByPlay pbpText, Stamina.staminaShifts shiftsText with
+                        | Ok pbp, Ok chart ->
+                            match Stamina.staminaPlayerGames pbp chart with
+                            | Ok windowed -> Some { Id = id; Witness = Stamina.staminaWitness pbp chart; Players = windowed.Players }
+                            | Error _ -> None
+                        | _ -> None
+                    | _ -> None)
+            match Stamina.staminaCurve (games |> List.collect (fun g -> g.Players)) with
+            | Error refusal ->
+                status.textContent <- sprintf "Not drawn: %d of %d games decoded, and the curve was refused." (List.length games) (List.length ids)
+                status.setAttribute ("aria-label", refusal)
+                status.setAttribute ("data-state", "curve-refused")
+            | Ok curve ->
+                // Every skater-game read once, through its own game's witness.
+                let readings =
+                    games
+                    |> List.collect (fun g ->
+                        match g.Witness with
+                        | None -> []
+                        | Some w ->
+                            g.Players
+                            |> List.choose (fun pg ->
+                                match Stamina.staminaLabel curve w pg.Player, Stamina.staminaMark curve w pg.Player with
+                                | Some label, Some mark -> Some(g.Id, pg.Player, label, mark)
+                                | _ -> None))
+                let count st = readings |> List.filter (fun (_, _, l, _) -> stateOf l = Some st) |> List.length
+                status.textContent <-
+                    sprintf "%d of %d games decoded; %d skater-games read: %d Insufficient, %d PopulationRate, %d SecondWind, %d TrailingRate. One subject of each, the first in game order:"
+                        (List.length games) (List.length ids) (List.length readings)
+                        (count "Insufficient") (count "PopulationRate") (count "SecondWind") (count "TrailingRate")
+                for st in secondWindStates do
+                    match readings |> List.tryFind (fun (_, _, l, _) -> stateOf l = Some st) with
+                    | None ->
+                        let p = child body (el "p" "mx-error" "Not drawn: no skater-game in the population reads this way.")
+                        p.setAttribute ("data-state", "absent")
+                    | Some(gameId, player, label, mark) ->
+                        let row = child body (el "div" "mx-subject" "")
+                        child row (el "span" "mx-play-id" (sprintf "Game %d, player %d" gameId player)) |> ignore
+                        staminaTrack row mark (sprintf "Game %d, player %d: %s" gameId player label)
+    }
 
 // --- Gravity Well -------------------------------------------------------------
 
@@ -238,7 +336,7 @@ let load (mount: HTMLElement) : JS.Promise<unit> =
         let flow, flowBody =
             section panel "flow" "Flow (soccer)" "Captures: data/bsd-flow-finished-* (Bundesliga 213708, 2026-10-10) and data/bsd-flow-inplay-* (Europa 601226, 2026-10-15), with each match's BSD event row (data/bsd-flow-event-*.json, captured 2026-10-18)." (fun _ -> ())
         flow.setAttribute ("open", "")
-        section panel "second-wind" "Second Wind (NHL)" "Capture: data/nhl-second-wind-* (NHL 2026020115). Census: outbox/second-wind-population-latest.json." secondWindText |> ignore
+        section panel "second-wind" "Second Wind (NHL)" "Capture: data/nhl-second-wind-population/ (2025-26 regular season, every fourth game, 328 games, about 136 MB), fetched on first expand." (fun body -> loadSecondWind body |> Promise.start) |> ignore
         section panel "gravity" "Gravity Well (NFL)" "Capture: data/bdb-event-frames-2022-w2.json (Big Data Bowl, 2022 season, week 2, 7 games), 1.8 MB, fetched on first expand." (fun body -> loadGravity body |> Promise.start) |> ignore
         section panel "tactical-lock" "Tactical Lock (soccer)" "Source: every R2 capture (field-relay-nba run 38962367310)." tacticalLockText |> ignore
         do! loadFlow flowBody
