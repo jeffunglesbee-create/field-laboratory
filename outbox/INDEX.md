@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `eb7dc0f` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e701ba4` | 2026-10-18 | [cc-session-2026-10-18-second-wind-population.md](cc-session-2026-10-18-second-wind-population.md) | docs: Second Wind DONE: 328 games committed, gate 530/530, four cases drawn |
 | `544baf7` | 2026-10-18 | [metrics-render-latest.txt](metrics-render-latest.txt) | metrics: the tab rendered and photographed [skip ci] |
 | `544baf7` | 2026-10-18 | [metrics-tab-latest.png](metrics-tab-latest.png) | metrics: the tab rendered and photographed [skip ci] |
