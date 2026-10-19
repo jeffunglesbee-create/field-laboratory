@@ -36,7 +36,7 @@
 // Usage:  node scripts/import-purity-check.mjs [--self-test]
 
 import { execFileSync } from 'node:child_process'
-import { readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createChecks, isMain, finish } from './checks.mjs'
@@ -97,16 +97,41 @@ export function probeImport(path, { cwd = process.cwd() } = {}) {
   const lines = out.split('\n').filter(l => l.trim() !== '')
   const reached = lines.includes(SENTINEL)
   const noise = lines.filter(l => l !== SENTINEL)
+  // An import that failed only because a Fable output under build/ does not
+  // exist. That is a missing dependency, not a module that runs on import, and
+  // until 2026-10-19 it was reported as "terminated the process"
+  // (docs/CC-CMD-2026-10-19-precommit-hook-needs-build.md).
+  const needsBuild = !reached && /ERR_MODULE_NOT_FOUND/.test(out) && /Cannot find module '[^']*\/build\//.test(out)
   return {
     ok: reached && noise.length === 0 && code === 0,
     reached,
     noise,
     code,
-    why: !reached
+    needsBuild,
+    why: needsBuild
+      ? 'needs build/ (a Fable output it imports is missing), so it was not checked'
+      : !reached
       ? `the import terminated the process (exit ${code}) — code after the import never ran`
       : noise.length > 0
         ? `the import produced ${noise.length} line(s) of output: ${JSON.stringify(noise[0]).slice(0, 90)}`
         : '',
+  }
+}
+
+/**
+ * Split the probe results into failures and modules left unchecked.
+ *
+ * "Needs a build" is unchecked ONLY when build/ is entirely absent and this is
+ * not CI: the pre-commit hook is a no-build gate, and in a checkout with no
+ * .NET there is no build to import. Anywhere else, CI included (which always
+ * builds first) or a checkout with a partial build/, it is a failure: a module
+ * that cannot be imported there was not checked, and nothing may pass for it.
+ */
+export const classify = (results, { buildPresent, ci }) => {
+  const excused = r => r.needsBuild && !buildPresent && !ci
+  return {
+    failures: results.filter(({ r }) => !r.ok && !excused(r)),
+    unchecked: results.filter(({ r }) => !r.ok && excused(r)),
   }
 }
 
@@ -147,6 +172,34 @@ if (SELF_TEST) {
         return !found.includes('no-exports.mjs') && found.includes('pure.mjs')
       })(),
       'discovery picked the wrong set')
+
+    // A module that needs build/, probed where build/ does not exist.
+    writeFileSync(join(dir, 'needs-build.mjs'), "import { x } from './build/Missing.js'\nexport const a = x\n")
+    const nb = p('needs-build.mjs')
+    check('an import that fails only for a missing build/ module is named as needing a build',
+      !nb.ok && nb.needsBuild && /needs build/.test(nb.why), JSON.stringify(nb))
+    check('...and a module that really exits is never mistaken for one',
+      !zero.needsBuild && !nonzero.needsBuild)
+
+    const row = r => [{ m: 'x.mjs', r }]
+    const noBuild = classify(row(nb), { buildPresent: false, ci: false })
+    check('with no build/ and not on CI, it is unchecked, not a failure',
+      noBuild.failures.length === 0 && noBuild.unchecked.length === 1)
+    check('with build/ present it is a FAILURE (a partial build checks nothing)',
+      classify(row(nb), { buildPresent: true, ci: false }).failures.length === 1)
+    check('on CI it is a FAILURE, whatever is on disk',
+      classify(row(nb), { buildPresent: false, ci: true }).failures.length === 1)
+    check('a module that exits on import is a failure even with no build/',
+      classify(row(zero), { buildPresent: false, ci: false }).failures.length === 1)
+
+    // The done condition's mutation: with build/ present, a module that imports
+    // it and then exits is still caught.
+    mkdirSync(join(dir, 'build'), { recursive: true })
+    writeFileSync(join(dir, 'build', 'Present.js'), 'export const y = 1\n')
+    writeFileSync(join(dir, 'built-then-exits.mjs'), "import { y } from './build/Present.js'\nexport const a = y\nprocess.exit(0)\n")
+    const bx = p('built-then-exits.mjs')
+    check('with build/ present, a module that imports it and exits is caught as exiting',
+      !bx.ok && !bx.needsBuild && classify(row(bx), { buildPresent: true, ci: true }).failures.length === 1, JSON.stringify(bx))
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
@@ -193,11 +246,15 @@ if (isMain(import.meta.url)) {
     modules.length > 0,
     'no module in scripts/ declares an export — discovery has broken')
 
-  const impure = modules
-    .map(m => ({ m, r: probeImport(m) }))
-    .filter(({ r }) => !r.ok)
+  const ci = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true'
+  const buildPresent = existsSync('build')
+  const { failures: impure, unchecked } = classify(
+    modules.map(m => ({ m, r: probeImport(m) })), { buildPresent, ci })
 
-  console.log(`\nProbed ${modules.length} exporting module(s) in scripts/\n`)
+  // Rule 91 form: the denominator is printed with the verdict.
+  console.log(`\nProbed ${modules.length} exporting module(s) in scripts/: ` +
+    `${modules.length - unchecked.length} checked, ${unchecked.length} not checked here (need build/)\n`)
+  for (const { m } of unchecked) console.log(`  not checked here, needs a build: ${m}`)
 
   check('importing a module never runs it or exits the process',
     impure.length === 0,

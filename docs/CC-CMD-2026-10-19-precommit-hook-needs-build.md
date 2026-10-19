@@ -4,13 +4,13 @@
 **Repo:** field-laboratory
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Filed:** 2026-10-19 by CC, from `docs/CC-CMD-2026-10-18-lab-first.md` (Rule 87.4)
-**Status:** FILED
+**Status:** IN PROGRESS. The owner chose "Claude's best recommendations". Session doc: `outbox/cc-session-2026-10-19-precommit-hook-needs-build.md`.
 
 ## Measured
 
 `.githooks/pre-commit` describes itself as "A fast, no-network, no-build gate".
 One of its rows, `scripts/import-purity-check.mjs`, imports every exporting
-script. Eight of them import `../build/*.js`, the Fable output. With no `build/`,
+script. Measured on 2026-10-19: **four** of them import `../build/*.js`, the Fable output. The other four that failed lacked the `playwright` package, because the checkout had no `npm ci`; that is setup, not this defect. With no `build/`,
 each import throws `ERR_MODULE_NOT_FOUND`, and the check reports it as "the
 import terminated the process (exit 1)". That is a different fault, misnamed.
 - **Reproduced on unmodified main** (`c8d25b3`) with no `build/`:

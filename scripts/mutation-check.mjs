@@ -1690,6 +1690,16 @@ const MUTATIONS = [
     replace: "        | Level _ -> None",
     expect: "node build/VerifyMain.js",
   },
+  // --- the pre-commit hook without a build, docs/CC-CMD-2026-10-19-precommit-hook-needs-build.md ---
+  {
+    // Excusing "needs a build" on CI would let a module CI never imported pass.
+    id: 'import-purity-needs-build-excused-on-ci',
+    file: 'scripts/import-purity-check.mjs',
+    claim: 'a module that needs build/ is a failure on CI and wherever build/ exists',
+    find: '  const excused = r => r.needsBuild && !buildPresent && !ci',
+    replace: '  const excused = r => r.needsBuild',
+    expect: 'node scripts/import-purity-check.mjs --self-test',
+  },
   // --- BDB scout rows (NFL), docs/CC-CMD-2026-10-18-bdb-scout-mirror.md: src/Bdb.fs, its Suite group, docs/BDB-PROOF.md ---
   {
     // The seal. A public SpeedFloor lets a caller build one from any number and print it bare.
