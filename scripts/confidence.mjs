@@ -44,7 +44,7 @@
 import { execSync, spawn } from 'node:child_process'
 import { readdirSync, readFileSync, appendFileSync } from 'node:fs'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
-import { rows, ok, failures } from './gate-checks.mjs'
+import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'
 import { runIdentity } from './checks.mjs'
 
 const QUICK = process.argv.includes('--quick')
@@ -117,11 +117,19 @@ for (const row of rows) {
     results.push({ ...row, state: 'SKIP' })
     continue
   }
-  possible += row.weight
   const started = Date.now()
   let passed = false
   try { passed = row.run() } catch { passed = false }
   const seconds = Math.round((Date.now() - started) / 1000)
+  // NOT APPLICABLE is neither earned nor possible, and never a pass: it is
+  // printed as N/A and recorded by name below. A string is truthy, so this
+  // branch has to come before `if (passed)` or it would score as a pass.
+  if (passed === NOT_APPLICABLE) {
+    results.push({ ...row, state: 'N/A', seconds })
+    console.log(`  [${String(seconds).padStart(4)}s] N/A   ${row.name}`)
+    continue
+  }
+  possible += row.weight
   if (passed) earned += row.weight
   results.push({ ...row, state: passed ? 'PASS' : 'FAIL', seconds })
   console.log(`  [${String(seconds).padStart(4)}s] ${passed ? 'PASS' : 'FAIL'}  ${row.name}`)
@@ -133,12 +141,18 @@ if (server) process.kill(-server.pid)
 const width = Math.max(...rows.map(r => r.name.length))
 console.log('\nConfidence gate\n')
 for (const r of results) {
-  const score = r.state === 'SKIP' ? '  —' : `${r.state === 'PASS' ? r.weight : 0}`.padStart(3)
+  const score = r.state === 'SKIP' || r.state === 'N/A' ? '  —' : `${r.state === 'PASS' ? r.weight : 0}`.padStart(3)
   console.log(`  ${r.state.padEnd(4)} ${score}/${String(r.weight).padEnd(3)} ${r.name.padEnd(width)}`)
 }
 
 const total = possible === 0 ? 0 : Math.round((earned / possible) * 100)
 console.log(`\n  ${earned}/${possible} points = ${total}/100   (bar: ${BAR})   ${totalSeconds}s`)
+const notApplicable = results.filter(r => r.state === 'N/A')
+// Rule 91: the rows this score does NOT cover are printed with it.
+if (notApplicable.length > 0) {
+  console.log(`  ${notApplicable.length} row(s) not applicable on this ${process.env.GITHUB_EVENT_NAME ?? 'local'} run, `
+    + `out of the score: ${notApplicable.map(r => `${r.name} (${r.weight} pts)`).join(', ')}`)
+}
 
 // Recorded BEFORE the exit branches below, so a FAILING run is written down
 // too. A record that only ever captures passes is a record that cannot be used
@@ -172,6 +186,9 @@ appendFileSync(RECORD_PATH, JSON.stringify({
   // when this is non-empty, and a count could not say which invariant was off.
   failing: results.filter(r => r.state === 'FAIL').map(r => r.name),
   skipped: results.filter(r => r.state === 'SKIP').map(r => r.name),
+  // Rows with no subject on this run, which `possible` therefore leaves out.
+  // `confidence-record-check.mjs` refuses to let such a run back a score.
+  notApplicable: notApplicable.map(r => r.name),
 }) + '\n')
 console.log(`  recorded in ${RECORD_PATH} as run ${runId}${treeDirty ? " (tree dirty)" : ""}`)
 
