@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** `npm run gate` >= 95 before any commit
 **Filed:** 2026-10-19 by CC, from `docs/CC-CMD-2026-10-18-lab-first.md` (Rule 87.4)
-**Status:** IN PROGRESS. The owner chose "Claude's best recommendations". Session doc: `outbox/cc-session-2026-10-19-precommit-hook-needs-build.md`.
+**Status:** DONE 2026-10-19. The owner chose "Claude's best recommendations". Gate 530/530 (verify-full run 39184242507), verify run 39184244485 green; on main as `be1b361`. Session doc: `outbox/cc-session-2026-10-19-precommit-hook-needs-build.md`.
 
 ## Measured
 

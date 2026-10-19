@@ -45,4 +45,15 @@ not just this one. The lab-first commit (`80aed21`) needed exactly that.
 - **With `CI=true`:** FAIL, the four named, exit 1.
 - **This commit went through the hook**, with no `--no-verify`.
 
-Gate and CI recorded below once run.
+## Gate and landing
+
+- `verify` run 39184244485: green on `d611f34`. Its "Importing a module never
+  runs it" step ran after the build, on CI, where needing a build is a
+  failure, so all 76 modules were checked.
+- `verify-full` run 39184242507: **530/530 (100)**, 5198 s.
+- On main as `be1b361`, a fast-forward with no skip directive, then the gate's
+  two record commits. `d611f34` on the session branch is a merge of that
+  branch's older history, already on main by patch-id. It has the same tree
+  as `be1b361`.
+- The mutation harness runs the new record on its own
+  (`--only import-purity-needs-build-excused-on-ci`) and reports it caught.
