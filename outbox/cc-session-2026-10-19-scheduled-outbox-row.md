@@ -95,4 +95,15 @@ Both need the 2026-10-26 scheduled run. They are filed as
 `docs/CC-CMD-2026-10-26-read-scheduled-verify-full.md`, with a self-follow-up
 scheduled to read it.
 
-Gate and landing recorded below once run.
+## Gate and landing
+
+- `verify` run 39289570791 passed on `c9c22bf`, including the new step "The
+  outbox row stands aside only on a scheduled run".
+- `verify-full` run 39289566325 scored **530/530 (100)**. A dispatched run
+  scores the outbox row, so `notApplicable: []`, as designed. The mutation
+  baseline is 0 failing across 172 mutations (62 distinct expectations).
+- The code is on main as a cherry-pick of `c9c22bf`, then the gate's two
+  record commits.
+- Done conditions 3-4 are filed as
+  `docs/CC-CMD-2026-10-26-read-scheduled-verify-full.md`. A scheduled
+  follow-up fires 2026-10-26T17:00Z to execute it.
