@@ -1,9 +1,10 @@
 {
-  "at": "2026-10-19T12:48:54.980Z",
+  "at": "2026-10-19T17:35:04.549Z",
   "scope": "full",
-  "ran": 60,
-  "from_mutations": 168,
+  "ran": 62,
+  "from_mutations": 172,
   "failing": 0,
+  "notApplicable": [],
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -227,6 +228,14 @@
     },
     {
       "cmd": "node scripts/proof-check.mjs --only VINTAGE-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/outbox-row-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/confidence-record-check.mjs --self-test",
       "passed": true
     },
     {
