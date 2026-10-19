@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-18T20:32:11.849Z",
+  "at": "2026-10-19T01:54:04.361Z",
   "scope": "full",
-  "ran": 59,
-  "from_mutations": 167,
+  "ran": 60,
+  "from_mutations": 168,
   "failing": 0,
   "results": [
     {
@@ -227,6 +227,10 @@
     },
     {
       "cmd": "node scripts/proof-check.mjs --only VINTAGE-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/import-purity-check.mjs --self-test",
       "passed": true
     },
     {
