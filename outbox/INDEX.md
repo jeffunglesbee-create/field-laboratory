@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f5ace94` | 2026-10-19 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-19 [skip ci] |
+| `f5ace94` | 2026-10-19 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-19 [skip ci] |
+| `f5ace94` | 2026-10-19 | [sport-vocabulary-2026-10-19T18-37-51-109Z.json](sport-vocabulary-2026-10-19T18-37-51-109Z.json) | drift-sentinel: ok on 2026-10-19 [skip ci] |
+| `895a3b1` | 2026-10-19 | [cc-session-2026-10-19-scheduled-outbox-row.md](cc-session-2026-10-19-scheduled-outbox-row.md) | docs: scheduled outbox row: gate 530/530, landed; 10-26 run follow-up armed |
+| `9fcd26e` | 2026-10-19 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of c9c22bf [skip ci] |
+| `f73c874` | 2026-10-19 | [cc-session-2026-10-19-scheduled-outbox-row.md](cc-session-2026-10-19-scheduled-outbox-row.md) | feat: the outbox row is not applicable on verify-full's scheduled run |
+| `1a08834` | 2026-10-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `08fc487` | 2026-10-19 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-19T13:56 [skip ci] |
 | `45a62bc` | 2026-10-19 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of eb2fdee [skip ci] |
 | `eb2fdee` | 2026-10-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
