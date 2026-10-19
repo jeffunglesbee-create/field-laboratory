@@ -1690,6 +1690,43 @@ const MUTATIONS = [
     replace: "        | Level _ -> None",
     expect: "node build/VerifyMain.js",
   },
+  // --- the outbox row on a scheduled run, docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md (option 1) ---
+  {
+    // Not applicable leaking past `schedule` turns a real miss into a quiet pass.
+    id: 'outbox-na-beyond-schedule',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the outbox row is not applicable ONLY on a scheduled run, and a session run with no entry still fails',
+    find: "  if (event === 'schedule') return NOT_APPLICABLE",
+    replace: '  return NOT_APPLICABLE',
+    expect: 'node scripts/outbox-row-check.mjs --self-test',
+  },
+  {
+    // Exit 0 would make the harness and any shell caller read "no subject" as a pass.
+    id: 'run-row-na-exits-zero',
+    file: 'scripts/run-row.mjs',
+    claim: 'a not-applicable row exits 3, so no caller can read it as a pass',
+    find: '  process.exit(3)',
+    replace: '  process.exit(0)',
+    expect: 'node scripts/outbox-row-check.mjs --self-test',
+  },
+  {
+    // A scheduled run measured less than the whole gate.
+    id: 'na-run-backs-a-score',
+    file: 'scripts/confidence-record-check.mjs',
+    claim: 'a run with a not-applicable row cannot back a score, and the refusal says why',
+    find: '  if ((run.notApplicable ?? []).length > 0) {',
+    replace: '  if (false) {',
+    expect: 'node scripts/confidence-record-check.mjs --self-test',
+  },
+  {
+    // Without it, a dispatch on the tree a scheduled run measured would read as a nondeterministic gate.
+    id: 'na-runs-read-as-conflict',
+    file: 'scripts/confidence-record-check.mjs',
+    claim: 'a scheduled and a session run of one tree are incomparable, not a conflict',
+    find: '      if (naKey(prior) !== naKey(r)) { incomparable.push(r.id); continue }\n',
+    replace: '',
+    expect: 'node scripts/confidence-record-check.mjs --self-test',
+  },
   // --- the pre-commit hook without a build, docs/CC-CMD-2026-10-19-precommit-hook-needs-build.md ---
   {
     // Excusing "needs a build" on CI would let a module CI never imported pass.
@@ -2232,6 +2269,12 @@ const baselineResults = distinctExpects.map(cmd => {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
     return { cmd, passed: true }
   } catch (e) {
+    // EXIT 3 IS `run-row.mjs` SAYING ITS ROW HAS NO SUBJECT ON THIS RUN: the
+    // outbox row under verify-full's cron, which is not a session
+    // (docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md). Not a
+    // failure of the unmutated tree, and not a pass either: every mutation
+    // expecting it is reported below as not applicable, never as caught.
+    if (e.status === 3) return { cmd, passed: false, notApplicable: true }
     // The tail, because a check's verdict is at the END of its output and the
     // head is setup noise.
     const text = `${e.stdout ?? ''}${e.stderr ?? ''}`.trimEnd()
@@ -2239,10 +2282,14 @@ const baselineResults = distinctExpects.map(cmd => {
              tail: text.split("\n").slice(-30).join("\n") }
   }
 })
-const baselineFailures = baselineResults.filter(r => !r.passed).map(r => r.cmd)
+const notApplicableExpects = new Set(baselineResults.filter(r => r.notApplicable).map(r => r.cmd))
+const baselineFailures = baselineResults.filter(r => !r.passed && !r.notApplicable).map(r => r.cmd)
+const notApplicableMutations = selected.filter(m => notApplicableExpects.has(m.expect))
 console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.length} `
   + `distinct expectation(s) from ${selected.length} mutation(s), `
-  + `${baselineFailures.length} failing`)
+  + `${baselineFailures.length} failing`
+  + (notApplicableExpects.size ? `, ${notApplicableExpects.size} not applicable on this run `
+      + `(${notApplicableMutations.length} mutation(s) not run: ${notApplicableMutations.map(m => m.id).join(', ')})` : ''))
 
 // THE ARTIFACT, and it is the point of this block rather than a nicety.
 //
@@ -2274,6 +2321,7 @@ if (ownsBaseline(ONLY)) {
     ran: distinctExpects.length,
     from_mutations: selected.length,
     failing: baselineFailures.length,
+    notApplicable: [...notApplicableExpects],
     results: baselineResults,
   }, null, 2) + '\n')
   console.log('  wrote outbox/mutation-baseline-latest.json')
@@ -2290,6 +2338,12 @@ check('the unmutated tree passes every expectation',
   baselineFailures.map(c => `            $ ${c}`).join('\n'))
 
 for (const m of selected) {
+  // Not run, and not counted as caught: the row this mutation would break is
+  // not scored on this run at all. The count is printed with the baseline above.
+  if (notApplicableExpects.has(m.expect)) {
+    console.log(`  N/A   [${m.id}] ${m.claim} — \`${m.expect}\` is not applicable on this run`)
+    continue
+  }
   // A WORLD mutation changes something outside the source — a file the check
   // reads, a workflow, an outbox entry. The outbox and history rows have their
   // logic inside gate-checks.mjs, so a source mutation there would be circular:

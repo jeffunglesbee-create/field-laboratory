@@ -175,6 +175,14 @@ export function verdictsFor({ file, scores, cites }, runsBySha, weight) {
   if (run.dirty) {
     p.push(`${file}: cites a run taken against a DIRTY tree — it measured a state no commit contains`)
   }
+  // A SCHEDULED RUN HAS A ROW WITH NO SUBJECT. verify-full's cron is not a
+  // session, so "this session wrote its outbox" is not applicable there and
+  // drops out of `possible`. That run measured less than the whole gate, so it
+  // backs nothing, the same way a quick run backs nothing. The denominator check
+  // below would refuse it too; this says why.
+  if ((run.notApplicable ?? []).length > 0) {
+    p.push(`${file}: cites a run where ${run.notApplicable.length} row(s) were not applicable (${run.notApplicable.join(', ')}) — only a run where every row applied can back a score`)
+  }
   if (run.mode !== 'full') {
     p.push(`${file}: cites a '${run.mode}' run, which skipped ${run.skipped.length} row(s) — only a full run can back a score`)
   }
@@ -223,6 +231,7 @@ export function parseLog(text) {
   const conflicts = []
   const corroborated = []
   const legacy = []
+  const incomparable = []
   for (const r of rows) {
     if (!r.id) { legacy.push(r.sha ?? '(no sha)'); continue }
     const prior = byId.get(r.id)
@@ -239,14 +248,21 @@ export function parseLog(text) {
       // it — a stale build/, a cached artifact, the network, the clock — moved
       // the score. That is a worse finding than any single failing row, because
       // every other guarantee here assumes the score describes the tree.
+      // DIFFERENT ROW SETS ARE NOT A DISAGREEMENT. A scheduled run of a tree
+      // leaves the outbox row out; a dispatched run of the same tree scores it.
+      // They measured different questions, so they neither corroborate nor
+      // conflict. What changed was the event, which is recorded, not the clock.
+      if (naKey(prior) !== naKey(r)) { incomparable.push(r.id); continue }
       if (sameResult(prior, r)) corroborated.push(r.id)
       else conflicts.push({ id: r.id, a: summarise(prior), b: summarise(r) })
       continue
     }
     byId.set(r.id, r)
   }
-  return { byId, conflicts, corroborated, legacy }
+  return { byId, conflicts, corroborated, legacy, incomparable }
 }
+
+const naKey = r => [...(r.notApplicable ?? [])].sort().join('|')
 
 /** Two records of the same run agree if every measured field agrees. */
 export const sameResult = (a, b) =>
@@ -332,6 +348,28 @@ if (SELF_TEST) {
     reordered.conflicts.length === 0 && reordered.corroborated.length === 1,
     `conflicts ${reordered.conflicts.length}`)
 
+  // A scheduled run and a session run of the SAME tree, the outbox row out of
+  // one and in the other: different questions, so neither conflict nor
+  // corroboration. Without this, every week a dispatch landed on the scheduled
+  // run's tree would read as "the gate is not a function of the tree".
+  const OUTBOX = 'this session wrote its outbox'
+  const scheduledVsSession = parseLog([
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 520, possible: 520, total: 100, failing: [], skipped: [], notApplicable: [OUTBOX] }),
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }),
+  ].join('\n'))
+  check('a scheduled and a session run of one tree are incomparable, not a conflict',
+    scheduledVsSession.conflicts.length === 0 && scheduledVsSession.corroborated.length === 0 &&
+    scheduledVsSession.incomparable.length === 1,
+    `conflicts ${scheduledVsSession.conflicts.length}, corroborated ${scheduledVsSession.corroborated.length}, incomparable ${scheduledVsSession.incomparable.length}`)
+  // ...but two scheduled runs of one tree still compare, and still conflict.
+  const twoScheduled = parseLog([
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 520, possible: 520, total: 100, failing: [], skipped: [], notApplicable: [OUTBOX] }),
+    line({ id: ID, sha: SHA, dirty: false, mode: 'full', earned: 400, possible: 520, total: 77, failing: ['y'], skipped: [], notApplicable: [OUTBOX] }),
+  ].join('\n'))
+  check('two scheduled runs of one tree that disagree are still a conflict',
+    twoScheduled.conflicts.length === 1 && twoScheduled.incomparable.length === 0,
+    `conflicts ${twoScheduled.conflicts.length}, incomparable ${twoScheduled.incomparable.length}`)
+
   const legacy = parseLog(line({ sha: SHA, mode: 'full', earned: 530, possible: 530, total: 100, failing: [], skipped: [] }))
   check('a pre-id record is retained but NOT citable',
     legacy.byId.size === 0 && legacy.legacy.length === 1,
@@ -379,6 +417,15 @@ if (SELF_TEST) {
     v(`<!-- confidence: run=${SHRUNK} -->\n**Score: 100/100**\n`)
       .some(x => x.includes('denominator moved')),
     JSON.stringify(v(`<!-- confidence: run=${SHRUNK} -->\n**Score: 100/100**\n`)))
+
+  const naLog = parseLog(JSON.stringify(
+    { id: '2'.repeat(12) + '-' + '2'.repeat(12), sha: SHA, dirty: false, mode: 'full',
+      earned: 520, possible: 520, total: 100, failing: [], skipped: [], notApplicable: ['this session wrote its outbox'] }))
+  check('a run with a NOT APPLICABLE row cannot back a score, and says why',
+    verdictsFor({ file: 'f.md', ...scoreClaimsIn(
+      `<!-- confidence: run=${'2'.repeat(12)}-${'2'.repeat(12)} -->\n**Score: 100/100**\n`) },
+      naLog.byId, 530).some(x => x.includes('not applicable')),
+    'a scheduled run with a row left out backed a score')
 
   const dirtyLog = parseLog(JSON.stringify(
     { id: '1'.repeat(12) + '-' + '1'.repeat(12), sha: SHA, dirty: true, mode: 'full',
@@ -438,7 +485,7 @@ let log
 try {
   log = parseLog(readFileSync(RECORD_PATH, 'utf8'))
 } catch {
-  log = { byId: new Map(), conflicts: [], corroborated: [], legacy: [] }
+  log = { byId: new Map(), conflicts: [], corroborated: [], legacy: [], incomparable: [] }
 }
 const runs = log.byId
 
@@ -469,6 +516,10 @@ check('the gate is a function of the tree it scores',
   log.conflicts.length === 0,
   log.conflicts.map(c => `run ${c.id} was measured twice and disagreed: ${c.a} vs ${c.b}`).join('\n      → '))
 
+if (log.incomparable.length > 0) {
+  console.log(`${log.incomparable.length} run(s) re-measured with a different row set (a scheduled run beside a session run), compared as neither:`)
+  for (const id of [...new Set(log.incomparable)]) console.log(`  ${id}`)
+}
 if (log.corroborated.length > 0) {
   console.log(`${log.corroborated.length} run(s) independently re-measured and agreeing:`)
   for (const id of [...new Set(log.corroborated)]) console.log(`  ${id}`)

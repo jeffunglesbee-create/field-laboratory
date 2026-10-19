@@ -932,6 +932,15 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:confidence-record
 
+      # The outbox row is NOT APPLICABLE on verify-full's scheduled run, which
+      # is not a session, and on no other event. A leak past `schedule` would
+      # turn a real miss into a quiet pass, so both halves are proved here on
+      # fixtures, plus run-row's exit 3 end to end.
+      # docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md
+      - name: The outbox row stands aside only on a scheduled run
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:outbox-row
+
       # Hash-pinned tripwire for credentials known to be exposed. It exists
       # because a refusal is a promise and a promise does not scan files: across
       # this project I said repeatedly that the relay's X-FIELD-Relay value would

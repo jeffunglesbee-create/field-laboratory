@@ -24,6 +24,7 @@
     "check:gate-rows": "node scripts/gate-inventory.mjs",
     "check:history": "node scripts/history-check.mjs --self-test && node scripts/history-check.mjs",
     "check:confidence-record": "node scripts/confidence-record-check.mjs --self-test && node scripts/confidence-record-check.mjs",
+    "check:outbox-row": "node scripts/outbox-row-check.mjs --self-test",
     "check:secrets": "node scripts/exposed-secret-check.mjs --self-test && node scripts/exposed-secret-check.mjs",
     "check:import-purity": "node scripts/import-purity-check.mjs --self-test && node scripts/import-purity-check.mjs",
     "check:harness": "node scripts/checks.mjs --self-test",

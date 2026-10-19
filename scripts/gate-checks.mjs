@@ -120,11 +120,37 @@ const all = (...cmds) => cmds.map(ok).reduce((a, b) => a && b, true)
  * of new content because the filename never changed. Entries are now one
  * document per piece of work, so the date can sit anywhere in the name.
  */
+/**
+ * What a row returns when the question it asks has no subject on this run.
+ * Not a pass: `confidence.mjs` scores it neither earned nor possible, prints
+ * it, and records it, and `run-row.mjs` exits 3 for it, distinct from 0 and 1.
+ */
+const NOT_APPLICABLE = 'not applicable'
+
+/**
+ * The scheduled verify-full is not a session, so it has no outbox to write.
+ *
+ * Its cron fires at 02:00 ET on a Monday and the runs have started between
+ * 07:47 and 10:25 ET, so the row passed only if some session happened to have
+ * written that day's entry first. Five scheduled runs from 09-14 to 10-12 failed
+ * it, and the mutation baseline with it, 30 points from one cause.
+ * docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md, option 1.
+ *
+ * ONLY `schedule`. A dispatched, pushed or local run is a session's run and
+ * still fails with no dated entry. Pure, so `outbox-row-check.mjs` can prove both
+ * halves on fixtures.
+ */
+const outboxVerdict = ({ files, read, day, event }) => {
+  if (event === 'schedule') return NOT_APPLICABLE
+  const entries = files.filter(f => f.includes(day) && f.endsWith('.md'))
+  // Length floor because an empty stub would otherwise satisfy the check.
+  return entries.some(f => read(f).length > 1500)
+}
+
 const outboxToday = () => {
   const today = GATE_DAY
-  const entries = readdirSync('outbox').filter(f => f.includes(today) && f.endsWith('.md'))
-  // Length floor because an empty stub would otherwise satisfy the check.
-  return entries.some(f => readFileSync(`outbox/${f}`, 'utf8').length > 1500)
+  return outboxVerdict({ files: readdirSync('outbox'), read: f => readFileSync(`outbox/${f}`, 'utf8'),
+                         day: today, event: process.env.GITHUB_EVENT_NAME })
 }
 
 /**
@@ -309,4 +335,4 @@ const rows = [
     run: outboxAccompaniesSource },
 ]
 
-export { rows, ok, fails, failures }
+export { rows, ok, fails, failures, NOT_APPLICABLE, outboxVerdict }

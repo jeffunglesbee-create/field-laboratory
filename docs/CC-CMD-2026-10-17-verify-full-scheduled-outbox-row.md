@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-17, by CC, from the field-relay-nba daily read of the dead-cron watch
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
-**Status:** FILED, not started. Owner decision first: this changes what a gate row means.
+**Status:** BUILT 2026-10-19, owner chose option 1. Done conditions 1-2 met here; 3-4 need the next scheduled run (2026-10-26), and a follow-up is scheduled to read it. Session doc: `outbox/cc-session-2026-10-19-scheduled-outbox-row.md`.
 
 ---
 
@@ -73,9 +73,22 @@ of this decision.
 ## Done conditions
 
 1. The owner's choice is recorded under this heading.
+   **Recorded 2026-10-19: option 1** ("option 1. Fully finish all tasks before
+   coming back to the user").
 2. If option 1: a self-test proves the row still fails for a dispatched or local
    run with no dated entry, and reports not-applicable only under `schedule`;
    a mutation removing the event check is caught; `npm run gate` >= 95.
 3. One scheduled verify-full run after the change, read, with its score.
 4. field-relay-nba's `docs/dead-cron-baseline.json` entry for verify-full is
    resolved or re-dated with that run as its reason.
+
+## Prediction checked: 2026-10-19
+
+The 10-19 scheduled run (39249586642, `eb2fdee`) **passed 530/530**, against
+the prediction above, and for the reason the prediction named: two entries
+dated 2026-10-19 over 1,500 characters already existed
+(`cc-session-2026-10-19-lab-first.md`, 3,182;
+`cc-session-2026-10-19-precommit-hook-needs-build.md`, 2,986), written by a
+session working past midnight Eastern. A pass that depends on someone else's
+working hours is the defect, not a counterexample to it.
+
