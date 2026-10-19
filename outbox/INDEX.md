@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `45a62bc` | 2026-10-19 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of eb2fdee [skip ci] |
+| `eb2fdee` | 2026-10-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `4ec32cd` | 2026-10-19 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-19 [skip ci] |
+| `4ec32cd` | 2026-10-19 | [sport-vocabulary-2026-10-19T06-23-55-928Z.json](sport-vocabulary-2026-10-19T06-23-55-928Z.json) | drift-sentinel: ok on 2026-10-19 [skip ci] |
+| `e92a08a` | 2026-10-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `ba8fb0d` | 2026-10-19 | [cc-session-2026-10-19-precommit-hook-needs-build.md](cc-session-2026-10-19-precommit-hook-needs-build.md) | docs: no-build hook CC-CMD DONE: gate 530/530, on main as be1b361 |
+| `442e263` | 2026-10-19 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of d611f34 [skip ci] |
+| `be1b361` | 2026-10-19 | [cc-session-2026-10-19-precommit-hook-needs-build.md](cc-session-2026-10-19-precommit-hook-needs-build.md) | fix: the no-build hook names "needs a build" instead of failing as an exit |
+| `80aed21` | 2026-10-19 | [cc-session-2026-10-19-lab-first.md](cc-session-2026-10-19-lab-first.md) | docs: LAB-FIRST-A, build in the laboratory, not the client (owner order) |
+| `c8d25b3` | 2026-10-19 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `eb7dc0f` | 2026-10-18 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e701ba4` | 2026-10-18 | [cc-session-2026-10-18-second-wind-population.md](cc-session-2026-10-18-second-wind-population.md) | docs: Second Wind DONE: 328 games committed, gate 530/530, four cases drawn |
 | `544baf7` | 2026-10-18 | [metrics-render-latest.txt](metrics-render-latest.txt) | metrics: the tab rendered and photographed [skip ci] |
