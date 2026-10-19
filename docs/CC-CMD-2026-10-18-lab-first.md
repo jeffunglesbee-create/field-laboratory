@@ -4,7 +4,7 @@
 **Repo:** field-laboratory (and jubilant-bassoon, cross-repo via a runner)
 **Confidence gate:** >= 95 before any commit
 **Filed:** 2026-10-18 by chat
-**Status:** FILED, not dispatched.
+**Status:** DONE 2026-10-19. The lab bullet is in this repo's CLAUDE.md; jubilant-bassoon runner commit `d07159c0` (run 39183308787, smoke 1055/1055). Both unnumbered. Session doc: `outbox/cc-session-2026-10-19-lab-first.md`.
 **Type:** governance — rule text only, no behaviour change.
 
 ---

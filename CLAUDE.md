@@ -52,6 +52,13 @@ fake-profound endings.
 - If something cannot run here, use a GitHub Actions runner. "Cannot be tested"
   is not a valid excuse.
 - Do not commit unless confidence >= 95. Below that, report verbatim and stop.
+- **LAB-FIRST-A.** Build in the laboratory, not the client. Where new work could
+  land in either repo it lands here; the client keeps the served page and the
+  captures that feed this repo. Direct owner order, 2026-10-18. It outranks the
+  routing default (client-scoped work to jubilant-bassoon, relay-scoped to
+  field-relay-nba) wherever a choice exists, and leaves that default to decide
+  work that can only live in one repo. Not retroactive: existing client code
+  stays where it is (`docs/CC-CMD-2026-10-18-lab-first.md`).
 
 ## Probe-first, and it applies to commits (not just CC-CMDs)
 
