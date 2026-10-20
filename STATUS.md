@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `483d0cf` — but that is not `main` HEAD
+**FAILURE** on `39572f8` at "Render check against the LIVE slate" — 1 of 84 steps did not run behind it — [run 39446347687](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/39446347687)
 
 ## Is the live artifact healthy?
 
