@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-19T17:35:04.549Z",
+  "at": "2026-10-20T01:36:59.256Z",
   "scope": "full",
-  "ran": 62,
-  "from_mutations": 172,
+  "ran": 63,
+  "from_mutations": 173,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -228,6 +228,10 @@
     },
     {
       "cmd": "node scripts/proof-check.mjs --only VINTAGE-PROOF",
+      "passed": true
+    },
+    {
+      "cmd": "bash -c '! node scripts/mutation-check.mjs --only no-such-mutation-id'",
       "passed": true
     },
     {
