@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e12b33b` | 2026-10-20 | [cc-session-2026-10-20-relay-date-keying-comments.md](cc-session-2026-10-20-relay-date-keying-comments.md) | docs: date-keying comments: gate 530/530, landed; verify red on the live slate, filed |
+| `76ead03` | 2026-10-20 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 88ae65d [skip ci] |
+| `7505a58` | 2026-10-20 | [cc-session-2026-10-20-relay-date-keying-comments.md](cc-session-2026-10-20-relay-date-keying-comments.md) | docs: three comments stating the relay's date keying, corrected and dated |
 | `9d19298` | 2026-10-20 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1dad56c` | 2026-10-20 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-20T12:09 [skip ci] |
 | `770ec08` | 2026-10-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-20 [skip ci] |
