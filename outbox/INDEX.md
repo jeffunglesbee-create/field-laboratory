@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `770ec08` | 2026-10-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `770ec08` | 2026-10-20 | [sport-vocabulary-2026-10-20T06-13-36-384Z.json](sport-vocabulary-2026-10-20T06-13-36-384Z.json) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `7f1d2af` | 2026-10-20 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `b03747d` | 2026-10-20 | [cc-session-2026-10-20-mutation-only-refusal.md](cc-session-2026-10-20-mutation-only-refusal.md) | docs: --only refusal: gate 530/530, landed |
 | `c41cb79` | 2026-10-20 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of bb68495 [skip ci] |
 | `483d0cf` | 2026-10-20 | [cc-session-2026-10-19-scheduled-outbox-row.md](cc-session-2026-10-19-scheduled-outbox-row.md) | fix: mutation-check --only refuses an id that matches nothing |
