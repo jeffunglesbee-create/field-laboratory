@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Confidence gate:** >= 95 before any commit
 **Filed:** 2026-10-16 by chat, read from `src/Program.fs` (blob `c5fc49e`) and `src/Desk.fs` (blob `d4b3f53`) at `70b8bd6`
-**Status:** FILED, not started — not dispatched.
+**Status:** DONE 2026-10-20. All three corrections in one commit; the companion had already landed (2026-10-19), so the comments are written as history with the 2026-10-20 re-measurement (847 ET, 0 UTC, 0 neither). Session doc: `outbox/cc-session-2026-10-20-relay-date-keying-comments.md`. Follow-up filed: `docs/CC-CMD-2026-10-20-zone-proof-overreach.md`.
 **Companion:** `field-relay-nba/docs/CC-CMD-2026-10-16-cfl-archive-date-keying.md` — the data fix. This CC-CMD is comments only and does not depend on that one landing first.
 
 Comments only, in `src/*.fs`. No behaviour changes. Note that `src/**` is not in

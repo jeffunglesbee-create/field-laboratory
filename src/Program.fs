@@ -46,7 +46,16 @@ let private queryParam (name: string) =
         | value -> Some value
 
 /// The date being viewed. `?date=YYYY-MM-DD` makes any day linkable and
-/// reloadable; today in UTC otherwise, matching how the relay keys its slates.
+/// reloadable; the FIELD-zone day otherwise.
+///
+/// Said "today in UTC" until 2026-10-16, which was wrong twice over: this line
+/// has called `fieldToday ()` (ET) since `FieldDay` replaced `todayUtc()`, and
+/// the relay it claimed to match does not key in UTC either. A comment naming
+/// the exact zone the code below had stopped using survived because nothing
+/// reads a comment. Checked against the relay's own data, not its source: of
+/// 847 archive rows whose UTC and ET days differ, all 847 carry the ET day
+/// (measured 2026-10-20). Until 2026-10-19, 13 CFL rows carried the UTC day,
+/// from a writer since fixed.
 let private viewedDate () =
     queryParam "date" |> Option.defaultValue (Desk.fieldDayIso (Desk.fieldToday ()))
 

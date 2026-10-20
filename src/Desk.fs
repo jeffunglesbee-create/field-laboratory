@@ -56,6 +56,25 @@ type Nested<'T> =
 ///      behind UTC, never ahead — Western-hemisphere keying, consistent with
 ///      ET and inconsistent with UTC.
 ///
+///      What that test CANNOT see, found 2026-10-16: a UTC-keyed row. Its
+///      `date` equals the UTC day of its own `start_time`, so it scores EQUAL
+///      rather than earlier, and equal is also what correct ET keying gives
+///      every game that does not cross UTC midnight. "None earlier" holds under
+///      ET keying, under UTC keying, and under a mixture — so it bounds the
+///      direction of the offset and says nothing about which keying any single
+///      row used.
+///
+///      The discriminating form compares each row against BOTH candidates:
+///      `date` equal to the ET day of `start_time` versus equal to its UTC day,
+///      over the rows where those two differ. Run that way over the whole
+///      archive: 821 ET, 13 UTC, 0 ambiguous at 2026-10-17. Every UTC-keyed row
+///      was CFL, 100% of CFL's discriminating rows, from a writer that sliced
+///      the vendor's UTC timestamp. That writer was fixed and the 13 rows
+///      migrated on 2026-10-19, under field-relay-nba
+///      CC-CMD-2026-10-16-cfl-archive-date-keying, which also added
+///      scripts/check-archive-date-keying.mjs, the per-row guard this comment's
+///      test could not be. Re-measured 2026-10-20: 847 ET, 0 UTC, 0 neither.
+///
 ///   2. What day is it for the viewer? A property of the person reading the
 ///      page, who is on the US east coast. No measurement can change that, and
 ///      treating it as blocked on (1) was over-caution: at 21:00 ET the viewer
@@ -100,10 +119,25 @@ let fieldToday () : FieldDay = fieldDayAt DateTimeOffset.UtcNow
 
 /// Lifts a relay date string into the canonical zone.
 ///
-/// This ASSERTS the relay's `date` is a FIELD-zone day, which the measurement
-/// above supports for every sport observed with a start time. It is not proven
-/// for the AFL: an Australian fixture lands in the small hours UTC either way,
-/// so the test cannot discriminate there. Recorded rather than glossed.
+/// This ASSERTS the relay's `date` is a FIELD-zone day. Measured per row over
+/// the whole archive on 2026-10-17: true for 821 of 834 rows whose UTC and ET
+/// days differ, and FALSE for 13 — all CFL, stamped from the vendor's UTC
+/// timestamp, primary key included. Fixed and migrated on 2026-10-19 under
+/// field-relay-nba CC-CMD-2026-10-16-cfl-archive-date-keying; re-measured
+/// 2026-10-20 at 847 of 847. Before that fix this function returned a day one
+/// ahead for a CFL game kicking off after 20:00 ET.
+///
+/// The previous note here said the measurement supported this "for every sport
+/// observed with a start time", which was true of the 18-game slate it came
+/// from and not of the table.
+///
+/// Still unproven for the AFL, and the reason is not the one previously
+/// recorded. It was given as zone geometry — an Australian fixture lands in the
+/// small hours UTC either way. The real reason is that all 138 AFL rows have an
+/// EMPTY `start_time` (measured 2026-10-20), so there is nothing to compare for
+/// any fixture at any hour. Zone geometry would be the obstacle if the column
+/// were populated. Recorded rather than glossed, and corrected rather than left
+/// plausible.
 let fieldDayOfIso (iso: string) : FieldDay option =
     if iso.Length = 10 && iso.[4] = '-' && iso.[7] = '-' then Some(FieldDay iso) else None
 
