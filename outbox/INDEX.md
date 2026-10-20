@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `aaa2f51` | 2026-10-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `aaa2f51` | 2026-10-20 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `aaa2f51` | 2026-10-20 | [sport-vocabulary-2026-10-20T21-57-07-490Z.json](sport-vocabulary-2026-10-20T21-57-07-490Z.json) | drift-sentinel: ok on 2026-10-20 [skip ci] |
 | `70906ae` | 2026-10-20 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-20T21:52 [skip ci] |
 | `b8595cc` | 2026-10-20 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 06b11f4 [skip ci] |
 | `264d3c1` | 2026-10-20 | [cc-session-2026-10-20-weather-live-every-call.md](cc-session-2026-10-20-weather-live-every-call.md) | fix: weather-live-check retries an unanswered venue immediately, not after 30 s |
