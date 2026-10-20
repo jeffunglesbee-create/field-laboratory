@@ -58,3 +58,19 @@ is 6/6 and the working tree is restored after the run.
   half. The two shapes are probed by hand above, not by a separate record.
 - **A typo that happens to match a real id** is a different mutation and runs
   as one. That cannot be told from intent.
+
+## Gate and landing
+
+- `verify` run 39352391792 and `verify-full` run 39352388469 both passed on
+  `bb68495`. The gate scored **530/530 (100)** and the mutation baseline is 0
+  failing across 173 mutations (63 distinct expectations), one record more than
+  before.
+- On main as a cherry-pick of `14297d5`, then the gate's two record commits.
+  `bb68495` is a merge that keeps the tree of `14297d5` and joins the session
+  branch's older history. Its commit message says that history is "all on main
+  by patch-id", which is not exact: seven of its commits have no patch-id match,
+  because main carries the same work under different SHAs. Measured, not
+  assumed: `git diff --stat origin/main <old tip>` touches only outbox ledger
+  files, where main is ahead, and no `src/` or `scripts/` file. Nothing was
+  dropped.
+
