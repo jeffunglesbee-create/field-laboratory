@@ -8,7 +8,7 @@
 
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
-import { all as weatherVenues } from '../build/Venues.js'
+import { all as weatherVenues, isIndoorArena } from '../build/Venues.js'
 import { forecastUrl, coordinates } from '../build/Weather.js'
 import { requestCapMs, slateDeadlineMs } from '../build/WeatherView.js'
 import { createChecks, finish } from './checks.mjs'
@@ -286,6 +286,12 @@ const attributeWeather = ({ requests, expectedUrls }) => {
 
 const PLACEHOLDER_VENUES = new Set(['TBC', 'TBD', '—', '-', ''])
 const realVenues = vs => [...new Set(vs)].filter(v => !PLACEHOLDER_VENUES.has((v || '').trim()))
+// The real venues that SHOULD have weather: every one that is not a recorded
+// indoor arena. (No table entry is an arena: Suite's "no table venue is also
+// recorded as an indoor arena" holds that.) An arena has no weather by design, so an NHL/NBA-only slate is
+// nothing to observe. A stadium the table lacks stays observable, and so stays
+// a coverage gap. docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md
+const observableVenues = vs => realVenues(vs).filter(v => !isIndoorArena(v))
 
 if (!pinned) {
   known = new Set(Array.from(weatherVenues).map(v => v.Name))
@@ -434,6 +440,22 @@ check('the weather attribution holds on every enumerated case',
   attribWrong.map(([input, want, why]) => `${why}: got ${attributeWeather(input).verdict}, want ${want}`).join('; ')
     || `${ATTRIB_CASES.length} cases`)
 
+// The arena predicate, enumerated the same way and for the same reason: the
+// cases that must keep FAILING are written first.
+const ARENA_CASES = [
+  [['Pitbull Stadium'], 1, 'a stadium the table lacks IS a coverage gap, never an arena'],
+  [['Bell Centre', 'Pitbull Stadium'], 1, 'an arena beside an uncovered stadium: the stadium still counts'],
+  [['Some Unlisted Arena'], 1, 'an unrecorded name is not indoor, whatever it is called'],
+  [['Bell Centre', 'Madison Square Garden'], 0, 'the 2026-10-20 NHL/NBA arenas: nothing to observe'],
+  [['TBC', 'Frost Bank Center'], 0, 'a placeholder beside an arena: nothing to observe'],
+  [['Bell Centre', 'Anfield'], 1, 'an arena beside a table venue: the table venue counts'],
+]
+const arenaWrong = ARENA_CASES.filter(([vs, want]) => observableVenues(vs).length !== want)
+check('the indoor-arena predicate holds on every enumerated case',
+  arenaWrong.length === 0,
+  arenaWrong.map(([vs, want, why]) => `${why}: ${observableVenues(vs).length} observable, want ${want}`).join('; ')
+    || `${ARENA_CASES.length} cases`)
+
 const venueWrong = VENUE_CASES.filter(([vs, want]) => realVenues(vs).length !== want)
 check('the placeholder-venue predicate holds on every enumerated case',
   venueWrong.length === 0,
@@ -577,11 +599,18 @@ if (!pinned) {
   // without it, "no venue on this slate is in the table" and "this slate names
   // no venue at all" are the same failure, and only the first is one.
   const real = realVenues(cardVenues)
-  const observable = real.length > 0
+  const outdoor = observableVenues(cardVenues)
+  const observable = outdoor.length > 0
 
   // The venue-table coverage is independent of Open-Meteo — it is about the table,
   // not the service — so it is asserted whether or not the service answered.
-  if (!observable) {
+  if (real.length > 0 && !observable) {
+    // Every real venue is a recorded indoor arena. Loud, never a silent pass,
+    // and the list is printed so an arena recorded by mistake is visible.
+    console.log('::warning::every real venue on this slate is a recorded indoor arena ' +
+      `(${real.length}: ${real.join(', ')}) — the venue-table and weather-chip checks are ` +
+      'skipped. An arena has no weather by design, so this is nothing to observe, not a coverage gap.')
+  } else if (!observable) {
     // Loud, and never a silent pass. The count is printed so a slate that is
     // quietly ALL placeholders for days is visible rather than inferred.
     console.log('::warning::no card on this slate names a real venue ' +
@@ -590,7 +619,8 @@ if (!pinned) {
       'weather reading in principle, so this is nothing to observe, not a coverage gap.')
   } else {
   check('the venue table covers at least one venue on this slate', expected > 0,
-    `${real.join(', ')} — none of them in the ${known.size}-entry table`)
+    `${outdoor.join(', ')} — none of them in the ${known.size}-entry table ` +
+    `(${real.length - outdoor.length} recorded indoor arena(s) not counted)`)
 
   // What the page SHOULD have asked for: the venues on this slate the table
   // knows, through the same `forecastUrl` the page calls. Built from the venue

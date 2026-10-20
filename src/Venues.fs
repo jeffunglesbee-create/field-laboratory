@@ -30,9 +30,9 @@ open Weather
 // table, itself assembled from a Wikidata/Nominatim/Photon/Overpass probe
 // sequence. It is not derived live and can drift as venues are renamed or
 // rebuilt, which is why aliases are carried explicitly rather than guessed at by
-// substring match. This is a working subset, not playground's full 98 keys —
-// enough that every roof type and both alias cases are exercised by real
-// entries rather than by fixtures.
+// substring match. Since 2026-10-20 it carries every playground key except five
+// places already here under another name (listed where the block was added),
+// plus MLS names playground does not have.
 
 type Venue =
     { Name: string
@@ -155,7 +155,103 @@ let private entries =
       at "Allianz Field" 44.9530 -93.1655 OpenAir "America/Chicago"
       at "Dignity Health Sports Park" 33.8644 -118.2611 OpenAir "America/Los_Angeles"
       at "Sporting Park" 39.1217 -94.8236 OpenAir "America/Chicago"
-      at "DICK'S Sporting Goods Park" 39.8058 -104.8919 OpenAir "America/Denver" ]
+      at "DICK'S Sporting Goods Park" 39.8058 -104.8919 OpenAir "America/Denver"
+
+      // --- Added 2026-10-20 from playground's reviewed table
+      //     (field-playground `src/data/weather.js` VENUE_COORDS, at 7e205a6):
+      //     every key there that is not already a place in this table.
+      //     Coordinates and roofs are copied as playground has them, never
+      //     restated from memory. Zones are this table's own field, declared
+      //     here and checked against Open-Meteo's resolved zone by
+      //     weather-live-check, the same as every row above.
+      //
+      //     Found by `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`: the
+      //     2026-10-20 slate named Anfield and Etihad Stadium, and the table had
+      //     neither, so verify's live render check went red.
+      //
+      //     NOT copied, because the place is already here under another key
+      //     with slightly different coordinates, and a second entry would be a
+      //     second fetch for one stadium: Oriole Park (Camden Yards), MCG
+      //     (Melbourne Cricket Ground), Children's Mercy Park (Sporting Park),
+      //     Dick's Sporting Goods Park (DICK'S Sporting Goods Park). TIO
+      //     Stadium is not copied either: playground puts it 2.5 km from
+      //     Marrara Oval, and which of the two is right was not established.
+
+      // MLB
+      at "Nationals Park" 38.8730 -77.0074 OpenAir "America/New_York"
+      at "Citizens Bank Park" 39.9061 -75.1665 OpenAir "America/New_York"
+      at "Sutter Health Park" 38.5805 -121.5133 OpenAir "America/Los_Angeles"
+
+      // MLS / soccer
+      at "Gillette Stadium" 42.0909 -71.2643 OpenAir "America/New_York"
+      at "Red Bull Arena" 40.7367 -74.1503 OpenAir "America/New_York"
+      at "CityPark" 38.6317 -90.2016 OpenAir "America/Chicago"
+      at "Snapdragon Stadium" 32.7831 -117.1199 OpenAir "America/Los_Angeles"
+      at "Stade Saputo" 45.5640 -73.5518 OpenAir "America/Toronto"
+      at "BMO Field" 43.6333 -79.4186 OpenAir "America/Toronto"
+      at "Chase Stadium" 26.1947 -80.1506 OpenAir "America/New_York"
+      at "Subaru Park" 39.8334 -75.3808 OpenAir "America/New_York"
+      at "Bank of America Stadium" 35.2259 -80.8529 OpenAir "America/New_York"
+      at "Audi Field" 38.8695 -77.0125 OpenAir "America/New_York"
+      at "Lower.com Field" 39.9690 -83.0154 OpenAir "America/New_York"
+      at "TQL Stadium" 39.1051 -84.5182 OpenAir "America/New_York"
+      at "Inter&Co Stadium" 28.5415 -81.3893 OpenAir "America/New_York"
+      at "GEODIS Park" 36.1307 -86.7665 OpenAir "America/Chicago"
+      at "Soldier Field" 41.8623 -87.6167 OpenAir "America/Chicago"
+      at "BMO Stadium" 34.0130 -118.2845 OpenAir "America/Los_Angeles"
+      at "PayPal Park" 37.3519 -121.9254 OpenAir "America/Los_Angeles"
+      at "Q2 Stadium" 30.3872 -97.7180 OpenAir "America/Chicago"
+      at "Shell Energy Stadium" 29.7523 -95.3511 OpenAir "America/Chicago"
+      at "Toyota Stadium" 33.1545 -96.8353 OpenAir "America/Chicago"
+      at "Mercedes-Benz Stadium" 33.7555 -84.4010 Retractable "America/New_York"
+
+      // EPL / European soccer
+      at "Anfield" 53.4308 -2.9608 OpenAir "Europe/London"
+      at "Etihad Stadium" 53.4831 -2.2004 OpenAir "Europe/London"
+      at "Craven Cottage" 51.4749 -0.2218 OpenAir "Europe/London"
+      at "Amex Stadium" 50.8619 -0.0831 OpenAir "Europe/London"
+      at "Stadium of Light" 54.9147 -1.3882 OpenAir "Europe/London"
+      at "Villa Park" 52.5090 -1.8847 OpenAir "Europe/London"
+      at "Turf Moor" 53.7889 -2.2302 OpenAir "Europe/London"
+      at "Selhurst Park" 51.3983 -0.0855 OpenAir "Europe/London"
+      at "City Ground" 52.9401 -1.1326 OpenAir "Europe/London"
+      at "Riverside Stadium" 54.5785 -1.2170 OpenAir "Europe/London"
+      at "St Mary's Stadium" 50.9058 -1.3910 OpenAir "Europe/London"
+      at "MKM Stadium" 53.7463 -0.3674 OpenAir "Europe/London"
+      at "The Den" 51.4851 -0.0509 OpenAir "Europe/London"
+      at "London Stadium" 51.5386 -0.0163 OpenAir "Europe/London"
+      at "Allianz Arena" 48.2188 11.6247 OpenAir "Europe/Berlin"
+      at "Europa-Park Stadion" 48.0221 7.8275 OpenAir "Europe/Berlin"
+      at "Stade de la Meinau" 48.5601 7.7534 OpenAir "Europe/Paris"
+
+      // AFL
+      at "ENGIE Stadium" -33.8472 151.0635 OpenAir "Australia/Sydney"
+      at "People First Stadium" -28.0056 153.4028 OpenAir "Australia/Brisbane"
+
+      // Tennis / cricket
+      at "Foro Italico" 41.9339 12.4672 OpenAir "Europe/Rome"
+      at "Rajiv Gandhi International Stadium" 17.4046 78.5480 OpenAir "Asia/Kolkata"
+      at "Sawai Mansingh Stadium" 26.8952 75.8068 OpenAir "Asia/Kolkata"
+
+      // Golf
+      at "Quail Hollow Club" 35.0527 -80.8328 OpenAir "America/New_York"
+      at "Aronimink Golf Club" 39.9654 -75.4165 OpenAir "America/New_York"
+      at "Augusta National Golf Club" 33.5024 -82.0238 OpenAir "America/New_York"
+      at "Pinehurst No. 2" 35.1946 -79.4657 OpenAir "America/New_York"
+      at "Pebble Beach Golf Links" 36.5683 -121.9478 OpenAir "America/Los_Angeles"
+      at "TPC Sawgrass" 30.1975 -81.3957 OpenAir "America/New_York"
+      at "Riviera Country Club" 34.0397 -118.5085 OpenAir "America/Los_Angeles"
+      at "Torrey Pines South Course" 32.8971 -117.2519 OpenAir "America/Los_Angeles"
+      at "Harbour Town Golf Links" 32.1380 -80.6686 OpenAir "America/New_York"
+      at "TPC Scottsdale" 33.6606 -111.8926 OpenAir "America/Phoenix"
+      at "Muirfield Village Golf Club" 40.1034 -83.0685 OpenAir "America/New_York"
+      at "East Lake Golf Club" 33.7115 -84.2896 OpenAir "America/New_York"
+      at "St Andrews Links Old Course" 56.3435 -2.8013 OpenAir "Europe/London"
+      at "Royal Troon Golf Club" 55.5333 -4.6667 OpenAir "Europe/London"
+      at "Royal St George's Golf Club" 51.2010 1.3880 OpenAir "Europe/London"
+      at "Dunes Golf and Beach Club" 33.7490 -78.8138 OpenAir "America/New_York"
+      at "Colonial Country Club" 32.7247 -97.3592 OpenAir "America/Chicago"
+      at "TPC Twin Cities" 45.1858 -93.2119 OpenAir "America/Chicago" ]
     |> List.choose id
 
 /// Lookup is EXACT, not fuzzy.
@@ -192,6 +288,101 @@ let distinctLocations (venues: Venue list) : (CoordKey * Venue) list =
 
 let all = entries
 let count = List.length entries
+
+/// Indoor arenas: venues where a game has no weather to show.
+///
+/// A FACT PER NAME, not a keyword. Production answers this with `isOutdoorVenue`
+/// matching "arena", "garden", "center" in the name, which is the approach the
+/// header above rejects: "Allianz Arena" is open to the sky and "Madison Square
+/// Garden" is not, and only a recorded fact tells them apart.
+///
+/// Why it exists: verify's live render check fails a slate when no venue on it
+/// is in the table, because a slate the table covers nothing of proves nothing.
+/// An NHL/NBA-only slate was then a failure, though an arena has no weather by
+/// design. Recorded here, an arena is "nothing to observe", while a stadium the
+/// table lacks stays a coverage gap
+/// (`docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`, owner's choice).
+///
+/// PROVENANCE. The exact `venue` strings the relay archived for NBA and NHL
+/// games (`field-archive`, regular_season_games + postseason_games, sport in
+/// NBA/NHL, date >= 2025-10-01), queried 2026-10-20. Every one hosted an NBA
+/// game or an NHL game indoors. An NHL outdoor game is played at a stadium,
+/// which this list does not carry and the table above may.
+let private indoorArenas =
+    set [ "Amerant Bank Arena"
+          "American Airlines Center"
+          "BOK Center"
+          "Ball Arena"
+          "Ball Arena, Denver CO"
+          "Barclays Center"
+          "Bell Centre"
+          "Bell Centre, Montreal QC"
+          "Benchmark International Arena"
+          "Bridgestone Arena"
+          "CU Events Center"
+          "Canada Life Centre"
+          "Canadian Tire Centre"
+          "Capital One Arena"
+          "Chase Center"
+          "Climate Pledge Arena"
+          "Colisee Videotron"
+          "Delta Center"
+          "Enterprise Center"
+          "FedExForum"
+          "First Horizon Coliseum"
+          "Fiserv Forum"
+          "Frost Bank Center"
+          "Frost Bank Center, San Antonio TX"
+          "Gainbridge Fieldhouse"
+          "Giant Center"
+          "Golden 1 Center"
+          "Grand Casino Arena"
+          "Hilton Coliseum"
+          "Honda Center"
+          "Intuit Dome"
+          "Kaseya Center"
+          "KeyBank Center"
+          "KeyBank Center, Buffalo NY"
+          "Kia Center"
+          "Lenovo Center"
+          "Lenovo Center, Raleigh NC"
+          "Little Caesars Arena"
+          "Madison Square Garden"
+          "Madison Square Garden, New York NY"
+          "Moda Center"
+          "Mortgage Matchup Center"
+          "Nationwide Arena"
+          "PPG Paints Arena"
+          "Paycom Center"
+          "Paycom Center, Oklahoma City OK"
+          "Prudential Center"
+          "Rocket Arena"
+          "Rocket Mortgage FieldHouse, Cleveland OH"
+          "Rogers Arena"
+          "Rogers Place"
+          "SAP Center at San Jose"
+          "Scotiabank Arena"
+          "Scotiabank Saddledome"
+          "Smoothie King Center"
+          "Spectrum Center"
+          "Stan Sheriff Center"
+          "State Farm Arena"
+          "T-Mobile Arena"
+          "T-Mobile Arena, Las Vegas NV"
+          "TD Garden"
+          "Target Center"
+          "Toyota Arena"
+          "Toyota Center (Houston)"
+          "UBS Arena"
+          "United Center"
+          "Venetian Arena"
+          "Videotron Centre"
+          "Xfinity Mobile Arena"
+          "crypto.com Arena" ]
+
+/// True when the name is a recorded indoor arena. An unrecorded name is NOT
+/// indoor: absence from both lists is a coverage gap, not a roof.
+let isIndoorArena (name: string) : bool = Set.contains name indoorArenas
 
 /// Every entry parsed, and the alias pairs really do collapse.
 ///

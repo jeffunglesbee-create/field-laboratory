@@ -339,6 +339,40 @@ let private weather () =
           [ "Minute Maid Park"; "Daikin Park"; "Wrigley Field" ]
           [ "Minute Maid Park"; "Wrigley Field"; "Fenway Park" ]
 
+      // A real slate, accounted for name by name. The 26 venues are the
+      // 2026-10-20 slate that turned verify red, copied from the render
+      // check's own annotation (verify run 39446347687). Each must be a table
+      // entry, a recorded indoor arena, or one of the outdoor venues this table
+      // is known not to carry yet, and at least one must be a table entry. A
+      // table entry deleted, or an arena dropped from its list, makes a name
+      // unaccounted for. The must-fail is the same slate plus a stadium nobody
+      // recorded. docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md
+      Verify.check "every venue on the 2026-10-20 slate is accounted for"
+          (fun slate ->
+              let notYetCarried =
+                  [ "Şükrü Saracoğlu Stadium"; "Baku Olympic Stadium"; "Olimpico"
+                    "Estádio do Dragão"; "Stadio Diego Armando Maradona"; "Parc des Princes"
+                    "MHPArena"; "Pitbull Stadium"; "Delaware Stadium"; "Joan C. Edwards Stadium" ]
+              let inTable n = (Venues.tryFind n).IsSome
+              let accounted n = inTable n || Venues.isIndoorArena n || List.contains n notYetCarried
+              List.forall accounted slate && List.exists inTable slate)
+          [ "Bell Centre"; "Prudential Center"; "UBS Arena"; "Capital One Arena"; "Nationwide Arena"
+            "Enterprise Center"; "American Airlines Center"; "Rogers Place"; "Climate Pledge Arena"
+            "Rogers Arena"; "T-Mobile Arena"; "Şükrü Saracoğlu Stadium"; "Baku Olympic Stadium"
+            "Olimpico"; "Estádio do Dragão"; "Anfield"; "Etihad Stadium"
+            "Stadio Diego Armando Maradona"; "Parc des Princes"; "MHPArena"; "Pitbull Stadium"
+            "Delaware Stadium"; "Joan C. Edwards Stadium"; "Little Caesars Arena"
+            "Madison Square Garden"; "Frost Bank Center" ]
+          [ "Bell Centre"; "Anfield"; "Some Unlisted Park" ]
+
+      // An arena is a venue with no weather; a table entry is one with weather.
+      // A name in both would be a chip the render check then calls "nothing to
+      // observe".
+      Verify.check "no table venue is also recorded as an indoor arena"
+          (fun names -> names |> List.forall (fun n -> not (Venues.isIndoorArena n)))
+          (Venues.all |> List.map (fun v -> v.Name))
+          [ "Fenway Park"; "Bell Centre" ]
+
       // --- binary frame ingest ------------------------------------------------
       //
       // This block is the ONLY consumer of PlayFrame, and `unused-check` is what

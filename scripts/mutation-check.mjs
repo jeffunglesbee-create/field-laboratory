@@ -401,6 +401,37 @@ const MUTATIONS = [
     expect: 'node scripts/weather-live-check.mjs --self-test',
   },
   {
+    // The 2026-10-20 slate named Anfield, and the table lacked it: verify's live
+    // render check went red. Deleting it again must be caught without a live slate.
+    // docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md
+    id: 'venue-table-loses-anfield',
+    file: 'src/Venues.fs',
+    claim: 'a venue added for a real slate stays accounted for',
+    find: '      at "Anfield" 53.4308 -2.9608 OpenAir "Europe/London"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // An arena dropped from the list is a slate the render check calls a
+    // coverage gap again.
+    id: 'indoor-arena-unrecorded',
+    file: 'src/Venues.fs',
+    claim: 'an NHL/NBA arena on a real slate is recorded as indoor',
+    find: '          "Bell Centre"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // Ignoring the arena list turns every NHL/NBA-only slate back into a
+    // coverage failure; ignoring placeholders the other way would hide gaps.
+    id: 'arena-predicate-ignored',
+    file: 'scripts/render-check.mjs',
+    claim: 'a recorded indoor arena is nothing to observe, and nothing else is',
+    find: 'const observableVenues = vs => realVenues(vs).filter(v => !isIndoorArena(v))',
+    replace: 'const observableVenues = vs => realVenues(vs).filter(v => true)',
+    expect: "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',
