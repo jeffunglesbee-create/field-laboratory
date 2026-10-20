@@ -196,3 +196,31 @@ very FIRST calls (the Fenway reading and the bad-latitude probe) failed to
 connect. Those calls have no retry. Without the flag that is a red sentinel,
 the same shape as the 2 of its last 30 runs that failed with 45 venues. Filed:
 `docs/CC-CMD-2026-10-20-weather-first-call-connect.md`.
+
+## Landed
+
+Main, rebased onto `aab00fa` (three automated status/drift commits) and pushed
+as `31901c0` (every call), `4a0a6ab` (venues), `d13c4b3` (retry) and
+`264d3c1` (retry immediately). The two gate-record commits followed, as
+`b8595cc` and `82769f5`.
+
+- **Gate:** 530/530, on the runner (`verify-full` run 39489924109, at
+  `06b11f4`). The landed HEAD differs from the gated tree only in the five
+  files those automated commits wrote (STATUS.md, outbox/INDEX.md,
+  outbox/drift-log.md, outbox/odds-coverage-series.json and one
+  sport-vocabulary capture). No `src/`, `scripts/` or workflow file differs.
+- **Why the gate ran on the runner:** three local runs were contaminated or
+  cut off. Stopping runs 1 and 2 left their `mutation-check` children running,
+  because the kill pattern missed them. Those children mutated `src/` under run 3,
+  which failed the F# harness row; a clean build passed 314/314. Run 4 was
+  clean, but the 2-hour limit on background commands stopped it during the
+  mutation row.
+- **The push started no workflows:** the tip commit carries the skip directive.
+  `verify` was dispatched on main by hand: run 39503750847, green. Deploy
+  39504236457 and live-check 39504351756 both succeeded.
+- **drift-sentinel, no flag:** run 39504314648, green.
+- **Seen again on main:** in run 39503750847 the first two calls (the Fenway
+  reading and the bad-latitude probe) did not answer, and were tolerated under
+  the flag. That is the open gap in
+  `docs/CC-CMD-2026-10-20-weather-first-call-connect.md`. It has now been
+  observed twice in one day.

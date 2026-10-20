@@ -4,8 +4,10 @@
 **Repo:** field-laboratory (reads `field-playground` for the source of any venue added)
 **Filed:** 2026-10-20 by CC, found when a comments-only commit's `verify` run failed
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED, not started. Owner decision first: it changes what a gate row
-means, or what the product shows.
+**Status:** **DONE 2026-10-20**, landed as `4a0a6ab` (main). The owner chose
+option 1. Playground turned out to carry no NHL/NBA/NFL/CFB venue, so the
+owner then chose to record arenas as indoor (option 2's distinction, built on
+option 1's data). See "Owner's choice" below.
 
 ---
 
@@ -118,3 +120,21 @@ quiet pass: the existing check exists because that shape keeps recurring.
    example), not a statement.
 3. A mutation that deletes one added venue from the table is caught.
 4. `npm run gate` >= 95.
+
+## Owner's choice (2026-10-20)
+
+Option 1, then "record arenas as indoor" once the probe showed that playground
+has no arena, NFL or CFB venue. What was built, and the measurements behind it:
+`outbox/cc-session-2026-10-20-venue-coverage.md`.
+
+Done conditions:
+
+1. Recorded above.
+2. `verify` green on main on the 2026-10-20 slate (NHL, NBA, UEFA and CFB; no
+   MLB, AFL or MLS venue): run 39503750847, at `82769f5`.
+3. Deleting a venue the slate needed (`venue-table-loses-anfield`) or an arena
+   (`indoor-arena-unrecorded`) is caught. Both are registered mutations.
+4. Gate 530/530 (`verify-full` run 39489924109).
+
+Still uncovered: UEFA outside England, Munich, Freiburg and Strasbourg; CFB;
+NFL. Filed as `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md`.

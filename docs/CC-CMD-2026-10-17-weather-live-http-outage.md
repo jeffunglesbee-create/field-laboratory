@@ -4,7 +4,15 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-17, by CC, from a measured failure (below)
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
-**Status:** FILED, not started.
+**Status:** **DONE 2026-10-20**, landed as `31901c0`, `d13c4b3`, `264d3c1`
+(main). Done conditions: (1) Task 0's count is in
+`outbox/cc-session-2026-10-20-weather-live-every-call.md`; (2) a 16-case
+`--self-test`, with 5 registered mutations, all caught; (3) gate 530/530
+(`verify-full` run 39489924109, record `06b11f4a1411-6eb31c4ec647`); (4)
+`verify` green on main, run 39503750847, and `drift-sentinel` green with no
+flag, run 39504314648 (its weather step runs the self-test's no-flag cases
+first). Remaining gap: the first calls have no retry, filed as
+`docs/CC-CMD-2026-10-20-weather-first-call-connect.md`.
 
 ---
 
