@@ -80,7 +80,7 @@ const ELEVATION_BAND = { 'Coors Field': [1500, 1650] }
  * The whole check, against an injected `fetch`. Returns the failure count; the
  * caller decides the exit code. Prints through `console.log`, as before.
  */
-const run = async ({ fetchImpl, tolerate, venues, retryPauseMs = 30_000 }) => {
+const run = async ({ fetchImpl, tolerate, venues, retryPauseMs = 0 }) => {
   const { check, summarize } = createChecks()
 
   // Under the flag a call that did not answer is reported by name and not
@@ -218,10 +218,18 @@ const run = async ({ fetchImpl, tolerate, venues, retryPauseMs = 30_000 }) => {
   // run 39462746747): 3 and then 8 venues drew UND_ERR_CONNECT_TIMEOUT, in
   // clusters, a DIFFERENT set each run, and every one answered 200 with the
   // right zone when asked again on its own. That is a transient window, not a
-  // venue and not an outage. Asked once more after `retryPauseMs`, a venue that
-  // answers is checked like any other; one that still does not is unanswered as
-  // before (warned under the flag, a failure without it). A real outage
-  // fails both passes, so the sentinel still reports it.
+  // venue and not an outage. Asked once more, a venue that answers is checked
+  // like any other; one that still does not is unanswered as before (warned
+  // under the flag, a failure without it). A real outage fails both passes, so
+  // the sentinel still reports it.
+  //
+  // IMMEDIATELY, not after a pause. A 30 s pause was tried first and measured
+  // worse, on one runner job alternating the two (run 39466968801, flagless,
+  // the sentinel's path): pause 0 exited 0 three times of three, checking 109
+  // of 109; the 30 s pause exited 1 three times of three. The failures came on
+  // NEW connections: the request around the 101st, and the first calls after
+  // an idle gap. A pause lets the warm connection go idle, so the retry pays
+  // for a new connect, which is exactly the call that fails.
   const deferred = []
   for (const v of venues) {
     const { res, why } = await call(fetchImpl, forecastUrl(v.Where))

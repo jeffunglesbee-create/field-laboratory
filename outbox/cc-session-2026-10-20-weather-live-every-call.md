@@ -164,3 +164,35 @@ the wrong zone (exit 1). Two more mutations were registered and caught:
 `weather-retry-drops-deferred` and `weather-retry-unassessed`. The anchor of
 `weather-tolerance-first-call-only` moved with the code and was updated; it
 was re-run and caught.
+
+## The retry pause: 30 s was wrong, 0 is measured
+
+The retry above first shipped locally with a 30 s pause. It never reached main.
+The final tree's `verify` (run 39463674100) was green, but still warned
+`TPC Scottsdale … fetch failed, twice`. So the sentinel's own path (no flag)
+was run on a runner before landing. It went red 4 of 4 (run 39464775191,
+Harbour Town unanswered twice each time). Probes followed, all throwaway on
+the session branch:
+
+| run | what | result |
+|---|---|---|
+| 39465717844 | 130 sequential requests to ONE url, x3, one with IPv4 forced | 0 of 390 failed; one URL reused does not reproduce it |
+| 39465922914 | the 109 venue URLs replayed: in order, shuffled, 300 ms gaps | 0 of 545 failed at that hour |
+| 39466225837 | the script and the replay alternated in one job | the replay failed `req100 TPC Scottsdale UND_ERR_CONNECT_TIMEOUT` twice; the script failed Harbour Town twice: the ~101st request, either way |
+| 39466968801 | pause 0 vs 30 s, alternated in one job, no flag | **pause 0: exit 0 three of three, 109 of 109 checked. 30 s: exit 1 three of three** (Harbour twice; the first two calls; a non-JSON sign-flip body after the pause) |
+
+What these runs measured: the failures land on new connections, at the
+request around the 101st and on the first calls after an idle gap. A warm
+connection answers. A pause lets that connection go idle, so the retry pays
+for exactly the reconnect that fails. **Why** a new connection from a runner
+times out was not established. A one-URL loop did not reproduce it, so the
+claim stops at what was measured.
+
+The pause is now 0 (`retryPauseMs = 0`). The self-test passes 0 explicitly, so
+the stub cannot see the default. The evidence for it is run 39466968801.
+
+**Still open (pre-existing, not widened here):** in the 30 s arm's run 1, the
+very FIRST calls (the Fenway reading and the bad-latitude probe) failed to
+connect. Those calls have no retry. Without the flag that is a red sentinel,
+the same shape as the 2 of its last 30 runs that failed with 45 venues. Filed:
+`docs/CC-CMD-2026-10-20-weather-first-call-connect.md`.
