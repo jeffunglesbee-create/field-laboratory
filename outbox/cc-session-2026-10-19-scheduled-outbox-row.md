@@ -86,8 +86,8 @@ untouched, as the CC-CMD required.
   a full gate under `schedule`, which a dispatch cannot simulate:
   `GITHUB_EVENT_NAME` is set by the runner.
 - **`--only <id>` with an id that matches nothing passes on "0 of 0".** It was
-  seen once here, from a failed insert. That is a separate harness gap; it is
-  recorded, not fixed in this commit.
+  seen once here, from a failed insert. That was a separate harness gap, fixed the next day in
+  `outbox/cc-session-2026-10-20-mutation-only-refusal.md`.
 
 ## Done conditions 3-4
 

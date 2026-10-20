@@ -1690,6 +1690,18 @@ const MUTATIONS = [
     replace: "        | Level _ -> None",
     expect: "node build/VerifyMain.js",
   },
+  // --- the harness's own --only, found 2026-10-19 ---
+  {
+    // Inverted like `harness-blind`: the expectation passes when the command
+    // FAILS, because a harness that refuses an unknown id exits non-zero.
+    // Removing the refusal makes the nested run exit 0 and the record survive.
+    id: 'only-selects-nothing-passes',
+    file: 'scripts/mutation-check.mjs',
+    claim: 'a --only that matches no mutation is refused, not reported as a pass over zero expectations',
+    find: "if (process.argv.includes('--only') && (!ONLY || selected.length === 0)) {",
+    replace: 'if (false) {',
+    expect: `bash -c '! node scripts/mutation-check.mjs --only no-such-mutation-id'`,
+  },
   // --- the outbox row on a scheduled run, docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md (option 1) ---
   {
     // Not applicable leaking past `schedule` turns a real miss into a quiet pass.
@@ -2000,6 +2012,28 @@ const applyMutation = (source, m) => {
 const selected = ONLY
   ? MUTATIONS.filter(m => m.id === ONLY)
   : MUTATIONS.filter(m => !m.selfTestOnly)
+
+// A `--only` THAT SELECTS NOTHING RAN NOTHING, AND MUST NOT SAY PASS.
+//
+// Seen 2026-10-19: an insert of four records failed, and `--only <id>` for each
+// of them printed `baseline: ran 0 of 0` and `PASS the unmutated tree passes
+// every expectation`, exit 0. Four mutations that did not exist were reported
+// green. A harness whose job is to make a check fail on purpose cannot also
+// report success for a mutation it never found; that is the NOT-CAUGHT-with-
+// nothing-mutated failure this repo's Rule 90 names, from the other side.
+//
+// A missing value (`--only` last, or followed by another flag) is the same
+// failure: `ONLY` is then falsy or a flag, and the first shape used to fall
+// through to the FULL suite while the caller believed they had asked for one.
+//
+// Exit 2, not 1, so a caller can tell "no such mutation" from "mutation survived".
+// It sits before `heal()`, the signal handlers and the baseline, so it touches
+// nothing. Mutating this block is covered by `only-selects-nothing-passes`.
+if (process.argv.includes('--only') && (!ONLY || selected.length === 0)) {
+  console.error(`--only ${ONLY ?? '(no id given)'}: no mutation has that id, so nothing was run.`)
+  console.error(`${MUTATIONS.length} mutations are defined; ids are the \`id:\` field of each record.`)
+  process.exit(2)
+}
 
 /**
  * Does this run own outbox/mutation-baseline-latest.json?
