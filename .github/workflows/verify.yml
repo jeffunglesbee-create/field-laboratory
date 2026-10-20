@@ -1062,7 +1062,7 @@ jobs:
         # Runs even if a SIBLING report failed — see the block above
         # `Every gate row has teeth`.
         if: "!cancelled() && steps.build.outcome == 'success'"
-        run: node scripts/weather-live-check.mjs --tolerate-unreachable
+        run: node scripts/weather-live-check.mjs --self-test && node scripts/weather-live-check.mjs --tolerate-unreachable
 
       - name: Status read against the LIVE GitHub API
         # Runs even if a SIBLING report failed — see the block above

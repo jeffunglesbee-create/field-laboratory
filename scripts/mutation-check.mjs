@@ -370,6 +370,37 @@ const MUTATIONS = [
     expect: 'node scripts/weather-burst-check.mjs',
   },
   {
+    // verify's weather step went red on a 503 in the venue loop, after the first
+    // call had answered (runs 38984732123, 39454054451). The flag must reach
+    // every call, or that recurs.
+    // docs/CC-CMD-2026-10-17-weather-live-http-outage.md
+    id: 'weather-tolerance-first-call-only',
+    file: 'scripts/weather-live-check.mjs',
+    claim: 'under --tolerate-unreachable a venue that did not answer is warned, not failed',
+    find: '      if (tolerate) unanswered(v.Name, why)\n      else zoneMismatches',
+    replace: '      zoneMismatches',
+    expect: 'node scripts/weather-live-check.mjs --self-test',
+  },
+  {
+    // Tolerating every non-200 lets a broken forecastUrl (400 on every venue)
+    // read as "checked 0 of 45" and exit 0 for ever.
+    id: 'weather-tolerates-any-non-200',
+    file: 'scripts/weather-live-check.mjs',
+    claim: 'a 4xx is the service answering, and stays fatal under the flag',
+    find: 'const didNotAnswer = (status) => status === 429 || status >= 500',
+    replace: 'const didNotAnswer = (status) => status !== 200',
+    expect: 'node scripts/weather-live-check.mjs --self-test',
+  },
+  {
+    // The drift-sentinel runs without the flag; there an outage is the finding.
+    id: 'weather-unreachable-tolerated-without-flag',
+    file: 'scripts/weather-live-check.mjs',
+    claim: 'without the flag, any call that did not answer fails the run',
+    find: '    check(`Open-Meteo answers ${what}`, false, why)',
+    replace: '    void why',
+    expect: 'node scripts/weather-live-check.mjs --self-test',
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',
