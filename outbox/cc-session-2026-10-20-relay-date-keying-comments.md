@@ -95,7 +95,14 @@ docs-only and free of CI cost, per Rule 87.4.
   The first guess, an Open-Meteo outage, was wrong: the log's own lines
   (`open-meteo: no request recorded`, `0 known venue(s) on this slate`) refuted
   it, and the weather step answered 200 on main an hour later.
-- Landing this commit therefore starts a `verify` run on main that will fail the
-  same way until that CC-CMD is done, on any `src/**` or `scripts/**` push on a
-  day with no game at a table venue.
+- Landing this commit started a `verify` run on main (39454054451, `7505a58`).
+  It failed **two** steps, not one: the live-slate check above, and "Weather
+  against the LIVE Open-Meteo API" (`Fenway Park: request failed — fetch
+  failed` at the per-venue zone check, 11/12). The second is a transient
+  third-party request and is the older, open
+  `docs/CC-CMD-2026-10-17-weather-live-http-outage.md`, to which the
+  recurrence is now appended. The prediction made while waiting, "red only at the
+  live-slate step", was wrong by one step; the other 79 steps passed.
+  Until the venue CC-CMD is done, any `src/**` or `scripts/**` push on a day
+  with no game at a table venue fails the live-slate step the same way.
 

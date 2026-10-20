@@ -107,3 +107,27 @@ Through a stub server, or an injected fetch, with each case seen to fail first:
 4. One `verify` run green on the fixed commit, and one drift-sentinel run
    showing the flagless path still fatal on an injected outage (its
    self-test, since a real outage cannot be scheduled).
+
+## Recurrence observed 2026-10-20
+
+`verify` run 39454054451 (main, `7505a58`, 16:05Z) failed this CC-CMD's step,
+"Weather against the LIVE Open-Meteo API", for the shape described above, at a
+different place in it:
+
+```
+FAIL  every venue resolves to the IANA zone it declares
+      → Fenway Park: request failed — fetch failed
+11/12 checks passed
+```
+
+The first call had answered (the step got past the reading and the latitude
+probes), then a per-venue zone request threw. Every other check in that step
+passed. So `--tolerate-unreachable` does not cover "reachable on call 1,
+unreachable on a later call", which is the case Task 1 above already names ("on
+the first call or on any venue"). Earlier the same day, run 39437657525
+(14:18Z) hit the other half: the first call failed and was tolerated. Two
+occurrences in one day, one on each side of the gap. Task 0's count over the
+last 30 runs is still the first thing to do.
+
+That run also failed "Render check against the LIVE slate", which is a separate
+defect: `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`.

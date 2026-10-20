@@ -19,7 +19,10 @@ means, or what the product shows.
 | 39446347687 | `39572f8`, current main, none of that change | **the identical failure** |
 | 39357483890 | `483d0cf`, main, started 2026-10-20 02:10Z (22:10 ET on 10-19, so the previous day's slate) | green |
 
-The failure is the slate, not any commit. Both red runs print the same four
+The failure is the slate, not any commit. (Main's `verify` at `7505a58`, run
+39454054451, also failed a second, unrelated step, "Weather against the LIVE
+Open-Meteo API", on a transient per-venue request; that is
+`docs/CC-CMD-2026-10-17-weather-live-http-outage.md`, not this.) Both red runs print the same four
 FAILs, from `scripts/render-check.mjs`:
 
 ```
