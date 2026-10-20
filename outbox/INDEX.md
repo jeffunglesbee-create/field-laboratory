@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `583efb4` | 2026-10-20 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `583efb4` | 2026-10-20 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `583efb4` | 2026-10-20 | [sport-vocabulary-2026-10-20T16-42-48-834Z.json](sport-vocabulary-2026-10-20T16-42-48-834Z.json) | drift-sentinel: ok on 2026-10-20 [skip ci] |
+| `87292ed` | 2026-10-20 | [cc-session-2026-10-20-relay-date-keying-comments.md](cc-session-2026-10-20-relay-date-keying-comments.md) | docs: main's verify also failed the Open-Meteo step; recorded on its CC-CMD |
 | `e12b33b` | 2026-10-20 | [cc-session-2026-10-20-relay-date-keying-comments.md](cc-session-2026-10-20-relay-date-keying-comments.md) | docs: date-keying comments: gate 530/530, landed; verify red on the live slate, filed |
 | `76ead03` | 2026-10-20 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 88ae65d [skip ci] |
 | `7505a58` | 2026-10-20 | [cc-session-2026-10-20-relay-date-keying-comments.md](cc-session-2026-10-20-relay-date-keying-comments.md) | docs: three comments stating the relay's date keying, corrected and dated |
