@@ -78,3 +78,24 @@ docs-only and free of CI cost, per Rule 87.4.
 - **The comments are not executable.** Nothing here can fail if they drift
   again; the CC-CMD says so, and says the guard that can is the relay's
   `check-archive-date-keying.mjs`, which this does not duplicate.
+
+## Gate and landing
+
+- `verify-full` run 39437651991 on `88ae65d` scored **530/530 (100)**, mutation
+  baseline 0 failing across 173. The comment edits are on main as a cherry-pick
+  of `beb2191`, then the gate's two record commits.
+- **`verify` (run 39437657525) was RED on that tree, and is not caused by it.**
+  The failing step is "Render check against the LIVE slate": today's NHL / UEFA /
+  CFB / NBA slate names 26 venues and none is in the 45-entry venue table
+  (MLB, AFL, some MLS). `verify` on main HEAD `39572f8`, which carries none of
+  these edits, fails with the identical four FAILs (run 39446347687). The build
+  and compiler-warning steps passed on this tree, which is the only compile
+  check a comments-only change has. Filed with options and a recommendation as
+  `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`; no check was loosened.
+  The first guess, an Open-Meteo outage, was wrong: the log's own lines
+  (`open-meteo: no request recorded`, `0 known venue(s) on this slate`) refuted
+  it, and the weather step answered 200 on main an hour later.
+- Landing this commit therefore starts a `verify` run on main that will fail the
+  same way until that CC-CMD is done, on any `src/**` or `scripts/**` push on a
+  day with no game at a table venue.
+
