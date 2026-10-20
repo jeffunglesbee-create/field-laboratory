@@ -125,3 +125,42 @@ This sandbox's proxy refuses `api.open-meteo.com` (`connect_rejected`,
 measured this session). The live half runs on the runner. The done-condition
 artifacts (the gate, the `verify` run on this commit, and a `drift-sentinel`
 run) are recorded below as they land.
+
+## Added after the venue table grew: one deferred retry
+
+The venue commit took the table from 45 to 109 entries
+(`outbox/cc-session-2026-10-20-venue-coverage.md`). Its first runner run with
+this fix (verify run 39461805616, session branch) was green under the flag. It
+also warned that 3 venues did not answer: Harbour Town Golf Links, TPC
+Scottsdale and Muirfield Village Golf Club (table positions 99-101). A run
+without this fix (39460984386) failed on the same three. Same names twice
+looked venue-specific, so it was probed before anything was changed:
+
+- `probe-url.yml` could not answer it. Its loop expands the URL list unquoted,
+  so the `&` in an Open-Meteo query string backgrounds the command. It failed
+  on Fenway too (runs 39462577622, 39462595315, 39462610425, 39462625259). That
+  is a defect in that workflow, noted here and not fixed in this commit.
+- A throwaway diagnostic on the session branch (run 39462746747, never on main)
+  fetched the four venues alone, then all 109 in reverse order:
+  - **Alone:** Fenway, Harbour Town, TPC Scottsdale and Muirfield each answered
+    HTTP 200 with the declared zone, in 23-155 ms.
+  - **Reversed:** a *different* 8 did not answer, in two clusters (#4-#7,
+    #30-#34), all `UND_ERR_CONNECT_TIMEOUT` or a 20 s abort. **0 zone
+    mismatches** among the 101 that answered.
+
+So it is a transient connection window from the runner, not a venue, and not
+an outage. 2 of 2 runs with 109 venues hit one. Without the flag (the
+drift-sentinel), every such run would be red.
+
+**The fix:** a venue that does not answer is asked once more, after
+`retryPauseMs` (30 s; 0 in the self-test), when the first pass is done. If it
+answers, it is checked like any other. If it does not, it is unanswered as
+before, and the reason ends `, twice`. A full outage fails both passes, so the
+sentinel still reports it. The run prints `retried N, M answered on the retry`.
+
+Self-test: 16 cases. Two new ones: a venue refused once that answers the retry,
+with no flag (exit 0, `checked 45 of 45`); and a venue whose retry answers with
+the wrong zone (exit 1). Two more mutations were registered and caught:
+`weather-retry-drops-deferred` and `weather-retry-unassessed`. The anchor of
+`weather-tolerance-first-call-only` moved with the code and was updated; it
+was re-run and caught.

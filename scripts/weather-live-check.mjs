@@ -80,7 +80,7 @@ const ELEVATION_BAND = { 'Coors Field': [1500, 1650] }
  * The whole check, against an injected `fetch`. Returns the failure count; the
  * caller decides the exit code. Prints through `console.log`, as before.
  */
-const run = async ({ fetchImpl, tolerate, venues }) => {
+const run = async ({ fetchImpl, tolerate, venues, retryPauseMs = 30_000 }) => {
   const { check, summarize } = createChecks()
 
   // Under the flag a call that did not answer is reported by name and not
@@ -193,30 +193,56 @@ const run = async ({ fetchImpl, tolerate, venues }) => {
 
   const zoneMismatches = []
   let answered = 0
-  for (const v of venues) {
-    // Every failure becomes a NAMED mismatch, never a thrown exception. An
-    // unparseable body used to crash the script here, which produces no check
-    // results at all — the same shape as reading `page` after the browser closed.
-    const { res, why } = await call(fetchImpl, forecastUrl(v.Where))
-    if (res === null) {
-      if (tolerate) unanswered(v.Name, why)
-      else zoneMismatches.push(`${v.Name}: ${why}`)
-      continue
-    }
+  // Every failure becomes a NAMED mismatch, never a thrown exception. An
+  // unparseable body used to crash the script here, which produces no check
+  // results at all — the same shape as reading `page` after the browser closed.
+  const assess = async (v, res) => {
     answered++
-    if (!res.ok) { zoneMismatches.push(`${v.Name}: HTTP ${res.status}`); continue }
+    if (!res.ok) { zoneMismatches.push(`${v.Name}: HTTP ${res.status}`); return }
     let body
     try {
       body = await res.json()
-    } catch (e) { zoneMismatches.push(`${v.Name}: body did not parse — ${e.message}`); continue }
+    } catch (e) { zoneMismatches.push(`${v.Name}: body did not parse — ${e.message}`); return }
     if (body.timezone !== v.Zone) {
       zoneMismatches.push(`${v.Name}: declared ${v.Zone}, resolved ${body.timezone}`)
-      continue
+      return
     }
     const band = ELEVATION_BAND[v.Name]
     if (band && !(body.elevation >= band[0] && body.elevation <= band[1])) {
       zoneMismatches.push(`${v.Name}: elevation ${body.elevation}m outside ${band[0]}-${band[1]}m`)
     }
+  }
+
+  // ONE RETRY, LATER, for a venue that did not answer. Measured 2026-10-20 on a
+  // runner with the 109-entry table (verify run 39461805616 and a diagnostic,
+  // run 39462746747): 3 and then 8 venues drew UND_ERR_CONNECT_TIMEOUT, in
+  // clusters, a DIFFERENT set each run, and every one answered 200 with the
+  // right zone when asked again on its own. That is a transient window, not a
+  // venue and not an outage. Asked once more after `retryPauseMs`, a venue that
+  // answers is checked like any other; one that still does not is unanswered as
+  // before (warned under the flag, a failure without it). A real outage
+  // fails both passes, so the sentinel still reports it.
+  const deferred = []
+  for (const v of venues) {
+    const { res, why } = await call(fetchImpl, forecastUrl(v.Where))
+    if (res === null) { deferred.push(v); continue }
+    await assess(v, res)
+  }
+  if (deferred.length > 0) {
+    console.log(`  ${deferred.length} venue(s) did not answer; asking each once more after ${retryPauseMs}ms`)
+    await new Promise(r => setTimeout(r, retryPauseMs))
+    let recovered = 0
+    for (const v of deferred) {
+      const { res, why } = await call(fetchImpl, forecastUrl(v.Where))
+      if (res === null) {
+        if (tolerate) unanswered(v.Name, `${why}, twice`)
+        else zoneMismatches.push(`${v.Name}: ${why}, twice`)
+        continue
+      }
+      recovered++
+      await assess(v, res)
+    }
+    console.log(`  retried ${deferred.length}, ${recovered} answered on the retry`)
   }
 
   // SAMPLE-COVERAGE-A (field-relay-nba/CLAUDE.md Rule 91): the denominator is
@@ -278,6 +304,16 @@ const selfTest = async () => {
     return Response.json({ timezone: v.Zone, elevation: v.Name === 'Coors Field' ? 1600 : 50, current: CURRENT })
   }
   const down = () => { throw new TypeError('fetch failed') }
+  // A fresh override per case: refuse the matching URL on its first request,
+  // then answer with `after` (or fall through to the healthy service).
+  const once = (match, first, after = () => undefined) => {
+    const seen = new Set()
+    return (u) => {
+      if (!match(u)) return undefined
+      if (!seen.has(u)) { seen.add(u); return first() }
+      return after()
+    }
+  }
 
   const CASES = [
     { name: 'healthy service, flag set', tolerate: true, override: () => undefined,
@@ -286,7 +322,7 @@ const selfTest = async () => {
       exit: 0, says: [`checked ${M} of ${M} venues`] },
     { name: 'a 503 on one venue, flag set', tolerate: true,
       override: (u) => u === victimUrl ? new Response('', { status: 503 }) : undefined,
-      exit: 0, says: [`::warning::Open-Meteo did not answer ${victim.Name} (HTTP 503)`, `checked ${M - 1} of ${M} venues`] },
+      exit: 0, says: [`::warning::Open-Meteo did not answer ${victim.Name} (HTTP 503, twice)`, `checked ${M - 1} of ${M} venues`] },
     { name: 'the same 503, no flag', tolerate: false,
       override: (u) => u === victimUrl ? new Response('', { status: 503 }) : undefined,
       exit: 1, says: [`${victim.Name}: HTTP 503`] },
@@ -296,6 +332,16 @@ const selfTest = async () => {
     { name: 'a 400 on one venue is the service ANSWERING, flag set', tolerate: true,
       override: (u) => u === victimUrl ? new Response('{"error":true}', { status: 400 }) : undefined,
       exit: 1, says: [`${victim.Name}: HTTP 400`] },
+    // The retry. `once` refuses a URL the first time it is asked and lets it
+    // through after, which is the shape measured on 2026-10-20: a connect
+    // timeout that answers when asked again.
+    { name: 'a venue refused once and answering the retry, NO flag', tolerate: false,
+      override: once((u) => u === victimUrl, () => { throw new TypeError('fetch failed') }),
+      exit: 0, says: [`checked ${M} of ${M} venues`, 'retried 1, 1 answered on the retry'] },
+    { name: 'a venue answering the retry with the WRONG zone, flag set', tolerate: true,
+      override: once((u) => u === victimUrl, () => { throw new TypeError('fetch failed') },
+        () => Response.json({ timezone: 'Pacific/Auckland', elevation: 0, current: CURRENT })),
+      exit: 1, says: [`${victim.Name}: declared ${victim.Zone}, resolved Pacific/Auckland`] },
     // The calls OUTSIDE the venue loop, each on its own. Without these the
     // no-flag cases above pass on the venue loop alone, and a mutation that
     // tolerates the probes without the flag is not caught.
@@ -331,7 +377,7 @@ const selfTest = async () => {
     console.log = console.error = (...a) => out.push(a.join(' '))
     let failures
     try {
-      failures = await run({ fetchImpl: service(c.override), tolerate: c.tolerate, venues })
+      failures = await run({ fetchImpl: service(c.override), tolerate: c.tolerate, venues, retryPauseMs: 0 })
     } finally {
       console.log = realLog
       console.error = realErr

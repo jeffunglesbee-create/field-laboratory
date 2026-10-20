@@ -377,8 +377,8 @@ const MUTATIONS = [
     id: 'weather-tolerance-first-call-only',
     file: 'scripts/weather-live-check.mjs',
     claim: 'under --tolerate-unreachable a venue that did not answer is warned, not failed',
-    find: '      if (tolerate) unanswered(v.Name, why)\n      else zoneMismatches',
-    replace: '      zoneMismatches',
+    find: '        if (tolerate) unanswered(v.Name, `${why}, twice`)\n        else zoneMismatches',
+    replace: '        zoneMismatches',
     expect: 'node scripts/weather-live-check.mjs --self-test',
   },
   {
@@ -389,6 +389,25 @@ const MUTATIONS = [
     claim: 'a 4xx is the service answering, and stays fatal under the flag',
     find: 'const didNotAnswer = (status) => status === 429 || status >= 500',
     replace: 'const didNotAnswer = (status) => status !== 200',
+    expect: 'node scripts/weather-live-check.mjs --self-test',
+  },
+  {
+    // A retry pass that never runs drops every deferred venue: neither warned
+    // nor failed, which is the silent pass the coverage line exists to prevent.
+    id: 'weather-retry-drops-deferred',
+    file: 'scripts/weather-live-check.mjs',
+    claim: 'a venue deferred to the retry is always either checked or reported',
+    find: '    for (const v of deferred) {',
+    replace: '    for (const v of []) {',
+    expect: 'node scripts/weather-live-check.mjs --self-test',
+  },
+  {
+    // A venue that answers only on the retry is checked like any other.
+    id: 'weather-retry-unassessed',
+    file: 'scripts/weather-live-check.mjs',
+    claim: 'a retry answer with the wrong zone is still a mismatch',
+    find: '      recovered++\n      await assess(v, res)',
+    replace: '      recovered++\n      answered++',
     expect: 'node scripts/weather-live-check.mjs --self-test',
   },
   {
