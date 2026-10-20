@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-20T14:57:37.056Z",
+  "at": "2026-10-20T20:53:16.731Z",
   "scope": "full",
-  "ran": 63,
-  "from_mutations": 173,
+  "ran": 65,
+  "from_mutations": 181,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -68,6 +68,18 @@
     },
     {
       "cmd": "node scripts/weather-burst-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/weather-live-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node build/VerifyMain.js",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
       "passed": true
     },
     {
@@ -176,10 +188,6 @@
     },
     {
       "cmd": "URL='http://localhost:8080/?tab=draw' node scripts/draw-render-check.mjs",
-      "passed": true
-    },
-    {
-      "cmd": "node build/VerifyMain.js",
       "passed": true
     },
     {
