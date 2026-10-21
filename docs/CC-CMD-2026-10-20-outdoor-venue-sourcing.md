@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-20 by CC, split out of `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** TASK 0 DONE 2026-10-21, owner decision pending. Measured: 1 red day in 31 against about 360 unknown venues (CFB 138 of them); the premise held on 10-20 and no longer does. See `outbox/cc-session-2026-10-21-outdoor-venue-sourcing-task0.md`, which recommends closing on the measurement.
+**Status:** PARTIAL — Task 0 DONE 2026-10-21, Tasks 1 and 2 not started, owner decision pending. Measured: 1 red day in 31 against about 360 unknown venues (CFB 138 of them); the premise held on 10-20 and no longer does. See `outbox/cc-session-2026-10-21-outdoor-venue-sourcing-task0.md`, which recommends closing on the measurement.
 
 ---
 
