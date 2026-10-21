@@ -1904,6 +1904,15 @@ const MUTATIONS = [
     replace: '',
     expect: 'node scripts/venue-source.mjs --self-test',
   },
+  {
+    // A recorded indoor arena in the work list would be geocoded as if it needed weather.
+    id: 'venue-targets-arena-listed',
+    file: 'scripts/venue-targets.mjs',
+    claim: 'a recorded indoor arena is not a venue-sourcing target',
+    find: " || arenas.has(v)) continue",
+    replace: ") continue",
+    expect: 'node scripts/venue-targets.mjs --self-test',
+  },
   // --- the outbox row on a scheduled run, docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md (option 1) ---
   {
     // Not applicable leaking past `schedule` turns a real miss into a quiet pass.
