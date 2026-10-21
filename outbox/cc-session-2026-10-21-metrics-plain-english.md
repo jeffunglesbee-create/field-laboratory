@@ -155,3 +155,18 @@ document that no longer exists, with no reader-visible difference. If a future
 check runs WebKit with navigation and fails on `pageerror`, it should filter
 this one message by its measured shape ("Fetch API cannot load" + a cancelled
 load during navigation), and nothing broader.
+
+## Closed, 2026-10-21
+
+The deployed site was checked before asking the owner: run 39695134599, iPad
+(gen 6) WebKit against the live URL, `version.txt` = `e171843`. It found Flow 4,
+Second Wind 4 and Gravity 12 narrative sentences, the explanation blocks
+present, the edge marked, and Metrics in view when selected.
+
+The owner then confirmed it on their own iPad: "Confirmed".
+
+Remaining, stated to the owner and not filed as defects:
+
+- Tactical Lock draws nothing because no source records restarts below the
+  minute.
+- The tab shows committed sample captures, not today's games.
