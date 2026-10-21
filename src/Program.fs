@@ -650,6 +650,44 @@ let private wireTabs () =
             | null -> None
             | node -> Some node)
 
+    /// THE STRIP SCROLLS SIDEWAYS, AND NOW SAYS SO.
+    ///
+    /// At 390px the eleven tabs are 917px wide in a 351px strip: Metrics sits at
+    /// x=790 and Verify past it. The scroller is the Viewport spec's prescribed
+    /// treatment (see `.tabs` in index.html), but its scrollbar is hidden, so
+    /// nothing said the row went on. On 2026-10-21 the owner reported Metrics
+    /// as "non-selectable" on a phone. `data-more-left` / `data-more-right` mark
+    /// which edges have tabs past them, and the CSS fades those edges.
+    let markEdges () =
+        match document.querySelector ".tabs" with
+        | null -> ()
+        | node ->
+            let s = node :?> Browser.Types.HTMLElement
+            let mark name on =
+                if on then s.setAttribute (name, "") else s.removeAttribute name
+            // 1px of slack: scrollLeft is fractional at non-integer zoom.
+            mark "data-more-left" (s.scrollLeft > 1.0)
+            mark "data-more-right" (s.scrollLeft + s.clientWidth < s.scrollWidth - 1.0)
+
+    /// Bring the selected tab fully into the strip's view, clear of the fade.
+    ///
+    /// HORIZONTAL ONLY, by setting `scrollLeft` on the strip. `scrollIntoView`
+    /// would also move the page vertically, and tab-check asserts that stepping
+    /// tabs leaves `scrollY` alone. `.tabs` is sticky, so it is the offsetParent
+    /// of its buttons and `offsetLeft` is measured from its own edge.
+    let reveal (target: Browser.Types.HTMLElement) =
+        match document.querySelector ".tabs" with
+        | null -> ()
+        | node ->
+            let s = node :?> Browser.Types.HTMLElement
+            // The width of the fade in index.html (2.5rem at 16px).
+            let fade = 40.0
+            let left = target.offsetLeft
+            let right = left + target.offsetWidth
+            if left - fade < s.scrollLeft then s.scrollLeft <- max 0.0 (left - fade)
+            elif right + fade > s.scrollLeft + s.clientWidth then s.scrollLeft <- right + fade - s.clientWidth
+            markEdges ()
+
     /// `focusIt` is false when the selection comes from the URL rather than
     /// from the user — on boot, and on back/forward. Focusing then would steal
     /// focus from wherever the reader actually is and scroll the tab strip,
@@ -676,6 +714,7 @@ let private wireTabs () =
         // actually means. The tab is view state: addressable, not a step.
         window.history.replaceState (null, "", window.location.pathname + withTab window.location.search (slugOf target.id))
         syncTitle ()
+        reveal target
         if focusIt then target.focus ()
 
     let select = selectWith true
@@ -697,6 +736,15 @@ let private wireTabs () =
             match tabs () |> List.tryFind (fun t -> t.id = want) with
             | Some t -> selectWith false t
             | None -> ()   // an unknown slug leaves the current surface alone
+
+    // The edges change when the strip scrolls, when the viewport resizes, and
+    // when the web font lands and the tabs change width.
+    match document.querySelector ".tabs" with
+    | null -> ()
+    | strip -> strip.addEventListener ("scroll", fun _ -> markEdges ())
+    window.addEventListener ("resize", fun _ -> markEdges ())
+    window.addEventListener ("load", fun _ -> markEdges ())
+    markEdges ()
 
     for tab in tabs () do
         tab.addEventListener ("click", fun _ -> select tab)

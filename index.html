@@ -85,6 +85,24 @@
     border-bottom: 1px solid var(--edge-strong);
   }
   .tabs::-webkit-scrollbar { display: none; }
+  /* THE HIDDEN SCROLLBAR LEFT NO SIGN THE ROW WENT ON. At 390px, eleven tabs are
+     917px in a 351px strip, and Metrics and Verify sat wholly off the right
+     edge. Reported 2026-10-21 as "non-selectable". Program.fs `markEdges` sets
+     these attributes from the strip's scroll position; the fade says "more
+     this way" in the place the eye is already looking. 2.5rem matches `fade`
+     in `reveal`, which scrolls a selected tab clear of it. */
+  .tabs[data-more-right] {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+            mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);
+  }
+  .tabs[data-more-left] {
+    -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent);
+            mask-image: linear-gradient(to left, #000 calc(100% - 2.5rem), transparent);
+  }
+  .tabs[data-more-left][data-more-right] {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+            mask-image: linear-gradient(to right, transparent, #000 2.5rem, #000 calc(100% - 2.5rem), transparent);
+  }
   .tabs button {
     scroll-snap-align: start; flex: 0 0 auto;
     font: inherit; font-size: .8rem; letter-spacing: .04em;

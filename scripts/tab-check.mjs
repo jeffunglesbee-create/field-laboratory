@@ -405,5 +405,62 @@ check('stepping a day returns to the top of the slate',
 
 check('no page errors during any of this', failures.length === 0, failures.join(' | '))
 
+// --- the strip at phone width ------------------------------------------------
+//
+// Reported 2026-10-21: on a phone the Metrics tab was "non-selectable". At 390px
+// the eleven tabs are 917px in a 351px strip with its scrollbar hidden, so
+// Metrics and Verify sat wholly off the right edge and nothing said the row
+// went on. Program.fs `markEdges` marks the edges that have tabs past them (the
+// CSS fades them), and `reveal` scrolls a selected tab into the strip's view.
+
+// Its own page at an explicit desktop size: `page` above has had its viewport
+// shrunk for the scroll test, so it is not a desktop by this point.
+const desk = await browser.newPage({ viewport: { width: 1280, height: 800 } })
+await desk.goto(URL_BASE, { waitUntil: 'networkidle' })
+const wideEdges = await desk.$eval('.tabs', s =>
+  [s.hasAttribute('data-more-left'), s.hasAttribute('data-more-right'), s.scrollWidth - s.clientWidth])
+await desk.close()
+check('at desktop width every tab is in view, and no edge is marked',
+  wideEdges[2] <= 0 && !wideEdges[0] && !wideEdges[1], JSON.stringify(wideEdges))
+
+const PHONE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }
+const phone = await browser.newPage(PHONE)
+phone.on('pageerror', e => failures.push(String(e)))
+await phone.goto(URL_BASE, { waitUntil: 'networkidle' })
+const edgesAt = () => phone.$eval('.tabs', s => ({
+  left: s.hasAttribute('data-more-left'), right: s.hasAttribute('data-more-right'),
+  mask: getComputedStyle(s).webkitMaskImage || getComputedStyle(s).maskImage,
+  overflow: s.scrollWidth - s.clientWidth,
+}))
+const atLoad = await edgesAt()
+check('at 390px the strip overflows (otherwise the phone checks below prove nothing)',
+  atLoad.overflow > 0, JSON.stringify(atLoad))
+check('at 390px on load, the right edge is marked and the left is not',
+  atLoad.right && !atLoad.left, JSON.stringify(atLoad))
+check('...and the marked edge is actually faded',
+  atLoad.mask && atLoad.mask !== 'none', JSON.stringify(atLoad))
+
+// The reported case: open the Metrics tab directly, as a link would.
+await phone.goto(URL_BASE + (URL_BASE.includes('?') ? '&' : '?') + 'tab=metrics', { waitUntil: 'networkidle' })
+const metricsInView = await phone.$eval('#tab-metrics', t => {
+  const s = t.closest('.tabs').getBoundingClientRect(), r = t.getBoundingClientRect()
+  return { tabLeft: r.left, tabRight: r.right, stripLeft: s.left, stripRight: s.right,
+           selected: t.getAttribute('aria-selected') }
+})
+check('at 390px, ?tab=metrics selects Metrics AND scrolls it fully into the strip',
+  metricsInView.selected === 'true' &&
+  metricsInView.tabLeft >= metricsInView.stripLeft && metricsInView.tabRight <= metricsInView.stripRight,
+  JSON.stringify(metricsInView))
+check('...and with tabs now past both edges, both edges are marked',
+  (await edgesAt()).left && (await edgesAt()).right, JSON.stringify(await edgesAt()))
+
+// A swipe to the end: the right edge must clear, or the fade lies about the row.
+await phone.$eval('.tabs', s => { s.scrollLeft = s.scrollWidth })
+await phone.waitForTimeout(300)
+const atEnd = await edgesAt()
+check('scrolled to the end, the right edge is no longer marked',
+  !atEnd.right && atEnd.left, JSON.stringify(atEnd))
+await phone.close()
+
 await browser.close()
 finish(summarize())

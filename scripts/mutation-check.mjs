@@ -451,6 +451,41 @@ const MUTATIONS = [
     expect: "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
   },
   {
+    // Reported 2026-10-21: Metrics "non-selectable" on a phone, wholly off the
+    // right edge of a strip whose scrollbar is hidden. A link to ?tab=metrics
+    // must bring the tab into view.
+    id: 'tab-strip-no-reveal',
+    file: 'src/Program.fs',
+    claim: 'a selected tab is scrolled fully into the strip at phone width',
+    find: '        reveal target\n',
+    replace: '',
+    expect: "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
+  },
+  {
+    id: 'tab-strip-right-edge-unmarked',
+    file: 'src/Program.fs',
+    claim: 'a strip with tabs past its right edge says so',
+    find: 'mark "data-more-right" (s.scrollLeft + s.clientWidth < s.scrollWidth - 1.0)',
+    replace: 'mark "data-more-right" false',
+    expect: "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
+  },
+  {
+    id: 'tab-strip-edges-stale-on-scroll',
+    file: 'src/Program.fs',
+    claim: 'the edge marks follow the strip as it scrolls',
+    find: '    | strip -> strip.addEventListener ("scroll", fun _ -> markEdges ())',
+    replace: '    | strip -> ()',
+    expect: "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
+  },
+  {
+    id: 'tab-strip-fade-unstyled',
+    file: 'index.html',
+    claim: 'a marked edge is visibly faded',
+    find: '.tabs[data-more-right] {\n    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);\n            mask-image: linear-gradient(to right, #000 calc(100% - 2.5rem), transparent);\n  }',
+    replace: '.tabs[data-more-right] { }',
+    expect: "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',
