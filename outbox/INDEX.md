@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e74c69a` | 2026-10-21 | [cc-session-2026-10-21-zone-proof-overreach.md](cc-session-2026-10-21-zone-proof-overreach.md) | docs: ZONE-PROOF session doc: correct the gate-attempt count and one garbled sentence |
+| `3029f62` | 2026-10-21 | [cc-session-2026-10-21-zone-proof-overreach.md](cc-session-2026-10-21-zone-proof-overreach.md) | docs: ZONE-PROOF fix: gate 530/530, landed; the single-lane gate noted |
+| `e9a5d5b` | 2026-10-21 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8b70ed9 [skip ci] |
+| `c718186` | 2026-10-21 | [cc-session-2026-10-21-zone-proof-overreach.md](cc-session-2026-10-21-zone-proof-overreach.md) | docs: ZONE-PROOF no longer says the 18-game slate ruled out UTC |
+| `193553a` | 2026-10-21 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-21T21:58 [skip ci] |
+| `dafd5f1` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | docs: Metrics plain English and tab strip landed; run ids and iPad results |
+| `dc00300` | 2026-10-21 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1a893de` | 2026-10-21 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 72c43f9 [skip ci] |
 | `6984d20` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | feat: finished-game narrative on the Metrics tab, per the owner's ADR-002 amendment |
 | `6984d20` | 2026-10-21 | [metrics-tab-latest.png](metrics-tab-latest.png) | feat: finished-game narrative on the Metrics tab, per the owner's ADR-002 amendment |
