@@ -1,0 +1,73 @@
+name: venue source
+
+# Geocode venue names from public sources and decide which points to trust.
+# docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md, Task 1.
+#
+# ON A RUNNER because this sandbox's proxy does not reach the geocoder hosts, and
+# "cannot be tested here" is not a reason when a runner exists. No build: the
+# script reads src/Venues.fs as text and imports nothing from build/.
+#
+# Public-service etiquette, replicated from field-playground's probe (API-COST-A,
+# the Nominatim usage policy): a User-Agent that names this repo, at most one
+# Nominatim request a second, and a committed cache (outbox/venue-source-cache.json)
+# so a re-run asks nothing it already knows. Only successful answers are cached.
+#
+# The commit step uses the push-then-verify-it-landed shape that verify's
+# "Every push-retry loop verifies the push landed" step requires of every
+# push-retry loop in this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'calibrate (the 109 table venues, truth known) or source (a list)'
+        required: true
+        type: choice
+        options: [calibrate, source]
+        default: calibrate
+      list:
+        description: 'For source mode: path to a JSON list of names, in the repo'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  venue-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install
+        run: npm ci
+
+      - name: The rule, with no network
+        run: node scripts/venue-source.mjs --self-test
+
+      - name: Calibrate against the hand-reviewed table
+        if: inputs.mode == 'calibrate'
+        run: node scripts/venue-source.mjs --calibrate
+
+      - name: Commit what was written
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-cache.json; do
+            if [ -e "$p" ]; then git add "$p"; fi
+          done
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "data: venue sourcing (run $GITHUB_RUN_ID) [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
