@@ -72,6 +72,17 @@ let private failed (body: HTMLElement) (reason: string) =
     let p = child body (el "p" "mx-error" (sprintf "Not drawn: %s" reason))
     p.setAttribute ("data-state", "fetch-failed")
 
+/// Plain English for a section: what the metric measures and how to read its
+/// marks (owner, 2026-10-21: "none of these display in plain English"). These
+/// are DEFINITIONS AND LEGENDS, the same for every row. They never say which
+/// state a named player or team is in: under ADR-002 as amended 2026-10-15
+/// that stays in geometry, opacity and the accessible name. The owner chose
+/// this over showing the state lines, which would amend that ruling.
+let private explain (parent: HTMLElement) (heading: string) (paragraphs: string list) =
+    child parent (el "p" "mx-explain-head" heading) |> ignore
+    for text in paragraphs do
+        child parent (el "p" "mx-explain" text) |> ignore
+
 // --- Flow ---------------------------------------------------------------------
 
 type private FlowSubject =
@@ -117,8 +128,22 @@ let private flowStrip (parent: HTMLElement) (finished: Flow.Finished option) (su
             cell.setAttribute ("style", Flow.pulseStyle f side at)
             cell.setAttribute ("aria-label", sprintf "Minute %d, %s: %s" minute sideName (Flow.ariaLabel f side at))
 
+/// The two team names, from the match's own BSD event row.
+let private homeAndAway (row: string) =
+    Thoth.Json.Decode.fromString
+        (Thoth.Json.Decode.map2 (fun h a -> h, a)
+            (Thoth.Json.Decode.field "home_team" Thoth.Json.Decode.string)
+            (Thoth.Json.Decode.field "away_team" Thoth.Json.Decode.string))
+        row
+
 let private loadFlow (body: HTMLElement) =
     promise {
+        explain body "What it measures" [
+            "Whether a team strings attacks together. A team is in flow once it takes three shots that each had some chance of scoring (an expected-goals value, xG, above zero) without the opponent taking a shot in between. Any opponent shot ends the run. A minute in which both teams shot ends it too, because the order of shots inside a minute is not recorded."
+            "It counts shots only. Possession that never produced a shot does not show here." ]
+        explain body "How to read it" [
+            "Each match has two strips, home on top and away below, with one cell per minute from the 1st on the left to the 90th on the right."
+            "A lit cell is a minute in which that team was in flow. The brighter the cell, the more xG the team had built up in that unbroken run, reaching full brightness at 1.0 xG (one goal's worth of chances). A dark cell is a minute in which it was not." ]
         for s in flowSubjects do
             let block = child body (el "div" "mx-flow-subject" "")
             block.setAttribute ("data-subject", s.Key)
@@ -126,6 +151,9 @@ let private loadFlow (body: HTMLElement) =
             let! stats = get s.Stats
             let! incidents = get s.Incidents
             let! row = get s.EventRow
+            match row |> Result.bind homeAndAway with
+            | Ok(home, away) -> child block (el "p" "mx-flow-teams" (sprintf "Home: %s. Away: %s." home away)) |> ignore
+            | Error _ -> ()
             match stats, incidents, row with
             | Ok stats, Ok incidents, Ok row ->
                 let capture = Flow.decodeCapture stats (Some incidents)
@@ -153,7 +181,35 @@ let private secondWindStates = [ "Insufficient"; "PopulationRate"; "SecondWind";
 type private Game =
     { Id: int
       Witness: Stamina.FinishedGame option
-      Players: Stamina.PlayerGame list }
+      Players: Stamina.PlayerGame list
+      /// "Nick Foligno (CHI)" by player id, and "CHI at FLA, 2025-10-07".
+      /// Identifiers read from the game's own play-by-play, not a metric.
+      Names: Map<int, string>
+      Matchup: string }
+
+/// Names and the matchup from the NHL play-by-play's rosterSpots, awayTeam,
+/// homeTeam and gameDate. A field that does not read leaves the id in place.
+let private namesOf (pbpText: string) : Map<int, string> * string =
+    let str path = Thoth.Json.Decode.at path Thoth.Json.Decode.string
+    let team = Thoth.Json.Decode.map2 (fun (id: int) (abbrev: string) -> id, abbrev) (Thoth.Json.Decode.field "id" Thoth.Json.Decode.int) (str [ "abbrev" ])
+    let spot =
+        Thoth.Json.Decode.map4 (fun (pid: int) (teamId: int) first last -> pid, teamId, first + " " + last)
+            (Thoth.Json.Decode.field "playerId" Thoth.Json.Decode.int)
+            (Thoth.Json.Decode.field "teamId" Thoth.Json.Decode.int)
+            (str [ "firstName"; "default" ])
+            (str [ "lastName"; "default" ])
+    let game =
+        Thoth.Json.Decode.map4 (fun spots away home date -> spots, away, home, date)
+            (Thoth.Json.Decode.field "rosterSpots" (Thoth.Json.Decode.list spot))
+            (Thoth.Json.Decode.field "awayTeam" team)
+            (Thoth.Json.Decode.field "homeTeam" team)
+            (Thoth.Json.Decode.field "gameDate" Thoth.Json.Decode.string)
+    match Thoth.Json.Decode.fromString game pbpText with
+    | Ok(spots, (awayId, away), (homeId, home), date) ->
+        let abbrev teamId = if teamId = awayId then away elif teamId = homeId then home else "?"
+        (spots |> List.map (fun (pid, teamId, name) -> pid, sprintf "%s (%s)" name (abbrev teamId)) |> Map.ofList),
+        sprintf "%s at %s, %s" away home date
+    | Error _ -> Map.empty, ""
 
 /// Fetch with a bounded number in flight, preserving order.
 let private getAll (paths: string list) : JS.Promise<Result<string, string> list> =
@@ -192,6 +248,13 @@ let private staminaTrack (parent: HTMLElement) (mark: Stamina.Mark) (label: stri
 
 let private loadSecondWind (body: HTMLElement) =
     promise {
+        explain body "What it measures" [
+            "Whether a skater shoots more, or less, late in his own ice time than players usually do. His regulation ice time in a game is split into thirds, and his shot attempts (goals, shots on goal, missed shots and blocked shots) in the first third are compared with those in the last third."
+            "The norm comes from every skater-game in this capture, worked out separately for players with under 12, 12 to 18, and over 18 minutes of ice time."
+            "Each skater-game lands in one of four outcomes. Second wind: clearly more of his attempts came in the last third than the norm. Trailing rate: clearly fewer. Population rate: within the normal range. Insufficient: too few attempts to tell. \"Clearly\" means a split that luck would produce less than 2.5% of the time." ]
+        explain body "How to read it" [
+            "Each bar runs from 0% on the left to 100% on the right: the share of his attempts that came in the last third. The thin white line is the norm for his ice-time group. The thick teal mark is his own share."
+            "A bright teal mark is a clear difference from the norm, either way. A faint one is within the normal range. An empty bar means too few attempts to place a mark at all." ]
         let status = child body (el "p" "mx-stated" "Fetching the 328 committed games…")
         let! manifest = get (populationDir + "/MANIFEST.json")
         match manifest with
@@ -211,7 +274,9 @@ let private loadSecondWind (body: HTMLElement) =
                         match Stamina.staminaPlayByPlay pbpText, Stamina.staminaShifts shiftsText with
                         | Ok pbp, Ok chart ->
                             match Stamina.staminaPlayerGames pbp chart with
-                            | Ok windowed -> Some { Id = id; Witness = Stamina.staminaWitness pbp chart; Players = windowed.Players }
+                            | Ok windowed ->
+                                let names, matchup = namesOf pbpText
+                                Some { Id = id; Witness = Stamina.staminaWitness pbp chart; Players = windowed.Players; Names = names; Matchup = matchup }
                             | Error _ -> None
                         | _ -> None
                     | _ -> None)
@@ -231,11 +296,11 @@ let private loadSecondWind (body: HTMLElement) =
                             g.Players
                             |> List.choose (fun pg ->
                                 match Stamina.staminaLabel curve w pg.Player, Stamina.staminaMark curve w pg.Player with
-                                | Some label, Some mark -> Some(g.Id, pg.Player, label, mark)
+                                | Some label, Some mark -> Some(g, pg.Player, label, mark)
                                 | _ -> None))
                 let count st = readings |> List.filter (fun (_, _, l, _) -> stateOf l = Some st) |> List.length
                 status.textContent <-
-                    sprintf "%d of %d games decoded; %d skater-games read: %d Insufficient, %d PopulationRate, %d SecondWind, %d TrailingRate. One subject of each, the first in game order:"
+                    sprintf "%d of %d games read (every fourth regular-season game of 2025-26), %d skater-games in all: %d with too few attempts to tell, %d within the normal range, %d with a second wind and %d with a trailing rate. Below is one example of each outcome, taken from the first game in which it occurs. Which is which is read from the marks, as described above."
                         (List.length games) (List.length ids) (List.length readings)
                         (count "Insufficient") (count "PopulationRate") (count "SecondWind") (count "TrailingRate")
                 for st in secondWindStates do
@@ -243,10 +308,12 @@ let private loadSecondWind (body: HTMLElement) =
                     | None ->
                         let p = child body (el "p" "mx-error" "Not drawn: no skater-game in the population reads this way.")
                         p.setAttribute ("data-state", "absent")
-                    | Some(gameId, player, label, mark) ->
+                    | Some(game, player, label, mark) ->
                         let row = child body (el "div" "mx-subject" "")
-                        child row (el "span" "mx-play-id" (sprintf "Game %d, player %d" gameId player)) |> ignore
-                        staminaTrack row mark (sprintf "Game %d, player %d: %s" gameId player label)
+                        let who = game.Names |> Map.tryFind player |> Option.defaultValue (sprintf "Player %d" player)
+                        let where = if game.Matchup = "" then sprintf "game %d" game.Id else game.Matchup
+                        child row (el "span" "mx-play-id" (sprintf "%s, %s" who where)) |> ignore
+                        staminaTrack row mark (sprintf "Game %d, player %d: %s" game.Id player label)
     }
 
 // --- Gravity Well -------------------------------------------------------------
@@ -267,8 +334,35 @@ let private shapeClass (shape: Gravity.Shape) =
     | Gravity.Steady -> "steady"
     | Gravity.Contracting -> "contracting"
 
+/// Offense and defense team per play, from the frames' own `team` and `side`.
+let private teamsOf (text: string) : Map<int * int, string * string> =
+    let player = Thoth.Json.Decode.map2 (fun (t: string) (s: string) -> t, s) (Thoth.Json.Decode.field "team" Thoth.Json.Decode.string) (Thoth.Json.Decode.field "side" Thoth.Json.Decode.string)
+    let row =
+        Thoth.Json.Decode.map3 (fun (g: int) (p: int) players -> (g, p), players)
+            (Thoth.Json.Decode.field "gameId" Thoth.Json.Decode.int)
+            (Thoth.Json.Decode.field "playId" Thoth.Json.Decode.int)
+            (Thoth.Json.Decode.field "players" (Thoth.Json.Decode.list player))
+    match Thoth.Json.Decode.fromString (Thoth.Json.Decode.field "data" (Thoth.Json.Decode.list row)) text with
+    | Error _ -> Map.empty
+    | Ok rows ->
+        rows
+        |> List.choose (fun (key, players) ->
+            let on side = players |> List.tryFind (fun (_, s) -> s = side) |> Option.map fst
+            match on "offense", on "defense" with
+            | Some o, Some d -> Some(key, (o, d))
+            | _ -> None)
+        |> List.distinctBy fst
+        |> Map.ofList
+
 let private loadGravity (body: HTMLElement) =
     promise {
+        explain body "What it measures" [
+            "Whether a receiver pulls defenders toward him during a pass play. For each receiver running a route, it counts the coverage defenders whose nearest route runner is him, once at the snap and again when the ball is thrown, and looks at the change."
+            "It is not adjusted for position, and position matters: in this capture tight ends on average lost defenders between the snap and the throw while running backs gained them (outbox/gravity-census-latest.json). So compare the receivers within one play rather than across plays or positions." ]
+        explain body "How to read it" [
+            "Each row is one play, and each mark is one receiver on it, with his position listed after the marks in the same order."
+            "Circle: more defenders on him at the throw than at the snap. Square: the same number. Diamond: fewer. The fill is the size of the change, as a share of the play's coverage defenders: an empty outline means no change and a full one means every coverage defender."
+            "A dashed outline is an eligible receiver who was not running a route past the line when the ball was thrown, so there is nothing to measure for him." ]
         let! text = get framesPath
         match text, namedSeason with
         | Error e, _ -> failed body e
@@ -287,15 +381,20 @@ let private loadGravity (body: HTMLElement) =
                     let routeRunners = census.ByPos |> Array.sumBy (fun t -> t.DrawingCount + t.LevelCount + t.CedingCount + t.NotRouteRunnerCount)
                     let unencoded = census.ByPos |> Array.sumBy (fun t -> t.NotRouteRunnerCount)
                     let plays = measured |> List.filter (fun m -> match m.Result with Gravity.Measured _ -> true | Gravity.Unmeasured _ -> false) |> List.truncate shownPlays
-                    child body (el "p" "mx-stated" (sprintf "Showing %d of the capture's %d plays, the first %d measured in file order (%d measured). Not ranked: drawn is read within a play, and a tight end's expectation sits below a running back's." (List.length plays) census.Plays shownPlays census.MeasuredPlays)) |> ignore
-                    child body (el "p" "mx-stated" (sprintf "%d of %d receivers carry no encoding: not route runners on that play. They are drawn as a dashed outline, which is not the mark of a receiver who drew nothing." unencoded routeRunners)) |> ignore
+                    let teams = teamsOf text
+                    child body (el "p" "mx-stated" (sprintf "Showing %d of the capture's %d plays: the first %d that could be measured, in file order (%d of the %d could be). They are not ranked." (List.length plays) census.Plays shownPlays census.MeasuredPlays census.Plays)) |> ignore
+                    child body (el "p" "mx-stated" (sprintf "Across the capture, %d of %d receiver places were not running a route when the ball was thrown, and are drawn dashed." unencoded routeRunners)) |> ignore
                     for m in plays do
                         match m.Result with
                         | Gravity.Unmeasured _ -> ()
                         | Gravity.Measured receivers ->
                             let row = child body (el "div" "mx-play" "")
                             row.setAttribute ("data-play", sprintf "%d-%d" m.GameId m.PlayId)
-                            child row (el "span" "mx-play-id" (sprintf "Game %d, play %d" m.GameId m.PlayId)) |> ignore
+                            let label =
+                                match teams |> Map.tryFind (m.GameId, m.PlayId) with
+                                | Some(offense, defense) -> sprintf "%s offense v %s, play %d" offense defense m.PlayId
+                                | None -> sprintf "Game %d, play %d" m.GameId m.PlayId
+                            child row (el "span" "mx-play-id" label) |> ignore
                             for r in receivers do
                                 let name = Gravity.accessibleName archived m.GameId m.PlayId r.NflId |> Option.defaultValue "No reading for this receiver"
                                 let mark = child row (el "span" "mx-well" "")
@@ -306,6 +405,7 @@ let private loadGravity (body: HTMLElement) =
                                     mark.setAttribute ("data-well", shapeClass enc.Shape)
                                     mark.setAttribute ("style", sprintf "--mx-fill: %.3f" enc.Opacity)
                                 | None -> mark.setAttribute ("data-well", "unencoded")
+                            child row (el "span" "mx-play-pos" (receivers |> List.map (fun r -> r.Pos) |> String.concat " · ")) |> ignore
                 | _ ->
                     // A season mismatch is its own state, not an empty section.
                     let reason =
@@ -321,9 +421,11 @@ let private loadGravity (body: HTMLElement) =
 // --- Tactical Lock ------------------------------------------------------------
 
 let private tacticalLockText (body: HTMLElement) =
-    let p (text: string) = child body (el "p" "mx-stated" text) |> ignore
-    p "Built and proven (docs/LOCK-PROOF.md, docs/AMNESTY-PROOF.md). Not drawn: 132,798 team windows were classified, and every one is active play left unmeasured."
-    p "The reason is the source, not the metric: no capture clocks a restart below the minute, so no window can show a lock or its absence. A single sample mark would imply the others differ, so none is drawn."
+    explain body "What it measures" [
+        "Whether a team shut the opponent out of good chances over a stretch of play: in a window, both the opponent's total xG and its single best chance stay under fixed bars." ]
+    explain body "Why nothing is drawn" [
+        "The data cannot answer it yet. Time when the ball is dead has to be left out of a window, or a stoppage would look like the defence shutting the opponent down. That needs the moments play restarts (a throw-in, a goal kick, a foul) and a clock finer than the minute, and the captures carry neither. So all 132,798 team windows came out as active play that could not be measured."
+        "Drawing a sample mark would suggest the other windows differ, so none is drawn. The metric itself is built and proven (docs/LOCK-PROOF.md, docs/AMNESTY-PROOF.md) and waits on a source that records restarts." ]
 
 // --- the panel ----------------------------------------------------------------
 
@@ -332,6 +434,7 @@ let load (mount: HTMLElement) : JS.Promise<unit> =
         mount.innerHTML <- ""
         let panel = child mount (el "div" "mx-panel" "")
         child panel (el "h2" "" "Metrics") |> ignore
+        child panel (el "p" "mx-explain" "Four ways of reading a game beyond the score. Open a section: each says what it measures and how to read its marks.") |> ignore
         child panel (el "p" "mx-provenance mx-provenance--top" "Committed captures, named below, not today's slate. Each section says which capture it reads and when that capture was taken.") |> ignore
         let flow, flowBody =
             section panel "flow" "Flow (soccer)" "Captures: data/bsd-flow-finished-* (Bundesliga 213708, 2026-10-10) and data/bsd-flow-inplay-* (Europa 601226, 2026-10-15), with each match's BSD event row (data/bsd-flow-event-*.json, captured 2026-10-18)." (fun _ -> ())

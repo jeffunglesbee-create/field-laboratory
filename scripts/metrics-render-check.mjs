@@ -98,7 +98,27 @@ export const PREDICATES = {
 
   'every drawn node carries a non-empty accessible name': s => [
     s.imgNodes > 0 && s.imgNodesUnnamed === 0, `${s.imgNodesUnnamed} of ${s.imgNodes} role=img nodes unnamed`],
+
+  // Owner, 2026-10-21: "none of these display in plain English". Every section
+  // says what it measures and how to read it (or, for Tactical Lock, why
+  // nothing is drawn), in paragraphs long enough to be sentences.
+  'every section says in plain English what it measures and how to read it': s => {
+    const second = { 'tactical-lock': 'Why nothing is drawn' }
+    const bad = EXPLAINED.filter(key => {
+      const e = s.explained.find(x => x.key === key)
+      return !e || e.heads[0] !== 'What it measures' || e.heads[1] !== (second[key] || 'How to read it')
+        || e.paras.length < 2 || e.paras.some(n => n < 40)
+    })
+    return [bad.length === 0, `missing or thin: ${JSON.stringify(bad)}; ${JSON.stringify(s.explained)}`]
+  },
+
+  'rows name players, teams and positions rather than bare ids': s => [
+    s.rows.secondWind.length === 4 && s.rows.secondWind.every(l => /^\S.* \([A-Z]{2,3}\), [A-Z]{2,3} at [A-Z]{2,3}, \d{4}-\d{2}-\d{2}$/.test(l))
+      && s.rows.gravity.length > 0 && s.rows.gravity.every(r => /^[A-Z]{2,3} offense v [A-Z]{2,3}, play \d+$/.test(r.label) && r.positions === r.marks),
+    JSON.stringify({ secondWind: s.rows.secondWind, gravity: s.rows.gravity.slice(0, 2) })],
 }
+
+export const EXPLAINED = ['flow', 'second-wind', 'gravity', 'tactical-lock']
 
 /** A snapshot that holds every predicate, for the self-test. */
 export const goodSnapshot = () => {
@@ -124,6 +144,13 @@ export const goodSnapshot = () => {
       marks: [{ well: 'steady', style: '--mx-fill: 0.250' }, { well: 'expanding', style: '--mx-fill: 0.500' }, { well: 'unencoded', style: '' }],
     },
     ariaLabels: ['Minute 1, home: InFlow state active, sequential xG 0.42'],
+    explained: ['flow', 'second-wind', 'gravity', 'tactical-lock'].map(key => ({
+      key, heads: ['What it measures', key === 'tactical-lock' ? 'Why nothing is drawn' : 'How to read it'], paras: [120, 90] })),
+    rows: {
+      secondWind: ['Nick Foligno (CHI), CHI at FLA, 2025-10-07', 'Brad Marchand (FLA), CHI at FLA, 2025-10-07',
+                   'Alex Ovechkin (WSH), VAN at WSH, 2025-10-19', 'Ross Colton (COL), NJD at COL, 2025-10-28'],
+      gravity: [{ label: 'KC offense v LAC, play 118', marks: 5, positions: 5 }],
+    },
     innerText: 'Metrics Committed captures, named below, not today\'s slate.',
     imgNodes: 5, imgNodesUnnamed: 0,
   }
@@ -144,6 +171,8 @@ export const MUTATIONS = {
   'an unencoded receiver has its own mark, distinct from every encoded shape': s => { s.gravity.marks = s.gravity.marks.filter(m => m.well !== 'unencoded') },
   'no accessible name, and no state phrase, appears in the panel\'s visible text': s => { s.innerText += ' InFlow state active, sequential xG 0.42' },
   'every drawn node carries a non-empty accessible name': s => { s.imgNodesUnnamed = 1 },
+  'every section says in plain English what it measures and how to read it': s => { s.explained = s.explained.filter(e => e.key !== 'gravity') },
+  'rows name players, teams and positions rather than bare ids': s => { s.rows.secondWind[2] = 'Game 2025020089, player 8471214' },
 }
 
 const judge = (snapshot, check) => {
@@ -232,6 +261,17 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   }
   s.tacticalLock = await sectionOf('tactical-lock')
   s.ariaLabels = await page.$$eval(`${panel} [aria-label]`, ns => ns.map(n => n.getAttribute('aria-label')))
+  s.explained = await page.$$eval(`${panel} details[data-metric]`, ds => ds.map(d => ({
+    key: d.dataset.metric,
+    heads: [...d.querySelectorAll('.mx-explain-head')].map(h => h.textContent),
+    paras: [...d.querySelectorAll('.mx-explain')].map(p => p.textContent.trim().length) })))
+  s.rows = {
+    secondWind: await page.$$eval(`${panel} [data-metric="second-wind"] .mx-subject .mx-play-id`, ns => ns.map(n => n.textContent)),
+    gravity: await page.$$eval(`${panel} [data-metric="gravity"] .mx-play`, rs => rs.map(r => ({
+      label: r.querySelector('.mx-play-id')?.textContent || '',
+      marks: r.querySelectorAll('.mx-well').length,
+      positions: (r.querySelector('.mx-play-pos')?.textContent || '').split(' · ').filter(Boolean).length }))),
+  }
   s.innerText = await page.$eval(panel, p => p.innerText)
   s.imgNodes = await page.$$eval(`${panel} [role="img"]`, ns => ns.length)
   s.imgNodesUnnamed = await page.$$eval(`${panel} [role="img"]`, ns => ns.filter(n => !(n.getAttribute('aria-label') || '').trim()).length)

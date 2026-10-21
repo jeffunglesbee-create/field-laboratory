@@ -486,6 +486,24 @@ const MUTATIONS = [
     expect: "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/tab-check.mjs",
   },
   {
+    // Owner, 2026-10-21: the Metrics tab showed labels, not plain English.
+    // A section that loses its explanation must turn the render check red.
+    id: 'metrics-gravity-unexplained',
+    file: 'src/MetricsView.fs',
+    claim: 'every Metrics section says what it measures and how to read it',
+    find: '        explain body "How to read it" [\n            "Each row is one play',
+    replace: '        explain body "How to reread it" [\n            "Each row is one play',
+    expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
+  },
+  {
+    id: 'metrics-second-wind-bare-ids',
+    file: 'src/MetricsView.fs',
+    claim: 'Second Wind rows name the player and the game, not bare ids',
+    find: '                        child row (el "span" "mx-play-id" (sprintf "%s, %s" who where)) |> ignore',
+    replace: '                        child row (el "span" "mx-play-id" (sprintf "Game %d, player %d" game.Id player)) |> ignore',
+    expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',
