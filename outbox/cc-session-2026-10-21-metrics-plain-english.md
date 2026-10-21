@@ -101,3 +101,29 @@ Results: 33/33 self-test, 17/17 live.
 **Also run:** F# suite 314/314, strict build 0 warnings, `check`, `check:hard`
 and `check:render-sports` 19/19 each, `check:nav` 25/25, `check:tabs` 61/61,
 `check:import-purity`, `check:unused`, `check:clean-source`.
+
+## Landed, 2026-10-21
+
+The commits were rebased onto main and pushed as `cd6a72e` (tab strip),
+`b3cd35f` (explanations) and `6984d20` (narrative). The gate-record commits
+followed: `1a893de` and `e171843`. The landed tree differs from the gated tree
+only in `STATUS.md`, an automated refresh.
+
+- **Gate:** 530/530 (`verify-full` run 39658086563, at `72c43f9`).
+- **Main:** `verify` 39672704001 green (dispatched by hand: the tip commit
+  carries the skip directive), deploy 39673292610 success, live-check
+  39673442863 success, all at `e171843`.
+
+**iPad, in real WebKit,** in the throwaway runs 39656177678 and 39657107897
+(Playwright's 12 iPad profiles, live against the fix):
+
+- **Live, before the fix:** in all 6 portrait sizes, Metrics was entirely
+  off-screen with no edge mark, and a `?tab=metrics` link left it out of view.
+  That reproduces the owner's report.
+- **With the fix:** all 6 portrait sizes mark and fade the edge, the link
+  brings Metrics into view, and a swipe then a tap selects it. The narratives
+  render (Flow 4, Gravity 12).
+
+**Noticed, not fixed, pre-existing:** on most iPad profiles, WebKit raises an
+uncaught page error when an Open-Meteo request fails, on the live site as well
+as with the fix. Put to the owner as a separate question.
