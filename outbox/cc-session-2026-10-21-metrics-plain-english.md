@@ -127,3 +127,31 @@ only in `STATUS.md`, an automated refresh.
 **Noticed, not fixed, pre-existing:** on most iPad profiles, WebKit raises an
 uncaught page error when an Open-Meteo request fails, on the live site as well
 as with the fix. Put to the owner as a separate question.
+
+## The WebKit "page error": measured, not a page defect (no code change)
+
+The owner said "yes" to looking at it. Three throwaway runner runs on the
+session branch, none on main:
+
+| run | condition | WebKit (iPad gen 6) | Chromium (Pixel 7) |
+|---|---|---|---|
+| 39690255638 | Open-Meteo answers | 4x 200, no error | 4x 200, no error |
+| 39690571280 | requests refused (`route.abort`) | 8x failed, **no page error** | 8x failed, console "Failed to load resource" |
+| 39690571280 | requests hang until the page's own timeout | 8x cancelled, **no page error** | 8x aborted, no error |
+| 39691027815 | requests hang or are slow, **then the page navigates** | 8x "Load request cancelled" + 8x `PAGEERROR` "Fetch API cannot load https://api.open-meteo.com/…" | no error |
+| 39691027815 | the live site, navigating three times | same as the row above | no error |
+
+**What it is.** WebKit reports a fetch cancelled by navigating away as an error
+event of the document being left, and Playwright surfaces that as `pageerror`.
+`WeatherView.fetchOne` already catches every rejection, including the timeout
+abort. A refused or hanging request on a page that stays open raises nothing.
+The earlier iPad probe (runs 39656177678, 39657107897) navigated every 2.5 s,
+which is where every occurrence came from.
+
+**Why no change.** The error belongs to a page that is being replaced. Nothing
+on the page a reader is looking at changes. The candidate fix, aborting
+in-flight requests on `pagehide`, would add code to suppress a log line on a
+document that no longer exists, with no reader-visible difference. If a future
+check runs WebKit with navigation and fails on `pageerror`, it should filter
+this one message by its measured shape ("Fetch API cannot load" + a cancelled
+load during navigation), and nothing broader.
