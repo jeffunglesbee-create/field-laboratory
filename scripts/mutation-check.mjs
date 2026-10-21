@@ -1876,6 +1876,34 @@ const MUTATIONS = [
     replace: 'if (false) {',
     expect: `bash -c '! node scripts/mutation-check.mjs --only no-such-mutation-id'`,
   },
+  // --- venue sourcing, docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md: scripts/venue-source.mjs ---
+  {
+    // Nominatim and Photon read the same data; agreeing with itself is one witness.
+    id: 'venue-source-one-family-accepted',
+    file: 'scripts/venue-source.mjs',
+    claim: 'two OpenStreetMap front ends agreeing alone is not accepted',
+    find: 'FAMILY[a.source] !== FAMILY[b.source] && ',
+    replace: '',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // A wide threshold accepts a different city.
+    id: 'venue-source-threshold-widened',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a point just past the 0.02 degree threshold is not accepted',
+    find: 'export const EPS = 0.02',
+    replace: 'export const EPS = 0.2',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Close in latitude and 0.5 degrees apart in longitude is a different place.
+    id: 'venue-source-one-axis-only',
+    file: 'scripts/venue-source.mjs',
+    claim: 'closeness is judged on both axes, not latitude alone',
+    find: ' && Math.abs(a.lon - b.lon) <= eps + 1e-12',
+    replace: '',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
   // --- the outbox row on a scheduled run, docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md (option 1) ---
   {
     // Not applicable leaking past `schedule` turns a real miss into a quiet pass.
