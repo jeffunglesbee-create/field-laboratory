@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1a893de` | 2026-10-21 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 72c43f9 [skip ci] |
+| `6984d20` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | feat: finished-game narrative on the Metrics tab, per the owner's ADR-002 amendment |
+| `6984d20` | 2026-10-21 | [metrics-tab-latest.png](metrics-tab-latest.png) | feat: finished-game narrative on the Metrics tab, per the owner's ADR-002 amendment |
+| `b3cd35f` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | feat: Metrics tab explains each metric in plain English, with real names |
+| `cd6a72e` | 2026-10-21 | [cc-session-2026-10-21-tab-strip-phone.md](cc-session-2026-10-21-tab-strip-phone.md) | fix: the tab strip shows where tabs run off-screen and scrolls the selected one into view |
+| `cd6a72e` | 2026-10-21 | [tab-strip-390-load-2026-10-21.png](tab-strip-390-load-2026-10-21.png) | fix: the tab strip shows where tabs run off-screen and scrolls the selected one into view |
+| `cd6a72e` | 2026-10-21 | [tab-strip-390-metrics-2026-10-21.png](tab-strip-390-metrics-2026-10-21.png) | fix: the tab strip shows where tabs run off-screen and scrolls the selected one into view |
 | `6f7c9dc` | 2026-10-21 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-21 [skip ci] |
 | `6f7c9dc` | 2026-10-21 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-21 [skip ci] |
 | `275c284` | 2026-10-21 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-21T12:23 [skip ci] |
