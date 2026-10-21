@@ -862,6 +862,20 @@ intact for every other path.
 
 ---
 
+## Amendment — ruled 2026-10-21: finished-game narrative
+
+The owner amended "No narrative strings" for **finished or archived games**:
+> without a plain-English narrative the metrics are "largely, perhaps completely, useless".
+
+Recorded in jubilant-bassoon `docs/ADR-002-CONTEXT.md` ("Amendment 2026-10-21",
+commit `31a26bb`), on Defense 4: post-game content is outside the patents. Built
+as one sentence function per metric, behind the same witness as that metric's
+visual projection (`Flow.narrative`, `Stamina.staminaNarrative`,
+`Gravity.playNarrative`). The compiler refuses one without the witness
+(`docs/AMNESTY-PROOF.md` N1-N4). `metrics-render-check` checks every sentence
+against the module's accessible name. **Live is unchanged:** a game in progress
+has no witness, so it has no sentence.
+
 ## Done conditions
 
 1. Four probe artifacts in `outbox/`, `-latest` names, each stating its stop

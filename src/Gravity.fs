@@ -315,6 +315,50 @@ let accessibleName (archived: Archived) (gameId: int) (playId: int) (nflId: int)
         | Ceding p -> sprintf "Ceding state active, defenders drawn %d of %d" (drawnOf p) p.Coverage
         | NotRouteRunner -> "NotRouteRunner state active")
 
+/// Position labels for a play's receivers, in order, numbered where a position
+/// repeats ("WR1", "WR2"), so a sentence can say which one. Labelling, not a
+/// measurement: the page's position list uses the same labels.
+let receiverLabels (receivers: Receiver list) : string list =
+    let total pos = receivers |> List.filter (fun r -> r.Pos = pos) |> List.length
+    receivers
+    |> List.mapi (fun i r ->
+        if total r.Pos > 1 then
+            let nth = receivers |> List.take (i + 1) |> List.filter (fun q -> q.Pos = r.Pos) |> List.length
+            sprintf "%s%d" r.Pos nth
+        else
+            r.Pos)
+
+/// The archived-play narrative (ADR-002 amendment, owner 2026-10-21): for each
+/// receiver, the coverage defenders nearest him at the snap and at the throw,
+/// in the play's own receiver order, and who drew the most. Behind the same
+/// `Archived` witness as `encodeWell`, so a current season has no sentence.
+let playNarrative (Archived measured) (gameId: int) (playId: int) : string option =
+    measured
+    |> List.tryFind (fun m -> m.GameId = gameId && m.PlayId = playId)
+    |> Option.bind (fun m ->
+        match m.Result with
+        | Unmeasured _ -> None
+        | Measured receivers ->
+            let labelled = List.zip (receiverLabels receivers) receivers
+            let pulls = labelled |> List.choose (fun (label, r) -> match r.Well with Drawing p | Level p | Ceding p -> Some(label, p) | NotRouteRunner -> None)
+            let coverage = pulls |> List.tryHead |> Option.map (fun (_, p) -> p.Coverage)
+            let each =
+                labelled
+                |> List.map (fun (label, r) ->
+                    match r.Well with
+                    | Drawing p | Level p | Ceding p -> sprintf "%s %d → %d" label p.AtSnap p.AtRelease
+                    | NotRouteRunner -> sprintf "%s not running a route" label)
+                |> String.concat ", "
+            let most =
+                match pulls |> List.sortByDescending (fun (_, p) -> drawnOf p) with
+                | (pos, p) :: rest when drawnOf p > 0 && not (rest |> List.exists (fun (_, q) -> drawnOf q = drawnOf p)) ->
+                    sprintf " The %s drew the most, %d more at the throw than at the snap." pos (drawnOf p)
+                | (_, p) :: _ when drawnOf p > 0 -> sprintf " The most any receiver drew was %d more, shared." (drawnOf p)
+                | _ -> " No receiver drew more defenders at the throw than at the snap."
+            match coverage with
+            | None -> None
+            | Some c -> Some(sprintf "Coverage defenders nearest each receiver, at the snap → at the throw (%d in coverage): %s.%s" c each most))
+
 let private share (pull: Pull) : float =
     float (abs (drawnOf pull)) / float pull.Coverage
 

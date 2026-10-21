@@ -446,6 +446,43 @@ let pulseStyle (f: Finished) (side: Side) (at: Clock) : string =
     | State Disjointed -> ""
     | NoVerdict _ -> ""
 
+let private clockText (c: Clock) =
+    if c.Added > 0 then sprintf "%d+%d'" c.Minute c.Added else sprintf "%d'" c.Minute
+
+/// How a spell ended, in words. `Until` is the first minute no longer in flow.
+let private endedText (r: Run) =
+    match r.Closer with
+    | OpponentShot
+    | OpponentShotOfZeroXg -> sprintf "until an opponent shot at %s" (clockText r.Until)
+    | SharedMinute -> sprintf "until %s, a minute in which both teams shot" (clockText r.Until)
+    | PeriodEnd FirstHalf -> "to half-time"
+    | PeriodEnd SecondHalf -> "to full time"
+    | PeriodEnd ExtraFirst -> "to the end of extra time's first half"
+    | PeriodEnd ExtraSecond -> "to the end of extra time"
+    | CaptureEnd -> "to the end of the capture"
+
+/// The finished-match narrative (ADR-002 amendment, owner 2026-10-21): every
+/// spell a team was in flow, when it began (its third counted shot), how it
+/// ended, and its shots and xG. Behind the same witness as `ariaLabel` and
+/// `pulseStyle`, so a match in play has no sentence.
+let narrative (f: Finished) (side: Side) : string =
+    match f.Of.Shots with
+    | NoShotmap
+    | Unreadable _ -> "Flow was not read for this capture."
+    | Readable shots ->
+        let spells =
+            (passOf (sawFullTime f.Of) shots).Closed
+            |> List.filter (fun r -> r.Side = side && List.length r.Counted >= flowShots)
+            |> List.sortBy (fun r -> fst (List.item (flowShots - 1) r.Counted))
+        let spellText (r: Run) =
+            sprintf "from %s %s (%d shots, %.2f xG)"
+                (clockText (fst (List.item (flowShots - 1) r.Counted))) (endedText r)
+                (List.length r.Counted) (float (List.sumBy snd r.Counted / 1.0f<xg>))
+        match spells with
+        | [] -> "Never in flow: no run of three shots with xG above zero, unbroken by an opponent shot."
+        | [ one ] -> sprintf "In flow once, %s." (spellText one)
+        | many -> sprintf "In flow %d times: %s." (List.length many) (many |> List.map spellText |> String.concat "; ")
+
 /// Per-capture counts for the census. No team and no xG value: a count of runs,
 /// not a verdict about anyone. Every shot is counted, read or not.
 type Census =

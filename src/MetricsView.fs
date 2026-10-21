@@ -8,10 +8,15 @@ module MetricsView
 // nodes. It computes no metric, no threshold and no share. A second copy of a
 // metric in a view is the defect gravity-census.mjs refused in its own header.
 //
-// THE ADR-002 BOUNDARY, as amended 2026-10-15. Geometry and opacity carry the
-// verdict, and `aria-label` carries the state name and the math: each label is
-// the module's own string, never written here. Visible text holds only fixture
-// names, dates, identifiers, census counts and mechanisms.
+// THE ADR-002 BOUNDARY, as amended 2026-10-15 and again 2026-10-21. Geometry
+// and opacity carry the verdict, and `aria-label` carries the state name and the
+// math: each label is the module's own string, never written here. Since the
+// owner's 2026-10-21 amendment (jubilant-bassoon docs/ADR-002-CONTEXT.md, Defense
+// 4), a finished or archived game also gets a plain-English sentence, and that
+// too is the module's own (`Flow.narrative`, `Stamina.staminaNarrative`,
+// `Gravity.playNarrative`), behind the same witness. This file writes no verdict
+// words of its own: its visible text is names, dates, counts, legends and the
+// modules' sentences.
 // scripts/metrics-render-check.mjs reads the panel's innerText and fails if any
 // node's accessible name appears in it.
 //
@@ -74,10 +79,8 @@ let private failed (body: HTMLElement) (reason: string) =
 
 /// Plain English for a section: what the metric measures and how to read its
 /// marks (owner, 2026-10-21: "none of these display in plain English"). These
-/// are DEFINITIONS AND LEGENDS, the same for every row. They never say which
-/// state a named player or team is in: under ADR-002 as amended 2026-10-15
-/// that stays in geometry, opacity and the accessible name. The owner chose
-/// this over showing the state lines, which would amend that ruling.
+/// are DEFINITIONS AND LEGENDS, the same for every row. What a particular row
+/// shows comes from the module's own narrative, never from here.
 let private explain (parent: HTMLElement) (heading: string) (paragraphs: string list) =
     child parent (el "p" "mx-explain-head" heading) |> ignore
     for text in paragraphs do
@@ -160,6 +163,12 @@ let private loadFlow (body: HTMLElement) =
                 let finished = Flow.witnessAfterKickoff capture row DateTimeOffset.UtcNow
                 flowStrip block finished s.Key Flow.Home
                 flowStrip block finished s.Key Flow.Away
+                match finished, homeAndAway row with
+                | Some f, Ok(home, away) ->
+                    for name, side in [ home, Flow.Home; away, Flow.Away ] do
+                        let line = child block (el "p" "mx-narrative" (sprintf "%s: %s" name (Flow.narrative f side)))
+                        line.setAttribute ("data-narrative", "flow")
+                | _ -> ()
             | Error e, _, _
             | _, Error e, _
             | _, _, Error e -> failed block e
@@ -295,25 +304,27 @@ let private loadSecondWind (body: HTMLElement) =
                         | Some w ->
                             g.Players
                             |> List.choose (fun pg ->
-                                match Stamina.staminaLabel curve w pg.Player, Stamina.staminaMark curve w pg.Player with
-                                | Some label, Some mark -> Some(g, pg.Player, label, mark)
+                                match Stamina.staminaLabel curve w pg.Player, Stamina.staminaMark curve w pg.Player, Stamina.staminaNarrative curve w pg.Player with
+                                | Some label, Some mark, Some sentence -> Some(g, pg.Player, label, mark, sentence)
                                 | _ -> None))
-                let count st = readings |> List.filter (fun (_, _, l, _) -> stateOf l = Some st) |> List.length
+                let count st = readings |> List.filter (fun (_, _, l, _, _) -> stateOf l = Some st) |> List.length
                 status.textContent <-
-                    sprintf "%d of %d games read (every fourth regular-season game of 2025-26), %d skater-games in all: %d with too few attempts to tell, %d within the normal range, %d with a second wind and %d with a trailing rate. Below is one example of each outcome, taken from the first game in which it occurs. Which is which is read from the marks, as described above."
+                    sprintf "%d of %d games read (every fourth regular-season game of 2025-26), %d skater-games in all: %d with too few attempts to tell, %d within the normal range, %d with a second wind and %d with a trailing rate. Below is one example of each outcome, taken from the first game in which it occurs, each with what it shows."
                         (List.length games) (List.length ids) (List.length readings)
                         (count "Insufficient") (count "PopulationRate") (count "SecondWind") (count "TrailingRate")
                 for st in secondWindStates do
-                    match readings |> List.tryFind (fun (_, _, l, _) -> stateOf l = Some st) with
+                    match readings |> List.tryFind (fun (_, _, l, _, _) -> stateOf l = Some st) with
                     | None ->
                         let p = child body (el "p" "mx-error" "Not drawn: no skater-game in the population reads this way.")
                         p.setAttribute ("data-state", "absent")
-                    | Some(game, player, label, mark) ->
+                    | Some(game, player, label, mark, sentence) ->
                         let row = child body (el "div" "mx-subject" "")
                         let who = game.Names |> Map.tryFind player |> Option.defaultValue (sprintf "Player %d" player)
                         let where = if game.Matchup = "" then sprintf "game %d" game.Id else game.Matchup
                         child row (el "span" "mx-play-id" (sprintf "%s, %s" who where)) |> ignore
                         staminaTrack row mark (sprintf "Game %d, player %d: %s" game.Id player label)
+                        let line = child body (el "p" "mx-narrative" sentence)
+                        line.setAttribute ("data-narrative", "second-wind")
     }
 
 // --- Gravity Well -------------------------------------------------------------
@@ -405,7 +416,12 @@ let private loadGravity (body: HTMLElement) =
                                     mark.setAttribute ("data-well", shapeClass enc.Shape)
                                     mark.setAttribute ("style", sprintf "--mx-fill: %.3f" enc.Opacity)
                                 | None -> mark.setAttribute ("data-well", "unencoded")
-                            child row (el "span" "mx-play-pos" (receivers |> List.map (fun r -> r.Pos) |> String.concat " · ")) |> ignore
+                            child row (el "span" "mx-play-pos" (Gravity.receiverLabels receivers |> String.concat " · ")) |> ignore
+                            match Gravity.playNarrative archived m.GameId m.PlayId with
+                            | Some sentence ->
+                                let line = child body (el "p" "mx-narrative" sentence)
+                                line.setAttribute ("data-narrative", "gravity")
+                            | None -> ()
                 | _ ->
                     // A season mismatch is its own state, not an empty section.
                     let reason =

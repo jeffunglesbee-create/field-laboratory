@@ -504,6 +504,46 @@ const MUTATIONS = [
     expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
   },
   {
+    // Owner amendment 2026-10-21: finished-game narratives, cross-checked
+    // against each module's accessible name by metrics-render-check.
+    id: 'narrative-second-wind-off-by-one',
+    file: 'src/Stamina.fs',
+    claim: 'a Second Wind sentence states the same late attempts as its label',
+    find: '(attempts (e.InFirst + e.InLast)) e.InLast (float',
+    replace: '(attempts (e.InFirst + e.InLast)) (e.InLast + 1) (float',
+    expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
+  },
+  {
+    // Owner amendment 2026-10-21: finished-game narratives, cross-checked
+    // against each module's accessible name by metrics-render-check.
+    id: 'narrative-gravity-snap-throw-swapped',
+    file: 'src/Gravity.fs',
+    claim: 'a Gravity sentence states snap then throw, as its label measures',
+    find: 'Drawing p | Level p | Ceding p -> sprintf "%s %d → %d" label p.AtSnap p.AtRelease',
+    replace: 'Drawing p | Level p | Ceding p -> sprintf "%s %d → %d" label p.AtRelease p.AtSnap',
+    expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
+  },
+  {
+    // Owner amendment 2026-10-21: finished-game narratives, cross-checked
+    // against each module's accessible name by metrics-render-check.
+    id: 'narrative-flow-starts-at-first-shot',
+    file: 'src/Flow.fs',
+    claim: 'a Flow spell starts at its third counted shot, where the cell turns InFlow',
+    find: '(clockText (fst (List.item (flowShots - 1) r.Counted)))',
+    replace: '(clockText (fst (List.item 0 r.Counted)))',
+    expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
+  },
+  {
+    // Owner amendment 2026-10-21: finished-game narratives, cross-checked
+    // against each module's accessible name by metrics-render-check.
+    id: 'narrative-gravity-not-rendered',
+    file: 'src/MetricsView.fs',
+    claim: 'every archived Gravity play carries its sentence',
+    find: '                            match Gravity.playNarrative archived m.GameId m.PlayId with',
+    replace: '                            match None with',
+    expect: "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
+  },
+  {
     id: 'decoder-rejects-real',
     file: 'src/Desk.fs',
     claim: 'the decoders actually accept the real captures',

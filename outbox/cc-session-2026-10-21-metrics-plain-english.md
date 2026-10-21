@@ -55,3 +55,49 @@ already gated to finished or archived games. The owner ruled, 2026-10-21:
 **narrative is permitted for finished games only, behind the existing witness;
 live stays visual-only.** That work follows in its own commits and is recorded
 below when it lands.
+
+## Step 2 (landed): the finished-game narrative
+
+**The ruling.** The owner chose "Yes, finished games only" and it was recorded
+in two places:
+
+- jubilant-bassoon `docs/ADR-002-CONTEXT.md`, "Amendment 2026-10-21", commit
+  `31a26bb` on main. The basis is Defense 4, post-game amnesty. It is recorded
+  as the owner's ruling and is not a legal opinion: counsel was not consulted.
+- The empowerment CC-CMD, in a new amendment section.
+
+**One sentence function per metric, each behind its existing witness:**
+
+| function | witness | example (committed captures) |
+|---|---|---|
+| `Flow.narrative` | `Flow.Finished` | "FC Bayern München: In flow 4 times: from 13' until an opponent shot at 17' (6 shots, 0.61 xG); …" |
+| `Stamina.staminaNarrative` | `Stamina.FinishedGame` | "Of 9 shot attempts in the first and last thirds of his ice time, 8 came in the last third, against 4.6 expected for a skater with his minutes. Second wind: more late attempts than chance would usually give." (Alex Ovechkin, VAN at WSH, 2025-10-19) |
+| `Gravity.playNarrative` | `Gravity.Archived` | "Coverage defenders nearest each receiver, at the snap → at the throw (6 in coverage): WR1 0 → 2, WR2 3 → 2, TE 2 → 0, RB not running a route, WR3 1 → 2. The WR1 drew the most, 2 more at the throw than at the snap." |
+
+`Gravity.receiverLabels` numbers repeated positions (WR1, WR2) so a sentence
+can say which receiver. A first render said "The WR drew the most" on a
+three-WR play, which did not say which one.
+
+**The compiler refuses a sentence without its witness.** `docs/AMNESTY-PROOF.md`
+N1-N4: a Flow capture, a Stamina reading, Desk's generic `AmnestyZone` and
+Gravity's frames are each rejected with FS0001. `proof-check --only AMNESTY`
+gives 27/27. The messages were captured from real builds and pasted in.
+
+**Each sentence agrees with its accessible name.** A new
+`metrics-render-check` predicate checks every finished row:
+
+- **Second Wind:** the late attempts and the expected count equal the label's.
+- **Gravity:** throw minus snap equals "defenders drawn", for every receiver;
+  coverage equals the label's denominator; a route-less receiver matches
+  NotRouteRunner.
+- **Flow:** each spell's starting minute is an InFlow cell.
+
+Results: 33/33 self-test, 17/17 live.
+
+**Registered mutations, all caught:**
+`narrative-second-wind-off-by-one`, `narrative-gravity-snap-throw-swapped`,
+`narrative-flow-starts-at-first-shot`, `narrative-gravity-not-rendered`.
+
+**Also run:** F# suite 314/314, strict build 0 warnings, `check`, `check:hard`
+and `check:render-sports` 19/19 each, `check:nav` 25/25, `check:tabs` 61/61,
+`check:import-purity`, `check:unused`, `check:clean-source`.

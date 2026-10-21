@@ -112,6 +112,17 @@ export const PREDICATES = {
     return [bad.length === 0, `missing or thin: ${JSON.stringify(bad)}; ${JSON.stringify(s.explained)}`]
   },
 
+  'every finished row carries its sentence, and each sentence agrees with its accessible name': s => {
+    const sw = s.narratives.secondWind, gr = s.narratives.gravity, fl = s.narratives.flow
+    const bad = [
+      ...sw.filter(r => !narrativeAgrees.secondWind(r)).map(r => `second wind: ${r.text} | ${r.aria}`),
+      ...gr.filter(r => !narrativeAgrees.gravity(r)).map(r => `gravity: ${r.text}`),
+      ...fl.filter(r => !narrativeAgrees.flow(r)).map(r => `flow: ${r.text}`),
+    ]
+    return [sw.length === 4 && gr.length === s.rows.gravity.length && gr.length > 0 && fl.length === 2 * FLOW_SUBJECTS.length && bad.length === 0,
+      `second wind ${sw.length}, gravity ${gr.length} of ${s.rows.gravity.length} rows, flow ${fl.length}; disagreeing: ${JSON.stringify(bad.slice(0, 3))}`]
+  },
+
   'rows name players, teams and positions rather than bare ids': s => [
     s.rows.secondWind.length === 4 && s.rows.secondWind.every(l => /^\S.* \([A-Z]{2,3}\), [A-Z]{2,3} at [A-Z]{2,3}, \d{4}-\d{2}-\d{2}$/.test(l))
       && s.rows.gravity.length > 0 && s.rows.gravity.every(r => /^[A-Z]{2,3} offense v [A-Z]{2,3}, play \d+$/.test(r.label) && r.positions === r.marks),
@@ -119,6 +130,37 @@ export const PREDICATES = {
 }
 
 export const EXPLAINED = ['flow', 'second-wind', 'gravity', 'tactical-lock']
+
+// THE NARRATIVE AGREES WITH THE LABEL. Owner amendment 2026-10-21: a finished
+// game gets a sentence (Flow.narrative, Stamina.staminaNarrative,
+// Gravity.playNarrative). Each sentence is checked against the module's OTHER
+// projection, the accessible name, so a wrong number in either one fails here.
+const nums = (re, text) => { const m = re.exec(text || ''); return m ? m.slice(1) : null }
+export const narrativeAgrees = {
+  secondWind: ({ aria, text }) => {
+    const ins = nums(/Insufficient state active, (\d+) attempts/, aria)
+    if (ins) return nums(/^(\d+) shot attempts? in the first and last thirds of his ice time: too few to tell\.$/, text)?.[0] === ins[0]
+    const a = nums(/last third (\d+) attempts against ([\d.]+) expected/, aria)
+    const t2 = nums(/^Of \d+ shot attempts? in the first and last thirds of his ice time, (\d+) came in the last third, against ([\d.]+) expected/, text)
+    return !!(a && t2 && a[0] === t2[0] && a[1] === t2[1])
+  },
+  gravity: ({ arias, text }) => {
+    const coverage = nums(/\((\d+) in coverage\)/, text)?.[0]
+    const body = (text || '').split(': ').slice(1).join(': ').split('.')[0]
+    const parts = body.split(', ')
+    if (!coverage || parts.length !== arias.length) return false
+    return parts.every((part, i) => {
+      if (/not running a route$/.test(part)) return /NotRouteRunner state active$/.test(arias[i])
+      const pt = nums(/ (\d+) → (\d+)$/, part), ar = nums(/defenders drawn (-?\d+) of (\d+)$/, arias[i])
+      return !!(pt && ar && Number(pt[1]) - Number(pt[0]) === Number(ar[0]) && ar[1] === coverage)
+    })
+  },
+  flow: ({ cells, text }) => {
+    if (/^.*: Never in flow/.test(text || '')) return cells.every(c => !c.aria.includes('InFlow'))
+    const starts = [...(text || '').matchAll(/from (\d+)(\+\d+)?'/g)].map(m => Number(m[1]))
+    return starts.length > 0 && starts.every(minute => (cells[minute - 1]?.aria || '').includes('InFlow'))
+  },
+}
 
 /** A snapshot that holds every predicate, for the self-test. */
 export const goodSnapshot = () => {
@@ -151,6 +193,20 @@ export const goodSnapshot = () => {
                    'Alex Ovechkin (WSH), VAN at WSH, 2025-10-19', 'Ross Colton (COL), NJD at COL, 2025-10-28'],
       gravity: [{ label: 'KC offense v LAC, play 118', marks: 5, positions: 5 }],
     },
+    narratives: {
+      secondWind: [
+        { aria: 'Game 1, player 2: Insufficient state active, 1 attempts in the first and last thirds', text: '1 shot attempt in the first and last thirds of his ice time: too few to tell.' },
+        { aria: 'Game 1, player 3: PopulationRate state active, last third 3 attempts against 3.6 expected', text: 'Of 7 shot attempts in the first and last thirds of his ice time, 3 came in the last third, against 3.6 expected for a skater with his minutes. Within the normal range.' },
+        { aria: 'Game 1, player 4: SecondWind state active, last third 8 attempts against 4.6 expected', text: 'Of 9 shot attempts in the first and last thirds of his ice time, 8 came in the last third, against 4.6 expected for a skater with his minutes. Second wind: more late attempts than chance would usually give.' },
+        { aria: 'Game 1, player 5: TrailingRate state active, last third 0 attempts against 3.0 expected', text: 'Of 6 shot attempts in the first and last thirds of his ice time, 0 came in the last third, against 3.0 expected for a skater with his minutes. Trailing rate: fewer late attempts than chance would usually give.' },
+      ],
+      gravity: [{ arias: ['TE 1: Drawing state active, defenders drawn 1 of 7', 'RB 2: NotRouteRunner state active'],
+                  text: 'Coverage defenders nearest each receiver, at the snap → at the throw (7 in coverage): TE 3 → 4, RB not running a route. The TE drew the most, 1 more at the throw than at the snap.' }],
+      flow: FLOW_SUBJECTS.flatMap(() => [
+        { cells: Array.from({ length: 90 }, (_, i) => ({ aria: i === 3 ? 'Minute 4, home: InFlow state active, sequential xG 0.42' : 'Minute 1, home: Disjointed state active' })), text: 'Home side: In flow once, from 4\' until an opponent shot at 9\' (3 shots, 0.87 xG).' },
+        { cells: Array.from({ length: 90 }, () => ({ aria: 'Minute 1, away: Disjointed state active' })), text: 'Away side: Never in flow: no run of three shots with xG above zero, unbroken by an opponent shot.' },
+      ]),
+    },
     innerText: 'Metrics Committed captures, named below, not today\'s slate.',
     imgNodes: 5, imgNodesUnnamed: 0,
   }
@@ -173,6 +229,7 @@ export const MUTATIONS = {
   'every drawn node carries a non-empty accessible name': s => { s.imgNodesUnnamed = 1 },
   'every section says in plain English what it measures and how to read it': s => { s.explained = s.explained.filter(e => e.key !== 'gravity') },
   'rows name players, teams and positions rather than bare ids': s => { s.rows.secondWind[2] = 'Game 2025020089, player 8471214' },
+  'every finished row carries its sentence, and each sentence agrees with its accessible name': s => { s.narratives.secondWind[2].text = s.narratives.secondWind[2].text.replace('8 came', '7 came') },
 }
 
 const judge = (snapshot, check) => {
@@ -265,6 +322,21 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     key: d.dataset.metric,
     heads: [...d.querySelectorAll('.mx-explain-head')].map(h => h.textContent),
     paras: [...d.querySelectorAll('.mx-explain')].map(p => p.textContent.trim().length) })))
+  s.narratives = {
+    secondWind: await page.$$eval(`${panel} [data-metric="second-wind"] .mx-subject`, rows => rows.map(r => ({
+      aria: r.querySelector('.mx-track')?.getAttribute('aria-label') || '',
+      text: r.nextElementSibling?.matches('[data-narrative="second-wind"]') ? r.nextElementSibling.textContent : '' }))),
+    gravity: await page.$$eval(`${panel} [data-metric="gravity"] .mx-play`, rows => rows.map(r => ({
+      arias: [...r.querySelectorAll('.mx-well')].map(m => m.getAttribute('aria-label') || ''),
+      text: r.nextElementSibling?.matches('[data-narrative="gravity"]') ? r.nextElementSibling.textContent : '' }))),
+    flow: await page.$$eval(`${panel} .mx-flow-subject`, blocks => blocks.flatMap(b => {
+      const strips = [...b.querySelectorAll('.mx-flow-strip')]
+      const lines = [...b.querySelectorAll('[data-narrative="flow"]')]
+      return strips.map((st, i) => ({
+        cells: [...st.querySelectorAll('.mx-flow-cell')].map(c => ({ aria: c.getAttribute('aria-label') || '' })),
+        text: lines[i]?.textContent || '' }))
+    })),
+  }
   s.rows = {
     secondWind: await page.$$eval(`${panel} [data-metric="second-wind"] .mx-subject .mx-play-id`, ns => ns.map(n => n.textContent)),
     gravity: await page.$$eval(`${panel} [data-metric="gravity"] .mx-play`, rs => rs.map(r => ({

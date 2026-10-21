@@ -585,6 +585,23 @@ let staminaMark (curve: Curve) (game: FinishedGame) (player: int) : Mark option 
         | TrailingRate e -> ticks e 1.0
         | SecondWind e -> ticks e 1.0)
 
+/// The finished-game narrative (ADR-002 amendment, owner 2026-10-21): the same
+/// reading in plain English, from the same evidence, behind the same witness.
+/// A live game has no `FinishedGame`, so it has no sentence. Every number is
+/// generated from the value; the only outcome words are the four defined ones.
+let staminaNarrative (curve: Curve) (game: FinishedGame) (player: int) : string option =
+    let attempts n = if n = 1 then "1 shot attempt" else sprintf "%d shot attempts" n
+    let counted (e: Evidence) =
+        sprintf "Of %s in the first and last thirds of his ice time, %d came in the last third, against %.1f expected for a skater with his minutes."
+            (attempts (e.InFirst + e.InLast)) e.InLast (float (e.InFirst + e.InLast) * e.ExpectedShare)
+    readingOf curve game player
+    |> Option.map (fun reading ->
+        match reading with
+        | Insufficient n -> sprintf "%s in the first and last thirds of his ice time: too few to tell." (attempts n)
+        | PopulationRate e -> counted e + " Within the normal range."
+        | SecondWind e -> counted e + " Second wind: more late attempts than chance would usually give."
+        | TrailingRate e -> counted e + " Trailing rate: fewer late attempts than chance would usually give.")
+
 /// THE one string site for this metric (accessibility amendment): the state's
 /// name and the numbers that produced it, generated from the value. Mechanical,
 /// never adjectival. None for a player with no regulation ice time in the game.

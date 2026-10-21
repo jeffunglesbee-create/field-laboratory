@@ -664,3 +664,82 @@ capture (field-relay-nba run 38962367310,
 the minute on any shot and no restart incident type. So every real window
 classifies as `ActivePlayUnmeasured`, and nothing renders any of these states
 today. The gate is built ahead of a source that could feed it.
+
+## The finished-game narrative (owner amendment, 2026-10-21)
+
+The 2026-10-15 ruling allowed these verdicts on the page as geometry, colour and
+opacity only. On 2026-10-21 the owner amended it for **finished or archived
+games** (jubilant-bassoon `docs/ADR-002-CONTEXT.md`, "Amendment 2026-10-21",
+on Defense 4: post-game content is outside the patents). A finished game may
+now get a plain-English sentence. A game in play still may not.
+
+That boundary is typed the way the labels are: each sentence function takes the
+SAME witness as its metric's visual projection, and none takes a capture, a
+reading, a frame set or Desk's generic `AmnestyZone`.
+
+```fsharp
+val Flow.narrative           : Flow.Finished -> Flow.Side -> string
+val Stamina.staminaNarrative : Stamina.Curve -> Stamina.FinishedGame -> int -> string option
+val Gravity.playNarrative    : Gravity.Archived -> int -> int -> string option
+```
+
+### What the compiler said
+
+**N1 — Flow's sentence from a capture, with no witness:**
+
+<!-- proof: FS0001 -->
+```fsharp
+let capture : Flow.Capture = Unchecked.defaultof<_>
+Flow.narrative capture Flow.Home
+```
+```
+src/Scoreboard.fs(148,20): error FS0001: This expression was expected to have type
+    'Flow.Finished'    
+but here has type
+    'Flow.Capture'
+```
+
+**N2 — Second Wind's sentence from a reading, with no witness:**
+
+<!-- proof: FS0001 -->
+```fsharp
+let curve : Stamina.Curve = Unchecked.defaultof<_>
+let reading : Stamina.Stamina = Unchecked.defaultof<_>
+Stamina.staminaNarrative curve reading 10
+```
+```
+src/Scoreboard.fs(149,36): error FS0001: This expression was expected to have type
+    'Stamina.FinishedGame'    
+but here has type
+    'Stamina.Stamina'
+```
+
+**N3 — Second Wind's sentence from Desk's witness for some `Final`, not the game's own:**
+
+<!-- proof: FS0001 -->
+```fsharp
+let curve : Stamina.Curve = Unchecked.defaultof<_>
+match amnestyZone (Final(3, 2, false)) with
+| Some zone -> Stamina.staminaNarrative curve zone 10
+| None -> None
+```
+```
+src/Scoreboard.fs(149,51): error FS0001: This expression was expected to have type
+    'Stamina.FinishedGame'    
+but here has type
+    'AmnestyZone'
+```
+
+**N4 — Gravity's sentence from the frames, with no archive witness:**
+
+<!-- proof: FS0001 -->
+```fsharp
+let frames : Vintage.Tracked<Gridiron.Play list> = Unchecked.defaultof<_>
+Gravity.playNarrative frames 2022091500 118
+```
+```
+src/Scoreboard.fs(148,27): error FS0001: This expression was expected to have type
+    'Gravity.Archived'    
+but here has type
+    'Vintage.Tracked<Gridiron.Play list>'
+```
