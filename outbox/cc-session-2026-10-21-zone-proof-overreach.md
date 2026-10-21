@@ -74,12 +74,12 @@ checked. It now says "by 2026-10-17", with the section still standing.
   three record commits conflicted on the append-only ledgers because other
   sessions had appended to them; each was replayed by appending its own added
   lines to main's file, none dropped.
-- **It took four gate attempts, and the first two were not about this tree.**
+- **It took two dispatches of mine, and the first failed for a reason that was not this tree.**
   The workflow has `cancel-in-progress` concurrency, so the gate is one lane for
   every session on the account. A tab-strip session dispatched at 18:00Z and
   cancelled my first run at 19 minutes (39646095894); its run was then cancelled
-  by its own next dispatch (39648850506); a third of its runs finished green
-  (39658086563, 20:42Z); mine started at 20:48Z and finished. Re-dispatching
+  by its own next dispatch (39648850506, 18:48Z); the run after that finished green
+  (39658086563, 20:42Z); my second dispatch started at 20:48Z and finished. Re-dispatching
   while another session's run was in flight would have cancelled that run, so I
   waited rather than race. The cancelled run's scale step had already pushed a
   scale-log line for `98c4ad3`, which is why the gated tree is `8b70ed9`.
