@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-20T20:53:16.731Z",
+  "at": "2026-10-21T19:43:30.571Z",
   "scope": "full",
-  "ran": 65,
-  "from_mutations": 181,
+  "ran": 66,
+  "from_mutations": 191,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -80,6 +80,10 @@
     },
     {
       "cmd": "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
       "passed": true
     },
     {
