@@ -6,9 +6,10 @@ gap is a four-hour window that lands exactly on US sports prime time.
 ## Two questions that were being conflated
 
 **What zone does the relay's `date` column use?** A property of the data.
-Genuinely unknown — the relay serves AFL, MLS, WNBA, MLB and EFL Cup, three
-continents, so per-competition local keying was a live possibility in which ET
-would be as wrong as UTC for an Australian fixture.
+Unknown when this was written (2026-08-10) — the relay serves AFL, MLS, WNBA,
+MLB and EFL Cup, three continents, so per-competition local keying was a live
+possibility in which ET would be as wrong as UTC for an Australian fixture.
+Answered per row further down; the 18-game slate below could only bound it.
 
 Measured rather than assumed, across a live 18-game slate:
 
@@ -18,8 +19,41 @@ MLB:same-utc-day=4        EFL Cup:same-utc-day=1    MLS:no-start-time=5
 ```
 
 Eight games start on a **later UTC day** than their `date`, and **none** start
-earlier. The date runs behind UTC, never ahead — Western-hemisphere keying,
-consistent with ET and inconsistent with UTC.
+earlier. The date runs behind UTC, never ahead — Western-hemisphere keying.
+
+That bounds the direction of the offset. It does not say which keying any one
+row used. A UTC-keyed row has a `date` equal to the UTC day of its own
+`start_time`, so it scores *same-utc-day*, and *same-utc-day* is also what
+correct ET keying gives every game that does not cross UTC midnight. "None start
+earlier" therefore holds under ET keying, under UTC keying, and under a mixture
+of the two. By 2026-10-17 thirteen CFL rows were UTC-keyed, with this section
+still standing as first written.
+
+### Measured again, per row
+
+The discriminating form compares each row against both candidates: `date` equal
+to the ET day of `start_time`, versus equal to its UTC day, over only the rows
+where those two days differ.
+
+```
+2026-10-17   821 ET   13 UTC   0 neither     every UTC-keyed row was CFL
+2026-10-20   847 ET    0 UTC   0 neither
+```
+
+The 2026-10-17 line is as filed in
+`docs/CC-CMD-2026-10-16-relay-date-keying-comment-corrections.md`. The
+2026-10-20 line was measured against live `field-archive`
+(`regular_season_games`, rows with a `start_time` whose UTC and ET days differ):
+CFB 100, CFL 13, FIFA World Cup 6, MLB 334, MLS 133, NBA 36, NFL 36, NHL 84,
+WNBA 105, every one keyed on the ET day. ET was taken as UTC-4 for the probe,
+sound only because every row queried is dated 2026-03-09 to 2026-10-31, inside
+daylight time; do not carry that offset into code.
+
+The 13 UTC rows were CFL, from a writer that sliced the vendor's UTC timestamp.
+They were migrated and the writer fixed on 2026-10-19, under field-relay-nba's
+`CC-CMD-2026-10-16-cfl-archive-date-keying`, which also added
+`scripts/check-archive-date-keying.mjs`, the per-row guard the slate test above
+could not be. Both counts are dated observations: the table grows nightly.
 
 **What day is it for the viewer?** A property of the person reading the page,
 who is on the US east coast. No measurement can change that, and treating it as
@@ -135,10 +169,15 @@ get one.
 
 ## What this does not claim
 
-- Not that the relay's `date` is provably ET. It is provably *behind UTC and
-  never ahead*, across every sport observed with a start time, which is
-  consistent with ET and rules out UTC. The AFL cannot be discriminated by this
-  test at all — an Australian fixture lands in the small hours UTC either way —
-  and no AFL game appeared in the measured slate.
+- Not that the 18-game slate proved the relay's `date` is ET. It showed the date
+  *behind UTC and never ahead* for the sports observed with a start time, which
+  is consistent with ET and does not rule out UTC: a UTC-keyed row scores the
+  same as an ET-keyed one that does not cross midnight. The per-row measurement
+  above is what establishes ET, for every sport with a start time (847 of 847 on
+  2026-10-20).
+- Still not established for the AFL, and the reason is not zone geometry. All 138
+  AFL rows in the archive have an empty `start_time` (measured 2026-10-20), so
+  there is nothing to compare for any fixture at any hour. Zone geometry would
+  be the obstacle if the column were populated.
 - Not that browser-local would be wrong for a different reader. It would be
   wrong for *this* system, which is ET-canonical throughout.

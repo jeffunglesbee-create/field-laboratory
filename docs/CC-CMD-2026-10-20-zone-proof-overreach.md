@@ -6,9 +6,7 @@
 `docs/CC-CMD-2026-10-16-relay-date-keying-comment-corrections.md`, whose scope
 was `src/*.fs` comments only
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED, not started. Docs only: `docs/**` is in `verify.yml`'s
-`paths-ignore`, so this costs no `verify` run; the gate row it can move is the
-doc-claims one.
+**Status:** DONE 2026-10-21. `docs/ZONE-PROOF.md` corrected in three places, not one: the conclusion at line 22, the "Genuinely unknown" framing, and the same over-claim repeated under "What this does not claim" ("rules out UTC", and zone geometry as the AFL reason). Session doc: `outbox/cc-session-2026-10-21-zone-proof-overreach.md`.
 
 ## What is wrong
 
