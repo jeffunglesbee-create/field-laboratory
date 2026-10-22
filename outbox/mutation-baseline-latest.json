@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-21T21:17:52.223Z",
+  "at": "2026-10-22T00:34:04.635Z",
   "scope": "full",
-  "ran": 65,
-  "from_mutations": 181,
+  "ran": 67,
+  "from_mutations": 194,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -80,6 +80,10 @@
     },
     {
       "cmd": "URL='http://localhost:8080/?data=context-2026-05-15' node scripts/render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "URL='http://localhost:8080/' node scripts/metrics-render-check.mjs",
       "passed": true
     },
     {
@@ -240,6 +244,10 @@
     },
     {
       "cmd": "bash -c '! node scripts/mutation-check.mjs --only no-such-mutation-id'",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/venue-source.mjs --self-test",
       "passed": true
     },
     {
