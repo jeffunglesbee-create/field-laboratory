@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1ad485c` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | docs: Metrics tab confirmed by the owner on iPad; deployed check run 39695134599 |
+| `fe9776a` | 2026-10-21 | [cc-session-2026-10-21-outdoor-venue-sourcing-task0.md](cc-session-2026-10-21-outdoor-venue-sourcing-task0.md) | docs: outdoor venue sourcing, Task 0: 1 red day in 31 against about 360 unknown venues |
+| `b573ae9` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | docs: WebKit Open-Meteo page error measured: navigation cancels in-flight fetches; no page defect |
 | `e74c69a` | 2026-10-21 | [cc-session-2026-10-21-zone-proof-overreach.md](cc-session-2026-10-21-zone-proof-overreach.md) | docs: ZONE-PROOF session doc: correct the gate-attempt count and one garbled sentence |
 | `3029f62` | 2026-10-21 | [cc-session-2026-10-21-zone-proof-overreach.md](cc-session-2026-10-21-zone-proof-overreach.md) | docs: ZONE-PROOF fix: gate 530/530, landed; the single-lane gate noted |
 | `e9a5d5b` | 2026-10-21 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8b70ed9 [skip ci] |
