@@ -1305,8 +1305,38 @@
   {
     "date": "2026-10-22",
     "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-22",
-    "at": "2026-10-22T06:14:34.975Z",
+    "at": "2026-10-22T16:59:54.007Z",
     "sports": {
+      "NBA": {
+        "rows": 2,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 12,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "UEFA Europa League": {
+        "rows": 18,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "UEFA Europa Conference League": {
+        "rows": 18,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NFL": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 3,
+        "withOdds": 0,
+        "withDraw": 0
+      },
       "MLS": {
         "rows": 1,
         "withOdds": 0,
