@@ -92,3 +92,23 @@ review (its body mentions its retractable roof).
 `outbox/venue-source-cache.json` is 3.2 MB on this branch (main had 0.6 MB from
 stage 1; it reached 8.2 MB before the slimming above). It is committed by design
 (stage 1: a re-run asks nothing it already knows). Successful answers only.
+
+## Landed
+
+- Gate (verify-full run 39833800758, attempt 2): 530/530, 100. Attempt 1 died
+  in "Install Chromium" after 4 s, before any check body ran; re-run once.
+- `a4ff365` on main: the gated `7d25a9f`, replayed onto main's newer tip
+  (main had moved only on `STATUS.md` and `outbox/axis-manifest-latest.json`).
+  verify 39850341009 green; deploy 39850957894 green.
+
+## Done condition 2, on 2026-10-22's slate (field-archive D1, queried 2026-10-22)
+
+Not met by the letter. The slate had 55 venues: UEFA and CFB, but also one NFL
+game (Soldier Field) and one U.S. Open Cup game (ScottsMiracle-Gro Field). 27
+are table rows, 14 recorded indoor arenas, 14 neither.
+
+What the verify step asserts matters here: `render-check.mjs` requires that the
+table covers AT LEAST ONE observable venue on the slate, not all of them. The
+2026-10-20 red was the case where it covered none. So a green verify today
+proves the table is non-empty for the slate, and Soldier Field alone would have
+satisfied it. The 14 venues in neither list are not a verify failure by design.
