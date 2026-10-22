@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `65a6850` | 2026-10-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-22 [skip ci] |
+| `65a6850` | 2026-10-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-22 [skip ci] |
+| `65a6850` | 2026-10-22 | [sport-vocabulary-2026-10-22T06-15-07-107Z.json](sport-vocabulary-2026-10-22T06-15-07-107Z.json) | drift-sentinel: ok on 2026-10-22 [skip ci] |
+| `fd67c97` | 2026-10-22 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 39708856185) [skip ci] |
+| `fd67c97` | 2026-10-22 | [venue-source-calibration-latest.json](venue-source-calibration-latest.json) | data: venue sourcing (run 39708856185) [skip ci] |
+| `a60318c` | 2026-10-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `24f509b` | 2026-10-22 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 698c855 [skip ci] |
 | `771c153` | 2026-10-21 | [cc-session-2026-10-21-venue-sourcing-rule.md](cc-session-2026-10-21-venue-sourcing-rule.md) | feat: venue sourcing, stage 1: a rule for trusting a geocoded point |
 | `1ad485c` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | docs: Metrics tab confirmed by the owner on iPad; deployed check run 39695134599 |
