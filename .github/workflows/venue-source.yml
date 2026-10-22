@@ -20,10 +20,10 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'calibrate (the table venues, truth known), targets (the archive venues the table lacks), or source (a list)'
+        description: 'calibrate (the table venues), adjudicate (put each calibration disagreement to OpenStreetMap), targets (the archive venues the table lacks), or source (a list)'
         required: true
         type: choice
-        options: [calibrate, targets, source]
+        options: [calibrate, adjudicate, targets, source]
         default: calibrate
       list:
         description: 'For source mode: path to a JSON list of names, in the repo'
@@ -54,6 +54,10 @@ jobs:
         if: inputs.mode == 'calibrate'
         run: node scripts/venue-source.mjs --calibrate
 
+      - name: Adjudicate the calibration's disagreements
+        if: inputs.mode == 'adjudicate'
+        run: node scripts/venue-source.mjs --adjudicate
+
       - name: The target list, from the relay's archive route
         if: inputs.mode == 'targets'
         run: |
@@ -65,7 +69,7 @@ jobs:
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
-          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-cache.json outbox/venue-targets-latest.json; do
+          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-adjudication-latest.json outbox/venue-source-cache.json outbox/venue-targets-latest.json; do
             if [ -e "$p" ]; then git add "$p"; fi
           done
           git diff --cached --quiet && echo "no change" && exit 0

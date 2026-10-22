@@ -1913,6 +1913,24 @@ const MUTATIONS = [
     replace: ") continue",
     expect: 'node scripts/venue-targets.mjs --self-test',
   },
+  {
+    // Reversing it would blame the geocoders for the table\'s error.
+    id: 'venue-source-arbiter-blames-the-sources',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a table point outside the extent while the chosen point is inside is reported as the table being off',
+    find: "!t && c ? 'table-outside'",
+    replace: "t && c ? 'table-outside'",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // A wide margin makes every point inside the extent and every disagreement a size difference.
+    id: 'venue-source-arbiter-margin-widened',
+    file: 'scripts/venue-source.mjs',
+    claim: 'the extent margin is about 300 m, not kilometres',
+    find: 'export const MARGIN = 0.003',
+    replace: 'export const MARGIN = 0.3',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
   // --- the outbox row on a scheduled run, docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md (option 1) ---
   {
     // Not applicable leaking past `schedule` turns a real miss into a quiet pass.
