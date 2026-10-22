@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `771c153` — but that is not `main` HEAD
+no verify run has been recorded for `main` yet
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `4f860ca`
+`live-check` (post-deploy, against the deployed page): **green** on `4f860ca` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`ok` on 2026-10-22 — 1 games, 0 malformed (170 runs logged)
+`ok` on 2026-10-22 — 55 games, 0 malformed (171 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
