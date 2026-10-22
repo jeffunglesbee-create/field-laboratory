@@ -110,7 +110,7 @@ the course.
 - Self-test 19 of 19. Three arbiter mutations caught, each with the baseline line checked:
   the earlier "PASS" of two mutations during the edit was a crashing self-test, which the
   harness counts as caught; the baseline line read FAIL and my grep had hidden it.
-- Not yet run on a runner in this form.
+- Run on a runner as 39711963628; the result is below, and it is not what the design hoped.
 
 ## What this does to the plan
 
@@ -118,4 +118,33 @@ The rule needs a location prior for new venues, not only agreement among sources
 archive's `home` column names the team that plays at each venue, and Wikidata records a
 team's home venue, so anchoring a venue to its team distinguishes the two Red Bull Arenas.
 That is a design change to stages 2 and 3, not a tweak.
+
+## Arbiter, second version, as run (39711963628): not trustworthy yet
+
+- **Red Bull Arena was reported `table-outside`, which is the wrong conclusion.** The table's
+  point is New Jersey's stadium; the sources chose the Salzburg homonym. The arbiter found no
+  OpenStreetMap feature named exactly "Red Bull Arena" within 25 km of the table's point and so
+  concluded the table was off. The name in the archive (an ESPN string) and the name in OSM
+  evidently differ at the table's end; the cause is NOT established here (a sponsor rename is the
+  obvious candidate and is unverified). Exact-name matching at the table's end is brittle against
+  naming drift, which stadium names do constantly.
+- **Six of seven were `extent-unreadable`**: five Overpass timeouts at 25 s and one HTTP 502.
+  The public instance was overloaded. The earlier version read five of those same venues, so this
+  is load, not the queries being wrong; it does mean a run cannot be relied on to finish.
+- **What stands.** The first arbiter's five decisive verdicts (table point 2.4 to 12.6 km outside
+  the named course's extent, the sources' point inside) are the evidence about the golf rows, with
+  the two weaker extents noted above. Red Bull Arena stands as a homonym established by distance
+  (6,780 km) and the table's declared New York zone, not by this arbiter.
+
+## Before this arbiter is landed
+
+It is on the session branch only; main carries stage 1 (calibrate), not `--adjudicate`. Not
+landing it until it stops giving a wrong verdict:
+
+1. Replace "is there a feature of exactly this name here" with "what stadium or course features
+   are within 1.5 km of this point, and what are they called". A rename then shows up as a
+   different name at the table's point instead of as an absence.
+2. One union query per end, a 60 s timeout, and 5 s between queries, to be gentler on the
+   instance. No second mirror: this repository's rule is no fallbacks, and the public instance's
+   load is the finding.
 
