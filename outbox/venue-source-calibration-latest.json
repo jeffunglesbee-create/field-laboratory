@@ -1,14 +1,14 @@
 {
-  "at": "2026-10-22T02:09:00.614Z",
+  "at": "2026-10-22T02:15:14.728Z",
   "eps": 0.02,
   "summary": {
     "checked": 109,
-    "accepted-correct": 74,
-    "accepted-WRONG": 6,
-    "review": 28,
+    "accepted-correct": 86,
+    "accepted-DISAGREES": 7,
+    "review": 15,
     "none": 1,
-    "withAnUnansweredSource": 15,
-    "osmAgreedAloneAndWrong": 5
+    "withAnUnansweredSource": 0,
+    "osmAgreedAloneAndWrong": 4
   },
   "results": [
     {
@@ -29,6 +29,7 @@
         "lat": 42.3464,
         "lon": -71.0972
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -73,6 +74,7 @@
         "lat": 41.9481,
         "lon": -87.6556
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -117,6 +119,7 @@
         "lat": 34.0736,
         "lon": -118.2399
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -161,6 +164,7 @@
         "lat": 37.7785,
         "lon": -122.3895
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -205,6 +209,7 @@
         "lat": 39.7561,
         "lon": -104.9933
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -249,6 +254,7 @@
         "lat": 40.8296,
         "lon": -73.9265
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -293,6 +299,7 @@
         "lat": 40.757,
         "lon": -73.8458
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -338,6 +345,7 @@
         "lat": 39.2838,
         "lon": -76.6216
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -382,6 +390,7 @@
         "lat": 40.4469,
         "lon": -80.0057
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -426,6 +435,7 @@
         "lat": 32.7072,
         "lon": -117.1569
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -470,6 +480,7 @@
         "lat": 41.496,
         "lon": -81.6852
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -514,6 +525,7 @@
         "lat": 42.3392,
         "lon": -83.0488
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -558,6 +570,7 @@
         "lat": 39.0515,
         "lon": -94.4805
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -602,6 +615,7 @@
         "lat": 44.9817,
         "lon": -93.278
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -634,22 +648,29 @@
         "lat": 38.6226,
         "lon": -90.1928
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 38.6225,
+        "lon": -90.1936
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0.1,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 38.6225,
+          "lon": -90.193056,
+          "label": "Busch Stadium",
+          "qid": "Q253546"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 38.6225541,
@@ -672,22 +693,29 @@
         "lat": 39.0975,
         "lon": -84.5069
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 39.0972,
+        "lon": -84.5067
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.097222222,
+          "lon": -84.506944444,
+          "label": "Great American Ball Park",
+          "qid": "Q979975"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 39.0972484,
@@ -722,6 +750,7 @@
         "lat": 33.8003,
         "lon": -117.8821
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -765,6 +794,7 @@
         ],
         "osmOnlyAgree": false
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -809,6 +839,7 @@
         "lat": 41.8298,
         "lon": -87.6338
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -850,6 +881,7 @@
         ],
         "osmOnlyAgree": false
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -882,6 +914,7 @@
         "lat": 25.7781,
         "lon": -80.2196
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -926,6 +959,7 @@
         "lat": 29.7571,
         "lon": -95.3553
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -970,6 +1004,7 @@
         "lat": 29.7571,
         "lon": -95.3553
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1014,6 +1049,7 @@
         "lat": 32.7475,
         "lon": -97.0841
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1057,6 +1093,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1102,6 +1139,7 @@
         "lat": 43.6415,
         "lon": -79.3892
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1134,22 +1172,29 @@
         "lat": 47.5914,
         "lon": -122.3325
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 47.5914,
+        "lon": -122.3325
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 47.591388888,
+          "lon": -122.3325,
+          "label": "T-Mobile Park",
+          "qid": "Q1193117"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 47.5913974,
@@ -1184,6 +1229,7 @@
         "lat": 33.4454,
         "lon": -112.0668
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1228,6 +1274,7 @@
         "lat": 27.7681,
         "lon": -82.6533
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1269,6 +1316,7 @@
         ],
         "osmOnlyAgree": false
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1301,6 +1349,7 @@
         "lat": -12.3988,
         "lon": 130.8859
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1345,6 +1394,7 @@
         "lat": -37.8199,
         "lon": 144.9833
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1389,6 +1439,7 @@
         "lat": -34.9156,
         "lon": 138.5961
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1433,6 +1484,7 @@
         "lat": -27.4859,
         "lon": 153.038
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1477,6 +1529,7 @@
         "lat": -31.9511,
         "lon": 115.8897
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1521,6 +1574,7 @@
         "lat": -38.1581,
         "lon": 144.3546
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1565,6 +1619,7 @@
         "lat": -37.8165,
         "lon": 144.9475
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1597,22 +1652,29 @@
         "lat": 49.2767,
         "lon": -123.1119
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 49.2767,
+        "lon": -123.112
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 49.276666666,
+          "lon": -123.111944444,
+          "label": "BC Place",
+          "qid": "Q612227"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 49.2766905,
@@ -1647,6 +1709,7 @@
         "lat": 47.5953,
         "lon": -122.3317
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1691,6 +1754,7 @@
         "lat": 40.5829,
         "lon": -111.8932
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1735,6 +1799,7 @@
         "lat": 45.5215,
         "lon": -122.6918
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1779,6 +1844,7 @@
         "lat": 44.953,
         "lon": -93.1648
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1823,6 +1889,7 @@
         "lat": 33.8631,
         "lon": -118.2623
       },
+      "kmFromTable": 0.2,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1867,6 +1934,7 @@
         "lat": 39.1217,
         "lon": -94.8235
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1911,6 +1979,7 @@
         "lat": 39.8058,
         "lon": -104.8919
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1955,6 +2024,7 @@
         "lat": 38.8727,
         "lon": -77.0076
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -1999,6 +2069,7 @@
         "lat": 39.9059,
         "lon": -75.1665
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2043,6 +2114,7 @@
         "lat": 38.5804,
         "lon": -121.5135
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2075,22 +2147,29 @@
         "lat": 42.0909,
         "lon": -71.2643
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 42.0909,
+        "lon": -71.2642
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 42.090944444,
+          "lon": -71.264344444,
+          "label": "Gillette Stadium",
+          "qid": "Q373355"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 42.0908879,
@@ -2113,22 +2192,29 @@
         "lat": 40.7367,
         "lon": -74.1503
       },
-      "verdict": "review",
+      "verdict": "accepted-DISAGREES",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 51.3457,
+        "lon": 12.3482
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
-      "osmOnlyWrong": true,
+      "kmFromTable": 6779.8,
+      "unanswered": [],
+      "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 51.345833,
+          "lon": 12.348056,
+          "label": "Red Bull Arena",
+          "qid": "Q210466"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 51.3457078,
@@ -2163,6 +2249,7 @@
         "lat": 38.631,
         "lon": -90.2106
       },
+      "kmFromTable": 0.8,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2207,6 +2294,7 @@
         "lat": 32.7843,
         "lon": -117.1225
       },
+      "kmFromTable": 0.3,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2251,6 +2339,7 @@
         "lat": 45.5631,
         "lon": -73.5526
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2295,6 +2384,7 @@
         "lat": 43.6332,
         "lon": -79.4186
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2339,6 +2429,7 @@
         "lat": 26.1932,
         "lon": -80.1608
       },
+      "kmFromTable": 1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2383,6 +2474,7 @@
         "lat": 39.8327,
         "lon": -75.3786
       },
+      "kmFromTable": 0.2,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2427,6 +2519,7 @@
         "lat": 35.2258,
         "lon": -80.8528
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2471,6 +2564,7 @@
         "lat": 38.8683,
         "lon": -77.0127
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2515,6 +2609,7 @@
         "lat": 39.9684,
         "lon": -83.0168
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2559,6 +2654,7 @@
         "lat": 39.1112,
         "lon": -84.5222
       },
+      "kmFromTable": 0.8,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2591,22 +2687,29 @@
         "lat": 28.5415,
         "lon": -81.3893
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 28.5411,
+        "lon": -81.3891
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 28.5410645,
+          "lon": -81.389035,
+          "label": "Inter&Co Stadium",
+          "qid": "Q16846942"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 28.5411041,
@@ -2629,22 +2732,29 @@
         "lat": 36.1307,
         "lon": -86.7665
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 36.1303,
+        "lon": -86.7665
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 36.1309612,
+          "lon": -86.7676932,
+          "label": "Geodis Park",
+          "qid": "Q47528203"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 36.130025,
@@ -2679,6 +2789,7 @@
         "lat": 41.8624,
         "lon": -87.617
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2723,6 +2834,7 @@
         "lat": 34.0128,
         "lon": -118.2839
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2767,6 +2879,7 @@
         "lat": 37.3513,
         "lon": -121.9248
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2808,6 +2921,7 @@
         ],
         "osmOnlyAgree": false
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2840,6 +2954,7 @@
         "lat": 29.7521,
         "lon": -95.3524
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2884,6 +2999,7 @@
         "lat": 33.1543,
         "lon": -96.8353
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2928,6 +3044,7 @@
         "lat": 33.7554,
         "lon": -84.4008
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -2972,6 +3089,7 @@
         "lat": 53.4309,
         "lon": -2.9609
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3015,6 +3133,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3059,6 +3178,7 @@
         "lat": 51.4749,
         "lon": -0.2217
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3091,22 +3211,29 @@
         "lat": 50.8619,
         "lon": -0.0831
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 50.862,
+        "lon": -0.0842
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0.1,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 50.861822222,
+          "lon": -0.083277777,
+          "label": "Brighton Community Stadium",
+          "qid": "Q619409"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 50.8615471,
@@ -3134,17 +3261,23 @@
         "decision": "review",
         "agreeing": [],
         "dissent": [
+          "wikidata",
           "nominatim",
           "photon"
         ],
         "osmOnlyAgree": true
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": null,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 38.752777777,
+          "lon": -9.184722222,
+          "label": "Estádio da Luz",
+          "qid": "Q7875112"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 54.9143953,
@@ -3179,6 +3312,7 @@
         "lat": 52.5091,
         "lon": -1.8849
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3222,6 +3356,7 @@
         "lat": 53.7892,
         "lon": -2.23
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3260,6 +3395,7 @@
         "lat": 51.3983,
         "lon": -0.0854
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3303,6 +3439,7 @@
         "lat": 52.94,
         "lon": -1.1328
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3341,6 +3478,7 @@
         "lat": 54.5783,
         "lon": -1.2169
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3385,6 +3523,7 @@
         "lat": 50.9059,
         "lon": -1.391
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3429,6 +3568,7 @@
         "lat": 53.7462,
         "lon": -0.3678
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3473,6 +3613,7 @@
         "lat": 51.4859,
         "lon": -0.0509
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3517,6 +3658,7 @@
         "lat": 51.5386,
         "lon": -0.0165
       },
+      "kmFromTable": 0,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3561,6 +3703,7 @@
         "lat": 48.2188,
         "lon": 11.624
       },
+      "kmFromTable": 0.1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3593,22 +3736,29 @@
         "lat": 48.0221,
         "lon": 7.8275
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 48.0214,
+        "lon": 7.8299
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0.2,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 48.021536,
+          "lon": 7.830006,
+          "label": "Europa-Park-Stadion",
+          "qid": "Q64586775"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 48.0213778,
@@ -3643,6 +3793,7 @@
         "lat": 48.5598,
         "lon": 7.7559
       },
+      "kmFromTable": 0.2,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3687,6 +3838,7 @@
         "lat": -33.8431,
         "lon": 151.0677
       },
+      "kmFromTable": 0.6,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3729,6 +3881,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": true,
       "sources": {
@@ -3766,6 +3919,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": true,
       "sources": {
@@ -3808,6 +3962,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": true,
       "sources": {
@@ -3846,6 +4001,7 @@
         "lat": 26.894,
         "lon": 75.8032
       },
+      "kmFromTable": 0.4,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3878,7 +4034,7 @@
         "lat": 35.0527,
         "lon": -80.8328
       },
-      "verdict": "accepted-WRONG",
+      "verdict": "accepted-DISAGREES",
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3890,6 +4046,7 @@
         "lat": 35.1143,
         "lon": -80.842
       },
+      "kmFromTable": 6.9,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -3932,6 +4089,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": true,
       "sources": {
@@ -3970,6 +4128,7 @@
         "lat": 33.5012,
         "lon": -82.0217
       },
+      "kmFromTable": 0.2,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4012,6 +4171,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4038,22 +4198,29 @@
         "lat": 36.5683,
         "lon": -121.9478
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 36.568,
+        "lon": -121.9456
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0.2,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 36.564625,
+          "lon": -121.937408,
+          "label": "Pebble Beach Golf Links",
+          "qid": "Q534974"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 36.5696646,
@@ -4076,22 +4243,29 @@
         "lat": 30.1975,
         "lon": -81.3957
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 30.1962,
+        "lon": -81.3937
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 0.2,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 30.1967,
+          "lon": -81.3936,
+          "label": "TPC Sawgrass",
+          "qid": "Q4586108"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 30.1960044,
@@ -4126,6 +4300,7 @@
         "lat": 34.0468,
         "lon": -118.5023
       },
+      "kmFromTable": 1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4168,6 +4343,7 @@
         ],
         "osmOnlyAgree": true
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4194,7 +4370,7 @@
         "lat": 32.138,
         "lon": -80.6686
       },
-      "verdict": "accepted-WRONG",
+      "verdict": "accepted-DISAGREES",
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4206,6 +4382,7 @@
         "lat": 32.1325,
         "lon": -80.8105
       },
+      "kmFromTable": 13.4,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4238,7 +4415,7 @@
         "lat": 33.6606,
         "lon": -111.8926
       },
-      "verdict": "accepted-WRONG",
+      "verdict": "accepted-DISAGREES",
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4250,6 +4427,7 @@
         "lat": 33.638,
         "lon": -111.9085
       },
+      "kmFromTable": 2.9,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4282,7 +4460,7 @@
         "lat": 40.1034,
         "lon": -83.0685
       },
-      "verdict": "accepted-WRONG",
+      "verdict": "accepted-DISAGREES",
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4294,6 +4472,7 @@
         "lat": 40.143,
         "lon": -83.1472
       },
+      "kmFromTable": 8,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4326,7 +4505,7 @@
         "lat": 33.7115,
         "lon": -84.2896
       },
-      "verdict": "accepted-WRONG",
+      "verdict": "accepted-DISAGREES",
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4338,6 +4517,7 @@
         "lat": 33.7434,
         "lon": -84.3026
       },
+      "kmFromTable": 3.7,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4376,6 +4556,7 @@
         "agreeing": [],
         "dissent": []
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4402,6 +4583,7 @@
         "lat": 55.5328,
         "lon": -4.6514
       },
+      "kmFromTable": 1,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4434,7 +4616,7 @@
         "lat": 51.201,
         "lon": 1.388
       },
-      "verdict": "accepted-WRONG",
+      "verdict": "accepted-DISAGREES",
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4446,6 +4628,7 @@
         "lat": 51.2738,
         "lon": 1.3669
       },
+      "kmFromTable": 8.2,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4487,6 +4670,7 @@
         ],
         "osmOnlyAgree": false
       },
+      "kmFromTable": null,
       "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
@@ -4507,22 +4691,29 @@
         "lat": 32.7247,
         "lon": -97.3592
       },
-      "verdict": "review",
+      "verdict": "accepted-correct",
       "decision": {
-        "decision": "review",
-        "agreeing": [],
-        "dissent": [
+        "decision": "accepted",
+        "agreeing": [
           "nominatim",
-          "photon"
+          "photon",
+          "wikidata"
         ],
-        "osmOnlyAgree": true
+        "dissent": [],
+        "lat": 32.7191,
+        "lon": -97.3717
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": 1.3,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 32.719,
+          "lon": -97.371,
+          "label": "Colonial Country Club",
+          "qid": "Q5148308"
+        },
         "nominatim": {
           "source": "nominatim",
           "lat": 32.7192029,
@@ -4555,12 +4746,11 @@
         ],
         "osmOnlyAgree": true
       },
-      "unanswered": [
-        "wikidata: HTTP 429"
-      ],
+      "kmFromTable": null,
+      "unanswered": [],
       "osmOnlyWrong": false,
       "sources": {
-        "wikidata": "ERROR HTTP 429",
+        "wikidata": "no venue entity with coordinates",
         "nominatim": {
           "source": "nominatim",
           "lat": 45.1733222,

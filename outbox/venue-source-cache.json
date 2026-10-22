@@ -26034,5 +26034,2021 @@
     ]
    }
   }
+ },
+ "wd-search|Busch Stadium": {
+  "at": 1792635245519,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Busch Stadium"
+    },
+    "search": [
+     {
+      "id": "Q253546",
+      "title": "Q253546",
+      "pageid": 246082,
+      "concepturi": "http://www.wikidata.org/entity/Q253546",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q253546",
+      "display": {
+       "label": {
+        "value": "Busch Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "baseball stadium in St. Louis, Missouri, USA",
+        "language": "en"
+       }
+      },
+      "label": "Busch Stadium",
+      "description": "baseball stadium in St. Louis, Missouri, USA",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Busch Stadium"
+      }
+     },
+     {
+      "id": "Q1017286",
+      "title": "Q1017286",
+      "pageid": 966686,
+      "concepturi": "http://www.wikidata.org/entity/Q1017286",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q1017286",
+      "display": {
+       "label": {
+        "value": "Busch Memorial Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "former stadium in St. Louis, Missouri",
+        "language": "en"
+       }
+      },
+      "label": "Busch Memorial Stadium",
+      "description": "former stadium in St. Louis, Missouri",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "Busch Stadium"
+      },
+      "aliases": [
+       "Busch Stadium"
+      ]
+     },
+     {
+      "id": "Q5001314",
+      "title": "Q5001314",
+      "pageid": 4778808,
+      "concepturi": "http://www.wikidata.org/entity/Q5001314",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q5001314",
+      "display": {
+       "label": {
+        "value": "Busch Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "Wikimedia disambiguation page",
+        "language": "en"
+       }
+      },
+      "label": "Busch Stadium",
+      "description": "Wikimedia disambiguation page",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Busch Stadium"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q253546,Q1017286,Q5001314": {
+  "at": 1792635247246,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1017286"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-90.1925 38.623888888)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Busch Memorial Stadium"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1017286"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-90.1925 38.623888888)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Busch Memorial Stadium"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q253546"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-90.193056 38.6225)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Busch Stadium"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q253546"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-90.193056 38.6225)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Busch Stadium"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Great American Ball Park": {
+  "at": 1792635248541,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Great American Ball Park"
+    },
+    "search": [
+     {
+      "id": "Q979975",
+      "title": "Q979975",
+      "pageid": 929674,
+      "concepturi": "http://www.wikidata.org/entity/Q979975",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q979975",
+      "display": {
+       "label": {
+        "value": "Great American Ball Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "ballpark in Cincinnati, Ohio, United States, home field of the Cincinnati Reds",
+        "language": "en"
+       }
+      },
+      "label": "Great American Ball Park",
+      "description": "ballpark in Cincinnati, Ohio, United States, home field of the Cincinnati Reds",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Great American Ball Park"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q979975": {
+  "at": 1792635250289,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q979975"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Great American Ball Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-84.506944444 39.097222222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q979975"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Great American Ball Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-84.506944444 39.097222222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q979975"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Great American Ball Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-84.506944444 39.097222222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q979975"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Great American Ball Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-84.506944444 39.097222222)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|T-Mobile Park": {
+  "at": 1792635251687,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "T-Mobile Park"
+    },
+    "search": [
+     {
+      "id": "Q1193117",
+      "title": "Q1193117",
+      "pageid": 1137171,
+      "concepturi": "http://www.wikidata.org/entity/Q1193117",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q1193117",
+      "display": {
+       "label": {
+        "value": "T-Mobile Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "baseball stadium in Seattle, Washington, USA, home venue of the Seattle Mariners",
+        "language": "en"
+       }
+      },
+      "label": "T-Mobile Park",
+      "description": "baseball stadium in Seattle, Washington, USA, home venue of the Seattle Mariners",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "T-Mobile Park"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q1193117": {
+  "at": 1792635253489,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1193117"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "T-Mobile Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-122.3325 47.591388888)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1193117"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "T-Mobile Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-122.3325 47.591388888)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1193117"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "T-Mobile Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-122.3325 47.591388888)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1193117"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "T-Mobile Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-122.3325 47.591388888)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|BC Place": {
+  "at": 1792635254840,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "BC Place"
+    },
+    "search": [
+     {
+      "id": "Q612227",
+      "title": "Q612227",
+      "pageid": 576540,
+      "concepturi": "http://www.wikidata.org/entity/Q612227",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q612227",
+      "display": {
+       "label": {
+        "value": "BC Place",
+        "language": "en"
+       },
+       "description": {
+        "value": "stadium at Vancouver, British Columbia, Canada",
+        "language": "en"
+       }
+      },
+      "label": "BC Place",
+      "description": "stadium at Vancouver, British Columbia, Canada",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "BC Place"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q612227": {
+  "at": 1792635256989,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q612227"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "BC Place"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-123.111944444 49.276666666)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q612227"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "BC Place"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-123.111944444 49.276666666)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Gillette Stadium": {
+  "at": 1792635259393,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Gillette Stadium"
+    },
+    "search": [
+     {
+      "id": "Q373355",
+      "title": "Q373355",
+      "pageid": 355272,
+      "concepturi": "http://www.wikidata.org/entity/Q373355",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q373355",
+      "display": {
+       "label": {
+        "value": "Gillette Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "home venue of the New England Patriots and the New England Revolution",
+        "language": "en"
+       }
+      },
+      "label": "Gillette Stadium",
+      "description": "home venue of the New England Patriots and the New England Revolution",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Gillette Stadium"
+      }
+     },
+     {
+      "id": "Q61672812",
+      "title": "Q61672812",
+      "pageid": 61519023,
+      "concepturi": "http://www.wikidata.org/entity/Q61672812",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q61672812",
+      "display": {
+       "label": {
+        "value": "Gillette Stadium heliport",
+        "language": "en"
+       },
+       "description": {
+        "value": "heliport in Massachusetts, United States",
+        "language": "en"
+       }
+      },
+      "label": "Gillette Stadium heliport",
+      "description": "heliport in Massachusetts, United States",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Gillette Stadium heliport"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q373355,Q61672812": {
+  "at": 1792635261133,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q373355"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-71.264344444 42.090944444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Gillette Stadium"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q373355"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-71.264344444 42.090944444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Gillette Stadium"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Red Bull Arena": {
+  "at": 1792635262425,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Red Bull Arena"
+    },
+    "search": [
+     {
+      "id": "Q210466",
+      "title": "Q210466",
+      "pageid": 206280,
+      "concepturi": "http://www.wikidata.org/entity/Q210466",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q210466",
+      "display": {
+       "label": {
+        "value": "Red Bull Arena",
+        "language": "en"
+       },
+       "description": {
+        "value": "association football stadium in Leipzig, Germany",
+        "language": "en"
+       }
+      },
+      "label": "Red Bull Arena",
+      "description": "association football stadium in Leipzig, Germany",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Red Bull Arena"
+      }
+     },
+     {
+      "id": "Q761682",
+      "title": "Q761682",
+      "pageid": 715723,
+      "concepturi": "http://www.wikidata.org/entity/Q761682",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q761682",
+      "display": {
+       "label": {
+        "value": "Sports Illustrated Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "soccer-specific stadium in Harrison, New Jersey, USA",
+        "language": "en"
+       }
+      },
+      "label": "Sports Illustrated Stadium",
+      "description": "soccer-specific stadium in Harrison, New Jersey, USA",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "Red Bull Arena, New York Red Bulls"
+      },
+      "aliases": [
+       "Red Bull Arena, New York Red Bulls"
+      ]
+     },
+     {
+      "id": "Q206135",
+      "title": "Q206135",
+      "pageid": 202421,
+      "concepturi": "http://www.wikidata.org/entity/Q206135",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q206135",
+      "display": {
+       "label": {
+        "value": "Red Bull Arena",
+        "language": "en"
+       },
+       "description": {
+        "value": "sports venue in Wals-Siezenheim, Austria",
+        "language": "en"
+       }
+      },
+      "label": "Red Bull Arena",
+      "description": "sports venue in Wals-Siezenheim, Austria",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Red Bull Arena"
+      }
+     },
+     {
+      "id": "Q250892",
+      "title": "Q250892",
+      "pageid": 243524,
+      "concepturi": "http://www.wikidata.org/entity/Q250892",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q250892",
+      "display": {
+       "label": {
+        "value": "Red Bull Arena",
+        "language": "en"
+       },
+       "description": {
+        "value": "Wikimedia disambiguation page",
+        "language": "en"
+       }
+      },
+      "label": "Red Bull Arena",
+      "description": "Wikimedia disambiguation page",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Red Bull Arena"
+      }
+     },
+     {
+      "id": "Q8069248",
+      "title": "Q8069248",
+      "pageid": 8018441,
+      "concepturi": "http://www.wikidata.org/entity/Q8069248",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q8069248",
+      "display": {
+       "label": {
+        "value": "Zentralstadion",
+        "language": "en"
+       },
+       "description": {
+        "value": "former stadium in Leipzig, Germany",
+        "language": "en"
+       }
+      },
+      "label": "Zentralstadion",
+      "description": "former stadium in Leipzig, Germany",
+      "match": {
+       "type": "label",
+       "language": "sv",
+       "text": "Red Bull Arena (Leipzig)"
+      },
+      "aliases": [
+       "Red Bull Arena (Leipzig)"
+      ]
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q210466,Q761682,Q206135,Q250892,Q8069248": {
+  "at": 1792635264262,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q8069248"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(12.348219 51.345794)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Zentralstadion"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q761682"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-74.150277777 40.736666666)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Sports Illustrated Stadium"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q761682"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-74.150277777 40.736666666)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Sports Illustrated Stadium"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q210466"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(12.348056 51.345833)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Red Bull Arena"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q206135"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(12.998222222 47.81625)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Red Bull Arena"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q210466"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(12.348056 51.345833)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Red Bull Arena"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q206135"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(12.998222222 47.81625)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Red Bull Arena"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Inter&Co Stadium": {
+  "at": 1792635265604,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Inter&Co Stadium"
+    },
+    "search": [
+     {
+      "id": "Q16846942",
+      "title": "Q16846942",
+      "pageid": 18449866,
+      "concepturi": "http://www.wikidata.org/entity/Q16846942",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q16846942",
+      "display": {
+       "label": {
+        "value": "Inter&Co Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "soccer stadium in Orlando, Florida, USA",
+        "language": "en"
+       }
+      },
+      "label": "Inter&Co Stadium",
+      "description": "soccer stadium in Orlando, Florida, USA",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Inter&Co Stadium"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q16846942": {
+  "at": 1792635267689,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q16846942"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Inter&Co Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-81.389035 28.5410645)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q16846942"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Inter&Co Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-81.389035 28.5410645)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q16846942"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Inter&Co Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-81.389035 28.5410645)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q16846942"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Inter&Co Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-81.389035 28.5410645)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|GEODIS Park": {
+  "at": 1792635268979,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "GEODIS Park"
+    },
+    "search": [
+     {
+      "id": "Q47528203",
+      "title": "Q47528203",
+      "pageid": 48570428,
+      "concepturi": "http://www.wikidata.org/entity/Q47528203",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q47528203",
+      "display": {
+       "label": {
+        "value": "Geodis Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "soccer stadium in Nashville, Tennessee, United States",
+        "language": "en"
+       }
+      },
+      "label": "Geodis Park",
+      "description": "soccer stadium in Nashville, Tennessee, United States",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Geodis Park"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q47528203": {
+  "at": 1792635270652,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q47528203"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Geodis Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-86.7676932 36.1309612)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q47528203"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Geodis Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-86.7676932 36.1309612)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Amex Stadium": {
+  "at": 1792635271997,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Amex Stadium"
+    },
+    "search": [
+     {
+      "id": "Q619409",
+      "title": "Q619409",
+      "pageid": 583245,
+      "concepturi": "http://www.wikidata.org/entity/Q619409",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q619409",
+      "display": {
+       "label": {
+        "value": "Brighton Community Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "association football stadium in Brighton & Hove",
+        "language": "en"
+       }
+      },
+      "label": "Brighton Community Stadium",
+      "description": "association football stadium in Brighton & Hove",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "Amex Stadium"
+      },
+      "aliases": [
+       "Amex Stadium"
+      ]
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q619409": {
+  "at": 1792635273794,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q619409"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brighton Community Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.083277777 50.861822222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q619409"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brighton Community Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.083277777 50.861822222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q619409"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brighton Community Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.083277777 50.861822222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q619409"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brighton Community Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.083277777 50.861822222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q619409"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brighton Community Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.083277777 50.861822222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q619409"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brighton Community Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.083277777 50.861822222)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Stadium of Light": {
+  "at": 1792635275101,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Stadium of Light"
+    },
+    "search": [
+     {
+      "id": "Q7875112",
+      "title": "Q7875112",
+      "pageid": 7811595,
+      "concepturi": "http://www.wikidata.org/entity/Q7875112",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q7875112",
+      "display": {
+       "label": {
+        "value": "Estádio da Luz",
+        "language": "en"
+       },
+       "description": {
+        "value": "football stadium in Lisbon, Portugal",
+        "language": "en"
+       }
+      },
+      "label": "Estádio da Luz",
+      "description": "football stadium in Lisbon, Portugal",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "Stadium of Light"
+      },
+      "aliases": [
+       "Stadium of Light"
+      ]
+     },
+     {
+      "id": "Q31969",
+      "title": "Q31969",
+      "pageid": 34896,
+      "concepturi": "http://www.wikidata.org/entity/Q31969",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q31969",
+      "display": {
+       "label": {
+        "value": "Stadium of Light",
+        "language": "en"
+       },
+       "description": {
+        "value": "football stadium in Sunderland, England",
+        "language": "en"
+       }
+      },
+      "label": "Stadium of Light",
+      "description": "football stadium in Sunderland, England",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stadium of Light"
+      }
+     },
+     {
+      "id": "Q7596509",
+      "title": "Q7596509",
+      "pageid": 7515220,
+      "concepturi": "http://www.wikidata.org/entity/Q7596509",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q7596509",
+      "display": {
+       "label": {
+        "value": "Stadium of Light",
+        "language": "en"
+       },
+       "description": {
+        "value": "metro station in Tyne & Wear",
+        "language": "en"
+       }
+      },
+      "label": "Stadium of Light",
+      "description": "metro station in Tyne & Wear",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stadium of Light"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q7875112,Q31969,Q7596509": {
+  "at": 1792635277147,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q7875112"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-9.184722222 38.752777777)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Estádio da Luz"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q7875112"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-9.184722222 38.752777777)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Estádio da Luz"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q31969"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.388172971 54.914429068)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stadium of Light"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q7875112"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-9.184722222 38.752777777)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Estádio da Luz"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q7875112"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-9.184722222 38.752777777)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Estádio da Luz"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Europa-Park Stadion": {
+  "at": 1792635300597,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Europa-Park Stadion"
+    },
+    "search": [
+     {
+      "id": "Q64586775",
+      "title": "Q64586775",
+      "pageid": 64274118,
+      "concepturi": "http://www.wikidata.org/entity/Q64586775",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q64586775",
+      "display": {
+       "label": {
+        "value": "Europa-Park-Stadion",
+        "language": "en"
+       },
+       "description": {
+        "value": "German football stadium",
+        "language": "en"
+       }
+      },
+      "label": "Europa-Park-Stadion",
+      "description": "German football stadium",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Europa-Park-Stadion"
+      }
+     },
+     {
+      "id": "Q135447840",
+      "title": "Q135447840",
+      "pageid": 129182286,
+      "concepturi": "http://www.wikidata.org/entity/Q135447840",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q135447840",
+      "display": {
+       "label": {
+        "value": "Europa-Park Stadion",
+        "language": "en"
+       }
+      },
+      "label": "Europa-Park Stadion",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Europa-Park Stadion"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q64586775,Q135447840": {
+  "at": 1792635302384,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q64586775"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(7.830006 48.021536)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Europa-Park-Stadion"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q64586775"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(7.830006 48.021536)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Europa-Park-Stadion"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Pebble Beach Golf Links": {
+  "at": 1792635303744,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Pebble Beach Golf Links"
+    },
+    "search": [
+     {
+      "id": "Q55629331",
+      "title": "Q55629331",
+      "pageid": 55615046,
+      "concepturi": "http://www.wikidata.org/entity/Q55629331",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q55629331",
+      "display": {
+       "label": {
+        "value": "Pebble Beach Golf Links",
+        "language": "en"
+       },
+       "description": {
+        "value": "1994 video game",
+        "language": "en"
+       }
+      },
+      "label": "Pebble Beach Golf Links",
+      "description": "1994 video game",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Pebble Beach Golf Links"
+      }
+     },
+     {
+      "id": "Q534974",
+      "title": "Q534974",
+      "pageid": 503693,
+      "concepturi": "http://www.wikidata.org/entity/Q534974",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q534974",
+      "display": {
+       "label": {
+        "value": "Pebble Beach Golf Links",
+        "language": "en"
+       },
+       "description": {
+        "value": "golf course in California, United States",
+        "language": "en"
+       }
+      },
+      "label": "Pebble Beach Golf Links",
+      "description": "golf course in California, United States",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Pebble Beach Golf Links"
+      }
+     },
+     {
+      "id": "Q3373888",
+      "title": "Q3373888",
+      "pageid": 3215395,
+      "concepturi": "http://www.wikidata.org/entity/Q3373888",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q3373888",
+      "display": {
+       "label": {
+        "value": "True Golf Classics: Pebble Beach Golf Links",
+        "language": "en"
+       },
+       "description": {
+        "value": "1992 video game",
+        "language": "en"
+       }
+      },
+      "label": "True Golf Classics: Pebble Beach Golf Links",
+      "description": "1992 video game",
+      "match": {
+       "type": "label",
+       "language": "fr",
+       "text": "Pebble Beach Golf Links"
+      },
+      "aliases": [
+       "Pebble Beach Golf Links"
+      ]
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q55629331,Q534974,Q3373888": {
+  "at": 1792635305654,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q534974"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-121.937408 36.564625)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Pebble Beach Golf Links"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q534974"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-121.937408 36.564625)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Pebble Beach Golf Links"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|TPC Sawgrass": {
+  "at": 1792635306987,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "TPC Sawgrass"
+    },
+    "search": [
+     {
+      "id": "Q4586108",
+      "title": "Q4586108",
+      "pageid": 4378932,
+      "concepturi": "http://www.wikidata.org/entity/Q4586108",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q4586108",
+      "display": {
+       "label": {
+        "value": "TPC Sawgrass",
+        "language": "en"
+       },
+       "description": {
+        "value": "golf course in Florida, USA",
+        "language": "en"
+       }
+      },
+      "label": "TPC Sawgrass",
+      "description": "golf course in Florida, USA",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "TPC Sawgrass"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q4586108": {
+  "at": 1792635308724,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q4586108"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "TPC Sawgrass"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-81.3936 30.1967)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Colonial Country Club": {
+  "at": 1792635310077,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Colonial Country Club"
+    },
+    "search": [
+     {
+      "id": "Q5148308",
+      "title": "Q5148308",
+      "pageid": 4920502,
+      "concepturi": "http://www.wikidata.org/entity/Q5148308",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q5148308",
+      "display": {
+       "label": {
+        "value": "Colonial Country Club",
+        "language": "en"
+       },
+       "description": {
+        "value": "a private golf club in Fort Worth, Texas",
+        "language": "en"
+       }
+      },
+      "label": "Colonial Country Club",
+      "description": "a private golf club in Fort Worth, Texas",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Colonial Country Club"
+      }
+     },
+     {
+      "id": "Q5148309",
+      "title": "Q5148309",
+      "pageid": 4920503,
+      "concepturi": "http://www.wikidata.org/entity/Q5148309",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q5148309",
+      "display": {
+       "label": {
+        "value": "Colonial Country Club",
+        "language": "en"
+       },
+       "description": {
+        "value": "golf course in Tennessee",
+        "language": "en"
+       }
+      },
+      "label": "Colonial Country Club",
+      "description": "golf course in Tennessee",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Colonial Country Club"
+      }
+     },
+     {
+      "id": "Q5148306",
+      "title": "Q5148306",
+      "pageid": 4920500,
+      "concepturi": "http://www.wikidata.org/entity/Q5148306",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q5148306",
+      "display": {
+       "label": {
+        "value": "Colonial Country Club",
+        "language": "en"
+       },
+       "description": {
+        "value": "Wikimedia disambiguation page",
+        "language": "en"
+       }
+      },
+      "label": "Colonial Country Club",
+      "description": "Wikimedia disambiguation page",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Colonial Country Club"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q5148308,Q5148309,Q5148306": {
+  "at": 1792635311774,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5148309"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-89.7786 35.1968)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Colonial Country Club"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5148308"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-97.371 32.719)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Colonial Country Club"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5148309"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-89.7786 35.1968)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Colonial Country Club"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5148308"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-97.371 32.719)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Colonial Country Club"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|TPC Twin Cities": {
+  "at": 1792635313066,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "TPC Twin Cities"
+    },
+    "search": [
+     {
+      "id": "Q7671125",
+      "title": "Q7671125",
+      "pageid": 7595550,
+      "concepturi": "http://www.wikidata.org/entity/Q7671125",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q7671125",
+      "display": {
+       "label": {
+        "value": "TPC Twin Cities",
+        "language": "en"
+       },
+       "description": {
+        "value": "private golf club",
+        "language": "en"
+       }
+      },
+      "label": "TPC Twin Cities",
+      "description": "private golf club",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "TPC Twin Cities"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql|Q7671125": {
+  "at": 1792635314720,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": []
+    }
+   }
+  }
  }
 }
