@@ -1,0 +1,135 @@
+{
+  "at": "2026-10-22T02:29:03.834Z",
+  "margin": 0.003,
+  "summary": {
+    "disputed": 7,
+    "table-outside": 5,
+    "chosen-outside": 0,
+    "both-inside": 0,
+    "neither-inside": 0,
+    "no-extent": 0,
+    "extent-unreadable": 2
+  },
+  "rows": [
+    {
+      "name": "Red Bull Arena",
+      "osmName": "Red Bull Arena",
+      "table": {
+        "lat": 40.7367,
+        "lon": -74.1503
+      },
+      "chosen": {
+        "lat": 51.3457,
+        "lon": 12.3482
+      },
+      "kmApart": 6779.8,
+      "verdict": "extent-unreadable",
+      "why": "request failed — The operation was aborted due to timeout"
+    },
+    {
+      "name": "Quail Hollow Club",
+      "osmName": "Quail Hollow Club",
+      "table": {
+        "lat": 35.0527,
+        "lon": -80.8328
+      },
+      "chosen": {
+        "lat": 35.1143,
+        "lon": -80.842
+      },
+      "kmApart": 6.9,
+      "verdict": "extent-unreadable",
+      "why": "request failed — The operation was aborted due to timeout"
+    },
+    {
+      "name": "Harbour Town Golf Links",
+      "osmName": "Harbour Town Golf Links",
+      "table": {
+        "lat": 32.138,
+        "lon": -80.6686
+      },
+      "chosen": {
+        "lat": 32.1325,
+        "lon": -80.8105
+      },
+      "kmApart": 13.4,
+      "extentKind": "golf_course",
+      "verdict": "table-outside",
+      "extentKm": 2.1,
+      "tableKmFromExtent": 12.6,
+      "chosenKmFromExtent": 0
+    },
+    {
+      "name": "TPC Scottsdale",
+      "osmName": "TPC Scottsdale Champions Course",
+      "table": {
+        "lat": 33.6606,
+        "lon": -111.8926
+      },
+      "chosen": {
+        "lat": 33.638,
+        "lon": -111.9085
+      },
+      "kmApart": 2.9,
+      "extentKind": "golf_course",
+      "verdict": "table-outside",
+      "extentKm": 1.6,
+      "tableKmFromExtent": 2.4,
+      "chosenKmFromExtent": 0
+    },
+    {
+      "name": "Muirfield Village Golf Club",
+      "osmName": "Muirfield Village Golf Club",
+      "table": {
+        "lat": 40.1034,
+        "lon": -83.0685
+      },
+      "chosen": {
+        "lat": 40.143,
+        "lon": -83.1472
+      },
+      "kmApart": 8,
+      "extentKind": "golf_course",
+      "verdict": "table-outside",
+      "extentKm": 2.7,
+      "tableKmFromExtent": 6.3,
+      "chosenKmFromExtent": 0
+    },
+    {
+      "name": "East Lake Golf Club",
+      "osmName": "East Lake Golf Club",
+      "table": {
+        "lat": 33.7115,
+        "lon": -84.2896
+      },
+      "chosen": {
+        "lat": 33.7434,
+        "lon": -84.3026
+      },
+      "kmApart": 3.7,
+      "extentKind": "golf_course",
+      "verdict": "table-outside",
+      "extentKm": 1.5,
+      "tableKmFromExtent": 3.2,
+      "chosenKmFromExtent": 0
+    },
+    {
+      "name": "Royal St George's Golf Club",
+      "osmName": "Royal St George's Golf Club",
+      "table": {
+        "lat": 51.201,
+        "lon": 1.388
+      },
+      "chosen": {
+        "lat": 51.2738,
+        "lon": 1.3669
+      },
+      "kmApart": 8.2,
+      "extentKind": "any named",
+      "verdict": "table-outside",
+      "extentKm": 0.1,
+      "tableKmFromExtent": 8.2,
+      "chosenKmFromExtent": 0
+    }
+  ]
+}

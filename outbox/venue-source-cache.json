@@ -28050,5 +28050,218 @@
     }
    }
   }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Harbour Town Golf Links\"][\"leisure\"=\"golf_course\"];out tags bb;": {
+  "at": 1792636061544,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:26:35Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "relation",
+      "id": 4813858,
+      "bounds": {
+       "minlat": 32.1236022,
+       "minlon": -80.8164745,
+       "maxlat": 32.1378381,
+       "maxlon": -80.8020428
+      },
+      "tags": {
+       "addr:city": "Hilton Head Island",
+       "addr:housenumber": "11",
+       "addr:postcode": "29928",
+       "addr:state": "SC",
+       "addr:street": "Lighthouse Lane",
+       "leisure": "golf_course",
+       "name": "Harbour Town Golf Links",
+       "phone": "+1-843-363-8385",
+       "type": "multipolygon",
+       "website": "https://www.seapines.com/golf/courses/harbour-town-golf-links",
+       "wikidata": "Q5654884"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"TPC Scottsdale Champions Course\"][\"leisure\"=\"golf_course\"];out tags bb;": {
+  "at": 1792636077749,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:26:35Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "way",
+      "id": 78388952,
+      "bounds": {
+       "minlat": 33.6329001,
+       "minlon": -111.9063575,
+       "maxlat": 33.6390934,
+       "maxlon": -111.8913219
+      },
+      "tags": {
+       "addr:city": "Scottsdale",
+       "addr:country": "US",
+       "addr:housenumber": "7020",
+       "addr:postcode": "85255",
+       "addr:state": "AZ",
+       "addr:street": "North Hayden Road",
+       "description": "18 hole Par 71",
+       "golf:course": "18_hole",
+       "golf:par": "71",
+       "leisure": "golf_course",
+       "name": "TPC Scottsdale Champions Course",
+       "phone": "+1-888-400-4001; +1-480-585-4334",
+       "website": "https://tpc.com/scottsdale-the-champions-course"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Muirfield Village Golf Club\"][\"leisure\"=\"golf_course\"];out tags bb;": {
+  "at": 1792636089274,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:26:35Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "relation",
+      "id": 337418,
+      "bounds": {
+       "minlat": 40.13705,
+       "minlon": -83.1540736,
+       "maxlat": 40.1514976,
+       "maxlon": -83.1287586
+      },
+      "tags": {
+       "addr:city": "Dublin",
+       "addr:housenumber": "5750",
+       "addr:postcode": "43017",
+       "addr:state": "OH",
+       "addr:street": "Memorial Drive",
+       "leisure": "golf_course",
+       "name": "Muirfield Village Golf Club",
+       "phone": "+1-614-889-6700",
+       "type": "multipolygon",
+       "website": "https://www.mvgc.org/"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"East Lake Golf Club\"][\"leisure\"=\"golf_course\"];out tags bb;": {
+  "at": 1792636102764,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:26:35Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "way",
+      "id": 25587469,
+      "bounds": {
+       "minlat": 33.739465,
+       "minlon": -84.3097096,
+       "maxlat": 33.7452734,
+       "maxlon": -84.29518
+      },
+      "tags": {
+       "addr:city": "Atlanta",
+       "addr:housenumber": "2575",
+       "addr:postcode": "30317",
+       "addr:state": "GA",
+       "addr:street": "Alston Drive Southeast",
+       "leisure": "golf_course",
+       "mobile": "+1 404-373-5722",
+       "name": "East Lake Golf Club",
+       "website": "https://www.eastlakegolfclub.com/",
+       "wikidata": "Q2422450"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Royal St George's Golf Club\"][\"leisure\"=\"golf_course\"];out tags bb;": {
+  "at": 1792636123715,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:27:36Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": []
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Royal St George's Golf Club\"];out tags bb;": {
+  "at": 1792636143827,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:27:36Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "way",
+      "id": 965098910,
+      "bounds": {
+       "minlat": 51.2735069,
+       "minlon": 1.3666062,
+       "maxlat": 51.2740149,
+       "maxlon": 1.3673129
+      },
+      "tags": {
+       "addr:city": "Sandwich",
+       "addr:place": "Sandwich",
+       "addr:postcode": "CT13 9PB",
+       "building": "yes",
+       "contact:facebook": "https://www.facebook.com/theroyalstgeorgesgolfclub/",
+       "contact:instagram": "https://www.instagram.com/royalst.georges",
+       "contact:twitter": "https://x.com/RoyalStGeorges",
+       "email": "office@royalstgeorges.com",
+       "golf": "clubhouse",
+       "name": "Royal St George's Golf Club",
+       "phone": "+44 1304 613090",
+       "website": "https://www.royalstgeorges.com/",
+       "wikidata": "Q1586134",
+       "wikipedia": "en:Royal St George's Golf Club"
+      }
+     }
+    ]
+   }
+  }
  }
 }
