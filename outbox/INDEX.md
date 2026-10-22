@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `79a5bf9` | 2026-10-22 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-22T21:55 [skip ci] |
+| `c721f2e` | 2026-10-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `4ca1f6c` | 2026-10-22 | [cc-session-2026-10-22-outdoor-venue-sourcing.md](cc-session-2026-10-22-outdoor-venue-sourcing.md) | docs: venue sourcing landed; done condition 2 against today's slate |
 | `a4ff365` | 2026-10-22 | [cc-session-2026-10-22-outdoor-venue-sourcing.md](cc-session-2026-10-22-outdoor-venue-sourcing.md) | feat: 301 outdoor venues sourced into the table, the rest in review |
 | `a4ff365` | 2026-10-22 | [venue-source-cache.json](venue-source-cache.json) | feat: 301 outdoor venues sourced into the table, the rest in review |
 | `a4ff365` | 2026-10-22 | [venue-source-calibration-latest.json](venue-source-calibration-latest.json) | feat: 301 outdoor venues sourced into the table, the rest in review |
