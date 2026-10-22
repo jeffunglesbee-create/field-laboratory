@@ -1,0 +1,4581 @@
+{
+  "at": "2026-10-22T02:09:00.614Z",
+  "eps": 0.02,
+  "summary": {
+    "checked": 109,
+    "accepted-correct": 74,
+    "accepted-WRONG": 6,
+    "review": 28,
+    "none": 1,
+    "withAnUnansweredSource": 15,
+    "osmAgreedAloneAndWrong": 5
+  },
+  "results": [
+    {
+      "name": "Fenway Park",
+      "truth": {
+        "lat": 42.3467,
+        "lon": -71.0972
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 42.3464,
+        "lon": -71.0972
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 42.346388888,
+          "lon": -71.0975,
+          "label": "Fenway Park",
+          "qid": "Q49136"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 42.3464614,
+          "lon": -71.0970999,
+          "label": "Fenway Park, 4, Jersey Street, Fenway-Kenmore, Boston, Suffolk County, Massachusetts, 02115, United States",
+          "kind": "amenity/music_venue"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 42.3464614,
+          "lon": -71.0970999,
+          "label": "Fenway Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Wrigley Field",
+      "truth": {
+        "lat": 41.9484,
+        "lon": -87.6553
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 41.9481,
+        "lon": -87.6556
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 41.948055555,
+          "lon": -87.655555555,
+          "label": "Wrigley Field",
+          "qid": "Q1052807"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 41.9481846,
+          "lon": -87.655559,
+          "label": "Wrigley Field, 1060, West Addison Street, Wrigleyville, Lake View, Chicago, Lake View Township, Cook County, Illinois, 60613, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 41.9481846,
+          "lon": -87.655559,
+          "label": "Wrigley Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Dodger Stadium",
+      "truth": {
+        "lat": 34.0739,
+        "lon": -118.24
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 34.0736,
+        "lon": -118.2399
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 34.073611111,
+          "lon": -118.24,
+          "label": "Dodger Stadium",
+          "qid": "Q247420"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 34.0736255,
+          "lon": -118.2398452,
+          "label": "Dodger Stadium, 1000, Vin Scully Avenue, Chinatown, Los Angeles, Los Angeles County, California, 90012, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 34.0736255,
+          "lon": -118.2398452,
+          "label": "Dodger Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Oracle Park",
+      "truth": {
+        "lat": 37.7786,
+        "lon": -122.3893
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 37.7785,
+        "lon": -122.3895
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 37.778333333,
+          "lon": -122.389444444,
+          "label": "Oracle Park",
+          "qid": "Q298585"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 37.7786059,
+          "lon": -122.3894716,
+          "label": "Oracle Park, 24, King Street, Mission Bay, San Francisco, California, 94107, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 37.7786059,
+          "lon": -122.3894716,
+          "label": "Oracle Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Coors Field",
+      "truth": {
+        "lat": 39.7559,
+        "lon": -104.9942
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.7561,
+        "lon": -104.9933
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.756111111,
+          "lon": -104.994166666,
+          "label": "Coors Field",
+          "qid": "Q1129916"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.7560314,
+          "lon": -104.9929286,
+          "label": "Coors Field, 2001, Blake Street, Ballpark, Five Points, Denver, Colorado, 80205, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.7560314,
+          "lon": -104.9929286,
+          "label": "Coors Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Yankee Stadium",
+      "truth": {
+        "lat": 40.8296,
+        "lon": -73.9262
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 40.8296,
+        "lon": -73.9265
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 40.829569,
+          "lon": -73.926392,
+          "label": "Yankee Stadium",
+          "qid": "Q753529"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 40.8295828,
+          "lon": -73.9265212,
+          "label": "Yankee Stadium, 1, East 161st Street, The Bronx, Bronx County, New York, 10451, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.8295828,
+          "lon": -73.9265212,
+          "label": "Yankee Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Citi Field",
+      "truth": {
+        "lat": 40.7571,
+        "lon": -73.8458
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 40.757,
+        "lon": -73.8458
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 40.756986,
+          "lon": -73.845783,
+          "label": "Citi Field",
+          "qid": "Q1072882"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 40.7570308,
+          "lon": -73.8457626,
+          "label": "Citi Field, 41, Seaver Way, Queens, Queens County, New York, 11368, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.7570308,
+          "lon": -73.8457626,
+          "label": "Citi Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Camden Yards",
+      "truth": {
+        "lat": 39.2839,
+        "lon": -76.6217
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "wikidata"
+        ],
+        "dissent": [
+          "photon"
+        ],
+        "lat": 39.2838,
+        "lon": -76.6216
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.283888888,
+          "lon": -76.621666666,
+          "label": "Oriole Park at Camden Yards",
+          "qid": "Q1141174"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.2837383,
+          "lon": -76.6216056,
+          "label": "Oriole Park at Camden Yards, Russell Street, Sowebo, Baltimore, Maryland, 21230, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.7378105,
+          "lon": -73.0585659,
+          "label": "Camden Yards",
+          "kind": "leisure/pitch"
+        }
+      }
+    },
+    {
+      "name": "PNC Park",
+      "truth": {
+        "lat": 40.4469,
+        "lon": -80.0057
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 40.4469,
+        "lon": -80.0057
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 40.446944444,
+          "lon": -80.005833333,
+          "label": "PNC Park",
+          "qid": "Q1151177"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 40.4469258,
+          "lon": -80.0056063,
+          "label": "PNC Park, North Shore Trail, North Shore, Pittsburgh, Allegheny County, Pennsylvania, 15222, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.4469258,
+          "lon": -80.0056063,
+          "label": "PNC Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Petco Park",
+      "truth": {
+        "lat": 32.7073,
+        "lon": -117.1566
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 32.7072,
+        "lon": -117.1569
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 32.707333,
+          "lon": -117.156944,
+          "label": "Petco Park",
+          "qid": "Q1194586"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 32.7071874,
+          "lon": -117.156913,
+          "label": "Petco Park, 100, Park Boulevard, East Village, Downtown San Diego, San Diego, San Diego County, California, 92101, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 32.7071874,
+          "lon": -117.156913,
+          "label": "Petco Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Progressive Field",
+      "truth": {
+        "lat": 41.4962,
+        "lon": -81.6852
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 41.496,
+        "lon": -81.6852
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 41.495833333,
+          "lon": -81.685277777,
+          "label": "Progressive Field",
+          "qid": "Q1154053"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 41.4960906,
+          "lon": -81.6851319,
+          "label": "Progressive Field, 2401, Ontario Street, Downtown Cleveland, Cleveland, Cuyahoga County, Ohio, 44115, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 41.4960906,
+          "lon": -81.6851319,
+          "label": "Progressive Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Comerica Park",
+      "truth": {
+        "lat": 42.339,
+        "lon": -83.0485
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 42.3392,
+        "lon": -83.0488
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 42.339166666,
+          "lon": -83.048611111,
+          "label": "Comerica Park",
+          "qid": "Q868482"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 42.3392219,
+          "lon": -83.0488632,
+          "label": "Comerica Park, 2109, Woodward Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 42.3392219,
+          "lon": -83.0488632,
+          "label": "Comerica Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Kauffman Stadium",
+      "truth": {
+        "lat": 39.0517,
+        "lon": -94.4803
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.0515,
+        "lon": -94.4805
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.051388888,
+          "lon": -94.480555555,
+          "label": "Kauffman Stadium",
+          "qid": "Q1737017"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.0515081,
+          "lon": -94.4804598,
+          "label": "Kauffman Stadium, 1, Royal Way, Kansas City, Jackson County, Missouri, 64129, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.0515081,
+          "lon": -94.4804598,
+          "label": "Kauffman Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Target Field",
+      "truth": {
+        "lat": 44.9817,
+        "lon": -93.2776
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 44.9817,
+        "lon": -93.278
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 44.981667,
+          "lon": -93.278333,
+          "label": "Target Field",
+          "qid": "Q1156635"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 44.9816845,
+          "lon": -93.2778643,
+          "label": "Target Field, 1, Twins Way, North Loop, Gateway District, Central, Minneapolis, Hennepin County, Minnesota, 55403, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 44.9816845,
+          "lon": -93.2778643,
+          "label": "Target Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Busch Stadium",
+      "truth": {
+        "lat": 38.6226,
+        "lon": -90.1928
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 38.6225541,
+          "lon": -90.1939205,
+          "label": "Busch Stadium, 700, Clark Avenue, Downtown, Saint Louis, Missouri, 63101, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 38.6225541,
+          "lon": -90.1939205,
+          "label": "Busch Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Great American Ball Park",
+      "truth": {
+        "lat": 39.0975,
+        "lon": -84.5069
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.0972484,
+          "lon": -84.5066233,
+          "label": "Great American Ball Park, Barry Larkin Way, Lytle Park Historic District, Central Business District, Cincinnati, Hamilton County, Ohio, 45202, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.0972484,
+          "lon": -84.5066233,
+          "label": "Great American Ball Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Angel Stadium",
+      "truth": {
+        "lat": 33.8003,
+        "lon": -117.8827
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.8003,
+        "lon": -117.8821
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.800277777,
+          "lon": -117.882777777,
+          "label": "Angel Stadium of Anaheim",
+          "qid": "Q531897"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.8002599,
+          "lon": -117.8817426,
+          "label": "Angel Stadium of Anaheim, 2000, East Gene Autry Way, Anaheim Resort District, Anaheim, Orange County, California, 92806, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.8002599,
+          "lon": -117.8817426,
+          "label": "Angel Stadium of Anaheim",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Angels Stadium",
+      "truth": {
+        "lat": 33.8003,
+        "lon": -117.8827
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "wikidata",
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": false
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.800277777,
+          "lon": -117.882777777,
+          "label": "Angel Stadium of Anaheim",
+          "qid": "Q531897"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 48.3879375,
+          "lon": 17.5835368,
+          "label": "Baseballový klub Angels Trnava, Cukrová, Kopánka, Trnava, okres Trnava, Trnavský kraj, 917 01, Slovensko",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 37.5157763,
+          "lon": 15.0714716,
+          "label": "Stadio Angelo Massimino",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Rate Field",
+      "truth": {
+        "lat": 41.8299,
+        "lon": -87.6338
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 41.8298,
+        "lon": -87.6338
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 41.83,
+          "lon": -87.633888888,
+          "label": "Rate Field",
+          "qid": "Q633613"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 41.829692,
+          "lon": -87.6337919,
+          "label": "Rate Field, 333, West 35th Street, Armour Square, Chicago, South Chicago Township, Cook County, Illinois, 60616, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 41.829692,
+          "lon": -87.6337919,
+          "label": "Rate Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Guaranteed Rate Field",
+      "truth": {
+        "lat": 41.8299,
+        "lon": -87.6338
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "wikidata"
+        ],
+        "osmOnlyAgree": false
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 41.83,
+          "lon": -87.633888888,
+          "label": "Rate Field",
+          "qid": "Q633613"
+        },
+        "nominatim": "no result",
+        "photon": "only non-venue classes"
+      }
+    },
+    {
+      "name": "loanDepot park",
+      "truth": {
+        "lat": 25.7781,
+        "lon": -80.2197
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 25.7781,
+        "lon": -80.2196
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 25.778056,
+          "lon": -80.219722,
+          "label": "LoanDepot Park",
+          "qid": "Q1368138"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 25.7780733,
+          "lon": -80.219554,
+          "label": "LoanDepot Park, Northwest 6th Street, Miami, Miami-Dade County, Florida, 33128, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 25.7780733,
+          "lon": -80.219554,
+          "label": "LoanDepot Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Minute Maid Park",
+      "truth": {
+        "lat": 29.7572,
+        "lon": -95.3556
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 29.7571,
+        "lon": -95.3553
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 29.756944444,
+          "lon": -95.355555555,
+          "label": "Daikin Park",
+          "qid": "Q1193671"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 29.7572321,
+          "lon": -95.3552344,
+          "label": "Daikin Park, 501, Crawford Street, Downtown, Houston, Harris County, Texas, 77004, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 29.7572321,
+          "lon": -95.3552344,
+          "label": "Daikin Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Daikin Park",
+      "truth": {
+        "lat": 29.7572,
+        "lon": -95.3556
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 29.7571,
+        "lon": -95.3553
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 29.756944444,
+          "lon": -95.355555555,
+          "label": "Daikin Park",
+          "qid": "Q1193671"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 29.7572321,
+          "lon": -95.3552344,
+          "label": "Daikin Park, 501, Crawford Street, Downtown, Houston, Harris County, Texas, 77004, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 29.7572321,
+          "lon": -95.3552344,
+          "label": "Daikin Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Globe Life Field",
+      "truth": {
+        "lat": 32.7473,
+        "lon": -97.0847
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 32.7475,
+        "lon": -97.0841
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 32.74736111,
+          "lon": -97.08416667,
+          "label": "Globe Life Field",
+          "qid": "Q24284037"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 32.747642,
+          "lon": -97.0841049,
+          "label": "Globe Life Field, 734, Stadium Drive, Arlington, Tarrant County, Texas, 76011, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 32.747642,
+          "lon": -97.0841049,
+          "label": "Globe Life Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "American Family Field",
+      "truth": {
+        "lat": 43.028,
+        "lon": -87.9712
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "wikidata",
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.492222,
+          "lon": -112.173056,
+          "label": "American Family Fields of Phoenix",
+          "qid": "Q6781782"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 43.0280619,
+          "lon": -87.9712694,
+          "label": "American Family Field, 1, Brewers Way, Story Hill, Milwaukee, Milwaukee County, Wisconsin, 53214, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 43.0280619,
+          "lon": -87.9712694,
+          "label": "American Family Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Rogers Centre",
+      "truth": {
+        "lat": 43.6414,
+        "lon": -79.3894
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "wikidata"
+        ],
+        "dissent": [
+          "photon"
+        ],
+        "lat": 43.6415,
+        "lon": -79.3892
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 43.641388888,
+          "lon": -79.389166666,
+          "label": "Rogers Centre",
+          "qid": "Q76318"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 43.6416598,
+          "lon": -79.3891976,
+          "label": "Rogers Centre, 1, Blue Jays Way, Harbourfront-CityPlace, Downtown, Toronto, Ontario, M5V 1J1, Canada",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 45.4242529,
+          "lon": -75.6912376,
+          "label": "Rogers Centre",
+          "kind": "amenity/conference_centre"
+        }
+      }
+    },
+    {
+      "name": "T-Mobile Park",
+      "truth": {
+        "lat": 47.5914,
+        "lon": -122.3325
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 47.5913974,
+          "lon": -122.332507,
+          "label": "T-Mobile Park, 1250, 1st Avenue South, Yesler Terrace, Seattle, King County, Washington, 98134, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 47.5913974,
+          "lon": -122.332507,
+          "label": "T-Mobile Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Chase Field",
+      "truth": {
+        "lat": 33.4455,
+        "lon": -112.0667
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.4454,
+        "lon": -112.0668
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.445277777,
+          "lon": -112.066944444,
+          "label": "Chase Field",
+          "qid": "Q1068011"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.4454856,
+          "lon": -112.0666928,
+          "label": "Chase Field, East Jefferson Street Frontage Road, Downtown, Central City, Phoenix, Maricopa County, Arizona, 85004, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.4454856,
+          "lon": -112.0666928,
+          "label": "Chase Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Tropicana Field",
+      "truth": {
+        "lat": 27.7683,
+        "lon": -82.6534
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 27.7681,
+        "lon": -82.6533
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 27.768333333,
+          "lon": -82.653333333,
+          "label": "Tropicana Field",
+          "qid": "Q1810119"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 27.7680559,
+          "lon": -82.6532755,
+          "label": "Tropicana Field, Pinellas Trail, Edge District, Saint Petersburg, Pinellas County, Florida, 33701, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 27.7680559,
+          "lon": -82.6532755,
+          "label": "Tropicana Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "S.C.G.",
+      "truth": {
+        "lat": -33.8915,
+        "lon": 151.2245
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "photon"
+        ],
+        "osmOnlyAgree": false
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "no venue entity with coordinates",
+        "nominatim": "only non-venue classes",
+        "photon": {
+          "source": "photon",
+          "lat": 45.4260328,
+          "lon": 8.5821229,
+          "label": "Barilla G. e R. F.lli S.p.A.",
+          "kind": "building/industrial"
+        }
+      }
+    },
+    {
+      "name": "Marrara Oval",
+      "truth": {
+        "lat": -12.399,
+        "lon": 130.887
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -12.3988,
+        "lon": 130.8859
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -12.399167,
+          "lon": 130.887222,
+          "label": "Marrara Stadium",
+          "qid": "Q6772798"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -12.3986238,
+          "lon": 130.8852953,
+          "label": "Marrara No. 2 Oval, Marrara Drive, Marrara, Darwin, Northern Territory, 0812, Australia",
+          "kind": "leisure/pitch"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -12.3986238,
+          "lon": 130.8852953,
+          "label": "Marrara No. 2 Oval",
+          "kind": "leisure/pitch"
+        }
+      }
+    },
+    {
+      "name": "Melbourne Cricket Ground",
+      "truth": {
+        "lat": -37.82,
+        "lon": 144.9834
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -37.8199,
+        "lon": 144.9833
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -37.819943,
+          "lon": 144.983447,
+          "label": "Melbourne Cricket Ground",
+          "qid": "Q330136"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -37.819909,
+          "lon": 144.983225,
+          "label": "Melbourne Cricket Ground, 120, Barassi Way, Jolimont, East Melbourne, Melbourne, Victoria, 3002, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -37.819909,
+          "lon": 144.983225,
+          "label": "Melbourne Cricket Ground",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Adelaide Oval",
+      "truth": {
+        "lat": -34.9155,
+        "lon": 138.596
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -34.9156,
+        "lon": 138.5961
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -34.915555555,
+          "lon": 138.596111111,
+          "label": "Adelaide Oval",
+          "qid": "Q2462430"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -34.9155946,
+          "lon": 138.5961558,
+          "label": "Adelaide Oval, War Memorial Drive, North Adelaide, Adelaide, South Australia, 5006, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -34.9155946,
+          "lon": 138.5961558,
+          "label": "Adelaide Oval",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "The Gabba",
+      "truth": {
+        "lat": -27.4858,
+        "lon": 153.0381
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -27.4859,
+        "lon": 153.038
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -27.485833333,
+          "lon": 153.038055555,
+          "label": "Brisbane Cricket Ground",
+          "qid": "Q2462392"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -27.485885,
+          "lon": 153.0379847,
+          "label": "Brisbane Cricket Ground, Vulture Street, Woolloongabba, Brisbane, Queensland, 4102, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -27.485885,
+          "lon": 153.0379847,
+          "label": "Brisbane Cricket Ground",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Optus Stadium",
+      "truth": {
+        "lat": -31.951,
+        "lon": 115.889
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -31.9511,
+        "lon": 115.8897
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -31.9511,
+          "lon": 115.8891,
+          "label": "Perth Stadium",
+          "qid": "Q7170896"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -31.9510448,
+          "lon": 115.8890756,
+          "label": "Perth Stadium, 333, Victoria Park Drive, Burswood, Perth, Western Australia, 6100, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -31.9511546,
+          "lon": 115.8908278,
+          "label": "Gate A (Optus Stadium)",
+          "kind": "building/yes"
+        }
+      }
+    },
+    {
+      "name": "GMHBA Stadium",
+      "truth": {
+        "lat": -38.158,
+        "lon": 144.3546
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -38.1581,
+        "lon": 144.3546
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -38.158055555,
+          "lon": 144.354722222,
+          "label": "Kardinia Park",
+          "qid": "Q3193033"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -38.1581856,
+          "lon": 144.3544373,
+          "label": "GMHBA Stadium, 370, Moorabool Street, South Geelong, Geelong, Victoria, 3220, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -38.1581121,
+          "lon": 144.3545945,
+          "label": "GMHBA Stadium",
+          "kind": "leisure/pitch"
+        }
+      }
+    },
+    {
+      "name": "Marvel Stadium",
+      "truth": {
+        "lat": -37.8165,
+        "lon": 144.9475
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -37.8165,
+        "lon": 144.9475
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -37.816388888,
+          "lon": 144.9475,
+          "label": "Docklands Stadium",
+          "qid": "Q917998"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -37.816529,
+          "lon": 144.947517,
+          "label": "Marvel Stadium, 740, Bourke Street, Docklands, Melbourne, Victoria, 3008, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -37.816529,
+          "lon": 144.947517,
+          "label": "Marvel Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "BC Place",
+      "truth": {
+        "lat": 49.2767,
+        "lon": -123.1119
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 49.2766905,
+          "lon": -123.1120062,
+          "label": "BC Place, 777, Pacific Boulevard, Downtown, Vancouver, Metro Vancouver Regional District, British Columbia, V6B 6G2, Canada",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 49.2766905,
+          "lon": -123.1120062,
+          "label": "BC Place",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Lumen Field",
+      "truth": {
+        "lat": 47.5952,
+        "lon": -122.3316
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 47.5953,
+        "lon": -122.3317
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 47.595277777,
+          "lon": -122.331666666,
+          "label": "Lumen Field",
+          "qid": "Q612736"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 47.5953459,
+          "lon": -122.3316443,
+          "label": "Lumen Field, 800, Occidental Avenue South, Yesler Terrace, Seattle, King County, Washington, 98134, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 47.5953459,
+          "lon": -122.3316443,
+          "label": "Lumen Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "America First Field",
+      "truth": {
+        "lat": 40.5829,
+        "lon": -111.8933
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 40.5829,
+        "lon": -111.8932
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 40.5829,
+          "lon": -111.893,
+          "label": "America First Field",
+          "qid": "Q1514798"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 40.5829593,
+          "lon": -111.8932933,
+          "label": "America First Field, 9256, State Street, Wallace Heights, Sandy, Salt Lake County, Utah, 84070, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.5829593,
+          "lon": -111.8932933,
+          "label": "America First Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Providence Park",
+      "truth": {
+        "lat": 45.5215,
+        "lon": -122.6919
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 45.5215,
+        "lon": -122.6918
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 45.521388888,
+          "lon": -122.691666666,
+          "label": "Providence Park",
+          "qid": "Q262291"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 45.5215291,
+          "lon": -122.6918185,
+          "label": "Providence Park, Southwest 18th Avenue, Goose Hollow, Portland, Multnomah County, Oregon, 97205, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 45.5215291,
+          "lon": -122.6918185,
+          "label": "Providence Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Allianz Field",
+      "truth": {
+        "lat": 44.953,
+        "lon": -93.1655
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 44.953,
+        "lon": -93.1648
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 44.9528,
+          "lon": -93.1651,
+          "label": "Allianz Field",
+          "qid": "Q22096631"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 44.953139,
+          "lon": -93.1646871,
+          "label": "Allianz Field, Simpson Street, Snelling - Hamline, Union Park, Saint Paul, Ramsey County, Minnesota, 55104, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 44.953139,
+          "lon": -93.1646871,
+          "label": "Allianz Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Dignity Health Sports Park",
+      "truth": {
+        "lat": 33.8644,
+        "lon": -118.2611
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.8631,
+        "lon": -118.2623
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.864444444,
+          "lon": -118.261111111,
+          "label": "Dignity Health Sports Park",
+          "qid": "Q200684"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.8623767,
+          "lon": -118.2629113,
+          "label": "Dignity Health Sports Park, 18400, South Avalon Boulevard, Carson, Los Angeles County, California, 90746, United States",
+          "kind": "leisure/sports_centre"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.8623767,
+          "lon": -118.2629113,
+          "label": "Dignity Health Sports Park",
+          "kind": "leisure/sports_centre"
+        }
+      }
+    },
+    {
+      "name": "Sporting Park",
+      "truth": {
+        "lat": 39.1217,
+        "lon": -94.8236
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.1217,
+        "lon": -94.8235
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.1218,
+          "lon": -94.8237,
+          "label": "Sporting Park",
+          "qid": "Q1787141"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.1216438,
+          "lon": -94.8233504,
+          "label": "Sporting Park, Sporting Way, Village West, Kansas City, Wyandotte County, Kansas, 66109, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.1216438,
+          "lon": -94.8233504,
+          "label": "Sporting Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "DICK'S Sporting Goods Park",
+      "truth": {
+        "lat": 39.8058,
+        "lon": -104.8919
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.8058,
+        "lon": -104.8919
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.805555555,
+          "lon": -104.891944444,
+          "label": "Dick's Sporting Goods Park",
+          "qid": "Q1210268"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.8059455,
+          "lon": -104.8919219,
+          "label": "Dick's Sporting Goods Park, 6000, East 59th Place, Commerce City, Adams County, Colorado, 80022, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.8059455,
+          "lon": -104.8919219,
+          "label": "Dick's Sporting Goods Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Nationals Park",
+      "truth": {
+        "lat": 38.873,
+        "lon": -77.0074
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 38.8727,
+        "lon": -77.0076
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 38.8725,
+          "lon": -77.007777777,
+          "label": "Nationals Park",
+          "qid": "Q517545"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 38.8727332,
+          "lon": -77.0074815,
+          "label": "Nationals Park, 1500, South Capitol Street Southeast, Ward 8, Washington, District of Columbia, 20590, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 38.8727332,
+          "lon": -77.0074815,
+          "label": "Nationals Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Citizens Bank Park",
+      "truth": {
+        "lat": 39.9061,
+        "lon": -75.1665
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.9059,
+        "lon": -75.1665
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.905833333,
+          "lon": -75.166666666,
+          "label": "Citizens Bank Park",
+          "qid": "Q912770"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.9059221,
+          "lon": -75.1664804,
+          "label": "Citizens Bank Park, Hartranft Street, South Philadelphia, Philadelphia, Philadelphia County, Pennsylvania, 19148, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.9059221,
+          "lon": -75.1664804,
+          "label": "Citizens Bank Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Sutter Health Park",
+      "truth": {
+        "lat": 38.5805,
+        "lon": -121.5133
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 38.5804,
+        "lon": -121.5135
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 38.580372222,
+          "lon": -121.5138,
+          "label": "Sutter Health Park",
+          "qid": "Q3418115"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 38.5803717,
+          "lon": -121.5134097,
+          "label": "Sutter Health Park, 400, Ballpark Drive, Peethill, West Sacramento, Yolo County, California, 95691, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 38.5803717,
+          "lon": -121.5134097,
+          "label": "Sutter Health Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Gillette Stadium",
+      "truth": {
+        "lat": 42.0909,
+        "lon": -71.2643
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 42.0908879,
+          "lon": -71.2641731,
+          "label": "Gillette Stadium, 1, Patriot Place, Foxborough, Norfolk County, Massachusetts, 02035, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 42.0908879,
+          "lon": -71.2641731,
+          "label": "Gillette Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Red Bull Arena",
+      "truth": {
+        "lat": 40.7367,
+        "lon": -74.1503
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": true,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 51.3457078,
+          "lon": 12.3482361,
+          "label": "Red Bull Arena, Am Sportforum, Zentrum-Nordwest, Mitte, Leipzig, Sachsen, 04105, Deutschland",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 51.3457078,
+          "lon": 12.3482361,
+          "label": "Red Bull Arena",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "CityPark",
+      "truth": {
+        "lat": 38.6317,
+        "lon": -90.2016
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 38.631,
+        "lon": -90.2106
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 38.631052,
+          "lon": -90.210921,
+          "label": "Energizer Park",
+          "qid": "Q30591730"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 38.6313184,
+          "lon": -90.2103075,
+          "label": "Energizer Park, 2019, Market Street, Downtown West, Saint Louis, Missouri, 63103, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 38.6306066,
+          "lon": -90.2105512,
+          "label": "Energizer Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Snapdragon Stadium",
+      "truth": {
+        "lat": 32.7831,
+        "lon": -117.1199
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 32.7843,
+        "lon": -117.1225
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 32.784444444,
+          "lon": -117.122833333,
+          "label": "Snapdragon Stadium",
+          "qid": "Q100272042"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 32.7842418,
+          "lon": -117.1223904,
+          "label": "Snapdragon Stadium, 1, Stadium Way, Mission City, Serra Mesa, San Diego, San Diego County, California, 92182, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 32.7842418,
+          "lon": -117.1223904,
+          "label": "Snapdragon Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Stade Saputo",
+      "truth": {
+        "lat": 45.564,
+        "lon": -73.5518
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 45.5631,
+        "lon": -73.5526
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 45.563055555,
+          "lon": -73.5525,
+          "label": "Saputo Stadium",
+          "qid": "Q2093647"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 45.5630896,
+          "lon": -73.5526392,
+          "label": "Stade Saputo, 4750, Rue Sherbrooke Est, Maisonneuve, Mercier–Hochelaga-Maisonneuve, Montréal, Agglomération de Montréal, Montréal (région administrative), Québec, H1V 3S8, Canada",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 45.5630896,
+          "lon": -73.5526392,
+          "label": "Stade Saputo",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "BMO Field",
+      "truth": {
+        "lat": 43.6333,
+        "lon": -79.4186
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 43.6332,
+        "lon": -79.4186
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 43.632778,
+          "lon": -79.418611,
+          "label": "BMO Field",
+          "qid": "Q796351"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 43.6333414,
+          "lon": -79.4185614,
+          "label": "BMO Field, 170, Princes' Boulevard, Fort York-Liberty Village, Spadina—Fort York, Toronto, Ontario, M6K 3C3, Canada",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 43.6333414,
+          "lon": -79.4185614,
+          "label": "BMO Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Chase Stadium",
+      "truth": {
+        "lat": 26.1947,
+        "lon": -80.1506
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 26.1932,
+        "lon": -80.1608
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 26.193055555,
+          "lon": -80.161111111,
+          "label": "Chase Stadium",
+          "qid": "Q65240568"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 26.1932426,
+          "lon": -80.16068,
+          "label": "Chase Stadium, 1350, Northwest 55th Street, Fort Lauderdale, Broward County, Florida, 33309, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 26.1932426,
+          "lon": -80.16068,
+          "label": "Chase Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Subaru Park",
+      "truth": {
+        "lat": 39.8334,
+        "lon": -75.3808
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.8327,
+        "lon": -75.3786
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.832222,
+          "lon": -75.378889,
+          "label": "Subaru Park",
+          "qid": "Q1637843"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.8329094,
+          "lon": -75.3784739,
+          "label": "Subaru Park, 1, Seaport Drive, South Chester, Chester, Delaware County, Pennsylvania, 19013, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.8329094,
+          "lon": -75.3784739,
+          "label": "Subaru Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Bank of America Stadium",
+      "truth": {
+        "lat": 35.2259,
+        "lon": -80.8529
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 35.2258,
+        "lon": -80.8528
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 35.225833333,
+          "lon": -80.852777777,
+          "label": "Bank of America Stadium",
+          "qid": "Q806673"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 35.225774,
+          "lon": -80.8528276,
+          "label": "Bank of America Stadium, 800, South Mint Street, Third Ward, Uptown, Charlotte, Mecklenburg County, North Carolina, 28202, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 35.225774,
+          "lon": -80.8528276,
+          "label": "Bank of America Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Audi Field",
+      "truth": {
+        "lat": 38.8695,
+        "lon": -77.0125
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 38.8683,
+        "lon": -77.0127
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 38.868504,
+          "lon": -77.012935,
+          "label": "Audi Field",
+          "qid": "Q5203387"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 38.8682612,
+          "lon": -77.0126092,
+          "label": "Audi Field, 100, Potomac Avenue Southwest, Buzzard Point, Ward 6, Washington, District of Columbia, 20024, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 38.8682612,
+          "lon": -77.0126092,
+          "label": "Audi Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Lower.com Field",
+      "truth": {
+        "lat": 39.969,
+        "lon": -83.0154
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.9684,
+        "lon": -83.0168
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.96846,
+          "lon": -83.01709,
+          "label": "ScottsMiracle-Gro Field",
+          "qid": "Q65045869"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.968362,
+          "lon": -83.0166582,
+          "label": "ScottsMiracle-Gro Field, 96, Columbus Crew Way, Columbus, Franklin County, Ohio, 43215, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.968362,
+          "lon": -83.0166582,
+          "label": "ScottsMiracle-Gro Field",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "TQL Stadium",
+      "truth": {
+        "lat": 39.1051,
+        "lon": -84.5182
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 39.1112,
+        "lon": -84.5222
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 39.111388888,
+          "lon": -84.522222222,
+          "label": "TQL Stadium",
+          "qid": "Q54465634"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 39.1111789,
+          "lon": -84.5222288,
+          "label": "TQL Stadium, 1501, Central Parkway, Betts-Longworth Historic District, West End, Cincinnati, Hamilton County, Ohio, 45214, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 39.1111789,
+          "lon": -84.5222288,
+          "label": "TQL Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Inter&Co Stadium",
+      "truth": {
+        "lat": 28.5415,
+        "lon": -81.3893
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 28.5411041,
+          "lon": -81.3891411,
+          "label": "Inter.co Stadium, West Pine Street, Holden Heights, Orlando, Orange County, Florida, 32801, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 28.5411041,
+          "lon": -81.3891411,
+          "label": "Inter.co Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "GEODIS Park",
+      "truth": {
+        "lat": 36.1307,
+        "lon": -86.7665
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 36.130025,
+          "lon": -86.7659442,
+          "label": "GEODIS Park, 501, Benton Avenue, Wedgewood-Houston, Nashville, Davidson County, Middle Tennessee, Tennessee, 37203, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 36.130025,
+          "lon": -86.7659442,
+          "label": "GEODIS Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Soldier Field",
+      "truth": {
+        "lat": 41.8623,
+        "lon": -87.6167
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 41.8624,
+        "lon": -87.617
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 41.8625,
+          "lon": -87.616666666,
+          "label": "Soldier Field",
+          "qid": "Q1132413"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 41.8624515,
+          "lon": -87.6167151,
+          "label": "Soldier Field, 1410, South Special Olympics Drive, South Loop, Near South Side, Chicago, South Chicago Township, Cook County, Illinois, 60605, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 41.8623356,
+          "lon": -87.6176477,
+          "label": "Soldier Field",
+          "kind": "building/stadium"
+        }
+      }
+    },
+    {
+      "name": "BMO Stadium",
+      "truth": {
+        "lat": 34.013,
+        "lon": -118.2845
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 34.0128,
+        "lon": -118.2839
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 34.013,
+          "lon": -118.285,
+          "label": "BMO Stadium",
+          "qid": "Q22096111"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 34.0127678,
+          "lon": -118.2833417,
+          "label": "BMO Stadium, South Coliseum Drive, Exposition Park, Los Angeles, Los Angeles County, California, 90037, United States",
+          "kind": "building/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 34.0127678,
+          "lon": -118.2833417,
+          "label": "BMO Stadium",
+          "kind": "building/stadium"
+        }
+      }
+    },
+    {
+      "name": "PayPal Park",
+      "truth": {
+        "lat": 37.3519,
+        "lon": -121.9254
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 37.3513,
+        "lon": -121.9248
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 37.351389,
+          "lon": -121.925,
+          "label": "PayPal Park",
+          "qid": "Q3046470"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 37.3513087,
+          "lon": -121.924672,
+          "label": "PayPal Park, 1123, Coleman Avenue, North San Jose, San Jose, Santa Clara County, California, 95110, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 37.3513087,
+          "lon": -121.924672,
+          "label": "PayPal Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Q2 Stadium",
+      "truth": {
+        "lat": 30.3872,
+        "lon": -97.718
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "wikidata"
+        ],
+        "osmOnlyAgree": false
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 30.388206,
+          "lon": -97.719837,
+          "label": "Q2 Stadium",
+          "qid": "Q56278477"
+        },
+        "nominatim": "only non-venue classes",
+        "photon": "no result"
+      }
+    },
+    {
+      "name": "Shell Energy Stadium",
+      "truth": {
+        "lat": 29.7523,
+        "lon": -95.3511
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 29.7521,
+        "lon": -95.3524
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 29.7522,
+          "lon": -95.3524,
+          "label": "Shell Energy Stadium",
+          "qid": "Q176460"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 29.7520265,
+          "lon": -95.3523409,
+          "label": "Shell Energy Stadium, Emancipation Avenue, East Downtown, Houston, Harris County, Texas, 77003, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 29.7520265,
+          "lon": -95.3523409,
+          "label": "Shell Energy Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Toyota Stadium",
+      "truth": {
+        "lat": 33.1545,
+        "lon": -96.8353
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.1543,
+        "lon": -96.8353
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.154458333,
+          "lon": -96.835158333,
+          "label": "Toyota Stadium",
+          "qid": "Q1140457"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.154224,
+          "lon": -96.8353657,
+          "label": "Toyota Stadium, 9200, World Cup Way, Frisco, Collin County, Texas, 75034, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.154224,
+          "lon": -96.8353657,
+          "label": "Toyota Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Mercedes-Benz Stadium",
+      "truth": {
+        "lat": 33.7555,
+        "lon": -84.401
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.7554,
+        "lon": -84.4008
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.755277777,
+          "lon": -84.400833333,
+          "label": "Mercedes-Benz Stadium",
+          "qid": "Q7007552"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.7554123,
+          "lon": -84.4008493,
+          "label": "Mercedes-Benz Stadium, 1414, Andrew Young International Boulevard, Atlanta, Fulton County, Georgia, 30313, United States",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.7554123,
+          "lon": -84.4008493,
+          "label": "Mercedes-Benz Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Anfield",
+      "truth": {
+        "lat": 53.4308,
+        "lon": -2.9608
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 53.4309,
+        "lon": -2.9609
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 53.430833333,
+          "lon": -2.960833333,
+          "label": "Anfield",
+          "qid": "Q45671"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 53.4309011,
+          "lon": -2.9609719,
+          "label": "Anfield, Anfield Road, Anfield, Liverpool, Liverpool City Region, England, L4 0TH, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 53.4309011,
+          "lon": -2.9609719,
+          "label": "Anfield",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Etihad Stadium",
+      "truth": {
+        "lat": 53.4831,
+        "lon": -2.2004
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "wikidata",
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -37.816388888,
+          "lon": 144.9475,
+          "label": "Docklands Stadium",
+          "qid": "Q917998"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 53.4831448,
+          "lon": -2.2005273,
+          "label": "Etihad Stadium, Joe Mercer Way, Bradford, Manchester, Greater Manchester, England, M11 3FF, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 53.4831448,
+          "lon": -2.2005273,
+          "label": "Etihad Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Craven Cottage",
+      "truth": {
+        "lat": 51.4749,
+        "lon": -0.2218
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 51.4749,
+        "lon": -0.2217
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 51.475,
+          "lon": -0.221666666,
+          "label": "Craven Cottage",
+          "qid": "Q318043"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 51.4749218,
+          "lon": -0.2217448,
+          "label": "Craven Cottage, Stevenage Road, Fulham, London Borough of Hammersmith and Fulham, Greater London, England, SW6 6HH, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 51.4749218,
+          "lon": -0.2217448,
+          "label": "Craven Cottage",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Amex Stadium",
+      "truth": {
+        "lat": 50.8619,
+        "lon": -0.0831
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 50.8615471,
+          "lon": -0.0836931,
+          "label": "American Express Stadium, Village Way, Coldean, Brighton, Brighton and Hove, England, BN1 9BL, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 50.8626255,
+          "lon": -0.0856771,
+          "label": "Amex Stadium VIP Parking",
+          "kind": "amenity/parking"
+        }
+      }
+    },
+    {
+      "name": "Stadium of Light",
+      "truth": {
+        "lat": 54.9147,
+        "lon": -1.3882
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 54.9143953,
+          "lon": -1.3882579,
+          "label": "Stadium of Light, Vaux Brewery Way, Millfield, Sunderland, Tyne and Wear, North East, England, SR5 1SU, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 54.9143953,
+          "lon": -1.3882579,
+          "label": "Stadium of Light",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Villa Park",
+      "truth": {
+        "lat": 52.509,
+        "lon": -1.8847
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 52.5091,
+        "lon": -1.8849
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 52.509166666,
+          "lon": -1.884722222,
+          "label": "Villa Park",
+          "qid": "Q175339"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 52.5091264,
+          "lon": -1.8850354,
+          "label": "Villa Park, Trinity Road, Aston, Birmingham, West Midlands, England, B6 6HE, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 52.5091264,
+          "lon": -1.8850354,
+          "label": "Villa Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Turf Moor",
+      "truth": {
+        "lat": 53.7889,
+        "lon": -2.2302
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 53.7892,
+        "lon": -2.23
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 53.789064,
+          "lon": -2.230225,
+          "label": "Turf Moor",
+          "qid": "Q683112"
+        },
+        "nominatim": "only non-venue classes",
+        "photon": {
+          "source": "photon",
+          "lat": 53.7893606,
+          "lon": -2.2298547,
+          "label": "Turf Moor",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Selhurst Park",
+      "truth": {
+        "lat": 51.3983,
+        "lon": -0.0855
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 51.3983,
+        "lon": -0.0854
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 51.398333333,
+          "lon": -0.085555555,
+          "label": "Selhurst Park",
+          "qid": "Q1066373"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 51.3982429,
+          "lon": -0.0852551,
+          "label": "Selhurst Park, Whitehorse Lane, Thornton Heath, London Borough of Croydon, Greater London, England, SE25 6PU, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 51.3982429,
+          "lon": -0.0852551,
+          "label": "Selhurst Park",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "City Ground",
+      "truth": {
+        "lat": 52.9401,
+        "lon": -1.1326
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 52.94,
+        "lon": -1.1328
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 52.94,
+          "lon": -1.132778,
+          "label": "City Ground",
+          "qid": "Q593446"
+        },
+        "nominatim": "only non-venue classes",
+        "photon": {
+          "source": "photon",
+          "lat": 52.9399387,
+          "lon": -1.1328954,
+          "label": "The City Ground",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Riverside Stadium",
+      "truth": {
+        "lat": 54.5785,
+        "lon": -1.217
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 54.5783,
+        "lon": -1.2169
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 54.578333333,
+          "lon": -1.216944444,
+          "label": "Riverside Stadium",
+          "qid": "Q822886"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 54.5783134,
+          "lon": -1.2169153,
+          "label": "Riverside stadium, The Leeway, North Ormesby, Middlesbrough, Tees Valley, England, TS3 6RS, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 54.5783134,
+          "lon": -1.2169153,
+          "label": "Riverside stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "St Mary's Stadium",
+      "truth": {
+        "lat": 50.9058,
+        "lon": -1.391
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 50.9059,
+        "lon": -1.391
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 50.90583333,
+          "lon": -1.39111111,
+          "label": "St Mary's Stadium",
+          "qid": "Q567339"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 50.9058615,
+          "lon": -1.3908774,
+          "label": "St. Mary's Stadium, Britannia Road, Belvidere, Northam, Southampton, England, SO14 5FP, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 50.9058615,
+          "lon": -1.3908774,
+          "label": "St. Mary's Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "MKM Stadium",
+      "truth": {
+        "lat": 53.7463,
+        "lon": -0.3674
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 53.7462,
+        "lon": -0.3678
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 53.746111111,
+          "lon": -0.367777777,
+          "label": "MKM Stadium",
+          "qid": "Q630160"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 53.7462257,
+          "lon": -0.3678239,
+          "label": "MKM Stadium, The Circle, Avenues, Hull, Kingston upon Hull, Hull and East Yorkshire, England, HU3 6HU, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 53.7462257,
+          "lon": -0.3678239,
+          "label": "MKM Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "The Den",
+      "truth": {
+        "lat": 51.4851,
+        "lon": -0.0509
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 51.4859,
+        "lon": -0.0509
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 51.485833,
+          "lon": -0.050833,
+          "label": "The Den",
+          "qid": "Q908481"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 51.4859656,
+          "lon": -0.0509103,
+          "label": "The Den, John Berylson Way, South Bermondsey, Bermondsey, London Borough of Lewisham, Greater London, England, SE16 3LA, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 51.4859656,
+          "lon": -0.0509103,
+          "label": "The Den",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "London Stadium",
+      "truth": {
+        "lat": 51.5386,
+        "lon": -0.0163
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 51.5386,
+        "lon": -0.0165
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 51.538611111,
+          "lon": -0.016388888,
+          "label": "London Stadium",
+          "qid": "Q172190"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 51.5386207,
+          "lon": -0.0166238,
+          "label": "London Stadium, Gate 1 Access Road, Stratford, London Borough of Newham, Greater London, England, E20 2ST, United Kingdom",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 51.5386207,
+          "lon": -0.0166238,
+          "label": "London Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Allianz Arena",
+      "truth": {
+        "lat": 48.2188,
+        "lon": 11.6247
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 48.2188,
+        "lon": 11.624
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 48.218775,
+          "lon": 11.624752777,
+          "label": "Allianz Arena",
+          "qid": "Q127429"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 48.2187901,
+          "lon": 11.6236227,
+          "label": "Allianz Arena., 5, Werner-Heisenberg-Allee, Fröttmaning, Schwabing-Freimann, München, Bayern, 80939, Deutschland",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 48.2187901,
+          "lon": 11.6236227,
+          "label": "Allianz Arena.",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Europa-Park Stadion",
+      "truth": {
+        "lat": 48.0221,
+        "lon": 7.8275
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 48.0213778,
+          "lon": 7.829817,
+          "label": "Europa-Park Stadion, 1, Achim-Stocker-Straße, Brühl-Industriegebiet, Brühl, Freiburg im Breisgau, Baden-Württemberg, 79108, Deutschland",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 48.0213778,
+          "lon": 7.829817,
+          "label": "Europa-Park Stadion",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Stade de la Meinau",
+      "truth": {
+        "lat": 48.5601,
+        "lon": 7.7534
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 48.5598,
+        "lon": 7.7559
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 48.55942,
+          "lon": 7.75738,
+          "label": "Stade de la Meinau",
+          "qid": "Q374883"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 48.5599481,
+          "lon": 7.7551221,
+          "label": "Stade de la Meinau, Piste Georges Speicher, Meinau, Strasbourg, Bas-Rhin, Collectivité européenne d'Alsace, Grand Est, France métropolitaine, 67100, France",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 48.5599481,
+          "lon": 7.7551221,
+          "label": "Stade de la Meinau",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "ENGIE Stadium",
+      "truth": {
+        "lat": -33.8472,
+        "lon": 151.0635
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": -33.8431,
+        "lon": 151.0677
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": -33.843056,
+          "lon": 151.067778,
+          "label": "Sydney Showground Stadium",
+          "qid": "Q5359559"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -33.8431422,
+          "lon": 151.0676444,
+          "label": "ENGIE Stadium, Grand Parade, Sydney Olympic Park, Sydney, New South Wales, 2127, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -33.8431422,
+          "lon": 151.0676444,
+          "label": "ENGIE Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "People First Stadium",
+      "truth": {
+        "lat": -28.0056,
+        "lon": 153.4028
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": true,
+      "sources": {
+        "wikidata": "no entity",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": -28.0073025,
+          "lon": 153.3674428,
+          "label": "People First Stadium, Nerang Broadbeach Road, Carrara, Gold Coast, Queensland, 4211, Australia",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": -28.0073025,
+          "lon": 153.3674428,
+          "label": "People First Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Foro Italico",
+      "truth": {
+        "lat": 41.9339,
+        "lon": 12.4672
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "wikidata",
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": true,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 41.930280117,
+          "lon": 12.457676553,
+          "label": "Foro Italico swimming complex",
+          "qid": "Q1189119"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 38.1172193,
+          "lon": 13.3750432,
+          "label": "Foro Italico, I Circoscrizione, Palermo, Sicilia, Italia",
+          "kind": "leisure/park"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 38.1172193,
+          "lon": 13.3750432,
+          "label": "Foro Italico",
+          "kind": "leisure/park"
+        }
+      }
+    },
+    {
+      "name": "Rajiv Gandhi International Stadium",
+      "truth": {
+        "lat": 17.4046,
+        "lon": 78.548
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": true,
+      "sources": {
+        "wikidata": "no entity",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 19.0285449,
+          "lon": 73.0442705,
+          "label": "Rajiv Gandhi International Stadium, YMCA Marg, Belapur East, Navi Mumbai, Thane Subdistrict, Thane, Maharashtra, 400614, India",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 19.0285449,
+          "lon": 73.0442705,
+          "label": "Rajiv Gandhi International Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Sawai Mansingh Stadium",
+      "truth": {
+        "lat": 26.8952,
+        "lon": 75.8068
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 26.894,
+        "lon": 75.8032
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 26.89403056,
+          "lon": 75.803225,
+          "label": "Sawai Mansingh Stadium",
+          "qid": "Q7428548"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 26.8939911,
+          "lon": 75.8032269,
+          "label": "Sawai Mansingh Stadium, Pankaj Singhvi Marg, Lalkothi, Bapu Nagar, Jaipur, Jaipur Municipal Corporation, Jaipur Tehsil, Jaipur, Rajasthan, 302001, India",
+          "kind": "leisure/stadium"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 26.8939911,
+          "lon": 75.8032269,
+          "label": "Sawai Mansingh Stadium",
+          "kind": "leisure/stadium"
+        }
+      }
+    },
+    {
+      "name": "Quail Hollow Club",
+      "truth": {
+        "lat": 35.0527,
+        "lon": -80.8328
+      },
+      "verdict": "accepted-WRONG",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 35.1143,
+        "lon": -80.842
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 35.1146,
+          "lon": -80.8426,
+          "label": "Quail Hollow Club",
+          "qid": "Q7268497"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 35.114081,
+          "lon": -80.841676,
+          "label": "Quail Hollow Club, 3700, Gleneagles Road, Olde Georgetowne, Charlotte, Mecklenburg County, North Carolina, 28210, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 35.114081,
+          "lon": -80.841676,
+          "label": "Quail Hollow Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Aronimink Golf Club",
+      "truth": {
+        "lat": 39.9654,
+        "lon": -75.4165
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": true,
+      "sources": {
+        "wikidata": "no venue entity with coordinates",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 40.0080721,
+          "lon": -75.411273,
+          "label": "Aronimink Golf Club, Darby Paoli Road, Wyola, Central Square, Newtown Township, Delaware County, Pennsylvania, 19333, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.0080721,
+          "lon": -75.411273,
+          "label": "Aronimink Golf Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Augusta National Golf Club",
+      "truth": {
+        "lat": 33.5024,
+        "lon": -82.0238
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.5012,
+        "lon": -82.0217
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.5025,
+          "lon": -82.02,
+          "label": "Augusta National Golf Club",
+          "qid": "Q765780"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.500558,
+          "lon": -82.0225816,
+          "label": "Augusta National Golf Club, 2604, Washington Road, Windsor Court, National Hills, Augusta, Richmond County, Georgia, 30904, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.500558,
+          "lon": -82.0225816,
+          "label": "Augusta National Golf Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Pinehurst No. 2",
+      "truth": {
+        "lat": 35.1946,
+        "lon": -79.4657
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "no entity",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 35.1916623,
+          "lon": -79.4637323,
+          "label": "Pinehurst No. 2, Firestone Drive, Pinehurst, Moore County, North Carolina, 28374, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 35.1916623,
+          "lon": -79.4637323,
+          "label": "Pinehurst No. 2",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Pebble Beach Golf Links",
+      "truth": {
+        "lat": 36.5683,
+        "lon": -121.9478
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 36.5696646,
+          "lon": -121.9497413,
+          "label": "Pebble Beach Golf Links, 1700, 17 Mile Drive, Pebble Beach, Del Monte Forest, Monterey County, California, 93953, United States",
+          "kind": "amenity/restaurant"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 36.5696646,
+          "lon": -121.9497413,
+          "label": "Pebble Beach Golf Links",
+          "kind": "amenity/restaurant"
+        }
+      }
+    },
+    {
+      "name": "TPC Sawgrass",
+      "truth": {
+        "lat": 30.1975,
+        "lon": -81.3957
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 30.1960044,
+          "lon": -81.3937539,
+          "label": "TPC Sawgrass, 110, Championship Way, Palm Valley, Ponte Vedra Beach, Saint Johns County, Florida, 32082, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 30.1960044,
+          "lon": -81.3937539,
+          "label": "TPC Sawgrass",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Riviera Country Club",
+      "truth": {
+        "lat": 34.0397,
+        "lon": -118.5085
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 34.0468,
+        "lon": -118.5023
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 34.05,
+          "lon": -118.502,
+          "label": "Riviera Country Club",
+          "qid": "Q7338863"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 34.0451645,
+          "lon": -118.5024932,
+          "label": "Riviera Country Club, 1250, Capri Drive, Los Angeles, Los Angeles County, California, 90272, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 34.0451645,
+          "lon": -118.5024932,
+          "label": "Riviera Country Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Torrey Pines South Course",
+      "truth": {
+        "lat": 32.8971,
+        "lon": -117.2519
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "no entity",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 32.8968959,
+          "lon": -117.2455316,
+          "label": "Torrey Pines South Course, 11480, North Torrey Pines Road, Torrey Pines, San Diego, San Diego County, California, 92037, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 32.8968959,
+          "lon": -117.2455316,
+          "label": "Torrey Pines South Course",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Harbour Town Golf Links",
+      "truth": {
+        "lat": 32.138,
+        "lon": -80.6686
+      },
+      "verdict": "accepted-WRONG",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 32.1325,
+        "lon": -80.8105
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 32.136,
+          "lon": -80.81,
+          "label": "Harbour Town Golf Links",
+          "qid": "Q5654884"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 32.1307456,
+          "lon": -80.8107889,
+          "label": "Harbour Town Golf Links, 11, Lighthouse Lane, Harbour Town, Hilton Head Island, Beaufort County, South Carolina, 29928, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 32.1307456,
+          "lon": -80.8107889,
+          "label": "Harbour Town Golf Links",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "TPC Scottsdale",
+      "truth": {
+        "lat": 33.6606,
+        "lon": -111.8926
+      },
+      "verdict": "accepted-WRONG",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.638,
+        "lon": -111.9085
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.6378,
+          "lon": -111.911,
+          "label": "TPC of Scottsdale",
+          "qid": "Q7671138"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.6401402,
+          "lon": -111.9156552,
+          "label": "TPC Scottsdale Stadium Course, 7020, North Hayden Road, Scottsdale, Maricopa County, Arizona, 85255, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.6361497,
+          "lon": -111.8987455,
+          "label": "TPC Scottsdale Champions Course",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Muirfield Village Golf Club",
+      "truth": {
+        "lat": 40.1034,
+        "lon": -83.0685
+      },
+      "verdict": "accepted-WRONG",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 40.143,
+        "lon": -83.1472
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 40.1405,
+          "lon": -83.1414,
+          "label": "Muirfield Village",
+          "qid": "Q15838694"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 40.1442555,
+          "lon": -83.1500922,
+          "label": "Muirfield Village Golf Club, 5750, Memorial Drive, Dublin, Washington Township, Franklin County, Ohio, 43017, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 40.1442555,
+          "lon": -83.1500922,
+          "label": "Muirfield Village Golf Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "East Lake Golf Club",
+      "truth": {
+        "lat": 33.7115,
+        "lon": -84.2896
+      },
+      "verdict": "accepted-WRONG",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 33.7434,
+        "lon": -84.3026
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 33.743,
+          "lon": -84.303,
+          "label": "East Lake Golf Club",
+          "qid": "Q2422450"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 33.7436053,
+          "lon": -84.3024566,
+          "label": "East Lake Golf Club, 2575, Alston Drive Southeast, Atlanta, DeKalb County, Georgia, 30317, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 33.7436053,
+          "lon": -84.3024566,
+          "label": "East Lake Golf Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "St Andrews Links Old Course",
+      "truth": {
+        "lat": 56.3435,
+        "lon": -2.8013
+      },
+      "verdict": "none",
+      "decision": {
+        "decision": "none",
+        "agreeing": [],
+        "dissent": []
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "no entity",
+        "nominatim": "only non-venue classes",
+        "photon": "only non-venue classes"
+      }
+    },
+    {
+      "name": "Royal Troon Golf Club",
+      "truth": {
+        "lat": 55.5333,
+        "lon": -4.6667
+      },
+      "verdict": "accepted-correct",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 55.5328,
+        "lon": -4.6514
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 55.533055555,
+          "lon": -4.652777777,
+          "label": "Royal Troon Golf Club",
+          "qid": "Q662996"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 55.5327164,
+          "lon": -4.6507652,
+          "label": "Royal Troon Golf Club, Craigend Road, Troon, South Ayrshire, Alba / Scotland, KA10 6EP, United Kingdom",
+          "kind": "building/yes"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 55.5327164,
+          "lon": -4.6507652,
+          "label": "Royal Troon Golf Club",
+          "kind": "building/yes"
+        }
+      }
+    },
+    {
+      "name": "Royal St George's Golf Club",
+      "truth": {
+        "lat": 51.201,
+        "lon": 1.388
+      },
+      "verdict": "accepted-WRONG",
+      "decision": {
+        "decision": "accepted",
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wikidata"
+        ],
+        "dissent": [],
+        "lat": 51.2738,
+        "lon": 1.3669
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": {
+          "source": "wikidata",
+          "lat": 51.274,
+          "lon": 1.367,
+          "label": "Royal St George's Golf Club",
+          "qid": "Q1586134"
+        },
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 51.2737407,
+          "lon": 1.3668813,
+          "label": "Royal St George's Golf Club, Sandwich, Stone Cross, Dover, Kent, England, CT13 9PB, United Kingdom",
+          "kind": "building/yes"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 51.2737407,
+          "lon": 1.3668813,
+          "label": "Royal St George's Golf Club",
+          "kind": "building/yes"
+        }
+      }
+    },
+    {
+      "name": "Dunes Golf and Beach Club",
+      "truth": {
+        "lat": 33.749,
+        "lon": -78.8138
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "photon"
+        ],
+        "osmOnlyAgree": false
+      },
+      "unanswered": [],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "no entity",
+        "nominatim": "no result",
+        "photon": {
+          "source": "photon",
+          "lat": 26.4986444,
+          "lon": -80.1185572,
+          "label": "Delray Dunes Golf and Country Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "Colonial Country Club",
+      "truth": {
+        "lat": 32.7247,
+        "lon": -97.3592
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 32.7192029,
+          "lon": -97.3719937,
+          "label": "Colonial Country Club, Trinity Trail, Fort Worth, Tarrant County, Texas, 76129, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 32.7192029,
+          "lon": -97.3719937,
+          "label": "Colonial Country Club",
+          "kind": "leisure/golf_course"
+        }
+      }
+    },
+    {
+      "name": "TPC Twin Cities",
+      "truth": {
+        "lat": 45.1858,
+        "lon": -93.2119
+      },
+      "verdict": "review",
+      "decision": {
+        "decision": "review",
+        "agreeing": [],
+        "dissent": [
+          "nominatim",
+          "photon"
+        ],
+        "osmOnlyAgree": true
+      },
+      "unanswered": [
+        "wikidata: HTTP 429"
+      ],
+      "osmOnlyWrong": false,
+      "sources": {
+        "wikidata": "ERROR HTTP 429",
+        "nominatim": {
+          "source": "nominatim",
+          "lat": 45.1733222,
+          "lon": -93.211862,
+          "label": "TPC Twin Cities, 11444, Tournament Players Parkway, The Lakes, Blaine, Anoka County, Minnesota, 55449, United States",
+          "kind": "leisure/golf_course"
+        },
+        "photon": {
+          "source": "photon",
+          "lat": 45.1733222,
+          "lon": -93.211862,
+          "label": "TPC Twin Cities",
+          "kind": "leisure/golf_course"
+        }
+      }
+    }
+  ]
+}
