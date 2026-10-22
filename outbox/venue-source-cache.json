@@ -28263,5 +28263,168 @@
     ]
    }
   }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Red Bull Arena\"][\"leisure\"=\"golf_course\"](around:25000,40.7367,-74.1503);out tags bb;": {
+  "at": 1792636392717,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:31:36Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": []
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Red Bull Arena\"](around:25000,40.7367,-74.1503);out tags bb;": {
+  "at": 1792636414759,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:32:40Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": []
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Red Bull Arena\"][\"leisure\"=\"golf_course\"](around:25000,51.3457,12.3482);out tags bb;": {
+  "at": 1792636438429,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:32:40Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": []
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Red Bull Arena\"](around:25000,51.3457,12.3482);out tags bb;": {
+  "at": 1792636461746,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:32:40Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "way",
+      "id": 8015060,
+      "bounds": {
+       "minlat": 51.3446699,
+       "minlon": 12.3467377,
+       "maxlat": 51.3468038,
+       "maxlon": 12.349855
+      },
+      "tags": {
+       "alt_name": "Stadion Leipzig",
+       "alt_name:en": "Leipzig Stadium",
+       "check_date": "2026-10-13",
+       "height": "46.5",
+       "leisure": "stadium",
+       "loc_name": "Zentralstadion",
+       "name": "Red Bull Arena",
+       "short_name": "RB Arena",
+       "sport": "soccer",
+       "toilets:wheelchair": "yes",
+       "wheelchair": "yes",
+       "wikidata": "Q210466",
+       "wikipedia": "de:Red Bull Arena (Leipzig)"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"Quail Hollow Club\"][\"leisure\"=\"golf_course\"](around:25000,35.0527,-80.8328);out tags bb;": {
+  "at": 1792636514205,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:33:41Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "way",
+      "id": 877659537,
+      "bounds": {
+       "minlat": 35.1084292,
+       "minlon": -80.8494741,
+       "maxlat": 35.1196997,
+       "maxlon": -80.8352114
+      },
+      "tags": {
+       "addr:city": "Charlotte",
+       "addr:housenumber": "3700",
+       "addr:postcode": "28210",
+       "addr:state": "NC",
+       "addr:street": "Gleneagles Road",
+       "leisure": "golf_course",
+       "name": "Quail Hollow Club",
+       "name:ja": "クエイル・ホロー・クラブ",
+       "website": "https://www.quailhollowclub.com/",
+       "wikidata": "Q7268497",
+       "wikipedia": "en:Quail Hollow Club"
+      }
+     }
+    ]
+   }
+  }
+ },
+ "overpass|[out:json][timeout:25];nwr[\"name\"=\"East Lake Golf Club\"][\"leisure\"=\"golf_course\"](around:25000,33.7115,-84.2896);out tags bb;": {
+  "at": 1792636930171,
+  "result": {
+   "ok": true,
+   "value": {
+    "version": 0.6,
+    "generator": "Overpass API 0.7.62.11 87bfad18",
+    "osm3s": {
+     "timestamp_osm_base": "2026-10-22T02:40:47Z",
+     "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+    },
+    "elements": [
+     {
+      "type": "way",
+      "id": 25587469,
+      "bounds": {
+       "minlat": 33.739465,
+       "minlon": -84.3097096,
+       "maxlat": 33.7452734,
+       "maxlon": -84.29518
+      },
+      "tags": {
+       "addr:city": "Atlanta",
+       "addr:housenumber": "2575",
+       "addr:postcode": "30317",
+       "addr:state": "GA",
+       "addr:street": "Alston Drive Southeast",
+       "leisure": "golf_course",
+       "mobile": "+1 404-373-5722",
+       "name": "East Lake Golf Club",
+       "website": "https://www.eastlakegolfclub.com/",
+       "wikidata": "Q2422450"
+      }
+     }
+    ]
+   }
+  }
  }
 }

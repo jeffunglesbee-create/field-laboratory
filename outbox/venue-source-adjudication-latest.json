@@ -1,14 +1,15 @@
 {
-  "at": "2026-10-22T02:29:03.834Z",
+  "at": "2026-10-22T02:44:31.819Z",
   "margin": 0.003,
   "summary": {
     "disputed": 7,
-    "table-outside": 5,
-    "chosen-outside": 0,
-    "both-inside": 0,
+    "table-outside": 1,
+    "two-places": 0,
+    "same-place": 0,
+    "table-supported": 0,
     "neither-inside": 0,
     "no-extent": 0,
-    "extent-unreadable": 2
+    "extent-unreadable": 6
   },
   "rows": [
     {
@@ -22,9 +23,16 @@
         "lat": 51.3457,
         "lon": 12.3482
       },
-      "kmApart": 6779.8,
-      "verdict": "extent-unreadable",
-      "why": "request failed — The operation was aborted due to timeout"
+      "extentKinds": {
+        "atTable": "none",
+        "atChosen": "any named"
+      },
+      "verdict": "table-outside",
+      "apartKm": 6779.8,
+      "tableSupported": false,
+      "chosenSupported": true,
+      "extentKm": 0.3,
+      "tableKmFromChosenExtent": 6779.7
     },
     {
       "name": "Quail Hollow Club",
@@ -37,7 +45,9 @@
         "lat": 35.1143,
         "lon": -80.842
       },
-      "kmApart": 6.9,
+      "extentKinds": {
+        "atTable": "golf_course"
+      },
       "verdict": "extent-unreadable",
       "why": "request failed — The operation was aborted due to timeout"
     },
@@ -52,12 +62,9 @@
         "lat": 32.1325,
         "lon": -80.8105
       },
-      "kmApart": 13.4,
-      "extentKind": "golf_course",
-      "verdict": "table-outside",
-      "extentKm": 2.1,
-      "tableKmFromExtent": 12.6,
-      "chosenKmFromExtent": 0
+      "extentKinds": {},
+      "verdict": "extent-unreadable",
+      "why": "request failed — The operation was aborted due to timeout"
     },
     {
       "name": "TPC Scottsdale",
@@ -70,12 +77,9 @@
         "lat": 33.638,
         "lon": -111.9085
       },
-      "kmApart": 2.9,
-      "extentKind": "golf_course",
-      "verdict": "table-outside",
-      "extentKm": 1.6,
-      "tableKmFromExtent": 2.4,
-      "chosenKmFromExtent": 0
+      "extentKinds": {},
+      "verdict": "extent-unreadable",
+      "why": "request failed — The operation was aborted due to timeout"
     },
     {
       "name": "Muirfield Village Golf Club",
@@ -88,12 +92,9 @@
         "lat": 40.143,
         "lon": -83.1472
       },
-      "kmApart": 8,
-      "extentKind": "golf_course",
-      "verdict": "table-outside",
-      "extentKm": 2.7,
-      "tableKmFromExtent": 6.3,
-      "chosenKmFromExtent": 0
+      "extentKinds": {},
+      "verdict": "extent-unreadable",
+      "why": "request failed — The operation was aborted due to timeout"
     },
     {
       "name": "East Lake Golf Club",
@@ -106,12 +107,11 @@
         "lat": 33.7434,
         "lon": -84.3026
       },
-      "kmApart": 3.7,
-      "extentKind": "golf_course",
-      "verdict": "table-outside",
-      "extentKm": 1.5,
-      "tableKmFromExtent": 3.2,
-      "chosenKmFromExtent": 0
+      "extentKinds": {
+        "atTable": "golf_course"
+      },
+      "verdict": "extent-unreadable",
+      "why": "request failed — The operation was aborted due to timeout"
     },
     {
       "name": "Royal St George's Golf Club",
@@ -124,12 +124,9 @@
         "lat": 51.2738,
         "lon": 1.3669
       },
-      "kmApart": 8.2,
-      "extentKind": "any named",
-      "verdict": "table-outside",
-      "extentKm": 0.1,
-      "tableKmFromExtent": 8.2,
-      "chosenKmFromExtent": 0
+      "extentKinds": {},
+      "verdict": "extent-unreadable",
+      "why": "HTTP 502"
     }
   ]
 }
