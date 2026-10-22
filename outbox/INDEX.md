@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `24f509b` | 2026-10-22 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 698c855 [skip ci] |
+| `771c153` | 2026-10-21 | [cc-session-2026-10-21-venue-sourcing-rule.md](cc-session-2026-10-21-venue-sourcing-rule.md) | feat: venue sourcing, stage 1: a rule for trusting a geocoded point |
 | `1ad485c` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | docs: Metrics tab confirmed by the owner on iPad; deployed check run 39695134599 |
 | `fe9776a` | 2026-10-21 | [cc-session-2026-10-21-outdoor-venue-sourcing-task0.md](cc-session-2026-10-21-outdoor-venue-sourcing-task0.md) | docs: outdoor venue sourcing, Task 0: 1 red day in 31 against about 360 unknown venues |
 | `b573ae9` | 2026-10-21 | [cc-session-2026-10-21-metrics-plain-english.md](cc-session-2026-10-21-metrics-plain-english.md) | docs: WebKit Open-Meteo page error measured: navigation cancels in-flight fetches; no page defect |
