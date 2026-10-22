@@ -1917,9 +1917,9 @@ const MUTATIONS = [
     // Reversing it would blame the geocoders for the table\'s error.
     id: 'venue-source-arbiter-blames-the-sources',
     file: 'scripts/venue-source.mjs',
-    claim: 'a table point outside the extent while the chosen point is inside is reported as the table being off',
-    find: "!t && c ? 'table-outside'",
-    replace: "t && c ? 'table-outside'",
+    claim: 'no place of the name at the table point but one at the chosen point is reported as the table being off',
+    find: ": c ? 'table-outside'",
+    replace: ": t ? 'table-outside'",
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   {
@@ -1929,6 +1929,15 @@ const MUTATIONS = [
     claim: 'the extent margin is about 300 m, not kilometres',
     find: 'export const MARGIN = 0.003',
     replace: 'export const MARGIN = 0.3',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Red Bull Arena: three sources agreed on the Salzburg stadium; the table means New Jersey's.
+    id: 'venue-source-arbiter-homonym-called-same-place',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a place of the name at both ends, thousands of km apart, is two places and not one',
+    find: "(apart <= 3 ? 'same-place' : 'two-places')",
+    replace: "'same-place'",
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   // --- the outbox row on a scheduled run, docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md (option 1) ---

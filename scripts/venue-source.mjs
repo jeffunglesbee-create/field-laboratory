@@ -56,16 +56,34 @@ export const inside = (b, p, m = MARGIN) =>
 
 const nearestOn = (b, p) => ({ lat: Math.min(Math.max(p.lat, b.minlat), b.maxlat), lon: Math.min(Math.max(p.lon, b.minlon), b.maxlon) })
 
-/** bounds: { minlat, minlon, maxlat, maxlon } of the named place, or null. */
-export const adjudicate = (bounds, table, chosen) => {
-  if (!bounds) return { verdict: 'no-extent' }
-  const t = inside(bounds, table), c = inside(bounds, chosen)
-  const verdict = t && c ? 'both-inside' : !t && c ? 'table-outside' : t && !c ? 'chosen-outside' : 'neither-inside'
+const round1 = x => Math.round(x * 10) / 10
+
+/**
+ * Two-sided. `nearTable` and `nearChosen` are each the extent { minlat, minlon, maxlat, maxlon } of a
+ * place with this name found within a local radius of THAT point, or null if none was found there.
+ *
+ * Asking only about the place the sources chose cannot tell "the table is wrong" from "the sources
+ * picked a different place with the same name": Red Bull Arena was accepted 6,780 km from the table
+ * because all three sources agreed on the Salzburg stadium, and the table means the New Jersey one.
+ * So the question is put at both ends: is there a place of this name where the TABLE says, and is
+ * there one where the SOURCES say.
+ */
+export const adjudicate = ({ nearTable, nearChosen }, table, chosen) => {
+  const t = Boolean(nearTable) && inside(nearTable, table)
+  const c = Boolean(nearChosen) && inside(nearChosen, chosen)
+  const apart = km(table, chosen)
+  const verdict = t && c ? (apart <= 3 ? 'same-place' : 'two-places')
+    : t ? 'table-supported'
+    : c ? 'table-outside'
+    : (nearTable || nearChosen) ? 'neither-inside' : 'no-extent'
+  const box = nearChosen ?? nearTable
   return {
     verdict,
-    extentKm: Math.round(km({ lat: bounds.minlat, lon: bounds.minlon }, { lat: bounds.maxlat, lon: bounds.maxlon }) * 10) / 10,
-    tableKmFromExtent: t ? 0 : Math.round(km(table, nearestOn(bounds, table)) * 10) / 10,
-    chosenKmFromExtent: c ? 0 : Math.round(km(chosen, nearestOn(bounds, chosen)) * 10) / 10,
+    apartKm: round1(apart),
+    tableSupported: t,
+    chosenSupported: c,
+    extentKm: box ? round1(km({ lat: box.minlat, lon: box.minlon }, { lat: box.maxlat, lon: box.maxlon })) : null,
+    tableKmFromChosenExtent: nearChosen ? (inside(nearChosen, table) ? 0 : round1(km(table, nearestOn(nearChosen, table)))) : null,
   }
 }
 
@@ -232,16 +250,21 @@ const selfTest = () => {
     decide([W(10, 10), N(10, 10.5)]).decision === 'review')
 
   const box = { minlat: 35.10, minlon: -80.85, maxlat: 35.12, maxlon: -80.83 }
-  check('both points inside the extent: a size difference, not an error',
-    adjudicate(box, { lat: 35.105, lon: -80.84 }, { lat: 35.115, lon: -80.845 }).verdict === 'both-inside')
-  const out = adjudicate(box, { lat: 35.0527, lon: -80.8328 }, { lat: 35.1146, lon: -80.8426 })
-  check('table outside the extent and the chosen point inside: the table is the one off, by how far',
-    out.verdict === 'table-outside' && out.tableKmFromExtent > 5 && out.chosenKmFromExtent === 0, JSON.stringify(out))
-  check('chosen outside and the table inside: the sources are the ones off',
-    adjudicate(box, { lat: 35.11, lon: -80.84 }, { lat: 36.0, lon: -80.84 }).verdict === 'chosen-outside')
-  check('neither inside is unresolved, not a verdict for either',
-    adjudicate(box, { lat: 30, lon: -80 }, { lat: 36, lon: -81 }).verdict === 'neither-inside')
-  check('no extent found is its own answer', adjudicate(null, { lat: 1, lon: 1 }, { lat: 1, lon: 1 }).verdict === 'no-extent')
+  const nj = { minlat: 40.730, minlon: -74.157, maxlat: 40.740, maxlon: -74.145 }
+  const salzburg = { minlat: 47.812, minlon: 12.995, maxlat: 47.820, maxlon: 13.008 }
+  const golfLike = adjudicate({ nearTable: null, nearChosen: box }, { lat: 35.0527, lon: -80.8328 }, { lat: 35.1146, lon: -80.8426 })
+  check('no place of the name at the table point but one at the chosen point: the table is the one off, and by how far',
+    golfLike.verdict === 'table-outside' && golfLike.tableKmFromChosenExtent > 5 && golfLike.tableSupported === false, JSON.stringify(golfLike))
+  const homonym = adjudicate({ nearTable: nj, nearChosen: salzburg }, { lat: 40.7367, lon: -74.1503 }, { lat: 47.8163, lon: 13.0030 })
+  check('a place of the name at BOTH ends, thousands of km apart, is two places: the name alone is ambiguous',
+    homonym.verdict === 'two-places' && homonym.apartKm > 6000, JSON.stringify(homonym))
+  check('a place of the name at both ends that are 0.2 km apart is the same place',
+    adjudicate({ nearTable: box, nearChosen: box }, { lat: 35.105, lon: -80.84 }, { lat: 35.1062, lon: -80.84 }).verdict === 'same-place')
+  check('a place of the name at the table point and none at the chosen point: the table is supported',
+    adjudicate({ nearTable: box, nearChosen: null }, { lat: 35.105, lon: -80.84 }, { lat: 36, lon: -81 }).verdict === 'table-supported')
+  check('extents found but neither point inside either is unresolved, not a verdict for either',
+    adjudicate({ nearTable: box, nearChosen: box }, { lat: 30, lon: -80 }, { lat: 36, lon: -81 }).verdict === 'neither-inside')
+  check('no extent at either end is its own answer', adjudicate({ nearTable: null, nearChosen: null }, { lat: 1, lon: 1 }, { lat: 1, lon: 1 }).verdict === 'no-extent')
   check('the margin lets a point just off the edge count as inside, and no further',
     inside(box, { lat: 35.1230, lon: -80.84 }) === true && inside(box, { lat: 35.1240, lon: -80.84 }) === false)
 
@@ -296,11 +319,14 @@ const calibrate = async () => {
 
 // --- adjudication, on a runner ---------------------------------------------------------------
 
-const overpassExtent = async (name, cache) => {
+const RADIUS_M = 25000
+
+/** The extent of a place with this exact name within RADIUS_M of a point, or null. Local, so it cannot time out scanning the planet. */
+const overpassExtent = async (name, at, cache) => {
   const esc = name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-  const query = `[out:json][timeout:25];nwr["name"="${esc}"]["leisure"="golf_course"];out tags bb;`
-  const loose = `[out:json][timeout:25];nwr["name"="${esc}"];out tags bb;`
-  for (const [kind, q] of [['golf_course', query], ['any named', loose]]) {
+  const around = `(around:${RADIUS_M},${at.lat},${at.lon})`
+  for (const [kind, filter] of [['golf_course', '["leisure"="golf_course"]'], ['any named', '']]) {
+    const q = `[out:json][timeout:25];nwr["name"="${esc}"]${filter}${around};out tags bb;`
     const r = await cached(cache, `overpass|${q}`, () => getJson(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`), 2500)
     if (!r.ok) return { ok: false, why: r.why }
     const els = (r.value.elements ?? []).filter(e => e.bounds)
@@ -321,19 +347,21 @@ const adjudicateRun = async () => {
   for (const r of disputed) {
     // The exact OSM name is what Photon returned as `name`; the table's own name is the fallback.
     const osmName = (typeof r.sources.photon === 'object' && r.sources.photon?.label) || r.name
-    const ext = await overpassExtent(osmName, cache)
-    saveCache(cache)
     const chosen = { lat: r.decision.lat, lon: r.decision.lon }
-    const a = ext.ok ? adjudicate(ext.bounds, r.truth, chosen) : { verdict: 'extent-unreadable', why: ext.why }
-    rows.push({ name: r.name, osmName, table: r.truth, chosen, kmApart: r.kmFromTable ?? Math.round(km(r.truth, chosen) * 10) / 10, extentKind: ext.kind, ...a })
-    console.log(`  ${a.verdict.padEnd(15)} ${r.name.padEnd(32)} table ${a.tableKmFromExtent ?? '?'} km from the extent, chosen ${a.chosenKmFromExtent ?? '?'} km, extent ${a.extentKm ?? '?'} km across (${ext.kind})`)
+    const atTable = await overpassExtent(osmName, r.truth, cache)
+    const atChosen = await overpassExtent(osmName, chosen, cache)
+    saveCache(cache)
+    const bad = [atTable, atChosen].find(x => !x.ok)
+    const a = bad ? { verdict: 'extent-unreadable', why: bad.why } : adjudicate({ nearTable: atTable.bounds, nearChosen: atChosen.bounds }, r.truth, chosen)
+    rows.push({ name: r.name, osmName, table: r.truth, chosen, extentKinds: { atTable: atTable.kind, atChosen: atChosen.kind }, ...a })
+    console.log(`  ${a.verdict.padEnd(15)} ${r.name.padEnd(32)} ${a.apartKm ?? '?'} km apart · table supported ${a.tableSupported} · chosen supported ${a.chosenSupported} · table ${a.tableKmFromChosenExtent ?? '?'} km from the chosen extent (${a.extentKm ?? '?'} km across)${a.why ? ` · ${a.why}` : ''}`)
   }
   const count = v => rows.filter(r => r.verdict === v).length
-  const sum = { disputed: rows.length, 'table-outside': count('table-outside'), 'chosen-outside': count('chosen-outside'), 'both-inside': count('both-inside'),
-    'neither-inside': count('neither-inside'), 'no-extent': count('no-extent'), 'extent-unreadable': count('extent-unreadable') }
+  const sum = { disputed: rows.length, 'table-outside': count('table-outside'), 'two-places': count('two-places'), 'same-place': count('same-place'),
+    'table-supported': count('table-supported'), 'neither-inside': count('neither-inside'), 'no-extent': count('no-extent'), 'extent-unreadable': count('extent-unreadable') }
   const NOW = new Date()
   writeFileSync('outbox/venue-source-adjudication-latest.json', JSON.stringify({ at: NOW.toISOString(), margin: MARGIN, summary: sum, rows }, null, 2) + '\n')
-  console.log(`\n  adjudicated ${sum.disputed} disagreement(s): table outside ${sum['table-outside']} · chosen outside ${sum['chosen-outside']} · both inside ${sum['both-inside']} · neither ${sum['neither-inside']} · no extent ${sum['no-extent']} · unreadable ${sum['extent-unreadable']}\n`)
+  console.log(`\n  adjudicated ${sum.disputed} disagreement(s): table outside ${sum['table-outside']} · two places of that name ${sum['two-places']} · same place ${sum['same-place']} · table supported ${sum['table-supported']} · neither ${sum['neither-inside']} · no extent ${sum['no-extent']} · unreadable ${sum['extent-unreadable']}\n`)
   const { check, summarize } = createChecks()
   check('every disagreement was put to the arbiter', rows.length === disputed.length && disputed.length > 0, `${rows.length} of ${disputed.length}`)
   check('the arbiter could read an extent for each one, or says which it could not',
