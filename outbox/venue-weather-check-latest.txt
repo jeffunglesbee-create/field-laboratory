@@ -1,0 +1,25 @@
+
+  GET https://api.open-meteo.com/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto
+
+  reading: 61°F · clear · 12 mph N
+  bad latitude -> HTTP 400
+
+  Checking 410 venue coordinates against Open-Meteo's resolved zone
+
+  checked 410 of 410 venues
+
+  sign-flipped Fenway resolves to Etc/GMT-5
+PASS  Open-Meteo answers 200
+PASS  ...and the body is not empty
+PASS  the transcribed decoder reads the REAL response
+PASS  temperature is in a possible Fahrenheit range
+PASS  wind speed is not negative
+PASS  precipitation classifies into exactly one state
+PASS  an out-of-range latitude is NOT answered 200
+PASS  ...and the good and bad requests differ
+PASS  coordinates() refuses the latitude that the service also refuses
+PASS  every venue resolves to the IANA zone it declares
+PASS  the sign-flipped probe got an answer to compare
+PASS  a sign-flipped coordinate does NOT resolve to the declared zone
+
+12/12 checks passed

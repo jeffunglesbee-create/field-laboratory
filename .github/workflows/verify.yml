@@ -884,6 +884,15 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:history
 
+      # docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md. The table's sourced
+      # block is generated from outbox/venue-source-results-latest.json; this
+      # holds the two together, with no network, both ways: every accepted
+      # venue is in the table exactly as sourced, and nothing else is in the
+      # block.
+      - name: The sourced venue rows match the sourcing run
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:venue-sourced
+
       # Beside check:history for the same reason it sits here: both ask whether
       # the written record can be trusted, and neither depends on anything the
       # other steps measure.

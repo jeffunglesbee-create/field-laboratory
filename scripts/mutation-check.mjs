@@ -431,6 +431,57 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // The sourced block is generated from the sourcing run's artifact; a row
+    // deleted by hand must not pass as a table that still matches it.
+    // docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md, stage 4
+    id: 'venue-sourced-row-deleted',
+    file: 'src/Venues.fs',
+    claim: 'every venue the sourcing run accepted is in the table',
+    find: '      at "Parc des Princes" 48.8414 2.2531 OpenAir "Europe/Paris"\n',
+    replace: '',
+    expect: 'node scripts/venue-sourced-check.mjs',
+  },
+  {
+    // The CC-CMD's own Task 2 mutation: a sourced row that was on the 2026-10-20
+    // slate, deleted, leaves that slate with a venue nobody accounted for.
+    id: 'venue-sourced-slate-row-deleted',
+    file: 'src/Venues.fs',
+    claim: 'a sourced venue from a real slate stays accounted for',
+    find: '      at "Parc des Princes" 48.8414 2.2531 OpenAir "Europe/Paris"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // A roof guard that did not run is not a guard that passed: with no article
+    // body, "open" was accepted unchecked.
+    id: 'venue-source-bodyless-open-accepted',
+    file: 'scripts/venue-source.mjs',
+    claim: 'an open roof is never inferred when the body check could not run',
+    find: "  if (ld === 'open' && body == null) return",
+    replace: "  if (false) return",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // A name with an escaped quote was skipped and the calibration covered 409
+    // of 410 rows while reporting on "the table" (run 39821284339).
+    id: 'venue-source-reader-skips-escaped-quote',
+    file: 'scripts/venue-source.mjs',
+    claim: 'the calibration reads every row of the table',
+    find: 'at "((?:[^"\\\\]|\\\\.)+)"',
+    replace: 'at "([^"]+)"',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // The first Wembley's article is in the past tense; reading it as standing
+    // gave a demolished building's roof to the current one (run 39816569585).
+    id: 'venue-source-past-tense-ignored',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a lead describing a demolished building is recognised',
+    find: "?.[0] === 'was'",
+    replace: "?.[0] === 'never'",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
     // An arena dropped from the list is a slate the render check calls a
     // coverage gap again.
     id: 'indoor-arena-unrecorded',

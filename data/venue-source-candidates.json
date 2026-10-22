@@ -1,0 +1,3100 @@
+{
+ "source": "field-archive D1 cc49101c, regular_season_games + postseason_games, date >= 2026-07-01, sport not NBA/NHL, queried 2026-10-22; minus src/Venues.fs table names, indoor arenas, placeholders, and WNBA arenas",
+ "count": 442,
+ "candidates": [
+  {
+   "venue": "AESSEAL New York Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Rotherham",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "AFAS Stadion",
+   "sports": "UEFA Europa League",
+   "home": "AZ Alkmaar",
+   "games": 1,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "AIL Arena",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "FC Lugano",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "AT&T Stadium",
+   "sports": "FIFA World Cup,NFL",
+   "home": "Portugal",
+   "games": 6,
+   "last": "2026-10-08"
+  },
+  {
+   "venue": "ATCO Field",
+   "sports": "MLS",
+   "home": "Cavalry FC",
+   "games": 2,
+   "last": "2026-07-14"
+  },
+  {
+   "venue": "Acrisure Bounce House",
+   "sports": "CFB",
+   "home": "UCF",
+   "games": 3,
+   "last": "2026-09-26"
+  },
+  {
+   "venue": "Acrisure Stadium",
+   "sports": "NFL,CFB",
+   "home": "Steelers",
+   "games": 10,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Adams Park",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Wycombe",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Aggie Memorial Stadium",
+   "sports": "CFB",
+   "home": "New Mexico St",
+   "games": 3,
+   "last": "2026-10-01"
+  },
+  {
+   "venue": "Alamodome",
+   "sports": "CFB",
+   "home": "UTSA",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Albertsons Stadium",
+   "sports": "CFB",
+   "home": "Boise St",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Allegacy Federal Credit Union Stadium",
+   "sports": "CFB",
+   "home": "Wake Forest",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Allegiant Stadium",
+   "sports": "NFL,CFB",
+   "home": "UNLV",
+   "games": 8,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Allen E. Paulson Stadium",
+   "sports": "CFB",
+   "home": "GA Southern",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Allianz Riviera",
+   "sports": "Ligue 1",
+   "home": "Nice",
+   "games": 4,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Allianz Stadion",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Rapid Vienna",
+   "games": 1,
+   "last": "2026-08-26"
+  },
+  {
+   "venue": "Allianz Stadium",
+   "sports": "Serie A,UEFA Europa League",
+   "home": "Juventus",
+   "games": 6,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Almaty Ortalyk Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Kairat Almaty",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Alphamega Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Pafos",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Alumni Stadium (Chestnut Hill, MA)",
+   "sports": "CFB",
+   "home": "Boston College",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "AmFirst Stadium",
+   "sports": "CFB",
+   "home": "Jax State",
+   "games": 4,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "American Express Stadium",
+   "sports": "EPL,UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Brighton",
+   "games": 6,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Amon G. Carter Stadium",
+   "sports": "CFB",
+   "home": "TCU",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Arasen Stadion",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Lillestrom",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Arena Egnatia",
+   "sports": "UEFA Europa League Qualifying",
+   "home": "Egnatia",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Arrowhead Stadium",
+   "sports": "NFL",
+   "home": "Chiefs",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Aspmyra Stadion",
+   "sports": "UEFA Champions League Qualifying,UEFA Champions League",
+   "home": "Bodo/Glimt",
+   "games": 2,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "Athens Olympic Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Panathinaikos",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Autzen Stadium",
+   "sports": "CFB",
+   "home": "Oregon",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Aviva Stadium",
+   "sports": "CFB",
+   "home": "TCU",
+   "games": 1,
+   "last": "2026-08-29"
+  },
+  {
+   "venue": "BORUSSIA-PARK",
+   "sports": "Bundesliga",
+   "home": "Gladbach",
+   "games": 3,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Baku Olympic Stadium",
+   "sports": "UEFA Champions League",
+   "home": "Sabah",
+   "games": 2,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Balaidos",
+   "sports": "La Liga,UEFA Europa League",
+   "home": "Celta Vigo",
+   "games": 6,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Batumi Stadium (Adjarabet Arena)",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Maccabi Tel-Aviv",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "BayArena",
+   "sports": "Bundesliga,UEFA Europa League",
+   "home": "Leverkusen",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Beaver Stadium",
+   "sports": "CFB",
+   "home": "Penn State",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Bellerive Country Club",
+   "sports": "golf",
+   "home": "BMW Championship",
+   "games": 6,
+   "last": "2026-08-24"
+  },
+  {
+   "venue": "Ben Hill Griffin Stadium",
+   "sports": "CFB",
+   "home": "Florida",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Bescot Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Walsall",
+   "games": 3,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Bill Snyder Family Stadium",
+   "sports": "CFB",
+   "home": "Kansas St",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Black Desert Resort Golf Course",
+   "sports": "golf",
+   "home": "Bank of Utah Championship",
+   "games": 8,
+   "last": "2026-10-05"
+  },
+  {
+   "venue": "Bloomfield Road",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Blackpool",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Blundell Park",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Grimsby",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Bobby Dodd Stadium",
+   "sports": "CFB",
+   "home": "Georgia Tech",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Boone Pickens Stadium",
+   "sports": "CFB",
+   "home": "Oklahoma St",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Boundary Park",
+   "sports": "EFL Trophy",
+   "home": "Oldham",
+   "games": 2,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Brann Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "SK Brann",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Bridgeforth Stadium",
+   "sports": "CFB",
+   "home": "James Madison",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Broadfield Stadium",
+   "sports": "EFL Trophy",
+   "home": "Crawley",
+   "games": 1,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Broadview Stadium",
+   "sports": "CFB",
+   "home": "Buffalo",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Brooks Stadium (SC)",
+   "sports": "CFB",
+   "home": "Coastal",
+   "games": 4,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Bryant-Denny Stadium",
+   "sports": "CFB",
+   "home": "Alabama",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "CEFCU Stadium",
+   "sports": "CFB",
+   "home": "San José St",
+   "games": 3,
+   "last": "2026-10-09"
+  },
+  {
+   "venue": "Caesars Superdome",
+   "sports": "NFL",
+   "home": "Saints",
+   "games": 4,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "California Memorial Stadium",
+   "sports": "CFB",
+   "home": "California",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Camp Randall Stadium",
+   "sports": "CFB",
+   "home": "Wisconsin",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Canvas Stadium",
+   "sports": "CFB",
+   "home": "Colorado St",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Cardiff City Stadium",
+   "sports": "EFL Cup",
+   "home": "Cardiff",
+   "games": 2,
+   "last": "2026-08-25"
+  },
+  {
+   "venue": "Carrow Road",
+   "sports": "EFL Cup",
+   "home": "Norwich City",
+   "games": 1,
+   "last": "2026-08-08"
+  },
+  {
+   "venue": "Carter-Finley Stadium",
+   "sports": "CFB",
+   "home": "NC State",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Casino Del Sol Stadium",
+   "sports": "CFB",
+   "home": "Arizona",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Celtic Park",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
+   "home": "Celtic",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Centennial Bank Stadium",
+   "sports": "CFB",
+   "home": "Arkansas St",
+   "games": 3,
+   "last": "2026-10-08"
+  },
+  {
+   "venue": "Center Parc Stadium",
+   "sports": "CFB",
+   "home": "Georgia St",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Cepheus Park Randers",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "AGF",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Chase Field (NH)",
+   "sports": "MLB",
+   "home": "Diamondbacks",
+   "games": 5,
+   "last": "2026-07-19"
+  },
+  {
+   "venue": "Children's Mercy Park",
+   "sports": "MLS",
+   "home": "Kansas City",
+   "games": 2,
+   "last": "2026-08-01"
+  },
+  {
+   "venue": "Clarence T.C. Ching Athletics Complex",
+   "sports": "CFB",
+   "home": "Hawai'i",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Cledara Abbey Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Cambridge",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Cotton Bowl",
+   "sports": "CFB",
+   "home": "Oklahoma",
+   "games": 1,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Coventry Building Society Arena",
+   "sports": "EPL,EFL Cup",
+   "home": "Coventry",
+   "games": 4,
+   "last": "2026-10-12"
+  },
+  {
+   "venue": "Crown Oil Arena",
+   "sports": "EFL Trophy",
+   "home": "Rochdale",
+   "games": 1,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "DATCU Stadium",
+   "sports": "CFB",
+   "home": "North Texas",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "DKR-Texas Memorial Stadium",
+   "sports": "CFB",
+   "home": "Texas",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "DW Stadium",
+   "sports": "EFL Trophy",
+   "home": "Wigan",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Daio Wasabi Stayen Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Sint-Truidense",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "David Booth Kansas Memorial Stadium",
+   "sports": "CFB",
+   "home": "Kansas",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Davis Wade Stadium",
+   "sports": "CFB",
+   "home": "Mississippi St",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "De Grolsch Veste",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "FC Twente",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "De Kuip",
+   "sports": "UEFA Champions League",
+   "home": "Feyenoord",
+   "games": 1,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "Decathlon Arena - Stade Pierre-Mauroy",
+   "sports": "Ligue 1,UEFA Champions League",
+   "home": "Lille",
+   "games": 6,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Deepdale",
+   "sports": "EFL Cup",
+   "home": "Preston",
+   "games": 1,
+   "last": "2026-08-26"
+  },
+  {
+   "venue": "Delaware Stadium",
+   "sports": "CFB",
+   "home": "Delaware",
+   "games": 4,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Detroit Golf Club",
+   "sports": "golf",
+   "home": "Rocket Classic",
+   "games": 6,
+   "last": "2026-08-03"
+  },
+  {
+   "venue": "Deutsche Bank Park",
+   "sports": "Bundesliga",
+   "home": "Frankfurt",
+   "games": 3,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Dick's Sporting Goods Park",
+   "sports": "MLS",
+   "home": "Colorado",
+   "games": 9,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "Diósgyőri Stadion",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Hap Tel Aviv",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Djúpumyrar",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "KI Klaksvik",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Doak Campbell Stadium",
+   "sports": "CFB",
+   "home": "Florida St",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Donald W. Reynolds Razorback Stadium",
+   "sports": "CFB",
+   "home": "Arkansas",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Doosan Arena",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Viktoria Plzen",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Dowdy-Ficklen Stadium",
+   "sports": "CFB",
+   "home": "East Carolina",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Doyt L. Perry Stadium",
+   "sports": "CFB",
+   "home": "Bowling Green",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Easter Road",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Hibernian",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Eco-Power Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Doncaster",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Edgeley Park",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Stockport",
+   "games": 2,
+   "last": "2026-08-18"
+  },
+  {
+   "venue": "El Sadar",
+   "sports": "La Liga",
+   "home": "Osasuna",
+   "games": 5,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "El Sardineros",
+   "sports": "La Liga",
+   "home": "Racing",
+   "games": 4,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Elbasan Arena",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Egnatia",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Elland Road",
+   "sports": "EPL",
+   "home": "Leeds",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Elliott T. Bowers Stadium",
+   "sports": "CFB",
+   "home": "Sam Houston",
+   "games": 4,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Emirates Stadium",
+   "sports": "EPL,UEFA Champions League",
+   "home": "Arsenal",
+   "games": 4,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Empower Field at Mile High",
+   "sports": "NFL",
+   "home": "Broncos",
+   "games": 5,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Energizer Park",
+   "sports": "MLS",
+   "home": "St. Louis CITY SC",
+   "games": 26,
+   "last": "2026-10-31"
+  },
+  {
+   "venue": "Ennio Tardini",
+   "sports": "Serie A",
+   "home": "Parma",
+   "games": 4,
+   "last": "2026-10-19"
+  },
+  {
+   "venue": "Estadi Ciutat de València",
+   "sports": "La Liga",
+   "home": "Levante",
+   "games": 5,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Estadi de la FAF d'Encamp",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Inter D'Escaldes",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Estadio Banorte",
+   "sports": "FIFA World Cup,MLS",
+   "home": "Mexico",
+   "games": 2,
+   "last": "2026-08-07"
+  },
+  {
+   "venue": "Estadio Benito Villamarín",
+   "sports": "La Liga",
+   "home": "Betis",
+   "games": 1,
+   "last": "2026-09-17"
+  },
+  {
+   "venue": "Estadio Coliseum",
+   "sports": "UEFA Europa Conference League Qualifying,La Liga,UEFA Europa Conference League",
+   "home": "Getafe",
+   "games": 7,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Estadio La Cartuja",
+   "sports": "La Liga,UEFA Champions League",
+   "home": "Betis",
+   "games": 6,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Estadio Martínez Valero",
+   "sports": "La Liga",
+   "home": "Elche",
+   "games": 4,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Estadio Municipal de Butarque",
+   "sports": "La Liga",
+   "home": "Rayo",
+   "games": 3,
+   "last": "2026-09-15"
+  },
+  {
+   "venue": "Estadio Nemesio Diez",
+   "sports": "MLS",
+   "home": "Toluca FC",
+   "games": 2,
+   "last": "2026-08-13"
+  },
+  {
+   "venue": "Estadio Universitario",
+   "sports": "MLS",
+   "home": "Club Tigres",
+   "games": 1,
+   "last": "2026-08-12"
+  },
+  {
+   "venue": "Estadio de Vallecas",
+   "sports": "La Liga",
+   "home": "Rayo",
+   "games": 1,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Estadio de la Cerámica",
+   "sports": "La Liga,UEFA Champions League",
+   "home": "Villarreal",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Estádio Dr. Magalhaes Pessoa",
+   "sports": "UEFA Europa League",
+   "home": "Torreense",
+   "games": 1,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Estádio José Alvalade",
+   "sports": "UEFA Champions League",
+   "home": "Sporting",
+   "games": 2,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Estádio Municipal de Braga",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Braga",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Estádio da Luz",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Benfica",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Estádio do Dragão",
+   "sports": "UEFA Champions League",
+   "home": "FC Porto",
+   "games": 2,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Europa Point Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Red Imps",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "EverBank Stadium",
+   "sports": "NFL",
+   "home": "Jaguars",
+   "games": 4,
+   "last": "2026-09-27"
+  },
+  {
+   "venue": "Ewood Park",
+   "sports": "EFL Cup",
+   "home": "Blackburn",
+   "games": 1,
+   "last": "2026-08-25"
+  },
+  {
+   "venue": "FK Partizan Stadium",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "FK Partizan",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Falcon Stadium",
+   "sports": "CFB",
+   "home": "Air Force",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Fargodome",
+   "sports": "CFB",
+   "home": "N Dakota St",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Field of Dreams",
+   "sports": "MLB",
+   "home": "Twins",
+   "games": 1,
+   "last": "2026-08-13"
+  },
+  {
+   "venue": "Fir Park",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Motherwell",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "First Community Stadium",
+   "sports": "CFB",
+   "home": "Rice",
+   "games": 2,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "FirstBank Stadium",
+   "sports": "CFB",
+   "home": "Vanderbilt",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Flagler Credit Union Stadium",
+   "sports": "CFB",
+   "home": "FAU",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Folsom Field",
+   "sports": "CFB",
+   "home": "Colorado",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Ford Field",
+   "sports": "NFL",
+   "home": "Lions",
+   "games": 3,
+   "last": "2026-09-27"
+  },
+  {
+   "venue": "Fortuna Arena",
+   "sports": "UEFA Champions League",
+   "home": "Slavia Prague",
+   "games": 1,
+   "last": "2026-09-10"
+  },
+  {
+   "venue": "GEHA Field at Arrowhead Stadium",
+   "sports": "FIFA World Cup,NFL",
+   "home": "Colombia",
+   "games": 3,
+   "last": "2026-08-15"
+  },
+  {
+   "venue": "GSP Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Omonia",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Galaxy Stadium",
+   "sports": "CFB",
+   "home": "Texas Tech",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Gaughan Group Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Leyton Orient",
+   "games": 4,
+   "last": "2026-09-15"
+  },
+  {
+   "venue": "Generali Arena",
+   "sports": "UEFA Europa League",
+   "home": "Sparta",
+   "games": 1,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Generali-Arena",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Vienna",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Georgios Karaiskakis Stadium",
+   "sports": "UEFA Europa League",
+   "home": "Olympiacos",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Gerald J. Ford Stadium",
+   "sports": "CFB",
+   "home": "SMU",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Ghelamco Arena",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "KAA Gent",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Gies Memorial Stadium",
+   "sports": "CFB",
+   "home": "Illinois",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Giulesti Stadium",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
+   "home": "Hapoel Be'er",
+   "games": 2,
+   "last": "2026-09-16"
+  },
+  {
+   "venue": "Giuseppe Sinigaglia",
+   "sports": "UEFA Champions League,Serie A",
+   "home": "Como",
+   "games": 4,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Glass Bowl",
+   "sports": "CFB",
+   "home": "Toledo",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Goffertstadion",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
+   "home": "NEC",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Goodison Park",
+   "sports": "EFL Cup",
+   "home": "Preston",
+   "games": 1,
+   "last": "2026-08-08"
+  },
+  {
+   "venue": "Gradski Stadion Banja Luka",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Borac",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Groupama Arena",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Ferencvaros",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Groupama Stadium",
+   "sports": "UEFA Champions League Qualifying,Ligue 1,UEFA Europa League",
+   "home": "Lyon",
+   "games": 6,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Gtech Community Stadium",
+   "sports": "EPL",
+   "home": "Brentford",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "H. A. Chapman Stadium",
+   "sports": "CFB",
+   "home": "Tulsa",
+   "games": 3,
+   "last": "2026-10-01"
+  },
+  {
+   "venue": "Hamilton Stadium",
+   "sports": "MLS",
+   "home": "Forge FC",
+   "games": 3,
+   "last": "2026-09-15"
+  },
+  {
+   "venue": "Hancock Whitney Stadium",
+   "sports": "CFB",
+   "home": "South Alabama",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "sports": "FIFA World Cup,NFL,CFB",
+   "home": "Norway",
+   "games": 10,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Highbury Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Fleetwood Town",
+   "games": 4,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Highmark Stadium",
+   "sports": "NFL",
+   "home": "Bills",
+   "games": 5,
+   "last": "2026-10-04"
+  },
+  {
+   "venue": "Hill Dickinson Stadium",
+   "sports": "EPL,EFL Cup",
+   "home": "Everton",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Hillsborough",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Sheffield Wed",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Home Deluxe Arena",
+   "sports": "Bundesliga",
+   "home": "Paderborn",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Home Park",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Plymouth",
+   "games": 3,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Hornet Stadium",
+   "sports": "CFB",
+   "home": "Sacramento St",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Houchens Industries-L.T. Smith Stadium",
+   "sports": "CFB",
+   "home": "Western KY",
+   "games": 2,
+   "last": "2026-10-08"
+  },
+  {
+   "venue": "Huntington Bank Field",
+   "sports": "NFL",
+   "home": "Browns",
+   "games": 5,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Huntington Bank Stadium",
+   "sports": "CFB",
+   "home": "Minnesota",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Huskie Stadium",
+   "sports": "CFB",
+   "home": "N Illinois",
+   "games": 2,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Husky Stadium",
+   "sports": "CFB",
+   "home": "Washington",
+   "games": 5,
+   "last": "2026-10-09"
+  },
+  {
+   "venue": "Ibrox Stadium",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Rangers",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "InfoCision Stadium",
+   "sports": "CFB",
+   "home": "Akron",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Inter.co Stadium",
+   "sports": "MLS",
+   "home": "Orlando City",
+   "games": 10,
+   "last": "2026-09-12"
+  },
+  {
+   "venue": "Inver Park",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Larne",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "JMA Wireless Dome",
+   "sports": "CFB",
+   "home": "Syracuse",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Jack Trice Stadium",
+   "sports": "CFB",
+   "home": "Iowa State",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Jan Breydel Stadium",
+   "sports": "UEFA Champions League",
+   "home": "Club Brugge",
+   "games": 2,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Jerry Richardson Stadium",
+   "sports": "CFB",
+   "home": "Charlotte",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Joan C. Edwards Stadium",
+   "sports": "CFB",
+   "home": "Marshall",
+   "games": 4,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "JobServe Community Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Colchester",
+   "games": 2,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Joe Aillet Stadium",
+   "sports": "CFB",
+   "home": "Louisiana Tech",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Johan Cruijff Arena",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Ajax",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "John Smith's Stadium",
+   "sports": "EFL Trophy",
+   "home": "Huddersfield",
+   "games": 1,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Johnny \"Red\" Floyd Stadium",
+   "sports": "CFB",
+   "home": "MTSU",
+   "games": 3,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Jordan-Hare Stadium",
+   "sports": "CFB",
+   "home": "Auburn",
+   "games": 3,
+   "last": "2026-09-26"
+  },
+  {
+   "venue": "Journey Bank Ballpark at Historic Bowman Field",
+   "sports": "MLB",
+   "home": "Brewers",
+   "games": 1,
+   "last": "2026-08-23"
+  },
+  {
+   "venue": "Kardinia Park",
+   "sports": "AFL",
+   "home": "Geelong",
+   "games": 1,
+   "last": "2026-07-02"
+  },
+  {
+   "venue": "Kelly/Shorts Stadium",
+   "sports": "CFB",
+   "home": "C Michigan",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Kenan Stadium",
+   "sports": "CFB",
+   "home": "North Carolina",
+   "games": 2,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Kenilworth Road",
+   "sports": "EFL Trophy",
+   "home": "Luton",
+   "games": 1,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Kidd Brewer Stadium",
+   "sports": "CFB",
+   "home": "App State",
+   "games": 4,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "King Power Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Leicester",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "King Power at Den Dreef Stadion",
+   "sports": "UEFA Europa League",
+   "home": "Union SG",
+   "games": 1,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Kinnick Stadium",
+   "sports": "CFB",
+   "home": "Iowa",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Kroger Field",
+   "sports": "CFB",
+   "home": "Kentucky",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Kybunpark",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "St. Gallen",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Kyle Field",
+   "sports": "CFB",
+   "home": "Texas A&M",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "L&N Federal Credit Union Stadium",
+   "sports": "CFB",
+   "home": "Louisville",
+   "games": 4,
+   "last": "2026-10-09"
+  },
+  {
+   "venue": "LNER Community Stadium",
+   "sports": "EFL Trophy",
+   "home": "York City",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "La Rosaleda",
+   "sports": "La Liga",
+   "home": "Málaga",
+   "games": 5,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "LaVell Edwards Stadium",
+   "sports": "CFB",
+   "home": "BYU",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Lambeau Field",
+   "sports": "NFL,CFB",
+   "home": "Packers",
+   "games": 5,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Lamex Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Stevenage",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Lane Stadium",
+   "sports": "CFB",
+   "home": "Virginia Tech",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Levi's Stadium",
+   "sports": "FIFA World Cup,NFL,MLS",
+   "home": "USA",
+   "games": 9,
+   "last": "2026-10-19"
+  },
+  {
+   "venue": "Lincoln Financial Field",
+   "sports": "FIFA World Cup,NFL,CFB",
+   "home": "Temple",
+   "games": 10,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "London Road Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Peterborough",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Los Angeles Memorial Coliseum",
+   "sports": "CFB",
+   "home": "USC",
+   "games": 5,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Lotto Park",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Anderlecht",
+   "games": 2,
+   "last": "2026-09-16"
+  },
+  {
+   "venue": "Lucas Oil Stadium",
+   "sports": "NFL",
+   "home": "Colts",
+   "games": 5,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "M&T Bank Stadium",
+   "sports": "NFL",
+   "home": "Ravens",
+   "games": 4,
+   "last": "2026-10-04"
+  },
+  {
+   "venue": "M. M. Roberts Stadium",
+   "sports": "CFB",
+   "home": "Southern Miss",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "MATRADE Loftus Road",
+   "sports": "EFL Cup",
+   "home": "QPR",
+   "games": 1,
+   "last": "2026-08-08"
+  },
+  {
+   "venue": "MCH Arena",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Midtjylland",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "MEWA ARENA",
+   "sports": "Bundesliga",
+   "home": "Mainz",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "MHPArena",
+   "sports": "Bundesliga,UEFA Champions League",
+   "home": "Stuttgart",
+   "games": 4,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Mackay Stadium",
+   "sports": "CFB",
+   "home": "Nevada",
+   "games": 3,
+   "last": "2026-09-26"
+  },
+  {
+   "venue": "Madejski Stadium",
+   "sports": "EFL Trophy,EFL Cup",
+   "home": "Reading",
+   "games": 3,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Maksimir Stadium",
+   "sports": "UEFA Europa League",
+   "home": "Dinamo Zagreb",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Malone Stadium",
+   "sports": "CFB",
+   "home": "UL Monroe",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Malsovická Aréna",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Hradec Králové",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Mansfield Stadium",
+   "sports": "MLS",
+   "home": "FC Dallas",
+   "games": 1,
+   "last": "2026-08-06"
+  },
+  {
+   "venue": "Mapei Stadium",
+   "sports": "Serie A",
+   "home": "Sassuolo",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Maracanã Stadium",
+   "sports": "NFL",
+   "home": "Cowboys",
+   "games": 1,
+   "last": "2026-09-27"
+  },
+  {
+   "venue": "Martin Stadium",
+   "sports": "CFB",
+   "home": "Washington St",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Maverik Stadium",
+   "sports": "CFB",
+   "home": "Utah State",
+   "games": 3,
+   "last": "2026-10-09"
+  },
+  {
+   "venue": "McLane Stadium",
+   "sports": "CFB",
+   "home": "Baylor",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Meadow Lane",
+   "sports": "EFL Trophy",
+   "home": "Notts County",
+   "games": 2,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Medinah CC (No. 3)",
+   "sports": "golf",
+   "home": "Presidents Cup",
+   "games": 5,
+   "last": "2026-09-28"
+  },
+  {
+   "venue": "Memorial Stadium",
+   "sports": "EFL Cup,EFL Trophy,CFB",
+   "home": "Missouri",
+   "games": 6,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Memorial Stadium (Bloomington, IN)",
+   "sports": "CFB",
+   "home": "Indiana",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Memorial Stadium (Clemson, SC)",
+   "sports": "CFB",
+   "home": "Clemson",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Memorial Stadium (Lincoln, NE)",
+   "sports": "CFB",
+   "home": "Nebraska",
+   "games": 5,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Memorial Stadium (Norman, OK)",
+   "sports": "CFB",
+   "home": "Oklahoma",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Mendizorrotza",
+   "sports": "La Liga",
+   "home": "Alavés",
+   "games": 5,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Merkur Arena",
+   "sports": "UEFA Europa League",
+   "home": "Sturm Graz",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Merkur Spiel-Arena",
+   "sports": "UEFA Europa League",
+   "home": "Union SG",
+   "games": 1,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Mestalla Stadium",
+   "sports": "La Liga",
+   "home": "Valencia",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "MetLife Stadium",
+   "sports": "FIFA World Cup,NFL",
+   "home": "Spain",
+   "games": 11,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Michie Stadium",
+   "sports": "CFB",
+   "home": "Army",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Michigan Stadium",
+   "sports": "CFB",
+   "home": "Michigan",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Miejski Stadion Pilkarski Raków",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Raków",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Mikheil Meskhi Stadioni",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Iberia 1999",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Milan Puskar Stadium",
+   "sports": "CFB",
+   "home": "West Virginia",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Molineux Stadium",
+   "sports": "EFL Cup",
+   "home": "Wolves",
+   "games": 1,
+   "last": "2026-08-07"
+  },
+  {
+   "venue": "Mornflake Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Crewe",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Mountain America Stadium",
+   "sports": "CFB",
+   "home": "Arizona St",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Municipal Stadium-Poznan",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Lech Poznan",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "NRG Stadium",
+   "sports": "FIFA World Cup,NFL",
+   "home": "Texans",
+   "games": 2,
+   "last": "2026-08-13"
+  },
+  {
+   "venue": "Navy-Marine Corps Memorial Stadium",
+   "sports": "CFB",
+   "home": "Navy",
+   "games": 2,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "New Balance Arena",
+   "sports": "UEFA Europa Conference League Qualifying,Serie A,UEFA Europa Conference League",
+   "home": "Atalanta",
+   "games": 6,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Neyland Stadium",
+   "sports": "CFB",
+   "home": "Tennessee",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Nippert Stadium",
+   "sports": "CFB",
+   "home": "Cincinnati",
+   "games": 3,
+   "last": "2026-09-26"
+  },
+  {
+   "venue": "Nissan Stadium",
+   "sports": "NFL,CFB",
+   "home": "Titans",
+   "games": 6,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Northwest Stadium",
+   "sports": "NFL",
+   "home": "Commanders",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Northwestern Medicine Field at Martin Stadium",
+   "sports": "CFB",
+   "home": "Northwestern",
+   "games": 2,
+   "last": "2026-09-19"
+  },
+  {
+   "venue": "Notre Dame Stadium",
+   "sports": "CFB",
+   "home": "Notre Dame",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Nu Stadium",
+   "sports": "MLS",
+   "home": "Miami",
+   "games": 28,
+   "last": "2026-11-07"
+  },
+  {
+   "venue": "Národny Futbalovy Stadión",
+   "sports": "UEFA Champions League Qualifying,UEFA Champions League",
+   "home": "S Bratislava",
+   "games": 2,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "OPAP Arena",
+   "sports": "UEFA Champions League Qualifying,UEFA Champions League",
+   "home": "AEK Athens",
+   "games": 2,
+   "last": "2026-09-08"
+  },
+  {
+   "venue": "Oakwell",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Barnsley",
+   "games": 3,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Ohio Stadium",
+   "sports": "CFB",
+   "home": "Ohio State",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Old Trafford",
+   "sports": "EPL,UEFA Champions League,EFL Cup",
+   "home": "Man United",
+   "games": 5,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Olimpico",
+   "sports": "Serie A,UEFA Champions League",
+   "home": "Lazio",
+   "games": 9,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Olympia",
+   "sports": "UEFA Europa Conference League",
+   "home": "Mjällby",
+   "games": 1,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "One Call Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Mansfield",
+   "games": 2,
+   "last": "2026-08-19"
+  },
+  {
+   "venue": "Oriole Park at Camden Yards",
+   "sports": "MLB",
+   "home": "Orioles",
+   "games": 36,
+   "last": "2026-09-23"
+  },
+  {
+   "venue": "Our Lady of Lourdes Stadium",
+   "sports": "CFB",
+   "home": "Louisiana",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Pankritio Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "OFI Crete",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Papara Park",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Trabzonspor",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Parc des Princes",
+   "sports": "Ligue 1,UEFA Champions League",
+   "home": "PSG",
+   "games": 4,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Parken Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "København",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Paycor Stadium",
+   "sports": "NFL",
+   "home": "Bengals",
+   "games": 4,
+   "last": "2026-10-04"
+  },
+  {
+   "venue": "Peden Stadium",
+   "sports": "CFB",
+   "home": "Ohio",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Peninsula Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Salford City",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Perth Stadium",
+   "sports": "AFL",
+   "home": "West Coast",
+   "games": 1,
+   "last": "2026-07-03"
+  },
+  {
+   "venue": "Philips Stadion",
+   "sports": "UEFA Champions League",
+   "home": "PSV",
+   "games": 1,
+   "last": "2026-09-10"
+  },
+  {
+   "venue": "Pirelli Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Burton Albion",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Pitbull Stadium",
+   "sports": "CFB",
+   "home": "FIU",
+   "games": 4,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Portman Road",
+   "sports": "EPL,EFL Cup",
+   "home": "Ipswich",
+   "games": 5,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Pratt & Whitney Stadium",
+   "sports": "CFB",
+   "home": "UConn",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "PreZero Arena",
+   "sports": "Bundesliga,UEFA Europa League",
+   "home": "Hoffenheim",
+   "games": 5,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Prenton Park",
+   "sports": "EFL Trophy",
+   "home": "Tranmere",
+   "games": 1,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Pride Park",
+   "sports": "EFL Cup",
+   "home": "Derby",
+   "games": 1,
+   "last": "2026-08-08"
+  },
+  {
+   "venue": "Priestfield Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Gillingham",
+   "games": 3,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Protective Stadium",
+   "sports": "CFB",
+   "home": "UAB",
+   "games": 4,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "RAMS Park",
+   "sports": "UEFA Champions League",
+   "home": "Galatasaray",
+   "games": 1,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "RCDE Stadium",
+   "sports": "La Liga",
+   "home": "Espanyol",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "RELOC8 EM Community Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Bromley",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Raiffeisen Arena (Linz)",
+   "sports": "UEFA Champions League Qualifying,UEFA Champions League",
+   "home": "LASK Linz",
+   "games": 2,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "Rajko Mitic Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Red Star",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Ramón Sánchez Pizjuán Stadium",
+   "sports": "La Liga",
+   "home": "Sevilla",
+   "games": 4,
+   "last": "2026-09-19"
+  },
+  {
+   "venue": "Raymond James Stadium",
+   "sports": "NFL,CFB",
+   "home": "South Florida",
+   "games": 9,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Reale Arena",
+   "sports": "La Liga,UEFA Europa League",
+   "home": "Real Sociedad",
+   "games": 5,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Red Bull Arena Salzburg",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "RB Salzburg",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Reliant Stadium",
+   "sports": "NFL",
+   "home": "Texans",
+   "games": 4,
+   "last": "2026-10-04"
+  },
+  {
+   "venue": "Renato Dall'Ara",
+   "sports": "Serie A",
+   "home": "Bologna",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Reser Stadium",
+   "sports": "CFB",
+   "home": "Oregon St",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "RheinEnergieStadion",
+   "sports": "Bundesliga",
+   "home": "Cologne",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Riazor",
+   "sports": "La Liga",
+   "home": "Deportivo",
+   "games": 5,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Rice Stadium",
+   "sports": "CFB",
+   "home": "Rice",
+   "games": 2,
+   "last": "2026-09-19"
+  },
+  {
+   "venue": "Rice-Eccles Stadium",
+   "sports": "CFB",
+   "home": "Utah",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Right to Dream Park",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Nordsjælland",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Riyadh Air Metropolitano",
+   "sports": "La Liga,UEFA Champions League",
+   "home": "Atlético",
+   "games": 5,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Roazhon Park",
+   "sports": "Ligue 1,UEFA Europa League",
+   "home": "Rennes",
+   "games": 5,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Robert W. Plaster Stadium",
+   "sports": "CFB",
+   "home": "Missouri St",
+   "games": 3,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "Rodney Parade",
+   "sports": "EFL Trophy",
+   "home": "Newport",
+   "games": 1,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Romssa Arena",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Tromso",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Rose Bowl",
+   "sports": "CFB",
+   "home": "UCLA",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Ross-Ade Stadium",
+   "sports": "CFB",
+   "home": "Purdue",
+   "games": 5,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Royal Birkdale GC",
+   "sports": "golf",
+   "home": "The Open",
+   "games": 5,
+   "last": "2026-07-20"
+  },
+  {
+   "venue": "Ryan Field",
+   "sports": "CFB",
+   "home": "Northwestern",
+   "games": 2,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Rynearson Stadium",
+   "sports": "CFB",
+   "home": "E Michigan",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "S. Darius and S. Gireno Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Kauno Zalgiris",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "S.B. Ballard Stadium",
+   "sports": "CFB",
+   "home": "Old Dominion",
+   "games": 4,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "SECU Stadium",
+   "sports": "CFB",
+   "home": "Maryland",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "SHI Stadium",
+   "sports": "CFB",
+   "home": "Rutgers",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "SMH Group Stadium",
+   "sports": "EFL Trophy",
+   "home": "Chesterfield",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "San Mamés",
+   "sports": "La Liga",
+   "home": "Athletic",
+   "games": 4,
+   "last": "2026-09-19"
+  },
+  {
+   "venue": "San Siro",
+   "sports": "Serie A,UEFA Europa League,UEFA Champions League",
+   "home": "Milan",
+   "games": 10,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Sanford Stadium",
+   "sports": "CFB",
+   "home": "Georgia",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Santiago Bernabéu",
+   "sports": "La Liga,UEFA Champions League",
+   "home": "Real Madrid",
+   "games": 7,
+   "last": "2026-10-21"
+  },
+  {
+   "venue": "Scheumann Stadium",
+   "sports": "CFB",
+   "home": "Ball State",
+   "games": 2,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Scott Stadium",
+   "sports": "CFB",
+   "home": "Virginia",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "ScottsMiracle-Gro Field",
+   "sports": "MLS",
+   "home": "Columbus Crew",
+   "games": 27,
+   "last": "2026-10-31"
+  },
+  {
+   "venue": "SeatGeek Stadium",
+   "sports": "MLS",
+   "home": "Cruz Azul",
+   "games": 5,
+   "last": "2026-11-07"
+  },
+  {
+   "venue": "Sedgefield Country Club",
+   "sports": "golf",
+   "home": "Wyndham Championship",
+   "games": 2,
+   "last": "2026-08-09"
+  },
+  {
+   "venue": "Signal Iduna Park",
+   "sports": "Bundesliga,UEFA Champions League",
+   "home": "Dortmund",
+   "games": 4,
+   "last": "2026-10-09"
+  },
+  {
+   "venue": "Simmons Bank Liberty Stadium",
+   "sports": "CFB",
+   "home": "Memphis",
+   "games": 4,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Sixfields Stadium",
+   "sports": "EFL Trophy",
+   "home": "Northampton",
+   "games": 1,
+   "last": "2026-08-18"
+  },
+  {
+   "venue": "Skonto Stadions",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Riga FC",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "SoFi Stadium",
+   "sports": "FIFA World Cup,NFL",
+   "home": "Spain",
+   "games": 11,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Spartan Stadium",
+   "sports": "CFB",
+   "home": "Michigan St",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Sports Illustrated Stadium",
+   "sports": "MLS",
+   "home": "Toluca FC",
+   "games": 19,
+   "last": "2026-11-07"
+  },
+  {
+   "venue": "Spotify Camp Nou",
+   "sports": "La Liga,UEFA Champions League",
+   "home": "Barcelona",
+   "games": 5,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "St James Park",
+   "sports": "EFL Trophy",
+   "home": "Exeter",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "St. Andrew's Stadium",
+   "sports": "EFL Cup",
+   "home": "Birmingham",
+   "games": 1,
+   "last": "2026-08-25"
+  },
+  {
+   "venue": "St. James' Park",
+   "sports": "EPL,EFL Cup",
+   "home": "Newcastle",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "St. Mary's Stadium",
+   "sports": "EFL Cup",
+   "home": "Southampton",
+   "games": 1,
+   "last": "2026-08-25"
+  },
+  {
+   "venue": "Stade Bollaert-Delelis",
+   "sports": "Ligue 1,UEFA Champions League",
+   "home": "Lens",
+   "games": 4,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Stade Boréale",
+   "sports": "MLS",
+   "home": "FC Supra du Québec",
+   "games": 3,
+   "last": "2026-09-01"
+  },
+  {
+   "venue": "Stade Francis-Le Blé",
+   "sports": "Ligue 1",
+   "home": "Brest",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Stade Jean Bouin",
+   "sports": "Ligue 1",
+   "home": "Paris FC",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Stade Louis II",
+   "sports": "UEFA Europa Conference League Qualifying,Ligue 1,UEFA Europa Conference League",
+   "home": "Monaco",
+   "games": 5,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Stade Marie-Marvingt",
+   "sports": "Ligue 1",
+   "home": "Le Mans",
+   "games": 4,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Stade Océane",
+   "sports": "Ligue 1",
+   "home": "Le Havre AC",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Stade Raymond Kopa",
+   "sports": "Ligue 1",
+   "home": "Angers",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Stade Vélodrome",
+   "sports": "Ligue 1,UEFA Europa League",
+   "home": "Marseille",
+   "games": 4,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Stade de Tourbillon",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "FC Sion ",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Stade de l'Abbé-Deschamps",
+   "sports": "Ligue 1",
+   "home": "Auxerre",
+   "games": 3,
+   "last": "2026-09-20"
+  },
+  {
+   "venue": "Stade de l'Aube",
+   "sports": "Ligue 1",
+   "home": "Troyes",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Stade du Moustoir - Yves Allainmat",
+   "sports": "Ligue 1",
+   "home": "Lorient",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Stadio Artemio Franchi",
+   "sports": "Serie A",
+   "home": "Fiorentina",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Stadio Benito Stirpe",
+   "sports": "Serie A",
+   "home": "Frosinone",
+   "games": 4,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Stadio Diego Armando Maradona",
+   "sports": "Serie A,UEFA Champions League",
+   "home": "Napoli",
+   "games": 5,
+   "last": "2026-10-20"
+  },
+  {
+   "venue": "Stadio Friuli",
+   "sports": "Serie A",
+   "home": "Udinese",
+   "games": 4,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Stadio Luigi Ferraris",
+   "sports": "Serie A",
+   "home": "Genoa",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Stadio Olimpico Grande Torino",
+   "sports": "Serie A",
+   "home": "Torino",
+   "games": 3,
+   "last": "2026-10-12"
+  },
+  {
+   "venue": "Stadio Pier Luigi Penzo",
+   "sports": "Serie A",
+   "home": "Venezia",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Stadion An der Alten Försterei",
+   "sports": "Bundesliga",
+   "home": "Union Berlin",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Stadion HNK Rijeka",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Rijeka",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Stadion Miejski Bialystok",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Jagiellonia ",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Stadion Poljud",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Hajduk Split",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Stadion Strelnice",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Jablonec",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Stadion Z'dezele",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
+   "home": "NK Celje",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Stadion im. Ernesta Pohla",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Gornik Zabrz",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Stadionul Ion Oblemenco",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "CSU Craiova",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Stadium MK",
+   "sports": "EFL Trophy",
+   "home": "MK Dons",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Stadium Municipal de Toulouse",
+   "sports": "Ligue 1",
+   "home": "Toulouse",
+   "games": 3,
+   "last": "2026-09-19"
+  },
+  {
+   "venue": "Stadiumi Fadil Vokrri",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Drita Gjilan",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Stamford Bridge",
+   "sports": "EFL Cup,EPL,UEFA Champions League",
+   "home": "Shakhtar",
+   "games": 6,
+   "last": "2026-10-14"
+  },
+  {
+   "venue": "Stanford Stadium",
+   "sports": "MLS,CFB",
+   "home": "Stanford",
+   "games": 7,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "State Farm Stadium",
+   "sports": "NFL",
+   "home": "Cardinals",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Stockhorn Arena",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "FC Thun",
+   "games": 2,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Strandvallen",
+   "sports": "UEFA Europa League Qualifying",
+   "home": "Mjällby",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Sun Bowl",
+   "sports": "CFB",
+   "home": "UTEP",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Swangard Stadium",
+   "sports": "MLS",
+   "home": "Vancouver Whitecaps FC",
+   "games": 2,
+   "last": "2026-07-09"
+  },
+  {
+   "venue": "Swansea.com Stadium",
+   "sports": "EFL Cup",
+   "home": "Swansea",
+   "games": 1,
+   "last": "2026-08-08"
+  },
+  {
+   "venue": "TD Place Stadium",
+   "sports": "MLS",
+   "home": "Atlético Ottawa",
+   "games": 2,
+   "last": "2026-08-12"
+  },
+  {
+   "venue": "TDECU Stadium",
+   "sports": "CFB",
+   "home": "Houston",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "TPC Deere Run",
+   "sports": "golf",
+   "home": "John Deere Classic",
+   "games": 6,
+   "last": "2026-07-06"
+  },
+  {
+   "venue": "TPC Southwind",
+   "sports": "golf",
+   "home": "FedEx St. Jude Championship",
+   "games": 5,
+   "last": "2026-08-17"
+  },
+  {
+   "venue": "Tallaght Stadium",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Shamrock",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Tammelan Stadion",
+   "sports": "UEFA Europa Conference League",
+   "home": "KuPS Kuopio",
+   "games": 1,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "The Cherry Red Records Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Wimbledon",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "The City Ground",
+   "sports": "EPL,EFL Cup",
+   "home": "Nottm Forest",
+   "games": 5,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "The Cliffs at Walnut Cove",
+   "sports": "golf",
+   "home": "Biltmore Championship Asheville",
+   "games": 8,
+   "last": "2026-09-21"
+  },
+  {
+   "venue": "The Completely-Suzuki Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Cheltenham",
+   "games": 3,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "The County Ground",
+   "sports": "EFL Trophy",
+   "home": "Swindon",
+   "games": 2,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "The Croud Meadow",
+   "sports": "EFL Trophy",
+   "home": "Shrewsbury",
+   "games": 1,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "The Hive Stadium",
+   "sports": "EFL Trophy",
+   "home": "Barnet",
+   "games": 1,
+   "last": "2026-08-18"
+  },
+  {
+   "venue": "The MKM Stadium",
+   "sports": "EPL",
+   "home": "Hull",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "The Renaissance Club",
+   "sports": "golf",
+   "home": "Genesis Scottish Open",
+   "games": 5,
+   "last": "2026-07-13"
+  },
+  {
+   "venue": "Tiger Stadium (LA)",
+   "sports": "CFB",
+   "home": "LSU",
+   "games": 5,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Tofiq Bahramov Republican Stadium",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa Conference League Qualifying",
+   "home": "Sabah",
+   "games": 2,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Tottenham Hotspur Stadium",
+   "sports": "EFL Cup,EPL,NFL",
+   "home": "Spurs",
+   "games": 7,
+   "last": "2026-10-19"
+  },
+  {
+   "venue": "Toumba Stadium",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "PAOK",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Truist Park",
+   "sports": "MLB",
+   "home": "Braves",
+   "games": 47,
+   "last": "2026-10-07"
+  },
+  {
+   "venue": "Tynecastle Park",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Hearts",
+   "games": 2,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "U-Power Stadium",
+   "sports": "Serie A",
+   "home": "Monza",
+   "games": 3,
+   "last": "2026-10-19"
+  },
+  {
+   "venue": "U.S. Bank Stadium",
+   "sports": "NFL",
+   "home": "Vikings",
+   "games": 3,
+   "last": "2026-10-04"
+  },
+  {
+   "venue": "UFCU Stadium",
+   "sports": "CFB",
+   "home": "Texas St",
+   "games": 4,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "URSAPHARM-Arena an der Kaiserlinde",
+   "sports": "Bundesliga",
+   "home": "Elversberg",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Ulker Stadyumu",
+   "sports": "UEFA Champions League",
+   "home": "Fenerbahce",
+   "games": 1,
+   "last": "2026-09-10"
+  },
+  {
+   "venue": "Unipol Domus",
+   "sports": "Serie A",
+   "home": "Cagliari",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "University Stadium (NM)",
+   "sports": "CFB",
+   "home": "New Mexico",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Vale Park",
+   "sports": "EFL Trophy",
+   "home": "Port Vale",
+   "games": 1,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Valley Children's Stadium",
+   "sports": "CFB",
+   "home": "Fresno St",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Valley Parade",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Bradford",
+   "games": 3,
+   "last": "2026-09-22"
+  },
+  {
+   "venue": "Vare Areena TN",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "KuPS Kuopio",
+   "games": 1,
+   "last": "2026-08-27"
+  },
+  {
+   "venue": "Vasil Levski National Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League,UEFA Europa Conference League",
+   "home": "Levski Sofia",
+   "games": 3,
+   "last": "2026-10-15"
+  },
+  {
+   "venue": "Vaught-Hemingway Stadium",
+   "sports": "CFB",
+   "home": "Ole Miss",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Vazgen Sargsyan Republican Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Ararat-Armenia",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Veltins Arena",
+   "sports": "Bundesliga",
+   "home": "Schalke",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Veritas Stadion",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Inter Turku",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Veterans Memorial Stadium (AL)",
+   "sports": "CFB",
+   "home": "Troy",
+   "games": 3,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Via Del Mare",
+   "sports": "Serie A",
+   "home": "Lecce",
+   "games": 3,
+   "last": "2026-10-11"
+  },
+  {
+   "venue": "Vicarage Road",
+   "sports": "EFL Cup",
+   "home": "Watford",
+   "games": 2,
+   "last": "2026-08-25"
+  },
+  {
+   "venue": "Viking Stadion",
+   "sports": "UEFA Champions League Qualifying,UEFA Champions League",
+   "home": "Viking FK",
+   "games": 2,
+   "last": "2026-10-13"
+  },
+  {
+   "venue": "Vikingsvöllur",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Vikingur",
+   "games": 1,
+   "last": "2026-08-20"
+  },
+  {
+   "venue": "Vitality Stadium",
+   "sports": "EPL,EFL Cup,UEFA Europa League",
+   "home": "Bournemouth",
+   "games": 7,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Vodafone Park",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Besiktas",
+   "games": 3,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Volksparkstadion",
+   "sports": "Bundesliga",
+   "home": "Hamburg",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "WWK Arena",
+   "sports": "Bundesliga",
+   "home": "Augsburg",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Waldo Stadium",
+   "sports": "CFB",
+   "home": "W Michigan",
+   "games": 3,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Walens Family Field at Fifth Third Stadium",
+   "sports": "CFB",
+   "home": "Kennesaw St",
+   "games": 4,
+   "last": "2026-10-22"
+  },
+  {
+   "venue": "Wallace Wade Stadium",
+   "sports": "CFB",
+   "home": "Duke",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "War Memorial Stadium",
+   "sports": "CFB",
+   "home": "Wyoming",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Warren McGuirk Alumni Stadium",
+   "sports": "CFB",
+   "home": "UMass",
+   "games": 4,
+   "last": "2026-10-10"
+  },
+  {
+   "venue": "Wembley Stadium",
+   "sports": "CFB,NFL",
+   "home": "Kansas",
+   "games": 2,
+   "last": "2026-10-18"
+  },
+  {
+   "venue": "Weserstadion",
+   "sports": "Bundesliga",
+   "home": "Bremen",
+   "games": 3,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Wham Stadium",
+   "sports": "EFL Trophy",
+   "home": "Accrington",
+   "games": 2,
+   "last": "2026-10-06"
+  },
+  {
+   "venue": "Williams Stadium (VA)",
+   "sports": "CFB",
+   "home": "Liberty",
+   "games": 3,
+   "last": "2026-10-08"
+  },
+  {
+   "venue": "Williams-Brice Stadium",
+   "sports": "CFB",
+   "home": "South Carolina",
+   "games": 4,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "Willoughby Community Park",
+   "sports": "MLS",
+   "home": "Vancouver FC",
+   "games": 2,
+   "last": "2026-07-09"
+  },
+  {
+   "venue": "Yager Stadium",
+   "sports": "CFB",
+   "home": "Miami OH",
+   "games": 4,
+   "last": "2026-10-17"
+  },
+  {
+   "venue": "Yokohama Country Club",
+   "sports": "golf",
+   "home": "Baycurrent Classic",
+   "games": 8,
+   "last": "2026-10-12"
+  },
+  {
+   "venue": "Yulman Stadium",
+   "sports": "CFB",
+   "home": "Tulane",
+   "games": 3,
+   "last": "2026-10-16"
+  },
+  {
+   "venue": "Zoeller Field at Dix Stadium",
+   "sports": "CFB",
+   "home": "Kent State",
+   "games": 3,
+   "last": "2026-10-03"
+  },
+  {
+   "venue": "bet365 Stadium",
+   "sports": "EFL Cup",
+   "home": "Stoke",
+   "games": 2,
+   "last": "2026-08-25"
+  },
+  {
+   "venue": "Şükrü Saracoğlu Stadium",
+   "sports": "UEFA Champions League",
+   "home": "Fenerbahce",
+   "games": 1,
+   "last": "2026-10-20"
+  }
+ ]
+}

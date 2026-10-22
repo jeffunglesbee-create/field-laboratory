@@ -64,6 +64,7 @@
     "check:separation": "URL='http://localhost:8080/?data=games-2026-08-09' node scripts/separation-check.mjs",
     "check:status": "node scripts/status-verdict-check.mjs",
     "check:status-live": "node scripts/status-live-check.mjs",
+    "check:venue-sourced": "node scripts/venue-sourced-check.mjs --self-test && node scripts/venue-sourced-check.mjs",
     "check:weather-live": "node scripts/weather-live-check.mjs --self-test && node scripts/weather-live-check.mjs",
     "check:unused": "node scripts/unused-check.mjs && node scripts/units-check.mjs",
     "outbox:index": "node scripts/outbox-index.mjs",
