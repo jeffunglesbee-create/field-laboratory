@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a4ff365` | 2026-10-22 | [cc-session-2026-10-22-outdoor-venue-sourcing.md](cc-session-2026-10-22-outdoor-venue-sourcing.md) | feat: 301 outdoor venues sourced into the table, the rest in review |
+| `a4ff365` | 2026-10-22 | [venue-source-cache.json](venue-source-cache.json) | feat: 301 outdoor venues sourced into the table, the rest in review |
+| `a4ff365` | 2026-10-22 | [venue-source-calibration-latest.json](venue-source-calibration-latest.json) | feat: 301 outdoor venues sourced into the table, the rest in review |
+| `a4ff365` | 2026-10-22 | [venue-source-results-latest.json](venue-source-results-latest.json) | feat: 301 outdoor venues sourced into the table, the rest in review |
+| `a4ff365` | 2026-10-22 | [venue-weather-check-latest.txt](venue-weather-check-latest.txt) | feat: 301 outdoor venues sourced into the table, the rest in review |
+| `c9c21cb` | 2026-10-22 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `dba491c` | 2026-10-22 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-22 [skip ci] |
 | `dba491c` | 2026-10-22 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-22 [skip ci] |
 | `dba491c` | 2026-10-22 | [sport-vocabulary-2026-10-22T17-00-43-422Z.json](sport-vocabulary-2026-10-22T17-00-43-422Z.json) | drift-sentinel: ok on 2026-10-22 [skip ci] |
