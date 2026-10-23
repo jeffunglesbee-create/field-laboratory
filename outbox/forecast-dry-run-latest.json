@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-23T12:05:27.189Z",
+  "at": "2026-10-23T21:39:30.694Z",
   "method": "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30",
   "join": {
     "resolved": 20,
@@ -9,7 +9,7 @@
     {
       "subject": "epl-fixture-77",
       "provenance": "Modelled",
-      "value": "0.750938/0.117291/0.131771"
+      "value": "0.725750/0.126385/0.147865"
     },
     {
       "subject": "epl-fixture-72",
