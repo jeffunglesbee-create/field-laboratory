@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `5c950e0` at "A finished game shows the brief written after it finished" — nothing was skipped behind it — [run 39884938972](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/39884938972)
+`live-check` (post-deploy, against the deployed page): **running** on `ecbb66c`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `5c950e0` — newest deployable `a4ff365` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `ecbb66c` — newest deployable `a4ff365` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
