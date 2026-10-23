@@ -59,6 +59,15 @@ fake-profound endings.
   field-relay-nba) wherever a choice exists, and leaves that default to decide
   work that can only live in one repo. Not retroactive: existing client code
   stays where it is (`docs/CC-CMD-2026-10-18-lab-first.md`).
+- **BUILD-ON-A.** "We should always be building and not duplicating or working
+  against previous cc-cmd's." Direct owner order, 2026-10-23, all repos.
+  - Before filing a CC-CMD, search the existing ones by content (function,
+    route, site label, symptom), not by title. A finding that an open CC-CMD
+    already covers is added to that CC-CMD, not filed again.
+  - Read the Status, rulings, holds and VOID windows of every CC-CMD the work
+    touches. Nothing may undo or work around a ruling or a hold.
+  - Filing is not the work. After filing, build what is unblocked; do not stop
+    at the filing.
 
 ## Probe-first, and it applies to commits (not just CC-CMDs)
 
