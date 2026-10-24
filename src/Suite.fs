@@ -332,6 +332,30 @@ let private weather () =
           ("Minute Maid Park", "Daikin Park")
           ("Minute Maid Park", "Wrigley Field")
 
+      // A reading is taken once per place and labelled with ONE name; every alias
+      // card of that place must still be filled (verify 40116546191: 73 known
+      // venues, 71 chips, on a slate naming "DICK'S" and "Dick's" Sporting Goods
+      // Park, and Red Bull Arena beside Sports Illustrated Stadium).
+      Verify.check "a reading for one alias fills the card that says the other"
+          (fun (reading, card) -> Venues.servesCard reading card)
+          ("DICK'S Sporting Goods Park", "Dick's Sporting Goods Park")
+          ("DICK'S Sporting Goods Park", "Fenway Park")
+
+      Verify.check "an alias is symmetric: either name serves the other's card"
+          (fun (a, b) -> Venues.servesCard a b && Venues.servesCard b a)
+          ("Red Bull Arena", "Sports Illustrated Stadium")
+          ("Red Bull Arena", "Anfield")
+
+      Verify.check "a venue name with a double quote is compared, never parsed as a selector"
+          (fun (reading, card) -> Venues.servesCard reading card)
+          ("Johnny \"Red\" Floyd Stadium", "Johnny \"Red\" Floyd Stadium")
+          ("Johnny \"Red\" Floyd Stadium", "Fenway Park")
+
+      Verify.check "a name the table does not know serves only itself"
+          (fun (reading, card) -> Venues.servesCard reading card)
+          ("Some Unlisted Park", "Some Unlisted Park")
+          ("Some Unlisted Park", "Fenway Park")
+
       Verify.check "distinct locations dedupe aliases but keep real venues"
           (fun names ->
               let found, _ = Venues.weatherEligible names

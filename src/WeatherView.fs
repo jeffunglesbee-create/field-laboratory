@@ -159,19 +159,29 @@ let fillCards (outcome: SlateWeather) =
     | NoVenuesWithCoordinates
     | EveryFetchFailed _ -> ()
     | Readings(readings, _) ->
+        // Cards are read once and matched BY NAME in code, not through a selector
+        // built from the venue. Two reasons, both measured: a reading serves every
+        // alias of its place (`Venues.servesCard`), and a venue name with a double
+        // quote in it made the old selector invalid, which throws and would have
+        // stopped every reading after it from being written.
+        let cards = document.querySelectorAll ".desk-card[data-venue]"
         for vw in readings do
-            let selector = sprintf ".desk-card[data-venue=\"%s\"] .desk-card__wx" vw.Venue
-            for i in 0 .. int (document.querySelectorAll selector).length - 1 do
-                match (document.querySelectorAll selector).[i] with
+            for i in 0 .. int cards.length - 1 do
+                match cards.[i] with
                 | null -> ()
-                | node ->
-                    let element = node :?> HTMLElement
-                    element.textContent <- cardChip vw
-                    // The caveat rides along and is never dropped to fit the
-                    // chip. `title` and `aria-label` both, because a title is
-                    // not announced by every reader.
-                    element.setAttribute ("title", cardChipTitle vw)
-                    element.setAttribute ("aria-label", cardChipTitle vw)
+                | card ->
+                    let cardVenue = (card :?> HTMLElement).getAttribute "data-venue"
+                    if Venues.servesCard vw.Venue cardVenue then
+                        match card.querySelector ".desk-card__wx" with
+                        | null -> ()
+                        | node ->
+                            let element = node :?> HTMLElement
+                            element.textContent <- cardChip vw
+                            // The caveat rides along and is never dropped to fit the
+                            // chip. `title` and `aria-label` both, because a title is
+                            // not announced by every reader.
+                            element.setAttribute ("title", cardChipTitle vw)
+                            element.setAttribute ("aria-label", cardChipTitle vw)
 
 // --- fetching ----------------------------------------------------------------
 
