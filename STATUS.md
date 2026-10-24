@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `6f9fcef` at "Render the deployed page and assert on it" — nothing was skipped behind it — [run 40095209587](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40095209587)
+`live-check` (post-deploy, against the deployed page): **running** on `e3530ff`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `6f9fcef` — newest deployable `a4ff365` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `e3530ff` — newest deployable `a4ff365` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
