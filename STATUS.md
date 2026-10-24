@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `c3d1967`
+`live-check` (post-deploy, against the deployed page): **green** on `c3d1967` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`ok` on 2026-10-23 — 27 games, 0 malformed (173 runs logged)
+`odds-coverage-lost` on 2026-10-24 — 15 games, 0 malformed (174 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
