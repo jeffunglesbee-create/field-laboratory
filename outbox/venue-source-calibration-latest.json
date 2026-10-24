@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-22T17:30:47.236Z",
+  "at": "2026-10-24T18:07:16.751Z",
   "eps": 0.02,
   "summary": {
     "checked": 410,
@@ -8,8 +8,2033 @@
     "review": 23,
     "none": 1,
     "withAnUnansweredSource": 0,
-    "osmAgreedAloneAndWrong": 4
+    "osmAgreedAloneAndWrong": 4,
+    "homeTeam": {
+      "pairs": 155,
+      "right": 90,
+      "WRONG": 1,
+      "abstain": 61,
+      "noCandidates": 2,
+      "unanswered": 0,
+      "notInTable": 0,
+      "collisions": 1,
+      "accepted": 88,
+      "acceptedRight": 88,
+      "acceptedWRONG": 0
+    }
   },
+  "homeTeam": [
+    {
+      "venue": "Adelaide Oval",
+      "home": "Port Adelaide",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q2462430",
+        "label": "Adelaide Oval",
+        "lat": -34.915555555,
+        "lon": 138.596111111
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Adelaide Oval",
+      "home": "Adelaide",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q2462430",
+        "label": "Adelaide Oval",
+        "lat": -34.915555555,
+        "lon": 138.596111111
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Adelaide Oval",
+      "home": "Hawthorn",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Adelaide Oval",
+      "home": "Essendon",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Adelaide Oval",
+      "home": "Collingwood",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Allianz Arena",
+      "home": "Bayern",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q127429",
+        "label": "Allianz Arena",
+        "lat": 48.218775,
+        "lon": 11.624752777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Allianz Field",
+      "home": "Minnesota United FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q22096631",
+        "label": "Allianz Field",
+        "lat": 44.9528,
+        "lon": -93.1651
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Allianz Field",
+      "home": "Minnesota",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q22096631",
+        "label": "Allianz Field",
+        "lat": 44.9528,
+        "lon": -93.1651
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Allianz Field",
+      "home": "Club Tigres",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "America First Field",
+      "home": "Real Salt Lake",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1514798",
+        "label": "America First Field",
+        "lat": 40.5829,
+        "lon": -111.893
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "America First Field",
+      "home": "Salt Lake",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1514798",
+        "label": "America First Field",
+        "lat": 40.5829,
+        "lon": -111.893
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "America First Field",
+      "home": "Club Tigres",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "American Family Field",
+      "home": "Brewers",
+      "verdict": "WRONG",
+      "combined": "not-accepted",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q6781782",
+        "label": "American Family Fields of Phoenix",
+        "lat": 33.492222,
+        "lon": -112.173056
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Anfield",
+      "home": "Liverpool",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q45671",
+        "label": "Anfield",
+        "lat": 53.430833333,
+        "lon": -2.960833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Angel Stadium",
+      "home": "Angels",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q531897",
+        "label": "Angel Stadium of Anaheim",
+        "lat": 33.800277777,
+        "lon": -117.882777777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Audi Field",
+      "home": "D.C. United",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q5203387",
+        "label": "Audi Field",
+        "lat": 38.868504,
+        "lon": -77.012935
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "BC Place",
+      "home": "Vancouver Whitecaps FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q612227",
+        "label": "BC Place",
+        "lat": 49.276666666,
+        "lon": -123.111944444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "BC Place",
+      "home": "Vancouver",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q612227",
+        "label": "BC Place",
+        "lat": 49.276666666,
+        "lon": -123.111944444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "BC Place",
+      "home": "Switzerland",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BC Place",
+      "home": "New Zealand",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BC Place",
+      "home": "Canada",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BC Place",
+      "home": "Australia",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Toronto FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q796351",
+        "label": "BMO Field",
+        "lat": 43.632778,
+        "lon": -79.418611
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Toronto",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q796351",
+        "label": "BMO Field",
+        "lat": 43.632778,
+        "lon": -79.418611
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Senegal",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Portugal",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Panama",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Ghana",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Germany",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Field",
+      "home": "Canada",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Stadium",
+      "home": "Los Angeles Football Club",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Stadium",
+      "home": "LAFC",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "BMO Stadium",
+      "home": "Toluca FC",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Bank of America Stadium",
+      "home": "Charlotte FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q806673",
+        "label": "Bank of America Stadium",
+        "lat": 35.225833333,
+        "lon": -80.852777777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Bank of America Stadium",
+      "home": "Charlotte",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q806673",
+        "label": "Bank of America Stadium",
+        "lat": 35.225833333,
+        "lon": -80.852777777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Bank of America Stadium",
+      "home": "Panthers",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q806673",
+        "label": "Bank of America Stadium",
+        "lat": 35.225833333,
+        "lon": -80.852777777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Bank of America Stadium",
+      "home": "Virginia",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Bank of America Stadium",
+      "home": "MLS All-Stars",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Busch Stadium",
+      "home": "Cardinals",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q253546",
+        "label": "Busch Stadium",
+        "lat": 38.6225,
+        "lon": -90.193056
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Chase Field",
+      "home": "Diamondbacks",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1068011",
+        "label": "Chase Field",
+        "lat": 33.445277777,
+        "lon": -112.066944444
+      },
+      "why": null,
+      "candidates": 2
+    },
+    {
+      "venue": "Citi Field",
+      "home": "Mets",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1072882",
+        "label": "Citi Field",
+        "lat": 40.756986,
+        "lon": -73.845783
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Citi Field",
+      "home": "New York City Football Club",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Citi Field",
+      "home": "NYCFC",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Citizens Bank Park",
+      "home": "Phillies",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q912770",
+        "label": "Citizens Bank Park",
+        "lat": 39.905833333,
+        "lon": -75.166666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Citizens Bank Park",
+      "home": "National",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Comerica Park",
+      "home": "Tigers",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q868482",
+        "label": "Comerica Park",
+        "lat": 42.339166666,
+        "lon": -83.048611111
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Coors Field",
+      "home": "Rockies",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1129916",
+        "label": "Coors Field",
+        "lat": 39.756111111,
+        "lon": -104.994166666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Craven Cottage",
+      "home": "Fulham",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q318043",
+        "label": "Craven Cottage",
+        "lat": 51.475,
+        "lon": -0.221666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "DICK'S Sporting Goods Park",
+      "home": "Colorado Rapids",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1210268",
+        "label": "Dick's Sporting Goods Park",
+        "lat": 39.805555555,
+        "lon": -104.891944444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "DICK'S Sporting Goods Park",
+      "home": "Club León",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Daikin Park",
+      "home": "Astros",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1193671",
+        "label": "Daikin Park",
+        "lat": 29.756944444,
+        "lon": -95.355555555
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Dignity Health Sports Park",
+      "home": "LA Galaxy",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q200684",
+        "label": "Dignity Health Sports Park",
+        "lat": 33.864444444,
+        "lon": -118.261111111
+      },
+      "why": null,
+      "candidates": 2
+    },
+    {
+      "venue": "Dignity Health Sports Park",
+      "home": "Club América",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 2
+    },
+    {
+      "venue": "Dodger Stadium",
+      "home": "Dodgers",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q247420",
+        "label": "Dodger Stadium",
+        "lat": 34.073611111,
+        "lon": -118.24
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "East Lake Golf Club",
+      "home": "TOUR Championship",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Etihad Stadium",
+      "home": "Man City",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 2
+    },
+    {
+      "venue": "Europa-Park Stadion",
+      "home": "Freiburg",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q64586775",
+        "label": "Europa-Park-Stadion",
+        "lat": 48.021536,
+        "lon": 7.830006
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Fenway Park",
+      "home": "Red Sox",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q49136",
+        "label": "Fenway Park",
+        "lat": 42.346388888,
+        "lon": -71.0975
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "GEODIS Park",
+      "home": "Nashville SC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q47528203",
+        "label": "Geodis Park",
+        "lat": 36.1309612,
+        "lon": -86.7676932
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "GEODIS Park",
+      "home": "Nashville",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q47528203",
+        "label": "Geodis Park",
+        "lat": 36.1309612,
+        "lon": -86.7676932
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "GEODIS Park",
+      "home": "Club de Fútbol Monterrey Rayados, A.C.",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "New England Revolution",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q373355",
+        "label": "Gillette Stadium",
+        "lat": 42.090944444,
+        "lon": -71.264344444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "New England",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q373355",
+        "label": "Gillette Stadium",
+        "lat": 42.090944444,
+        "lon": -71.264344444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "Patriots",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q373355",
+        "label": "Gillette Stadium",
+        "lat": 42.090944444,
+        "lon": -71.264344444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "Scotland",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "Norway",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "Iraq",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "Haiti",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "Germany",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "France",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Gillette Stadium",
+      "home": "England",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Globe Life Field",
+      "home": "Rangers",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q24284037",
+        "label": "Globe Life Field",
+        "lat": 32.74736111,
+        "lon": -97.08416667
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Great American Ball Park",
+      "home": "Reds",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q979975",
+        "label": "Great American Ball Park",
+        "lat": 39.097222222,
+        "lon": -84.506944444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Inter&Co Stadium",
+      "home": "Orlando",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q16846942",
+        "label": "Inter&Co Stadium",
+        "lat": 28.5410645,
+        "lon": -81.389035
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Inter&Co Stadium",
+      "home": "Orlando City",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q16846942",
+        "label": "Inter&Co Stadium",
+        "lat": 28.5410645,
+        "lon": -81.389035
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Kauffman Stadium",
+      "home": "Royals",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1737017",
+        "label": "Kauffman Stadium",
+        "lat": 39.051388888,
+        "lon": -94.480555555
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "London Stadium",
+      "home": "West Ham United",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q172190",
+        "label": "London Stadium",
+        "lat": 51.538611111,
+        "lon": -0.016388888
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "London Stadium",
+      "home": "West Ham",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q172190",
+        "label": "London Stadium",
+        "lat": 51.538611111,
+        "lon": -0.016388888
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "Seattle Sounders FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q612736",
+        "label": "Lumen Field",
+        "lat": 47.595277777,
+        "lon": -122.331666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "Seattle",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q612736",
+        "label": "Lumen Field",
+        "lat": 47.595277777,
+        "lon": -122.331666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "Seahawks",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q612736",
+        "label": "Lumen Field",
+        "lat": 47.595277777,
+        "lon": -122.331666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "Belgium",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "United States",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "USA",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "Egypt",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Lumen Field",
+      "home": "Bosnia-Herz",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Marrara Oval",
+      "home": "Gold Coast",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Melbourne Cricket Ground",
+      "home": "Rams",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Atlanta United",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q7007552",
+        "label": "Mercedes-Benz Stadium",
+        "lat": 33.755277777,
+        "lon": -84.400833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Atlanta",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q7007552",
+        "label": "Mercedes-Benz Stadium",
+        "lat": 33.755277777,
+        "lon": -84.400833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Falcons",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q7007552",
+        "label": "Mercedes-Benz Stadium",
+        "lat": 33.755277777,
+        "lon": -84.400833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Spain",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "England",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Morocco",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Czechia",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Congo DR",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Auburn",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Mercedes-Benz Stadium",
+      "home": "Argentina",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Nationals Park",
+      "home": "Nationals",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q517545",
+        "label": "Nationals Park",
+        "lat": 38.8725,
+        "lon": -77.007777777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Oracle Park",
+      "home": "Giants",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q298585",
+        "label": "Oracle Park",
+        "lat": 37.778333333,
+        "lon": -122.389444444
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "PNC Park",
+      "home": "Pirates",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1151177",
+        "label": "PNC Park",
+        "lat": 40.446944444,
+        "lon": -80.005833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "PayPal Park",
+      "home": "San Jose Earthquakes",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q3046470",
+        "label": "PayPal Park",
+        "lat": 37.351389,
+        "lon": -121.925
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "PayPal Park",
+      "home": "San Jose",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q3046470",
+        "label": "PayPal Park",
+        "lat": 37.351389,
+        "lon": -121.925
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "PayPal Park",
+      "home": "Chivas de Guadalajara",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Petco Park",
+      "home": "Padres",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1194586",
+        "label": "Petco Park",
+        "lat": 32.707333,
+        "lon": -117.156944
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Progressive Field",
+      "home": "Guardians",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1154053",
+        "label": "Progressive Field",
+        "lat": 41.495833333,
+        "lon": -81.685277777
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Providence Park",
+      "home": "Portland Timbers",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q262291",
+        "label": "Providence Park",
+        "lat": 45.521388888,
+        "lon": -122.691666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Providence Park",
+      "home": "Portland",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q262291",
+        "label": "Providence Park",
+        "lat": 45.521388888,
+        "lon": -122.691666666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Providence Park",
+      "home": "Club América",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Q2 Stadium",
+      "home": "Austin FC",
+      "verdict": "right",
+      "combined": "not-accepted",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q56278477",
+        "label": "Q2 Stadium",
+        "lat": 30.388206,
+        "lon": -97.719837
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Q2 Stadium",
+      "home": "Austin",
+      "verdict": "right",
+      "combined": "not-accepted",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q56278477",
+        "label": "Q2 Stadium",
+        "lat": 30.388206,
+        "lon": -97.719837
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Q2 Stadium",
+      "home": "Club América",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Rate Field",
+      "home": "White Sox",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q633613",
+        "label": "Rate Field",
+        "lat": 41.83,
+        "lon": -87.633888888
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Red Bull Arena",
+      "home": "Red Bull NY",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 3
+    },
+    {
+      "venue": "Red Bull Arena",
+      "home": "RB Leipzig",
+      "verdict": "collision",
+      "combined": "collision",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q210466",
+        "label": "Red Bull Arena",
+        "lat": 51.345833,
+        "lon": 12.348056
+      },
+      "why": null,
+      "candidates": 3
+    },
+    {
+      "venue": "Red Bull Arena",
+      "home": "Crystal Palace",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 3
+    },
+    {
+      "venue": "Riverside Stadium",
+      "home": "Boro",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 5
+    },
+    {
+      "venue": "Rogers Centre",
+      "home": "Blue Jays",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q76318",
+        "label": "Rogers Centre",
+        "lat": 43.641388888,
+        "lon": -79.389166666
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "S.C.G.",
+      "home": "Sydney",
+      "verdict": "no-candidates",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": null,
+      "candidates": 0
+    },
+    {
+      "venue": "Selhurst Park",
+      "home": "C Palace",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Shell Energy Stadium",
+      "home": "Houston Dynamo FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q176460",
+        "label": "Shell Energy Stadium",
+        "lat": 29.7522,
+        "lon": -95.3524
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Shell Energy Stadium",
+      "home": "Houston",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q176460",
+        "label": "Shell Energy Stadium",
+        "lat": 29.7522,
+        "lon": -95.3524
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Snapdragon Stadium",
+      "home": "San Diego FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q100272042",
+        "label": "Snapdragon Stadium",
+        "lat": 32.784444444,
+        "lon": -117.122833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Snapdragon Stadium",
+      "home": "San Diego",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q100272042",
+        "label": "Snapdragon Stadium",
+        "lat": 32.784444444,
+        "lon": -117.122833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Snapdragon Stadium",
+      "home": "San Diego St",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q100272042",
+        "label": "Snapdragon Stadium",
+        "lat": 32.784444444,
+        "lon": -117.122833333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Soldier Field",
+      "home": "Chicago Fire FC",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1132413",
+        "label": "Soldier Field",
+        "lat": 41.8625,
+        "lon": -87.616666666
+      },
+      "why": null,
+      "candidates": 2
+    },
+    {
+      "venue": "Soldier Field",
+      "home": "Chicago",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1132413",
+        "label": "Soldier Field",
+        "lat": 41.8625,
+        "lon": -87.616666666
+      },
+      "why": null,
+      "candidates": 2
+    },
+    {
+      "venue": "Soldier Field",
+      "home": "Bears",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1132413",
+        "label": "Soldier Field",
+        "lat": 41.8625,
+        "lon": -87.616666666
+      },
+      "why": null,
+      "candidates": 2
+    },
+    {
+      "venue": "Sporting Park",
+      "home": "Sporting Kansas City",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1787141",
+        "label": "Sporting Park",
+        "lat": 39.1218,
+        "lon": -94.8237
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Sporting Park",
+      "home": "Kansas City",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1787141",
+        "label": "Sporting Park",
+        "lat": 39.1218,
+        "lon": -94.8237
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Stade Saputo",
+      "home": "CF Montréal",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q2093647",
+        "label": "Saputo Stadium",
+        "lat": 45.563055555,
+        "lon": -73.5525
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Stade Saputo",
+      "home": "FC Supra du Québec",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Stade de la Meinau",
+      "home": "Strasbourg",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q374883",
+        "label": "Stade de la Meinau",
+        "lat": 48.55942,
+        "lon": 7.75738
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Stadium of Light",
+      "home": "Sunderland",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q31969",
+        "label": "Stadium of Light",
+        "lat": 54.914429068,
+        "lon": -1.388172971
+      },
+      "why": null,
+      "candidates": 2
+    },
+    {
+      "venue": "Subaru Park",
+      "home": "Philadelphia Union",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1637843",
+        "label": "Subaru Park",
+        "lat": 39.832222,
+        "lon": -75.378889
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Subaru Park",
+      "home": "Philadelphia",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1637843",
+        "label": "Subaru Park",
+        "lat": 39.832222,
+        "lon": -75.378889
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Subaru Park",
+      "home": "Cruz Azul",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Sutter Health Park",
+      "home": "Athletics",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q3418115",
+        "label": "Sutter Health Park",
+        "lat": 38.580372222,
+        "lon": -121.5138
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "T-Mobile Park",
+      "home": "Mariners",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1193117",
+        "label": "T-Mobile Park",
+        "lat": 47.591388888,
+        "lon": -122.3325
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "TPC Twin Cities",
+      "home": "3M Open",
+      "verdict": "no-candidates",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": null,
+      "candidates": 0
+    },
+    {
+      "venue": "TQL Stadium",
+      "home": "FC Cincinnati",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q54465634",
+        "label": "TQL Stadium",
+        "lat": 39.111388888,
+        "lon": -84.522222222
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "TQL Stadium",
+      "home": "Cincinnati",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q54465634",
+        "label": "TQL Stadium",
+        "lat": 39.111388888,
+        "lon": -84.522222222
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Target Field",
+      "home": "Twins",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1156635",
+        "label": "Target Field",
+        "lat": 44.981667,
+        "lon": -93.278333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "The Den",
+      "home": "Millwall",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q908481",
+        "label": "The Den",
+        "lat": 51.485833,
+        "lon": -0.050833
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Toyota Stadium",
+      "home": "FC Dallas",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1140457",
+        "label": "Toyota Stadium",
+        "lat": 33.154458333,
+        "lon": -96.835158333
+      },
+      "why": null,
+      "candidates": 4
+    },
+    {
+      "venue": "Toyota Stadium",
+      "home": "Dallas",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q1140457",
+        "label": "Toyota Stadium",
+        "lat": 33.154458333,
+        "lon": -96.835158333
+      },
+      "why": null,
+      "candidates": 4
+    },
+    {
+      "venue": "Tropicana Field",
+      "home": "Rays",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1810119",
+        "label": "Tropicana Field",
+        "lat": 27.768333333,
+        "lon": -82.653333333
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Tropicana Field",
+      "home": "Red Sox",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Turf Moor",
+      "home": "Burnley",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q683112",
+        "label": "Turf Moor",
+        "lat": 53.789064,
+        "lon": -2.230225
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Villa Park",
+      "home": "Aston Villa",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 1,
+      "chosen": {
+        "qid": "Q175339",
+        "label": "Villa Park",
+        "lat": 52.509166666,
+        "lon": -1.884722222
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Wrigley Field",
+      "home": "Cubs",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1052807",
+        "label": "Wrigley Field",
+        "lat": 41.948055555,
+        "lon": -87.655555555
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Yankee Stadium",
+      "home": "Yankees",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q753529",
+        "label": "Yankee Stadium",
+        "lat": 40.829569,
+        "lon": -73.926392
+      },
+      "why": null,
+      "candidates": 1
+    },
+    {
+      "venue": "Yankee Stadium",
+      "home": "NYCFC",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "Yankee Stadium",
+      "home": "New York City Football Club",
+      "verdict": "abstain",
+      "combined": "not-accepted",
+      "tier": null,
+      "chosen": null,
+      "why": "no candidate lists the home team",
+      "candidates": 1
+    },
+    {
+      "venue": "loanDepot park",
+      "home": "Marlins",
+      "verdict": "right",
+      "combined": "accepted-right",
+      "tier": 2,
+      "chosen": {
+        "qid": "Q1368138",
+        "label": "LoanDepot Park",
+        "lat": 25.778056,
+        "lon": -80.219722
+      },
+      "why": null,
+      "candidates": 1
+    }
+  ],
   "results": [
     {
       "name": "Fenway Park",
@@ -2206,8 +4231,8 @@
           "photon"
         ],
         "ambiguous": [
-          "Sports Illustrated Stadium (Q761682)",
           "Red Bull Arena (Q210466)",
+          "Sports Illustrated Stadium (Q761682)",
           "Red Bull Arena (Q206135)"
         ]
       },
@@ -2221,8 +4246,8 @@
           "label": "Red Bull Arena",
           "qid": "Q210466",
           "ambiguous": [
-            "Sports Illustrated Stadium (Q761682)",
             "Red Bull Arena (Q210466)",
+            "Sports Illustrated Stadium (Q761682)",
             "Red Bull Arena (Q206135)"
           ]
         },
@@ -2258,9 +4283,9 @@
           "photon"
         ],
         "ambiguous": [
-          "Q120244755 (Q120244755)",
+          "Energizer Park (Q30591730)",
           "Q120208560 (Q120208560)",
-          "Energizer Park (Q30591730)"
+          "Q120244755 (Q120244755)"
         ]
       },
       "unanswered": [],
@@ -2273,9 +4298,9 @@
           "label": "Energizer Park",
           "qid": "Q30591730",
           "ambiguous": [
-            "Q120244755 (Q120244755)",
+            "Energizer Park (Q30591730)",
             "Q120208560 (Q120208560)",
-            "Energizer Park (Q30591730)"
+            "Q120244755 (Q120244755)"
           ]
         },
         "nominatim": {
@@ -3020,9 +5045,9 @@
           "photon"
         ],
         "ambiguous": [
-          "Toyota Stadium (Georgetown, Kentucky) (Q14691369)",
           "Toyota Stadium (Q1140457)",
           "Toyota Stadium (Q613227)",
+          "Toyota Stadium (Georgetown, Kentucky) (Q14691369)",
           "Free State Stadium (Q181439)"
         ]
       },
@@ -3036,9 +5061,9 @@
           "label": "Toyota Stadium",
           "qid": "Q1140457",
           "ambiguous": [
-            "Toyota Stadium (Georgetown, Kentucky) (Q14691369)",
             "Toyota Stadium (Q1140457)",
             "Toyota Stadium (Q613227)",
+            "Toyota Stadium (Georgetown, Kentucky) (Q14691369)",
             "Free State Stadium (Q181439)"
           ]
         },
@@ -3481,8 +5506,8 @@
           "photon"
         ],
         "ambiguous": [
-          "City Ground (Q5123183)",
-          "City Ground (Q593446)"
+          "City Ground (Q593446)",
+          "City Ground (Q5123183)"
         ]
       },
       "unanswered": [],
@@ -3495,8 +5520,8 @@
           "label": "City Ground",
           "qid": "Q593446",
           "ambiguous": [
-            "City Ground (Q5123183)",
-            "City Ground (Q593446)"
+            "City Ground (Q593446)",
+            "City Ground (Q5123183)"
           ]
         },
         "nominatim": "only non-venue classes",
@@ -3525,11 +5550,11 @@
           "photon"
         ],
         "ambiguous": [
-          "Riverside Stadium (Q49551539)",
-          "Riverside Stadium (Q7338613)",
+          "Riverside Stadium (Q822886)",
           "FNB Field (Q6824503)",
+          "Riverside Stadium (Q49551539)",
           "Riverside Stadium (Q8045949)",
-          "Riverside Stadium (Q822886)"
+          "Riverside Stadium (Q7338613)"
         ]
       },
       "unanswered": [],
@@ -3542,11 +5567,11 @@
           "label": "Riverside Stadium",
           "qid": "Q822886",
           "ambiguous": [
-            "Riverside Stadium (Q49551539)",
-            "Riverside Stadium (Q7338613)",
+            "Riverside Stadium (Q822886)",
             "FNB Field (Q6824503)",
+            "Riverside Stadium (Q49551539)",
             "Riverside Stadium (Q8045949)",
-            "Riverside Stadium (Q822886)"
+            "Riverside Stadium (Q7338613)"
           ]
         },
         "nominatim": {
@@ -4754,8 +6779,8 @@
           "photon"
         ],
         "ambiguous": [
-          "Colonial Country Club (Q5148309)",
-          "Colonial Country Club (Q5148308)"
+          "Colonial Country Club (Q5148308)",
+          "Colonial Country Club (Q5148309)"
         ]
       },
       "unanswered": [],
@@ -4768,8 +6793,8 @@
           "label": "Colonial Country Club",
           "qid": "Q5148308",
           "ambiguous": [
-            "Colonial Country Club (Q5148309)",
-            "Colonial Country Club (Q5148308)"
+            "Colonial Country Club (Q5148308)",
+            "Colonial Country Club (Q5148309)"
           ]
         },
         "nominatim": {

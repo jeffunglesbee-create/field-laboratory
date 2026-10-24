@@ -1,6 +1,6 @@
 {
- "at": "2026-10-22T18:41:05.890Z",
- "run": "39832949207",
+ "at": "2026-10-24T18:12:06.288Z",
+ "run": "40119286792",
  "eps": 0.02,
  "ambiguousDeg": 0.5,
  "from": "data/venue-source-candidates.json",
@@ -22,6 +22,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The New York Stadium, currently known as the AESSEAL New York Stadium for sponsorship reasons, is a football stadium in Rotherham, South Yorkshire, England.",
    "zone": "Europe/London"
+  },
+  {
+   "name": "AFAS Stadion",
+   "sports": "UEFA Europa League",
+   "home": "AZ Alkmaar",
+   "lat": 52.6127,
+   "lon": 4.7419,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q291590",
+   "via": "home team (tier 1, Q291590)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "AFAS Stadion is a stadium in Alkmaar, Netherlands.",
+   "zone": "Europe/Amsterdam"
   },
   {
    "name": "AT&T Stadium",
@@ -751,6 +769,24 @@
    "zone": "America/New_York"
   },
   {
+   "name": "Celtic Park",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
+   "home": "Celtic",
+   "lat": 55.85,
+   "lon": -4.2064,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q216037",
+   "via": "home team (tier 1, Q216037)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Celtic Park is a football stadium and the home of Scottish Premiership team Celtic, in the Parkhead area of Glasgow, Scotland.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "Centennial Bank Stadium",
    "sports": "CFB",
    "home": "Arkansas St",
@@ -1242,6 +1278,24 @@
    "zone": "Europe/Madrid"
   },
   {
+   "name": "Estadio Banorte",
+   "sports": "FIFA World Cup,MLS",
+   "home": "Mexico",
+   "lat": 19.303,
+   "lon": -99.1505,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q320454",
+   "via": "home team (tier 2, Q320454)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Estadio Azteca, officially known as Estadio Banorte for sponsorship reasons, is a football stadium located in Coyoacán, Mexico City.",
+   "zone": "America/Mexico_City"
+  },
+  {
    "name": "Estadio Benito Villamarín",
    "sports": "La Liga",
    "home": "Betis",
@@ -1428,6 +1482,24 @@
    "zone": "Europe/Lisbon"
   },
   {
+   "name": "Estádio da Luz",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Benfica",
+   "lat": 38.7527,
+   "lon": -9.1847,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q7875112",
+   "via": "home team (tier 1, Q7875112)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Estádio da Luz, officially named Estádio do Sport Lisboa e Benfica, is a multi-purpose stadium located in Lisbon, Portugal.",
+   "zone": "Europe/Lisbon"
+  },
+  {
    "name": "Estádio do Dragão",
    "sports": "UEFA Champions League",
    "home": "FC Porto",
@@ -1563,6 +1635,42 @@
    "zone": "America/Denver"
   },
   {
+   "name": "Ford Field",
+   "sports": "NFL",
+   "home": "Lions",
+   "lat": 42.34,
+   "lon": -83.0456,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q1142586",
+   "via": "home team (tier 2, Q1142586)",
+   "roof": "dome",
+   "roofBasis": "wikipedia lead",
+   "lead": "Ford Field is an indoor stadium in Detroit, Michigan, U.S.",
+   "zone": "America/Detroit"
+  },
+  {
+   "name": "Fortuna Arena",
+   "sports": "UEFA Champions League",
+   "home": "Slavia Prague",
+   "lat": 50.0675,
+   "lon": 14.4712,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q64858",
+   "via": "home team (tier 1, Q64858)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Fortuna Arena is a football stadium, in Prague-Vršovice, Czech Republic.",
+   "zone": "Europe/Prague"
+  },
+  {
    "name": "GSP Stadium",
    "sports": "UEFA Europa League Qualifying,UEFA Europa League",
    "home": "Omonia",
@@ -1595,6 +1703,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Galaxy Stadium is an outdoor athletic stadium on the campus of Texas Tech University in Lubbock, Texas.",
    "zone": "America/Chicago"
+  },
+  {
+   "name": "Generali Arena",
+   "sports": "UEFA Europa League",
+   "home": "Sparta",
+   "lat": 50.0997,
+   "lon": 14.416,
+   "agreeing": [
+    "nominatim",
+    "wikidata"
+   ],
+   "qid": "Q60103",
+   "via": "home team (tier 2, Q60103)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Letná Stadium is a football stadium in Prague.",
+   "zone": "Europe/Prague"
   },
   {
    "name": "Georgios Karaiskakis Stadium",
@@ -1885,6 +2010,24 @@
    "zone": "Europe/London"
   },
   {
+   "name": "Hornet Stadium",
+   "sports": "CFB",
+   "home": "Sacramento St",
+   "lat": 38.5557,
+   "lon": -121.4229,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q9004779",
+   "via": "home team (tier 2, Q9004779)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Fred Anderson Field at Hornet Stadium is a 21,195-seat college football and track stadium on the campus of California State University, Sacramento.",
+   "zone": "America/Los_Angeles"
+  },
+  {
    "name": "Huntington Bank Field",
    "sports": "NFL",
    "home": "Browns",
@@ -1934,6 +2077,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Huskie Stadium is a college football stadium located on the campus of Northern Illinois University in DeKalb, Illinois.",
    "zone": "America/Chicago"
+  },
+  {
+   "name": "Husky Stadium",
+   "sports": "CFB",
+   "home": "Washington",
+   "lat": 47.6503,
+   "lon": -122.3019,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q1136463",
+   "via": "home team (tier 2, Q1136463)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Husky Stadium is an outdoor football stadium on the campus of the University of Washington in Seattle, Washington, United States.",
+   "zone": "America/Los_Angeles"
   },
   {
    "name": "Ibrox Stadium",
@@ -2730,6 +2891,23 @@
    "zone": "America/Sao_Paulo"
   },
   {
+   "name": "Martin Stadium",
+   "sports": "CFB",
+   "home": "Washington St",
+   "lat": 46.7318,
+   "lon": -117.1597,
+   "agreeing": [
+    "nominatim",
+    "wikidata"
+   ],
+   "qid": "Q2409690",
+   "via": "home team (tier 2, Q2409690)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Martin Stadium is an outdoor athletic stadium in the Northwestern United States, on the campus of Washington State University in Pullman, Washington.",
+   "zone": "America/Los_Angeles"
+  },
+  {
    "name": "Maverik Stadium",
    "sports": "CFB",
    "home": "Utah State",
@@ -2778,6 +2956,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Campo de Fútbol de Mendizorrotza is a football stadium in Vitoria-Gasteiz, in the province of Álava, Basque Country, Spain.",
    "zone": "Europe/Madrid"
+  },
+  {
+   "name": "Merkur Arena",
+   "sports": "UEFA Europa League",
+   "home": "Sturm Graz",
+   "lat": 47.0463,
+   "lon": 15.4542,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q696491",
+   "via": "home team (tier 1, Q696491)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Stadium Graz-Liebenau, formerly known as the Arnold Schwarzenegger Stadium, UPC-Arena and Merkur-Arena, is a football stadium in the Liebenau area of Graz, Styria, Austria.",
+   "zone": "Europe/Vienna"
   },
   {
    "name": "Merkur Spiel-Arena",
@@ -2998,6 +3194,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "James Gamble Nippert Memorial Stadium is an outdoor stadium in Cincinnati, Ohio, located on the campus of University of Cincinnati.",
    "zone": "America/New_York"
+  },
+  {
+   "name": "Nissan Stadium",
+   "sports": "NFL,CFB",
+   "home": "Titans",
+   "lat": 36.1665,
+   "lon": -86.7713,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q1142992",
+   "via": "home team (tier 2, Q1142992)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Nissan Stadium is a multi-purpose stadium in Nashville, Tennessee, United States.",
+   "zone": "America/Chicago"
   },
   {
    "name": "Northwest Stadium",
@@ -3354,6 +3568,23 @@
    "zone": "America/New_York"
   },
   {
+   "name": "PreZero Arena",
+   "sports": "Bundesliga,UEFA Europa League",
+   "home": "Hoffenheim",
+   "lat": 49.2385,
+   "lon": 8.888,
+   "agreeing": [
+    "nominatim",
+    "wikidata"
+   ],
+   "qid": "Q129870",
+   "via": "home team (tier 1, Q129870)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Rhein-Neckar-Arena, currently known as SNP Arena and previously as PreZero Arena and Wirsol Rhein-Neckar-Arena for sponsorship reasons, is a multi-purpose stadium in Sinsheim, Baden-Württemberg, Germa",
+   "zone": "Europe/Berlin"
+  },
+  {
    "name": "Prenton Park",
    "sports": "EFL Trophy",
    "home": "Tranmere",
@@ -3574,6 +3805,24 @@
    "zone": "Europe/Berlin"
   },
   {
+   "name": "Rice Stadium",
+   "sports": "CFB",
+   "home": "Rice",
+   "lat": 29.7163,
+   "lon": -95.4093,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q1857419",
+   "via": "home team (tier 2, Q1857419)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "First Community Stadium is an American football stadium located on the Rice University campus in Houston, Texas.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "Rice-Eccles Stadium",
    "sports": "CFB",
    "home": "Utah",
@@ -3640,6 +3889,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Romssa Arena, previously known as Alfheim Stadion, is a football stadium located in Tromsø, Norway and home of Eliteserien side Tromsø IL.",
    "zone": "Europe/Oslo"
+  },
+  {
+   "name": "Rose Bowl",
+   "sports": "CFB",
+   "home": "UCLA",
+   "lat": 34.1614,
+   "lon": -118.1676,
+   "agreeing": [
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q582280",
+   "via": "home team (tier 2, Q582280)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Rose Bowl is an outdoor athletic stadium located in Pasadena, California, United States.",
+   "zone": "America/Los_Angeles"
   },
   {
    "name": "Ross-Ade Stadium",
@@ -3961,6 +4227,23 @@
    "zone": "America/Los_Angeles"
   },
   {
+   "name": "Spartan Stadium",
+   "sports": "CFB",
+   "home": "Michigan St",
+   "lat": 42.7281,
+   "lon": -84.4852,
+   "agreeing": [
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q2164621",
+   "via": "home team (tier 2, Q2164621)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Spartan Stadium is an outdoor stadium in East Lansing, Michigan, United States that opened in 1923.",
+   "zone": "America/Detroit"
+  },
+  {
    "name": "Sports Illustrated Stadium",
    "sports": "MLS",
    "home": "Toluca FC",
@@ -4008,6 +4291,42 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "St Andrew's, known since 2024 for sponsorship reasons as St.",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "St. James' Park",
+   "sports": "EPL,EFL Cup",
+   "home": "Newcastle",
+   "lat": 54.9755,
+   "lon": -1.6218,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q191774",
+   "via": "home team (tier 2, Q191774)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "St.",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "St. Mary's Stadium",
+   "sports": "EFL Cup",
+   "home": "Southampton",
+   "lat": 50.9059,
+   "lon": -1.391,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q567339",
+   "via": "home team (tier 1, Q567339)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "St Mary's Stadium is a seated football stadium in Southampton, Hampshire, England.",
    "zone": "Europe/London"
   },
   {
@@ -4146,6 +4465,24 @@
    "zone": "Europe/Paris"
   },
   {
+   "name": "Stade de l'Aube",
+   "sports": "Ligue 1",
+   "home": "Troyes",
+   "lat": 48.3041,
+   "lon": 4.0922,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q2001732",
+   "via": "home team (tier 1, Q2001732)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Stade de l'Aube is a multi-use stadium in Troyes, France.",
+   "zone": "Europe/Paris"
+  },
+  {
    "name": "Stadio Benito Stirpe",
    "sports": "Serie A",
    "home": "Frosinone",
@@ -4160,6 +4497,24 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The Stadio Benito Stirpe, also known as Stadio Casaleno and officially named PSC Arena, is an all-seater football stadium in the Italian city of Frosinone, Lazio.",
+   "zone": "Europe/Rome"
+  },
+  {
+   "name": "Stadio Diego Armando Maradona",
+   "sports": "Serie A,UEFA Champions League",
+   "home": "Napoli",
+   "lat": 40.828,
+   "lon": 14.1929,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q82709",
+   "via": "home team (tier 1, Q82709)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Stadio Diego Armando Maradona, formerly known as Stadio San Paolo, is a large multi-purpose stadium in Naples, Italy.",
    "zone": "Europe/Rome"
   },
   {
@@ -4939,6 +5294,24 @@
    "zone": "Europe/London"
   },
   {
+   "name": "Volksparkstadion",
+   "sports": "Bundesliga",
+   "home": "Hamburg",
+   "lat": 53.5871,
+   "lon": 9.8987,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q150933",
+   "via": "home team (tier 2, Q150933)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Volksparkstadion is a football stadium in Hamburg, Germany, with a capacity of 57,000, which makes it the eighth largest stadium in Germany.",
+   "zone": "Europe/Berlin"
+  },
+  {
    "name": "WWK Arena",
    "sports": "Bundesliga",
    "home": "Augsburg",
@@ -4990,6 +5363,23 @@
    "zone": "America/New_York"
   },
   {
+   "name": "War Memorial Stadium",
+   "sports": "CFB",
+   "home": "Wyoming",
+   "lat": 41.3116,
+   "lon": -105.5682,
+   "agreeing": [
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q3566222",
+   "via": "home team (tier 2, Q3566222)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "War Memorial Stadium, also known as Jonah Field at War Memorial Stadium, is an outdoor college football stadium in the Western United States, located on the campus of the University of Wyoming in Lara",
+   "zone": "America/Denver"
+  },
+  {
    "name": "Warren McGuirk Alumni Stadium",
    "sports": "CFB",
    "home": "UMass",
@@ -5005,6 +5395,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Warren McGuirk Alumni Stadium, is a 17,000-seat multi-purpose stadium in Hadley, Massachusetts, on the campus of the University of Massachusetts Amherst.",
    "zone": "America/New_York"
+  },
+  {
+   "name": "Weserstadion",
+   "sports": "Bundesliga",
+   "home": "Bremen",
+   "lat": 53.0664,
+   "lon": 8.8376,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q154475",
+   "via": "home team (tier 2, Q154475, Q183353)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Weserstadion is a football stadium in Bremen, Germany.",
+   "zone": "Europe/Berlin"
   },
   {
    "name": "Williams-Brice Stadium",
@@ -5094,40 +5502,6 @@
  ],
  "review": [
   {
-   "name": "AFAS Stadion",
-   "sports": "UEFA Europa League",
-   "home": "AZ Alkmaar",
-   "why": "ambiguous name: AFAS Stadion KV Mechelen (Q649755); AFAS Stadion (Q291590)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 52.6125,
-     "lon": 4.741667,
-     "label": "AFAS Stadion",
-     "qid": "Q291590",
-     "ambiguous": [
-      "AFAS Stadion KV Mechelen (Q649755)",
-      "AFAS Stadion (Q291590)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 52.6128273,
-     "lon": 4.7420619,
-     "label": "AFAS Stadion, P7, Kooimeer, Overdie, Alkmaar, Noord-Holland, Nederland, 1812 AZ, Nederland",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 52.6128273,
-     "lon": 4.7420619,
-     "label": "AFAS Stadion",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "AIL Arena",
    "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
    "home": "FC Lugano",
@@ -5173,7 +5547,7 @@
    "name": "Allianz Stadium",
    "sports": "Serie A,UEFA Europa League",
    "home": "Juventus",
-   "why": "ambiguous name: Sydney Football Stadium II (Q65091153); Juventus Stadium (Q62149)",
+   "why": "no two independent families agree (wikidata, nominatim, photon)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -5182,10 +5556,7 @@
      "lon": 7.641247,
      "label": "Juventus Stadium",
      "qid": "Q62149",
-     "ambiguous": [
-      "Sydney Football Stadium II (Q65091153)",
-      "Juventus Stadium (Q62149)"
-     ]
+     "ambiguous": null
     },
     "nominatim": {
      "source": "nominatim",
@@ -5488,41 +5859,6 @@
      "lon": -119.162062,
      "label": "Del Sol Stadium",
      "kind": "leisure/pitch"
-    }
-   }
-  },
-  {
-   "name": "Celtic Park",
-   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
-   "home": "Celtic",
-   "why": "ambiguous name: Celtic Park (Q5058518); Celtic Park (Q3312170); Celtic Park (Q216037)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 55.849711111,
-     "lon": -4.205588888,
-     "label": "Celtic Park",
-     "qid": "Q216037",
-     "ambiguous": [
-      "Celtic Park (Q5058518)",
-      "Celtic Park (Q3312170)",
-      "Celtic Park (Q216037)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 55.8501815,
-     "lon": -4.2068227,
-     "label": "Celtic Park, Upper Plaza, Barrowfield, Newbank, Glasgow, Glasgow City, Alba / Scotland, G40 3RE, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 55.8501815,
-     "lon": -4.2068227,
-     "label": "Celtic Park",
-     "kind": "leisure/stadium"
     }
    }
   },
@@ -5887,45 +6223,10 @@
    }
   },
   {
-   "name": "Estadio Banorte",
-   "sports": "FIFA World Cup,MLS",
-   "home": "Mexico",
-   "why": "ambiguous name: Estadio Borregos (Q76762059); Estadio Carlos González (Q3058796); Estadio Azteca (Q320454)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 19.303055555,
-     "lon": -99.150555555,
-     "label": "Estadio Azteca",
-     "qid": "Q320454",
-     "ambiguous": [
-      "Estadio Borregos (Q76762059)",
-      "Estadio Carlos González (Q3058796)",
-      "Estadio Azteca (Q320454)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 19.3029794,
-     "lon": -99.15047,
-     "label": "Estadio Banorte, Circuito Estadio Banorte, Ex-ejido de Santa Úrsula Coapa, Santa Úrsula Coapa, Ciudad de México, Coyoacán, Ciudad de México, 04600, México",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 19.3029794,
-     "lon": -99.15047,
-     "label": "Estadio Banorte",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Estadio Universitario",
    "sports": "MLS",
    "home": "Club Tigres",
-   "why": "ambiguous name: Estádio Universitário de Lisboa (Q2645332); Estadio Universitario de Campeche (Q16492934); University Stadium (Q936242); Estadio Universitario (Q2576232); Estadio Universitario (UES) (Q3495897); Coimbra University Stadium (Q5141518); Estadio Universitario Alberto Chivo Cordova (Q3058824); Estadio Universitario (Q771800)",
+   "why": "ambiguous name: Estadio Universitario (Q771800); Estadio Universitario (Q2576232); Estádio Universitário de Lisboa (Q2645332); Estadio Universitario Alberto Chivo Cordova (Q3058824); Coimbra University Stadium (Q5141518); Estadio Universitario de Campeche (Q16492934); Estadio Universitario (UES) (Q3495897); University Stadium (Q936242)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -5935,14 +6236,14 @@
      "label": "Estadio Universitario",
      "qid": "Q771800",
      "ambiguous": [
-      "Estádio Universitário de Lisboa (Q2645332)",
-      "Estadio Universitario de Campeche (Q16492934)",
-      "University Stadium (Q936242)",
+      "Estadio Universitario (Q771800)",
       "Estadio Universitario (Q2576232)",
-      "Estadio Universitario (UES) (Q3495897)",
-      "Coimbra University Stadium (Q5141518)",
+      "Estádio Universitário de Lisboa (Q2645332)",
       "Estadio Universitario Alberto Chivo Cordova (Q3058824)",
-      "Estadio Universitario (Q771800)"
+      "Coimbra University Stadium (Q5141518)",
+      "Estadio Universitario de Campeche (Q16492934)",
+      "Estadio Universitario (UES) (Q3495897)",
+      "University Stadium (Q936242)"
      ]
     },
     "nominatim": {
@@ -5957,40 +6258,6 @@
      "lat": 25.7226067,
      "lon": -100.3119863,
      "label": "Estadio Universitario",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Estádio da Luz",
-   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
-   "home": "Benfica",
-   "why": "ambiguous name: Estádio da Luz (Q7875112); Stadium of Light (Q31969)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 38.752777777,
-     "lon": -9.184722222,
-     "label": "Estádio da Luz",
-     "qid": "Q7875112",
-     "ambiguous": [
-      "Estádio da Luz (Q7875112)",
-      "Stadium of Light (Q31969)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 38.7526893,
-     "lon": -9.1846899,
-     "label": "Estádio da Luz, Avenida Lusíada, São Domingos de Benfica, Lisboa, 1500-065, Portugal",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 38.7526893,
-     "lon": -9.1846899,
-     "label": "Estádio da Luz",
      "kind": "leisure/stadium"
     }
    }
@@ -6042,7 +6309,7 @@
    "name": "Field of Dreams",
    "sports": "MLB",
    "home": "Twins",
-   "why": "ambiguous name: Field of Dreams (Q122750396); Field of Dreams (Q5447096)",
+   "why": "ambiguous name: Field of Dreams (Q5447096); Field of Dreams (Q122750396)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6052,8 +6319,8 @@
      "label": "Field of Dreams",
      "qid": "Q5447096",
      "ambiguous": [
-      "Field of Dreams (Q122750396)",
-      "Field of Dreams (Q5447096)"
+      "Field of Dreams (Q5447096)",
+      "Field of Dreams (Q122750396)"
      ]
     },
     "nominatim": {
@@ -6115,75 +6382,6 @@
    }
   },
   {
-   "name": "Ford Field",
-   "sports": "NFL",
-   "home": "Lions",
-   "why": "ambiguous name: Ford Field (Q1142586); Ford Fieldhouse (Q5467773)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 42.34,
-     "lon": -83.045555555,
-     "label": "Ford Field",
-     "qid": "Q1142586",
-     "ambiguous": [
-      "Ford Field (Q1142586)",
-      "Ford Fieldhouse (Q5467773)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 42.3399568,
-     "lon": -83.0456166,
-     "label": "Ford Field, 2000, Brush Street, Greektown, Midtown, Detroit, Wayne County, Michigan, 48226, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 42.3399568,
-     "lon": -83.0456166,
-     "label": "Ford Field",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Fortuna Arena",
-   "sports": "UEFA Champions League",
-   "home": "Slavia Prague",
-   "why": "ambiguous name: Südstadion (Q2381493); Fortuna Arena (Q64858); Zimní stadion Hradec Králové (Q8072193)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 50.0675,
-     "lon": 14.4715,
-     "label": "Fortuna Arena",
-     "qid": "Q64858",
-     "ambiguous": [
-      "Südstadion (Q2381493)",
-      "Fortuna Arena (Q64858)",
-      "Zimní stadion Hradec Králové (Q8072193)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 50.0675695,
-     "lon": 14.4715052,
-     "label": "Fortuna Arena, 1540/2a, U Slavie, Vršovice, Praha 10, obvod Praha 10, Praha, 100 00, Česko",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 50.0674943,
-     "lon": 14.4706963,
-     "label": "Fortuna Arena",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "GEHA Field at Arrowhead Stadium",
    "sports": "FIFA World Cup,NFL",
    "home": "Colombia",
@@ -6227,45 +6425,10 @@
    }
   },
   {
-   "name": "Generali Arena",
-   "sports": "UEFA Europa League",
-   "home": "Sparta",
-   "why": "ambiguous name: Miskolc Sports Hall (Q1177762); Generali Arena (Q696476); Letná Stadium (Q60103)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 50.099716,
-     "lon": 14.416122,
-     "label": "Letná Stadium",
-     "qid": "Q60103",
-     "ambiguous": [
-      "Miskolc Sports Hall (Q1177762)",
-      "Generali Arena (Q696476)",
-      "Letná Stadium (Q60103)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 50.0997126,
-     "lon": 14.4158918,
-     "label": "epet ARENA, 1066/98, Milady Horákové, Bubeneč, Praha 7, obvod Praha 7, Praha, 116 93, Česko",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 48.1624078,
-     "lon": 16.3883392,
-     "label": "Generali Arena",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Generali-Arena",
    "sports": "UEFA Europa Conference League Qualifying",
    "home": "Vienna",
-   "why": "ambiguous name: Miskolc Sports Hall (Q1177762); Generali Arena (Q696476); Letná Stadium (Q60103)",
+   "why": "ambiguous name: Letná Stadium (Q60103); Generali Arena (Q696476); Miskolc Sports Hall (Q1177762)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6275,9 +6438,9 @@
      "label": "Letná Stadium",
      "qid": "Q60103",
      "ambiguous": [
-      "Miskolc Sports Hall (Q1177762)",
+      "Letná Stadium (Q60103)",
       "Generali Arena (Q696476)",
-      "Letná Stadium (Q60103)"
+      "Miskolc Sports Hall (Q1177762)"
      ]
     },
     "nominatim": {
@@ -6384,36 +6547,20 @@
    "name": "Highmark Stadium",
    "sports": "NFL",
    "home": "Bills",
-   "why": "ambiguous name: Highmark Stadium (Q16251517); Highmark Stadium (Q5759571); Ralph Wilson Stadium (Q1475645)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 42.772972222,
-     "lon": -78.792194444,
-     "label": "Highmark Stadium",
-     "qid": "Q16251517",
-     "ambiguous": [
-      "Highmark Stadium (Q16251517)",
-      "Highmark Stadium (Q5759571)",
-      "Ralph Wilson Stadium (Q1475645)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 42.7730293,
-     "lon": -78.7921925,
-     "label": "Highmark Stadium, 10, Community College Drive, Town of Orchard Park, Erie County, New York, 14127, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 42.7730293,
-     "lon": -78.7921925,
-     "label": "Highmark Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
+   "lat": 42.773,
+   "lon": -78.7922,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q16251517",
+   "via": "home team (tier 2, Q16251517, Q1475645)",
+   "roof": null,
+   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
+   "lead": "Highmark Stadium is an American football stadium located in Orchard Park, New York, a suburb of Buffalo.",
+   "zone": "America/New_York",
+   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
   {
    "name": "Hillsborough",
@@ -6425,40 +6572,6 @@
     "wikidata": "no venue entity with coordinates",
     "nominatim": "only non-venue classes",
     "photon": "only non-venue classes"
-   }
-  },
-  {
-   "name": "Hornet Stadium",
-   "sports": "CFB",
-   "home": "Sacramento St",
-   "why": "ambiguous name: Hornet Stadium (Q5904353); Hornet Stadium (Q9004779)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 38.555672,
-     "lon": -121.422903,
-     "label": "Hornet Stadium",
-     "qid": "Q9004779",
-     "ambiguous": [
-      "Hornet Stadium (Q5904353)",
-      "Hornet Stadium (Q9004779)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 38.5556698,
-     "lon": -121.4229535,
-     "label": "Hornet Stadium, College Town Drive, Brighton, Sacramento, Sacramento County, California, 95819, United States",
-     "kind": "leisure/pitch"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 38.5556698,
-     "lon": -121.4229535,
-     "label": "Hornet Stadium",
-     "kind": "leisure/pitch"
-    }
    }
   },
   {
@@ -6475,41 +6588,6 @@
      "lat": 36.9847917,
      "lon": -86.4593318,
      "label": "Houchens Industries-LT Smith Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Husky Stadium",
-   "sports": "CFB",
-   "home": "Washington",
-   "why": "ambiguous name: Husky Stadium (Q17015184); Husky Stadium (Q1136463); Husky Stadium (Q5949402)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 47.650277777,
-     "lon": -122.301666666,
-     "label": "Husky Stadium",
-     "qid": "Q1136463",
-     "ambiguous": [
-      "Husky Stadium (Q17015184)",
-      "Husky Stadium (Q1136463)",
-      "Husky Stadium (Q5949402)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 47.6503736,
-     "lon": -122.301976,
-     "label": "Husky Stadium, 3800, Montlake Boulevard Northeast, Central Campus, University District, Seattle, King County, Washington, 98105, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 47.6503736,
-     "lon": -122.301976,
-     "label": "Husky Stadium",
      "kind": "leisure/stadium"
     }
    }
@@ -6677,41 +6755,6 @@
    }
   },
   {
-   "name": "Martin Stadium",
-   "sports": "CFB",
-   "home": "Washington St",
-   "why": "ambiguous name: Martin Stadium (Q134722468); Martin Stadium (Q2409690); Martin Stadium at Edens Field (Q60752495)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 46.732,
-     "lon": -117.16,
-     "label": "Martin Stadium",
-     "qid": "Q2409690",
-     "ambiguous": [
-      "Martin Stadium (Q134722468)",
-      "Martin Stadium (Q2409690)",
-      "Martin Stadium at Edens Field (Q60752495)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 46.7316428,
-     "lon": -117.1593215,
-     "label": "Martin Stadium, 1775, Northeast Stadium Way, Washington State University, Ward 3, Pullman, Whitman County, Washington, 99164, United States",
-     "kind": "building/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 29.0200125,
-     "lon": -81.2999919,
-     "label": "Spec Martin Stadium",
-     "kind": "leisure/pitch"
-    }
-   }
-  },
-  {
    "name": "McLane Stadium",
    "sports": "CFB",
    "home": "Baylor",
@@ -6758,7 +6801,7 @@
    "name": "Memorial Stadium",
    "sports": "EFL Cup,EFL Trophy,CFB",
    "home": "Missouri",
-   "why": "ambiguous name: Memorial Field (Q6815406); World War I Memorial Stadium (Q6588205); David Booth Kansas Memorial Stadium (Q3305513); Memorial Stadium (Q3305509); Memorial Stadium (Q383557)",
+   "why": "ambiguous name: Memorial Stadium (Q383557); Memorial Stadium (Q3305509); David Booth Kansas Memorial Stadium (Q3305513); World War I Memorial Stadium (Q6588205); Memorial Field (Q6815406)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6768,11 +6811,11 @@
      "label": "Memorial Stadium",
      "qid": "Q383557",
      "ambiguous": [
-      "Memorial Field (Q6815406)",
-      "World War I Memorial Stadium (Q6588205)",
-      "David Booth Kansas Memorial Stadium (Q3305513)",
+      "Memorial Stadium (Q383557)",
       "Memorial Stadium (Q3305509)",
-      "Memorial Stadium (Q383557)"
+      "David Booth Kansas Memorial Stadium (Q3305513)",
+      "World War I Memorial Stadium (Q6588205)",
+      "Memorial Field (Q6815406)"
      ]
     },
     "nominatim": {
@@ -6882,41 +6925,6 @@
    }
   },
   {
-   "name": "Merkur Arena",
-   "sports": "UEFA Europa League",
-   "home": "Sturm Graz",
-   "why": "ambiguous name: Merkur Arena (Q1921858); Merkur Arena (Q696491); Merkur Spiel-Arena (Q155351)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 51.261539,
-     "lon": 6.733083,
-     "label": "Merkur Spiel-Arena",
-     "qid": "Q155351",
-     "ambiguous": [
-      "Merkur Arena (Q1921858)",
-      "Merkur Arena (Q696491)",
-      "Merkur Spiel-Arena (Q155351)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 47.0463666,
-     "lon": 15.454008,
-     "label": "Merkur Arena, 1, Ivica-Osim-Platz, Katastralgemeinde Liebenau, Liebenau, Graz, Steiermark, 8041, Österreich",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 47.0463666,
-     "lon": 15.454008,
-     "label": "Merkur Arena",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Miejski Stadion Pilkarski Raków",
    "sports": "UEFA Europa Conference League Qualifying",
    "home": "Raków",
@@ -7008,40 +7016,6 @@
    }
   },
   {
-   "name": "Nissan Stadium",
-   "sports": "NFL,CFB",
-   "home": "Titans",
-   "why": "ambiguous name: Nissan Stadium (Q1142992); International Stadium Yokohama (Q116601)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 36.166388888,
-     "lon": -86.771388888,
-     "label": "Nissan Stadium",
-     "qid": "Q1142992",
-     "ambiguous": [
-      "Nissan Stadium (Q1142992)",
-      "International Stadium Yokohama (Q116601)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 36.1665236,
-     "lon": -86.7713148,
-     "label": "Nissan Stadium, 1, Titans Way, East Nashville, Nashville, Davidson County, Middle Tennessee, Tennessee, 37201, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 36.1665236,
-     "lon": -86.7713148,
-     "label": "Nissan Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Nu Stadium",
    "sports": "MLS",
    "home": "Miami",
@@ -7076,7 +7050,7 @@
    "name": "Olimpico",
    "sports": "Serie A,UEFA Champions League",
    "home": "Lazio",
-   "why": "ambiguous name: Universitary Olympic Stadium (Q767558); Estadio Olímpico Atahualpa (Q2020768); Stadio Olimpico (Q159884)",
+   "why": "no two independent families agree (wikidata)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7085,11 +7059,7 @@
      "lon": 12.454722222,
      "label": "Stadio Olimpico",
      "qid": "Q159884",
-     "ambiguous": [
-      "Universitary Olympic Stadium (Q767558)",
-      "Estadio Olímpico Atahualpa (Q2020768)",
-      "Stadio Olimpico (Q159884)"
-     ]
+     "ambiguous": null
     },
     "nominatim": "only non-venue classes",
     "photon": "only non-venue classes"
@@ -7182,40 +7152,6 @@
      "lon": -157.9997115,
      "label": "Waipio Peninsula Soccer Stadium",
      "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "PreZero Arena",
-   "sports": "Bundesliga,UEFA Europa League",
-   "home": "Hoffenheim",
-   "why": "ambiguous name: SNP Arena (Q129870); Gliwice Arena (Q16556780)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 49.239,
-     "lon": 8.888278,
-     "label": "SNP Arena",
-     "qid": "Q129870",
-     "ambiguous": [
-      "SNP Arena (Q129870)",
-      "Gliwice Arena (Q16556780)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 49.2380604,
-     "lon": 8.8876414,
-     "label": "SNP Arena, 1, Dietmar-Hopp-Straße, Sinsheim, VVG der Stadt Sinsheim, Rhein-Neckar-Kreis, Baden-Württemberg, 74889, Deutschland",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 58.5776026,
-     "lon": 16.2321057,
-     "label": "PreZero Arena",
-     "kind": "leisure/sports_centre"
     }
    }
   },
@@ -7323,40 +7259,6 @@
    }
   },
   {
-   "name": "Rice Stadium",
-   "sports": "CFB",
-   "home": "Rice",
-   "why": "ambiguous name: Robert Rice Stadium (Q7323048); Rice Stadium (Q1857419)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 40.76,
-     "lon": -111.848889,
-     "label": "Robert Rice Stadium",
-     "qid": "Q7323048",
-     "ambiguous": [
-      "Robert Rice Stadium (Q7323048)",
-      "Rice Stadium (Q1857419)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 29.7163227,
-     "lon": -95.4093245,
-     "label": "Rice Stadium, South Stadium Tunnel, University Place, Houston, Harris County, Texas, 77030, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 29.7163227,
-     "lon": -95.4093245,
-     "label": "Rice Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Riyadh Air Metropolitano",
    "sports": "La Liga,UEFA Champions League",
    "home": "Atlético",
@@ -7421,40 +7323,6 @@
     },
     "nominatim": "only non-venue classes",
     "photon": "only non-venue classes"
-   }
-  },
-  {
-   "name": "Rose Bowl",
-   "sports": "CFB",
-   "home": "UCLA",
-   "why": "ambiguous name: Rose Bowl (Q7367656); Rose Bowl (Q582280)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 34.1614,
-     "lon": -118.1676,
-     "label": "Rose Bowl",
-     "qid": "Q582280",
-     "ambiguous": [
-      "Rose Bowl (Q7367656)",
-      "Rose Bowl (Q582280)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 51.5457344,
-     "lon": -0.0890595,
-     "label": "Rose Bowl, Ramsey Walk, Marquess Estate, Islington, London Borough of Islington, Greater London, England, N1 2PT, United Kingdom",
-     "kind": "amenity/community_centre"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 34.1613492,
-     "lon": -118.1676674,
-     "label": "Rose Bowl Stadium",
-     "kind": "leisure/stadium"
-    }
    }
   },
   {
@@ -7549,56 +7417,19 @@
    }
   },
   {
-   "name": "Spartan Stadium",
-   "sports": "CFB",
-   "home": "Michigan St",
-   "why": "ambiguous name: CEFCU Stadium (Q2165358); Spartan Stadium (Q2164621)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 42.728056,
-     "lon": -84.484722,
-     "label": "Spartan Stadium",
-     "qid": "Q2164621",
-     "ambiguous": [
-      "CEFCU Stadium (Q2165358)",
-      "Spartan Stadium (Q2164621)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 37.3196895,
-     "lon": -121.8683139,
-     "label": "CEFCU Stadium, South 7th Street, Spartan Keyes, San Jose, Santa Clara County, California, 95192, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 42.7281648,
-     "lon": -84.4857621,
-     "label": "Spartan Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "St James Park",
    "sports": "EFL Trophy",
    "home": "Exeter",
-   "why": "ambiguous name: St James Park (Q1856701); St James’ Park (Q191774)",
+   "why": "no two independent families agree (wikidata, nominatim, photon)",
    "unanswered": [],
    "sources": {
     "wikidata": {
      "source": "wikidata",
-     "lat": 54.975555555,
-     "lon": -1.621666666,
-     "label": "St James’ Park",
-     "qid": "Q191774",
-     "ambiguous": [
-      "St James Park (Q1856701)",
-      "St James’ Park (Q191774)"
-     ]
+     "lat": 50.730713888,
+     "lon": -3.52115,
+     "label": "St James Park",
+     "qid": "Q1856701",
+     "ambiguous": null
     },
     "nominatim": {
      "source": "nominatim",
@@ -7613,74 +7444,6 @@
      "lon": -79.3734389,
      "label": "St. James Park",
      "kind": "leisure/park"
-    }
-   }
-  },
-  {
-   "name": "St. James' Park",
-   "sports": "EPL,EFL Cup",
-   "home": "Newcastle",
-   "why": "ambiguous name: St James Park (Q1856701); St James’ Park (Q191774)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 54.975555555,
-     "lon": -1.621666666,
-     "label": "St James’ Park",
-     "qid": "Q191774",
-     "ambiguous": [
-      "St James Park (Q1856701)",
-      "St James’ Park (Q191774)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 54.9754693,
-     "lon": -1.6218737,
-     "label": "St. James' Park, Barrack Road, Grainger Town, Newcastle upon Tyne, Tyne and Wear, North East, England, NE1 4ST, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 54.9754693,
-     "lon": -1.6218737,
-     "label": "St. James' Park",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "St. Mary's Stadium",
-   "sports": "EFL Cup",
-   "home": "Southampton",
-   "why": "ambiguous name: St. Mary's Stadium-Kitende (Q98078432); St Mary's Stadium (Q567339)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 0.1986,
-     "lon": 32.5318,
-     "label": "St. Mary's Stadium-Kitende",
-     "qid": "Q98078432",
-     "ambiguous": [
-      "St. Mary's Stadium-Kitende (Q98078432)",
-      "St Mary's Stadium (Q567339)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 50.9058615,
-     "lon": -1.3908774,
-     "label": "St. Mary's Stadium, Britannia Road, Belvidere, Northam, Southampton, England, SO14 5FP, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 50.9058615,
-     "lon": -1.3908774,
-     "label": "St. Mary's Stadium",
-     "kind": "leisure/stadium"
     }
    }
   },
@@ -7712,7 +7475,7 @@
    "name": "Stade Jean Bouin",
    "sports": "Ligue 1",
    "home": "Paris FC",
-   "why": "ambiguous name: Q120168549 (Q120168549); Stade Jean-Bouin (Nîmes) (Q3495645); Q3495643 (Q3495643); Stade Jean-Bouin (Q670499); Q120162500 (Q120162500); Q118774790 (Q118774790); Stade Raymond Kopa (Q387213)",
+   "why": "ambiguous name: Stade Jean-Bouin (Q670499); Stade Jean-Bouin (Nîmes) (Q3495645); Stade Raymond Kopa (Q387213); Q3495643 (Q3495643); Q120162500 (Q120162500); Q118774790 (Q118774790); Q120168549 (Q120168549)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7722,13 +7485,13 @@
      "label": "Stade Jean-Bouin",
      "qid": "Q670499",
      "ambiguous": [
-      "Q120168549 (Q120168549)",
-      "Stade Jean-Bouin (Nîmes) (Q3495645)",
-      "Q3495643 (Q3495643)",
       "Stade Jean-Bouin (Q670499)",
+      "Stade Jean-Bouin (Nîmes) (Q3495645)",
+      "Stade Raymond Kopa (Q387213)",
+      "Q3495643 (Q3495643)",
       "Q120162500 (Q120162500)",
       "Q118774790 (Q118774790)",
-      "Stade Raymond Kopa (Q387213)"
+      "Q120168549 (Q120168549)"
      ]
     },
     "nominatim": {
@@ -7751,7 +7514,7 @@
    "name": "Stade Vélodrome",
    "sports": "Ligue 1,UEFA Europa League",
    "home": "Marseille",
-   "why": "ambiguous name: Q55599940 (Q55599940); Q16605660 (Q16605660); Stade Vélodrome (Q202150); Q120162005 (Q120162005); Q118775734 (Q118775734); Q118774466 (Q118774466); Q118774196 (Q118774196); Stade Vélodrome de Rocourt (Q1874231)",
+   "why": "no two independent families agree (wikidata, nominatim, photon)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7760,16 +7523,7 @@
      "lon": 5.394907,
      "label": "Stade Vélodrome",
      "qid": "Q202150",
-     "ambiguous": [
-      "Q55599940 (Q55599940)",
-      "Q16605660 (Q16605660)",
-      "Stade Vélodrome (Q202150)",
-      "Q120162005 (Q120162005)",
-      "Q118775734 (Q118775734)",
-      "Q118774466 (Q118774466)",
-      "Q118774196 (Q118774196)",
-      "Stade Vélodrome de Rocourt (Q1874231)"
-     ]
+     "ambiguous": null
     },
     "nominatim": {
      "source": "nominatim",
@@ -7784,40 +7538,6 @@
      "lon": -4.1053931,
      "label": "Stade Vélodrome",
      "kind": "leisure/pitch"
-    }
-   }
-  },
-  {
-   "name": "Stade de l'Aube",
-   "sports": "Ligue 1",
-   "home": "Troyes",
-   "why": "ambiguous name: Q120180537 (Q120180537); Stade de l'Aube (Q2001732)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 48.30616,
-     "lon": 4.0982,
-     "label": "Stade de l'Aube",
-     "qid": "Q2001732",
-     "ambiguous": [
-      "Q120180537 (Q120180537)",
-      "Stade de l'Aube (Q2001732)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 48.3075171,
-     "lon": 4.0985168,
-     "label": "Stade de l’Aube, Avenue Robert Schumann, Troyes, Aube, Grand Est, France métropolitaine, 10000, France",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 48.2987556,
-     "lon": 4.0799757,
-     "label": "Stade de l'Aube",
-     "kind": "amenity/bicycle_rental"
     }
    }
   },
@@ -7872,40 +7592,6 @@
      "lat": 43.3216868,
      "lon": 11.326179,
      "label": "Stadio Artemio Franchi",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Stadio Diego Armando Maradona",
-   "sports": "Serie A,UEFA Champions League",
-   "home": "Napoli",
-   "why": "ambiguous name: Stadio Diego Armando Maradona (Q82709); Diego Armando Maradona Stadium (Q1369186)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 40.827967,
-     "lon": 14.193008,
-     "label": "Stadio Diego Armando Maradona",
-     "qid": "Q82709",
-     "ambiguous": [
-      "Stadio Diego Armando Maradona (Q82709)",
-      "Diego Armando Maradona Stadium (Q1369186)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 40.8279773,
-     "lon": 14.192889,
-     "label": "Stadio Diego Armando Maradona, Via Francesco Galeota, Rione Lauro, Fuorigrotta, Municipalità 10, Napoli, Campania, 80125, Italia",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 40.8279773,
-     "lon": 14.192889,
-     "label": "Stadio Diego Armando Maradona",
      "kind": "leisure/stadium"
     }
    }
@@ -8072,19 +7758,16 @@
    "name": "The County Ground",
    "sports": "EFL Trophy",
    "home": "Swindon",
-   "why": "ambiguous name: County Ground (Q5177686); County Ground (Q1137293)",
+   "why": "no two independent families agree (wikidata, nominatim, photon)",
    "unanswered": [],
    "sources": {
     "wikidata": {
      "source": "wikidata",
-     "lat": 51.019,
-     "lon": -3.10081,
+     "lat": 51.564444,
+     "lon": -1.770556,
      "label": "County Ground",
-     "qid": "Q5177686",
-     "ambiguous": [
-      "County Ground (Q5177686)",
-      "County Ground (Q1137293)"
-     ]
+     "qid": "Q1137293",
+     "ambiguous": null
     },
     "nominatim": {
      "source": "nominatim",
@@ -8395,40 +8078,6 @@
    }
   },
   {
-   "name": "Volksparkstadion",
-   "sports": "Bundesliga",
-   "home": "Hamburg",
-   "why": "ambiguous name: Volksparkstadion (Q150933); Volksparkstadion (Q1455512)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 53.586944,
-     "lon": 9.898611,
-     "label": "Volksparkstadion",
-     "qid": "Q150933",
-     "ambiguous": [
-      "Volksparkstadion (Q150933)",
-      "Volksparkstadion (Q1455512)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 53.5871535,
-     "lon": 9.8987056,
-     "label": "Volksparkstadion, 9, Uwe-Seeler-Allee, Bahrenfeld, Altona, Hamburg, 22525, Deutschland",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 53.5871535,
-     "lon": 9.8987056,
-     "label": "Volksparkstadion",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Walens Family Field at Fifth Third Stadium",
    "sports": "CFB",
    "home": "Kennesaw St",
@@ -8438,42 +8087,6 @@
     "wikidata": "no entity",
     "nominatim": "no result",
     "photon": "no result"
-   }
-  },
-  {
-   "name": "War Memorial Stadium",
-   "sports": "CFB",
-   "home": "Wyoming",
-   "why": "ambiguous name: War Memorial Stadium (Q3566222); War Memorial Stadium (Q3566221); War Memorial Stadium (Q7968483); War Memorial Stadium (Hawaii) (Q6588450)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 41.311667,
-     "lon": -105.568333,
-     "label": "War Memorial Stadium",
-     "qid": "Q3566222",
-     "ambiguous": [
-      "War Memorial Stadium (Q3566222)",
-      "War Memorial Stadium (Q3566221)",
-      "War Memorial Stadium (Q7968483)",
-      "War Memorial Stadium (Hawaii) (Q6588450)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 30.2838412,
-     "lon": -97.7326229,
-     "label": "Darrell K Royal-Texas Memorial Stadium, Frank Denius Veterans Memorial Plaza, Austin, Travis County, Texas, 78712, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 41.3116082,
-     "lon": -105.5681588,
-     "label": "War Memorial Stadium",
-     "kind": "leisure/stadium"
-    }
    }
   },
   {
@@ -8493,41 +8106,6 @@
    "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England.",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
-   "name": "Weserstadion",
-   "sports": "Bundesliga",
-   "home": "Bremen",
-   "why": "ambiguous name: Q2563900 (Q2563900); Weserstadion Platz 11 (Q183353); Weserstadion (Q154475)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 53.066389,
-     "lon": 8.8375,
-     "label": "Weserstadion",
-     "qid": "Q154475",
-     "ambiguous": [
-      "Q2563900 (Q2563900)",
-      "Weserstadion Platz 11 (Q183353)",
-      "Weserstadion (Q154475)"
-     ]
-    },
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 53.0664479,
-     "lon": 8.8376718,
-     "label": "Weserstadion, 7, Franz-Böhmert-Straße, Peterswerder, Östliche Vorstadt, Bremen-Ost, Bremen, 28205, Deutschland",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 53.0664479,
-     "lon": 8.8376718,
-     "label": "Weserstadion",
-     "kind": "leisure/stadium"
-    }
-   }
   },
   {
    "name": "Wham Stadium",
@@ -8581,7 +8159,7 @@
    "name": "Yager Stadium",
    "sports": "CFB",
    "home": "Miami OH",
-   "why": "ambiguous name: Yager Stadium (Q8046703); Yager Stadium (Q8046702)",
+   "why": "ambiguous name: Yager Stadium (Q8046702); Yager Stadium (Q8046703)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -8591,8 +8169,8 @@
      "label": "Yager Stadium",
      "qid": "Q8046702",
      "ambiguous": [
-      "Yager Stadium (Q8046703)",
-      "Yager Stadium (Q8046702)"
+      "Yager Stadium (Q8046702)",
+      "Yager Stadium (Q8046703)"
      ]
     },
     "nominatim": {

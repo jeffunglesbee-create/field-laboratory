@@ -462,6 +462,33 @@ const MUTATIONS = [
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   {
+    // "Paris FC" without its FC is "Paris", the start of "Paris Saint-Germain".
+    id: 'venue-home-affix-loosened',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a home name with its own club affix is matched exactly, never loosened',
+    find: 'if (!raw.some(t => CLUB_AFFIX.has(t)) && occs.some(',
+    replace: 'if (occs.some(',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Two clubs named Rovers in two cities are not one answer.
+    id: 'venue-home-far-apart-picked',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a home team listed at candidates in different places picks nothing',
+    find: 'if (spreadOf(hit) > AMBIGUOUS_DEG) return { chosen: null,',
+    replace: 'if (false) return { chosen: null,',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // "Celtic" is also inside "Castlebar Celtic F.C." and "Derry Celtic F.C.".
+    id: 'venue-home-exact-not-first',
+    file: 'scripts/venue-source.mjs',
+    claim: 'an exact club name outranks a name that only contains it',
+    find: 'let hit = entities.filter(e => tier(e) === 1), t = 1',
+    replace: 'let hit = entities.filter(e => tier(e) > 0), t = 1',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
     // A name with an escaped quote was skipped and the calibration covered 409
     // of 410 rows while reporting on "the table" (run 39821284339).
     id: 'venue-source-reader-skips-escaped-quote',
