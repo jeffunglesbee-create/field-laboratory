@@ -35,6 +35,7 @@
 //   FIELD_URL=... WATCH=nhl,nba node scripts/client-sections-probe.mjs
 
 import fs from 'node:fs'
+import { isMain } from './checks.mjs'
 
 const FIELD_URL = (process.env.FIELD_URL || 'https://jubilant-bassoon.jeffunglesbee.workers.dev') + '?wpt'
 const OUT = process.env.OUT_DIR || 'outbox'
@@ -115,6 +116,10 @@ function selfTest () {
   process.exit(bad ? 1 : 0)
 }
 
+// Everything below runs the probe, so it runs only when this file is the
+// program. Importing it (verdictFor is exported) must not open a browser:
+// check:import-purity found it doing exactly that (verify 40116546191).
+if (isMain(import.meta.url)) {
 if (process.argv.includes('--self-test')) selfTest()
 
 const { chromium } = await import('playwright')
@@ -191,3 +196,4 @@ for (const j of judged) console.log(`${j.verdict.padEnd(15)} ${j.key} (${j.label
 console.log(manifest.coverage)
 await browser.close()
 process.exit(failing(judged) || !state.today ? 1 : 0)
+}
