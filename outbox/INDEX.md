@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2e7c60b` | 2026-10-24 | [cc-session-2026-10-24-client-sections-probe-import-guard.md](cc-session-2026-10-24-client-sections-probe-import-guard.md) | fix: remove the node_modules symlink that 711f9d2 committed by mistake |
+| `711f9d2` | 2026-10-24 | [cc-session-2026-10-24-client-sections-probe-import-guard.md](cc-session-2026-10-24-client-sections-probe-import-guard.md) | fix: the client-sections probe no longer opens a browser when imported |
 | `46e17c7` | 2026-10-24 | [client-sections-probe-2026-10-24T17-32-54.png](client-sections-probe-2026-10-24T17-32-54.png) | probe: the client's sections on the live page [skip ci] |
 | `46e17c7` | 2026-10-24 | [client-sections-probe-manifest-2026-10-24T17-32-54.json](client-sections-probe-manifest-2026-10-24T17-32-54.json) | probe: the client's sections on the live page [skip ci] |
 | `46e17c7` | 2026-10-24 | [client-sections-probe-manifest-latest.json](client-sections-probe-manifest-latest.json) | probe: the client's sections on the live page [skip ci] |
