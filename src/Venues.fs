@@ -184,7 +184,15 @@ let private entries =
 
       // MLS / soccer
       at "Gillette Stadium" 42.0909 -71.2643 OpenAir "America/New_York"
-      at "Red Bull Arena" 40.7367 -74.1503 OpenAir "America/New_York"
+      // Leipzig's ground, not New Jersey's. This row was Harrison NJ until
+      // 2026-10-24: the MLS club's ground is filed as "Sports Illustrated
+      // Stadium" (a row below) and has been since 2026-09-30; every "Red Bull
+      // Arena" game since is RB Leipzig's, as is the 2026-05-27 Conference
+      // League final (field-archive D1, queried 2026-10-24: Red Bull Arena /
+      // Red Bull NY last 2026-09-26; Sports Illustrated Stadium / Red Bull NY
+      // from 2026-09-30). Coordinates are Wikidata Q210466 and Nominatim, which
+      // agree (51.3458, 12.3481). Told by the owner and then measured.
+      at "Red Bull Arena" 51.3458 12.3481 OpenAir "Europe/Berlin"
       at "CityPark" 38.6317 -90.2016 OpenAir "America/Chicago"
       at "Snapdragon Stadium" 32.7831 -117.1199 OpenAir "America/Los_Angeles"
       at "Stade Saputo" 45.5640 -73.5518 OpenAir "America/Toronto"
@@ -608,10 +616,11 @@ let distinctLocations (venues: Venue list) : (CoordKey * Venue) list =
 ///
 /// Found 2026-10-24 (verify 40116546191, 73 known venues, 71 chips): the slate
 /// had both "DICK'S Sporting Goods Park" and "Dick's Sporting Goods Park", and
-/// both "Red Bull Arena" and "Sports Illustrated Stadium". The page filled the
-/// first name's cards and left the others empty. The table had 3 alias groups
-/// until the 301 sourced rows made it 10, which is what made a slate with both
-/// spellings likely.
+/// both "Red Bull Arena" and "Sports Illustrated Stadium" (then one place in this
+/// table by mistake: Red Bull Arena is Leipzig's, see its row). The page filled
+/// the first name's cards and left the others empty. The table had 3 alias
+/// groups until the 301 sourced rows made it 10, which is what made a slate with
+/// both spellings likely.
 let namesAt (name: string) : string list =
     match tryFind name with
     | None -> [ name ]

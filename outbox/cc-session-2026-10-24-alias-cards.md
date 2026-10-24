@@ -54,6 +54,20 @@ reading from being written.
   boundary move. The chip count itself is in the passing step's log, which this
   environment cannot read; the step's pass is the evidence, not the number.
 
+## Correction, 2026-10-24 (the owner, then measured)
+
+This note and the first version of the fix treated "Red Bull Arena" and "Sports
+Illustrated Stadium" as aliases of one ground, New Jersey's. They are not: the
+New Jersey ground has traded as Sports Illustrated Stadium and the archive files
+it that way from 2026-09-30; "Red Bull Arena" is RB Leipzig's. The table's
+`Red Bull Arena` row was stale, not an alias. Fixed in the row, the Suite's
+symmetry check (it used that pair; it now uses Minute Maid Park / Daikin Park,
+with a must-fail that the two grounds do NOT serve each other), and the comment
+in `Venues.namesAt`. See `outbox/cc-session-2026-10-24-red-bull-arena-row.md`.
+The Dick's pair is still a true alias; "the other unfilled card" on that slate
+was Sports Illustrated Stadium's, left empty because the stale row stole its
+coordinate group.
+
 ## Related, not fixed here
 
 `Red Bull Arena` and `Sports Illustrated Stadium` are one ground, and today's

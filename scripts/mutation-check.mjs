@@ -480,6 +480,16 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // The stale row: Red Bull Arena at Harrison NJ, which made it an alias of
+    // Sports Illustrated Stadium and showed Leipzig's game New Jersey weather.
+    id: 'venue-red-bull-arena-back-in-new-jersey',
+    file: 'src/Venues.fs',
+    claim: 'Red Bull Arena is Leipzig, not the New Jersey ground',
+    find: 'at "Red Bull Arena" 51.3458 12.3481 OpenAir "Europe/Berlin"',
+    replace: 'at "Red Bull Arena" 40.7367 -74.1503 OpenAir "America/New_York"',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // A name with an escaped quote was skipped and the calibration covered 409
     // of 410 rows while reporting on "the table" (run 39821284339).
     id: 'venue-source-reader-skips-escaped-quote',
