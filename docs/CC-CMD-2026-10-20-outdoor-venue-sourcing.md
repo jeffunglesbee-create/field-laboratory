@@ -50,6 +50,16 @@ as the provenance artifact. Roof type comes from the same probe or from
 - `weather-live-check` on a runner must resolve every new row's zone.
 - Mutation: delete one added row; the Suite check must catch it.
 
+## Task 3 — aliases the sourcing created (added 2026-10-24)
+
+The 301 sourced rows raised the table from 3 alias groups (names sharing one
+coordinate) to 10. `WeatherView.fillCards` filled only the first name's cards, so
+a slate naming both spellings lost chips: main's verify went 73 known venues, 71
+chips on 2026-10-24. Fixed by `Venues.namesAt` / `servesCard` and a by-name
+`fillCards`; see `outbox/cc-session-2026-10-24-alias-cards.md`. Done when verify's
+live render check reports every known card filled on a slate that carries an
+alias pair.
+
 ## Done conditions
 
 1. The probe artifact is committed in `outbox/`.

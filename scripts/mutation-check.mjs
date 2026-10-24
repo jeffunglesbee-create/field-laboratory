@@ -462,6 +462,24 @@ const MUTATIONS = [
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   {
+    // The old fillCards matched the reading's own name only: 71 chips of 73 on 2026-10-24.
+    id: 'venue-reading-serves-only-its-own-name',
+    file: 'src/Venues.fs',
+    claim: 'a reading for one alias fills the card that says the other',
+    find: 'List.contains cardVenue (namesAt readingVenue)',
+    replace: 'readingVenue = cardVenue',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // Aliases are found by coordinate, not by name.
+    id: 'venue-names-at-ignores-coordinate',
+    file: 'src/Venues.fs',
+    claim: 'namesAt returns every name at the same place',
+    find: 'entries |> List.filter (fun e -> coordKey e.Where = key) |> List.map (fun e -> e.Name)',
+    replace: 'entries |> List.filter (fun e -> e.Name = name) |> List.map (fun e -> e.Name)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // A name with an escaped quote was skipped and the calibration covered 409
     // of 410 rows while reporting on "the table" (run 39821284339).
     id: 'venue-source-reader-skips-escaped-quote',

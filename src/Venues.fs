@@ -601,6 +601,30 @@ let distinctLocations (venues: Venue list) : (CoordKey * Venue) list =
             if acc |> List.exists (fun (k, _) -> k = key) then acc else acc @ [ key, v ])
         []
 
+/// Every name the table holds for the place `name` is at: the aliases that one
+/// fetch serves. `distinctLocations` keeps ONE name per place, so the reading
+/// comes back labelled with that name alone; a card that says the other name is
+/// still that place's card.
+///
+/// Found 2026-10-24 (verify 40116546191, 73 known venues, 71 chips): the slate
+/// had both "DICK'S Sporting Goods Park" and "Dick's Sporting Goods Park", and
+/// both "Red Bull Arena" and "Sports Illustrated Stadium". The page filled the
+/// first name's cards and left the others empty. The table had 3 alias groups
+/// until the 301 sourced rows made it 10, which is what made a slate with both
+/// spellings likely.
+let namesAt (name: string) : string list =
+    match tryFind name with
+    | None -> [ name ]
+    | Some v ->
+        let key = coordKey v.Where
+        entries |> List.filter (fun e -> coordKey e.Where = key) |> List.map (fun e -> e.Name)
+
+/// Does a reading taken for `readingVenue` belong on a card that says `cardVenue`?
+/// A plain comparison of names, so a name carrying a double quote
+/// (Johnny "Red" Floyd Stadium) is just a string and not a CSS selector.
+let servesCard (readingVenue: string) (cardVenue: string) : bool =
+    List.contains cardVenue (namesAt readingVenue)
+
 let all = entries
 let count = List.length entries
 
