@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T11:36:51.485Z",
+  "at": "2026-10-24T21:10:46.736Z",
   "method": "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30",
   "join": {
     "resolved": 20,
@@ -14,22 +14,22 @@
     {
       "subject": "epl-fixture-72",
       "provenance": "Modelled",
-      "value": "0.014521/0.034601/0.950878"
+      "value": "0.054699/0.069995/0.875306"
     },
     {
       "subject": "epl-fixture-71",
       "provenance": "Modelled",
-      "value": "0.894917/0.061670/0.043413"
+      "value": "0.931595/0.044682/0.023723"
     },
     {
       "subject": "epl-fixture-74",
       "provenance": "Modelled",
-      "value": "0.475259/0.223077/0.301664"
+      "value": "0.315906/0.234781/0.449313"
     },
     {
       "subject": "epl-fixture-73",
       "provenance": "Modelled",
-      "value": "0.904543/0.057419/0.038038"
+      "value": "0.773667/0.109028/0.117305"
     },
     {
       "subject": "epl-fixture-75",
