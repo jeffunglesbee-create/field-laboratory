@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `46e17c7` | 2026-10-24 | [client-sections-probe-2026-10-24T17-32-54.png](client-sections-probe-2026-10-24T17-32-54.png) | probe: the client's sections on the live page [skip ci] |
+| `46e17c7` | 2026-10-24 | [client-sections-probe-manifest-2026-10-24T17-32-54.json](client-sections-probe-manifest-2026-10-24T17-32-54.json) | probe: the client's sections on the live page [skip ci] |
+| `46e17c7` | 2026-10-24 | [client-sections-probe-manifest-latest.json](client-sections-probe-manifest-latest.json) | probe: the client's sections on the live page [skip ci] |
+| `56ca980` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `c121807` | 2026-10-24 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-24 [skip ci] |
 | `c121807` | 2026-10-24 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-24 [skip ci] |
 | `c121807` | 2026-10-24 | [sport-vocabulary-2026-10-24T15-45-29-463Z.json](sport-vocabulary-2026-10-24T15-45-29-463Z.json) | drift-sentinel: ok on 2026-10-24 [skip ci] |

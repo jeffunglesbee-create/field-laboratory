@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `a4ff365` — but that is not `main` HEAD
+**FAILURE** on `e12a44a` — failing step unknown: the run's steps could not be read — [run 40116546191](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40116546191)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `e3530ff`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `46e17c7` — failing step unknown: the run's steps could not be read — [run 40116924084](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40116924084)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e3530ff` — newest deployable `a4ff365` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `e3530ff` — behind newest deployable `e12a44a` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
