@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `96fae24` | 2026-10-24 | [cc-session-2026-10-24-alias-cards.md](cc-session-2026-10-24-alias-cards.md) | fix: the Red Bull Arena row is Leipzig's; the New Jersey ground is Sports Illustrated Stadium |
+| `96fae24` | 2026-10-24 | [cc-session-2026-10-24-red-bull-arena-row.md](cc-session-2026-10-24-red-bull-arena-row.md) | fix: the Red Bull Arena row is Leipzig's; the New Jersey ground is Sports Illustrated Stadium |
+| `1448dbe` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8305746` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `672c676` | 2026-10-24 | [cc-session-2026-10-24-alias-cards.md](cc-session-2026-10-24-alias-cards.md) | fix: a reading fills every alias of its place, and no venue name is parsed as a selector |
 | `2e7c60b` | 2026-10-24 | [cc-session-2026-10-24-client-sections-probe-import-guard.md](cc-session-2026-10-24-client-sections-probe-import-guard.md) | fix: remove the node_modules symlink that 711f9d2 committed by mistake |
