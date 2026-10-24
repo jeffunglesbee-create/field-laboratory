@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e407ba0` | 2026-10-24 | [cc-session-2026-10-24-home-team-rule.md](cc-session-2026-10-24-home-team-rule.md) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [cc-session-2026-10-24-venue-collisions-measured.md](cc-session-2026-10-24-venue-collisions-measured.md) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [venue-collisions-latest.json](venue-collisions-latest.json) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [venue-occupants-probe.json](venue-occupants-probe.json) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [venue-source-cache.json](venue-source-cache.json) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [venue-source-calibration-latest.json](venue-source-calibration-latest.json) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [venue-source-results-latest.json](venue-source-results-latest.json) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `e407ba0` | 2026-10-24 | [venue-weather-check-latest.txt](venue-weather-check-latest.txt) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
+| `a371891` | 2026-10-24 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-24T21:10 [skip ci] |
+| `6d59179` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `96fae24` | 2026-10-24 | [cc-session-2026-10-24-alias-cards.md](cc-session-2026-10-24-alias-cards.md) | fix: the Red Bull Arena row is Leipzig's; the New Jersey ground is Sports Illustrated Stadium |
 | `96fae24` | 2026-10-24 | [cc-session-2026-10-24-red-bull-arena-row.md](cc-session-2026-10-24-red-bull-arena-row.md) | fix: the Red Bull Arena row is Leipzig's; the New Jersey ground is Sports Illustrated Stadium |
 | `1448dbe` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
