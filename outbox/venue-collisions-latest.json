@@ -1,0 +1,8418 @@
+{
+ "at": "2026-10-24T19:49:55.789Z",
+ "run": "40127028227",
+ "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+ "failedDays": [],
+ "summary": {
+  "days": 120,
+  "daysAnswered": 120,
+  "gameRows": 4063,
+  "tableVenues": 433,
+  "tableVenuesSeen": 396,
+  "tableVenuesNotSeen": 37,
+  "pairs": 502,
+  "sameGround": 38,
+  "collision": 0,
+  "abstain": 10,
+  "singleCandidate": 454,
+  "unanswered": 0
+ },
+ "pairs": [
+  {
+   "venue": "BMO Stadium",
+   "home": "Los Angeles Football Club",
+   "games": 15,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.013,
+    "lon": -118.2845
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "BMO Stadium",
+   "home": "LAFC",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.013,
+    "lon": -118.2845
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "BMO Stadium",
+   "home": "Toluca FC",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.013,
+    "lon": -118.2845
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Snapdragon Stadium",
+   "home": "San Diego FC",
+   "games": 12,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7831,
+    "lon": -117.1199
+   },
+   "picked": {
+    "qid": "Q100272042",
+    "label": "Snapdragon Stadium",
+    "lat": 32.784444444,
+    "lon": -117.122833333
+   },
+   "distanceDeg": 0.0029,
+   "why": null
+  },
+  {
+   "venue": "Snapdragon Stadium",
+   "home": "San Diego",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7831,
+    "lon": -117.1199
+   },
+   "picked": {
+    "qid": "Q100272042",
+    "label": "Snapdragon Stadium",
+    "lat": 32.784444444,
+    "lon": -117.122833333
+   },
+   "distanceDeg": 0.0029,
+   "why": null
+  },
+  {
+   "venue": "Snapdragon Stadium",
+   "home": "San Diego St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7831,
+    "lon": -117.1199
+   },
+   "picked": {
+    "qid": "Q100272042",
+    "label": "Snapdragon Stadium",
+    "lat": 32.784444444,
+    "lon": -117.122833333
+   },
+   "distanceDeg": 0.0029,
+   "why": null
+  },
+  {
+   "venue": "America First Field",
+   "home": "Real Salt Lake",
+   "games": 14,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.5829,
+    "lon": -111.8933
+   },
+   "picked": {
+    "qid": "Q1514798",
+    "label": "America First Field",
+    "lat": 40.5829,
+    "lon": -111.893
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "America First Field",
+   "home": "Salt Lake",
+   "games": 8,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.5829,
+    "lon": -111.8933
+   },
+   "picked": {
+    "qid": "Q1514798",
+    "label": "America First Field",
+    "lat": 40.5829,
+    "lon": -111.893
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "America First Field",
+   "home": "Club Tigres",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.5829,
+    "lon": -111.8933
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Providence Park",
+   "home": "Portland Timbers",
+   "games": 18,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.5215,
+    "lon": -122.6919
+   },
+   "picked": {
+    "qid": "Q262291",
+    "label": "Providence Park",
+    "lat": 45.521388888,
+    "lon": -122.691666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Providence Park",
+   "home": "Portland",
+   "games": 10,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.5215,
+    "lon": -122.6919
+   },
+   "picked": {
+    "qid": "Q262291",
+    "label": "Providence Park",
+    "lat": 45.521388888,
+    "lon": -122.691666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Providence Park",
+   "home": "Club América",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.5215,
+    "lon": -122.6919
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Sporting Park",
+   "home": "Sporting Kansas City",
+   "games": 14,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.1217,
+    "lon": -94.8236
+   },
+   "picked": {
+    "qid": "Q1787141",
+    "label": "Sporting Park",
+    "lat": 39.1218,
+    "lon": -94.8237
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Sporting Park",
+   "home": "Kansas City",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.1217,
+    "lon": -94.8236
+   },
+   "picked": {
+    "qid": "Q1787141",
+    "label": "Sporting Park",
+    "lat": 39.1218,
+    "lon": -94.8237
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Shell Energy Stadium",
+   "home": "Houston Dynamo FC",
+   "games": 14,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.7523,
+    "lon": -95.3511
+   },
+   "picked": {
+    "qid": "Q176460",
+    "label": "Shell Energy Stadium",
+    "lat": 29.7522,
+    "lon": -95.3524
+   },
+   "distanceDeg": 0.0013,
+   "why": null
+  },
+  {
+   "venue": "Shell Energy Stadium",
+   "home": "Houston",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.7523,
+    "lon": -95.3511
+   },
+   "picked": {
+    "qid": "Q176460",
+    "label": "Shell Energy Stadium",
+    "lat": 29.7522,
+    "lon": -95.3524
+   },
+   "distanceDeg": 0.0013,
+   "why": null
+  },
+  {
+   "venue": "Toyota Stadium",
+   "home": "FC Dallas",
+   "games": 10,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 33.1545,
+    "lon": -96.8353
+   },
+   "picked": {
+    "qid": "Q1140457",
+    "label": "Toyota Stadium",
+    "lat": 33.154458333,
+    "lon": -96.835158333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Toyota Stadium",
+   "home": "Dallas",
+   "games": 6,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 33.1545,
+    "lon": -96.8353
+   },
+   "picked": {
+    "qid": "Q1140457",
+    "label": "Toyota Stadium",
+    "lat": 33.154458333,
+    "lon": -96.835158333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "DICK'S Sporting Goods Park",
+   "home": "Colorado Rapids",
+   "games": 16,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.8058,
+    "lon": -104.8919
+   },
+   "picked": {
+    "qid": "Q1210268",
+    "label": "Dick's Sporting Goods Park",
+    "lat": 39.805555555,
+    "lon": -104.891944444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "DICK'S Sporting Goods Park",
+   "home": "Club León",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.8058,
+    "lon": -104.8919
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Subaru Park",
+   "home": "Philadelphia Union",
+   "games": 14,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.8334,
+    "lon": -75.3808
+   },
+   "picked": {
+    "qid": "Q1637843",
+    "label": "Subaru Park",
+    "lat": 39.832222,
+    "lon": -75.378889
+   },
+   "distanceDeg": 0.0019,
+   "why": null
+  },
+  {
+   "venue": "Subaru Park",
+   "home": "Philadelphia",
+   "games": 10,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.8334,
+    "lon": -75.3808
+   },
+   "picked": {
+    "qid": "Q1637843",
+    "label": "Subaru Park",
+    "lat": 39.832222,
+    "lon": -75.378889
+   },
+   "distanceDeg": 0.0019,
+   "why": null
+  },
+  {
+   "venue": "Subaru Park",
+   "home": "Cruz Azul",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.8334,
+    "lon": -75.3808
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Inter&Co Stadium",
+   "home": "Orlando City",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 28.5415,
+    "lon": -81.3893
+   },
+   "picked": {
+    "qid": "Q16846942",
+    "label": "Inter&Co Stadium",
+    "lat": 28.5410645,
+    "lon": -81.389035
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Inter&Co Stadium",
+   "home": "Orlando",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 28.5415,
+    "lon": -81.3893
+   },
+   "picked": {
+    "qid": "Q16846942",
+    "label": "Inter&Co Stadium",
+    "lat": 28.5410645,
+    "lon": -81.389035
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Sports Illustrated Stadium",
+   "home": "Red Bull New York",
+   "games": 11,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7368,
+    "lon": -74.1503
+   },
+   "picked": {
+    "qid": "Q761682",
+    "label": "Sports Illustrated Stadium",
+    "lat": 40.736666666,
+    "lon": -74.150277777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Sports Illustrated Stadium",
+   "home": "Red Bull NY",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7368,
+    "lon": -74.1503
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Sports Illustrated Stadium",
+   "home": "Toluca FC",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7368,
+    "lon": -74.1503
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Sports Illustrated Stadium",
+   "home": "New York City Football Club",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7368,
+    "lon": -74.1503
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Sports Illustrated Stadium",
+   "home": "Cruz Azul",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7368,
+    "lon": -74.1503
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stade Saputo",
+   "home": "CF Montréal",
+   "games": 25,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.564,
+    "lon": -73.5518
+   },
+   "picked": {
+    "qid": "Q2093647",
+    "label": "Saputo Stadium",
+    "lat": 45.563055555,
+    "lon": -73.5525
+   },
+   "distanceDeg": 0.0009,
+   "why": null
+  },
+  {
+   "venue": "Stade Saputo",
+   "home": "FC Supra du Québec",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.564,
+    "lon": -73.5518
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Audi Field",
+   "home": "D.C. United",
+   "games": 20,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.8695,
+    "lon": -77.0125
+   },
+   "picked": {
+    "qid": "Q5203387",
+    "label": "Audi Field",
+    "lat": 38.868504,
+    "lon": -77.012935
+   },
+   "distanceDeg": 0.001,
+   "why": null
+  },
+  {
+   "venue": "ScottsMiracle-Gro Field",
+   "home": "Columbus Crew",
+   "games": 18,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9684,
+    "lon": -83.0168
+   },
+   "picked": {
+    "qid": "Q65045869",
+    "label": "ScottsMiracle-Gro Field",
+    "lat": 39.96846,
+    "lon": -83.01709
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "ScottsMiracle-Gro Field",
+   "home": "Columbus",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9684,
+    "lon": -83.0168
+   },
+   "picked": {
+    "qid": "Q65045869",
+    "label": "ScottsMiracle-Gro Field",
+    "lat": 39.96846,
+    "lon": -83.01709
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "Atlanta United",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": {
+    "qid": "Q7007552",
+    "label": "Mercedes-Benz Stadium",
+    "lat": 33.755277777,
+    "lon": -84.400833333
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "Atlanta",
+   "games": 8,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": {
+    "qid": "Q7007552",
+    "label": "Mercedes-Benz Stadium",
+    "lat": 33.755277777,
+    "lon": -84.400833333
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "Falcons",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": {
+    "qid": "Q7007552",
+    "label": "Mercedes-Benz Stadium",
+    "lat": 33.755277777,
+    "lon": -84.400833333
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "Auburn",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "England",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "Argentina",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Mercedes-Benz Stadium",
+   "home": "Congo DR",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7555,
+    "lon": -84.401
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "American Family Field",
+   "home": "Brewers",
+   "games": 43,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.028,
+    "lon": -87.9712
+   },
+   "picked": {
+    "qid": "Q6781782",
+    "label": "American Family Fields of Phoenix",
+    "lat": 33.492222,
+    "lon": -112.173056
+   },
+   "distanceDeg": 24.2019,
+   "why": null
+  },
+  {
+   "venue": "Villa Park",
+   "home": "Aston Villa",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.509,
+    "lon": -1.8847
+   },
+   "picked": {
+    "qid": "Q175339",
+    "label": "Villa Park",
+    "lat": 52.509166666,
+    "lon": -1.884722222
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Emirates Stadium",
+   "home": "Arsenal",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.555,
+    "lon": -0.1084
+   },
+   "picked": {
+    "qid": "Q163995",
+    "label": "Emirates Stadium",
+    "lat": 51.555,
+    "lon": -0.108333333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stamford Bridge",
+   "home": "Chelsea",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4817,
+    "lon": -0.1911
+   },
+   "picked": {
+    "qid": "Q171458",
+    "label": "Stamford Bridge",
+    "lat": 51.481666666,
+    "lon": -0.191111111
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Stamford Bridge",
+   "home": "Shakhtar",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4817,
+    "lon": -0.1911
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Dick's Sporting Goods Park",
+   "home": "Colorado",
+   "games": 10,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.8058,
+    "lon": -104.8919
+   },
+   "picked": {
+    "qid": "Q1210268",
+    "label": "Dick's Sporting Goods Park",
+    "lat": 39.805555555,
+    "lon": -104.891944444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Estadio de Vallecas",
+   "home": "Rayo",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.3918,
+    "lon": -3.6588
+   },
+   "picked": {
+    "qid": "Q983806",
+    "label": "Campo de Fútbol de Vallecas",
+    "lat": 40.391944,
+    "lon": -3.658961
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Mestalla Stadium",
+   "home": "Valencia",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.4746,
+    "lon": -0.3582
+   },
+   "picked": {
+    "qid": "Q202762",
+    "label": "Mestalla Stadium",
+    "lat": 39.474722,
+    "lon": -0.358333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Unipol Domus",
+   "home": "Cagliari",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.1994,
+    "lon": 9.1374
+   },
+   "picked": {
+    "qid": "Q30880646",
+    "label": "Unipol Domus",
+    "lat": 39.199694444,
+    "lon": 9.137416666
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Stadio Diego Armando Maradona",
+   "home": "Napoli",
+   "games": 6,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 40.828,
+    "lon": 14.1929
+   },
+   "picked": {
+    "qid": "Q82709",
+    "label": "Stadio Diego Armando Maradona",
+    "lat": 40.827967,
+    "lon": 14.193008
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "WWK Arena",
+   "home": "Augsburg",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.3232,
+    "lon": 10.8859
+   },
+   "picked": {
+    "qid": "Q167418",
+    "label": "WWK Arena",
+    "lat": 48.3233205,
+    "lon": 10.8859261
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "RheinEnergieStadion",
+   "home": "Cologne",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.9335,
+    "lon": 6.8751
+   },
+   "picked": {
+    "qid": "Q151893",
+    "label": "RheinEnergie Stadion",
+    "lat": 50.933611,
+    "lon": 6.875
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "MEWA ARENA",
+   "home": "Mainz",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.984,
+    "lon": 8.2244
+   },
+   "picked": {
+    "qid": "Q392494",
+    "label": "Mewa Arena",
+    "lat": 49.984167,
+    "lon": 8.224167
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Red Bull Arena",
+   "home": "RB Leipzig",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 51.3458,
+    "lon": 12.3481
+   },
+   "picked": {
+    "qid": "Q210466",
+    "label": "Red Bull Arena",
+    "lat": 51.345833,
+    "lon": 12.348056
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Red Bull Arena",
+   "home": "Red Bull NY",
+   "games": 6,
+   "verdict": "abstain",
+   "row": {
+    "lat": 51.3458,
+    "lon": 12.3481
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Home Deluxe Arena",
+   "home": "Paderborn",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.7311,
+    "lon": 8.7109
+   },
+   "picked": {
+    "qid": "Q567402",
+    "label": "Home Deluxe Arena",
+    "lat": 51.731389,
+    "lon": 8.710833
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Signal Iduna Park",
+   "home": "Dortmund",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4925,
+    "lon": 7.4518
+   },
+   "picked": {
+    "qid": "Q150928",
+    "label": "Westfalenstadion",
+    "lat": 51.4925,
+    "lon": 7.451667
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stade Bollaert-Delelis",
+   "home": "Lens",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.4328,
+    "lon": 2.815
+   },
+   "picked": {
+    "qid": "Q854122",
+    "label": "Stade Bollaert-Delelis",
+    "lat": 50.4329,
+    "lon": 2.81491
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "home": "Miami",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 25.958,
+    "lon": -80.2389
+   },
+   "picked": {
+    "qid": "Q864339",
+    "label": "Hard Rock Stadium",
+    "lat": 25.958055555,
+    "lon": -80.238888888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "home": "Dolphins",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 25.958,
+    "lon": -80.2389
+   },
+   "picked": {
+    "qid": "Q864339",
+    "label": "Hard Rock Stadium",
+    "lat": 25.958055555,
+    "lon": -80.238888888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "home": "France",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 25.958,
+    "lon": -80.2389
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "home": "Norway",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 25.958,
+    "lon": -80.2389
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "home": "Argentina",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 25.958,
+    "lon": -80.2389
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Hard Rock Stadium",
+   "home": "Colombia",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 25.958,
+    "lon": -80.2389
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Michigan Stadium",
+   "home": "Michigan",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.2658,
+    "lon": -83.7481
+   },
+   "picked": {
+    "qid": "Q1640118",
+    "label": "Michigan Stadium",
+    "lat": 42.265833333,
+    "lon": -83.748611111
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Nippert Stadium",
+   "home": "Cincinnati",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.1311,
+    "lon": -84.5162
+   },
+   "picked": {
+    "qid": "Q3342107",
+    "label": "Nippert Stadium",
+    "lat": 39.131111111,
+    "lon": -84.516111111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Jordan-Hare Stadium",
+   "home": "Auburn",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.6022,
+    "lon": -85.4892
+   },
+   "picked": {
+    "qid": "Q945548",
+    "label": "Jordan–Hare Stadium",
+    "lat": 32.602222222,
+    "lon": -85.489166666
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Gerald J. Ford Stadium",
+   "home": "SMU",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.8374,
+    "lon": -96.7832
+   },
+   "picked": {
+    "qid": "Q390127",
+    "label": "Gerald J. Ford Stadium",
+    "lat": 32.836644,
+    "lon": -96.783994
+   },
+   "distanceDeg": 0.0008,
+   "why": null
+  },
+  {
+   "venue": "Amon G. Carter Stadium",
+   "home": "TCU",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7097,
+    "lon": -97.368
+   },
+   "picked": {
+    "qid": "Q473943",
+    "label": "Amon G. Carter Stadium",
+    "lat": 32.709722222,
+    "lon": -97.368055555
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Glass Bowl",
+   "home": "Toledo",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.657,
+    "lon": -83.6136
+   },
+   "picked": {
+    "qid": "Q5567033",
+    "label": "Glass Bowl",
+    "lat": 41.6569,
+    "lon": -83.6136
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "David Booth Kansas Memorial Stadium",
+   "home": "Kansas",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.9631,
+    "lon": -95.2463
+   },
+   "picked": {
+    "qid": "Q3305513",
+    "label": "David Booth Kansas Memorial Stadium",
+    "lat": 38.963056,
+    "lon": -95.246389
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Kelly/Shorts Stadium",
+   "home": "C Michigan",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.5776,
+    "lon": -84.771
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Gies Memorial Stadium",
+   "home": "Illinois",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.0992,
+    "lon": -88.2359
+   },
+   "picked": {
+    "qid": "Q3305514",
+    "label": "Gies Memorial Stadium",
+    "lat": 40.099166666,
+    "lon": -88.235833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Acrisure Bounce House",
+   "home": "UCF",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 28.6085,
+    "lon": -81.1926
+   },
+   "picked": {
+    "qid": "Q2925356",
+    "label": "Acrisure Bounce House",
+    "lat": 28.6091,
+    "lon": -81.1924
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "Rose Bowl",
+   "home": "UCLA",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 34.1614,
+    "lon": -118.1676
+   },
+   "picked": {
+    "qid": "Q582280",
+    "label": "Rose Bowl",
+    "lat": 34.1614,
+    "lon": -118.1676
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Williams-Brice Stadium",
+   "home": "South Carolina",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.9731,
+    "lon": -81.0192
+   },
+   "picked": {
+    "qid": "Q940522",
+    "label": "Williams-Brice Stadium",
+    "lat": 33.973055555,
+    "lon": -81.019166666
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Bryant-Denny Stadium",
+   "home": "Alabama",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.2077,
+    "lon": -87.5505
+   },
+   "picked": {
+    "qid": "Q995161",
+    "label": "Bryant–Denny Stadium",
+    "lat": 33.207777777,
+    "lon": -87.550555555
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Huntington Bank Stadium",
+   "home": "Minnesota",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.9765,
+    "lon": -93.2242
+   },
+   "picked": {
+    "qid": "Q3512039",
+    "label": "Huntington Bank Stadium",
+    "lat": 44.976389,
+    "lon": -93.224444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Davis Wade Stadium",
+   "home": "Mississippi St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.4564,
+    "lon": -88.7935
+   },
+   "picked": {
+    "qid": "Q949608",
+    "label": "Davis Wade Stadium",
+    "lat": 33.456389,
+    "lon": -88.793611
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Bobby Dodd Stadium",
+   "home": "Georgia Tech",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7725,
+    "lon": -84.3929
+   },
+   "picked": {
+    "qid": "Q2907951",
+    "label": "Bobby Dodd Stadium",
+    "lat": 33.7725,
+    "lon": -84.392777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Navy-Marine Corps Memorial Stadium",
+   "home": "Navy",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.9847,
+    "lon": -76.507
+   },
+   "picked": {
+    "qid": "Q3337331",
+    "label": "Navy–Marine Corps Memorial Stadium",
+    "lat": 38.984722,
+    "lon": -76.506944
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Huskie Stadium",
+   "home": "N Illinois",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.934,
+    "lon": -88.7779
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Scheumann Stadium",
+   "home": "Ball State",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.216,
+    "lon": -85.4168
+   },
+   "picked": {
+    "qid": "Q7431225",
+    "label": "Scheumann Stadium",
+    "lat": 40.2161,
+    "lon": -85.4167
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Mountain America Stadium",
+   "home": "Arizona St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.4263,
+    "lon": -111.9326
+   },
+   "picked": {
+    "qid": "Q1849318",
+    "label": "Mountain America Stadium",
+    "lat": 33.426388888,
+    "lon": -111.9325
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Peden Stadium",
+   "home": "Ohio",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.3211,
+    "lon": -82.103
+   },
+   "picked": {
+    "qid": "Q7159081",
+    "label": "Peden Stadium",
+    "lat": 39.3211,
+    "lon": -82.1028
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Mackay Stadium",
+   "home": "Nevada",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.5469,
+    "lon": -119.8174
+   },
+   "picked": {
+    "qid": "Q6588235",
+    "label": "Mackay Stadium",
+    "lat": 39.546944,
+    "lon": -119.8175
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Joe Aillet Stadium",
+   "home": "Louisiana Tech",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.5321,
+    "lon": -92.6559
+   },
+   "picked": {
+    "qid": "Q6208302",
+    "label": "Joe Aillet Stadium",
+    "lat": 32.532222,
+    "lon": -92.655833
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Martin Stadium",
+   "home": "Washington St",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 46.7318,
+    "lon": -117.1597
+   },
+   "picked": {
+    "qid": "Q2409690",
+    "label": "Martin Stadium",
+    "lat": 46.732,
+    "lon": -117.16
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Canvas Stadium",
+   "home": "Colorado St",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.5698,
+    "lon": -105.0883
+   },
+   "picked": {
+    "qid": "Q23995882",
+    "label": "Canvas Stadium",
+    "lat": 40.569781,
+    "lon": -105.087949
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Boone Pickens Stadium",
+   "home": "Oklahoma St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.1257,
+    "lon": -97.0672
+   },
+   "picked": {
+    "qid": "Q2910505",
+    "label": "Boone Pickens Stadium",
+    "lat": 36.125833333,
+    "lon": -97.066388888
+   },
+   "distanceDeg": 0.0008,
+   "why": null
+  },
+  {
+   "venue": "Centennial Bank Stadium",
+   "home": "Arkansas St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.8489,
+    "lon": -90.6673
+   },
+   "picked": {
+    "qid": "Q6541587",
+    "label": "Centennial Bank Stadium",
+    "lat": 35.8489,
+    "lon": -90.6672
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Kroger Field",
+   "home": "Kentucky",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.0227,
+    "lon": -84.5052
+   },
+   "picked": {
+    "qid": "Q517268",
+    "label": "Kroger Field",
+    "lat": 38.022777777,
+    "lon": -84.505277777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Camp Randall Stadium",
+   "home": "Wisconsin",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.07,
+    "lon": -89.4127
+   },
+   "picked": {
+    "qid": "Q1029941",
+    "label": "Camp Randall Stadium",
+    "lat": 43.07,
+    "lon": -89.412777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Yulman Stadium",
+   "home": "Tulane",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.9447,
+    "lon": -90.1163
+   },
+   "picked": {
+    "qid": "Q8060993",
+    "label": "Yulman Stadium",
+    "lat": 29.94482,
+    "lon": -90.116816
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Rice-Eccles Stadium",
+   "home": "Utah",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7599,
+    "lon": -111.8489
+   },
+   "picked": {
+    "qid": "Q922761",
+    "label": "Rice–Eccles Stadium",
+    "lat": 40.76,
+    "lon": -111.848888888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Portman Road",
+   "home": "Ipswich",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.055,
+    "lon": 1.1453
+   },
+   "picked": {
+    "qid": "Q619558",
+    "label": "Portman Road",
+    "lat": 52.055,
+    "lon": 1.145277777
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Mendizorrotza",
+   "home": "Alavés",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.8371,
+    "lon": -2.6882
+   },
+   "picked": {
+    "qid": "Q1369390",
+    "label": "Mendizorrotza Stadium",
+    "lat": 42.837111,
+    "lon": -2.688044
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Stadio Olimpico Grande Torino",
+   "home": "Torino",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.0417,
+    "lon": 7.65
+   },
+   "picked": {
+    "qid": "Q214629",
+    "label": "Stadio Olimpico Grande Torino",
+    "lat": 45.041667,
+    "lon": 7.65
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "MHPArena",
+   "home": "Stuttgart",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.7922,
+    "lon": 9.232
+   },
+   "picked": {
+    "qid": "Q152349",
+    "label": "MHPArena",
+    "lat": 48.792222,
+    "lon": 9.231944
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stade Francis-Le Blé",
+   "home": "Brest",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.403,
+    "lon": -4.4614
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Scott Stadium",
+   "home": "Virginia",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.031,
+    "lon": -78.5136
+   },
+   "picked": {
+    "qid": "Q1133538",
+    "label": "Scott Stadium",
+    "lat": 38.031111111,
+    "lon": -78.513611111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Pratt & Whitney Stadium",
+   "home": "UConn",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.7596,
+    "lon": -72.6189
+   },
+   "picked": {
+    "qid": "Q3113144",
+    "label": "Pratt & Whitney Stadium",
+    "lat": 41.759722,
+    "lon": -72.618889
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "War Memorial Stadium",
+   "home": "Wyoming",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 41.3116,
+    "lon": -105.5682
+   },
+   "picked": {
+    "qid": "Q3566222",
+    "label": "War Memorial Stadium",
+    "lat": 41.311667,
+    "lon": -105.568333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Vazgen Sargsyan Republican Stadium",
+   "home": "Ararat-Armenia",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.172,
+    "lon": 44.5256
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Vazgen Sargsyan Republican Stadium",
+   "home": "Ararat",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.172,
+    "lon": 44.5256
+   },
+   "picked": {
+    "qid": "Q1459459",
+    "label": "Republican Stadium",
+    "lat": 40.171944,
+    "lon": 44.525833
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Maksimir Stadium",
+   "home": "Dinamo Zagreb",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.8188,
+    "lon": 16.018
+   },
+   "picked": {
+    "qid": "Q723603",
+    "label": "Stadion Maksimir",
+    "lat": 45.818858333,
+    "lon": 16.018077777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Groupama Arena",
+   "home": "Ferencvaros",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.4754,
+    "lon": 19.0955
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Pankritio Stadium",
+   "home": "OFI Crete",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.3365,
+    "lon": 25.1047
+   },
+   "picked": {
+    "qid": "Q1928668",
+    "label": "Pankritio Stadium",
+    "lat": 35.336666666,
+    "lon": 25.106111111
+   },
+   "distanceDeg": 0.0014,
+   "why": null
+  },
+  {
+   "venue": "Merkur Arena",
+   "home": "Sturm Graz",
+   "games": 2,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 47.0463,
+    "lon": 15.4542
+   },
+   "picked": {
+    "qid": "Q696491",
+    "label": "Merkur Arena",
+    "lat": 47.046111,
+    "lon": 15.454444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Merkur Spiel-Arena",
+   "home": "Union SG",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.2616,
+    "lon": 6.7331
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Vitality Stadium",
+   "home": "Bournemouth",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.7352,
+    "lon": -1.8383
+   },
+   "picked": {
+    "qid": "Q619094",
+    "label": "Dean Court",
+    "lat": 50.735278,
+    "lon": -1.838333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Celtic Park",
+   "home": "Celtic",
+   "games": 3,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 55.85,
+    "lon": -4.2064
+   },
+   "picked": {
+    "qid": "Q216037",
+    "label": "Celtic Park",
+    "lat": 55.849711111,
+    "lon": -4.205588888
+   },
+   "distanceDeg": 0.0008,
+   "why": null
+  },
+  {
+   "venue": "Arasen Stadion",
+   "home": "Lillestrom",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 59.9627,
+    "lon": 11.0635
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stadion Z'dezele",
+   "home": "NK Celje",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 46.2466,
+    "lon": 15.2701
+   },
+   "picked": {
+    "qid": "Q641455",
+    "label": "Stadion Z'dežele",
+    "lat": 46.246667,
+    "lon": 15.270278
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Georgios Karaiskakis Stadium",
+   "home": "Olympiacos",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.9464,
+    "lon": 23.6645
+   },
+   "picked": {
+    "qid": "Q213508",
+    "label": "Karaiskakis Stadium",
+    "lat": 37.946169,
+    "lon": 23.664536
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "GSP Stadium",
+   "home": "Omonia",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.1145,
+    "lon": 33.3634
+   },
+   "picked": {
+    "qid": "Q592491",
+    "label": "GSP Stadium",
+    "lat": 35.114542,
+    "lon": 33.362864
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "PreZero Arena",
+   "home": "Hoffenheim",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 49.2385,
+    "lon": 8.888
+   },
+   "picked": {
+    "qid": "Q129870",
+    "label": "SNP Arena",
+    "lat": 49.239,
+    "lon": 8.888278
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Doosan Arena",
+   "home": "Viktoria Plzen",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.75,
+    "lon": 13.3853
+   },
+   "picked": {
+    "qid": "Q2116283",
+    "label": "Doosan Arena",
+    "lat": 49.75,
+    "lon": 13.385556
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Right to Dream Park",
+   "home": "Nordsjælland",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 55.8161,
+    "lon": 12.3531
+   },
+   "picked": {
+    "qid": "Q1397226",
+    "label": "Right to Dream Park",
+    "lat": 55.815847,
+    "lon": 12.353289
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Estadio Coliseum",
+   "home": "Getafe",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.3256,
+    "lon": -3.7148
+   },
+   "picked": {
+    "qid": "Q929109",
+    "label": "Estadio Coliseum",
+    "lat": 40.325556,
+    "lon": -3.714722
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadion Strelnice",
+   "home": "Jablonec",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.715,
+    "lon": 15.1623
+   },
+   "picked": {
+    "qid": "Q1061636",
+    "label": "Chance Arena",
+    "lat": 50.714964,
+    "lon": 15.162225
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Alphamega Stadium",
+   "home": "Pafos",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.6926,
+    "lon": 32.9391
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Rajko Mitic Stadium",
+   "home": "Red Star",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.7833,
+    "lon": 20.4647
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Papara Park",
+   "home": "Trabzonspor",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.9987,
+    "lon": 39.6457
+   },
+   "picked": {
+    "qid": "Q7012155",
+    "label": "Papara Park",
+    "lat": 40.9987,
+    "lon": 39.6463
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "Cepheus Park Randers",
+   "home": "AGF",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 56.466,
+    "lon": 10.0102
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stade Louis II",
+   "home": "Monaco",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 43.7276,
+    "lon": 7.4155
+   },
+   "picked": {
+    "qid": "Q318851",
+    "label": "Stade Louis II",
+    "lat": 43.727778,
+    "lon": 7.415556
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Gradski Stadion Banja Luka",
+   "home": "Borac",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.7761,
+    "lon": 17.1996
+   },
+   "picked": {
+    "qid": "Q621027",
+    "label": "Gradski stadion",
+    "lat": 44.7761,
+    "lon": 17.1996
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Estádio Municipal de Braga",
+   "home": "Braga",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.5625,
+    "lon": -8.4302
+   },
+   "picked": {
+    "qid": "Q849239",
+    "label": "Estádio Municipal de Braga",
+    "lat": 41.5624,
+    "lon": -8.4308
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "MCH Arena",
+   "home": "Midtjylland",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 56.1167,
+    "lon": 8.9517
+   },
+   "picked": {
+    "qid": "Q1557426",
+    "label": "MCH Arena",
+    "lat": 56.11666667,
+    "lon": 8.95166667
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Stockhorn Arena",
+   "home": "FC Thun",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 46.7447,
+    "lon": 7.6064
+   },
+   "picked": {
+    "qid": "Q241022",
+    "label": "Visana Stadion",
+    "lat": 46.744817,
+    "lon": 7.606075
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Soldier Field",
+   "home": "Bears",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 41.8623,
+    "lon": -87.6167
+   },
+   "picked": {
+    "qid": "Q1132413",
+    "label": "Soldier Field",
+    "lat": 41.8625,
+    "lon": -87.616666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Soldier Field",
+   "home": "Chicago Fire FC",
+   "games": 11,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 41.8623,
+    "lon": -87.6167
+   },
+   "picked": {
+    "qid": "Q1132413",
+    "label": "Soldier Field",
+    "lat": 41.8625,
+    "lon": -87.616666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Soldier Field",
+   "home": "Chicago",
+   "games": 8,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 41.8623,
+    "lon": -87.6167
+   },
+   "picked": {
+    "qid": "Q1132413",
+    "label": "Soldier Field",
+    "lat": 41.8625,
+    "lon": -87.616666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Kidd Brewer Stadium",
+   "home": "App State",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.2116,
+    "lon": -81.6856
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Simmons Bank Liberty Stadium",
+   "home": "Memphis",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.1211,
+    "lon": -89.9774
+   },
+   "picked": {
+    "qid": "Q3237803",
+    "label": "Simmons Bank Liberty Stadium",
+    "lat": 35.121111111,
+    "lon": -89.9775
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "TQL Stadium",
+   "home": "FC Cincinnati",
+   "games": 15,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.1051,
+    "lon": -84.5182
+   },
+   "picked": {
+    "qid": "Q54465634",
+    "label": "TQL Stadium",
+    "lat": 39.111388888,
+    "lon": -84.522222222
+   },
+   "distanceDeg": 0.0063,
+   "why": null
+  },
+  {
+   "venue": "TQL Stadium",
+   "home": "Cincinnati",
+   "games": 10,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.1051,
+    "lon": -84.5182
+   },
+   "picked": {
+    "qid": "Q54465634",
+    "label": "TQL Stadium",
+    "lat": 39.111388888,
+    "lon": -84.522222222
+   },
+   "distanceDeg": 0.0063,
+   "why": null
+  },
+  {
+   "venue": "Allianz Arena",
+   "home": "Bayern",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.2188,
+    "lon": 11.6247
+   },
+   "picked": {
+    "qid": "Q127429",
+    "label": "Allianz Arena",
+    "lat": 48.218775,
+    "lon": 11.624752777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Jan Breydel Stadium",
+   "home": "Club Brugge",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.1933,
+    "lon": 3.1808
+   },
+   "picked": {
+    "qid": "Q1070150",
+    "label": "Jan Breydel Stadium",
+    "lat": 51.193269,
+    "lon": 3.181311
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "San Siro",
+   "home": "Inter Milan",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.4781,
+    "lon": 9.1239
+   },
+   "picked": {
+    "qid": "Q133566",
+    "label": "Giuseppe Meazza Stadium",
+    "lat": 45.478055555,
+    "lon": 9.123888888
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "San Siro",
+   "home": "Milan",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.4781,
+    "lon": 9.1239
+   },
+   "picked": {
+    "qid": "Q133566",
+    "label": "Giuseppe Meazza Stadium",
+    "lat": 45.478055555,
+    "lon": 9.123888888
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Estadio La Cartuja",
+   "home": "Betis",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.4172,
+    "lon": -6.0043
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Santiago Bernabéu",
+   "home": "Real Madrid",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.4531,
+    "lon": -3.6883
+   },
+   "picked": {
+    "qid": "Q164027",
+    "label": "Bernabéu",
+    "lat": 40.45306,
+    "lon": -3.68835
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Estádio José Alvalade",
+   "home": "Sporting",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.7612,
+    "lon": -9.1608
+   },
+   "picked": {
+    "qid": "Q287359",
+    "label": "Estádio José Alvalade",
+    "lat": 38.761194444,
+    "lon": -9.160783333
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Estadi Ciutat de València",
+   "home": "Levante",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.4947,
+    "lon": -0.364
+   },
+   "picked": {
+    "qid": "Q1122715",
+    "label": "Estadi Ciutat de València",
+    "lat": 39.494722,
+    "lon": -0.364167
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Şükrü Saracoğlu Stadium",
+   "home": "Fenerbahce",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.9876,
+    "lon": 29.0369
+   },
+   "picked": {
+    "qid": "Q222865",
+    "label": "Şükrü Saracoğlu Stadium",
+    "lat": 40.9875,
+    "lon": 29.036666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Baku Olympic Stadium",
+   "home": "Sabah",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.4299,
+    "lon": 49.9196
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Estádio do Dragão",
+   "home": "FC Porto",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.1618,
+    "lon": -8.5838
+   },
+   "picked": {
+    "qid": "Q271454",
+    "label": "Estádio do Dragão",
+    "lat": 41.161758,
+    "lon": -8.583933
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Anfield",
+   "home": "Liverpool",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.4308,
+    "lon": -2.9608
+   },
+   "picked": {
+    "qid": "Q45671",
+    "label": "Anfield",
+    "lat": 53.430833333,
+    "lon": -2.960833333
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Etihad Stadium",
+   "home": "Man City",
+   "games": 7,
+   "verdict": "abstain",
+   "row": {
+    "lat": 53.4831,
+    "lon": -2.2004
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Parc des Princes",
+   "home": "PSG",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.8414,
+    "lon": 2.2531
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Pitbull Stadium",
+   "home": "FIU",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 25.7525,
+    "lon": -80.3779
+   },
+   "picked": {
+    "qid": "Q1388701",
+    "label": "Pitbull Stadium",
+    "lat": 25.7525,
+    "lon": -80.377778
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Delaware Stadium",
+   "home": "Delaware",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.6617,
+    "lon": -75.7489
+   },
+   "picked": {
+    "qid": "Q14685363",
+    "label": "Delaware Stadium",
+    "lat": 39.6617,
+    "lon": -75.7488
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Joan C. Edwards Stadium",
+   "home": "Marshall",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.4249,
+    "lon": -82.4209
+   },
+   "picked": {
+    "qid": "Q3179563",
+    "label": "Joan C. Edwards Stadium",
+    "lat": 38.425,
+    "lon": -82.4208
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Tropicana Field",
+   "home": "Rays",
+   "games": 44,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 27.7683,
+    "lon": -82.6534
+   },
+   "picked": {
+    "qid": "Q1810119",
+    "label": "Tropicana Field",
+    "lat": 27.768333333,
+    "lon": -82.653333333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Tropicana Field",
+   "home": "Red Sox",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 27.7683,
+    "lon": -82.6534
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Tottenham Hotspur Stadium",
+   "home": "Spurs",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.6043,
+    "lon": -0.0663
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Tottenham Hotspur Stadium",
+   "home": "Jaguars",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.6043,
+    "lon": -0.0663
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Tottenham Hotspur Stadium",
+   "home": "Commanders",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.6043,
+    "lon": -0.0663
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "U-Power Stadium",
+   "home": "Monza",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.583,
+    "lon": 9.308
+   },
+   "picked": {
+    "qid": "Q1851616",
+    "label": "Stadio Brianteo",
+    "lat": 45.582778,
+    "lon": 9.308056
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Ennio Tardini",
+   "home": "Parma",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.7948,
+    "lon": 10.3384
+   },
+   "picked": {
+    "qid": "Q610546",
+    "label": "Stadio Ennio Tardini",
+    "lat": 44.794916666,
+    "lon": 10.338444444
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Levi's Stadium",
+   "home": "49ers",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.4031,
+    "lon": -121.9698
+   },
+   "picked": {
+    "qid": "Q7419343",
+    "label": "Levi's Stadium",
+    "lat": 37.4034,
+    "lon": -121.97
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Levi's Stadium",
+   "home": "San Jose Earthquakes",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.4031,
+    "lon": -121.9698
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Levi's Stadium",
+   "home": "San Jose",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.4031,
+    "lon": -121.9698
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Levi's Stadium",
+   "home": "USA",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.4031,
+    "lon": -121.9698
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Lumen Field",
+   "home": "Seattle Sounders FC",
+   "games": 15,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.5952,
+    "lon": -122.3316
+   },
+   "picked": {
+    "qid": "Q612736",
+    "label": "Lumen Field",
+    "lat": 47.595277777,
+    "lon": -122.331666666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Lumen Field",
+   "home": "Seattle",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.5952,
+    "lon": -122.3316
+   },
+   "picked": {
+    "qid": "Q612736",
+    "label": "Lumen Field",
+    "lat": 47.595277777,
+    "lon": -122.331666666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Lumen Field",
+   "home": "Seahawks",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.5952,
+    "lon": -122.3316
+   },
+   "picked": {
+    "qid": "Q612736",
+    "label": "Lumen Field",
+    "lat": 47.595277777,
+    "lon": -122.331666666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Lumen Field",
+   "home": "USA",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.5952,
+    "lon": -122.3316
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Lumen Field",
+   "home": "Belgium",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.5952,
+    "lon": -122.3316
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "PayPal Park",
+   "home": "San Jose Earthquakes",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.3519,
+    "lon": -121.9254
+   },
+   "picked": {
+    "qid": "Q3046470",
+    "label": "PayPal Park",
+    "lat": 37.351389,
+    "lon": -121.925
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "PayPal Park",
+   "home": "San Jose",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.3519,
+    "lon": -121.9254
+   },
+   "picked": {
+    "qid": "Q3046470",
+    "label": "PayPal Park",
+    "lat": 37.351389,
+    "lon": -121.925
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "PayPal Park",
+   "home": "Chivas de Guadalajara",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.3519,
+    "lon": -121.9254
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Dignity Health Sports Park",
+   "home": "LA Galaxy",
+   "games": 23,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 33.8644,
+    "lon": -118.2611
+   },
+   "picked": {
+    "qid": "Q200684",
+    "label": "Dignity Health Sports Park",
+    "lat": 33.864444444,
+    "lon": -118.261111111
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Dignity Health Sports Park",
+   "home": "Club América",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 33.8644,
+    "lon": -118.2611
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Q2 Stadium",
+   "home": "Austin FC",
+   "games": 16,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.3872,
+    "lon": -97.718
+   },
+   "picked": {
+    "qid": "Q56278477",
+    "label": "Q2 Stadium",
+    "lat": 30.388206,
+    "lon": -97.719837
+   },
+   "distanceDeg": 0.0018,
+   "why": null
+  },
+  {
+   "venue": "Q2 Stadium",
+   "home": "Austin",
+   "games": 8,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.3872,
+    "lon": -97.718
+   },
+   "picked": {
+    "qid": "Q56278477",
+    "label": "Q2 Stadium",
+    "lat": 30.388206,
+    "lon": -97.719837
+   },
+   "distanceDeg": 0.0018,
+   "why": null
+  },
+  {
+   "venue": "Q2 Stadium",
+   "home": "Club América",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.3872,
+    "lon": -97.718
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Progressive Field",
+   "home": "Guardians",
+   "games": 49,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.4962,
+    "lon": -81.6852
+   },
+   "picked": {
+    "qid": "Q1154053",
+    "label": "Progressive Field",
+    "lat": 41.495833333,
+    "lon": -81.685277777
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Elland Road",
+   "home": "Leeds",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 53.7778,
+    "lon": -1.5722
+   },
+   "picked": {
+    "qid": "Q619505",
+    "label": "Elland Road",
+    "lat": 53.777777777,
+    "lon": -1.572222222
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "The City Ground",
+   "home": "Nottm Forest",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.94,
+    "lon": -1.1329
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "El Sadar",
+   "home": "Osasuna",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.797,
+    "lon": -1.6374
+   },
+   "picked": {
+    "qid": "Q735783",
+    "label": "El Sadar Stadium",
+    "lat": 42.796667,
+    "lon": -1.636944
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Balaidos",
+   "home": "Celta Vigo",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.2118,
+    "lon": -8.74
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "La Rosaleda",
+   "home": "Málaga",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.7345,
+    "lon": -4.4265
+   },
+   "picked": {
+    "qid": "Q695879",
+    "label": "La Rosaleda Stadium",
+    "lat": 36.734092,
+    "lon": -4.426422
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Stadio Friuli",
+   "home": "Udinese",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 46.0815,
+    "lon": 13.1999
+   },
+   "picked": {
+    "qid": "Q640031",
+    "label": "Stadio Friuli",
+    "lat": 46.081603,
+    "lon": 13.200136
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "BayArena",
+   "home": "Leverkusen",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.0382,
+    "lon": 7.0028
+   },
+   "picked": {
+    "qid": "Q156630",
+    "label": "BayArena",
+    "lat": 51.038255555,
+    "lon": 7.002205555
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "BORUSSIA-PARK",
+   "home": "Gladbach",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.1746,
+    "lon": 6.3854
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stade Raymond Kopa",
+   "home": "Angers",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.4601,
+    "lon": -0.531
+   },
+   "picked": {
+    "qid": "Q387213",
+    "label": "Stade Raymond Kopa",
+    "lat": 47.45905,
+    "lon": -0.53163
+   },
+   "distanceDeg": 0.001,
+   "why": null
+  },
+  {
+   "venue": "Stade Océane",
+   "home": "Le Havre AC",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.4988,
+    "lon": 0.1695
+   },
+   "picked": {
+    "qid": "Q219462",
+    "label": "Stade Océane",
+    "lat": 49.4988,
+    "lon": 0.1697
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Groupama Stadium",
+   "home": "Lyon",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.7653,
+    "lon": 4.9821
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Huntington Bank Field",
+   "home": "Browns",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.5061,
+    "lon": -81.6996
+   },
+   "picked": {
+    "qid": "Q1100756",
+    "label": "Huntington Bank Field",
+    "lat": 41.506111111,
+    "lon": -81.699444444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Lucas Oil Stadium",
+   "home": "Colts",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.7594,
+    "lon": -86.1638
+   },
+   "picked": {
+    "qid": "Q867160",
+    "label": "Lucas Oil Stadium",
+    "lat": 39.760056,
+    "lon": -86.163806
+   },
+   "distanceDeg": 0.0007,
+   "why": null
+  },
+  {
+   "venue": "Gillette Stadium",
+   "home": "Patriots",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0909,
+    "lon": -71.2643
+   },
+   "picked": {
+    "qid": "Q373355",
+    "label": "Gillette Stadium",
+    "lat": 42.090944444,
+    "lon": -71.264344444
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Gillette Stadium",
+   "home": "New England Revolution",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0909,
+    "lon": -71.2643
+   },
+   "picked": {
+    "qid": "Q373355",
+    "label": "Gillette Stadium",
+    "lat": 42.090944444,
+    "lon": -71.264344444
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Gillette Stadium",
+   "home": "New England",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0909,
+    "lon": -71.2643
+   },
+   "picked": {
+    "qid": "Q373355",
+    "label": "Gillette Stadium",
+    "lat": 42.090944444,
+    "lon": -71.264344444
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Gillette Stadium",
+   "home": "France",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0909,
+    "lon": -71.2643
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Gillette Stadium",
+   "home": "Germany",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0909,
+    "lon": -71.2643
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "MetLife Stadium",
+   "home": "Giants",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8135,
+    "lon": -74.0744
+   },
+   "picked": {
+    "qid": "Q10862290",
+    "label": "MetLife Stadium",
+    "lat": 40.813611111,
+    "lon": -74.074444444
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "MetLife Stadium",
+   "home": "Jets",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8135,
+    "lon": -74.0744
+   },
+   "picked": {
+    "qid": "Q10862290",
+    "label": "MetLife Stadium",
+    "lat": 40.813611111,
+    "lon": -74.074444444
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "MetLife Stadium",
+   "home": "Spain",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8135,
+    "lon": -74.0744
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "MetLife Stadium",
+   "home": "Brazil",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8135,
+    "lon": -74.0744
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "MetLife Stadium",
+   "home": "France",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8135,
+    "lon": -74.0744
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "MetLife Stadium",
+   "home": "Panama",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8135,
+    "lon": -74.0744
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Lincoln Financial Field",
+   "home": "Eagles",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9009,
+    "lon": -75.1676
+   },
+   "picked": {
+    "qid": "Q1052370",
+    "label": "Lincoln Financial Field",
+    "lat": 39.90089,
+    "lon": -75.16776
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Lincoln Financial Field",
+   "home": "Temple",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9009,
+    "lon": -75.1676
+   },
+   "picked": {
+    "qid": "Q1052370",
+    "label": "Lincoln Financial Field",
+    "lat": 39.90089,
+    "lon": -75.16776
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Lincoln Financial Field",
+   "home": "Paraguay",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9009,
+    "lon": -75.1676
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Lincoln Financial Field",
+   "home": "Croatia",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9009,
+    "lon": -75.1676
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Raymond James Stadium",
+   "home": "Buccaneers",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 27.9759,
+    "lon": -82.5033
+   },
+   "picked": {
+    "qid": "Q1141343",
+    "label": "Raymond James Stadium",
+    "lat": 27.975833333,
+    "lon": -82.503333333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Raymond James Stadium",
+   "home": "South Florida",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 27.9759,
+    "lon": -82.5033
+   },
+   "picked": {
+    "qid": "Q1141343",
+    "label": "Raymond James Stadium",
+    "lat": 27.975833333,
+    "lon": -82.503333333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "SoFi Stadium",
+   "home": "Rams",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.9524,
+    "lon": -118.3387
+   },
+   "picked": {
+    "qid": "Q19520501",
+    "label": "SoFi Stadium",
+    "lat": 33.9504,
+    "lon": -118.338
+   },
+   "distanceDeg": 0.002,
+   "why": null
+  },
+  {
+   "venue": "SoFi Stadium",
+   "home": "Chargers",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.9524,
+    "lon": -118.3387
+   },
+   "picked": {
+    "qid": "Q19520501",
+    "label": "SoFi Stadium",
+    "lat": 33.9504,
+    "lon": -118.338
+   },
+   "distanceDeg": 0.002,
+   "why": null
+  },
+  {
+   "venue": "SoFi Stadium",
+   "home": "Spain",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.9524,
+    "lon": -118.3387
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "SoFi Stadium",
+   "home": "South Africa",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.9524,
+    "lon": -118.3387
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Arrowhead Stadium",
+   "home": "Chiefs",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.0489,
+    "lon": -94.484
+   },
+   "picked": {
+    "qid": "Q544553",
+    "label": "Arrowhead Stadium",
+    "lat": 39.048888888,
+    "lon": -94.483888888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Allegiant Stadium",
+   "home": "Raiders",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.0907,
+    "lon": -115.1832
+   },
+   "picked": {
+    "qid": "Q27768421",
+    "label": "Allegiant Stadium",
+    "lat": 36.090777777,
+    "lon": -115.183
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Allegiant Stadium",
+   "home": "UNLV",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.0907,
+    "lon": -115.1832
+   },
+   "picked": {
+    "qid": "Q27768421",
+    "label": "Allegiant Stadium",
+    "lat": 36.090777777,
+    "lon": -115.183
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Lambeau Field",
+   "home": "Packers",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.5011,
+    "lon": -88.0621
+   },
+   "picked": {
+    "qid": "Q860790",
+    "label": "Lambeau Field",
+    "lat": 44.501388888,
+    "lon": -88.062222222
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Lambeau Field",
+   "home": "Notre Dame",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.5011,
+    "lon": -88.0621
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Citi Field",
+   "home": "New York City Football Club",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7571,
+    "lon": -73.8458
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Citi Field",
+   "home": "NYCFC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7571,
+    "lon": -73.8458
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Citi Field",
+   "home": "Mets",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.7571,
+    "lon": -73.8458
+   },
+   "picked": {
+    "qid": "Q1072882",
+    "label": "Citi Field",
+    "lat": 40.756986,
+    "lon": -73.845783
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Allianz Field",
+   "home": "Minnesota United FC",
+   "games": 14,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.953,
+    "lon": -93.1655
+   },
+   "picked": {
+    "qid": "Q22096631",
+    "label": "Allianz Field",
+    "lat": 44.9528,
+    "lon": -93.1651
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Allianz Field",
+   "home": "Minnesota",
+   "games": 8,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.953,
+    "lon": -93.1655
+   },
+   "picked": {
+    "qid": "Q22096631",
+    "label": "Allianz Field",
+    "lat": 44.9528,
+    "lon": -93.1651
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Allianz Field",
+   "home": "Club Tigres",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.953,
+    "lon": -93.1655
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Hill Dickinson Stadium",
+   "home": "Everton",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.425,
+    "lon": -3.0027
+   },
+   "picked": {
+    "qid": "Q29347805",
+    "label": "Hill Dickinson Stadium",
+    "lat": 53.425,
+    "lon": -3.002777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Gtech Community Stadium",
+   "home": "Brentford",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4908,
+    "lon": -0.2889
+   },
+   "picked": {
+    "qid": "Q4961609",
+    "label": "Brentford Community Stadium",
+    "lat": 51.490825,
+    "lon": -0.2887
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Craven Cottage",
+   "home": "Fulham",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4749,
+    "lon": -0.2218
+   },
+   "picked": {
+    "qid": "Q318043",
+    "label": "Craven Cottage",
+    "lat": 51.475,
+    "lon": -0.221666666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "St. James' Park",
+   "home": "Newcastle",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 54.9755,
+    "lon": -1.6218
+   },
+   "picked": {
+    "qid": "Q191774",
+    "label": "St James’ Park",
+    "lat": 54.975555555,
+    "lon": -1.621666666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "RCDE Stadium",
+   "home": "Espanyol",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.3479,
+    "lon": 2.0762
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Estadio de la Cerámica",
+   "home": "Villarreal",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9442,
+    "lon": -0.1035
+   },
+   "picked": {
+    "qid": "Q741157",
+    "label": "Estadio de la Cerámica",
+    "lat": 39.944167,
+    "lon": -0.103611
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadio Pier Luigi Penzo",
+   "home": "Venezia",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.4277,
+    "lon": 12.3639
+   },
+   "picked": {
+    "qid": "Q588926",
+    "label": "Stadio Pierluigi Penzo",
+    "lat": 45.427761,
+    "lon": 12.363731
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Renato Dall'Ara",
+   "home": "Bologna",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.4923,
+    "lon": 11.3099
+   },
+   "picked": {
+    "qid": "Q757182",
+    "label": "Stadio Renato Dall'Ara",
+    "lat": 44.4922,
+    "lon": 11.3098
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadion An der Alten Försterei",
+   "home": "Union Berlin",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.4571,
+    "lon": 13.5681
+   },
+   "picked": {
+    "qid": "Q749172",
+    "label": "Stadion An der Alten Försterei",
+    "lat": 52.457222,
+    "lon": 13.568056
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Volksparkstadion",
+   "home": "Hamburg",
+   "games": 3,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 53.5871,
+    "lon": 9.8987
+   },
+   "picked": {
+    "qid": "Q150933",
+    "label": "Volksparkstadion",
+    "lat": 53.586944,
+    "lon": 9.898611
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Veltins Arena",
+   "home": "Schalke",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.5546,
+    "lon": 7.0676
+   },
+   "picked": {
+    "qid": "Q150961",
+    "label": "Arena AufSchalke",
+    "lat": 51.554502777,
+    "lon": 7.067588888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Weserstadion",
+   "home": "Bremen",
+   "games": 3,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 53.0664,
+    "lon": 8.8376
+   },
+   "picked": {
+    "qid": "Q154475",
+    "label": "Weserstadion",
+    "lat": 53.066389,
+    "lon": 8.8375
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stade de la Meinau",
+   "home": "Strasbourg",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.5601,
+    "lon": 7.7534
+   },
+   "picked": {
+    "qid": "Q374883",
+    "label": "Stade de la Meinau",
+    "lat": 48.55942,
+    "lon": 7.75738
+   },
+   "distanceDeg": 0.004,
+   "why": null
+  },
+  {
+   "venue": "Stade de l'Aube",
+   "home": "Troyes",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 48.3041,
+    "lon": 4.0922
+   },
+   "picked": {
+    "qid": "Q2001732",
+    "label": "Stade de l'Aube",
+    "lat": 48.30616,
+    "lon": 4.0982
+   },
+   "distanceDeg": 0.006,
+   "why": null
+  },
+  {
+   "venue": "Spartan Stadium",
+   "home": "Michigan St",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 42.7281,
+    "lon": -84.4852
+   },
+   "picked": {
+    "qid": "Q2164621",
+    "label": "Spartan Stadium",
+    "lat": 42.728056,
+    "lon": -84.484722
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Milan Puskar Stadium",
+   "home": "West Virginia",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.6502,
+    "lon": -79.9549
+   },
+   "picked": {
+    "qid": "Q1179474",
+    "label": "Mountaineer Field at Milan Puskar Stadium",
+    "lat": 39.650277777,
+    "lon": -79.954722222
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Michie Stadium",
+   "home": "Army",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.3874,
+    "lon": -73.9643
+   },
+   "picked": {
+    "qid": "Q3311487",
+    "label": "Michie Stadium",
+    "lat": 41.3875,
+    "lon": -73.964166666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Bridgeforth Stadium",
+   "home": "James Madison",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.4352,
+    "lon": -78.8731
+   },
+   "picked": {
+    "qid": "Q4966496",
+    "label": "Bridgeforth Stadium and Zane Showker Field",
+    "lat": 38.4353,
+    "lon": -78.8731
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "SECU Stadium",
+   "home": "Maryland",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.9903,
+    "lon": -76.9474
+   },
+   "picked": {
+    "qid": "Q2929171",
+    "label": "SECU Stadium",
+    "lat": 38.990277777,
+    "lon": -76.947222222
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Kyle Field",
+   "home": "Texas A&M",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.6099,
+    "lon": -96.3408
+   },
+   "picked": {
+    "qid": "Q945223",
+    "label": "Kyle Field",
+    "lat": 30.60992,
+    "lon": -96.34052
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Sanford Stadium",
+   "home": "Georgia",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.9498,
+    "lon": -83.3733
+   },
+   "picked": {
+    "qid": "Q2221660",
+    "label": "Sanford Stadium",
+    "lat": 33.949722222,
+    "lon": -83.373333333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Neyland Stadium",
+   "home": "Tennessee",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.955,
+    "lon": -83.9244
+   },
+   "picked": {
+    "qid": "Q1984022",
+    "label": "Neyland Stadium",
+    "lat": 35.955,
+    "lon": -83.925
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "Vaught-Hemingway Stadium",
+   "home": "Ole Miss",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.362,
+    "lon": -89.5342
+   },
+   "picked": {
+    "qid": "Q3555083",
+    "label": "Vaught–Hemingway Stadium",
+    "lat": 34.361944,
+    "lon": -89.534167
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Galaxy Stadium",
+   "home": "Texas Tech",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.5912,
+    "lon": -101.873
+   },
+   "picked": {
+    "qid": "Q3183551",
+    "label": "Galaxy Stadium",
+    "lat": 33.5911,
+    "lon": -101.873
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Lane Stadium",
+   "home": "Virginia Tech",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.2199,
+    "lon": -80.418
+   },
+   "picked": {
+    "qid": "Q3217144",
+    "label": "Lane Stadium",
+    "lat": 37.22,
+    "lon": -80.418056
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Wallace Wade Stadium",
+   "home": "Duke",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.9954,
+    "lon": -78.9418
+   },
+   "picked": {
+    "qid": "Q3565475",
+    "label": "Wallace Wade Stadium",
+    "lat": 35.995278,
+    "lon": -78.941667
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Falcon Stadium",
+   "home": "Air Force",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.997,
+    "lon": -104.8432
+   },
+   "picked": {
+    "qid": "Q907843",
+    "label": "Falcon Stadium",
+    "lat": 38.996944,
+    "lon": -104.842222
+   },
+   "distanceDeg": 0.001,
+   "why": null
+  },
+  {
+   "venue": "Rynearson Stadium",
+   "home": "E Michigan",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.2558,
+    "lon": -83.6473
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Reser Stadium",
+   "home": "Oregon St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.5595,
+    "lon": -123.2814
+   },
+   "picked": {
+    "qid": "Q782386",
+    "label": "Reser Stadium",
+    "lat": 44.559444444,
+    "lon": -123.281388888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "FirstBank Stadium",
+   "home": "Vanderbilt",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.144,
+    "lon": -86.8089
+   },
+   "picked": {
+    "qid": "Q3554494",
+    "label": "FirstBank Stadium",
+    "lat": 36.144166666,
+    "lon": -86.808888888
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Fargodome",
+   "home": "N Dakota St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 46.903,
+    "lon": -96.8014
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "LaVell Edwards Stadium",
+   "home": "BYU",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.2574,
+    "lon": -111.6545
+   },
+   "picked": {
+    "qid": "Q907890",
+    "label": "LaVell Edwards Stadium",
+    "lat": 40.2575,
+    "lon": -111.654444
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "JMA Wireless Dome",
+   "home": "Syracuse",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.0362,
+    "lon": -76.1364
+   },
+   "picked": {
+    "qid": "Q2739617",
+    "label": "JMA Wireless Dome",
+    "lat": 43.036111111,
+    "lon": -76.136388888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Alamodome",
+   "home": "UTSA",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.4169,
+    "lon": -98.4789
+   },
+   "picked": {
+    "qid": "Q1618347",
+    "label": "Alamodome",
+    "lat": 29.416944444,
+    "lon": -98.478888888
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Malone Stadium",
+   "home": "UL Monroe",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.5309,
+    "lon": -92.066
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Sun Bowl",
+   "home": "UTEP",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 31.7732,
+    "lon": -106.508
+   },
+   "picked": {
+    "qid": "Q3503735",
+    "label": "Sun Bowl Stadium",
+    "lat": 31.773,
+    "lon": -106.508
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Hornet Stadium",
+   "home": "Sacramento St",
+   "games": 4,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 38.5557,
+    "lon": -121.4229
+   },
+   "picked": {
+    "qid": "Q9004779",
+    "label": "Hornet Stadium",
+    "lat": 38.555672,
+    "lon": -121.422903
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Folsom Field",
+   "home": "Colorado",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.0094,
+    "lon": -105.2664
+   },
+   "picked": {
+    "qid": "Q3075131",
+    "label": "Folsom Field",
+    "lat": 40.009444,
+    "lon": -105.266944
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "California Memorial Stadium",
+   "home": "California",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.871,
+    "lon": -122.2508
+   },
+   "picked": {
+    "qid": "Q1026837",
+    "label": "California Memorial Stadium",
+    "lat": 37.871111111,
+    "lon": -122.250833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Autzen Stadium",
+   "home": "Oregon",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.0583,
+    "lon": -123.0685
+   },
+   "picked": {
+    "qid": "Q2873102",
+    "label": "Autzen Stadium",
+    "lat": 44.058333333,
+    "lon": -123.068611111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadio Benito Stirpe",
+   "home": "Frosinone",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.6341,
+    "lon": 13.3218
+   },
+   "picked": {
+    "qid": "Q29655396",
+    "label": "Benito Stirpe Stadium",
+    "lat": 41.63426,
+    "lon": 13.321866
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Deutsche Bank Park",
+   "home": "Frankfurt",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.0686,
+    "lon": 8.6454
+   },
+   "picked": {
+    "qid": "Q157273",
+    "label": "Waldstadion",
+    "lat": 50.068611,
+    "lon": 8.645278
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stade Marie-Marvingt",
+   "home": "Le Mans",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.9593,
+    "lon": 0.2225
+   },
+   "picked": {
+    "qid": "Q1862372",
+    "label": "stade Marie-Marvingt",
+    "lat": 47.95958,
+    "lon": 0.22129
+   },
+   "distanceDeg": 0.0012,
+   "why": null
+  },
+  {
+   "venue": "Ross-Ade Stadium",
+   "home": "Purdue",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.4345,
+    "lon": -86.9184
+   },
+   "picked": {
+    "qid": "Q3442733",
+    "label": "Ross–Ade Stadium",
+    "lat": 40.4344,
+    "lon": -86.9183
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Energizer Park",
+   "home": "St. Louis CITY SC",
+   "games": 14,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.6308,
+    "lon": -90.2107
+   },
+   "picked": {
+    "qid": "Q30591730",
+    "label": "Energizer Park",
+    "lat": 38.631052,
+    "lon": -90.210921
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Energizer Park",
+   "home": "St. Louis",
+   "games": 9,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.6308,
+    "lon": -90.2107
+   },
+   "picked": {
+    "qid": "Q30591730",
+    "label": "Energizer Park",
+    "lat": 38.631052,
+    "lon": -90.210921
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "GEODIS Park",
+   "home": "Nashville SC",
+   "games": 13,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.1307,
+    "lon": -86.7665
+   },
+   "picked": {
+    "qid": "Q47528203",
+    "label": "Geodis Park",
+    "lat": 36.1309612,
+    "lon": -86.7676932
+   },
+   "distanceDeg": 0.0012,
+   "why": null
+  },
+  {
+   "venue": "GEODIS Park",
+   "home": "Nashville",
+   "games": 8,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.1307,
+    "lon": -86.7665
+   },
+   "picked": {
+    "qid": "Q47528203",
+    "label": "Geodis Park",
+    "lat": 36.1309612,
+    "lon": -86.7676932
+   },
+   "distanceDeg": 0.0012,
+   "why": null
+  },
+  {
+   "venue": "GEODIS Park",
+   "home": "Club de Fútbol Monterrey Rayados, A.C.",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.1307,
+    "lon": -86.7665
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Dodger Stadium",
+   "home": "Dodgers",
+   "games": 45,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.0739,
+    "lon": -118.24
+   },
+   "picked": {
+    "qid": "Q247420",
+    "label": "Dodger Stadium",
+    "lat": 34.073611111,
+    "lon": -118.24
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "AFAS Stadion",
+   "home": "AZ Alkmaar",
+   "games": 1,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 52.6127,
+    "lon": 4.7419
+   },
+   "picked": {
+    "qid": "Q291590",
+    "label": "AFAS Stadion",
+    "lat": 52.6125,
+    "lon": 4.741667
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Generali Arena",
+   "home": "Sparta",
+   "games": 1,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 50.0997,
+    "lon": 14.416
+   },
+   "picked": {
+    "qid": "Q60103",
+    "label": "Letná Stadium",
+    "lat": 50.099716,
+    "lon": 14.416122
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Estádio Dr. Magalhaes Pessoa",
+   "home": "Torreense",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.7488,
+    "lon": -8.813
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "King Power at Den Dreef Stadion",
+   "home": "Union SG",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.8684,
+    "lon": 4.6943
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Estádio da Luz",
+   "home": "Benfica",
+   "games": 2,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 38.7527,
+    "lon": -9.1847
+   },
+   "picked": {
+    "qid": "Q7875112",
+    "label": "Estádio da Luz",
+    "lat": 38.752777777,
+    "lon": -9.184722222
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Goffertstadion",
+   "home": "NEC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.8225,
+    "lon": 5.837
+   },
+   "picked": {
+    "qid": "Q720983",
+    "label": "Stadion de Goffert",
+    "lat": 51.8225,
+    "lon": 5.836667
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Roazhon Park",
+   "home": "Rennes",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.1075,
+    "lon": -1.7127
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Vasil Levski National Stadium",
+   "home": "CSKA Sofia",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.6876,
+    "lon": 23.3353
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Vasil Levski National Stadium",
+   "home": "Levski Sofia",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.6876,
+    "lon": 23.3353
+   },
+   "picked": {
+    "qid": "Q1327903",
+    "label": "Vasil Levski National Stadium",
+    "lat": 42.687583,
+    "lon": 23.335444
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadionul Ion Oblemenco",
+   "home": "CSU Craiova",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.314,
+    "lon": 23.7842
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Elbasan Arena",
+   "home": "Egnatia",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.1159,
+    "lon": 20.092
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Elbasan Arena",
+   "home": "Dinamo City",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.1159,
+    "lon": 20.092
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stadion Poljud",
+   "home": "Hajduk Split",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.5195,
+    "lon": 16.4318
+   },
+   "picked": {
+    "qid": "Q841384",
+    "label": "Stadion Poljud",
+    "lat": 43.519444,
+    "lon": 16.431667
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Ghelamco Arena",
+   "home": "KAA Gent",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.0161,
+    "lon": 3.7331
+   },
+   "picked": {
+    "qid": "Q1708705",
+    "label": "Planet Group arena",
+    "lat": 51.016111111,
+    "lon": 3.734166666
+   },
+   "distanceDeg": 0.0011,
+   "why": null
+  },
+  {
+   "venue": "Tammelan Stadion",
+   "home": "KuPS Kuopio",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 61.5004,
+    "lon": 23.7853
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Athens Olympic Stadium",
+   "home": "Panathinaikos",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.0362,
+    "lon": 23.7876
+   },
+   "picked": {
+    "qid": "Q189663",
+    "label": "Olympic Stadium in Athens",
+    "lat": 38.036111111,
+    "lon": 23.7875
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Skonto Stadions",
+   "home": "Riga FC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 56.9613,
+    "lon": 24.1163
+   },
+   "picked": {
+    "qid": "Q1474452",
+    "label": "Skonto Stadium",
+    "lat": 56.961372,
+    "lon": 24.116408
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "New Balance Arena",
+   "home": "Atalanta",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.7091,
+    "lon": 9.6808
+   },
+   "picked": {
+    "qid": "Q780526",
+    "label": "Stadio Atleti Azzurri d'Italia",
+    "lat": 45.708889,
+    "lon": 9.680833
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "De Grolsch Veste",
+   "home": "FC Twente",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.2365,
+    "lon": 6.8377
+   },
+   "picked": {
+    "qid": "Q727389",
+    "label": "De Grolsch Veste",
+    "lat": 52.236666666,
+    "lon": 6.8375
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Tynecastle Park",
+   "home": "Hearts",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 55.939,
+    "lon": -3.2323
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Europa-Park Stadion",
+   "home": "Freiburg",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.0221,
+    "lon": 7.8275
+   },
+   "picked": {
+    "qid": "Q64586775",
+    "label": "Europa-Park-Stadion",
+    "lat": 48.021536,
+    "lon": 7.830006
+   },
+   "distanceDeg": 0.0025,
+   "why": null
+  },
+  {
+   "venue": "Daio Wasabi Stayen Stadium",
+   "home": "Sint-Truidense",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.8135,
+    "lon": 5.1659
+   },
+   "picked": {
+    "qid": "Q515782",
+    "label": "Stayen",
+    "lat": 50.813611,
+    "lon": 5.165278
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "Empower Field at Mile High",
+   "home": "Broncos",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.7439,
+    "lon": -105.0195
+   },
+   "picked": {
+    "qid": "Q1046135",
+    "label": "Empower Field at Mile High",
+    "lat": 39.743888888,
+    "lon": -105.02
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Protective Stadium",
+   "home": "UAB",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.5276,
+    "lon": -86.809
+   },
+   "picked": {
+    "qid": "Q83506289",
+    "label": "Protective Stadium",
+    "lat": 33.527777777,
+    "lon": -86.808888888
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "S.B. Ballard Stadium",
+   "home": "Old Dominion",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.8889,
+    "lon": -76.3049
+   },
+   "picked": {
+    "qid": "Q5468640",
+    "label": "Kornblau Field at S.B. Ballard Stadium",
+    "lat": 36.8889,
+    "lon": -76.3049
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "BMO Field",
+   "home": "Toronto FC",
+   "games": 8,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.6333,
+    "lon": -79.4186
+   },
+   "picked": {
+    "qid": "Q796351",
+    "label": "BMO Field",
+    "lat": 43.632778,
+    "lon": -79.418611
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "BMO Field",
+   "home": "Toronto",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.6333,
+    "lon": -79.4186
+   },
+   "picked": {
+    "qid": "Q796351",
+    "label": "BMO Field",
+    "lat": 43.632778,
+    "lon": -79.418611
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "BMO Field",
+   "home": "Portugal",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.6333,
+    "lon": -79.4186
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Raiffeisen Arena (Linz)",
+   "home": "LASK Linz",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.2936,
+    "lon": 14.2766
+   },
+   "picked": {
+    "qid": "Q116693275",
+    "label": "Raiffeisen Arena",
+    "lat": 48.293717,
+    "lon": 14.276595
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Aspmyra Stadion",
+   "home": "Bodo/Glimt",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 67.2769,
+    "lon": 14.3843
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Národny Futbalovy Stadión",
+   "home": "S Bratislava",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.1635,
+    "lon": 17.1368
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Priestfield Stadium",
+   "home": "Gillingham",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.3842,
+    "lon": 0.5609
+   },
+   "picked": {
+    "qid": "Q619148",
+    "label": "Priestfield Stadium",
+    "lat": 51.384166666,
+    "lon": 0.560833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Meadow Lane",
+   "home": "Notts County",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.9427,
+    "lon": -1.1374
+   },
+   "picked": {
+    "qid": "Q1192396",
+    "label": "Meadow Lane",
+    "lat": 52.9425,
+    "lon": -1.137222
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Boundary Park",
+   "home": "Oldham",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.5552,
+    "lon": -2.1284
+   },
+   "picked": {
+    "qid": "Q895151",
+    "label": "Boundary Park",
+    "lat": 53.555277777,
+    "lon": -2.128611111
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Madejski Stadium",
+   "home": "Reading",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4223,
+    "lon": -0.983
+   },
+   "picked": {
+    "qid": "Q31656",
+    "label": "Madejski Stadium",
+    "lat": 51.422222222,
+    "lon": -0.982777777
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Bescot Stadium",
+   "home": "Walsall",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.5655,
+    "lon": -1.9906
+   },
+   "picked": {
+    "qid": "Q609268",
+    "label": "Bescot Stadium",
+    "lat": 52.565433,
+    "lon": -1.990706
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Viking Stadion",
+   "home": "Viking FK",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 58.9146,
+    "lon": 5.7308
+   },
+   "picked": {
+    "qid": "Q1417248",
+    "label": "Lyse Arena",
+    "lat": 58.914611,
+    "lon": 5.730442
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Johnny \"Red\" Floyd Stadium",
+   "home": "MTSU",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.8512,
+    "lon": -86.3683
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Selhurst Park",
+   "home": "C Palace",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.3983,
+    "lon": -0.0855
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Estadio Martínez Valero",
+   "home": "Elche",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.2662,
+    "lon": -0.6637
+   },
+   "picked": {
+    "qid": "Q953600",
+    "label": "Estadio Manuel Martínez Valero",
+    "lat": 38.266944,
+    "lon": -0.663333
+   },
+   "distanceDeg": 0.0007,
+   "why": null
+  },
+  {
+   "venue": "Mapei Stadium",
+   "home": "Sassuolo",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.7146,
+    "lon": 10.6497
+   },
+   "picked": {
+    "qid": "Q1887221",
+    "label": "Mapei Stadium - Città del Tricolore",
+    "lat": 44.714722,
+    "lon": 10.649722
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Allianz Riviera",
+   "home": "Nice",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.7051,
+    "lon": 7.1926
+   },
+   "picked": {
+    "qid": "Q127372",
+    "label": "Allianz Riviera",
+    "lat": 43.70513,
+    "lon": 7.19262
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Nissan Stadium",
+   "home": "Titans",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 36.1665,
+    "lon": -86.7713
+   },
+   "picked": {
+    "qid": "Q1142992",
+    "label": "Nissan Stadium",
+    "lat": 36.166388888,
+    "lon": -86.771388888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Nissan Stadium",
+   "home": "Ole Miss",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 36.1665,
+    "lon": -86.7713
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Caesars Superdome",
+   "home": "Saints",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.951,
+    "lon": -90.0819
+   },
+   "picked": {
+    "qid": "Q756452",
+    "label": "Caesars Superdome",
+    "lat": 29.950833333,
+    "lon": -90.081111111
+   },
+   "distanceDeg": 0.0008,
+   "why": null
+  },
+  {
+   "venue": "Acrisure Stadium",
+   "home": "Steelers",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.4467,
+    "lon": -80.0158
+   },
+   "picked": {
+    "qid": "Q1067148",
+    "label": "Acrisure Stadium",
+    "lat": 40.446666666,
+    "lon": -80.015833333
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Acrisure Stadium",
+   "home": "Pitt",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.4467,
+    "lon": -80.0158
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Northwest Stadium",
+   "home": "Commanders",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.9077,
+    "lon": -76.8645
+   },
+   "picked": {
+    "qid": "Q583085",
+    "label": "Northwest Stadium",
+    "lat": 38.907777777,
+    "lon": -76.864444444
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "State Farm Stadium",
+   "home": "Cardinals",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.5272,
+    "lon": -112.262
+   },
+   "picked": {
+    "qid": "Q756433",
+    "label": "State Farm Stadium",
+    "lat": 33.5275,
+    "lon": -112.2625
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Bank of America Stadium",
+   "home": "Charlotte FC",
+   "games": 12,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.2259,
+    "lon": -80.8529
+   },
+   "picked": {
+    "qid": "Q806673",
+    "label": "Bank of America Stadium",
+    "lat": 35.225833333,
+    "lon": -80.852777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Bank of America Stadium",
+   "home": "Charlotte",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.2259,
+    "lon": -80.8529
+   },
+   "picked": {
+    "qid": "Q806673",
+    "label": "Bank of America Stadium",
+    "lat": 35.225833333,
+    "lon": -80.852777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Bank of America Stadium",
+   "home": "Panthers",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.2259,
+    "lon": -80.8529
+   },
+   "picked": {
+    "qid": "Q806673",
+    "label": "Bank of America Stadium",
+    "lat": 35.225833333,
+    "lon": -80.852777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Bank of America Stadium",
+   "home": "Virginia",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.2259,
+    "lon": -80.8529
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Bank of America Stadium",
+   "home": "MLS All-Stars",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.2259,
+    "lon": -80.8529
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stadium of Light",
+   "home": "Sunderland",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 54.9147,
+    "lon": -1.3882
+   },
+   "picked": {
+    "qid": "Q31969",
+    "label": "Stadium of Light",
+    "lat": 54.914429068,
+    "lon": -1.388172971
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Old Trafford",
+   "home": "Man United",
+   "games": 5,
+   "verdict": "abstain",
+   "row": {
+    "lat": 53.4631,
+    "lon": -2.2914
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Spotify Camp Nou",
+   "home": "Barcelona",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.3809,
+    "lon": 2.1228
+   },
+   "picked": {
+    "qid": "Q159848",
+    "label": "Camp Nou",
+    "lat": 41.380833333,
+    "lon": 2.122777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadio Luigi Ferraris",
+   "home": "Genoa",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.4165,
+    "lon": 8.9525
+   },
+   "picked": {
+    "qid": "Q271568",
+    "label": "Stadio Luigi Ferraris",
+    "lat": 44.416431,
+    "lon": 8.952428
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Carter-Finley Stadium",
+   "home": "NC State",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.8008,
+    "lon": -78.7196
+   },
+   "picked": {
+    "qid": "Q945172",
+    "label": "Carter–Finley Stadium",
+    "lat": 35.800833333,
+    "lon": -78.719444444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Ben Hill Griffin Stadium",
+   "home": "Florida",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.65,
+    "lon": -82.3487
+   },
+   "picked": {
+    "qid": "Q816516",
+    "label": "Ben Hill Griffin Stadium",
+    "lat": 29.65,
+    "lon": -82.348611
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Dowdy-Ficklen Stadium",
+   "home": "East Carolina",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.5964,
+    "lon": -77.3653
+   },
+   "picked": {
+    "qid": "Q3038295",
+    "label": "Dowdy–Ficklen Stadium",
+    "lat": 35.5964,
+    "lon": -77.3653
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Warren McGuirk Alumni Stadium",
+   "home": "UMass",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.3773,
+    "lon": -72.536
+   },
+   "picked": {
+    "qid": "Q6588293",
+    "label": "Warren McGuirk Alumni Stadium",
+    "lat": 42.3773,
+    "lon": -72.536
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Notre Dame Stadium",
+   "home": "Notre Dame",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.6984,
+    "lon": -86.2339
+   },
+   "picked": {
+    "qid": "Q847043",
+    "label": "Notre Dame Stadium",
+    "lat": 41.69833,
+    "lon": -86.23389
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "DATCU Stadium",
+   "home": "North Texas",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.2038,
+    "lon": -97.1594
+   },
+   "picked": {
+    "qid": "Q11597",
+    "label": "DATCU Stadium",
+    "lat": 33.203611111,
+    "lon": -97.159444444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "InfoCision Stadium",
+   "home": "Akron",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.0724,
+    "lon": -81.5083
+   },
+   "picked": {
+    "qid": "Q6030359",
+    "label": "InfoCision Stadium – Summa Field",
+    "lat": 41.0723,
+    "lon": -81.508
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Waldo Stadium",
+   "home": "W Michigan",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.2858,
+    "lon": -85.6011
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Ohio Stadium",
+   "home": "Ohio State",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.0017,
+    "lon": -83.0197
+   },
+   "picked": {
+    "qid": "Q774694",
+    "label": "Ohio Stadium",
+    "lat": 40.001667,
+    "lon": -83.019722
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Donald W. Reynolds Razorback Stadium",
+   "home": "Arkansas",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.0681,
+    "lon": -94.1789
+   },
+   "picked": {
+    "qid": "Q1124181",
+    "label": "Donald W. Reynolds Razorback Stadium",
+    "lat": 36.0681,
+    "lon": -94.1789
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Beaver Stadium",
+   "home": "Penn State",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8121,
+    "lon": -77.856
+   },
+   "picked": {
+    "qid": "Q692816",
+    "label": "Beaver Stadium",
+    "lat": 40.812222222,
+    "lon": -77.856111111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Valley Children's Stadium",
+   "home": "Fresno St",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.8144,
+    "lon": -119.758
+   },
+   "picked": {
+    "qid": "Q583581",
+    "label": "Valley Children's Stadium",
+    "lat": 36.8144,
+    "lon": -119.758
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "L&N Federal Credit Union Stadium",
+   "home": "Louisville",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.206,
+    "lon": -85.7588
+   },
+   "picked": {
+    "qid": "Q3362725",
+    "label": "L&N Federal Credit Union Stadium",
+    "lat": 38.205833333,
+    "lon": -85.758888888
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Husky Stadium",
+   "home": "Washington",
+   "games": 5,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 47.6503,
+    "lon": -122.3019
+   },
+   "picked": {
+    "qid": "Q1136463",
+    "label": "Husky Stadium",
+    "lat": 47.650277777,
+    "lon": -122.301666666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Maverik Stadium",
+   "home": "Utah State",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.7518,
+    "lon": -111.8117
+   },
+   "picked": {
+    "qid": "Q7363266",
+    "label": "Maverik Stadium, Utah State",
+    "lat": 41.751667,
+    "lon": -111.811667
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "CEFCU Stadium",
+   "home": "San José St",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.3197,
+    "lon": -121.8683
+   },
+   "picked": {
+    "qid": "Q2165358",
+    "label": "CEFCU Stadium",
+    "lat": 37.319722222,
+    "lon": -121.868333333
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Rate Field",
+   "home": "White Sox",
+   "games": 43,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.8299,
+    "lon": -87.6338
+   },
+   "picked": {
+    "qid": "Q633613",
+    "label": "Rate Field",
+    "lat": 41.83,
+    "lon": -87.633888888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "AT&T Stadium",
+   "home": "Cowboys",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7478,
+    "lon": -97.0928
+   },
+   "picked": {
+    "qid": "Q838284",
+    "label": "AT&T Stadium",
+    "lat": 32.74769,
+    "lon": -97.09288
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "AT&T Stadium",
+   "home": "France",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7478,
+    "lon": -97.0928
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "AT&T Stadium",
+   "home": "Portugal",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7478,
+    "lon": -97.0928
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "AT&T Stadium",
+   "home": "Australia",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7478,
+    "lon": -97.0928
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "AT&T Stadium",
+   "home": "Ivory Coast",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7478,
+    "lon": -97.0928
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "AT&T Stadium",
+   "home": "Jordan",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7478,
+    "lon": -97.0928
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Truist Park",
+   "home": "Braves",
+   "games": 48,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.8909,
+    "lon": -84.4678
+   },
+   "picked": {
+    "qid": "Q17003430",
+    "label": "Truist Park",
+    "lat": 33.8912,
+    "lon": -84.4683
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Yankee Stadium",
+   "home": "Yankees",
+   "games": 45,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8296,
+    "lon": -73.9262
+   },
+   "picked": {
+    "qid": "Q753529",
+    "label": "Yankee Stadium",
+    "lat": 40.829569,
+    "lon": -73.926392
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Yankee Stadium",
+   "home": "New York City Football Club",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8296,
+    "lon": -73.9262
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Yankee Stadium",
+   "home": "NYCFC",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.8296,
+    "lon": -73.9262
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Petco Park",
+   "home": "Padres",
+   "games": 42,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7073,
+    "lon": -117.1566
+   },
+   "picked": {
+    "qid": "Q1194586",
+    "label": "Petco Park",
+    "lat": 32.707333,
+    "lon": -117.156944
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Eco-Power Stadium",
+   "home": "Doncaster",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.5098,
+    "lon": -1.1138
+   },
+   "picked": {
+    "qid": "Q1336402",
+    "label": "Keepmoat Stadium",
+    "lat": 53.509722,
+    "lon": -1.113889
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Highbury Stadium",
+   "home": "Fleetwood Town",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.9164,
+    "lon": -3.0247
+   },
+   "picked": {
+    "qid": "Q619024",
+    "label": "Highbury Stadium",
+    "lat": 53.916508,
+    "lon": -3.024728
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Blundell Park",
+   "home": "Grimsby",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.5702,
+    "lon": -0.0465
+   },
+   "picked": {
+    "qid": "Q3641228",
+    "label": "Blundell Park",
+    "lat": 53.570225,
+    "lon": -0.046497
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "John Smith's Stadium",
+   "home": "Huddersfield",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.6543,
+    "lon": -1.7683
+   },
+   "picked": {
+    "qid": "Q619407",
+    "label": "Kirklees Stadium",
+    "lat": 53.654166666,
+    "lon": -1.768333333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadium MK",
+   "home": "MK Dons",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.0096,
+    "lon": -0.7335
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "London Road Stadium",
+   "home": "Peterborough",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.5646,
+    "lon": -0.2402
+   },
+   "picked": {
+    "qid": "Q1156350",
+    "label": "London Road Stadium",
+    "lat": 52.564694,
+    "lon": -0.240389
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Vale Park",
+   "home": "Port Vale",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.0499,
+    "lon": -2.1926
+   },
+   "picked": {
+    "qid": "Q1724993",
+    "label": "Vale Park",
+    "lat": 53.049722,
+    "lon": -2.1925
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "AESSEAL New York Stadium",
+   "home": "Rotherham",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.4272,
+    "lon": -1.3625
+   },
+   "picked": {
+    "qid": "Q1983118",
+    "label": "New York Stadium",
+    "lat": 53.4279,
+    "lon": -1.362
+   },
+   "distanceDeg": 0.0007,
+   "why": null
+  },
+  {
+   "venue": "Lamex Stadium",
+   "home": "Stevenage",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.8897,
+    "lon": -0.1937
+   },
+   "picked": {
+    "qid": "Q619353",
+    "label": "Broadhall Way",
+    "lat": 51.889839,
+    "lon": -0.193608
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Adams Park",
+   "home": "Wycombe",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.6305,
+    "lon": -0.8003
+   },
+   "picked": {
+    "qid": "Q351946",
+    "label": "Adams Park",
+    "lat": 51.630555555,
+    "lon": -0.800277777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Broadfield Stadium",
+   "home": "Crawley",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.0996,
+    "lon": -0.1948
+   },
+   "picked": {
+    "qid": "Q609115",
+    "label": "The Peoples Pension Stadium",
+    "lat": 51.099706,
+    "lon": -0.194767
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Paycor Stadium",
+   "home": "Bengals",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.0955,
+    "lon": -84.516
+   },
+   "picked": {
+    "qid": "Q1632294",
+    "label": "Paycor Stadium",
+    "lat": 39.095444444,
+    "lon": -84.516038888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "M&T Bank Stadium",
+   "home": "Ravens",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.278,
+    "lon": -76.6227
+   },
+   "picked": {
+    "qid": "Q1141336",
+    "label": "M&T Bank Stadium",
+    "lat": 39.278055555,
+    "lon": -76.622777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Reliant Stadium",
+   "home": "Texans",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.6848,
+    "lon": -95.4108
+   },
+   "picked": {
+    "qid": "Q1058864",
+    "label": "Reliant Stadium",
+    "lat": 29.684722222,
+    "lon": -95.410833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "JobServe Community Stadium",
+   "home": "Colchester",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.9234,
+    "lon": 0.8977
+   },
+   "picked": {
+    "qid": "Q1141371",
+    "label": "Colchester Community Stadium",
+    "lat": 51.9234,
+    "lon": 0.897703
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Jerry Richardson Stadium",
+   "home": "Charlotte",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.3105,
+    "lon": -80.7402
+   },
+   "picked": {
+    "qid": "Q14707992",
+    "label": "Jerry Richardson Stadium",
+    "lat": 35.3106,
+    "lon": -80.7403
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Jack Trice Stadium",
+   "home": "Iowa State",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0141,
+    "lon": -93.6358
+   },
+   "picked": {
+    "qid": "Q3157332",
+    "label": "Jack Trice Stadium",
+    "lat": 42.014167,
+    "lon": -93.635833
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Allegacy Federal Credit Union Stadium",
+   "home": "Wake Forest",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.1306,
+    "lon": -80.2547
+   },
+   "picked": {
+    "qid": "Q1028275",
+    "label": "Allegacy Federal Credit Union Stadium",
+    "lat": 36.130556,
+    "lon": -80.254722
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Kinnick Stadium",
+   "home": "Iowa",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.6586,
+    "lon": -91.5512
+   },
+   "picked": {
+    "qid": "Q3197181",
+    "label": "Kinnick Stadium",
+    "lat": 41.658611,
+    "lon": -91.551111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Doak Campbell Stadium",
+   "home": "Florida St",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.4381,
+    "lon": -84.3044
+   },
+   "picked": {
+    "qid": "Q1233077",
+    "label": "Doak Campbell Stadium",
+    "lat": 30.438055555,
+    "lon": -84.304444444
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Center Parc Stadium",
+   "home": "Georgia St",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7354,
+    "lon": -84.3889
+   },
+   "picked": {
+    "qid": "Q28449162",
+    "label": "Center Parc Stadium",
+    "lat": 33.735277777,
+    "lon": -84.389444444
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Hancock Whitney Stadium",
+   "home": "South Alabama",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.6969,
+    "lon": -88.1924
+   },
+   "picked": {
+    "qid": "Q83590158",
+    "label": "Hancock Whitney Stadium",
+    "lat": 30.696904,
+    "lon": -88.192013
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "Los Angeles Memorial Coliseum",
+   "home": "USC",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 34.014,
+    "lon": -118.2878
+   },
+   "picked": {
+    "qid": "Q849784",
+    "label": "Los Angeles Memorial Coliseum",
+    "lat": 34.014167,
+    "lon": -118.287778
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Albertsons Stadium",
+   "home": "Boise St",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.6028,
+    "lon": -116.1965
+   },
+   "picked": {
+    "qid": "Q2926064",
+    "label": "Albertsons Stadium",
+    "lat": 43.6028,
+    "lon": -116.196
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "SHI Stadium",
+   "home": "Rutgers",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.5135,
+    "lon": -74.4652
+   },
+   "picked": {
+    "qid": "Q3453599",
+    "label": "SHI Stadium",
+    "lat": 40.513611111,
+    "lon": -74.465277777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Aggie Memorial Stadium",
+   "home": "New Mexico St",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.2797,
+    "lon": -106.7411
+   },
+   "picked": {
+    "qid": "Q4692211",
+    "label": "Aggie Memorial Stadium",
+    "lat": 32.279722,
+    "lon": -106.741111
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Daikin Park",
+   "home": "Astros",
+   "games": 41,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.7572,
+    "lon": -95.3556
+   },
+   "picked": {
+    "qid": "Q1193671",
+    "label": "Daikin Park",
+    "lat": 29.756944444,
+    "lon": -95.355555555
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "BC Place",
+   "home": "Vancouver Whitecaps FC",
+   "games": 15,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.2767,
+    "lon": -123.1119
+   },
+   "picked": {
+    "qid": "Q612227",
+    "label": "BC Place",
+    "lat": 49.276666666,
+    "lon": -123.111944444
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "BC Place",
+   "home": "Vancouver",
+   "games": 7,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.2767,
+    "lon": -123.1119
+   },
+   "picked": {
+    "qid": "Q612227",
+    "label": "BC Place",
+    "lat": 49.276666666,
+    "lon": -123.111944444
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "BC Place",
+   "home": "Switzerland",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.2767,
+    "lon": -123.1119
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Nationals Park",
+   "home": "Nationals",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.873,
+    "lon": -77.0074
+   },
+   "picked": {
+    "qid": "Q517545",
+    "label": "Nationals Park",
+    "lat": 38.8725,
+    "lon": -77.007777777
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Citizens Bank Park",
+   "home": "Phillies",
+   "games": 38,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9061,
+    "lon": -75.1665
+   },
+   "picked": {
+    "qid": "Q912770",
+    "label": "Citizens Bank Park",
+    "lat": 39.905833333,
+    "lon": -75.166666666
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Citizens Bank Park",
+   "home": "National",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.9061,
+    "lon": -75.1665
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Sutter Health Park",
+   "home": "Athletics",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.5805,
+    "lon": -121.5133
+   },
+   "picked": {
+    "qid": "Q3418115",
+    "label": "Sutter Health Park",
+    "lat": 38.580372222,
+    "lon": -121.5138
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Oracle Park",
+   "home": "Giants",
+   "games": 41,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.7786,
+    "lon": -122.3893
+   },
+   "picked": {
+    "qid": "Q298585",
+    "label": "Oracle Park",
+    "lat": 37.778333333,
+    "lon": -122.389444444
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Rogers Centre",
+   "home": "Blue Jays",
+   "games": 36,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.6414,
+    "lon": -79.3894
+   },
+   "picked": {
+    "qid": "Q76318",
+    "label": "Rogers Centre",
+    "lat": 43.641388888,
+    "lon": -79.389166666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "loanDepot park",
+   "home": "Marlins",
+   "games": 36,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 25.7781,
+    "lon": -80.2197
+   },
+   "picked": {
+    "qid": "Q1368138",
+    "label": "LoanDepot Park",
+    "lat": 25.778056,
+    "lon": -80.219722
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Comerica Park",
+   "home": "Tigers",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.339,
+    "lon": -83.0485
+   },
+   "picked": {
+    "qid": "Q868482",
+    "label": "Comerica Park",
+    "lat": 42.339166666,
+    "lon": -83.048611111
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Kauffman Stadium",
+   "home": "Royals",
+   "games": 40,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.0517,
+    "lon": -94.4803
+   },
+   "picked": {
+    "qid": "Q1737017",
+    "label": "Kauffman Stadium",
+    "lat": 39.051388888,
+    "lon": -94.480555555
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Target Field",
+   "home": "Twins",
+   "games": 36,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 44.9817,
+    "lon": -93.2776
+   },
+   "picked": {
+    "qid": "Q1156635",
+    "label": "Target Field",
+    "lat": 44.981667,
+    "lon": -93.278333
+   },
+   "distanceDeg": 0.0007,
+   "why": null
+  },
+  {
+   "venue": "T-Mobile Park",
+   "home": "Mariners",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.5914,
+    "lon": -122.3325
+   },
+   "picked": {
+    "qid": "Q1193117",
+    "label": "T-Mobile Park",
+    "lat": 47.591388888,
+    "lon": -122.3325
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Ford Field",
+   "home": "Lions",
+   "games": 3,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 42.34,
+    "lon": -83.0456
+   },
+   "picked": {
+    "qid": "Q1142586",
+    "label": "Ford Field",
+    "lat": 42.34,
+    "lon": -83.045555555
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "EverBank Stadium",
+   "home": "Jaguars",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 30.324,
+    "lon": -81.6374
+   },
+   "picked": {
+    "qid": "Q635117",
+    "label": "EverBank Field",
+    "lat": 30.323889,
+    "lon": -81.6375
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Maracanã Stadium",
+   "home": "Cowboys",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -22.9122,
+    "lon": -43.2309
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Fenway Park",
+   "home": "Red Sox",
+   "games": 38,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.3467,
+    "lon": -71.0972
+   },
+   "picked": {
+    "qid": "Q49136",
+    "label": "Fenway Park",
+    "lat": 42.346388888,
+    "lon": -71.0975
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "PNC Park",
+   "home": "Pirates",
+   "games": 38,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.4469,
+    "lon": -80.0057
+   },
+   "picked": {
+    "qid": "Q1151177",
+    "label": "PNC Park",
+    "lat": 40.446944444,
+    "lon": -80.005833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Wrigley Field",
+   "home": "Cubs",
+   "games": 40,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.9484,
+    "lon": -87.6553
+   },
+   "picked": {
+    "qid": "Q1052807",
+    "label": "Wrigley Field",
+    "lat": 41.948055555,
+    "lon": -87.655555555
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Globe Life Field",
+   "home": "Rangers",
+   "games": 44,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 32.7473,
+    "lon": -97.0847
+   },
+   "picked": {
+    "qid": "Q24284037",
+    "label": "Globe Life Field",
+    "lat": 32.74736111,
+    "lon": -97.08416667
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Coors Field",
+   "home": "Rockies",
+   "games": 40,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.7559,
+    "lon": -104.9942
+   },
+   "picked": {
+    "qid": "Q1129916",
+    "label": "Coors Field",
+    "lat": 39.756111111,
+    "lon": -104.994166666
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Oriole Park at Camden Yards",
+   "home": "Orioles",
+   "games": 38,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.2838,
+    "lon": -76.6216
+   },
+   "picked": {
+    "qid": "Q1141174",
+    "label": "Oriole Park at Camden Yards",
+    "lat": 39.283888888,
+    "lon": -76.621666666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Oakwell",
+   "home": "Barnsley",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.5522,
+    "lon": -1.4676
+   },
+   "picked": {
+    "qid": "Q1138270",
+    "label": "Oakwell",
+    "lat": 53.552222,
+    "lon": -1.4675
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Pirelli Stadium",
+   "home": "Burton Albion",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.8219,
+    "lon": -1.6269
+   },
+   "picked": {
+    "qid": "Q619136",
+    "label": "Pirelli Stadium",
+    "lat": 52.821906,
+    "lon": -1.626958
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "King Power Stadium",
+   "home": "Leicester",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.6204,
+    "lon": -1.1423
+   },
+   "picked": {
+    "qid": "Q620031",
+    "label": "Leicester City Stadium",
+    "lat": 52.620277777,
+    "lon": -1.142222222
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Home Park",
+   "home": "Plymouth",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.3881,
+    "lon": -4.1509
+   },
+   "picked": {
+    "qid": "Q619350",
+    "label": "Home Park",
+    "lat": 50.388055555,
+    "lon": -4.150833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Prenton Park",
+   "home": "Tranmere",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.3737,
+    "lon": -3.0326
+   },
+   "picked": {
+    "qid": "Q619072",
+    "label": "Prenton Park",
+    "lat": 53.373722,
+    "lon": -3.0325
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "LNER Community Stadium",
+   "home": "York City",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.9843,
+    "lon": -1.0528
+   },
+   "picked": {
+    "qid": "Q20876317",
+    "label": "York Community Stadium",
+    "lat": 53.984347636,
+    "lon": -1.052935385
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Valley Parade",
+   "home": "Bradford",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.8043,
+    "lon": -1.7592
+   },
+   "picked": {
+    "qid": "Q969279",
+    "label": "Valley Parade",
+    "lat": 53.804222222,
+    "lon": -1.759022222
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Great American Ball Park",
+   "home": "Reds",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 39.0975,
+    "lon": -84.5069
+   },
+   "picked": {
+    "qid": "Q979975",
+    "label": "Great American Ball Park",
+    "lat": 39.097222222,
+    "lon": -84.506944444
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Busch Stadium",
+   "home": "Cardinals",
+   "games": 37,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.6226,
+    "lon": -90.1928
+   },
+   "picked": {
+    "qid": "Q253546",
+    "label": "Busch Stadium",
+    "lat": 38.6225,
+    "lon": -90.193056
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Angel Stadium",
+   "home": "Angels",
+   "games": 39,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.8003,
+    "lon": -117.8827
+   },
+   "picked": {
+    "qid": "Q531897",
+    "label": "Angel Stadium of Anaheim",
+    "lat": 33.800277777,
+    "lon": -117.882777777
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Chase Field",
+   "home": "Diamondbacks",
+   "games": 34,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 33.4455,
+    "lon": -112.0667
+   },
+   "picked": {
+    "qid": "Q1068011",
+    "label": "Chase Field",
+    "lat": 33.445277777,
+    "lon": -112.066944444
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Stade de l'Abbé-Deschamps",
+   "home": "Auxerre",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.7868,
+    "lon": 3.5887
+   },
+   "picked": {
+    "qid": "Q1347183",
+    "label": "Stade de l'Abbé-Deschamps",
+    "lat": 47.78672,
+    "lon": 3.58871
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "San Mamés",
+   "home": "Athletic",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.2642,
+    "lon": -2.9494
+   },
+   "picked": {
+    "qid": "Q182864",
+    "label": "San Mamés Stadium",
+    "lat": 43.264205,
+    "lon": -2.949369
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Ramón Sánchez Pizjuán Stadium",
+   "home": "Sevilla",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.384,
+    "lon": -5.9706
+   },
+   "picked": {
+    "qid": "Q275429",
+    "label": "Ramón Sánchez Pizjuán Stadium",
+    "lat": 37.383878,
+    "lon": -5.970467
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Stadium Municipal de Toulouse",
+   "home": "Toulouse",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.5833,
+    "lon": 1.4341
+   },
+   "picked": {
+    "qid": "Q738044",
+    "label": "Stadium Municipal",
+    "lat": 43.583296,
+    "lon": 1.434055
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Rice Stadium",
+   "home": "Rice",
+   "games": 2,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 29.7163,
+    "lon": -95.4093
+   },
+   "picked": {
+    "qid": "Q1857419",
+    "label": "Rice Stadium",
+    "lat": 29.716388888,
+    "lon": -95.409166666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Northwestern Medicine Field at Martin Stadium",
+   "home": "Northwestern",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.0584,
+    "lon": -87.6708
+   },
+   "picked": {
+    "qid": "Q134722468",
+    "label": "Martin Stadium",
+    "lat": 42.058246,
+    "lon": -87.6708763
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Estadio Benito Villamarín",
+   "home": "Betis",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 37.3564,
+    "lon": -5.9811
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Lotto Park",
+   "home": "Anderlecht",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.8341,
+    "lon": 4.298
+   },
+   "picked": {
+    "qid": "Q262326",
+    "label": "Lotto Park",
+    "lat": 50.834167,
+    "lon": 4.298333
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Estadio Municipal de Butarque",
+   "home": "Rayo",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.3405,
+    "lon": -3.7607
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "London Stadium",
+   "home": "West Ham",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.5386,
+    "lon": -0.0163
+   },
+   "picked": {
+    "qid": "Q172190",
+    "label": "London Stadium",
+    "lat": 51.538611111,
+    "lon": -0.016388888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Hamilton Stadium",
+   "home": "Forge FC",
+   "games": 3,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 43.2524,
+    "lon": -79.8301
+   },
+   "picked": {
+    "qid": "Q7008048",
+    "label": "Hamilton Stadium",
+    "lat": 43.2526,
+    "lon": -79.8302
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Philips Stadion",
+   "home": "PSV",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4417,
+    "lon": 5.4674
+   },
+   "picked": {
+    "qid": "Q500972",
+    "label": "Philips Stadion",
+    "lat": 51.4417,
+    "lon": 5.4674
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Fortuna Arena",
+   "home": "Slavia Prague",
+   "games": 1,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 50.0675,
+    "lon": 14.4712
+   },
+   "picked": {
+    "qid": "Q64858",
+    "label": "Fortuna Arena",
+    "lat": 50.0675,
+    "lon": 14.4715
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Melbourne Cricket Ground",
+   "home": "Rams",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -37.82,
+    "lon": 144.9834
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "The Den",
+   "home": "Millwall",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4851,
+    "lon": -0.0509
+   },
+   "picked": {
+    "qid": "Q908481",
+    "label": "The Den",
+    "lat": 51.485833,
+    "lon": -0.050833
+   },
+   "distanceDeg": 0.0007,
+   "why": null
+  },
+  {
+   "venue": "OPAP Arena",
+   "home": "AEK Athens",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.0372,
+    "lon": 23.7411
+   },
+   "picked": {
+    "qid": "Q15284032",
+    "label": "Agia Sophia Stadium",
+    "lat": 38.03715,
+    "lon": 23.74154
+   },
+   "distanceDeg": 0.0004,
+   "why": null
+  },
+  {
+   "venue": "East Lake Golf Club",
+   "home": "TOUR Championship",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 33.7434,
+    "lon": -84.3026
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Aviva Stadium",
+   "home": "TCU",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.3351,
+    "lon": -6.2282
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Tofiq Bahramov Republican Stadium",
+   "home": "FK Qarabag",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.3975,
+    "lon": 49.8524
+   },
+   "picked": {
+    "qid": "Q1138958",
+    "label": "Tofiq Bahramov Stadium",
+    "lat": 40.397333,
+    "lon": 49.852417
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Tofiq Bahramov Republican Stadium",
+   "home": "Sabah",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.3975,
+    "lon": 49.8524
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Malsovická Aréna",
+   "home": "Hradec Králové",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.2064,
+    "lon": 15.8451
+   },
+   "picked": {
+    "qid": "Q115728674",
+    "label": "Malšovická aréna",
+    "lat": 50.2064,
+    "lon": 15.8454
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Diósgyőri Stadion",
+   "home": "Hap Tel Aviv",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.0997,
+    "lon": 20.7174
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Kybunpark",
+   "home": "St. Gallen",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 47.4085,
+    "lon": 9.3066
+   },
+   "picked": {
+    "qid": "Q292010",
+    "label": "kybunpark",
+    "lat": 47.408333,
+    "lon": 9.306389
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Stadion HNK Rijeka",
+   "home": "Rijeka",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.3433,
+    "lon": 14.3909
+   },
+   "picked": {
+    "qid": "Q7596332",
+    "label": "Stadion Rujevica",
+    "lat": 45.34744,
+    "lon": 14.400759
+   },
+   "distanceDeg": 0.0099,
+   "why": null
+  },
+  {
+   "venue": "Easter Road",
+   "home": "Hibernian",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 55.9617,
+    "lon": -3.1653
+   },
+   "picked": {
+    "qid": "Q1278116",
+    "label": "Easter Road",
+    "lat": 55.961666666,
+    "lon": -3.165555555
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Inver Park",
+   "home": "Larne",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 54.8499,
+    "lon": -5.8268
+   },
+   "picked": {
+    "qid": "Q15228765",
+    "label": "Inver Park",
+    "lat": 54.84980278,
+    "lon": -5.82625833
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "Deepdale",
+   "home": "Preston",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.7722,
+    "lon": -2.6884
+   },
+   "picked": {
+    "qid": "Q1141958",
+    "label": "Deepdale",
+    "lat": 53.772222222,
+    "lon": -2.688055555
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Allianz Stadion",
+   "home": "Rapid Vienna",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 48.1981,
+    "lon": 16.2652
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "SeatGeek Stadium",
+   "home": "Club de Fútbol Monterrey Rayados, A.C.",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.7648,
+    "lon": -87.8062
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "SeatGeek Stadium",
+   "home": "Cruz Azul",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.7648,
+    "lon": -87.8062
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "SeatGeek Stadium",
+   "home": "Chicago Fire FC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.7648,
+    "lon": -87.8062
+   },
+   "picked": {
+    "qid": "Q999781",
+    "label": "SeatGeek Stadium",
+    "lat": 41.764722222,
+    "lon": -87.806111111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Cardiff City Stadium",
+   "home": "Cardiff",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.4728,
+    "lon": -3.203
+   },
+   "picked": {
+    "qid": "Q867902",
+    "label": "Cardiff City Stadium",
+    "lat": 51.472778,
+    "lon": -3.203056
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Ewood Park",
+   "home": "Blackburn",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.7286,
+    "lon": -2.4892
+   },
+   "picked": {
+    "qid": "Q245085",
+    "label": "Ewood Park",
+    "lat": 53.728611111,
+    "lon": -2.489166666
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "St. Mary's Stadium",
+   "home": "Southampton",
+   "games": 1,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 50.9059,
+    "lon": -1.391
+   },
+   "picked": {
+    "qid": "Q567339",
+    "label": "St Mary's Stadium",
+    "lat": 50.90583333,
+    "lon": -1.39111111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "bet365 Stadium",
+   "home": "Stoke",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.9883,
+    "lon": -2.1756
+   },
+   "picked": {
+    "qid": "Q500922",
+    "label": "Britannia Stadium",
+    "lat": 52.988333333,
+    "lon": -2.175555555
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Vicarage Road",
+   "home": "Watford",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.6498,
+    "lon": -0.4015
+   },
+   "picked": {
+    "qid": "Q10626",
+    "label": "Vicarage Road",
+    "lat": 51.649928,
+    "lon": -0.401606
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "St. Andrew's Stadium",
+   "home": "Birmingham",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.4756,
+    "lon": -1.8681
+   },
+   "picked": {
+    "qid": "Q819179",
+    "label": "St Andrew's",
+    "lat": 52.475702777,
+    "lon": -1.868188888
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Bellerive Country Club",
+   "home": "BMW Championship",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 38.6617,
+    "lon": -90.4835
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Journey Bank Ballpark at Historic Bowman Field",
+   "home": "Brewers",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.2423,
+    "lon": -77.047
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Strandvallen",
+   "home": "Mjällby",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 56.0123,
+    "lon": 14.717
+   },
+   "picked": {
+    "qid": "Q1848079",
+    "label": "Strandvallen",
+    "lat": 56.0125,
+    "lon": 14.71666667
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Veritas Stadion",
+   "home": "Inter Turku",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 60.4427,
+    "lon": 22.2918
+   },
+   "picked": {
+    "qid": "Q2004864",
+    "label": "Veritas Stadion",
+    "lat": 60.442778,
+    "lon": 22.291667
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Romssa Arena",
+   "home": "Tromso",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 69.6489,
+    "lon": 18.9346
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Toumba Stadium",
+   "home": "PAOK",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 40.6135,
+    "lon": 22.9779
+   },
+   "picked": {
+    "qid": "Q1141292",
+    "label": "Toumba Stadium",
+    "lat": 40.613839,
+    "lon": 22.972422
+   },
+   "distanceDeg": 0.0055,
+   "why": null
+  },
+  {
+   "venue": "Stadiumi Fadil Vokrri",
+   "home": "Drita Gjilan",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.6629,
+    "lon": 21.157
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Stadion im. Ernesta Pohla",
+   "home": "Gornik Zabrz",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.2963,
+    "lon": 18.7685
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Vikingsvöllur",
+   "home": "Vikingur",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 64.1171,
+    "lon": -21.8526
+   },
+   "picked": {
+    "qid": "Q2333092",
+    "label": "Víkingsvöllur",
+    "lat": 64.117222,
+    "lon": -21.852778
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Stade de Tourbillon",
+   "home": "FC Sion ",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 46.2334,
+    "lon": 7.3761
+   },
+   "picked": {
+    "qid": "Q669063",
+    "label": "Stade de Tourbillon",
+    "lat": 46.233333,
+    "lon": 7.376389
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Fir Park",
+   "home": "Motherwell",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 55.7802,
+    "lon": -3.9802
+   },
+   "picked": {
+    "qid": "Q252696",
+    "label": "Fir Park",
+    "lat": 55.779947,
+    "lon": -3.980078
+   },
+   "distanceDeg": 0.0003,
+   "why": null
+  },
+  {
+   "venue": "Ibrox Stadium",
+   "home": "Rangers",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 55.8532,
+    "lon": -4.3093
+   },
+   "picked": {
+    "qid": "Q208709",
+    "label": "Ibrox Stadium",
+    "lat": 55.853055555,
+    "lon": -4.309166666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Tallaght Stadium",
+   "home": "Shamrock",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.2834,
+    "lon": -6.3738
+   },
+   "picked": {
+    "qid": "Q2459367",
+    "label": "Tallaght Stadium",
+    "lat": 53.2835,
+    "lon": -6.37374
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "One Call Stadium",
+   "home": "Mansfield",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.1381,
+    "lon": -1.2007
+   },
+   "picked": {
+    "qid": "Q619071",
+    "label": "Field Mill",
+    "lat": 53.138056,
+    "lon": -1.200556
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Sixfields Stadium",
+   "home": "Northampton",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.2352,
+    "lon": -0.9335
+   },
+   "picked": {
+    "qid": "Q619615",
+    "label": "Sixfields Stadium",
+    "lat": 52.235197,
+    "lon": -0.93345
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Edgeley Park",
+   "home": "Stockport",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.3997,
+    "lon": -2.1664
+   },
+   "picked": {
+    "qid": "Q1284381",
+    "label": "Edgeley Park",
+    "lat": 53.399722222,
+    "lon": -2.166388888
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "The Hive Stadium",
+   "home": "Barnet",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 51.6026,
+    "lon": -0.2917
+   },
+   "picked": {
+    "qid": "Q14437690",
+    "label": "The Hive Stadium",
+    "lat": 51.6026,
+    "lon": -0.291785
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "TPC Southwind",
+   "home": "FedEx St. Jude Championship",
+   "games": 5,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 35.0549,
+    "lon": -89.7831
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "NRG Stadium",
+   "home": "Texans",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.6848,
+    "lon": -95.4108
+   },
+   "picked": {
+    "qid": "Q1058864",
+    "label": "Reliant Stadium",
+    "lat": 29.684722222,
+    "lon": -95.410833333
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "NRG Stadium",
+   "home": "Canada",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.6848,
+    "lon": -95.4108
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "NRG Stadium",
+   "home": "Brazil",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 29.6848,
+    "lon": -95.4108
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Estadio Nemesio Diez",
+   "home": "Toluca FC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 19.2872,
+    "lon": -99.6666
+   },
+   "picked": {
+    "qid": "Q604859",
+    "label": "Nemesio Diez Stadium",
+    "lat": 19.287286,
+    "lon": -99.666794
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "TD Place Stadium",
+   "home": "Atlético Ottawa",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.3983,
+    "lon": -75.6836
+   },
+   "picked": {
+    "qid": "Q1442809",
+    "label": "TD Place Stadium",
+    "lat": 45.398177777,
+    "lon": -75.68365
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Sedgefield Country Club",
+   "home": "Wyndham Championship",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 36.0134,
+    "lon": -79.8872
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Turf Moor",
+   "home": "Burnley",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 53.7889,
+    "lon": -2.2302
+   },
+   "picked": {
+    "qid": "Q683112",
+    "label": "Turf Moor",
+    "lat": 53.789064,
+    "lon": -2.230225
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Pride Park",
+   "home": "Derby",
+   "games": 1,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 52.915,
+    "lon": -1.4473
+   },
+   "picked": {
+    "qid": "Q201612",
+    "label": "Pride Park Stadium",
+    "lat": 52.915,
+    "lon": -1.447222222
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Carrow Road",
+   "home": "Norwich City",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.6221,
+    "lon": 1.3093
+   },
+   "picked": {
+    "qid": "Q123017",
+    "label": "Carrow Road",
+    "lat": 52.622222222,
+    "lon": 1.309166666
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Molineux Stadium",
+   "home": "Wolves",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 52.5903,
+    "lon": -2.1304
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Riverside Stadium",
+   "home": "Boro",
+   "games": 1,
+   "verdict": "abstain",
+   "row": {
+    "lat": 54.5785,
+    "lon": -1.217
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "Estadio Banorte",
+   "home": "Club América",
+   "games": 1,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 19.303,
+    "lon": -99.1505
+   },
+   "picked": {
+    "qid": "Q320454",
+    "label": "Estadio Azteca",
+    "lat": 19.303055555,
+    "lon": -99.150555555
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Estadio Banorte",
+   "home": "Mexico",
+   "games": 2,
+   "verdict": "same-ground",
+   "row": {
+    "lat": 19.303,
+    "lon": -99.1505
+   },
+   "picked": {
+    "qid": "Q320454",
+    "label": "Estadio Azteca",
+    "lat": 19.303055555,
+    "lon": -99.150555555
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  },
+  {
+   "venue": "Detroit Golf Club",
+   "home": "Rocket Classic",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 42.4253,
+    "lon": -83.127
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "TPC Twin Cities",
+   "home": "3M Open",
+   "games": 4,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 45.1858,
+    "lon": -93.2119
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": null
+  },
+  {
+   "venue": "ATCO Field",
+   "home": "Cavalry FC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 50.8839,
+    "lon": -114.0987
+   },
+   "picked": {
+    "qid": "Q63928415",
+    "label": "ATCO Field",
+    "lat": 50.8837,
+    "lon": -114.0988
+   },
+   "distanceDeg": 0.0002,
+   "why": null
+  },
+  {
+   "venue": "Willoughby Community Park",
+   "home": "Vancouver FC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.1447,
+    "lon": -122.6651
+   },
+   "picked": {
+    "qid": "Q117100737",
+    "label": "Willoughby Community Park Stadium",
+    "lat": 49.143849,
+    "lon": -122.665662
+   },
+   "distanceDeg": 0.0009,
+   "why": null
+  },
+  {
+   "venue": "Swangard Stadium",
+   "home": "Vancouver Whitecaps FC",
+   "games": 2,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 49.2309,
+    "lon": -123.0215
+   },
+   "picked": {
+    "qid": "Q920240",
+    "label": "Swangard Stadium",
+    "lat": 49.2308,
+    "lon": -123.021
+   },
+   "distanceDeg": 0.0005,
+   "why": null
+  },
+  {
+   "venue": "TPC Deere Run",
+   "home": "John Deere Classic",
+   "games": 6,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": 41.4771,
+    "lon": -90.3921
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": "no candidate lists the home team"
+  },
+  {
+   "venue": "S.C.G.",
+   "home": "Sydney",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -33.8915,
+    "lon": 151.2245
+   },
+   "picked": null,
+   "distanceDeg": null,
+   "why": null
+  },
+  {
+   "venue": "Perth Stadium",
+   "home": "West Coast",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -31.9511,
+    "lon": 115.8891
+   },
+   "picked": {
+    "qid": "Q7170896",
+    "label": "Perth Stadium",
+    "lat": -31.9511,
+    "lon": 115.8891
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Perth Stadium",
+   "home": "Fremantle",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -31.9511,
+    "lon": 115.8891
+   },
+   "picked": {
+    "qid": "Q7170896",
+    "label": "Perth Stadium",
+    "lat": -31.9511,
+    "lon": 115.8891
+   },
+   "distanceDeg": 0,
+   "why": null
+  },
+  {
+   "venue": "Kardinia Park",
+   "home": "Geelong",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -38.1582,
+    "lon": 144.3541
+   },
+   "picked": {
+    "qid": "Q3193033",
+    "label": "Kardinia Park",
+    "lat": -38.158055555,
+    "lon": 144.354722222
+   },
+   "distanceDeg": 0.0006,
+   "why": null
+  },
+  {
+   "venue": "Adelaide Oval",
+   "home": "Port Adelaide",
+   "games": 1,
+   "verdict": "single-candidate",
+   "row": {
+    "lat": -34.9155,
+    "lon": 138.596
+   },
+   "picked": {
+    "qid": "Q2462430",
+    "label": "Adelaide Oval",
+    "lat": -34.915555555,
+    "lon": 138.596111111
+   },
+   "distanceDeg": 0.0001,
+   "why": null
+  }
+ ]
+}

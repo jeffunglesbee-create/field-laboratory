@@ -462,6 +462,33 @@ const MUTATIONS = [
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   {
+    // "Paris FC" without its FC is "Paris", the start of "Paris Saint-Germain".
+    id: 'venue-home-affix-loosened',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a home name with its own club affix is matched exactly, never loosened',
+    find: 'if (!raw.some(t => CLUB_AFFIX.has(t)) && occs.some(',
+    replace: 'if (occs.some(',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Two clubs named Rovers in two cities are not one answer.
+    id: 'venue-home-far-apart-picked',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a home team listed at candidates in different places picks nothing',
+    find: 'if (spreadOf(hit) > AMBIGUOUS_DEG) return { chosen: null,',
+    replace: 'if (false) return { chosen: null,',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // "Celtic" is also inside "Castlebar Celtic F.C." and "Derry Celtic F.C.".
+    id: 'venue-home-exact-not-first',
+    file: 'scripts/venue-source.mjs',
+    claim: 'an exact club name outranks a name that only contains it',
+    find: 'let hit = entities.filter(e => tier(e) === 1), t = 1',
+    replace: 'let hit = entities.filter(e => tier(e) > 0), t = 1',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
     // The old fillCards matched the reading's own name only: 71 chips of 73 on 2026-10-24.
     id: 'venue-reading-serves-only-its-own-name',
     file: 'src/Venues.fs',
@@ -478,6 +505,25 @@ const MUTATIONS = [
     find: 'entries |> List.filter (fun e -> coordKey e.Where = key) |> List.map (fun e -> e.Name)',
     replace: 'entries |> List.filter (fun e -> e.Name = name) |> List.map (fun e -> e.Name)',
     expect: 'node build/VerifyMain.js',
+  },
+  {
+    // A pick in another city is a collision, not the same ground.
+    id: 'venue-collision-always-same-ground',
+    file: 'scripts/venue-collisions.mjs',
+    claim: 'a home-team pick far from the table row is reported as a collision',
+    find: "!chosen ? 'abstain' : near(chosen, row, eps) ? 'same-ground' : 'collision'",
+    replace: "!chosen ? 'abstain' : true ? 'same-ground' : 'collision'",
+    expect: 'node scripts/venue-collisions.mjs --self-test',
+  },
+  {
+    // One candidate is no choice: judging it called the Brewers' Phoenix
+    // spring-training complex a collision for Milwaukee's 43 home games.
+    id: 'venue-collision-judges-single-candidate',
+    file: 'scripts/venue-collisions.mjs',
+    claim: 'a home-team pick among a single candidate is not judged',
+    find: "candidates < 2 ? 'single-candidate' :",
+    replace: "false ? 'single-candidate' :",
+    expect: 'node scripts/venue-collisions.mjs --self-test',
   },
   {
     // The stale row: Red Bull Arena at Harrison NJ, which made it an alias of

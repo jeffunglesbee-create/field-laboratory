@@ -89,10 +89,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 // The key kinds this script still asks for. A kind it no longer asks for is
 // dropped on load: the cache is committed, and a retired key is weight with no
 // reader (8.2 MB on 2026-10-22, 3.5 MB of it whole article bodies).
-const CACHE_KINDS = new Set(['wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof'])
+const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof'])
 export const liveEntries = c => Object.fromEntries(Object.entries(c).filter(([k]) => CACHE_KINDS.has(k.split('|')[0])))
-const loadCache = () => (existsSync(CACHE_PATH) ? liveEntries(JSON.parse(readFileSync(CACHE_PATH, 'utf8'))) : {})
-const saveCache = c => { mkdirSync('outbox', { recursive: true }); writeFileSync(CACHE_PATH, JSON.stringify(c, null, 1) + '\n') }
+export const loadCache = () => (existsSync(CACHE_PATH) ? liveEntries(JSON.parse(readFileSync(CACHE_PATH, 'utf8'))) : {})
+export const saveCache = c => { mkdirSync('outbox', { recursive: true }); writeFileSync(CACHE_PATH, JSON.stringify(c, null, 1) + '\n') }
 
 /** GET json, retrying 429/5xx. Returns { ok, value } or { ok:false, why }.
  *  A 429 waits what the server's Retry-After asks (else 10 s, 20 s, 40 s): run
@@ -123,7 +123,59 @@ const cached = async (cache, key, fetcher, gapMs) => {
   return result
 }
 
-const wikidata = async (name, cache) => {
+// --- the home team as a witness to WHICH venue -------------------------------
+//
+// An ambiguous name ("Celtic Park", three grounds) was refused outright. The
+// game that named the venue also names its home team, and Wikidata lists who
+// plays at each candidate (P466, and the club's own P115). One candidate listing
+// that team is evidence of which ground the name meant. It selects an entity
+// WITHIN the Wikidata family; the second family (OpenStreetMap) must still
+// agree with the point, so the home team never stands in for corroboration.
+//
+// Measured against the 109 hand-reviewed table venues before use
+// (data/venue-homes-table.json, 155 venue/home pairs, `--calibrate`).
+const CLUB_AFFIX = new Set(['fc', 'afc', 'sc', 'ss', 'as', 'ac', 'sk', 'sl', 'cd', 'fk', 'bk', 'if', 'cf', 'sv', 'vfl', 'tsg', 'tsv', 'fsv', 'rc', 'us', 'ssc', 'rfc', '1', '1899', '1903', '1909', '1913', '1860', '1946'])
+const nameTokens = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\./g, '').replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean)
+const sameTokens = (a, b) => a.length === b.length && a.every((x, i) => x === b[i])
+const prefixOf = (h, o) => o.length > h.length && h.every((x, i) => o[i] === x)
+const suffixOf = (h, o) => o.length > h.length && h.every((x, i) => o[o.length - h.length + i] === x)
+
+/** How a home team name matches a venue's listed occupants: 1 = the same name
+ *  once club affixes (FC, AS, S.L.) are dropped from both; 2 = the home name is
+ *  the start or end of an occupant's ("Washington" in "Washington Huskies",
+ *  "Lions" in "Detroit Lions"), allowed ONLY when the home name carried no club
+ *  affix itself, because "Paris FC" without its FC is "Paris", which is also the
+ *  start of "Paris Saint-Germain"; 0 = no match. */
+export const matchHome = (home, occupants) => {
+  const raw = nameTokens(home ?? '')
+  // "Michigan St" is Michigan State; an abbreviated last word is the one place
+  // a team name abbreviates, and "St" is not read as Saint anywhere else.
+  if (raw.at(-1) === 'st') raw[raw.length - 1] = 'state'
+  const h = raw.filter(t => !CLUB_AFFIX.has(t))
+  if (h.length === 0) return 0
+  const occs = occupants.map(o => nameTokens(o).filter(t => !CLUB_AFFIX.has(t)))
+  if (occs.some(o => sameTokens(h, o))) return 1
+  if (!raw.some(t => CLUB_AFFIX.has(t)) && occs.some(o => prefixOf(h, o) || suffixOf(h, o))) return 2
+  return 0
+}
+
+const spreadOf = vs => Math.max(0, ...vs.flatMap(a => vs.map(b => Math.max(Math.abs(a.lat - b.lat), Math.abs(a.lon - b.lon)))))
+
+/** Pick the one place a home team plays among candidate venues. The exact
+ *  matches decide first; looser ones only when there are none. Several matching
+ *  entities are fine when they are one place (Highmark Stadium and its former
+ *  name); matching entities in different places pick nothing. */
+export const chooseByHome = (home, entities, occupantsByQid) => {
+  if (!home) return { chosen: null, why: 'no home team' }
+  const tier = e => matchHome(home, occupantsByQid.get(e.qid) ?? [])
+  let hit = entities.filter(e => tier(e) === 1), t = 1
+  if (hit.length === 0) { hit = entities.filter(e => tier(e) === 2); t = 2 }
+  if (hit.length === 0) return { chosen: null, why: 'no candidate lists the home team' }
+  if (spreadOf(hit) > AMBIGUOUS_DEG) return { chosen: null, why: `${hit.length} candidates list the home team, in different places`, matched: hit.map(e => e.qid) }
+  return { chosen: hit[0], tier: t, matched: hit.map(e => e.qid) }
+}
+
+export const wikidata = async (name, cache, { home = null, measure = false } = {}) => {
   const q = encodeURIComponent(name)
   const found = await cached(cache, `wd-search|${name}`, () =>
     getJson(`https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${q}&language=en&type=item&limit=8&format=json`), 300)
@@ -152,10 +204,18 @@ const wikidata = async (name, cache) => {
   // and AGREE: a correlated error the calibration cannot see, because every
   // table name is unambiguous. Two venue entities more than AMBIGUOUS_DEG apart
   // under one search make the name ambiguous, and the decision goes to review.
-  const venues = [...byId.values()]
-  const spread = Math.max(0, ...venues.flatMap(a => venues.map(b => Math.max(Math.abs(a.lat - b.lat), Math.abs(a.lon - b.lon)))))
-  const ambiguous = spread > AMBIGUOUS_DEG ? venues.map(v => `${v.label} (${v.qid})`) : null
-  return { ok: true, point: { source: 'wikidata', ...byId.get(first), ambiguous } }
+  const venues = ids.filter(i => byId.has(i)).map(i => byId.get(i))
+  let ambiguous = spreadOf(venues) > AMBIGUOUS_DEG ? venues.map(v => `${v.label} (${v.qid})`) : null
+  let picked = byId.get(first), homeChoice = null
+  // The home team is asked when the name is ambiguous, and, when only measuring
+  // the matcher against known truth, for every venue that has candidates.
+  if (home && (ambiguous || measure)) {
+    const occ = await occupantsOf(venues.map(v => v.qid), cache)
+    if (!occ.ok) return { ok: false, why: `occupants: ${occ.why}` }
+    homeChoice = chooseByHome(home, venues, occ.by)
+    if (ambiguous && homeChoice.chosen) { picked = homeChoice.chosen; ambiguous = null }
+  }
+  return { ok: true, point: { source: 'wikidata', ...picked, ambiguous }, homeChoice, entities: venues }
 }
 
 const nominatim = async (name, cache) => {
@@ -177,11 +237,45 @@ const photon = async (name, cache) => {
 }
 
 /** One venue through all three sources. A source that errored is named, never read as "no hit". */
-export const lookup = async (name, cache) => {
+export const lookup = async (name, cache, opts = {}) => {
   const out = {}
-  for (const [key, fn] of [['wikidata', wikidata], ['nominatim', nominatim], ['photon', photon]]) out[key] = await fn(name, cache)
+  for (const [key, fn] of [['wikidata', wikidata], ['nominatim', nominatim], ['photon', photon]]) out[key] = await fn(name, cache, opts)
   const d = decide(Object.values(out).map(o => o.point))
   return { name, decision: d, sources: out, unanswered: Object.entries(out).filter(([, o]) => !o.ok).map(([k, o]) => `${k}: ${o.why}`) }
+}
+
+/** Who plays at each of these Wikidata venues: the clubs it lists as occupant
+ *  (P466) and the clubs that list it as their home venue (P115). Both directions,
+ *  because editors fill in either. Returns Map qid -> [label]. */
+export const occupantsOf = async (qids, cache) => {
+  const sparql = `SELECT ?item ?occLabel WHERE { VALUES ?item { ${qids.map(i => `wd:${i}`).join(' ')} } { ?item wdt:P466 ?occ } UNION { ?occ wdt:P115 ?item } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`
+  const r = await cached(cache, `wd-occupants|${[...qids].sort().join(',')}`, () =>
+    getJson(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`, { Accept: 'application/sparql-results+json' }), 300)
+  if (!r.ok) return { ok: false, why: r.why }
+  const by = new Map(qids.map(q => [q, []]))
+  for (const b of r.value.results.bindings) {
+    const q = b.item.value.split('/').pop(), label = b.occLabel?.value
+    if (label && !by.get(q).includes(label)) by.get(q).push(label)
+  }
+  return { ok: true, by }
+}
+
+/** --occupants RESULTS.json: for each ambiguous review row, what Wikidata says
+ *  plays at each of its candidate venues. Writes the measurement; decides nothing. */
+const occupants = async path => {
+  const res = JSON.parse(readFileSync(path, 'utf8'))
+  const cache = loadCache()
+  const rows = []
+  for (const v of res.review.filter(x => /^ambiguous name/.test(x.why))) {
+    const qids = [...new Set([...v.why.matchAll(/\((Q\d+)\)/g)].map(m => m[1]))]
+    const o = await occupantsOf(qids, cache)
+    rows.push({ name: v.name, home: v.home, qids, ...(o.ok ? { entities: qids.map(q => ({ qid: q, occupants: o.by.get(q) })) } : { error: o.why }) })
+    saveCache(cache)
+  }
+  mkdirSync('outbox', { recursive: true })
+  writeFileSync('outbox/venue-occupants-probe.json', JSON.stringify({ at: new Date().toISOString(), run: process.env.GITHUB_RUN_ID ?? null, from: path, of: rows.length, rows }, null, 1) + '\n')
+  console.log(`checked ${rows.length} of ${res.review.filter(x => /^ambiguous name/.test(x.why)).length} ambiguous venues; ${rows.filter(r => r.error).length} errored; ` +
+    `${rows.filter(r => r.entities?.some(e => e.occupants.length)).length} have at least one entity with a listed occupant`)
 }
 
 // --- the self-test: the rule, with no network -------------------------------
@@ -237,6 +331,20 @@ const selfTest = () => {
   check('roof: Wikidata dome beats a silent lead', decideRoof('dome', 'X is a stadium in Y.').roof === 'dome')
   check('roof: a silent lead is open, and SAID to be inferred', (r => r.roof === 'open' && /inferred/.test(r.basis))(decideRoof(null, 'X is a stadium in Y.', '')))
   check('ROOF: A SILENT LEAD WITH NO BODY IS REVIEW, the roof check never ran', decideRoof(null, 'X is a stadium in Y.', null).roof === null)
+  const E = (qid, lat, lon) => ({ qid, label: qid, lat, lon })
+  const O = o => new Map(Object.entries(o))
+  const celtic = chooseByHome('Celtic', [E('A', 54.2, -8.5), E('B', 54.9, -7.3), E('C', 55.85, -4.2)],
+    O({ A: ['Castlebar Celtic F.C.'], B: ['Derry GAA', 'Derry Celtic F.C.'], C: ['Celtic F.C.', '2019 Pro14 Grand Final'] }))
+  check('THE EXACT NAME BEATS A NAME THAT ONLY CONTAINS IT (Celtic, not Castlebar Celtic)', celtic.chosen?.qid === 'C' && celtic.tier === 1, JSON.stringify(celtic))
+  check('club affixes are dropped from both sides (Juventus / Juventus FC)', matchHome('Juventus', ['Juventus FC']) === 1)
+  check('a nickname matches the end of the full name (Lions / Detroit Lions)', matchHome('Lions', ['Detroit Lions']) === 2)
+  check('a school matches the start (Washington / Washington Huskies), St reads as State', matchHome('Washington', ['Washington Huskies']) === 2 && matchHome('Michigan St', ['Michigan State Spartans']) === 2)
+  check('A HOME NAME WITH ITS OWN CLUB AFFIX IS NOT LOOSENED (Paris FC is not Paris Saint-Germain)', matchHome('Paris FC', ['Paris Saint-Germain Féminine']) === 0 && matchHome('Paris FC', ['Paris FC']) === 1)
+  check('another state is not this one (Sacramento St / Alabama State)', matchHome('Sacramento St', ['Alabama State Hornets']) === 0)
+  check('no home team picks nothing', chooseByHome(null, [E('A', 1, 1)], O({ A: ['X'] })).chosen === null && chooseByHome('', [E('A', 1, 1)], O({ A: ['X'] })).chosen === null)
+  check('a team no candidate lists picks nothing', chooseByHome('Oklahoma', [E('A', 1, 1), E('B', 40, 40)], O({ A: ['Kansas City Chiefs'], B: [] })).chosen === null)
+  check('SAME TEAM LISTED AT TWO FAR-APART CANDIDATES PICKS NOTHING', chooseByHome('Rovers', [E('A', 51, 0), E('B', 55, 5)], O({ A: ['Bristol Rovers'], B: ['Doncaster Rovers'] })).chosen === null)
+  check('...but two entries for one place pick it (Highmark Stadium and its former name)', chooseByHome('Bills', [E('A', 42.77, -78.79), E('B', 42.77, -78.79), E('P', 40.4, -80)], O({ A: ['Buffalo Bills'], B: ['Buffalo Bills'], P: ['Pittsburgh Riverhounds SC'] })).chosen?.qid === 'A')
   check('a 429 waits what Retry-After asks', retryWait('7', 0) === 7000)
   check('...and backs off when it asks nothing', retryWait(null, 0) === 10000 && retryWait(null, 2) === 40000)
   check('the cache drops a key kind nothing asks for', Object.keys(liveEntries({ 'wp-body|X': 1, 'photon|Y': 2 })).join() === 'photon|Y')
@@ -343,7 +451,7 @@ const source = async path => {
   const cache = loadCache()
   const accepted = [], review = []
   for (const [i, c] of list.entries()) {
-    const r = await lookup(c.venue, cache)
+    const r = await lookup(c.venue, cache, { home: c.home })
     const d = r.decision
     const base = { name: c.venue, sports: c.sports, home: c.home }
     if (d.decision !== 'accepted') {
@@ -353,7 +461,8 @@ const source = async path => {
       const qid = r.sources.wikidata.point?.qid
       const roof = await roofOf(qid, cache)
       const zone = find(d.lat, d.lon)[0] ?? null
-      const row = { ...base, lat: d.lat, lon: d.lon, agreeing: d.agreeing, qid, roof: roof.roof, roofBasis: roof.basis, lead: roof.lead, zone }
+      const hc = r.sources.wikidata.homeChoice
+      const row = { ...base, lat: d.lat, lon: d.lon, agreeing: d.agreeing, qid, ...(hc?.chosen ? { via: `home team (tier ${hc.tier}, ${hc.matched.join(', ')})` } : {}), roof: roof.roof, roofBasis: roof.basis, lead: roof.lead, zone }
       // A name that says dome, read as open, is a contradiction to look at, not a pick.
       const domeName = /dome\b/i.test(c.venue) && roof.roof === 'open'
       // A second witness for the P576 filter: an article written in the past tense
@@ -396,19 +505,55 @@ const calibrate = async () => {
   const sum = { checked: n, 'accepted-correct': count('accepted-correct'), 'accepted-WRONG': count('accepted-WRONG'), review: count('review'), none: count('none'),
     withAnUnansweredSource: results.filter(r => r.unanswered.length).length,
     osmAgreedAloneAndWrong: results.filter(r => r.osmOnlyWrong).length }
+  // The home-team matcher, against the same hand-reviewed truth. Every
+  // (venue, home) pair the archive holds for a table venue is run THROUGH the
+  // matcher among that name's Wikidata candidates, ambiguous or not, and the
+  // entity it picks is compared with where the table says the venue is. A
+  // national team at a World Cup game (Switzerland at BC Place) is in the set
+  // on purpose: the right answer there is to pick nothing.
+  const homes = JSON.parse(readFileSync('data/venue-homes-table.json', 'utf8'))
+  const truthOf = new Map(table.map(v => [v.name, v]))
+  const pairs = []
+  for (const [venue, hs] of Object.entries(homes.homes)) for (const home of hs) pairs.push({ venue, home })
+  const homeTeam = []
+  for (const { venue, home } of pairs) {
+    const v = truthOf.get(venue)
+    if (!v) { homeTeam.push({ venue, home, verdict: 'not-in-table' }); continue }
+    const r = await lookup(venue, cache, { home, measure: true })
+    const w = r.sources.wikidata, hc = w.homeChoice
+    const collides = homes.collisions.some(c => c.venue === venue && c.home === home)
+    const verdict = collides ? 'collision' : !w.ok ? 'unanswered' : !hc ? 'no-candidates' : hc.chosen ? (near(hc.chosen, v) ? 'right' : 'WRONG') : 'abstain'
+    // What production would decide: the home pick standing in for Wikidata's point,
+    // and the two OpenStreetMap front ends still required to agree with it.
+    const d2 = hc?.chosen ? decide([{ source: 'wikidata', ...hc.chosen, ambiguous: null }, r.sources.nominatim.point, r.sources.photon.point]) : null
+    const combined = collides ? 'collision' : d2?.decision === 'accepted' ? (near(d2, v) ? 'accepted-right' : 'accepted-WRONG') : 'not-accepted'
+    homeTeam.push({ venue, home, verdict, combined, tier: hc?.tier ?? null, chosen: hc?.chosen ? { qid: hc.chosen.qid, label: hc.chosen.label, lat: hc.chosen.lat, lon: hc.chosen.lon } : null, why: hc?.why ?? w.why ?? null, candidates: (w.entities ?? []).length })
+    if (verdict === 'WRONG' || combined === 'accepted-WRONG') console.log(`  HOME-TEAM ${combined === 'accepted-WRONG' ? 'ACCEPTED WRONG' : 'matcher wrong'}   ${venue} / ${home} -> ${hc.chosen.label} (${hc.chosen.qid})`)
+    saveCache(cache)
+  }
+  const ht = k => homeTeam.filter(x => x.verdict === k).length
+  const hcm = k => homeTeam.filter(x => x.combined === k).length
+  sum.homeTeam = { pairs: homeTeam.length, right: ht('right'), WRONG: ht('WRONG'), abstain: ht('abstain'), noCandidates: ht('no-candidates'), unanswered: ht('unanswered'), notInTable: ht('not-in-table'), collisions: ht('collision'),
+    accepted: hcm('accepted-right') + hcm('accepted-WRONG'), acceptedRight: hcm('accepted-right'), acceptedWRONG: hcm('accepted-WRONG') }
   const NOW = new Date()
-  writeFileSync('outbox/venue-source-calibration-latest.json', JSON.stringify({ at: NOW.toISOString(), eps: EPS, summary: sum, results }, null, 2) + '\n')
+  writeFileSync('outbox/venue-source-calibration-latest.json', JSON.stringify({ at: NOW.toISOString(), eps: EPS, summary: sum, homeTeam, results }, null, 2) + '\n')
   console.log(`\n  calibration: checked ${sum.checked} of ${n} table venues  ·  accepted ${sum['accepted-correct'] + sum['accepted-WRONG']}  ·  correct ${sum['accepted-correct']}  ·  WRONG ${sum['accepted-WRONG']}  ·  review ${sum.review}  ·  none ${sum.none}`)
+  console.log(`  home-team matcher: checked ${sum.homeTeam.pairs} of ${pairs.length} venue/home pairs  ·  right ${sum.homeTeam.right}  ·  WRONG ${sum.homeTeam.WRONG}  ·  abstained ${sum.homeTeam.abstain}  ·  no candidates ${sum.homeTeam.noCandidates}  ·  unanswered ${sum.homeTeam.unanswered}  ·  named collisions ${sum.homeTeam.collisions}  ·  venue not in table ${sum.homeTeam.notInTable}`)
+  console.log(`  ...as production decides it (the home pick, plus OpenStreetMap agreeing): accepted ${sum.homeTeam.accepted}  ·  right ${sum.homeTeam.acceptedRight}  ·  WRONG ${sum.homeTeam.acceptedWRONG}`)
   console.log(`  a source went unanswered on ${sum.withAnUnansweredSource} venue(s); OSM front ends agreed alone and were wrong on ${sum.osmAgreedAloneAndWrong}\n`)
   const { check, summarize } = createChecks()
   check('every table venue was run through the rule', results.length === n && n > 0, `${results.length} of ${n}`)
   check('NO accepted point is wrong', sum['accepted-WRONG'] === 0, results.filter(r => r.verdict === 'accepted-WRONG').map(r => r.name).join(', '))
+  check('every home-team pair was run through the matcher', homeTeam.length === pairs.length && pairs.length > 0 && sum.homeTeam.notInTable === 0, `${homeTeam.length} of ${pairs.length}; ${sum.homeTeam.notInTable} venue(s) not in the table`)
+  check('the home-team rule, as production decides it, accepted NO wrong venue', sum.homeTeam.acceptedWRONG === 0, homeTeam.filter(x => x.combined === 'accepted-WRONG').map(x => `${x.venue} / ${x.home} -> ${x.chosen.label}`).join('; '))
+  check('...and it accepted something, or this is vacuous', sum.homeTeam.accepted > 0, 'no pair was accepted through the home-team path')
   finish(summarize())
 }
 
 if (isMain(import.meta.url)) {
   if (process.argv.includes('--self-test')) selfTest()
   else if (process.argv.includes('--calibrate')) await calibrate()
+  else if (process.argv.includes('--occupants')) await occupants(process.argv[process.argv.indexOf('--occupants') + 1])
   else if (process.argv.includes('--source')) await source(process.argv[process.argv.indexOf('--source') + 1])
-  else { console.error('usage: node scripts/venue-source.mjs --self-test | --calibrate | --source LIST.json'); process.exit(2) }
+  else { console.error('usage: node scripts/venue-source.mjs --self-test | --calibrate | --source LIST.json | --occupants RESULTS.json'); process.exit(2) }
 }

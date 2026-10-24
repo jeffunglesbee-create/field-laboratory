@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-20 by CC, split out of `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL — Tasks 0, 1 and 2 DONE 2026-10-22: 301 sourced venues in `src/Venues.fs`, the rest in review; done conditions 1 and 3 met. Done condition 2 (a green verify on a day whose only outdoor venues were UEFA or CFB) is read from verify on main the first such day after this lands; nothing is left to build. See `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md`.
+**Status:** PARTIAL — Tasks 0, 1 and 2 DONE 2026-10-22: 324 sourced venues in `src/Venues.fs` (301 by agreement of two sources, 23 more by the home-team rule), the rest in review; done conditions 1 and 3 met. Done condition 2 (a green verify on a day whose only outdoor venues were UEFA or CFB) is read from verify on main the first such day after this lands; nothing is left to build. See `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md` and `outbox/cc-session-2026-10-24-home-team-rule.md`. Whether any table row serves the wrong city because one name is two grounds is `docs/CC-CMD-2026-10-24-venue-name-collisions.md` (measured; the one row it flagged, Red Bull Arena, was stale after a rename and is fixed).
 
 ---
 

@@ -20,10 +20,10 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'calibrate (the 109 table venues, truth known), source (a list), or weather (the whole table, flagless, against Open-Meteo)'
+        description: 'calibrate (the 109 table venues, truth known), source (a list), weather (the whole table, flagless, against Open-Meteo), occupants (Wikidata occupants of the ambiguous venues), or collisions (the home teams seen at each table venue, against the table row)'
         required: true
         type: choice
-        options: [calibrate, source, weather]
+        options: [calibrate, source, weather, occupants, collisions]
         default: calibrate
       list:
         description: 'For source mode: path to a JSON list of names, in the repo'
@@ -68,6 +68,14 @@ jobs:
           npm i --no-save geo-tz@8.1.4
           node scripts/venue-source.mjs --source "$LIST"
 
+      - name: Who plays at each ambiguous venue (a measurement, no decision)
+        if: inputs.mode == 'occupants'
+        run: node scripts/venue-source.mjs --occupants outbox/venue-source-results-latest.json
+
+      - name: Which table rows serve the wrong city (a measurement)
+        if: inputs.mode == 'collisions'
+        run: node scripts/venue-collisions.mjs --self-test && node scripts/venue-collisions.mjs --days 120
+
       # Stage 4's acceptance: every row, sourced ones included, resolves to the
       # zone it declares, with no tolerance flag. verify runs the same check with
       # --tolerate-unreachable on every main push; this is the strict run, kept
@@ -89,7 +97,7 @@ jobs:
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
-          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-results-latest.json outbox/venue-source-cache.json outbox/venue-weather-check-latest.txt; do
+          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-results-latest.json outbox/venue-source-cache.json outbox/venue-weather-check-latest.txt outbox/venue-occupants-probe.json outbox/venue-collisions-latest.json; do
             if [ -e "$p" ]; then git add "$p"; fi
           done
           git diff --cached --quiet && echo "no change" && exit 0

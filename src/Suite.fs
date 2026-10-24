@@ -383,9 +383,10 @@ let private weather () =
       Verify.check "every venue on the 2026-10-20 slate is accounted for"
           (fun slate ->
               let notYetCarried =
-                  // The other eight were sourced (venue-source run 39832949207); these
-                  // two are ambiguous names, in its review list.
-                  [ "Olimpico"; "Stadio Diego Armando Maradona" ]
+                  // The other nine were sourced (venue-source run 40119286792; Maradona
+                  // by the home-team rule). This one is an ambiguous name, still in
+                  // its review list: OpenStreetMap does not agree with the pick.
+                  [ "Olimpico" ]
               let inTable n = (Venues.tryFind n).IsSome
               let accounted n = inTable n || Venues.isIndoorArena n || List.contains n notYetCarried
               List.forall accounted slate && List.exists inTable slate)

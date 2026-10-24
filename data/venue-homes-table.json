@@ -1,0 +1,314 @@
+{
+ "source": "field-archive D1 (cc49101c), regular_season_games UNION postseason_games, queried 2026-10-24 for the 109 hand-reviewed table venues",
+ "pairs": 155,
+ "homes": {
+  "Adelaide Oval": [
+   "Port Adelaide",
+   "Adelaide",
+   "Hawthorn",
+   "Essendon",
+   "Collingwood"
+  ],
+  "Allianz Arena": [
+   "Bayern"
+  ],
+  "Allianz Field": [
+   "Minnesota United FC",
+   "Minnesota",
+   "Club Tigres"
+  ],
+  "America First Field": [
+   "Real Salt Lake",
+   "Salt Lake",
+   "Club Tigres"
+  ],
+  "American Family Field": [
+   "Brewers"
+  ],
+  "Anfield": [
+   "Liverpool"
+  ],
+  "Angel Stadium": [
+   "Angels"
+  ],
+  "Audi Field": [
+   "D.C. United"
+  ],
+  "BC Place": [
+   "Vancouver Whitecaps FC",
+   "Vancouver",
+   "Switzerland",
+   "New Zealand",
+   "Canada",
+   "Australia"
+  ],
+  "BMO Field": [
+   "Toronto FC",
+   "Toronto",
+   "Senegal",
+   "Portugal",
+   "Panama",
+   "Ghana",
+   "Germany",
+   "Canada"
+  ],
+  "BMO Stadium": [
+   "Los Angeles Football Club",
+   "LAFC",
+   "Toluca FC"
+  ],
+  "Bank of America Stadium": [
+   "Charlotte FC",
+   "Charlotte",
+   "Panthers",
+   "Virginia",
+   "MLS All-Stars"
+  ],
+  "Busch Stadium": [
+   "Cardinals"
+  ],
+  "Chase Field": [
+   "Diamondbacks"
+  ],
+  "Citi Field": [
+   "Mets",
+   "New York City Football Club",
+   "NYCFC"
+  ],
+  "Citizens Bank Park": [
+   "Phillies",
+   "National"
+  ],
+  "Comerica Park": [
+   "Tigers"
+  ],
+  "Coors Field": [
+   "Rockies"
+  ],
+  "Craven Cottage": [
+   "Fulham"
+  ],
+  "DICK'S Sporting Goods Park": [
+   "Colorado Rapids",
+   "Club León"
+  ],
+  "Daikin Park": [
+   "Astros"
+  ],
+  "Dignity Health Sports Park": [
+   "LA Galaxy",
+   "Club América"
+  ],
+  "Dodger Stadium": [
+   "Dodgers"
+  ],
+  "East Lake Golf Club": [
+   "TOUR Championship"
+  ],
+  "Etihad Stadium": [
+   "Man City"
+  ],
+  "Europa-Park Stadion": [
+   "Freiburg"
+  ],
+  "Fenway Park": [
+   "Red Sox"
+  ],
+  "GEODIS Park": [
+   "Nashville SC",
+   "Nashville",
+   "Club de Fútbol Monterrey Rayados, A.C."
+  ],
+  "Gillette Stadium": [
+   "New England Revolution",
+   "New England",
+   "Patriots",
+   "Scotland",
+   "Norway",
+   "Iraq",
+   "Haiti",
+   "Germany",
+   "France",
+   "England"
+  ],
+  "Globe Life Field": [
+   "Rangers"
+  ],
+  "Great American Ball Park": [
+   "Reds"
+  ],
+  "Inter&Co Stadium": [
+   "Orlando",
+   "Orlando City"
+  ],
+  "Kauffman Stadium": [
+   "Royals"
+  ],
+  "London Stadium": [
+   "West Ham United",
+   "West Ham"
+  ],
+  "Lumen Field": [
+   "Seattle Sounders FC",
+   "Seattle",
+   "Seahawks",
+   "Belgium",
+   "United States",
+   "USA",
+   "Egypt",
+   "Bosnia-Herz"
+  ],
+  "Marrara Oval": [
+   "Gold Coast"
+  ],
+  "Melbourne Cricket Ground": [
+   "Rams"
+  ],
+  "Mercedes-Benz Stadium": [
+   "Atlanta United",
+   "Atlanta",
+   "Falcons",
+   "Spain",
+   "England",
+   "Morocco",
+   "Czechia",
+   "Congo DR",
+   "Auburn",
+   "Argentina"
+  ],
+  "Nationals Park": [
+   "Nationals"
+  ],
+  "Oracle Park": [
+   "Giants"
+  ],
+  "PNC Park": [
+   "Pirates"
+  ],
+  "PayPal Park": [
+   "San Jose Earthquakes",
+   "San Jose",
+   "Chivas de Guadalajara"
+  ],
+  "Petco Park": [
+   "Padres"
+  ],
+  "Progressive Field": [
+   "Guardians"
+  ],
+  "Providence Park": [
+   "Portland Timbers",
+   "Portland",
+   "Club América"
+  ],
+  "Q2 Stadium": [
+   "Austin FC",
+   "Austin",
+   "Club América"
+  ],
+  "Rate Field": [
+   "White Sox"
+  ],
+  "Red Bull Arena": [
+   "Red Bull NY",
+   "RB Leipzig",
+   "Crystal Palace"
+  ],
+  "Riverside Stadium": [
+   "Boro"
+  ],
+  "Rogers Centre": [
+   "Blue Jays"
+  ],
+  "S.C.G.": [
+   "Sydney"
+  ],
+  "Selhurst Park": [
+   "C Palace"
+  ],
+  "Shell Energy Stadium": [
+   "Houston Dynamo FC",
+   "Houston"
+  ],
+  "Snapdragon Stadium": [
+   "San Diego FC",
+   "San Diego",
+   "San Diego St"
+  ],
+  "Soldier Field": [
+   "Chicago Fire FC",
+   "Chicago",
+   "Bears"
+  ],
+  "Sporting Park": [
+   "Sporting Kansas City",
+   "Kansas City"
+  ],
+  "Stade Saputo": [
+   "CF Montréal",
+   "FC Supra du Québec"
+  ],
+  "Stade de la Meinau": [
+   "Strasbourg"
+  ],
+  "Stadium of Light": [
+   "Sunderland"
+  ],
+  "Subaru Park": [
+   "Philadelphia Union",
+   "Philadelphia",
+   "Cruz Azul"
+  ],
+  "Sutter Health Park": [
+   "Athletics"
+  ],
+  "T-Mobile Park": [
+   "Mariners"
+  ],
+  "TPC Twin Cities": [
+   "3M Open"
+  ],
+  "TQL Stadium": [
+   "FC Cincinnati",
+   "Cincinnati"
+  ],
+  "Target Field": [
+   "Twins"
+  ],
+  "The Den": [
+   "Millwall"
+  ],
+  "Toyota Stadium": [
+   "FC Dallas",
+   "Dallas"
+  ],
+  "Tropicana Field": [
+   "Rays",
+   "Red Sox"
+  ],
+  "Turf Moor": [
+   "Burnley"
+  ],
+  "Villa Park": [
+   "Aston Villa"
+  ],
+  "Wrigley Field": [
+   "Cubs"
+  ],
+  "Yankee Stadium": [
+   "Yankees",
+   "NYCFC",
+   "New York City Football Club"
+  ],
+  "loanDepot park": [
+   "Marlins"
+  ]
+ },
+ "collisions": [
+  {
+   "venue": "Red Bull Arena",
+   "home": "Red Bull NY",
+   "why": "games from before the rename. The New Jersey ground is filed as Sports Illustrated Stadium from 2026-09-30 and 'Red Bull Arena' is RB Leipzig's (field-archive D1, queried 2026-10-24: Red Bull Arena / Red Bull NY last 2026-09-26). The table row is now Leipzig's (96fae24), so these pre-rename pairs are history, not a check of the matcher."
+  }
+ ]
+}
