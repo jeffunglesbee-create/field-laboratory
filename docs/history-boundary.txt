@@ -451,4 +451,51 @@
 #
 # The governed violation count is 0 again.
 
-aa1e9b5d576ca814d95be8bbdec273565da6d2b4  36
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-10-24, FROM aa1e9b5 / 36 TO 711f9d2206fb56c249776a00b83406838054c3dc / 37
+#
+# The sixth move, and the owner's call: asked on 2026-10-24 whether to move it or
+# leave main's verify red, the answer was to move it.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — exactly one commit:
+#
+#   e12a44a  probe: the client's live slate, moved here from jubilant-bassoon
+#
+# It added scripts/client-sections-probe.mjs (moved from jubilant-bassoon on the
+# owner's word, under LAB-FIRST-A) with no outbox entry. A real violation,
+# correctly surfaced. verify run 40116546191 failed on it by name, and so did
+# 40120271188. It is not mine; it was authored `FIELD CI` at 17:31Z by another
+# session.
+#
+# WHY THE GUARD DID NOT FIRE — NOT ESTABLISHED, AND NOT GUESSED
+#
+# The 10-09 entry named the first thing to look at if this moved a sixth time:
+# the environment's Setup script field (docs/SETUP-SCRIPT.md). Whether that
+# session had core.hooksPath set was not measured from here, and the 10-09 entry
+# showed how easily a plausible cause is written down as if it were one. The
+# same commit also failed check:import-purity, which the same pre-commit hook
+# runs, so the hook very likely did not run for it at all — that is an inference
+# from two checks failing together, not an observation of that session.
+#
+# What IS measured: the import-purity half is fixed (711f9d2, below), and this
+# session's hook ran on every commit it made.
+#
+# WHY 711f9d2 IS THE BOUNDARY
+#
+# First commit after the violation that obeys the rule affirmatively: it ships
+# scripts/client-sections-probe.mjs BESIDE
+# outbox/cc-session-2026-10-24-client-sections-probe-import-guard.md. The two
+# commits between e12a44a and it (46e17c7, 5a4e113) are generated status
+# refreshes that touch no source.
+#
+# HOW 37 WAS DERIVED
+#
+# 36 + 1. `check:history` on a FULL clone (git rev-parse --is-shallow-repository:
+# false; 2343 commits) reported "predating the rule: 36 (declared 36)" against
+# boundary aa1e9b5 and named exactly one governed violation, e12a44a. Moving past
+# it moves it from governed to predating. CI remains the authority if the two
+# ever disagree.
+#
+# The governed violation count is 0 again.
+
+711f9d2206fb56c249776a00b83406838054c3dc  37
