@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `2e7c60b`
+**FAILURE** on `2e7c60b` at "Source and outbox changed together, every commit" — 1 of 85 steps did not run behind it — [run 40120271188](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40120271188)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `2e7c60b` — failing step unknown: the run's steps could not be read — [run 40120303991](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40120303991)
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `db42363` — failing step unknown: the run's steps could not be read — [run 40120716439](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40120716439)
 
 ## Is it published?
 
