@@ -34,3 +34,19 @@ verify 40116546191 has two other red steps on `e12a44a`:
 - `Render check against the LIVE slate`: 73 known venues, 71 chips filled in the
   20 s wait, `page.waitForFunction` timeout, the page reporting nothing. Not
   reproduced or diagnosed here.
+
+## A mistake in this commit, found and removed
+
+`711f9d2` also committed a `node_modules` symlink (mode 120000). I had symlinked
+`node_modules` into a scratch worktree to run the checks, then used `git add -A`
+there. `.gitignore`'s `node_modules/` matches a directory, not a symlink, so the
+link was staged. It reached `origin/main`, and checking it out in the main
+working copy replaced the real `node_modules` directory with a link pointing at
+itself: every `npm run` then failed with `spawn ELOOP` and no output, which
+looked like a failing check (`check:clean-source` exit 216) until the npm debug
+log named it.
+
+Removed in the next commit; `node_modules` restored with `npm ci`. Nothing else
+in the repo reads a committed `node_modules`. Lesson for the next scratch
+worktree: stage by path, never `git add -A`, and run `git show --stat` before
+pushing.
