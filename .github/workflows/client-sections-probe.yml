@@ -1,0 +1,64 @@
+# Does the CLIENT's live slate give every sport that has games today a section
+# of cards? scripts/client-sections-probe.mjs, run against the deployed client.
+#
+# Moved here 2026-10-24 from jubilant-bassoon's today-sections-probe.yml, on the
+# owner's word (LAB-FIRST-A: new proofs belong in this repo). It exists because
+# the live client held 12 NHL and 8 NBA games and rendered no card for either,
+# while every source-reading check was green:
+# jubilant-bassoon docs/CC-CMD-2026-10-24-nhl-nba-today-sections.md.
+#
+# Dispatch-only, with no schedule: it answers a question after a client deploy;
+# it is not a monitor, and a monitor is a recurring Actions cost
+# (CLAUDE.md, "Actions budget").
+name: client-sections-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      watch:
+        description: 'Comma-separated V2 keys to judge, as the client names them. Default nhl,nba.'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: The verdict logic, before it judges anything
+        run: node scripts/client-sections-probe.mjs --self-test
+      - name: Probe the live client
+        id: probe
+        continue-on-error: true
+        run: node scripts/client-sections-probe.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+        env:
+          WATCH: ${{ inputs.watch || 'nhl,nba' }}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/client-sections-probe-* 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: the client's sections on the live page [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's verdict decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "client-sections-probe failed: a watched sport had games today and no cards, could not be judged, or the probe crashed"
+          exit 1
