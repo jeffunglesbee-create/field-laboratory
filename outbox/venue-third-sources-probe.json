@@ -1,0 +1,788 @@
+{
+ "at": "2026-10-24T22:20:05.821Z",
+ "run": "40137851977",
+ "from": "data/venue-cfb-gaps-2026-10-24.json",
+ "of": 12,
+ "rows": [
+  {
+   "venue": "Flagler Credit Union Stadium",
+   "home": "FAU",
+   "sport": "CFB",
+   "why": "no two independent families agree (photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Florida Atlantic Owls football",
+     "Flagler Credit Union Stadium",
+     "LaJohntay Wester"
+    ],
+    "qid": "Q5461197",
+    "venues": [
+     {
+      "qid": "Q5513195",
+      "label": "FAU Stadium",
+      "lat": 26.375278,
+      "lon": -80.100278
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "photon",
+     "lat": 36.130554,
+     "lon": -80.2546325,
+     "label": "Allegacy Federal Credit Union Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Truist Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Truist Field, Piccolo Lane, Winston-Salem, Forsyth County, North Carolina, 27109, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 26.375278,
+     "lon": -80.100278,
+     "label": "FAU Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Florida Atlantic University - Boca Raton Campus",
+      "category": "amenity",
+      "type": "university",
+      "display": "Florida Atlantic University - Boca Raton Campus, 777, Glades Road, Boca Raton, Palm Beach County, Florida, 33431, United"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Ryan Field",
+   "home": "Northwestern",
+   "sport": "CFB",
+   "why": "no two independent families agree (wikidata, nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": [
+     {
+      "name": "Ryan Field",
+      "lat": 32.13882,
+      "lon": -111.17522,
+      "code": "AIRF",
+      "admin1": "Arizona",
+      "country": "US"
+     },
+     {
+      "name": "Ryan Field Airport",
+      "lat": 48.48279,
+      "lon": -113.96008,
+      "code": "AIRF",
+      "admin1": "Montana",
+      "country": "US"
+     }
+    ]
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Northwestern Wildcats football",
+     "2026 Northwestern Wildcats football team",
+     "Northwestern State Demons football"
+    ],
+    "qid": "Q7060413",
+    "venues": []
+   },
+   "points": [
+    {
+     "from": "wikidata",
+     "lat": 42.08750945,
+     "lon": -87.700625419,
+     "label": "Ryan Field",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "amenity",
+      "type": "parking",
+      "display": "Sheridan Road, Wilmette, New Trier Township, Cook County, Illinois, 60091, United States"
+     }
+    },
+    {
+     "from": "nominatim",
+     "lat": 42.0654043,
+     "lon": -87.6914888,
+     "label": "Ryan Field, 1501, Central Street, Evanston, Evanston Township, Cook County, Illinois, 60201, United States",
+     "reverse": {
+      "ok": true,
+      "name": "Ryan Field",
+      "category": "building",
+      "type": "stadium",
+      "display": "Ryan Field, 1501, Central Street, Evanston, Evanston Township, Cook County, Illinois, 60201, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 42.0654043,
+     "lon": -87.6914888,
+     "label": "Ryan Field",
+     "reverse": {
+      "ok": true,
+      "name": "Ryan Field",
+      "category": "building",
+      "type": "stadium",
+      "display": "Ryan Field, 1501, Central Street, Evanston, Evanston Township, Cook County, Illinois, 60201, United States"
+     }
+    },
+    {
+     "from": "geonames",
+     "lat": 32.13882,
+     "lon": -111.17522,
+     "label": "Ryan Field AIRF Arizona",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "aeroway",
+      "type": "parking_position",
+      "display": "Aviator Lane, Pima County, Arizona, 85735, United States"
+     }
+    },
+    {
+     "from": "geonames",
+     "lat": 48.48279,
+     "lon": -113.96008,
+     "label": "Ryan Field Airport AIRF Montana",
+     "reverse": {
+      "ok": true,
+      "name": "Ryan Field",
+      "category": "aeroway",
+      "type": "aerodrome",
+      "display": "Ryan Field, Ryan Road, West Glacier, Flathead County, Montana, 59936, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Zoeller Field at Dix Stadium",
+   "home": "Kent State",
+   "sport": "CFB",
+   "why": "no two independent families agree (photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Kent State Golden Flashes football",
+     "1972 Kent State Golden Flashes football team",
+     "2026 Kent State Golden Flashes football team"
+    ],
+    "qid": "Q3814673",
+    "venues": [
+     {
+      "qid": "Q5284768",
+      "label": "Dix Stadium",
+      "lat": 41.139167,
+      "lon": -81.313333
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "photon",
+     "lat": 14.9276855,
+     "lon": 102.0463958,
+     "label": "Artificial turf field at the 80th Birthday Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Artificial turf field at the 80th Birthday Stadium",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Artificial turf field at the 80th Birthday Stadium, ซอยแสนสุข 3, หนองไผ่ล้อม, บ้านบุญเรือง, ปรุใหญ่, อำเภอเมืองนครราชสีม"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 41.139167,
+     "lon": -81.313333,
+     "label": "Dix Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Zoeller Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Zoeller Field, The North Patio, Kent, Portage County, Ohio, 44242, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Broadview Stadium",
+   "home": "Buffalo",
+   "sport": "CFB",
+   "why": "no two independent families agree (nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Buffalo Bulls football",
+     "Buffalo Bills",
+     "Buffalo"
+    ],
+    "qid": "Q4985682",
+    "venues": [
+     {
+      "qid": "Q7894992",
+      "label": "University at Buffalo Stadium",
+      "lat": 42.999167,
+      "lon": -78.7775
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "nominatim",
+     "lat": 42.9990586,
+     "lon": -78.7774413,
+     "label": "Broadview Stadium, Stampede Square, South Lake Village, Eggertsville, Town of Amherst, Erie County, New York, 14260, United States",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Stampede Square, South Lake Village, Eggertsville, Town of Amherst, Erie County, New York, 14260, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 42.9990586,
+     "lon": -78.7774413,
+     "label": "Broadview Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Stampede Square, South Lake Village, Eggertsville, Town of Amherst, Erie County, New York, 14260, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 42.999167,
+     "lon": -78.7775,
+     "label": "University at Buffalo Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Stampede Square, South Lake Village, Eggertsville, Town of Amherst, Erie County, New York, 14260, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Veterans Memorial Stadium (AL)",
+   "home": "Troy",
+   "sport": "CFB",
+   "why": "no two independent families agree (nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Troy Trojans football",
+     "2026 Troy Trojans football team",
+     "Troy Aikman"
+    ],
+    "qid": "Q7847015",
+    "venues": [
+     {
+      "qid": "Q7923659",
+      "label": "Veterans Memorial Stadium",
+      "lat": 31.7994,
+      "lon": -85.9519
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "nominatim",
+     "lat": 31.7996004,
+     "lon": -85.9519633,
+     "label": "Veterans Memorial Stadium, 338, South George Wallace Drive, Woodland Hills, Troy, Pike County, Alabama, 36082, United States",
+     "reverse": {
+      "ok": true,
+      "name": "Larry Blakeney Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Larry Blakeney Field, South George Wallace Drive, Woodland Hills, Troy, Pike County, Alabama, 36081, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 31.7996004,
+     "lon": -85.9519633,
+     "label": "Veterans Memorial Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Larry Blakeney Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Larry Blakeney Field, South George Wallace Drive, Woodland Hills, Troy, Pike County, Alabama, 36081, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 31.7994,
+     "lon": -85.9519,
+     "label": "Veterans Memorial Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Larry Blakeney Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Larry Blakeney Field, South George Wallace Drive, Woodland Hills, Troy, Pike County, Alabama, 36081, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "M. M. Roberts Stadium",
+   "home": "Southern Miss",
+   "sport": "CFB",
+   "why": "no two independent families agree (wikidata, nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Southern Miss Golden Eagles football",
+     "1989 Southern Miss Golden Eagles football team",
+     "2026 Southern Miss Golden Eagles football team"
+    ],
+    "qid": "Q7570145",
+    "venues": [
+     {
+      "qid": "Q3272445",
+      "label": "M. M. Roberts Stadium",
+      "lat": 31.328889,
+      "lon": -89.331389
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "wikidata",
+     "lat": 31.328889,
+     "lon": -89.331389,
+     "label": "M. M. Roberts Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "College Drive, Hattiesburg, Forrest County, Mississippi, 39406, United States"
+     }
+    },
+    {
+     "from": "nominatim",
+     "lat": 30.5319402,
+     "lon": -89.6851939,
+     "label": "M. M. Roberts Stadium, 3rd Avenue, Picayune, Pearl River County, Mississippi, 39466, United States",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "3rd Avenue, Picayune, Pearl River County, Mississippi, 39466, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 30.5319402,
+     "lon": -89.6851939,
+     "label": "M. M. Roberts Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "3rd Avenue, Picayune, Pearl River County, Mississippi, 39466, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 31.328889,
+     "lon": -89.331389,
+     "label": "M. M. Roberts Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "College Drive, Hattiesburg, Forrest County, Mississippi, 39406, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Memorial Stadium (Clemson, SC)",
+   "home": "Clemson",
+   "sport": "CFB",
+   "why": "no two independent families agree (photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "2018 Clemson Tigers football team",
+     "Clemson Tigers football",
+     "2019 College Football Playoff National Championship"
+    ],
+    "qid": "Q48851688",
+    "venues": [
+     {
+      "qid": "Q543579",
+      "label": "Memorial Stadium, Clemson",
+      "lat": 34.678611111,
+      "lon": -82.843055555
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "photon",
+     "lat": 34.6787669,
+     "lon": -82.8434264,
+     "label": "Memorial Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Williamson Road, Pickens County, South Carolina, 29634, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 34.678611111,
+     "lon": -82.843055555,
+     "label": "Memorial Stadium, Clemson",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Williamson Road, Pickens County, South Carolina, 29634, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Casino Del Sol Stadium",
+   "home": "Arizona",
+   "sport": "CFB",
+   "why": "no two independent families agree (photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Arizona Wildcats football",
+     "Arizona State Sun Devils football",
+     "2026 Arizona Wildcats football team"
+    ],
+    "qid": "Q4791461",
+    "venues": [
+     {
+      "qid": "Q947065",
+      "label": "Arizona Stadium",
+      "lat": 32.228889,
+      "lon": -110.948889
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "photon",
+     "lat": 34.2050256,
+     "lon": -119.162062,
+     "label": "Del Sol Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Del Sol Stadium",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Del Sol Stadium, Dolores Court, Oxnard, Ventura County, California, 93030, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 32.228889,
+     "lon": -110.948889,
+     "label": "Arizona Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Vine Avenue, Tucson, Pima County, Arizona, 85709, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "Kenan Stadium",
+   "home": "North Carolina",
+   "sport": "CFB",
+   "why": "no two independent families agree (nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "North Carolina Tar Heels football",
+     "North Carolina A&T Aggies football",
+     "NC State Wolfpack football"
+    ],
+    "qid": "Q7054630",
+    "venues": [
+     {
+      "qid": "Q1627986",
+      "label": "Kenan Memorial Stadium",
+      "lat": 35.906944,
+      "lon": -79.047778
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "nominatim",
+     "lat": 35.9069432,
+     "lon": -79.0478199,
+     "label": "Kenan Stadium, 104, Stadium Drive, Downtown, Chapel Hill, Orange County, North Carolina, 27514, United States",
+     "reverse": {
+      "ok": true,
+      "name": "Chris Smith Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Chris Smith Field, Stadium Drive, Downtown, Chapel Hill, Orange County, North Carolina, 27514, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 35.9069432,
+     "lon": -79.0478199,
+     "label": "Kenan Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Chris Smith Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Chris Smith Field, Stadium Drive, Downtown, Chapel Hill, Orange County, North Carolina, 27514, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 35.906944,
+     "lon": -79.047778,
+     "label": "Kenan Memorial Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Chris Smith Field",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Chris Smith Field, Stadium Drive, Downtown, Chapel Hill, Orange County, North Carolina, 27514, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "DKR-Texas Memorial Stadium",
+   "home": "Texas",
+   "sport": "CFB",
+   "why": "no two independent families agree (photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Texas College",
+     "Texas Tech Red Raiders football",
+     "Texas Longhorns football"
+    ],
+    "qid": "Q7707584",
+    "venues": []
+   },
+   "points": [
+    {
+     "from": "photon",
+     "lat": 30.2838412,
+     "lon": -97.7333527,
+     "label": "DKR Memorial Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "L. Theo Bellmont Hall",
+      "category": "building",
+      "type": "university",
+      "display": "L. Theo Bellmont Hall, 2109, San Jacinto Boulevard, Austin, Travis County, Texas, 78712, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "UFCU Stadium",
+   "home": "Texas St",
+   "sport": "CFB",
+   "why": "no two independent families agree (nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "Tarleton State Texans football",
+     "2005 Texas Longhorns football team",
+     "2026 Texas Longhorns football team"
+    ],
+    "qid": "Q85847627",
+    "venues": [
+     {
+      "qid": "Q6815523",
+      "label": "Memorial Stadium",
+      "lat": 32.215,
+      "lon": -98.224
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "nominatim",
+     "lat": 29.8910593,
+     "lon": -97.9255534,
+     "label": "UFCU Stadium, 1100, Aquarena Springs Drive, Millview West, San Marcos, Hays County, Texas, 78666, United States",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Stadium Drive, Millview West, San Marcos, Hays County, Texas, 78666, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 29.8910593,
+     "lon": -97.9255534,
+     "label": "UFCU Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Stadium Drive, Millview West, San Marcos, Hays County, Texas, 78666, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 32.215,
+     "lon": -98.224,
+     "label": "Memorial Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "Memorial Stadium",
+      "category": "leisure",
+      "type": "stadium",
+      "display": "Memorial Stadium, 1333, West Washington Street, Stephenville, Erath County, Texas, 76401, United States"
+     }
+    }
+   ]
+  },
+  {
+   "venue": "University Stadium (NM)",
+   "home": "New Mexico",
+   "sport": "CFB",
+   "why": "no two independent families agree (nominatim, photon)",
+   "geonames": {
+    "ok": true,
+    "hits": []
+   },
+   "teamVenue": {
+    "ok": true,
+    "titles": [
+     "New Mexico Lobos football",
+     "2023 New Mexico Lobos football team",
+     "New Mexico State Aggies football"
+    ],
+    "qid": "Q17107975",
+    "venues": [
+     {
+      "qid": "Q936242",
+      "label": "University Stadium",
+      "lat": 35.066944,
+      "lon": -106.628333
+     }
+    ]
+   },
+   "points": [
+    {
+     "from": "nominatim",
+     "lat": 35.0669178,
+     "lon": -106.6282458,
+     "label": "University Stadium, 1414, University Boulevard Southeast, Nob Hill, Albuquerque, Bernalillo County, New Mexico, 87106, United States",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Avenida César Chávez Southeast, Nob Hill, Albuquerque, Bernalillo County, New Mexico, 87106, United States"
+     }
+    },
+    {
+     "from": "photon",
+     "lat": 35.0669178,
+     "lon": -106.6282458,
+     "label": "University Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Avenida César Chávez Southeast, Nob Hill, Albuquerque, Bernalillo County, New Mexico, 87106, United States"
+     }
+    },
+    {
+     "from": "team-venue",
+     "lat": 35.066944,
+     "lon": -106.628333,
+     "label": "University Stadium",
+     "reverse": {
+      "ok": true,
+      "name": "",
+      "category": "leisure",
+      "type": "pitch",
+      "display": "Avenida César Chávez Southeast, Nob Hill, Albuquerque, Bernalillo County, New Mexico, 87106, United States"
+     }
+    }
+   ]
+  }
+ ]
+}

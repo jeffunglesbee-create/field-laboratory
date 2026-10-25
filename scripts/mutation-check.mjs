@@ -536,6 +536,107 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // Texas gave "Texas College".
+    id: 'venue-team-page-not-football',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a team page that is not about football is not the home team',
+    find: "if (!t.includes('football')) return false",
+    replace: 'if (false) return false',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Texas St gave Tarleton State Texans football.
+    id: 'venue-team-page-without-home-name',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a team page must carry the home name',
+    find: 'return expandedHome(home).every(x => t.includes(x))',
+    replace: 'return true',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // If it were OpenStreetMap it could never corroborate an OpenStreetMap point.
+    id: 'venue-team-venue-own-family',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a team-derived venue is a Wikidata-family witness, not an OpenStreetMap one',
+    find: "'team-venue': 'wikidata'",
+    replace: "'team-venue': 'osm'",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Chris Smith Field is not Zoeller Field.
+    id: 'venue-generic-word-confirms',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a shared generic word (Field, Stadium) is not a confirmation',
+    find: "'stadium', 'field', 'park',",
+    replace: "'stadium', 'park',",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Sharing words with the venue's name confirmed a point 1,700 miles wrong.
+    id: 'venue-reverse-confirms-on-shared-words',
+    file: 'scripts/venue-source.mjs',
+    claim: 'an OpenStreetMap name confirms a point only when it is nothing but the venue\'s own words',
+    find: 'return mine.length > 0 && mine.every(t => theirs.has(t))',
+    replace: 'return mine.some(t => theirs.has(t))',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // The point's own label was an input to the confirmation, so the Phoenix
+    // spring-training complex confirmed itself as American Family Field.
+    id: 'venue-point-confirms-itself',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a proposed point\'s own label is never an input to confirming it',
+    find: 'export const confirmedBy = (osmName, venueName) => named(osmName, venueName)',
+    replace: 'export const confirmedBy = (osmName, venueName, label = \'\') => named(osmName, venueName, label)',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // A World Cup game at Arrowhead took Colombia's home ground.
+    id: 'venue-team-path-any-sport',
+    file: 'scripts/venue-source.mjs',
+    claim: 'the team path runs for American football venues only',
+    find: "export const americanFootballOnly = sports => /^(CFB|NFL)(,(CFB|NFL))*$/.test((sports ?? '').trim())",
+    replace: "export const americanFootballOnly = sports => /(CFB|NFL)/.test((sports ?? '').trim())",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // The team's home ground was accepted for any venue the team is listed against.
+    id: 'venue-team-point-not-tied',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a point reached only through the home team is not tied to the venue',
+    find: "(NAME_DRIVEN.has(p.source) || (p.source === 'team-venue' && named(p.label ?? '', venueName))))",
+    replace: 'true)',
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // Colombia national football team.
+    id: 'venue-national-team-page',
+    file: 'scripts/venue-source.mjs',
+    claim: 'a national team page is not the home team page',
+    find: "if (!t.includes('football') || t.includes('national')) return false",
+    replace: "if (!t.includes('football')) return false",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // The two placements the first wider-net run got wrong must stay out of the table.
+    id: 'venue-known-bad-placement-ignored',
+    file: 'scripts/venue-sourced-check.mjs',
+    claim: 'a row on a once-accepted wrong placement is caught by name and point',
+    find: 'b.name === m[1].replace(/\\\\(.)/g, \'$1\') &&',
+    replace: 'false &&',
+    expect: 'node scripts/venue-sourced-check.mjs --self-test',
+  },
+  {
+    // One of the 44 grounds on 2026-10-24's college football slate, deleted: its
+    // game would have no weather chip again.
+    id: 'venue-cfb-slate-row-deleted',
+    file: 'src/Venues.fs',
+    claim: 'every venue on the 2026-10-24 college football slate stays in the table',
+    find: '      at "Ryan Field" 42.0654 -87.6915 OpenAir "America/Chicago"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // A name with an escaped quote was skipped and the calibration covered 409
     // of 410 rows while reporting on "the table" (run 39821284339).
     id: 'venue-source-reader-skips-escaped-quote',

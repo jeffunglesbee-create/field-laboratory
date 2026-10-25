@@ -1,12 +1,14 @@
 
   GET https://api.open-meteo.com/v1/forecast?latitude=42.3467&longitude=-71.0972&current=temperature_2m,apparent_temperature,precipitation,rain,wind_speed_10m,wind_direction_10m,wind_gusts_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto
 
-  reading: 58°F · clear · 3 mph NW
+  reading: 45°F · clear · 5 mph SE
   bad latitude -> HTTP 400
 
-  Checking 433 venue coordinates against Open-Meteo's resolved zone
+  Checking 483 venue coordinates against Open-Meteo's resolved zone
 
-  checked 433 of 433 venues
+  1 venue(s) did not answer; asking each once more after 0ms
+  retried 1, 1 answered on the retry
+  checked 483 of 483 venues
 
   sign-flipped Fenway resolves to Etc/GMT-5
 PASS  Open-Meteo answers 200

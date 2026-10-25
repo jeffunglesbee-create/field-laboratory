@@ -65,6 +65,21 @@ export const compare = (results, text) => {
   return { missingBlock: false, absent, changed, extra, rows: rows.length }
 }
 
+/** Placements that were accepted once and were wrong. A row with this NAME near
+ *  this point must never be in the table. Found by auditing a sourcing run's new
+ *  rows against where the places are, which the calibration cannot see: neither is
+ *  a table row with a known answer. */
+export const KNOWN_BAD = [
+  { name: 'GEHA Field at Arrowhead Stadium', lat: 10.9269, lon: -74.8006, why: 'Estadio Metropolitano, Barranquilla: taken from Colombia, the home team of a World Cup game' },
+  { name: 'St James Park', lat: 54.9755, lon: -1.6218, why: "Newcastle's ground, accepted for Exeter's: article search and OpenStreetMap both returned the famous one" },
+]
+const ROW = /^\s*at "((?:[^"\\]|\\.)+)"\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)/gm
+/** Table rows (all of them, not only the sourced block) that sit on a known-bad placement. */
+export const onKnownBad = (text, bad = KNOWN_BAD) =>
+  [...text.matchAll(ROW)].flatMap(m => bad
+    .filter(b => b.name === m[1].replace(/\\(.)/g, '$1') && Math.abs(b.lat - Number(m[2])) <= 0.02 && Math.abs(b.lon - Number(m[3])) <= 0.02)
+    .map(b => `${b.name} at ${m[2]},${m[3]}: ${b.why}`))
+
 const selfTest = () => {
   const { check, summarize } = createChecks()
   const res = { run: '1', at: 't', of: 2, accepted: [
@@ -79,6 +94,9 @@ const selfTest = () => {
   check('A HAND-EDITED ROOF IS CAUGHT', compare(res, good.replace('OpenAir', 'Retractable')).changed.length === 1)
   check('A HAND-ADDED ROW IN THE BLOCK IS CAUGHT',
     compare(res, good.replace(END, `      at "Made Up Park" 1.0000 1.0000 OpenAir "UTC"\n${END}`)).extra.join() === 'Made Up Park')
+  check('A KNOWN-BAD PLACEMENT IS CAUGHT BY NAME AND POINT', onKnownBad('      at "St James Park" 54.9755 -1.6218 OpenAir "Europe/London"\n').length === 1)
+  check('...the same point under the right name is not (St. James\' Park is Newcastle\'s)', onKnownBad('      at "St. James\' Park" 54.9755 -1.6218 OpenAir "Europe/London"\n').length === 0)
+  check('...and the same name somewhere else is not (Exeter\'s own ground)', onKnownBad('      at "St James Park" 50.7305 -3.5214 OpenAir "Europe/London"\n').length === 0)
   check('a missing block is its own failure, not zero rows', compare(res, 'no block').missingBlock === true)
   finish(summarize())
 }
@@ -100,6 +118,7 @@ if (isMain(import.meta.url)) {
       check(`every accepted venue is in the table (${results.accepted.length} accepted)`, c.absent.length === 0, c.absent.slice(0, 10).join(', '))
       check('...with exactly the sourced coordinates, roof and zone', c.changed.length === 0, c.changed.slice(0, 10).join('; '))
       check('...and nothing in the sourced block that the run did not accept', c.extra.length === 0, c.extra.join(', '))
+      check('no table row sits on a placement that was once accepted and wrong', onKnownBad(text).length === 0, onKnownBad(text).join('; '))
       check('there are accepted venues to check at all', results.accepted.length > 0, 'the results artifact accepted nothing')
       finish(summarize())
     }

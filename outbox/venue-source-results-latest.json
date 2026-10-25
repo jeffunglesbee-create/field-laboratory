@@ -1,6 +1,6 @@
 {
- "at": "2026-10-24T18:12:06.288Z",
- "run": "40119286792",
+ "at": "2026-10-24T23:10:39.159Z",
+ "run": "40141634179",
  "eps": 0.02,
  "ambiguousDeg": 0.5,
  "from": "data/venue-source-candidates.json",
@@ -212,6 +212,24 @@
    "zone": "America/Los_Angeles"
   },
   {
+   "name": "Allen E. Paulson Stadium",
+   "sports": "CFB",
+   "home": "GA Southern",
+   "lat": 32.4122,
+   "lon": -81.7833,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q7155374",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Evans Family Field at Allen E.",
+   "zone": "America/New_York"
+  },
+  {
    "name": "Allianz Riviera",
    "sports": "Ligue 1",
    "home": "Nice",
@@ -260,6 +278,42 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The Alphamega Stadium, also known as Limassol Stadium for UEFA competitions, is a football stadium in Kolossi, Limassol District, Cyprus, and the home ground of the 3 biggest clubs of Limassol Apollon",
    "zone": "Asia/Nicosia"
+  },
+  {
+   "name": "Alumni Stadium (Chestnut Hill, MA)",
+   "sports": "CFB",
+   "home": "Boston College",
+   "lat": 42.3351,
+   "lon": -71.1663,
+   "agreeing": [
+    "nominatim-alias",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q598070",
+   "via": "wider net (nominatim-alias + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Alumni Stadium is a college football stadium on the lower campus of Boston College in Chestnut Hill, Massachusetts.",
+   "zone": "America/New_York"
+  },
+  {
+   "name": "AmFirst Stadium",
+   "sports": "CFB",
+   "home": "Jax State",
+   "lat": 33.8203,
+   "lon": -85.7662,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q6108965",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Burgess–Snow Field at AmFirst Stadium is a 22,500-seat stadium in Jacksonville, Alabama.",
+   "zone": "America/Chicago"
   },
   {
    "name": "Amon G. Carter Stadium",
@@ -430,6 +484,24 @@
    "zone": "Europe/Madrid"
   },
   {
+   "name": "Batumi Stadium (Adjarabet Arena)",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "Maccabi Tel-Aviv",
+   "lat": 41.6352,
+   "lon": 41.6192,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q4873358",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Batumi Arena, formerly known as Adjarabet Arena, is a football stadium in Batumi, Adjara, Georgia.",
+   "zone": "Asia/Tbilisi"
+  },
+  {
    "name": "BayArena",
    "sports": "Bundesliga,UEFA Europa League",
    "home": "Leverkusen",
@@ -514,6 +586,26 @@
    "zone": "Europe/London"
   },
   {
+   "name": "Bill Snyder Family Stadium",
+   "sports": "CFB",
+   "home": "Kansas St",
+   "lat": 39.202,
+   "lon": -96.5938,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q2903355",
+   "via": "wider net (nominatim + photon + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Bill Snyder Family Stadium is a stadium in Manhattan, Kansas.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "Blundell Park",
    "sports": "EFL Cup,EFL Trophy",
    "home": "Grimsby",
@@ -582,6 +674,23 @@
    "zone": "Europe/London"
   },
   {
+   "name": "Brann Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "SK Brann",
+   "lat": 60.3666,
+   "lon": 5.3572,
+   "agreeing": [
+    "nominatim",
+    "wp-article"
+   ],
+   "qid": "Q898746",
+   "via": "wider net (nominatim + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Brann Stadion is a football stadium in Bergen, Norway.",
+   "zone": "Europe/Oslo"
+  },
+  {
    "name": "Bridgeforth Stadium",
    "sports": "CFB",
    "home": "James Madison",
@@ -614,6 +723,45 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The Broadfield Stadium is a multi-purpose stadium in Crawley, West Sussex, England.",
    "zone": "Europe/London"
+  },
+  {
+   "name": "Broadview Stadium",
+   "sports": "CFB",
+   "home": "Buffalo",
+   "lat": 42.9991,
+   "lon": -78.7775,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q7894992",
+   "via": "wider net (nominatim + photon + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Broadview Stadium is a stadium in Amherst, New York, United States, on the campus of the University at Buffalo.",
+   "zone": "America/New_York"
+  },
+  {
+   "name": "Brooks Stadium (SC)",
+   "sports": "CFB",
+   "home": "Coastal",
+   "lat": 33.7929,
+   "lon": -79.0175,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q4975053",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Brooks Stadium is a 21,000-seat multi-purpose stadium in Conway, South Carolina.",
+   "zone": "America/New_York"
   },
   {
    "name": "Bryant-Denny Stadium",
@@ -769,6 +917,25 @@
    "zone": "America/New_York"
   },
   {
+   "name": "Casino Del Sol Stadium",
+   "sports": "CFB",
+   "home": "Arizona",
+   "lat": 32.2289,
+   "lon": -110.9488,
+   "agreeing": [
+    "nominatim-alias",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q947065",
+   "via": "wider net (nominatim-alias + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Casino Del Sol Stadium is an outdoor college football stadium located on the campus of the University of Arizona in Tucson, Arizona.",
+   "zone": "America/Phoenix"
+  },
+  {
    "name": "Celtic Park",
    "sports": "UEFA Champions League Qualifying,UEFA Europa League",
    "home": "Celtic",
@@ -838,6 +1005,25 @@
    "zone": "Europe/Copenhagen"
   },
   {
+   "name": "Cledara Abbey Stadium",
+   "sports": "EFL Cup,EFL Trophy",
+   "home": "Cambridge",
+   "lat": 52.2117,
+   "lon": 0.1536,
+   "agreeing": [
+    "nominatim",
+    "osm-reverse",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q2444574",
+   "via": "wider net (nominatim + osm-reverse + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Abbey Stadium, currently known as the Cledara Abbey Stadium for sponsorship reasons, is a football stadium in Cambridge, England.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "DATCU Stadium",
    "sports": "CFB",
    "home": "North Texas",
@@ -852,6 +1038,26 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "DATCU Stadium is a college football stadium located at the north junction of Interstate 35E and Interstate 35W in Denton, Texas, United States.",
+   "zone": "America/Chicago"
+  },
+  {
+   "name": "DKR-Texas Memorial Stadium",
+   "sports": "CFB",
+   "home": "Texas",
+   "lat": 30.2838,
+   "lon": -97.7327,
+   "agreeing": [
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q1166591",
+   "via": "wider net (nominatim-alias + photon + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Darrell K Royal–Texas Memorial Stadium, located in Austin, Texas, on the campus of the University of Texas at Austin, has been home to the Longhorns football team since 1924.",
    "zone": "America/Chicago"
   },
   {
@@ -921,6 +1127,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "De Grolsch Veste, previously known as Arke Stadion, is the stadium of football club FC Twente.",
    "zone": "Europe/Amsterdam"
+  },
+  {
+   "name": "Decathlon Arena - Stade Pierre-Mauroy",
+   "sports": "Ligue 1,UEFA Champions League",
+   "home": "Lille",
+   "lat": 50.6119,
+   "lon": 3.1305,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q1410402",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "retractable",
+   "roofBasis": "wikipedia lead",
+   "lead": "The Stade Pierre-Mauroy, also known as the Decathlon Arena – Stade Pierre-Mauroy for sponsorship reasons, is a multi-use retractable roof stadium in Villeneuve-d'Ascq, Metropolis of Lille, Northern Fr",
+   "zone": "Europe/Paris"
   },
   {
    "name": "Deepdale",
@@ -1025,6 +1249,23 @@
    "zone": "Europe/Budapest"
   },
   {
+   "name": "Djúpumyrar",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "KI Klaksvik",
+   "lat": 62.225,
+   "lon": -6.5797,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q10904309",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Við Djúpumýrar is a multi-use stadium in Klaksvík, Faroe Islands.",
+   "zone": "Atlantic/Faroe"
+  },
+  {
    "name": "Doak Campbell Stadium",
    "sports": "CFB",
    "home": "Florida St",
@@ -1090,6 +1331,29 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Dowdy–Ficklen Stadium is the on-campus football facility at East Carolina University for the East Carolina Pirates in Greenville, North Carolina.",
+   "zone": "America/New_York"
+  },
+  {
+   "name": "Doyt L. Perry Stadium",
+   "sports": "CFB",
+   "home": "Bowling Green",
+   "lat": 41.3781,
+   "lon": -83.6225,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "osm-reverse",
+    "osm-reverse",
+    "photon",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q5303813",
+   "via": "wider net (nominatim + nominatim-alias + osm-reverse + osm-reverse + photon + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Doyt L.",
    "zone": "America/New_York"
   },
   {
@@ -1160,6 +1424,23 @@
    "zone": "Europe/Madrid"
   },
   {
+   "name": "El Sardineros",
+   "sports": "La Liga",
+   "home": "Racing",
+   "lat": 43.4763,
+   "lon": -3.7936,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q195391",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Campos de Sport de El Sardinero, or simply El Sardinero, is a sports complex in Santander, Spain.",
+   "zone": "Europe/Madrid"
+  },
+  {
    "name": "Elbasan Arena",
    "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
    "home": "Egnatia",
@@ -1191,6 +1472,28 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Elland Road, or Elland Road Stadium, is a football stadium in Beeston, Leeds, West Yorkshire, England, which has been the home of Leeds United since the club's formation in 1919.",
    "zone": "Europe/London"
+  },
+  {
+   "name": "Elliott T. Bowers Stadium",
+   "sports": "CFB",
+   "home": "Sam Houston",
+   "lat": 30.7139,
+   "lon": -95.5418,
+   "agreeing": [
+    "nominatim-alias",
+    "osm-reverse",
+    "osm-reverse",
+    "photon",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q4950911",
+   "via": "wider net (nominatim-alias + osm-reverse + osm-reverse + photon + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Elliott T.",
+   "zone": "America/Chicago"
   },
   {
    "name": "Emirates Stadium",
@@ -1551,6 +1854,23 @@
    "zone": "Europe/London"
   },
   {
+   "name": "FK Partizan Stadium",
+   "sports": "UEFA Europa Conference League Qualifying",
+   "home": "FK Partizan",
+   "lat": 44.7887,
+   "lon": 20.4591,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q1123407",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Partizan Stadium is a football and track-and-field stadium in Autokomanda, Belgrade, Serbia.",
+   "zone": "Europe/Belgrade"
+  },
+  {
    "name": "Falcon Stadium",
    "sports": "CFB",
    "home": "Air Force",
@@ -1601,6 +1921,25 @@
    "zone": "Europe/London"
   },
   {
+   "name": "First Community Stadium",
+   "sports": "CFB",
+   "home": "Rice",
+   "lat": 29.7164,
+   "lon": -95.4092,
+   "agreeing": [
+    "nominatim-alias",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q1857419",
+   "via": "wider net (nominatim-alias + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "First Community Stadium is an American football stadium located on the Rice University campus in Houston, Texas.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "FirstBank Stadium",
    "sports": "CFB",
    "home": "Vanderbilt",
@@ -1616,6 +1955,25 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "FirstBank Stadium is a college football stadium on the campus of Vanderbilt University in Nashville, Tennessee.",
    "zone": "America/Chicago"
+  },
+  {
+   "name": "Flagler Credit Union Stadium",
+   "sports": "CFB",
+   "home": "FAU",
+   "lat": 26.3758,
+   "lon": -80.101,
+   "agreeing": [
+    "nominatim-alias",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q5513195",
+   "via": "wider net (nominatim-alias + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Howard Schnellenberger Field at Flagler Credit Union Stadium is a college football stadium located at the north end of the main campus of Florida Atlantic University (FAU) in Boca Raton, Florida, Unit",
+   "zone": "America/New_York"
   },
   {
    "name": "Folsom Field",
@@ -1790,6 +2148,42 @@
    "zone": "America/Chicago"
   },
   {
+   "name": "Giulesti Stadium",
+   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
+   "home": "Hapoel Be'er",
+   "lat": 44.4558,
+   "lon": 26.057,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q97889239",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Rapid-Giulești Stadium, known as Superbet Arena-Giulești for sponsorship reasons, is a football-specific stadium located in the Giulești neighbourhood of Bucharest, Romania.",
+   "zone": "Europe/Bucharest"
+  },
+  {
+   "name": "Giuseppe Sinigaglia",
+   "sports": "UEFA Champions League,Serie A",
+   "home": "Como",
+   "lat": 45.8138,
+   "lon": 9.0723,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q115372",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Stadio Giuseppe Sinigaglia  is a multi-use stadium in Como, Italy.",
+   "zone": "Europe/Rome"
+  },
+  {
    "name": "Glass Bowl",
    "sports": "CFB",
    "home": "Toledo",
@@ -1889,6 +2283,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The Brentford Community Stadium, currently known as the Gtech Community Stadium for sponsorship reasons, is a football stadium in Brentford, West London that is the home of Premier League football clu",
    "zone": "Europe/London"
+  },
+  {
+   "name": "H. A. Chapman Stadium",
+   "sports": "CFB",
+   "home": "Tulsa",
+   "lat": 36.1486,
+   "lon": -95.9439,
+   "agreeing": [
+    "photon",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q3486226",
+   "via": "wider net (photon + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Skelly Field at H.",
+   "zone": "America/Chicago"
   },
   {
    "name": "Hamilton Stadium",
@@ -2028,6 +2440,23 @@
    "zone": "America/Los_Angeles"
   },
   {
+   "name": "Houchens Industries-L.T. Smith Stadium",
+   "sports": "CFB",
+   "home": "Western KY",
+   "lat": 36.9847,
+   "lon": -86.4594,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q5912732",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Houchens Industries–L.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "Huntington Bank Field",
    "sports": "NFL",
    "home": "Browns",
@@ -2128,6 +2557,24 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "InfoCision Stadium–Summa Field is a college American football stadium in Akron, Ohio and the home field of the Akron Zips football team at the University of Akron.",
+   "zone": "America/New_York"
+  },
+  {
+   "name": "Inter.co Stadium",
+   "sports": "MLS",
+   "home": "Orlando City",
+   "lat": 28.5411,
+   "lon": -81.3891,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q16846942",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Inter.co Stadium is a soccer-specific stadium in downtown Orlando, Florida, United States.",
    "zone": "America/New_York"
   },
   {
@@ -2365,6 +2812,27 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Kramer/Deromedi Field at Kelly/Shorts Stadium is an American football stadium in Mount Pleasant, Michigan.",
    "zone": "America/Detroit"
+  },
+  {
+   "name": "Kenan Stadium",
+   "sports": "CFB",
+   "home": "North Carolina",
+   "lat": 35.9069,
+   "lon": -79.0478,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q1627986",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Kenan Stadium is a college football stadium located on Stadium Drive in Chapel Hill, North Carolina.",
+   "zone": "America/New_York"
   },
   {
    "name": "Kidd Brewer Stadium",
@@ -2722,6 +3190,24 @@
    "zone": "America/New_York"
   },
   {
+   "name": "MATRADE Loftus Road",
+   "sports": "EFL Cup",
+   "home": "QPR",
+   "lat": 51.5093,
+   "lon": -0.2321,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q31670",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Loftus Road, currently known as MATRADE Loftus Road Stadium for sponsorship reasons, is a football stadium in Shepherd's Bush, West London, Greater London, England, which is home to Queens Park Ranger",
+   "zone": "Europe/London"
+  },
+  {
    "name": "MCH Arena",
    "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
    "home": "Midtjylland",
@@ -2939,6 +3425,79 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Meadow Lane is a football stadium in Nottingham, England.",
    "zone": "Europe/London"
+  },
+  {
+   "name": "Memorial Stadium (Bloomington, IN)",
+   "sports": "CFB",
+   "home": "Indiana",
+   "lat": 39.1809,
+   "lon": -86.5256,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "team-venue"
+   ],
+   "qid": "Q3305509",
+   "via": "wider net (nominatim + photon + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Memorial Stadium is an American football stadium in Bloomington, Indiana, United States.",
+   "zone": "America/Indiana/Indianapolis"
+  },
+  {
+   "name": "Memorial Stadium (Clemson, SC)",
+   "sports": "CFB",
+   "home": "Clemson",
+   "lat": 34.6787,
+   "lon": -82.8432,
+   "agreeing": [
+    "photon",
+    "team-venue"
+   ],
+   "qid": "Q543579",
+   "via": "wider net (photon + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Frank Howard Field at Memorial Stadium, known as \"Death Valley\", is an outdoor stadium on the campus of Clemson University near Clemson, South Carolina.",
+   "zone": "America/New_York"
+  },
+  {
+   "name": "Memorial Stadium (Lincoln, NE)",
+   "sports": "CFB",
+   "home": "Nebraska",
+   "lat": 40.8208,
+   "lon": -96.705,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "team-venue"
+   ],
+   "qid": "Q383557",
+   "via": "wider net (nominatim + photon + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Memorial Stadium, nicknamed \"The Sea of Red,\" is an American football stadium on the campus of the University of Nebraska–Lincoln in Lincoln, Nebraska.",
+   "zone": "America/Chicago"
+  },
+  {
+   "name": "Memorial Stadium (Norman, OK)",
+   "sports": "CFB",
+   "home": "Oklahoma",
+   "lat": 35.2057,
+   "lon": -97.4423,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q1496586",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Gaylord Family Oklahoma Memorial Stadium, also known as Owen Field or The Palace on the Prairie, is the football stadium on the campus of the University of Oklahoma in Norman, Oklahoma, US.",
+   "zone": "America/Chicago"
   },
   {
    "name": "Mendizorrotza",
@@ -3737,6 +4296,24 @@
    "zone": "America/New_York"
   },
   {
+   "name": "Red Bull Arena Salzburg",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "RB Salzburg",
+   "lat": 47.8163,
+   "lon": 12.9982,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q206135",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Red Bull Arena, known during the UEFA Euro 2008 as the EM-Stadion Wals-Siezenheim and during UEFA club football events as Stadion Salzburg, is a football stadium in Wals-Siezenheim, a municipality in ",
+   "zone": "Europe/Vienna"
+  },
+  {
    "name": "Reliant Stadium",
    "sports": "NFL",
    "home": "Texans",
@@ -3857,6 +4434,24 @@
    "zone": "Europe/Copenhagen"
   },
   {
+   "name": "Riyadh Air Metropolitano",
+   "sports": "La Liga,UEFA Champions League",
+   "home": "Atlético",
+   "lat": 40.436,
+   "lon": -3.5996,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q1369687",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Metropolitano Stadium, officially referred to as Riyadh Air Metropolitano Stadium due to sponsorship, is a football stadium in Madrid, located in the Rosas neighbourhood in the San Blas-Canillejas",
+   "zone": "Europe/Madrid"
+  },
+  {
    "name": "Roazhon Park",
    "sports": "Ligue 1,UEFA Europa League",
    "home": "Rennes",
@@ -3872,6 +4467,25 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Roazhon Park is a football stadium in Rennes, Brittany, France.",
    "zone": "Europe/Paris"
+  },
+  {
+   "name": "Robert W. Plaster Stadium",
+   "sports": "CFB",
+   "home": "Missouri St",
+   "lat": 37.1976,
+   "lon": -93.2798,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q7202020",
+   "via": "wider net (nominatim + photon + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Plaster Stadium is a 17,500-seat football stadium located in Springfield, Missouri.",
+   "zone": "America/Chicago"
   },
   {
    "name": "Romssa Arena",
@@ -3925,6 +4539,23 @@
    "zone": "America/Indiana/Indianapolis"
   },
   {
+   "name": "Royal Birkdale GC",
+   "sports": "golf",
+   "home": "The Open",
+   "lat": 53.6218,
+   "lon": -3.0328,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q1858953",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Royal Birkdale Golf Club is a golf course in Southport, England.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "Rynearson Stadium",
    "sports": "CFB",
    "home": "E Michigan",
@@ -3940,6 +4571,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Rynearson Stadium, nicknamed \"The Factory\", is a stadium in Ypsilanti, Michigan.",
    "zone": "America/Detroit"
+  },
+  {
+   "name": "S. Darius and S. Gireno Stadium",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
+   "home": "Kauno Zalgiris",
+   "lat": 54.8973,
+   "lon": 23.9371,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q1583616",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Darius and Girėnas stadium is a multi-use stadium in Kaunas, Lithuania.",
+   "zone": "Europe/Vilnius"
   },
   {
    "name": "S.B. Ballard Stadium",
@@ -3990,6 +4638,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "SHI Stadium is the football stadium at Rutgers University in Piscataway, New Jersey.",
    "zone": "America/New_York"
+  },
+  {
+   "name": "SMH Group Stadium",
+   "sports": "EFL Trophy",
+   "home": "Chesterfield",
+   "lat": 53.2535,
+   "lon": -1.4263,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q619112",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "SMH Group Stadium is an all-seater football stadium in Whittington Moor, Chesterfield, Derbyshire, on the site of the former Dema Glassworks.",
+   "zone": "Europe/London"
   },
   {
    "name": "San Mamés",
@@ -4483,6 +5149,25 @@
    "zone": "Europe/Paris"
   },
   {
+   "name": "Stade du Moustoir - Yves Allainmat",
+   "sports": "Ligue 1",
+   "home": "Lorient",
+   "lat": 47.7487,
+   "lon": -3.3694,
+   "agreeing": [
+    "nominatim",
+    "osm-reverse",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q39189",
+   "via": "wider net (nominatim + osm-reverse + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Stade du Moustoir - Yves Allainmat, known as the Stade du Moustoir, is a multi-use stadium in Lorient, France.",
+   "zone": "Europe/Paris"
+  },
+  {
    "name": "Stadio Benito Stirpe",
    "sports": "Serie A",
    "home": "Frosinone",
@@ -4617,6 +5302,24 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Stadion Rujevica, officially known as Stadion HNK Rijeka, is a stadium in the city of Rijeka, Croatia.",
    "zone": "Europe/Zagreb"
+  },
+  {
+   "name": "Stadion Miejski Bialystok",
+   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
+   "home": "Jagiellonia ",
+   "lat": 53.106,
+   "lon": 23.1472,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q2470765",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Stadion Miejski is located in Białystok, Poland.",
+   "zone": "Europe/Warsaw"
   },
   {
    "name": "Stadion Poljud",
@@ -4854,6 +5557,24 @@
    "zone": "America/Vancouver"
   },
   {
+   "name": "Swansea.com Stadium",
+   "sports": "EFL Cup",
+   "home": "Swansea",
+   "lat": 51.6426,
+   "lon": -3.9349,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q580480",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Swansea.com Stadium is an all-seated multi-use sports stadium and conferencing venue located in the Landore area of Swansea, Wales, hosting both rugby union and football.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "TD Place Stadium",
    "sports": "MLS",
    "home": "Atlético Ottawa",
@@ -4973,6 +5694,63 @@
    "zone": "Europe/London"
   },
   {
+   "name": "The MKM Stadium",
+   "sports": "EPL",
+   "home": "Hull",
+   "lat": 53.7462,
+   "lon": -0.3678,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q630160",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The MKM Stadium is a multi-purpose stadium in Kingston upon Hull, England.",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "The Renaissance Club",
+   "sports": "golf",
+   "home": "Genesis Scottish Open",
+   "lat": 56.053,
+   "lon": -2.8093,
+   "agreeing": [
+    "nominatim",
+    "osm-reverse",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q65122657",
+   "via": "wider net (nominatim + osm-reverse + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Renaissance Club is a golf club in Scotland, four miles (10 km) west of North Berwick, twenty miles (30 km) east of Edinburgh.",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "Tiger Stadium (LA)",
+   "sports": "CFB",
+   "home": "LSU",
+   "lat": 30.412,
+   "lon": -91.1842,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q1594708",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Tiger Stadium, also called Death Valley, is an outdoor stadium located in Baton Rouge, Louisiana, on the campus of Louisiana State University.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "Tofiq Bahramov Republican Stadium",
    "sports": "UEFA Champions League Qualifying,UEFA Europa Conference League Qualifying",
    "home": "Sabah",
@@ -5075,6 +5853,25 @@
    "zone": "Europe/Rome"
   },
   {
+   "name": "UFCU Stadium",
+   "sports": "CFB",
+   "home": "Texas St",
+   "lat": 29.8911,
+   "lon": -97.9256,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q14710340",
+   "via": "wider net (nominatim + photon + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "UFCU Stadium is a college football stadium in the southern United States, located on the campus of Texas State University in San Marcos, Texas.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "Unipol Domus",
    "sports": "Serie A",
    "home": "Cagliari",
@@ -5090,6 +5887,26 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The Unipol Domus is a football stadium in Cagliari, Sardinia, Italy.",
    "zone": "Europe/Rome"
+  },
+  {
+   "name": "University Stadium (NM)",
+   "sports": "CFB",
+   "home": "New Mexico",
+   "lat": 35.0669,
+   "lon": -106.6283,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q936242",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "University Stadium is an outdoor football stadium in the western United States, located on the south campus of the University of New Mexico in Albuquerque, New Mexico.",
+   "zone": "America/Denver"
   },
   {
    "name": "Vale Park",
@@ -5227,6 +6044,26 @@
    "zone": "Europe/Helsinki"
   },
   {
+   "name": "Veterans Memorial Stadium (AL)",
+   "sports": "CFB",
+   "home": "Troy",
+   "lat": 31.7996,
+   "lon": -85.952,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q7923659",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Veterans Memorial Stadium at Larry Blakeney Field is a stadium in Troy, Alabama.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "Vicarage Road",
    "sports": "EFL Cup",
    "home": "Watford",
@@ -5346,6 +6183,25 @@
    "zone": "America/Detroit"
   },
   {
+   "name": "Walens Family Field at Fifth Third Stadium",
+   "sports": "CFB",
+   "home": "Kennesaw St",
+   "lat": 34.0289,
+   "lon": -84.5677,
+   "agreeing": [
+    "nominatim-alias",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q6389756",
+   "via": "wider net (nominatim-alias + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Fifth Third Stadium, known as Kennesaw State University Stadium until 2013, is a stadium near Kennesaw, Georgia, that is primarily used as the home for the Kennesaw State Owls football team as well as",
+   "zone": "America/New_York"
+  },
+  {
    "name": "Wallace Wade Stadium",
    "sports": "CFB",
    "home": "Duke",
@@ -5415,6 +6271,26 @@
    "zone": "Europe/Berlin"
   },
   {
+   "name": "Williams Stadium (VA)",
+   "sports": "CFB",
+   "home": "Liberty",
+   "lat": 37.3542,
+   "lon": -79.1749,
+   "agreeing": [
+    "nominatim",
+    "nominatim-alias",
+    "photon",
+    "photon-alias",
+    "team-venue"
+   ],
+   "qid": "Q8021099",
+   "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Arthur L.",
+   "zone": "America/New_York"
+  },
+  {
    "name": "Williams-Brice Stadium",
    "sports": "CFB",
    "home": "South Carolina",
@@ -5464,6 +6340,27 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Yulman Stadium is the on-campus venue for football at Tulane University in New Orleans, Louisiana.",
    "zone": "America/Chicago"
+  },
+  {
+   "name": "Zoeller Field at Dix Stadium",
+   "sports": "CFB",
+   "home": "Kent State",
+   "lat": 41.1391,
+   "lon": -81.3134,
+   "agreeing": [
+    "nominatim-alias",
+    "osm-reverse",
+    "osm-reverse",
+    "photon-alias",
+    "team-venue",
+    "wp-article"
+   ],
+   "qid": "Q5284768",
+   "via": "wider net (nominatim-alias + osm-reverse + osm-reverse + photon-alias + team-venue + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Dix Stadium is a stadium in Kent, Ohio, United States, on the campus of Kent State University.",
+   "zone": "America/New_York"
   },
   {
    "name": "bet365 Stadium",
@@ -5518,30 +6415,6 @@
    "lead": null,
    "zone": "Europe/Zurich",
    "why": "roof: no Wikipedia lead and no Wikidata roof"
-  },
-  {
-   "name": "Allen E. Paulson Stadium",
-   "sports": "CFB",
-   "home": "GA Southern",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 32.4121444,
-     "lon": -81.7833368,
-     "label": "Paulson Stadium, Chandler Road, Stadium Walk, Statesboro, Bulloch County, Georgia, 30458, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 32.4121444,
-     "lon": -81.7833368,
-     "label": "Paulson Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
   },
   {
    "name": "Allianz Stadium",
@@ -5599,48 +6472,6 @@
    }
   },
   {
-   "name": "Alumni Stadium (Chestnut Hill, MA)",
-   "sports": "CFB",
-   "home": "Boston College",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 39.6590437,
-     "lon": -75.7486656,
-     "label": "Rullo Stadium",
-     "kind": "amenity/parking"
-    }
-   }
-  },
-  {
-   "name": "AmFirst Stadium",
-   "sports": "CFB",
-   "home": "Jax State",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 33.8203687,
-     "lon": -85.7661255,
-     "label": "AmFirst Stadium, Street Avenue, Jacksonville, Calhoun County, Alabama, 36265, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 33.8203687,
-     "lon": -85.7661255,
-     "label": "AmFirst Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "American Express Stadium",
    "sports": "EPL,UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
    "home": "Brighton",
@@ -5668,7 +6499,7 @@
    "name": "Arena Egnatia",
    "sports": "UEFA Europa League Qualifying",
    "home": "Egnatia",
-   "why": "no two independent families agree (wikidata, photon)",
+   "why": "no two independent families agree (wikidata, photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -5686,54 +6517,6 @@
      "lon": 44.7975094,
      "label": "არენა",
      "kind": "amenity/bar"
-    }
-   }
-  },
-  {
-   "name": "Batumi Stadium (Adjarabet Arena)",
-   "sports": "UEFA Europa Conference League Qualifying",
-   "home": "Maccabi Tel-Aviv",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 41.6352204,
-     "lon": 41.6191728,
-     "label": "აჭარაბეთ არენა, ჟიული შარტავას გამზირი, ბაგრატიონი II, ბათუმი, აჭარის ავტონომიური რესპუბლიკა, 6000, საქართველო",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 41.6352204,
-     "lon": 41.6191728,
-     "label": "აჭარაბეთ არენა",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Bill Snyder Family Stadium",
-   "sports": "CFB",
-   "home": "Kansas St",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 39.2020395,
-     "lon": -96.5937762,
-     "label": "Bill Snyder Family Stadium, 1800, College Avenue, Manhattan, Riley County, Kansas, 66502, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 39.2020395,
-     "lon": -96.5937762,
-     "label": "Bill Snyder Family Stadium",
-     "kind": "leisure/stadium"
     }
    }
   },
@@ -5771,96 +6554,6 @@
    "lead": "Bloomfield Road is a football stadium in Blackpool, Lancashire, England, which has been the home of Blackpool Football Club since 1901.",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
-   "name": "Brann Stadium",
-   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
-   "home": "SK Brann",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 60.3668333,
-     "lon": 5.3574265,
-     "label": "Brann Stadion, Kniksens plass, Årstad, Fridalen, Årstad, Bergen, Vestland, 5093, Norge",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 35.1893108,
-     "lon": -111.650539,
-     "label": "Max Spilsbury Field at Lumberjack Stadium",
-     "kind": "leisure/pitch"
-    }
-   }
-  },
-  {
-   "name": "Broadview Stadium",
-   "sports": "CFB",
-   "home": "Buffalo",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 42.9990586,
-     "lon": -78.7774413,
-     "label": "Broadview Stadium, Stampede Square, South Lake Village, Eggertsville, Town of Amherst, Erie County, New York, 14260, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 42.9990586,
-     "lon": -78.7774413,
-     "label": "Broadview Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Brooks Stadium (SC)",
-   "sports": "CFB",
-   "home": "Coastal",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 33.7929212,
-     "lon": -79.0174511,
-     "label": "Brooks Stadium, One Landon Loop, Conway, Horry County, South Carolina, 29528, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 33.7929212,
-     "lon": -79.0174511,
-     "label": "Brooks Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Casino Del Sol Stadium",
-   "sports": "CFB",
-   "home": "Arizona",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 34.2050256,
-     "lon": -119.162062,
-     "label": "Del Sol Stadium",
-     "kind": "leisure/pitch"
-    }
-   }
   },
   {
    "name": "Chase Field (NH)",
@@ -5932,30 +6625,6 @@
      "lon": -157.8171209,
      "label": "Clarence T.C. Ching Athletics Complex",
      "kind": "leisure/pitch"
-    }
-   }
-  },
-  {
-   "name": "Cledara Abbey Stadium",
-   "sports": "EFL Cup,EFL Trophy",
-   "home": "Cambridge",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 52.2120297,
-     "lon": 0.1541831,
-     "label": "Cledara Abbey Stadium, Newmarket Road, Barnwell, Cambridge, Cambridgeshire, Cambridgeshire and Peterborough, England, CB5 8LN, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 52.2120297,
-     "lon": 0.1541831,
-     "label": "Cledara Abbey Stadium",
-     "kind": "leisure/stadium"
     }
    }
   },
@@ -6036,24 +6705,6 @@
    }
   },
   {
-   "name": "DKR-Texas Memorial Stadium",
-   "sports": "CFB",
-   "home": "Texas",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 30.2838412,
-     "lon": -97.7333527,
-     "label": "DKR Memorial Stadium",
-     "kind": "building/stadium"
-    }
-   }
-  },
-  {
    "name": "DW Stadium",
    "sports": "EFL Trophy",
    "home": "Wigan",
@@ -6101,108 +6752,6 @@
    "lead": "Stadion Feijenoord, more commonly known by its nickname De Kuip, is a stadium in Rotterdam, Netherlands.",
    "zone": "Europe/Amsterdam",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
-   "name": "Decathlon Arena - Stade Pierre-Mauroy",
-   "sports": "Ligue 1,UEFA Champions League",
-   "home": "Lille",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 50.6119044,
-     "lon": 3.130508,
-     "label": "Decathlon Arena-Stade Pierre-Mauroy, Boulevard de Tournai, Hôtel-de-Ville, Saint-Sauveur, Villeneuve-d'Ascq, Lille, Nord, Hauts-de-France, France métropolitaine, 59491, France",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 50.6119044,
-     "lon": 3.130508,
-     "label": "Decathlon Arena-Stade Pierre-Mauroy",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Djúpumyrar",
-   "sports": "UEFA Europa Conference League Qualifying",
-   "home": "KI Klaksvik",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 62.2247678,
-     "lon": -6.5802073,
-     "label": "Djúpumýru",
-     "kind": "leisure/pitch"
-    }
-   }
-  },
-  {
-   "name": "Doyt L. Perry Stadium",
-   "sports": "CFB",
-   "home": "Bowling Green",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 41.3780256,
-     "lon": -83.6224975,
-     "label": "Doyt L. Perry Stadium, Stadium Drive, Athletics District, Bowling Green, Wood County, Ohio, 43403, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 41.3780256,
-     "lon": -83.6224975,
-     "label": "Doyt L. Perry Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "El Sardineros",
-   "sports": "La Liga",
-   "home": "Racing",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 43.4762607,
-     "lon": -3.7939533,
-     "label": "Estadio El Sardinero",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Elliott T. Bowers Stadium",
-   "sports": "CFB",
-   "home": "Sam Houston",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 30.7138023,
-     "lon": -95.5420565,
-     "label": "Bowers Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
   },
   {
    "name": "Estadi de la FAF d'Encamp",
@@ -6266,7 +6815,7 @@
    "name": "Europa Point Stadium",
    "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
    "home": "Red Imps",
-   "why": "no two independent families agree (wikidata, photon)",
+   "why": "no two independent families agree (wikidata, photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6283,24 +6832,6 @@
      "lat": 40.3288593,
      "lon": -78.9248074,
      "label": "Point Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "FK Partizan Stadium",
-   "sports": "UEFA Europa Conference League Qualifying",
-   "home": "FK Partizan",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 44.7887581,
-     "lon": 20.4590917,
-     "label": "Стадион Партизана",
      "kind": "leisure/stadium"
     }
    }
@@ -6340,52 +6871,10 @@
    }
   },
   {
-   "name": "First Community Stadium",
-   "sports": "CFB",
-   "home": "Rice",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 44.2825113,
-     "lon": -88.4808624,
-     "label": "Community First Champion Center Fox Cities, 2200, North McCarthy Road, Town of Grand Chute, Outagamie County, Wisconsin, 54912, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 53.5477333,
-     "lon": -2.6540131,
-     "label": "The Brick Community Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Flagler Credit Union Stadium",
-   "sports": "CFB",
-   "home": "FAU",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 36.130554,
-     "lon": -80.2546325,
-     "label": "Allegacy Federal Credit Union Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "GEHA Field at Arrowhead Stadium",
    "sports": "FIFA World Cup,NFL",
    "home": "Colombia",
-   "why": "no two independent families agree (wikidata)",
+   "why": "no two independent families agree (wikidata, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6460,54 +6949,6 @@
    }
   },
   {
-   "name": "Giulesti Stadium",
-   "sports": "UEFA Champions League Qualifying,UEFA Europa League",
-   "home": "Hapoel Be'er",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 44.4557768,
-     "lon": 26.057047,
-     "label": "Superbet Arena - Giulești, Calea Giulești, Giulești, Sector 6, București, 060276, România",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 44.4557768,
-     "lon": 26.057047,
-     "label": "Superbet Arena - Giulești",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Giuseppe Sinigaglia",
-   "sports": "UEFA Champions League,Serie A",
-   "home": "Como",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no venue entity with coordinates",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 45.8138295,
-     "lon": 9.0723243,
-     "label": "Stadio Giuseppe Sinigaglia, 2, Via Giuseppe Sinigaglia, Stadio, Vico, Como, Lombardia, 22100, Italia",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 45.8138295,
-     "lon": 9.0723243,
-     "label": "Stadio Giuseppe Sinigaglia",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Goodison Park",
    "sports": "EFL Cup",
    "home": "Preston",
@@ -6524,24 +6965,6 @@
    "lead": "Goodison Park is a football stadium in Walton, Liverpool, England, two miles (3 km) north of the city centre.",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
-   "name": "H. A. Chapman Stadium",
-   "sports": "CFB",
-   "home": "Tulsa",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 36.1486627,
-     "lon": -95.9438583,
-     "label": "HA Chapman Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
   },
   {
    "name": "Highmark Stadium",
@@ -6575,48 +6998,6 @@
    }
   },
   {
-   "name": "Houchens Industries-L.T. Smith Stadium",
-   "sports": "CFB",
-   "home": "Western KY",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 36.9847917,
-     "lon": -86.4593318,
-     "label": "Houchens Industries-LT Smith Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Inter.co Stadium",
-   "sports": "MLS",
-   "home": "Orlando City",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 28.5411041,
-     "lon": -81.3891411,
-     "label": "Inter.co Stadium, West Pine Street, Holden Heights, Orlando, Orange County, Florida, 32801, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 28.5411041,
-     "lon": -81.3891411,
-     "label": "Inter.co Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Johan Cruijff Arena",
    "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
    "home": "Ajax",
@@ -6633,30 +7014,6 @@
    "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam.",
    "zone": "Europe/Amsterdam",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
-   "name": "Kenan Stadium",
-   "sports": "CFB",
-   "home": "North Carolina",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 35.9069432,
-     "lon": -79.0478199,
-     "label": "Kenan Stadium, 104, Stadium Drive, Downtown, Chapel Hill, Orange County, North Carolina, 27514, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 35.9069432,
-     "lon": -79.0478199,
-     "label": "Kenan Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
   },
   {
    "name": "Kenilworth Road",
@@ -6679,7 +7036,7 @@
    "name": "M. M. Roberts Stadium",
    "sports": "CFB",
    "home": "Southern Miss",
-   "why": "no two independent families agree (wikidata, nominatim, photon)",
+   "why": "no two independent families agree (wikidata, nominatim, photon, team-venue)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6702,30 +7059,6 @@
      "lat": 30.5319402,
      "lon": -89.6851939,
      "label": "M. M. Roberts Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "MATRADE Loftus Road",
-   "sports": "EFL Cup",
-   "home": "QPR",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 51.5094016,
-     "lon": -0.2321136,
-     "label": "MATRADE Loftus Road Stadium, South Africa Road, Shepherd's Bush, London Borough of Hammersmith and Fulham, Greater London, England, W12 7PA, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 51.5094016,
-     "lon": -0.2321136,
-     "label": "MATRADE Loftus Road Stadium",
      "kind": "leisure/stadium"
     }
    }
@@ -6758,7 +7091,7 @@
    "name": "McLane Stadium",
    "sports": "CFB",
    "home": "Baylor",
-   "why": "no two independent families agree (wikidata, nominatim, photon)",
+   "why": "no two independent families agree (wikidata, nominatim, photon, team-venue, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -6835,100 +7168,10 @@
    }
   },
   {
-   "name": "Memorial Stadium (Bloomington, IN)",
-   "sports": "CFB",
-   "home": "Indiana",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 39.1808943,
-     "lon": -86.525642,
-     "label": "Memorial Stadium, Faris Way, Bloomington, Monroe County, Indiana, 47405, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 39.1808943,
-     "lon": -86.525642,
-     "label": "Memorial Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Memorial Stadium (Clemson, SC)",
-   "sports": "CFB",
-   "home": "Clemson",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 34.6787669,
-     "lon": -82.8434264,
-     "label": "Memorial Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Memorial Stadium (Lincoln, NE)",
-   "sports": "CFB",
-   "home": "Nebraska",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 40.8207179,
-     "lon": -96.7047562,
-     "label": "Memorial Stadium, 1, Salt Creek Roadway Trail, North Lincoln, Lincoln, Lancaster County, Nebraska, 68588, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 40.8207179,
-     "lon": -96.7047562,
-     "label": "Memorial Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Memorial Stadium (Norman, OK)",
-   "sports": "CFB",
-   "home": "Oklahoma",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 35.2056786,
-     "lon": -97.4422642,
-     "label": "Gaylord Family - Oklahoma Memorial Stadium, 1185, Asp Avenue, Norman, Cleveland County, Oklahoma, 73019, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 35.2056786,
-     "lon": -97.4422642,
-     "label": "Gaylord Family - Oklahoma Memorial Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Miejski Stadion Pilkarski Raków",
    "sports": "UEFA Europa Conference League Qualifying",
    "home": "Raków",
-   "why": "no two independent families agree (wikidata, photon)",
+   "why": "no two independent families agree (wikidata, photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7001,7 +7244,7 @@
    "name": "Municipal Stadium-Poznan",
    "sports": "UEFA Europa League Qualifying,UEFA Europa League",
    "home": "Lech Poznan",
-   "why": "no two independent families agree (photon)",
+   "why": "no two independent families agree (photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": "no entity",
@@ -7019,7 +7262,7 @@
    "name": "Nu Stadium",
    "sports": "MLS",
    "home": "Miami",
-   "why": "no two independent families agree (wikidata, nominatim, photon)",
+   "why": "no two independent families agree (wikidata, nominatim, photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7087,7 +7330,7 @@
    "name": "Our Lady of Lourdes Stadium",
    "sports": "CFB",
    "home": "Louisiana",
-   "why": "no two independent families agree (nominatim, photon)",
+   "why": "no two independent families agree (nominatim, photon, team-venue)",
    "unanswered": [],
    "sources": {
     "wikidata": "no entity",
@@ -7216,34 +7459,10 @@
    }
   },
   {
-   "name": "Red Bull Arena Salzburg",
-   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
-   "home": "RB Salzburg",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 47.8163956,
-     "lon": 12.9982439,
-     "label": "Red Bull Arena, Europastraße, Kleßheim, Siezenheim, Wals-Siezenheim, Bezirk Salzburg-Umgebung, Salzburg, 5071, Österreich",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 47.8163956,
-     "lon": 12.9982439,
-     "label": "Red Bull Arena",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Riazor",
    "sports": "La Liga",
    "home": "Deportivo",
-   "why": "no two independent families agree (wikidata)",
+   "why": "no two independent families agree (wikidata, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7259,58 +7478,10 @@
    }
   },
   {
-   "name": "Riyadh Air Metropolitano",
-   "sports": "La Liga,UEFA Champions League",
-   "home": "Atlético",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 40.4360102,
-     "lon": -3.599699,
-     "label": "Riyadh Air Metropolitano, Avenida 26 de Abril, Rosas, San Blas - Canillejas, Madrid, Comunidad de Madrid, 28022, España",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 40.4360102,
-     "lon": -3.599699,
-     "label": "Riyadh Air Metropolitano",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Robert W. Plaster Stadium",
-   "sports": "CFB",
-   "home": "Missouri St",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 37.1976101,
-     "lon": -93.2798754,
-     "label": "Robert W. Plaster Stadium, South Carrington Avenue, Phelps Grove/University Heights, Springfield, Greene County, Missouri, 65897, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 37.1976101,
-     "lon": -93.2798754,
-     "label": "Robert W. Plaster Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Rodney Parade",
    "sports": "EFL Trophy",
    "home": "Newport",
-   "why": "no two independent families agree (wikidata)",
+   "why": "no two independent families agree (wikidata, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7323,24 +7494,6 @@
     },
     "nominatim": "only non-venue classes",
     "photon": "only non-venue classes"
-   }
-  },
-  {
-   "name": "Royal Birkdale GC",
-   "sports": "golf",
-   "home": "The Open",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "only non-venue classes",
-    "photon": {
-     "source": "photon",
-     "lat": 53.621691,
-     "lon": -3.0325034,
-     "label": "Royal Birkdale Golf Club",
-     "kind": "building/yes"
-    }
    }
   },
   {
@@ -7371,48 +7524,6 @@
      "lon": -87.6914888,
      "label": "Ryan Field",
      "kind": "building/stadium"
-    }
-   }
-  },
-  {
-   "name": "S. Darius and S. Gireno Stadium",
-   "sports": "UEFA Europa League Qualifying,UEFA Europa Conference League",
-   "home": "Kauno Zalgiris",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 54.8974333,
-     "lon": 23.9373332,
-     "label": "S. Dariaus ir S. Girėno stadionas",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "SMH Group Stadium",
-   "sports": "EFL Trophy",
-   "home": "Chesterfield",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 53.2535581,
-     "lon": -1.4258193,
-     "label": "SMH Group Stadium, 1866, Sheffield Road, Whittington Moor, Tapton, Chesterfield, Derbyshire, East Midlands, England, S41 8NZ, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 53.2535581,
-     "lon": -1.4258193,
-     "label": "SMH Group Stadium",
-     "kind": "leisure/stadium"
     }
    }
   },
@@ -7542,34 +7653,10 @@
    }
   },
   {
-   "name": "Stade du Moustoir - Yves Allainmat",
-   "sports": "Ligue 1",
-   "home": "Lorient",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 47.7488021,
-     "lon": -3.3695412,
-     "label": "Stade du Moustoir – Yves Allainmat, Rue Sarah Bernhardt, Eau Courante, La Villeneuve, Lorient, Morbihan, Bretagne, France métropolitaine, 56100, France",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 47.7488021,
-     "lon": -3.3695412,
-     "label": "Stade du Moustoir – Yves Allainmat",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Stadio Artemio Franchi",
    "sports": "Serie A",
    "home": "Fiorentina",
-   "why": "no two independent families agree (wikidata, nominatim, photon)",
+   "why": "no two independent families agree (wikidata, nominatim, photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7593,30 +7680,6 @@
      "lon": 11.326179,
      "label": "Stadio Artemio Franchi",
      "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Stadion Miejski Bialystok",
-   "sports": "UEFA Europa League Qualifying,UEFA Europa League",
-   "home": "Jagiellonia ",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 53.1059626,
-     "lon": 23.1492847,
-     "label": "Chorten Arena, 1, Słoneczna, Kawaleryjskie, Białystok, województwo podlaskie, 15-322, Polska",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 53.1063589,
-     "lon": 23.143514,
-     "label": "Stadion Miejski",
-     "kind": "amenity/bicycle_rental"
     }
    }
   },
@@ -7645,34 +7708,10 @@
    }
   },
   {
-   "name": "Swansea.com Stadium",
-   "sports": "EFL Cup",
-   "home": "Swansea",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 51.6428065,
-     "lon": -3.934739,
-     "label": "Swansea.com Stadium, Brunel Way, Plasmarl, Landore, Swansea, Cymru / Wales, SA1 2FA, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 51.6428065,
-     "lon": -3.934739,
-     "label": "Swansea.com Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "TDECU Stadium",
    "sports": "CFB",
    "home": "Houston",
-   "why": "no two independent families agree (wikidata)",
+   "why": "no two independent families agree (wikidata, team-venue, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7789,7 +7828,7 @@
    "name": "The Croud Meadow",
    "sports": "EFL Trophy",
    "home": "Shrewsbury",
-   "why": "no two independent families agree (photon)",
+   "why": "no two independent families agree (photon, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": "no entity",
@@ -7804,131 +7843,30 @@
    }
   },
   {
-   "name": "The MKM Stadium",
-   "sports": "EPL",
-   "home": "Hull",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 53.7462257,
-     "lon": -0.3678239,
-     "label": "MKM Stadium, The Circle, Avenues, Hull, Kingston upon Hull, Hull and East Yorkshire, England, HU3 6HU, United Kingdom",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 53.7462257,
-     "lon": -0.3678239,
-     "label": "MKM Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "The Renaissance Club",
-   "sports": "golf",
-   "home": "Genesis Scottish Open",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 56.0546412,
-     "lon": -2.8093185,
-     "label": "The Renaissance Club, Cowden Hill Drive, Dirleton, East Lothian, Alba / Scotland, EH39 5HS, United Kingdom",
-     "kind": "leisure/golf_course"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 56.0546412,
-     "lon": -2.8093185,
-     "label": "The Renaissance Club",
-     "kind": "leisure/golf_course"
-    }
-   }
-  },
-  {
-   "name": "Tiger Stadium (LA)",
-   "sports": "CFB",
-   "home": "LSU",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 30.4119773,
-     "lon": -91.1838303,
-     "label": "Tiger Stadium, North Stadium Road, Baton Rouge, East Baton Rouge Parish, Louisiana, 70803, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 30.4119773,
-     "lon": -91.1838303,
-     "label": "Tiger Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "U.S. Bank Stadium",
    "sports": "NFL",
    "home": "Vikings",
-   "why": "no two independent families agree (wikidata, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": {
-     "source": "wikidata",
-     "lat": 44.973889,
-     "lon": -93.258056,
-     "label": "U.S. Bank Stadium",
-     "qid": "Q7929512",
-     "ambiguous": null
-    },
-    "nominatim": "only non-venue classes",
-    "photon": {
-     "source": "photon",
-     "lat": 35.225774,
-     "lon": -80.8528276,
-     "label": "Bank of America Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "UFCU Stadium",
-   "sports": "CFB",
-   "home": "Texas St",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 29.8910593,
-     "lon": -97.9255534,
-     "label": "UFCU Stadium, 1100, Aquarena Springs Drive, Millview West, San Marcos, Hays County, Texas, 78666, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 29.8910593,
-     "lon": -97.9255534,
-     "label": "UFCU Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
+   "lat": 44.9739,
+   "lon": -93.2581,
+   "agreeing": [
+    "osm-reverse",
+    "osm-reverse",
+    "wikidata",
+    "wp-article"
+   ],
+   "qid": "Q7929512",
+   "via": "wider net (osm-reverse + osm-reverse + wikidata + wp-article)",
+   "roof": null,
+   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
+   "lead": "U.S.",
+   "zone": "America/Chicago",
+   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
   {
    "name": "URSAPHARM-Arena an der Kaiserlinde",
    "sports": "Bundesliga",
    "home": "Elversberg",
-   "why": "no two independent families agree (wikidata)",
+   "why": "no two independent families agree (wikidata, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -7962,30 +7900,6 @@
    }
   },
   {
-   "name": "University Stadium (NM)",
-   "sports": "CFB",
-   "home": "New Mexico",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 35.0669178,
-     "lon": -106.6282458,
-     "label": "University Stadium, 1414, University Boulevard Southeast, Nob Hill, Albuquerque, Bernalillo County, New Mexico, 87106, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 35.0669178,
-     "lon": -106.6282458,
-     "label": "University Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Vare Areena TN",
    "sports": "UEFA Europa Conference League Qualifying",
    "home": "KuPS Kuopio",
@@ -8004,34 +7918,10 @@
    }
   },
   {
-   "name": "Veterans Memorial Stadium (AL)",
-   "sports": "CFB",
-   "home": "Troy",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 31.7996004,
-     "lon": -85.9519633,
-     "label": "Veterans Memorial Stadium, 338, South George Wallace Drive, Woodland Hills, Troy, Pike County, Alabama, 36082, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 31.7996004,
-     "lon": -85.9519633,
-     "label": "Veterans Memorial Stadium",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
    "name": "Via Del Mare",
    "sports": "Serie A",
    "home": "Lecce",
-   "why": "no two independent families agree (wikidata)",
+   "why": "no two independent families agree (wikidata, wp-article)",
    "unanswered": [],
    "sources": {
     "wikidata": {
@@ -8078,18 +7968,6 @@
    }
   },
   {
-   "name": "Walens Family Field at Fifth Third Stadium",
-   "sports": "CFB",
-   "home": "Kennesaw St",
-   "why": "no source answered with a point",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": "no result"
-   }
-  },
-  {
    "name": "Wembley Stadium",
    "sports": "CFB,NFL",
    "home": "Kansas",
@@ -8127,30 +8005,6 @@
      "lat": 53.7654011,
      "lon": -2.370969,
      "label": "Crown Ground",
-     "kind": "leisure/stadium"
-    }
-   }
-  },
-  {
-   "name": "Williams Stadium (VA)",
-   "sports": "CFB",
-   "home": "Liberty",
-   "why": "no two independent families agree (nominatim, photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": {
-     "source": "nominatim",
-     "lat": 37.3543075,
-     "lon": -79.1749196,
-     "label": "Williams Stadium, University Boulevard, Lynchburg, Virginia, 24515, United States",
-     "kind": "leisure/stadium"
-    },
-    "photon": {
-     "source": "photon",
-     "lat": 37.3543075,
-     "lon": -79.1749196,
-     "label": "Williams Stadium",
      "kind": "leisure/stadium"
     }
    }
@@ -8210,24 +8064,6 @@
      "lon": 139.6491193,
      "label": "Yokohama Country & Athletic Club",
      "kind": "leisure/sports_centre"
-    }
-   }
-  },
-  {
-   "name": "Zoeller Field at Dix Stadium",
-   "sports": "CFB",
-   "home": "Kent State",
-   "why": "no two independent families agree (photon)",
-   "unanswered": [],
-   "sources": {
-    "wikidata": "no entity",
-    "nominatim": "no result",
-    "photon": {
-     "source": "photon",
-     "lat": 14.9276855,
-     "lon": 102.0463958,
-     "label": "Artificial turf field at the 80th Birthday Stadium",
-     "kind": "leisure/pitch"
     }
    }
   }

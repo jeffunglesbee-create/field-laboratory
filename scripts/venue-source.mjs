@@ -28,7 +28,9 @@ import { createChecks, finish, isMain } from './checks.mjs'
 
 export const EPS = 0.02
 export const AMBIGUOUS_DEG = 0.5
-const FAMILY = { wikidata: 'wikidata', nominatim: 'osm', photon: 'osm' }
+const FAMILY = { wikidata: 'wikidata', nominatim: 'osm', photon: 'osm',
+  // The wider net (below) only ever adds points to a family that already exists.
+  'team-venue': 'wikidata', 'wp-article': 'wikidata', 'nominatim-alias': 'osm', 'photon-alias': 'osm', 'osm-reverse': 'osm' }
 
 export const near = (a, b, eps = EPS) =>
   Math.abs(a.lat - b.lat) <= eps + 1e-12 && Math.abs(a.lon - b.lon) <= eps + 1e-12
@@ -89,7 +91,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 // The key kinds this script still asks for. A kind it no longer asks for is
 // dropped on load: the cache is committed, and a retired key is weight with no
 // reader (8.2 MB on 2026-10-22, 3.5 MB of it whole article bodies).
-const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof'])
+const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof', 'wp-team', 'nm-reverse'])
 export const liveEntries = c => Object.fromEntries(Object.entries(c).filter(([k]) => CACHE_KINDS.has(k.split('|')[0])))
 export const loadCache = () => (existsSync(CACHE_PATH) ? liveEntries(JSON.parse(readFileSync(CACHE_PATH, 'utf8'))) : {})
 export const saveCache = c => { mkdirSync('outbox', { recursive: true }); writeFileSync(CACHE_PATH, JSON.stringify(c, null, 1) + '\n') }
@@ -215,7 +217,7 @@ export const wikidata = async (name, cache, { home = null, measure = false } = {
     homeChoice = chooseByHome(home, venues, occ.by)
     if (ambiguous && homeChoice.chosen) { picked = homeChoice.chosen; ambiguous = null }
   }
-  return { ok: true, point: { source: 'wikidata', ...picked, ambiguous }, homeChoice, entities: venues }
+  return { ok: true, point: { source: 'wikidata', ...picked, ambiguous }, homeChoice, entities: venues, wasAmbiguous: spreadOf(venues) > AMBIGUOUS_DEG }
 }
 
 const nominatim = async (name, cache) => {
@@ -258,6 +260,173 @@ export const occupantsOf = async (qids, cache) => {
     if (label && !by.get(q).includes(label)) by.get(q).push(label)
   }
   return { ok: true, by }
+}
+
+// --- the wider net, for venues no two sources agreed on ---------------------
+//
+// Measured first (outbox/venue-third-sources-probe.json, run 40137851977) on the
+// 12 college football venues the table lacked on 2026-10-24. GeoNames (Open-Meteo's
+// geocoder) returned nothing usable and is not here. What worked was finding the
+// venue FROM THE TEAM instead of from its name, and asking OpenStreetMap what
+// stands at a point someone else proposed. Both only ever add points to a family
+// that already exists, so the acceptance rule is unchanged: one Wikidata-family
+// point and one OpenStreetMap-family point within 0.02 degrees.
+//
+// It is consulted ONLY for a venue that did not already reach a decision, so no
+// accepted row can change, and an ambiguous name stays ambiguous.
+const GENERIC = new Set(['stadium', 'field', 'park', 'memorial', 'university', 'the', 'at', 'of', 'arena', 'center', 'centre', 'coliseum', 'bowl', 'and', 'college', 'campus', 'complex', 'grounds'])
+export const significant = text => nameTokens(text ?? '').filter(t => !GENERIC.has(t))
+/** Does a name share a significant word with any of these names? Loose: a guard
+ *  on which Wikipedia article was found, never a confirmation of a point. */
+export const overlaps = (title, ...names) => {
+  const have = new Set(significant(title))
+  return names.some(n => significant(n).some(t => have.has(t)))
+}
+/** Is an OpenStreetMap name nothing but the venue's own words? Strict, because it
+ *  confirms a point. The loose test confirmed "American Family Fields of Phoenix"
+ *  as American Family Field (calibration run 40138491509): they share two words
+ *  and are 1,700 miles apart. Every significant word of the OSM name must belong
+ *  to the venue's or its label's, and there must be at least one. */
+export const named = (osmName, ...names) => {
+  const mine = significant(osmName)
+  const theirs = new Set(names.flatMap(n => significant(n)))
+  return mine.length > 0 && mine.every(t => theirs.has(t))
+}
+const expandedHome = home => { const t = nameTokens(home ?? ''); if (t.at(-1) === 'st') t[t.length - 1] = 'state'; return t }
+/** A Wikipedia page is the home team's football page only if it is about football
+ *  and its title carries the home name ("Texas College" and "Tarleton State Texans
+ *  football" both came back for Texas and Texas St in the probe). An all-capitals
+ *  abbreviation (FAU, SMU) is not in the title and is let through: the point it
+ *  yields still has to agree with OpenStreetMap. */
+export const teamTitleOk = (home, title) => {
+  const t = nameTokens(title)
+  if (!t.includes('football') || t.includes('national')) return false
+  if (/^[A-Z]{2,5}$/.test((home ?? '').trim())) return true
+  return expandedHome(home).every(x => t.includes(x))
+}
+
+/** The team path is for American football only: a World Cup game at an NFL ground
+ *  has a national team as "home", and its home ground is somewhere else entirely
+ *  (GEHA Field at Arrowhead Stadium came back as Barranquilla). Every sport
+ *  listed for the venue must be one. */
+export const americanFootballOnly = sports => /^(CFB|NFL)(,(CFB|NFL))*$/.test((sports ?? '').trim())
+
+/** A point reached through the home team is the venue's only if the VENUE'S OWN
+ *  NAME also leads there: a source searched by that name, an article found by it,
+ *  OpenStreetMap naming it there, or the team's venue being called by the same
+ *  words. Without that, the team's home ground can be accepted for any venue the
+ *  team is listed against, a neutral site included. */
+export const tiedToVenue = (decision, points, venueName) => {
+  const at = { lat: decision.lat, lon: decision.lon }
+  const NAME_DRIVEN = new Set(['wikidata', 'nominatim', 'photon', 'wp-article', 'osm-reverse'])
+  return points.some(p => Number.isFinite(p?.lat) && near(p, at) &&
+    (NAME_DRIVEN.has(p.source) || (p.source === 'team-venue' && named(p.label ?? '', venueName))))
+}
+
+/** Does what OpenStreetMap names at a point confirm the VENUE stands there? Only
+ *  the venue's own name is compared. The proposed point's own label is not an
+ *  input and must never be: it let "American Family Fields of Phoenix" confirm
+ *  itself, the point it labelled, as American Family Field (calibration run
+ *  40138841163). */
+export const confirmedBy = (osmName, venueName) => named(osmName, venueName)
+
+const teamVenues = async (home, cache) => {
+  const q = `${expandedHome(home).join(' ')} football`
+  const found = await cached(cache, `wp-team|${q}`, () =>
+    getJson(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srlimit=1&format=json`), 300)
+  if (!found.ok) return { ok: false, why: found.why }
+  const title = found.value.query?.search?.[0]?.title
+  if (!title || !teamTitleOk(home, title)) return { ok: true, title: title ?? null, venues: [] }
+  const props = await cached(cache, `wp-team|props|${title}`, () =>
+    getJson(`https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&ppprop=wikibase_item&titles=${encodeURIComponent(title)}&format=json`), 300)
+  if (!props.ok) return { ok: false, why: props.why }
+  const qid = Object.values(props.value.query?.pages ?? {})[0]?.pageprops?.wikibase_item
+  if (!qid) return { ok: true, title, venues: [] }
+  const sparql = `SELECT ?v ?vLabel ?c WHERE { wd:${qid} wdt:P115 ?v . ?v wdt:P625 ?c . FILTER NOT EXISTS { ?v wdt:P576 ?gone } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`
+  const r = await cached(cache, `wp-team|venues|${qid}`, () =>
+    getJson(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`, { Accept: 'application/sparql-results+json' }), 300)
+  if (!r.ok) return { ok: false, why: r.why }
+  const venues = r.value.results.bindings.flatMap(b => {
+    const m = /Point\(([-\d.]+) ([-\d.]+)\)/.exec(b.c.value)
+    return m ? [{ qid: b.v.value.split('/').pop(), label: b.vLabel?.value, lat: Number(m[2]), lon: Number(m[1]) }] : []
+  })
+  return { ok: true, title, venues }
+}
+
+/** The Wikidata item behind Wikipedia's article for the venue's own name, when it
+ *  is a standing stadium with coordinates. Catches names Wikidata's label search
+ *  misses (a sponsor name, an en dash where the archive has a hyphen). */
+const articlePoint = async (name, cache) => {
+  const found = await cached(cache, `wp-team|article|${name}`, () =>
+    getJson(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(name)}&srlimit=1&format=json`), 300)
+  if (!found.ok) return { ok: false, why: found.why }
+  const title = found.value.query?.search?.[0]?.title
+  if (!title || !overlaps(title, name)) return { ok: true, point: null }
+  const props = await cached(cache, `wp-team|props|${title}`, () =>
+    getJson(`https://en.wikipedia.org/w/api.php?action=query&prop=pageprops&ppprop=wikibase_item&titles=${encodeURIComponent(title)}&format=json`), 300)
+  if (!props.ok) return { ok: false, why: props.why }
+  const qid = Object.values(props.value.query?.pages ?? {})[0]?.pageprops?.wikibase_item
+  if (!qid) return { ok: true, point: null }
+  const sparql = `SELECT ?itemLabel ?c WHERE { VALUES ?item { wd:${qid} } ?item wdt:P625 ?c . VALUES ?t { ${STADIUM_QIDS} } ?item wdt:P31/wdt:P279* ?t . FILTER NOT EXISTS { ?item wdt:P576 ?gone } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`
+  const r = await cached(cache, `wp-team|article-venue|${qid}`, () =>
+    getJson(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`, { Accept: 'application/sparql-results+json' }), 300)
+  if (!r.ok) return { ok: false, why: r.why }
+  const b = r.value.results.bindings[0]
+  const m = b && /Point\(([-\d.]+) ([-\d.]+)\)/.exec(b.c.value)
+  return { ok: true, point: m ? { qid, label: b.itemLabel?.value, lat: Number(m[2]), lon: Number(m[1]) } : null }
+}
+
+/** OpenStreetMap's own answer to "what is at this point". */
+const reverse = async (lat, lon, cache) => {
+  const r = await cached(cache, `nm-reverse|${lat.toFixed(4)},${lon.toFixed(4)}`, () =>
+    getJson(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18`), 1100)
+  if (!r.ok) return { ok: false, why: r.why }
+  return { ok: true, name: r.value.name ?? null }
+}
+
+/** `lookup`, and for a venue it left undecided, the wider net. The extra points
+ *  go through the same `decide`. Returns the accepted point's Wikidata item as
+ *  `qid` when an extra point supplied it (the roof is read from that item). */
+export const lookupPlus = async (name, cache, { home = null, sports = '' } = {}) => {
+  const base = await lookup(name, cache, { home })
+  if (base.decision.decision === 'accepted' || base.decision.ambiguous) return base
+  // A name that was ambiguous stays with the home-team rule. The wider net's
+  // article search and OpenStreetMap both rank by prominence and agree on the
+  // famous ground: St James Park (Exeter) was accepted at Newcastle's.
+  if (base.sources.wikidata.wasAmbiguous) return base
+  const extras = []
+  if (home && americanFootballOnly(sports)) {
+    const tv = await teamVenues(home, cache)
+    if (!tv.ok) base.unanswered.push(`team-venue: ${tv.why}`)
+    for (const v of tv.venues ?? []) extras.push({ source: 'team-venue', ...v })
+  }
+  const ap = await articlePoint(name, cache)
+  if (!ap.ok) base.unanswered.push(`wp-article: ${ap.why}`)
+  if (ap.point) extras.push({ source: 'wp-article', ...ap.point })
+  const wd = base.sources.wikidata.point
+  const wdFamily = [...extras, ...(wd && Number.isFinite(wd.lat) ? [wd] : [])]
+  if (wdFamily.length === 0) return base
+  const more = []
+  // The venue under the name the team's own page gives it, in OpenStreetMap.
+  // Only the home team's own venue supplies a label: it is tied to this game. An
+  // article found by the venue's name could be a different place that shares it.
+  for (const label of new Set(extras.filter(e => e.source === 'team-venue').map(e => e.label).filter(l => l && nameTokens(l).join(' ') !== nameTokens(name).join(' ')))) {
+    const n = await nominatim(label, cache), p = await photon(label, cache)
+    if (n.point) more.push({ ...n.point, source: 'nominatim-alias' })
+    if (p.point) more.push({ ...p.point, source: 'photon-alias' })
+  }
+  // And what OpenStreetMap says stands where Wikidata-family points are.
+  for (const w of wdFamily) {
+    const r = await reverse(w.lat, w.lon, cache)
+    if (r.ok && r.name && confirmedBy(r.name, name)) more.push({ source: 'osm-reverse', lat: w.lat, lon: w.lon, label: r.name })
+  }
+  const all = [...Object.values(base.sources).map(o => o.point), ...extras, ...more]
+  const d = decide(all)
+  if (d.decision === 'accepted' && !tiedToVenue(d, all, name)) return { ...base, untied: { lat: d.lat, lon: d.lon, agreeing: d.agreeing } }
+  const qid = d.decision === 'accepted'
+    ? extras.find(e => e.qid && near(e, { lat: d.lat, lon: d.lon }))?.qid
+    : undefined
+  return { ...base, decision: d, qid, extra: { extras, more } }
 }
 
 /** --occupants RESULTS.json: for each ambiguous review row, what Wikidata says
@@ -345,6 +514,30 @@ const selfTest = () => {
   check('a team no candidate lists picks nothing', chooseByHome('Oklahoma', [E('A', 1, 1), E('B', 40, 40)], O({ A: ['Kansas City Chiefs'], B: [] })).chosen === null)
   check('SAME TEAM LISTED AT TWO FAR-APART CANDIDATES PICKS NOTHING', chooseByHome('Rovers', [E('A', 51, 0), E('B', 55, 5)], O({ A: ['Bristol Rovers'], B: ['Doncaster Rovers'] })).chosen === null)
   check('...but two entries for one place pick it (Highmark Stadium and its former name)', chooseByHome('Bills', [E('A', 42.77, -78.79), E('B', 42.77, -78.79), E('P', 40.4, -80)], O({ A: ['Buffalo Bills'], B: ['Buffalo Bills'], P: ['Pittsburgh Riverhounds SC'] })).chosen?.qid === 'A')
+  // The wider net. Each case below is a row of the 2026-10-24 probe.
+  check('THE TEAM PAGE MUST BE A FOOTBALL PAGE (Texas gave "Texas College")', !teamTitleOk('Texas', 'Texas College') && teamTitleOk('Texas', 'Texas Longhorns football'))
+  check('...and carry the home name (Texas St gave Tarleton State; St reads as State)', !teamTitleOk('Texas St', 'Tarleton State Texans football') && teamTitleOk('Texas St', 'Texas State Bobcats football'))
+  check('...an all-capitals abbreviation is not in the title and is let through', teamTitleOk('FAU', 'Florida Atlantic Owls football') && teamTitleOk('Clemson', '2018 Clemson Tigers football team'))
+  check('...but two words of the home name must both be there (Miami OH is not Miami RedHawks)', !teamTitleOk('Miami OH', 'Miami RedHawks football'))
+  check('an OpenStreetMap name confirms a venue when it is only the venue\'s own words (Zoeller Field / Zoeller Field at Dix Stadium)', named('Zoeller Field', 'Zoeller Field at Dix Stadium'))
+  check('A POINT\'S OWN LABEL NEVER CONFIRMS IT (the Phoenix complex confirmed itself)', !confirmedBy('American Family Fields of Phoenix', 'American Family Field', 'American Family Fields of Phoenix') && confirmedBy('Zoeller Field', 'Zoeller Field at Dix Stadium'))
+  check('SHARING SOME WORDS IS NOT CONFIRMING (American Family Fields of Phoenix is not American Family Field)', !named('American Family Fields of Phoenix', 'American Family Field') && overlaps('American Family Fields of Phoenix', 'American Family Field'))
+  check('...and a generic name alone confirms nothing', !named('Memorial Stadium', 'Memorial Stadium (Clemson, SC)'))
+  check('...and "Field", "Stadium", "University" alone confirm nothing (Chris Smith Field is not Kenan)', !named('Chris Smith Field', 'Kenan Stadium') && !overlaps('Chris Smith Field', 'Zoeller Field at Dix Stadium') && !named('Florida Atlantic University - Boca Raton Campus', 'Flagler Credit Union Stadium'))
+  check('THE TEAM PATH IS FOR AMERICAN FOOTBALL ONLY (a World Cup game at Arrowhead has Colombia as home)', americanFootballOnly('CFB') && americanFootballOnly('CFB,NFL') && !americanFootballOnly('FIFA World Cup,NFL') && !americanFootballOnly('EPL') && !americanFootballOnly(''))
+  check('...and a national team\'s page is not a team page', !teamTitleOk('Colombia', 'Colombia national football team'))
+  const GEHA = { lat: 10.9269, lon: -74.8006 }
+  check('A POINT REACHED ONLY THROUGH THE HOME TEAM IS NOT TIED TO THE VENUE (Arrowhead / Barranquilla)',
+    !tiedToVenue({ ...GEHA }, [{ source: 'team-venue', label: 'Estadio Metropolitano Roberto Melendez', ...GEHA }, { source: 'nominatim-alias', ...GEHA }, { source: 'photon-alias', ...GEHA }], 'GEHA Field at Arrowhead Stadium'))
+  check('...unless the team\'s venue is called by the venue\'s own words (Alumni Stadium)',
+    tiedToVenue({ lat: 42.3351, lon: -71.1663 }, [{ source: 'team-venue', label: 'Alumni Stadium', lat: 42.3351, lon: -71.1663 }], 'Alumni Stadium (Chestnut Hill, MA)'))
+  check('...or a search by the venue\'s own name, or an article found by it, leads to the same place (Casino Del Sol)',
+    tiedToVenue({ lat: 32.2289, lon: -110.9488 }, [{ source: 'team-venue', label: 'Arizona Stadium', lat: 32.229, lon: -110.949 }, { source: 'wp-article', lat: 32.2289, lon: -110.9488 }], 'Casino Del Sol Stadium'))
+  const TV = (lat, lon) => ({ source: 'team-venue', lat, lon }), NA = (lat, lon) => ({ source: 'nominatim-alias', lat, lon })
+  check('A TEAM-DERIVED VENUE AND AN OPENSTREETMAP POINT AGREEING IS ACCEPTED (Kenan)', decide([TV(35.907, -79.048), N(35.9071, -79.0481)]).decision === 'accepted')
+  check('...an alias search in OpenStreetMap counts as that family (Casino Del Sol via Arizona Stadium)', decide([TV(32.229, -110.949), NA(32.2291, -110.9491)]).decision === 'accepted')
+  check('TWO WIKIDATA-FAMILY POINTS AGREEING ARE ONE WITNESS, NOT TWO (M. M. Roberts)', decide([W(31.329, -89.331), TV(31.329, -89.331), N(30.532, -89.685), P(30.532, -89.685)]).decision === 'review')
+  check('a wrong OpenStreetMap hit beside a right team venue is dissent, not agreement (Flagler)', decide([TV(26.375, -80.1), P(36.131, -80.255)]).decision === 'review')
   check('a 429 waits what Retry-After asks', retryWait('7', 0) === 7000)
   check('...and backs off when it asks nothing', retryWait(null, 0) === 10000 && retryWait(null, 2) === 40000)
   check('the cache drops a key kind nothing asks for', Object.keys(liveEntries({ 'wp-body|X': 1, 'photon|Y': 2 })).join() === 'photon|Y')
@@ -451,18 +644,19 @@ const source = async path => {
   const cache = loadCache()
   const accepted = [], review = []
   for (const [i, c] of list.entries()) {
-    const r = await lookup(c.venue, cache, { home: c.home })
+    const r = await lookupPlus(c.venue, cache, { home: c.home, sports: c.sports })
     const d = r.decision
     const base = { name: c.venue, sports: c.sports, home: c.home }
     if (d.decision !== 'accepted') {
       review.push({ ...base, why: d.ambiguous ? `ambiguous name: ${d.ambiguous.join('; ')}` : d.decision === 'none' ? 'no source answered with a point' : `no two independent families agree (${d.dissent.join(', ')})`, unanswered: r.unanswered,
         sources: Object.fromEntries(Object.entries(r.sources).map(([k, o]) => [k, o.ok ? (o.point ?? o.note) : `ERROR ${o.why}`])) })
     } else {
-      const qid = r.sources.wikidata.point?.qid
+      const qid = r.qid ?? r.sources.wikidata.point?.qid
       const roof = await roofOf(qid, cache)
       const zone = find(d.lat, d.lon)[0] ?? null
       const hc = r.sources.wikidata.homeChoice
-      const row = { ...base, lat: d.lat, lon: d.lon, agreeing: d.agreeing, qid, ...(hc?.chosen ? { via: `home team (tier ${hc.tier}, ${hc.matched.join(', ')})` } : {}), roof: roof.roof, roofBasis: roof.basis, lead: roof.lead, zone }
+      const wider = r.extra ? ` wider net (${d.agreeing.join(' + ')})` : ''
+      const row = { ...base, lat: d.lat, lon: d.lon, agreeing: d.agreeing, qid, ...(hc?.chosen ? { via: `home team (tier ${hc.tier}, ${hc.matched.join(', ')})${wider}` } : r.extra ? { via: wider.trim() } : {}), roof: roof.roof, roofBasis: roof.basis, lead: roof.lead, zone }
       // A name that says dome, read as open, is a contradiction to look at, not a pick.
       const domeName = /dome\b/i.test(c.venue) && roof.roof === 'open'
       // A second witness for the P576 filter: an article written in the past tense
@@ -486,6 +680,10 @@ const calibrate = async () => {
   if (table.length !== tableRowCount()) { console.error('  FAIL  the reader missed rows; a calibration of a subset is not reported as one of the table'); process.exit(1) }
   const cache = loadCache()
   const results = []
+  // Home team and sport for the rows the sourcing run saw, so the wider net can use
+  // the team path on the sourced college football rows.
+  const seen = JSON.parse(readFileSync('outbox/venue-source-results-latest.json', 'utf8'))
+  const meta = new Map([...seen.accepted, ...seen.review].map(x => [x.name, { home: x.home, sports: x.sports }]))
   for (const v of table) {
     const r = await lookup(v.name, cache)
     const d = r.decision
@@ -495,7 +693,18 @@ const calibrate = async () => {
     // and the point they agreed on is not where the table says the venue is: the
     // case the independence rule exists to refuse, counted so its value is measured.
     const osmOnlyWrong = Boolean(d.osmOnlyAgree) && r.sources.nominatim.point != null && !near(r.sources.nominatim.point, v)
-    results.push({ name: v.name, truth: { lat: v.lat, lon: v.lon }, verdict, decision: d, unanswered: r.unanswered, osmOnlyWrong,
+    // The wider net, asked only of a row the plain rule left undecided, against the
+    // same truth: a flip to a point that is not where the table says is a failure.
+    let plus = null, plusPoints = null
+    if (verdict === 'review' || verdict === 'none') {
+      const m = meta.get(v.name) ?? {}
+      const r2 = await lookupPlus(v.name, cache, { home: m.home, sports: m.sports })
+      const d2 = r2.decision
+      plus = d2.decision === 'accepted' ? (near(d2, v) ? 'flipped-correct' : 'flipped-WRONG') : 'still-undecided'
+      // Which points made it, so a wrong flip names its own cause.
+      plusPoints = r2.extra ? { agreeing: d2.agreeing, extras: r2.extra.extras.map(e => ({ source: e.source, label: e.label, lat: e.lat, lon: e.lon })), more: r2.extra.more.map(e => ({ source: e.source, label: e.label ?? null, lat: e.lat, lon: e.lon })) } : null
+    }
+    results.push({ name: v.name, truth: { lat: v.lat, lon: v.lon }, verdict, plus, plusPoints, decision: d, unanswered: r.unanswered, osmOnlyWrong,
       sources: Object.fromEntries(Object.entries(r.sources).map(([k, o]) => [k, o.ok ? (o.point ?? o.note) : `ERROR ${o.why}`])) })
     console.log(`  ${verdict.padEnd(17)} ${v.name}${r.unanswered.length ? `   [unanswered: ${r.unanswered.join('; ')}]` : ''}`)
     saveCache(cache)
@@ -503,6 +712,7 @@ const calibrate = async () => {
   const n = table.length
   const count = k => results.filter(r => r.verdict === k).length
   const sum = { checked: n, 'accepted-correct': count('accepted-correct'), 'accepted-WRONG': count('accepted-WRONG'), review: count('review'), none: count('none'),
+    wider: { asked: results.filter(r => r.plus).length, flippedCorrect: results.filter(r => r.plus === 'flipped-correct').length, flippedWRONG: results.filter(r => r.plus === 'flipped-WRONG').length, stillUndecided: results.filter(r => r.plus === 'still-undecided').length },
     withAnUnansweredSource: results.filter(r => r.unanswered.length).length,
     osmAgreedAloneAndWrong: results.filter(r => r.osmOnlyWrong).length }
   // The home-team matcher, against the same hand-reviewed truth. Every
@@ -540,10 +750,12 @@ const calibrate = async () => {
   console.log(`\n  calibration: checked ${sum.checked} of ${n} table venues  ·  accepted ${sum['accepted-correct'] + sum['accepted-WRONG']}  ·  correct ${sum['accepted-correct']}  ·  WRONG ${sum['accepted-WRONG']}  ·  review ${sum.review}  ·  none ${sum.none}`)
   console.log(`  home-team matcher: checked ${sum.homeTeam.pairs} of ${pairs.length} venue/home pairs  ·  right ${sum.homeTeam.right}  ·  WRONG ${sum.homeTeam.WRONG}  ·  abstained ${sum.homeTeam.abstain}  ·  no candidates ${sum.homeTeam.noCandidates}  ·  unanswered ${sum.homeTeam.unanswered}  ·  named collisions ${sum.homeTeam.collisions}  ·  venue not in table ${sum.homeTeam.notInTable}`)
   console.log(`  ...as production decides it (the home pick, plus OpenStreetMap agreeing): accepted ${sum.homeTeam.accepted}  ·  right ${sum.homeTeam.acceptedRight}  ·  WRONG ${sum.homeTeam.acceptedWRONG}`)
+  console.log(`  wider net: asked of ${sum.wider.asked} undecided row(s)  ·  flipped correct ${sum.wider.flippedCorrect}  ·  flipped WRONG ${sum.wider.flippedWRONG}  ·  still undecided ${sum.wider.stillUndecided}`)
   console.log(`  a source went unanswered on ${sum.withAnUnansweredSource} venue(s); OSM front ends agreed alone and were wrong on ${sum.osmAgreedAloneAndWrong}\n`)
   const { check, summarize } = createChecks()
   check('every table venue was run through the rule', results.length === n && n > 0, `${results.length} of ${n}`)
   check('NO accepted point is wrong', sum['accepted-WRONG'] === 0, results.filter(r => r.verdict === 'accepted-WRONG').map(r => r.name).join(', '))
+  check('the wider net flipped NO undecided row to a wrong point', sum.wider.flippedWRONG === 0, results.filter(r => r.plus === 'flipped-WRONG').map(r => r.name).join(', '))
   check('every home-team pair was run through the matcher', homeTeam.length === pairs.length && pairs.length > 0 && sum.homeTeam.notInTable === 0, `${homeTeam.length} of ${pairs.length}; ${sum.homeTeam.notInTable} venue(s) not in the table`)
   check('the home-team rule, as production decides it, accepted NO wrong venue', sum.homeTeam.acceptedWRONG === 0, homeTeam.filter(x => x.combined === 'accepted-WRONG').map(x => `${x.venue} / ${x.home} -> ${x.chosen.label}`).join('; '))
   check('...and it accepted something, or this is vacuous', sum.homeTeam.accepted > 0, 'no pair was accepted through the home-team path')
