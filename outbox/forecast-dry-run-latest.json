@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T11:58:43.308Z",
+  "at": "2026-10-25T21:13:42.648Z",
   "method": "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30",
   "join": {
     "resolved": 20,
@@ -34,27 +34,27 @@
     {
       "subject": "epl-fixture-75",
       "provenance": "Modelled",
-      "value": "0.360000/0.280000/0.360000"
+      "value": "0.239397/0.179757/0.580846"
     },
     {
       "subject": "epl-fixture-76",
       "provenance": "Modelled",
-      "value": "0.348035/0.265826/0.386139"
+      "value": "0.357473/0.276836/0.365691"
     },
     {
       "subject": "epl-fixture-78",
       "provenance": "Modelled",
-      "value": "0.110398/0.105033/0.784569"
+      "value": "0.267332/0.197986/0.534682"
     },
     {
       "subject": "epl-fixture-79",
       "provenance": "Modelled",
-      "value": "0.627076/0.162282/0.210642"
+      "value": "0.352264/0.270615/0.377120"
     },
     {
       "subject": "epl-fixture-80",
       "provenance": "Modelled",
-      "value": "0.125185/0.113544/0.761271"
+      "value": "0.156968/0.131513/0.711519"
     }
   ]
 }
