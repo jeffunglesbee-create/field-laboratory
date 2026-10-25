@@ -1,8 +1,8 @@
 {
-  "at": "2026-10-22T00:34:04.635Z",
+  "at": "2026-10-25T19:38:42.407Z",
   "scope": "full",
-  "ran": 67,
-  "from_mutations": 194,
+  "ran": 70,
+  "from_mutations": 225,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -76,6 +76,26 @@
     },
     {
       "cmd": "node build/VerifyMain.js",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/venue-sourced-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/venue-source.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/venue-collisions.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/venue-sourced-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutation-check.mjs --self-test",
       "passed": true
     },
     {
@@ -211,10 +231,6 @@
       "passed": true
     },
     {
-      "cmd": "node scripts/mutation-check.mjs --self-test",
-      "passed": true
-    },
-    {
       "cmd": "node scripts/favourite-band-census.mjs --self-test",
       "passed": true
     },
@@ -244,10 +260,6 @@
     },
     {
       "cmd": "bash -c '! node scripts/mutation-check.mjs --only no-such-mutation-id'",
-      "passed": true
-    },
-    {
-      "cmd": "node scripts/venue-source.mjs --self-test",
       "passed": true
     },
     {

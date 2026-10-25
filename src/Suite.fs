@@ -445,8 +445,9 @@ let private weather () =
 
       // --- binary frame ingest ------------------------------------------------
       //
-      // This block is the ONLY consumer of PlayFrame, and `unused-check` is what
-      // enforces that it stays one. Every round trip is against bytes written
+      // This block is the suite's consumer of PlayFrame (the other, LaboratorySurface.fs,
+      // is checked by the "play frames" block below), and `unused-check` is what
+      // enforces that every public binding keeps a reader. Every round trip is against bytes written
       // here through `PlayFrame.Wire`, so no assertion can be satisfied by the
       // reader agreeing with itself.
       //
@@ -470,6 +471,69 @@ let private weather () =
               | PlayFrame.NoRecords -> true
               | _ -> false)
           0 24
+
+      // --- play frames (LaboratorySurface.fs) -----------------------------------
+      //
+      // The Metrics tab's tiles say what the decoder said. Each check below reads the
+      // tile TEXT, because that is what a reader sees and a wrong word is the defect.
+
+      Verify.check "a payload that is not whole records is named PARTIAL RECORD with its true length"
+          (fun n ->
+              match LaboratorySurface.project "x" (PlayFrame.Wire.allocateBytes n) with
+              | [ t ] -> t.State = "PARTIAL RECORD" && (t.Lines |> List.exists (fun l -> l.StartsWith(sprintf "%d bytes," n)))
+              | _ -> false)
+          30 48
+
+      Verify.check "a reserved byte in use is named at the record that holds it"
+          (fun (setAt, claimed) ->
+              let b = PlayFrame.Wire.allocate 2
+              let v = PlayFrame.Wire.viewOver b
+              PlayFrame.Wire.putByte v (PlayFrame.Wire.at setAt PlayFrame.Offset.Reserved) 1
+              match LaboratorySurface.project "x" b with
+              | [ t ] -> t.State = "RESERVED IN USE" && (t.Lines |> List.exists (fun l -> l.EndsWith(sprintf "at record %d" claimed)))
+              | _ -> false)
+          (1, 1)
+          (1, 0)
+
+      Verify.check "only a scoring-flag byte of 2 makes a play a shootout play"
+          (fun flag ->
+              let b = PlayFrame.Wire.allocate 1
+              PlayFrame.Wire.putByte (PlayFrame.Wire.viewOver b) (PlayFrame.Wire.at 0 PlayFrame.Offset.ScoringFlag) flag
+              match LaboratorySurface.project "x" b with
+              | [ t ] -> t.State = "SHOOTOUT"
+              | _ -> false)
+          2 1
+
+      // The expected text is written out by hand, so the check does not agree with
+      // the tile by computing it the same way. 0.5 and 0.75 are exact in float32.
+      Verify.check "WPA is this play's win probability minus the previous play's"
+          (fun (prev, cur, expected) ->
+              let b = PlayFrame.Wire.allocate 2
+              let v = PlayFrame.Wire.viewOver b
+              PlayFrame.Wire.putFloat32 v (PlayFrame.Wire.at 0 PlayFrame.Offset.WinProbability) prev
+              PlayFrame.Wire.putFloat32 v (PlayFrame.Wire.at 1 PlayFrame.Offset.WinProbability) cur
+              match LaboratorySurface.project "x" b with
+              | [ _; second ] -> second.Lines |> List.contains expected
+              | _ -> false)
+          (0.5, 0.75, "WPA +0.250")
+          (0.5, 0.75, "WPA -0.250")
+
+      Verify.check "the play after a shootout play has no WPA, and the shootout play has none"
+          (fun flagOnFirst ->
+              let b = PlayFrame.Wire.allocate 2
+              let v = PlayFrame.Wire.viewOver b
+              PlayFrame.Wire.putFloat32 v (PlayFrame.Wire.at 0 PlayFrame.Offset.WinProbability) 0.5
+              PlayFrame.Wire.putFloat32 v (PlayFrame.Wire.at 1 PlayFrame.Offset.WinProbability) 0.75
+              PlayFrame.Wire.putByte v (PlayFrame.Wire.at 0 PlayFrame.Offset.ScoringFlag) flagOnFirst
+              match LaboratorySurface.project "x" b with
+              | [ first; second ] -> (first.State = "SHOOTOUT") && (second.Lines |> List.contains "WPA n/a")
+              | _ -> false)
+          2 0
+
+      Verify.check "the exhibit shows each of the six states the decoder names, exactly once"
+          (fun states -> List.sort states = List.sort [ "STANDARD"; "SHOOTOUT"; "RESERVED IN USE"; "UNKNOWN LAYOUT"; "PARTIAL RECORD"; "NO RECORDS" ])
+          LaboratorySurface.exhibitStates
+          (LaboratorySurface.exhibitStates |> List.filter (fun s -> s <> "SHOOTOUT"))
 
       Verify.check "a whole payload reports the record count it really holds"
           (fun n ->

@@ -1015,6 +1015,17 @@
   .mx-tick { position: absolute; top: 0; height: 100%; background: var(--discovery); }
   .mx-tick--expected { width: 1px; background: var(--text); }
   .mx-tick--observed { width: 4px; margin-left: -2px; }
+  /* Play frames: the edge STYLE carries the state, so it survives without colour.
+     Solid is a decoded play, double a shootout play left out of WPA, dashed a
+     payload the decoder refused, dotted a quiet answer. */
+  .mx-frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: .5rem; margin: .5rem 0; }
+  .mx-frame { padding: .4rem .55rem; background: var(--card); border: 2px solid var(--edge-strong); font-size: .75rem; }
+  .mx-frame--excluded { border-style: double; border-width: 4px; border-color: var(--watch); }
+  .mx-frame--refused { border-style: dashed; border-color: var(--caution); }
+  .mx-frame--quiet { border-style: dotted; }
+  .mx-frame-title { font-family: var(--font-identity); font-size: .85rem; }
+  .mx-frame-state { margin: .1rem 0 .25rem; font-size: .65rem; letter-spacing: .06em; color: var(--dim-text); }
+  .mx-frame-line { color: var(--text); }
 </style>
 </head>
 <body>

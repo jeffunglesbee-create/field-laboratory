@@ -2429,6 +2429,51 @@ const MUTATIONS = [
     replace: '    | Searching',
     expect: 'node scripts/proof-check.mjs --only LOCK-PROOF',
   },
+  {
+    // The shootout flag. Ignored, a shootout play is drawn as a standard play with a WPA it never had.
+    id: "play-frames-shootout-flag-ignored",
+    file: "src/LaboratorySurface.fs",
+    claim: "a scoring-flag byte of 2 marks a shootout play, which carries no WPA",
+    find: "        if flagAt i = ShootoutFlag then",
+    replace: "        if false then",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    // The play after a shootout play has nothing before it to differ from.
+    id: "play-frames-wpa-across-a-shootout",
+    file: "src/LaboratorySurface.fs",
+    claim: "the play after a shootout play has no WPA",
+    find: "                if i > 0 && flagAt (i - 1) <> ShootoutFlag then",
+    replace: "                if i > 0 then",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    // The direction. Reversed, a rise in win probability prints as a fall.
+    id: "play-frames-wpa-reversed",
+    file: "src/LaboratorySurface.fs",
+    claim: "WPA is this play's win probability minus the previous play's",
+    find: 'sprintf "%+.3f" (wp - prev)',
+    replace: 'sprintf "%+.3f" (prev - wp)',
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    // Which record. Named at record 0 whatever the record, the reader looks at the wrong 24 bytes.
+    id: "play-frames-reserved-wrong-record",
+    file: "src/LaboratorySurface.fs",
+    claim: "a reserved byte in use is named at the record that holds it",
+    find: 'sprintf "bytes 22-23 are not zero at record %d" at',
+    replace: 'sprintf "bytes 22-23 are not zero at record %d" (at - at)',
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    // The exhibit drops a state: the section would no longer show everything the decoder can say.
+    id: "play-frames-exhibit-drops-a-state",
+    file: "src/LaboratorySurface.fs",
+    claim: "the exhibit shows each of the six states the decoder names, exactly once",
+    find: '      "PLAY 1047", PlayFrame.Wire.allocateBytes 0 ]',
+    replace: '      ]',
+    expect: "node build/VerifyMain.js",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
