@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a3ae2b7` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | fix: a stale mutation anchor is found in a second, not 97 minutes into the gate |
+| `08514cc` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | feat: Exeter's St James Park is a row, accepted by the owner, and distinct from Newcastle's |
+| `0a03b44` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
+| `0a03b44` | 2026-10-25 | [venue-source-cache.json](venue-source-cache.json) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
+| `0a03b44` | 2026-10-25 | [venue-source-calibration-latest.json](venue-source-calibration-latest.json) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
+| `0a03b44` | 2026-10-25 | [venue-source-results-latest.json](venue-source-results-latest.json) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
+| `0a03b44` | 2026-10-25 | [venue-third-sources-probe.json](venue-third-sources-probe.json) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
+| `0a03b44` | 2026-10-25 | [venue-weather-check-latest.txt](venue-weather-check-latest.txt) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
+| `81fda51` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `711306f` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `66cce21` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e407ba0` | 2026-10-24 | [cc-session-2026-10-24-home-team-rule.md](cc-session-2026-10-24-home-team-rule.md) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
