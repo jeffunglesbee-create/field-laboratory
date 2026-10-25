@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b075ee0` | 2026-10-25 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | fix: the Play frames tile classes are literals (gate 530/530, run 40234180420) |
+| `b075ee0` | 2026-10-25 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | fix: the Play frames tile classes are literals (gate 530/530, run 40234180420) |
 | `abcf3dd` | 2026-10-25 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-25T21:13 [skip ci] |
 | `db97638` | 2026-10-25 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | feat: Play frames, a fifth section of the Metrics tab (gate 530/530, run 40223744723) |
 | `db97638` | 2026-10-25 | [metrics-play-frames-2026-10-25.png](metrics-play-frames-2026-10-25.png) | feat: Play frames, a fifth section of the Metrics tab (gate 530/530, run 40223744723) |

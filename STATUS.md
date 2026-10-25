@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `db97638` at "The chrome, measured on the rendered page" — 38 of 86 steps did not run behind it — [run 40233288181](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40233288181)
+**green** on `b075ee0`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `abcf3dd`
+`live-check` (post-deploy, against the deployed page): **running** on `b075ee0`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `ce98a2b` — behind newest deployable `db97638` (deploy not landed) |
+| Cloudflare Workers | live | `b075ee0` — newest deployable ✓ |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
