@@ -113,6 +113,36 @@ Result: all 44 of 2026-10-24's college football grounds are table rows. The Suit
 holds that as a check ("every venue on the 2026-10-24 college football slate is in
 the table"), which is the parent CC-CMD's amended condition 2.
 
+## The first gate on this work failed, and why
+
+verify-full 40145734892 on `5b74eb6` scored 510 of 530 and failed its step: the
+mutation row ("breaking each invariant makes a check fail", 20 points) failed after
+97 minutes, with the baseline itself clean (0 failing).
+
+Cause, found by running every `venue-*` and `weather-*` mutation on its own: 34 of 35
+passed and `venue-team-page-not-football` failed with "the mutation anchor still
+exists". When I added the national-team clause, I changed the line that mutation's
+search string pointed at, so it had nothing left to break. It passed when I wrote it
+and I did not re-run it after editing the code under it. The row did exactly what it
+exists to do; I paid 97 minutes to learn what a one-second read of the files knows.
+
+Fixed three ways: the anchor now points at the new line (and the sibling
+`venue-national-team-page` was re-run, since both share it); `mutation-check.mjs
+--anchors` reads every mutation's target file and reports any search string that no
+longer matches (218 of 221 checked, 0 stale; the other 3 are world mutations with no
+file anchor), run in pre-commit and in verify; and the detection has its own
+mutation (`mutation-anchors-ignores-stale`) and a self-test case with a stale
+fixture. The same class had failed the row twice before (`cards-run-together`,
+`missing-park-factor-invented`).
+
+Two mistakes of mine while fixing it, both recorded because they cost time: a Python
+edit matched `const selected = ONLY` inside a comment and cut the wrong block (the
+file was restored from git and the change reapplied with a multi-line anchor); and
+the first run of `--anchors` happened before the flag existed, so the harness took it
+for the full suite, left a proof-check subtree running that kept injecting source,
+and a `pkill` pattern killed my own shell. The tree was restored from git, which was
+safe because no source edits were uncommitted.
+
 ## Limits, said where they are read
 
 - The wider net accepts a point two ways of finding it agree on. For a name that

@@ -540,8 +540,8 @@ const MUTATIONS = [
     id: 'venue-team-page-not-football',
     file: 'scripts/venue-source.mjs',
     claim: 'a team page that is not about football is not the home team',
-    find: "if (!t.includes('football')) return false",
-    replace: 'if (false) return false',
+    find: "if (!t.includes('football') || t.includes('national')) return false",
+    replace: "if (t.includes('national')) return false",
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   {
@@ -645,6 +645,16 @@ const MUTATIONS = [
     find: 'at "St James Park" 50.7307 -3.5212 OpenAir "Europe/London"',
     replace: 'at "St James Park" 54.9755 -1.6218 OpenAir "Europe/London"',
     expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The anchor check that would have caught venue-team-page-not-football in a
+    // second instead of 97 minutes.
+    id: 'mutation-anchors-ignores-stale',
+    file: 'scripts/mutation-check.mjs',
+    claim: 'a mutation whose search string is gone is reported by --anchors',
+    find: 'if (applyMutation(source, m) === source) stale.push(',
+    replace: 'if (false) stale.push(',
+    expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
     // A name with an escaped quote was skipped and the calibration covered 409
@@ -2451,6 +2461,29 @@ const selected = ONLY
   ? MUTATIONS.filter(m => m.id === ONLY)
   : MUTATIONS.filter(m => !m.selfTestOnly)
 
+/**
+ * Mutations whose search string is no longer in their file. Reads files and applies
+ * nothing, so it needs no build: "can this mutation still be made?" is a different
+ * question from "does the suite catch it?", and the first costs a second.
+ *
+ * `venue-team-page-not-football` went stale when the line under it gained a clause
+ * (2026-10-25). The gate's mutation row failed 97 minutes in with "the mutation
+ * anchor still exists"; `cards-run-together` and `missing-park-factor-invented`
+ * had failed it the same way before. Asked at commit time, it is a second.
+ */
+const staleAnchors = (mutations, read) => {
+  const stale = []
+  let checked = 0
+  for (const m of mutations) {
+    if (!m.file || m.find === undefined) continue   // world mutations carry no anchor in a file
+    checked++
+    let source
+    try { source = read(m.file) } catch (_) { stale.push(`${m.id}: ${m.file} is unreadable`); continue }
+    if (applyMutation(source, m) === source) stale.push(`${m.id}: not found in ${m.file}: ${m.find.trim().slice(0, 100)}`)
+  }
+  return { checked, stale }
+}
+
 // A `--only` THAT SELECTS NOTHING RAN NOTHING, AND MUST NOT SAY PASS.
 //
 // Seen 2026-10-19: an insert of four records failed, and `--only <id>` for each
@@ -2467,6 +2500,14 @@ const selected = ONLY
 // Exit 2, not 1, so a caller can tell "no such mutation" from "mutation survived".
 // It sits before `heal()`, the signal handlers and the baseline, so it touches
 // nothing. Mutating this block is covered by `only-selects-nothing-passes`.
+//
+// `--anchors` sits here too, for the same reason: it reads files and runs nothing.
+if (process.argv.includes('--anchors')) {
+  const { checked, stale } = staleAnchors(MUTATIONS, f => readFileSync(f, 'utf8'))
+  console.log(`checked ${checked} of ${MUTATIONS.length} mutation anchors; ${stale.length} stale`)
+  for (const x of stale) console.log(`  STALE  ${x}`)
+  process.exit(stale.length ? 1 : 0)
+}
 if (process.argv.includes('--only') && (!ONLY || selected.length === 0)) {
   console.error(`--only ${ONLY ?? '(no id given)'}: no mutation has that id, so nothing was run.`)
   console.error(`${MUTATIONS.length} mutations are defined; ids are the \`id:\` field of each record.`)
@@ -2682,6 +2723,11 @@ if (process.argv.includes('--self-test')) {
     !existsSync(marker), 'the marker is still on disk after healing')
   check('a clean tree reports nothing to heal', heal({ rebuild: false }) === false,
     'heal() claimed to heal a tree with no marker — it would fire on every run')
+
+  const fixture = [{ id: 'live', file: 'a', find: 'x', replace: 'y' }, { id: 'stale', file: 'a', find: 'gone', replace: 'y' }, { id: 'world', mutate: 'z' }]
+  const probe = staleAnchors(fixture, () => 'x is here')
+  check('A STALE ANCHOR IS FOUND, a live one is not, a world mutation is not counted',
+    probe.checked === 2 && probe.stale.length === 1 && probe.stale[0].startsWith('stale:'), JSON.stringify(probe))
 
   check('A FULL RUN OWNS THE BASELINE ARTIFACT', ownsBaseline(null) === true,
     'the full suite is the only run whose baseline describes the whole suite')

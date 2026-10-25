@@ -884,6 +884,12 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:history
 
+      # 2026-10-25: the gate's mutation row failed after 97 minutes because one
+      # mutation's search string had been edited away. Reads files, no build.
+      - name: Every mutation's anchor still exists
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:mutation-anchors
+
       # docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md. The table's sourced
       # block is generated from outbox/venue-source-results-latest.json; this
       # holds the two together, with no network, both ways: every accepted
