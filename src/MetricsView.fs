@@ -456,7 +456,7 @@ let private playFramesText (body: HTMLElement) =
         "A tile with a dashed edge is a payload the decoder refused: bytes that do not divide into records, a record written in another layout, or a byte that must be zero and is not." ]
     let grid = child body (el "div" "mx-frames" "")
     for t in LaboratorySurface.exhibitTiles do
-        let tile = child grid (el "div" (sprintf "mx-frame mx-frame--%s" (LaboratorySurface.toneClass t.Tone)) "")
+        let tile = child grid (el "div" (LaboratorySurface.toneClass t.Tone) "")
         tile.setAttribute ("data-frame-state", t.State)
         child tile (el "div" "mx-frame-title" t.Title) |> ignore
         child tile (el "div" "mx-frame-state" t.State) |> ignore

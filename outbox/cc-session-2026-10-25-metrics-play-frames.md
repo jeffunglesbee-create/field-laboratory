@@ -61,3 +61,27 @@ notApplicable []**, 5515 seconds. The runner's own record lines (confidence id
 onto main by union-append in the landing commit, so the ledger holds the record of the
 tree that was gated. The gated tree equals the landed tree: the landing commit adds
 only those ledger lines and this paragraph on top of the files that run measured.
+
+
+## Defect found after landing: verify run 40233288181 on `db97638`
+
+The gate (530/530) does not contain `check:computed-chrome`, so the landed commit went
+red on main's `verify`. Two steps failed. Read from the job log, then one reproduced:
+
+| step | cause | mine? |
+|---|---|---|
+| "The chrome, measured on the rendered page" | `every class in the stylesheet is emitted by something` failed on `.mx-frame`, `.mx-frame--excluded`, `.mx-frame--refused`, `.mx-frame--quiet`. The check finds a class by matching a LITERAL string in `src/*.fs`; `sprintf "mx-frame mx-frame--%s"` contains a `%`, so no class name was visible. Reproduced locally (24/25) and fixed (25/25). | yes |
+| "Render check against the LIVE slate" | `no page or console errors` and `every card whose venue the table knows carries a live chip` failed: 37 known venues, 35 chips, the page reported "Toyota Stadium: HTTP 429 after 70ms, DICK'S Sporting Goods Park: HTTP 429 after 137ms". Open-Meteo answered 429 to two of 37 requests. | not shown to be: my change touches no weather path, but that is a reading, not a measurement. A second sample is the check, below. |
+
+The fix: `LaboratorySurface.toneClass` returns the whole class string as a literal, and
+`MetricsView.fs` uses it directly. Nothing else changed.
+
+Why the pre-push checks missed it: I ran the Metrics render check, the suite and the
+mutations, and not `check:computed-chrome`, which is a `verify` step and not a gate row.
+A change that adds CSS classes to `index.html` should run it before landing. It is 3
+seconds locally.
+
+The second sample for the 429: the same `verify` re-run on the fixed tree, which adds
+Open-Meteo requests at a different moment. If the live-slate step fails again with 429s
+the cause is the service's rate limit, and the existing open item is
+`docs/CC-CMD-2026-10-20-weather-first-call-connect.md`.

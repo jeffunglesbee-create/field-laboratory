@@ -122,9 +122,13 @@ let exhibitTiles : Tile list = exhibit |> List.collect (fun (label, b) -> projec
 /// The states the exhibit shows, in order, without repeats.
 let exhibitStates : string list = exhibitTiles |> List.map (fun t -> t.State) |> List.distinct
 
+/// The whole class string, written out. `computed-chrome-check` finds a class by
+/// matching a literal string in a view source, so a name assembled with sprintf
+/// from "mx-frame--%s" is invisible to it and the stylesheet's rule for it reads
+/// as dead (verify run 40233288181 failed on exactly that).
 let toneClass =
     function
-    | Standard -> "standard"
-    | Excluded -> "excluded"
-    | Refused -> "refused"
-    | Quiet -> "quiet"
+    | Standard -> "mx-frame mx-frame--standard"
+    | Excluded -> "mx-frame mx-frame--excluded"
+    | Refused -> "mx-frame mx-frame--refused"
+    | Quiet -> "mx-frame mx-frame--quiet"
