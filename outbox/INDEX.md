@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0b5b629` | 2026-10-25 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
+| `0b5b629` | 2026-10-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
+| `0b5b629` | 2026-10-25 | [sport-vocabulary-2026-10-25T15-56-11-267Z.json](sport-vocabulary-2026-10-25T15-56-11-267Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
+| `6af6061` | 2026-10-25 | [cc-session-2026-10-25-confidence-ledger-resolved.md](cc-session-2026-10-25-confidence-ledger-resolved.md) | docs: restore the gate records for runs 45, 48 and 50 to the ledgers |
+| `e0309ac` | 2026-10-25 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-25T11:58 [skip ci] |
 | `d2b2de2` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `71280b5` | 2026-10-25 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
 | `71280b5` | 2026-10-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
