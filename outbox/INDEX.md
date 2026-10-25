@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `711306f` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `66cce21` | 2026-10-24 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e407ba0` | 2026-10-24 | [cc-session-2026-10-24-home-team-rule.md](cc-session-2026-10-24-home-team-rule.md) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
 | `e407ba0` | 2026-10-24 | [cc-session-2026-10-24-venue-collisions-measured.md](cc-session-2026-10-24-venue-collisions-measured.md) | feat: the home team picks the ground among ambiguous venue names (23 more rows), and every table row is checked for a wrong city |
