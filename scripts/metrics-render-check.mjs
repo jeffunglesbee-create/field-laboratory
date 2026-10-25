@@ -123,13 +123,30 @@ export const PREDICATES = {
       `second wind ${sw.length}, gravity ${gr.length} of ${s.rows.gravity.length} rows, flow ${fl.length}; disagreeing: ${JSON.stringify(bad.slice(0, 3))}`]
   },
 
+  'Play frames draws every state the decoder names, each with its own edge, and nothing else': s => {
+    const tiles = s.playFrames
+    const seen = [...new Set(tiles.map(t => t.state))].sort()
+    const want = Object.keys(FRAME_STATES).sort()
+    const wrongEdge = tiles.filter(t => FRAME_STATES[t.state] !== t.border)
+    return [JSON.stringify(seen) === JSON.stringify(want) && wrongEdge.length === 0,
+      `states ${JSON.stringify(seen)} of ${JSON.stringify(want)}; wrong edge ${JSON.stringify(wrongEdge.slice(0, 3))}`]
+  },
+
   'rows name players, teams and positions rather than bare ids': s => [
     s.rows.secondWind.length === 4 && s.rows.secondWind.every(l => /^\S.* \([A-Z]{2,3}\), [A-Z]{2,3} at [A-Z]{2,3}, \d{4}-\d{2}-\d{2}$/.test(l))
       && s.rows.gravity.length > 0 && s.rows.gravity.every(r => /^[A-Z]{2,3} offense v [A-Z]{2,3}, play \d+$/.test(r.label) && r.positions === r.marks),
     JSON.stringify({ secondWind: s.rows.secondWind, gravity: s.rows.gravity.slice(0, 2) })],
 }
 
-export const EXPLAINED = ['flow', 'second-wind', 'gravity', 'tactical-lock']
+export const EXPLAINED = ['flow', 'second-wind', 'gravity', 'tactical-lock', 'play-frames']
+
+// Play frames is not a metric. Its six decoder states, and the edge STYLE that
+// carries each one (a colour alone is lost without colour vision). The tiles are
+// constructed in src/LaboratorySurface.fs; nothing live feeds them.
+export const FRAME_STATES = {
+  'STANDARD': 'solid', 'SHOOTOUT': 'double', 'RESERVED IN USE': 'dashed',
+  'UNKNOWN LAYOUT': 'dashed', 'PARTIAL RECORD': 'dashed', 'NO RECORDS': 'dotted',
+}
 
 // THE NARRATIVE AGREES WITH THE LABEL. Owner amendment 2026-10-21: a finished
 // game gets a sentence (Flow.narrative, Stamina.staminaNarrative,
@@ -186,7 +203,8 @@ export const goodSnapshot = () => {
       marks: [{ well: 'steady', style: '--mx-fill: 0.250' }, { well: 'expanding', style: '--mx-fill: 0.500' }, { well: 'unencoded', style: '' }],
     },
     ariaLabels: ['Minute 1, home: InFlow state active, sequential xG 0.42'],
-    explained: ['flow', 'second-wind', 'gravity', 'tactical-lock'].map(key => ({
+    playFrames: Object.entries(FRAME_STATES).map(([state, border]) => ({ state, border })),
+    explained: ['flow', 'second-wind', 'gravity', 'tactical-lock', 'play-frames'].map(key => ({
       key, heads: ['What it measures', key === 'tactical-lock' ? 'Why nothing is drawn' : 'How to read it'], paras: [120, 90] })),
     rows: {
       secondWind: ['Nick Foligno (CHI), CHI at FLA, 2025-10-07', 'Brad Marchand (FLA), CHI at FLA, 2025-10-07',
@@ -228,6 +246,7 @@ export const MUTATIONS = {
   'no accessible name, and no state phrase, appears in the panel\'s visible text': s => { s.innerText += ' InFlow state active, sequential xG 0.42' },
   'every drawn node carries a non-empty accessible name': s => { s.imgNodesUnnamed = 1 },
   'every section says in plain English what it measures and how to read it': s => { s.explained = s.explained.filter(e => e.key !== 'gravity') },
+  'Play frames draws every state the decoder names, each with its own edge, and nothing else': s => { s.playFrames.find(t => t.state === 'PARTIAL RECORD').border = 'solid' },
   'rows name players, teams and positions rather than bare ids': s => { s.rows.secondWind[2] = 'Game 2025020089, player 8471214' },
   'every finished row carries its sentence, and each sentence agrees with its accessible name': s => { s.narratives.secondWind[2].text = s.narratives.secondWind[2].text.replace('8 came', '7 came') },
 }
@@ -298,7 +317,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     marksBefore: await page.$$eval(`${panel} [data-metric="gravity"] .mx-well`, m => m.length),
     framesFetchesBefore: frames(),
   }
-  for (const key of ['second-wind', 'gravity', 'tactical-lock'])
+  for (const key of ['second-wind', 'gravity', 'tactical-lock', 'play-frames'])
     await page.$eval(`${panel} [data-metric="${key}"]`, d => { d.open = true })
   await page.waitForSelector(`${panel} [data-metric="gravity"] .mx-well, ${panel} [data-metric="gravity"] .mx-error`, { timeout: 60000 })
   await page.waitForSelector(`${panel} [data-metric="second-wind"] .mx-track, ${panel} [data-metric="second-wind"] [data-state]`, { timeout: 180000 })
@@ -317,6 +336,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     fetchesBefore: populationBefore, fetchesAfter: population(), expectedFetches: 1 + 2 * manifest.games.length,
   }
   s.tacticalLock = await sectionOf('tactical-lock')
+  s.playFrames = await page.$$eval(`${panel} [data-metric="play-frames"] .mx-frame`, ts => ts.map(t => ({ state: t.dataset.frameState, border: getComputedStyle(t).borderTopStyle })))
   s.ariaLabels = await page.$$eval(`${panel} [aria-label]`, ns => ns.map(n => n.getAttribute('aria-label')))
   s.explained = await page.$$eval(`${panel} details[data-metric]`, ds => ds.map(d => ({
     key: d.dataset.metric,
@@ -350,7 +370,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   await page.keyboard.press('End')
   s.afterEnd = await page.$$eval(TABS, ts => ts.find(t => t.getAttribute('aria-selected') === 'true')?.id)
 
-  // The screenshot is taken on the Metrics tab with all four sections open.
+  // The screenshot is taken on the Metrics tab with all five sections open.
   await page.click('#tab-metrics')
   mkdirSync('outbox', { recursive: true })
   await page.$eval(panel, p => p.querySelectorAll('details').forEach(d => { d.open = true }))

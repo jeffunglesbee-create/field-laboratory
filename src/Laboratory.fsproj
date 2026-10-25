@@ -101,12 +101,16 @@
     <Compile Include="LineupsView.fs" />
     <Compile Include="BriefsView.fs" />
     <Compile Include="DrawView.fs" />
-    <!-- The Metrics tab (docs/CC-CMD-2026-10-17-metrics-tab-render-path.md): a mount of
-         Flow, Stamina, Gravity and TacticalLock, all above it. -->
-    <Compile Include="MetricsView.fs" />
-    <!-- Binary frame ingest. Depends on nothing and is read only by Suite.fs,
-         which is where every one of its public bindings is exercised. -->
+    <!-- Binary frame ingest. Depends on nothing. Read by LaboratorySurface.fs (the
+         Metrics tab's Play frames section) and by Suite.fs, where every one of its
+         public bindings is exercised. MOVED ABOVE MetricsView.fs; the file itself
+         is frozen and was not touched. -->
     <Compile Include="PlayFrame.fs" />
+    <!-- The play-frame tiles: a projection over PlayFrame.Frame, no DOM. -->
+    <Compile Include="LaboratorySurface.fs" />
+    <!-- The Metrics tab (docs/CC-CMD-2026-10-17-metrics-tab-render-path.md): a mount of
+         Flow, Stamina, Gravity, TacticalLock and the play frames, all above it. -->
+    <Compile Include="MetricsView.fs" />
     <!-- The captures, and the suite over them. MOVED ABOVE Program.fs on
          2026-09-08. They sat below it because `Fixtures.fs` imported
          `readFileSync` from `node:fs`, which made the whole chain node-only —

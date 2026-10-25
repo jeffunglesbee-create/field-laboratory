@@ -443,6 +443,26 @@ let private tacticalLockText (body: HTMLElement) =
         "The data cannot answer it yet. Time when the ball is dead has to be left out of a window, or a stoppage would look like the defence shutting the opponent down. That needs the moments play restarts (a throw-in, a goal kick, a foul) and a clock finer than the minute, and the captures carry neither. So all 132,798 team windows came out as active play that could not be measured."
         "Drawing a sample mark would suggest the other windows differ, so none is drawn. The metric itself is built and proven (docs/LOCK-PROOF.md, docs/AMNESTY-PROOF.md) and waits on a source that records restarts." ]
 
+// --- Play frames --------------------------------------------------------------
+
+/// Not a metric: what the binary play-feed decoder says about frames it is given.
+/// The tiles are LaboratorySurface's own text; this draws them and writes none.
+let private playFramesText (body: HTMLElement) =
+    explain body "What it measures" [
+        "Nothing about a game. This shows what the play-feed decoder does with a payload: it reads whole 24-byte records, and it refuses anything else by name instead of guessing."
+        "Every tile below is built here, not received from a feed: nothing in this repository produces a live frame yet." ]
+    explain body "How to read it" [
+        "One tile per play for a payload that decodes. A play shows its win probability, the change from the play before it, and its expected points added. A shootout play is marked and left out of the change."
+        "A tile with a dashed edge is a payload the decoder refused: bytes that do not divide into records, a record written in another layout, or a byte that must be zero and is not." ]
+    let grid = child body (el "div" "mx-frames" "")
+    for t in LaboratorySurface.exhibitTiles do
+        let tile = child grid (el "div" (sprintf "mx-frame mx-frame--%s" (LaboratorySurface.toneClass t.Tone)) "")
+        tile.setAttribute ("data-frame-state", t.State)
+        child tile (el "div" "mx-frame-title" t.Title) |> ignore
+        child tile (el "div" "mx-frame-state" t.State) |> ignore
+        for line in t.Lines do
+            child tile (el "div" "mx-frame-line" line) |> ignore
+
 // --- the panel ----------------------------------------------------------------
 
 let load (mount: HTMLElement) : JS.Promise<unit> =
@@ -450,7 +470,7 @@ let load (mount: HTMLElement) : JS.Promise<unit> =
         mount.innerHTML <- ""
         let panel = child mount (el "div" "mx-panel" "")
         child panel (el "h2" "" "Metrics") |> ignore
-        child panel (el "p" "mx-explain" "Four ways of reading a game beyond the score. Open a section: each says what it measures and how to read its marks.") |> ignore
+        child panel (el "p" "mx-explain" "Four ways of reading a game beyond the score, and a fifth section that is not one: the play-feed decoder's states. Open a section: each says what it measures and how to read its marks.") |> ignore
         child panel (el "p" "mx-provenance mx-provenance--top" "Committed captures, named below, not today's slate. Each section says which capture it reads and when that capture was taken.") |> ignore
         let flow, flowBody =
             section panel "flow" "Flow (soccer)" "Captures: data/bsd-flow-finished-* (Bundesliga 213708, 2026-10-10) and data/bsd-flow-inplay-* (Europa 601226, 2026-10-15), with each match's BSD event row (data/bsd-flow-event-*.json, captured 2026-10-18)." (fun _ -> ())
@@ -458,5 +478,6 @@ let load (mount: HTMLElement) : JS.Promise<unit> =
         section panel "second-wind" "Second Wind (NHL)" "Capture: data/nhl-second-wind-population/ (2025-26 regular season, every fourth game, 328 games, about 136 MB), fetched on first expand." (fun body -> loadSecondWind body |> Promise.start) |> ignore
         section panel "gravity" "Gravity Well (NFL)" "Capture: data/bdb-event-frames-2022-w2.json (Big Data Bowl, 2022 season, week 2, 7 games), 1.8 MB, fetched on first expand." (fun body -> loadGravity body |> Promise.start) |> ignore
         section panel "tactical-lock" "Tactical Lock (soccer)" "Source: every R2 capture (field-relay-nba run 38962367310)." tacticalLockText |> ignore
+        section panel "play-frames" "Play frames (binary feed)" "Constructed in src/LaboratorySurface.fs through PlayFrame.Wire, not a capture and not a feed. Fetches nothing." playFramesText |> ignore
         do! loadFlow flowBody
     }
