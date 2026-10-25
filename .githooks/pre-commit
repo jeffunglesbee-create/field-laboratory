@@ -47,6 +47,9 @@ npm run --silent check:boundary
 # log. The probe imports 25 modules in fresh processes and takes about a second,
 # no network and no build, so the door is where it belongs.
 npm run --silent check:import-purity
+# Added 2026-10-25. A mutation whose search string no longer matches fails the
+# gate's mutation row 97 minutes in. This reads files and applies nothing: a second.
+npm run --silent check:mutation-anchors
 # Added 2026-08-29, after this exact check failed verify on THREE consecutive
 # commits and blocked the deploy each time -- deploy.yml triggers on
 # `workflow_run: [verify] completed`, so a red verify means the site silently
