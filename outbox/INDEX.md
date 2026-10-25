@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ceb55c2` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a3ae2b7` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | fix: a stale mutation anchor is found in a second, not 97 minutes into the gate |
 | `08514cc` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | feat: Exeter's St James Park is a row, accepted by the owner, and distinct from Newcastle's |
 | `0a03b44` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | feat: the table covers all 44 of Saturday's college football grounds (50 more rows), and the parent CC-CMD closes |
