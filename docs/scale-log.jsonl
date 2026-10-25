@@ -26,3 +26,6 @@
 {"id":"98c4ad30f699-e3b0c44298fc","sha":"98c4ad30f699455bb6c2c0910b8f624e2073c4c1","dirty":false,"ci":true,"fixture":"context-2026-09-05","rows":126,"sports":8,"cards":126,"groups":8,"mountMs":280,"budgetMs":5000}
 {"id":"8b70ed9262af-e3b0c44298fc","sha":"8b70ed9262afcc524b1c0798fc82a510d62c2dcc","dirty":false,"ci":true,"fixture":"context-2026-09-05","rows":126,"sports":8,"cards":126,"groups":8,"mountMs":374,"budgetMs":5000}
 {"id":"698c855d0b73-e3b0c44298fc","sha":"698c855d0b736febc6308b66f27aa819d23d58f8","dirty":false,"ci":true,"fixture":"context-2026-09-05","rows":126,"sports":8,"cards":126,"groups":8,"mountMs":452,"budgetMs":5000}
+{"id":"7d25a9f7acbd-e3b0c44298fc","sha":"7d25a9f7acbdf8ddb054422e3c761f15d6750408","dirty":false,"ci":true,"fixture":"context-2026-09-05","rows":126,"sports":8,"cards":126,"groups":8,"mountMs":465,"budgetMs":5000}
+{"id":"19de8bd186f3-e3b0c44298fc","sha":"19de8bd186f30145fd87fec8d40991d7cf85a0c4","dirty":false,"ci":true,"fixture":"context-2026-09-05","rows":126,"sports":8,"cards":126,"groups":8,"mountMs":467,"budgetMs":5000}
+{"id":"c14373272a9d-e3b0c44298fc","sha":"c14373272a9d07005b703fd003e1556415c8736f","dirty":false,"ci":true,"fixture":"context-2026-09-05","rows":126,"sports":8,"cards":126,"groups":8,"mountMs":455,"budgetMs":5000}
