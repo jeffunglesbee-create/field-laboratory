@@ -427,6 +427,17 @@ let private weather () =
             "University Stadium (NM)"; "Rice-Eccles Stadium" ]
           [ "Kenan Stadium"; "Some Unlisted Park" ]
 
+      // The archive spells them apart by a full stop and an apostrophe: Exeter's
+      // `St James Park` and Newcastle's `St. James' Park`. Both are table rows and
+      // they are not the same place (the first run put Exeter's at Newcastle's).
+      Verify.check "Exeter's St James Park and Newcastle's St. James' Park are two places"
+          (fun (a, b) ->
+              match Venues.tryFind a, Venues.tryFind b with
+              | Some x, Some y -> Weather.coordKey x.Where <> Weather.coordKey y.Where
+              | _ -> false)
+          ("St James Park", "St. James' Park")
+          ("St James Park", "St James Park")
+
       Verify.check "no table venue is also recorded as an indoor arena"
           (fun names -> names |> List.forall (fun n -> not (Venues.isIndoorArena n)))
           (Venues.all |> List.map (fun v -> v.Name))
