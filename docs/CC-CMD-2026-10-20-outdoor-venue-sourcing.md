@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-20 by CC, split out of `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** DONE 2026-10-25 — 372 venues sourced by the rule (301 by two sources agreeing, 23 by the home-team rule, 48 by the wider net) plus 2 accepted by the owner with their evidence in `src/Venues.fs`; 483 table rows in all, 483 of 483 zones checked against Open-Meteo. Condition 2 was amended by the owner on 2026-10-25 (below). Records: `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md`, `outbox/cc-session-2026-10-24-home-team-rule.md`, `outbox/cc-session-2026-10-25-cfb-gaps-wider-net.md`. Wrong-city rows: `docs/CC-CMD-2026-10-24-venue-name-collisions.md` (DONE; the one row it flagged, Red Bull Arena, was stale after a rename and is fixed).
+**Status:** DONE 2026-10-25 — 372 venues sourced by the rule (301 by two sources agreeing, 23 by the home-team rule, 48 by the wider net) plus 3 accepted by the owner with their evidence in `src/Venues.fs` (Ryan Field, M. M. Roberts Stadium, and Exeter's St James Park); 484 table rows in all, zones checked against Open-Meteo. Condition 2 was amended by the owner on 2026-10-25 (below). Records: `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md`, `outbox/cc-session-2026-10-24-home-team-rule.md`, `outbox/cc-session-2026-10-25-cfb-gaps-wider-net.md`. Wrong-city rows: `docs/CC-CMD-2026-10-24-venue-name-collisions.md` (DONE; the one row it flagged, Red Bull Arena, was stale after a rename and is fixed).
 
 ---
 

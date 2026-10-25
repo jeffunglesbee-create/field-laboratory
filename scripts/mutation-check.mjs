@@ -637,6 +637,16 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // Exeter's ground put back at Newcastle's coordinates, as the first wider-net
+    // run had it.
+    id: 'venue-exeter-at-newcastle',
+    file: 'src/Venues.fs',
+    claim: "Exeter's St James Park is not at Newcastle's St. James' Park",
+    find: 'at "St James Park" 50.7307 -3.5212 OpenAir "Europe/London"',
+    replace: 'at "St James Park" 54.9755 -1.6218 OpenAir "Europe/London"',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // A name with an escaped quote was skipped and the calibration covered 409
     // of 410 rows while reporting on "the table" (run 39821284339).
     id: 'venue-source-reader-skips-escaped-quote',

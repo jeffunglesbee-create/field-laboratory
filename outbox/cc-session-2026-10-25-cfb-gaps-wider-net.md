@@ -98,6 +98,17 @@ evidence beside them in `src/Venues.fs`:
   team's own home-venue claim agree; OpenStreetMap's name search returns a
   same-named stadium in Picayune and has no named object at the Hattiesburg point.
 
+A third, not college football, was added the same day on the same terms:
+
+- **St James Park** (Exeter City, EFL Trophy) 50.7307, -3.5212. The archive spells
+  Exeter's ground `St James Park` and Newcastle's `St. James' Park` (checked by
+  bytes in field-archive D1, 2026-10-25; the curly `’` appears only in Wikidata
+  labels). Sourcing left it in review: Nominatim named Newcastle, Photon Toronto,
+  Wikidata (via Exeter City as home team) Exeter. Wikidata alone is at Exeter, and
+  OpenStreetMap's reverse geocode there was not checked. A Suite check holds the
+  two St James rows as different places, and the mutation `venue-exeter-at-newcastle`
+  moves Exeter's back to Newcastle's coordinates.
+
 Result: all 44 of 2026-10-24's college football grounds are table rows. The Suite
 holds that as a check ("every venue on the 2026-10-24 college football slate is in
 the table"), which is the parent CC-CMD's amended condition 2.
