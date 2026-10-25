@@ -402,6 +402,31 @@ let private weather () =
       // An arena is a venue with no weather; a table entry is one with weather.
       // A name in both would be a chip the render check then calls "nothing to
       // observe".
+      // The day's 44 college football games, one venue each (field-archive D1, read
+      // 2026-10-24, the Saturday whose slate named 12 grounds the table lacked).
+      // 32 were table rows already; 10 came from the sourcing run's wider net, 2
+      // were accepted by the owner with their evidence beside them in Venues.fs.
+      // Every one must now be a table row, so a card for any of them can carry a
+      // weather chip. docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md, condition 2.
+      Verify.check "every venue on the 2026-10-24 college football slate is in the table"
+          (fun slate -> List.forall (fun n -> (Venues.tryFind n).IsSome) slate)
+          [ "Jordan-Hare Stadium"; "Nippert Stadium"; "Flagler Credit Union Stadium"
+            "Hard Rock Stadium"; "Michigan Stadium"; "Ryan Field"
+            "Gerald J. Ford Stadium"; "Amon G. Carter Stadium"; "Glass Bowl"
+            "Kelly/Shorts Stadium"; "David Booth Kansas Memorial Stadium"; "Zoeller Field at Dix Stadium"
+            "Gies Memorial Stadium"; "Bryant-Denny Stadium"; "Scheumann Stadium"
+            "Broadview Stadium"; "Bobby Dodd Stadium"; "Huntington Bank Stadium"
+            "Davis Wade Stadium"; "Huskie Stadium"; "Navy-Marine Corps Memorial Stadium"
+            "Williams-Brice Stadium"; "Acrisure Bounce House"; "Rose Bowl"
+            "Mountain America Stadium"; "Peden Stadium"; "Veterans Memorial Stadium (AL)"
+            "Joe Aillet Stadium"; "Mackay Stadium"; "M. M. Roberts Stadium"
+            "Martin Stadium"; "Canvas Stadium"; "Centennial Bank Stadium"
+            "Memorial Stadium (Clemson, SC)"; "Boone Pickens Stadium"; "Casino Del Sol Stadium"
+            "Kroger Field"; "Kenan Stadium"; "DKR-Texas Memorial Stadium"
+            "UFCU Stadium"; "Camp Randall Stadium"; "Yulman Stadium"
+            "University Stadium (NM)"; "Rice-Eccles Stadium" ]
+          [ "Kenan Stadium"; "Some Unlisted Park" ]
+
       Verify.check "no table venue is also recorded as an indoor arena"
           (fun names -> names |> List.forall (fun n -> not (Venues.isIndoorArena n)))
           (Venues.all |> List.map (fun v -> v.Name))

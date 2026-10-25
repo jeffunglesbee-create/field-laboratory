@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T19:49:00.687Z",
+  "at": "2026-10-24T23:10:16.728Z",
   "eps": 0.02,
   "summary": {
     "checked": 433,
@@ -7,6 +7,12 @@
     "accepted-WRONG": 0,
     "review": 46,
     "none": 1,
+    "wider": {
+      "asked": 47,
+      "flippedCorrect": 26,
+      "flippedWRONG": 0,
+      "stillUndecided": 21
+    },
     "withAnUnansweredSource": 0,
     "osmAgreedAloneAndWrong": 4,
     "homeTeam": {
@@ -2043,6 +2049,8 @@
         "lon": -71.0972
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2088,6 +2096,8 @@
         "lon": -87.6553
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2133,6 +2143,8 @@
         "lon": -118.24
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2178,6 +2190,8 @@
         "lon": -122.3893
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2223,6 +2237,8 @@
         "lon": -104.9942
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2268,6 +2284,8 @@
         "lon": -73.9262
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2313,6 +2331,8 @@
         "lon": -73.8458
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2358,6 +2378,8 @@
         "lon": -76.6217
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2404,6 +2426,8 @@
         "lon": -80.0057
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2449,6 +2473,8 @@
         "lon": -117.1566
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2494,6 +2520,8 @@
         "lon": -81.6852
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2539,6 +2567,8 @@
         "lon": -83.0485
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2584,6 +2614,8 @@
         "lon": -94.4803
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2629,6 +2661,8 @@
         "lon": -93.2776
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2674,6 +2708,8 @@
         "lon": -90.1928
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2719,6 +2755,8 @@
         "lon": -84.5069
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2764,6 +2802,8 @@
         "lon": -117.8827
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2809,6 +2849,12 @@
         "lon": -117.8827
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": {
+        "agreeing": [],
+        "extras": [],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -2853,6 +2899,8 @@
         "lon": -87.6338
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2898,6 +2946,19 @@
         "lon": -87.6338
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": {
+        "agreeing": [],
+        "extras": [
+          {
+            "source": "wp-article",
+            "label": "Rate Field",
+            "lat": 41.83,
+            "lon": -87.633888888
+          }
+        ],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -2928,6 +2989,8 @@
         "lon": -80.2197
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -2973,6 +3036,8 @@
         "lon": -95.3556
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3018,6 +3083,8 @@
         "lon": -95.3556
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3063,6 +3130,8 @@
         "lon": -97.0847
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3108,6 +3177,12 @@
         "lon": -87.9712
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": {
+        "agreeing": [],
+        "extras": [],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -3152,6 +3227,8 @@
         "lon": -79.3894
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3198,6 +3275,8 @@
         "lon": -122.3325
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3243,6 +3322,8 @@
         "lon": -112.0667
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -3293,6 +3374,8 @@
         "lon": -82.6534
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3338,6 +3421,8 @@
         "lon": 151.2245
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -3367,6 +3452,8 @@
         "lon": 130.887
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3412,6 +3499,8 @@
         "lon": 144.9834
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3457,6 +3546,8 @@
         "lon": 138.596
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3502,6 +3593,8 @@
         "lon": 153.0381
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3547,6 +3640,8 @@
         "lon": 115.889
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3592,6 +3687,8 @@
         "lon": 144.3546
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3637,6 +3734,8 @@
         "lon": 144.9475
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3682,6 +3781,8 @@
         "lon": -123.1119
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3727,6 +3828,8 @@
         "lon": -122.3316
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3772,6 +3875,8 @@
         "lon": -111.8933
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3817,6 +3922,8 @@
         "lon": -122.6919
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3862,6 +3969,8 @@
         "lon": -93.1655
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3907,6 +4016,8 @@
         "lon": -118.2611
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3952,6 +4063,8 @@
         "lon": -94.8236
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -3997,6 +4110,8 @@
         "lon": -104.8919
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4042,6 +4157,8 @@
         "lon": -77.0074
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4087,6 +4204,8 @@
         "lon": -75.1665
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4132,6 +4251,8 @@
         "lon": -121.5133
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4177,6 +4298,8 @@
         "lon": -71.2643
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4222,6 +4345,8 @@
         "lon": 12.3481
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -4274,6 +4399,8 @@
         "lon": -90.2016
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -4326,6 +4453,8 @@
         "lon": -117.1199
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4371,6 +4500,8 @@
         "lon": -73.5518
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4416,6 +4547,8 @@
         "lon": -79.4186
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4461,6 +4594,8 @@
         "lon": -80.1506
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4506,6 +4641,8 @@
         "lon": -75.3808
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4551,6 +4688,8 @@
         "lon": -80.8529
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4596,6 +4735,8 @@
         "lon": -77.0125
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4641,6 +4782,8 @@
         "lon": -83.0154
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4686,6 +4829,8 @@
         "lon": -84.5182
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4731,6 +4876,8 @@
         "lon": -81.3893
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4776,6 +4923,8 @@
         "lon": -86.7665
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4821,6 +4970,8 @@
         "lon": -87.6167
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -4871,6 +5022,8 @@
         "lon": -118.2845
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4916,6 +5069,8 @@
         "lon": -121.9254
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -4961,6 +5116,19 @@
         "lon": -97.718
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": {
+        "agreeing": [],
+        "extras": [
+          {
+            "source": "wp-article",
+            "label": "Q2 Stadium",
+            "lat": 30.388206,
+            "lon": -97.719837
+          }
+        ],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -4991,6 +5159,8 @@
         "lon": -95.3511
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5036,6 +5206,8 @@
         "lon": -96.8353
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -5090,6 +5262,8 @@
         "lon": -84.401
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5135,6 +5309,8 @@
         "lon": -2.9608
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5180,6 +5356,8 @@
         "lon": -2.2004
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -5230,6 +5408,8 @@
         "lon": -0.2218
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5275,6 +5455,8 @@
         "lon": -0.0831
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5320,6 +5502,8 @@
         "lon": -1.3882
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -5370,6 +5554,8 @@
         "lon": -1.8847
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5415,6 +5601,8 @@
         "lon": -2.2302
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5453,6 +5641,8 @@
         "lon": -0.0855
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5498,6 +5688,8 @@
         "lon": -1.1326
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -5541,6 +5733,8 @@
         "lon": -1.217
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -5597,6 +5791,8 @@
         "lon": -1.391
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5642,6 +5838,8 @@
         "lon": -0.3674
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5687,6 +5885,8 @@
         "lon": -0.0509
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5732,6 +5932,8 @@
         "lon": -0.0163
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5777,6 +5979,8 @@
         "lon": 11.6247
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5822,6 +6026,8 @@
         "lon": 7.8275
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5867,6 +6073,8 @@
         "lon": 7.7534
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5912,6 +6120,8 @@
         "lon": 151.0635
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -5957,6 +6167,8 @@
         "lon": 153.4028
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -5993,6 +6205,12 @@
         "lon": 12.4672
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": {
+        "agreeing": [],
+        "extras": [],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6037,6 +6255,19 @@
         "lon": 78.548
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": {
+        "agreeing": [],
+        "extras": [
+          {
+            "source": "wp-article",
+            "label": "Rajiv Gandhi International Cricket Stadium",
+            "lat": 17.4065,
+            "lon": 78.55044444
+          }
+        ],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6073,6 +6304,8 @@
         "lon": 75.8068
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6118,6 +6351,8 @@
         "lon": -80.842
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6163,6 +6398,8 @@
         "lon": -75.4165
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6199,6 +6436,8 @@
         "lon": -82.0238
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6244,6 +6483,23 @@
         "lon": -79.4657
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": {
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wp-article"
+        ],
+        "extras": [
+          {
+            "source": "wp-article",
+            "label": "Pinehurst Resort",
+            "lat": 35.1895,
+            "lon": -79.4678
+          }
+        ],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6280,6 +6536,8 @@
         "lon": -121.9478
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6325,6 +6583,8 @@
         "lon": -81.3957
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6370,6 +6630,8 @@
         "lon": -118.5085
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6415,6 +6677,23 @@
         "lon": -117.2519
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": {
+        "agreeing": [
+          "nominatim",
+          "photon",
+          "wp-article"
+        ],
+        "extras": [
+          {
+            "source": "wp-article",
+            "label": "Torrey Pines Golf Course",
+            "lat": 32.9045,
+            "lon": -117.245
+          }
+        ],
+        "more": []
+      },
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6451,6 +6730,8 @@
         "lon": -80.8105
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6496,6 +6777,8 @@
         "lon": -111.9085
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6541,6 +6824,8 @@
         "lon": -83.1472
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6586,6 +6871,8 @@
         "lon": -84.3026
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6631,6 +6918,29 @@
         "lon": -2.8013
       },
       "verdict": "none",
+      "plus": "flipped-correct",
+      "plusPoints": {
+        "agreeing": [
+          "osm-reverse",
+          "wp-article"
+        ],
+        "extras": [
+          {
+            "source": "wp-article",
+            "label": "Old Course at St Andrews",
+            "lat": 56.351484,
+            "lon": -2.816147
+          }
+        ],
+        "more": [
+          {
+            "source": "osm-reverse",
+            "label": "Old Course",
+            "lat": 56.351484,
+            "lon": -2.816147
+          }
+        ]
+      },
       "decision": {
         "decision": "none",
         "agreeing": [],
@@ -6651,6 +6961,8 @@
         "lon": -4.6667
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6696,6 +7008,8 @@
         "lon": 1.3669
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6741,6 +7055,8 @@
         "lon": -78.8138
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6770,6 +7086,8 @@
         "lon": -97.3592
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6820,6 +7138,8 @@
         "lon": -93.2119
       },
       "verdict": "review",
+      "plus": "still-undecided",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -6856,6 +7176,8 @@
         "lon": -81.1926
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6901,6 +7223,8 @@
         "lon": -80.0158
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6946,6 +7270,8 @@
         "lon": -0.8003
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -6991,6 +7317,8 @@
         "lon": -1.3625
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7036,6 +7364,8 @@
         "lon": 4.7419
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -7086,6 +7416,8 @@
         "lon": -106.7411
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7131,6 +7463,8 @@
         "lon": -98.4789
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7176,6 +7510,8 @@
         "lon": -116.1965
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7221,6 +7557,8 @@
         "lon": -80.2547
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7266,6 +7604,8 @@
         "lon": -115.1832
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7311,6 +7651,8 @@
         "lon": 7.1926
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7356,6 +7698,8 @@
         "lon": 16.2652
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7402,6 +7746,8 @@
         "lon": 32.9391
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7447,6 +7793,8 @@
         "lon": -97.368
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7492,6 +7840,8 @@
         "lon": 11.0635
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7537,6 +7887,8 @@
         "lon": -94.484
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7582,6 +7934,8 @@
         "lon": 14.3843
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7627,6 +7981,8 @@
         "lon": -97.0928
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7672,6 +8028,8 @@
         "lon": -114.0987
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7717,6 +8075,8 @@
         "lon": 23.7876
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7762,6 +8122,8 @@
         "lon": -123.0685
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7807,6 +8169,8 @@
         "lon": -6.2282
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7852,6 +8216,8 @@
         "lon": 49.9196
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7897,6 +8263,8 @@
         "lon": -8.74
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7935,6 +8303,8 @@
         "lon": 7.0028
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -7980,6 +8350,8 @@
         "lon": -77.856
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8025,6 +8397,8 @@
         "lon": -90.4835
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8070,6 +8444,8 @@
         "lon": -82.3487
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8115,6 +8491,8 @@
         "lon": -1.9906
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8153,6 +8531,8 @@
         "lon": -2.1756
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8198,6 +8578,8 @@
         "lon": -0.0465
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8243,6 +8625,8 @@
         "lon": -84.3929
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8288,6 +8672,8 @@
         "lon": -97.0672
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8333,6 +8719,8 @@
         "lon": 6.3854
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8379,6 +8767,8 @@
         "lon": -2.1284
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8424,6 +8814,8 @@
         "lon": -78.8731
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8469,6 +8861,8 @@
         "lon": -0.1948
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8514,6 +8908,8 @@
         "lon": -87.5505
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8559,6 +8955,8 @@
         "lon": -90.0819
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8604,6 +9002,8 @@
         "lon": -122.2508
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8649,6 +9049,8 @@
         "lon": -89.4127
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8694,6 +9096,8 @@
         "lon": -105.0883
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8739,6 +9143,8 @@
         "lon": -3.203
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8784,6 +9190,8 @@
         "lon": 1.3093
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8829,6 +9237,8 @@
         "lon": -78.7196
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8874,6 +9284,8 @@
         "lon": -121.8683
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -8919,6 +9331,8 @@
         "lon": -4.2064
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -8971,6 +9385,8 @@
         "lon": -90.6673
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9016,6 +9432,8 @@
         "lon": -84.3889
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9061,6 +9479,8 @@
         "lon": 10.0102
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9106,6 +9526,8 @@
         "lon": 5.1659
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9151,6 +9573,8 @@
         "lon": -97.1594
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9196,6 +9620,8 @@
         "lon": -95.2463
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9241,6 +9667,8 @@
         "lon": -88.7935
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9286,6 +9714,8 @@
         "lon": 6.8377
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9331,6 +9761,8 @@
         "lon": -2.6884
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9376,6 +9808,8 @@
         "lon": -75.7489
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9421,6 +9855,8 @@
         "lon": -83.127
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9466,6 +9902,8 @@
         "lon": 8.6454
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9511,6 +9949,8 @@
         "lon": -104.8919
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9556,6 +9996,8 @@
         "lon": 20.7174
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9601,6 +10043,8 @@
         "lon": -84.3044
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9646,6 +10090,8 @@
         "lon": -94.1789
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9691,6 +10137,8 @@
         "lon": 13.3853
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9736,6 +10184,8 @@
         "lon": -77.3653
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9781,6 +10231,8 @@
         "lon": -3.1653
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9826,6 +10278,8 @@
         "lon": -1.1138
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9871,6 +10325,8 @@
         "lon": -2.1664
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9917,6 +10373,8 @@
         "lon": -1.6374
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -9962,6 +10420,8 @@
         "lon": 20.092
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10007,6 +10467,8 @@
         "lon": -1.5722
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10045,6 +10507,8 @@
         "lon": -0.1084
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10090,6 +10554,8 @@
         "lon": -105.0195
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10135,6 +10601,8 @@
         "lon": -90.2107
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10180,6 +10648,8 @@
         "lon": 10.3384
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10225,6 +10695,8 @@
         "lon": -0.364
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10270,6 +10742,8 @@
         "lon": -99.1505
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -10322,6 +10796,8 @@
         "lon": -5.9811
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10367,6 +10843,8 @@
         "lon": -3.7148
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10413,6 +10891,8 @@
         "lon": -9.1847
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -10463,6 +10943,8 @@
         "lon": -0.1035
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10508,6 +10990,8 @@
         "lon": -3.6588
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10553,6 +11037,8 @@
         "lon": -8.5838
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10598,6 +11084,8 @@
         "lon": -8.813
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10643,6 +11131,8 @@
         "lon": -9.1608
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10688,6 +11178,8 @@
         "lon": -6.0043
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10733,6 +11225,8 @@
         "lon": -0.6637
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10778,6 +11272,8 @@
         "lon": -8.4302
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10823,6 +11319,8 @@
         "lon": -3.7607
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10868,6 +11366,8 @@
         "lon": -99.6666
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10913,6 +11413,8 @@
         "lon": -81.6374
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -10958,6 +11460,8 @@
         "lon": -2.4892
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11003,6 +11507,8 @@
         "lon": -104.8432
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11048,6 +11554,8 @@
         "lon": -96.8014
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11093,6 +11601,8 @@
         "lon": -3.9802
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11131,6 +11641,8 @@
         "lon": -86.8089
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11176,6 +11688,8 @@
         "lon": -105.2664
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11221,6 +11735,8 @@
         "lon": -83.0456
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -11271,6 +11787,8 @@
         "lon": 14.4712
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -11323,6 +11841,8 @@
         "lon": -101.873
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11368,6 +11888,8 @@
         "lon": 14.416
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -11420,6 +11942,8 @@
         "lon": 23.6645
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11465,6 +11989,8 @@
         "lon": -96.7832
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11510,6 +12036,8 @@
         "lon": 3.7331
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11555,6 +12083,8 @@
         "lon": -88.2359
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11600,6 +12130,8 @@
         "lon": -83.6136
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11646,6 +12178,8 @@
         "lon": 5.837
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11691,6 +12225,8 @@
         "lon": 17.1996
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11736,6 +12272,8 @@
         "lon": 19.0955
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11781,6 +12319,8 @@
         "lon": 4.9821
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11826,6 +12366,8 @@
         "lon": 33.3634
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11871,6 +12413,8 @@
         "lon": -0.2889
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11916,6 +12460,8 @@
         "lon": -79.8301
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -11961,6 +12507,8 @@
         "lon": -88.1924
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12006,6 +12554,8 @@
         "lon": -80.2389
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12051,6 +12601,8 @@
         "lon": -3.0247
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12096,6 +12648,8 @@
         "lon": -3.0027
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12141,6 +12695,8 @@
         "lon": 8.7109
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12186,6 +12742,8 @@
         "lon": -4.1509
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12231,6 +12789,8 @@
         "lon": -121.4229
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -12281,6 +12841,8 @@
         "lon": -81.6996
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12326,6 +12888,8 @@
         "lon": -93.2242
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12371,6 +12935,8 @@
         "lon": -88.7779
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12416,6 +12982,8 @@
         "lon": -122.3019
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -12468,6 +13036,8 @@
         "lon": -4.3093
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12513,6 +13083,8 @@
         "lon": -81.5083
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12558,6 +13130,8 @@
         "lon": -5.8268
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12596,6 +13170,8 @@
         "lon": -93.6358
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12641,6 +13217,8 @@
         "lon": 3.1808
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12686,6 +13264,8 @@
         "lon": -80.7402
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12731,6 +13311,8 @@
         "lon": -76.1364
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12776,6 +13358,8 @@
         "lon": -82.4209
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12821,6 +13405,8 @@
         "lon": 0.8977
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12866,6 +13452,8 @@
         "lon": -92.6559
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12911,6 +13499,8 @@
         "lon": -1.7683
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -12956,6 +13546,8 @@
         "lon": -86.3683
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13001,6 +13593,8 @@
         "lon": -85.4892
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13046,6 +13640,8 @@
         "lon": -77.047
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13084,6 +13680,8 @@
         "lon": 144.3541
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13129,6 +13727,8 @@
         "lon": -84.771
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13174,6 +13774,8 @@
         "lon": -81.6856
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13219,6 +13821,8 @@
         "lon": 4.6943
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13264,6 +13868,8 @@
         "lon": -1.1423
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13309,6 +13915,8 @@
         "lon": -91.5512
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13354,6 +13962,8 @@
         "lon": -84.5052
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13399,6 +14009,8 @@
         "lon": 9.3066
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13444,6 +14056,8 @@
         "lon": -96.3408
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13489,6 +14103,8 @@
         "lon": -85.7588
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13534,6 +14150,8 @@
         "lon": -4.4265
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13580,6 +14198,8 @@
         "lon": -88.0621
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13625,6 +14245,8 @@
         "lon": -0.1937
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13670,6 +14292,8 @@
         "lon": -80.418
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13715,6 +14339,8 @@
         "lon": -111.6545
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13760,6 +14386,8 @@
         "lon": -121.9698
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13805,6 +14433,8 @@
         "lon": -75.1676
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13850,6 +14480,8 @@
         "lon": -1.0528
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13895,6 +14527,8 @@
         "lon": -0.2402
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13941,6 +14575,8 @@
         "lon": -118.2878
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -13986,6 +14622,8 @@
         "lon": 4.298
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14031,6 +14669,8 @@
         "lon": -86.1638
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14076,6 +14716,8 @@
         "lon": -76.6227
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14121,6 +14763,8 @@
         "lon": -119.8174
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14166,6 +14810,8 @@
         "lon": -0.983
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14211,6 +14857,8 @@
         "lon": 16.018
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14257,6 +14905,8 @@
         "lon": -92.066
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14302,6 +14952,8 @@
         "lon": 15.8451
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14347,6 +14999,8 @@
         "lon": 10.6497
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14392,6 +15046,8 @@
         "lon": -43.2309
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14437,6 +15093,8 @@
         "lon": -117.1597
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -14489,6 +15147,8 @@
         "lon": -111.8117
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14534,6 +15194,8 @@
         "lon": 8.9517
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14579,6 +15241,8 @@
         "lon": -1.1374
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14617,6 +15281,8 @@
         "lon": -2.6882
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14662,6 +15328,8 @@
         "lon": 15.4542
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -14714,6 +15382,8 @@
         "lon": 6.7331
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14759,6 +15429,8 @@
         "lon": -0.3582
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14797,6 +15469,8 @@
         "lon": -74.0744
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14842,6 +15516,8 @@
         "lon": 8.2244
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14887,6 +15563,8 @@
         "lon": 9.232
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14932,6 +15610,8 @@
         "lon": -73.9643
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -14977,6 +15657,8 @@
         "lon": -83.7481
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15022,6 +15704,8 @@
         "lon": -79.9549
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15067,6 +15751,8 @@
         "lon": -2.1304
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15112,6 +15798,8 @@
         "lon": -111.9326
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15157,6 +15845,8 @@
         "lon": 17.1368
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15202,6 +15892,8 @@
         "lon": -76.507
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15247,6 +15939,8 @@
         "lon": 9.6808
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15292,6 +15986,8 @@
         "lon": -83.9244
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15337,6 +16033,8 @@
         "lon": -84.5162
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15382,6 +16080,8 @@
         "lon": -86.7713
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -15432,6 +16132,8 @@
         "lon": -76.8645
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15477,6 +16179,8 @@
         "lon": -87.6708
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15522,6 +16226,8 @@
         "lon": -86.2339
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15567,6 +16273,8 @@
         "lon": -95.4108
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15612,6 +16320,8 @@
         "lon": -1.4676
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15650,6 +16360,8 @@
         "lon": -83.0197
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15695,6 +16407,8 @@
         "lon": -2.2914
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15740,6 +16454,8 @@
         "lon": -1.2007
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15786,6 +16502,8 @@
         "lon": 23.7411
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15831,6 +16549,8 @@
         "lon": -76.6216
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15876,6 +16596,8 @@
         "lon": 25.1047
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15921,6 +16643,8 @@
         "lon": 39.6457
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -15966,6 +16690,8 @@
         "lon": 2.2531
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16011,6 +16737,8 @@
         "lon": -84.516
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16056,6 +16784,8 @@
         "lon": -82.103
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16101,6 +16831,8 @@
         "lon": 115.8891
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16146,6 +16878,8 @@
         "lon": 5.4674
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16191,6 +16925,8 @@
         "lon": -1.6269
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16236,6 +16972,8 @@
         "lon": -80.3779
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16281,6 +17019,8 @@
         "lon": 1.1453
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16319,6 +17059,8 @@
         "lon": -72.6189
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16364,6 +17106,8 @@
         "lon": -3.0326
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16409,6 +17153,8 @@
         "lon": 8.888
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -16459,6 +17205,8 @@
         "lon": -1.4473
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16505,6 +17253,8 @@
         "lon": 0.5609
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16550,6 +17300,8 @@
         "lon": -86.809
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16595,6 +17347,8 @@
         "lon": 14.2766
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16640,6 +17394,8 @@
         "lon": 20.4647
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16685,6 +17441,8 @@
         "lon": -5.9706
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16730,6 +17488,8 @@
         "lon": -82.5033
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16775,6 +17535,8 @@
         "lon": 2.0762
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16820,6 +17582,8 @@
         "lon": -95.4108
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16865,6 +17629,8 @@
         "lon": 11.3099
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16910,6 +17676,8 @@
         "lon": -123.2814
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -16955,6 +17723,8 @@
         "lon": 6.8751
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17000,6 +17770,8 @@
         "lon": -95.4093
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -17050,6 +17822,8 @@
         "lon": -111.8489
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17095,6 +17869,8 @@
         "lon": 12.3531
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17140,6 +17916,8 @@
         "lon": -1.7127
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17185,6 +17963,8 @@
         "lon": 18.9346
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17230,6 +18010,8 @@
         "lon": -118.1676
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -17280,6 +18062,8 @@
         "lon": -86.9184
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17325,6 +18109,8 @@
         "lon": -83.6473
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17370,6 +18156,8 @@
         "lon": -76.3049
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17408,6 +18196,8 @@
         "lon": -2.9494
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17446,6 +18236,8 @@
         "lon": 9.1239
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17484,6 +18276,8 @@
         "lon": -83.3733
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17529,6 +18323,8 @@
         "lon": -3.6883
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17567,6 +18363,8 @@
         "lon": -85.4168
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17612,6 +18410,8 @@
         "lon": -78.5136
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17657,6 +18457,8 @@
         "lon": -83.0168
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17702,6 +18504,8 @@
         "lon": -87.8062
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17747,6 +18551,8 @@
         "lon": -76.9474
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17792,6 +18598,8 @@
         "lon": -79.8872
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17837,6 +18645,8 @@
         "lon": -74.4652
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17882,6 +18692,8 @@
         "lon": 7.4518
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17927,6 +18739,8 @@
         "lon": -89.9774
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -17972,6 +18786,8 @@
         "lon": -0.9335
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18017,6 +18833,8 @@
         "lon": 24.1163
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18062,6 +18880,8 @@
         "lon": -118.3387
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18107,6 +18927,8 @@
         "lon": -84.4852
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -18157,6 +18979,8 @@
         "lon": -74.1503
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18202,6 +19026,8 @@
         "lon": 2.1228
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18247,6 +19073,8 @@
         "lon": -1.8681
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18293,6 +19121,8 @@
         "lon": -1.6218
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -18343,6 +19173,8 @@
         "lon": -1.391
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -18393,6 +19225,8 @@
         "lon": 2.815
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18438,6 +19272,8 @@
         "lon": 3.5887
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18476,6 +19312,8 @@
         "lon": 4.0922
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -18526,6 +19364,8 @@
         "lon": 7.3761
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18571,6 +19411,8 @@
         "lon": -4.4614
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18616,6 +19458,8 @@
         "lon": 7.4155
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18661,6 +19505,8 @@
         "lon": 0.2225
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18706,6 +19552,8 @@
         "lon": 0.1695
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18751,6 +19599,8 @@
         "lon": -0.531
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18796,6 +19646,8 @@
         "lon": 13.3218
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18841,6 +19693,8 @@
         "lon": 14.1929
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -18891,6 +19745,8 @@
         "lon": 13.1999
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18936,6 +19792,8 @@
         "lon": 8.9525
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -18981,6 +19839,8 @@
         "lon": 7.65
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19026,6 +19886,8 @@
         "lon": 12.3639
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19071,6 +19933,8 @@
         "lon": 13.5681
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19116,6 +19980,8 @@
         "lon": 14.3909
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19154,6 +20020,8 @@
         "lon": 18.7685
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19200,6 +20068,8 @@
         "lon": 16.4318
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19245,6 +20115,8 @@
         "lon": 15.1623
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19290,6 +20162,8 @@
         "lon": 15.2701
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19335,6 +20209,8 @@
         "lon": 23.7842
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19380,6 +20256,8 @@
         "lon": -0.7335
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19425,6 +20303,8 @@
         "lon": 1.4341
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19471,6 +20351,8 @@
         "lon": 21.157
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19516,6 +20398,8 @@
         "lon": -0.1911
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19561,6 +20445,8 @@
         "lon": -112.262
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19606,6 +20492,8 @@
         "lon": 7.6064
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19651,6 +20539,8 @@
         "lon": 14.717
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19696,6 +20586,8 @@
         "lon": 29.0369
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19741,6 +20633,8 @@
         "lon": -106.508
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19787,6 +20681,8 @@
         "lon": -123.0215
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19832,6 +20728,8 @@
         "lon": -6.3738
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19877,6 +20775,8 @@
         "lon": 23.7853
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19922,6 +20822,8 @@
         "lon": -75.6836
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -19967,6 +20869,8 @@
         "lon": -1.1329
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20012,6 +20916,8 @@
         "lon": -0.2917
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20057,6 +20963,8 @@
         "lon": 49.8524
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20102,6 +21010,8 @@
         "lon": -0.0663
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20147,6 +21057,8 @@
         "lon": 22.9779
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20192,6 +21104,8 @@
         "lon": -90.3921
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20237,6 +21151,8 @@
         "lon": -89.7831
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20282,6 +21198,8 @@
         "lon": -84.4678
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20327,6 +21245,8 @@
         "lon": -3.2323
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20372,6 +21292,8 @@
         "lon": 9.308
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20417,6 +21339,8 @@
         "lon": 9.1374
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20462,6 +21386,8 @@
         "lon": -2.1926
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20507,6 +21433,8 @@
         "lon": -119.758
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20552,6 +21480,8 @@
         "lon": -1.7592
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20590,6 +21520,8 @@
         "lon": 23.3353
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20635,6 +21567,8 @@
         "lon": -89.5342
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20680,6 +21614,8 @@
         "lon": 44.5256
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20725,6 +21661,8 @@
         "lon": 7.0676
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20770,6 +21708,8 @@
         "lon": 22.2918
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20815,6 +21755,8 @@
         "lon": -0.4015
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20853,6 +21795,8 @@
         "lon": 5.7308
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20898,6 +21842,8 @@
         "lon": -21.8526
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20943,6 +21889,8 @@
         "lon": -1.8383
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -20988,6 +21936,8 @@
         "lon": 9.8987
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -21038,6 +21988,8 @@
         "lon": -85.6011
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -21083,6 +22035,8 @@
         "lon": -78.9418
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -21128,6 +22082,8 @@
         "lon": -105.5682
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -21182,6 +22138,8 @@
         "lon": -72.536
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -21227,6 +22185,8 @@
         "lon": 8.8376
       },
       "verdict": "review",
+      "plus": "flipped-correct",
+      "plusPoints": null,
       "decision": {
         "decision": "review",
         "agreeing": [],
@@ -21279,6 +22239,8 @@
         "lon": -81.0192
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -21324,6 +22286,8 @@
         "lon": -122.6651
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -21369,6 +22333,8 @@
         "lon": 10.8859
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [
@@ -21414,6 +22380,8 @@
         "lon": -90.1163
       },
       "verdict": "accepted-correct",
+      "plus": null,
+      "plusPoints": null,
       "decision": {
         "decision": "accepted",
         "agreeing": [

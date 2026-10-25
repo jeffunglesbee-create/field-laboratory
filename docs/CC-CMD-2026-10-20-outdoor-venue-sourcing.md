@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-20 by CC, split out of `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL — Tasks 0, 1 and 2 DONE 2026-10-22: 324 sourced venues in `src/Venues.fs` (301 by agreement of two sources, 23 more by the home-team rule), the rest in review; done conditions 1 and 3 met. Done condition 2 (a green verify on a day whose only outdoor venues were UEFA or CFB) is read from verify on main the first such day after this lands; nothing is left to build. See `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md` and `outbox/cc-session-2026-10-24-home-team-rule.md`. Whether any table row serves the wrong city because one name is two grounds is `docs/CC-CMD-2026-10-24-venue-name-collisions.md` (measured; the one row it flagged, Red Bull Arena, was stale after a rename and is fixed).
+**Status:** DONE 2026-10-25 — 372 venues sourced by the rule (301 by two sources agreeing, 23 by the home-team rule, 48 by the wider net) plus 2 accepted by the owner with their evidence in `src/Venues.fs`; 483 table rows in all, 483 of 483 zones checked against Open-Meteo. Condition 2 was amended by the owner on 2026-10-25 (below). Records: `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md`, `outbox/cc-session-2026-10-24-home-team-rule.md`, `outbox/cc-session-2026-10-25-cfb-gaps-wider-net.md`. Wrong-city rows: `docs/CC-CMD-2026-10-24-venue-name-collisions.md` (DONE; the one row it flagged, Red Bull Arena, was stale after a rename and is fixed).
 
 ---
 
@@ -63,6 +63,15 @@ alias pair.
 ## Done conditions
 
 1. The probe artifact is committed in `outbox/`.
-2. A `verify` run id, green on main, on a day whose only outdoor venues were
-   UEFA or CFB.
+2. ~~A `verify` run id, green on main, on a day whose only outdoor venues were
+   UEFA or CFB.~~ **Amended 2026-10-25 by the owner** ("Cover the 12, then
+   close"). That wording could not be met by a real day (MLS and MLB share the
+   Saturdays that carry college football) and proved little when it was: verify's
+   live render check needs only ONE covered venue on the slate. Replaced by what
+   is measurable: every venue on the 2026-10-24 college football slate, 44 games,
+   is a table row (Suite check "every venue on the 2026-10-24 college football
+   slate is in the table", with a must-fail input and the mutation
+   `venue-cfb-slate-row-deleted`), and verify is green on main with the live
+   render check passing on the landing commit. 32 of the 44 were rows already,
+   10 came from the wider net, 2 from the owner.
 3. `npm run gate` >= 95.
