@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `71280b5` | 2026-10-25 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
+| `71280b5` | 2026-10-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
+| `71280b5` | 2026-10-25 | [sport-vocabulary-2026-10-25T06-24-31-004Z.json](sport-vocabulary-2026-10-25T06-24-31-004Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
+| `81fdb12` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ceb55c2` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a3ae2b7` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | fix: a stale mutation anchor is found in a second, not 97 minutes into the gate |
 | `08514cc` | 2026-10-25 | [cc-session-2026-10-25-cfb-gaps-wider-net.md](cc-session-2026-10-25-cfb-gaps-wider-net.md) | feat: Exeter's St James Park is a row, accepted by the owner, and distinct from Newcastle's |
