@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `db97638` | 2026-10-25 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | feat: Play frames, a fifth section of the Metrics tab (gate 530/530, run 40223744723) |
+| `db97638` | 2026-10-25 | [metrics-play-frames-2026-10-25.png](metrics-play-frames-2026-10-25.png) | feat: Play frames, a fifth section of the Metrics tab (gate 530/530, run 40223744723) |
+| `db97638` | 2026-10-25 | [metrics-tab-latest.png](metrics-tab-latest.png) | feat: Play frames, a fifth section of the Metrics tab (gate 530/530, run 40223744723) |
+| `db97638` | 2026-10-25 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | feat: Play frames, a fifth section of the Metrics tab (gate 530/530, run 40223744723) |
+| `5bf8a51` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4559933` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `0b5b629` | 2026-10-25 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
 | `0b5b629` | 2026-10-25 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-25 [skip ci] |
