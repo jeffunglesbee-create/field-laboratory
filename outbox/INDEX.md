@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `22f34d8` | 2026-10-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4b80fff` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `b075ee0` | 2026-10-25 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | fix: the Play frames tile classes are literals (gate 530/530, run 40234180420) |
 | `b075ee0` | 2026-10-25 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | fix: the Play frames tile classes are literals (gate 530/530, run 40234180420) |
