@@ -5,9 +5,14 @@
 **Filed:** 2026-10-19 by CC, as done conditions 3-4 of
 `docs/CC-CMD-2026-10-17-verify-full-scheduled-outbox-row.md`, which cannot run
 until the cron fires
-**Status:** FILED. Due 2026-10-26, after verify-full's `0 6 * * 1` run (recent
-scheduled runs started 11:47Z to 14:25Z and took about 98 minutes). A
-self-follow-up is scheduled for 2026-10-26T17:00Z.
+**Status:** **DONE 2026-10-26**, read at 17:00Z by the scheduled follow-up: the first scheduled verify-full run to carry the not-applicable row, 2026-10-26, run
+40321066992 (head `6d639e4`, main), read from `docs/confidence-log.jsonl` and
+`outbox/mutation-baseline-latest.json`: **520 of 520, total 100, failing [], skipped [],
+notApplicable ["this session wrote its outbox"]**, 4624 seconds (confidence id
+`6d639e404239-a363c7b715d0`); mutation baseline `failing 0`, `notApplicable` naming
+`node scripts/run-row.mjs "this session wrote its outbox"`. The relay's
+`docs/dead-cron-baseline.json` entry for this workflow was REMOVED (field-relay-nba `fa4c75e`):
+its last three scheduled runs are 53 (success), 35 (success), 27 (failure), so it is no longer dead. See `outbox/cc-session-2026-10-26-scheduled-verify-full-read.md`.
 
 ## Why
 

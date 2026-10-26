@@ -4,7 +4,14 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-17, by CC, from the field-relay-nba daily read of the dead-cron watch
 **Confidence gate:** `npm run gate` must score >= 95 before any commit
-**Status:** BUILT 2026-10-19, owner chose option 1. Done conditions 1-2 met here; 3-4 need the next scheduled run (2026-10-26), and a follow-up is scheduled to read it. Session doc: `outbox/cc-session-2026-10-19-scheduled-outbox-row.md`.
+**Status:** **DONE 2026-10-26.** Built 2026-10-19, owner chose option 1; done conditions 3-4 met by the first scheduled verify-full run to carry the not-applicable row, 2026-10-26, run
+40321066992 (head `6d639e4`, main), read from `docs/confidence-log.jsonl` and
+`outbox/mutation-baseline-latest.json`: **520 of 520, total 100, failing [], skipped [],
+notApplicable ["this session wrote its outbox"]**, 4624 seconds (confidence id
+`6d639e404239-a363c7b715d0`); mutation baseline `failing 0`, `notApplicable` naming
+`node scripts/run-row.mjs "this session wrote its outbox"`. The relay's
+`docs/dead-cron-baseline.json` entry for this workflow was REMOVED (field-relay-nba `fa4c75e`):
+its last three scheduled runs are 53 (success), 35 (success), 27 (failure), so it is no longer dead. Session doc: `outbox/cc-session-2026-10-19-scheduled-outbox-row.md`; the reading is in `outbox/cc-session-2026-10-26-scheduled-verify-full-read.md`.
 
 ---
 
