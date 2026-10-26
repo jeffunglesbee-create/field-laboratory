@@ -75,3 +75,11 @@ The probe script, its workflow and the trigger file stay on
 `claude/bsd-list-caller-search-5jd70z` and are NOT on main: they are a measurement, not a feature,
 and landing them would need a gate run for no consumer. To measure again, dispatch the
 workflow "bsd join probe" on that branch. The artifacts and this note are on main.
+
+## Second run: the name-free keys (ids)
+
+Added to the probe: a join on exact kickoff plus one side's loose name match, and a team-id table
+learned on one committed date and applied to the OTHER, so no game is scored by a table it taught.
+Self-test 17 cases; mutations: `kickoffExact` always true fails the different-kickoff case, a
+table that keeps conflicting ids fails the conflict case, an `idJoin` that ignores the away id
+SURVIVED the first test set and a case was added to kill it. Results appended when the run lands.
