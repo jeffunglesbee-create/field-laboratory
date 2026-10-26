@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `17979d4` | 2026-10-26 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 6d639e4 [skip ci] |
+| `533cfcd` | 2026-10-26 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-26T13:31 [skip ci] |
 | `6d639e4` | 2026-10-26 | [bsd-join-probe-latest.json](bsd-join-probe-latest.json) | docs: the BSD join probe's result, 54% joined by name with a kickoff, and why |
 | `6d639e4` | 2026-10-26 | [bsd-join-probe-latest.txt](bsd-join-probe-latest.txt) | docs: the BSD join probe's result, 54% joined by name with a kickoff, and why |
 | `6d639e4` | 2026-10-26 | [cc-session-2026-10-26-bsd-join-probe.md](cc-session-2026-10-26-bsd-join-probe.md) | docs: the BSD join probe's result, 54% joined by name with a kickoff, and why |
