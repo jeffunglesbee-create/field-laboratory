@@ -12,6 +12,14 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `5287e30` | 2026-10-26 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-26 [skip ci] |
+| `5287e30` | 2026-10-26 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-26 [skip ci] |
+| `5287e30` | 2026-10-26 | [sport-vocabulary-2026-10-26T18-35-57-387Z.json](sport-vocabulary-2026-10-26T18-35-57-387Z.json) | drift-sentinel: ok on 2026-10-26 [skip ci] |
+| `980c626` | 2026-10-26 | [cc-session-2026-10-26-scheduled-verify-full-read.md](cc-session-2026-10-26-scheduled-verify-full-read.md) | docs: the scheduled verify-full read, run 40321066992: 520/520 with the outbox row not applicable |
+| `839aa65` | 2026-10-26 | [bsd-join-probe-latest.json](bsd-join-probe-latest.json) | docs: the BSD join probe, corrected: 79 of 93 games join by kickoff and a name, 12 more by eye, 2 unresolved |
+| `839aa65` | 2026-10-26 | [bsd-join-probe-latest.txt](bsd-join-probe-latest.txt) | docs: the BSD join probe, corrected: 79 of 93 games join by kickoff and a name, 12 more by eye, 2 unresolved |
+| `839aa65` | 2026-10-26 | [cc-session-2026-10-26-bsd-join-probe.md](cc-session-2026-10-26-bsd-join-probe.md) | docs: the BSD join probe, corrected: 79 of 93 games join by kickoff and a name, 12 more by eye, 2 unresolved |
+| `d4ae1f0` | 2026-10-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `17979d4` | 2026-10-26 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 6d639e4 [skip ci] |
 | `533cfcd` | 2026-10-26 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-26T13:31 [skip ci] |
 | `6d639e4` | 2026-10-26 | [bsd-join-probe-latest.json](bsd-join-probe-latest.json) | docs: the BSD join probe's result, 54% joined by name with a kickoff, and why |
