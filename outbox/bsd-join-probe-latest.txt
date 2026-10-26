@@ -1,40 +1,51 @@
 
-2026-08-29: BSD route returned 227 event(s) in 5 page(s) (count 227); event fields: id, league_id, home_team_id, home_team, away_team_id, away_team, home_coach_id, away_coach_id, event_date, home_score, away_score, home_score_ht, away_score_ht
+2026-08-29: BSD route returned 432 event(s) in 10 page(s) (count 432); event fields: id, league_id, home_team_id, home_team, away_team_id, away_team, home_coach_id, away_coach_id, event_date, home_score, away_score, home_score_ht, away_score_ht
   joined, of 50 lab soccer games (15 carry no start_time):
-    strict         10 of 50
-    loose+kickoff  14 of 50
-    loose-only     3 of 50
+    strict         15 of 50
+    loose+kickoff  21 of 50
+    loose-only     7 of 50
     ambiguous      0 of 50
-    none           23 of 50
-  joined events carrying both team ids: 27
-  kickoff gap among joined, minutes: n 22, median 0, max 0
-    NO JOIN  MLS: St. Louis CITY SC v FC Dallas @ null
-    NO JOIN  MLS: San Diego FC v LA Galaxy @ null
-    NO JOIN  MLS: Portland Timbers v Austin FC @ null
-    NO JOIN  MLS: Nashville SC v FC Cincinnati @ null
-    NO JOIN  MLS: Minnesota United FC v Orlando City @ null
-    ... and 18 more in the artifact
+    none           7 of 50
+  joined events carrying both team ids: 43
+  kickoff gap among joined, minutes: n 29, median 0, max 0
+    NO JOIN  MLS: Red Bull New York v Philadelphia Union @ null
+    NO JOIN  EPL: Liverpool v Nottm Forest @ 2026-08-29T11:30Z
+    NO JOIN  EPL: Spurs v Newcastle @ 2026-08-29T16:30Z
+    NO JOIN  MLS: D.C. United v LAFC @ 2026-08-29T23:30Z
+    NO JOIN  MLS: Red Bull NY v Philadelphia @ 2026-08-29T23:30Z
+    ... and 2 more in the artifact
+    LOOSE    St. Louis CITY SC v FC Dallas  <->  St.Louis City v FC Dallas
+    LOOSE    Minnesota United FC v Orlando City  <->  Minnesota United v Orlando City SC
+    LOOSE    Sporting Kansas City v Vancouver Whitecaps FC  <->  Sporting Kansas City v Vancouver Whitecaps
+    LOOSE    Houston Dynamo FC v San Jose Earthquakes  <->  Houston Dynamo v San Jose Earthquakes
     LOOSE    Toronto FC v New York City Football Club  <->  Toronto FC v New York City FC
-    LOOSE    Seattle Sounders FC v Chicago Fire FC  <->  Seattle Sounders FC v Chicago Fire
-    LOOSE    D.C. United v Los Angeles Football Club  <->  DC United v Los Angeles FC
 
-2026-09-05: BSD route returned 326 event(s) in 7 page(s) (count 326); event fields: id, league_id, home_team_id, home_team, away_team_id, away_team, home_coach_id, away_coach_id, event_date, home_score, away_score, home_score_ht, away_score_ht
+2026-09-05: BSD route returned 541 event(s) in 12 page(s) (count 541); event fields: id, league_id, home_team_id, home_team, away_team_id, away_team, home_coach_id, away_coach_id, event_date, home_score, away_score, home_score_ht, away_score_ht
   joined, of 43 lab soccer games (7 carry no start_time):
-    strict         6 of 43
-    loose+kickoff  20 of 43
-    loose-only     3 of 43
+    strict         8 of 43
+    loose+kickoff  25 of 43
+    loose-only     5 of 43
     ambiguous      0 of 43
-    none           14 of 43
-  joined events carrying both team ids: 29
-  kickoff gap among joined, minutes: n 24, median 0, max 0
-    NO JOIN  MLS: Inter Miami CF v Atlanta United @ null
-    NO JOIN  MLS: FC Cincinnati v D.C. United @ null
+    none           5 of 43
+  joined events carrying both team ids: 38
+  kickoff gap among joined, minutes: n 31, median 0, max 121
     NO JOIN  EPL: Fulham v C Palace @ 2026-09-05T14:00Z
     NO JOIN  EPL: Man City v Coventry @ 2026-09-05T14:00Z
     NO JOIN  EPL: Nottm Forest v Spurs @ 2026-09-05T14:00Z
-    ... and 9 more in the artifact
+    NO JOIN  MLS: Seattle v Red Bull NY @ 2026-09-06T00:30Z
+    NO JOIN  MLS: Salt Lake v LAFC @ 2026-09-06T01:30Z
     LOOSE    Toronto FC v Chicago Fire FC  <->  Toronto FC v Chicago Fire
     LOOSE    Orlando City v San Diego FC  <->  Orlando City SC v San Diego FC
     LOOSE    Charlotte FC v Houston Dynamo FC  <->  Charlotte FC v Houston Dynamo
+    LOOSE    Cincinnati v D.C. United  <->  FC Cincinnati v DC United
+    LOOSE    Miami v Atlanta  <->  Inter Miami CF v Atlanta United
 
-COVERAGE: 2 committed date(s), 93 lab soccer games: strict name 16, loose+kickoff 34, neither 43.
+2026-08-29 — kickoff + one side by name: {"no-kickoff":15,"kickoff+one-side":35} of 50
+2026-08-29 — id table learned from 2026-09-05 (73 names): {"name-not-in-table":37,"id":13} of 50
+  agrees with the name join on 13 game(s), DISAGREES on 0; joined ONLY by the id table: 0
+
+2026-09-05 — kickoff + one side by name: {"no-kickoff":7,"kickoff+one-side":33,"none":3} of 43
+2026-09-05 — id table learned from 2026-08-29 (82 names): {"name-not-in-table":22,"id":21} of 43
+  agrees with the name join on 18 game(s), DISAGREES on 0; joined ONLY by the id table: 3
+
+COVERAGE: 2 committed date(s), 93 lab soccer games: strict name 23, loose+kickoff 46, neither 24.

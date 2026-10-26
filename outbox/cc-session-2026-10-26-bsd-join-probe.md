@@ -75,3 +75,60 @@ The probe script, its workflow and the trigger file stay on
 `claude/bsd-list-caller-search-5jd70z` and are NOT on main: they are a measurement, not a feature,
 and landing them would need a gate run for no consumer. To measure again, dispatch the
 workflow "bsd join probe" on that branch. The artifacts and this note are on main.
+
+## Second run: the name-free keys (ids)
+
+Added to the probe: a join on exact kickoff plus one side's loose name match, and a team-id table
+learned on one committed date and applied to the OTHER, so no game is scored by a table it taught.
+Self-test 17 cases; mutations: `kickoffExact` always true fails the different-kickoff case, a
+table that keeps conflicting ids fails the conflict case, an `idJoin` that ignores the away id
+SURVIVED the first test set and a case was added to kill it. Results appended when the run lands.
+
+### Third run: the UTC-day window
+
+Replaying the second run's artifact (events are now kept in it) showed 14 of the 17 undecided games
+that carried a kickoff had a kickoff on the NEXT UTC date than the lab's context date (MLS, 00:30Z
+to 02:30Z). The relay's `date` is a UTC day, so asking for the context date alone never returned
+them; none of the 58 decided games had that property. The probe now also asks for the following
+day and merges by event id. Results appended when the run lands.
+
+### Result of the third run (run 40350349376 and the run after it; relay `/bsd/events/by-date`, UTC day and the next)
+
+**CORRECTION to the first result above.** The first run reported 37 of 93 games joined by no name
+rule and said 25 of them failed on short display names. That was partly the probe's own defect:
+14 of those games kicked off on the next UTC day (MLS, 00:30Z to 02:30Z), and the probe asked for the
+context date only. With the following UTC day added (432 and 541 events, 10 and 12 pages) the same 93
+games resolve as:
+
+| outcome | games | of |
+|---|---|---|
+| joined by an exact or loose name pair with the kickoff, or by the kickoff plus one side (union, replayed from the artifact) | 79 | 93 |
+| name pair matches one event, but the lab row has no `start_time` or the time differs (inspected by eye: all 12 are the right pair, e.g. `Houston Dynamo FC v San Jose Earthquakes` to `Houston Dynamo v San Jose Earthquakes`) | 12 | 93 |
+| unresolved by any rule (`Nottm Forest v Spurs`; `Red Bull New York v Philadelphia Union`) | 2 | 93 |
+
+Counts per key from the run: strict name 23, loose name with kickoff 46, kickoff plus one side 68
+(overlapping), ambiguous 0. Two dates, 93 games; not a season.
+
+What the second key and the table showed:
+- **Kickoff plus one side** needs no full name match: `Spurs v Newcastle` joins on `Newcastle` alone at
+  the same instant. It cannot help a row with no `start_time` (22 of 93, MLS mostly).
+- **Team-id table, learned on one date and tested on the other**: 31 games joined by both ids,
+  **0 disagreements** with the name join, 3 joined only by the table. Coverage was limited by its
+  teachers (a table taught by games only knows clubs that were in them) and by naming: **13 of 97 BSD
+  team ids appear under more than one lab name** (`Inter Miami CF` and `Miami`, `San Diego FC` and `San
+  Diego`), so a name-keyed table must be an alias table, several names to one id.
+- Of 14 undecided at the first window, 12 are the loose-only pairs above, 1 is `Nottm Forest v Spurs`
+  (neither side matches by name; both abbreviate) and 1 has no kickoff and a short form.
+
+## What this says about the design
+
+1. Feasible and cheap: 79 of 93 resolve with no table, and 12 more are plain to the eye. The relay
+   needs no change: the by-date route, asked for the UTC day and the next, carries every event with
+   both team ids.
+2. The rule that follows from the data: join on kickoff plus one side; for a row with no `start_time`,
+   require BOTH sides to match loosely and exactly one event; otherwise NOT JOINED. A game that does
+   not join shows no lineup affordance. Never a guess.
+3. The table is still worth building, built from BSD's own team list rather than from games, with
+   aliases per id: it is what resolves `Spurs`, `Nottm Forest`, `Red Bull New York`. Untested: that
+   BSD serves a team list through the relay, and that ids are stable across seasons.
+4. The lab's missing kickoff is the larger cost: 22 of 93 rows carry no `start_time`.
