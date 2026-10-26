@@ -37,4 +37,12 @@
     LOOSE    Orlando City v San Diego FC  <->  Orlando City SC v San Diego FC
     LOOSE    Charlotte FC v Houston Dynamo FC  <->  Charlotte FC v Houston Dynamo
 
+2026-08-29 — kickoff + one side by name: {"no-kickoff":15,"kickoff+one-side":28,"none":7} of 50
+2026-08-29 — id table learned from 2026-09-05 (55 names): {"name-not-in-table":47,"id":3} of 50
+  agrees with the name join on 3 game(s), DISAGREES on 0; joined ONLY by the id table: 0
+
+2026-09-05 — kickoff + one side by name: {"no-kickoff":7,"kickoff+one-side":26,"none":10} of 43
+2026-09-05 — id table learned from 2026-08-29 (59 names): {"name-not-in-table":30,"no-event":3,"id":10} of 43
+  agrees with the name join on 9 game(s), DISAGREES on 0; joined ONLY by the id table: 1
+
 COVERAGE: 2 committed date(s), 93 lab soccer games: strict name 16, loose+kickoff 34, neither 43.
