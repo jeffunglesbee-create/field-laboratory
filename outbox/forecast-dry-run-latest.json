@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T21:13:42.648Z",
+  "at": "2026-10-26T13:31:52.256Z",
   "method": "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30",
   "join": {
     "resolved": 20,
@@ -7,54 +7,54 @@
   },
   "rows": [
     {
-      "subject": "epl-fixture-77",
+      "subject": "epl-fixture-84",
       "provenance": "Modelled",
-      "value": "0.725750/0.126385/0.147865"
+      "value": "0.834248/0.086371/0.079381"
     },
     {
-      "subject": "epl-fixture-72",
-      "provenance": "Modelled",
-      "value": "0.054699/0.069995/0.875306"
-    },
-    {
-      "subject": "epl-fixture-71",
-      "provenance": "Modelled",
-      "value": "0.931595/0.044682/0.023723"
-    },
-    {
-      "subject": "epl-fixture-74",
-      "provenance": "Modelled",
-      "value": "0.315906/0.234781/0.449313"
-    },
-    {
-      "subject": "epl-fixture-73",
-      "provenance": "Modelled",
-      "value": "0.773667/0.109028/0.117305"
-    },
-    {
-      "subject": "epl-fixture-75",
-      "provenance": "Modelled",
-      "value": "0.239397/0.179757/0.580846"
-    },
-    {
-      "subject": "epl-fixture-76",
-      "provenance": "Modelled",
-      "value": "0.357473/0.276836/0.365691"
-    },
-    {
-      "subject": "epl-fixture-78",
-      "provenance": "Modelled",
-      "value": "0.267332/0.197986/0.534682"
-    },
-    {
-      "subject": "epl-fixture-79",
+      "subject": "epl-fixture-82",
       "provenance": "Modelled",
       "value": "0.352264/0.270615/0.377120"
     },
     {
-      "subject": "epl-fixture-80",
+      "subject": "epl-fixture-83",
       "provenance": "Modelled",
-      "value": "0.156968/0.131513/0.711519"
+      "value": "0.836773/0.085395/0.077832"
+    },
+    {
+      "subject": "epl-fixture-85",
+      "provenance": "Modelled",
+      "value": "0.540220/0.195749/0.264031"
+    },
+    {
+      "subject": "epl-fixture-86",
+      "provenance": "Modelled",
+      "value": "0.551216/0.191351/0.257434"
+    },
+    {
+      "subject": "epl-fixture-88",
+      "provenance": "Modelled",
+      "value": "0.676872/0.144029/0.179099"
+    },
+    {
+      "subject": "epl-fixture-90",
+      "provenance": "Modelled",
+      "value": "0.696722/0.136849/0.166429"
+    },
+    {
+      "subject": "epl-fixture-81",
+      "provenance": "Modelled",
+      "value": "0.648997/0.154192/0.196811"
+    },
+    {
+      "subject": "epl-fixture-87",
+      "provenance": "Modelled",
+      "value": "0.202905/0.157737/0.639358"
+    },
+    {
+      "subject": "epl-fixture-89",
+      "provenance": "Modelled",
+      "value": "0.562098/0.187051/0.250851"
     }
   ]
 }
