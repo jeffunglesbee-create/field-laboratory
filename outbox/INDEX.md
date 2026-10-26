@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ece59a9` | 2026-10-26 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-26 [skip ci] |
+| `ece59a9` | 2026-10-26 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-26 [skip ci] |
+| `ece59a9` | 2026-10-26 | [sport-vocabulary-2026-10-26T06-34-23-217Z.json](sport-vocabulary-2026-10-26T06-34-23-217Z.json) | drift-sentinel: ok on 2026-10-26 [skip ci] |
+| `b8e0c28` | 2026-10-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `22f34d8` | 2026-10-26 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4b80fff` | 2026-10-25 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `b075ee0` | 2026-10-25 | [cc-session-2026-10-25-metrics-play-frames.md](cc-session-2026-10-25-metrics-play-frames.md) | fix: the Play frames tile classes are literals (gate 530/530, run 40234180420) |
