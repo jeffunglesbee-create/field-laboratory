@@ -83,3 +83,11 @@ learned on one committed date and applied to the OTHER, so no game is scored by 
 Self-test 17 cases; mutations: `kickoffExact` always true fails the different-kickoff case, a
 table that keeps conflicting ids fails the conflict case, an `idJoin` that ignores the away id
 SURVIVED the first test set and a case was added to kill it. Results appended when the run lands.
+
+### Third run: the UTC-day window
+
+Replaying the second run's artifact (events are now kept in it) showed 14 of the 17 undecided games
+that carried a kickoff had a kickoff on the NEXT UTC date than the lab's context date (MLS, 00:30Z
+to 02:30Z). The relay's `date` is a UTC day, so asking for the context date alone never returned
+them; none of the 58 decided games had that property. The probe now also asks for the following
+day and merges by event id. Results appended when the run lands.

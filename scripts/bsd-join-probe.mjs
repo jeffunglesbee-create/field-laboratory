@@ -122,7 +122,15 @@ const fetchEvents = async date => {
 const probeDate = async date => {
   const ctx = JSON.parse(readFileSync(`data/context-${date}.json`, 'utf8'))
   const games = [...ctx.games.regular, ...ctx.games.postseason].filter(g => SOCCER.includes(g.sport))
-  const { events, pages, count } = await fetchEvents(date)
+  // The relay's `date` is a UTC day. A late US game (00:30Z to 02:30Z) is on the NEXT UTC day, so
+  // asking for the context date alone loses it: 14 of the first run's 17 undecided games that had a
+  // kickoff were exactly these. Ask for the day after as well and merge by event id.
+  const next = new Date(Date.parse(`${date}T00:00:00Z`) + 86400000).toISOString().slice(0, 10)
+  const first = await fetchEvents(date), second = await fetchEvents(next)
+  const seenIds = new Set()
+  const events = [...first.events, ...second.events].filter(e => !seenIds.has(e.id) && seenIds.add(e.id))
+  const pages = first.pages + second.pages
+  const count = (first.count ?? 0) + (second.count ?? 0)
   const shape = events[0] ? Object.keys(events[0]).filter(k => /team|home|away|league|event_date|^id$/.test(k)) : []
   const rows = games.map(g => ({ g, ...joinGame(g, events) }))
   const t = tally(rows)
