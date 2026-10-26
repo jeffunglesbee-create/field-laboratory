@@ -1,0 +1,347 @@
+{
+  "measuredAt": "2026-10-26T09:59:44.358Z",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "soccerSports": [
+    "MLS",
+    "EPL",
+    "La Liga",
+    "Serie A",
+    "Bundesliga",
+    "Ligue 1"
+  ],
+  "kickoffMinutes": 15,
+  "dates": [
+    {
+      "date": "2026-08-29",
+      "labSoccerGames": 50,
+      "labGamesWithoutKickoff": 15,
+      "bsd": {
+        "pages": 5,
+        "count": 227,
+        "fetched": 227,
+        "eventShape": [
+          "id",
+          "league_id",
+          "home_team_id",
+          "home_team",
+          "away_team_id",
+          "away_team",
+          "home_coach_id",
+          "away_coach_id",
+          "event_date",
+          "home_score",
+          "away_score",
+          "home_score_ht",
+          "away_score_ht"
+        ]
+      },
+      "joined": {
+        "strict": 10,
+        "loose+kickoff": 14,
+        "loose-only": 3,
+        "ambiguous": 0,
+        "none": 23
+      },
+      "joinedEventsCarryingBothTeamIds": 27,
+      "kickoffGapMinutesAmongJoined": {
+        "n": 22,
+        "max": 0,
+        "median": 0
+      },
+      "unmatched": [
+        {
+          "sport": "MLS",
+          "home": "St. Louis CITY SC",
+          "away": "FC Dallas",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "San Diego FC",
+          "away": "LA Galaxy",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Portland Timbers",
+          "away": "Austin FC",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Nashville SC",
+          "away": "FC Cincinnati",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Minnesota United FC",
+          "away": "Orlando City",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Sporting Kansas City",
+          "away": "Vancouver Whitecaps FC",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Houston Dynamo FC",
+          "away": "San Jose Earthquakes",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Colorado Rapids",
+          "away": "Real Salt Lake",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Red Bull New York",
+          "away": "Philadelphia Union",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "Columbus Crew",
+          "away": "New England Revolution",
+          "start": null
+        },
+        {
+          "sport": "EPL",
+          "home": "Liverpool",
+          "away": "Nottm Forest",
+          "start": "2026-08-29T11:30Z"
+        },
+        {
+          "sport": "EPL",
+          "home": "Spurs",
+          "away": "Newcastle",
+          "start": "2026-08-29T16:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "D.C. United",
+          "away": "LAFC",
+          "start": "2026-08-29T23:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Red Bull NY",
+          "away": "Philadelphia",
+          "start": "2026-08-29T23:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Toronto",
+          "away": "NYCFC",
+          "start": "2026-08-29T23:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Houston",
+          "away": "San Jose",
+          "start": "2026-08-30T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Minnesota",
+          "away": "Orlando",
+          "start": "2026-08-30T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Nashville",
+          "away": "Cincinnati",
+          "start": "2026-08-30T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Kansas City",
+          "away": "Vancouver",
+          "start": "2026-08-30T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Colorado",
+          "away": "Salt Lake",
+          "start": "2026-08-30T01:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Portland",
+          "away": "Austin",
+          "start": "2026-08-30T02:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "San Diego",
+          "away": "LA Galaxy",
+          "start": "2026-08-30T02:30Z"
+        },
+        {
+          "sport": "Bundesliga",
+          "home": "Cologne",
+          "away": "Hoffenheim",
+          "start": "2026-08-29T13:30Z"
+        }
+      ],
+      "ambiguous": [],
+      "looseOnly": [
+        {
+          "lab": "Toronto FC v New York City Football Club",
+          "bsd": "Toronto FC v New York City FC"
+        },
+        {
+          "lab": "Seattle Sounders FC v Chicago Fire FC",
+          "bsd": "Seattle Sounders FC v Chicago Fire"
+        },
+        {
+          "lab": "D.C. United v Los Angeles Football Club",
+          "bsd": "DC United v Los Angeles FC"
+        }
+      ]
+    },
+    {
+      "date": "2026-09-05",
+      "labSoccerGames": 43,
+      "labGamesWithoutKickoff": 7,
+      "bsd": {
+        "pages": 7,
+        "count": 326,
+        "fetched": 326,
+        "eventShape": [
+          "id",
+          "league_id",
+          "home_team_id",
+          "home_team",
+          "away_team_id",
+          "away_team",
+          "home_coach_id",
+          "away_coach_id",
+          "event_date",
+          "home_score",
+          "away_score",
+          "home_score_ht",
+          "away_score_ht"
+        ]
+      },
+      "joined": {
+        "strict": 6,
+        "loose+kickoff": 20,
+        "loose-only": 3,
+        "ambiguous": 0,
+        "none": 14
+      },
+      "joinedEventsCarryingBothTeamIds": 29,
+      "kickoffGapMinutesAmongJoined": {
+        "n": 24,
+        "max": 0,
+        "median": 0
+      },
+      "unmatched": [
+        {
+          "sport": "MLS",
+          "home": "Inter Miami CF",
+          "away": "Atlanta United",
+          "start": null
+        },
+        {
+          "sport": "MLS",
+          "home": "FC Cincinnati",
+          "away": "D.C. United",
+          "start": null
+        },
+        {
+          "sport": "EPL",
+          "home": "Fulham",
+          "away": "C Palace",
+          "start": "2026-09-05T14:00Z"
+        },
+        {
+          "sport": "EPL",
+          "home": "Man City",
+          "away": "Coventry",
+          "start": "2026-09-05T14:00Z"
+        },
+        {
+          "sport": "EPL",
+          "home": "Nottm Forest",
+          "away": "Spurs",
+          "start": "2026-09-05T14:00Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Cincinnati",
+          "away": "D.C. United",
+          "start": "2026-09-05T23:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Miami",
+          "away": "Atlanta",
+          "start": "2026-09-05T23:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Austin",
+          "away": "San Jose",
+          "start": "2026-09-06T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Dallas",
+          "away": "Kansas City",
+          "start": "2026-09-06T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Seattle",
+          "away": "Red Bull NY",
+          "start": "2026-09-06T00:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "LA Galaxy",
+          "away": "New England",
+          "start": "2026-09-06T01:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Salt Lake",
+          "away": "LAFC",
+          "start": "2026-09-06T01:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Portland",
+          "away": "Minnesota",
+          "start": "2026-09-06T02:30Z"
+        },
+        {
+          "sport": "MLS",
+          "home": "Vancouver",
+          "away": "St. Louis",
+          "start": "2026-09-06T02:30Z"
+        }
+      ],
+      "ambiguous": [],
+      "looseOnly": [
+        {
+          "lab": "Toronto FC v Chicago Fire FC",
+          "bsd": "Toronto FC v Chicago Fire"
+        },
+        {
+          "lab": "Orlando City v San Diego FC",
+          "bsd": "Orlando City SC v San Diego FC"
+        },
+        {
+          "lab": "Charlotte FC v Houston Dynamo FC",
+          "bsd": "Charlotte FC v Houston Dynamo"
+        }
+      ]
+    }
+  ]
+}

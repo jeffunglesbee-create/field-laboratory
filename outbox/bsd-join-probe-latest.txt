@@ -1,0 +1,40 @@
+
+2026-08-29: BSD route returned 227 event(s) in 5 page(s) (count 227); event fields: id, league_id, home_team_id, home_team, away_team_id, away_team, home_coach_id, away_coach_id, event_date, home_score, away_score, home_score_ht, away_score_ht
+  joined, of 50 lab soccer games (15 carry no start_time):
+    strict         10 of 50
+    loose+kickoff  14 of 50
+    loose-only     3 of 50
+    ambiguous      0 of 50
+    none           23 of 50
+  joined events carrying both team ids: 27
+  kickoff gap among joined, minutes: n 22, median 0, max 0
+    NO JOIN  MLS: St. Louis CITY SC v FC Dallas @ null
+    NO JOIN  MLS: San Diego FC v LA Galaxy @ null
+    NO JOIN  MLS: Portland Timbers v Austin FC @ null
+    NO JOIN  MLS: Nashville SC v FC Cincinnati @ null
+    NO JOIN  MLS: Minnesota United FC v Orlando City @ null
+    ... and 18 more in the artifact
+    LOOSE    Toronto FC v New York City Football Club  <->  Toronto FC v New York City FC
+    LOOSE    Seattle Sounders FC v Chicago Fire FC  <->  Seattle Sounders FC v Chicago Fire
+    LOOSE    D.C. United v Los Angeles Football Club  <->  DC United v Los Angeles FC
+
+2026-09-05: BSD route returned 326 event(s) in 7 page(s) (count 326); event fields: id, league_id, home_team_id, home_team, away_team_id, away_team, home_coach_id, away_coach_id, event_date, home_score, away_score, home_score_ht, away_score_ht
+  joined, of 43 lab soccer games (7 carry no start_time):
+    strict         6 of 43
+    loose+kickoff  20 of 43
+    loose-only     3 of 43
+    ambiguous      0 of 43
+    none           14 of 43
+  joined events carrying both team ids: 29
+  kickoff gap among joined, minutes: n 24, median 0, max 0
+    NO JOIN  MLS: Inter Miami CF v Atlanta United @ null
+    NO JOIN  MLS: FC Cincinnati v D.C. United @ null
+    NO JOIN  EPL: Fulham v C Palace @ 2026-09-05T14:00Z
+    NO JOIN  EPL: Man City v Coventry @ 2026-09-05T14:00Z
+    NO JOIN  EPL: Nottm Forest v Spurs @ 2026-09-05T14:00Z
+    ... and 9 more in the artifact
+    LOOSE    Toronto FC v Chicago Fire FC  <->  Toronto FC v Chicago Fire
+    LOOSE    Orlando City v San Diego FC  <->  Orlando City SC v San Diego FC
+    LOOSE    Charlotte FC v Houston Dynamo FC  <->  Charlotte FC v Houston Dynamo
+
+COVERAGE: 2 committed date(s), 93 lab soccer games: strict name 16, loose+kickoff 34, neither 43.
