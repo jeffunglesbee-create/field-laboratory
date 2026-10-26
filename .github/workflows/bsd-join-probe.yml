@@ -1,0 +1,59 @@
+name: bsd join probe
+
+# Which of the laboratory's soccer games can be joined to a BSD event, and by what key.
+# scripts/bsd-join-probe.mjs. ON A RUNNER because the authoring sandbox's egress proxy
+# does not reach the relay. Triggered by a push to the trigger file, so it runs from any
+# branch's copy of this workflow without the workflow being on main first, and by dispatch
+# once it is.
+#
+# The commit step uses the push-then-verify-it-landed shape that verify's "Every push-retry
+# loop verifies the push landed" step requires of every push-retry loop in this repository.
+
+on:
+  push:
+    paths: ['outbox/.trigger-bsd-join-probe']
+  workflow_dispatch:
+    inputs:
+      dates:
+        description: 'Comma-separated committed context dates'
+        required: false
+        type: string
+        default: '2026-08-29,2026-09-05'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: The join rule, with no network
+        run: node scripts/bsd-join-probe.mjs --self-test
+      - name: Measure the join against the live relay
+        env:
+          DATES: ${{ inputs.dates }}
+        run: |
+          set -o pipefail
+          node scripts/bsd-join-probe.mjs --dates "${DATES:-2026-08-29,2026-09-05}" 2>&1 | tee outbox/bsd-join-probe-latest.txt
+      - name: Commit what was written
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          for p in outbox/bsd-join-probe-latest.json outbox/bsd-join-probe-latest.txt; do
+            if [ -e "$p" ]; then git add "$p"; fi
+          done
+          git diff --cached --quiet && echo "no change" && exit 0
+          git commit -m "data: BSD join probe (run $GITHUB_RUN_ID) [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
