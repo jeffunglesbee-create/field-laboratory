@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `56eac94` at "The score's weight axis interpolates on the DEPLOYED page" — nothing was skipped behind it — [run 40479828935](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40479828935)
+`live-check` (post-deploy, against the deployed page): **running** on `70f2ff5`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `20a92c3` — newest deployable `b075ee0` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `70f2ff5` — newest deployable `b075ee0` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
