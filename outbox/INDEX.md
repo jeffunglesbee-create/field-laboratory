@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4c68335` | 2026-10-27 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-27T22:36 [skip ci] |
+| `7fa188d` | 2026-10-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `47aae35` | 2026-10-27 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-27 [skip ci] |
 | `47aae35` | 2026-10-27 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-27 [skip ci] |
 | `47aae35` | 2026-10-27 | [sport-vocabulary-2026-10-27T17-51-07-184Z.json](sport-vocabulary-2026-10-27T17-51-07-184Z.json) | drift-sentinel: ok on 2026-10-27 [skip ci] |
