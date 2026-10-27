@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-20 by CC, split out of `docs/CC-CMD-2026-10-17-weather-live-http-outage.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED, not started.
+**Status:** TASK 0 DONE 2026-10-27 (`outbox/cc-session-2026-10-27-weather-first-call-task0.md`): neither failed sentinel run was a first-call connect failure, and 13 of 13 weather steps are green since the retry (7 days of the 14). Task 1 not triggered; closes on the 14-day count at 2026-11-03, or runs if a first-call failure appears.
 
 ---
 
