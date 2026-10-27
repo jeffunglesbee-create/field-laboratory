@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `20a92c3` at "The score's weight axis interpolates on the DEPLOYED page" — nothing was skipped behind it — [run 40460804469](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40460804469)
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `56eac94` at "The score's weight axis interpolates on the DEPLOYED page" — nothing was skipped behind it — [run 40479828935](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40479828935)
 
 ## Is it published?
 
