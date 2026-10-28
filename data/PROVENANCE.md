@@ -415,3 +415,5 @@ the deployed site, fetched by a browser only when that section is opened.
 
 
 - `context-2026-10-10.json` — captured 2026-10-28 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-10` by `scripts/capture-render-fixture.mjs`. 125 rows, 13 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NBA, NHL, PGA Tour, Serie A, golf. Unedited — a hand-modified fixture is an invented one.
+
+- `context-2026-10-10.json` — captured 2026-10-28 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-10` by `scripts/capture-render-fixture.mjs`. 125 rows, 13 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NBA, NHL, PGA Tour, Serie A, golf. Unedited — a hand-modified fixture is an invented one.

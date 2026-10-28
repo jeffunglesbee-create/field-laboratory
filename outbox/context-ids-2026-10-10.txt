@@ -1,6 +1,5 @@
   data/context-2026-10-10.json: 125 rows
-  soccer rows 53, carrying bsd_event_id 48 (90.6%, floor 90%)
+  soccer rows 53, carrying bsd_event_id 53 (100.0%, floor 90%)
   rows that are not soccer: 72, carrying an id: 0
-  soccer rows with no id (5): La Liga_2026-10-10_e401882856 (Alavés v Atlético) | La Liga_2026-10-10_e401882853 (Barcelona v Getafe) | Bundesliga_2026-10-10_e401884777 (Augsburg v Bayern) | Bundesliga_2026-10-10_e401884773 (Paderborn v Stuttgart) | Ligue 1_2026-10-10_e401876444 (Monaco v Toulouse)
 
   PASS
