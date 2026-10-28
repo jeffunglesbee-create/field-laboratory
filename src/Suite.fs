@@ -219,6 +219,7 @@ let private state () =
           ClosingOdds = NotPresent
           Overtime = RegulationOnly
           EspnEventId = None
+          BsdEventId = None
           FinalizedAt = finalized }
 
     let kickoff = Some(at "2026-08-09T23:05:00Z")
@@ -3943,6 +3944,100 @@ let private bdbScout () =
            | None -> [ "no floor" ])
           [ "19.64" ] ]
 
+// ---------------------------------------------------------------------------
+// Lineup cards. A soccer card finds its game's lineup through the BSD event id
+// the relay joined the row to (docs/CC-CMD-2026-10-27-lineups-on-game-cards.md).
+//
+// Rows are decoded from JSON text through the real `gameDecoder`, not built by
+// hand: the point of the first four is what the DECODER does with a missing key,
+// a null and a number, and a hand-built `Game` would skip the decoder entirely.
+// Every MustFail is the neighbouring case, so a predicate that stopped looking at
+// the field would fail here rather than pass.
+// ---------------------------------------------------------------------------
+
+let private lineupCards () =
+    let row (sport: string) (extra: string) =
+        sprintf """{"id":"g1","sport":"%s","home":"H","away":"A"%s}""" sport extra
+    let decoded (json: string) = Thoth.Json.Decode.fromString gameDecoder json
+    let idOf (json: string) =
+        match decoded json with
+        | Ok g -> g.BsdEventId
+        | Error _ -> Some "decode failed"
+    let stateOf (json: string) =
+        match decoded json with
+        | Ok g -> Some(Scoreboard.lineupStateOf g)
+        | Error _ -> None
+    let withId = row "MLS" (""","bsd_event_id":"5243" """.Trim())
+    let withoutId = row "MLS" ""
+    let nulled = row "MLS" ""","bsd_event_id":null"""
+    let blank = row "MLS" (""","bsd_event_id":"  " """.Trim())
+    let numeric = row "MLS" ""","bsd_event_id":5243"""
+
+    [ Verify.check "a row carrying bsd_event_id decodes to that id"
+          (fun (json: string) -> idOf json = Some "5243")
+          withId
+          withoutId
+
+      Verify.check "a row without the field decodes to None, not to an empty id"
+          (fun (json: string) -> idOf json = None)
+          withoutId
+          withId
+
+      Verify.check "a null is NOT JOINED: None, never Some \"\""
+          (fun (json: string) -> idOf json = None)
+          nulled
+          withId
+
+      Verify.check "a number is refused by name rather than read as an id"
+          (fun (json: string) ->
+              match decoded json with
+              | Error message -> message.Contains "bsd_event_id"
+              | Ok _ -> false)
+          numeric
+          withId
+
+      Verify.check "a soccer row with an id is Joined to that id"
+          (fun (json: string) -> stateOf json = Some(Scoreboard.Joined "5243"))
+          withId
+          withoutId
+
+      Verify.check "a soccer row with no id, a null or a blank id is NotJoined, and is not fetched for"
+          (fun (jsons: string list) -> jsons |> List.forall (fun j -> stateOf j = Some Scoreboard.NotJoined))
+          [ withoutId; nulled; blank ]
+          [ withoutId; withId ]
+
+      Verify.check "a row that is not soccer has no lineup affordance even when it carries an id"
+          (fun (json: string) -> stateOf json = Some Scoreboard.NotSoccer)
+          (row "NBA" (""","bsd_event_id":"5243" """.Trim()))
+          withId
+
+      Verify.check "an unpinned page asks the relay for the event's own lineups route"
+          (fun (id: string) ->
+              let expected =
+                  LineupsView.FromRelay(sprintf "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/%s/lineups" id)
+              LineupsView.sourceForEvent false id = expected)
+          "5243"
+          "5a43"
+
+      Verify.check "a pinned page resolves 5327 and 220230 to the committed captures the Lineups tab uses"
+          (fun (pairs: (string * string) list) ->
+              pairs |> List.forall (fun (id, file) -> LineupsView.sourceForEvent true id = LineupsView.FromCapture file))
+          [ "5327", "./data/lineups-confirmed.json"; "220230", "./data/lineups-predicted.json" ]
+          [ "5327", "./data/lineups-predicted.json" ]
+
+      Verify.check "a pinned page makes no request for an event it holds no capture of"
+          (fun (id: string) -> LineupsView.sourceForEvent true id = LineupsView.NoCaptureHere id)
+          "5243"
+          "5327"
+
+      Verify.check "an id that is not ASCII digits is never put in a URL"
+          (fun (ids: string list) ->
+              ids |> List.forall (fun id ->
+                  LineupsView.sourceForEvent false id = LineupsView.NotAnEventId id
+                  && LineupsView.sourceForEvent true id = LineupsView.NotAnEventId id))
+          [ ""; " 5243"; "5243/../x"; "5243?x=1"; "\u0665\u0662\u0664\u0663" ]
+          [ "5243" ] ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -3958,6 +4053,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Tennis scorelines", tennis ()
       "Tennis draws", draw ()
       "Lineups", lineups ()
+      "Lineup cards", lineupCards ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
       "Second Wind", secondWind ()

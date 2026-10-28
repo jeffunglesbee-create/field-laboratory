@@ -774,6 +774,29 @@
     .lu-unavails { grid-template-columns: 1fr 1fr; }
   }
 
+  /* --- The lineup on a game card ------------------------------------------
+     A soccer card carries its own game's lineup as a disclosure, or says it has
+     no source for one. The sheet inside is the Lineups tab's own drawing
+     (LineupsView.render), so the per-row mark and the five non-answers look the
+     same here as there; only the layout is narrowed to a card.
+
+     ONE COLUMN INSIDE A CARD, whatever the viewport. The two-column rule above is
+     a media query on the viewport, and a card is a fraction of it: at 1000px a
+     card is a third of the page, so two sheets side by side would be half a
+     card each. The selector is one class deeper than the rule it overrides, so
+     it wins without an !important.
+
+     NOT-JOINED IS A SENTENCE, NOT A CLOSED DISCLOSURE. A disclosure that opens
+     onto "there is nothing" asks for a click to say so. The sentence is quiet
+     (the same opacity as the card's other secondary lines) and has no control. */
+  .desk-card__lineup { margin-top: .6rem; font-size: .75rem; }
+  .desk-card__lineup--none { margin-bottom: 0; opacity: .55; }
+  .desk-card__lineup-summary { cursor: pointer; opacity: .75; }
+  .desk-card__lineup-summary:focus-visible { outline: 2px solid var(--discovery); outline-offset: 2px; }
+  .desk-card__lineup-body { margin-top: .5rem; cursor: default; }
+  .desk-card .lu-sides, .desk-card .lu-unavails { grid-template-columns: 1fr; }
+  .desk-card .lu-panel h2 { font-size: .8rem; margin: 0 0 .4rem; }
+
   /* The Draw panel. A knockout bracket with the canonical-size law's verdict
      printed beside every round.
 
