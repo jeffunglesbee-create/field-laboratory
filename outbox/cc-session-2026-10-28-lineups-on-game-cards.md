@@ -5,8 +5,8 @@ CC-CMD: `docs/CC-CMD-2026-10-27-lineups-on-game-cards.md`. Its relay half is DON
 40607238843, live proof run 40608452953): a soccer row from `/context/date` carries
 `bsd_event_id`, the id `/bsd/events/{id}/lineups` takes.
 
-**Status of this document: written while the work is in progress.** Sections marked
-PENDING are not claims. The final version replaces them with run ids.
+**Status of this document: final, 2026-10-28.** Every run id below was read from the run, not
+assumed; what was not measured is said under "What this does not prove".
 
 ## What was built
 
@@ -42,7 +42,7 @@ PENDING are not claims. The final version replaces them with run ids.
   started the run.
 - `scripts/lineups-card-probe.mjs` + `.github/workflows/lineups-card-probe.yml`: a real
   Chromium on the deployed page at 1000 and 390 px, screenshots of a joined card open and a
-  not-joined card, and `outbox/lineups-card-manifest-*.json` of booleans. Self-test 14/14.
+  not-joined card, and `outbox/lineups-card-manifest-*.json` of booleans. Self-test 18/18.
 
 ## Corrections to the CC-CMD as filed
 
@@ -83,7 +83,7 @@ PENDING are not claims. The final version replaces them with run ids.
   fetch on a not-joined card; a fetch on every re-open; a click that turns the card; a
   non-soccer card with an affordance; a soccer card with none; a pinned page that goes to
   the network; an id put in a URL unchecked; the relay base moving; a timer on the card).
-- Self-tests: card lib 39/39, probe 14/14, context-ids 18/18, render check 14/14,
+- Self-tests: card lib 39/39, probe 18/18, context-ids 18/18, render check 14/14,
   pull-only 25/25.
 - `computed-chrome-check` (done condition 5, run before landing) 25/25 on the page `verify`
   uses. On the two multi-sport captures it fails 2 of 25: `pk-sport__count` (the sport
@@ -102,7 +102,19 @@ carrying `bsd_event_id` (90.6%, floor 90%), 0 of 72 non-soccer rows carrying one
 Alaves v Atletico, Barcelona v Getafe (La Liga), Augsburg v Bayern, Paderborn v Stuttgart
 (Bundesliga), Monaco v Toulouse (Ligue 1). A card for each shows "No lineup source for this
 game". That is the relay's name resolution missing clubs outside the two dates its aliases were
-derived from, a relay finding and not a lab defect; it is filed separately.
+derived from, a relay finding and not a lab defect.
+
+**Then fixed on the relay, and the capture refreshed.** The relay added nine alias pairs
+(the relay's CC-CMD `docs/CC-CMD-2026-10-28-bsd-join-aliases-beyond-the-fixture-dates.md`
+in field-relay-nba, DONE: deploy run 40624401500, live check run 40625311405, 29 of 29
+assertions, 292 of 294 soccer rows over seven further dates, read back from D1 too). The five rows
+above are among them. The landing push of this work re-fired `capture-context-with-ids` (its
+trigger file `outbox/.trigger-capture-context-with-ids` was in the pushed diff, and a push to main
+runs the workflow from main), which rejoined 2026-10-10 and committed `4162195`: **53 of 53 soccer
+rows carrying `bsd_event_id` (100.0%)**, 5 lines changed in `data/context-2026-10-10.json`, exactly
+the five rows. That run was not planned. It was harmless here (the join is idempotent: `change_log` on the relay's archive holds no `bsd_game_join` row after
+03:30Z, read from D1; the coverage check passed), but a trigger file that rides along in a merge to main
+runs its workflow, and the next one may not be harmless.
 
 ## Findings while verifying
 
@@ -127,12 +139,38 @@ derived from, a relay finding and not a lab defect; it is filed separately.
   fails (`The zone choice changes the slate`) needs the relay and the sandbox cannot reach it.
   The gate that was already running on the earlier commit was cancelled as stale.
 
-## PENDING (not claims)
+## Landing and verification
 
-- `npm run gate` score and run id; `verify` on the branch and on main, run ids.
-- `computed-chrome-check` run locally before landing.
-- The deployed-page probe: screenshots at 1000 and 390 px and
-  `outbox/lineups-card-manifest-*.json`.
+- **The gate.** `verify-full` run 40633360453 on `8127af2` (the gated tree; `verify` on the same SHA, run
+  40633363187, green): **530/530 points = 100/100 (bar 95), 6228 s**, ledger run `8127af2f5211-06527cebda87`
+  in `docs/confidence-log.jsonl`, scale line `8127af2f5211-e3b0c44298fc` (126 cards mounted in 502 ms,
+  budget 5000). `Record this measurement` succeeded and both ledger lines are on main.
+- **The first gate run lost its record.** Run 40621860549 on `01421c7` printed 530/530 = 100/100 but its
+  `Record this measurement` step failed, so neither ledger line landed (run id
+  `01421c764095-5fc65746a9fc` appears in no ledger). Cause: a gate I cancelled had pushed its own record
+  commit `ff9d491` nine seconds before the new run's checkout, and `Keep the mutation baseline`'s
+  `--autostash` conflicted on `docs/scale-log.jsonl`. The line was not reconstructed (the repository's
+  convention for a lost record, `outbox/cc-session-2026-10-25-confidence-ledger-resolved.md`); the tree was
+  gated again after merging main's docs-only changes. The step is fixed and tested in
+  `docs/CC-CMD-2026-10-28-gate-baseline-step-autostash.md` and
+  `outbox/cc-session-2026-10-28-gate-baseline-step.md`.
+- **Landed:** merge commit `c36b12d` on main. `verify` on it: run 40645466002, success. `deploy`: run
+  40645820329, success. `verify` dispatched on main after the unplanned recapture (`4162195` carries a
+  skip directive so CI did not run on it): run 40646751645, success.
+- **The deployed-page probe:** `lineups-card-probe` run 40648089423 (success), record commit `a831159`,
+  manifest `outbox/lineups-card-manifest-2026-10-28T07-08-08.json`. At 1000 and 390 px: 53 of 53 soccer
+  cards on the 2026-10-10 page carry the affordance and 0 of 71 other cards; 43 of 43 on the older payload
+  and 0 non-soccer; fetches 0 before any open, 1 after the first, 1 after the second; the joined card shows
+  both sides, 40 of 40 rows marked; the not-joined card says so and fetches nothing; the no-capture card
+  requests nothing. The joined photograph is event 5327, Charlotte FC v FC Dallas, answer `confirmed`
+  (`photographed` in the manifest names the game, and `joinedPhotographShowsASheet` is true). The three
+  photographs at each width were read by eye after the run: the confirmed sheet with both sides, substitutes
+  and unavailable players and the payload's own "Idan Toklomati is named AND listed unavailable" notice; the
+  sentence "No lineup source for this game"; and "No request was made ... not an empty team sheet and not a
+  failed call" for event 5333, which has no committed capture. 14 fixed or sticky elements were set static for
+  each photograph and restored.
+- **Not applicable, said as such:** the flip test (`flipApplicable: false`): no soccer row in a committed
+  capture has a brief. The render check's routed-brief case is the only coverage of it.
 
 ## What this does not prove
 
