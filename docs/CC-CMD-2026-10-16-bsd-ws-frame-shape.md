@@ -4,7 +4,7 @@
 **Repo:** field-relay-nba executes it (the BSD token is a relay secret); the
 artifact is read by field-laboratory
 **Filed:** 2026-10-16, by CC, from empowerment Task 0
-**Status:** DONE 2026-10-28 for ONE match, with its limit stated: the artifact exists and answers facts 1 to 5, verdict `COORDINATES-EMPTY`. A second sample, from a top-flight match, is `field-relay-nba/docs/CC-CMD-2026-10-28-bsd-ws-top-flight-sample.md` (automated wake 2026-10-28T11:20Z). Session doc: `field-relay-nba/outbox/cc-session-2026-10-28-bsd-ws-frame-shape.md`.
+**Status:** DONE 2026-10-28. Recorded from four live matches in seven windows; verdict below. Second sample (tracked league) captured the same evening. Session doc: `field-relay-nba/outbox/cc-session-2026-10-28-bsd-ws-frame-shape.md`.
 
 ## Why
 
@@ -97,6 +97,30 @@ Two things found on the way, filed as `field-relay-nba/docs/CC-CMD-2026-10-28-bs
 the relay's fan-out reads `frame.minute` and `frame.period`, which the frames do not have, and the client reads
 `_bsdBallPos.x` where the relay sends `coords`.
 
-## Second sample
+## Second sample (2026-10-28, same evening)
 
-Pending: written by the 2026-10-28T11:20Z wake.
+Method: the same recorder, `field-relay-nba/scripts/bsd-ws-capture.mjs`, on events with BOTH `live_websocket` and
+`websocket_plus` true (the first sample's selection tested only the second flag; see the relay session doc).
+Artifacts per capture: `field-relay-nba/outbox/bsd-ws-frame-shape-<event>-<time>.json`, raw frames beside them.
+
+| event | league | window | livedata | window lengths 0 / 1 / 4 |
+|---|---|---|---|---|
+| 602466 | Categoría Primera A | 02:12 to 02:46Z | 14 | 14 / 0 / 0 |
+| 602352 | DFB Pokal | 17:20Z (1st half) and 18:12Z (2nd half) | 166 | 16 / 6 / 60 and the second window |
+| 602347 | DFB Pokal | 17:32Z (1st half) | 65 | 12 / 12 / 41 |
+| 210143 | Serie A (a tracked league) | 17:49Z (1st half) | 147 | 25 / 28 / 94 |
+
+Over all four (392 livedata frames): `coordinates` is a SLIDING WINDOW of up to four `{x, y}` integers, NEWEST FIRST
+(216 of 233 consecutive pairs prepend, 0 append); 1014 elements, every one exactly `{x, y}`, no identifier of any kind;
+window lengths 4 on 236, 1 on 70, 0 on 86. Frame of reference: one shared pitch with the home side defending x=0 and
+attacking toward x=100 in the first half of four matches, and the same in the one second half measured (event 602352:
+a home goal at x=93, away shots at x=11 to 19). `situation` takes seventeen values including `freekick`, `throwin`,
+`goal_kick`, `corner`, `goal`, `goalkeeper_saved`, `temporary_interruption` and `gameon`; `uts` is epoch seconds with a
+1 s smallest step and `time.second` is real outside Primera A.
+
+**Verdict for 0.2: `IDENTIFIER-LESS`**, on the surface as it is served for the tracked tier. No frame holds an
+identified coordinate, so the WebSocket surface is NOT off-ball-instant. It is also not a continuous ball track: the
+points are recent positions at incidents. Primera A, the same two flags, carried none at all. Coverage varies by match.
+
+**What it does not say.** Four matches, one evening, three competitions. Another league, another tier or a World Cup
+match may differ; one second half is thin evidence for the frame of reference.

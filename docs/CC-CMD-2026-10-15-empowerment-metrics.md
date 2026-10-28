@@ -95,11 +95,12 @@ measured against a live capture:
 - **The declared axis is false; the transform printed below it is correct.**
 - Coordinates are **0-100 normalized, not meters.**
 
-**WebSocket surface, read 2026-10-28** (`field-relay-nba/outbox/bsd-ws-frame-shape-602466.json`, one live
-`websocket_plus` match, Categoría Primera A, two ten-minute windows): the `livedata` frames are commentary
-incidents with `coordinates: []` on 14 of 14. No identified coordinates, and no coordinates of any kind, were
-observed. This does not change the lock; it also does not show the WebSocket is a ball trail. A top-flight
-sample is pending (`docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md`, "Second sample").
+**WebSocket surface, read 2026-10-28** (`docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md`, four live matches, seven
+windows): `livedata` frames are incidents carrying a sliding window of up to four `{x, y}` points, newest first,
+and nothing else in each element: no player or team identifier in 1014 of 1014. Event 602466 (Categoría Primera A)
+carried none at all; Serie A and DFB Pokal carried them on 306 of 378 frames. So the WebSocket surface is NOT
+off-ball-instant (no two identified coordinates at one `uts` anywhere). This does not change the lock: it is
+identifier-less, recent incident positions, which is the same population note as the REST surface.
 
 **Stop condition:** if soccer provides on-ball data only, **flag Gravity Well
 rejected for soccer** and build it for NFL instead, where BDB tracking already
@@ -578,11 +579,15 @@ the build cannot exclude dead time, give it a case of its own — the same move
 > - **Reopening the window** needs sub-minute clocks and typed restarts.
 >   `docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md` now asks the WebSocket
 >   frames for both (its done condition 5).
->   Answered for one match, 2026-10-28: a sub-minute clock exists only on incident
->   frames (`uts`, epoch seconds, 16 s smallest step; the incident `time.second` is
->   always 0). Typed restarts are `freekick` and `corner` only; throw-ins, goal kicks
->   and fouls are cumulative counters on `event` frames, not events. So the window
->   cannot be reopened for throw-ins or goal kicks from this surface in that match.
+>   Answered over four matches, 2026-10-28: it DEPENDS ON THE MATCH. In Serie A and
+>   DFB Pokal the `livedata` frames are typed incidents with a second-grain clock
+>   (`uts` epoch seconds, 1 s smallest step; `time.second` real): `freekick`, `throwin`,
+>   `goal_kick`, `corner`, `goal`, `goalkeeper_saved`, and the dead-time markers
+>   `temporary_interruption` and `gameon`. In Categoría Primera A (same flags) the
+>   frames had `time.second` 0, only `freekick`, `corner` and shots, and throw-ins and
+>   goal kicks existed only as cumulative counters on `event` frames. So the window can
+>   be reopened for the tracked tier by match, and must be checked per match (the
+>   relay's `bsd:ball` now forwards `situation`, `time` and `side`).
 
 ---
 
