@@ -25,9 +25,11 @@ What the consumer inherits from the relay's stated limits (relay session doc,
 `outbox/cc-session-2026-10-27-bsd-event-id-on-game-rows.md`, "What this does not prove"):
 
 - 13 of the 84 joined rows have no `start_time`, so their kickoff was not judged.
-- The relay's once-per-day pass for upcoming dates had not been observed writing on its own when this was
-  unblocked. A card for a game dated today or later may therefore be `not-joined` until it has, and that is a
-  real state the card shows as such, never a guess (Task 2). Rows dated 2026-08-29 and 2026-09-05 are joined.
+- The relay's once-per-day pass joins a rolling window of the cron's date key minus 1 to plus 3 (one date per
+  `*/15` tick), and was seen writing on its own on 2026-10-28 (10-26 to 10-29, 29 rows, no admin call). A game on a
+  date outside that window and not backfilled by hand (for example 2026-10-25, 30 soccer rows, no id) is
+  `not-joined`, and that is a real state the card shows as such, never a guess (Task 2). Rows dated 2026-08-29 and
+  2026-09-05 are joined.
 - The relay's `CONTRACTS.md` section "`bsd_event_id` on `/context/date` game rows" is the contract; the field is
   optional in the decode (Task 1).
 
