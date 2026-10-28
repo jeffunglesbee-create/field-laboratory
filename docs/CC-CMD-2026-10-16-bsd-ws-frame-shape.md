@@ -106,7 +106,8 @@ Artifacts per capture: `field-relay-nba/outbox/bsd-ws-frame-shape-<event>-<time>
 | event | league | window | livedata | window lengths 0 / 1 / 4 |
 |---|---|---|---|---|
 | 602466 | Categoría Primera A | 02:12 to 02:46Z | 14 | 14 / 0 / 0 |
-| 602352 | DFB Pokal | 17:20Z (1st half) and 18:12Z (2nd half) | 166 | 16 / 6 / 60 and the second window |
+| 602352 | DFB Pokal | 17:20Z (1st half) | 82 | 16 / 6 / 60 |
+| 602352 | DFB Pokal | 18:12Z (2nd half) | 84 | 19 / 24 / 41 |
 | 602347 | DFB Pokal | 17:32Z (1st half) | 65 | 12 / 12 / 41 |
 | 210143 | Serie A (a tracked league) | 17:49Z (1st half) | 147 | 25 / 28 / 94 |
 
