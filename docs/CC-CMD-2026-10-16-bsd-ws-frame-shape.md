@@ -4,7 +4,7 @@
 **Repo:** field-relay-nba executes it (the BSD token is a relay secret); the
 artifact is read by field-laboratory
 **Filed:** 2026-10-16, by CC, from empowerment Task 0
-**Status:** FILED, not started.
+**Status:** DONE 2026-10-28 for ONE match, with its limit stated: the artifact exists and answers facts 1 to 5, verdict `COORDINATES-EMPTY`. A second sample, from a top-flight match, is `field-relay-nba/docs/CC-CMD-2026-10-28-bsd-ws-top-flight-sample.md` (automated wake 2026-10-28T11:20Z). Session doc: `field-relay-nba/outbox/cc-session-2026-10-28-bsd-ws-frame-shape.md`.
 
 ## Why
 
@@ -65,3 +65,38 @@ frames:
 the WS feed is off-ball-instant and 0.2's population note becomes a NOT MET
 for that surface. If every element is identifier-less (a ball trail), 0.2's
 MET extends to the WS surface. Record which, with the frame count.
+
+## Result, 2026-10-28 (Rule 73: date, method, conditions)
+
+Method: `field-relay-nba/scripts/bsd-ws-capture.mjs` on a GitHub runner, runs 40619557017 and
+40621873322 (plus a 109 s first window, 40619254199), subscribing to event 602466 (Boyacá Chicó v Junior
+Barranquilla, Categoría Primera A, `websocket_plus: true`, second half in play). Artifact:
+`field-relay-nba/outbox/bsd-ws-frame-shape-latest.json` (also `-602466.json`), raw frames beside it as
+`bsd-ws-frames-602466-*.jsonl`. Coverage, in the artifact's own words: `334 frames over 600.6 s from 1 event
+(602466, Categoría Primera A); the verdict describes this match on this tier, not every match`.
+
+1. **Keys and types.** `ingest_debug` 300, `event` 25, `livedata` 8, `subscribed` 1 in the final window.
+2. **`frame.coordinates`.** On `livedata` frames only; an array on 8 of 8 (14 of 14 over both full windows),
+   length 0 on every one.
+3. **Coordinate elements.** None exist, so there is no element key and no player or team identifier to find.
+4. **Distinct identifiers per `uts`.** 0 at every `uts`.
+5. **Restarts and clock.** Typed incidents are `situation` on the livedata frame: `freekick`, `corner`,
+   `substitution`, `shotofftarget` seen. Throw-ins, goal kicks and fouls are cumulative counters in
+   `event.stats.{home,away}`, not events. `uts` is epoch seconds, smallest step 16 s between incident frames;
+   the incident match clock has `second: 0` on 8 of 8 (minute grain).
+
+**Verdict: `COORDINATES-EMPTY`.** This is neither branch of the spec's verdict. No frame held 2 or more
+identified coordinates (so 0.2's population note is not NOT MET for this surface), and no frame held any
+coordinate at all (so "every element is identifier-less, a ball trail" is not shown either: a trail needs
+elements). The vendor's "ball x/y about every 5 s" was not observed; livedata here is incident commentary, 6 to
+8 frames in ten minutes.
+
+**What it does not say.** One lower-division league. A top-flight match may differ; that is the second sample.
+
+Two things found on the way, filed as `field-relay-nba/docs/CC-CMD-2026-10-28-bsd-ws-fanout-field-names.md`:
+the relay's fan-out reads `frame.minute` and `frame.period`, which the frames do not have, and the client reads
+`_bsdBallPos.x` where the relay sends `coords`.
+
+## Second sample
+
+Pending: written by the 2026-10-28T11:20Z wake.
