@@ -118,6 +118,15 @@ derived from, a relay finding and not a lab defect; it is filed separately.
   the viewport is stitched, and the tab bar and date bar were captured mid-card. Fixed and sticky
   elements are set to static for the shot and restored; the manifest records how many.
 
+- **`verify` on the branch failed at "No check script kills itself mid-write"** (run 40621028249),
+  and the steps after it, including my three lineup steps, were skipped. Cause: my three new
+  scripts each ended a self-test with a raw `process.exit(summarize() ...)`, which the exit-drains
+  guard forbids (terminal exits must be `finish(summarize())`; early report exits are a ratchet,
+  budget 61, and I had made it 64). All four exits are now `finish(summarize())`: terminal 0,
+  early 61 of 61. The remaining `verify` steps were then run locally: 44 of 45 pass; the one that
+  fails (`The zone choice changes the slate`) needs the relay and the sandbox cannot reach it.
+  The gate that was already running on the earlier commit was cancelled as stale.
+
 ## PENDING (not claims)
 
 - `npm run gate` score and run id; `verify` on the branch and on main, run ids.

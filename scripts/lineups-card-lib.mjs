@@ -25,7 +25,7 @@
 // Usage:  node scripts/lineups-card-lib.mjs --self-test
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, finish, isMain } from './checks.mjs'
 
 /** What counts as a lineup fetch: the relay's per-event route, or a committed
  *  capture. Anything else the page requests is not this surface's business. */
@@ -259,7 +259,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     /not a real brief/.test(noBrief.payload.briefs[0].brief_text) &&
     noBrief.routed[0].routedBrief === true)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }
 
 // --- the browser half --------------------------------------------------------

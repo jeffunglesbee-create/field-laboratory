@@ -28,7 +28,7 @@
 //         URL=https://field-laboratory.jeffunglesbee.workers.dev node scripts/lineups-card-probe.mjs
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, finish, isMain } from './checks.mjs'
 import {
   LINEUP_REQUEST, soccerLabelsFrom, coverageVerdict, fetchVerdict, notJoinedVerdict,
   joinedVerdict, flipVerdict, unpinnedEventVerdict, runCardScenario,
@@ -133,7 +133,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     photographShowsASheet({ id: 'g', event: '5327', answer: 'upstream-failed' }) === false)
   check('MUTATION: no photograph at all fails — a missing card is not a pass',
     photographShowsASheet(undefined) === false)
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }
 
 // --- live --------------------------------------------------------------------
@@ -240,5 +240,5 @@ if (isMain(import.meta.url) && !process.argv.includes('--self-test')) {
   console.log(`  pages:    A ${PAGE_A} (real ids), B ${PAGE_B} (older payload, no ids); ${VIEWPORTS.join(' and ')} px`)
   console.log(`  NOT covered: a card whose event has a committed capture other than 5327, and a flippable soccer card on the real capture (flip is reported as not applicable when absent)`)
   await browser.close()
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }

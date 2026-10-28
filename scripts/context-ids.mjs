@@ -26,7 +26,7 @@
 //         node scripts/context-ids.mjs coverage data/context-2026-10-10.json [--min 0.9]
 
 import { readFileSync } from 'node:fs'
-import { createChecks, isMain } from './checks.mjs'
+import { createChecks, finish, isMain } from './checks.mjs'
 
 export const RELAY = process.env.RELAY_URL || 'https://field-relay-nba.jeffunglesbee.workers.dev'
 
@@ -111,7 +111,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('MUTATION: 400 carries the route\'s own error', /body must be/.test(joinVerdict(400, '{"ok":false,"error":"body must be {}"}').why))
   check('MUTATION: 200 without an ok field fails — absent is not true', joinVerdict(200, '{"written":1}').ok === false)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }
 
 // --- cli ---------------------------------------------------------------------
