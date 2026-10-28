@@ -6,8 +6,13 @@
 field-relay-nba `docs/CC-CMD-2026-10-27-bsd-event-id-on-game-rows.md`, which puts the BSD event id on
 archived game rows. This one consumes it.
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** **FILED, BLOCKED** on the relay CC-CMD. Unblocked when this prints a non-null id on a soccer
-row from the deployed relay:
+**Status:** **FILED, UNBLOCKED 2026-10-28**, not started. The relay CC-CMD is DONE (field-relay-nba
+`docs/CC-CMD-2026-10-27-bsd-event-id-on-game-rows.md`; deploy run 40607238843, live proof run 40608452953).
+Measured on the deployed relay by a runner: 43 of 43 and 41 of 41 soccer rows carry a `bsd_event_id` (dates
+2026-08-29 and 2026-09-05), the 9 oracle rows present in the archive are all correct, and no non-soccer row
+carries one. Artifact: field-relay-nba `outbox/bsd-game-join-live-latest.json`, first run kept at
+`outbox/bsd-game-join-live-2026-10-28T0023Z-first-run.json`. The gate this CC-CMD set itself was this command
+printing a non-null id on a soccer row:
 
 ```bash
 curl -s https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-05 \
@@ -15,6 +20,16 @@ curl -s https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-09-0
 ```
 
 (Runs on a runner: this sandbox's egress proxy does not reach the relay.)
+
+What the consumer inherits from the relay's stated limits (relay session doc,
+`outbox/cc-session-2026-10-27-bsd-event-id-on-game-rows.md`, "What this does not prove"):
+
+- 13 of the 84 joined rows have no `start_time`, so their kickoff was not judged.
+- The relay's once-per-day pass for upcoming dates had not been observed writing on its own when this was
+  unblocked. A card for a game dated today or later may therefore be `not-joined` until it has, and that is a
+  real state the card shows as such, never a guess (Task 2). Rows dated 2026-08-29 and 2026-09-05 are joined.
+- The relay's `CONTRACTS.md` section "`bsd_event_id` on `/context/date` game rows" is the contract; the field is
+  optional in the decode (Task 1).
 
 ---
 
