@@ -84,7 +84,7 @@
     "check:exit-truncation": "node scripts/exit-truncation-probe.mjs --self-test",
     "probe:exit-truncation": "node scripts/exit-truncation-probe.mjs",
     "check:lineups-pull-only": "node scripts/check-lineups-pull-only.mjs --self-test && node scripts/check-lineups-pull-only.mjs",
-    "check:lineups": "node scripts/lineups-render-check.mjs --self-test && node scripts/lineups-render-check.mjs",
+    "check:lineups": "node scripts/lineups-render-check.mjs --self-test && node scripts/lineups-card-lib.mjs --self-test && node scripts/context-ids.mjs --self-test && node scripts/lineups-card-probe.mjs --self-test && node scripts/lineups-render-check.mjs",
     "check:ceiling": "node scripts/ceiling-check.mjs",
     "check:journalism": "node scripts/journalism-check.mjs",
     "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs",

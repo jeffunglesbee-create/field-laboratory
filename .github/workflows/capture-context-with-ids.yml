@@ -1,0 +1,93 @@
+# Join a past date on the relay, then capture its /context/date payload carrying
+# bsd_event_id.
+#
+# docs/CC-CMD-2026-10-27-lineups-on-game-cards.md, Task 3. The relay joins a
+# rolling window of dates (field-relay-nba CONTRACTS.md, "`bsd_event_id` on
+# `/context/date` game rows"); the day the committed lineup capture belongs to,
+# 2026-10-10 (event 5327, Charlotte FC v FC Dallas), is outside it, so a plain
+# capture of that day carries no ids. This calls the relay's authenticated,
+# idempotent join route for the date first (scripts/context-ids.mjs join), then
+# captures with the existing scripts/capture-render-fixture.mjs, then refuses to
+# commit a capture whose soccer rows do not carry ids (scripts/context-ids.mjs
+# coverage, 90% floor, denominators printed).
+#
+# Two triggers, one job:
+#   - a push of outbox/.trigger-capture-context-with-ids, whose first line is the
+#     date. This is the CI-as-proxy shape, and it runs from a branch's own copy of
+#     this file, so it can be exercised before it is on main.
+#   - workflow_dispatch with a date, once the file is on main.
+# The commit goes back to the ref that triggered the run, not to main.
+#
+# NO SCHEDULE. A capture is taken when a fixture is needed, not on a timer, and the
+# join call writes to the relay's archive: it runs only when a person asks.
+name: capture context with ids
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'YYYY-MM-DD to join on the relay and capture.'
+        required: true
+  push:
+    paths:
+      - 'outbox/.trigger-capture-context-with-ids'
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      - name: Which date
+        id: d
+        env:
+          DISPATCHED: ${{ inputs.date }}
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then D="$DISPATCHED"
+          else D="$(head -n1 outbox/.trigger-capture-context-with-ids | tr -d '[:space:]')"; fi
+          echo "$D" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' || { echo "FAIL: '$D' is not YYYY-MM-DD"; exit 1; }
+          echo "date=$D" >> "$GITHUB_OUTPUT"
+          echo "date: $D"
+
+      - name: The id script's own checks, before it judges anything
+        run: node scripts/context-ids.mjs --self-test
+
+      - name: Join the date on the relay
+        env:
+          RELAY_SHARED_SECRET: ${{ secrets.RELAY_SHARED_SECRET }}
+        run: node scripts/context-ids.mjs join "${{ steps.d.outputs.date }}"
+
+      - name: Capture the context
+        run: node scripts/capture-render-fixture.mjs "${{ steps.d.outputs.date }}"
+
+      - name: Every soccer row carries an id
+        run: |
+          D="${{ steps.d.outputs.date }}"
+          mkdir -p outbox
+          node scripts/context-ids.mjs coverage "data/context-${D}.json" 2>&1 | tee "outbox/context-ids-${D}.txt"
+          exit ${PIPESTATUS[0]}
+
+      - name: Commit
+        run: |
+          D="${{ steps.d.outputs.date }}"
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add "data/context-${D}.json" data/PROVENANCE.md "outbox/context-ids-${D}.txt"
+          git diff --staged --quiet && { echo "no change"; exit 0; }
+          git commit -m "fixture: /context/date ${D} carrying bsd_event_id, joined on the relay first [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          # The loop above exits 0 when EVERY attempt fails: its last command is
+          # `sleep`. is-ancestor, not HEAD equality: another bot pushing after us is
+          # routine here and must not read as our failure.
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }

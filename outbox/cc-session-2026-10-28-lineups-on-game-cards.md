@@ -29,6 +29,21 @@ PENDING are not claims. The final version replaces them with run ids.
   before it and could not otherwise call it.
 - `index.html`: card styles; the sheet is one column inside a card whatever the viewport.
 
+## The capture and the probe
+
+- `scripts/context-ids.mjs`: `join DATE` calls the relay's authenticated, idempotent
+  `POST /admin/bsd-game-join` for a date outside the relay's rolling window; `coverage FILE`
+  counts the soccer rows of a captured context that carry an id, prints the denominator, and
+  fails below 90%, on zero soccer rows, or on an id on a row that is not soccer. Run on the
+  committed 09-05 capture it reports `0 of 43` and fails, which is the point. Self-test 18/18.
+- `.github/workflows/capture-context-with-ids.yml`: joins the date, captures it with the
+  existing `capture-render-fixture.mjs`, and refuses to commit a capture whose soccer rows
+  lack ids. No schedule; a trigger-file push or a dispatch. The commit goes to the ref that
+  started the run.
+- `scripts/lineups-card-probe.mjs` + `.github/workflows/lineups-card-probe.yml`: a real
+  Chromium on the deployed page at 1000 and 390 px, screenshots of a joined card open and a
+  not-joined card, and `outbox/lineups-card-manifest-*.json` of booleans. Self-test 14/14.
+
 ## Corrections to the CC-CMD as filed
 
 1. **Event 220230 cannot be on a card.** It is Boyaca Chico v Cucuta Deportivo, a
