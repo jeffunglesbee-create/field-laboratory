@@ -25,12 +25,26 @@
 // RENDERER's treatment of a body, not the vendor's behaviour. A routed body
 // exercises the same `Lineups.fromString` the live path uses.
 //
+// THE LINEUP ON A GAME CARD (docs/CC-CMD-2026-10-27-lineups-on-game-cards.md,
+// Task 4). The last block drives the soccer cards of a pinned slate. The slate is
+// a REAL committed capture with its `bsd_event_id` set on three rows by a routed
+// response (scripts/lineups-card-lib.mjs `routedContext`), because no committed
+// capture carries ids yet; the real recapture is checked by the CI-as-proxy
+// probe, scripts/lineups-card-probe.mjs, against the deployed page. A routed row
+// is weaker evidence than a captured one and the right kind for this claim: the
+// subject is this renderer's treatment of a row, not the relay's join (which the
+// relay's own verify proves). The manifest says which rows were routed.
+//
 // Usage:  node scripts/lineups-render-check.mjs --self-test
 //         URL=http://localhost:8080 node scripts/lineups-render-check.mjs
 
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { createChecks, isMain, finish } from './checks.mjs'
+import {
+  LINEUP_REQUEST, soccerLabelsFrom, routedContext, coverageVerdict, fetchVerdict,
+  notJoinedVerdict, joinedVerdict, flipVerdict, unpinnedEventVerdict, runCardScenario,
+} from './lineups-card-lib.mjs'
 
 const BASE = (process.env.URL || 'http://localhost:8080').replace(/\/+$/, '')
 
@@ -282,11 +296,81 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     `answer ${refused?.answer}, sides ${refused?.sides}`)
   manifest.nonAnswers['not-requested'] = verdictFor(refused ?? { rows: 0, markedRows: 0, marks: [], sides: 0 })
 
+  // --- the lineup on a game card ---------------------------------------------
+  const soccerLabels = soccerLabelsFrom(readFileSync('src/Desk.fs', 'utf8'))
+  check(`the registry names soccer sports to test the cards against (${soccerLabels.length})`,
+    soccerLabels.length >= 6, soccerLabels.join(', '))
+  const CARD_CONTEXT = 'context-2026-09-05'
+  const routed = routedContext(JSON.parse(readFileSync(`data/${CARD_CONTEXT}.json`, 'utf8')))
+  check('the routed slate set ids on a soccer row with a capture, a soccer row without, and a row that is not soccer',
+    routed.routed.length === 3, JSON.stringify(routed.routed))
+  const cardPage = await browser.newPage({ viewport: { width: 1180, height: 1600 } })
+  const lineupRequests = []
+  cardPage.on('request', req => { if (LINEUP_REQUEST.test(req.url())) lineupRequests.push(req.url()) })
+  cardPage.on('pageerror', e => errors.push(String(e.message)))
+  await cardPage.route(`**/data/${CARD_CONTEXT}.json`, r => r.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify(routed.payload),
+  }))
+  await cardPage.goto(`${BASE}/?data=${CARD_CONTEXT}`, { waitUntil: 'load' })
+  const sc = await runCardScenario(cardPage, lineupRequests, soccerLabels)
+
+  const cov = coverageVerdict(sc.cards)
+  check(`every soccer card carries data-lineup and no other does (${cov.soccerWithAffordance} of ${cov.soccerCards} soccer cards, ` +
+    `${cov.nonSoccerWithAffordance} of ${cov.nonSoccerCards} others)`, cov.ok, JSON.stringify(cov))
+  check('a joined card whose event has a committed capture is on the page', sc.joinedPresent === true)
+  let fetched = null, joinedV = null, flipV = null
+  if (sc.joinedPresent) {
+    fetched = fetchVerdict(sc.fetch)
+    check(`nothing is fetched before a card is opened, one fetch on the first open, none on a second ` +
+      `(${fetched.fetchesBeforeExpand} / ${fetched.fetchesAfterFirstExpand} / ${fetched.fetchesAfterSecondExpand})`,
+      fetched.ok, JSON.stringify(fetched))
+    joinedV = joinedVerdict(sc.joinedCard)
+    check(`a joined card on a pinned page shows both sides and a mark on every row ` +
+      `(${joinedV.sides} sides, ${joinedV.markedRows} of ${joinedV.rows} rows marked)`, joinedV.ok, JSON.stringify(joinedV))
+    check('...and it is the committed capture of event 5327, a confirmed sheet', sc.joinedCard.answer === 'confirmed',
+      `answer ${sc.joinedCard.answer}`)
+    check('the summary says what it will do, and what it will undo', sc.joinedCard.summary === 'Hide lineup',
+      `summary "${sc.joinedCard.summary}" while open`)
+    check('a close and a re-open leaves the disclosure open', sc.joinedOpenAfterReopen === true)
+    flipV = flipVerdict(sc.flip)
+    check(`opening the lineup does not turn the card (${flipV.applicable ? `aria-expanded ${flipV.before} -> ${flipV.after}` : 'not a disclosure: nothing to turn'})`,
+      flipV.ok, JSON.stringify(flipV))
+    check('...and the card WAS a disclosure of its own, so that was a real test', flipV.applicable === true,
+      'no flippable soccer card: the propagation guard went untested')
+  }
+  check('a not-joined soccer card is on the page', sc.notJoinedPresent === true)
+  let notJoinedV = null
+  if (sc.notJoinedPresent) {
+    notJoinedV = notJoinedVerdict(sc.notJoined)
+    check(`a not-joined card says "No lineup source for this game", is not a disclosure, and a click fetches nothing ` +
+      `(${notJoinedV.fetchesCausedByClick} fetches)`, notJoinedV.ok, JSON.stringify(notJoinedV))
+  }
+  check('a joined card on a pinned page whose event has no capture is on the page', sc.noCapturePresent === true)
+  let noCaptureV = null
+  if (sc.noCapturePresent) {
+    noCaptureV = unpinnedEventVerdict(sc.noCapture)
+    check(`...and it makes no request and says so (data-answer ${noCaptureV.answer}, ${noCaptureV.fetchesCaused} fetches)`,
+      noCaptureV.ok, JSON.stringify(noCaptureV))
+  }
+  manifest.cards = {
+    context: CARD_CONTEXT,
+    routed: routed.routed,
+    coverage: cov,
+    fetch: fetched,
+    joined: joinedV,
+    flip: flipV,
+    notJoined: notJoinedV,
+    noCapture: noCaptureV,
+    lineupRequests,
+  }
+  await cardPage.close()
+
   check('no page errors', errors.length === 0, errors.join(' | '))
 
   // Rule 91 — the coverage prints where the result is read.
   console.log(`\n  states screenshotted: ${Object.keys(manifest.states).length} (predicted, confirmed — both from real captures)`)
   console.log(`  non-answers routed:   ${Object.keys(NON_ANSWER_BODIES).length} of 5, plus the local refusal`)
+  console.log(`  game cards:           ${cov.soccerCards} soccer + ${cov.nonSoccerCards} other cards on ${CARD_CONTEXT} (ids ROUTED onto ${routed.routed.length} rows; the real capture is the probe's)`)
   console.log(`  NOT covered by either: upstream-failed, which needs a failing relay and is`)
   console.log(`                         asserted in the F# suite over a body that will not decode\n`)
 

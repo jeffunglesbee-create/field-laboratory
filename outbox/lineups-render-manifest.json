@@ -113,5 +113,80 @@
    "gridDrawn": false,
    "oneMarkWordOnly": false
   }
+ },
+ "cards": {
+  "context": "context-2026-09-05",
+  "routed": [
+   {
+    "id": "2026-09-05-mls-tor-chi",
+    "sport": "MLS",
+    "bsd_event_id": "5327",
+    "hasBrief": true,
+    "routedBrief": true
+   },
+   {
+    "id": "2026-09-05-mls-phi-mtl",
+    "sport": "MLS",
+    "bsd_event_id": "5243",
+    "hasBrief": false,
+    "routedBrief": false
+   },
+   {
+    "id": "MLB_2026-09-05_e401816815",
+    "sport": "MLB",
+    "bsd_event_id": "5327",
+    "hasBrief": false,
+    "routedBrief": false
+   }
+  ],
+  "coverage": {
+   "cards": 126,
+   "soccerCards": 43,
+   "soccerWithAffordance": 43,
+   "nonSoccerCards": 83,
+   "nonSoccerWithAffordance": 0,
+   "soccerStates": {
+    "joined": 2,
+    "not-joined": 41
+   },
+   "ok": true
+  },
+  "fetch": {
+   "fetchesBeforeExpand": 0,
+   "fetchesAfterFirstExpand": 1,
+   "fetchesAfterSecondExpand": 1,
+   "ok": true
+  },
+  "joined": {
+   "answer": "confirmed",
+   "sides": 2,
+   "rows": 40,
+   "markedRows": 40,
+   "marks": [
+    "confirmed"
+   ],
+   "everyRowMarked": true,
+   "ok": true
+  },
+  "flip": {
+   "before": "false",
+   "after": "false",
+   "applicable": true,
+   "ok": true
+  },
+  "notJoined": {
+   "text": "No lineup source for this game",
+   "isDisclosure": false,
+   "fetchesCausedByClick": 0,
+   "ok": true
+  },
+  "noCapture": {
+   "answer": "not-requested",
+   "fetchesCaused": 0,
+   "ok": true
+  },
+  "lineupRequests": [
+   "http://localhost:8080/data/lineups-confirmed.json"
+  ]
  }
 }

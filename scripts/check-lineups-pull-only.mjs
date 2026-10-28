@@ -40,6 +40,20 @@ export const PROGRAM_TO = 'let mutable private verifyLoaded'
 
 export const WORKFLOW = '.github/workflows/capture-lineups-fixture.yml'
 
+/** The lineup disclosure on a game card (docs/CC-CMD-2026-10-27-lineups-on-game-
+ *  cards.md). Scoreboard.fs is shared with every card, and it arms a Solid effect
+ *  for the score, so it cannot be scanned whole the way LineupsView.fs is: only
+ *  the region between these two markers is, and a renamed marker is a failure. */
+export const SCOREBOARD = 'src/Scoreboard.fs'
+export const SCOREBOARD_FROM = '// ── Lineup disclosure'
+export const SCOREBOARD_TO = '// ── end lineup disclosure'
+
+/** The relay base the card's per-event route is built from, and the one Program.fs
+ *  builds the Lineups tab's from. They are the same string in two files because
+ *  Program.fs is outside the card's scope; this is what holds them together. */
+export const eventsBaseOf = src => /RELAY_EVENTS\s*=\s*"([^"]+)"/.exec(src)?.[1] ?? null
+export const lineupsBaseOf = src => /RELAY_LINEUPS\s*=\s*"([^"]+)"/.exec(src)?.[1] ?? null
+
 /** Anything that asks to be run again. */
 export const RECURRENCE = [
   ['setInterval', /\bsetInterval\b/],
@@ -135,6 +149,39 @@ if (SELF_TEST) {
     scheduledIn('# Dispatch-only, NO schedule.\n#   schedule:\non:\n  workflow_dispatch:\n').length === 0,
     scheduledIn('# Dispatch-only, NO schedule.\n#   schedule:\non:\n  workflow_dispatch:\n').join(','))
 
+  // The card's region of Scoreboard.fs, which also holds a Solid effect for the
+  // score that must NOT be read as the lineup's.
+  const board =
+    'let stateNode () = Solid.createEffect (fun () -> ())\n' +
+    '// ── Lineup disclosure ──\n' +
+    'details.addEventListener("toggle", fun _ -> load ())\n' +
+    '// ── end lineup disclosure ──\n' +
+    'let later () = setInterval(f, 1)\n'
+  const region = sliceBetween(board, SCOREBOARD_FROM, SCOREBOARD_TO)
+  check('the card region is found between its two markers', region !== null)
+  check('...a clean card region is not flagged, though the file around it arms an effect and a timer',
+    recurrencesIn(codeOnly(region)).length === 0, recurrencesIn(codeOnly(region)).join(','))
+  const dirty = board.replace('details.addEventListener("toggle", fun _ -> load ())',
+    'window.setInterval((fun () -> load ()), 60000) |> ignore')
+  check('MUTATION: a timer inside the card region IS caught',
+    recurrencesIn(codeOnly(sliceBetween(dirty, SCOREBOARD_FROM, SCOREBOARD_TO))).includes('setInterval'))
+  const effect = board.replace('details.addEventListener("toggle", fun _ -> load ())',
+    'Solid.createEffect (fun () -> load ())')
+  check('MUTATION: an effect inside the card region IS caught',
+    recurrencesIn(codeOnly(sliceBetween(effect, SCOREBOARD_FROM, SCOREBOARD_TO))).includes('Solid createEffect on this surface'))
+  check('MUTATION: a renamed start marker is null, never an empty scan',
+    sliceBetween(board.replace('Lineup disclosure ──', 'Lineup panel ──'), SCOREBOARD_FROM, SCOREBOARD_TO) === null)
+
+  // The two relay bases.
+  check('both relay bases are read from their declarations',
+    eventsBaseOf('let private RELAY_EVENTS = "https://r.example/bsd/events/"') === 'https://r.example/bsd/events/' &&
+    lineupsBaseOf('let private RELAY_LINEUPS = "https://r.example/bsd/events/"') === 'https://r.example/bsd/events/')
+  check('MUTATION: a base that moved is not equal to the other',
+    eventsBaseOf('let private RELAY_EVENTS = "https://r.example/bsd/event/"') !==
+    lineupsBaseOf('let private RELAY_LINEUPS = "https://r.example/bsd/events/"'))
+  check('MUTATION: a declaration that is not there reads as null, which the live check treats as failure',
+    eventsBaseOf('let x = 1') === null)
+
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -171,6 +218,30 @@ if (IS_MAIN && !SELF_TEST) {
       'the once-only gate is not in the lineups section')
   }
 
+  // The game card's lineup disclosure, between its two markers in Scoreboard.fs.
+  const board = existsSync(SCOREBOARD) ? readFileSync(SCOREBOARD, 'utf8') : null
+  const card = board === null ? null : sliceBetween(board, SCOREBOARD_FROM, SCOREBOARD_TO)
+  check(`${SCOREBOARD}'s lineup disclosure is findable between its two markers`,
+    card !== null,
+    `"${SCOREBOARD_FROM}" .. "${SCOREBOARD_TO}" — a renamed marker silently scans nothing`)
+  if (card !== null) {
+    scanned += 1
+    const found = recurrencesIn(codeOnly(card))
+    check(`${SCOREBOARD}'s lineup disclosure asks once and never re-arms`, found.length === 0, found.join(', '))
+    // "Once" is the flag. Without it a close and a re-open is a second request.
+    check('...and the request is gated on a once-only flag set before the call',
+      /asked\.Value\s*<-\s*true/.test(card) && /if isOpen && not asked\.Value then/.test(card),
+      'the once-only gate is not in the card region')
+  }
+
+  // The card builds its route from the same relay base the tab does.
+  const viewSrc = existsSync('src/LineupsView.fs') ? readFileSync('src/LineupsView.fs', 'utf8') : null
+  const eventsBase = viewSrc === null ? null : eventsBaseOf(viewSrc)
+  const tabBase = program === null ? null : lineupsBaseOf(program)
+  check('the card and the Lineups tab build their route from the same relay base',
+    eventsBase !== null && tabBase !== null && eventsBase === tabBase,
+    `LineupsView.RELAY_EVENTS ${eventsBase} vs Program.RELAY_LINEUPS ${tabBase}`)
+
   check(`${WORKFLOW} exists`, existsSync(WORKFLOW))
   if (existsSync(WORKFLOW)) {
     scanned += 1
@@ -182,11 +253,11 @@ if (IS_MAIN && !SELF_TEST) {
   // Rule 91: the denominator prints where the result is read. This guard covers
   // four source regions, not the whole repository, and a green line must not be
   // read as "nothing anywhere polls this".
-  console.log(`\n  scanned ${scanned} of ${SOURCES.length + 2} lineups source region(s):`)
-  console.log(`    ${SOURCES.join(', ')}, ${PROGRAM} (sliced), ${WORKFLOW}`)
+  console.log(`\n  scanned ${scanned} of ${SOURCES.length + 3} lineups source region(s):`)
+  console.log(`    ${SOURCES.join(', ')}, ${PROGRAM} (sliced), ${SCOREBOARD} (sliced), ${WORKFLOW}`)
   console.log(`  NOT scanned: build/ and public/ (compiled copies), and any timer a`)
   console.log(`               called library arms on its own.\n`)
 
-  check('the scan was not vacuous', scanned === SOURCES.length + 2, `scanned ${scanned}`)
+  check('the scan was not vacuous', scanned === SOURCES.length + 3, `scanned ${scanned}`)
   finish(summarize())
 }

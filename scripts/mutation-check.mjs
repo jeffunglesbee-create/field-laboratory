@@ -1795,6 +1795,104 @@ const MUTATIONS = [
     expect: 'node scripts/check-lineups-pull-only.mjs',
   },
   {
+    // The decoder. A null, or a key the relay did not send, read as an empty id
+    // would put a joined card on every soccer row, each asking for
+    // /bsd/events//lineups. docs/CC-CMD-2026-10-27-lineups-on-game-cards.md Task 1.
+    id: 'lineup-cards-null-read-as-an-id',
+    file: 'src/Desk.fs',
+    claim: 'a null or missing bsd_event_id is NOT JOINED, never an empty id',
+    find: '          BsdEventId = get.Optional.Field "bsd_event_id" Decode.string\n',
+    replace: '          BsdEventId = Some(get.Optional.Field "bsd_event_id" Decode.string |> Option.defaultValue "")\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // A card with no joined event is a sentence. Give it a click that loads a
+    // lineup and the sentence is a control that fetches.
+    id: 'lineup-cards-not-joined-fetches',
+    file: 'src/Scoreboard.fs',
+    claim: 'a not-joined card fetches nothing',
+    find: '        line.setAttribute("data-lineup", "not-joined")\n        Some line',
+    replace: '        line.setAttribute("data-lineup", "not-joined")\n        line.addEventListener("click", fun _ -> LineupsView.loadEvent line "5327" |> Promise.start)\n        Some line',
+    expect: 'node scripts/lineups-render-check.mjs',
+  },
+  {
+    // Drop the once-only flag and every re-open is a request.
+    id: 'lineup-cards-fetch-on-every-open',
+    file: 'src/Scoreboard.fs',
+    claim: 'a card asks for its lineup once, on the first open, and not again on a re-open',
+    find: '            if isOpen && not asked.Value then',
+    replace: '            if isOpen then',
+    expect: 'node scripts/lineups-render-check.mjs',
+  },
+  {
+    // A card that is a disclosure of its own (the brief flip) turns over when its
+    // lineup is clicked, unless the click stops at the lineup.
+    id: 'lineup-cards-click-turns-the-card',
+    file: 'src/Scoreboard.fs',
+    claim: 'a click on the lineup is not a click on the card around it',
+    find: '        details.addEventListener("click", fun e -> e.stopPropagation())',
+    replace: '        details.addEventListener("click", fun _ -> ())',
+    expect: 'node scripts/lineups-render-check.mjs',
+  },
+  {
+    // The three states, with the first collapsed: every card, soccer or not,
+    // gets an affordance.
+    id: 'lineup-cards-non-soccer-gets-one',
+    file: 'src/Scoreboard.fs',
+    claim: 'a card that is not soccer carries no lineup affordance',
+    find: '    if not (sportMeta game.Sport).IsSoccer then NotSoccer',
+    replace: '    if false then NotSoccer',
+    expect: 'node scripts/lineups-render-check.mjs',
+  },
+  {
+    // The other direction: a soccer card with no joined event says nothing at all.
+    id: 'lineup-cards-not-joined-is-silent',
+    file: 'src/Scoreboard.fs',
+    claim: 'every soccer card carries a lineup state, joined or not joined',
+    find: '        | _ -> NotJoined',
+    replace: '        | _ -> NotSoccer',
+    expect: 'node scripts/lineups-render-check.mjs',
+  },
+  {
+    // A pinned page that goes to the network for an event it holds no capture of
+    // is not pinned.
+    id: 'lineup-cards-pinned-page-uses-the-network',
+    file: 'src/LineupsView.fs',
+    claim: 'a pinned page makes no request for an event it holds no capture of',
+    find: '        | None -> NoCaptureHere eventId',
+    replace: '        | None -> FromRelay(sprintf "%s%s/lineups" RELAY_EVENTS eventId)',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // An id is data from a payload. Put in a URL unchecked, a crafted one is a
+    // request this page did not intend to make.
+    id: 'lineup-cards-id-goes-into-the-url-unchecked',
+    file: 'src/LineupsView.fs',
+    claim: 'an id that is not ASCII digits is never put in a URL',
+    find: "    if eventId = \"\" || not (eventId |> Seq.forall (fun c -> c >= '0' && c <= '9')) then",
+    replace: '    if eventId = "" then',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    // The card's relay base is a second copy of Program.fs's. Let them drift and
+    // the card asks a route the tab does not.
+    id: 'lineup-cards-relay-base-moves',
+    file: 'src/LineupsView.fs',
+    claim: 'the card and the Lineups tab build their route from the same relay base',
+    find: 'let private RELAY_EVENTS = "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/"',
+    replace: 'let private RELAY_EVENTS = "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/event/"',
+    expect: 'node scripts/check-lineups-pull-only.mjs',
+  },
+  {
+    // The other half of the pull-only stop condition, on the card.
+    id: 'lineup-cards-card-polls',
+    file: 'src/Scoreboard.fs',
+    claim: 'the card asks for its lineup once and never re-arms',
+    find: '        let asked = ref false\n',
+    replace: '        let asked = ref false\n        window.setInterval((fun () -> ()), 60000) |> ignore\n',
+    expect: 'node scripts/check-lineups-pull-only.mjs',
+  },
+  {
     // THE FABRICATION, in one line. `lineup_status` is a vendor field and the
     // document names three non-answers; there are five, and this is the one it
     // does not name. A status nobody has seen falling through to `predicted`
