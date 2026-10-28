@@ -6,7 +6,14 @@
 field-relay-nba `docs/CC-CMD-2026-10-27-bsd-event-id-on-game-rows.md`, which puts the BSD event id on
 archived game rows. This one consumes it.
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** **FILED, UNBLOCKED 2026-10-28**, not started. The relay CC-CMD is DONE (field-relay-nba
+**Status:** **DONE 2026-10-28.** A soccer game card opens its own game's lineup, landed as merge `c36b12d` on main: gate
+530/530 (ledger run `8127af2f5211-06527cebda87`, run 40633360453), verify 40645466002, deploy 40645820329. Measured on the deployed
+page by `lineups-card-probe` run 40648089423 (manifest `outbox/lineups-card-manifest-2026-10-28T07-08-08.json`, screenshots at 1000
+and 390 px read by eye): 53 of 53 soccer cards on the 2026-10-10 page carry the affordance and 0 of 71 others; the joined card is event
+5327 (Charlotte FC v FC Dallas, a confirmed sheet), fetches are 0 before any open and 1 after, a not-joined card says so and fetches
+nothing, a joined card with no committed capture says "No request was made". Five corrections to this CC-CMD as filed, the gate's lost
+first record, and the unplanned recapture are in `outbox/cc-session-2026-10-28-lineups-on-game-cards.md`. It was UNBLOCKED the same
+morning: The relay CC-CMD is DONE (field-relay-nba
 `docs/CC-CMD-2026-10-27-bsd-event-id-on-game-rows.md`; deploy run 40607238843, live proof run 40608452953).
 Measured on the deployed relay by a runner: 43 of 43 and 41 of 41 soccer rows carry a `bsd_event_id` (dates
 2026-08-29 and 2026-09-05), the 9 oracle rows present in the archive are all correct, and no non-soccer row

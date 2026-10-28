@@ -71,6 +71,11 @@
     <Compile Include="Desk.fs" />
     <Compile Include="Pick.fs" />
     <Compile Include="Lineups.fs" />
+    <!-- The lineup drawing, above Scoreboard.fs: a soccer card opens its game's
+         lineup through LineupsView.loadEvent
+         (docs/CC-CMD-2026-10-27-lineups-on-game-cards.md). It depends on
+         Lineups.fs and Palette.fs and on nothing below this line. -->
+    <Compile Include="LineupsView.fs" />
     <Compile Include="Scout.fs" />
     <Compile Include="Pickem.fs" />
     <Compile Include="Stats.fs" />
@@ -98,7 +103,6 @@
     <Compile Include="PickemView.fs" />
     <Compile Include="WeatherView.fs" />
     <Compile Include="StatsView.fs" />
-    <Compile Include="LineupsView.fs" />
     <Compile Include="BriefsView.fs" />
     <Compile Include="DrawView.fs" />
     <!-- Binary frame ingest. Depends on nothing. Read by LaboratorySurface.fs (the

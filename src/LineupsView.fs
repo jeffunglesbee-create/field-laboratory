@@ -245,3 +245,75 @@ let load (mount: HTMLElement) (url: string) : JS.Promise<unit> =
             }
         render mount reply
     }
+
+// ── One event's lineup, for a game card ─────────────────────────────────────
+// docs/CC-CMD-2026-10-27-lineups-on-game-cards.md. The card does not draw a
+// sheet of its own: it calls `loadEvent`, which resolves a source and hands it to
+// `load` (or to `renderRefusal` when no request is to be made). One renderer,
+// one place the per-row mark and the five non-answers are drawn.
+
+/// The relay's per-event route, minus the id. The same base `Program.fs` holds as
+/// RELAY_LINEUPS; `scripts/check-lineups-pull-only.mjs` fails if the two differ.
+let private RELAY_EVENTS = "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/"
+
+/// The two committed captures and the events they are, from `data/PROVENANCE.md`:
+/// 220230 pre-match (Boyaca Chico v Cucuta Deportivo) and 5327 played (Charlotte
+/// FC v FC Dallas, 2026-10-10). The Lineups tab pins to these two files, and a
+/// pinned page resolves a card to the same files.
+///
+/// Only 5327 can be on a card: 220230 is a Colombian second-division match, and
+/// the relay joins six soccer labels, none of them that league. It stays because
+/// it is the other half of what `data/PROVENANCE.md` records, not because a row
+/// will carry it.
+let private capturedEvents =
+    [ "220230", "./data/lineups-predicted.json"
+      "5327", "./data/lineups-confirmed.json" ]
+
+/// Where one event's lineup comes from. Four cases, and two of them are a
+/// request that is NOT made.
+type LineupSource =
+    /// A committed file under `?data=`. Same-origin, never the network.
+    | FromCapture of url: string
+    /// The relay, on a page that is not pinned.
+    | FromRelay of url: string
+    /// A pinned page and an event with no committed capture. Nothing is fetched:
+    /// a pinned page that quietly went to the network would not be pinned.
+    | NoCaptureHere of eventId: string
+    /// An id that is not ASCII digits. A URL assembled from arbitrary text is a
+    /// request this page did not intend to make (the same rule as `?xi=`).
+    | NotAnEventId of raw: string
+
+/// Pure: whether the page is pinned is an argument, so Suite can say it.
+let sourceForEvent (pinned: bool) (eventId: string) : LineupSource =
+    if eventId = "" || not (eventId |> Seq.forall (fun c -> c >= '0' && c <= '9')) then
+        NotAnEventId eventId
+    elif pinned then
+        match capturedEvents |> List.tryFind (fun (id, _) -> id = eventId) with
+        | Some(_, url) -> FromCapture url
+        | None -> NoCaptureHere eventId
+    else
+        FromRelay(sprintf "%s%s/lineups" RELAY_EVENTS eventId)
+
+/// `?data=` pins the page to a committed capture. Read the way `Program.fs` reads
+/// every query parameter, so the two agree on what "pinned" means.
+let private pinnedPage () =
+    let search = Browser.Dom.window.location.search
+    match search.IndexOf "data=" with
+    | -1 -> false
+    | i -> search.Substring(i + 5).Split('&').[0] <> ""
+
+/// Draw one event's lineup into `mount`. Fetches at most once and only when
+/// called; the caller decides when, and calls it once.
+let loadEvent (mount: HTMLElement) (eventId: string) : JS.Promise<unit> =
+    match sourceForEvent (pinnedPage ()) eventId with
+    | FromCapture url
+    | FromRelay url -> load mount url
+    | NoCaptureHere id ->
+        renderRefusal mount
+            (sprintf "This page is pinned to a committed capture (?data=) and holds no lineup capture for event %s." id)
+        promise { return () }
+    | NotAnEventId raw ->
+        renderRefusal mount
+            (sprintf "bsd_event_id \"%s\" is not a number. Nothing was fetched."
+                (safeToken raw |> Option.defaultValue "<nothing printable>"))
+        promise { return () }

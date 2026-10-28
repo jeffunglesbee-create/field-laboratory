@@ -1,0 +1,111 @@
+{
+ "base": "https://field-laboratory.jeffunglesbee.workers.dev",
+ "pages": {
+  "A": "context-2026-10-10",
+  "B": "context-2026-09-05"
+ },
+ "measuredAt": "2026-10-28T07:08:08.639Z",
+ "viewports": [
+  {
+   "viewport": 1000,
+   "soccerCardsWithAffordance": 53,
+   "soccerCards": 53,
+   "nonSoccerWithAffordance": 0,
+   "nonSoccerCards": 71,
+   "olderPayloadSoccerCardsWithAffordance": 43,
+   "olderPayloadSoccerCards": 43,
+   "olderPayloadNonSoccerWithAffordance": 0,
+   "joinedCardPresent": true,
+   "fetchesBeforeExpand": 0,
+   "fetchesAfterFirstExpand": 1,
+   "fetchesAfterSecondExpand": 1,
+   "joinedCardShowsBothSides": true,
+   "joinedCardRows": 40,
+   "joinedCardEveryRowMarked": true,
+   "flipApplicable": false,
+   "cardNotTurnedByLineupClick": true,
+   "noCaptureCardRequestsNothing": true,
+   "notJoinedCardPresent": true,
+   "notJoinedSaysItAndFetchesNothing": true,
+   "ok": true,
+   "screenshots": {
+    "joined": "outbox/lineups-card-1000-joined.png",
+    "noCapture": "outbox/lineups-card-1000-joined-no-capture.png",
+    "notJoined": "outbox/lineups-card-1000-not-joined.png"
+   },
+   "photographed": {
+    "joined": {
+     "id": "2026-10-10-mls-clt-dal",
+     "event": "5327",
+     "answer": "confirmed",
+     "teams": "Charlotte FC v FC Dallas"
+    },
+    "noCapture": {
+     "id": "2026-10-10-mls-stl-la",
+     "event": "5333",
+     "answer": "not-requested",
+     "teams": "St. Louis CITY SC v LA Galaxy"
+    },
+    "notJoined": {
+     "id": "2026-09-05-mls-tor-chi",
+     "event": null,
+     "answer": null,
+     "teams": "Toronto FC v Chicago Fire FC"
+    }
+   },
+   "fixedOrStickyElementsSetStaticForThePhotographs": 14,
+   "joinedPhotographShowsASheet": true
+  },
+  {
+   "viewport": 390,
+   "soccerCardsWithAffordance": 53,
+   "soccerCards": 53,
+   "nonSoccerWithAffordance": 0,
+   "nonSoccerCards": 71,
+   "olderPayloadSoccerCardsWithAffordance": 43,
+   "olderPayloadSoccerCards": 43,
+   "olderPayloadNonSoccerWithAffordance": 0,
+   "joinedCardPresent": true,
+   "fetchesBeforeExpand": 0,
+   "fetchesAfterFirstExpand": 1,
+   "fetchesAfterSecondExpand": 1,
+   "joinedCardShowsBothSides": true,
+   "joinedCardRows": 40,
+   "joinedCardEveryRowMarked": true,
+   "flipApplicable": false,
+   "cardNotTurnedByLineupClick": true,
+   "noCaptureCardRequestsNothing": true,
+   "notJoinedCardPresent": true,
+   "notJoinedSaysItAndFetchesNothing": true,
+   "ok": true,
+   "screenshots": {
+    "joined": "outbox/lineups-card-390-joined.png",
+    "noCapture": "outbox/lineups-card-390-joined-no-capture.png",
+    "notJoined": "outbox/lineups-card-390-not-joined.png"
+   },
+   "photographed": {
+    "joined": {
+     "id": "2026-10-10-mls-clt-dal",
+     "event": "5327",
+     "answer": "confirmed",
+     "teams": "Charlotte FC v FC Dallas"
+    },
+    "noCapture": {
+     "id": "2026-10-10-mls-stl-la",
+     "event": "5333",
+     "answer": "not-requested",
+     "teams": "St. Louis CITY SC v LA Galaxy"
+    },
+    "notJoined": {
+     "id": "2026-09-05-mls-tor-chi",
+     "event": null,
+     "answer": null,
+     "teams": "Toronto FC v Chicago Fire FC"
+    }
+   },
+   "fixedOrStickyElementsSetStaticForThePhotographs": 14,
+   "joinedPhotographShowsASheet": true
+  }
+ ],
+ "ok": true
+}

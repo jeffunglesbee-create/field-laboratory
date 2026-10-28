@@ -1,0 +1,74 @@
+# The lineup on a game card, on the DEPLOYED page, from a runner.
+# scripts/lineups-card-probe.mjs; docs/CC-CMD-2026-10-27-lineups-on-game-cards.md,
+# DONE CONDITION 1.
+#
+# CI-as-proxy for a visual claim: a real Chromium against the live URL, committed
+# screenshots at 1000 and 390 px and a manifest of booleans in outbox/. The sandbox
+# cannot be trusted for this (timeouts, viewport mismatches).
+#
+# Two triggers: a push of outbox/.trigger-lineups-card-probe, which runs from the
+# pushing ref's own copy of this file, and workflow_dispatch once it is on main.
+# The commit goes back to the ref that started the run.
+#
+# It judges the page that is DEPLOYED, so it is run after a push to main has
+# deployed. No schedule: it answers a question after a deploy; it is not a
+# monitor, and a monitor is a recurring Actions cost (CLAUDE.md, "Actions budget").
+name: lineups-card-probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-lineups-card-probe'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: The page is the one this commit built
+        run: |
+          SITE=https://field-laboratory.jeffunglesbee.workers.dev
+          DEPLOYED=$(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')
+          echo "deployed: $DEPLOYED"
+          echo "this ref: $(git rev-parse HEAD)"
+          # Printed, not enforced: a probe run from a branch is about the page that
+          # is live, and the manifest records what that page was.
+      - name: The probe's own verdict logic, before it judges anything
+        run: |
+          node scripts/lineups-card-lib.mjs --self-test
+          node scripts/lineups-card-probe.mjs --self-test
+      - name: Probe the live page
+        id: probe
+        continue-on-error: true
+        run: node scripts/lineups-card-probe.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/lineups-card-manifest-*.json outbox/lineups-card-*.png 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: the lineup on a game card, on the live page [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's verdict decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "lineups-card-probe failed: see the manifest and the step summary"
+          exit 1

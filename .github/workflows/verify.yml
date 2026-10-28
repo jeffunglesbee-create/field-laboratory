@@ -485,6 +485,17 @@ jobs:
       - name: The lineups panel's own checks
         run: node scripts/lineups-render-check.mjs --self-test
 
+      # The lineup on a game card (docs/CC-CMD-2026-10-27-lineups-on-game-cards.md).
+      # The page half is the step after next: lineups-render-check.mjs drives the
+      # soccer cards of a routed pinned slate. These are the verdict logic it and
+      # the deployed-page probe share, the capture's id-coverage check, and the
+      # probe's manifest, each handed inputs that must make it fail.
+      - name: The lineup card's own checks
+        run: |
+          node scripts/lineups-card-lib.mjs --self-test
+          node scripts/context-ids.mjs --self-test
+          node scripts/lineups-card-probe.mjs --self-test
+
       - name: Lineups, on the rendered page
         run: node scripts/lineups-render-check.mjs
 

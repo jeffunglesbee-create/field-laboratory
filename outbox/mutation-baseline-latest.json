@@ -1,12 +1,10 @@
 {
-  "at": "2026-10-26T12:49:54.033Z",
+  "at": "2026-10-28T05:21:58.511Z",
   "scope": "full",
-  "ran": 70,
-  "from_mutations": 225,
+  "ran": 71,
+  "from_mutations": 235,
   "failing": 0,
-  "notApplicable": [
-    "node scripts/run-row.mjs \"this session wrote its outbox\""
-  ],
+  "notApplicable": [],
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -150,8 +148,7 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
-      "passed": false,
-      "notApplicable": true
+      "passed": true
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
@@ -251,6 +248,10 @@
     },
     {
       "cmd": "node scripts/check-lineups-pull-only.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/lineups-render-check.mjs",
       "passed": true
     },
     {

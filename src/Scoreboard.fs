@@ -381,6 +381,70 @@ let private staticNode (className: string) (testId: string) (text: string) =
     if testId <> "" then node.setAttribute("data-testid", testId)
     node
 
+// ── Lineup disclosure ───────────────────────────────────────────────────────
+// docs/CC-CMD-2026-10-27-lineups-on-game-cards.md. A soccer card can open its own
+// game's lineup. The sheet is drawn by `LineupsView.loadEvent` and by nothing in
+// this file: one renderer, so the per-row mark and the five non-answers are
+// drawn in one place.
+//
+// PULL ONLY. The lineup is requested when a reader opens the disclosure, once,
+// and never again: no timer, no interval, no event source, no effect on this
+// path. `scripts/check-lineups-pull-only.mjs` reads this region by its markers
+// and fails if one appears.
+
+/// Which of the card's three lineup states a game is in. `NotJoined` is a real
+/// state with its own sentence, never an empty grid and never a guess: the relay
+/// joins a game to a BSD event only when exactly one event fits.
+type LineupState =
+    /// A soccer game the relay joined to a BSD event.
+    | Joined of eventId: string
+    /// A soccer game with no joined event (a null, a missing field, a blank, or a
+    /// competition the relay does not join). Nothing is fetched for it.
+    | NotJoined
+    /// Not a soccer game. No affordance and no attribute at all.
+    | NotSoccer
+
+let lineupStateOf (game: Game) : LineupState =
+    if not (sportMeta game.Sport).IsSoccer then NotSoccer
+    else
+        match game.BsdEventId with
+        | Some id when id.Trim() <> "" -> Joined(id.Trim())
+        | _ -> NotJoined
+
+/// The card's lineup element, or none. `data-lineup` is its state in the DOM, so
+/// a check can read it without matching prose.
+let private lineupAffordance (game: Game) : HTMLElement option =
+    match lineupStateOf game with
+    | NotSoccer -> None
+    | NotJoined ->
+        let line = el "p" "desk-card__lineup desk-card__lineup--none" "No lineup source for this game"
+        line.setAttribute("data-lineup", "not-joined")
+        Some line
+    | Joined eventId ->
+        let details = document.createElement "details"
+        details.className <- "desk-card__lineup"
+        details.setAttribute("data-lineup", "joined")
+        details.setAttribute("data-lineup-event", eventId)
+        let summary = el "summary" "desk-card__lineup-summary" "Show lineup"
+        details.appendChild summary |> ignore
+        let body = el "div" "desk-card__lineup-body" ""
+        details.appendChild body |> ignore
+        // Asked once. A second open, or a close and a re-open, is not a second
+        // request.
+        let asked = ref false
+        details.addEventListener("toggle", fun _ ->
+            let isOpen = details.hasAttribute "open"
+            summary.textContent <- if isOpen then "Hide lineup" else "Show lineup"
+            if isOpen && not asked.Value then
+                asked.Value <- true
+                LineupsView.loadEvent body eventId |> Promise.start)
+        // The card around this may itself be a disclosure (the brief flip), and a
+        // click or a key on the lineup is not a click on the card.
+        details.addEventListener("click", fun e -> e.stopPropagation())
+        details.addEventListener("keydown", fun e -> e.stopPropagation())
+        Some details
+// ── end lineup disclosure ───────────────────────────────────────────────────
+
 /// Builds the card and mounts it. Returns the state setter so scores can be
 /// pushed reactively without re-rendering the card — the whole point of an
 /// island.
@@ -621,6 +685,12 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
             | "Enter" | " " -> e.preventDefault (); toggle ()
             | _ -> ())
     | _ -> ()
+
+    // The lineup disclosure sits below both faces of a flippable card, so it is
+    // there whichever face is showing.
+    (match lineupAffordance game with
+     | Some node -> card.appendChild node |> ignore
+     | None -> ())
 
     mount.appendChild card |> ignore
 

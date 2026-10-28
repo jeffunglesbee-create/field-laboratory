@@ -12,6 +12,23 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2616428` | 2026-10-28 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
+| `2616428` | 2026-10-28 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
+| `2616428` | 2026-10-28 | [sport-vocabulary-2026-10-28T06-59-08-937Z.json](sport-vocabulary-2026-10-28T06-59-08-937Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
+| `29ef810` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `4162195` | 2026-10-28 | [context-ids-2026-10-10.txt](context-ids-2026-10-10.txt) | fixture: /context/date 2026-10-10 carrying bsd_event_id, joined on the relay first [skip ci] |
+| `4eeb283` | 2026-10-28 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8127af2 [skip ci] |
+| `b51ed8e` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `d39a630` | 2026-10-28 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 01421c7 [skip ci] |
+| `01421c7` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | fix: the new scripts end by finish(summarize()), not by killing themselves mid-write |
+| `9b58ef2` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | fix: the card probe photographs the card of event 5327, and sets sticky chrome static for the shot |
+| `8b0cde0` | 2026-10-28 | [context-ids-2026-10-10.txt](context-ids-2026-10-10.txt) | fixture: /context/date 2026-10-10 carrying bsd_event_id, joined on the relay first [skip ci] |
+| `152e7c3` | 2026-10-28 | [.trigger-capture-context-with-ids](.trigger-capture-context-with-ids) | ci: join 2026-10-10 on the relay and capture it with ids |
+| `ce95c69` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | ci: capture a day's context after the relay has joined it, and probe the card on the deployed page |
+| `b1de1a2` | 2026-10-28 | [lineups-confirmed.png](lineups-confirmed.png) | test: the card's four predicates, the pull-only scan of the card, and ten mutations that break them |
+| `b1de1a2` | 2026-10-28 | [lineups-predicted.png](lineups-predicted.png) | test: the card's four predicates, the pull-only scan of the card, and ten mutations that break them |
+| `b1de1a2` | 2026-10-28 | [lineups-render-manifest.json](lineups-render-manifest.json) | test: the card's four predicates, the pull-only scan of the card, and ten mutations that break them |
+| `11b781d` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | feat: a soccer card opens its own game's lineup, or says it has no source for one |
 | `a14f0ff` | 2026-10-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4c68335` | 2026-10-27 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-27T22:36 [skip ci] |
 | `7fa188d` | 2026-10-27 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |

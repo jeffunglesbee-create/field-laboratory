@@ -812,6 +812,15 @@ type Game =
       ClosingOdds: Nested<Odds>
       Overtime: OvertimeStatus
       EspnEventId: string option
+      /// The BSD event id the relay joined this row to, which is the id
+      /// `/bsd/events/{id}/lineups` takes. `None` means NOT JOINED: the relay
+      /// served `null`, served no such field (an older cached payload, or a
+      /// capture made before the relay carried it), or the row is not one of the
+      /// six soccer labels it joins. It is never an empty string and never a
+      /// guess. Relay contract: CONTRACTS.md, "`bsd_event_id` on `/context/date`
+      /// game rows". Read by the soccer card's lineup disclosure
+      /// (docs/CC-CMD-2026-10-27-lineups-on-game-cards.md).
+      BsdEventId: string option
       FinalizedAt: string option }
 
 /// A row from the relay's `briefs` table.
@@ -1086,6 +1095,10 @@ let gameDecoder : Decoder<Game> =
           Overtime = get.Optional.Field "went_to_ot" overtimeDecoder
                      |> Option.defaultValue OvertimeUnknown
           EspnEventId = get.Optional.Field "espn_event_id" Decode.string
+          // OPTIONAL, beside EspnEventId. `Optional.Field` reads a missing key
+          // and a JSON null as None, so "not joined" is one state however the
+          // relay said it, and a null is never turned into an empty id.
+          BsdEventId = get.Optional.Field "bsd_event_id" Decode.string
           FinalizedAt = get.Optional.Field "finalized_at" Decode.string })
 
 let briefDecoder : Decoder<Brief> =

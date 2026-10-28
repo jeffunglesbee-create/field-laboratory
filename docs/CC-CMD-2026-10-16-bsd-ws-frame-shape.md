@@ -91,7 +91,7 @@ coordinate at all (so "every element is identifier-less, a ball trail" is not sh
 elements). The vendor's "ball x/y about every 5 s" was not observed; livedata here is incident commentary, 6 to
 8 frames in ten minutes.
 
-**What it does not say.** One lower-division league. A top-flight match may differ; that is the second sample.
+**What it does not say.** One league: Categoría Primera A, Colombia's top division, which is outside the leagues the relay tracks. A match in a tracked league may differ; that is the second sample.
 
 Two things found on the way, filed as `field-relay-nba/docs/CC-CMD-2026-10-28-bsd-ws-fanout-field-names.md`:
 the relay's fan-out reads `frame.minute` and `frame.period`, which the frames do not have, and the client reads
