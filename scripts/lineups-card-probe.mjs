@@ -38,6 +38,13 @@ export const PAGE_A = 'context-2026-10-10'
 export const PAGE_B = 'context-2026-09-05'
 export const VIEWPORTS = [1000, 390]
 
+/** The joined photograph must show a team sheet: the card of event 5327, whose
+ *  committed capture is a confirmed sheet. The first version photographed the first
+ *  open joined card in document order, a card with no capture, which shows "no
+ *  request was made". Pure, so the wrong case is a must-fail input. */
+export const photographShowsASheet = game =>
+  game?.answer === 'confirmed' && game?.event === '5327'
+
 /** One viewport's manifest from the two pages' scenarios. Booleans and counts
  *  only, named as the CC-CMD names them. Pure. A page that lacks the card it was
  *  asked for FAILS: a missing card is not a pass. */
@@ -118,6 +125,14 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('flip is reported as not applicable when the card is not a disclosure, rather than as a pass of a test that did not run',
     good.flipApplicable === false)
   check('a lineup request matcher exists for the counts', LINEUP_REQUEST instanceof RegExp)
+  check('the joined photograph: event 5327 drawn as a confirmed sheet passes',
+    photographShowsASheet({ id: 'g', event: '5327', answer: 'confirmed', teams: 'Charlotte FC v FC Dallas' }) === true)
+  check('MUTATION: the card the first version photographed (an event with no capture, "not-requested") fails',
+    photographShowsASheet({ id: 'g', event: '5333', answer: 'not-requested', teams: 'St. Louis CITY SC v LA Galaxy' }) === false)
+  check('MUTATION: event 5327 drawn as anything but a confirmed sheet fails',
+    photographShowsASheet({ id: 'g', event: '5327', answer: 'upstream-failed' }) === false)
+  check('MUTATION: no photograph at all fails — a missing card is not a pass',
+    photographShowsASheet(undefined) === false)
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
@@ -150,22 +165,52 @@ if (isMain(import.meta.url) && !process.argv.includes('--self-test')) {
     const B = await open(PAGE_B)
     const sb = await runCardScenario(B.page, B.requests, soccerLabels)
 
-    // The screenshots: the joined card still open, and a not-joined card.
+    // The screenshots. THE JOINED CARD IS THE ONE WITH A COMMITTED CAPTURE (event
+    // 5327), not the first open joined card in document order: several joined
+    // cards are open by now and the first is one with no capture, which shows the
+    // pinned page's "no request was made" sentence and not a team sheet. The first
+    // version of this selected by order and photographed exactly that; the image
+    // was read before it was believed. `game` names what was photographed.
     const shots = {}
-    const joinedCard = await A.page.$('details[data-lineup="joined"][open]')
-    if (joinedCard) {
-      const card = (await joinedCard.evaluateHandle(e => e.closest('.desk-card'))).asElement()
-      shots.joined = `outbox/lineups-card-${width}-joined.png`
-      await card.screenshot({ path: shots.joined })
+    const game = {}
+    // A card taller than the viewport is photographed by stitching, and a sticky or
+    // fixed header is then pasted across the middle of it. The page's own chrome is
+    // not what is being photographed, so every fixed or sticky element is set to
+    // static for the shot and restored after; the manifest says how many.
+    const neutralise = page => page.evaluate(() => {
+      const els = [...document.querySelectorAll('*')].filter(e => ['fixed', 'sticky'].includes(getComputedStyle(e).position))
+      for (const e of els) { e.setAttribute('data-was-position', e.style.position || '-'); e.style.position = 'static' }
+      return els.length
+    })
+    const restore = page => page.evaluate(() => {
+      for (const e of document.querySelectorAll('[data-was-position]')) {
+        const was = e.getAttribute('data-was-position'); e.style.position = was === '-' ? '' : was; e.removeAttribute('data-was-position')
+      }
+    })
+    let neutralised = 0
+    const shoot = async (selector, key, file, page = A.page) => {
+      const el = await page.$(selector)
+      if (!el) return
+      const card = (await el.evaluateHandle(e => e.closest('.desk-card'))).asElement()
+      game[key] = await card.evaluate(c => ({
+        id: c.getAttribute('data-game-id'),
+        event: c.querySelector('[data-lineup-event]')?.getAttribute('data-lineup-event') ?? null,
+        answer: c.querySelector('.lu-panel')?.getAttribute('data-answer') ?? null,
+        teams: c.querySelector('[data-testid="teams"]')?.textContent ?? null,
+      }))
+      shots[key] = `outbox/lineups-card-${width}-${file}.png`
+      neutralised = Math.max(neutralised, await neutralise(page))
+      await card.screenshot({ path: shots[key] })
+      await restore(page)
     }
-    const nj = await B.page.$('[data-lineup="not-joined"]')
-    if (nj) {
-      const card = (await nj.evaluateHandle(e => e.closest('.desk-card'))).asElement()
-      shots.notJoined = `outbox/lineups-card-${width}-not-joined.png`
-      await card.screenshot({ path: shots.notJoined })
-    }
+    await shoot('details[data-lineup="joined"][data-lineup-event="5327"][open]', 'joined', 'joined')
+    await shoot('details[data-lineup="joined"][open]:not([data-lineup-event="5327"]):not([data-lineup-event="220230"])', 'noCapture', 'joined-no-capture')
+    await shoot('[data-lineup="not-joined"]', 'notJoined', 'not-joined', B.page)
     const m = manifestOf({ viewport: width, a: sa, b: sb })
     m.screenshots = shots
+    m.photographed = game
+    m.fixedOrStickyElementsSetStaticForThePhotographs = neutralised
+    m.joinedPhotographShowsASheet = photographShowsASheet(game.joined)
     manifest.viewports.push(m)
 
     check(`${width}px: every soccer card on ${PAGE_A} carries data-lineup, no other does ` +
@@ -178,7 +223,10 @@ if (isMain(import.meta.url) && !process.argv.includes('--self-test')) {
       m.joinedCardShowsBothSides && m.joinedCardEveryRowMarked)
     check(`${width}px: a joined card with no committed capture requests nothing`, m.noCaptureCardRequestsNothing)
     check(`${width}px: a not-joined card on the older capture says so and fetches nothing`, m.notJoinedSaysItAndFetchesNothing)
-    check(`${width}px: screenshots written (${Object.values(shots).join(', ') || 'none'})`, Boolean(shots.joined && shots.notJoined))
+    check(`${width}px: screenshots written (${Object.values(shots).join(', ') || 'none'})`, Boolean(shots.joined && shots.notJoined && shots.noCapture))
+    check(`${width}px: the joined photograph is the team sheet of event 5327, not the no-capture sentence ` +
+      `(${JSON.stringify(game.joined ?? null)})`, m.joinedPhotographShowsASheet)
+    m.ok = m.ok && m.joinedPhotographShowsASheet
     check(`${width}px: manifest verdict`, m.ok, JSON.stringify(m))
     await A.page.close()
     await B.page.close()

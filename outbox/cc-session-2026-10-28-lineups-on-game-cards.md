@@ -93,9 +93,33 @@ PENDING are not claims. The final version replaces them with run ids.
   change: the check lists its unique offenders and none is a `desk-card__lineup` class.
   `device-chrome-check` 8/8.
 
+## The capture (run 40620697737, commit `8b0cde0`)
+
+`capture-context-with-ids` joined 2026-10-10 on the relay (`pending 53, written 48, ambiguous 0,
+refusedKickoff 0, unjudgedKickoff 15, upstreamPages 9`) and captured it: **53 soccer rows, 48
+carrying `bsd_event_id` (90.6%, floor 90%), 0 of 72 non-soccer rows carrying one.** Event 5327 is on
+`2026-10-10-mls-clt-dal`. Five rows stayed unjoined and the route named them:
+Alaves v Atletico, Barcelona v Getafe (La Liga), Augsburg v Bayern, Paderborn v Stuttgart
+(Bundesliga), Monaco v Toulouse (Ligue 1). A card for each shows "No lineup source for this
+game". That is the relay's name resolution missing clubs outside the two dates its aliases were
+derived from, a relay finding and not a lab defect; it is filed separately.
+
+## Findings while verifying
+
+- **The first deployed-page probe photographed the wrong card.** Selecting the first open
+  `details[data-lineup="joined"]` in document order picked St. Louis v LA Galaxy (event 5333),
+  which has no committed capture and so draws "No request was made", not a team sheet; the check
+  passed because the verdicts were about fetches and marks, not about which card was
+  photographed. Found by reading the image. The probe now photographs the card of event 5327 and
+  asserts the photograph is a confirmed sheet (`photographShowsASheet`, with the wrong case as its
+  must-fail input), records which game it photographed, and takes the no-capture card as its own
+  named screenshot.
+- **Sticky page chrome was pasted across the middle of tall card photographs.** A card taller than
+  the viewport is stitched, and the tab bar and date bar were captured mid-card. Fixed and sticky
+  elements are set to static for the shot and restored; the manifest records how many.
+
 ## PENDING (not claims)
 
-- `data/context-2026-10-10.json` recaptured with ids by the new workflow, run id.
 - `npm run gate` score and run id; `verify` on the branch and on main, run ids.
 - `computed-chrome-check` run locally before landing.
 - The deployed-page probe: screenshots at 1000 and 390 px and
