@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `fb51aef` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ecd43e7` | 2026-10-28 | [cc-session-2026-10-28-gate-baseline-step.md](cc-session-2026-10-28-gate-baseline-step.md) | fix: the baseline step's retry loop verifies that its push landed; verify on db9890d was red on push-lands |
 | `4a3e5c5` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | docs: the lineups-on-cards CC-CMD is DONE; session doc final with the run ids |
 | `a831159` | 2026-10-28 | [lineups-card-1000-joined-no-capture.png](lineups-card-1000-joined-no-capture.png) | probe: the lineup on a game card, on the live page [skip ci] |
