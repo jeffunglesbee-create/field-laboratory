@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `db9890d` at "Every push-retry loop verifies the push landed" — nothing was skipped behind it — [run 40649230876](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40649230876)
+**green** on `ecd43e7`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `db9890d` — failing step unknown: the run's steps could not be read — [run 40649865456](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40649865456)
+`live-check` (post-deploy, against the deployed page): **running** on `ecd43e7`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `29ef810` — behind newest deployable `520bfb8` (deploy not landed) |
+| Cloudflare Workers | live | `ecd43e7` — newest deployable ✓ |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
