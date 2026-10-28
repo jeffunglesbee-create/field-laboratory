@@ -11,7 +11,11 @@ archived game rows. This one consumes it.
 Measured on the deployed relay by a runner: 43 of 43 and 41 of 41 soccer rows carry a `bsd_event_id` (dates
 2026-08-29 and 2026-09-05), the 9 oracle rows present in the archive are all correct, and no non-soccer row
 carries one. Artifact: field-relay-nba `outbox/bsd-game-join-live-latest.json`, first run kept at
-`outbox/bsd-game-join-live-2026-10-28T0023Z-first-run.json`. The gate this CC-CMD set itself was this command
+`outbox/bsd-game-join-live-2026-10-28T0023Z-first-run.json`. Widened the same day (relay CC-CMD
+`2026-10-28-bsd-join-aliases-beyond-the-fixture-dates`, DONE; deploy run 40624401500, live run 40625311405, read back
+from D1 too): 292 of 294 soccer rows over seven further dates (2026-10-10, 09-12, 09-19, 10-17, 10-18, 10-24, 10-25) carry
+an id, 53 of 53 on 2026-10-10, the day the committed lineup captures belong to. The 2 left are MLS games BSD has no event for,
+so their cards say "No lineup source for this game". Seven dates, not a season. The gate this CC-CMD set itself was this command
 printing a non-null id on a soccer row:
 
 ```bash

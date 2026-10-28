@@ -95,6 +95,12 @@ measured against a live capture:
 - **The declared axis is false; the transform printed below it is correct.**
 - Coordinates are **0-100 normalized, not meters.**
 
+**WebSocket surface, read 2026-10-28** (`field-relay-nba/outbox/bsd-ws-frame-shape-602466.json`, one live
+`websocket_plus` match, Categoría Primera A, two ten-minute windows): the `livedata` frames are commentary
+incidents with `coordinates: []` on 14 of 14. No identified coordinates, and no coordinates of any kind, were
+observed. This does not change the lock; it also does not show the WebSocket is a ball trail. A top-flight
+sample is pending (`docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md`, "Second sample").
+
 **Stop condition:** if soccer provides on-ball data only, **flag Gravity Well
 rejected for soccer** and build it for NFL instead, where BDB tracking already
 supports separation and route entropy. Do not fabricate off-ball position from
@@ -572,6 +578,11 @@ the build cannot exclude dead time, give it a case of its own — the same move
 > - **Reopening the window** needs sub-minute clocks and typed restarts.
 >   `docs/CC-CMD-2026-10-16-bsd-ws-frame-shape.md` now asks the WebSocket
 >   frames for both (its done condition 5).
+>   Answered for one match, 2026-10-28: a sub-minute clock exists only on incident
+>   frames (`uts`, epoch seconds, 16 s smallest step; the incident `time.second` is
+>   always 0). Typed restarts are `freekick` and `corner` only; throw-ins, goal kicks
+>   and fouls are cumulative counters on `event` frames, not events. So the window
+>   cannot be reopened for throw-ins or goal kicks from this surface in that match.
 
 ---
 
