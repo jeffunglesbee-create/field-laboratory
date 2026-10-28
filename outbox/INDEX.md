@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `2616428` | 2026-10-28 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
+| `2616428` | 2026-10-28 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
+| `2616428` | 2026-10-28 | [sport-vocabulary-2026-10-28T06-59-08-937Z.json](sport-vocabulary-2026-10-28T06-59-08-937Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
+| `29ef810` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4162195` | 2026-10-28 | [context-ids-2026-10-10.txt](context-ids-2026-10-10.txt) | fixture: /context/date 2026-10-10 carrying bsd_event_id, joined on the relay first [skip ci] |
 | `4eeb283` | 2026-10-28 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8127af2 [skip ci] |
 | `b51ed8e` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
