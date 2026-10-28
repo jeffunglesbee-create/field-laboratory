@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `944499d` | 2026-10-28 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-10-28 [skip ci] |
+| `944499d` | 2026-10-28 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-10-28 [skip ci] |
+| `944499d` | 2026-10-28 | [sport-vocabulary-2026-10-28T18-15-12-154Z.json](sport-vocabulary-2026-10-28T18-15-12-154Z.json) | drift-sentinel: ok on 2026-10-28 [skip ci] |
+| `a76572a` | 2026-10-28 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-28T13:31 [skip ci] |
 | `7410d2d` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `fb51aef` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ecd43e7` | 2026-10-28 | [cc-session-2026-10-28-gate-baseline-step.md](cc-session-2026-10-28-gate-baseline-step.md) | fix: the baseline step's retry loop verifies that its push landed; verify on db9890d was red on push-lands |
