@@ -39,10 +39,24 @@ against a bare origin, with a racer clone that pushes its own ledger lines first
   branch moved with another tracked file dirty (not clobbered); the branch moved and the gate recorded no confidence line.
 - **A mutation of the fix**: with the re-append loop removed (anchor found exactly once before it is removed) the harness reports the run's
   ledger line lost.
-- Total: 14 of 14 checks (`npm run check:gate-ledger` runs the self-test and the scenarios).
+- **Every push refused** (a `pre-receive` hook on the origin that rejects): the fixed step exits 1 with "could not land the baseline artifact"
+  and the artifact is not on the origin. Its must-fail input is the same text with the landing verification replaced by an assumption that
+  the push landed: it exits 0 and the artifact is absent, which the harness reports.
+- Total: 17 of 17 checks (`npm run check:gate-ledger` runs the self-test and the scenarios; about 40 s, two of them waiting out the
+  step's own 3+6+9 s retry sleeps).
 
 The fix: `Keep the mutation baseline` sets each ledger's added line aside, resets the ledger, rebases on a clean ledger (`--autostash`
 remains for any other dirty file) and puts the lines back by appending. `scripts/gate-ledger-step-check.mjs` runs in `verify`.
+
+## What went red when it landed
+
+`verify` on the first landing (`db9890d`, run 40649230876) failed in the `push-lands` job, "Every push-retry loop verifies the push landed":
+`scripts/check-push-lands.py` reported 1 unguarded loop, `verify-full.yml -> full / Keep the mutation baseline`. The `verify` job itself,
+including the new harness step, was green. Cause: the step's original loop ended with `exit 0` inside it, so the guard did not count it as a
+push-retry loop; mine ended with `break` (so the re-append could run before the step exits), which the guard does count, and nothing after
+it verified the push landed. I had run the harness and `workflow-check` locally but not `check-push-lands.py`, which `verify` runs in a
+separate job. The loop now ends with `git fetch` and `git merge-base --is-ancestor HEAD origin/<branch>` as the guard requires, and the
+harness asserts the verification (with its must-fail input above). `check-push-lands.py` now reports 13 guarded, 0 unguarded.
 
 ## What this does not prove
 

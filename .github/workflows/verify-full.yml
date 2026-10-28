@@ -252,12 +252,16 @@ jobs:
               git checkout -- "$LEDGER"
             fi
           done
-          LANDED=0
           for attempt in 1 2 3; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
-              && git push origin "HEAD:${GITHUB_REF_NAME}" && { LANDED=1; break; }
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && break
             sleep $((attempt * 3))
           done
+          # When every attempt fails the loop's last command is `sleep`, so it exits
+          # 0: verify the push landed (scripts/check-push-lands.py requires this).
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          LANDED=0
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" && LANDED=1
           for LEDGER in docs/confidence-log.jsonl docs/scale-log.jsonl; do
             [ -s "$SAVED/$(basename "$LEDGER")" ] && cat "$SAVED/$(basename "$LEDGER")" >> "$LEDGER"
           done

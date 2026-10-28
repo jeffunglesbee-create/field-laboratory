@@ -13,7 +13,7 @@
 //         node scripts/gate-ledger-step-check.mjs [--workflow FILE]
 
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, chmodSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createChecks, finish, isMain } from './checks.mjs'
@@ -60,7 +60,7 @@ const append = (dir, rel, line) => writeFileSync(join(dir, rel), readFileSync(jo
 const lines = (dir, rel) => readFileSync(join(dir, rel), 'utf8').split('\n').filter(Boolean)
 
 /** One scenario. Returns what the origin holds afterwards and how the two steps exited. */
-export function scenario({ baselineStep, recordStep, race, otherDirty = false, gateRecorded = true }) {
+export function scenario({ baselineStep, recordStep, race, otherDirty = false, gateRecorded = true, rejectPush = false }) {
   const root = mkdtempSync(join(tmpdir(), 'gate-ledger-'))
   try {
     const origin = join(root, 'origin.git'), seed = join(root, 'seed'), runner = join(root, 'runner'), racer = join(root, 'racer')
@@ -69,6 +69,7 @@ export function scenario({ baselineStep, recordStep, race, otherDirty = false, g
     write(seed, CONF, '{"id":"seed-conf"}\n'); write(seed, SCALE, '{"id":"seed-scale"}\n'); write(seed, ART, 'v1\n'); write(seed, 'outbox/other.txt', 'o1\n')
     git(seed, 'add', '-A'); git(seed, 'commit', '-q', '-m', 'seed'); git(seed, 'push', '-q', 'origin', 'HEAD:main')
     const sha = git(seed, 'rev-parse', 'HEAD')
+    if (rejectPush) { writeFileSync(join(origin, 'hooks', 'pre-receive'), '#!/bin/sh\nexit 1\n'); chmodSync(join(origin, 'hooks', 'pre-receive'), 0o755) }
 
     git(root, 'clone', '-q', origin, runner)
     if (gateRecorded) append(runner, CONF, '{"id":"run-conf"}')
@@ -147,6 +148,16 @@ if (isMain(import.meta.url)) {
       const m = scenario({ baselineStep: mutated, recordStep, race: false })
       check('MUTATION: the fixed text without its re-append loses this run\'s ledger lines', !landed(m), JSON.stringify({ codes: m.codes, scaleRunOnce: m.scaleRunOnce }))
     }
+    // The landing verification: with every push refused, the step must FAIL and the artifact must not be on the origin. Its
+    // must-fail input is the same text with the verification replaced by an assumption that the push landed.
+    const verifyLine = /git merge-base --is-ancestor HEAD "origin\/\$\{GITHUB_REF_NAME\}" && LANDED=1/
+    const vHits = fixed.match(new RegExp(verifyLine, 'g'))
+    check('the landing verification is found exactly once in the fixed text (the mutation below mutates something)', vHits !== null && vHits.length === 1, String(vHits && vHits.length))
+    if (vHits && vHits.length === 1) {
+      const assumed = scenario({ baselineStep: fixed.replace(verifyLine, 'LANDED=1'), recordStep, race: false, rejectPush: true })
+      check('MUTATION: a step that assumes its push landed exits 0 with every push refused, and the artifact is not on the origin',
+        assumed.codes[0] === 0 && assumed.artifact === 'v1', JSON.stringify({ codes: assumed.codes, artifact: assumed.artifact }))
+    }
   }
 
   const text = at('--workflow') ? readFileSync(at('--workflow'), 'utf8') : readFileSync(WORKFLOW, 'utf8')
@@ -158,7 +169,10 @@ if (isMain(import.meta.url)) {
       check(`${name}: both steps exit 0, every ledger line lands once, no conflict markers, artifact lands${opts.otherDirty ? ', the other dirty file is not clobbered' : ''}`,
         landed(r, opts), JSON.stringify({ codes: r.codes, confRunOnce: r.confRunOnce, scaleRunOnce: r.scaleRunOnce, confRacer: r.confRacer, scaleRacer: r.scaleRacer, markers: r.markers, artifact: r.artifact, other: r.other, msg: r.messages.join(' | ').slice(0, 300) }))
     }
-    console.log(`  ${SCENARIOS.length} scenarios run against the real step text of ${at('--workflow') ?? WORKFLOW}`)
+    const refused = scenario({ baselineStep, recordStep, race: false, rejectPush: true })
+    check('every push refused: the baseline step FAILS saying so, and the artifact is not on the origin',
+      refused.codes[0] === 1 && /could not land the baseline artifact/.test(refused.messages[0]) && refused.artifact === 'v1', JSON.stringify({ codes: refused.codes, artifact: refused.artifact, msg: refused.messages[0].slice(-200) }))
+    console.log(`  ${SCENARIOS.length + 1} scenarios run against the real step text of ${at('--workflow') ?? WORKFLOW}`)
   }
   finish(summarize())
 }
