@@ -229,13 +229,39 @@ jobs:
           git add outbox/mutation-baseline-latest.json
           git diff --staged --quiet && { echo "baseline unchanged"; exit 0; }
           git commit -m "Record the mutation baseline of ${GITHUB_SHA:0:7} [skip ci]"
+
+          # THE LEDGERS ARE DIRTY HERE AND THEY MUST NOT GO THROUGH AN AUTOSTASH.
+          # The gate and scale-check each appended ONE line to a ledger, and the
+          # next step reads those lines back from `git diff`. `--autostash` stashes
+          # them, rebases, and pops them onto a branch that may have moved. A
+          # cancelled earlier run does move it: its `if: always()` record step
+          # pushes after the new dispatch, and it appends to the end of the same
+          # file, so the pop is a content conflict by construction. On 2026-10-28
+          # run 40621860549 scored 530/530 and lost both lines this way: the next
+          # step read the conflict markers as three records and exited 1.
+          # (docs/CC-CMD-2026-10-28-gate-baseline-step-autostash.md)
+          #
+          # So set each ledger's added line aside, reset the ledger, rebase on a
+          # clean ledger, and put the lines back by APPENDING — the rule the next
+          # step's header states. `--autostash` stays for any OTHER dirty file.
+          SAVED=$(mktemp -d)
+          for LEDGER in docs/confidence-log.jsonl docs/scale-log.jsonl; do
+            : > "$SAVED/$(basename "$LEDGER")"
+            if ! git diff --quiet -- "$LEDGER"; then
+              git diff -- "$LEDGER" | grep '^+' | grep -v '^+++' | sed 's/^+//' > "$SAVED/$(basename "$LEDGER")"
+              git checkout -- "$LEDGER"
+            fi
+          done
+          LANDED=0
           for attempt in 1 2 3; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
-              && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && { LANDED=1; break; }
             sleep $((attempt * 3))
           done
-          echo "could not land the baseline artifact after 3 attempts"
-          exit 1
+          for LEDGER in docs/confidence-log.jsonl docs/scale-log.jsonl; do
+            [ -s "$SAVED/$(basename "$LEDGER")" ] && cat "$SAVED/$(basename "$LEDGER")" >> "$LEDGER"
+          done
+          [ "$LANDED" -eq 1 ] || { echo "could not land the baseline artifact after 3 attempts"; exit 1; }
 
       - name: Record this measurement
         if: always()

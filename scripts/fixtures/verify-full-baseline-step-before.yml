@@ -1,0 +1,24 @@
+# The `Keep the mutation baseline` step of .github/workflows/verify-full.yml AS IT WAS on 2026-10-28 (tree 01421c7), kept
+# verbatim as the must-fail input of scripts/gate-ledger-step-check.mjs (Rule 90): the check has to show it FAILS the
+# moved-branch scenario with this text, or it proves nothing about the text that replaced it. Do not edit; do not run.
+# Source: git show 01421c7:.github/workflows/verify-full.yml (lines 219-238).
+      - name: Keep the mutation baseline
+        if: always()
+        run: |
+          set -euo pipefail
+          test -f outbox/mutation-baseline-latest.json || {
+            echo "no baseline artifact this run — the gate did not reach the mutation row"
+            exit 0
+          }
+          git config user.name  'field-laboratory'
+          git config user.email 'noreply@github.com'
+          git add outbox/mutation-baseline-latest.json
+          git diff --staged --quiet && { echo "baseline unchanged"; exit 0; }
+          git commit -m "Record the mutation baseline of ${GITHUB_SHA:0:7} [skip ci]"
+          for attempt in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((attempt * 3))
+          done
+          echo "could not land the baseline artifact after 3 attempts"
+          exit 1

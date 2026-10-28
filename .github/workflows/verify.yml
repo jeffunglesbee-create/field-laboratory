@@ -886,6 +886,17 @@ jobs:
 
       # 2026-10-25: the gate's mutation row failed after 97 minutes because one
       # mutation's search string had been edited away. Reads files, no build.
+      # 2026-10-28: verify-full run 40621860549 scored 530/530 and lost both ledger
+      # lines, because `Keep the mutation baseline` autostashed the dirty ledgers
+      # over a branch a cancelled run had moved. This runs the real text of the two
+      # git steps against a bare origin and a racer, and the old text must fail.
+      # docs/CC-CMD-2026-10-28-gate-baseline-step-autostash.md. Needs git and node.
+      - name: The gate's ledger steps survive a moved branch
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:gate-ledger
+
       - name: Every mutation's anchor still exists
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:mutation-anchors

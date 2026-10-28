@@ -22,6 +22,7 @@
     "check:workflows": "node scripts/workflow-check.mjs",
     "check:script-orphans": "node scripts/check-script-orphans.mjs --self-test && node scripts/check-script-orphans.mjs",
     "check:gate-rows": "node scripts/gate-inventory.mjs",
+    "check:gate-ledger": "node scripts/gate-ledger-step-check.mjs --self-test",
     "check:history": "node scripts/history-check.mjs --self-test && node scripts/history-check.mjs",
     "check:confidence-record": "node scripts/confidence-record-check.mjs --self-test && node scripts/confidence-record-check.mjs",
     "check:outbox-row": "node scripts/outbox-row-check.mjs --self-test",
