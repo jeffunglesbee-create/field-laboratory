@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `29ef810` — but that is not `main` HEAD
+**FAILURE** on `db9890d` at "Every push-retry loop verifies the push landed" — nothing was skipped behind it — [run 40649230876](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/40649230876)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `add9f1c`
+`live-check` (post-deploy, against the deployed page): **green** on `add9f1c` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `29ef810` — newest deployable `01421c7` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `29ef810` — behind newest deployable `520bfb8` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

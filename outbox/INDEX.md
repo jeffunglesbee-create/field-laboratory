@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4a3e5c5` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | docs: the lineups-on-cards CC-CMD is DONE; session doc final with the run ids |
+| `a831159` | 2026-10-28 | [lineups-card-1000-joined-no-capture.png](lineups-card-1000-joined-no-capture.png) | probe: the lineup on a game card, on the live page [skip ci] |
+| `a831159` | 2026-10-28 | [lineups-card-1000-joined.png](lineups-card-1000-joined.png) | probe: the lineup on a game card, on the live page [skip ci] |
+| `a831159` | 2026-10-28 | [lineups-card-1000-not-joined.png](lineups-card-1000-not-joined.png) | probe: the lineup on a game card, on the live page [skip ci] |
+| `a831159` | 2026-10-28 | [lineups-card-390-joined-no-capture.png](lineups-card-390-joined-no-capture.png) | probe: the lineup on a game card, on the live page [skip ci] |
+| `a831159` | 2026-10-28 | [lineups-card-390-joined.png](lineups-card-390-joined.png) | probe: the lineup on a game card, on the live page [skip ci] |
+| `a831159` | 2026-10-28 | [lineups-card-390-not-joined.png](lineups-card-390-not-joined.png) | probe: the lineup on a game card, on the live page [skip ci] |
+| `a831159` | 2026-10-28 | [lineups-card-manifest-2026-10-28T07-08-08.json](lineups-card-manifest-2026-10-28T07-08-08.json) | probe: the lineup on a game card, on the live page [skip ci] |
+| `c818ab9` | 2026-10-28 | [.trigger-lineups-card-probe](.trigger-lineups-card-probe) | ci: run the lineup-card probe on the deployed page |
+| `19d4239` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `2616428` | 2026-10-28 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
 | `2616428` | 2026-10-28 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
 | `2616428` | 2026-10-28 | [sport-vocabulary-2026-10-28T06-59-08-937Z.json](sport-vocabulary-2026-10-28T06-59-08-937Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-28 [skip ci] |
@@ -19,6 +29,7 @@ would describe, so listing itself would always be one commit stale.
 | `4162195` | 2026-10-28 | [context-ids-2026-10-10.txt](context-ids-2026-10-10.txt) | fixture: /context/date 2026-10-10 carrying bsd_event_id, joined on the relay first [skip ci] |
 | `4eeb283` | 2026-10-28 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8127af2 [skip ci] |
 | `b51ed8e` | 2026-10-28 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `520bfb8` | 2026-10-28 | [cc-session-2026-10-28-gate-baseline-step.md](cc-session-2026-10-28-gate-baseline-step.md) | fix: the gate's baseline step no longer autostashes the ledgers over a branch that moved |
 | `d39a630` | 2026-10-28 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 01421c7 [skip ci] |
 | `01421c7` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | fix: the new scripts end by finish(summarize()), not by killing themselves mid-write |
 | `9b58ef2` | 2026-10-28 | [cc-session-2026-10-28-lineups-on-game-cards.md](cc-session-2026-10-28-lineups-on-game-cards.md) | fix: the card probe photographs the card of event 5327, and sets sticky chrome static for the shot |
