@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `55511b6` | 2026-10-31 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-10-31 [skip ci] |
+| `55511b6` | 2026-10-31 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-10-31 [skip ci] |
+| `55511b6` | 2026-10-31 | [sport-vocabulary-2026-10-31T07-11-16-549Z.json](sport-vocabulary-2026-10-31T07-11-16-549Z.json) | drift-sentinel: odds-coverage-lost on 2026-10-31 [skip ci] |
+| `37971f2` | 2026-10-31 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `fa85ade` | 2026-10-31 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1f35b6f` | 2026-10-30 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-30T22:38 [skip ci] |
 | `8fcb138` | 2026-10-30 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
