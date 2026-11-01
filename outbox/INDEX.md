@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b5ac6ca` | 2026-11-01 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-01 [skip ci] |
+| `b5ac6ca` | 2026-11-01 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-01 [skip ci] |
+| `b5ac6ca` | 2026-11-01 | [sport-vocabulary-2026-11-01T07-43-47-387Z.json](sport-vocabulary-2026-11-01T07-43-47-387Z.json) | drift-sentinel: odds-coverage-lost on 2026-11-01 [skip ci] |
+| `7fd55cb` | 2026-11-01 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `31ce981` | 2026-10-31 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1c2d902` | 2026-10-31 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-10-31T21:51 [skip ci] |
 | `c7def64` | 2026-10-31 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
