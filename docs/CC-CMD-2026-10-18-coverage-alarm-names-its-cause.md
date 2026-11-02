@@ -204,3 +204,24 @@ today only by cross-referencing a second field in the same line. Moving that
 field into the alarm is the difference between "coverage collapsed" and
 "coverage collapsed because the rows arrived unjoinable" — and the second is a
 sentence someone can do something about.
+
+---
+
+## Evidence added 2026-11-02
+
+Measured at `origin/main` `bc2f72f` by the read of the client, relay and laboratory outbox files. Nothing above is edited and the Status line is unchanged: this is evidence for the CC-CMD, not a start on it.
+
+**1. The baseline in TASK 0 step 3 and TASK 4 is stale: re-record it before building.** `node scripts/replay-odds-coverage.mjs` now reads **45 readings and 12 alarms**, every one resting on 3+ rows on both sides, against 30 and 9 at filing. Reading 30 is 2026-10-18; the nine alarms of the filing (09-05 twice, 09-20, 09-27, 10-07, 10-11, 10-14, 10-15, 10-18) are the ones dated up to that day, and the three added since are all MLS: 10-25 (`1/8`), 10-29 (`0/9`) and 11-02 (`0/3`). TASK 4's condition is "the same alarms before and after, on the same readings". A builder who compares against 9 will see three alarms this change did not add, which is the trap TASK 4 already warns about for the header's 16/6. `odds-coverage.mjs --self-test` is still 36/36.
+
+**2. TASK 0 steps 1, 4 and 5 hold on this commit.** The sites the CC-CMD quotes (`transitions`, `censusOf`, `alarmLine`, the asserted string in the self-test, `KEYING` and the `censusOf` call in `drift-check.mjs`) are at the lines it cites. `censusOf` of this module has exactly two callers: `drift-check.mjs` and the self-test inside `odds-coverage.mjs`. The other hits for the name are different functions (`censusOfField` in `odds-shape-census.mjs`, a private F# function in `src/Gravity.fs`). `odds-coverage.mjs` imports only `./checks.mjs`. No reading in the series has a `noStart` field yet.
+
+**3. Both causes the CC-CMD names occur, and the drift log shows how often.** `outbox/drift-log.md` has 193 rows; 31 carry the status `odds-coverage-lost`. `drift-check.mjs` sets that status for any coverage alarm, new or continuing, and fails the run only for a new one. For each of the 31, the sports with 3+ rows and a rate under 0.31 were set against that sport's `no-start-time` count in the same row:
+
+| runs | rows | what they are |
+|---|---|---|
+| 05:46 to 07:50 UTC | **19** | every one a slate of MLS games only, `cov=MLS:0/N`, with `MLS:no-start-time=N`: every row unjoinable (19 of 19). The latest: 2026-10-31 `0/15`, 2026-11-01 `0/5`, 2026-11-02 `0/3`. Supply was the cause in none of them |
+| 15:43 to 21:38 UTC | 12 | 29 sport-instances (a superset of the sports that alarmed, since the rule also needs an earlier covered reading): **20 supply** (no row lacks a start time: NHL, NFL, CFB, La Liga and others at `0/N`), **5 mixed** (for example MLS `1/8` with 7 unjoinable), **4 fully unjoinable** (MLS `0/15`, `0/9`, `0/9`, `0/3`) |
+
+So one status word covers a slate that never was joinable and a slate whose odds are missing, and the only thing that tells them apart is a second field on the same row. That is this CC-CMD's premise, measured fifteen days on.
+
+**4. A firing-rule observation, reported and not acted on (TASK 3).** 19 of the 31 `odds-coverage-lost` rows are runs whose entire slate is unjoinable MLS rows. A census that left out rows without a start time would leave those 19 with no rows, below the 3-row floor (`measurable` needs `rows >= MIN_ROWS`), and they would not have alarmed. That is a change to when the alarm fires, which this CC-CMD forbids; TASK 3 sends it to a separate CC-CMD with its own replay. It cannot be replayed from the series, because no reading has `noStart` and TASK 1 adds it only for future readings. The drift log does carry `no-start-time` per sport per run, so a replay over the log is possible. Nothing more is proposed here.
