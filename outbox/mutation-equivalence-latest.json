@@ -1,12 +1,38 @@
 {
- "at": "2026-11-03T06:17:58.941Z",
- "sha": "7a2ed2893b277e695dbe42aeed56f4fe0f194d0d",
+ "at": "2026-11-03T07:10:11.746Z",
+ "sha": "a464e3b0ae137a82e01c4932f660578eabe07c3f",
  "of": 8,
- "compared": 205,
+ "compared": 235,
  "table": 235,
- "rebuildingCompared": 145,
- "verdictDiffs": [],
- "digestDiffs": [],
+ "rebuildingCompared": 163,
+ "verdictDiffs": [
+  {
+   "id": "proxy-silent-becomes-false",
+   "kind": "src",
+   "watch": "caught",
+   "full": "compiler"
+  },
+  {
+   "id": "tactical-lock-bars-take-a-negative-best",
+   "kind": "src",
+   "watch": "caught",
+   "full": "compiler"
+  }
+ ],
+ "digestDiffs": [
+  {
+   "id": "proxy-silent-becomes-false",
+   "kind": "src",
+   "watch": "bc4f764abc82c0f1",
+   "full": "92abec4980ffd7dd"
+  },
+  {
+   "id": "tactical-lock-bars-take-a-negative-best",
+   "kind": "src",
+   "watch": "1f008e3f60097a06",
+   "full": "c3636462bfa73348"
+  }
+ ],
  "cleanDigest": {
   "watch": [
    "c60e1799e7a0cbbe"
@@ -17,22 +43,33 @@
   "equal": true
  },
  "legacy": {
-  "nonRebuild": 60,
-  "caughtOnCleanBuild": 60,
+  "nonRebuild": 72,
+  "caughtOnCleanBuild": 72,
   "survivedOnCleanBuild": [],
   "notApplicable": 0
  },
  "wall": {
   "watch": {
-   "longestMs": 1000840,
-   "sumMs": 2289298
+   "longestMs": 1734247,
+   "sumMs": 3482756
   },
   "full": {
-   "longestMs": 1478838,
-   "sumMs": 5424537
+   "longestMs": 2256475,
+   "sumMs": 7333763
   }
  },
  "perId": [
+  {
+   "id": "draw",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "85b615e83c9ff7e6",
+   "fullDigest": "85b615e83c9ff7e6",
+   "watchMs": 6205,
+   "fullMs": 25776
+  },
   {
    "id": "score-presence",
    "kind": "src",
@@ -41,8 +78,8 @@
    "full": "caught",
    "watchDigest": "d5f02d96c98b5439",
    "fullDigest": "d5f02d96c98b5439",
-   "watchMs": 7619,
-   "fullMs": 20354
+   "watchMs": 8322,
+   "fullMs": 34121
   },
   {
    "id": "finalized-only",
@@ -52,8 +89,8 @@
    "full": "caught",
    "watchDigest": "a91db2de67e4c243",
    "fullDigest": "a91db2de67e4c243",
-   "watchMs": 7838,
-   "fullMs": 18416
+   "watchMs": 8744,
+   "fullMs": 31216
   },
   {
    "id": "rank-order",
@@ -63,8 +100,8 @@
    "full": "caught",
    "watchDigest": "2a65356b95a098e5",
    "fullDigest": "2a65356b95a098e5",
-   "watchMs": 6782,
-   "fullMs": 36936
+   "watchMs": 6760,
+   "fullMs": 20063
   },
   {
    "id": "tie-detection",
@@ -74,8 +111,8 @@
    "full": "caught",
    "watchDigest": "037ecdfb21f63a5a",
    "fullDigest": "037ecdfb21f63a5a",
-   "watchMs": 5214,
-   "fullMs": 25863
+   "watchMs": 5873,
+   "fullMs": 24211
   },
   {
    "id": "gate-unanswerable",
@@ -85,8 +122,8 @@
    "full": "caught",
    "watchDigest": "756131e0e6e5f0f0",
    "fullDigest": "756131e0e6e5f0f0",
-   "watchMs": 3900,
-   "fullMs": 36418
+   "watchMs": 3972,
+   "fullMs": 36714
   },
   {
    "id": "gate-unanswerable-b",
@@ -96,8 +133,8 @@
    "full": "caught",
    "watchDigest": "f1009b06ee165beb",
    "fullDigest": "f1009b06ee165beb",
-   "watchMs": 4159,
-   "fullMs": 36180
+   "watchMs": 4547,
+   "fullMs": 31124
   },
   {
    "id": "gate-unanswerable-d",
@@ -107,8 +144,19 @@
    "full": "caught",
    "watchDigest": "8eedfdcf843c3115",
    "fullDigest": "8eedfdcf843c3115",
-   "watchMs": 3981,
-   "fullMs": 33173
+   "watchMs": 3978,
+   "fullMs": 36752
+  },
+  {
+   "id": "gate-goes-quiet",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "2c6f19046e9f586f",
+   "fullDigest": "2c6f19046e9f586f",
+   "watchMs": 3728,
+   "fullMs": 24956
   },
   {
    "id": "pass-reason-leak",
@@ -118,8 +166,8 @@
    "full": "caught",
    "watchDigest": "18730115210427ba",
    "fullDigest": "18730115210427ba",
-   "watchMs": 5793,
-   "fullMs": 20256
+   "watchMs": 5370,
+   "fullMs": 37864
   },
   {
    "id": "spark-normalise",
@@ -129,8 +177,8 @@
    "full": "caught",
    "watchDigest": "7e198317dff18dd8",
    "fullDigest": "7e198317dff18dd8",
-   "watchMs": 7247,
-   "fullMs": 19209
+   "watchMs": 7898,
+   "fullMs": 30615
   },
   {
    "id": "spark-every-nth",
@@ -140,8 +188,8 @@
    "full": "caught",
    "watchDigest": "78933318a272baad",
    "fullDigest": "78933318a272baad",
-   "watchMs": 7599,
-   "fullMs": 37124
+   "watchMs": 8574,
+   "fullMs": 18349
   },
   {
    "id": "prose-drifts-from-oracle",
@@ -151,8 +199,8 @@
    "full": "caught",
    "watchDigest": "a0cb801a2a640a2a",
    "fullDigest": "a0cb801a2a640a2a",
-   "watchMs": 2612,
-   "fullMs": 26229
+   "watchMs": 3024,
+   "fullMs": 26038
   },
   {
    "id": "inferred-score-promotes",
@@ -162,8 +210,8 @@
    "full": "caught",
    "watchDigest": "a8b8ead81c4073a8",
    "fullDigest": "a8b8ead81c4073a8",
-   "watchMs": 1957,
-   "fullMs": 35193
+   "watchMs": 2261,
+   "fullMs": 37826
   },
   {
    "id": "doc-claim-goes-stale",
@@ -184,8 +232,19 @@
    "full": "caught",
    "watchDigest": "8253ed9a0f3f86f8",
    "fullDigest": "8253ed9a0f3f86f8",
-   "watchMs": 5408,
-   "fullMs": 35468
+   "watchMs": 5536,
+   "fullMs": 34991
+  },
+  {
+   "id": "proxy-silent-becomes-false",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "compiler",
+   "watchDigest": "bc4f764abc82c0f1",
+   "fullDigest": "92abec4980ffd7dd",
+   "watchMs": 5298,
+   "fullMs": 24637
   },
   {
    "id": "scoreline-dominance-becomes-equality",
@@ -195,8 +254,8 @@
    "full": "caught",
    "watchDigest": "321557f007f15462",
    "fullDigest": "321557f007f15462",
-   "watchMs": 5676,
-   "fullMs": 20390
+   "watchMs": 4664,
+   "fullMs": 31104
   },
   {
    "id": "scoreline-tries-one-assignment",
@@ -206,8 +265,8 @@
    "full": "caught",
    "watchDigest": "0d1b46f3409b11d5",
    "fullDigest": "0d1b46f3409b11d5",
-   "watchMs": 4620,
-   "fullMs": 20064
+   "watchMs": 4925,
+   "fullMs": 29992
   },
   {
    "id": "scoreline-unsettled-counts-as-checked",
@@ -217,8 +276,8 @@
    "full": "caught",
    "watchDigest": "5e8a28560b61ee4f",
    "fullDigest": "5e8a28560b61ee4f",
-   "watchMs": 5002,
-   "fullMs": 32650
+   "watchMs": 5709,
+   "fullMs": 17853
   },
   {
    "id": "anchor-drifts-from-oracle",
@@ -228,8 +287,8 @@
    "full": "caught",
    "watchDigest": "9057e5ca342cc90e",
    "fullDigest": "9057e5ca342cc90e",
-   "watchMs": 4801,
-   "fullMs": 24981
+   "watchMs": 5983,
+   "fullMs": 25555
   },
   {
    "id": "ceiling-restated-as-nominal",
@@ -239,8 +298,8 @@
    "full": "caught",
    "watchDigest": "9bf1df9a3f793201",
    "fullDigest": "9bf1df9a3f793201",
-   "watchMs": 1993,
-   "fullMs": 34373
+   "watchMs": 2251,
+   "fullMs": 34738
   },
   {
    "id": "nfl-convention-flipped",
@@ -250,8 +309,8 @@
    "full": "caught",
    "watchDigest": "130d246807ca0393",
    "fullDigest": "130d246807ca0393",
-   "watchMs": 7236,
-   "fullMs": 32946
+   "watchMs": 6873,
+   "fullMs": 31347
   },
   {
    "id": "outlet-class-dropped",
@@ -261,8 +320,19 @@
    "full": "caught",
    "watchDigest": "3538177cbe8a79af",
    "fullDigest": "3538177cbe8a79af",
-   "watchMs": 2001,
-   "fullMs": 38531
+   "watchMs": 1834,
+   "fullMs": 37690
+  },
+  {
+   "id": "brief-flip-not-a-button",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "6880894cd64856bd",
+   "fullDigest": "6880894cd64856bd",
+   "watchMs": 4536,
+   "fullMs": 26344
   },
   {
    "id": "brief-flip-ignores-empty-text",
@@ -272,8 +342,8 @@
    "full": "caught",
    "watchDigest": "5f726ff0dc03bf1b",
    "fullDigest": "5f726ff0dc03bf1b",
-   "watchMs": 6902,
-   "fullMs": 21320
+   "watchMs": 7248,
+   "fullMs": 32233
   },
   {
    "id": "briefs-tab-counts-empty",
@@ -283,8 +353,8 @@
    "full": "caught",
    "watchDigest": "5672a203b59d80bf",
    "fullDigest": "5672a203b59d80bf",
-   "watchMs": 2528,
-   "fullMs": 20468
+   "watchMs": 2066,
+   "fullMs": 30457
   },
   {
    "id": "card-claims-provenance-it-lacks",
@@ -294,8 +364,8 @@
    "full": "caught",
    "watchDigest": "2d51932bbd882a2c",
    "fullDigest": "2d51932bbd882a2c",
-   "watchMs": 4754,
-   "fullMs": 39269
+   "watchMs": 5341,
+   "fullMs": 18382
   },
   {
    "id": "verdict-consistent-beats-impossible",
@@ -305,8 +375,8 @@
    "full": "caught",
    "watchDigest": "53b05ed36dede833",
    "fullDigest": "53b05ed36dede833",
-   "watchMs": 4590,
-   "fullMs": 25044
+   "watchMs": 5903,
+   "fullMs": 23855
   },
   {
    "id": "weather-bursts-unbounded",
@@ -316,8 +386,8 @@
    "full": "caught",
    "watchDigest": "0ffdd0be14b2f808",
    "fullDigest": "0ffdd0be14b2f808",
-   "watchMs": 3619,
-   "fullMs": 34449
+   "watchMs": 3308,
+   "fullMs": 31111
   },
   {
    "id": "weather-tolerance-first-call-only",
@@ -334,6 +404,17 @@
    "id": "weather-tolerates-any-non-200",
    "kind": "script",
    "shard": 8,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
+   "id": "weather-retry-drops-deferred",
+   "kind": "script",
+   "shard": 1,
    "watch": "caught",
    "full": "caught",
    "watchDigest": null,
@@ -371,8 +452,8 @@
    "full": "caught",
    "watchDigest": "1e57092241f879a6",
    "fullDigest": "1e57092241f879a6",
-   "watchMs": 2321,
-   "fullMs": 35271
+   "watchMs": 2423,
+   "fullMs": 18508
   },
   {
    "id": "venue-sourced-row-deleted",
@@ -382,8 +463,8 @@
    "full": "caught",
    "watchDigest": "2a8f8ed1c7e24c6d",
    "fullDigest": "2a8f8ed1c7e24c6d",
-   "watchMs": 2537,
-   "fullMs": 28941
+   "watchMs": 3232,
+   "fullMs": 24410
   },
   {
    "id": "venue-sourced-slate-row-deleted",
@@ -393,8 +474,8 @@
    "full": "caught",
    "watchDigest": "2a8f8ed1c7e24c6d",
    "fullDigest": "2a8f8ed1c7e24c6d",
-   "watchMs": 2285,
-   "fullMs": 34843
+   "watchMs": 2462,
+   "fullMs": 38265
   },
   {
    "id": "venue-source-bodyless-open-accepted",
@@ -411,6 +492,17 @@
    "id": "venue-home-affix-loosened",
    "kind": "script",
    "shard": 8,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
+   "id": "venue-home-far-apart-picked",
+   "kind": "script",
+   "shard": 1,
    "watch": "caught",
    "full": "caught",
    "watchDigest": null,
@@ -437,8 +529,8 @@
    "full": "caught",
    "watchDigest": "2ad402d509f15234",
    "fullDigest": "2ad402d509f15234",
-   "watchMs": 2589,
-   "fullMs": 18466
+   "watchMs": 2165,
+   "fullMs": 35567
   },
   {
    "id": "venue-names-at-ignores-coordinate",
@@ -448,8 +540,8 @@
    "full": "caught",
    "watchDigest": "187d7e5b7a70ff18",
    "fullDigest": "187d7e5b7a70ff18",
-   "watchMs": 2336,
-   "fullMs": 32370
+   "watchMs": 2410,
+   "fullMs": 18228
   },
   {
    "id": "venue-collision-always-same-ground",
@@ -481,13 +573,24 @@
    "full": "caught",
    "watchDigest": "7403663860bed676",
    "fullDigest": "7403663860bed676",
-   "watchMs": 2278,
-   "fullMs": 32794
+   "watchMs": 2900,
+   "fullMs": 36883
   },
   {
    "id": "venue-team-page-not-football",
    "kind": "script",
    "shard": 8,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
+   "id": "venue-team-page-without-home-name",
+   "kind": "script",
+   "shard": 1,
    "watch": "caught",
    "full": "caught",
    "watchDigest": null,
@@ -573,6 +676,17 @@
    "fullMs": 0
   },
   {
+   "id": "venue-known-bad-placement-ignored",
+   "kind": "script",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
    "id": "venue-cfb-slate-row-deleted",
    "kind": "src",
    "shard": 2,
@@ -580,8 +694,8 @@
    "full": "caught",
    "watchDigest": "82d9fa67af57c3d2",
    "fullDigest": "82d9fa67af57c3d2",
-   "watchMs": 2766,
-   "fullMs": 22585
+   "watchMs": 2298,
+   "fullMs": 33554
   },
   {
    "id": "venue-exeter-at-newcastle",
@@ -591,8 +705,8 @@
    "full": "caught",
    "watchDigest": "180c8dccba548799",
    "fullDigest": "180c8dccba548799",
-   "watchMs": 2656,
-   "fullMs": 18443
+   "watchMs": 2133,
+   "fullMs": 30925
   },
   {
    "id": "mutation-anchors-ignores-stale",
@@ -635,8 +749,8 @@
    "full": "caught",
    "watchDigest": "41a53a119afb5540",
    "fullDigest": "41a53a119afb5540",
-   "watchMs": 2248,
-   "fullMs": 36046
+   "watchMs": 2846,
+   "fullMs": 34377
   },
   {
    "id": "arena-predicate-ignored",
@@ -650,6 +764,17 @@
    "fullMs": 0
   },
   {
+   "id": "tab-strip-no-reveal",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "4c75d8b3f52f458b",
+   "fullDigest": "4c75d8b3f52f458b",
+   "watchMs": 2789,
+   "fullMs": 23779
+  },
+  {
    "id": "tab-strip-right-edge-unmarked",
    "kind": "src",
    "shard": 2,
@@ -657,8 +782,8 @@
    "full": "caught",
    "watchDigest": "55deb58f499983ad",
    "fullDigest": "55deb58f499983ad",
-   "watchMs": 4569,
-   "fullMs": 19885
+   "watchMs": 4113,
+   "fullMs": 36104
   },
   {
    "id": "tab-strip-edges-stale-on-scroll",
@@ -668,8 +793,8 @@
    "full": "caught",
    "watchDigest": "56d308bcc9987a39",
    "fullDigest": "56d308bcc9987a39",
-   "watchMs": 4293,
-   "fullMs": 19639
+   "watchMs": 4176,
+   "fullMs": 30502
   },
   {
    "id": "tab-strip-fade-unstyled",
@@ -679,8 +804,8 @@
    "full": "caught",
    "watchDigest": "77fff0d97d902b10",
    "fullDigest": "77fff0d97d902b10",
-   "watchMs": 880,
-   "fullMs": 2340
+   "watchMs": 911,
+   "fullMs": 2181
   },
   {
    "id": "metrics-gravity-unexplained",
@@ -690,8 +815,8 @@
    "full": "caught",
    "watchDigest": "e4edd87fdf23cf7d",
    "fullDigest": "e4edd87fdf23cf7d",
-   "watchMs": 3590,
-   "fullMs": 28419
+   "watchMs": 4377,
+   "fullMs": 24926
   },
   {
    "id": "metrics-second-wind-bare-ids",
@@ -701,8 +826,8 @@
    "full": "caught",
    "watchDigest": "c30d1fdf47c417a5",
    "fullDigest": "c30d1fdf47c417a5",
-   "watchMs": 3857,
-   "fullMs": 30804
+   "watchMs": 3659,
+   "fullMs": 36982
   },
   {
    "id": "narrative-second-wind-off-by-one",
@@ -712,8 +837,8 @@
    "full": "caught",
    "watchDigest": "dca9047b13d4ce48",
    "fullDigest": "dca9047b13d4ce48",
-   "watchMs": 5961,
-   "fullMs": 30915
+   "watchMs": 6163,
+   "fullMs": 32963
   },
   {
    "id": "narrative-gravity-snap-throw-swapped",
@@ -723,8 +848,19 @@
    "full": "caught",
    "watchDigest": "e32f525adddca5a9",
    "fullDigest": "e32f525adddca5a9",
-   "watchMs": 5856,
-   "fullMs": 39097
+   "watchMs": 5681,
+   "fullMs": 40274
+  },
+  {
+   "id": "narrative-flow-starts-at-first-shot",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "029cfd16e9db064d",
+   "fullDigest": "029cfd16e9db064d",
+   "watchMs": 5641,
+   "fullMs": 26594
   },
   {
    "id": "narrative-gravity-not-rendered",
@@ -734,8 +870,8 @@
    "full": "caught",
    "watchDigest": "531b7ccbb1a89310",
    "fullDigest": "531b7ccbb1a89310",
-   "watchMs": 3625,
-   "fullMs": 20901
+   "watchMs": 2604,
+   "fullMs": 38946
   },
   {
    "id": "decoder-rejects-real",
@@ -745,8 +881,8 @@
    "full": "caught",
    "watchDigest": "28dfc235bde3fb84",
    "fullDigest": "28dfc235bde3fb84",
-   "watchMs": 7032,
-   "fullMs": 18108
+   "watchMs": 7414,
+   "fullMs": 32772
   },
   {
    "id": "decoder-loses-teeth",
@@ -756,8 +892,8 @@
    "full": "caught",
    "watchDigest": "8fe460cb7769864f",
    "fullDigest": "8fe460cb7769864f",
-   "watchMs": 7721,
-   "fullMs": 35320
+   "watchMs": 8550,
+   "fullMs": 18533
   },
   {
    "id": "render-wrong-score",
@@ -767,8 +903,8 @@
    "full": "caught",
    "watchDigest": "40006ded75c3142a",
    "fullDigest": "40006ded75c3142a",
-   "watchMs": 4231,
-   "fullMs": 26252
+   "watchMs": 5156,
+   "fullMs": 23858
   },
   {
    "id": "grouping-collapsed",
@@ -778,8 +914,8 @@
    "full": "caught",
    "watchDigest": "f34bc2149c87a270",
    "fullDigest": "f34bc2149c87a270",
-   "watchMs": 4801,
-   "fullMs": 31259
+   "watchMs": 4396,
+   "fullMs": 31873
   },
   {
    "id": "build-warning",
@@ -789,8 +925,8 @@
    "full": "caught",
    "watchDigest": "c12ca2542f1d5b5e",
    "fullDigest": "c12ca2542f1d5b5e",
-   "watchMs": 4883,
-   "fullMs": 38186
+   "watchMs": 4974,
+   "fullMs": 31678
   },
   {
    "id": "seal-goes-public",
@@ -800,8 +936,19 @@
    "full": "caught",
    "watchDigest": "c60e1799e7a0cbbe",
    "fullDigest": "c60e1799e7a0cbbe",
-   "watchMs": 77748,
-   "fullMs": 35960
+   "watchMs": 82970,
+   "fullMs": 33110
+  },
+  {
+   "id": "workflow-cannot-run-step",
+   "kind": "script",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
   },
   {
    "id": "workflow-shallow-history",
@@ -822,8 +969,8 @@
    "full": "caught",
    "watchDigest": "2ce27b8e6678a162",
    "fullDigest": "2ce27b8e6678a162",
-   "watchMs": 5586,
-   "fullMs": 18322
+   "watchMs": 6037,
+   "fullMs": 30874
   },
   {
    "id": "records-line-transposed",
@@ -833,8 +980,8 @@
    "full": "caught",
    "watchDigest": "1c5cc356bc449993",
    "fullDigest": "1c5cc356bc449993",
-   "watchMs": 6036,
-   "fullMs": 31457
+   "watchMs": 6169,
+   "fullMs": 18236
   },
   {
    "id": "cards-run-together",
@@ -844,8 +991,8 @@
    "full": "caught",
    "watchDigest": "c697b473c1c526bc",
    "fullDigest": "c697b473c1c526bc",
-   "watchMs": 1236,
-   "fullMs": 2362
+   "watchMs": 1679,
+   "fullMs": 2372
   },
   {
    "id": "cards-lose-their-names",
@@ -855,8 +1002,8 @@
    "full": "caught",
    "watchDigest": "a8915d50e0504d62",
    "fullDigest": "a8915d50e0504d62",
-   "watchMs": 2003,
-   "fullMs": 32971
+   "watchMs": 2328,
+   "fullMs": 31048
   },
   {
    "id": "zone-utc",
@@ -866,13 +1013,24 @@
    "full": "caught",
    "watchDigest": "b809388dcf92e777",
    "fullDigest": "b809388dcf92e777",
-   "watchMs": 7398,
-   "fullMs": 36050
+   "watchMs": 6970,
+   "fullMs": 37388
   },
   {
    "id": "outbox-missing",
    "kind": "world",
    "shard": 8,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
+   "id": "outbox-stub",
+   "kind": "world",
+   "shard": 1,
    "watch": "caught",
    "full": "caught",
    "watchDigest": null,
@@ -943,8 +1101,8 @@
    "full": "caught",
    "watchDigest": "9bf4f0b4a1862a45",
    "fullDigest": "9bf4f0b4a1862a45",
-   "watchMs": 2051,
-   "fullMs": 31559
+   "watchMs": 2803,
+   "fullMs": 33300
   },
   {
    "id": "live-envelope-unhandled",
@@ -954,8 +1112,19 @@
    "full": "caught",
    "watchDigest": "f909f793870a0df8",
    "fullDigest": "f909f793870a0df8",
-   "watchMs": 2014,
-   "fullMs": 36671
+   "watchMs": 1863,
+   "fullMs": 35036
+  },
+  {
+   "id": "blank-pitcher-name-accepted",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "fe4a840d99a7a53e",
+   "fullDigest": "fe4a840d99a7a53e",
+   "watchMs": 2809,
+   "fullMs": 26238
   },
   {
    "id": "alias-table-bypassed",
@@ -965,8 +1134,8 @@
    "full": "caught",
    "watchDigest": "aea6798792d49e96",
    "fullDigest": "aea6798792d49e96",
-   "watchMs": 2914,
-   "fullMs": 20784
+   "watchMs": 2029,
+   "fullMs": 37749
   },
   {
    "id": "alias-resolution-becomes-substring",
@@ -976,8 +1145,8 @@
    "full": "caught",
    "watchDigest": "485a66e721880278",
    "fullDigest": "485a66e721880278",
-   "watchMs": 2724,
-   "fullMs": 18716
+   "watchMs": 1879,
+   "fullMs": 31098
   },
   {
    "id": "stale-gap-list-tolerated",
@@ -998,8 +1167,8 @@
    "full": "caught",
    "watchDigest": "daaa8a15de268eab",
    "fullDigest": "daaa8a15de268eab",
-   "watchMs": 2258,
-   "fullMs": 25297
+   "watchMs": 2600,
+   "fullMs": 25064
   },
   {
    "id": "generated-value-never-read",
@@ -1009,8 +1178,8 @@
    "full": "caught",
    "watchDigest": "a212062664240ad3",
    "fullDigest": "a212062664240ad3",
-   "watchMs": 2022,
-   "fullMs": 34237
+   "watchMs": 2380,
+   "fullMs": 33645
   },
   {
    "id": "value-never-read",
@@ -1020,13 +1189,24 @@
    "full": "caught",
    "watchDigest": "b7f14480f6f8094f",
    "fullDigest": "b7f14480f6f8094f",
-   "watchMs": 1954,
-   "fullMs": 33900
+   "watchMs": 2649,
+   "fullMs": 33823
   },
   {
    "id": "gate-day-per-row",
    "kind": "script",
    "shard": 8,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
+   "id": "unreadable-verdict-treated-as-go",
+   "kind": "script",
+   "shard": 1,
    "watch": "caught",
    "full": "caught",
    "watchDigest": null,
@@ -1112,6 +1292,17 @@
    "fullMs": 0
   },
   {
+   "id": "stalled-run-reads-as-running",
+   "kind": "script",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
    "id": "retractable-assumed-open",
    "kind": "src",
    "shard": 2,
@@ -1119,8 +1310,8 @@
    "full": "caught",
    "watchDigest": "2daebea0db07e042",
    "fullDigest": "2daebea0db07e042",
-   "watchMs": 7499,
-   "fullMs": 20541
+   "watchMs": 7293,
+   "fullMs": 32305
   },
   {
    "id": "outage-reads-as-empty",
@@ -1130,8 +1321,8 @@
    "full": "caught",
    "watchDigest": "bba933011bddc394",
    "fullDigest": "bba933011bddc394",
-   "watchMs": 7248,
-   "fullMs": 19137
+   "watchMs": 7518,
+   "fullMs": 31359
   },
   {
    "id": "park-average-reads-plus-zero",
@@ -1141,8 +1332,8 @@
    "full": "caught",
    "watchDigest": "c5df1f9cd64dfbca",
    "fullDigest": "c5df1f9cd64dfbca",
-   "watchMs": 5890,
-   "fullMs": 31812
+   "watchMs": 6398,
+   "fullMs": 18220
   },
   {
    "id": "unrated-umpire-gains-a-rating",
@@ -1152,8 +1343,8 @@
    "full": "caught",
    "watchDigest": "26ba76401ecd1b16",
    "fullDigest": "26ba76401ecd1b16",
-   "watchMs": 4892,
-   "fullMs": 22706
+   "watchMs": 6144,
+   "fullMs": 24158
   },
   {
    "id": "umpire-rate-stops-tracking-its-counts",
@@ -1163,8 +1354,8 @@
    "full": "caught",
    "watchDigest": "e24bc7118fff83bc",
    "fullDigest": "e24bc7118fff83bc",
-   "watchMs": 2027,
-   "fullMs": 38869
+   "watchMs": 2281,
+   "fullMs": 33759
   },
   {
    "id": "park-badge-ignores-its-tier",
@@ -1174,8 +1365,8 @@
    "full": "caught",
    "watchDigest": "26a1d0713df36267",
    "fullDigest": "26a1d0713df36267",
-   "watchMs": 2440,
-   "fullMs": 33319
+   "watchMs": 3022,
+   "fullMs": 34261
   },
   {
    "id": "missing-park-factor-invented",
@@ -1185,8 +1376,19 @@
    "full": "caught",
    "watchDigest": "a2398e8d6e5d46c1",
    "fullDigest": "a2398e8d6e5d46c1",
-   "watchMs": 2060,
-   "fullMs": 33538
+   "watchMs": 1875,
+   "fullMs": 34460
+  },
+  {
+   "id": "harness-accepts-toothless",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "dd7b5ad76811fe3d",
+   "fullDigest": "dd7b5ad76811fe3d",
+   "watchMs": 6569,
+   "fullMs": 28470
   },
   {
    "id": "harness-calls-everything-toothless",
@@ -1196,8 +1398,8 @@
    "full": "caught",
    "watchDigest": "94b955afc4f5eddd",
    "fullDigest": "94b955afc4f5eddd",
-   "watchMs": 7544,
-   "fullMs": 21016
+   "watchMs": 6759,
+   "fullMs": 36492
   },
   {
    "id": "unreadable-history-swallowed",
@@ -1218,8 +1420,8 @@
    "full": "caught",
    "watchDigest": "1b6df56af95e519a",
    "fullDigest": "1b6df56af95e519a",
-   "watchMs": 2130,
-   "fullMs": 34889
+   "watchMs": 2117,
+   "fullMs": 18511
   },
   {
    "id": "verify-panel-hides-the-counterexample",
@@ -1229,8 +1431,8 @@
    "full": "caught",
    "watchDigest": "c9ebbb19dd4ddb1b",
    "fullDigest": "c9ebbb19dd4ddb1b",
-   "watchMs": 2423,
-   "fullMs": 23576
+   "watchMs": 3108,
+   "fullMs": 23965
   },
   {
    "id": "verify-panel-times-nothing",
@@ -1240,8 +1442,8 @@
    "full": "caught",
    "watchDigest": "0d4177e55999cae0",
    "fullDigest": "0d4177e55999cae0",
-   "watchMs": 3848,
-   "fullMs": 32406
+   "watchMs": 3583,
+   "fullMs": 34074
   },
   {
    "id": "verify-panel-one-verdict",
@@ -1251,8 +1453,8 @@
    "full": "caught",
    "watchDigest": "fc677d925751321c",
    "fullDigest": "fc677d925751321c",
-   "watchMs": 3916,
-   "fullMs": 31961
+   "watchMs": 4147,
+   "fullMs": 31777
   },
   {
    "id": "verify-panel-drops-a-group",
@@ -1262,8 +1464,19 @@
    "full": "caught",
    "watchDigest": "0936024fdad36d89",
    "fullDigest": "0936024fdad36d89",
-   "watchMs": 5351,
-   "fullMs": 34208
+   "watchMs": 5506,
+   "fullMs": 32503
+  },
+  {
+   "id": "proof-marker-always-heals",
+   "kind": "script",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
   },
   {
    "id": "proof-marker-never-proceeds",
@@ -1284,8 +1497,8 @@
    "full": "caught",
    "watchDigest": "5d35d5f385bfdf5e",
    "fullDigest": "5d35d5f385bfdf5e",
-   "watchMs": 7215,
-   "fullMs": 19354
+   "watchMs": 7458,
+   "fullMs": 29130
   },
   {
    "id": "everything-exempt",
@@ -1295,8 +1508,8 @@
    "full": "caught",
    "watchDigest": "945b4eddc0f39055",
    "fullDigest": "945b4eddc0f39055",
-   "watchMs": 7479,
-   "fullMs": 38013
+   "watchMs": 8586,
+   "fullMs": 18119
   },
   {
    "id": "tiebreak-not-distinguished",
@@ -1306,8 +1519,8 @@
    "full": "caught",
    "watchDigest": "a13ab60209aa25c6",
    "fullDigest": "a13ab60209aa25c6",
-   "watchMs": 5663,
-   "fullMs": 23759
+   "watchMs": 7221,
+   "fullMs": 23774
   },
   {
    "id": "everything-a-tiebreak",
@@ -1317,8 +1530,8 @@
    "full": "caught",
    "watchDigest": "00c66f2f4d340a82",
    "fullDigest": "00c66f2f4d340a82",
-   "watchMs": 7305,
-   "fullMs": 35081
+   "watchMs": 6429,
+   "fullMs": 33947
   },
   {
    "id": "axis-manifest-control-pinned",
@@ -1335,6 +1548,17 @@
    "id": "paste-block-tolerates-npm",
    "kind": "script",
    "shard": 8,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
+   "id": "orphan-walk-skips-lifecycle-scripts",
+   "kind": "script",
+   "shard": 1,
    "watch": "caught",
    "full": "caught",
    "watchDigest": null,
@@ -1420,6 +1644,17 @@
    "fullMs": 0
   },
   {
+   "id": "pin-goes-quiet",
+   "kind": "script",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
    "id": "exit-kills-a-script-mid-write",
    "kind": "script",
    "shard": 2,
@@ -1449,8 +1684,8 @@
    "full": "caught",
    "watchDigest": "57509eacff215b24",
    "fullDigest": "57509eacff215b24",
-   "watchMs": 6231,
-   "fullMs": 32802
+   "watchMs": 6464,
+   "fullMs": 18024
   },
   {
    "id": "lineups-capture-scheduled",
@@ -1471,8 +1706,8 @@
    "full": "caught",
    "watchDigest": "d92bcabac655a103",
    "fullDigest": "d92bcabac655a103",
-   "watchMs": 7292,
-   "fullMs": 34488
+   "watchMs": 6553,
+   "fullMs": 32605
   },
   {
    "id": "lineup-cards-not-joined-fetches",
@@ -1482,8 +1717,8 @@
    "full": "caught",
    "watchDigest": "67002ce53f749ea5",
    "fullDigest": "67002ce53f749ea5",
-   "watchMs": 4797,
-   "fullMs": 36079
+   "watchMs": 4819,
+   "fullMs": 34214
   },
   {
    "id": "lineup-cards-fetch-on-every-open",
@@ -1493,8 +1728,19 @@
    "full": "caught",
    "watchDigest": "5e976d5c385a43a2",
    "fullDigest": "5e976d5c385a43a2",
-   "watchMs": 4782,
-   "fullMs": 36434
+   "watchMs": 4886,
+   "fullMs": 32726
+  },
+  {
+   "id": "lineup-cards-click-turns-the-card",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "af2050e118a20bee",
+   "fullDigest": "af2050e118a20bee",
+   "watchMs": 4904,
+   "fullMs": 26861
   },
   {
    "id": "lineup-cards-non-soccer-gets-one",
@@ -1504,8 +1750,8 @@
    "full": "caught",
    "watchDigest": "ce234fcd1e3a34d0",
    "fullDigest": "ce234fcd1e3a34d0",
-   "watchMs": 5409,
-   "fullMs": 20710
+   "watchMs": 4795,
+   "fullMs": 35582
   },
   {
    "id": "lineup-cards-not-joined-is-silent",
@@ -1515,8 +1761,8 @@
    "full": "caught",
    "watchDigest": "313b3ed696552c08",
    "fullDigest": "313b3ed696552c08",
-   "watchMs": 5050,
-   "fullMs": 18086
+   "watchMs": 4820,
+   "fullMs": 34610
   },
   {
    "id": "lineup-cards-pinned-page-uses-the-network",
@@ -1526,8 +1772,8 @@
    "full": "caught",
    "watchDigest": "ba439989f7364ce9",
    "fullDigest": "ba439989f7364ce9",
-   "watchMs": 6146,
-   "fullMs": 33439
+   "watchMs": 6531,
+   "fullMs": 17561
   },
   {
    "id": "lineup-cards-id-goes-into-the-url-unchecked",
@@ -1537,8 +1783,8 @@
    "full": "caught",
    "watchDigest": "811a341ecdb207eb",
    "fullDigest": "811a341ecdb207eb",
-   "watchMs": 4682,
-   "fullMs": 26150
+   "watchMs": 6291,
+   "fullMs": 26449
   },
   {
    "id": "lineup-cards-relay-base-moves",
@@ -1548,8 +1794,8 @@
    "full": "caught",
    "watchDigest": "fe1589421018c758",
    "fullDigest": "fe1589421018c758",
-   "watchMs": 5825,
-   "fullMs": 33146
+   "watchMs": 5143,
+   "fullMs": 32590
   },
   {
    "id": "lineup-cards-card-polls",
@@ -1559,8 +1805,8 @@
    "full": "caught",
    "watchDigest": "6e68e23c6e4e0b57",
    "fullDigest": "6e68e23c6e4e0b57",
-   "watchMs": 4572,
-   "fullMs": 34636
+   "watchMs": 4794,
+   "fullMs": 34854
   },
   {
    "id": "lineups-unrecognised-falls-through",
@@ -1570,8 +1816,19 @@
    "full": "caught",
    "watchDigest": "49712744b4935997",
    "fullDigest": "49712744b4935997",
-   "watchMs": 6290,
-   "fullMs": 35587
+   "watchMs": 6362,
+   "fullMs": 32950
+  },
+  {
+   "id": "lineups-empty-is-absent",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "8f3381dbe85f4f54",
+   "fullDigest": "8f3381dbe85f4f54",
+   "watchMs": 5471,
+   "fullMs": 26811
   },
   {
    "id": "lineups-mark-says-one-thing",
@@ -1581,8 +1838,8 @@
    "full": "caught",
    "watchDigest": "1280e963eae5e12d",
    "fullDigest": "1280e963eae5e12d",
-   "watchMs": 7468,
-   "fullMs": 20592
+   "watchMs": 6064,
+   "fullMs": 32106
   },
   {
    "id": "flow-three-shots",
@@ -1592,8 +1849,8 @@
    "full": "caught",
    "watchDigest": "091e02257beddc93",
    "fullDigest": "091e02257beddc93",
-   "watchMs": 6035,
-   "fullMs": 17987
+   "watchMs": 6158,
+   "fullMs": 31199
   },
   {
    "id": "flow-xg-is-summed",
@@ -1603,8 +1860,8 @@
    "full": "caught",
    "watchDigest": "7be01ad97628b45c",
    "fullDigest": "7be01ad97628b45c",
-   "watchMs": 6214,
-   "fullMs": 38527
+   "watchMs": 6987,
+   "fullMs": 17477
   },
   {
    "id": "flow-opponent-shot-interrupts",
@@ -1614,8 +1871,8 @@
    "full": "caught",
    "watchDigest": "87132e224226d53e",
    "fullDigest": "87132e224226d53e",
-   "watchMs": 4692,
-   "fullMs": 27654
+   "watchMs": 6126,
+   "fullMs": 24126
   },
   {
    "id": "flow-zero-xg-not-counted",
@@ -1625,8 +1882,8 @@
    "full": "caught",
    "watchDigest": "4842ab81f524b232",
    "fullDigest": "4842ab81f524b232",
-   "watchMs": 6072,
-   "fullMs": 36436
+   "watchMs": 5489,
+   "fullMs": 31732
   },
   {
    "id": "flow-shared-minute-breaks",
@@ -1636,8 +1893,8 @@
    "full": "caught",
    "watchDigest": "727c32490de21db9",
    "fullDigest": "727c32490de21db9",
-   "watchMs": 5867,
-   "fullMs": 35817
+   "watchMs": 5907,
+   "fullMs": 33999
   },
   {
    "id": "flow-break-at-half-time",
@@ -1647,8 +1904,19 @@
    "full": "caught",
    "watchDigest": "6a053c9f815e9bd0",
    "fullDigest": "6a053c9f815e9bd0",
-   "watchMs": 6064,
-   "fullMs": 34610
+   "watchMs": 6052,
+   "fullMs": 35367
+  },
+  {
+   "id": "flow-break-at-extra-time-interval",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "95941f3df2c69bb6",
+   "fullDigest": "95941f3df2c69bb6",
+   "watchMs": 5712,
+   "fullMs": 26603
   },
   {
    "id": "flow-run-ends-at-its-period",
@@ -1658,8 +1926,8 @@
    "full": "caught",
    "watchDigest": "79d5f9eb751cee53",
    "fullDigest": "79d5f9eb751cee53",
-   "watchMs": 6124,
-   "fullMs": 20145
+   "watchMs": 5919,
+   "fullMs": 34180
   },
   {
    "id": "flow-every-boundary-counted",
@@ -1669,8 +1937,8 @@
    "full": "caught",
    "watchDigest": "8d42428aff010b56",
    "fullDigest": "8d42428aff010b56",
-   "watchMs": 6838,
-   "fullMs": 17941
+   "watchMs": 6029,
+   "fullMs": 32040
   },
   {
    "id": "flow-missing-xg-goes-to-owner",
@@ -1680,8 +1948,8 @@
    "full": "caught",
    "watchDigest": "92ddcbfafab25c40",
    "fullDigest": "92ddcbfafab25c40",
-   "watchMs": 6242,
-   "fullMs": 33634
+   "watchMs": 6858,
+   "fullMs": 17988
   },
   {
    "id": "flow-full-time-at-90",
@@ -1691,8 +1959,8 @@
    "full": "caught",
    "watchDigest": "b1127c735bb417c9",
    "fullDigest": "b1127c735bb417c9",
-   "watchMs": 4864,
-   "fullMs": 26974
+   "watchMs": 6142,
+   "fullMs": 25501
   },
   {
    "id": "flow-incidents-of-the-same-event",
@@ -1702,8 +1970,8 @@
    "full": "caught",
    "watchDigest": "8feb92e9061022e4",
    "fullDigest": "8feb92e9061022e4",
-   "watchMs": 6065,
-   "fullMs": 34056
+   "watchMs": 5593,
+   "fullMs": 33625
   },
   {
    "id": "flow-own-goal-excluded",
@@ -1713,8 +1981,8 @@
    "full": "caught",
    "watchDigest": "4594c1581ae32038",
    "fullDigest": "4594c1581ae32038",
-   "watchMs": 5995,
-   "fullMs": 35066
+   "watchMs": 5736,
+   "fullMs": 30196
   },
   {
    "id": "flow-kickoff-row-is-its-own",
@@ -1724,8 +1992,19 @@
    "full": "caught",
    "watchDigest": "3f57ef5d5ce33e6a",
    "fullDigest": "3f57ef5d5ce33e6a",
-   "watchMs": 6217,
-   "fullMs": 31541
+   "watchMs": 6038,
+   "fullMs": 37923
+  },
+  {
+   "id": "flow-kickoff-needs-two-days",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "52c50910905a17be",
+   "fullDigest": "52c50910905a17be",
+   "watchMs": 6669,
+   "fullMs": 28514
   },
   {
    "id": "flow-witness-prints-nothing",
@@ -1735,8 +2014,8 @@
    "full": "caught",
    "watchDigest": "7993a58f755090a9",
    "fullDigest": "7993a58f755090a9",
-   "watchMs": 5933,
-   "fullMs": 21022
+   "watchMs": 6116,
+   "fullMs": 34393
   },
   {
    "id": "flow-teamstate-goes-public",
@@ -1746,8 +2025,8 @@
    "full": "caught",
    "watchDigest": "a905344bd70905be",
    "fullDigest": "a905344bd70905be",
-   "watchMs": 6874,
-   "fullMs": 19106
+   "watchMs": 7213,
+   "fullMs": 32396
   },
   {
    "id": "flow-witness-goes-public",
@@ -1757,8 +2036,8 @@
    "full": "caught",
    "watchDigest": "c60e1799e7a0cbbe",
    "fullDigest": "c60e1799e7a0cbbe",
-   "watchMs": 7028,
-   "fullMs": 38322
+   "watchMs": 7655,
+   "fullMs": 17999
   },
   {
    "id": "flow-census-counts-every-row",
@@ -1768,8 +2047,8 @@
    "full": "caught",
    "watchDigest": "561d4e5edc895e51",
    "fullDigest": "561d4e5edc895e51",
-   "watchMs": 4672,
-   "fullMs": 28048
+   "watchMs": 6074,
+   "fullMs": 25080
   },
   {
    "id": "flow-full-time-route-records",
@@ -1779,8 +2058,8 @@
    "full": "caught",
    "watchDigest": "83da4305eceac4b9",
    "fullDigest": "83da4305eceac4b9",
-   "watchMs": 5915,
-   "fullMs": 37763
+   "watchMs": 5473,
+   "fullMs": 35493
   },
   {
    "id": "flow-label-two-decimals",
@@ -1790,8 +2069,8 @@
    "full": "caught",
    "watchDigest": "902886e20c29b128",
    "fullDigest": "902886e20c29b128",
-   "watchMs": 5823,
-   "fullMs": 32065
+   "watchMs": 5881,
+   "fullMs": 37679
   },
   {
    "id": "flow-pulse-draws-inflow",
@@ -1801,8 +2080,19 @@
    "full": "caught",
    "watchDigest": "7643087480d6d2dc",
    "fullDigest": "7643087480d6d2dc",
-   "watchMs": 5947,
-   "fullMs": 34208
+   "watchMs": 6217,
+   "fullMs": 34970
+  },
+  {
+   "id": "vintage-cases-public",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "c60e1799e7a0cbbe",
+   "fullDigest": "c60e1799e7a0cbbe",
+   "watchMs": 5876,
+   "fullMs": 23284
   },
   {
    "id": "vintage-missing-season-defaults",
@@ -1812,8 +2102,8 @@
    "full": "caught",
    "watchDigest": "48ba7363b752c82f",
    "fullDigest": "48ba7363b752c82f",
-   "watchMs": 5517,
-   "fullMs": 20095
+   "watchMs": 5337,
+   "fullMs": 37205
   },
   {
    "id": "vintage-blank-source-accepted",
@@ -1823,8 +2113,8 @@
    "full": "caught",
    "watchDigest": "e1241a92ecfd5772",
    "fullDigest": "e1241a92ecfd5772",
-   "watchMs": 5656,
-   "fullMs": 19513
+   "watchMs": 5654,
+   "fullMs": 30016
   },
   {
    "id": "vintage-season-string-accepted",
@@ -1834,8 +2124,8 @@
    "full": "caught",
    "watchDigest": "bbb675fe6130b4f4",
    "fullDigest": "bbb675fe6130b4f4",
-   "watchMs": 5815,
-   "fullMs": 38572
+   "watchMs": 6116,
+   "fullMs": 18783
   },
   {
    "id": "vintage-future-season-stamped-current",
@@ -1845,8 +2135,8 @@
    "full": "caught",
    "watchDigest": "042a27ddf7656380",
    "fullDigest": "042a27ddf7656380",
-   "watchMs": 4472,
-   "fullMs": 29416
+   "watchMs": 5543,
+   "fullMs": 25277
   },
   {
    "id": "vintage-archive-granted-to-current",
@@ -1856,8 +2146,8 @@
    "full": "caught",
    "watchDigest": "1a14b5e965b0cd48",
    "fullDigest": "1a14b5e965b0cd48",
-   "watchMs": 5543,
-   "fullMs": 31443
+   "watchMs": 5187,
+   "fullMs": 37071
   },
   {
    "id": "gridiron-past-line-inclusive",
@@ -1867,8 +2157,8 @@
    "full": "caught",
    "watchDigest": "dd08844c9d80ed59",
    "fullDigest": "dd08844c9d80ed59",
-   "watchMs": 2663,
-   "fullMs": 36401
+   "watchMs": 3109,
+   "fullMs": 34891
   },
   {
    "id": "gravity-snap-counts-a-defender-twice",
@@ -1878,8 +2168,19 @@
    "full": "caught",
    "watchDigest": "16d671a052ec2fbe",
    "fullDigest": "16d671a052ec2fbe",
-   "watchMs": 5434,
-   "fullMs": 38607
+   "watchMs": 5459,
+   "fullMs": 34861
+  },
+  {
+   "id": "gravity-drawing-at-zero",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "7d09fdb0720172c6",
+   "fullDigest": "7d09fdb0720172c6",
+   "watchMs": 5222,
+   "fullMs": 23175
   },
   {
    "id": "gravity-level-drawn-as-absence",
@@ -1889,8 +2190,8 @@
    "full": "caught",
    "watchDigest": "91a32bc0925254a3",
    "fullDigest": "91a32bc0925254a3",
-   "watchMs": 6052,
-   "fullMs": 20089
+   "watchMs": 5404,
+   "fullMs": 33809
   },
   {
    "id": "only-selects-nothing-passes",
@@ -1959,6 +2260,17 @@
    "fullMs": 0
   },
   {
+   "id": "na-run-backs-a-score",
+   "kind": "script",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": null,
+   "fullDigest": null,
+   "watchMs": 0,
+   "fullMs": 0
+  },
+  {
    "id": "na-runs-read-as-conflict",
    "kind": "script",
    "shard": 2,
@@ -1988,8 +2300,8 @@
    "full": "caught",
    "watchDigest": "c60e1799e7a0cbbe",
    "fullDigest": "c60e1799e7a0cbbe",
-   "watchMs": 4948,
-   "fullMs": 37348
+   "watchMs": 5204,
+   "fullMs": 17914
   },
   {
    "id": "bdb-floor-mark-dropped",
@@ -1999,8 +2311,8 @@
    "full": "caught",
    "watchDigest": "e95b71ea13f40fb3",
    "fullDigest": "e95b71ea13f40fb3",
-   "watchMs": 2325,
-   "fullMs": 26833
+   "watchMs": 2618,
+   "fullMs": 22830
   },
   {
    "id": "bdb-shared-name-kept",
@@ -2010,8 +2322,8 @@
    "full": "caught",
    "watchDigest": "380e83ed6a2cd1d5",
    "fullDigest": "380e83ed6a2cd1d5",
-   "watchMs": 2098,
-   "fullMs": 34020
+   "watchMs": 2669,
+   "fullMs": 34255
   },
   {
    "id": "bdb-starters-ranked-by-speed",
@@ -2021,8 +2333,8 @@
    "full": "caught",
    "watchDigest": "69a6bd15d256c832",
    "fullDigest": "69a6bd15d256c832",
-   "watchMs": 2093,
-   "fullMs": 36396
+   "watchMs": 2773,
+   "fullMs": 35400
   },
   {
    "id": "bdb-label-unseasoned",
@@ -2032,8 +2344,19 @@
    "full": "caught",
    "watchDigest": "53d849958e80b65c",
    "fullDigest": "53d849958e80b65c",
-   "watchMs": 2105,
-   "fullMs": 35463
+   "watchMs": 1958,
+   "fullMs": 34568
+  },
+  {
+   "id": "stamina-sealed",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "c60e1799e7a0cbbe",
+   "fullDigest": "c60e1799e7a0cbbe",
+   "watchMs": 6210,
+   "fullMs": 23914
   },
   {
    "id": "stamina-reach-min",
@@ -2043,8 +2366,8 @@
    "full": "caught",
    "watchDigest": "e2586f5cf008e141",
    "fullDigest": "e2586f5cf008e141",
-   "watchMs": 5489,
-   "fullMs": 20335
+   "watchMs": 5345,
+   "fullMs": 38177
   },
   {
    "id": "stamina-insufficient-is-trailing",
@@ -2054,8 +2377,8 @@
    "full": "caught",
    "watchDigest": "79393718cea3e3b3",
    "fullDigest": "79393718cea3e3b3",
-   "watchMs": 5682,
-   "fullMs": 18968
+   "watchMs": 5403,
+   "fullMs": 29621
   },
   {
    "id": "stamina-tail-loosened",
@@ -2065,8 +2388,8 @@
    "full": "caught",
    "watchDigest": "24c388126b12a818",
    "fullDigest": "24c388126b12a818",
-   "watchMs": 5453,
-   "fullMs": 37894
+   "watchMs": 5974,
+   "fullMs": 17649
   },
   {
    "id": "stamina-population-rate-folded",
@@ -2076,8 +2399,8 @@
    "full": "caught",
    "watchDigest": "d9917ba97236d919",
    "fullDigest": "d9917ba97236d919",
-   "watchMs": 4214,
-   "fullMs": 26409
+   "watchMs": 5242,
+   "fullMs": 25129
   },
   {
    "id": "stamina-null-is-flat",
@@ -2087,8 +2410,8 @@
    "full": "caught",
    "watchDigest": "a061441b0f3ec862",
    "fullDigest": "a061441b0f3ec862",
-   "watchMs": 5468,
-   "fullMs": 32764
+   "watchMs": 5281,
+   "fullMs": 34613
   },
   {
    "id": "stamina-live-witness",
@@ -2098,8 +2421,8 @@
    "full": "caught",
    "watchDigest": "024525b4c9856a9e",
    "fullDigest": "024525b4c9856a9e",
-   "watchMs": 5401,
-   "fullMs": 31082
+   "watchMs": 5497,
+   "fullMs": 32981
   },
   {
    "id": "stamina-coverage-period-guard",
@@ -2109,8 +2432,19 @@
    "full": "caught",
    "watchDigest": "ef05b2003e0ccb6d",
    "fullDigest": "ef05b2003e0ccb6d",
-   "watchMs": 5466,
-   "fullMs": 36733
+   "watchMs": 5610,
+   "fullMs": 33250
+  },
+  {
+   "id": "stamina-coverage-end-rule",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "1e2e9a8b2f08cd5a",
+   "fullDigest": "1e2e9a8b2f08cd5a",
+   "watchMs": 5012,
+   "fullMs": 23180
   },
   {
    "id": "stamina-tails-underflow",
@@ -2120,8 +2454,8 @@
    "full": "caught",
    "watchDigest": "729fc4b1285b2efd",
    "fullDigest": "729fc4b1285b2efd",
-   "watchMs": 5965,
-   "fullMs": 20149
+   "watchMs": 5231,
+   "fullMs": 37540
   },
   {
    "id": "stamina-label-trailing-rate",
@@ -2131,8 +2465,8 @@
    "full": "caught",
    "watchDigest": "a29ce00b37cfcf73",
    "fullDigest": "a29ce00b37cfcf73",
-   "watchMs": 5489,
-   "fullMs": 20303
+   "watchMs": 5552,
+   "fullMs": 29632
   },
   {
    "id": "stamina-chart-total-checked",
@@ -2142,8 +2476,8 @@
    "full": "caught",
    "watchDigest": "c560b5b7e683d8df",
    "fullDigest": "c560b5b7e683d8df",
-   "watchMs": 5751,
-   "fullMs": 30628
+   "watchMs": 6077,
+   "fullMs": 17305
   },
   {
    "id": "stamina-overtime-counted",
@@ -2153,8 +2487,8 @@
    "full": "caught",
    "watchDigest": "94a7febd250b3946",
    "fullDigest": "94a7febd250b3946",
-   "watchMs": 4301,
-   "fullMs": 27279
+   "watchMs": 5506,
+   "fullMs": 24303
   },
   {
    "id": "stamina-coverage-clock-shift",
@@ -2164,8 +2498,8 @@
    "full": "caught",
    "watchDigest": "20cf32ac3a7582f3",
    "fullDigest": "20cf32ac3a7582f3",
-   "watchMs": 5416,
-   "fullMs": 31553
+   "watchMs": 4997,
+   "fullMs": 36458
   },
   {
    "id": "tactical-lock-quiet-never-produced",
@@ -2175,8 +2509,8 @@
    "full": "caught",
    "watchDigest": "b1ad0f28b2fd130e",
    "fullDigest": "b1ad0f28b2fd130e",
-   "watchMs": 4804,
-   "fullMs": 35911
+   "watchMs": 4895,
+   "fullMs": 36006
   },
   {
    "id": "tactical-lock-siege-reads-quiet",
@@ -2186,8 +2520,19 @@
    "full": "caught",
    "watchDigest": "40a9728ba9e4d14d",
    "fullDigest": "40a9728ba9e4d14d",
-   "watchMs": 4814,
-   "fullMs": 39447
+   "watchMs": 4875,
+   "fullMs": 35099
+  },
+  {
+   "id": "tactical-lock-quiet-named-searching",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "2057bd0c3fd99102",
+   "fullDigest": "2057bd0c3fd99102",
+   "watchMs": 4693,
+   "fullMs": 24866
   },
   {
    "id": "tactical-lock-searching-drawn-unmeasured",
@@ -2197,8 +2542,8 @@
    "full": "caught",
    "watchDigest": "bd2fc725e7ece407",
    "fullDigest": "bd2fc725e7ece407",
-   "watchMs": 5364,
-   "fullMs": 20337
+   "watchMs": 4789,
+   "fullMs": 35049
   },
   {
    "id": "tactical-lock-unmeasured-chance-reads-a-verdict",
@@ -2208,8 +2553,8 @@
    "full": "caught",
    "watchDigest": "0d2f9cc11fe236a0",
    "fullDigest": "0d2f9cc11fe236a0",
-   "watchMs": 5098,
-   "fullMs": 19026
+   "watchMs": 4883,
+   "fullMs": 29753
   },
   {
    "id": "tactical-lock-best-chance-unrefused",
@@ -2219,19 +2564,19 @@
    "full": "caught",
    "watchDigest": "f221f87dc43089c1",
    "fullDigest": "f221f87dc43089c1",
-   "watchMs": 5019,
-   "fullMs": 31762
+   "watchMs": 5454,
+   "fullMs": 18321
   },
   {
    "id": "tactical-lock-bars-take-a-negative-best",
    "kind": "src",
    "shard": 5,
    "watch": "caught",
-   "full": "caught",
+   "full": "compiler",
    "watchDigest": "1f008e3f60097a06",
-   "fullDigest": "1f008e3f60097a06",
-   "watchMs": 4158,
-   "fullMs": 25648
+   "fullDigest": "c3636462bfa73348",
+   "watchMs": 5110,
+   "fullMs": 22245
   },
   {
    "id": "tactical-lock-state-forgeable",
@@ -2241,8 +2586,8 @@
    "full": "caught",
    "watchDigest": "c60e1799e7a0cbbe",
    "fullDigest": "c60e1799e7a0cbbe",
-   "watchMs": 6051,
-   "fullMs": 30731
+   "watchMs": 5639,
+   "fullMs": 33529
   },
   {
    "id": "play-frames-shootout-flag-ignored",
@@ -2252,8 +2597,8 @@
    "full": "caught",
    "watchDigest": "b2b848a257775676",
    "fullDigest": "b2b848a257775676",
-   "watchMs": 1982,
-   "fullMs": 35163
+   "watchMs": 2695,
+   "fullMs": 31870
   },
   {
    "id": "play-frames-wpa-across-a-shootout",
@@ -2263,8 +2608,19 @@
    "full": "caught",
    "watchDigest": "e11b2594941efbb4",
    "fullDigest": "e11b2594941efbb4",
-   "watchMs": 1994,
-   "fullMs": 33260
+   "watchMs": 1883,
+   "fullMs": 35770
+  },
+  {
+   "id": "play-frames-wpa-reversed",
+   "kind": "src",
+   "shard": 1,
+   "watch": "caught",
+   "full": "caught",
+   "watchDigest": "96935331ce8ec03b",
+   "fullDigest": "96935331ce8ec03b",
+   "watchMs": 2326,
+   "fullMs": 23884
   },
   {
    "id": "play-frames-reserved-wrong-record",
@@ -2274,8 +2630,8 @@
    "full": "caught",
    "watchDigest": "9886abd7fd6bd277",
    "fullDigest": "9886abd7fd6bd277",
-   "watchMs": 2686,
-   "fullMs": 19184
+   "watchMs": 1947,
+   "fullMs": 33794
   },
   {
    "id": "play-frames-exhibit-drops-a-state",
@@ -2285,8 +2641,8 @@
    "full": "caught",
    "watchDigest": "2d80c480ccb3565e",
    "fullDigest": "2d80c480ccb3565e",
-   "watchMs": 2715,
-   "fullMs": 19429
+   "watchMs": 1804,
+   "fullMs": 31789
   }
  ]
 }
