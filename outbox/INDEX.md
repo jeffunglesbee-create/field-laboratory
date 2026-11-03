@@ -12,6 +12,23 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b6c80de` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | docs: both CC-CMDs DONE with their run ids, GATE-TIMING carries the new figures |
+| `b6c80de` | 2026-11-03 | [cc-session-2026-11-03-lineup-card-live-path.md](cc-session-2026-11-03-lineup-card-live-path.md) | docs: both CC-CMDs DONE with their run ids, GATE-TIMING carries the new figures |
+| `0f2ee8e` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8682660 [skip ci] |
+| `de88573` | 2026-11-03 | [worker-deployments-probe-20261103T115745Z.md](worker-deployments-probe-20261103T115745Z.md) | probe: Worker deployment history from Cloudflare's API [skip ci] |
+| `9e8c9a7` | 2026-11-03 | [mutation-equivalence-latest.json](mutation-equivalence-latest.json) | probe: the incremental compiler against the reference over the whole mutation table [skip ci] |
+| `aa5fc7d` | 2026-11-03 | [.trigger-mutation-equivalence](.trigger-mutation-equivalence) | probe: remove the trigger files before landing (a landing push that carries one re-fires its workflow) |
+| `aa5fc7d` | 2026-11-03 | [.trigger-mutation-ids-probe](.trigger-mutation-ids-probe) | probe: remove the trigger files before landing (a landing push that carries one re-fires its workflow) |
+| `579d0e2` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 7af6e24 [skip ci] |
+| `7af6e24` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation harness: the watcher's first compile obeys the same crash rule |
+| `b07f072` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | ci: build the site with a build that repeats a crashed compiler, and file the cause as its own CC-CMD |
+| `577740e` | 2026-11-03 | [mutation-equivalence-latest.json](mutation-equivalence-latest.json) | probe: the incremental compiler against the reference over the whole mutation table [skip ci] |
+| `65b3720` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation harness: pin that a refusal is confirmed by exactly one repeat |
+| `ee33fc9` | 2026-11-03 | [.trigger-mutation-equivalence](.trigger-mutation-equivalence) | probe: trigger the fourth whole-table equivalence run (refusals confirmed by repetition) |
+| `b0307f8` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation harness: a diagnostic that appears once is not a refusal |
+| `1fe4053` | 2026-11-03 | [mutation-equivalence-latest.json](mutation-equivalence-latest.json) | probe: the incremental compiler against the reference over the whole mutation table [skip ci] |
+| `a5d6e9c` | 2026-11-03 | [.trigger-mutation-equivalence](.trigger-mutation-equivalence) | probe: trigger the third whole-table equivalence run (the final code, 241 mutations) |
+| `c6f6424` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation row: fourteen defects an independent review confirmed, fixed |
 | `a058203` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: record the six script etags, and say that the field's meaning is not shown [skip ci] |
 | `4abb7f6` | 2026-11-03 | [worker-deployments-probe-20261103T081607Z.md](worker-deployments-probe-20261103T081607Z.md) | probe: Worker deployment history from Cloudflare's API [skip ci] |
 | `b978f34` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: read a version's script etag, so two versions' code can be compared by Cloudflare's own hash [skip ci] |
@@ -21,16 +38,28 @@ would describe, so listing itself would always be one commit stale.
 | `9ffbb39` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: take the account from the token when the lab has no account-id secret [skip ci] |
 | `64056bd` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: Worker deployment history from Cloudflare's API, dispatch-only [skip ci] |
 | `500dd43` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | outbox: record the D19/D20 re-anchor, and that 4e3981d shipped without its entry |
+| `d5d9079` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | docs: the table's real kinds (161 src, 2 html, 72 that do not rebuild), and the probe run id |
+| `9813920` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation harness: a compiler crash is not a compiler refusal |
 | `6542583` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | outbox: the live-check axis pin, verified in CI under the failing condition |
 | `4bd53ba` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8bc1831` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | live-check: pin the axis step to the committed capture |
 | `f234846` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the refusal's attribution with the check and mutants |
 | `71a4a74` | 2026-11-03 | [espn-summary-reach-probe-20261103T071435Z.md](espn-summary-reach-probe-20261103T071435Z.md) | probe: relay /espn-summary reach from a runner [skip ci] |
+| `849e839` | 2026-11-03 | [.trigger-mutation-ids-probe](.trigger-mutation-ids-probe) | probe: replay the whole of shard 1 and shard 5 under both drivers, with the compiler's words kept |
 | `f868117` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | probe: relay /espn-summary reach from a runner, dispatch-only [skip ci] |
+| `6f56a8e` | 2026-11-03 | [.trigger-mutation-ids-probe](.trigger-mutation-ids-probe) | mutation harness: keep what the compiler said, and a probe that asks two drivers about named mutations |
+| `aefad77` | 2026-11-03 | [mutation-equivalence-latest.json](mutation-equivalence-latest.json) | probe: the incremental compiler against the reference over the whole mutation table [skip ci] |
 | `2a2119c` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the relay's script with a check and mutants |
 | `9db195a` | 2026-11-03 | [patent-watch-rehearsal-20261103T064218Z.md](patent-watch-rehearsal-20261103T064218Z.md) | rehearsal: patent watcher on the real host [skip ci] |
 | `58c6581` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | patent-watch: hold the client's watcher with a check, mutants and a real-host rehearsal |
+| `a464e3b` | 2026-11-03 | [.trigger-mutation-equivalence](.trigger-mutation-equivalence) | probe: trigger the second whole-table equivalence run (the first lost reference shard 1) |
+| `2ca179f` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation harness: name the files that differ when a build is not clean, keep a failed build's reason |
+| `0b3f220` | 2026-11-03 | [mutation-equivalence-latest.json](mutation-equivalence-latest.json) | probe: the incremental compiler against the reference over the whole mutation table [skip ci] |
+| `d2fb034` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of cc5c2ef [skip ci] |
 | `be9bf6f` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: read the PPUBS counters as measured, and hold them as a contract |
+| `7a2ed28` | 2026-11-03 | [.trigger-mutation-equivalence](.trigger-mutation-equivalence) | probe: trigger the whole-table equivalence run of the two build drivers |
+| `e7098be` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation row: eight shard jobs read back by the gate, and a whole-table comparison of the two build drivers |
+| `fcfb108` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | mutation harness: incremental compiles, a clean build before every mutation, --shard/--ids/--out |
 | `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.json](ppubs-query-probe-20261103T052138Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.md](ppubs-query-probe-20261103T052138Z.md) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `dfd9276` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: PPUBS reading mode with 429 backoff, after run 1 measured the host |
@@ -38,6 +67,17 @@ would describe, so listing itself would always be one commit stale.
 | `59a4f54` | 2026-11-03 | [ppubs-query-probe-20261103T045459Z.json](ppubs-query-probe-20261103T045459Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `59a4f54` | 2026-11-03 | [ppubs-query-probe-20261103T045459Z.md](ppubs-query-probe-20261103T045459Z.md) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `140dcfa` | 2026-11-02 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: PPUBS query forms for a date and an assignee, with a local stand-in |
+| `adb7f76` | 2026-11-03 | [lineups-live-1000-2026-11-03T04-06-44.png](lineups-live-1000-2026-11-03T04-06-44.png) | probe: a card's lineup on the live relay path [skip ci] |
+| `adb7f76` | 2026-11-03 | [lineups-live-390-2026-11-03T04-06-44.png](lineups-live-390-2026-11-03T04-06-44.png) | probe: a card's lineup on the live relay path [skip ci] |
+| `adb7f76` | 2026-11-03 | [lineups-live-manifest-2026-11-03T04-06-44.json](lineups-live-manifest-2026-11-03T04-06-44.json) | probe: a card's lineup on the live relay path [skip ci] |
+| `cc5c2ef` | 2026-11-03 | [.trigger-lineups-live-probe](.trigger-lineups-live-probe) | docs: the live-path probe's runner result, and the MLS rows with no BSD event; the trigger file is removed |
+| `cc5c2ef` | 2026-11-03 | [cc-session-2026-11-03-lineup-card-live-path.md](cc-session-2026-11-03-lineup-card-live-path.md) | docs: the live-path probe's runner result, and the MLS rows with no BSD event; the trigger file is removed |
+| `371ea90` | 2026-11-03 | [lineups-live-1000-2026-11-03T03-57-23.png](lineups-live-1000-2026-11-03T03-57-23.png) | probe: a card's lineup on the live relay path [skip ci] |
+| `371ea90` | 2026-11-03 | [lineups-live-390-2026-11-03T03-57-23.png](lineups-live-390-2026-11-03T03-57-23.png) | probe: a card's lineup on the live relay path [skip ci] |
+| `371ea90` | 2026-11-03 | [lineups-live-manifest-2026-11-03T03-57-23.json](lineups-live-manifest-2026-11-03T03-57-23.json) | probe: a card's lineup on the live relay path [skip ci] |
+| `9cf0c07` | 2026-11-03 | [lineups-card-manifest-2026-11-03T03-57-22.json](lineups-card-manifest-2026-11-03T03-57-22.json) | probe: the lineup on a game card, on the live page [skip ci] |
+| `d3d4ebe` | 2026-11-03 | [.trigger-lineups-live-probe](.trigger-lineups-live-probe) | ci: run the live-path lineup card probe on the deployed page (branch run; this file is deleted before landing) |
+| `635be89` | 2026-11-03 | [cc-session-2026-11-03-lineup-card-live-path.md](cc-session-2026-11-03-lineup-card-live-path.md) | feat: a probe of the lineup card's live relay path, with pure verdicts that can fail |
 | `14e48ad` | 2026-11-03 | [cc-session-2026-10-28-gate-baseline-step.md](cc-session-2026-10-28-gate-baseline-step.md) | docs: the gate-ledger CC-CMD is DONE; the weekly scheduled gate recorded both lines after the fix |
 | `e20b8fd` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a3b2bac` | 2026-11-03 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-03T01:13 [skip ci] |
