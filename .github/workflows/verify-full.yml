@@ -43,7 +43,8 @@
 # The mutation suite is 87% of the gate (4003 to 5688 s of 4624 to 6513 s on the last four ledger lines), and it was one
 # runner, strictly in series, paying a whole-project compile (34.5 s) per mutation of `src/`. It is now EIGHT shard jobs
 # (`mutation shard i of 8`), each running its slice of the table with the incremental compiler (`--build watch`, about 3 to
-# 8 s per compile and byte-identical to the full one: outbox/mutation-equivalence-latest.json). The `full` job does not
+# 8 s per compile and byte-identical to the full compile for every mutation the compiler accepts: outbox/mutation-equivalence-latest.json;
+# watch re-checks the file that changed and not the files after it, so a watch survivor is confirmed by a full compile before it stands). The `full` job does not
 # wait for them. It builds, runs every other row, and its mutation row (`GATE_MUTATION_SHARDS=8`) polls this run's
 # artifacts, then merges them: scripts/mutation-await.mjs, scripts/mutation-merge.mjs. The merge refuses unless the
 # eight shards are exactly the table, all of this commit, with no survivor. Locally, `npm run gate` is unchanged.

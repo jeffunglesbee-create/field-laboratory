@@ -36,6 +36,9 @@ export const compareRuns = ({ watch, full, allIds, sha, n }) => {
   const side = (label, set, mode) => {
     const merged = mergeShards({ files: set.files, allIds, sha, n, readProblems: set.readProblems ?? [] })
     for (const p of merged.structural) problems.push(`${label}: ${p}`)
+    // The verdict findings too: a run whose baseline was already red, or that held a broken mutation, makes every "caught" below it meaningless, and a comparison
+    // that reads only the structure would report equal verdicts and a legacy count of caught mutations over a red baseline.
+    for (const p of merged.verdict) problems.push(`${label}: ${p}`)
     const modes = new Set(set.files.map(f => f.data.mode))
     if (set.files.length && !(modes.size === 1 && modes.has(mode))) problems.push(`${label}: was run in mode ${[...modes].join('/')}, and this side has to be ${mode}`)
     return { merged, byId: new Map(merged.records.map(r => [r.id, r])), cleanDigests: new Set(set.files.map(f => f.data.cleanDigest).filter(Boolean)), files: set.files }
@@ -136,6 +139,8 @@ const selfTest = () => {
   refuses('a run of another commit is refused', ({ full }) => { full.files[0].data.sha = 'f'.repeat(40) }, 'problems', /full: shard 1\/2: ran ffffffffffff/)
   refuses('a missing shard on one side is refused', ({ watch }) => { watch.files.pop() }, 'problems', /watch: .*no shard ran it/)
   refuses('a clean build that differs between the sides is refused', ({ full }) => { for (const f of full.files) f.data.cleanDigest = 'clean1' }, 'problems', /the clean build is not one digest on both sides/)
+  refuses('MUTATION: a baseline expectation already failing on both sides is a problem, not a clean comparison', ({ watch, full }) => { for (const side of [watch, full]) { side.files[0].data.baseline.results[0].passed = false; side.files[0].data.baseline.failing = 1 } }, 'problems', /watch: shard 1\/2: 1 baseline expectation\(s\) already failing/)
+  refuses('MUTATION: a mutation that did not apply on both sides is a problem, not a caught one', ({ watch, full }) => { for (const side of [watch, full]) side.files[0].data.records.find(r => r.id === 'w1').verdict = 'not-applied' }, 'problems', /watch: \[w1\] is a broken mutation \(not-applied/)
   refuses('a mutation that changes kind between the sides is refused', ({ full }) => { full.files[0].data.records[0].kind = 'script' }, 'problems', /\[s1\] is a src mutation under watch and a script one under full/)
 
   const legacy = (() => { const watch = make('watch'), full = make('full'); watch.files[1].data.records.find(r => r.id === 'x2').verdict = 'survived'; return cmp(watch, full).report.legacy })()

@@ -36,10 +36,21 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
-import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily } from './mutation-lib.mjs'
+import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
-const flagValue = name => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : null)
+// A flag given without a value is a usage error. It used to read as "not given", so `--ids "$LIST"` with an empty LIST, or a trailing `--shard`, ran the whole table
+// in one process and wrote the baseline artifact as if it were the full run.
+const flagValue = name => {
+  const at = process.argv.indexOf(name)
+  if (at < 0) return null
+  const v = process.argv[at + 1]
+  if (!v || v.startsWith('--')) {
+    console.error(`${name} wants a value, so nothing was run.`)
+    process.exit(2)
+  }
+  return v
+}
 const BUILD_MODE = flagValue('--build') ?? 'watch'
 const SHARD = flagValue('--shard')
 const IDS = flagValue('--ids')
@@ -2588,6 +2599,56 @@ const MUTATIONS = [
     replace: '      ]',
     expect: "node build/VerifyMain.js",
   },
+  // The CI branch of the gate's mutation row (docs/CC-CMD-2026-11-03-gate-speed.md). Found by an independent review: with GATE_MUTATION_SHARDS set the row runs
+  // `shardedSuite` instead of the suite, and replacing its body with `return true` left every other check green. These break each decision it makes.
+  {
+    id: 'sharded-row-reads-nothing',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the sharded mutation row really waits for the shards and merges them, rather than returning true',
+    find: "  return ok(`${awaitCmd} ${dir} --of ${shards}`) &&\n         ok(`${mergeCmd} ${dir} --of ${shards}`)",
+    replace: "  return true",
+    expect: 'node scripts/sharded-row-check.mjs --self-test',
+  },
+  {
+    id: 'sharded-row-either-passes',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the sharded mutation row needs the wait AND the merge to pass',
+    find: "  return ok(`${awaitCmd} ${dir} --of ${shards}`) &&\n         ok(`${mergeCmd} ${dir} --of ${shards}`)",
+    replace: "  return ok(`${awaitCmd} ${dir} --of ${shards}`) ||\n         ok(`${mergeCmd} ${dir} --of ${shards}`)",
+    expect: 'node scripts/sharded-row-check.mjs --self-test',
+  },
+  {
+    id: 'sharded-row-skips-the-merge',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the sharded mutation row runs the merge that refuses a shard set which is not the whole table',
+    find: "         ok(`${mergeCmd} ${dir} --of ${shards}`)\n}",
+    replace: "         true\n}",
+    expect: 'node scripts/sharded-row-check.mjs --self-test',
+  },
+  {
+    id: 'sharded-row-accepts-any-count',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'GATE_MUTATION_SHARDS must be a positive integer, or the row fails',
+    find: "if (!/^[1-9]\\d*$/.test(shards)) {",
+    replace: "if (!/^\\d*$/.test(shards)) {",
+    expect: 'node scripts/sharded-row-check.mjs --self-test',
+  },
+  {
+    id: 'sharded-row-reads-a-stale-directory',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the shard directory is emptied before the wait, so an earlier run\'s files are never read as this run\'s',
+    find: "  rmSync(dir, { recursive: true, force: true })\n  return ok(",
+    replace: "  return ok(",
+    expect: 'node scripts/sharded-row-check.mjs --self-test',
+  },
+  {
+    id: 'sharded-row-branch-removed',
+    file: 'scripts/gate-checks.mjs',
+    claim: 'the row on CI is wired to the shard branch, not to the in-process suite',
+    find: ": shardedSuite(process.env.GATE_MUTATION_SHARDS, 'node scripts/mutation-await.mjs', 'node scripts/mutation-merge.mjs'))",
+    replace: ": ok('node scripts/mutation-check.mjs'))",
+    expect: 'node scripts/sharded-row-check.mjs --self-test',
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
@@ -2950,6 +3011,10 @@ if (process.argv.includes('--self-test')) {
     ['--ids score-presence,nope', /names an id no mutation has \(nope\)/],
     ['--only known-survivor --shard 1/8', /cannot be combined/],
     ['--build bogus --ids score-presence', /watch or full/],
+    ['--ids ""', /--ids wants a value/],
+    ['--shard', /--shard wants a value/],
+    ['--out', /--out wants a value/],
+    ['--ids --build full', /--ids wants a value/],
   ]) {
     const r = usage(args)
     check(`MUTATION: \`${args}\` is a usage error that says why`, r.status === 2 && re.test(r.err), `status ${r.status}: ${r.err.split('\n').find(l => l.trim()) ?? '(no message)'}`)
@@ -3233,6 +3298,15 @@ for (const m of selected) {
   const survived = built && run(m.expect)
   const expectMs = lapExpect()
 
+  // A WATCH SURVIVOR IS NOT FINAL until the full compiler has seen the same source (confirmFullCompile): watch re-checks the file that changed, not the files
+  // after it, so a mutation that breaks only a later file builds and survives here and is refused by the full compile. The source is still mutated at this point.
+  let confirmed = null
+  if (BUILD_MODE === 'watch' && survived && needsRebuild && !html) {
+    const confirmDir = join(tmpdir(), 'mutation-confirm-build')
+    confirmed = confirmFullCompile(confirmDir)
+    rmSync(confirmDir, { recursive: true, force: true })
+  }
+
   // The file goes back, and for a source mutation so does the BUILD: restored, compiled, and its digest compared to the clean one before the marker is
   // cleared. Killed in between, the marker is still there and the next run heals both.
   let back = null
@@ -3248,29 +3322,33 @@ for (const m of selected) {
   backups.delete(m.file)
   clearActive()
 
-  if (crashed) {
-    check(`[${m.id}] the compiler did not crash while building the mutation`, false,
-      `the compiler crashed on ${m.file} ${res.retries + 1} times in a row (internal error). That is a fault of the build and says nothing about the claim: ` +
-      `the mutation was neither refused nor tested.\n            ${(res.errors ?? []).slice(0, 2).map(e => String(e).slice(0, 300)).join('\n            ')}`)
-  } else if (!built) {
+  const refusedOnConfirm = Boolean(confirmed?.refused)
+  const faulted = crashed || Boolean(confirmed?.fault)
+  if (faulted) {
+    check(`[${m.id}] the build did not fail without a compiler diagnostic`, false,
+      `the build of ${m.file} failed ${crashed ? `${res.retries + 1} time(s) in a row` : 'when the full compile confirmed the survivor'} with no diagnostic about the code. That is a fault of the build and says nothing about the claim: ` +
+      `the mutation was neither refused nor tested.\n            ${(crashed ? (res.errors ?? []) : [confirmed.why]).slice(0, 2).map(e => String(e).slice(0, 300)).join('\n            ')}`)
+  } else if (!built || refusedOnConfirm) {
     // The compiler refusing the mutation is a stronger result than a check
     // catching it — the invariant is enforced by the type system.
     check(`[${m.id}] ${m.claim}`, true, '')
     console.log(`      → defended by the COMPILER (the mutation does not build)`)
     // What the compiler said, so "refused by the type system" is a quotation and not a verdict taken on trust.
-    for (const line of (res?.errors ?? []).slice(0, 3)) console.log(`        ${String(line).slice(0, 600)}`)
+    if (refusedOnConfirm) console.log(`        (built under watch, which does not re-check later files; refused by the full compile)`)
+    for (const line of (refusedOnConfirm ? [confirmed.why] : (res?.errors ?? [])).slice(0, 3)) console.log(`        ${String(line).slice(0, 600)}`)
   } else {
     check(`[${m.id}] ${m.claim}`, !survived,
       `mutation SURVIVED — ${m.file} was broken and \`${m.expect}\` still passed. ` +
       `Nothing defends this claim.`)
   }
   records.push({
-    id: m.id, file: m.file, kind: kindOf(m), verdict: verdictOf({ anchorFound: true, built, survived, crashed }), expect: m.expect,
+    id: m.id, file: m.file, kind: kindOf(m), verdict: verdictOf({ anchorFound: true, built: built && !refusedOnConfirm, survived: survived && !refusedOnConfirm, crashed: faulted }), expect: m.expect,
     buildMs: res?.ms ?? 0, restoreMs: back?.ms ?? 0, expectMs, digestChanged: res ? res.digest !== builder.cleanDigest : null, cycles: res?.cycles ?? 0,
     // The compiled digest itself, not only whether it moved: `mutation-compare.mjs` needs the two drivers' digests of the SAME mutation to be equal, and a boolean cannot say that.
     digest: res?.digest ?? null,
     // Only for a mutation the compiler refused: the first lines it said.
-    ...(built ? {} : { errors: (res?.errors ?? []).slice(0, 8).map(e => String(e).slice(0, 1200)) }),
+    ...(built && !refusedOnConfirm ? {} : { errors: (refusedOnConfirm ? [confirmed.why] : (res?.errors ?? [])).slice(0, 8).map(e => String(e).slice(0, 1200)) }),
+    ...(confirmed ? { confirmedByFullCompile: refusedOnConfirm ? 'refused' : confirmed.fault ? 'fault' : 'built' } : {}),
     // How many times a build of this mutation had to be repeated because the compiler crashed (see compileSteadily): the flake, measured.
     crashRetries: (res?.retries ?? 0) + (back?.retries ?? 0),
   })

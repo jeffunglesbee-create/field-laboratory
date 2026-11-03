@@ -6,7 +6,7 @@ Status of this document while the work is in flight: **IN PROGRESS.** It is comp
 ## Why
 
 The last four ledger lines put the row "breaking each invariant makes a check fail" at 4003 to 5688 s of a 4624 to 6513 s gate, 87% of it. The
-suite is 235 mutations; 139 of them mutate `src/` and each paid a whole-project compile (34.5 s) before its expectation ran, in series, on one
+suite is 235 mutations; 161 of them mutate `src/` (the CC-CMD said 139, see below) and each paid a whole-project compile (34.5 s) before its expectation ran, in series, on one
 runner. `docs/GATE-TIMING.md` (2026-08-12) named two designs, a watched incremental compile and parallel shards, and did not build them
 because "the synchronisation must be exact". Both are built here.
 
@@ -125,6 +125,44 @@ in the comparison. A refused compile prints and records the compiler's words. `M
 crash line so the path can be shown on demand: `crash-once` under both drivers exits 0 with the mutation caught and `crashRetries 1`;
 `crash-always` exits 1 with `build-fault` and `crashRetries 2`. The root cause of the crash (Fable's embedded compiler on the runner's SDK 10.0.403, the
 sandbox has 10.0.113) is not investigated here, and the repeat is a bounded, counted answer to a measured fault, not a claim about its cause.
+
+## Independent review of the sharded gate (28 agents, five layers)
+
+Five reviewers each attacked one layer (merge/compare, await, the build drivers, the workflows, end-to-end soundness) with no conclusion of mine in their
+brief, then one agent per finding tried to refute it. 23 findings were claimed, 14 survived, 9 were refuted (each refutation read and kept in
+the workflow's journal). All 14 are fixed:
+
+| # | what was wrong | what changed |
+|---|---|---|
+| 1 | `compare` read the merge's structure problems and not its verdict problems, so a comparison over a red baseline or a broken mutation passed and its legacy count was vacuous | its problems now include the merge's verdict findings, each prefixed with the side |
+| 2 | the merged baseline kept the FIRST shard's result per command, so a command that failed only in a later shard was recorded as passing | the failing entry is kept, with its tail |
+| 3, 13 | the artifact download had no retry: one blob-storage hiccup failed a 20-point row after the whole wait | three tries, each asking the API again (the redirect address is short-lived); a 4xx still stops at once |
+| 4 | a body that ends early, a 429 and the secondary-rate-limit 403 were permanent failures | they are retried like a 5xx |
+| 5 | any failed build (the site failing to assemble, a killed process, a full disk) was recorded as "defended by the COMPILER" and its expectation never ran | a refusal now requires a compiler diagnostic in the output; every other failed build is `build-fault` (broken, refused by the merge) |
+| 6 | a dead watcher was found by a 20 s or 300 s timeout that named the wrong cause | the exit code or signal and the last lines it printed, at once |
+| 7 | `--ids ""`, a trailing `--shard` or `--out` fell through to a full run that wrote the baseline artifact | exit 2, "wants a value, so nothing was run" |
+| 8, 14 | the gate's failure summary kept only lines with an arrow, SURVIVED or FAIL, so the merge's and the wait's reasons never reached it | every reason is its own arrow line; the failing baseline commands are named |
+| 9 | a re-run attempt left the previous attempt's artifact listed, and the wait read it | a shard counts as present only when its artifact is listed AND its job has completed; the upload overwrites |
+| 10 | `merged-baseline` was uploaded from the tracked file, so a refused merge published the last run's | the tracked copy is removed before the merge |
+| 11 | watch re-checks the file that changed and not the files after it: a type-only upstream mutation builds under watch, survives, and fails the row, where the full compile refuses it | a watch survivor is confirmed by a full compile into a throwaway directory before it stands |
+| 12 | nothing could show the CI branch of the row (`shardedSuite`) failing: its body replaced by `return true` left every check green | `scripts/sharded-row-check.mjs --self-test` with stub commands, and six new mutations of the row (the table is now 241) |
+
+**#11 shown end to end** in a throwaway copy with a mutation that changes `devig`'s return type in `src/Units.fs` (three downstream errors): under watch it
+built and survived its expectation; the confirmation printed `built under watch, which does not re-check later files; refused by the full compile` with
+`./src/Market.fs(77,41) error FSHARP: Type mismatch` and `./src/Suite.fs(165,22)`, and the verdict is `compiler`. While doing it the confirmation was found to
+read only the last 25 lines of the build output, which for a refusal followed by a stack trace holds no diagnostic (verdict `build-fault`); the build now
+keeps the diagnostics wherever they are in the output.
+
+**What this says about the CC-CMD's premise.** "A watched compile is the same compile as the full one" is true for every build the compiler ACCEPTS
+(163 of 163 digests equal) and was never true for a build it REFUSES: watch does not report errors in later files. The words in `verify-full.yml` and the
+CC-CMD are corrected, and the confirmation above is what makes the verdicts equal anyway.
+
+**Refuted (each with the refuting agent's reason in the workflow journal):** that the equivalence report needs its own pass/fail field (not a defect as
+claimed); that a re-run's upload fails with a 409 (the agent could not make it happen; `overwrite: true` is set anyway); that the poll budget being a count
+and not a time is a defect (the gate ends red, which is right in every scenario traced; hardening, not a wrong outcome); that a green gate does not print
+the denominator (the merge prints it and the gate hides stdout on success by design); that nothing fails if the row's wiring regresses (a true premise
+with no wrong outcome in the code as written; #12 is the same concern from another reviewer and was confirmed); that the merge never compares the shards'
+clean digests and that the unset path differs from the old behaviour (in both the mechanism exists and the agent could not make it produce a wrong outcome).
 
 ## Still open at this commit
 

@@ -3,6 +3,7 @@
 //   FAKE_LATE_ERROR=1  the error line follows "finished" by a few ms (as the real one does)
 //   FAKE_DOUBLE=1      a change causes two cycles
 //   FAKE_NO_CYCLE=1    changes are ignored: the stale-build case
+//   FAKE_DIE_MID=1     on the first change after the initial compile: print Started, then exit 3 before "Watching" (a watcher that dies mid-cycle)
 //   FAKE_FAIL_THEN_GOOD=1  a TYPE_ERROR cycle is followed, 150 ms after it closes, by a cycle that compiles (a half-written file, then the whole one)
 // A source containing TYPE_ERROR "does not compile": the output is left half-written, as Fable's was in the measurement.
 //
@@ -41,6 +42,7 @@ for (;;) {
   if (now === last) continue
   last = now
   if (process.env.FAKE_NO_CYCLE) continue
+  if (process.env.FAKE_DIE_MID) { say('Started Fable compilation...'); await sleep(50); say('./src/X.fs: the watcher is about to die'); process.exit(3) }
   await sleep(100)
   last = readFileSync(src, 'utf8')
   await cycle()

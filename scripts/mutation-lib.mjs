@@ -27,7 +27,7 @@ export const stripAnsi = s => String(s).replace(/\x1b\[[0-9;]*m/g, '')
 
 // --- reading Fable's watch output ---------------------------------------------
 
-const ERROR_LINE = /\berror (FSHARP|FABLE)\b|: error FS\d+/
+const ERROR_LINE = /\berror (FSHARP|FABLE|EXCEPTION)\b|: error FS\d+/
 
 /**
  * A state machine over Fable's watch output. A CYCLE opens at `Started Fable compilation...` and closes at `Watching <dir>`; an error line inside it fails
@@ -160,7 +160,11 @@ const attempt = cmd => {
   const r = spawnSync(cmd, { shell: true, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
   const ok = r.status === 0
   const text = `${r.stdout ?? ''}\n${r.stderr ?? ''}`.split('\n').map(l => l.trimEnd()).filter(Boolean)
-  return { ok, why: ok ? '' : `exit ${r.status ?? 'none'}${r.signal ? ` (signal ${r.signal})` : ''}${r.error ? ` (${r.error.message})` : ''}: ${text.slice(-25).join(' | ')}` }
+  // The diagnostics first, wherever they are, then the end of the output. A refusal that is followed by a stack trace (Fable throws after a type error in some
+  // shapes) has its diagnostics far above the last lines, and a reader of the tail alone would call it a build that said nothing (found by running one).
+  const diagnostics = text.filter(l => /\berror (FSHARP|FABLE|EXCEPTION)\b|: error FS\d+/.test(stripAnsi(l))).slice(0, 12)
+  const shown = [...new Set([...diagnostics, ...text.slice(-12)])]
+  return { ok, why: ok ? '' : `exit ${r.status ?? 'none'}${r.signal ? ` (signal ${r.signal})` : ''}${r.error ? ` (${r.error.message})` : ''}: ${shown.join(' | ')}` }
 }
 /** The one place a builder says its build is not the clean one, and which files make it so. */
 const assertCleanOf = (b, label) => {
@@ -216,6 +220,13 @@ export class WatchBuild {
     Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, mode: 'watch', cleanDigest: null, cleanManifest: null })
     this.tracker = new CycleTracker()
     this.child = null
+    this.tail = []
+    this.exit = null
+  }
+  /** The watcher is gone: say how, with the last of what it printed. A dead watcher is never waited on until a timeout names the wrong cause. */
+  #died(what) {
+    const e = this.exit
+    return new Error(`${what}: the watcher exited (code ${e?.code ?? 'none'}${e?.signal ? `, signal ${e.signal}` : ''}): ${this.tail.join(' | ') || '(it printed nothing)'}`)
   }
   digest() { return digestDir(this.outDir, this.extraFiles) }
 
@@ -226,6 +237,8 @@ export class WatchBuild {
       const now = Date.now()
       const s = settled(this.tracker, atWrite, now, this.settleMs)
       if (s.done) return s
+      // After settled(): a cycle that finished before the watcher died is still honoured. Before the timeouts: they are for a live watcher.
+      if (!this.child) throw this.#died(what)
       if (this.tracker.open || this.tracker.history.length > atWrite.ended) began = true
       if (!began && now - t0 > this.startTimeoutMs) throw new Error(`${what}: the watcher began no compile within ${this.startTimeoutMs} ms of the write (a stale build is never assumed to be fresh)`)
       if (now - t0 > this.cycleTimeoutMs) throw new Error(`${what}: the compile did not finish within ${this.cycleTimeoutMs} ms`)
@@ -237,10 +250,15 @@ export class WatchBuild {
   async start({ expectDigest = null } = {}) {
     const t = Date.now()
     this.child = spawn(this.command, this.args, { cwd: this.cwd, env: this.env, stdio: ['ignore', 'pipe', 'pipe'] })
-    const feed = b => { const s = b.toString(); this.onLine?.(s); this.tracker.feed(s) }
+    const feed = b => {
+      const s = b.toString(); this.onLine?.(s); this.tracker.feed(s)
+      for (const l of stripAnsi(s).split('\n')) if (l.trim()) this.tail.push(l.trimEnd())
+      this.tail = this.tail.slice(-25)
+    }
     this.child.stdout.on('data', feed)
     this.child.stderr.on('data', feed)
-    this.child.on('exit', () => { this.child = null })
+    // 'close', not 'exit': it fires after stdout and stderr have drained, so the tail is complete when the error is thrown.
+    this.child.on('close', (code, signal) => { this.exit = { code, signal }; this.child = null })
     const deadline = Date.now() + this.initialTimeoutMs
     const zero = { ended: 0, open: false }
     for (;;) {
@@ -249,7 +267,7 @@ export class WatchBuild {
         if (!s.ok) throw new Error(`the initial compile failed:\n${s.errors.join('\n')}`)
         break
       }
-      if (!this.child) throw new Error('the watcher exited before its first compile finished')
+      if (!this.child) throw this.#died('the initial compile')
       if (Date.now() > deadline) throw new Error(`the initial compile did not finish within ${this.initialTimeoutMs} ms`)
       await sleep(50)
     }
@@ -301,9 +319,27 @@ export class WatchBuild {
  * "defended by the COMPILER", which is a catch that costs nothing, so a crash was a free pass for whichever mutation it landed on. A refusal is a
  * diagnostic about the code; a crash is a fault of the build. They are told apart by the words the compiler uses for the second.
  */
-export const isCompilerCrash = errors => (errors ?? []).some(e => /internal error/i.test(stripAnsi(e)))
+const diagnosticLines = errors => (errors ?? []).flatMap(e => stripAnsi(e).split(/\n| \| /))
+/** A DIAGNOSTIC ABOUT THE CODE: an `error FSHARP|FABLE|FS####` line that is not the compiler reporting its own failure. Only this makes a failed build a refusal. */
+export const isCompilerRefusal = errors => diagnosticLines(errors).some(l => /\berror (FSHARP|FABLE)\b|: error FS\d+/.test(l) && !/internal error/i.test(l))
+/** The compiler reporting its own failure, with no diagnostic about the code beside it. Only this is repeated. */
+export const isCompilerCrash = errors => !isCompilerRefusal(errors) && diagnosticLines(errors).some(l => /internal error/i.test(l))
 
 export const MAX_CRASH_RETRIES = 2
+
+/**
+ * `dotnet fable watch` re-checks the file that changed and not the files downstream of it, so a mutation that breaks only a LATER file builds under watch and
+ * is refused by the full compile (measured in review: a type change in Units.fs, 3 downstream errors, watch said ok). Types are erased at runtime, so such a
+ * mutation survives its expectation under watch and would fail the row. Before a watch survivor stands, the same source is compiled in full into a throwaway
+ * directory (the watcher's build/ is not touched; the watcher is idle between cycles). A refusal there is the verdict `compiler`; a build that fails with no
+ * diagnostic is a fault; a build that works leaves the survivor a survivor. Survivors are 0 on a green gate, so this costs nothing there.
+ */
+export const confirmFullCompile = (outDir, command = `dotnet fable src/Laboratory.fsproj --outDir ${outDir}`) => {
+  let r = attempt(command)
+  for (let n = 0; !r.ok && isCompilerCrash([r.why]) && n < MAX_CRASH_RETRIES; n++) r = attempt(command)
+  const refused = !r.ok && isCompilerRefusal([r.why])
+  return { ok: r.ok, refused, fault: !r.ok && !refused, why: r.why }
+}
 
 /**
  * MUTATION_FAULT=crash-once | crash-always: make a (non-restore) compile report the crash line the runner printed, without building, so that the retry and
@@ -329,7 +365,9 @@ export const compileSteadily = async (builder, write, opts, onRetry = () => {}) 
     onRetry(retries, r.errors)
     r = await builder.compile(write, opts)
   }
-  return { ...r, retries, crashed: !r.ok && isCompilerCrash(r.errors) }
+  // `crashed` is every failed build that carries no diagnostic about the code: the compiler crashing, but also the site failing to assemble, a killed process,
+  // a full disk. Counting those as "refused by the compiler" was a catch that costs nothing (review finding, 2026-11-03).
+  return { ...r, retries, crashed: !r.ok && !isCompilerRefusal(r.errors) }
 }
 
 /** Elapsed milliseconds since this call, as a function. Here and not in mutation-check.mjs: that file is scanned by row-confidence.mjs for clock reads, and a
@@ -394,6 +432,34 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('each retry is announced with its number and the errors that caused it', JSON.stringify(seen) === JSON.stringify([[1, true], [2, true]]), JSON.stringify(seen))
   }
   check('MUTATION: verdictOf: a compiler crash is "build-fault", never a refusal or a catch', verdictOf({ anchorFound: true, built: false, crashed: true }) === 'build-fault' && verdictOf({ anchorFound: true, built: true, survived: false, crashed: true }) === 'build-fault')
+  {
+    const ASSEMBLE = ['assembling the site failed']
+    const KILLED = ['the build failed, exit none (signal SIGKILL): dotnet: killed']
+    const MIXED = ["the build failed, exit 1: ./src/Pick.fs(12,5): (12,9) error FSHARP: Type mismatch. (code 1) | ./src/Suite.fs(1,1): error FSHARP: internal error: Object reference not set (code 193)"]
+    check('MUTATION: a failed build with no diagnostic about the code (the site failed to assemble) is not a refusal', isCompilerRefusal(ASSEMBLE) === false && isCompilerCrash(ASSEMBLE) === false)
+    check('MUTATION: a build killed by a signal is not a refusal', isCompilerRefusal(KILLED) === false)
+    check('MUTATION: one real diagnostic among internal errors makes it a refusal, not a crash to repeat', isCompilerRefusal(MIXED) === true && isCompilerCrash(MIXED) === false)
+    check('the full driver\'s joined tail is read line by line', isCompilerRefusal(["the build failed, exit 1: a | ./src/X.fs(1,1): (1,2) error FSHARP: boom (code 1) | b"]) === true)
+    const scripted = results => { let i = 0; const calls = []; return { calls, compile: async () => { calls.push(1); return results[Math.min(i++, results.length - 1)] } } }
+    const asm = scripted([{ ok: false, errors: ASSEMBLE }]); const ra = await compileSteadily(asm, () => {})
+    check('MUTATION: a failed build with no diagnostic is reported as a fault (crashed) and is not repeated', ra.ok === false && ra.crashed === true && ra.retries === 0 && asm.calls.length === 1, JSON.stringify(ra))
+    const tr = new CycleTracker(); tr.feed('Started Fable compilation...\nFable compilation finished in 9ms\n./src/Suite.fs(1,1): error EXCEPTION: error recovery\nWatching src\n')
+    check('MUTATION: a cycle whose only error line is an EXCEPTION still fails the cycle', tr.history.length === 1 && tr.history[0].ok === false, JSON.stringify(tr.history))
+    const cfDir = mkdtempSync(join(tmpdir(), 'confirm-'))
+    try {
+      const refusedCmd = `node -e "console.log('./src/Market.fs(77,41): (77,50) error FSHARP: Type mismatch (code 1)'); process.exit(1)"`
+      const faultCmd = `node -e "console.log('assembling'); process.exit(1)"`
+      const crashOnce = `node -e "const fs=require('fs'),p=process.argv[1]; if(!fs.existsSync(p)){fs.writeFileSync(p,'x'); console.log('./src/A.fs(1,1): (1,2) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)'); process.exit(1)}" ${join(cfDir, 'once')}`
+      const c1 = confirmFullCompile(cfDir, refusedCmd), c2 = confirmFullCompile(cfDir, faultCmd), c3 = confirmFullCompile(cfDir, 'node -e ""'), c4 = confirmFullCompile(cfDir, crashOnce)
+      check('MUTATION: a full compile that prints a real diagnostic confirms a refusal', c1.refused === true && c1.ok === false && c1.fault === false, JSON.stringify(c1))
+      const buried = `node -e "console.log('./src/Market.fs(77,41): (77,50) error FSHARP: Type mismatch (code 1)'); for (let i = 0; i < 40; i++) console.log('   at Some.Stack.Frame' + i); process.exit(1)"`
+      const c5 = confirmFullCompile(cfDir, buried)
+      check('MUTATION: a diagnostic buried above a long stack trace is still found (the last lines alone would have missed it)', c5.refused === true && /error FSHARP: Type mismatch/.test(c5.why), c5.why.slice(0, 200))
+      check('MUTATION: a full compile that fails with no diagnostic is a fault, not a refusal', c2.refused === false && c2.fault === true, JSON.stringify(c2))
+      check('a full compile that works confirms nothing against the survivor', c3.ok === true && c3.refused === false && c3.fault === false)
+      check('MUTATION: a crashed full compile is repeated and the build after it decides', c4.ok === true, JSON.stringify(c4))
+    } finally { rmSync(cfDir, { recursive: true, force: true }) }
+  }
   check('verdictOf: a missing anchor, a mutation that did not apply, a refused compile, a survivor and a catch are five different words',
     new Set([verdictOf({ anchorFound: false }), verdictOf({ anchorFound: true, applied: false }), verdictOf({ anchorFound: true, built: false }),
       verdictOf({ anchorFound: true, built: true, survived: true }), verdictOf({ anchorFound: true, built: true, survived: false })]).size === 5)
@@ -553,6 +619,27 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     try { await badStart.start() } catch (e) { startRefused = /the initial compile failed/.test(e.message) }
     check('MUTATION: a source that does not compile at start refuses to start the driver', startRefused)
     badStart.stop()
+    await sleep(300)
+
+    // A watcher that is already dead, and one that dies mid-cycle: named at once, by how it died, not by a timeout.
+    writeFileSync(src, 'clean\n'); await sleep(300)
+    const dead = build({ startTimeoutMs: 15000, cycleTimeoutMs: 30000 })
+    await dead.start()
+    dead.child.kill('SIGKILL')
+    for (let i = 0; i < 100 && dead.child; i++) await sleep(20)
+    const tDead = Date.now()
+    let deadMsg = ''
+    try { await dead.compile(() => writeFileSync(src, 'mutated\n'), { label: 'after death' }) } catch (e) { deadMsg = e.message }
+    check('MUTATION: a watcher killed between cycles is named dead with its signal, within a second and not at the timeout', /the watcher exited \(code none, signal SIGKILL\)/.test(deadMsg) && Date.now() - tDead < 3000, `${deadMsg} (${Date.now() - tDead} ms)`)
+    await sleep(300)
+    writeFileSync(src, 'clean\n'); await sleep(300)
+    const mid = build({ startTimeoutMs: 15000, cycleTimeoutMs: 30000 }, { FAKE_DIE_MID: '1' })
+    await mid.start()
+    const tMid = Date.now()
+    let midMsg = ''
+    try { await mid.compile(() => writeFileSync(src, 'mutated\n'), { label: 'dies mid-cycle' }) } catch (e) { midMsg = e.message }
+    check('MUTATION: a watcher that dies mid-cycle is named with its exit code and what it last printed, not after the cycle timeout', /the watcher exited \(code 3\)/.test(midMsg) && /about to die/.test(midMsg) && Date.now() - tMid < 5000, `${midMsg} (${Date.now() - tMid} ms)`)
+    mid.stop()
     await sleep(300)
 
     // A watcher that ignores the write: never assumed fresh.

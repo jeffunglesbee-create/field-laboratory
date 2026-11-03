@@ -89,3 +89,5 @@ runs:
         path: ${{ runner.temp }}/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json
         if-no-files-found: error
         retention-days: 3
+        # A re-run attempt of a shard publishes under the same name; without this the upload is refused (409) and the old attempt's artifact stays.
+        overwrite: true

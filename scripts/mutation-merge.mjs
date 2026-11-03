@@ -90,7 +90,7 @@ export const mergeShards = ({ files, allIds, sha, n, readProblems = [] }) => {
 
     const failing = (data.baseline?.results ?? []).filter(b => !b.passed && !b.notApplicable).length
     if (data.baseline?.failing !== failing) structural.push(`${where}: its baseline says ${data.baseline?.failing} failing and lists ${failing}`)
-    if (failing > 0) verdict.push(`${where}: ${failing} baseline expectation(s) already failing on the unmutated tree, so nothing it measured means anything`)
+    if (failing > 0) verdict.push(`${where}: ${failing} baseline expectation(s) already failing on the unmutated tree, so nothing it measured means anything: ${(data.baseline?.results ?? []).filter(b => !b.passed && !b.notApplicable).map(b => `\`${b.cmd}\``).join('; ')}`)
   }
 
   if (modes.size > 1) structural.push(`the shards were run in different build modes (${[...modes].join(', ')})`)
@@ -117,7 +117,11 @@ export const mergeShards = ({ files, allIds, sha, n, readProblems = [] }) => {
     for (const b of data.baseline?.results ?? []) {
       const had = results.get(b.cmd)
       if (!had) results.set(b.cmd, b)
-      else if (had.passed !== b.passed) verdict.push(`\`${b.cmd}\` passed in one shard and failed in shard ${i}: the unmutated tree is not one tree`)
+      else if (had.passed !== b.passed) {
+        verdict.push(`\`${b.cmd}\` passed in one shard and failed in shard ${i}: the unmutated tree is not one tree`)
+        // The artifact exists to keep the failing tail, so the failing entry is the one kept (a first-seen pass used to hide it and report failing: 0).
+        if (had.passed) results.set(b.cmd, b)
+      }
     }
   }
   const byId = new Map(records.map(r => [r.id, r]))
@@ -210,6 +214,18 @@ const selfTest = () => {
   refuses('a read problem is carried through', () => {}, 'structural', /could not read/, { readProblems: ['could not read shard 2'] })
   refuses('a survivor is a verdict problem, by name', fs => { fs[0].data.records[1].verdict = 'survived' }, 'verdict', /\[m4\] SURVIVED \(shard 1\)/)
   refuses('a broken mutation is a verdict problem, by name', fs => { fs[1].data.records[0].verdict = 'anchor-missing' }, 'verdict', /\[m2\] is a broken mutation \(anchor-missing, shard 2\)/)
+  check('MUTATION: a failing baseline names the command that failed', (() => {
+    const files = build(); files[2].data.baseline.results[0].passed = false; files[2].data.baseline.failing = 1
+    const r = merge(files); return r.verdict.some(p => p.includes(`\`${files[2].data.baseline.results[0].cmd}\``))
+  })())
+  check('MUTATION: a command that passes in one shard and fails in another keeps the FAILING entry and counts failing 1', (() => {
+    const files = build()
+    const cmd = files[0].data.baseline.results.find(b => files[2].data.baseline.results.some(c => c.cmd === b.cmd))?.cmd
+    if (!cmd) return false
+    const bad = files[2].data.baseline.results.find(c => c.cmd === cmd); bad.passed = false; bad.tail = 'THE TAIL'; files[2].data.baseline.failing = 1
+    const r = merge(files); const kept = r.baseline.results.find(b => b.cmd === cmd)
+    return kept.passed === false && kept.tail === 'THE TAIL' && r.baseline.failing === 1
+  })())
   refuses('a failing baseline is a verdict problem, by shard', fs => { fs[2].data.baseline.results[0].passed = false; fs[2].data.baseline.failing = 1 }, 'verdict', /shard 3\/3: 1 baseline expectation\(s\) already failing/)
   refuses('a compiler crash is a verdict problem (the mutation tested nothing), not a catch', fs => { fs[1].data.records[0].verdict = 'build-fault' }, 'verdict', /\[m2\] is a broken mutation \(build-fault, shard 2\)/)
   check('MUTATION: repeated compiler crashes are summed and printed, so the flake rate is visible in the gate log', (() => {
@@ -266,8 +282,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
 
   const { check, summarize } = createChecks()
   console.log(`\nMerging ${n} shard(s) from ${dir}\n`)
+  // Every reason on its own line with the marker the gate's failure summary keeps (gate-checks.mjs `ok` keeps lines with an arrow, SURVIVED or FAIL).
   check(`the ${n} shards are exactly the full run of this tree (${allIds.length} mutations, ${sha.slice(0, 12)})`, merged.structural.length === 0,
-    '\n' + merged.structural.map(p => `            ${p}`).join('\n'))
+    merged.structural.join('\n      → '))
 
   if (merged.structural.length === 0) {
     mkdirSync(dirname(BASELINE_PATH), { recursive: true })
@@ -277,7 +294,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     console.log(`  ${BASELINE_PATH} NOT written: the shard set is not the full run, so the artifact would describe another suite`)
   }
   check('no mutation survived, none was broken, and no baseline expectation was already failing', merged.verdict.length === 0,
-    '\n' + merged.verdict.map(p => `            ${p}`).join('\n'))
+    merged.verdict.join('\n      → '))
   console.log(`\n  ${denominator(merged, allIds, n)}`)
   finish(summarize())
 }

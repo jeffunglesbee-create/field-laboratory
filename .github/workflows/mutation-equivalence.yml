@@ -82,6 +82,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      # The baseline file is tracked. Dropped here, its existence after the merge means THIS run's merge wrote it, so the artifact below is never the last run's.
+      - name: Drop the committed baseline
+        run: rm -f outbox/mutation-baseline-latest.json
       - name: Poll for the watch shards, download them
         env:
           GITHUB_TOKEN: ${{ github.token }}

@@ -369,4 +369,4 @@ const rows = [
     run: outboxAccompaniesSource },
 ]
 
-export { rows, ok, fails, failures, NOT_APPLICABLE, outboxVerdict }
+export { rows, ok, fails, failures, NOT_APPLICABLE, outboxVerdict, shardedSuite }
