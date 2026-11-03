@@ -66,9 +66,9 @@ MUTATIONS = [
      ["absent_event"], "an MLB refusal is a bare status"),
     ("D18 the WNBA reader stops naming where its refusal came from", "ESPN WNBA ${res.status} for event ${espnEventId} [${servedBy(res)}]", "ESPN WNBA ${res.status} for event ${espnEventId}",
      ["absent_event"], "a WNBA refusal is a bare status"),
-    ("D19 the relay's X-RELAY-Error stamp is dropped from the line", "res.headers.get('x-relay-error') || 'none'", "'none'",
+    ("D19 the relay's X-RELAY-Error stamp is dropped from the line", "${relayError === null ? 'none' : relayError}", "${'none'}",
      ["refused_read", "absent_event"], "the line cannot say whether the relay reached ESPN and ESPN refused"),
-    ("D20 the data centre is dropped from the line", "(res.headers.get('cf-ray') || '').split('-').pop() || 'unknown'", "'unknown'",
+    ("D20 the data centre is dropped from the line", "ray === null ? 'unknown' : ray.split('-').pop()", "'unknown'",
      ["refused_read", "absent_event"], "the line cannot say which Cloudflare data centre served the refusal"),
 ]
 
