@@ -1,0 +1,112 @@
+# Session 2026-11-03 — the patent watcher's replacement source, PPUBS, probed before it is built
+
+CC-CMD: `docs/CC-CMD-2026-11-02-scheduled-job-skipped-every-time.md` in field-relay-nba, TASK 4b. The client side of the same work is
+`outbox/cc-session-2026-11-02-patent-watch-caller.md` in jubilant-bassoon.
+
+## Why this lives here
+
+LAB-FIRST-A: new proofs belong in this repository. The client keeps `patent_watch.py` itself (existing client code stays where it is);
+what is new is the measurement of the source it will read and the check that holds the fix, and both are built here.
+
+## What this work is made of
+
+Commit `140dcfa` added the three files below; the second commit extends them with the reading mode and 429 handling after run 1; the third (this one) corrects the reading of the response counters after run 2 and adds the fourth file.
+
+| file | what it is |
+|---|---|
+| `scripts/probe-ppubs-query.py` | judges candidate PPUBS query forms for a publication date and for an assignee against a known answer, then reads the real week for every watchlist term |
+| `scripts/ppubs_stand_in.py` | the anonymous half of ppubs.uspto.gov, served locally from a corpus the test supplies, so the probe and the watcher can be run in seconds instead of on a runner |
+| `scripts/mutate-ppubs-probe.py` | breaks the probe's counter checks one at a time on a copy and requires its self-test to go red each time |
+| `.github/workflows/ppubs-query-probe.yml` | dispatch-only runner for the probe; commits `outbox/ppubs-query-probe-<stamp>.json` and `.md` |
+
+## Why the probe exists
+
+The watcher read `bulkdata.uspto.gov`, whose DNS record is gone, and exited 0 on every fetch it failed. Its replacement reads PPUBS, the
+backend `patent_fetch.py` already uses to pull claims by patent NUMBER. That path worked in June: `patent-fulltext.yml` dispatches ended
+`success` on 2026-06-04 and 2026-06-09 (latest 27241140960), and `outbox/patents/US*.json` carries `_source: "ppubs"`; those runs' logs
+are past retention, so nothing here says it still works today, which the probe's first and last query answer. Nothing has ever searched PPUBS by assignee or by
+date range, and its query syntax is undocumented. A form the server does not understand answers 200 with zero documents, which a watcher
+would report as "no matches this week". So no form is accepted for what it fails to return:
+
+- a date form passes only if it returns at least 20 documents and every one carries that publication date;
+- an assignee form passes only if it returns the known patent (US10328326, assignee "RUWT, LLC", granted 2019-06-25, from the client's own
+  PPUBS output) and every document it returns names the assignee;
+- a combined form must return that patent for that assignee on that date;
+- the `"10846193".pn.` form the client already uses runs first and last, so a broken session cannot pass as a working syntax.
+
+## Verified so far
+
+| claim | status | evidence |
+|---|---|---|
+| the probe's judging and exit codes are right | **VERIFIED** locally | `python3 scripts/probe-ppubs-query.py --self-test`: 27/27 in the first version, 45/45 in the second, 56/56 in the third, against the stand-in, whose true query forms are deliberately not the first candidates; a host answering 500, an HTML page, or `{}` makes the probe exit 1; a host that answers single terms and no conjunction makes it exit 1; so does a host whose counters break the measured contract (below) |
+| the counter checks have teeth | **VERIFIED** locally | `python3 scripts/mutate-ppubs-probe.py`: 14 of 14 mutants caught (about 6 minutes). A first draft of the checks had 7 survivors out of 13, each for the same reason: two clauses guarding one fault, or a clause no stand-in mode could reach; the duplicates were removed and four stand-in modes added (`docs_short`, `no_families`, `zero_date_page`, `bare_patents`) |
+| the self-test has teeth | **VERIFIED** | seven mutants of the probe (a verdict function that always passes, one that ignores the minimum, the foreign-assignee check, the known-guid check, exit 0 on failure, exit 0 on a failed session, `ok` that ignores the combined result) each turn it red; the last one survived the first version of the test and is why the no-conjunction host exists |
+| the workflow is valid | **VERIFIED** | `actionlint` exit 0; `check:workflows`, `check:script-orphans`, `check:short-circuit`, `check:clean-source`, `check:mutation-anchors` pass; `check-push-lands.py`: 14 of 14 loops verify the push landed |
+| which query forms the real host answers | **MEASURED**, run 1 | see "Run 1" below |
+| `check:import-purity` | fails here on 4 scripts that import packages absent from this sandbox (`node_modules` is not installed); not touched by this work |
+
+## Run 1 (mode forms, 2026-11-03T04:52Z, run 41580587437): what the real host answered
+
+Report: `outbox/ppubs-query-probe-20261103T045459Z.md` and `.json`. Grant day 2026-10-27, publication day 2026-10-29, 153 s, 0 session renewals.
+
+| finding | evidence |
+|---|---|
+| anonymous session works from a runner; `"10846193".pn.` returns US-10846193-B2 | phase 0 |
+| date forms that return 100 documents all dated the target day, on USPAT and on US-PGPUB: `@PD="20261027"`, `@PD=20261027`, `@PD>="20261027"<="20261027"`, `@PD>=20261027<=20261027`, `20261027.pd.`, `"20261027".pd.`, `(20261027).pd.`, `@PD>="20261027" AND @PD<="20261027"`, `@pd="20261027"`, `20261027.PD.` | phase 1 and 1b |
+| **ISO dates answer 200 with zero documents**: `@PD="2026-10-27"` and `"2026-10-27".pd.` | phase 1: the silent-zero shape the probe exists to catch |
+| assignee forms that return US-10328326-B2 and only RUWT documents: `"RUWT".as.`, `RUWT.as.`, `(RUWT).as.`, `"RUWT".asnm.`, `RUWT.asnm.` | phase 2 |
+| **`"RUWT".asg.` answers 200 with zero documents; `@AS="RUWT"` answers HTTP 500** | phase 2 |
+| `"RUWT".as. AND @PD="20190625"` returns exactly US-10328326-B2; so do the other seven combined spellings that ran before the first 429. Of 16 combined queries 11 returned the known patent and 5 (queries 9, 10, 11, 12 and 16) got 429 on the search and read as zero documents, so the report's list of passing combined forms is a floor | phase 3 |
+| a whole grant day has 5,835 documents: the counts call returns `numResults: 5835` for `@PD="20261027"` on USPAT | phase 1 counts body |
+| the search response holds `numFound`, `perPage`, `page`, `totalPages`, `hlSnippets`, `sort`, `query`, `duration`, `highlightingTime`, `cursorMarker`, `totalResults`, `numberOfFamilies`, `error`, `patents` and `qtime`. `numFound` is the page size (100 on a 100-document page, 500 on a 500 page); `totalResults` is an int whose value run 1 did not record | phases 0, 1, 5 |
+| **a page can hold more documents than its `numFound`**: `start` 500 with `pageCount` 500 returned `numFound` 500 and 504 entries in `patents` (2.25 MB in 560 ms). The endpoint is `searchWithBeFamily`; the four extra are not explained by anything in run 1, so a count taken as `len(patents)` can exceed the page size | phase 5 |
+| US-PGPUB holds 10,085 documents for 2026-10-29 (counts `numResults`), against 5,835 USPAT documents for 2026-10-27 | phase 1b |
+| document fields used by `patent_fetch.py` are real: `guid`, `type`, `datePublished` (`2020-11-24T00:00:00Z`), `assigneeName` (list), `inventionTitle`; `applicantName` also exists | phase 0 sample document |
+| **PPUBS rate-limits: HTTP 429 with body `{"message": "Too many requests"}`**. The first was the search call of the 9th combined query: the 39th query and the 78th call of the run, at 0.5 s between calls. Counted over the whole report: phase 3, 4 of 16 counts calls and 5 of 16 search calls; phase 4, 33 of 64 counts and 40 of 64 search; phase 5, 1 of 2 and 1 of 2; the closing number control got 429 on its search, so that control did not run | phases 3 to 6 |
+| one phase-4 query that did get through found a document the assignee field does not hold: `"New Relic" AND @PD="20261029"` on US-PGPUB returned US-20260339771-A1 ("Techniques for proactive automatic program repair integrated into code review...") with an EMPTY assignee, while `"New Relic".as.` for the same day returned zero. The all-fields phrase reaches text the assignee field does not | phase 4 |
+
+What run 1 did NOT establish: the real week's reading (almost every phase-4 query was 429, and a 429 is recorded as zero documents, which is why the probe now counts unrecovered 429s as failures), whether the counts call is needed, whether one OR query equals fifteen single-term queries, how many hits the assignee field and the phrase each produce per week, and a known answer on US-PGPUB.
+
+## Run 2 (mode reading): what it measures, and the self-test that holds it
+
+The probe now backs off on 429 (waits the `Retry-After` header if numeric, else 20 s, up to three retries per call, recording each event's headers), paces at 3 s, and in mode reading runs the watcher's own flow: the newest documents per watchlist term and database since 2019 (known answers), the production form (`"{term}".as. AND @PD="{day}"`) and the OR form on each known answer, eight weeks of date totals on both databases (counts call against search `totalResults`), eight weeks of assignee-field and all-fields OR queries, and the OR query against the union of fifteen single-term queries for the newest week. It fails if any 429 is unrecovered, if a day has fewer than 500 documents, or if OR and union differ.
+
+`--self-test` is 45/45 against the stand-in (re-run 2026-11-03T05:11Z, 14 s), which now models the measured shapes (`numResults`, `totalResults`, page-sized `numFound`, 429 with `Retry-After`) and ten broken-host modes. The v2 checks were mutation-tested in the session that wrote them, and the one mutant that stayed green, removing the explicit "run was truncated" clause, is equivalent (a truncated run also fails the OR-versus-union completeness check). That mutant harness was run inline and is not committed, so this document records no mutant count; the first version's seven mutants are the table row above.
+
+## Run 2 result (2026-11-03T05:12Z, run 41582509434, 169 calls, 540.7 s): what the real host answered
+
+Report: `outbox/ppubs-query-probe-20261103T052138Z.md` and `.json`. Grant day 2026-10-27, publication day 2026-10-29. **0 rate-limit events in 169 calls and 0 session renewals at 3 s between calls**, against 11 of 16 combined queries limited at 0.5 s in run 1.
+
+| finding | evidence |
+|---|---|
+| the number form works with the counts call and without it; **search alone is enough** | phase 0: both variants return US-10846193-B2 |
+| the production form `"{term}".as. AND @PD="{day}"` and the OR over all fifteen terms both find every known answer, 6 on USPAT and 6 on US-PGPUB, and return nothing else | phase 2: 12 of 12 pass, `foreign_docs` empty in all 12. Known answers: USPAT Dynatrace US-12730857-B2 (2026-09-08), Akamai US-12771637-B2 (2026-10-20), Datadog US-12724686-B2 (2026-09-01); US-PGPUB Dynatrace US-20260332641-A1 (2026-10-22), Akamai US-20260259982-A1 (2026-09-03), Datadog US-20260119842-A1 (2026-04-30) |
+| the RUWT control through a range form (`"RUWT".as. AND @PD>="20190101"<="20261027"`) returns US-10328326-B2 | phase 1 |
+| one OR query equals the union of fifteen single-term queries, for the newest week, on both databases and both kinds | phase 5: 4 of 4 equal (3 of them the empty set, which is why the known answers above matter) |
+| a whole day is thousands of documents: 8 grant Tuesdays 5,835 to 9,337, 8 publication Thursdays 8,904 to 11,595 | phase 3, counts `numResults` |
+| **the counters** | see the contract below |
+| weekly volume, eight weeks (2026-09-08 to 2026-10-29) | assignee field: USPAT 5 documents in 5 families, US-PGPUB 5 in 5, at most 2 a week on either. All-fields phrase: USPAT 28 in 28, US-PGPUB 34 in 32, at most 7 a week. Of the 62 phrase documents, 10 name a watchlist term in the assignee field and 52 do not: they mention the term in the text |
+
+**The contract, measured on 152 parsed search responses with no exception** (the counts relation on the 17 that had a counts call), and the mistake it replaced. Run 2's verdict was red because the probe, and the stand-in written from run 1's key list, read `totalResults` as the total. It is not:
+
+| field | what it is |
+|---|---|
+| `numberOfFamilies` | the total number of matching **families** |
+| `numFound` | the families on **this page** = `max(0, min(pageCount, numberOfFamilies - start))` |
+| `patents` | every matching document of those families, so it can be longer than `numFound` (US-PGPUB 2026-09-24: 7 documents in 5 families) |
+| `totalResults` | the documents on **this page**, equal to `len(patents)` in all 152 responses |
+| counts `numResults` | the **documents** matching; `numberOfFamilies` was never above it in the 17 responses that had a counts call |
+| `perPage`, `page` | the page size asked for, and `start // pageCount`; `totalPages` is 0 whatever matches, `error` is null |
+
+The two things the watcher needs follow from the first two rows: a result set is complete when it was read from `start` 0 up to `numberOfFamilies`, and a page the server silently cut short shows as `numFound < min(pageCount, numberOfFamilies - start)`. The probe now checks the five relations in the table on every parsed response (`search_contract`; the counts relation where a counts call was made), reads a whole day at page size 100 on both databases, and goes red on any violation. The old R3 compared the counts call with `totalResults`, which is 1 on a one-document page, so 16 of 16 days failed.
+
+What run 2 did not establish: whether Tuesday's grants are searchable at the watcher's Wednesday 16:00 UTC (the probe read Tuesdays a week old); TASK 4b's design has the watcher read a day only after the day's population passes the same floor the probe uses, and report a day below it as not read. That is built next and is not claimed here.
+
+## The stand-in's limits
+
+Its document shape comes from the key names `patent_fetch.py` reads (`patents`, `docs`, `guid`, `type`, `datePublished`, `assigneeName`,
+`inventionTitle`). Since run 2 its search envelope has every key the real host returned and the measured relations between them,
+including a page whose `patents` list is longer than `numFound` (a corpus entry's `family` puts documents in one family). It does not
+know how the real host decides two documents share a family, what a page holds when one family has members in both databases, or what
+`hlSnippets` and `cursorMarker` contain; those keys are present with inert values. Everything it proves is about the probe's and the
+watcher's logic, nothing about the real host's behaviour.
