@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6542583` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | outbox: the live-check axis pin, verified in CI under the failing condition |
+| `4bd53ba` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8bc1831` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | live-check: pin the axis step to the committed capture |
 | `f234846` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the refusal's attribution with the check and mutants |
 | `71a4a74` | 2026-11-03 | [espn-summary-reach-probe-20261103T071435Z.md](espn-summary-reach-probe-20261103T071435Z.md) | probe: relay /espn-summary reach from a runner [skip ci] |

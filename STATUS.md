@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `8bc1831`
+**FAILURE** on `4e3981d` at "Source and outbox changed together, every commit" — 1 of 88 steps did not run behind it — [run 41597443741](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/41597443741)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `8bc1831`
+`live-check` (post-deploy, against the deployed page): **running** on `6542583`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `8bc1831` — newest deployable ✓ |
+| Cloudflare Workers | live | `8bc1831` — behind newest deployable `4e3981d` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
