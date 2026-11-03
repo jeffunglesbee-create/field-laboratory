@@ -78,7 +78,7 @@ export const compareRuns = ({ watch, full, allIds, sha, n }) => {
       at: COMPARED_AT.toISOString(), sha, of: n,
       compared: perId.length, table: allIds.length, rebuildingCompared: rebuilding.length,
       verdictDiffs, digestDiffs, cleanDigest: { ...clean, equal: cleanEqual },
-      legacy, wall: { watch: wall('watch'), full: wall('full') }, perId,
+      legacy, wall: { watch: wall('watch'), full: wall('full') }, crashRetries: { watch: w.merged.counts.crashRetries, full: f.merged.counts.crashRetries }, perId,
     },
   }
 }
@@ -89,6 +89,7 @@ export const denominator = ({ report }) =>
   `${report.compared} of ${report.table} mutations compared, ${report.verdictDiffs.length} verdict(s) differing; ` +
   `${report.rebuildingCompared} that rebuild compared by compiled digest, ${report.digestDiffs.length} differing; ` +
   `of ${report.legacy.nonRebuild} that do not rebuild, ${report.legacy.caughtOnCleanBuild} caught on a clean build and ${report.legacy.survivedOnCleanBuild.length} survive; ` +
+  `compiler crashes repeated: watch ${report.crashRetries.watch}, full ${report.crashRetries.full}; ` +
   `watch ${mins(report.wall.watch.sumMs)} of shard time against full ${mins(report.wall.full.sumMs)}`
 
 // --- self-test ---------------------------------------------------------------------
@@ -139,6 +140,10 @@ const selfTest = () => {
 
   const legacy = (() => { const watch = make('watch'), full = make('full'); watch.files[1].data.records.find(r => r.id === 'x2').verdict = 'survived'; return cmp(watch, full).report.legacy })()
   check('MUTATION: a script mutation that survives on a clean build is counted and named', legacy.survivedOnCleanBuild.join() === 'x2' && legacy.caughtOnCleanBuild === 2, JSON.stringify(legacy))
+  check('MUTATION: repeated compiler crashes are counted per side', (() => {
+    const watch = make('watch'), full = make('full'); full.files[0].data.records[0].crashRetries = 2
+    const r = cmp(watch, full); return r.report.crashRetries.full === 2 && r.report.crashRetries.watch === 0 && /watch 0, full 2/.test(denominator(r))
+  })())
   check('the wall time of each side is its longest and its sum', good.report.wall.watch.longestMs === 2000 && good.report.wall.full.sumMs === 3000, JSON.stringify(good.report.wall))
 
   return summarize()

@@ -91,6 +91,40 @@ dropped the self-test from every workflow. The suite half is removed and the sel
   `seal-goes-public`, the only mutation whose expectation is the proof row (`proof-check.mjs`, 776 s): the baseline runs it once unmutated and the
   mutation runs it again. The shard's wall time used to leave the baseline out (it started the stopwatch after it); it is now included.
 
+## The second whole-table run, and what the 2 differing verdicts were (run 41590393392, tree `a464e3b`)
+
+235 of 235 compared. 233 agree on verdict and on compiled digest (163 mutations rebuild; the clean digest is `c60e1799e7a0cbbe` on both sides).
+72 mutations that do not rebuild were all caught on a clean build, 0 survived: **the legacy question, answered: 0 of the 72 non-rebuild
+mutations that ran were caught only by a leftover build** (the other 22 of the 94 are in the 30 of the first run that were not compared;
+the second run covers all 235, and 72 is the number of kind `script`, `world` there).
+
+Two differed: `proxy-silent-becomes-false` and `tactical-lock-bars-take-a-negative-best`, caught under `--build watch` and `compiler` under
+`--build full`. Run alone on a runner both drivers caught both with identical digests (probe run 41594837471). Replaying the whole of shard 5
+under `--build full` (probe run 41598xxxxxx, list 2) then showed it:
+
+```
+restoring [metrics-gravity-unexplained]: the restore build failed: the build failed, exit 1:
+./src/Suite.fs(17,32): (17,101) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)
+./src/Program.fs(73,15): ... internal error: Object reference not set to an instance of an object. (code 193)
+```
+
+**The F# compiler crashed.** It reports the same internal error at every file of the project for source that compiles. Four times in about 560
+`--build full` builds across the two runs and the probe, never twice on the same source, none in about 560 `--build watch` compiles (one long-lived
+process).
+
+**This is a defect of the harness as it was, not of the new drivers.** `mutation-check.mjs` counted any failed build as "defended by the COMPILER
+(the mutation does not build)", which is a catch that costs nothing: a crash was a free pass for whichever mutation it landed on. The watch driver
+refused no mutation across the whole table (`0 refused by the compiler`), so on this table every "refused by the compiler" the old harness could have
+printed was a crash. The old gate run 41576121384 printed that line once; which mutation it was is not recorded, and it is not claimed here.
+
+The fix, in the tool: `isCompilerCrash` tells a crash (`internal error`) from a refusal (a diagnostic about the code); `compileSteadily` repeats a
+crashed build at most twice and counts the repeats; a mutation whose build still crashed gets the verdict `build-fault` (broken, like a mutation
+that did not apply: the expectation is not run and the merge refuses it); the repeats are in the record (`crashRetries`), in the merge's denominator and
+in the comparison. A refused compile prints and records the compiler's words. `MUTATION_FAULT=crash-once|crash-always` injects the runner's real
+crash line so the path can be shown on demand: `crash-once` under both drivers exits 0 with the mutation caught and `crashRetries 1`;
+`crash-always` exits 1 with `build-fault` and `crashRetries 2`. The root cause of the crash (Fable's embedded compiler on the runner's SDK 10.0.403, the
+sandbox has 10.0.113) is not investigated here, and the repeat is a bounded, counted answer to a measured fault, not a claim about its cause.
+
 ## Still open at this commit
 
 The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.

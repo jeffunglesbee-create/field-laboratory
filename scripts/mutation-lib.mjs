@@ -181,14 +181,18 @@ export class FullBuild {
   digest() { return digestDir(this.outDir, this.extraFiles) }
   async start() {
     const t = Date.now()
-    const built = attempt(this.command)
+    let built = attempt(this.command)
+    // A crashed compiler is repeated (see compileSteadily); a build that failed any other way is not.
+    for (let n = 0; !built.ok && /internal error/i.test(stripAnsi(built.why)) && n < MAX_CRASH_RETRIES; n++) built = attempt(this.command)
     if (!built.ok) throw new Error(`the initial build failed: ${this.command}: ${built.why}`)
     this.cleanDigest = this.digest()
     this.cleanManifest = manifestDir(this.outDir, this.extraFiles)
     return { ms: Date.now() - t, digest: this.cleanDigest }
   }
   /** Run `write()` (which changes a source file), then build. A fault named for the watch driver is a no-op here, so a fault test cannot pass vacuously. */
-  async compile(write) {
+  async compile(write, { restore = false } = {}) {
+    const crash = injectedCrash(this, restore)
+    if (crash) return crash
     const t = Date.now()
     write()
     const built = attempt(this.command)
@@ -260,6 +264,8 @@ export class WatchBuild {
 
   /** `restore: true` marks the write that puts the original back; only the fault named skip-restore-wait looks at it. */
   async compile(write, { restore = false, label = 'a write', noCycle = false } = {}) {
+    const crash = injectedCrash(this, restore)
+    if (crash) return crash
     const t = Date.now()
     if (noCycle) { write(); const ok = this.assemble(); return { ok, ms: Date.now() - t, digest: this.digest(), errors: ok ? [] : ['assembling the site failed'], cycles: 0 } }
     const atWrite = this.tracker.snapshot()
@@ -285,14 +291,56 @@ export class WatchBuild {
   }
 }
 
+// --- a compiler that crashed is not a compiler that refused ------------------------------------------------------------------
+
+/**
+ * Fable's embedded F# compiler sometimes dies on a CI runner with
+ *   error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)
+ * reported at every file of the project at once, for source that compiles. Measured 2026-11-03 on the equivalence runs: four times in about 560
+ * `--build full` builds, none in about 560 `--build watch` compiles, never on the same source twice. The first harness counted ANY failed build as
+ * "defended by the COMPILER", which is a catch that costs nothing, so a crash was a free pass for whichever mutation it landed on. A refusal is a
+ * diagnostic about the code; a crash is a fault of the build. They are told apart by the words the compiler uses for the second.
+ */
+export const isCompilerCrash = errors => (errors ?? []).some(e => /internal error/i.test(stripAnsi(e)))
+
+export const MAX_CRASH_RETRIES = 2
+
+/**
+ * MUTATION_FAULT=crash-once | crash-always: make a (non-restore) compile report the crash line the runner printed, without building, so that the retry and
+ * the `build-fault` verdict can be shown on demand and not only waited for. `crash-once` crashes the first such compile of a driver; `crash-always` every one.
+ */
+const RUNNER_CRASH_LINE = './src/Suite.fs(17,32): (17,101) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)'
+const injectedCrash = (b, restore) => {
+  if (restore || !['crash-once', 'crash-always'].includes(b.fault)) return null
+  if (b.fault === 'crash-once' && b.injected) return null
+  b.injected = true
+  return { ok: false, ms: 0, digest: b.digest(), errors: [RUNNER_CRASH_LINE], cycles: 0 }
+}
+
+/**
+ * `builder.compile(write, opts)`, repeated while the build CRASHED (never while it refused), at most MAX_CRASH_RETRIES times. The count comes back so the
+ * flake is measured, not hidden. A mutation that crashes the compiler every time comes back `crashed: true`: it was neither refused nor built.
+ */
+export const compileSteadily = async (builder, write, opts, onRetry = () => {}) => {
+  let r = await builder.compile(write, opts)
+  let retries = 0
+  while (!r.ok && isCompilerCrash(r.errors) && retries < MAX_CRASH_RETRIES) {
+    retries++
+    onRetry(retries, r.errors)
+    r = await builder.compile(write, opts)
+  }
+  return { ...r, retries, crashed: !r.ok && isCompilerCrash(r.errors) }
+}
+
 /** Elapsed milliseconds since this call, as a function. Here and not in mutation-check.mjs: that file is scanned by row-confidence.mjs for clock reads, and a
  *  duration that lands in a record is not an input to any verdict. */
 export const stopwatch = () => { const t = Date.now(); return () => Date.now() - t }
 
 /** A readable name for what the two builders did, for the records. */
-export const verdictOf = ({ anchorFound, applied = true, built, survived }) => {
+export const verdictOf = ({ anchorFound, applied = true, built, survived, crashed = false }) => {
   if (!anchorFound) return 'anchor-missing'
   if (!applied) return 'not-applied'
+  if (crashed) return 'build-fault'
   if (!built) return 'compiler'
   return survived ? 'survived' : 'caught'
 }
@@ -326,6 +374,26 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const t5 = new CycleTracker(); t5.feed('./src/X.fs(1,1): error FSHARP: boom\n')
   check('an error outside any cycle is kept apart, not charged to the next one', t5.orphanErrors.length === 1 && t5.history.length === 0)
 
+  // The real line, as the runner printed it (probe run 41594837471's sibling, 2026-11-03).
+  const CRASH = [`${E}[31m./src/Suite.fs(17,32): (17,101) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)`]
+  const REFUSAL = ["./src/Pick.fs(12,5): (12,9) error FSHARP: This expression was expected to have type 'int' but here has type 'string' (code 1)"]
+  check('MUTATION: a compiler crash (the real line) is told from a refusal', isCompilerCrash(CRASH) === true && isCompilerCrash(REFUSAL) === false)
+  check('an empty or missing error list is not a crash', isCompilerCrash([]) === false && isCompilerCrash(undefined) === false)
+  {
+    const scripted = results => { let i = 0; const calls = []; return { calls, compile: async () => { calls.push(1); return results[Math.min(i++, results.length - 1)] } } }
+    const crash = { ok: false, errors: CRASH }, good = { ok: true, errors: [] }, refuse = { ok: false, errors: REFUSAL }
+    const a1 = scripted([crash, good]); const r1 = await compileSteadily(a1, () => {})
+    check('MUTATION: a crash is repeated, and the good build that follows is the answer, with the retry counted', r1.ok === true && r1.retries === 1 && r1.crashed === false && a1.calls.length === 2, JSON.stringify(r1))
+    const a2 = scripted([crash]); const r2 = await compileSteadily(a2, () => {})
+    check('MUTATION: a compiler that crashes every time is reported crashed after the retries, not as a refusal', r2.crashed === true && r2.ok === false && r2.retries === MAX_CRASH_RETRIES && a2.calls.length === MAX_CRASH_RETRIES + 1, JSON.stringify(r2))
+    const a3 = scripted([refuse]); const r3 = await compileSteadily(a3, () => {})
+    check('MUTATION: a real refusal is never repeated and is not a crash', r3.ok === false && r3.crashed === false && r3.retries === 0 && a3.calls.length === 1, JSON.stringify(r3))
+    const a4 = scripted([good]); const r4 = await compileSteadily(a4, () => {})
+    check('a build that works is built once', r4.ok === true && r4.retries === 0 && a4.calls.length === 1)
+    const seen = []; const a5 = scripted([crash, crash, good]); await compileSteadily(a5, () => {}, {}, (n, errs) => seen.push([n, errs === CRASH]))
+    check('each retry is announced with its number and the errors that caused it', JSON.stringify(seen) === JSON.stringify([[1, true], [2, true]]), JSON.stringify(seen))
+  }
+  check('MUTATION: verdictOf: a compiler crash is "build-fault", never a refusal or a catch', verdictOf({ anchorFound: true, built: false, crashed: true }) === 'build-fault' && verdictOf({ anchorFound: true, built: true, survived: false, crashed: true }) === 'build-fault')
   check('verdictOf: a missing anchor, a mutation that did not apply, a refused compile, a survivor and a catch are five different words',
     new Set([verdictOf({ anchorFound: false }), verdictOf({ anchorFound: true, applied: false }), verdictOf({ anchorFound: true, built: false }),
       verdictOf({ anchorFound: true, built: true, survived: true }), verdictOf({ anchorFound: true, built: true, survived: false })]).size === 5)
@@ -386,6 +454,16 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       let msg = ''
       try { okb.assertClean('the next mutation') } catch (e) { msg = e.message }
       check('MUTATION: a build that is not clean names the files that differ', /differing: .*~ \/a\.js.*\+ \/extra\.js/.test(msg), msg)
+      {
+        const c1 = new FullBuild({ command: 'node -e ""', outDir: fdir, extraFiles: [], fault: 'crash-once' }); await c1.start()
+        const o = await compileSteadily(c1, () => {})
+        check('MUTATION: the crash-once fault is repeated through and the build after it is the answer', o.ok === true && o.retries === 1 && o.crashed === false, JSON.stringify(o))
+        const c2 = new FullBuild({ command: 'node -e ""', outDir: fdir, extraFiles: [], fault: 'crash-always' }); await c2.start()
+        const o2 = await compileSteadily(c2, () => {})
+        check('MUTATION: the crash-always fault ends crashed, with every retry spent', o2.ok === false && o2.crashed === true && o2.retries === MAX_CRASH_RETRIES, JSON.stringify(o2))
+        const o3 = await compileSteadily(c2, () => {}, { restore: true })
+        check('the fault never touches a restore compile, so a tree can always be put back', o3.ok === true && o3.retries === 0)
+      }
       const badb = new FullBuild({ command: `node -e "console.error('boom from the build'); process.exit(3)"`, outDir: fdir, extraFiles: [] })
       let startMsg = ''
       try { await badb.start() } catch (e) { startMsg = e.message }

@@ -36,7 +36,7 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
-import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch } from './mutation-lib.mjs'
+import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
 const flagValue = name => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : null)
@@ -3111,6 +3111,7 @@ const cleanBefore = what => {
   if (!builder) return
   try { builder.assertClean(what) } catch (e) { fatal(e.message) }
 }
+const retryNote = (id, what) => (n, errors) => console.log(`  RETRY [${id}] ${what}: the compiler crashed (${String(errors?.[0] ?? '').replace(/\x1b\[[0-9;]*m/g, '').slice(0, 160)}); building again (${n})`)
 const kindOf = m => (m.mutate ? 'world' : m.file.startsWith('src/') ? 'src' : m.file === 'index.html' ? 'html' : 'script')
 
 for (const m of selected) {
@@ -3216,12 +3217,14 @@ for (const m of selected) {
   let res = null
   try {
     // The write happens INSIDE compile(): the cycle count is read before it, so the compile waited for is the one this write caused.
-    if (needsRebuild) res = await builder.compile(() => writeFileSync(m.file, mutated), { label: `[${m.id}]`, noCycle: html })
+    if (needsRebuild) res = await compileSteadily(builder, () => writeFileSync(m.file, mutated), { label: `[${m.id}]`, noCycle: html }, retryNote(m.id, 'applying'))
     else writeFileSync(m.file, mutated)
   } catch (e) {
     fatal(`[${m.id}] ${e.message}`)
   }
   const built = needsRebuild ? res.ok : true
+  // A crash of the compiler is neither a refusal (a free pass) nor a build: the expectation is not run, and the mutation is reported as a fault of the build.
+  const crashed = needsRebuild && res.crashed
   // No inversion flag. A row that passes when its command fails already encodes
   // that itself — `run-row.mjs` reports the ROW's verdict, and a shell `!` wraps
   // anything else. An `inverted` option existed here briefly and was removed
@@ -3234,7 +3237,7 @@ for (const m of selected) {
   // cleared. Killed in between, the marker is still there and the next run heals both.
   let back = null
   try {
-    if (needsRebuild) back = await builder.compile(() => writeFileSync(m.file, original), { restore: true, label: `restoring [${m.id}]`, noCycle: html })
+    if (needsRebuild) back = await compileSteadily(builder, () => writeFileSync(m.file, original), { restore: true, label: `restoring [${m.id}]`, noCycle: html }, retryNote(m.id, 'restoring'))
     else writeFileSync(m.file, original)
   } catch (e) {
     fatal(`restoring [${m.id}]: ${e.message}`)
@@ -3245,7 +3248,11 @@ for (const m of selected) {
   backups.delete(m.file)
   clearActive()
 
-  if (!built) {
+  if (crashed) {
+    check(`[${m.id}] the compiler did not crash while building the mutation`, false,
+      `the compiler crashed on ${m.file} ${res.retries + 1} times in a row (internal error). That is a fault of the build and says nothing about the claim: ` +
+      `the mutation was neither refused nor tested.\n            ${(res.errors ?? []).slice(0, 2).map(e => String(e).slice(0, 300)).join('\n            ')}`)
+  } else if (!built) {
     // The compiler refusing the mutation is a stronger result than a check
     // catching it — the invariant is enforced by the type system.
     check(`[${m.id}] ${m.claim}`, true, '')
@@ -3258,12 +3265,14 @@ for (const m of selected) {
       `Nothing defends this claim.`)
   }
   records.push({
-    id: m.id, file: m.file, kind: kindOf(m), verdict: verdictOf({ anchorFound: true, built, survived }), expect: m.expect,
+    id: m.id, file: m.file, kind: kindOf(m), verdict: verdictOf({ anchorFound: true, built, survived, crashed }), expect: m.expect,
     buildMs: res?.ms ?? 0, restoreMs: back?.ms ?? 0, expectMs, digestChanged: res ? res.digest !== builder.cleanDigest : null, cycles: res?.cycles ?? 0,
     // The compiled digest itself, not only whether it moved: `mutation-compare.mjs` needs the two drivers' digests of the SAME mutation to be equal, and a boolean cannot say that.
     digest: res?.digest ?? null,
     // Only for a mutation the compiler refused: the first lines it said.
     ...(built ? {} : { errors: (res?.errors ?? []).slice(0, 8).map(e => String(e).slice(0, 1200)) }),
+    // How many times a build of this mutation had to be repeated because the compiler crashed (see compileSteadily): the flake, measured.
+    crashRetries: (res?.retries ?? 0) + (back?.retries ?? 0),
   })
 }
 

@@ -52,7 +52,7 @@ export const readShardSet = (dir, n) => {
 }
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
-const BROKEN = new Set(['anchor-missing', 'not-applied'])
+const BROKEN = new Set(['anchor-missing', 'not-applied', 'build-fault'])
 
 /**
  * Pure. `files` are `readShardSet`'s, `allIds` the table of THIS tree, `sha` its HEAD, `n` the split.
@@ -98,8 +98,9 @@ export const mergeShards = ({ files, allIds, sha, n, readProblems = [] }) => {
   for (const id of [...owner.keys()].filter(id => !allIds.includes(id))) structural.push(`[${id}] was run by shard ${owner.get(id)} and is not in the table`)
 
   const naExpects = new Set(files.flatMap(f => f.data.baseline?.notApplicable ?? []))
-  const counts = { caught: 0, compiler: 0, survived: 0, na: 0, broken: 0 }
+  const counts = { caught: 0, compiler: 0, survived: 0, na: 0, broken: 0, crashRetries: 0 }
   for (const r of records) {
+    counts.crashRetries += r.crashRetries ?? 0
     if (r.verdict === 'caught') counts.caught++
     else if (r.verdict === 'compiler') counts.compiler++
     else if (r.verdict === 'survived') { counts.survived++; verdict.push(`[${r.id}] SURVIVED (shard ${r.shard}): \`${r.expect}\` still passed, nothing defends this claim`) }
@@ -144,6 +145,7 @@ const minutes = ms => `${Math.floor(ms / 60000)}m${String(Math.round((ms % 60000
 export const denominator = ({ counts, baseline, records }, allIds, n) =>
   `${records.length} of ${allIds.length} mutations across ${n} shards (${baseline.shards.mode}): ${counts.caught} caught, ${counts.compiler} refused by the compiler, ` +
   `${counts.survived} survived, ${counts.na} not applicable, ${counts.broken} broken; ${baseline.ran} distinct expectations, ${baseline.failing} failing; ` +
+  `${counts.crashRetries} compiler crash(es) repeated; ` +
   `longest shard ${minutes(baseline.shards.longestMs)}, shards together ${minutes(baseline.shards.sumMs)}`
 
 // --- self-test ---------------------------------------------------------------------
@@ -209,6 +211,11 @@ const selfTest = () => {
   refuses('a survivor is a verdict problem, by name', fs => { fs[0].data.records[1].verdict = 'survived' }, 'verdict', /\[m4\] SURVIVED \(shard 1\)/)
   refuses('a broken mutation is a verdict problem, by name', fs => { fs[1].data.records[0].verdict = 'anchor-missing' }, 'verdict', /\[m2\] is a broken mutation \(anchor-missing, shard 2\)/)
   refuses('a failing baseline is a verdict problem, by shard', fs => { fs[2].data.baseline.results[0].passed = false; fs[2].data.baseline.failing = 1 }, 'verdict', /shard 3\/3: 1 baseline expectation\(s\) already failing/)
+  refuses('a compiler crash is a verdict problem (the mutation tested nothing), not a catch', fs => { fs[1].data.records[0].verdict = 'build-fault' }, 'verdict', /\[m2\] is a broken mutation \(build-fault, shard 2\)/)
+  check('MUTATION: repeated compiler crashes are summed and printed, so the flake rate is visible in the gate log', (() => {
+    const files = build(); files[0].data.records[0].crashRetries = 2; files[1].data.records[0].crashRetries = 1
+    const r = merge(files); return r.counts.crashRetries === 3 && /3 compiler crash\(es\) repeated/.test(denominator(r, IDS, N))
+  })())
   check('a survivor leaves the structure whole, so the artifact can still be written', (() => {
     const files = build(); files[0].data.records[1].verdict = 'survived'
     const r = merge(files); return r.structural.length === 0 && r.verdict.length === 1
