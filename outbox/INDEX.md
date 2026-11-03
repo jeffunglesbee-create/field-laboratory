@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `14af0e3` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: the proof-check landing, with the verify, guards and deploy it was read from |
+| `4cdac9c` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `6f33b8d` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: the proof checks are one batched compile — the scored gate, the figures, the CC-CMD marked DONE |
 | `a3ac790` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8b1ee44 [skip ci] |
 | `8b1ee44` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: proof-check sweep v3 kept with the other sweeps |
