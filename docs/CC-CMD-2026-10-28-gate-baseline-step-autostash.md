@@ -4,9 +4,12 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-28
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** **PARTIAL 2026-10-28.** The step is fixed and tested (done conditions 1, 2 and 4); condition 3, a `verify-full` run whose
-`Record this measurement` is green after the branch moved, needs a gate run after the fix and has none yet. Evidence below is from run
-40621860549. See `outbox/cc-session-2026-10-28-gate-baseline-step.md`, including the `push-lands` failure the first landing hit.
+**Status:** **DONE 2026-11-03.** The step is fixed and tested (done conditions 1, 2 and 4), and condition 3 is read from a real run: the
+weekly scheduled `verify-full` run 41464892788 (2026-11-02, tree `569ff63`, which contains the fix `ecd43e7`) had `Record this measurement`
+green, and both ledger lines are on main in commit `d5c5662` (ledger run `569ff631fc92-62206cb229a7`). Main moved during that run (status and
+forecast commits at 16:28Z and 16:31Z) but not by an append to a ledger, so the ledger-conflict race itself is covered by
+`scripts/gate-ledger-step-check.mjs` (17 of 17) and not by a real run. Evidence below is from run 40621860549. See
+`outbox/cc-session-2026-10-28-gate-baseline-step.md`, including the `push-lands` failure the first landing hit.
 
 ```bash
 git remote get-url origin | grep -q field-laboratory || { echo "WRONG REPO"; exit 1; }

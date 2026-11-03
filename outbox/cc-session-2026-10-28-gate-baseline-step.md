@@ -58,10 +58,18 @@ it verified the push landed. I had run the harness and `workflow-check` locally 
 separate job. The loop now ends with `git fetch` and `git merge-base --is-ancestor HEAD origin/<branch>` as the guard requires, and the
 harness asserts the verification (with its must-fail input above). `check-push-lands.py` now reports 13 guarded, 0 unguarded.
 
+## The first real run after the fix (read 2026-11-03)
+
+The weekly scheduled `verify-full`, run 41464892788 (2026-11-02 14:45Z to 16:48Z, tree `569ff63`, 6513 s), succeeded; `Keep the mutation
+baseline` and `Record this measurement` were green and both ledger lines are on main (`d5c5662`, baseline `35513a4`): confidence run
+`569ff631fc92-62206cb229a7` and scale line `569ff631fc92-e3b0c44298fc` (126 cards, 477 ms). Its possible score is 520, not 530: on a scheduled
+run the outbox row is not applicable and is out of the score, so it is not comparable with a session run of the same tree. Main moved during
+the run (commits at 16:28Z and 16:31Z), but neither appended to a ledger, so the conflict this fix exists for did not occur in it.
+
 ## What this does not prove
 
-The first real exercise of the fixed step is the next `verify-full` run after this lands. Whether a ledger line then lands on a branch that
-moved mid-run is read from that run, not assumed here. It covers a branch that moved by an append; a force-push is not a race this step
+The ledger-conflict race itself (another writer appending to the same ledger while a gate runs) has been exercised only by the harness, not by a
+real run. Whether a ledger line lands on a branch that moved by such an append is read from the harness, not from a run. It covers a branch that moved by an append; a force-push is not a race this step
 can recover from and is not tried.
 
 ## The line that was lost
