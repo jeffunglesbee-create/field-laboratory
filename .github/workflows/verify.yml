@@ -912,6 +912,15 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:mutation-anchors
 
+      # The parts of the sharded mutation run: the build driver's cycle parser (real Fable lines as fixtures, a fake watcher
+      # that speaks its protocol), the merge that refuses a shard set which is not exactly the table, the poll that names a
+      # shard which never uploaded (against fake API servers on localhost, with a real zip), and the comparison of the two
+      # build drivers. Each self-test carries a must-fail case per clause. Needs zip and unzip (both on the runner image).
+      # docs/CC-CMD-2026-11-03-gate-speed.md.
+      - name: The sharded mutation run's parts refuse what they must
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:mutation-parts
+
       # docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md. The table's sourced
       # block is generated from outbox/venue-source-results-latest.json; this
       # holds the two together, with no network, both ways: every accepted

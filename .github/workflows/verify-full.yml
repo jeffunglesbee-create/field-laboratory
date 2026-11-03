@@ -38,6 +38,19 @@
 # suite before pushing, and this workflow is the independent confirmation of
 # that rather than the only place it happens.
 #
+# TOPOLOGY, CHANGED 2026-11-03 (docs/CC-CMD-2026-11-03-gate-speed.md)
+#
+# The mutation suite is 87% of the gate (4003 to 5688 s of 4624 to 6513 s on the last four ledger lines), and it was one
+# runner, strictly in series, paying a whole-project compile (34.5 s) per mutation of `src/`. It is now EIGHT shard jobs
+# (`mutation shard i of 8`), each running its slice of the table with the incremental compiler (`--build watch`, about 3 to
+# 8 s per compile and byte-identical to the full one: outbox/mutation-equivalence-latest.json). The `full` job does not
+# wait for them. It builds, runs every other row, and its mutation row (`GATE_MUTATION_SHARDS=8`) polls this run's
+# artifacts, then merges them: scripts/mutation-await.mjs, scripts/mutation-merge.mjs. The merge refuses unless the
+# eight shards are exactly the table, all of this commit, with no survivor. Locally, `npm run gate` is unchanged.
+#
+# The pre-gate `check:proof` step now runs only `proof-check.mjs --self-test`: its suite half was the gate's own proof row run a
+# second time ("run twice here", below). The row reports the same failure, and thirteen minutes is not an early warning.
+#
 # WHEN TO DISPATCH RATHER THAN WAIT
 #
 # Before declaring a phase complete, before anything that will be cited as
@@ -62,6 +75,29 @@ permissions:
   actions: read
 
 jobs:
+  # One slice of the mutation table. The job name is read by scripts/mutation-await.mjs (`jobName`), which uses it to stop
+  # waiting for a shard whose job has finished without uploading; change one and the other with it.
+  shard:
+    name: mutation shard ${{ matrix.index }} of 8
+    runs-on: ubuntu-latest
+    # Measured shards are a fraction of the old 90+ minute row; this bounds a hung browser mutation, not a normal run.
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      # Full history, as in `full`: the history rows' world mutations walk the log to its root.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/mutation-shard
+        with:
+          index: ${{ matrix.index }}
+          of: 8
+          mode: watch
+          artifact: mutation-shard-${{ matrix.index }}-of-8
+
   full:
     runs-on: ubuntu-latest
     # The confidence gate runs the whole mutation suite, and the suite grows as
@@ -143,11 +179,17 @@ jobs:
             sleep 1
           done
 
-      # Compiles every violation the proof docs claim is rejected and asserts the
-      # compiler really rejects it with the stated error code. A passing proof
-      # case is a failing check.
-      - name: Proof-doc claims are compiler-verified
-        run: npm run check:proof
+      # `npm run check:proof` ran here too, until 2026-11-03: `proof-check.mjs --self-test`
+      # and then the suite. The suite is the gate's own row "doc claims are compiler-verified"
+      # (the same command, `node scripts/proof-check.mjs`), so the job paid for it twice, and
+      # at 776 s it is the next-longest path after the mutation suite. The row fails on the
+      # same defect with the same output, so the second run is dropped.
+      #
+      # The self-test is NOT in that row and runs nowhere else in CI, so it stays: seconds,
+      # pure, and the only thing that shows the checker can still tell a rejected violation
+      # from an accepted one.
+      - name: The proof-doc checker can still tell a rejected violation from an accepted one
+        run: node scripts/proof-check.mjs --self-test
 
       # Every row runs a real command and takes its score from the exit code, so
       # the total cannot be asserted, only earned. Below 95 fails the build, and
@@ -155,7 +197,8 @@ jobs:
       #
       # This is also the only place the mutation suite now runs: the gate's
       # `breaking each invariant makes a check fail` row is
-      #   --self-test && the full suite && --only known-survivor must FAIL.
+      #   --self-test && the full suite && --only known-survivor must FAIL,
+      # where "the full suite" is, on this workflow, the eight shard jobs above read back and merged.
       # PEAK SLATE. Added 2026-09-05.
       #
       # Every browser check in this repo loaded a two-card capture, while the
@@ -178,6 +221,11 @@ jobs:
           npm run check:peak-separation
 
       - name: Confidence gate (>= 95)
+        env:
+          # The mutation row reads the shard jobs' results instead of running the suite: see TOPOLOGY above.
+          GATE_MUTATION_SHARDS: '8'
+          # For scripts/mutation-await.mjs, which lists this run's artifacts. `actions: read` is granted above.
+          GITHUB_TOKEN: ${{ github.token }}
         run: npm run gate
 
       # THE POINT OF RECORDING A CI RUN IS NOT MORE RECORDS.

@@ -1,0 +1,150 @@
+# Is the incremental compiler the same compile as the reference one, over the whole mutation table?
+# scripts/mutation-compare.mjs; docs/CC-CMD-2026-11-03-gate-speed.md, Task 5, DONE CONDITION 3.
+#
+# The table (235 mutations) is run in eight shards under `--build watch` and again under `--build full`, on one commit.
+# `mutation-compare.mjs` then lines the two up per mutation: verdict, and for every mutation that rebuilds, the digest of
+# the compiled output. Its artifact, outbox/mutation-equivalence-latest.json, is committed back.
+#
+# A THIRD JOB EXERCISES THE GATE'S OWN READ PATH. The watch shards upload under the names `verify-full` uses
+# (mutation-shard-<i>-of-8) and `await-check` polls the Actions API for them WHILE THEY ARE STILL RUNNING, downloads them
+# and merges them, exactly as the gate's mutation row does. The two things that cannot be tested anywhere else are tested
+# here on real data: that an artifact is listed before its run finishes, and that the shard jobs' names are the ones
+# `mutation-await.mjs` looks for. Its merge prints the denominator of the real table.
+#
+# Triggers: a push of outbox/.trigger-mutation-equivalence (runs from the pushing ref's own copy of this file) or a
+# dispatch. No schedule: it answers a question about a change to the build driver; it is not a monitor.
+name: mutation-equivalence
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-mutation-equivalence'
+
+# Its own group: it must not cancel, or be cancelled by, a verify-full run (that group is global with cancel-in-progress).
+concurrency:
+  group: mutation-equivalence
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  watch:
+    name: mutation shard ${{ matrix.index }} of 8
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/mutation-shard
+        with:
+          index: ${{ matrix.index }}
+          of: 8
+          mode: watch
+          artifact: mutation-shard-${{ matrix.index }}-of-8
+
+  full:
+    name: reference shard ${{ matrix.index }} of 8
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        index: [1, 2, 3, 4, 5, 6, 7, 8]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/mutation-shard
+        with:
+          index: ${{ matrix.index }}
+          of: 8
+          mode: full
+          artifact: mutation-reference-${{ matrix.index }}-of-8
+
+  # Starts with the shards, not after them: that is what the gate's mutation row does.
+  await-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Poll for the watch shards, download them
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/mutation-await.mjs "$RUNNER_TEMP/shards" --of 8 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      - name: Merge them, as the gate does
+        run: node scripts/mutation-merge.mjs "$RUNNER_TEMP/shards" --of 8 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      - name: Keep the merged baseline for reading
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: merged-baseline
+          path: outbox/mutation-baseline-latest.json
+          if-no-files-found: ignore
+          retention-days: 3
+
+  compare:
+    needs: [watch, full]
+    # Compare whatever there is: a red shard is a result, and a missing one is named by the comparison.
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-shard-*
+          path: ${{ runner.temp }}/eq/watch
+          merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-reference-*
+          path: ${{ runner.temp }}/eq/full
+          merge-multiple: true
+      - name: Compare the two drivers over the whole table
+        id: compare
+        continue-on-error: true
+        run: |
+          node scripts/mutation-compare.mjs "$RUNNER_TEMP/eq/watch" "$RUNNER_TEMP/eq/full" --of 8 \
+            --out outbox/mutation-equivalence-latest.json 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/mutation-equivalence-latest.json 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: the incremental compiler against the reference over the whole mutation table [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The comparison decides the job
+        if: steps.compare.outcome != 'success'
+        run: |
+          echo "mutation-equivalence failed: see the step summary and outbox/mutation-equivalence-latest.json"
+          exit 1

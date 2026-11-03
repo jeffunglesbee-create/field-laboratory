@@ -43,7 +43,34 @@ finishes; `kill -TERM` did not stop it. This predates the change (the original w
 backup, the marker and `heal()`, and `heal()` was exercised for real here: a `SIGKILL` mid-mutation left `src/WeatherView.fs` mutated, and
 the next run printed `HEALED ... Restored src/WeatherView.fs from its backup` before measuring anything.
 
+## Part 2 — shards, the poll, the merge, the comparison (commit "mutation row: eight shard jobs ...")
+
+`scripts/mutation-merge.mjs`, `scripts/mutation-await.mjs`, `scripts/mutation-compare.mjs`, each importable with its own `--self-test`,
+all four self-tests in `npm run check:mutation-parts` (12.8 s, run in `verify`).
+
+- **merge** starts from the table (`mutation-check.mjs --list-ids` of this tree), derives what each shard was meant to run (`shardOf`),
+  and refuses on the first difference: a shard missing, an id run twice or by nobody or not in the table, a sha from another commit, a
+  shard that ran the wrong partition, two build modes mixed, a baseline that disagrees with its own list. A survivor or a failing baseline is
+  a verdict problem, not a structural one, so the baseline artifact is still written (pass or fail, as the harness always did) only when the
+  shard set is exactly the table. It prints the denominator: `N of 235 mutations across 8 shards (watch): ...`.
+- **await** is the part the gate's `full` job needs because it does not wait for the shards (they would otherwise be in series with the
+  proof checks). It lists this run's artifacts through the Actions API, up to 80 polls of 30 s (counted in polls, not read from a clock:
+  the script is named in a gate row), downloads and unzips them, and fails by name. A shard job that has finished with no artifact on two
+  consecutive polls fails the wait at once with the job's conclusion; one still running when the polls are spent is named with its job state.
+  The token goes to the API and not to blob storage (asserted against two local servers on two ports). A 5xx is retried, a 4xx stops the wait.
+- **compare** lines the two drivers up per mutation (verdict, and for every mutation that rebuilds, the compiled digest), refuses a comparison
+  of a mode with itself, and counts the non-rebuilding mutations that survive on a clean build.
+- **The gate row** (`gate-checks.mjs`, the mutation row only): with `GATE_MUTATION_SHARDS` unset it is the same three commands as before; set to
+  a positive integer it runs `--self-test`, then await, then merge, then `--only known-survivor` must still FAIL. Set to anything else, it fails.
+
+**Broken on purpose (Rule 90):** 41 clauses of the three scripts were broken one at a time in a copy; 40 went red on the first pass. The survivor
+was the `unzip` exit-status check, hidden behind the later "file is not in the archive" check; a corrupt-zip case was added and the second pass was
+41 of 41.
+
+**A premise of the CC-CMD was half wrong (Rule 100).** It said the `Proof-doc claims` step in `verify-full.yml` was the gate row's own command run a
+second time. `check:proof` is `proof-check.mjs --self-test && proof-check.mjs`; the gate row is only the second. Removing the whole step would have
+dropped the self-test from every workflow. The suite half is removed and the self-test (0.06 s) stays as its own step.
+
 ## Still open at this commit
 
-Parts 2 to 5 (the merge, the poll, the comparison, the gate row, the workflows, the whole-table equivalence run, the scored gate) are in the
-commits after this one; this document is completed with their run ids.
+The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.

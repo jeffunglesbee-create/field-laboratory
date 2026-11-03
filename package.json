@@ -59,6 +59,7 @@
     "check:deploy-landed": "node scripts/deploy-landed-check.mjs --self-test && node scripts/deploy-landed-check.mjs",
     "check:mutation": "node scripts/mutation-check.mjs",
     "check:mutation-anchors": "node scripts/mutation-check.mjs --anchors && node scripts/mutation-check.mjs --self-test",
+    "check:mutation-parts": "node scripts/mutation-lib.mjs --self-test && node scripts/mutation-merge.mjs --self-test && node scripts/mutation-await.mjs --self-test && node scripts/mutation-compare.mjs --self-test",
     "check:rows": "node scripts/row-confidence.mjs",
     "check:verify": "node build/VerifyMain.js",
     "capture:nhl-fixture": "node scripts/capture-nhl-fixture.mjs --self-test && node scripts/capture-nhl-fixture.mjs",

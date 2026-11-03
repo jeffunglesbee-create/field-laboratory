@@ -1,0 +1,79 @@
+# One shard of the mutation table: build the site, run `mutation-check.mjs --shard i/N`, upload the result.
+#
+# ONE DEFINITION, THREE USERS. `verify-full.yml` runs eight of these in parallel and its gate row reads them back;
+# `mutation-equivalence.yml` runs eight under each build driver. Written three times, the copies would drift, and a
+# shard that builds differently from the one it is compared with makes the comparison about the build, not the driver.
+#
+# The caller checks the repository out first, with FULL HISTORY (`fetch-depth: 0`): the world mutations of the history
+# rows walk the log to its root, and a shallow clone would let them pass on one commit. docs/CC-CMD-2026-11-03-gate-speed.md.
+name: mutation shard
+description: Build the site and run one shard of the mutation table, then upload its result.
+
+inputs:
+  index:
+    description: Which shard, 1-based.
+    required: true
+  of:
+    description: How many shards the table is split into.
+    required: true
+  mode:
+    description: Build driver, watch or full.
+    required: true
+  artifact:
+    description: Name of the artifact the shard's result is uploaded as.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+
+    - name: Install
+      shell: bash
+      run: |
+        npm ci
+        dotnet tool restore
+
+    - name: Build (F# -> JS, then assemble public/)
+      shell: bash
+      run: npm run build
+
+    - name: Install Chromium
+      shell: bash
+      run: npx playwright install --with-deps chromium
+
+    - name: Serve the built site
+      shell: bash
+      run: |
+        node scripts/serve.mjs &
+        for i in $(seq 1 20); do
+          curl -sf -o /dev/null http://localhost:8080/ && break
+          sleep 1
+        done
+
+    # The result is written outside the working tree: the world mutations move files in and out of outbox/, and a result
+    # file there would be a file the mutation under test could move.
+    - name: Run the shard
+      shell: bash
+      run: |
+        node scripts/mutation-check.mjs \
+          --shard "${{ inputs.index }}/${{ inputs.of }}" \
+          --build "${{ inputs.mode }}" \
+          --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
+
+    # Even when the shard failed: a survivor is a result, and the reader has to be able to name it.
+    - name: Upload the shard's result
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact }}
+        path: ${{ runner.temp }}/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json
+        if-no-files-found: error
+        retention-days: 3

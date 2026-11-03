@@ -19,7 +19,9 @@
 // .NET, no browser, and no build to do it.
 
 import { execSync } from 'node:child_process'
-import { readdirSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fieldDay } from './checks.mjs'
 
 /**
@@ -101,6 +103,31 @@ const fails = cmd => !ok(cmd)
  * back by habit.
  */
 const all = (...cmds) => cmds.map(ok).reduce((a, b) => a && b, true)
+
+/**
+ * The suite half of the mutation row when the shards run in OTHER jobs.
+ *
+ * `GATE_MUTATION_SHARDS=<N>` is set by `verify-full.yml`, whose `full` job does not wait for the shard jobs: it reaches this row
+ * with the proof checks and everything else already done, and the row waits for the N shards' artifacts (`await`), then asks
+ * whether they are exactly the full run of this tree (`merge`). Unset, the row runs the whole suite in-process, as it always has.
+ *
+ * Set to anything but a positive integer, it FAILS. An empty string is a misconfigured workflow, and reading it as "unset"
+ * would run the suite in-process on a runner that was meant to read eight shards, quietly and eight times too slowly.
+ *
+ * The two commands are passed in rather than written here so that the row's own declaration names every script it runs:
+ * `row-confidence.mjs` reads the declaration to find the scripts it scans for clock reads and network use.
+ */
+const shardedSuite = (shards, awaitCmd, mergeCmd) => {
+  if (!/^[1-9]\d*$/.test(shards)) {
+    failures.push({ cmd: `GATE_MUTATION_SHARDS=${JSON.stringify(shards)}`, why: ['it has to be the number of shards, a positive integer'], silent: false })
+    return false
+  }
+  // A fresh directory every time: a shard file left by an earlier run of the same commit would be read as this run's.
+  const dir = join(tmpdir(), 'mutation-shards')
+  rmSync(dir, { recursive: true, force: true })
+  return ok(`${awaitCmd} ${dir} --of ${shards}`) &&
+         ok(`${mergeCmd} ${dir} --of ${shards}`)
+}
 
 /**
  * An outbox entry dated today, so a session cannot skip its own write-up.
@@ -291,8 +318,15 @@ const rows = [
     // about a tree nobody had meant to create — and if the stranded mutation
     // had landed somewhere every check still passed, the gate would have gone
     // GREEN on a deliberately broken invariant.
+    //
+    // The middle half is the suite. In-process when `GATE_MUTATION_SHARDS` is unset (a local `npm run gate`); read back from the
+    // shard jobs when `verify-full.yml` sets it (docs/CC-CMD-2026-11-03-gate-speed.md). It is the same claim either way, that
+    // every mutation in the table is applied and every one is caught, and the merge refuses a set of shards that is not exactly
+    // the table.
     run: () => ok('node scripts/mutation-check.mjs --self-test') &&
-               ok('node scripts/mutation-check.mjs') &&
+               (process.env.GATE_MUTATION_SHARDS === undefined
+                 ? ok('node scripts/mutation-check.mjs')
+                 : shardedSuite(process.env.GATE_MUTATION_SHARDS, 'node scripts/mutation-await.mjs', 'node scripts/mutation-merge.mjs')) &&
                fails('node scripts/mutation-check.mjs --only known-survivor') },
 
   { name: 'the sparkline shows the value, not a silhouette', weight: 30, skipQuick: true,
