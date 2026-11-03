@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4621f98` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f38fc97` | 2026-11-03 | [cc-session-2026-11-03-proof-check-stale-state.md](cc-session-2026-11-03-proof-check-stale-state.md) | fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects |
 | `f38fc97` | 2026-11-03 | [cc-session-2026-11-03-weather-first-call-14day-count.md](cc-session-2026-11-03-weather-first-call-14day-count.md) | fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects |
 | `7bfb341` | 2026-11-03 | [cc-session-2026-11-03-weather-first-call-14day-count.md](cc-session-2026-11-03-weather-first-call-14day-count.md) | docs: weather-first-call-connect closes DONE on its 14-day count, 28 of 28 weather steps green |
