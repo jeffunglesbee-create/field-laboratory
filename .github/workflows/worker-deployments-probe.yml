@@ -1,0 +1,57 @@
+# What does Cloudflare itself say a Worker's deployment history is? Read on a runner that holds the account's
+# API token, written into the repository as one evidence file.
+#
+# WHY: the version ids the relay's records quote come from `Current Version ID:` lines in deploy workflow logs,
+# which are copies made at deploy time and cannot show a deploy made from anywhere else. The owner's
+# 2026-11-02 could-not-verify list ends with "Worker version ids other than the last deploy". The relay serves
+# no version header and has no version-metadata binding, and the Cloudflare tool sessions have returns only a
+# script's name and id. scripts/probe-worker-deployments.py has the method and the reasoning.
+#
+# DISPATCH ONLY, no schedule: it answers a question; it is not a monitor (CLAUDE.md, "Actions budget"). One
+# run is two GETs per script and about a minute. READ-ONLY: it writes nothing to Cloudflare and spends no
+# Odds API credits. The token comes from the repository secret the lab's deploy already uses.
+name: worker-deployments-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      scripts:
+        description: 'Comma-separated Worker script names on the account'
+        required: false
+        default: 'field-relay-nba'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the deployment history from Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SCRIPTS: ${{ inputs.scripts }}
+        run: |
+          OUT="outbox/worker-deployments-probe-$(date -u +%Y%m%dT%H%M%SZ).md"
+          python3 scripts/probe-worker-deployments.py --scripts "$SCRIPTS" --out "$OUT" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Commit the evidence
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/worker-deployments-probe-* 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: Worker deployment history from Cloudflare's API [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
