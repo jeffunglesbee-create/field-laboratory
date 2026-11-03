@@ -21,15 +21,31 @@
 //
 // Usage:  node scripts/mutation-check.mjs
 //         node scripts/mutation-check.mjs --only draw
+//
+// For the gate, which runs it split across runners (docs/CC-CMD-2026-11-03-gate-speed.md):
+//         --shard i/N        the mutations at positions i-1, i-1+N, ... of the table (every id in exactly one shard)
+//         --ids a,b,c        exactly these mutations
+//         --list-ids         print the ids a full run covers, as JSON, and exit (reads, runs nothing)
+//         --out FILE         write a record per mutation (verdict, build and expectation times, whether the compiled output changed)
+//         --build watch|full watch (default): one `dotnet fable watch -c Release` for the whole run, about 3 s a compile; full: `npm run build` every time,
+//                            the reference. Both make the build CLEAN, and check its digest, before every mutation.
 
 import { execSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, dirname } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
+import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
+const flagValue = name => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : null)
+const BUILD_MODE = flagValue('--build') ?? 'watch'
+const SHARD = flagValue('--shard')
+const IDS = flagValue('--ids')
+const OUT = flagValue('--out')
+// Test-only: `skip-restore-wait` makes the watch driver write a restore and NOT wait for the compile, which the next pre-check must refuse.
+const MUTATION_FAULT = process.env.MUTATION_FAULT ?? null
 
 // Each mutation names an invariant this repo claims to hold, and the check that
 // is supposed to notice. `expect` is the check command; a mutation PASSES this
@@ -2600,9 +2616,20 @@ const applyMutation = (source, m) => {
   return source.slice(0, guard) + source.slice(guard).replace(m.find, m.replace)
 }
 
+const eligible = MUTATIONS.filter(m => !m.selfTestOnly)
+// A malformed or out-of-range --shard is a usage error (exit 2, a sentence), not a stack trace; --shard and --ids both choose the mutations, so giving both is ambiguous.
+const shardSpec = (() => {
+  if (!SHARD) return null
+  try { return parseShard(SHARD) } catch (e) { console.error(e.message); process.exit(2) }
+})()
+if (shardSpec && IDS) {
+  console.error('--shard and --ids both choose which mutations run; give one of them.')
+  process.exit(2)
+}
+const subsetIds = IDS ? IDS.split(',').filter(Boolean) : shardSpec ? shardOf(eligible.map(m => m.id), shardSpec.i, shardSpec.n) : null
 const selected = ONLY
   ? MUTATIONS.filter(m => m.id === ONLY)
-  : MUTATIONS.filter(m => !m.selfTestOnly)
+  : subsetIds ? eligible.filter(m => subsetIds.includes(m.id)) : eligible
 
 /**
  * Mutations whose search string is no longer in their file. Reads files and applies
@@ -2651,6 +2678,23 @@ if (process.argv.includes('--anchors')) {
   for (const x of stale) console.log(`  STALE  ${x}`)
   process.exit(stale.length ? 1 : 0)
 }
+if (process.argv.includes('--list-ids')) {
+  console.log(JSON.stringify(eligible.map(m => m.id)))
+  process.exit(0)
+}
+if (!['watch', 'full'].includes(BUILD_MODE)) {
+  console.error(`--build ${BUILD_MODE}: watch or full.`)
+  process.exit(2)
+}
+if (ONLY && (SHARD || IDS)) {
+  console.error('--only names one mutation; it cannot be combined with --shard or --ids.')
+  process.exit(2)
+}
+// A SUBSET THAT SELECTS NOTHING, or names an id that is not there, ran nothing and must not say pass (the same rule as --only below).
+if ((SHARD || IDS) && (selected.length === 0 || (IDS && subsetIds.some(id => !eligible.some(m => m.id === id))))) {
+  console.error(`${IDS ? `--ids ${IDS}` : `--shard ${SHARD}`}: ${selected.length === 0 ? 'selects no mutation' : `names an id no mutation has (${subsetIds.filter(id => !eligible.some(m => m.id === id)).join(', ')})`}, so nothing was run.`)
+  process.exit(2)
+}
 if (process.argv.includes('--only') && (!ONLY || selected.length === 0)) {
   console.error(`--only ${ONLY ?? '(no id given)'}: no mutation has that id, so nothing was run.`)
   console.error(`${MUTATIONS.length} mutations are defined; ids are the \`id:\` field of each record.`)
@@ -2693,6 +2737,8 @@ if (process.argv.includes('--only') && (!ONLY || selected.length === 0)) {
  * same file and needs no export.
  */
 const ownsBaseline = (only) => only === null
+// A shard, or an explicit list of ids, covers part of the table: its baseline is not the full run's, and the aggregator writes the combined artifact.
+const writesBaseline = (only, subset) => ownsBaseline(only) && !subset
 
 // --- restore safety ----------------------------------------------------------
 // Backups outside src/, and handlers on every exit path. proof-check learned
@@ -2723,6 +2769,7 @@ const ownsBaseline = (only) => only === null
 const stateDir = '.mutation-state'
 const marker = join(stateDir, 'active.json')
 const backups = new Map()
+let builder = null
 
 /** Drop the marker and its backups — the tree is known-good from here. */
 const clearActive = () => rmSync(stateDir, { recursive: true, force: true })
@@ -2735,7 +2782,7 @@ const restore = () => {
   clearActive()
 }
 for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {
-  process.on(signal, () => { restore(); if (signal !== 'exit') process.exit(1) })
+  process.on(signal, () => { restore(); builder?.stop(); if (signal !== 'exit') process.exit(1) })
 }
 
 const run = cmd => {
@@ -2879,6 +2926,35 @@ if (process.argv.includes('--self-test')) {
     'the gate runs `--only known-survivor` straight after the full suite; if it ' +
     'writes, the committed baseline is 1 of 1 and the full one is gone')
 
+  const ids = eligible.map(m => m.id)
+  const parts = [1, 2, 3, 4, 5, 6, 7, 8].map(i => shardOf(ids, i, 8))
+  check('THE SHARDS PARTITION THE TABLE: every eligible id is in exactly one of 8 shards',
+    parts.flat().length === ids.length && new Set(parts.flat()).size === ids.length && ids.every(id => parts.flat().includes(id)),
+    `${parts.flat().length} ids across the shards, ${new Set(parts.flat()).size} distinct, ${ids.length} in the table`)
+  check('A SHARD (or an --ids list) DOES NOT WRITE THE BASELINE ARTIFACT, so eight of them cannot overwrite one record',
+    writesBaseline(null, null) === true && writesBaseline(null, ['a']) === false && writesBaseline('known-survivor', null) === false,
+    'only a run of the whole table writes it')
+  check('every mutation has a distinct id', new Set(ids).size === ids.length, 'a repeated id would run twice in one shard and never in another')
+
+  // The command line, run for real. Each of these exits before the baseline, so nothing is built, mutated or healed, and each has to be a usage error (status 2) that says
+  // what was wrong, not a stack trace (status 1) and not a run that started anyway.
+  const usage = args => {
+    try { execSync(`node scripts/mutation-check.mjs ${args}`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' }); return { status: 0, err: '' } }
+    catch (e) { return { status: e.status, err: String(e.stderr) } }
+  }
+  for (const [args, re] of [
+    ['--shard 9/8', /i must be between 1 and N/],
+    ['--shard 3-8', /wants i\/N/],
+    ['--shard 1/8 --ids score-presence', /give one of them/],
+    ['--ids nope', /selects no mutation/],
+    ['--ids score-presence,nope', /names an id no mutation has \(nope\)/],
+    ['--only known-survivor --shard 1/8', /cannot be combined/],
+    ['--build bogus --ids score-presence', /watch or full/],
+  ]) {
+    const r = usage(args)
+    check(`MUTATION: \`${args}\` is a usage error that says why`, r.status === 2 && re.test(r.err), `status ${r.status}: ${r.err.split('\n').find(l => l.trim()) ?? '(no message)'}`)
+  }
+
   rmSync(victim, { force: true })
   rmSync(backup, { force: true })
   clearActive()
@@ -2974,7 +3050,7 @@ console.log(`  baseline: ran ${distinctExpects.length} of ${distinctExpects.leng
 // gate that scores the harness, and verify stayed red for four days on it.
 const BASELINE_AT = new Date()
 
-if (ownsBaseline(ONLY)) {
+if (writesBaseline(ONLY, subsetIds)) {
   mkdirSync('outbox', { recursive: true })
   writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({
     at: BASELINE_AT.toISOString(),
@@ -2987,7 +3063,7 @@ if (ownsBaseline(ONLY)) {
   }, null, 2) + '\n')
   console.log('  wrote outbox/mutation-baseline-latest.json')
 } else {
-  console.log(`  baseline NOT written: --only ${ONLY} covers ${distinctExpects.length} ` +
+  console.log(`  baseline NOT written: ${ONLY ? `--only ${ONLY}` : (IDS ? '--ids' : `--shard ${SHARD}`)} covers ${distinctExpects.length} ` +
     `expectation(s) of the full suite, and the artifact is the full run's`)
 }
 
@@ -2998,11 +3074,49 @@ check('the unmutated tree passes every expectation',
   `(full output in outbox/mutation-baseline-latest.json):\n` +
   baselineFailures.map(c => `            $ ${c}`).join('\n'))
 
+// --- the build driver, and a record per mutation --------------------------------------------------
+//
+// THE BUILD IS MADE CLEAN, AND ITS DIGEST CHECKED, BEFORE EVERY MUTATION. docs/CC-CMD-2026-11-03-gate-speed.md.
+//
+// Until 2026-11-03 only a mutation of `src/` or `index.html` rebuilt, and nothing rebuilt AFTER it: the file was restored and the compiled mutation stayed in
+// build/ until the next source mutation overwrote it. 94 of the 94 mutations that do not rebuild (`scripts/`, `.github/`, the world ones) therefore ran on whatever
+// the nearest earlier source mutation had left, so a script mutation could be "caught" by a leftover compiled one: the verdict depended on the table's ORDER, and a
+// sharded run reorders it. A build made clean before every mutation fixes both, and it is also what makes the fast driver safe: a stale build between mutations
+// can then only be a CLEAN build, so what it can produce is a mutation that survives (loud), never one caught by its predecessor (silent).
+//
+// The driver starts when the first source mutation needs it, not before: `--only known-survivor` (a docs mutation, no build) pays nothing, and the harness run
+// that the `harness-blind` expectation launches inside a harness run never starts a second watcher on the same build/.
+const records = []
+const wall = stopwatch()
+const fatal = msg => {
+  console.log(`::error::${msg}`)
+  process.exit(1)
+}
+const startBuilder = async () => {
+  if (builder) return
+  if (process.env.MUTATION_BUILDER_ACTIVE) fatal('a harness run inside a harness run may not start a second build driver: two would write one build/')
+  const existing = existsSync('build') ? digestDir('build', ['public/index.html']) : null
+  builder = BUILD_MODE === 'full' ? new FullBuild({ fault: MUTATION_FAULT }) : new WatchBuild({ fault: MUTATION_FAULT })
+  try {
+    const started = await builder.start(BUILD_MODE === 'watch' ? { expectDigest: existing } : {})
+    console.log(`  build driver: ${BUILD_MODE}, ready in ${started.ms} ms, clean digest ${started.digest}`)
+  } catch (e) {
+    fatal(`the build driver did not start: ${e.message}`)
+  }
+  process.env.MUTATION_BUILDER_ACTIVE = '1'
+}
+const cleanBefore = what => {
+  if (!builder) return
+  try { builder.assertClean(what) } catch (e) { fatal(e.message) }
+}
+const kindOf = m => (m.mutate ? 'world' : m.file.startsWith('src/') ? 'src' : m.file === 'index.html' ? 'html' : 'script')
+
 for (const m of selected) {
   // Not run, and not counted as caught: the row this mutation would break is
   // not scored on this run at all. The count is printed with the baseline above.
   if (notApplicableExpects.has(m.expect)) {
     console.log(`  N/A   [${m.id}] ${m.claim} — \`${m.expect}\` is not applicable on this run`)
+    records.push({ id: m.id, kind: kindOf(m), verdict: 'n/a', expect: m.expect })
     continue
   }
   // A WORLD mutation changes something outside the source — a file the check
@@ -3011,6 +3125,7 @@ for (const m of selected) {
   // it would test the check by rewriting the check. Mutating what they MEASURE
   // is the honest version.
   if (m.mutate) {
+    cleanBefore(`world mutation [${m.id}]`)
     // Marker first. A world mutation moves real files around — the outbox one
     // moves this session's write-ups into /tmp — so being killed between
     // `mutate` and `restore` is the most expensive interruption here, not the
@@ -3049,16 +3164,20 @@ for (const m of selected) {
       check(`[${m.id}] the mutation actually applies`, false,
         `\`${m.mutate.slice(0, 90)}${m.mutate.length > 90 ? '…' : ''}\` left the tree unchanged. ` +
         `Nothing was tested — this is a broken mutation, NOT an undefended claim.`)
+      records.push({ id: m.id, kind: 'world', verdict: verdictOf({ anchorFound: true, applied: false }), expect: m.expect })
       continue
     }
 
+    const lapWorld = stopwatch()
     const passed = run(m.expect)
+    const worldMs = lapWorld()
     run(m.restore)
     clearActive()
     const caught = !passed
     check(`[${m.id}] ${m.claim}`, caught,
       `mutation SURVIVED — \`${m.expect}\` still passed. ` +
       `Nothing defends this claim.`)
+    records.push({ id: m.id, kind: 'world', verdict: verdictOf({ anchorFound: true, built: true, survived: passed }), expect: m.expect, buildMs: 0, restoreMs: 0, expectMs: worldMs, digestChanged: null, cycles: 0 })
     continue
   }
 
@@ -3067,18 +3186,9 @@ for (const m of selected) {
   if (mutated === original) {
     check(`[${m.id}] the mutation anchor still exists`, false,
       `not found in ${m.file}: ${m.find.trim()}`)
+    records.push({ id: m.id, file: m.file, kind: kindOf(m), verdict: verdictOf({ anchorFound: false }), expect: m.expect })
     continue
   }
-
-  // Backup and marker land BEFORE the file is touched. The window this closes
-  // is the one that actually opened today: the process died holding a mutated
-  // file with its only backup in a tmpdir that died with it.
-  mkdirSync(stateDir, { recursive: true })
-  const backupPath = join(stateDir, m.file.replace(/\//g, '_'))
-  writeFileSync(backupPath, original)
-  writeFileSync(marker, JSON.stringify({ id: m.id, file: m.file, backup: backupPath }))
-  backups.set(m.file, backupPath)
-  writeFileSync(m.file, mutated)
 
   // Only source changes need recompiling. Mutating a workflow or a doc does
   // not, and rebuilding for those added a minute each for nothing.
@@ -3088,14 +3198,46 @@ for (const m of selected) {
   // site is reassembled. Without this the CSS mutation below would survive for a
   // reason that has nothing to do with the claim.
   const needsRebuild = m.file.startsWith('src/') || m.file === 'index.html'
-  const built = needsRebuild ? run('npm run build') : true
+  const html = m.file === 'index.html'
+  if (needsRebuild) await startBuilder()
+  cleanBefore(`[${m.id}]`)
+
+  // Backup and marker land BEFORE the file is touched. The window this closes
+  // is the one that actually opened today: the process died holding a mutated
+  // file with its only backup in a tmpdir that died with it.
+  mkdirSync(stateDir, { recursive: true })
+  const backupPath = join(stateDir, m.file.replace(/\//g, '_'))
+  writeFileSync(backupPath, original)
+  writeFileSync(marker, JSON.stringify({ id: m.id, file: m.file, backup: backupPath }))
+  backups.set(m.file, backupPath)
+
+  let res = null
+  try {
+    // The write happens INSIDE compile(): the cycle count is read before it, so the compile waited for is the one this write caused.
+    if (needsRebuild) res = await builder.compile(() => writeFileSync(m.file, mutated), { label: `[${m.id}]`, noCycle: html })
+    else writeFileSync(m.file, mutated)
+  } catch (e) {
+    fatal(`[${m.id}] ${e.message}`)
+  }
+  const built = needsRebuild ? res.ok : true
   // No inversion flag. A row that passes when its command fails already encodes
   // that itself — `run-row.mjs` reports the ROW's verdict, and a shell `!` wraps
   // anything else. An `inverted` option existed here briefly and was removed
   // unused: a branch nothing exercises is precisely what this harness is for.
+  const lapExpect = stopwatch()
   const survived = built && run(m.expect)
+  const expectMs = lapExpect()
 
-  writeFileSync(m.file, original)
+  // The file goes back, and for a source mutation so does the BUILD: restored, compiled, and its digest compared to the clean one before the marker is
+  // cleared. Killed in between, the marker is still there and the next run heals both.
+  let back = null
+  try {
+    if (needsRebuild) back = await builder.compile(() => writeFileSync(m.file, original), { restore: true, label: `restoring [${m.id}]`, noCycle: html })
+    else writeFileSync(m.file, original)
+  } catch (e) {
+    fatal(`restoring [${m.id}]: ${e.message}`)
+  }
+  cleanBefore(`the restore of [${m.id}] was verified`)
   backups.delete(m.file)
   clearActive()
 
@@ -3109,10 +3251,37 @@ for (const m of selected) {
       `mutation SURVIVED — ${m.file} was broken and \`${m.expect}\` still passed. ` +
       `Nothing defends this claim.`)
   }
+  records.push({
+    id: m.id, file: m.file, kind: kindOf(m), verdict: verdictOf({ anchorFound: true, built, survived }), expect: m.expect,
+    buildMs: res?.ms ?? 0, restoreMs: back?.ms ?? 0, expectMs, digestChanged: res ? res.digest !== builder.cleanDigest : null, cycles: res?.cycles ?? 0,
+    // The compiled digest itself, not only whether it moved: `mutation-compare.mjs` needs the two drivers' digests of the SAME mutation to be equal, and a boolean cannot say that.
+    digest: res?.digest ?? null,
+  })
 }
 
-// Leave the tree as it was found, whatever happened above.
+// Leave the tree as it was found, whatever happened above. Nothing was rebuilt unless a driver started, and one that did has verified a clean build after
+// every restore, so the old closing `npm run build` is redundant: its work is checked instead of repeated.
 restore()
-run('npm run build')
+if (builder) {
+  try { builder.assertClean('the end of the run') } catch (e) { check('the build is clean at the end of the run', false, e.message) }
+  builder.stop()
+}
+
+if (OUT) {
+  mkdirSync(dirname(OUT), { recursive: true })
+  writeFileSync(OUT, JSON.stringify({
+    at: BASELINE_AT.toISOString(),
+    sha: capture('git rev-parse HEAD').trim(),
+    mode: BUILD_MODE,
+    shard: SHARD,
+    ids: selected.map(m => m.id),
+    tableSize: eligible.length,
+    cleanDigest: builder?.cleanDigest ?? null,
+    baseline: { ran: distinctExpects.length, failing: baselineFailures.length, notApplicable: [...notApplicableExpects], results: baselineResults },
+    wallMs: wall(),
+    records,
+  }, null, 1) + '\n')
+  console.log(`  wrote ${OUT}: ${records.length} record(s), ${records.filter(r => r.verdict === 'survived').length} survived`)
+}
 
 finish(summarize())
