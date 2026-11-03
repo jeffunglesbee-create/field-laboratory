@@ -14,6 +14,7 @@ The owner's list of what could not be verified on 2026-11-02 named "the Drama ba
 | `scripts/check-drama-backfill.py` | runs the relay's `scripts/drama-backfill.mjs` and `scripts/reset-drama-refused-read.mjs` UNMODIFIED against a local copy of the relay routes they call (missing-queue list, the guarded write, the ESPN proxy passing an upstream status through, `/d1/execute`, the two recompute posts). 8 scenarios, 88 checks |
 | `scripts/mutate-drama-backfill.py` | Rule 90: 15 mutants of the backfill script and 4 of the reset, each on a copy in a temporary tree (`src/` linked), each required to turn the named scenarios red |
 | `.github/workflows/verify.yml` | new job `drama-backfill` (own job, relay main checked out unpinned at `.relay-src`, node 22, python 3.11) |
+| `scripts/probe-espn-summary-reach.py` + `.github/workflows/espn-summary-reach-probe.yml` | added after the reset was refused (below). Dispatch-only, no schedule, no credits: reads the relay's `/espn-summary` route repeatedly from the runner it is dispatched on, each event cache-busted (a live read) and plain, and records status, `X-RELAY-Error`, `cf-ray` data centre, `cf-cache-status`, body start. Writes `outbox/espn-summary-reach-probe-<UTC>.md` |
 
 ## Verified, and what was not
 
@@ -25,7 +26,12 @@ The owner's list of what could not be verified on 2026-11-02 named "the Drama ba
 | the reset touches nothing unless the row is exactly the stored refusal, ESPN answers now, one row changes, and the row reads back NULL | **VERIFIED** locally | scenario `reset_row` and R01 to R04 |
 | the workflows are valid | **VERIFIED** | `actionlint` exit 0 on `verify.yml` and on the relay's `reset-drama-refused-read.yml` |
 | a missing ESPN event is a 404 through the relay | **MEASURED**, probe 2026-11-03 | `/espn-summary/sports/soccer/fifa.world/summary?event=1` and the MLB path both answered 404, body `espn-summary returned 404` |
-| the reset on the real row, and the scoring run after it | **NOT YET** | see the relay CC-CMD's "Observed" |
+| the lab check is part of CI and green | **VERIFIED** | `verify` run 41593904470 on `2a2119c`: jobs `verify`, `push-lands`, `claim-sweep`, `drama-backfill`, `patent-watch` all `success` (`gh run view --json jobs`) |
+| the reset on the real row | **REFUSED BY DESIGN, 2026-11-03 ~07:05Z** | relay run 41593921289 printed `RESET ERROR: ESPN summary for 401884754 answers HTTP 403 through the relay: a reset now would only be refused again; not resetting`. D1 read 07:13:26Z: the row is unchanged (`drama_peak` 0, `drama_arc` `null`). The refusal reproduces from a runner; the dev sandbox and the MCP probe tool get 200 for the same URL |
+| the relay's route and cache, as read | **READ FROM SOURCE** (relay `46dcb17c`) | `/espn-summary` forwards the query string to ESPN and allow-lists the path only; `relayFetch` (`src/cache-helpers.js`) caches successful ESPN answers only, 25 s, per data centre, keyed by the full URL; a non-OK answer is returned fresh as `espn-summary returned N` with `X-RELAY-Error: espn-summary-N`. So a 200 can be a copy and cannot show a live refusal; a cache-busted read can |
+| the probe works | **MEASURED** from the sandbox, 07:12-07:13Z | 4 of 4 requests answered: cache-busted event 401884754 200 / 427,600 bytes / data centre IAD (so ESPN ignores the extra parameter there, and the event is not refused for every caller); no-such-event 404 with `X-RELAY-Error: espn-summary-404`; `/v2/games` 200 |
+| why the runner is refused | **NOT ESTABLISHED** | needs the probe run from a runner (below) |
+| the scoring run after a successful reset | **NOT YET** | see the relay CC-CMD's "Observed" |
 | a scheduled run that meets a refusal leaves the game NULL | **NOT OBSERVED** | the stand-in proves the script; no real refusal has happened since the fix |
 | the AFL reader | **NOT HELD** | it fetches ESPN directly; no scenario reaches it. It raises the same status error, and its failures are deferred by the same rule |
 

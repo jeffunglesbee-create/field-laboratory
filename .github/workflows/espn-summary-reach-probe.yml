@@ -1,0 +1,60 @@
+# Does the relay's /espn-summary route refuse a GitHub Actions runner, for which events, from which
+# Cloudflare data centre, and is a refusal live or cached? Measured on the runner, writing nothing but
+# its own evidence file.
+#
+# WHY: field-relay-nba's Drama backfill stored an ESPN 403 as a score (run 41235124610, 2026-10-31), and on
+# 2026-11-03 its one-row reset was refused the same way by the same route from a runner (relay run
+# 41593921289) while the dev sandbox and the MCP probe tool were answered 200. The fix in the relay makes a
+# refusal a retry on the next run (CC-CMD-2026-11-03-drama-backfill-error-is-not-a-score); whether a retry
+# can ever succeed depends on what this measures. scripts/probe-espn-summary-reach.py has the method.
+#
+# DISPATCH ONLY, no schedule: it answers a question; it is not a monitor (CLAUDE.md, "Actions budget").
+# One run is about 30 requests and a minute. It calls the relay's read-only public routes and spends no
+# credits.
+name: espn-summary-reach-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      events:
+        description: 'Comma-separated ESPN soccer event ids. First = the refused one; the rest succeeded on 2026-10-31.'
+        required: false
+        default: '401884754,401884748,401884747'
+      rounds:
+        description: 'Rounds of reads (each round reads every event plain and with a nonce, plus two controls)'
+        required: false
+        default: '6'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the route from this runner
+        env:
+          EVENTS: ${{ inputs.events }}
+          ROUNDS: ${{ inputs.rounds }}
+        run: |
+          python3 scripts/probe-espn-summary-reach.py --events "$EVENTS" --rounds "$ROUNDS" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Commit the evidence
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/espn-summary-reach-probe-* 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: relay /espn-summary reach from a runner [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
