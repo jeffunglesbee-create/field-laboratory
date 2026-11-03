@@ -199,7 +199,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: The check can be made to fail (19 mutants, about 60 seconds)
+      - name: The check can be made to fail (24 mutants, about 80 seconds)
         run: python3 scripts/mutate-drama-backfill.py
 
       - name: The relay's Drama backfill keeps its rule (about 25 seconds)

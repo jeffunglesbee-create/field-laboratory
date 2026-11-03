@@ -14,6 +14,9 @@ statuses, the two recompute posts) and requires:
     the run ends non-zero and says "deferred", and the NEXT run scores it;
   * only ESPN saying the event does not exist (404, 410) stores the 0 "cannot be scored" mark, once, through
     each reader (soccer, MLB, WNBA), and the run still counts it as an error;
+  * the error line of a read that failed names where the answer came from: the relay's X-RELAY-Error stamp and
+    the Cloudflare data centre (cf-ray), through each reader (soccer, MLB, WNBA). The 403s of 10-31 and 11-03
+    stayed unattributed because only the status was logged;
   * a batch in which every game is deferred ends the loop (the relay keeps listing a NULL row, 20 at a time);
   * what already worked is kept: a game is scored, an unsupported sport and an empty reading store 0, and a
     write the relay refused is not stored as a score;
@@ -68,6 +71,12 @@ MLB_OK = {"plays": [
      "onSecond": {}, "pitchCount": {"balls": 3, "strikes": 2}},
 ]}
 DROP = object()  # answer by closing the connection
+# Every answer from a Cloudflare Worker carries cf-ray, whose last segment is the data centre that served it;
+# the relay's ESPN pass-through also stamps X-RELAY-Error: espn-summary-<status> on a non-OK answer
+# (src/cache-helpers.js, relayFetch). The 403s of 2026-10-31 and 2026-11-03 could not be told apart
+# (ESPN through the Worker, the relay, Cloudflare in front of it) because the log kept only the status.
+STAND_IN_COLO = "IAD"
+STAND_IN_RAY = f"8f0a1b2c3d4e5f60-{STAND_IN_COLO}"
 
 
 def game(n, sport="Bundesliga", event=None, date="2026-10-31"):
@@ -184,6 +193,9 @@ def handler_for(relay):
             self.send_response(status)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(data)))
+            self.send_header("cf-ray", STAND_IN_RAY)
+            if isinstance(body, str) and body.startswith("espn-summary returned "):
+                self.send_header("X-RELAY-Error", f"espn-summary-{status}")
             self.end_headers()
             self.wfile.write(data)
 
@@ -279,6 +291,9 @@ def refused_read(t, script):
         t.ok(f"{tag}: the rest of the batch is still scored", scored(r, good["id"]), str(r.writes))
         t.ok(f"{tag}: the run ends non-zero", code == 1, f"exit {code}")
         t.ok(f"{tag}: the log says deferred, once", log.count("[deferred]") == 1 and "1 deferred" in log, log[-400:])
+        if isinstance(how, int):
+            t.ok(f"{tag}: the error line names the relay's stamp and the data centre",
+                 f"X-RELAY-Error: espn-summary-{how}" in log and f"data centre: {STAND_IN_COLO}" in log, log[-400:])
 
 
 @scenario
@@ -293,6 +308,8 @@ def absent_event(t, script):
         t.ok(f"{tag}: fetched once", r.espn_hits.get("4101") == 1, str(r.espn_hits))
         t.ok(f"{tag}: still counted as an error", code == 1, f"exit {code}")
         t.ok(f"{tag}: the log says absent, not deferred", "[absent]" in log and "[deferred]" not in log, log[-300:])
+        t.ok(f"{tag}: the error line names the relay's stamp and the data centre",
+             f"X-RELAY-Error: espn-summary-{how}" in log and f"data centre: {STAND_IN_COLO}" in log, log[-300:])
 
 
 @scenario
