@@ -31,6 +31,15 @@ PPUBS_BASE points the same code at scripts/ppubs_stand_in.py for --self-test.
 
 Writes outbox/ppubs-query-probe-<UTC stamp>.json (every call) and .md (the
 decision table), prints the table, and exits 1 if no working form was found.
+
+TWO MODES (PPUBS_MODE). "forms" is the first run's: which spellings answer, at
+0.5 s between calls. It found the host rate-limits (HTTP 429, body
+{"message": "Too many requests"}) at about one call a second, which polluted its
+reading of the real week. "reading" paces at 3 s, backs off on 429 and records
+the 429's headers, and measures what the watcher will actually do: known answers
+per watchlist term and database, the production query forms against them, the
+date totals for eight weeks, the OR query against per-term queries, and how many
+hits the assignee field and the all-fields phrase each produce per week.
 """
 import datetime
 import itertools
@@ -44,9 +53,22 @@ import requests
 BASE = os.environ.get("PPUBS_BASE", "https://ppubs.uspto.gov")
 UA = "Mozilla/5.0 (X11; Linux x86_64) field-laboratory/ppubs-query-probe"
 TIMEOUT = 60
-PAUSE = float(os.environ.get("PPUBS_PAUSE", "0.5"))
-DEADLINE_S = float(os.environ.get("PPUBS_DEADLINE", str(14 * 60)))
+MODE = os.environ.get("PPUBS_MODE", "forms")
+PAUSE = float(os.environ.get("PPUBS_PAUSE", "3.0" if MODE == "reading" else "0.5"))
+DEADLINE_S = float(os.environ.get("PPUBS_DEADLINE", str((28 if MODE == "reading" else 14) * 60)))
+RETRY_429 = int(os.environ.get("PPUBS_RETRY_429", "3"))
+BACKOFF = float(os.environ.get("PPUBS_BACKOFF", "20"))
+RATE_HEADERS = {
+    "retry-after", "x-ratelimit-limit", "x-ratelimit-remaining", "x-ratelimit-reset",
+    "ratelimit-limit", "ratelimit-remaining", "ratelimit-reset", "ratelimit-policy",
+    "x-request-id", "server", "via", "date",
+}
 MIN_DATE_DOCS = int(os.environ.get("PPUBS_MIN_DATE_DOCS", "20"))
+MIN_TOTAL = int(os.environ.get("PPUBS_MIN_TOTAL", "500"))
+PROD_DATE = '@PD="{d}"'          # the forms the "forms" run verified against the known patent
+PROD_ASSIGNEE = '"{n}".as.'
+RANGE = '@PD>="{a}"<="{b}"'
+WEEKS = 8
 
 CTRL_NUMBER = ("10846193", "US-10846193-B2")
 CTRL_NAME = "RUWT"
@@ -93,6 +115,12 @@ def last_weekday(weekday, today):
     return today - datetime.timedelta(days=back)
 
 
+def recent_weekdays(weekday, today, k):
+    """The k most recent dates with this weekday strictly before `today`, newest first."""
+    first = last_weekday(weekday, today)
+    return [first - datetime.timedelta(days=7 * i) for i in range(k)]
+
+
 def compact(day):
     return day.replace("-", "")
 
@@ -126,6 +154,16 @@ def found_count(result):
                 if isinstance(v.get(k), int) and not isinstance(v.get(k), bool):
                     return v[k], f"{outer}.{k}"
     return None, None
+
+
+def scalars(result):
+    """The top-level scalar values of a response, so a field such as totalResults can be read."""
+    if not isinstance(result, dict):
+        return {}
+    return {
+        k: v for k, v in result.items()
+        if v is None or isinstance(v, (int, float, bool)) or (isinstance(v, str) and len(v) <= 60)
+    }
 
 
 def shape(result):
@@ -168,6 +206,9 @@ class Ppubs:
         self.case_id = None
         self.renewed = 0
         self.session_log = []
+        self.calls = 0
+        self.events = []
+        self.t0 = time.monotonic()
 
     def open(self):
         s = requests.Session()
@@ -218,20 +259,38 @@ class Ppubs:
         return True
 
     def _post(self, path, body):
-        for attempt in (1, 2):
+        renewed = False
+        tries_429 = 0
+        extra = {}
+        while True:
             t0 = time.monotonic()
             try:
                 r = self.s.post(f"{BASE}{path}", json=body, timeout=TIMEOUT)
             except requests.RequestException as e:
-                return None, {"error": str(e)[:300], "ms": int((time.monotonic() - t0) * 1000)}
+                return None, {"error": str(e)[:300], "ms": int((time.monotonic() - t0) * 1000), **extra}
+            self.calls += 1
             ms = int((time.monotonic() - t0) * 1000)
-            if r.status_code in (401, 403) and attempt == 1:
+            if r.status_code in (401, 403) and not renewed:
+                renewed = True
                 self.renewed += 1
                 if not self.open():
-                    return r, {"http": r.status_code, "ms": ms, "renew_failed": True}
+                    return r, {"http": r.status_code, "ms": ms, "renew_failed": True, **extra}
                 continue
-            return r, {"http": r.status_code, "ms": ms}
-        raise AssertionError("unreachable")
+            if r.status_code == 429:
+                ev = {
+                    "t": round(time.monotonic() - self.t0, 1), "call_no": self.calls, "path": path,
+                    "headers": {k: v for k, v in r.headers.items() if k.lower() in RATE_HEADERS},
+                    "body": r.text[:120],
+                }
+                self.events.append(ev)
+                tries_429 += 1
+                extra["rate_limited"] = tries_429
+                if tries_429 <= RETRY_429:
+                    ra = r.headers.get("Retry-After", "")
+                    ev["waited_s"] = float(ra) if ra.replace(".", "", 1).isdigit() else BACKOFF
+                    time.sleep(ev["waited_s"])
+                    continue
+            return r, {"http": r.status_code, "ms": ms, **extra}
 
     def query_body(self, q, db):
         return {
@@ -242,15 +301,21 @@ class Ppubs:
             "searchType": 1, "ignorePersist": True, "userEnteredQuery": q,
         }
 
-    def run(self, q, db, n=100, start=0):
-        """counts then search, as patent_fetch.py does. -> entry dict with raw docs under '_docs'."""
+    def run(self, q, db, n=100, start=0, counts=True):
+        """counts then search, as patent_fetch.py does (counts=False: search only).
+        -> entry dict with raw docs under '_docs'."""
         body = self.query_body(q, db)
         entry = {"q": q, "db": db, "start": start, "n": n}
-        r, meta = self._post("/api/searches/counts", body)
-        entry["counts"] = dict(meta)
-        if r is not None:
-            entry["counts"]["head"] = r.text[:300]
-        time.sleep(PAUSE)
+        if counts:
+            r, meta = self._post("/api/searches/counts", body)
+            entry["counts"] = dict(meta)
+            if r is not None:
+                entry["counts"]["head"] = r.text[:300]
+                try:
+                    entry["counts"]["num_results"] = r.json().get("numResults")
+                except (ValueError, AttributeError):
+                    pass
+            time.sleep(PAUSE)
         full = {
             "start": start, "pageCount": n, "sort": "date_publ desc",
             "docFamilyFiltering": "familyIdFiltering", "searchType": 1,
@@ -271,12 +336,14 @@ class Ppubs:
                 result = None
             if result is not None:
                 entry["search"]["shape"] = shape(result)
+                entry["search"]["scalars"] = scalars(result)
                 entry["search"]["n_found"], entry["search"]["n_found_key"] = found_count(result)
                 if isinstance(result, dict):
                     docs = result.get("patents") or result.get("docs") or []
         entry["n_docs"] = len(docs)
         entry["docs"] = [doc_summary(d) for d in docs[:25]]
         entry["_docs"] = docs
+        entry["total"] = (entry["search"].get("scalars") or {}).get("totalResults")
         time.sleep(PAUSE)
         return entry
 
@@ -438,6 +505,162 @@ def build_report(client, today, grant_day, pub_day):
     return report
 
 
+
+def or_query(form, names):
+    return "(" + " OR ".join(fill(form, name=n) for n in names) + ")"
+
+
+def matched_terms(summary, names):
+    """Watch terms found, case-insensitively, in the doc's assignee text or title."""
+    text = f"{summary['assignee']} | {summary['title']}".lower()
+    return [n for n in names if n.lower() in text]
+
+
+def build_reading_report(client, today, grant_day, pub_day):
+    t0 = time.monotonic()
+    report = {
+        "meta": {"base": BASE, "mode": "reading", "run_utc": datetime.datetime.utcnow().isoformat() + "Z",
+                 "grant_day": grant_day, "pub_day": pub_day, "pause_s": PAUSE, "requests": requests.__version__,
+                 "min_total": MIN_TOTAL},
+        "phases": {}, "verdict": [], "or_vs_term": [], "weekly": [],
+    }
+    late = lambda: time.monotonic() - t0 > DEADLINE_S
+    dbs = (("USPAT", grant_day), ("US-PGPUB", pub_day))
+
+    def phase(name):
+        report["phases"][name] = []
+        return report["phases"][name]
+
+    # R0: the number form, with the counts call and without it
+    p0 = phase("0_number_control")
+    q0 = f'"{CTRL_NUMBER[0]}".pn.'
+    e = client.run(q0, "USPAT", n=5, counts=True)
+    e["variant"], e["pass"] = "counts then search", any(x["guid"] == CTRL_NUMBER[1] for x in e["docs"])
+    p0.append(strip_private(e))
+    e = client.run(q0, "USPAT", n=5, counts=False)
+    e["variant"], e["pass"] = "search only", any(x["guid"] == CTRL_NUMBER[1] for x in e["docs"])
+    p0.append(strip_private(e))
+    report["meta"]["number_control_pass"] = all(x["pass"] for x in p0)
+    report["meta"]["search_only_works"] = p0[1]["pass"]
+
+    # R1: newest documents per watch term and database since 2019, to find known answers
+    p1 = phase("1_known_answers")
+    known = {}
+    for db, end in dbs:
+        for name in WATCHLIST:
+            if late():
+                report["meta"]["truncated"] = "phase 1"
+                break
+            q = f"{fill(PROD_ASSIGNEE, name=name)} AND " + RANGE.format(a="20190101", b=compact(end))
+            e = client.run(q, db, n=3, counts=False)
+            e["term"] = name
+            if db == "USPAT" and name == CTRL_NAME:
+                e["pass"] = any(x["guid"] == CTRL_GUID for x in e["docs"])
+                report["meta"]["range_control_pass"] = e["pass"]
+            p1.append(strip_private(e))
+            if e["docs"]:
+                known.setdefault(db, []).append((name, e["docs"][0]))
+
+    # R2: the production form (assignee AND exact date) and the OR form, on the documents just found
+    p2 = phase("2_production_form_on_known_answers")
+    r2_ok = True
+    for db, items in known.items():
+        for name, d in items[:3]:
+            for kind, qa in (("single", fill(PROD_ASSIGNEE, name=name)), ("or", or_query(PROD_ASSIGNEE, WATCHLIST))):
+                if late():
+                    report["meta"]["truncated"] = "phase 2"
+                    break
+                e = client.run(f"{qa} AND {fill(PROD_DATE, day=d['date'])}", db, n=100, counts=False)
+                e["kind"], e["expect"] = kind, d["guid"]
+                e["pass"] = any(x["guid"] == d["guid"] for x in e["docs"]) and all(x["date"] == d["date"] for x in e["docs"])
+                e["foreign_docs"] = [x["guid"] for x in e["docs"] if not matched_terms(x, WATCHLIST)]
+                r2_ok = r2_ok and e["pass"]
+                p2.append(strip_private(e))
+    report["meta"]["known_answers"] = {db: [(n, d["guid"], d["date"]) for n, d in items[:3]] for db, items in known.items()}
+    report["meta"]["production_form_pass"] = bool(p2) and r2_ok
+
+    # R3: how many documents a whole day has, per eight weeks
+    p3 = phase("3_date_totals")
+    days = [(db, d.isoformat()) for db, wd in (("USPAT", 1), ("US-PGPUB", 3)) for d in recent_weekdays(wd, today, WEEKS)]
+    totals_ok = True
+    for db, day in days:
+        if late():
+            report["meta"]["truncated"] = "phase 3"
+            break
+        e = client.run(fill(PROD_DATE, day=day), db, n=1, counts=True)
+        e["day"] = day
+        n = e["counts"].get("num_results")
+        e["pass"] = e["total"] is not None and e["total"] >= MIN_TOTAL and n == e["total"]
+        totals_ok = totals_ok and e["pass"]
+        p3.append(strip_private(e))
+    report["meta"]["totals_pass"] = bool(p3) and totals_ok
+
+    # R4: the weekly reading for eight weeks, assignee field and all-fields phrase, one OR query each
+    p4 = phase("4_eight_weeks_or")
+    by_key = {}
+    for db, day in days:
+        for kind, form in (("assignee", PROD_ASSIGNEE), ("phrase", PHRASE_FORM[1])):
+            if late():
+                report["meta"]["truncated"] = "phase 4"
+                break
+            e = client.run(f"{or_query(form, WATCHLIST)} AND {fill(PROD_DATE, day=day)}", db, n=100, counts=False)
+            e["day"], e["kind"] = day, kind
+            e["truncated_page"] = bool(e["total"] and e["total"] > e["n_docs"])
+            for x in e["docs"]:
+                x["terms"] = matched_terms(x, WATCHLIST)
+            by_key[(db, day, kind)] = {x["guid"] for x in e["docs"]}
+            report["weekly"].append({"db": db, "day": day, "kind": kind, "docs": e["n_docs"], "total": e["total"]})
+            p4.append(strip_private(e))
+
+    # R5: is one OR query the same as fifteen single-term queries? most recent week, both kinds
+    p5 = phase("5_or_vs_per_term")
+    for db, day in ((dbs[0][0], grant_day), (dbs[1][0], pub_day)):
+        for kind, form in (("assignee", PROD_ASSIGNEE), ("phrase", PHRASE_FORM[1])):
+            union, complete = set(), True
+            for name in WATCHLIST:
+                if late():
+                    report["meta"]["truncated"] = "phase 5"
+                    complete = False
+                    break
+                e = client.run(f"{fill(form, name=name)} AND {fill(PROD_DATE, day=day)}", db, n=100, counts=False)
+                e["term"], e["kind"], e["day"] = name, kind, day
+                union |= {x["guid"] for x in e["docs"]}
+                p5.append(strip_private(e))
+            orset = by_key.get((db, day, kind))
+            report["or_vs_term"].append({
+                "db": db, "day": day, "kind": kind, "complete": complete,
+                "or_guids": sorted(orset or []), "union_guids": sorted(union),
+                "equal": complete and orset is not None and orset == union,
+            })
+
+    unrecovered = [
+        e for es in report["phases"].values() for e in es
+        if e.get("search", {}).get("http") == 429 or e.get("counts", {}).get("http") == 429
+    ]
+    report["meta"]["rate_limit_events"] = len(client.events)
+    report["meta"]["unrecovered_429"] = len(unrecovered)
+    report["meta"]["calls"] = client.calls
+    report["meta"]["session_renewals"] = client.renewed
+    report["meta"]["seconds"] = round(time.monotonic() - t0, 1)
+    report["rate_limit_events"] = client.events[:20]
+    report["session"] = client.session_log
+    eq = [x["equal"] for x in report["or_vs_term"]]
+    report["ok"] = bool(
+        report["meta"]["number_control_pass"] and report["meta"].get("range_control_pass")
+        and report["meta"]["production_form_pass"] and report["meta"]["totals_pass"]
+        and eq and all(eq) and not unrecovered and not report["meta"].get("truncated")
+    )
+    report["verdict"] = [
+        f"number control (counts+search / search only): {[x['pass'] for x in p0]}",
+        f"range + assignee control (RUWT since 2019 includes {CTRL_GUID}): {report['meta'].get('range_control_pass')}",
+        f"production form finds every known answer, single and OR: {report['meta']['production_form_pass']}",
+        f"eight-week date totals all >= {MIN_TOTAL} and counts == search: {report['meta']['totals_pass']}",
+        f"OR query equals the union of single-term queries: {eq or 'NOT RUN'}",
+        f"429 events {len(client.events)}, unrecovered {len(unrecovered)}, calls {client.calls}, {report['meta']['seconds']} s",
+    ]
+    return report
+
+
 def render_md(report):
     out = ["# PPUBS query-form probe", ""]
     m = report["meta"]
@@ -456,6 +679,24 @@ def render_md(report):
             q = e["q"] if len(e["q"]) < 90 else e["q"][:87] + "..."
             out.append(f"| `{q}` | {e['db']} | {s.get('http', s.get('error', '?'))} | {e['n_docs']} | {s.get('n_found')} | {e.get('pass', '')} |")
         out.append("")
+    if report.get("weekly"):
+        out += ["## weekly reading (OR over the watchlist): documents returned / total matching", "",
+                "| day | db | assignee field | all-fields phrase |", "|---|---|---|---|"]
+        rows = {}
+        for w in report["weekly"]:
+            rows.setdefault((w["day"], w["db"]), {})[w["kind"]] = f"{w['docs']} / {w['total']}"
+        for (day, db), v in sorted(rows.items(), reverse=True):
+            out.append(f"| {day} | {db} | {v.get('assignee', '-')} | {v.get('phrase', '-')} |")
+        out.append("")
+    if report.get("or_vs_term"):
+        out += ["## OR query against the union of single-term queries", "", "| day | db | kind | OR | union | equal |", "|---|---|---|---|---|---|"]
+        for c in report["or_vs_term"]:
+            out.append(f"| {c['day']} | {c['db']} | {c['kind']} | {len(c['or_guids'])} | {len(c['union_guids'])} | {c['equal']} |")
+        out.append("")
+    if report.get("rate_limit_events"):
+        out += ["## rate-limit events (first 20)", ""]
+        out += [f"- t={e['t']}s call {e['call_no']} {e['path']} headers {e['headers']} body {e['body']!r} waited {e.get('waited_s')}" for e in report["rate_limit_events"]]
+        out.append("")
     return "\n".join(out) + "\n"
 
 
@@ -473,7 +714,8 @@ def write_outputs(report):
 
 
 def main():
-    today = datetime.datetime.utcnow().date()
+    today = (datetime.date.fromisoformat(os.environ["PPUBS_TODAY"]) if os.environ.get("PPUBS_TODAY")
+             else datetime.datetime.utcnow().date())
     grant_day = os.environ.get("GRANT_DAY") or last_weekday(1, today).isoformat()
     pub_day = os.environ.get("PUB_DAY") or last_weekday(3, today).isoformat()
     client = Ppubs()
@@ -488,7 +730,7 @@ def main():
         print(json.dumps(client.session_log, indent=1))
         print(f"FAIL: no PPUBS session. Wrote {jp}")
         return 1
-    report = build_report(client, today, grant_day, pub_day)
+    report = (build_reading_report if MODE == "reading" else build_report)(client, today, grant_day, pub_day)
     jp, mp = write_outputs(report)
     print(render_md(report))
     print(f"Wrote {jp} and {mp}")
@@ -500,8 +742,8 @@ def self_test():
     import tempfile
     import ppubs_stand_in as si
 
-    global BASE, PAUSE, MIN_DATE_DOCS
-    PAUSE, MIN_DATE_DOCS = 0.0, 5
+    global BASE, PAUSE, MIN_DATE_DOCS, MODE, BACKOFF, MIN_TOTAL, DEADLINE_S
+    PAUSE, MIN_DATE_DOCS, BACKOFF, MIN_TOTAL = 0.0, 5, 0.0, 20
     passed = failed = 0
 
     def t(name, ok):
@@ -595,6 +837,85 @@ def self_test():
         t("no candidate form is the host's: the probe fails, silently-zero answers do not pass", code == 1)
     finally:
         stop()
+
+
+    # ---- reading mode against a stand-in laid out like the real host: eight weeks of days
+    MODE = "reading"
+    today = datetime.date(2026, 11, 3)
+    rc = [si.doc("US-10846193-B2", "USPAT", "2020-11-24", ["Dynatrace LLC"]),
+          si.doc("US-10328326-B2", "USPAT", "2019-06-25", ["RUWT, LLC"]),
+          si.doc("US-9900001-B2", "USPAT", "2026-10-13", ["Datadog, Inc."]),
+          si.doc("US-9900002-B2", "USPAT", "2026-10-27", ["Akamai Technologies, Inc."]),
+          si.doc("US-20260000001-A1", "US-PGPUB", "2026-10-29", ["Dynatrace LLC"]),
+          si.doc("US-20260000003-A1", "US-PGPUB", "2026-10-29", ["Sportradar AG"]),
+          si.doc("US-20260000004-A1", "US-PGPUB", "2026-10-22", ["LogRocket, Inc."]),
+          si.doc("US-20260000005-A1", "US-PGPUB", "2026-10-15", ["Stats Perform Ltd"]),
+          si.doc("US-20260000002-A1", "US-PGPUB", "2026-10-29", [], "Proactive repair for New Relic code review")]
+    for wd, db, prefix in ((1, "USPAT", "US-8"), (3, "US-PGPUB", "US-2025")):
+        for dd in recent_weekdays(wd, today, WEEKS):
+            rc += [si.doc(f"{prefix}{dd.month:02d}{dd.day:02d}{i:04d}", db, dd.isoformat(), ["Other Co"]) for i in range(25)]
+
+    def run_reading(mode="ok", corpus=None):
+        base, log, stop = si.serve(corpus or rc, None, mode=mode)
+        try:
+            global BASE
+            BASE = base
+            with tempfile.TemporaryDirectory() as td:
+                os.environ["PPUBS_OUT"] = td
+                os.environ["PPUBS_TODAY"] = "2026-11-03"
+                os.environ["GRANT_DAY"], os.environ["PUB_DAY"] = "2026-10-27", "2026-10-29"
+                code = main()
+                rep = json.load(open(os.path.join(td, [f for f in os.listdir(td) if f.endswith(".json")][0])))
+            return code, rep
+        finally:
+            stop()
+
+    code, rep = run_reading()
+    t("reading: a faithful host passes", code == 0)
+    t("reading: search without the counts call works and is recorded", rep["meta"]["search_only_works"] is True)
+    t("reading: the range + assignee control found the RUWT patent", rep["meta"]["range_control_pass"] is True)
+    t("reading: the production form finds every known answer, single and OR", rep["meta"]["production_form_pass"] is True)
+    t("reading: eight weeks of date totals are all above the floor", rep["meta"]["totals_pass"] is True and len(rep["phases"]["3_date_totals"]) == 16)
+    t("reading: the OR query equals the union of single-term queries, all four", len(rep["or_vs_term"]) == 4 and all(c["equal"] for c in rep["or_vs_term"]))
+    wk = {(w["day"], w["db"], w["kind"]): w["docs"] for w in rep["weekly"]}
+    t("reading: the all-fields phrase sees the document the assignee field cannot",
+      wk[("2026-10-29", "US-PGPUB", "phrase")] == 3 and wk[("2026-10-29", "US-PGPUB", "assignee")] == 2)
+    t("reading: the planted USPAT grant is read on the grant day", wk[("2026-10-27", "USPAT", "assignee")] == 1)
+    t("reading: nothing was rate limited on a host that does not", rep["meta"]["rate_limit_events"] == 0)
+
+    code, rep = run_reading("rate429")
+    t("reading: a host that answers every fourth call 429 is recovered by backing off", code == 0 and rep["meta"]["rate_limit_events"] > 0 and rep["meta"]["unrecovered_429"] == 0)
+    code, rep = run_reading("rate429_always")
+    t("reading: a host that answers every call 429 fails the run, and counts the 429s as unrecovered", code == 1 and rep["meta"]["unrecovered_429"] > 0)
+    code, rep = run_reading("no_and")
+    t("reading: a host that cannot conjoin fails", code == 1)
+    code, rep = run_reading("or_zero")
+    t("reading: a host that answers a long OR with zero documents fails, although every single term works",
+      code == 1 and rep["meta"]["production_form_pass"] is False)
+    code, rep = run_reading("or_loses")
+    t("reading: a long OR that silently loses one assignee's documents fails although every known answer is found",
+      code == 1 and rep["meta"]["production_form_pass"] is True and [c["equal"] for c in rep["or_vs_term"]] == [True, True, False, False])
+    code, rep = run_reading("rate429_all:20260908| OR ")
+    t("reading: a 429 that no retry recovers on a day with no hits still fails the run",
+      code == 1 and rep["meta"]["unrecovered_429"] > 0 and rep["meta"]["totals_pass"] is True and all(c["equal"] for c in rep["or_vs_term"]))
+    code, rep = run_reading("counts_off")
+    t("reading: a counts call that disagrees with the search total fails the totals check",
+      code == 1 and rep["meta"]["totals_pass"] is False)
+    saved, DEADLINE_S = DEADLINE_S, 0.0
+    try:
+        code, rep = run_reading()
+    finally:
+        DEADLINE_S = saved
+    t("reading: a run cut short by its deadline fails and says where it stopped",
+      code == 1 and bool(rep["meta"].get("truncated")))
+    thin = [d for d in rc if d["assigneeName"] != ["Other Co"]]
+    for wd, db, prefix in ((1, "USPAT", "US-8"), (3, "US-PGPUB", "US-2025")):
+        for dd in recent_weekdays(wd, today, WEEKS):
+            thin += [si.doc(f"{prefix}{dd.month:02d}{dd.day:02d}{i:04d}", db, dd.isoformat(), ["Other Co"]) for i in range(5)]
+    code, rep = run_reading("ok", thin)
+    t("reading: days with too few documents fail the totals floor although every query returns 200",
+      code == 1 and rep["meta"]["totals_pass"] is False)
+    MODE = "forms"
 
     print(f"\n{passed}/{passed + failed} checks passed")
     return 1 if failed else 0

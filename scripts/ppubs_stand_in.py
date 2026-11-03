@@ -19,7 +19,13 @@ without saying so:
   * `mode` can make the whole host misbehave: "http500" answers 500 everywhere,
     "html" answers 200 with an HTML page (the shape of a bot wall), "empty"
     answers 200 with an empty JSON object, "no_and" answers every single term
-    correctly and every conjunction with zero documents.
+    correctly and every conjunction with zero documents, "rate429" answers every
+    fourth API call 429 {"message": "Too many requests"} with Retry-After 0 (the
+    measured shape of PPUBS' limit), "rate429_always" answers every API call so, "or_zero" answers a query with
+    five or more OR operators with zero documents and status 200, "or_loses" answers
+    such a query with every document except Sportradar's, "counts_off" makes the counts call
+    disagree with the search by one, and "rate429_all:a|b"
+    answers 429, on every try, to a call whose body contains both a and b.
 
 WHAT IT DOES NOT KNOW: the real response shapes. `numFound` and `patents` come
 from the key names patent_fetch.py reads (`result.get("patents") or
@@ -42,7 +48,8 @@ TOKEN_RE = re.compile(
     r'|[^\s()]+'
 )
 
-DEFAULT_SYNTAX = {"date": '@PD="{d}"', "assignee": '"{n}".as.', "number": '"{n}".pn.'}
+DEFAULT_SYNTAX = {"date": '@PD="{d}"', "assignee": '"{n}".as.', "number": '"{n}".pn.',
+                  "range": '@PD>="{a}"<="{b}"'}
 
 
 def _term_regex(template, field, pattern):
@@ -56,11 +63,20 @@ def _term_regex(template, field, pattern):
     return re.compile("^" + esc + "$")
 
 
+def _range_regex(template):
+    """A two-ended range form: the first {a} and the first {b} are captured, so the
+    ends need not agree."""
+    esc = re.escape(template)
+    esc = esc.replace(re.escape("{a}"), r"(?P<a>\d{8})").replace(re.escape("{b}"), r"(?P<b>\d{8})")
+    return re.compile("^" + esc + "$")
+
+
 def build_matchers(syntax):
     return {
         "date": _term_regex(syntax["date"], "d", r"\d{8}|\d{4}-\d{2}-\d{2}"),
         "assignee": _term_regex(syntax["assignee"], "n", r'[^"]+?'),
         "number": _term_regex(syntax["number"], "n", r'[^"]+?'),
+        "range": _range_regex(syntax["range"]) if syntax.get("range") else None,
     }
 
 
@@ -75,6 +91,11 @@ def term_matches(term, doc, matchers):
     m = matchers["date"].match(term)
     if m:
         return (doc.get("datePublished") or "")[:10].replace("-", "") == m.group("v").replace("-", "")
+    if matchers.get("range"):
+        m = matchers["range"].match(term)
+        if m:
+            d = (doc.get("datePublished") or "")[:10].replace("-", "")
+            return m.group("a") <= d <= m.group("b")
     m = matchers["assignee"].match(term)
     if m:
         return m.group("v").lower() in " ".join(doc.get("assigneeName") or []).lower()
@@ -143,16 +164,23 @@ def evaluate(query, doc, matchers):
     return v
 
 
-def run_query(body_query, corpus, matchers, no_and=False):
+def run_query(body_query, corpus, matchers, mode="ok"):
     """-> (matching docs, unsupported?)"""
     q = body_query.get("q") or ""
-    if no_and and " AND " in q:  # a host that answers single terms but not a conjunction
+    if mode == "no_and" and " AND " in q:  # a host that answers single terms but not a conjunction
         return [], True
+    if mode == "or_zero" and q.count(" OR ") >= 5:  # a host that answers a long disjunction with nothing
+        return [], True
+    drop = None
+    if mode == "or_loses" and q.count(" OR ") >= 5:  # a long disjunction silently loses one assignee's documents
+        drop = "sportradar"
     dbs = {f.get("databaseName") for f in body_query.get("databaseFilters") or []}
     out = []
     try:
         for doc in corpus:
             if dbs and doc.get("type") not in dbs:
+                continue
+            if drop and drop in " ".join(doc.get("assigneeName") or []).lower():
                 continue
             if evaluate(q, doc, matchers):
                 out.append(doc)
@@ -164,6 +192,7 @@ def run_query(body_query, corpus, matchers, no_and=False):
 
 def make_handler(corpus, syntax, mode, log):
     matchers = build_matchers(syntax)
+    state = {"n": 0}
 
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):  # silent
@@ -215,14 +244,29 @@ def make_handler(corpus, syntax, mode, log):
             if mode == "empty":
                 self._send(200, {})
                 return
+            if mode.startswith("rate429_all:"):  # 429 for any call whose body holds every listed substring
+                raw = json.dumps(body)
+                if all(part in raw for part in mode.split(":", 1)[1].split("|")):
+                    self._send(429, {"message": "Too many requests"}, headers={"Retry-After": "0"})
+                    return
+            if mode in ("rate429", "rate429_always"):
+                state["n"] += 1
+                if mode == "rate429_always" or state["n"] % 4 == 0:
+                    self._send(429, {"message": "Too many requests"}, headers={"Retry-After": "0"})
+                    return
             if self.path == "/api/searches/counts":
-                docs, _ = run_query(body, corpus, matchers, mode == "no_and")
-                self._send(200, {"counts": {"total": len(docs)}})
+                docs, _ = run_query(body, corpus, matchers, mode)
+                # measured: the echoed query plus numResults
+                self._send(200, {"id": None, "caseId": body.get("caseId"),
+                                 "numResults": len(docs) + (1 if mode == "counts_off" else 0), "q": body.get("q")})
                 return
             if self.path == "/api/searches/searchWithBeFamily":
-                docs, _ = run_query(body["query"], corpus, matchers, mode == "no_and")
+                docs, _ = run_query(body["query"], corpus, matchers, mode)
                 start, n = int(body.get("start", 0)), int(body.get("pageCount", 10))
-                self._send(200, {"numFound": len(docs), "patents": docs[start:start + n]})
+                page = docs[start:start + n]
+                # measured: numFound is the PAGE size, totalResults is the total
+                self._send(200, {"numFound": len(page), "perPage": n, "page": start // max(n, 1),
+                                 "totalResults": len(docs), "error": None, "patents": page})
                 return
             self._send(404, {"error": "stand-in: no such path"})
 

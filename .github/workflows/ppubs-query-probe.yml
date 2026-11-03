@@ -10,6 +10,11 @@
 # returns against a known answer (US10328326, assignee RUWT, granted
 # 2019-06-25), then reads the real week for every watchlist term.
 #
+# Run 1 (mode forms, 2026-11-03T04:52Z) found the working spellings and found
+# that PPUBS answers HTTP 429 {"message": "Too many requests"} above about one
+# call a second, which polluted its reading of the real week. Run 2 (mode
+# reading) paces at 3 s, backs off on 429 and measures the watcher's own flow.
+#
 # WHY A RUNNER: ppubs.uspto.gov is outside the dev sandbox's egress allowlist.
 #
 # DISPATCH ONLY, no schedule: it answers a question once; it is not a monitor,
@@ -19,6 +24,12 @@ name: ppubs-query-probe
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'forms = which query spellings answer (0.5 s between calls, the first run). reading = the watcher''s own flow at 3 s between calls, with 429 backoff: known answers, eight weeks, OR against single terms.'
+        required: false
+        default: reading
+        type: choice
+        options: [reading, forms]
       grant_day:
         description: 'YYYY-MM-DD of the grant Tuesday to read. Blank = the most recent Tuesday before today (UTC).'
         required: false
@@ -32,7 +43,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -46,6 +57,7 @@ jobs:
         continue-on-error: true
         run: python3 scripts/probe-ppubs-query.py 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
         env:
+          PPUBS_MODE: ${{ inputs.mode || 'reading' }}
           GRANT_DAY: ${{ inputs.grant_day }}
           PUB_DAY: ${{ inputs.pub_day }}
       - name: Commit
