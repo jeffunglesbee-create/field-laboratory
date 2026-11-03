@@ -1,0 +1,107 @@
+# How often does Fable's embedded F# compiler crash on a runner, and does the SDK version or a reused output directory change it?
+# scripts/fable-crash-probe.mjs; docs/CC-CMD-2026-11-03-fable-compiler-crash.md, Task 1.
+#
+# Each cell runs 100 builds in two halves (two jobs of 50 on two runners, so a bad runner is not the whole cell) of `dotnet fable src/Laboratory.fsproj --outDir <dir>` and
+# records what every build did. The artifact is a table of RATES WITH DENOMINATORS and 95% intervals (outbox/fable-crash-probe-latest.json), never a pass.
+#
+# Cells: the SDK the runner image carries (10.0.x, the latest) against 10.0.113 (the sandbox's, pinned with a global.json written into the job so the cell cannot
+# silently use the newer SDK: the probe prints `dotnet --version` into the record), each with a fresh output directory per build and with the same one reused (what the
+# mutation harness does between mutations).
+#
+# Trigger: a push of outbox/.trigger-fable-crash-probe (runs from the pushing ref's own copy of this file) or a dispatch. No schedule: it answers one question.
+name: fable-crash-probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-fable-crash-probe'
+
+concurrency:
+  group: fable-crash-probe
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    name: ${{ matrix.sdk }} ${{ matrix.out }} ${{ matrix.part }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: ['10.0.x', '10.0.113']
+        out: [fresh, reuse]
+        part: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.sdk }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Pin the SDK for the cell
+        if: matrix.sdk != '10.0.x'
+        run: |
+          printf '{"sdk":{"version":"%s","rollForward":"disable"}}\n' "${{ matrix.sdk }}" > global.json
+          dotnet --version
+      - run: |
+          npm ci
+          dotnet tool restore
+      - name: Restore the project's packages once, outside the timed builds
+        run: dotnet restore src/Laboratory.fsproj
+      - name: 50 builds
+        run: |
+          node scripts/fable-crash-probe.mjs \
+            --cell "sdk ${{ matrix.sdk }}, ${{ matrix.out }} outDir" \
+            --out-mode "${{ matrix.out }}" --builds 50 --part ${{ matrix.part }} \
+            --out "$RUNNER_TEMP/probe/${{ matrix.sdk }}-${{ matrix.out }}-${{ matrix.part }}.json" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the cell's record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fable-probe-${{ matrix.sdk }}-${{ matrix.out }}-${{ matrix.part }}
+          path: ${{ runner.temp }}/probe/
+          if-no-files-found: error
+          retention-days: 3
+          overwrite: true
+
+  report:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fable-probe-*
+          path: ${{ runner.temp }}/cells
+          merge-multiple: true
+      - name: The table
+        run: node scripts/fable-crash-probe.mjs --merge "$RUNNER_TEMP/cells" --out outbox/fable-crash-probe-latest.json 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "noreply@anthropic.com"
+          git config user.name "Claude"
+          git add outbox/fable-crash-probe-latest.json 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: how often the F# compiler crashes on a runner, by SDK and output directory [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}"
+            if git push origin "HEAD:${GITHUB_REF_NAME}"; then break; fi
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
