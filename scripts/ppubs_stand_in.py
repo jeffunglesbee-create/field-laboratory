@@ -30,7 +30,11 @@ without saying so:
     first version assumed, and the real host does not have), "fam_off" makes
     numberOfFamilies one too many ("fam_off_or": only on a query with an OR), "page_cap:N" silently returns at most N families
     whatever pageCount asks, "docs_short" drops the last document of every page,
-    "no_families" leaves numberOfFamilies out, "bare_patents" answers only
+    "no_families" leaves numberOfFamilies out, "no_phrase" answers every bare
+    phrase query with zero documents, "phrase_lossy" looks for a bare phrase in the
+    title only, "flaky500" fails every fifth API call once with a 500, "date_loose" lets a date
+    term also match the day two days later, "no_guid" sends documents without a guid, "json_list" answers a JSON list,
+    "error_field" fills the answer's `error`, "bare_patents" answers only
     {"patents": [...]}, the one key patent_fetch.py reads, "zero_date_page" answers a bare day
     at page size 100 with nothing, and "rate429_all:a|b" answers 429, on every try, to a
     call whose body contains both a and b.
@@ -53,6 +57,7 @@ values so a consumer that reads them does not crash; nothing here says what they
 
 Importable. Nothing runs at import.
 """
+import datetime
 import json
 import re
 import threading
@@ -109,7 +114,14 @@ def term_matches(term, doc, matchers):
     """True / False for a recognised term, None for one this host does not understand."""
     m = matchers["date"].match(term)
     if m:
-        return (doc.get("datePublished") or "")[:10].replace("-", "") == m.group("v").replace("-", "")
+        want, have = m.group("v").replace("-", ""), (doc.get("datePublished") or "")[:10].replace("-", "")
+        if matchers.get("date_loose"):  # a date form that also matches the day two days later
+            try:
+                later = (datetime.datetime.strptime(want, "%Y%m%d") + datetime.timedelta(days=2)).strftime("%Y%m%d")
+            except ValueError:
+                return False
+            return have in (want, later)
+        return have == want
     if matchers.get("range"):
         m = matchers["range"].match(term)
         if m:
@@ -122,7 +134,8 @@ def term_matches(term, doc, matchers):
     if m:
         return m.group("v") in (doc.get("guid") or "")
     if re.match(r'^"[^"]*"$', term):  # a bare phrase: the stand-in's "all fields"
-        return term.strip('"').lower() in _doc_text(doc)
+        text = (doc.get("inventionTitle") or "").lower() if matchers.get("phrase_title_only") else _doc_text(doc)
+        return term.strip('"').lower() in text
     return None
 
 
@@ -200,6 +213,8 @@ def run_query(body_query, corpus, matchers, mode="ok"):
         return [], True
     if mode == "or_zero" and q.count(" OR ") >= 5:  # a host that answers a long disjunction with nothing
         return [], True
+    if mode == "no_phrase" and any(re.fullmatch(r'"[^"]*"', t) for t in TOKEN_RE.findall(q)):  # no bare phrase is understood
+        return [], True
     drop = None
     if mode == "or_loses" and q.count(" OR ") >= 5:  # a long disjunction silently loses one assignee's documents
         drop = "sportradar"
@@ -219,8 +234,12 @@ def run_query(body_query, corpus, matchers, mode="ok"):
     return out, False
 
 
-def make_handler(corpus, syntax, mode, log):
+def make_handler(corpus, syntax, mode, log, queries=None):
     matchers = build_matchers(syntax)
+    if mode == "phrase_lossy":  # a bare phrase is looked for in the title only
+        matchers["phrase_title_only"] = True
+    if mode == "date_loose":  # a date term also matches the day two days later
+        matchers["date_loose"] = True
     state = {"n": 0}
 
     class H(BaseHTTPRequestHandler):
@@ -273,16 +292,27 @@ def make_handler(corpus, syntax, mode, log):
             if mode == "empty":
                 self._send(200, {})
                 return
+            if mode == "json_list":
+                self._send(200, [])
+                return
             if mode.startswith("rate429_all:"):  # 429 for any call whose body holds every listed substring
                 raw = json.dumps(body)
                 if all(part in raw for part in mode.split(":", 1)[1].split("|")):
                     self._send(429, {"message": "Too many requests"}, headers={"Retry-After": "0"})
+                    return
+            if mode == "flaky500":  # every fifth API call fails once with a 500
+                state["n"] += 1
+                if state["n"] % 5 == 0:
+                    self._send(500, {"error": "stand-in: flaky500"})
                     return
             if mode in ("rate429", "rate429_always"):
                 state["n"] += 1
                 if mode == "rate429_always" or state["n"] % 4 == 0:
                     self._send(429, {"message": "Too many requests"}, headers={"Retry-After": "0"})
                     return
+            if queries is not None and self.path in ("/api/searches/counts", "/api/searches/searchWithBeFamily"):
+                q = body.get("q") if self.path.endswith("counts") else (body.get("query") or {}).get("q")
+                queries.append((self.path.rsplit("/", 1)[1], q, body.get("start"), body.get("pageCount")))
             if self.path == "/api/searches/counts":
                 docs, _ = run_query(body, corpus, matchers, mode)
                 n_docs = len(docs)
@@ -310,6 +340,8 @@ def make_handler(corpus, syntax, mode, log):
                 page = [_public(d) for d in docs if _family(d) in page_fams]
                 if mode == "docs_short" and page:  # a page that lost its last document
                     page = page[:-1]
+                if mode == "no_guid":  # documents that carry no guid
+                    page = [{k: v for k, v in d.items() if k != "guid"} for d in page]
                 q = body["query"].get("q") or ""
                 n_total_fams = len(fams) + (1 if mode == "fam_off" or (mode == "fam_off_or" and " OR " in q) else 0)
                 tail = {} if mode == "no_families" else {"numberOfFamilies": n_total_fams}
@@ -323,17 +355,19 @@ def make_handler(corpus, syntax, mode, log):
                                  "query": body.get("query", {}).get("q"), "duration": 1, "highlightingTime": 0,
                                  "cursorMarker": "*" if not page else "stand-in-cursor",
                                  "totalResults": len(docs) if mode == "total_is_total" else len(page),
-                                 "error": None, "patents": page, "qtime": 1, **tail})
+                                 "error": "stand-in: error_field" if mode == "error_field" else None,
+                                 "patents": page, "qtime": 1, **tail})
                 return
             self._send(404, {"error": "stand-in: no such path"})
 
     return H
 
 
-def serve(corpus, syntax=None, mode="ok"):
-    """Start the stand-in on an ephemeral port. -> (base_url, request_log, stop())"""
+def serve(corpus, syntax=None, mode="ok", queries=None):
+    """Start the stand-in on an ephemeral port. -> (base_url, request_log, stop()).
+    `queries`, if a list, receives (call, q, start, pageCount) for every counts and search call."""
     log = []
-    srv = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(corpus, syntax or DEFAULT_SYNTAX, mode, log))
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), make_handler(corpus, syntax or DEFAULT_SYNTAX, mode, log, queries))
     t = threading.Thread(target=srv.serve_forever, daemon=True)
     t.start()
 

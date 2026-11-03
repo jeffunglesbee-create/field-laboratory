@@ -1,0 +1,97 @@
+# Does the client's patent watcher read the REAL PPUBS, end to end, before its first
+# scheduled run? Measured on a runner, filing nothing.
+#
+# jubilant-bassoon's watcher was rebuilt on PPUBS after its source (bulkdata.uspto.gov)
+# lost its DNS record and the old one ended green on a week it never read. The
+# regression check (verify.yml, job patent-watch) runs the watcher against a stand-in
+# copied from the real host's answers; it cannot say the host still answers that way
+# today. The first scheduled run is Wednesday 16:00Z, and a red run then is the right
+# outcome for an unread week and a wasted one if this could have said so earlier.
+#
+# WHAT IT DOES: scripts/patent-watch-rehearsal.py runs the client's
+# .github/scripts/patent_watch.py (client main, checked out unpinned) once per week
+# below with GITHUB_ACTIONS, GH_TOKEN, GH_REPO and GITHUB_OUTPUT removed from its
+# environment: no issue is filed, nothing is chained, the client is not written to.
+# A week is 5 known-answer controls and 62 searches at 3 s between calls, about 3.5
+# minutes. The evidence (log and manifest of each week) is committed to outbox/ here.
+#
+#   settled_week   a grant Tuesday that is fully published. Its read decides the job.
+#   upcoming_week  the Tuesday the next scheduled run reads. Reported, never decides:
+#                  whether a Tuesday's grants are indexed yet is a fact about the host
+#                  at the hour this runs, and the watcher is right to refuse a day
+#                  that is not (fewer than 500 families).
+#
+# WHY A RUNNER: ppubs.uspto.gov is outside the dev sandbox's egress allowlist.
+#
+# DISPATCH ONLY, no schedule: it answers a question; it is not a monitor, and a monitor
+# is a recurring Actions cost (CLAUDE.md, "Actions budget"). Do not add a `schedule:`.
+name: patent-watch-rehearsal
+
+on:
+  workflow_dispatch:
+    inputs:
+      settled_week:
+        description: 'YYYY-MM-DD of a grant Tuesday that is fully published. Its read decides this run.'
+        required: false
+        default: '2026-10-27'
+      upcoming_week:
+        description: 'YYYY-MM-DD of the Tuesday the next scheduled run reads (reported only). Blank = skip.'
+        required: false
+        default: '2026-11-03'
+
+permissions:
+  contents: write
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # The thing under test: the client's CURRENT watcher, pinned to nothing.
+      - uses: actions/checkout@v4
+        with:
+          repository: jeffunglesbee-create/jubilant-bassoon
+          path: .client-src
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests --quiet
+
+      - name: The rehearsal tool keeps its rule on the stand-in
+        run: python3 scripts/check-patent-watch.py --only rehearsal
+
+      - name: Read the weeks on the real host, filing nothing
+        id: rehearse
+        continue-on-error: true
+        env:
+          SETTLED: ${{ inputs.settled_week }}
+          UPCOMING: ${{ inputs.upcoming_week }}
+        run: |
+          python3 scripts/patent-watch-rehearsal.py --client .client-src --settled "$SETTLED" ${UPCOMING:+--upcoming "$UPCOMING"} 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Commit the evidence
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/patent-watch-rehearsal-* 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "rehearsal: patent watcher on the real host [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+
+      - name: The settled week decides the job
+        if: steps.rehearse.outcome != 'success'
+        run: |
+          echo "patent-watch-rehearsal: the settled week was not read on the real host; the evidence is in outbox/"
+          exit 1
