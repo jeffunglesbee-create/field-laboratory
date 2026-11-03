@@ -3163,7 +3163,7 @@ const startBuilder = async () => {
   if (builder) return
   if (process.env.MUTATION_BUILDER_ACTIVE) fatal('a harness run inside a harness run may not start a second build driver: two would write one build/')
   const existing = existsSync('build') ? digestDir('build', ['public/index.html']) : null
-  builder = BUILD_MODE === 'full' ? new FullBuild({ fault: MUTATION_FAULT }) : new WatchBuild({ fault: MUTATION_FAULT })
+  builder = BUILD_MODE === 'full' ? new FullBuild({ fault: MUTATION_FAULT }) : new WatchBuild({ fault: MUTATION_FAULT, onRetry: retryNote('the build driver', 'starting') })
   try {
     const started = await builder.start(BUILD_MODE === 'watch' ? { expectDigest: existing } : {})
     console.log(`  build driver: ${BUILD_MODE}, ready in ${started.ms} ms, clean digest ${started.digest}`)

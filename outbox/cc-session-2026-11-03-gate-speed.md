@@ -206,6 +206,14 @@ and the `full` job: the same rule as the harness (a crash is repeated; a diagnos
 repeated), every repeat printed and counted in the step summary, a real failure printing its whole output and exiting 1. The root cause is the subject of
 `docs/CC-CMD-2026-11-03-fable-compiler-crash.md` (filed, with the measured table and a probe design).
 
+**The second scored gate (run 41620392450, tree `b07f072`) was red too, and again to the same compiler**: the shard's `Build` step now repeats, passed, and then the WATCHER's own first
+compile (a fresh full check like any other) crashed at about forty places (`Thoth.Json.10.5.1/Types.fs(33,1)`, `Decode.fs(201,23)`, `Journalism.fs(310,5)`), mixed with real-looking
+diagnostics. Ledger line `b07f072019e5-e3b0c44298fc`: 510/530 = 96, failing row `breaking each invariant makes a check fail`, 830 s, the mutation row failing in 32 s by naming the
+shard. A fresh full compile is exposed wherever it is: eighteen a run (nine builds and nine watcher starts), at about one in a hundred each, is not a gate that can be trusted
+to go green. `WatchBuild.start` now stops the watcher (and waits for it to be gone) and starts it again by the same rule as every other build (a crash is repeated, a diagnostic
+is believed only when the next start says it again, no diagnostic is not repeated), at most four times, each repeat announced and counted (`startRepeats`). The incremental
+compiles after that are not fresh checks: none crashed in about 1,500 of them.
+
 ## Still open at this commit
 
 The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.

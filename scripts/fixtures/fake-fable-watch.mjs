@@ -4,12 +4,13 @@
 //   FAKE_DOUBLE=1      a change causes two cycles
 //   FAKE_NO_CYCLE=1    changes are ignored: the stale-build case
 //   FAKE_DIE_MID=1     on the first change after the initial compile: print Started, then exit 3 before "Watching" (a watcher that dies mid-cycle)
+//   FAKE_START_MODE=crash-once|crash-always|refuse-always|diag-once   the FIRST compile (at start) fails that way; the 'once' modes use FAKE_START_MARK, a file created by the first start
 //   FAKE_FAIL_THEN_GOOD=1  a TYPE_ERROR cycle is followed, 150 ms after it closes, by a cycle that compiles (a half-written file, then the whole one)
 // A source containing TYPE_ERROR "does not compile": the output is left half-written, as Fable's was in the measurement.
 //
 // Usage: node fake-fable-watch.mjs <watched file> <out dir>
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 const [src, out] = process.argv.slice(2)
@@ -18,23 +19,36 @@ const say = s => process.stdout.write(`${E}[39m${E}[22m${E}[37m${s}\n`)
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 mkdirSync(out, { recursive: true })
 
-const cycle = async ({ healed = false } = {}) => {
+const START_LINES = {
+  crash: "./src/X.fs(1,1): (1,2) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)",
+  refuse: "./src/Y.fs(3,1): (3,4) error FSHARP: Type mismatch (code 1)",
+  diag: "./src/Y.fs(9,1): (9,4) error FSHARP: Lookup on object of indeterminate type (code 72)",
+}
+const startFailure = () => {
+  const m = process.env.FAKE_START_MODE, mark = process.env.FAKE_START_MARK
+  if (!m) return null
+  const kind = m.startsWith('crash') ? 'crash' : m.startsWith('refuse') ? 'refuse' : 'diag'
+  if (m.endsWith('-once')) { if (mark && existsSync(mark)) return null; if (mark) writeFileSync(mark, 'x') }
+  return START_LINES[kind]
+}
+const cycle = async ({ healed = false, initial = false } = {}) => {
   const text = readFileSync(src, 'utf8')
+  const forced = initial ? startFailure() : null
   say('Started Fable compilation...')
   await sleep(150)
-  const bad = !healed && text.includes('TYPE_ERROR')
+  const bad = !healed && (text.includes('TYPE_ERROR') || forced !== null)
   writeFileSync(join(out, 'Out.js'), bad ? `partial:${text}` : `compiled:${text}`)
   say('Fable compilation finished in 150ms')
   if (bad) {
     if (process.env.FAKE_LATE_ERROR) await sleep(60)
-    say("./src/X.fs(1,1): (1,2) error FSHARP: The type 'int' does not match the type 'bool' (code 1)")
+    say(forced ?? "./src/X.fs(1,1): (1,2) error FSHARP: The type 'int' does not match the type 'bool' (code 1)")
   }
   say('Watching src')
   if (bad && process.env.FAKE_FAIL_THEN_GOOD) { await sleep(150); await cycle({ healed: true }) }
 }
 
 say('Parsing src/Laboratory.fsproj...')
-await cycle()
+await cycle({ initial: true })
 let last = readFileSync(src, 'utf8')
 for (;;) {
   await sleep(50)

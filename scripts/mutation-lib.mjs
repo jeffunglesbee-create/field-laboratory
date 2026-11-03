@@ -215,9 +215,9 @@ export class WatchBuild {
   constructor({
     command = 'dotnet', args = ['fable', 'watch', 'src/Laboratory.fsproj', '-c', 'Release', '--outDir', 'build'], cwd = '.', env = process.env,
     outDir = 'build', extraFiles = ['public/index.html'], assemble = () => runSync('node scripts/build-site.mjs'),
-    settleMs = 300, startTimeoutMs = 20000, cycleTimeoutMs = 300000, initialTimeoutMs = 300000, fault = null, onLine = null,
+    settleMs = 300, startTimeoutMs = 20000, cycleTimeoutMs = 300000, initialTimeoutMs = 300000, fault = null, onLine = null, onRetry = () => {}, startPauseMs = 3000,
   } = {}) {
-    Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, mode: 'watch', cleanDigest: null, cleanManifest: null })
+    Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, onRetry, startPauseMs, mode: 'watch', cleanDigest: null, cleanManifest: null, startRepeats: 0 })
     this.tracker = new CycleTracker()
     this.child = null
     this.tail = []
@@ -247,8 +247,9 @@ export class WatchBuild {
   }
 
   /** Start the watcher and wait for its first full compile. `expectDigest`, when given, is the digest of the build that existed before: a full compile's output. */
-  async start({ expectDigest = null } = {}) {
-    const t = Date.now()
+  /** One spawn of the watcher and the wait for its first compile. Returns { ok, errors }; a watcher that dies or never finishes still throws. */
+  async #startOnce() {
+    this.tracker = new CycleTracker(); this.tail = []; this.exit = null
     this.child = spawn(this.command, this.args, { cwd: this.cwd, env: this.env, stdio: ['ignore', 'pipe', 'pipe'] })
     const feed = b => {
       const s = b.toString(); this.onLine?.(s); this.tracker.feed(s)
@@ -263,13 +264,45 @@ export class WatchBuild {
     const zero = { ended: 0, open: false }
     for (;;) {
       const s = settled(this.tracker, zero, Date.now(), this.settleMs)
-      if (s.done) {
-        if (!s.ok) throw new Error(`the initial compile failed:\n${s.errors.join('\n')}`)
-        break
-      }
+      if (s.done) return { ok: s.ok, errors: s.errors }
       if (!this.child) throw this.#died('the initial compile')
       if (Date.now() > deadline) throw new Error(`the initial compile did not finish within ${this.initialTimeoutMs} ms`)
       await sleep(50)
+    }
+  }
+
+  /** Stop the watcher and WAIT for it to be gone: two watchers on one build/ would write it together. */
+  async #stopAndWait() {
+    const child = this.child
+    if (!child) return
+    try { child.kill('SIGTERM') } catch (e) { void e }
+    for (let i = 0; i < 200 && this.child; i++) await sleep(50)
+    if (this.child) { try { child.kill('SIGKILL') } catch (e) { void e }; for (let i = 0; i < 100 && this.child; i++) await sleep(50) }
+  }
+
+  /**
+   * Start the watcher and wait for its first full compile. `expectDigest`, when given, is the digest of the build that existed before: a full compile's output.
+   * The first compile is a FRESH full check like any other build, so it can hit the compiler crash (docs/CC-CMD-2026-11-03-fable-compiler-crash.md): the
+   * watcher is stopped and started again by the same rule as every other build here (a crash is repeated; a diagnostic is believed only when the next start
+   * says the same first thing; a failure with no diagnostic is not repeated), at most MAX_CRASH_RETRIES times.
+   */
+  async start({ expectDigest = null } = {}) {
+    const t = Date.now()
+    let seen = null
+    for (let attempt = 0; ; attempt++) {
+      const r = await this.#startOnce()
+      if (r.ok) break
+      const refusal = isCompilerRefusal(r.errors) ? refusalSignature(r.errors) : null
+      const confirmed = refusal !== null && refusal === seen
+      const repeatable = refusal !== null || isCompilerCrash(r.errors)
+      await this.#stopAndWait()
+      if (confirmed || !repeatable || attempt >= MAX_CRASH_RETRIES) {
+        throw new Error(`the initial compile failed${attempt ? ` ${attempt + 1} times in a row` : ''}:\n${r.errors.join('\n')}`)
+      }
+      seen = refusal
+      this.startRepeats = attempt + 1
+      this.onRetry(attempt + 1, r.errors)
+      await sleep(this.startPauseMs * (attempt + 1))
     }
     if (!this.assemble()) throw new Error('assembling the site after the initial compile failed')
     this.cleanDigest = this.digest()
@@ -683,6 +716,35 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('MUTATION: a source that does not compile at start refuses to start the driver', startRefused)
     badStart.stop()
     await sleep(300)
+
+    // The watcher's FIRST compile is a fresh full check and meets the same compiler crash (the second scored gate lost shard 4 to it): it is started again by the same
+    // rule as every other build. A crash is repeated; a diagnostic that does not come back was the flake; one that comes back is a real failure; the repeat is counted.
+    {
+      const startMark = join(work, 'start-mark')
+      const quick = env => build({ startPauseMs: 10 }, env)
+      writeFileSync(src, 'clean\n'); await sleep(300)
+      const sc = quick({ FAKE_START_MODE: 'crash-once', FAKE_START_MARK: startMark })
+      await sc.start()
+      check('MUTATION: a watcher whose first compile crashed is stopped and started again, and the second start is the answer, counted', sc.startRepeats === 1 && typeof sc.cleanDigest === 'string', String(sc.startRepeats))
+      sc.stop(); await sleep(400); rmSync(startMark, { force: true })
+      writeFileSync(src, 'clean\n'); await sleep(300)
+      const sd = quick({ FAKE_START_MODE: 'diag-once', FAKE_START_MARK: startMark })
+      await sd.start()
+      check('MUTATION: a diagnostic at start that does not come back was the flake: started again, then fine', sd.startRepeats === 1, String(sd.startRepeats))
+      sd.stop(); await sleep(400)
+      writeFileSync(src, 'clean\n'); await sleep(300)
+      const sa = quick({ FAKE_START_MODE: 'crash-always' })
+      let saMsg = ''
+      try { await sa.start() } catch (e) { saMsg = e.message }
+      check('MUTATION: a compiler that crashes at every start fails after the repeats, saying how many', /the initial compile failed 5 times in a row/.test(saMsg) && /internal error/.test(saMsg), saMsg.slice(0, 200))
+      sa.stop(); await sleep(400)
+      writeFileSync(src, 'clean\n'); await sleep(300)
+      const sr = quick({ FAKE_START_MODE: 'refuse-always' })
+      let srMsg = ''
+      try { await sr.start() } catch (e) { srMsg = e.message }
+      check('MUTATION: a diagnostic at start that comes back is a real failure: one repeat to confirm it, then it throws', /the initial compile failed 2 times in a row/.test(srMsg) && /Type mismatch/.test(srMsg), srMsg.slice(0, 200))
+      sr.stop(); await sleep(400)
+    }
 
     // A watcher that is already dead, and one that dies mid-cycle: named at once, by how it died, not by a timeout.
     writeFileSync(src, 'clean\n'); await sleep(300)
