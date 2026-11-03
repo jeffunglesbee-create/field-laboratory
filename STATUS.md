@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `be9bf6f`
+**FAILURE** on `4e3981d` at "Source and outbox changed together, every commit" — 1 of 88 steps did not run behind it — [run 41597443741](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/41597443741)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `be9bf6f`
+`live-check` (post-deploy, against the deployed page): **running** on `945fee9`
 
 ## Is it published?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `be9bf6f` — newest deployable ✓ |
+| Cloudflare Workers | live | `8bc1831` — behind newest deployable `4e3981d` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`odds-coverage-lost` on 2026-11-02 — 29 games, 0 malformed (193 runs logged)
+`ok` on 2026-11-03 — 0 games, 0 malformed (194 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)

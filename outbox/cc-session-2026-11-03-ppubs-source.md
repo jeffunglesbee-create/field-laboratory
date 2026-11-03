@@ -1,4 +1,4 @@
-# Session 2026-11-03 — the patent watcher's replacement source, PPUBS, probed before it is built
+# Session 2026-11-03 — the patent watcher's replacement source, PPUBS: probed, then built and held by a check
 
 CC-CMD: `docs/CC-CMD-2026-11-02-scheduled-job-skipped-every-time.md` in field-relay-nba, TASK 4b. The client side of the same work is
 `outbox/cc-session-2026-11-02-patent-watch-caller.md` in jubilant-bassoon.
@@ -10,7 +10,7 @@ what is new is the measurement of the source it will read and the check that hol
 
 ## What this work is made of
 
-Commit `140dcfa` added the three files below; the second commit extends them with the reading mode and 429 handling after run 1; the third (this one) corrects the reading of the response counters after run 2 and adds the fourth file.
+Commit `140dcfa` added the three files below; the second commit extends them with the reading mode and 429 handling after run 1; the third corrects the reading of the response counters after run 2 and adds the fourth file; the fourth (this one) builds the watcher's side, rows 5 to 9, and extends the stand-in with seven modes those need (`no_phrase`, `phrase_lossy`, `flaky500`, `date_loose`, `no_guid`, `json_list`, `error_field`) and a log of the queries it was asked.
 
 | file | what it is |
 |---|---|
@@ -18,6 +18,11 @@ Commit `140dcfa` added the three files below; the second commit extends them wit
 | `scripts/ppubs_stand_in.py` | the anonymous half of ppubs.uspto.gov, served locally from a corpus the test supplies, so the probe and the watcher can be run in seconds instead of on a runner |
 | `scripts/mutate-ppubs-probe.py` | breaks the probe's counter checks one at a time on a copy and requires its self-test to go red each time |
 | `.github/workflows/ppubs-query-probe.yml` | dispatch-only runner for the probe; commits `outbox/ppubs-query-probe-<stamp>.json` and `.md` |
+| `scripts/check-patent-watch.py` | runs jubilant-bassoon's `.github/scripts/patent_watch.py` unmodified against the stand-in: 32 scenarios, 206 checks. A week it could not read ends red with no manifest and no `GITHUB_OUTPUT` in each of 33 cases (counted as the `writes no manifest` assertions of a run); a week it read says what it read |
+| `scripts/mutate-patent-watch.py` | breaks the watcher 38 ways and the rehearsal tool 6 ways, on copies, and requires the check to go red for each |
+| `scripts/patent-watch-rehearsal.py` | runs the client's watcher on the real host with the Actions environment removed, so nothing is filed or chained, and keeps each week's log and manifest in `outbox/patent-watch-rehearsal-<stamp>.md` |
+| `.github/workflows/patent-watch-rehearsal.yml` | dispatch-only runner for the rehearsal; commits the evidence |
+| `.github/workflows/verify.yml`, job `patent-watch` | the mutation harness and then the check, on every push to this repository, with jubilant-bassoon checked out unpinned into `.client-src` |
 
 ## Why the probe exists
 
@@ -38,10 +43,13 @@ would report as "no matches this week". So no form is accepted for what it fails
 
 | claim | status | evidence |
 |---|---|---|
-| the probe's judging and exit codes are right | **VERIFIED** locally | `python3 scripts/probe-ppubs-query.py --self-test`: 27/27 in the first version, 45/45 in the second, 56/56 in the third, against the stand-in, whose true query forms are deliberately not the first candidates; a host answering 500, an HTML page, or `{}` makes the probe exit 1; a host that answers single terms and no conjunction makes it exit 1; so does a host whose counters break the measured contract (below) |
-| the counter checks have teeth | **VERIFIED** locally | `python3 scripts/mutate-ppubs-probe.py`: 14 of 14 mutants caught (about 6 minutes). A first draft of the checks had 7 survivors out of 13, each for the same reason: two clauses guarding one fault, or a clause no stand-in mode could reach; the duplicates were removed and four stand-in modes added (`docs_short`, `no_families`, `zero_date_page`, `bare_patents`) |
+| the probe's judging and exit codes are right | **VERIFIED** locally | `python3 scripts/probe-ppubs-query.py --self-test`: 27/27 in the first version, 45/45 in the second, 56/56 in the third (and again at 2026-11-03T06:22Z, after the stand-in grew the modes above), against the stand-in, whose true query forms are deliberately not the first candidates; a host answering 500, an HTML page, or `{}` makes the probe exit 1; a host that answers single terms and no conjunction makes it exit 1; so does a host whose counters break the measured contract (below) |
+| the counter checks have teeth | **VERIFIED** locally | `python3 scripts/mutate-ppubs-probe.py`: 14 of 14 mutants caught (about 6 minutes; again after the stand-in grew the modes above). A first draft of the checks had 7 survivors out of 13, each for the same reason: two clauses guarding one fault, or a clause no stand-in mode could reach; the duplicates were removed and four stand-in modes added (`docs_short`, `no_families`, `zero_date_page`, `bare_patents`) |
 | the self-test has teeth | **VERIFIED** | seven mutants of the probe (a verdict function that always passes, one that ignores the minimum, the foreign-assignee check, the known-guid check, exit 0 on failure, exit 0 on a failed session, `ok` that ignores the combined result) each turn it red; the last one survived the first version of the test and is why the no-conjunction host exists |
-| the workflow is valid | **VERIFIED** | `actionlint` exit 0; `check:workflows`, `check:script-orphans`, `check:short-circuit`, `check:clean-source`, `check:mutation-anchors` pass; `check-push-lands.py`: 14 of 14 loops verify the push landed |
+| the workflows are valid | **VERIFIED** | `actionlint` exit 0 on `ppubs-query-probe.yml`, `verify.yml` and `patent-watch-rehearsal.yml`; `check:workflows`, `check:script-orphans`, `check:short-circuit`, `check:clean-source`, `check:mutation-anchors` pass; `check-push-lands.py`: 15 of 15 loops verify the push landed |
+| the watcher keeps its rule on the stand-in | **VERIFIED** locally | `python3 scripts/check-patent-watch.py --real-watchlist <the client's watchlist>`: 206/206 in 32 scenarios, 47 s |
+| the check has teeth | **VERIFIED** locally | `python3 scripts/mutate-patent-watch.py`: 44 of 44 caught, 38 of the watcher and 6 of the rehearsal tool, 86 s on 2 CPUs. A first run of the 38 caught all 38, which is a reason to read the list, not to stop: it does not cover the 3 s pacing, the Retry-After parsing (the test uses 0), the 401/403 session renewal or the prime request |
+| the watcher reads the real host | **NOT YET MEASURED** when this was written | the rehearsal workflow had not run; see "What is open" below |
 | which query forms the real host answers | **MEASURED**, run 1 | see "Run 1" below |
 | `check:import-purity` | fails here on 4 scripts that import packages absent from this sandbox (`node_modules` is not installed); not touched by this work |
 
@@ -100,7 +108,32 @@ Report: `outbox/ppubs-query-probe-20261103T052138Z.md` and `.json`. Grant day 20
 
 The two things the watcher needs follow from the first two rows: a result set is complete when it was read from `start` 0 up to `numberOfFamilies`, and a page the server silently cut short shows as `numFound < min(pageCount, numberOfFamilies - start)`. The probe now checks the five relations in the table on every parsed response (`search_contract`; the counts relation where a counts call was made), reads a whole day at page size 100 on both databases, and goes red on any violation. The old R3 compared the counts call with `totalResults`, which is 1 on a one-document page, so 16 of 16 days failed.
 
-What run 2 did not establish: whether Tuesday's grants are searchable at the watcher's Wednesday 16:00 UTC (the probe read Tuesdays a week old); TASK 4b's design has the watcher read a day only after the day's population passes the same floor the probe uses, and report a day below it as not read. That is built next and is not claimed here.
+What run 2 did not establish: whether Tuesday's grants are searchable at the watcher's Wednesday 16:00 UTC (the probe read Tuesdays a week old); The watcher reads a day only after the day's population passes the same floor the probe uses (500 families) and reports a day below it as not read; it is built (next section), and whether Tuesday's grants are indexed by Wednesday 16:00 UTC is still not established.
+
+## The watcher, and the check that holds it
+
+jubilant-bassoon's `.github/scripts/patent_watch.py` is rewritten on PPUBS (its own session doc is in that repository). The rule it keeps: **a week is either read completely or the run is red and no manifest is written.** Every path that cannot say "I read it" raises `Unread`, and `main()` turns that into exit 1 with `NOT READ:` in the log and the step summary.
+
+| part | what it does |
+|---|---|
+| days | grants: the last Tuesday, database USPAT. Applications: the Thursday five days before it, US-PGPUB. The old rule, Tuesday + 2, named a Thursday that had not happened when the Wednesday job ran |
+| queries | per term and day, two: `"<term>".as. AND @PD="<day>"` (assignee) and `"<term>" AND @PD="<day>"` (text). Each hit carries the channel that found it. A document in the assignee answer but not in the text answer for the same term is red (held in all 16 weeks measured, 7 of which had an assignee hit) |
+| controls | five known answers in the forms the weeks use, before any week: the number form, assignee + date and text + date on both databases. A form that stops returning its known patent is red |
+| day floor | a day is read only if it holds at least 500 families (5,827 to 11,466 measured); below that it is "not published or indexed yet, or the date form stopped working", and red |
+| counters | every response is held to the measured contract above; a page the server cut, or a counter that changed meaning, is red |
+| size | more than 500 families for one term and day is refused, not truncated |
+| pacing | 3 s between calls; a 429 or 5xx is waited out (`Retry-After`, else 20 s) up to 3 times, then red; one 401 or 403 opens a new session |
+| issues | one per scan with hits. Under Actions, hits with no `GH_TOKEN`/`GH_REPO`, or a failed issue call, are red: the owner cannot miss them while the manifest says the week is done |
+| chain | only utility grants (`US-<digits>-B<n>`) go to `patent-fulltext.yml`, at most 20; design patents and reissues are listed in the issue only |
+| manifest | `read_complete`, `controls`, `scanned` (database, day, families on the day, queries) and `matches` with `basis` and `terms` |
+
+**What the check does not hold.** The real host. The stand-in answers the shapes measured so far, so a shape not yet seen is not tested, and the 3 s pacing, the `Retry-After` parsing, the session renewal and the prime request have no mutant. A push to jubilant-bassoon does not run the check: the job runs on pushes to this repository, on pull requests and on dispatch, so a client change is judged at the next lab push.
+
+## What is open
+
+1. **The real host has not been read by this watcher.** The probe measured the text form `"<term>" AND @PD="<day>"` for every watchlist term over eight weeks, but two of the watcher's five controls are queries no report contains: `"RUWT" AND @PD="20190625"` on USPAT and `"Dynatrace LLC" AND @PD="20261022"` on US-PGPUB (`grep` of both probe reports: absent; their assignee-form twins are present). If either does not return its patent on the real host, the watcher is red on a clean week and the control is wrong, not the host. `patent-watch-rehearsal.yml` answers this, with no token, so nothing is filed.
+2. **Whether Tuesday's grants are searchable by Wednesday 16:00 UTC.** The same workflow reads the upcoming Tuesday (2026-11-03); a day below 500 families is reported as not read, and a rerun on Wednesday morning is the direct test.
+3. **A client push is not checked until the next lab push.** No client workflow runs this check; closing that needs a cross-repository trigger and a token this work did not add.
 
 ## The stand-in's limits
 
@@ -108,5 +141,5 @@ Its document shape comes from the key names `patent_fetch.py` reads (`patents`, 
 `inventionTitle`). Since run 2 its search envelope has every key the real host returned and the measured relations between them,
 including a page whose `patents` list is longer than `numFound` (a corpus entry's `family` puts documents in one family). It does not
 know how the real host decides two documents share a family, what a page holds when one family has members in both databases, or what
-`hlSnippets` and `cursorMarker` contain; those keys are present with inert values. Everything it proves is about the probe's and the
+`hlSnippets` and `cursorMarker` contain; those keys are present with inert values. Its broken-host modes (`http500`, `html`, `empty`, `json_list`, `error_field`, `bare_patents`, `no_families`, `fam_off`, `fam_off_or`, `total_is_total`, `docs_short`, `page_cap:N`, `zero_date_page`, `no_phrase`, `phrase_lossy`, `date_loose`, `no_guid`, `flaky500`, `rate429`, `rate429_always`, `rate429_all:a|b`, `or_zero`, `or_loses`, `counts_low`, `no_and`) are shapes someone thought of, not shapes seen. Everything it proves is about the probe's and the
 watcher's logic, nothing about the real host's behaviour.

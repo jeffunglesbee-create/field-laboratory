@@ -12,6 +12,24 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a058203` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: record the six script etags, and say that the field's meaning is not shown [skip ci] |
+| `4abb7f6` | 2026-11-03 | [worker-deployments-probe-20261103T081607Z.md](worker-deployments-probe-20261103T081607Z.md) | probe: Worker deployment history from Cloudflare's API [skip ci] |
+| `b978f34` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: read a version's script etag, so two versions' code can be compared by Cloudflare's own hash [skip ci] |
+| `4de141a` | 2026-11-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-03 [skip ci] |
+| `4de141a` | 2026-11-03 | [sport-vocabulary-2026-11-03T08-06-42-638Z.json](sport-vocabulary-2026-11-03T08-06-42-638Z.json) | drift-sentinel: ok on 2026-11-03 [skip ci] |
+| `defc49e` | 2026-11-03 | [worker-deployments-probe-20261103T075938Z.md](worker-deployments-probe-20261103T075938Z.md) | probe: Worker deployment history from Cloudflare's API [skip ci] |
+| `9ffbb39` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: take the account from the token when the lab has no account-id secret [skip ci] |
+| `64056bd` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: Worker deployment history from Cloudflare's API, dispatch-only [skip ci] |
+| `500dd43` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | outbox: record the D19/D20 re-anchor, and that 4e3981d shipped without its entry |
+| `6542583` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | outbox: the live-check axis pin, verified in CI under the failing condition |
+| `4bd53ba` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `8bc1831` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | live-check: pin the axis step to the committed capture |
+| `f234846` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the refusal's attribution with the check and mutants |
+| `71a4a74` | 2026-11-03 | [espn-summary-reach-probe-20261103T071435Z.md](espn-summary-reach-probe-20261103T071435Z.md) | probe: relay /espn-summary reach from a runner [skip ci] |
+| `f868117` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | probe: relay /espn-summary reach from a runner, dispatch-only [skip ci] |
+| `2a2119c` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the relay's script with a check and mutants |
+| `9db195a` | 2026-11-03 | [patent-watch-rehearsal-20261103T064218Z.md](patent-watch-rehearsal-20261103T064218Z.md) | rehearsal: patent watcher on the real host [skip ci] |
+| `58c6581` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | patent-watch: hold the client's watcher with a check, mutants and a real-host rehearsal |
 | `be9bf6f` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: read the PPUBS counters as measured, and hold them as a contract |
 | `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.json](ppubs-query-probe-20261103T052138Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.md](ppubs-query-probe-20261103T052138Z.md) | probe: PPUBS query forms for a date and an assignee [skip ci] |

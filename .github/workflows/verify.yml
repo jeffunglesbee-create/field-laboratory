@@ -120,6 +120,93 @@ jobs:
       - name: Present-tense production premises
         run: node scripts/claim-check.mjs --premises
 
+  # Its OWN job, for the reason push-lands and claim-sweep above have theirs: the
+  # long `verify` job below skips everything after its first red step, and a
+  # check that only runs on a green tree cannot report on a broken one. A
+  # checkout of each repo, python and `requests`; no build, no browser.
+  #
+  # WHAT IT GUARDS: jubilant-bassoon's weekly patent watcher read
+  # bulkdata.uspto.gov, whose DNS record is gone, printed "0 matches" for both
+  # scans and exited 0 (client run 41574599866). It now reads PPUBS and must
+  # either read the week completely or end red with no manifest.
+  # scripts/check-patent-watch.py runs the client's watcher UNMODIFIED against
+  # scripts/ppubs_stand_in.py, a local copy of the anonymous half of the host whose
+  # response shape was measured on the real one, and holds that.
+  # scripts/mutate-patent-watch.py breaks the watcher and the rehearsal tool 44
+  # ways and requires the check to go red for each.
+  #
+  # THE SECOND CHECKOUT IS THE THING UNDER TEST, pinned to nothing: the claim is
+  # about the client's CURRENT watcher. So a lab push is red when the client's
+  # watcher no longer keeps its rule. This job runs on pushes to this repo, pull
+  # requests and dispatch; it does not run when only the client changes.
+  #
+  # NOT HERE: the real host. That is scripts/patent-watch-rehearsal.py, run from
+  # patent-watch-rehearsal.yml by dispatch, because a week is 67 searches at 3 s
+  # between calls (about 3.5 minutes) on a public service.
+  #
+  # Rule 90 order, as in claim-sweep: the harness runs BEFORE the check, so a check
+  # that cannot be made to fail never gets to produce a verdict. The check runs
+  # even when the harness is red (`if: always()`), because a red harness on a
+  # regressed watcher says "already red on the clean watcher" and the check names
+  # which scenario broke.
+  patent-watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: jeffunglesbee-create/jubilant-bassoon
+          path: .client-src
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests --quiet
+
+      - name: The check can be made to fail (44 mutants, about 90 seconds)
+        run: python3 scripts/mutate-patent-watch.py
+
+      - name: The client's patent watcher keeps its rule (about 45 seconds)
+        if: always()
+        run: python3 scripts/check-patent-watch.py --real-watchlist .client-src/.github/patent-watchlist.txt
+
+  # Its OWN job, for the reason push-lands and patent-watch have one. WHAT IT GUARDS: field-relay-nba's
+  # scripts/drama-backfill.mjs stored an ESPN 403 as drama_peak 0 (run 41235124610, 2026-10-31), and the
+  # relay's `drama_peak IS NULL` guard made that 0 final. scripts/check-drama-backfill.py runs the relay's
+  # script UNMODIFIED against a local copy of the routes it calls (relay main, checked out unpinned at
+  # .relay-src); scripts/mutate-drama-backfill.py breaks it and the reset one-shot and requires the check to go red each
+  # time (it prints how many on its last line; this comment said 19 on 2026-11-03 when the count was 24).
+  # It does not run on a push to the relay alone (CLAUDE.md: a push to another repo triggers nothing here);
+  # the next laboratory push reads relay main. Needs node and python, nothing else.
+  drama-backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: jeffunglesbee-create/field-relay-nba
+          path: .relay-src
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: The check can be made to fail (24 mutants, about 80 seconds)
+        run: python3 scripts/mutate-drama-backfill.py
+
+      - name: The relay's Drama backfill keeps its rule (about 25 seconds)
+        if: always()
+        run: python3 scripts/check-drama-backfill.py
+
   verify:
     runs-on: ubuntu-latest
     steps:

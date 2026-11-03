@@ -498,4 +498,121 @@
 #
 # The governed violation count is 0 again.
 
-711f9d2206fb56c249776a00b83406838054c3dc  37
+# ─────────────────────────────────────────────────────────────────────────────
+# MOVED ON 2026-11-03, FROM 711f9d2 / 37 TO 4bd53ba025836cb0dbf3ab813befff6ab8ce78cd / 38
+#
+# The seventh move. The commit it absorbs is mine, and the guard written to stop
+# exactly this was not in the path of the clone that made it.
+#
+# The owner was NOT asked this time. On 2026-10-24 the same question -- move it,
+# or leave main's verify red -- was put to the owner and the answer was to move
+# it; this applies that answer to the same situation, and says so. To undo it,
+# put `711f9d2206fb56c249776a00b83406838054c3dc  37` back on the last line of
+# this file. The check then fails on 4e3981d by name again.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — exactly one commit:
+#
+#   4e3981d  drama-backfill: re-anchor D19 and D20 on the explicit null tests
+#
+# It changed scripts/mutate-drama-backfill.py (the Rule 90 mutants for the Drama
+# backfill check) with no outbox entry, at 2026-11-03T07:36:26Z. verify run
+# 41597443741 and guards run 41597663155 failed on it by name, in the one step
+# "Source and outbox changed together, every commit"; no other step of either
+# run failed. The work is documented, in a row of
+#
+#   outbox/cc-session-2026-11-03-drama-backfill-refused-read.md
+#
+# and by this rule's per-commit design that row does not pair with the commit.
+#
+# WHY THE GUARD DID NOT FIRE — MEASURED THIS TIME, in the clone that made it
+#
+# Read before anything was changed in that clone:
+#
+#   git config core.hooksPath   empty. The git pre-commit gate was not installed.
+#   ls node_modules | wc -l     0. scripts/install_pkgs.sh runs `npm install`
+#                               and then sets hooksPath; neither had happened.
+#                               CLAUDE_CODE_REMOTE is "true" in that session's
+#                               shell, so the script's own guard would not have
+#                               skipped it. Why it did not run is NOT established.
+#   the session's root          the session's environment notice says its
+#                               primary working directory was /home/claude, the
+#                               parent of the clone, until about 07:42Z on
+#                               2026-11-03. That directory's
+#                               .claude/launcher-settings.json defines a Stop
+#                               hook and no PreToolUse hook (keys read, values
+#                               not printed). Whether Claude Code loads this
+#                               repository's .claude/settings.json for an added
+#                               directory was NOT observed.
+#
+# And the second delivery would not have caught it either. The 10-09 entry added
+# scripts/hook-staged-outbox.sh as an independent PreToolUse guard. Run by hand
+# on the exact shape of the command that made 4e3981d,
+#
+#   cd … && git add scripts/… && git -c user.name=… -c user.email=… commit -q …
+#
+# with the index empty, as it is at hook time, it prints "ok — 0 staged path(s)"
+# and exits 0. The index is empty because `git add` is in the same command and
+# runs after the hook. A hook that asks about the index before the command that
+# fills it has run cannot refuse a commit made that way, loaded or not. Whether
+# its `if: Bash(git commit*)` filter matches `git -c … commit` was not tested;
+# the empty index already explains the miss.
+#
+# The predicate itself was right: staged alone, the same file makes
+# scripts/staged-outbox-check.mjs exit 1 with the violation named. What failed
+# was where it was asked.
+#
+# WHAT SHIPPED
+#
+# In that clone, by hand, the two lines install_pkgs.sh runs: `npm install` (6
+# packages) and `git config core.hooksPath .githooks`. Observed after:
+# .githooks/pre-commit passes on a clean tree in 7 seconds; with the violating
+# file staged alone, `git commit` was refused (exit 1, the message above) and
+# HEAD did not move; and the outbox record for 4e3981d then went through the
+# gate as an ordinary commit.
+#
+# Nothing in the repository changed with this move. That is a limit: it fixes
+# one clone, and the next clone starts without it.
+#
+# NOT BUILT, AND WHY — two candidates in the repository, each with a cost:
+#
+#   * The PreToolUse hook sets core.hooksPath when it fires. Then the git gate
+#     runs check:import-purity, which failed in this clone for 4 modules before
+#     `npm install` (playwright absent). A gate that fails for the environment
+#     gets bypassed with --no-verify, and that bypasses the outbox rule too.
+#   * Ask the predicate at push time, over origin/main..HEAD, with the same
+#     isViolation. The violation is still local then, so the remedy is an amend
+#     or a split and not a boundary move, and it does not care how the commit
+#     was formed. It needs its own delivery, which has the loading problem
+#     measured above, so it narrows the miss and does not close it.
+#
+# What closes it is the part a session cannot do: the environment's Setup script
+# field (docs/SETUP-SCRIPT.md), and a session whose root is the repository.
+# Where this file has found a cause (08-23, 09-01, 10-09, now), it was the guard
+# not being in the committer's path.
+#
+# WHY 4bd53ba IS THE BOUNDARY
+#
+# The first commit after the violation, and itself clean: it touches only
+# outbox/axis-manifest-latest.json (a live-check runner commit). No commit after
+# 4e3981d ships source beside an outbox entry yet, so none demonstrates the rule
+# affirmatively, as the 08-23, 09-01 and 10-24 entries preferred; the nearest
+# clean commit is the one that un-governs the fewest. What stops being governed
+# is 281 non-merge commits, 711f9d2 through 4e3981d. Exactly one of them,
+# 4e3981d, violated the rule.
+#
+# HOW 38 WAS DERIVED
+#
+# 37 + 1. `check:history` on a FULL clone (git rev-parse --is-shallow-repository:
+# false; 2622 non-merge commits, the number CI's guards run 41597663155 printed
+# for the same history) reported "predating the rule: 37 (declared 37)" against
+# boundary 711f9d2 and named exactly one governed violation, 4e3981d. Moving past
+# it moves it from governed to predating. CI remains the authority if the two
+# ever disagree.
+#
+# WHAT THIS DOES NOT DO
+#
+# It grants no future amnesty. Everything from 4bd53ba onward is governed.
+#
+# The governed violation count is 0 again.
+
+4bd53ba025836cb0dbf3ab813befff6ab8ce78cd  38
