@@ -1,5 +1,34 @@
 # Where the gate's time actually goes
 
+## 2026-11-03 — both designs built, and what the gate costs now
+
+`docs/CC-CMD-2026-11-03-gate-speed.md`. The two designs below were built in the order that makes the second sound: a watched incremental compiler (B) with the build made clean
+and its digest compared before every mutation, then the mutation table split across eight runners (the "shard at the CI level" idea, below). Measured on the CI runners.
+
+| | before | after |
+|---|---|---|
+| the gate step of `verify-full` (`npm run gate`) | 6153 s, 6228 s, 6513 s (the last three ledger lines) | **1075 s** (run 41627438202, tree `7af6e24`) and **1869 s** (run 41630543901, the tree that landed) |
+| the whole `verify-full` run, wall-clock | about 108 min | **19 min 19 s** and **32 min 39 s** |
+| runner time, all jobs | about 110 min on one runner | 75 min and 102 min across nine jobs |
+| the mutation row | 4003 to 5688 s, 87% of the gate | 309 s and 1080 s at the gate (the wait for the shards); the shards' own time is in `outbox/mutation-baseline-latest.json` |
+| a `src/` mutation, build plus restore | about 60 s (two whole-project compiles, 25 to 34 s each) | 5.3 s mean under watch (29.3 s under the reference build) |
+| the table | 235 mutations, one process | 241 mutations in 8 shards; 72 distinct expectations; 0 survive |
+| **the longest path now** | the mutation suite | **the proof checks** (`doc claims are compiler-verified`, 729 to 760 s, once in the gate and twice in the shard that holds `seal-goes-public`: its baseline and its mutation) |
+
+The second run is slower than the first because the shard holding the proof row spent 31 min in it against 18.5 (same code, a slower runner); the spread is real and is why both are
+kept. The next step is named, not built: `docs/CC-CMD-2026-11-03-proof-check-shards.md`.
+
+**What was found on the way, each measured and in `outbox/cc-session-2026-11-03-gate-speed.md`:**
+
+- `dotnet fable watch` defaults to Debug, where 53 of 53 output files differ from the full compile; `-c Release` makes every file byte-identical (all 163 mutations that rebuild: 0 digests differ across the whole table, `outbox/mutation-equivalence-latest.json`).
+- Watch re-checks the file that changed and not the files after it, so a mutation that breaks only a later file builds under watch. A watch survivor is therefore confirmed by a full compile before it stands.
+- The old harness counted any failed build as "defended by the COMPILER", a catch that costs nothing. The F# compiler inside Fable crashes on the CI runners (about one fresh full compile in a hundred), and the crash prints diagnostics that look real, so a crash was a free pass. A refusal now needs a second build to say the same thing, and the repeats are counted.
+- 94 of the mutations were said to run on whatever compiled mutation had come before them. The table has 78 that do not rebuild; all 78 were caught on a clean build, so none was caught only by a leftover build.
+
+Everything below this line is the measurement of 2026-08-12 and is kept as the record of why the choice was made; its numbers are superseded by the table above.
+
+---
+
 Measured 2026-08-12 on the dev sandbox (4 cores). Nobody had measured this; the
 gate was "slow" as an impression. It is not evenly slow — one call dominates.
 

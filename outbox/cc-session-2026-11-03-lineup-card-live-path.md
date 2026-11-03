@@ -66,7 +66,8 @@ one probe of its by-date listing away and is not done here.
 
 ## Still open
 
-- `verify` and a gate on the landing tree, then landing on main and the CC-CMD marked DONE. The trigger file is deleted before landing so the merge cannot re-fire the workflow.
+- Done: `verify` on the branch tip was green (run 41576124774). Its own gate FAILED on a date: run 41576121384 scored 500/530 = 94 because the outbox row asks for an entry named with the FIELD day at gate start, 2026-11-02 at 04:06Z, and this document is dated 2026-11-03; the mutation row failed with it (the outbox row is one of its baseline expectations). It was therefore not landed on that gate: the branch was merged into `gate-speed` (with the gate-speed CC-CMD's work, `outbox/cc-session-2026-11-03-gate-speed.md`) and gated after the day rolled over: runs 41627438202 (530/530) and 41630543901 (530/530, the landed tree). The trigger file was deleted before landing.
+- Still open: the MLS finding above (one probe of BSD's by-date listing).
 
 ## What this does not prove
 

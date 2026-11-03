@@ -214,6 +214,26 @@ to go green. `WatchBuild.start` now stops the watcher (and waits for it to be go
 is believed only when the next start says it again, no diagnostic is not repeated), at most four times, each repeat announced and counted (`startRepeats`). The incremental
 compiles after that are not fresh checks: none crashed in about 1,500 of them.
 
-## Still open at this commit
+## The scored gates, and what landed
 
-The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.
+| run | tree | result | gate step | whole run | runner time |
+|---|---|---|---|---|---|
+| 41614410302 | `ee33fc9` | 510/530 = 96 (shard 1's `Build` step crashed) | 575 s | 35 min | |
+| 41620392450 | `b07f072` | 510/530 = 96 (shard 4's watcher start crashed) | 830 s | 22 min | |
+| 41627438202 | `7af6e24` | **530/530 = 100**, ledger `7af6e2472a5e-c55db6e046dd` | **1075 s** | **19 min 19 s** | 75 min |
+| 41630543901 | `8682660` (this plus main, the landed tree) | **530/530 = 100**, ledger `86826602144a-43b5429ee06e` | 1869 s | 32 min 39 s | 102 min |
+
+Before: 6153 / 6228 / 6513 s for the gate step, about 108 min for the run, about 110 min on one runner. The spread between the last two is the proof checks (729 s and 750 s once in the
+gate, twice in the shard that holds `seal-goes-public`: 18.5 min and 31 min) and runner speed; the proof row is now the longest path. Wall-clock fell by a factor of 3.3 to 5.6, runner time by
+a factor of 1.1 to 1.5. Main moved (workflow and script changes) after the first 100%, so the tree that landed is a second merge with main and was gated again; a push that deletes a
+trigger file fires its workflow (the equivalence run and the ids probe started on the removal and were cancelled), so the trigger files were removed in a separate push before the gate.
+
+**Landed:** the merge of `gate-speed` into `main` (the commit is in the CC-CMD and in the landing note below). `verify` and the deploy on main are read in the landing note.
+
+## What this does not prove
+
+- That no mutation anywhere is order-dependent for a reason other than the build. The table now runs every mutation from a clean build (78 do not rebuild and none was kept alive by a leftover one), but two mutations of one shared file are isolated only by being in different shards.
+- That eight shards always start together. In run 41627438202 all nine jobs started within a second; in run 41630543901 six of the nine shards waited a minute for a runner (11:49:57Z against 11:48:57Z; the cancelled equivalence run's jobs were winding down at that moment, which is a guess, not examined). A wait of that size is inside the 40-minute wait of the gate; a long one would show in the start times.
+- The cause of the compiler crash. It is bounded and counted (`failed builds repeated` in the merge's line and the equivalence artifact), not fixed: `docs/CC-CMD-2026-11-03-fable-compiler-crash.md`.
+- That the proof checks cannot be sharded: they are the longest path and are the next CC-CMD, `docs/CC-CMD-2026-11-03-proof-check-shards.md`.
+- The older gate runs: the old harness counted a compiler crash as a catch, so the "defended by the COMPILER" it printed once in run 41576121384 is not known to have been a real refusal. This table has none.
