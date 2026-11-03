@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `8bc1831` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | live-check: pin the axis step to the committed capture |
+| `f234846` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the refusal's attribution with the check and mutants |
+| `71a4a74` | 2026-11-03 | [espn-summary-reach-probe-20261103T071435Z.md](espn-summary-reach-probe-20261103T071435Z.md) | probe: relay /espn-summary reach from a runner [skip ci] |
+| `f868117` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | probe: relay /espn-summary reach from a runner, dispatch-only [skip ci] |
 | `2a2119c` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | drama-backfill: hold the relay's script with a check and mutants |
 | `9db195a` | 2026-11-03 | [patent-watch-rehearsal-20261103T064218Z.md](patent-watch-rehearsal-20261103T064218Z.md) | rehearsal: patent watcher on the real host [skip ci] |
 | `58c6581` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | patent-watch: hold the client's watcher with a check, mutants and a real-host rehearsal |
