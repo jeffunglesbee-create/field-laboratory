@@ -3176,7 +3176,7 @@ const cleanBefore = what => {
   if (!builder) return
   try { builder.assertClean(what) } catch (e) { fatal(e.message) }
 }
-const retryNote = (id, what) => (n, errors) => console.log(`  RETRY [${id}] ${what}: the compiler crashed (${String(errors?.[0] ?? '').replace(/\x1b\[[0-9;]*m/g, '').slice(0, 160)}); building again (${n})`)
+const retryNote = (id, what) => (n, errors) => console.log(`  RETRY [${id}] ${what}: the build failed (${String(errors?.[0] ?? '').replace(/\x1b\[[0-9;]*m/g, '').slice(0, 160)}); building again to see whether it fails the same way (${n})`)
 const kindOf = m => (m.mutate ? 'world' : m.file.startsWith('src/') ? 'src' : m.file === 'index.html' ? 'html' : 'script')
 
 for (const m of selected) {

@@ -149,7 +149,7 @@ const minutes = ms => `${Math.floor(ms / 60000)}m${String(Math.round((ms % 60000
 export const denominator = ({ counts, baseline, records }, allIds, n) =>
   `${records.length} of ${allIds.length} mutations across ${n} shards (${baseline.shards.mode}): ${counts.caught} caught, ${counts.compiler} refused by the compiler, ` +
   `${counts.survived} survived, ${counts.na} not applicable, ${counts.broken} broken; ${baseline.ran} distinct expectations, ${baseline.failing} failing; ` +
-  `${counts.crashRetries} compiler crash(es) repeated; ` +
+  `${counts.crashRetries} failed build(s) repeated; ` +
   `longest shard ${minutes(baseline.shards.longestMs)}, shards together ${minutes(baseline.shards.sumMs)}`
 
 // --- self-test ---------------------------------------------------------------------
@@ -228,9 +228,9 @@ const selfTest = () => {
   })())
   refuses('a failing baseline is a verdict problem, by shard', fs => { fs[2].data.baseline.results[0].passed = false; fs[2].data.baseline.failing = 1 }, 'verdict', /shard 3\/3: 1 baseline expectation\(s\) already failing/)
   refuses('a compiler crash is a verdict problem (the mutation tested nothing), not a catch', fs => { fs[1].data.records[0].verdict = 'build-fault' }, 'verdict', /\[m2\] is a broken mutation \(build-fault, shard 2\)/)
-  check('MUTATION: repeated compiler crashes are summed and printed, so the flake rate is visible in the gate log', (() => {
+  check('MUTATION: repeated failed builds are summed and printed, so the flake rate is visible in the gate log', (() => {
     const files = build(); files[0].data.records[0].crashRetries = 2; files[1].data.records[0].crashRetries = 1
-    const r = merge(files); return r.counts.crashRetries === 3 && /3 compiler crash\(es\) repeated/.test(denominator(r, IDS, N))
+    const r = merge(files); return r.counts.crashRetries === 3 && /3 failed build\(s\) repeated/.test(denominator(r, IDS, N))
   })())
   check('a survivor leaves the structure whole, so the artifact can still be written', (() => {
     const files = build(); files[0].data.records[1].verdict = 'survived'

@@ -325,7 +325,14 @@ export const isCompilerRefusal = errors => diagnosticLines(errors).some(l => /\b
 /** The compiler reporting its own failure, with no diagnostic about the code beside it. Only this is repeated. */
 export const isCompilerCrash = errors => !isCompilerRefusal(errors) && diagnosticLines(errors).some(l => /internal error/i.test(l))
 
-export const MAX_CRASH_RETRIES = 2
+/** The first real diagnostic, squeezed: two failed builds are the same refusal when they say the same thing first. */
+const refusalSignature = errors => {
+  const l = diagnosticLines(errors).find(l => /\berror (FSHARP|FABLE)\b|: error FS\d+/.test(l) && !/internal error/i.test(l))
+  return l ? l.replace(/\s+/g, ' ').trim().slice(0, 240) : null
+}
+
+/** Repeats allowed per build: for a crash, until it builds; for a refusal, one more to confirm it, and more if the second build says something else. */
+export const MAX_CRASH_RETRIES = 4
 
 /**
  * `dotnet fable watch` re-checks the file that changed and not the files downstream of it, so a mutation that breaks only a LATER file builds under watch and
@@ -336,8 +343,17 @@ export const MAX_CRASH_RETRIES = 2
  */
 export const confirmFullCompile = (outDir, command = `dotnet fable src/Laboratory.fsproj --outDir ${outDir}`) => {
   let r = attempt(command)
-  for (let n = 0; !r.ok && isCompilerCrash([r.why]) && n < MAX_CRASH_RETRIES; n++) r = attempt(command)
-  const refused = !r.ok && isCompilerRefusal([r.why])
+  let seen = null
+  for (let n = 0; !r.ok && n < MAX_CRASH_RETRIES; n++) {
+    if (isCompilerRefusal([r.why])) {
+      const sig = refusalSignature([r.why])
+      if (seen === sig) break // confirmed: the same diagnostic twice in a row
+      seen = sig
+    } else if (isCompilerCrash([r.why])) seen = null
+    else break
+    r = attempt(command)
+  }
+  const refused = !r.ok && isCompilerRefusal([r.why]) && refusalSignature([r.why]) === seen
   return { ok: r.ok, refused, fault: !r.ok && !refused, why: r.why }
 }
 
@@ -357,17 +373,26 @@ const injectedCrash = (b, restore) => {
  * `builder.compile(write, opts)`, repeated while the build CRASHED (never while it refused), at most MAX_CRASH_RETRIES times. The count comes back so the
  * flake is measured, not hidden. A mutation that crashes the compiler every time comes back `crashed: true`: it was neither refused nor built.
  */
-export const compileSteadily = async (builder, write, opts, onRetry = () => {}) => {
+export const compileSteadily = async (builder, write, opts, onRetry = () => {}, pauseMs = 1500) => {
   let r = await builder.compile(write, opts)
   let retries = 0
-  while (!r.ok && isCompilerCrash(r.errors) && retries < MAX_CRASH_RETRIES) {
+  let seen = null // the signature of a refusal seen once and awaiting its confirmation
+  while (!r.ok && retries < MAX_CRASH_RETRIES) {
+    if (isCompilerRefusal(r.errors)) {
+      const sig = refusalSignature(r.errors)
+      if (seen === sig) break // the same diagnostic twice in a row: a refusal
+      seen = sig
+    } else if (isCompilerCrash(r.errors)) seen = null
+    else break // a failure with nothing to repeat on (the site failed to assemble, a killed process): a fault, repeating it would be a guess
     retries++
     onRetry(retries, r.errors)
+    if (pauseMs) await sleep(pauseMs * retries)
     r = await builder.compile(write, opts)
   }
-  // `crashed` is every failed build that carries no diagnostic about the code: the compiler crashing, but also the site failing to assemble, a killed process,
-  // a full disk. Counting those as "refused by the compiler" was a catch that costs nothing (review finding, 2026-11-03).
-  return { ...r, retries, crashed: !r.ok && !isCompilerRefusal(r.errors) }
+  // `crashed` is every failed build that is not a CONFIRMED refusal: the compiler crashing, the site failing to assemble, a killed process, a full disk, and a
+  // diagnostic that appeared once and did not appear again (a flaky compiler produces diagnostics that look real: the second build decides).
+  const refused = !r.ok && isCompilerRefusal(r.errors) && refusalSignature(r.errors) === seen
+  return { ...r, retries, crashed: !r.ok && !refused }
 }
 
 /** Elapsed milliseconds since this call, as a function. Here and not in mutation-check.mjs: that file is scanned by row-confidence.mjs for clock reads, and a
@@ -420,15 +445,20 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   {
     const scripted = results => { let i = 0; const calls = []; return { calls, compile: async () => { calls.push(1); return results[Math.min(i++, results.length - 1)] } } }
     const crash = { ok: false, errors: CRASH }, good = { ok: true, errors: [] }, refuse = { ok: false, errors: REFUSAL }
-    const a1 = scripted([crash, good]); const r1 = await compileSteadily(a1, () => {})
+    const a1 = scripted([crash, good]); const r1 = await compileSteadily(a1, () => {}, {}, () => {}, 0)
     check('MUTATION: a crash is repeated, and the good build that follows is the answer, with the retry counted', r1.ok === true && r1.retries === 1 && r1.crashed === false && a1.calls.length === 2, JSON.stringify(r1))
-    const a2 = scripted([crash]); const r2 = await compileSteadily(a2, () => {})
+    const a2 = scripted([crash]); const r2 = await compileSteadily(a2, () => {}, {}, () => {}, 0)
     check('MUTATION: a compiler that crashes every time is reported crashed after the retries, not as a refusal', r2.crashed === true && r2.ok === false && r2.retries === MAX_CRASH_RETRIES && a2.calls.length === MAX_CRASH_RETRIES + 1, JSON.stringify(r2))
-    const a3 = scripted([refuse]); const r3 = await compileSteadily(a3, () => {})
-    check('MUTATION: a real refusal is never repeated and is not a crash', r3.ok === false && r3.crashed === false && r3.retries === 0 && a3.calls.length === 1, JSON.stringify(r3))
-    const a4 = scripted([good]); const r4 = await compileSteadily(a4, () => {})
+    const a3 = scripted([refuse]); const r3 = await compileSteadily(a3, () => {}, {}, () => {}, 0)
+    check('MUTATION: a real refusal is confirmed by exactly one repeat saying the same thing, and is then not a crash', r3.ok === false && r3.crashed === false && r3.retries === 1 && a3.calls.length === 2, JSON.stringify(r3))
+    const flaky = scripted([refuse, good]); const rf = await compileSteadily(flaky, () => {}, {}, () => {}, 0)
+    check('MUTATION: a diagnostic that appeared once and did not appear again was a flaky compiler, and the good build is the answer', rf.ok === true && rf.retries === 1 && rf.crashed === false, JSON.stringify(rf))
+    const other = { ok: false, errors: ["./src/Other.fs(3,1): (3,4) error FSHARP: Something else entirely (code 39)"] }
+    const unstable = scripted([refuse, other, refuse, other, refuse]); const ru = await compileSteadily(unstable, () => {}, {}, () => {}, 0)
+    check('MUTATION: diagnostics that keep changing are never confirmed: the build is a fault, not a refusal', ru.ok === false && ru.crashed === true && ru.retries === MAX_CRASH_RETRIES, JSON.stringify(ru))
+    const a4 = scripted([good]); const r4 = await compileSteadily(a4, () => {}, {}, () => {}, 0)
     check('a build that works is built once', r4.ok === true && r4.retries === 0 && a4.calls.length === 1)
-    const seen = []; const a5 = scripted([crash, crash, good]); await compileSteadily(a5, () => {}, {}, (n, errs) => seen.push([n, errs === CRASH]))
+    const seen = []; const a5 = scripted([crash, crash, good]); await compileSteadily(a5, () => {}, {}, (n, errs) => seen.push([n, errs === CRASH]), 0)
     check('each retry is announced with its number and the errors that caused it', JSON.stringify(seen) === JSON.stringify([[1, true], [2, true]]), JSON.stringify(seen))
   }
   check('MUTATION: verdictOf: a compiler crash is "build-fault", never a refusal or a catch', verdictOf({ anchorFound: true, built: false, crashed: true }) === 'build-fault' && verdictOf({ anchorFound: true, built: true, survived: false, crashed: true }) === 'build-fault')
@@ -441,7 +471,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     check('MUTATION: one real diagnostic among internal errors makes it a refusal, not a crash to repeat', isCompilerRefusal(MIXED) === true && isCompilerCrash(MIXED) === false)
     check('the full driver\'s joined tail is read line by line', isCompilerRefusal(["the build failed, exit 1: a | ./src/X.fs(1,1): (1,2) error FSHARP: boom (code 1) | b"]) === true)
     const scripted = results => { let i = 0; const calls = []; return { calls, compile: async () => { calls.push(1); return results[Math.min(i++, results.length - 1)] } } }
-    const asm = scripted([{ ok: false, errors: ASSEMBLE }]); const ra = await compileSteadily(asm, () => {})
+    const asm = scripted([{ ok: false, errors: ASSEMBLE }]); const ra = await compileSteadily(asm, () => {}, {}, () => {}, 0)
     check('MUTATION: a failed build with no diagnostic is reported as a fault (crashed) and is not repeated', ra.ok === false && ra.crashed === true && ra.retries === 0 && asm.calls.length === 1, JSON.stringify(ra))
     const tr = new CycleTracker(); tr.feed('Started Fable compilation...\nFable compilation finished in 9ms\n./src/Suite.fs(1,1): error EXCEPTION: error recovery\nWatching src\n')
     check('MUTATION: a cycle whose only error line is an EXCEPTION still fails the cycle', tr.history.length === 1 && tr.history[0].ok === false, JSON.stringify(tr.history))
@@ -458,6 +488,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       check('MUTATION: a full compile that fails with no diagnostic is a fault, not a refusal', c2.refused === false && c2.fault === true, JSON.stringify(c2))
       check('a full compile that works confirms nothing against the survivor', c3.ok === true && c3.refused === false && c3.fault === false)
       check('MUTATION: a crashed full compile is repeated and the build after it decides', c4.ok === true, JSON.stringify(c4))
+      const flakyDiag = `node -e "const fs=require('fs'),p=process.argv[1]; if(!fs.existsSync(p)){fs.writeFileSync(p,'x'); console.log('./src/A.fs(1,1): (1,2) error FSHARP: The type X is not defined (code 39)'); process.exit(1)}" ${join(cfDir, 'diag-once')}`
+      const c6 = confirmFullCompile(cfDir, flakyDiag)
+      check('MUTATION: a diagnostic from a full compile that does not repeat is not a refusal', c6.ok === true && c6.refused === false, JSON.stringify(c6))
     } finally { rmSync(cfDir, { recursive: true, force: true }) }
   }
   check('verdictOf: a missing anchor, a mutation that did not apply, a refused compile, a survivor and a catch are five different words',
@@ -522,10 +555,10 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       check('MUTATION: a build that is not clean names the files that differ', /differing: .*~ \/a\.js.*\+ \/extra\.js/.test(msg), msg)
       {
         const c1 = new FullBuild({ command: 'node -e ""', outDir: fdir, extraFiles: [], fault: 'crash-once' }); await c1.start()
-        const o = await compileSteadily(c1, () => {})
+        const o = await compileSteadily(c1, () => {}, {}, () => {}, 0)
         check('MUTATION: the crash-once fault is repeated through and the build after it is the answer', o.ok === true && o.retries === 1 && o.crashed === false, JSON.stringify(o))
         const c2 = new FullBuild({ command: 'node -e ""', outDir: fdir, extraFiles: [], fault: 'crash-always' }); await c2.start()
-        const o2 = await compileSteadily(c2, () => {})
+        const o2 = await compileSteadily(c2, () => {}, {}, () => {}, 0)
         check('MUTATION: the crash-always fault ends crashed, with every retry spent', o2.ok === false && o2.crashed === true && o2.retries === MAX_CRASH_RETRIES, JSON.stringify(o2))
         const o3 = await compileSteadily(c2, () => {}, { restore: true })
         check('the fault never touches a restore compile, so a tree can always be put back', o3.ok === true && o3.retries === 0)

@@ -164,6 +164,26 @@ the denominator (the merge prints it and the gate hides stdout on success by des
 with no wrong outcome in the code as written; #12 is the same concern from another reviewer and was confirmed); that the merge never compares the shards'
 clean digests and that the unset path differs from the old behaviour (in both the mechanism exists and the agent could not make it produce a wrong outcome).
 
+## The third whole-table run (run 41603976677, tree `a5d6e9c`, 241 mutations) and why a diagnostic is no longer trusted once
+
+211 of 241 compared: reference shard 3 died. Its restore of `venue-reading-serves-only-its-own-name` crashed three builds in a row
+(`./build/fable_modules/Thoth.Json.10.5.1/Decode.fs(201,23): error FSHARP: internal error: Object reference not set to an instance of an object`), which was
+all the repeat budget of 2 allowed. Of the 211 compared, 0 digests differ across 142 mutations that rebuild, 69 non-rebuilding mutations were all caught on a
+clean build, and one verdict differed: `narrative-second-wind-off-by-one`, `caught` under watch and `compiler` under full. `failed builds repeated`: watch 0, full 2.
+
+That one was run locally under `--build full` and did NOT refuse: its first build crashed (`Thoth.Json.10.5.1/Types.fs(33,1)`, the same family), the repeat built
+and the mutation was caught. So the `compiler` on the runner was a build that printed a diagnostic that was not the words "internal error" and was still the
+flaky compiler. **A diagnostic that appears once is therefore not a refusal.** A refusal is now only a diagnostic that a second build says again (the first real
+diagnostic, whitespace-squeezed, equal), a build that fails differently each time is a fault, and one that stops failing was a flake and its good build is the
+answer. A watch survivor's confirming full compile obeys the same rule. The repeat budget is 4 with a growing pause. Cost: nothing on the table, which has
+no real refusals.
+
+What was measured about the flake itself, so as not to claim a cause: 12 clean `npm run build` in a row locally, 0 crashes; 16 builds each straight after a
+source change, 0; 6 plain `dotnet fable` of the mutated file into fresh directories, 0; and one crash in the first harness run of that same mutation. About one
+in 100 builds on the runners (2 to 5 per equivalence run), clustering once (three in a row), none in about 800 watch compiles. The cause (Fable's embedded F#
+compiler, the runner's SDK 10.0.403 against the sandbox's 10.0.113, a race in checking the copies of the Thoth.Json sources under `build/fable_modules`) is
+NOT established, and nothing in the gate depends on knowing it: the production path is `--build watch`, one fresh compile per shard.
+
 ## Still open at this commit
 
 The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.
