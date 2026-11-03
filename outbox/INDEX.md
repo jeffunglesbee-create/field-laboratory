@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `be9bf6f` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: read the PPUBS counters as measured, and hold them as a contract |
+| `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.json](ppubs-query-probe-20261103T052138Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
+| `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.md](ppubs-query-probe-20261103T052138Z.md) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `dfd9276` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: PPUBS reading mode with 429 backoff, after run 1 measured the host |
 | `9535904` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `59a4f54` | 2026-11-03 | [ppubs-query-probe-20261103T045459Z.json](ppubs-query-probe-20261103T045459Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
