@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4edebdd` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `41a511d` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | docs: the landing, with the verify and deploy it was read from |
 | `b6c80de` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | docs: both CC-CMDs DONE with their run ids, GATE-TIMING carries the new figures |
 | `b6c80de` | 2026-11-03 | [cc-session-2026-11-03-lineup-card-live-path.md](cc-session-2026-11-03-lineup-card-live-path.md) | docs: both CC-CMDs DONE with their run ids, GATE-TIMING carries the new figures |
 | `0f2ee8e` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8682660 [skip ci] |
