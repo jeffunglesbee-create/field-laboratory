@@ -228,7 +228,9 @@ gate, twice in the shard that holds `seal-goes-public`: 18.5 min and 31 min) and
 a factor of 1.1 to 1.5. Main moved (workflow and script changes) after the first 100%, so the tree that landed is a second merge with main and was gated again; a push that deletes a
 trigger file fires its workflow (the equivalence run and the ids probe started on the removal and were cancelled), so the trigger files were removed in a separate push before the gate.
 
-**Landed:** the merge of `gate-speed` into `main` (the commit is in the CC-CMD and in the landing note below). `verify` and the deploy on main are read in the landing note.
+**Landed:** `b6c80de` on `main` (44 commits, a fast-forward of `de88573`; no trigger file in the diff, and the push started only `guards` and `verify`). `verify` run 41635428198: success in 4 min 44 s,
+including the new step `The sharded mutation run's parts refuse what they must`; `guards` run 41635428086: success; `deploy` run 41636096885: success in 59 s. The weekly scheduled `verify-full` runs the
+sharded topology from the next Monday 06:00Z (it scores 520, not 530, as before: the outbox row is not applicable to a schedule); a dispatch runs it now.
 
 ## What this does not prove
 
