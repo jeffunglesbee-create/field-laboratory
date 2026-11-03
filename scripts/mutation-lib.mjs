@@ -489,6 +489,9 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       check('a full compile that works confirms nothing against the survivor', c3.ok === true && c3.refused === false && c3.fault === false)
       check('MUTATION: a crashed full compile is repeated and the build after it decides', c4.ok === true, JSON.stringify(c4))
       const flakyDiag = `node -e "const fs=require('fs'),p=process.argv[1]; if(!fs.existsSync(p)){fs.writeFileSync(p,'x'); console.log('./src/A.fs(1,1): (1,2) error FSHARP: The type X is not defined (code 39)'); process.exit(1)}" ${join(cfDir, 'diag-once')}`
+      const counted = `node -e "require('fs').appendFileSync(process.argv[1], 'x'); console.log('./src/Market.fs(77,41): (77,50) error FSHARP: Type mismatch (code 1)'); process.exit(1)" ${join(cfDir, 'count')}`
+      confirmFullCompile(cfDir, counted)
+      check('MUTATION: a refusal is confirmed by exactly one repeat and no more (two builds, not one and not the whole budget)', readFileSync(join(cfDir, 'count'), 'utf8').length === 2, String(readFileSync(join(cfDir, 'count'), 'utf8').length))
       const c6 = confirmFullCompile(cfDir, flakyDiag)
       check('MUTATION: a diagnostic from a full compile that does not repeat is not a refusal', c6.ok === true && c6.refused === false, JSON.stringify(c6))
     } finally { rmSync(cfDir, { recursive: true, force: true }) }

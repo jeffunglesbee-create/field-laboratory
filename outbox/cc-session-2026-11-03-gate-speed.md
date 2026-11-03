@@ -184,6 +184,11 @@ in 100 builds on the runners (2 to 5 per equivalence run), clustering once (thre
 compiler, the runner's SDK 10.0.403 against the sandbox's 10.0.113, a race in checking the copies of the Thoth.Json sources under `build/fable_modules`) is
 NOT established, and nothing in the gate depends on knowing it: the production path is `--build watch`, one fresh compile per shard.
 
+**One clause the sweep could not tell, closed.** Breaking the confirming full compile's early stop (`if (seen === sig) break`) left every lib check green:
+without it the compile repeats a real refusal until its budget is spent and reaches the same verdict, only slower. The self-test now counts the builds (two,
+not one and not the whole budget). This commit changes `scripts/mutation-lib.mjs`'s self-test only and lands after the tree the scored gate ran on; `verify` runs
+`check:mutation-parts` on the landing commit.
+
 ## Still open at this commit
 
 The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.
