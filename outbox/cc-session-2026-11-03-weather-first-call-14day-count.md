@@ -66,10 +66,12 @@ Two earlier runs on the same tree failed, and neither was this change:
    that the target still carries the injection (`injectedNow` is read, and used only in the `proceed` case). A marker with dead pid 999999 and those two old versions
    as backups, planted in a clean tree at HEAD, printed `proof-check: HEALED — a previous run (pid 999999) was killed with src/Scoreboard.fs injected`, left Desk.fs
    at 13 lines fewer and Scoreboard.fs at 70 fewer, and failed the baseline compile with the same FS0039. That a stale `.proof-state/` existed before run 1 is
-   **inferred from that match, not observed**: this checkout was in use through at least 2026-10-22 (its stash holds a WIP on `8f65f4f`, dated 10-22) and was
-   fast-forwarded 190 commits today, which would leave an old backup behind the new files. Not fixed here. The guard is to heal only while `TARGET` still contains
-   `MARKER`, which `injectedNow` already computes; that is gate infrastructure and the owner's call. Until then, a checkout that has run `proof-check` and was
-   later pulled should have `.proof-state/` deleted before `npm run gate`.
+   **inferred from that match, not observed**: this checkout was in use through at least 2026-10-22 (its stash holds a WIP on `8f65f4f`, dated 10-22).
+   **Corrected the same day** (`docs/CC-CMD-2026-11-03-proof-check-stale-state.md`): this paragraph first said the checkout "was fast-forwarded 190 commits today,
+   which would leave an old backup behind the new files". It was not that pull: those 190 commits touched neither `Desk.fs` nor `Scoreboard.fs`, and the lineups
+   commit `11b781d` was already in the tree before it, brought in by the 2026-10-28 `pull --rebase --autostash` runs. The marker is older than that.
+   **Fixed** by that CC-CMD, in a stricter form than the guard first proposed here ("heal only while `TARGET` still contains `MARKER`" would still have overwritten a
+   file that had moved on with the injection left on it): a backup is now applied only to a file that is exactly that backup plus what the script itself injects.
 2. **Run 2, 96/100**, one row ("breaking each invariant"): the harness's baseline found `node scripts/lineups-render-check.mjs` already failing,
    `browserType.launch: Executable doesn't exist at /opt/pw-browsers/chromium_headless_shell-1234/...`. That script launches Chromium only through the opt-in
    `PW_CHROMIUM` variable, where `tab-check`, `pickem-check`, `render-check` and `separation-check` fall back to the session's Chromium by themselves. With

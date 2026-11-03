@@ -66,8 +66,10 @@
 // its relatives). It stops type-checking for every case in the file, so the
 // batch would see nothing and the run would fail loudly, by the rule above.
 
-import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs'
-import { execSync } from 'node:child_process'
+import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, rmSync, mkdtempSync } from 'node:fs'
+import { execSync, spawnSync } from 'node:child_process'
+import { tmpdir } from 'node:os'
+import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
 
@@ -159,6 +161,45 @@ const layout = (src, cs) => {
     return `let private __proof${k} (g: Game) =\n${indented}\n\n`
   })
   return { text: src.slice(0, at) + chunks.join('') + src.slice(at), ranges }
+}
+
+// --- what a killed run can have left, and whether its backups describe it ---------
+//
+// A backup is applied only to a file that is EXACTLY that backup plus what this script
+// puts there: one block of proof functions above ANCHOR in the target, one probe case
+// above the union's last case in the registry. Anything else is a file that changed
+// after the run was killed, and the backup is older than it.
+
+// The registry phase's probe: one case line directly above the union's last case. The
+// anchor starts at the newline, as the regex it replaced did, so only a case at exactly
+// four spaces of indent matches.
+const REGISTRY_ANCHOR = '\n    | Unrecognised of raw: string'
+const REGISTRY_PROBE = '    | NHL\n'
+
+/** `src` with the probe inserted, or `src` unchanged when the union's last case is not found. */
+const probeRegistry = src => {
+  const at = src.indexOf(REGISTRY_ANCHOR)
+  return at < 0 ? src : `${src.slice(0, at + 1)}${REGISTRY_PROBE}${src.slice(at + 1)}`
+}
+
+/** What `current` has over `backup` if it is `backup` with exactly one block inserted at `at`; null if it is anything else. */
+const insertedAt = (current, backup, at) => {
+  if (backup === null || at < 0) return null
+  const head = backup.slice(0, at)
+  const tail = backup.slice(at)
+  if (current.length <= head.length + tail.length) return null
+  if (!current.startsWith(head) || !current.endsWith(tail)) return null
+  return current.slice(head.length, current.length - tail.length)
+}
+
+/** Is `current` the backed-up target with this script's proof functions inserted, and nothing else different? */
+const strandedTarget = (current, backup) =>
+  backup !== null && (insertedAt(current, backup, backup.indexOf(ANCHOR))?.includes(MARKER) ?? false)
+
+/** Is `current` the backed-up registry with the probe case inserted, and nothing else different? */
+const strandedRegistry = (current, backup) => {
+  const at = backup === null ? -1 : backup.indexOf(REGISTRY_ANCHOR)
+  return at >= 0 && insertedAt(current, backup, at + 1) === REGISTRY_PROBE
 }
 
 /**
@@ -272,7 +313,7 @@ const isAlive = pid => {
 /**
  * What to do about the state on disk, as a value rather than as control flow.
  *
- * THREE OUTCOMES, AND THE THIRD IS THE ONE THAT COST A SESSION. On 2026-09-07
+ * THREE OUTCOMES (TWO MORE ARE BELOW), AND THE THIRD IS THE ONE THAT COST A SESSION. On 2026-09-07
  * the confidence gate was killed to unblock a commit; killing the parent left
  * this script orphaned and STILL RUNNING, and src/Scoreboard.fs re-acquired its
  * injection after three separate `git checkout --` restores. The compile error
@@ -284,12 +325,40 @@ const isAlive = pid => {
  * REFUSAL rather than a repair. That is the answer the last incident needed, and
  * it is not one a backup can give.
  *
- * Pure, so the self-test can exercise all three without a dotnet build in sight.
+ * TWO MORE, ADDED 2026-11-03: `stale` and `diverged`. A marker with no live process says
+ * a run was killed; it does not say the files are still as that run left them, and the
+ * heal used to write its backups over two tracked files on that sentence alone. The first
+ * gate run in a checkout that held such a marker had `src/Scoreboard.fs` and
+ * `src/Desk.fs` rewritten to the versions they were in when that run started (13 and 70
+ * lines of the lineups feature gone) and failed its baseline on `BsdEventId`. Reproduced
+ * with a planted marker and the old files as backups: the same two files, the same line
+ * counts, the same compile error. That the marker was already there is inferred from
+ * the match, not observed; the 190-commit fast-forward that came just before the run
+ * touched neither file, and the lineups commit was in the tree before it.
+ *
+ * So a backup is applied only to a file that is exactly that backup plus what this script
+ * puts there (`strandedTarget`, `strandedRegistry` above), and the answers follow:
+ *
+ *   heal      a file is provably this script's own injection: restore THAT file, and
+ *             not the other one;
+ *   stale     nothing is stranded and the target is intact: the state is as old as the
+ *             marker, and is discarded, never applied;
+ *   diverged  something on the target is not described by the backups, either an
+ *             injection the file has moved on from (a stash pop, an edit) or a target
+ *             with no anchor, which may be torn: write nothing, keep the state, say
+ *             what to do by hand.
+ *
+ * Pure, so the self-test can exercise every answer without a dotnet build in sight.
  */
-const classifyState = ({ markerExists, pid, selfPid, alive }) => {
+const classifyState = ({
+  markerExists, pid, selfPid, alive, injected, anchored, targetStranded, registryStranded,
+}) => {
   if (!markerExists) return 'proceed'
   if (pid === selfPid) return 'proceed'
-  return alive ? 'refuse' : 'heal'
+  if (alive) return 'refuse'
+  if (injected && !targetStranded) return 'diverged'
+  if (targetStranded || registryStranded) return 'heal'
+  return anchored ? 'stale' : 'diverged'
 }
 
 // --- self-test ---------------------------------------------------------------
@@ -300,19 +369,146 @@ const classifyState = ({ markerExists, pid, selfPid, alive }) => {
 // the right case, and it is cheap enough to run before every real run.
 if (process.argv.includes('--self-test')) {
   const { check: sc, summarize: ss } = createChecks()
-  const st = (markerExists, pid, alive) =>
-    classifyState({ markerExists, pid, selfPid: 4242, alive })
+  // One input at a time moves off a base that is a dead pid, a clean intact tree, nothing stranded.
+  const st = over => classifyState({
+    markerExists: true, pid: 99, selfPid: 4242, alive: false,
+    injected: false, anchored: true, targetStranded: false, registryStranded: false, ...over,
+  })
 
-  sc('no marker means proceed', st(false, null, false) === 'proceed',
-    `got ${st(false, null, false)}`)
+  sc('no marker means proceed, whatever the tree holds',
+    st({ markerExists: false }) === 'proceed'
+      && st({ markerExists: false, injected: true, targetStranded: true }) === 'proceed',
+    `got ${st({ markerExists: false })}`)
   sc('A MARKER WHOSE PROCESS IS STILL ALIVE REFUSES, it does not repair',
-    st(true, 99, true) === 'refuse',
-    `got ${st(true, 99, true)} — healing a file a live run is about to rewrite `
+    st({ alive: true, injected: true, targetStranded: true }) === 'refuse',
+    `got ${st({ alive: true, injected: true, targetStranded: true })} — healing a file a live run is about to rewrite `
     + 'is a race; this is the outcome the 2026-09-07 incident needed')
-  sc('a marker whose process is gone heals', st(true, 99, false) === 'heal',
-    `got ${st(true, 99, false)}`)
-  sc('our own marker is not somebody else\'s run', st(true, 4242, true) === 'proceed',
-    `got ${st(true, 4242, true)}`)
+  sc('...whatever the tree holds',
+    [{}, { injected: true }, { registryStranded: true }, { anchored: false }].every(o => st({ alive: true, ...o }) === 'refuse'),
+    'a live process refuses on a clean tree, an injected one, a stranded registry and a target with no anchor')
+  sc('our own marker is not somebody else\'s run', st({ pid: 4242, alive: true }) === 'proceed',
+    `got ${st({ pid: 4242, alive: true })}`)
+  sc('HEAL: the target is provably the killed run\'s own injection',
+    st({ injected: true, targetStranded: true }) === 'heal', `got ${st({ injected: true, targetStranded: true })}`)
+  sc('HEAL: or only the registry is, with the phase-2 probe case on it',
+    st({ registryStranded: true }) === 'heal', `got ${st({ registryStranded: true })}`)
+  sc('A MARKER WHOSE PROCESS IS GONE, OVER NOTHING STRANDED, IS STALE: nothing to heal',
+    st({}) === 'stale',
+    `got ${st({})} — writing its backups back would rewrite files that were never injected, `
+    + 'with whatever the tree held when that run started')
+  sc('DIVERGED: an injection the backups do not describe is not healed',
+    st({ injected: true }) === 'diverged', `got ${st({ injected: true })}`)
+  sc('...and an unexplained injection on the target outranks a stranded registry',
+    st({ injected: true, registryStranded: true }) === 'diverged', `got ${st({ injected: true, registryStranded: true })}`)
+  sc('...and a target with no anchor, which may be torn, is not called clean',
+    st({ anchored: false }) === 'diverged', `got ${st({ anchored: false })}`)
+
+  // The two predicates the classifier is fed, on the REAL layout() and probeRegistry() outputs:
+  // a fixture typed by hand would keep passing after the script stopped writing what it recognises.
+  const clean = `// head\n${ANCHOR}\n  body\n`
+  const moved = clean.replace('// head', '// head, newer')
+  const injectedClean = layout(clean, [{ body: 'let x = 1' }]).text
+  sc('strandedTarget: the real layout() output is recognised, the clean file is not',
+    strandedTarget(injectedClean, clean) && !strandedTarget(clean, clean),
+    'the injected text must read as the backup plus a block carrying MARKER, and the backup itself as nothing stranded')
+  sc('strandedTarget: a file that moved on is not, with or without an injection on it',
+    !strandedTarget(layout(moved, [{ body: 'let x = 1' }]).text, clean) && !strandedTarget(moved, clean),
+    'an old backup must never describe a newer file')
+  sc('strandedTarget: an insertion that is not proof code, a truncation and a missing backup are not',
+    !strandedTarget(clean.replace(ANCHOR, `let y = 2\n\n${ANCHOR}`), clean)
+      && !strandedTarget(injectedClean.slice(0, 20), clean) && !strandedTarget(injectedClean, null),
+    'only a block carrying MARKER, whole, over a backup that exists, counts')
+  const union = 'type Sport =\n    | MLB\n    | NHL\n    | Unrecognised of raw: string\n'
+  sc('strandedRegistry: the real probeRegistry() output is recognised, the clean union is not',
+    probeRegistry(union) !== union && strandedRegistry(probeRegistry(union), union) && !strandedRegistry(union, union),
+    'the probe must change the union and read back as stranded')
+  sc('strandedRegistry: a union that moved on, a missing backup and a union with no last case are not',
+    !strandedRegistry(probeRegistry(union.replace('| MLB', '| MLB\n    | MLS')), union)
+      && !strandedRegistry(probeRegistry(union), null) && probeRegistry('x') === 'x' && !strandedRegistry('x', 'x'),
+    'the probe of a union with no last case changes nothing, and nothing is stranded')
+
+  // The classifier decides; this runs what it decided. The REAL script, in a scratch directory,
+  // against planted state: the classifier alone cannot see a wrong call site, a case that writes
+  // the backups anyway, or one that exits early, and the first stale marker cost a gate run
+  // because the decision was right in no test and wrong in the one place that wrote. The child
+  // exits 1 whatever it decides (there is no project, so its own cases fail), so its status says
+  // nothing; what counts is the two files, the state directory, and whether it got past the
+  // repair into its own checks (it prints "baseline tree compiles" there, pass or fail).
+  const sandbox = ({ target, registry, backupTarget, backupRegistry, pid }) => {
+    const dir = mkdtempSync(join(tmpdir(), 'proof-state-'))
+    try {
+      for (const d of ['src', 'docs', STATE_DIR]) mkdirSync(join(dir, d))
+      writeFileSync(join(dir, TARGET), target)
+      writeFileSync(join(dir, REGISTRY), registry)
+      writeFileSync(join(dir, BACKUP), backupTarget)
+      writeFileSync(join(dir, `${BACKUP}.registry`), backupRegistry)
+      writeFileSync(join(dir, MARKER_FILE), JSON.stringify({
+        pid, startedAt: '2026-10-20T20:00:00.000Z', target: TARGET, registry: REGISTRY,
+      }))
+      const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url)],
+        { cwd: dir, encoding: 'utf8', timeout: 120_000 })
+      return {
+        status: r.status, stdout: r.stdout ?? '', stderr: r.stderr ?? '', error: r.error ? String(r.error.message) : '',
+        target: readFileSync(join(dir, TARGET), 'utf8'), registry: readFileSync(join(dir, REGISTRY), 'utf8'),
+        stateLeft: existsSync(join(dir, STATE_DIR)),
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }
+  const DEAD = 2 ** 30   // no such pid, the same one the liveness case below relies on
+  const carriedOn = r => /baseline tree compiles/.test(r.stdout)
+  const seen = r => r.error || `status ${r.status}, stderr: ${r.stderr.slice(0, 200).replace(/\n/g, ' | ')}`
+  const show = r => `target ${JSON.stringify(r.target.slice(0, 60))}, registry ${JSON.stringify(r.registry.slice(0, 60))}, `
+    + `state left ${r.stateLeft}, carried on ${carriedOn(r)}; ${seen(r)}`
+
+  // A stale marker over a tree that moved on: the files are NEITHER backup, and nothing of ours is on them.
+  const oldClean = `// head, older\n${ANCHOR}\n  body\n`
+  const oldUnion = 'type Sport =\n    | MLB\n    | EPL\n    | Unrecognised of raw: string\n'
+  const staleRun = sandbox({ target: clean, registry: union, backupTarget: oldClean, backupRegistry: oldUnion, pid: DEAD })
+  sc('A STALE MARKER LEAVES BOTH FILES AS THEY ARE, says so, and the run carries on with the state gone',
+    staleRun.target === clean && staleRun.registry === union && /STALE STATE DISCARDED/.test(staleRun.stderr)
+      && /NOT written back/.test(staleRun.stderr) && !/HEALED/.test(staleRun.stderr) && carriedOn(staleRun) && !staleRun.stateLeft,
+    show(staleRun))
+
+  // A run killed in phase 1: the target carries its injection. The registry has moved on since and is not its to restore.
+  const newerUnion = union.replace('| MLB', '| MLB\n    | MLS')
+  const killed = sandbox({ target: injectedClean, registry: newerUnion, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('a killed run that left its injection has the TARGET healed from its backup, and the registry it never touched left alone',
+    killed.target === clean && killed.registry === newerUnion && /HEALED/.test(killed.stderr)
+      && !/src\/Desk\.fs/.test(killed.stderr) && carriedOn(killed) && !killed.stateLeft,
+    show(killed))
+
+  // A run killed in phase 2 with its marker still on disk: the registry carries the probe, the target has moved on.
+  const killedRegistry = sandbox({ target: moved, registry: probeRegistry(union), backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('a killed run that left its probe case has the REGISTRY healed from its backup, and the target it never touched left alone',
+    killedRegistry.registry === union && killedRegistry.target === moved && /HEALED/.test(killedRegistry.stderr)
+      && /src\/Desk\.fs/.test(killedRegistry.stderr) && carriedOn(killedRegistry) && !killedRegistry.stateLeft,
+    show(killedRegistry))
+
+  // The injection is still there but the file has moved on from the backup (a stash pop, an edit): nothing may be written.
+  const movedInjected = layout(moved, [{ body: 'let x = 1' }]).text
+  const divergedRun = sandbox({ target: movedInjected, registry: union, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('AN INJECTION ON A FILE THAT HAS MOVED ON IS NOT HEALED: nothing is written, the state is kept, the run stops',
+    divergedRun.target === movedInjected && divergedRun.registry === union && divergedRun.status === 1
+      && /nothing was written/.test(divergedRun.stderr) && divergedRun.stateLeft && !carriedOn(divergedRun),
+    show(divergedRun))
+
+  // A target with no anchor is not a clean tree: it may be torn, and the backup may be the only whole copy.
+  const tornRun = sandbox({ target: '// head, cut off', registry: union, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('A TARGET WITH NO ANCHOR IS NOT CALLED CLEAN: nothing is written, the state is kept, the run stops',
+    tornRun.target === '// head, cut off' && tornRun.status === 1 && /nothing was written/.test(tornRun.stderr)
+      && tornRun.stateLeft && !carriedOn(tornRun),
+    show(tornRun))
+
+  // A live pid: the test's own process is alive, so its marker reads as a run still in progress.
+  const liveRun = sandbox({ target: injectedClean, registry: union, backupTarget: clean, backupRegistry: union, pid: process.pid })
+  sc('A LIVE RUN\'S MARKER REFUSES: both files and the state are untouched, and the run stops before its own checks',
+    liveRun.target === injectedClean && liveRun.registry === union && liveRun.status === 1
+      && /ALREADY IN PROGRESS/.test(liveRun.stderr) && !/HEALED|STALE/.test(liveRun.stderr)
+      && liveRun.stateLeft && !carriedOn(liveRun),
+    show(liveRun))
+
 
   // liveness, against real pids rather than a stub — the one fact this file
   // cannot get wrong without the refusal above being decorative.
@@ -390,21 +586,35 @@ if (process.argv.includes('--self-test')) {
     parseErrors('/x/src/Scoreboard.fs(5,1): warning FS0025: x\n/x/src/Desk.fs(5,1): error FS0025: x\nerror FS0025 happened')
       .length === 0, 'only Scoreboard.fs errors can be attributed to a case')
 
-  process.exit(ss())
+  // finish() maps the failure count to 0 or 1. A bare count is the exit status otherwise, and exactly three
+  // failing clauses exit 3, which mutation-check reads as "this row has no subject" and skips.
+  finish(ss())
+  process.exit()
 }
 
 // Repair before doing anything else, so a previous interrupted run cannot make
 // this one report against an injected tree.
-const injectedNow = readFileSync(TARGET, 'utf8').includes(MARKER)
+const currentTarget = readFileSync(TARGET, 'utf8')
+const currentRegistry = readFileSync(REGISTRY, 'utf8')
+const injectedNow = currentTarget.includes(MARKER)
 const priorState = existsSync(MARKER_FILE)
   ? (() => { try { return JSON.parse(readFileSync(MARKER_FILE, 'utf8')) } catch { return {} } })()
   : null
+const readIf = f => (existsSync(f) ? readFileSync(f, 'utf8') : null)
+const backupTarget = readIf(BACKUP)
+const backupRegistry = readIf(`${BACKUP}.registry`)
+const targetStranded = strandedTarget(currentTarget, backupTarget)
+const registryStranded = strandedRegistry(currentRegistry, backupRegistry)
 
 switch (classifyState({
   markerExists: priorState !== null,
   pid: priorState?.pid,
   selfPid: process.pid,
   alive: isAlive(priorState?.pid),
+  injected: injectedNow,
+  anchored: currentTarget.includes(ANCHOR),
+  targetStranded,
+  registryStranded,
 })) {
   case 'refuse':
     console.error(`proof-check: a proof run is ALREADY IN PROGRESS as pid ${priorState.pid}, `
@@ -419,22 +629,40 @@ switch (classifyState({
     break
 
   case 'heal': {
-    const from = f => (existsSync(f) ? readFileSync(f, 'utf8') : null)
-    const t = from(BACKUP)
-    const r = from(`${BACKUP}.registry`)
-    if (t === null) {
-      console.error(`proof-check: a previous run (pid ${priorState.pid}) was killed and its `
-        + 'backup is missing. Restore with: '
-        + `git checkout -- ${TARGET} ${REGISTRY}`)
-      process.exit(1)
-    }
-    writeFileSync(TARGET, t)
-    if (r !== null) writeFileSync(REGISTRY, r)
+    // Each file only if it is provably this script's own injection; a file that is not is
+    // left exactly as it is, whatever the other one needed.
+    const restored = []
+    if (targetStranded) { writeFileSync(TARGET, backupTarget); restored.push(TARGET) }
+    if (registryStranded) { writeFileSync(REGISTRY, backupRegistry); restored.push(REGISTRY) }
     rmSync(STATE_DIR, { recursive: true, force: true })
     console.error(`proof-check: HEALED — a previous run (pid ${priorState.pid}) was killed with `
-      + `${TARGET} injected. Restored it before measuring anything.`)
+      + `${restored.join(' and ')} injected. Restored ${restored.length > 1 ? 'them' : 'it'} before measuring anything.`)
     break
   }
+
+  case 'stale':
+    // A marker, no process, nothing of ours on either file, and a target that still has its
+    // anchor: nothing is stranded. The backups were taken when that run started and are as
+    // old as the marker, so they are not written back; they go with the rest of the state.
+    rmSync(STATE_DIR, { recursive: true, force: true })
+    console.error(`proof-check: STALE STATE DISCARDED — the marker names pid ${priorState.pid ?? 'unknown'} `
+      + `(started ${priorState.startedAt ?? 'unknown'}), but nothing it injected is on ${TARGET} or ${REGISTRY}. `
+      + 'Its backups were NOT written back: nothing needs healing, and they may predate the tree.')
+    break
+
+  case 'diverged':
+    // The target is not in a state the backups describe: it carries injected proof code the
+    // file has moved on from, or it has no anchor and may be torn. Healing would overwrite
+    // that work and discarding would lose the only copy of what the run found, so neither.
+    // No restore is registered yet, deliberately: exiting here touches nothing.
+    console.error(`proof-check: a previous run (pid ${priorState.pid ?? 'unknown'}, started `
+      + `${priorState.startedAt ?? 'unknown'}) was killed, and ${TARGET} is not in a state its backups `
+      + `describe: ${injectedNow ? 'it carries injected proof code, and has changed since' : 'it has no injection anchor, so it may be torn'}. `
+      + 'Writing them back would overwrite that work, so nothing was written.')
+    console.error(`The file as that run found it is ${BACKUP}. Put ${TARGET} right by hand, `
+      + `then: rm -rf ${STATE_DIR}`)
+    process.exit(1)
+    break
 
   case 'proceed':
     // An injected tree with NO marker is the pre-2026-09-07 world: the state was
@@ -667,8 +895,7 @@ if (baselineClean) {
     // sport happens to precede it. The first version anchored on `| MLB` and
     // broke the moment MLS was added — caught only because the "could not
     // apply" branch is a failure and not a skip.
-    const withCase = registrySource.replace(
-      /(\n)(    \| Unrecognised of raw: string)/, '$1    | NHL\n$2')
+    const withCase = probeRegistry(registrySource)
     if (withCase === registrySource) {
       check('registry mutation applied', false, 'could not add a probe case to the Sport union')
     } else {
