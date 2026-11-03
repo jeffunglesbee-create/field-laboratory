@@ -71,6 +71,26 @@ was the `unzip` exit-status check, hidden behind the later "file is not in the a
 second time. `check:proof` is `proof-check.mjs --self-test && proof-check.mjs`; the gate row is only the second. Removing the whole step would have
 dropped the self-test from every workflow. The suite half is removed and the self-test (0.06 s) stays as its own step.
 
+## The first whole-table run on CI (run 41585094592, branch `gate-speed`, tree `7a2ed28`)
+
+17 jobs started at once. What it showed, from the logs and the committed `outbox/mutation-equivalence-latest.json`:
+
+- **The gate's read path works on real artifacts.** `await-check` started with the shards, polled 61 times, saw the uploads arrive while the run
+  was in flight (1 of 8 at poll 7, 7 of 8 at poll 15), downloaded all 8 and merged them:
+  `235 of 235 mutations across 8 shards (watch): 235 caught, 0 refused by the compiler, 0 survived, 0 not applicable, 0 broken; 71 distinct
+  expectations, 0 failing`. The matrix job names (`mutation shard 5 of 8`) are exactly what `mutation-await.mjs` looks for.
+- **Watch against full, 205 of 235 compared:** 0 verdicts differ; 0 compiled digests differ across 145 mutations that rebuild; the clean digest is
+  `c60e1799e7a0cbbe` on both sides and on the sandbox too. 60 mutations that do not rebuild were all caught on a clean build, 0 survived.
+  Per `src/` mutation (compile plus restore): 5.3 s mean under watch, 29.3 s under full.
+- **30 of 235 are not compared**, because one reference shard failed (below). That is why `compare` went red: it named the missing shard.
+- **Reference shard 1 failed** at the third source mutation of its slice: `the build is not clean before the restore of
+  [proxy-silent-becomes-false] was verified: digest fd58264554a015dd, clean c60e1799e7a0cbbe`. The same three mutations under `--build full` pass
+  locally. The message could not say why, so the diagnosis went into the tool: a build that is not clean now names the files that differ, and a
+  full build that fails keeps its exit status and the last lines of its output (it was `stdio: 'ignore'`).
+- **The long pole is not a hang.** Shard 8 took 31 min (watch) and 39 min (reference) against 3 to 18 for the others. It holds
+  `seal-goes-public`, the only mutation whose expectation is the proof row (`proof-check.mjs`, 776 s): the baseline runs it once unmutated and the
+  mutation runs it again. The shard's wall time used to leave the baseline out (it started the stopwatch after it); it is now included.
+
 ## Still open at this commit
 
 The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.

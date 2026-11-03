@@ -3001,6 +3001,7 @@ console.log(`\nMutation testing ${selected.length} invariant(s)\n`)
 const distinctExpects = [...new Set(selected.map(m => m.expect))]
 // WHY AND WHAT, not just which. A failing command's name moves the question
 // rather than answering it, and the output is the half nobody can get back.
+const lapBaseline = stopwatch()
 const baselineResults = distinctExpects.map(cmd => {
   try {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
@@ -3019,6 +3020,7 @@ const baselineResults = distinctExpects.map(cmd => {
              tail: text.split("\n").slice(-30).join("\n") }
   }
 })
+const baselineMs = lapBaseline()
 const notApplicableExpects = new Set(baselineResults.filter(r => r.notApplicable).map(r => r.cmd))
 const baselineFailures = baselineResults.filter(r => !r.passed && !r.notApplicable).map(r => r.cmd)
 const notApplicableMutations = selected.filter(m => notApplicableExpects.has(m.expect))
@@ -3237,6 +3239,8 @@ for (const m of selected) {
   } catch (e) {
     fatal(`restoring [${m.id}]: ${e.message}`)
   }
+  // A restore that did not BUILD is a different failure from one that built something other than the clean tree, and the driver knows which: say so.
+  if (back && !back.ok) fatal(`restoring [${m.id}]: the restore build failed: ${back.errors.join(' | ')}`)
   cleanBefore(`the restore of [${m.id}] was verified`)
   backups.delete(m.file)
   clearActive()
@@ -3278,7 +3282,9 @@ if (OUT) {
     tableSize: eligible.length,
     cleanDigest: builder?.cleanDigest ?? null,
     baseline: { ran: distinctExpects.length, failing: baselineFailures.length, notApplicable: [...notApplicableExpects], results: baselineResults },
-    wallMs: wall(),
+    // The baseline is part of the shard's wall time: it runs every distinct expectation once, unmutated, and for the shard that holds the proof row that is 13 minutes the loop below never sees.
+    baselineMs,
+    wallMs: baselineMs + wall(),
     records,
   }, null, 1) + '\n')
   console.log(`  wrote ${OUT}: ${records.length} record(s), ${records.filter(r => r.verdict === 'survived').length} survived`)

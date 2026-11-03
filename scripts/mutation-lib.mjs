@@ -113,6 +113,28 @@ export const digestDir = (dir, extraFiles = []) => {
   return h.digest('hex').slice(0, 16)
 }
 
+/** Each file's own hash, keyed by path: what `digestDir` hashes together, kept apart so a digest that moved can say WHICH files moved. */
+export const manifestDir = (dir, extraFiles = []) => {
+  const m = new Map()
+  for (const f of walk(dir)) {
+    if (f.endsWith('project_cracked.json')) continue
+    m.set(f.slice(dir.length), createHash('sha256').update(readFileSync(f)).digest('hex').slice(0, 12))
+  }
+  for (const f of extraFiles) m.set(`<extra>${f}`, existsSync(f) ? createHash('sha256').update(readFileSync(f)).digest('hex').slice(0, 12) : '<absent>')
+  return m
+}
+
+/** `+` a file that is new, `-` one that is gone, `~` one whose bytes changed; at most `cap` lines, and the rest counted. */
+export const diffManifests = (clean, now, cap = 10) => {
+  const lines = []
+  for (const [k, v] of now) {
+    if (!clean.has(k)) lines.push(`+ ${k}`)
+    else if (clean.get(k) !== v) lines.push(`~ ${k}`)
+  }
+  for (const k of clean.keys()) if (!now.has(k)) lines.push(`- ${k}`)
+  return lines.length > cap ? [...lines.slice(0, cap), `... and ${lines.length - cap} more`] : lines
+}
+
 // --- sharding ----------------------------------------------------------------------
 
 export const parseShard = text => {
@@ -133,6 +155,20 @@ export const shardOf = (ids, i, n) => {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const runSync = cmd => spawnSync(cmd, { shell: true, stdio: 'ignore' }).status === 0
+/** Like runSync, and keeps WHY: the exit status or signal and the last lines of output. A build that fails on a runner and says nothing is a failure nobody can diagnose. */
+const attempt = cmd => {
+  const r = spawnSync(cmd, { shell: true, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+  const ok = r.status === 0
+  const text = `${r.stdout ?? ''}\n${r.stderr ?? ''}`.split('\n').map(l => l.trimEnd()).filter(Boolean)
+  return { ok, why: ok ? '' : `exit ${r.status ?? 'none'}${r.signal ? ` (signal ${r.signal})` : ''}${r.error ? ` (${r.error.message})` : ''}: ${text.slice(-25).join(' | ')}` }
+}
+/** The one place a builder says its build is not the clean one, and which files make it so. */
+const assertCleanOf = (b, label) => {
+  const d = b.digest()
+  if (d === b.cleanDigest) return
+  const diff = diffManifests(b.cleanManifest, manifestDir(b.outDir, b.extraFiles))
+  throw new Error(`the build is not clean before ${label}: digest ${d}, clean ${b.cleanDigest}\n  differing: ${diff.length ? diff.join('; ') : 'none by file, so a path was renamed or the same bytes sit under another name'}`)
+}
 
 /**
  * The reference builder: a whole-project compile (`npm run build`) every time. Slow, and the definition of correct.
@@ -140,26 +176,25 @@ const runSync = cmd => spawnSync(cmd, { shell: true, stdio: 'ignore' }).status =
  */
 export class FullBuild {
   constructor({ command = 'npm run build', outDir = 'build', extraFiles = ['public/index.html'], fault = null } = {}) {
-    Object.assign(this, { command, outDir, extraFiles, fault, mode: 'full', cleanDigest: null })
+    Object.assign(this, { command, outDir, extraFiles, fault, mode: 'full', cleanDigest: null, cleanManifest: null })
   }
   digest() { return digestDir(this.outDir, this.extraFiles) }
   async start() {
     const t = Date.now()
-    if (!runSync(this.command)) throw new Error(`the initial build failed: ${this.command}`)
+    const built = attempt(this.command)
+    if (!built.ok) throw new Error(`the initial build failed: ${this.command}: ${built.why}`)
     this.cleanDigest = this.digest()
+    this.cleanManifest = manifestDir(this.outDir, this.extraFiles)
     return { ms: Date.now() - t, digest: this.cleanDigest }
   }
   /** Run `write()` (which changes a source file), then build. A fault named for the watch driver is a no-op here, so a fault test cannot pass vacuously. */
   async compile(write) {
     const t = Date.now()
     write()
-    const ok = runSync(this.command)
-    return { ok, ms: Date.now() - t, digest: this.digest(), errors: ok ? [] : ['the build exited non-zero'], cycles: 1 }
+    const built = attempt(this.command)
+    return { ok: built.ok, ms: Date.now() - t, digest: this.digest(), errors: built.ok ? [] : [`the build failed, ${built.why}`], cycles: 1 }
   }
-  assertClean(label) {
-    const d = this.digest()
-    if (d !== this.cleanDigest) throw new Error(`the build is not clean before ${label}: digest ${d}, clean ${this.cleanDigest}`)
-  }
+  assertClean(label) { assertCleanOf(this, label) }
   stop() {}
 }
 
@@ -174,7 +209,7 @@ export class WatchBuild {
     outDir = 'build', extraFiles = ['public/index.html'], assemble = () => runSync('node scripts/build-site.mjs'),
     settleMs = 300, startTimeoutMs = 20000, cycleTimeoutMs = 300000, initialTimeoutMs = 300000, fault = null, onLine = null,
   } = {}) {
-    Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, mode: 'watch', cleanDigest: null })
+    Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, mode: 'watch', cleanDigest: null, cleanManifest: null })
     this.tracker = new CycleTracker()
     this.child = null
   }
@@ -216,6 +251,7 @@ export class WatchBuild {
     }
     if (!this.assemble()) throw new Error('assembling the site after the initial compile failed')
     this.cleanDigest = this.digest()
+    this.cleanManifest = manifestDir(this.outDir, this.extraFiles)
     if (expectDigest !== null && expectDigest !== this.cleanDigest) {
       throw new Error(`the watched initial compile (${this.cleanDigest}) is not the build that was there (${expectDigest}). Either build/ is stale (run npm run build) or the watched compile is not a full compile: the configuration, Fable or its cache has drifted.`)
     }
@@ -242,10 +278,7 @@ export class WatchBuild {
     return { ok: s.ok, ms: Date.now() - t, digest: this.digest(), errors: s.errors, cycles: s.cycles }
   }
 
-  assertClean(label) {
-    const d = this.digest()
-    if (d !== this.cleanDigest) throw new Error(`the build is not clean before ${label}: digest ${d}, clean ${this.cleanDigest}`)
-  }
+  assertClean(label) { assertCleanOf(this, label) }
 
   stop() {
     if (this.child) { try { this.child.kill('SIGTERM') } catch (e) { void e } }
@@ -323,6 +356,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const d1 = digestDir(out)
     writeFileSync(join(out, 'fable_modules', 'project_cracked.json'), '{"p":2}')
     check('the digest ignores project_cracked.json (it carries paths)', digestDir(out) === d1)
+    check('the manifest ignores project_cracked.json too, so a diff never blames the one file that differs by design', ![...manifestDir(out).keys()].some(k => k.endsWith('project_cracked.json')) && manifestDir(out).has('/a.js'))
     writeFileSync(join(out, 'a.js'), 'y')
     check('MUTATION: the digest sees a changed output file', digestDir(out) !== d1)
     check('MUTATION: the digest sees an extra file', digestDir(out, [join(work, 'out', 'a.js')]) !== digestDir(out))
@@ -331,6 +365,35 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     const base = join(work, 'base'); mkdirSync(base, { recursive: true }); writeFileSync(join(base, 'a.js'), 'y')
     check('MUTATION: the digest sees the same bytes under another path', digestDir(moved) !== digestDir(base))
     check('the digest of equal trees is equal', (() => { const twin = join(work, 'twin'); mkdirSync(twin, { recursive: true }); writeFileSync(join(twin, 'a.js'), 'y'); return digestDir(twin) === digestDir(base) })())
+    {
+      const clean = manifestDir(base)
+      writeFileSync(join(base, 'a.js'), 'changed'); writeFileSync(join(base, 'new.js'), 'n')
+      const d = diffManifests(clean, manifestDir(base))
+      check('MUTATION: a manifest diff names a changed file with ~ and a new one with +', d.includes('~ /a.js') && d.includes('+ /new.js') && d.length === 2, JSON.stringify(d))
+      rmSync(join(base, 'a.js')); rmSync(join(base, 'new.js'))
+      check('MUTATION: a manifest diff names a removed file with -', JSON.stringify(diffManifests(clean, manifestDir(base))) === JSON.stringify(['- /a.js']))
+      const many = new Map(Array.from({ length: 14 }, (_, i) => [`f${i}`, 'x']))
+      check('a long diff is capped and the rest counted', diffManifests(new Map(), many, 10).at(-1) === '... and 4 more' && diffManifests(new Map(), many, 10).length === 11)
+    }
+
+    // The reference builder: a build that fails keeps its reason, and a build that is not clean names the files that make it so.
+    {
+      const fdir = join(work, 'fb'); mkdirSync(fdir, { recursive: true }); writeFileSync(join(fdir, 'a.js'), 'one')
+      const okb = new FullBuild({ command: 'node -e ""', outDir: fdir, extraFiles: [] })
+      await okb.start()
+      okb.assertClean('the first mutation')
+      writeFileSync(join(fdir, 'a.js'), 'two'); writeFileSync(join(fdir, 'extra.js'), 'x')
+      let msg = ''
+      try { okb.assertClean('the next mutation') } catch (e) { msg = e.message }
+      check('MUTATION: a build that is not clean names the files that differ', /differing: .*~ \/a\.js.*\+ \/extra\.js/.test(msg), msg)
+      const badb = new FullBuild({ command: `node -e "console.error('boom from the build'); process.exit(3)"`, outDir: fdir, extraFiles: [] })
+      let startMsg = ''
+      try { await badb.start() } catch (e) { startMsg = e.message }
+      check('MUTATION: an initial build that fails says how, with the last of its output', /exit 3/.test(startMsg) && /boom from the build/.test(startMsg), startMsg)
+      badb.cleanDigest = badb.digest(); badb.cleanManifest = manifestDir(fdir, [])
+      const bc = await badb.compile(() => {})
+      check('MUTATION: a compile that fails reports ok false with the reason in errors', bc.ok === false && /exit 3/.test(bc.errors.join()) && /boom from the build/.test(bc.errors.join()), JSON.stringify(bc))
+    }
 
     // The driver against a fake watcher that speaks Fable's protocol and writes an output that depends on its source.
     const fake = join(here, 'fixtures', 'fake-fable-watch.mjs')
