@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f38fc97` | 2026-11-03 | [cc-session-2026-11-03-proof-check-stale-state.md](cc-session-2026-11-03-proof-check-stale-state.md) | fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects |
+| `f38fc97` | 2026-11-03 | [cc-session-2026-11-03-weather-first-call-14day-count.md](cc-session-2026-11-03-weather-first-call-14day-count.md) | fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects |
+| `7bfb341` | 2026-11-03 | [cc-session-2026-11-03-weather-first-call-14day-count.md](cc-session-2026-11-03-weather-first-call-14day-count.md) | docs: weather-first-call-connect closes DONE on its 14-day count, 28 of 28 weather steps green |
 | `29963a6` | 2026-11-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-03 [skip ci] |
 | `29963a6` | 2026-11-03 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-03 [skip ci] |
 | `29963a6` | 2026-11-03 | [sport-vocabulary-2026-11-03T19-23-06-121Z.json](sport-vocabulary-2026-11-03T19-23-06-121Z.json) | drift-sentinel: ok on 2026-11-03 [skip ci] |
