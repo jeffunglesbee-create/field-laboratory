@@ -14,14 +14,16 @@ WHAT IT DOES. Per script name, two read-only GETs:
   GET /accounts/<id>/workers/scripts/<name>/versions
 It prints a table of each deployment (time, id, source, version ids with their traffic share) and each version
 (time, number, id), then the raw answers with the author's email removed, so a reader can see the real shape if a
-field is not where this script looked. The token and the account id are read from the environment and never
+field is not where this script looked. The token is read from the environment. So is the account id; when that is
+unset it is taken from GET /accounts if the token sees exactly one account, and the output says so. Neither is
 printed. It writes nothing to Cloudflare.
 
 EXIT CODE. 0 when at least one list answered 200 for at least one script. 1 when none did: every refusal is
 printed with its HTTP status and the API's own error code and message, which is the finding in that case (for
 example a token that can deploy but cannot read).
 
-Usage (a runner, with CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the environment):
+Usage (a runner, with CLOUDFLARE_API_TOKEN in the environment, and CLOUDFLARE_ACCOUNT_ID if the token sees more
+than one account):
   python3 scripts/probe-worker-deployments.py --scripts field-relay-nba [--out outbox/worker-deployments-probe-<UTC>.md]
 """
 import argparse
@@ -90,14 +92,34 @@ def main():
 
     token = os.environ.get("CLOUDFLARE_API_TOKEN", "")
     account = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
-    if not token or not account:
-        missing = [n for n, v in (("CLOUDFLARE_API_TOKEN", token), ("CLOUDFLARE_ACCOUNT_ID", account)) if not v]
-        print(f"FAIL: not set in the environment: {', '.join(missing)}")
+    if not token:
+        print("FAIL: not set in the environment: CLOUDFLARE_API_TOKEN")
         return 1
+
+    # The laboratory repository has CLOUDFLARE_API_TOKEN and no CLOUDFLARE_ACCOUNT_ID (the first dispatch,
+    # run 41599815091, printed the variable empty). Its own deploy runs `wrangler deploy`, which finds the
+    # account from the token when there is exactly one. This does the same and no more: exactly one account
+    # is used and said to be derived; none, several, or a refusal stops the probe and says what was seen.
+    derived = False
+    if not account:
+        status, body, text = get("/accounts?per_page=50", token)
+        accounts = body.get("result") if isinstance(body, dict) else None
+        if status != 200 or not isinstance(accounts, list):
+            print(f"FAIL: CLOUDFLARE_ACCOUNT_ID is not set and GET /accounts answered HTTP {status}: {errors_of(body, text)}")
+            return 1
+        if len(accounts) != 1:
+            print(f"FAIL: CLOUDFLARE_ACCOUNT_ID is not set and the token sees {len(accounts)} accounts; refusing to choose one. Set the variable.")
+            return 1
+        account = accounts[0].get("id", "")
+        derived = True
+        if not account:
+            print("FAIL: GET /accounts returned one account with no id")
+            return 1
 
     now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     out = [f"# Worker deployment history from Cloudflare's API, read {now}", ""]
     out.append("Read-only. Two GETs per script. The token and the account id are not printed. Author emails are removed from the raw answers.")
+    out.append("Account: " + ("derived from the token (GET /accounts returned exactly one account)." if derived else "given in the environment."))
     out.append("")
     answered = 0
 
