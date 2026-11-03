@@ -50,7 +50,7 @@
 # eight shards are exactly the table, all of this commit, with no survivor. Locally, `npm run gate` is unchanged.
 #
 # The pre-gate `check:proof` step now runs only `proof-check.mjs --self-test`: its suite half was the gate's own proof row run a
-# second time ("run twice here", below). The row reports the same failure, and thirteen minutes is not an early warning.
+# second time ("run twice here", below). The row reports the same failure, and thirteen minutes (a minute and a half since the proof checks became one batched compile, 2026-11-03) is not an early warning.
 #
 # WHEN TO DISPATCH RATHER THAN WAIT
 #

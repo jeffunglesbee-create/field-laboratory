@@ -6,7 +6,7 @@
 //   node scripts/mutation-await.mjs --self-test
 //
 // WHY THE GATE POLLS INSTEAD OF DEPENDING. `verify-full`'s `full` job does not wait for the shard jobs to start: it builds,
-// runs every other row (the proof checks alone are 13 minutes), and only its mutation row needs the shards. `needs:` would
+// runs every other row (the proof checks alone were 13 minutes until 2026-11-03, when they became one batched compile: docs/GATE-TIMING.md), and only its mutation row needs the shards. `needs:` would
 // start the whole gate after the slowest shard and put the two long paths in series again. So the row asks the Actions API
 // for the artifacts of this run, which is the same channel a downstream job would have used.
 //

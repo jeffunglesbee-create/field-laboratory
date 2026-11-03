@@ -3373,7 +3373,7 @@ if (OUT) {
     tableSize: eligible.length,
     cleanDigest: builder?.cleanDigest ?? null,
     baseline: { ran: distinctExpects.length, failing: baselineFailures.length, notApplicable: [...notApplicableExpects], results: baselineResults },
-    // The baseline is part of the shard's wall time: it runs every distinct expectation once, unmutated, and for the shard that holds the proof row that is 13 minutes the loop below never sees.
+    // The baseline is part of the shard's wall time: it runs every distinct expectation once, unmutated, and for the shard that holds the proof row that was 13 minutes the loop below never sees, until the proof checks became one batched compile (2026-11-03, docs/GATE-TIMING.md).
     baselineMs,
     wallMs: baselineMs + wall(),
     records,

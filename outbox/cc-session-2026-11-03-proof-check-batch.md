@@ -14,3 +14,4 @@ Snapshot, not a landing. `docs/CC-CMD-2026-11-03-proof-check-shards.md` is IN PR
 - Not yet done: live sweep result, second review of the delta, quiet timing, `docs/GATE-TIMING.md`, scored `verify-full`, landing on main.
 
 Branch only: `verify` runs on pushes to main, so this push triggers nothing.
+- Three stale cost comments corrected (mutation-await.mjs, mutation-check.mjs, verify-full.yml): the proof checks are no longer 13 minutes.
