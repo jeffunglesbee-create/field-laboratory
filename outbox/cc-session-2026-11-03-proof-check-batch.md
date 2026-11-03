@@ -15,3 +15,4 @@ Snapshot, not a landing. `docs/CC-CMD-2026-11-03-proof-check-shards.md` is IN PR
 
 Branch only: `verify` runs on pushes to main, so this push triggers nothing.
 - Three stale cost comments corrected (mutation-await.mjs, mutation-check.mjs, verify-full.yml): the proof checks are no longer 13 minutes.
+- Sweep v3 (dead batch once / twice, sharper controls, --out failure): 7 of 7 as expected; kept in outbox/proof-check-sweeps-2026-11-03.txt.

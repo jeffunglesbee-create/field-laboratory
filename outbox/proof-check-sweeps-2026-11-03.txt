@@ -47,3 +47,14 @@ cases compared: 133 of 133 oracle / 133 batch
 identical code sets: 133 of 133; differing: 0
 stated code present - compiled alone: 133 of 133; in the batch: 133 of 133
 cases carrying more than one distinct code (alone): 6
+
+## Live half, third sweep (the changes made after the second review), one document where marked
+AS EXPECTED  N0 unmutated, one document: exit 0, 0 failing, 83 s
+AS EXPECTED  N1 the first batch compile dies once (blank), the repeat is real: exit 0, 0 failing, 80 s
+AS EXPECTED  N2 the batch compile dies twice: exit 1, 14 failing, 223 s
+AS EXPECTED  N3 the clean control is attributed an error only in the batch: exit 1, 1 failing, 80 s
+AS EXPECTED  N3b ... and the sharpness check removed: exit 0, 0 failing, 79 s
+AS EXPECTED  N4 the wrong control is invisible to the batch: exit 1, 1 failing, 88 s
+AS EXPECTED  N5 --out into a directory that does not exist: exit 1, 1 failing, 84 s
+
+N1 and N3b are EXPECTED to go green and are the point: N1 shows a batch compile that dies once is repeated visibly (the line says '2 TRIES') and the run still passes; N3b shows that with the sharpness check removed the same break (an error attributed to the clean control only in the batch) goes unnoticed, so the check is what catches it (N3 is red with exactly 1 failing).
