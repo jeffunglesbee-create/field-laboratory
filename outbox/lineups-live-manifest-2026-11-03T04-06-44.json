@@ -1,0 +1,164 @@
+{
+ "base": "https://field-laboratory.jeffunglesbee.workers.dev",
+ "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+ "routed": false,
+ "measuredAt": "2026-11-03T04:07:19.627Z",
+ "todayEt": "2026-11-02",
+ "dates": [
+  {
+   "date": "2026-11-02",
+   "cards": 29,
+   "soccerCards": 8,
+   "joined": 8,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-11-01",
+   "cards": 51,
+   "soccerCards": 27,
+   "joined": 27,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-10-31",
+   "cards": 119,
+   "soccerCards": 46,
+   "joined": 43,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-10-30",
+   "cards": 23,
+   "soccerCards": 5,
+   "joined": 5,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-11-03",
+   "cards": 0,
+   "soccerCards": 0,
+   "joined": 0,
+   "requestsAtLoad": 0
+  }
+ ],
+ "chosen": "2026-10-31",
+ "cards": [
+  {
+   "event": "5405",
+   "game": "Atlanta United v Toronto FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5405/lineups"
+   ],
+   "status": 200,
+   "answer": "confirmed",
+   "sides": 2,
+   "sideNames": [
+    "Atlanta United",
+    "Toronto FC"
+   ],
+   "rows": 40,
+   "markedRows": 40,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5399",
+   "game": "Vancouver Whitecaps FC v Seattle Sounders FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5399/lineups"
+   ],
+   "status": 200,
+   "answer": "confirmed",
+   "sides": 2,
+   "sideNames": [
+    "Vancouver Whitecaps",
+    "Seattle Sounders FC"
+   ],
+   "rows": 40,
+   "markedRows": 40,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5394",
+   "game": "Nashville SC v Red Bull New York",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5394/lineups"
+   ],
+   "status": 200,
+   "answer": "confirmed",
+   "sides": 2,
+   "sideNames": [
+    "Nashville SC",
+    "New York Red Bulls"
+   ],
+   "rows": 40,
+   "markedRows": 40,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5401",
+   "game": "Colorado Rapids v Chicago Fire FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5401/lineups"
+   ],
+   "status": 200,
+   "answer": "confirmed",
+   "sides": 2,
+   "sideNames": [
+    "Colorado Rapids",
+    "Chicago Fire"
+   ],
+   "rows": 39,
+   "markedRows": 39,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5403",
+   "game": "St. Louis CITY SC v San Diego FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5403/lineups"
+   ],
+   "status": 200,
+   "answer": "confirmed",
+   "sides": 2,
+   "sideNames": [
+    "St.Louis City",
+    "San Diego FC"
+   ],
+   "rows": 40,
+   "markedRows": 40,
+   "ok": true,
+   "why": []
+  }
+ ],
+ "screenshots": {
+  "390": "outbox/lineups-live-390-2026-11-03T04-06-44.png",
+  "1000": "outbox/lineups-live-1000-2026-11-03T04-06-44.png"
+ },
+ "extraRequests": 0,
+ "reopen": {
+  "ok": true,
+  "why": []
+ },
+ "fixedOrStickyElementsSetStaticForThePhotographs": 14,
+ "narrow": {
+  "event": "5405",
+  "answer": "confirmed",
+  "requestUrls": [
+   "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5405/lineups"
+  ],
+  "ok": true,
+  "why": []
+ },
+ "verdict": "PASS",
+ "judged": 5,
+ "wired": 5,
+ "sheets": 5,
+ "answers": {
+  "confirmed": 5
+ },
+ "pageErrors": []
+}

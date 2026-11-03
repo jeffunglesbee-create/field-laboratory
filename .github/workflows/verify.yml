@@ -496,6 +496,13 @@ jobs:
           node scripts/context-ids.mjs --self-test
           node scripts/lineups-card-probe.mjs --self-test
 
+      # The same card on the UNPINNED page (docs/CC-CMD-2026-11-03-lineup-card-live-path.md): the pure verdicts of the live-path probe and its
+      # routed-mode answers, each handed inputs that must make it fail. The probe itself needs the live relay and runs from its own workflow.
+      - name: The live-path lineup probe's own checks
+        run: |
+          node scripts/lineups-live-lib.mjs --self-test
+          node scripts/lineups-live-probe.mjs --self-test
+
       - name: Lineups, on the rendered page
         run: node scripts/lineups-render-check.mjs
 
