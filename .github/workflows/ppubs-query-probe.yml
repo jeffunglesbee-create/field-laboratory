@@ -13,7 +13,10 @@
 # Run 1 (mode forms, 2026-11-03T04:52Z) found the working spellings and found
 # that PPUBS answers HTTP 429 {"message": "Too many requests"} above about one
 # call a second, which polluted its reading of the real week. Run 2 (mode
-# reading) paces at 3 s, backs off on 429 and measures the watcher's own flow.
+# reading) paces at 3 s, backs off on 429 and measures the watcher's own flow;
+# it also measured the search counters (numberOfFamilies is the total, numFound
+# the families on the page, totalResults the documents on the page), which the
+# probe now holds as a contract and mutation-tests (scripts/mutate-ppubs-probe.py).
 #
 # WHY A RUNNER: ppubs.uspto.gov is outside the dev sandbox's egress allowlist.
 #
@@ -52,6 +55,8 @@ jobs:
       - run: pip install requests --quiet
       - name: The verdict logic, before it judges anything
         run: python3 scripts/probe-ppubs-query.py --self-test
+      - name: The counter checks have teeth (14 mutants, about 6 minutes)
+        run: python3 scripts/mutate-ppubs-probe.py
       - name: Probe PPUBS
         id: probe
         continue-on-error: true

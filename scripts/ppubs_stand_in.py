@@ -21,16 +21,35 @@ without saying so:
     answers 200 with an empty JSON object, "no_and" answers every single term
     correctly and every conjunction with zero documents, "rate429" answers every
     fourth API call 429 {"message": "Too many requests"} with Retry-After 0 (the
-    measured shape of PPUBS' limit), "rate429_always" answers every API call so, "or_zero" answers a query with
-    five or more OR operators with zero documents and status 200, "or_loses" answers
-    such a query with every document except Sportradar's, "counts_off" makes the counts call
-    disagree with the search by one, and "rate429_all:a|b"
-    answers 429, on every try, to a call whose body contains both a and b.
+    measured shape of PPUBS' limit), "rate429_always" answers every API call so,
+    "or_zero" answers a query with five or more OR operators with zero documents
+    and status 200, "or_loses" answers such a query with every document except
+    Sportradar's, "counts_low" makes the counts call report one document fewer than
+    the search holds families, "total_is_total" makes totalResults the total of
+    matching documents instead of the documents on the page (the shape the probe's
+    first version assumed, and the real host does not have), "fam_off" makes
+    numberOfFamilies one too many ("fam_off_or": only on a query with an OR), "page_cap:N" silently returns at most N families
+    whatever pageCount asks, "docs_short" drops the last document of every page,
+    "no_families" leaves numberOfFamilies out, "bare_patents" answers only
+    {"patents": [...]}, the one key patent_fetch.py reads, "zero_date_page" answers a bare day
+    at page size 100 with nothing, and "rate429_all:a|b" answers 429, on every try, to a
+    call whose body contains both a and b.
 
-WHAT IT DOES NOT KNOW: the real response shapes. `numFound` and `patents` come
-from the key names patent_fetch.py reads (`result.get("patents") or
-result.get("docs")`); the rest is a guess and is labelled as one in the probe's
-report. Measure the real host before trusting any of it.
+WHAT IT KNOWS, measured on the real host (probe run 2, 2026-11-03, 152 search
+responses, no exception): a search answers `numberOfFamilies`, the total number of
+matching FAMILIES; `numFound`, the number of families on THIS page, which is
+max(0, min(pageCount, numberOfFamilies - start)); `patents`, every matching
+document of those families, so it can be longer than numFound; and `totalResults`,
+the number of documents on this page (len(patents)), not a total. `perPage` echoes
+pageCount, `page` is start // pageCount, `totalPages` is 0 even when thousands
+match, `error` is null. The counts call answers `numResults`, the number of
+DOCUMENTS, which is never below numberOfFamilies. A corpus entry may carry a
+`family` (see doc()); documents without one are families of their own.
+
+WHAT IT DOES NOT KNOW: how the real host decides which documents share a family,
+what a page holds when one family has members in both databases, the contents of
+`hlSnippets`, or what `cursorMarker` encodes. Those keys are present with inert
+values so a consumer that reads them does not crash; nothing here says what they mean.
 
 Importable. Nothing runs at import.
 """
@@ -109,6 +128,16 @@ def term_matches(term, doc, matchers):
 
 class _Unsupported(Exception):
     pass
+
+
+def _family(d):
+    """The family a corpus entry belongs to: its `family`, else its own guid."""
+    return d.get("family") or d.get("guid")
+
+
+def _public(d):
+    """A corpus entry as the host would send it: without the stand-in's own `family` key."""
+    return {k: v for k, v in d.items() if k != "family"}
 
 
 def evaluate(query, doc, matchers):
@@ -256,17 +285,45 @@ def make_handler(corpus, syntax, mode, log):
                     return
             if self.path == "/api/searches/counts":
                 docs, _ = run_query(body, corpus, matchers, mode)
-                # measured: the echoed query plus numResults
+                n_docs = len(docs)
+                if mode == "counts_low":  # fewer documents than the search has families
+                    n_docs = max(0, len({_family(d) for d in docs}) - 1)
+                # measured: the echoed query plus numResults, a count of DOCUMENTS
                 self._send(200, {"id": None, "caseId": body.get("caseId"),
-                                 "numResults": len(docs) + (1 if mode == "counts_off" else 0), "q": body.get("q")})
+                                 "numResults": n_docs, "q": body.get("q")})
                 return
             if self.path == "/api/searches/searchWithBeFamily":
                 docs, _ = run_query(body["query"], corpus, matchers, mode)
                 start, n = int(body.get("start", 0)), int(body.get("pageCount", 10))
-                page = docs[start:start + n]
-                # measured: numFound is the PAGE size, totalResults is the total
-                self._send(200, {"numFound": len(page), "perPage": n, "page": start // max(n, 1),
-                                 "totalResults": len(docs), "error": None, "patents": page})
+                fams = []
+                for d in docs:  # families in result order
+                    f = _family(d)
+                    if f not in fams:
+                        fams.append(f)
+                if mode.startswith("page_cap:"):  # a silent cap on the page, whatever was asked
+                    n_served = min(n, int(mode.split(":", 1)[1]))
+                else:
+                    n_served = n
+                if mode == "zero_date_page" and n >= 100 and " AND " not in (body["query"].get("q") or "") and " OR " not in (body["query"].get("q") or ""):
+                    fams = []  # a bare day listed at page size 100 comes back empty
+                page_fams = set(fams[start:start + n_served])
+                page = [_public(d) for d in docs if _family(d) in page_fams]
+                if mode == "docs_short" and page:  # a page that lost its last document
+                    page = page[:-1]
+                q = body["query"].get("q") or ""
+                n_total_fams = len(fams) + (1 if mode == "fam_off" or (mode == "fam_off_or" and " OR " in q) else 0)
+                tail = {} if mode == "no_families" else {"numberOfFamilies": n_total_fams}
+                if mode == "bare_patents":  # only the key patent_fetch.py reads
+                    self._send(200, {"patents": page})
+                    return
+                # measured: numFound = families on this page, numberOfFamilies = all matching families,
+                # totalResults = documents on this page, patents may be longer than numFound
+                self._send(200, {"numFound": len(page_fams), "perPage": n, "page": start // max(n, 1),
+                                 "totalPages": 0, "hlSnippets": [], "sort": body.get("sort"),
+                                 "query": body.get("query", {}).get("q"), "duration": 1, "highlightingTime": 0,
+                                 "cursorMarker": "*" if not page else "stand-in-cursor",
+                                 "totalResults": len(docs) if mode == "total_is_total" else len(page),
+                                 "error": None, "patents": page, "qtime": 1, **tail})
                 return
             self._send(404, {"error": "stand-in: no such path"})
 
@@ -287,12 +344,18 @@ def serve(corpus, syntax=None, mode="ok"):
     return f"http://127.0.0.1:{srv.server_address[1]}", log, stop
 
 
-def doc(guid, db, date, assignees, title="t"):
-    """A corpus entry in the shape patent_fetch.py's extract_metadata reads."""
-    return {
+def doc(guid, db, date, assignees, title="t", family=None):
+    """A corpus entry in the shape patent_fetch.py's extract_metadata reads. `family`
+    puts several entries in one family: a search then counts them once in numFound and
+    numberOfFamilies and returns all of them in patents. It is the stand-in's own key
+    and is never sent."""
+    d = {
         "guid": guid,
         "type": db,
         "datePublished": f"{date}T00:00:00Z",
         "assigneeName": list(assignees),
         "inventionTitle": title,
     }
+    if family:
+        d["family"] = family
+    return d

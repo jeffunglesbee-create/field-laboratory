@@ -38,8 +38,11 @@ TWO MODES (PPUBS_MODE). "forms" is the first run's: which spellings answer, at
 reading of the real week. "reading" paces at 3 s, backs off on 429 and records
 the 429's headers, and measures what the watcher will actually do: known answers
 per watchlist term and database, the production query forms against them, the
-date totals for eight weeks, the OR query against per-term queries, and how many
-hits the assignee field and the all-fields phrase each produce per week.
+date totals for eight weeks, the OR query against per-term queries, a page of 100,
+and how many hits the assignee field and the all-fields phrase each produce per week.
+Every parsed search response is held to the counter contract measured in run 2
+(see search_contract): numberOfFamilies is the total number of matching families,
+numFound the families on THIS page, totalResults the documents on this page.
 """
 import datetime
 import itertools
@@ -141,7 +144,8 @@ def doc_summary(d):
 
 
 def found_count(result):
-    """(value, key path) of the first integer that looks like a total, else (None, None)."""
+    """(value, key path) of the first integer counter by name, else (None, None). On the real host
+    numFound is the number of FAMILIES ON THIS PAGE, not a total; see search_contract."""
     names = ("numFound", "totalCount", "totalResults", "total", "count")
     if not isinstance(result, dict):
         return None, None
@@ -198,6 +202,36 @@ def pass_combo(docs, needle, day, ctrl_guid):
         any(x["guid"] == ctrl_guid for x in s)
         and all(needle.lower() in x["assignee"].lower() and x["date"] == day for x in s)
     )
+
+
+def search_contract(e):
+    """The relations between a search response's counters that the watcher relies on, as measured on
+    152 responses of the real host in probe run 2 (no exception):
+      numberOfFamilies  the total number of matching FAMILIES
+      numFound          the families on THIS page = max(0, min(pageCount, numberOfFamilies - start))
+      totalResults      the documents on THIS page (not a total), = len(patents) >= numFound
+      counts numResults the DOCUMENTS matching, never below numberOfFamilies
+    The first version of this probe read totalResults as the total, which is why this exists.
+    Returns the list of violated relations; [] when the response holds. None when the entry has no
+    parsed search response (an unrecovered error is judged elsewhere)."""
+    sc = (e.get("search") or {}).get("scalars")
+    if not sc or "numFound" not in sc:
+        return None
+    n, start, fam = e.get("n", 0), e.get("start", 0), sc.get("numberOfFamilies")
+    bad = []
+    if not isinstance(fam, int) or isinstance(fam, bool):
+        return ["numberOfFamilies is missing or not an integer"]
+    want = max(0, min(n, fam - start))
+    if sc.get("numFound") != want:
+        bad.append(f"numFound {sc.get('numFound')} != max(0, min(pageCount {n}, numberOfFamilies {fam} - start {start})) = {want}")
+    if sc.get("totalResults") != e.get("n_docs"):
+        bad.append(f"totalResults {sc.get('totalResults')} != documents on the page {e.get('n_docs')}")
+    if e.get("n_docs", 0) < (sc.get("numFound") or 0):
+        bad.append(f"documents on the page {e.get('n_docs')} < numFound {sc.get('numFound')}")
+    cn = (e.get("counts") or {}).get("num_results")
+    if isinstance(cn, int) and fam > cn:
+        bad.append(f"numberOfFamilies {fam} > counts numResults {cn}")
+    return bad
 
 
 class Ppubs:
@@ -343,7 +377,7 @@ class Ppubs:
         entry["n_docs"] = len(docs)
         entry["docs"] = [doc_summary(d) for d in docs[:25]]
         entry["_docs"] = docs
-        entry["total"] = (entry["search"].get("scalars") or {}).get("totalResults")
+        entry["families"] = (entry["search"].get("scalars") or {}).get("numberOfFamilies")
         time.sleep(PAUSE)
         return entry
 
@@ -590,7 +624,9 @@ def build_reading_report(client, today, grant_day, pub_day):
         e = client.run(fill(PROD_DATE, day=day), db, n=1, counts=True)
         e["day"] = day
         n = e["counts"].get("num_results")
-        e["pass"] = e["total"] is not None and e["total"] >= MIN_TOTAL and n == e["total"]
+        # a whole grant or publication day is thousands of documents; a day below the floor is a query that did not read it.
+        # The contract holds numberOfFamilies at or below the counts call's documents, and None (no parsed counters) is not [].
+        e["pass"] = isinstance(n, int) and n >= MIN_TOTAL and search_contract(e) == []
         totals_ok = totals_ok and e["pass"]
         p3.append(strip_private(e))
     report["meta"]["totals_pass"] = bool(p3) and totals_ok
@@ -605,11 +641,10 @@ def build_reading_report(client, today, grant_day, pub_day):
                 break
             e = client.run(f"{or_query(form, WATCHLIST)} AND {fill(PROD_DATE, day=day)}", db, n=100, counts=False)
             e["day"], e["kind"] = day, kind
-            e["truncated_page"] = bool(e["total"] and e["total"] > e["n_docs"])
             for x in e["docs"]:
                 x["terms"] = matched_terms(x, WATCHLIST)
             by_key[(db, day, kind)] = {x["guid"] for x in e["docs"]}
-            report["weekly"].append({"db": db, "day": day, "kind": kind, "docs": e["n_docs"], "total": e["total"]})
+            report["weekly"].append({"db": db, "day": day, "kind": kind, "docs": e["n_docs"], "families": e["families"]})
             p4.append(strip_private(e))
 
     # R5: is one OR query the same as fifteen single-term queries? most recent week, both kinds
@@ -633,6 +668,35 @@ def build_reading_report(client, today, grant_day, pub_day):
                 "equal": complete and orset is not None and orset == union,
             })
 
+    # R6: a page of 100 is honoured. The watcher asks for 100 families a page; a host that silently caps the page
+    # would show it here as numFound < min(100, numberOfFamilies), which the contract below reports.
+    p6 = phase("6_page_size")
+    size_ok = True
+    for db, day in ((dbs[0][0], grant_day), (dbs[1][0], pub_day)):
+        if late():
+            report["meta"]["truncated"] = "phase 6"
+            break
+        e = client.run(fill(PROD_DATE, day=day), db, n=100, counts=False)
+        e["day"] = day
+        e["pass"] = e["n_docs"] >= min(100, MIN_TOTAL) and search_contract(e) == []
+        size_ok = size_ok and e["pass"]
+        p6.append(strip_private(e))
+    report["meta"]["page_size_pass"] = bool(p6) and size_ok
+
+    # the counters, on every parsed search response of the run
+    checked, violations = 0, []
+    for name, es in report["phases"].items():
+        for e in es:
+            v = search_contract(e)
+            if v is None:
+                continue
+            checked += 1
+            if v:
+                violations.append({"phase": name, "q": e["q"][:90], "db": e["db"], "violated": v})
+    report["meta"]["contract_checked"] = checked
+    report["meta"]["contract_violations"] = len(violations)
+    report["contract_violations"] = violations[:20]
+
     unrecovered = [
         e for es in report["phases"].values() for e in es
         if e.get("search", {}).get("http") == 429 or e.get("counts", {}).get("http") == 429
@@ -648,13 +712,16 @@ def build_reading_report(client, today, grant_day, pub_day):
     report["ok"] = bool(
         report["meta"]["number_control_pass"] and report["meta"].get("range_control_pass")
         and report["meta"]["production_form_pass"] and report["meta"]["totals_pass"]
+        and report["meta"]["page_size_pass"] and not violations
         and eq and all(eq) and not unrecovered and not report["meta"].get("truncated")
     )
     report["verdict"] = [
         f"number control (counts+search / search only): {[x['pass'] for x in p0]}",
         f"range + assignee control (RUWT since 2019 includes {CTRL_GUID}): {report['meta'].get('range_control_pass')}",
         f"production form finds every known answer, single and OR: {report['meta']['production_form_pass']}",
-        f"eight-week date totals all >= {MIN_TOTAL} and counts == search: {report['meta']['totals_pass']}",
+        f"eight-week date totals: counts numResults >= {MIN_TOTAL} and numberOfFamilies <= numResults: {report['meta']['totals_pass']}",
+        f"a page of 100 is honoured on both databases: {report['meta']['page_size_pass']}",
+        f"search counters follow the measured contract on {checked} responses: {'yes' if checked and not violations else f'NO, {len(violations)} violate it'}",
         f"OR query equals the union of single-term queries: {eq or 'NOT RUN'}",
         f"429 events {len(client.events)}, unrecovered {len(unrecovered)}, calls {client.calls}, {report['meta']['seconds']} s",
     ]
@@ -673,18 +740,18 @@ def render_md(report):
         out.append(f"- TRUNCATED by the deadline in {m['truncated']}")
     out.append("")
     for name, entries in report["phases"].items():
-        out += [f"## {name}", "", "| query | db | http | docs | found | pass |", "|---|---|---|---|---|---|"]
+        out += [f"## {name}", "", "| query | db | http | docs | families on page | families total | pass |", "|---|---|---|---|---|---|---|"]
         for e in entries:
             s = e.get("search", {})
             q = e["q"] if len(e["q"]) < 90 else e["q"][:87] + "..."
-            out.append(f"| `{q}` | {e['db']} | {s.get('http', s.get('error', '?'))} | {e['n_docs']} | {s.get('n_found')} | {e.get('pass', '')} |")
+            out.append(f"| `{q}` | {e['db']} | {s.get('http', s.get('error', '?'))} | {e['n_docs']} | {s.get('n_found')} | {e.get('families')} | {e.get('pass', '')} |")
         out.append("")
     if report.get("weekly"):
-        out += ["## weekly reading (OR over the watchlist): documents returned / total matching", "",
+        out += ["## weekly reading (OR over the watchlist): documents returned / matching families", "",
                 "| day | db | assignee field | all-fields phrase |", "|---|---|---|---|"]
         rows = {}
         for w in report["weekly"]:
-            rows.setdefault((w["day"], w["db"]), {})[w["kind"]] = f"{w['docs']} / {w['total']}"
+            rows.setdefault((w["day"], w["db"]), {})[w["kind"]] = f"{w['docs']} / {w['families']}"
         for (day, db), v in sorted(rows.items(), reverse=True):
             out.append(f"| {day} | {db} | {v.get('assignee', '-')} | {v.get('phrase', '-')} |")
         out.append("")
@@ -692,6 +759,10 @@ def render_md(report):
         out += ["## OR query against the union of single-term queries", "", "| day | db | kind | OR | union | equal |", "|---|---|---|---|---|---|"]
         for c in report["or_vs_term"]:
             out.append(f"| {c['day']} | {c['db']} | {c['kind']} | {len(c['or_guids'])} | {len(c['union_guids'])} | {c['equal']} |")
+        out.append("")
+    if report.get("contract_violations"):
+        out += ["## search counters that break the measured contract (first 20)", ""]
+        out += [f"- {v['phase']} {v['db']} `{v['q']}`: {'; '.join(v['violated'])}" for v in report["contract_violations"]]
         out.append("")
     if report.get("rate_limit_events"):
         out += ["## rate-limit events (first 20)", ""]
@@ -847,7 +918,8 @@ def self_test():
           si.doc("US-9900001-B2", "USPAT", "2026-10-13", ["Datadog, Inc."]),
           si.doc("US-9900002-B2", "USPAT", "2026-10-27", ["Akamai Technologies, Inc."]),
           si.doc("US-20260000001-A1", "US-PGPUB", "2026-10-29", ["Dynatrace LLC"]),
-          si.doc("US-20260000003-A1", "US-PGPUB", "2026-10-29", ["Sportradar AG"]),
+          si.doc("US-20260000003-A1", "US-PGPUB", "2026-10-29", ["Sportradar AG"], family="F-SR"),
+          si.doc("US-20260000006-A1", "US-PGPUB", "2026-10-29", ["Sportradar AG"], family="F-SR"),
           si.doc("US-20260000004-A1", "US-PGPUB", "2026-10-22", ["LogRocket, Inc."]),
           si.doc("US-20260000005-A1", "US-PGPUB", "2026-10-15", ["Stats Perform Ltd"]),
           si.doc("US-20260000002-A1", "US-PGPUB", "2026-10-29", [], "Proactive repair for New Relic code review")]
@@ -877,10 +949,15 @@ def self_test():
     t("reading: the production form finds every known answer, single and OR", rep["meta"]["production_form_pass"] is True)
     t("reading: eight weeks of date totals are all above the floor", rep["meta"]["totals_pass"] is True and len(rep["phases"]["3_date_totals"]) == 16)
     t("reading: the OR query equals the union of single-term queries, all four", len(rep["or_vs_term"]) == 4 and all(c["equal"] for c in rep["or_vs_term"]))
-    wk = {(w["day"], w["db"], w["kind"]): w["docs"] for w in rep["weekly"]}
+    wk = {(w["day"], w["db"], w["kind"]): (w["docs"], w["families"]) for w in rep["weekly"]}
     t("reading: the all-fields phrase sees the document the assignee field cannot",
-      wk[("2026-10-29", "US-PGPUB", "phrase")] == 3 and wk[("2026-10-29", "US-PGPUB", "assignee")] == 2)
-    t("reading: the planted USPAT grant is read on the grant day", wk[("2026-10-27", "USPAT", "assignee")] == 1)
+      wk[("2026-10-29", "US-PGPUB", "phrase")][0] == 4 and wk[("2026-10-29", "US-PGPUB", "assignee")][0] == 3)
+    t("reading: a family with two members on the day is two documents and one family, as the host counts it",
+      wk[("2026-10-29", "US-PGPUB", "assignee")] == (3, 2) and wk[("2026-10-29", "US-PGPUB", "phrase")] == (4, 3))
+    t("reading: the planted USPAT grant is read on the grant day", wk[("2026-10-27", "USPAT", "assignee")] == (1, 1))
+    t("reading: the counters follow the measured contract on every parsed response, and there are many",
+      rep["meta"]["contract_violations"] == 0 and rep["meta"]["contract_checked"] >= 100)
+    t("reading: a page of 100 is honoured", rep["meta"]["page_size_pass"] is True and len(rep["phases"]["6_page_size"]) == 2)
     t("reading: nothing was rate limited on a host that does not", rep["meta"]["rate_limit_events"] == 0)
 
     code, rep = run_reading("rate429")
@@ -898,9 +975,33 @@ def self_test():
     code, rep = run_reading("rate429_all:20260908| OR ")
     t("reading: a 429 that no retry recovers on a day with no hits still fails the run",
       code == 1 and rep["meta"]["unrecovered_429"] > 0 and rep["meta"]["totals_pass"] is True and all(c["equal"] for c in rep["or_vs_term"]))
-    code, rep = run_reading("counts_off")
-    t("reading: a counts call that disagrees with the search total fails the totals check",
+    code, rep = run_reading("counts_low")
+    t("reading: a counts call below the search's family total fails the totals check",
       code == 1 and rep["meta"]["totals_pass"] is False)
+    code, rep = run_reading("total_is_total")
+    t("reading: a host whose totalResults is a total, as the first version of this probe assumed, fails the counter contract",
+      code == 1 and rep["meta"]["contract_violations"] > 0 and any("totalResults" in "; ".join(v["violated"]) for v in rep["contract_violations"]))
+    code, rep = run_reading("fam_off")
+    t("reading: numberOfFamilies that disagrees with the families on the page fails the counter contract",
+      code == 1 and rep["meta"]["contract_violations"] > 0 and any("numFound" in "; ".join(v["violated"]) for v in rep["contract_violations"]))
+    code, rep = run_reading("fam_off_or")
+    t("reading: counters that break only on OR queries fail the run through the sweep, although the date and page-size calls are clean",
+      code == 1 and rep["meta"]["totals_pass"] is True and rep["meta"]["page_size_pass"] is True and rep["meta"]["contract_violations"] > 0)
+    code, rep = run_reading("docs_short")
+    t("reading: a page that holds fewer documents than families fails the counter contract",
+      code == 1 and rep["meta"]["contract_violations"] > 0 and any("documents on the page" in "; ".join(v["violated"]) for v in rep["contract_violations"]))
+    code, rep = run_reading("no_families")
+    t("reading: a search answer without numberOfFamilies fails; the watcher cannot tell a complete page without it",
+      code == 1 and rep["meta"]["totals_pass"] is False and rep["meta"]["contract_violations"] > 0)
+    code, rep = run_reading("zero_date_page")
+    t("reading: a day-sized page that comes back empty fails the page-size call although every other call is clean",
+      code == 1 and rep["meta"]["page_size_pass"] is False and rep["meta"]["totals_pass"] is True and rep["meta"]["production_form_pass"] is True)
+    code, rep = run_reading("bare_patents")
+    t("reading: a host that answers only the patents list fails the date totals and the page-size call: no counters is not a clean contract",
+      code == 1 and rep["meta"]["totals_pass"] is False and rep["meta"]["page_size_pass"] is False)
+    code, rep = run_reading("page_cap:22")
+    t("reading: a host that silently caps the page at 22, above the floor, still fails the page-size call and the contract",
+      code == 1 and rep["meta"]["page_size_pass"] is False and rep["meta"]["contract_violations"] > 0)
     saved, DEADLINE_S = DEADLINE_S, 0.0
     try:
         code, rep = run_reading()
