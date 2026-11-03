@@ -19,6 +19,10 @@ on:
         description: 'Comma-separated Worker script names on the account'
         required: false
         default: 'field-relay-nba'
+      version_ids:
+        description: 'Optional: comma-separated version ids to read in detail (script etag, handlers, bindings hash; no binding value is written)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -35,9 +39,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           SCRIPTS: ${{ inputs.scripts }}
+          VERSION_IDS: ${{ inputs.version_ids }}
         run: |
           OUT="outbox/worker-deployments-probe-$(date -u +%Y%m%dT%H%M%SZ).md"
-          python3 scripts/probe-worker-deployments.py --scripts "$SCRIPTS" --out "$OUT" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          python3 scripts/probe-worker-deployments.py --scripts "$SCRIPTS" --version-ids "$VERSION_IDS" --out "$OUT" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           exit "${PIPESTATUS[0]}"
 
       - name: Commit the evidence

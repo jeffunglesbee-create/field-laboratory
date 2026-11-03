@@ -18,6 +18,17 @@ field is not where this script looked. The token is read from the environment. S
 unset it is taken from GET /accounts if the token sees exactly one account, and the output says so. Neither is
 printed. It writes nothing to Cloudflare.
 
+VERSION DETAIL (--version-ids). The two lists name versions but say nothing about what is inside one. With
+`--version-ids a,b,c` the probe also asks, per script and per id,
+  GET /accounts/<id>/workers/scripts/<name>/versions/<version id>
+and prints the fields that can tell two versions' code apart without printing any configuration value: the
+script's etag (Cloudflare's own content hash of the uploaded script), its handlers, the compatibility date, and
+the number of bindings with a sha256 of the canonical list (so two versions' bindings can be compared and no
+binding value is written into the repository). It then says whether the etags are all equal, or differ, or
+could not be read for some id; a field the answer does not carry is printed as `?` and is never guessed. The raw
+detail answer is NOT written: it holds the bindings. Only the NAMES of the keys under `resources.script` are
+printed, so the next reader can see the real shape.
+
 EXIT CODE. 0 when at least one list answered 200 for at least one script. 1 when none did: every refusal is
 printed with its HTTP status and the API's own error code and message, which is the finding in that case (for
 example a token that can deploy but cannot read).
@@ -28,6 +39,7 @@ than one account):
 """
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import sys
@@ -84,10 +96,67 @@ def errors_of(body, text):
     return (text or "")[:200]
 
 
+def dict_of(node, key):
+    """node[key] when it is a dict, else {}: an answer that lacks a level must not raise, and is not guessed at."""
+    v = node.get(key) if isinstance(node, dict) else None
+    return v if isinstance(v, dict) else {}
+
+
+def version_detail(account, name, ids, token):
+    """Per version id: the fields that tell two versions' code apart, with no configuration value printed.
+
+    Returns lines of markdown. A field the answer does not carry is `?`. The etags are compared only when every
+    id answered with one; otherwise the comparison says which could not be read.
+    """
+    lines = [f"### Version detail for `{name}`", "",
+             "| version id | number | created (UTC) | script etag | handlers | compatibility date | bindings (count, sha256 of the canonical list) |",
+             "|---|---|---|---|---|---|---|"]
+    etags = {}
+    shapes = []
+    for vid in ids:
+        status, body, text = get(f"/accounts/{account}/workers/scripts/{name}/versions/{vid}", token)
+        if status != 200:
+            lines.append(f"| `{vid}` | HTTP {status}: {errors_of(body, text)} | | | | | |")
+            etags[vid] = None
+            continue
+        res = dict_of(body, "result")
+        resources = dict_of(res, "resources")
+        script = dict_of(resources, "script")
+        runtime = dict_of(resources, "script_runtime")
+        meta = dict_of(res, "metadata")
+        bindings = resources.get("bindings")
+        if isinstance(bindings, list):
+            canon = json.dumps(bindings, sort_keys=True, separators=(",", ":"))
+            bound = f"{len(bindings)}, {hashlib.sha256(canon.encode()).hexdigest()[:16]}"
+        else:
+            bound = "?"
+        etag = script.get("etag")
+        etags[vid] = etag if isinstance(etag, str) and etag else None
+        handlers = script.get("handlers")
+        handlers = ", ".join(str(h) for h in handlers) if isinstance(handlers, list) else "?"
+        lines.append(f"| `{res.get('id', vid)}` | {res.get('number', '?')} | {meta.get('created_on', res.get('created_on', '?'))} | "
+                     f"`{etags[vid] or '?'}` | {handlers} | {runtime.get('compatibility_date', '?')} | {bound} |")
+        shapes.append(f"`{vid[:8]}` result keys {sorted(res.keys())}; resources keys {sorted(resources.keys())}; resources.script keys {sorted(script.keys())}")
+    lines.append("")
+    unread = [v for v, e in etags.items() if e is None]
+    if unread:
+        lines.append(f"**etag comparison: not made.** No etag could be read for: {', '.join(f'`{v[:8]}`' for v in unread)}.")
+    elif len(set(etags.values())) == 1:
+        lines.append(f"**etag comparison: all {len(etags)} version(s) carry the same script etag.**")
+    else:
+        lines.append("**etag comparison: the etags DIFFER:** " + "; ".join(f"`{v[:8]}` = `{e}`" for v, e in etags.items()))
+    lines.append("")
+    for s in shapes:
+        lines.append(f"- shape: {s}")
+    lines.append("")
+    return lines
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--scripts", default="field-relay-nba")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--version-ids", default="", help="comma-separated version ids to read in detail (script etag, handlers, bindings hash)")
     args = ap.parse_args()
 
     token = os.environ.get("CLOUDFLARE_API_TOKEN", "")
@@ -157,6 +226,10 @@ def main():
             out.append("")
             out.append(f"<details><summary>raw {label} answer</summary>\n\n```json\n{json.dumps(scrub(body), indent=1)[:12000]}\n```\n</details>")
             out.append("")
+
+        ids = [v.strip() for v in args.version_ids.split(",") if v.strip()]
+        if ids:
+            out.extend(version_detail(account, name, ids, token))
 
     text = "\n".join(out) + "\n"
     print(text)
