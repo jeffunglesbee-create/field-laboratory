@@ -50,3 +50,18 @@ Task 0 changed the design. The filed CC-CMD sharded the 134 cases over a CI matr
 - That the 133 cases are the right 133.
 - That a parse-class case can be added: it cannot, and the run fails loudly if one is.
 - `verify` does not run this script; the proof of this change is the `verify-full` run above, not a green `verify`.
+
+## Landing
+
+Landed on `main` by fast-forward as `6f33b8d` (main was `25840c2` before and during the work; no merge commit). Read from the runs on that commit, 2026-11-03:
+
+| run | id | result |
+|---|---|---|
+| `verify` | 41684780185 | success (17:29:46Z to 17:36:08Z) |
+| `guards` | 41684780078 | success |
+| `deploy` | 41685845216 | success (workflow_run after `verify`) |
+| `live-check` | 41685999384 | success |
+| `status` | 41685999311 | success |
+| the scored gate, on the branch tree `8b1ee44` | `verify-full` 41680758770 | 530/530, ledger `8b1ee4425697-7c985ab97947`, gate 354 s, proof row 15 s, run 7 min 5 s |
+
+`6f33b8d` differs from the scored tree `8b1ee44` only by this docs commit (`docs/GATE-TIMING.md`, the CC-CMD, this file) and the two ledger commits the gate itself wrote (`a3ac790`, `4b28863`).
