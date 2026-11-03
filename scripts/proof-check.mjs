@@ -25,17 +25,23 @@
 //
 // ONE COMPILE FOR ALL CASES
 //
-// Until 2026-11-03 this was one `dotnet build` per case, 5.8 s each, 776 s for
-// 133 cases, and the longest path of the confidence gate. The F# compiler keeps
-// type-checking after an error in one function, and an error in one function
-// does not hide an error in the next — measured, for type errors in separate
-// top-level functions, by comparing every case's SET of error codes in one batch
-// with the same case compiled alone: identical for 133 of 133. It does NOT hold
-// for a parse error, which stops type-checking of the whole file. So every case
-// is injected as its own `__proofN` function in ONE build, with the error cap
-// lifted (`--maxerrors`), and each error is attributed to the case whose lines
-// it falls in. Measured: 133 of 133 attributed with the stated code, 217 errors,
-// 14.5 s.
+// Until 2026-11-03 this was one `dotnet build` per case, 5.8 s each on the CI
+// runner, 776 s for 133 cases, and the longest path of the confidence gate once
+// the mutation suite was sharded.
+//
+// The F# compiler keeps type-checking after an error in one function, and an
+// error in one function does not hide an error in the next. Measured, for type
+// errors in separate top-level functions: every case's SET of error codes in one
+// batch compared with the same case compiled alone, identical for 133 of 133.
+// That does NOT hold for a parse error, which stops type-checking of the whole
+// file (measured the same day: an unclosed expression in one injected function,
+// then an ordinary FS0001 in the next; only FS0058, FS0010, FS3156 and FS3118
+// came back, and FS0001 never did).
+//
+// So every case is injected as its own `__proofN` function in ONE build, with
+// the error cap lifted (`--maxerrors`), and each error is attributed to the case
+// whose lines it falls in. Measured: 133 of 133 attributed with the stated code,
+// 217 errors, 14.5 s.
 //
 // A CASE PASSES ONLY WHEN THE BATCH CONFIRMS IT. Confirmed means an error
 // carrying the stated code sits inside the case's own lines, which is the
@@ -47,8 +53,8 @@
 // batch being blind to it (the error cap reached, a parse error that stopped the
 // file, a range that is off) and fails the run too. There is no quiet fallback
 // to serial speed: an earlier version let those cases pass alone, and with the
-// cap left at the compiler's default it went green in 1030 s, slower than the
-// 776 s it replaced, with nothing red to say so.
+// cap left at the compiler's default it went green after 1030 s on the machine
+// the whole batched run takes 84 s on, with nothing red to say so.
 //
 // TWO CONTROLS RUN IN EVERY RUN, because a check that has only ever passed has
 // proven nothing (Rule 90): one case that compiles cleanly and one whose stated
@@ -113,8 +119,9 @@ const ANCHOR = 'let private dramaText (g: Game) (state: GameState) ='
 
 // `extra` is appended to the command: the batch lifts the compiler's error cap
 // with it. Every other build runs the same command it always did, except that
-// the output buffer is larger for all of them (a batch of 133 errors printed
-// twice is far over execSync's default 1 MB). The F# compiler stops at 100
+// the output buffer is larger for all of them (the batch's output is about
+// 100 KB for 133 cases, measured, under execSync's default 1 MB: this is
+// headroom for more cases, not a fix for an overflow that happened). The F# compiler stops at 100
 // errors by default, and MSBuild prints each one twice, so the first batch
 // experiment (2026-11-03) saw 67 of 133 cases and nothing else.
 const build = (extra = '') => {
@@ -203,9 +210,6 @@ const parseCases = doc => {
 // The coverage line printed with the result is Rule 91: a filtered run states
 // its denominator where the result is read, so nobody infers a full pass from a
 // green partial one.
-const ONLY = process.argv.includes('--only')
-  ? process.argv[process.argv.indexOf('--only') + 1]
-  : null
 // `--max-errors N` is the compiler's error cap for the BATCH build (default 5000,
 // 23 times what 133 cases produce). `--out FILE` writes what each case was
 // decided by. Both refuse an empty or missing value with exit 2: a flag that
@@ -230,6 +234,9 @@ if (!Number.isInteger(MAX_ERRORS) || MAX_ERRORS < 1) {
   process.exit(2)
 }
 const OUT = flagValue('--out')
+// `--only` goes through the same refusal: a bare or trailing `--only`, or
+// `--only=X`, used to run the FULL suite without a word (2026-11-03 review).
+const ONLY = flagValue('--only')
 const allDocs = DOCS()
 const selectedDocs = ONLY ? allDocs.filter(f => f.includes(ONLY)) : allDocs
 const cases = selectedDocs.flatMap(f =>
@@ -287,9 +294,10 @@ const classifyState = ({ markerExists, pid, selfPid, alive }) => {
 
 // --- self-test ---------------------------------------------------------------
 //
-// The state machine only. Everything below it needs a real compiler and minutes
-// of wall clock; this is the half that decides whether a killed run corrupts the
-// tree, and it is cheap enough to run before every real run.
+// The state machine and the batch's pure functions (layout, attribute,
+// parseErrors). Everything below it needs a real compiler; this is the half that
+// decides whether a killed run corrupts the tree and whether an error lands in
+// the right case, and it is cheap enough to run before every real run.
 if (process.argv.includes('--self-test')) {
   const { check: sc, summarize: ss } = createChecks()
   const st = (markerExists, pid, alive) =>
@@ -316,10 +324,10 @@ if (process.argv.includes('--self-test')) {
   // --- the batch: where a case's lines are, and which errors are its own ----
   //
   // Each clause was made to fail on purpose before it was trusted (Rule 90):
-  // 18 mutations of this block (move a boundary, drop the range test, trust the
-  // code anywhere in the output, ...) were applied to a copy and each turned the
-  // self-test red; the list and the result are in
-  // outbox/cc-session-2026-11-03-proof-check-batch.md. That sweep is not a
+  // 18 mutations of the code these clauses cover (move a boundary, drop the range
+  // test, trust the code anywhere in the output, accept a longer file name, ...)
+  // were applied to a copy and each turned the self-test red; the list and the
+  // result are in outbox/proof-check-sweeps-2026-11-03.txt. That sweep is not a
   // script in the repo, so a new clause here is only as trusted as the person
   // who adds it makes it. The block runs on strings, so it costs nothing, and it
   // is the half of the batch a real compile cannot check: a range shifted by a
@@ -530,13 +538,25 @@ const decideAlone = c => {
   }
 }
 
+// How many real cases got a verdict from a compiler (stays 0 if the baseline did
+// not compile or no case matched): the closing line reports it, not the number
+// of cases read.
+let decidedByCompiler = 0
+
 if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
   try {
     const all = [...cases, ...CONTROLS]
     const batch = layout(source, all)
     writeFileSync(TARGET, batch.text)
     const batchStart = performance.now()
-    const batchOut = build(` -p:OtherFlags=--maxerrors:${MAX_ERRORS}`)
+    const batchFlags = ` -p:OtherFlags=--maxerrors:${MAX_ERRORS}`
+    let batchOut = build(batchFlags)
+    // The wrong-code control is rejected by construction, so a batch that
+    // reports NO error at all did not run to the end (a killed or crashed
+    // compiler, not a clean tree). Repeat it once, visibly, before judging; two
+    // empty batches in a row is the check below, with the output's tail.
+    let batchTries = 1
+    if (!/error FS\d+/.test(batchOut)) { batchOut = build(batchFlags); batchTries = 2 }
     const batchMs = Math.round(performance.now() - batchStart)
     const { per, strays } = attribute(all, batch.ranges, parseErrors(batchOut))
     // The count of ALL error lines, wherever they are reported, against the ones
@@ -548,12 +568,17 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
       if (per[i].confirmed) return { by: 'batch', ok: true, detail: '' }
       return { by: 'alone', ...decideAlone(c) }
     })
+    // Every real case now has a verdict from a compiler: the batch's, or its own.
+    decidedByCompiler = cases.length
     const unconfirmed = cases.map((_, i) => i).filter(i => decided[i].by !== 'batch')
+    const controlsByBatch = CONTROLS.filter((_, k) => decided[cases.length + k].by === 'batch').length
     const named = unconfirmed.slice(0, 5).map(i => `case ${i + 1}`).join(', ')
     console.log(`\nproof batch: ${cases.length - unconfirmed.length} of ${cases.length} case(s) confirmed from their `
-      + `own lines in ONE compile (--maxerrors ${MAX_ERRORS}, ${batchMs} ms)`
+      + `own lines in ONE compile (--maxerrors ${MAX_ERRORS}, ${batchMs} ms${batchTries > 1 ? `, ${batchTries} TRIES — the first compile reported no error` : ''})`
       + (unconfirmed.length ? `; NOT confirmed: ${named}${unconfirmed.length > 5 ? `, and ${unconfirmed.length - 5} more` : ''}` : '')
-      + `; ${CONTROLS.length} control(s) compiled alone, as designed; ${errorLines} error line(s) reported, `
+      + `; controls: ${CONTROLS.length - controlsByBatch} compiled alone, as designed`
+      + (controlsByBatch ? `, ${controlsByBatch} CONFIRMED BY THE BATCH (the control checks fail)` : '')
+      + `; ${errorLines} 'error FS' mention(s) in the output (each error prints twice), `
       + `${placed} placed in Scoreboard.fs, ${strays.length} in no case`)
 
     for (const [i, c] of cases.entries()) {
@@ -576,15 +601,26 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
         d.by === 'batch', reason)
     }
 
+    // The batch must have run to the end, or every line below is noise.
+    check('the batch compile reported errors (the wrong-code control guarantees some)',
+      /error FS\d+/.test(batchOut),
+      `none in ${batchTries} try/tries; the output ended: ${batchOut.split('\n').map(l => l.trim()).filter(Boolean).slice(-4).join(' | ').slice(0, 400) || '(empty)'}`)
+
     // The controls are a check of the checker, so they are reported as such: a
     // control that is ACCEPTED is the failure, and so is one that fails for a
-    // reason other than the one it was written for.
+    // reason other than the one it was written for. They also probe the BATCH's
+    // attribution: the clean one must have NO error placed in its lines (an
+    // analyser that over-attributes fails it), the wrong one must have SOME (one
+    // that is blind to it fails it) — whichever code the batch happened to use.
     for (const [k, c] of CONTROLS.entries()) {
       const d = decided[cases.length + k]
+      const seen = per[cases.length + k].codes
+      const placedRight = c.kind === 'clean' ? seen.length === 0 : seen.length > 0
       check(`control (${c.kind}): a case that ${c.kind === 'clean' ? 'compiles cleanly' : 'is rejected with another code'} fails, for that reason`,
-        !d.ok && c.why.test(d.detail),
+        !d.ok && c.why.test(d.detail) && placedRight,
         d.ok ? `ACCEPTED by the ${d.by} path — the check cannot fail`
-             : `failed for another reason: ${d.detail}`)
+             : !c.why.test(d.detail) ? `failed for another reason: ${d.detail}`
+             : `the batch placed ${seen.join(', ') || 'no error'} in its lines, expected ${c.kind === 'clean' ? 'none' : 'some'}`)
     }
     // Every error line the build printed must be one this script understood and
     // put in a case. A gap means errors in a file it cannot place, or in a shape
@@ -596,13 +632,21 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
         + (strays.length ? `: ${strays.slice(0, 3).map(x => `${x.code}@${x.line}`).join(', ')}` : ''))
 
     if (OUT) {
-      writeFileSync(OUT, JSON.stringify({
-        maxErrors: MAX_ERRORS, batchMs, errorLines, placed, strays,
-        confirmedReal: cases.length - unconfirmed.length, unconfirmedReal: unconfirmed.map(i => i + 1),
-        cases: all.map((c, i) => ({
-          doc: c.doc, code: c.code, codesInRange: per[i].codes, decidedBy: decided[i].by, ok: decided[i].ok,
-        })),
-      }, null, 1) + '\n')
+      // A failing write is a failing CHECK, not a stack trace that loses every
+      // verdict and skips the registry phase.
+      let wrote = ''
+      try {
+        writeFileSync(OUT, JSON.stringify({
+          maxErrors: MAX_ERRORS, batchMs, batchTries, errorLines, placed, strays,
+          confirmedReal: cases.length - unconfirmed.length, unconfirmedReal: unconfirmed.map(i => i + 1),
+          // passed = what the run counted; aloneOk = only what the serial compile said.
+          cases: all.map((c, i) => ({
+            doc: c.doc, code: c.code, codesInRange: per[i].codes, decidedBy: decided[i].by,
+            passed: decided[i].by === 'batch', aloneOk: decided[i].by === 'alone' ? decided[i].ok : null,
+          })),
+        }, null, 1) + '\n')
+      } catch (e) { wrote = String(e.message ?? e) }
+      check('--out file written', wrote === '', wrote)
     }
   } finally {
     restore()
@@ -640,5 +684,5 @@ if (baselineClean) {
   }
 }
 
-console.log(`\ndocs/*-PROOF.md: ${cases.length} claimed rejection(s), each decided by the real compiler\n`)
+console.log(`\ndocs/*-PROOF.md: ${cases.length} claimed rejection(s) read, ${decidedByCompiler} given a verdict by the compiler\n`)
 finish(summarize())
