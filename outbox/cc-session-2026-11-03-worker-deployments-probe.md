@@ -1,6 +1,6 @@
 # CC session — 2026-11-03 — a probe for a Worker's own deployment history
 
-**State:** the probe works. Run 41599991950 (07:59Z) read 10 deployments and 50 versions of `field-relay-nba` from Cloudflare's own API with the lab's token. The first dispatch (41599815091, 07:58Z) had stopped before any read because the lab has no `CLOUDFLARE_ACCOUNT_ID` secret; the account is now taken from the token when it sees exactly one. A version-detail read (the script's etag) was added after that; its dispatch result is the last row of the second table.
+**State:** the probe works. Run 41599991950 (07:59Z) read 10 deployments and 50 versions of `field-relay-nba` from Cloudflare's own API with the lab's token. The first dispatch (41599815091, 07:58Z) had stopped before any read because the lab has no `CLOUDFLARE_ACCOUNT_ID` secret; the account is now taken from the token when it sees exactly one. A version-detail read (the script's etag) was added after that and ran once (run 41602002778, 08:16Z): the live version `ad8f5cc7` and the version that served 2026-11-01T17:25Z to 2026-11-03T01:03Z, `daf274f8`, report the same etag. See "Script etags" below, including what is not known about the field.
 
 ## Why
 
@@ -35,7 +35,8 @@ What a session can read, measured 2026-11-03 07:5xZ:
 | the live version | **VERIFIED** | the newest deployment, 2026-11-03T01:03:04Z, is version `ad8f5cc7-54f6-4c7e-8381-71de0be92967` at 100%; the one before it is the upload version `604f4f8c-6f45-49df-890e-47fefd3299bb`, also at 100%, 5 s earlier |
 | every one of the 50 newest versions was made by a `deploy.yml` run | **VERIFIED**, bounded to those 50 | the pairing below |
 | the version-detail read: equal etags are reported as the same, differing ones as DIFFER with both values, a missing etag as "not made" with the id, an HTTP refusal with its code and message, no binding value is printed, different bindings give different hashes | **TRIED** locally with a stand-in, 12 checks | a throwaway test in the session, not a committed check |
-| the script etags of the versions | **dispatch pending** | the last row of this table, once the run has answered |
+| the script etags of the versions | **VERIFIED** (the values), **NOT KNOWN** (the field's definition) | run 41602002778, `outbox/worker-deployments-probe-20261103T081607Z.md`: six versions read, all six answered with an etag; see "Script etags" |
+| what `resources.script.etag` is | **NOT KNOWN** | two searches of Cloudflare's documentation (2026-11-03) returned nothing that defines the field. The commit subject of `b978f34` says "Cloudflare's own hash"; that was written from recall and is not shown |
 
 ## Which deploy run made each version
 
@@ -61,3 +62,26 @@ The last five deploys, final version of each pair:
 | 2026-10-30T17:17:39Z | `6f417ee9` | `9106aefb` | 41096192055 | `a211e14f` |
 
 Boundary: the API returned the newest 50 versions; versions older than 1981 were not read, so this says nothing about deploys before 2026-10-23. No version in the 50 lacks a `deploy.yml` run in whose window it was created. A manual deploy that happened to land inside a run's window would be attributed to that run by this method; the etag read is the check on what each version contains.
+
+## Script etags (run 41602002778, 2026-11-03T08:16Z; `outbox/worker-deployments-probe-20261103T081607Z.md`)
+
+Six versions read with `--version-ids`: the final and the upload version of the last three deploys.
+
+| deploy (head, run) | version | role | script etag (first 8) | number | created (UTC) |
+|---|---|---|---|---|---|
+| `6b6ff600`, 41555964661 | `ad8f5cc7` | final, live at 100% | `be651ac1` | 2030 | 2026-11-03T01:03:03Z |
+| `6b6ff600`, 41555964661 | `604f4f8c` | upload | `be651ac1` | 2029 | 2026-11-03T01:02:59Z |
+| `6589bc16`, 41330484626 | `daf274f8` | final | `be651ac1` | 2028 | 2026-11-01T17:25:36Z |
+| `6589bc16`, 41330484626 | `a60a8277` | upload | `19ac8ddc` | 2027 | 2026-11-01T17:25:33Z |
+| `b6c46113`, 41131995398 | `c91c0747` | final | `19ac8ddc` | 2026 | 2026-10-30T21:40:35Z |
+| `b6c46113`, 41131995398 | `67a543f6` | upload | `52356d93` | 2025 | 2026-10-30T21:40:32Z |
+
+Full etags: `be651ac123a6ed661a8aee6ffb1aa80e8024df10596fb253977e5ea8d16779d0`, `19ac8ddcda02a1a60607b45a0f5647ba3b9f8d86a40a1a6c85f63a7f21b5e3ef`, `52356d9313f295eb934738c76746df1262fbb24c2a551f515cfd1c4db22df2d6`. All six versions report handlers `scheduled, fetch, _fetch, queue`, compatibility date 2026-06-22 and 38 bindings with one hash (`4e3f3cbce931a706`): no binding was added, removed or changed across these three deploys.
+
+What it shows, and what it does not:
+
+1. **The live version and the version that served 2026-11-01T17:25Z to 2026-11-03T01:03Z report the same etag** (`ad8f5cc7` and `daf274f8`: `be651ac1`). The source difference between their two commits is two comment lines in `src/index.js` (esbuild's minified output of both is byte-identical, 476,263 bytes), and both deploys printed `wrangler 3.90.0` and `Total Upload: 2258.19 KiB / gzip: 509.81 KiB`. Four independent readings agree that the script did not change.
+2. **The earlier deploy that did change code reports a different etag** (`c91c0747`, `b6c46113`: `19ac8ddc`). So the field moved when the code moved and held when only comments did, on this data.
+3. **Not known: what the field is.** The documentation was searched twice and does not define it. The pattern above is what a hash of the script would do, and it is the only reading offered; it is not shown.
+4. **An observation with no mechanism read.** The upload version and the final version of one deploy report different etags in two of the three deploys (`a60a8277` against `daf274f8`; `67a543f6` against `c91c0747`) and the same etag in the third (`604f4f8c`, `ad8f5cc7`). Each upload version's etag equals the previous deploy's final version's etag (`a60a8277` = `c91c0747` = `19ac8ddc`; `604f4f8c` = `daf274f8` = `be651ac1`). That fits an upload version that is created before the new script replaces the old one, but it was not read from Cloudflare, so the comparison in 1 and 2 uses final versions only.
+5. **Boundary:** six versions of 50. The etag of the other 44 was not read, and nothing here says which of the 44 changed code.

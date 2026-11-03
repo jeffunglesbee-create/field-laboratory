@@ -22,7 +22,9 @@ VERSION DETAIL (--version-ids). The two lists name versions but say nothing abou
 `--version-ids a,b,c` the probe also asks, per script and per id,
   GET /accounts/<id>/workers/scripts/<name>/versions/<version id>
 and prints the fields that can tell two versions' code apart without printing any configuration value: the
-script's etag (Cloudflare's own content hash of the uploaded script), its handlers, the compatibility date, and
+script's etag (the value the API reports under resources.script; its definition was not found in Cloudflare's
+documentation when this was written, so equal etags are evidence that two versions hold the same script and
+differing ones are evidence they do not, not a proven content hash), its handlers, the compatibility date, and
 the number of bindings with a sha256 of the canonical list (so two versions' bindings can be compared and no
 binding value is written into the repository). It then says whether the etags are all equal, or differ, or
 could not be read for some id; a field the answer does not carry is printed as `?` and is never guessed. The raw
