@@ -1,12 +1,10 @@
 {
-  "at": "2026-11-02T15:31:43.483Z",
+  "at": "2026-11-03T04:50:40.463Z",
   "scope": "full",
   "ran": 71,
   "from_mutations": 235,
-  "failing": 0,
-  "notApplicable": [
-    "node scripts/run-row.mjs \"this session wrote its outbox\""
-  ],
+  "failing": 1,
+  "notApplicable": [],
   "results": [
     {
       "cmd": "node scripts/pickem-check.mjs",
@@ -151,7 +149,8 @@
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
       "passed": false,
-      "notApplicable": true
+      "status": 1,
+      "tail": "FAIL  this session wrote its outbox"
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
