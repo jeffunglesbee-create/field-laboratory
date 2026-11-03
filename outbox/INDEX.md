@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6f33b8d` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: the proof checks are one batched compile — the scored gate, the figures, the CC-CMD marked DONE |
+| `a3ac790` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 8b1ee44 [skip ci] |
+| `8b1ee44` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: proof-check sweep v3 kept with the other sweeps |
+| `8b1ee44` | 2026-11-03 | [proof-check-sweeps-2026-11-03.txt](proof-check-sweeps-2026-11-03.txt) | docs: proof-check sweep v3 kept with the other sweeps |
+| `4be022e` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: the proof checks are no longer thirteen minutes — three comments said so |
+| `727fc71` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | wip: proof-check — second-review fixes, sharper controls, dead-batch repeat, CC-CMD rewritten to the measured design (branch snapshot, not landed) |
+| `2d9e57b` | 2026-11-03 | [proof-check-sweeps-2026-11-03.txt](proof-check-sweeps-2026-11-03.txt) | wip: proof-check sweeps and oracle comparison (branch snapshot, not landed) |
+| `439d5b9` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | wip: proof-check — a real case passes only when the batch confirms it; controls assert why they fail (branch snapshot, not landed) |
+| `439d5b9` | 2026-11-03 | [proof-check-oracle-2026-11-03.json](proof-check-oracle-2026-11-03.json) | wip: proof-check — a real case passes only when the batch confirms it; controls assert why they fail (branch snapshot, not landed) |
+| `30281bc` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | wip: proof-check batches its cases into one compile (branch snapshot, not landed) |
+| `25840c2` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `c6db079` | 2026-11-03 | [cc-session-2026-11-03-fable-crash-probe.md](cc-session-2026-11-03-fable-crash-probe.md) | docs: the compiler-crash probe's landing, with the gate, verify and deploy it was read from |
 | `bec69ef` | 2026-11-03 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-03T14:39 [skip ci] |
 | `33f8a87` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of bf487aa [skip ci] |
 | `bf487aa` | 2026-11-03 | [cc-session-2026-11-03-fable-crash-probe.md](cc-session-2026-11-03-fable-crash-probe.md) | probe: the F# compiler crash, counted on the runners; no factor found, the repeat stays |
