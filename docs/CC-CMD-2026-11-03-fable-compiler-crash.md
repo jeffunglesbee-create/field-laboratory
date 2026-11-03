@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-03, as the follow-up `docs/CC-CMD-2026-11-03-gate-speed.md` requires (Rule 87.4: its answer to the crash is a bounded, counted repeat, and the cause is not known).
 **Confidence gate:** `npm run gate` >= 95 before any commit that lands. A pin of the SDK version would change what every workflow builds with.
-**Status:** **DONE 2026-11-03, on the second branch of done condition 2: no factor was found at this power; the repeat in `scripts/build-steady.mjs` and the harness stays.** Task 1 ran (run 41649197891, `outbox/fable-crash-probe-latest.json`): 400 builds, 1 crash. The report to file upstream is drafted in `outbox/fable-crash-upstream-report.md`; filing it is the owner's (it posts outside this repository).
+**Status:** **DONE 2026-11-03, on the second branch of done condition 2: no factor was found at this power; the repeat in `scripts/build-steady.mjs` and the harness stays.** Task 1 ran (run 41649197891, `outbox/fable-crash-probe-latest.json`): 400 builds, 1 crash. Landed as `fcb8556` after a gate on the landing tree (run 41652648922, 530/530, ledger `bf487aab59f5-45f06491eb07`, gate step 975 s, run 17 min 45 s); `verify` run 41655707008 green, including the new step `The compiler-crash probe counts what it should`; the deploy that carries it, run 41656472547, green. The report to file upstream is drafted in `outbox/fable-crash-upstream-report.md`; filing it is the owner's (it posts outside this repository).
 
 ```bash
 git remote get-url origin | grep -q field-laboratory || { echo "WRONG REPO"; exit 1; }

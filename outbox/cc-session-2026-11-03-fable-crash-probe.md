@@ -22,4 +22,4 @@ change between them; the CC-CMD records that instead of spending the runner hour
 
 ## Landing
 
-Landed through a gate on the landing tree (the probe adds a workflow, a script, a `verify` step and an npm script); the run ids are in the CC-CMD's status line once read.
+Landed as `fcb8556` (a merge of the probe branch into `main`; the push started `guards`, `verify` and `forecast-run`, no probe run, because the branch carries no trigger file). The probe adds a workflow, a script, a `verify` step and an npm script, so it was gated on the landing tree first: run 41652648922, 530/530, ledger `bf487aab59f5-45f06491eb07`, the gate step 975 s, the run 17 min 45 s. `verify` run 41655707008: success in 4 min 40 s, including `The compiler-crash probe counts what it should`; deploy run 41656472547: success.
