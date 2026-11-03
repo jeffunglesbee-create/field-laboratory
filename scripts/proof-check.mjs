@@ -23,27 +23,42 @@
 // a function, injected into a real source file, and compiled. The case passes
 // only if the build fails AND the stated error code appears.
 //
-// ONE COMPILE FOR ALL CASES, AND A SERIAL COMPILE FOR ANY CASE IT CANNOT CLEAR
+// ONE COMPILE FOR ALL CASES
 //
 // Until 2026-11-03 this was one `dotnet build` per case, 5.8 s each, 776 s for
-// 133 cases, and the longest path of the confidence gate. The F# compiler does
-// not stop at a function's first error and does not let one function's error
-// hide another's, so every case is injected as its own `__proofN` function in
-// ONE build, with the error cap lifted (`--maxerrors`), and each error is
-// attributed to the case whose lines it falls in. Measured: 133 of 133
-// attributed with the stated code, 217 errors, 14.5 s.
+// 133 cases, and the longest path of the confidence gate. The F# compiler keeps
+// type-checking after an error in one function, and an error in one function
+// does not hide an error in the next — measured, for type errors in separate
+// top-level functions, by comparing every case's SET of error codes in one batch
+// with the same case compiled alone: identical for 133 of 133. It does NOT hold
+// for a parse error, which stops type-checking of the whole file. So every case
+// is injected as its own `__proofN` function in ONE build, with the error cap
+// lifted (`--maxerrors`), and each error is attributed to the case whose lines
+// it falls in. Measured: 133 of 133 attributed with the stated code, 217 errors,
+// 14.5 s.
 //
-// A batch can only CONFIRM. A case whose range carries the stated code is
-// confirmed, which is the same predicate the serial run used (the stated code
-// appears) narrowed to the case's own lines. Every other case — no error in its
-// lines, only another code, a parse error that stopped the file early, the cap
-// reached — is compiled ALONE, by the old method, and that compile decides.
-// So the batch can speed up a pass and can never turn a failure into a pass.
+// A CASE PASSES ONLY WHEN THE BATCH CONFIRMS IT. Confirmed means an error
+// carrying the stated code sits inside the case's own lines, which is the
+// predicate the one-build-per-case run used (the stated code appears) narrowed
+// to the case's own lines. Every case the batch does not confirm is also
+// compiled ALONE, by the old method, but only to say WHY it was not confirmed:
+// a case that fails alone is a real failure (compiled cleanly, or rejected with
+// another code), and a case that passes alone but was not confirmed is the
+// batch being blind to it (the error cap reached, a parse error that stopped the
+// file, a range that is off) and fails the run too. There is no quiet fallback
+// to serial speed: an earlier version let those cases pass alone, and with the
+// cap left at the compiler's default it went green in 1030 s, slower than the
+// 776 s it replaced, with nothing red to say so.
 //
 // TWO CONTROLS RUN IN EVERY RUN, because a check that has only ever passed has
 // proven nothing (Rule 90): one case that compiles cleanly and one whose stated
 // code is wrong. Both travel the same path as the real cases and MUST come out
-// as failures. If either is accepted the run fails, whatever the 133 said.
+// as failures, for the reason they were written to fail. If either is accepted,
+// or fails for a different reason, the run fails, whatever the 133 said.
+//
+// NOT SUPPORTED: a proof case whose stated error is a PARSE error (FS0010 and
+// its relatives). It stops type-checking for every case in the file, so the
+// batch would see nothing and the run would fail loudly, by the rule above.
 
 import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs'
 import { execSync } from 'node:child_process'
@@ -97,9 +112,11 @@ const MARKER = 'let private __proof'
 const ANCHOR = 'let private dramaText (g: Game) (state: GameState) ='
 
 // `extra` is appended to the command: the batch lifts the compiler's error cap
-// with it, every other build runs exactly as it always did. The F# compiler
-// stops at 100 errors by default, and MSBuild prints each one twice, so the
-// first batch experiment (2026-11-03) saw 67 of 133 cases and nothing else.
+// with it. Every other build runs the same command it always did, except that
+// the output buffer is larger for all of them (a batch of 133 errors printed
+// twice is far over execSync's default 1 MB). The F# compiler stops at 100
+// errors by default, and MSBuild prints each one twice, so the first batch
+// experiment (2026-11-03) saw 67 of 133 cases and nothing else.
 const build = (extra = '') => {
   try {
     return execSync(`dotnet build src/Laboratory.fsproj --no-restore -clp:NoSummary${extra}`, {
@@ -137,9 +154,12 @@ const layout = (src, cs) => {
   return { text: src.slice(0, at) + chunks.join('') + src.slice(at), ranges }
 }
 
-/** `src/Scoreboard.fs(L,C): error FSxxxx` and the range form `(L,C,L2,C2)`. */
+/**
+ * `src/Scoreboard.fs(L,C): error FSxxxx` and the range form `(L,C,L2,C2)`. The
+ * lookbehind keeps a file merely ENDING in Scoreboard.fs out of a case's range.
+ */
 const parseErrors = out =>
-  [...out.matchAll(/Scoreboard\.fs\((\d+),\d+(?:,\d+,\d+)?\): error (FS\d+)/g)]
+  [...out.matchAll(/(?<![\w.-])Scoreboard\.fs\((\d+),\d+(?:,\d+,\d+)?\): error (FS\d+)/g)]
     .map(m => ({ line: Number(m[1]), code: m[2] }))
 
 /**
@@ -191,6 +211,10 @@ const ONLY = process.argv.includes('--only')
 // decided by. Both refuse an empty or missing value with exit 2: a flag that
 // silently falls back to its default is a flag that was not applied.
 const flagValue = name => {
+  if (process.argv.some(a => a.startsWith(`${name}=`))) {
+    console.error(`proof-check: write ${name} VALUE with a space; ${name}=VALUE is not read`)
+    process.exit(2)
+  }
   const at = process.argv.indexOf(name)
   if (at === -1) return null
   const v = process.argv[at + 1]
@@ -291,12 +315,16 @@ if (process.argv.includes('--self-test')) {
 
   // --- the batch: where a case's lines are, and which errors are its own ----
   //
-  // Each of these has a must-fail twin in the mutation sweep (Rule 90): move a
-  // boundary, drop the range test, trust the code anywhere in the output, and
-  // the clause beside it has to go red. They run on strings, so they cost
-  // nothing, and they are the half of the batch a real compile cannot check:
-  // a range shifted by a few lines still confirms every case whose neighbour
-  // fails the same way, and the real cases would never say so.
+  // Each clause was made to fail on purpose before it was trusted (Rule 90):
+  // 18 mutations of this block (move a boundary, drop the range test, trust the
+  // code anywhere in the output, ...) were applied to a copy and each turned the
+  // self-test red; the list and the result are in
+  // outbox/cc-session-2026-11-03-proof-check-batch.md. That sweep is not a
+  // script in the repo, so a new clause here is only as trusted as the person
+  // who adds it makes it. The block runs on strings, so it costs nothing, and it
+  // is the half of the batch a real compile cannot check: a range shifted by a
+  // few lines still confirms every case whose neighbour fails the same way, and
+  // the real cases would never say so.
   const src = `open X\n\n${ANCHOR}\n    ""\n`
   const two = [{ code: 'FS0001', body: 'a\nb' }, { code: 'FS0025', body: 'c' }]
   const lay = layout(src, two)
@@ -346,6 +374,10 @@ if (process.argv.includes('--self-test')) {
   sc('parseErrors: reads the point form and the range form, and the line is the first number',
     JSON.stringify(parseErrors(`${real}\n${rng}`)) === JSON.stringify([e(434, 'FS0025'), e(12, 'FS0001')]),
     JSON.stringify(parseErrors(`${real}\n${rng}`)))
+  sc('parseErrors: ignores an error in a file that merely ENDS in Scoreboard.fs',
+    parseErrors('/x/src/OldScoreboard.fs(5,1): error FS0025: x\n/x/src/my-Scoreboard.fs(5,1): error FS0025: x').length === 0
+      && parseErrors('Scoreboard.fs(5,1): error FS0025: x').length === 1,
+    'a bare relative path still counts; a longer file name does not')
   sc('parseErrors: ignores a warning, an error in another file, and prose that mentions a code',
     parseErrors('/x/src/Scoreboard.fs(5,1): warning FS0025: x\n/x/src/Desk.fs(5,1): error FS0025: x\nerror FS0025 happened')
       .length === 0, 'only Scoreboard.fs errors can be attributed to a case')
@@ -465,15 +497,27 @@ check('the proof doc contains machine-checkable cases', cases.length > 0,
 // cases so that case numbering in the output does not move.
 //
 //   clean  — compiles. A run that accepts it has a batch that confirms what it
-//            did not see fail, or a serial compile that does not look.
+//            did not see fail, or a serial compile that does not look. It must
+//            be reported as COMPILED CLEANLY, not merely as "not accepted":
+//            `rejected && the code appears` is false for a clean build even
+//            when `rejected` is wrong, so the verdict alone cannot tell.
 //   wrong  — is rejected, with a code other than the one it claims. A run that
-//            accepts it checks "was rejected" and not "was rejected with".
+//            accepts it checks "was rejected" and not "was rejected with". It
+//            must be reported as rejected with another code.
+//
+// `why` is the failure reason each control must give. A control that fails for
+// some OTHER reason has stopped testing what it was written to test.
 const CONTROLS = [
-  { doc: '(control)', kind: 'clean', code: 'FS0001', body: '""' },
-  { doc: '(control)', kind: 'wrong', code: 'FS9999', body: '1 + "a"' },
+  { doc: '(control)', kind: 'clean', code: 'FS0001', body: '""', why: /^COMPILED CLEANLY/ },
+  { doc: '(control)', kind: 'wrong', code: 'FS9999', body: '1 + "a"', why: /^compiler said error FS\d+.*doc claims FS9999$/ },
 ]
 
-/** One case compiled ALONE: the original method, and the one that decides. */
+/**
+ * One case compiled ALONE, by the original method and with its predicate
+ * unchanged. It no longer decides a real case (the batch must confirm it); it
+ * says why an unconfirmed case was not confirmed, and it is the whole verdict
+ * for the controls.
+ */
 const decideAlone = c => {
   writeFileSync(TARGET, layout(source, [c]).text)
   const out = build()
@@ -504,11 +548,12 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
       if (per[i].confirmed) return { by: 'batch', ok: true, detail: '' }
       return { by: 'alone', ...decideAlone(c) }
     })
-    const confirmed = decided.filter(d => d.by === 'batch').length
-    const alone = decided.length - confirmed
-    console.log(`\nproof batch: ${cases.length} case(s) + ${CONTROLS.length} control(s) in ONE compile `
-      + `(--maxerrors ${MAX_ERRORS}, ${batchMs} ms): ${confirmed} confirmed from their own lines, `
-      + `${alone} compiled alone to be decided; ${errorLines} error line(s) reported, `
+    const unconfirmed = cases.map((_, i) => i).filter(i => decided[i].by !== 'batch')
+    const named = unconfirmed.slice(0, 5).map(i => `case ${i + 1}`).join(', ')
+    console.log(`\nproof batch: ${cases.length - unconfirmed.length} of ${cases.length} case(s) confirmed from their `
+      + `own lines in ONE compile (--maxerrors ${MAX_ERRORS}, ${batchMs} ms)`
+      + (unconfirmed.length ? `; NOT confirmed: ${named}${unconfirmed.length > 5 ? `, and ${unconfirmed.length - 5} more` : ''}` : '')
+      + `; ${CONTROLS.length} control(s) compiled alone, as designed; ${errorLines} error line(s) reported, `
       + `${placed} placed in Scoreboard.fs, ${strays.length} in no case`)
 
     for (const [i, c] of cases.entries()) {
@@ -519,28 +564,41 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
       const salient = lines.find(l => l.startsWith('|') && !/^\|\s*(None|_)\s*->\s*""$/.test(l))
         || lines[0]
 
+      // A real case passes only when the BATCH confirmed it. One that passes
+      // alone but was not confirmed is the batch being blind to it, and that is
+      // reported as what it is, not waved through at serial speed.
+      const reason = d.by === 'batch' ? ''
+        : d.ok ? `rejected with ${c.code} when compiled alone, but the batch did not confirm it from its own lines `
+                 + `(codes there: ${per[i].codes.join(', ') || 'none'}; ${errorLines} error line(s) reported, `
+                 + `${placed} placed, cap ${MAX_ERRORS}) — the batch cannot see this case`
+        : d.detail
       check(`${c.doc} case ${i + 1} rejected with ${c.code}: ${salient.slice(0, 34)}`,
-        d.ok,
-        d.ok ? '' : d.detail)
+        d.by === 'batch', reason)
     }
 
     // The controls are a check of the checker, so they are reported as such: a
-    // control that is ACCEPTED is the failure.
+    // control that is ACCEPTED is the failure, and so is one that fails for a
+    // reason other than the one it was written for.
     for (const [k, c] of CONTROLS.entries()) {
       const d = decided[cases.length + k]
-      check(`control (${c.kind}): a case that ${c.kind === 'clean' ? 'compiles' : 'is rejected with another code'} is not accepted`,
-        !d.ok,
-        `ACCEPTED by the ${d.by} path — the check cannot fail`)
+      check(`control (${c.kind}): a case that ${c.kind === 'clean' ? 'compiles cleanly' : 'is rejected with another code'} fails, for that reason`,
+        !d.ok && c.why.test(d.detail),
+        d.ok ? `ACCEPTED by the ${d.by} path — the check cannot fail`
+             : `failed for another reason: ${d.detail}`)
     }
-    // A batch whose errors were not placed anywhere may be reading the wrong file
-    // or the wrong lines; the verdicts above are still sound (anything unplaced
-    // was compiled alone), but a reader should not have to infer that.
-    check('every batch error landed in some case\'s lines', strays.length === 0,
-      `${strays.length} stray error(s): ${strays.slice(0, 3).map(s => `${s.code}@${s.line}`).join(', ')}`)
+    // Every error line the build printed must be one this script understood and
+    // put in a case. A gap means errors in a file it cannot place, or in a shape
+    // the parser does not read: no verdict above depends on them, which is
+    // exactly why a reader should be told.
+    check('every batch error line was placed in some case\'s lines',
+      strays.length === 0 && placed === errorLines,
+      `${errorLines} error line(s) reported, ${placed} placed in Scoreboard.fs, ${strays.length} in no case`
+        + (strays.length ? `: ${strays.slice(0, 3).map(x => `${x.code}@${x.line}`).join(', ')}` : ''))
 
     if (OUT) {
       writeFileSync(OUT, JSON.stringify({
-        maxErrors: MAX_ERRORS, batchMs, confirmed, alone, errorLines, placed, strays,
+        maxErrors: MAX_ERRORS, batchMs, errorLines, placed, strays,
+        confirmedReal: cases.length - unconfirmed.length, unconfirmedReal: unconfirmed.map(i => i + 1),
         cases: all.map((c, i) => ({
           doc: c.doc, code: c.code, codesInRange: per[i].codes, decidedBy: decided[i].by, ok: decided[i].ok,
         })),

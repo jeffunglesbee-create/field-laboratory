@@ -2,7 +2,13 @@
 
 Snapshot, not a landing. `docs/CC-CMD-2026-11-03-proof-check-shards.md` is IN PROGRESS and this file is finished when it is marked DONE.
 
-- Task 0 changed the design: one compile of all 133 cases (14.5 s) replaces one per case (776 s). Sharding is not built.
-- `scripts/proof-check.mjs` batches, attributes errors to cases by line range, compiles any unconfirmed case alone, and runs two controls that must fail. `--self-test` is 23 clauses.
-- Not yet done: oracle comparison over all 133 cases, live Rule 90 sweep, independent review, scored `verify-full`, landing on main.
-- Branch only: `verify` runs on pushes to main, so this push triggers nothing.
+## Where it stands
+
+- Task 0 changed the design: one compile of all 133 cases (14 s) replaces one per case (776 s). Sharding is not built.
+- ORACLE, run: the old method (one build per case) over all 133 cases in a throwaway copy, recording each case's SET of error codes, against the batch's set for the same case: **identical for 133 of 133**, the stated code present 133 of 133 both ways, 6 cases carrying more than one code. (`outbox/proof-check-oracle-2026-11-03.json` holds the 133 sets of the old method.)
+- First review (45 agents, 5 dimensions): 1 finding survived two skeptics (a done condition named the wrong workflow); 19 were refuted as "no wrong verdict", of which these were still right and are fixed: a quiet fallback to serial speed (a real case that only passed when compiled alone went green, in 1030 s with the cap left at its default), controls that did not check WHY they failed, a `Scoreboard.fs` suffix match, three comments that were false.
+- Pure sweep (Rule 90): 18 mutations of the self-test's clauses, 18 caught.
+- Live sweep: running against the changed script.
+- Not yet done: live sweep result, second review of the delta, quiet timing, `docs/GATE-TIMING.md`, scored `verify-full`, landing on main.
+
+Branch only: `verify` runs on pushes to main, so this push triggers nothing.
