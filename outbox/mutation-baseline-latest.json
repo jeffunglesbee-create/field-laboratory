@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-03T04:50:40.463Z",
+  "at": "2026-11-03T11:44:54.260Z",
   "scope": "full",
-  "ran": 71,
-  "from_mutations": 235,
-  "failing": 1,
+  "ran": 72,
+  "from_mutations": 241,
+  "failing": 0,
   "notApplicable": [],
   "results": [
     {
@@ -148,9 +148,7 @@
     },
     {
       "cmd": "node scripts/run-row.mjs \"this session wrote its outbox\"",
-      "passed": false,
-      "status": 1,
-      "tail": "FAIL  this session wrote its outbox"
+      "passed": true
     },
     {
       "cmd": "node scripts/run-row.mjs \"source changes arrive with an outbox entry\"",
@@ -291,6 +289,26 @@
     {
       "cmd": "node scripts/proof-check.mjs --only LOCK-PROOF",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/sharded-row-check.mjs --self-test",
+      "passed": true
     }
-  ]
+  ],
+  "shards": {
+    "of": 8,
+    "mode": "watch",
+    "wallMs": [
+      313093,
+      176991,
+      318631,
+      380795,
+      129590,
+      257124,
+      213104,
+      1057232
+    ],
+    "longestMs": 1057232,
+    "sumMs": 2846560
+  }
 }
