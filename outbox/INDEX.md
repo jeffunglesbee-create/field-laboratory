@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `29963a6` | 2026-11-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-03 [skip ci] |
+| `29963a6` | 2026-11-03 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-03 [skip ci] |
+| `29963a6` | 2026-11-03 | [sport-vocabulary-2026-11-03T19-23-06-121Z.json](sport-vocabulary-2026-11-03T19-23-06-121Z.json) | drift-sentinel: ok on 2026-11-03 [skip ci] |
 | `14af0e3` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: the proof-check landing, with the verify, guards and deploy it was read from |
 | `4cdac9c` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `6f33b8d` | 2026-11-03 | [cc-session-2026-11-03-proof-check-batch.md](cc-session-2026-11-03-proof-check-batch.md) | docs: the proof checks are one batched compile — the scored gate, the figures, the CC-CMD marked DONE |
