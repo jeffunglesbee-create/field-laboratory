@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4de141a` | 2026-11-03 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-03 [skip ci] |
+| `4de141a` | 2026-11-03 | [sport-vocabulary-2026-11-03T08-06-42-638Z.json](sport-vocabulary-2026-11-03T08-06-42-638Z.json) | drift-sentinel: ok on 2026-11-03 [skip ci] |
+| `defc49e` | 2026-11-03 | [worker-deployments-probe-20261103T075938Z.md](worker-deployments-probe-20261103T075938Z.md) | probe: Worker deployment history from Cloudflare's API [skip ci] |
+| `9ffbb39` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: take the account from the token when the lab has no account-id secret [skip ci] |
+| `64056bd` | 2026-11-03 | [cc-session-2026-11-03-worker-deployments-probe.md](cc-session-2026-11-03-worker-deployments-probe.md) | probe: Worker deployment history from Cloudflare's API, dispatch-only [skip ci] |
+| `500dd43` | 2026-11-03 | [cc-session-2026-11-03-drama-backfill-refused-read.md](cc-session-2026-11-03-drama-backfill-refused-read.md) | outbox: record the D19/D20 re-anchor, and that 4e3981d shipped without its entry |
 | `6542583` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | outbox: the live-check axis pin, verified in CI under the failing condition |
 | `4bd53ba` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `8bc1831` | 2026-11-03 | [verify-axis-pinned-2026-10-16.md](verify-axis-pinned-2026-10-16.md) | live-check: pin the axis step to the committed capture |
