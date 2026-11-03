@@ -94,13 +94,14 @@ dropped the self-test from every workflow. The suite half is removed and the sel
 ## The second whole-table run, and what the 2 differing verdicts were (run 41590393392, tree `a464e3b`)
 
 235 of 235 compared. 233 agree on verdict and on compiled digest (163 mutations rebuild; the clean digest is `c60e1799e7a0cbbe` on both sides).
-72 mutations that do not rebuild were all caught on a clean build, 0 survived: **the legacy question, answered: 0 of the 72 non-rebuild
-mutations that ran were caught only by a leftover build** (the other 22 of the 94 are in the 30 of the first run that were not compared;
-the second run covers all 235, and 72 is the number of kind `script`, `world` there).
+The table's kinds, counted from the artifact's `perId`: 161 `src`, 2 `index.html`, 69 `scripts/` or `.github/`, 3 world. **The CC-CMD's "139 that
+mutate src/" and "94 that do not rebuild" were wrong** (they were read from a count made before the table was listed; the right numbers are 163
+that rebuild and 72 that do not). Of the 72 that do not rebuild, all 72 were caught on a clean build and 0 survived: **the legacy question, answered:
+0 of the 72 non-rebuild mutations were caught only by a leftover build.**
 
 Two differed: `proxy-silent-becomes-false` and `tactical-lock-bars-take-a-negative-best`, caught under `--build watch` and `compiler` under
 `--build full`. Run alone on a runner both drivers caught both with identical digests (probe run 41594837471). Replaying the whole of shard 5
-under `--build full` (probe run 41598xxxxxx, list 2) then showed it:
+under `--build full` (probe run 41595164605, list 2) then showed it:
 
 ```
 restoring [metrics-gravity-unexplained]: the restore build failed: the build failed, exit 1:
