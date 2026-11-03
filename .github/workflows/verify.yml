@@ -177,7 +177,8 @@ jobs:
   # scripts/drama-backfill.mjs stored an ESPN 403 as drama_peak 0 (run 41235124610, 2026-10-31), and the
   # relay's `drama_peak IS NULL` guard made that 0 final. scripts/check-drama-backfill.py runs the relay's
   # script UNMODIFIED against a local copy of the routes it calls (relay main, checked out unpinned at
-  # .relay-src); scripts/mutate-drama-backfill.py breaks it 19 ways and requires the check to go red each time.
+  # .relay-src); scripts/mutate-drama-backfill.py breaks it and the reset one-shot and requires the check to go red each
+  # time (it prints how many on its last line; this comment said 19 on 2026-11-03 when the count was 24).
   # It does not run on a push to the relay alone (CLAUDE.md: a push to another repo triggers nothing here);
   # the next laboratory push reads relay main. Needs node and python, nothing else.
   drama-backfill:
