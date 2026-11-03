@@ -1,0 +1,70 @@
+# A soccer card's lineup, on the LIVE relay path, on the deployed page, from a runner.
+# scripts/lineups-live-probe.mjs; docs/CC-CMD-2026-11-03-lineup-card-live-path.md, DONE CONDITION 3.
+#
+# lineups-card-probe judges a card on a pinned page. This one judges an unpinned page: the slate from the relay, a joined card opened, the
+# request it makes to the relay's per-event route, and what it draws. CI-as-proxy: a real Chromium against the live URLs, committed screenshots
+# and a manifest of booleans in outbox/, because the authoring sandbox cannot reach *.workers.dev.
+#
+# Two triggers: a push of outbox/.trigger-lineups-live-probe, which runs from the pushing ref's own copy of this file, and workflow_dispatch once it
+# is on main. The commit goes back to the ref that started the run. NO SCHEDULE: it answers a question after a deploy; it is not a monitor, and a
+# monitor is a recurring Actions cost (CLAUDE.md, "Actions budget"). It spends at most ~12 lineup requests on the relay per run.
+#
+# A TRIGGER FILE RIDES ALONG IN A MERGE. A push to main whose diff contains outbox/.trigger-lineups-live-probe runs this workflow from main (the
+# landing of the lineups-on-cards work re-fired capture-context-with-ids that way). The file is therefore deleted before anything lands.
+name: lineups-live-probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-lineups-live-probe'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: The page that is live
+        run: |
+          SITE=https://field-laboratory.jeffunglesbee.workers.dev
+          echo "deployed: $(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')"
+          echo "this ref: $(git rev-parse HEAD)"
+          # Printed, not enforced: the probe is about the page that is live, and the manifest records what it did.
+      - name: The probe's own verdict logic, before it judges anything
+        run: |
+          node scripts/lineups-live-lib.mjs --self-test
+          node scripts/lineups-live-probe.mjs --self-test
+      - name: Probe the live page
+        id: probe
+        continue-on-error: true
+        run: node scripts/lineups-live-probe.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/lineups-live-manifest-*.json outbox/lineups-live-*.png 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: a card's lineup on the live relay path [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's verdict decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "lineups-live-probe did not PASS: see the manifest and the step summary"
+          exit 1
