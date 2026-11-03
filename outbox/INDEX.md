@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `bec69ef` | 2026-11-03 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-03T14:39 [skip ci] |
+| `33f8a87` | 2026-11-03 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of bf487aa [skip ci] |
+| `bf487aa` | 2026-11-03 | [cc-session-2026-11-03-fable-crash-probe.md](cc-session-2026-11-03-fable-crash-probe.md) | probe: the F# compiler crash, counted on the runners; no factor found, the repeat stays |
+| `bf487aa` | 2026-11-03 | [fable-crash-probe-latest.json](fable-crash-probe-latest.json) | probe: the F# compiler crash, counted on the runners; no factor found, the repeat stays |
+| `bf487aa` | 2026-11-03 | [fable-crash-upstream-report.md](fable-crash-upstream-report.md) | probe: the F# compiler crash, counted on the runners; no factor found, the repeat stays |
 | `4edebdd` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `41a511d` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | docs: the landing, with the verify and deploy it was read from |
 | `b6c80de` | 2026-11-03 | [cc-session-2026-11-03-gate-speed.md](cc-session-2026-11-03-gate-speed.md) | docs: both CC-CMDs DONE with their run ids, GATE-TIMING carries the new figures |
