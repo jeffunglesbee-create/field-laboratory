@@ -1,5 +1,29 @@
 # Where the gate's time actually goes
 
+## 2026-11-03 (later) — the proof checks became one compile, and the gate is 6 minutes
+
+`docs/CC-CMD-2026-11-03-proof-check-shards.md`. The proof checks were the longest path once the mutation suite was sharded (729 to 760 s). The filed answer was to shard them too; Task 0 found
+that one compile of all 133 cases does the work (the F# compiler keeps checking after an error in one function), so `scripts/proof-check.mjs` now injects every case as its own function,
+compiles once with the error cap lifted, and places each error in the case whose lines it falls in. Measured on the CI runners, run 41680758770 (tree `8b1ee44`, 530/530):
+
+| | before | after |
+|---|---|---|
+| the row `doc claims are compiler-verified, not prose` | 729 to 760 s in the four sharded gates; 733 to 776 s in the three unsharded | **15 s** |
+| the gate step of `verify-full` | 975 to 1869 s | **354 s** |
+| the whole `verify-full` run, wall-clock | 19 min 19 s and 32 min 39 s | **7 min 5 s** |
+| the mutation shards (eight) | 3 min to 31 min; the one holding `seal-goes-public` ran the proof row twice | 3 min 28 s to 6 min 10 s |
+| **the longest path now** | the proof checks | **the mutation shards** (6 min 10 s for the slowest; the gate's mutation row waits 312 s of its 354 s) |
+| the same row on the 4-core dev container | 133 x about 12 s under load, 27 min and more | 84 s for the whole run (the compile of the batch is 12 to 16 s; a failing compile costs 12 to 14 s here and 5.8 s on a runner) |
+
+What the speed rests on, each measured (`outbox/proof-check-sweeps-2026-11-03.txt`): the batch and the old one-build-per-case method return **the same set of error codes for 133 of 133 cases**;
+a real case passes only if the batch confirms it, so a batch that goes blind is red, not slow (with the error cap at the compiler's default the first version went green after 1030 s, which
+is why that rule exists); two controls, one that compiles and one that is rejected with the wrong code, must fail for their own reasons in every run; and 38 deliberate breakages of the script
+(18 aimed at its self-test, 20 at the live run) were each caught or, where the design is to go green (L13, N1, N3b), recorded as doing so. A proof case whose stated error is a PARSE error cannot be batched
+(a parse error hides every later function's type errors: measured), and the run says so by failing.
+
+The row's 15 s is the figure to watch: if it climbs back toward minutes, the batch has stopped confirming cases and they are being compiled one at a time (the run prints
+`N of 133 case(s) confirmed from their own lines` and names the ones that were not).
+
 ## 2026-11-03 — both designs built, and what the gate costs now
 
 `docs/CC-CMD-2026-11-03-gate-speed.md`. The two designs below were built in the order that makes the second sound: a watched incremental compiler (B) with the build made clean
@@ -16,7 +40,7 @@ and its digest compared before every mutation, then the mutation table split acr
 | **the longest path now** | the mutation suite | **the proof checks** (`doc claims are compiler-verified`, 729 to 760 s, once in the gate and twice in the shard that holds `seal-goes-public`: its baseline and its mutation) |
 
 The second run is slower than the first because the shard holding the proof row spent 31 min in it against 18.5 (same code, a slower runner); the spread is real and is why both are
-kept. The next step is named, not built: `docs/CC-CMD-2026-11-03-proof-check-shards.md`.
+kept. The next step was named here and built the same day: see the section above (`docs/CC-CMD-2026-11-03-proof-check-shards.md`).
 
 **What was found on the way, each measured and in `outbox/cc-session-2026-11-03-gate-speed.md`:**
 
