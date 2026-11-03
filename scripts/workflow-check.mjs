@@ -101,9 +101,9 @@ const buildImporters = files =>
 const historyReaders = files =>
   files.filter(f => /git (log|rev-list)\b/.test(readFileSync(f, 'utf8')))
 
-/** A job builds if it runs the build, or invokes Fable directly. */
+/** A job builds if it runs the build, or invokes Fable directly. `scripts/build-steady.mjs` IS the build (`npm run build`, repeated when the F# compiler crashes). */
 const jobBuilds = jobText =>
-  /npm run build/.test(jobText) || /dotnet fable/.test(jobText)
+  /npm run build/.test(jobText) || /dotnet fable/.test(jobText) || /node scripts\/build-steady\.mjs/.test(jobText)
 
 /** A job has full history only with an explicit `fetch-depth: 0`. */
 const jobHasFullHistory = jobText => /fetch-depth:\s*0\b/.test(jobText)
@@ -207,6 +207,10 @@ check('the detector still catches the original mistake', detected,
 // And the other direction, so it is not simply flagging everything.
 const withBuild = jobsOf(`jobs:${replay.replace('- run: npm ci', '- run: npm run build')}`)
   .some(j => buildImporters(scriptsReachedBy(j.text)).length > 0 && !jobBuilds(j.text))
+const withSteadyBuild = jobsOf(`jobs:${replay.replace('- run: npm ci', '- run: node scripts/build-steady.mjs')}`)
+  .some(j => buildImporters(scriptsReachedBy(j.text)).length > 0 && !jobBuilds(j.text))
+check('the detector knows the steady build wrapper is a build', !withSteadyBuild,
+  'a job running node scripts/build-steady.mjs was flagged as never building')
 check('the detector does not flag a job that does build', !withBuild,
   'the same job WITH a build step was still flagged — the detector fails everything')
 

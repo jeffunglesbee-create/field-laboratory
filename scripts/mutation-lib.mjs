@@ -156,8 +156,8 @@ export const shardOf = (ids, i, n) => {
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 const runSync = cmd => spawnSync(cmd, { shell: true, stdio: 'ignore' }).status === 0
 /** Like runSync, and keeps WHY: the exit status or signal and the last lines of output. A build that fails on a runner and says nothing is a failure nobody can diagnose. */
-const attempt = cmd => {
-  const r = spawnSync(cmd, { shell: true, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+const attempt = (cmd, { reuse = null } = {}) => {
+  const r = reuse ?? spawnSync(cmd, { shell: true, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
   const ok = r.status === 0
   const text = `${r.stdout ?? ''}\n${r.stderr ?? ''}`.split('\n').map(l => l.trimEnd()).filter(Boolean)
   // The diagnostics first, wherever they are, then the end of the output. A refusal that is followed by a stack trace (Fable throws after a type error in some
@@ -358,6 +358,27 @@ export const confirmFullCompile = (outDir, command = `dotnet fable src/Laborator
 }
 
 /**
+ * `command` (a whole-project build) repeated by the same rule as compileSteadily: a crash is repeated; a diagnostic counts only when the next build says the same
+ * thing first; a failure with no diagnostic is a fault and is not repeated. Used by scripts/build-steady.mjs for the CI jobs that build the site, because the
+ * compiler crash was measured on the runners at about 1 build in 100 (docs/CC-CMD-2026-11-03-fable-compiler-crash.md) and the sharded gate has nine builds a run.
+ * The output of the LAST attempt is returned whole, so a build that really fails is readable.
+ */
+export const buildSteadily = async (command, onRetry = () => {}, pauseMs = 3000) => {
+  let last = null
+  const builder = {
+    compile: async () => {
+      const r = spawnSync(command, { shell: true, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 })
+      const out = `${r.stdout ?? ''}${r.stderr ?? ''}`
+      last = out
+      const a = attempt(command, { reuse: { status: r.status, signal: r.signal, error: r.error, stdout: r.stdout, stderr: r.stderr } })
+      return { ok: a.ok, errors: [a.why], ms: 0, digest: '', cycles: 1 }
+    },
+  }
+  const r = await compileSteadily(builder, () => {}, {}, onRetry, pauseMs)
+  return { ok: r.ok, retries: r.retries, crashed: r.crashed, why: (r.errors ?? [])[0] ?? '', output: last ?? '' }
+}
+
+/**
  * MUTATION_FAULT=crash-once | crash-always: make a (non-restore) compile report the crash line the runner printed, without building, so that the retry and
  * the `build-fault` verdict can be shown on demand and not only waited for. `crash-once` crashes the first such compile of a driver; `crash-always` every one.
  */
@@ -492,6 +513,12 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       const counted = `node -e "require('fs').appendFileSync(process.argv[1], 'x'); console.log('./src/Market.fs(77,41): (77,50) error FSHARP: Type mismatch (code 1)'); process.exit(1)" ${join(cfDir, 'count')}`
       confirmFullCompile(cfDir, counted)
       check('MUTATION: a refusal is confirmed by exactly one repeat and no more (two builds, not one and not the whole budget)', readFileSync(join(cfDir, 'count'), 'utf8').length === 2, String(readFileSync(join(cfDir, 'count'), 'utf8').length))
+      const bs1 = await buildSteadily(`node -e "console.log('./src/Z.fs(1,1): (1,2) error FSHARP: Type mismatch (code 1)'); process.exit(1)"`, () => {}, 0)
+      check('MUTATION: buildSteadily confirms a real failure with one repeat and keeps the whole output of the last build', bs1.ok === false && bs1.retries === 1 && bs1.crashed === false && /Type mismatch/.test(bs1.output), JSON.stringify({ ok: bs1.ok, retries: bs1.retries }))
+      const bs2 = await buildSteadily(`node -e "console.log('fine')"`, () => {}, 0)
+      check('buildSteadily builds a working command once', bs2.ok === true && bs2.retries === 0 && /fine/.test(bs2.output))
+      const bs3 = await buildSteadily(`node -e "const fs=require('fs'),p=process.argv[1]; if(!fs.existsSync(p)){fs.writeFileSync(p,'x'); console.log('./src/A.fs(1,1): (1,2) error FSHARP: internal error: Object reference not set (code 193)'); process.exit(1)} console.log('fine')" ${join(cfDir, 'bs3')}`, () => {}, 0)
+      check('MUTATION: buildSteadily repeats a crash and the build after it is the answer', bs3.ok === true && bs3.retries === 1, JSON.stringify({ ok: bs3.ok, retries: bs3.retries }))
       const c6 = confirmFullCompile(cfDir, flakyDiag)
       check('MUTATION: a diagnostic from a full compile that does not repeat is not a refusal', c6.ok === true && c6.refused === false, JSON.stringify(c6))
     } finally { rmSync(cfDir, { recursive: true, force: true }) }

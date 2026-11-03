@@ -189,6 +189,23 @@ without it the compile repeats a real refusal until its budget is spent and reac
 not one and not the whole budget). This commit changes `scripts/mutation-lib.mjs`'s self-test only and lands after the tree the scored gate ran on; `verify` runs
 `check:mutation-parts` on the landing commit.
 
+## The fourth whole-table run, and the first scored gate (runs 41614404411 and 41614410302, tree `ee33fc9`)
+
+**DONE condition 3, met: 241 of 241 compared, 0 verdicts differing, 0 compiled digests differing across the 163 mutations that rebuild, the clean digest
+`c60e1799e7a0cbbe` on both sides.** The table's kinds: 161 `src`, 2 `index.html`, 75 `scripts/` or `.github/`, 3 world. **DONE condition 4, answered with a number: of
+the 78 mutations that do not rebuild, 78 were caught on a clean build and 0 survive: none was caught only by a leftover build.** (`failed builds
+repeated`: watch 0, full 2: the flaky compiler, absorbed.)
+
+**The first scored gate (run 41614410302) was red, in 35 minutes, and the cause was the same flaky compiler**, this time in a shard's plain `Build` step, before the
+harness ran: `mutation shard 1 of 8` printed `internal error ... (code 193)` at about forty places mixed with diagnostics that look real (code 72, 752, 1), and
+`npm run build` exited 1. The gate itself did what it was built to do: `mutation-await.mjs` saw the finished job with no artifact on two polls and the row failed
+in 32 s with `mutation-shard-1-of-8: its job "mutation shard 1 of 8" finished (failure) and uploaded nothing` and the job's URL, in the gate's own summary. The
+ledger line is `ee33fc974755-e3b0c44298fc`: 510/530 = 96, failing row `breaking each invariant makes a check fail`, 575 s (the other rows were green, the proof row 511 s).
+Nine builds a run instead of one raised the exposure to a compiler fault measured at about one build in a hundred, so `scripts/build-steady.mjs` now builds the shards
+and the `full` job: the same rule as the harness (a crash is repeated; a diagnostic counts only when the next build repeats it; a failure with no diagnostic is not
+repeated), every repeat printed and counted in the step summary, a real failure printing its whole output and exiting 1. The root cause is the subject of
+`docs/CC-CMD-2026-11-03-fable-compiler-crash.md` (filed, with the measured table and a probe design).
+
 ## Still open at this commit
 
 The whole-table equivalence run, the scored `verify-full` on this topology, and `docs/GATE-TIMING.md` follow; this document is completed with their run ids.

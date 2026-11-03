@@ -164,8 +164,9 @@ jobs:
           npm ci
           dotnet tool restore
 
+      # `node scripts/build-steady.mjs` is `npm run build`, repeated when the F# compiler crashes (see the shard action). The shard jobs build the same way.
       - name: Build (F# -> JS, then assemble public/)
-        run: npm run build
+        run: node scripts/build-steady.mjs
 
       # The gate drives real browsers through several of its rows, and those
       # rows fetch from the local server. Started here, before anything needs it.

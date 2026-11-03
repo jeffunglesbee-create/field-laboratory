@@ -47,9 +47,11 @@ runs:
         npm ci
         dotnet tool restore
 
+    # build-steady.mjs is `npm run build`, repeated when the F# compiler crashes (about 1 build in 100 on the runners; nine builds a gate run).
+    # A real failure still fails, with the whole output of its last attempt. docs/CC-CMD-2026-11-03-fable-compiler-crash.md.
     - name: Build (F# -> JS, then assemble public/)
       shell: bash
-      run: npm run build
+      run: node scripts/build-steady.mjs
 
     - name: Install Chromium
       shell: bash
