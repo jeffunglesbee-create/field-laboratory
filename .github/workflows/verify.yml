@@ -1015,6 +1015,12 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:mutation-parts
 
+      # The crash probe (docs/CC-CMD-2026-11-03-fable-compiler-crash.md): its classification of a build, its Wilson interval and its merge of cells, each with a
+      # must-fail input. The probe itself runs on demand in fable-crash-probe.yml; nothing here builds.
+      - name: The compiler-crash probe counts what it should
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:fable-probe
+
       # docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md. The table's sourced
       # block is generated from outbox/venue-source-results-latest.json; this
       # holds the two together, with no network, both ways: every accepted

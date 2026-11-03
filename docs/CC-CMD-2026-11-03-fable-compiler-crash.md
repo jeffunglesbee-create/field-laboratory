@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-03, as the follow-up `docs/CC-CMD-2026-11-03-gate-speed.md` requires (Rule 87.4: its answer to the crash is a bounded, counted repeat, and the cause is not known).
 **Confidence gate:** `npm run gate` >= 95 before any commit that lands. A pin of the SDK version would change what every workflow builds with.
-**Status:** **FILED.** Not started: the probe in Task 1 needs runner minutes and a decision about the Actions budget. The repeat in `scripts/build-steady.mjs` keeps the gate usable meanwhile.
+**Status:** **DONE 2026-11-03, on the second branch of done condition 2: no factor was found at this power; the repeat in `scripts/build-steady.mjs` and the harness stays.** Task 1 ran (run 41649197891, `outbox/fable-crash-probe-latest.json`): 400 builds, 1 crash. The report to file upstream is drafted in `outbox/fable-crash-upstream-report.md`; filing it is the owner's (it posts outside this repository).
 
 ```bash
 git remote get-url origin | grep -q field-laboratory || { echo "WRONG REPO"; exit 1; }
@@ -30,6 +30,23 @@ Hypotheses, none tested: the newer SDK's F# compiler checking in parallel (a rac
 - `docs/CC-CMD-2026-11-03-gate-speed.md`: the repeat is bounded, announced and counted, and a real failure still fails; do not widen it, and do not remove it until a cause is fixed and measured.
 - No fallbacks: the answer to the crash is the cause, not another repeat. If the cause is the SDK, the workflows pin the SDK; if it is a compiler option, the project sets it; neither is a fallback.
 - `src/` is not touched without the Rule 39 diagnostic written first.
+
+## RESULT of Task 1 (run 41649197891, 2026-11-03, ubuntu image 20261026.180.1, 4 cores, Fable 5.13.0; 100 builds per cell in two jobs of 50)
+
+| cell | builds | crashes | rate (95% interval) | mean per build |
+|---|---|---|---|---|
+| SDK 10.0.403 (the image's), fresh outDir each build | 100 | 0 | 0.0% (0.0 to 3.7%) | 21.7 s |
+| SDK 10.0.113 (pinned by a `global.json`), fresh outDir each build | 100 | **1** (part 1, build 14) | 1.0% (0.2 to 5.4%) | 20.0 s |
+| SDK 10.0.403, one outDir reused | 100 | 0 | | 0.8 s |
+| SDK 10.0.113, one outDir reused | 100 | 0 | | 0.9 s |
+
+The one crash: `./build-14/fable_modules/Thoth.Json.10.5.1/Types.fs(33,1): (37,6) error FSHARP: internal error: Object reference not set to an instance of an object.`, the same
+signature and the same file as the harness runs. What this says, and does not:
+
+- **The SDK version is not the cause.** The crash happened on 10.0.113, the sandbox's SDK, as well as on the runner's 10.0.403 in the harness runs. It cannot rank the two: 1 in 100 against 0 in 100 is inside either's interval.
+- **The rate on an idle runner is low:** 1 in 400 builds pooled (0.25%, 0.04 to 1.4%), 1 in 200 fresh compiles (0.5%, 0.09 to 2.8%). The harness runs saw two or more failed builds in about 260 (about 1%), and the sharded gate lost builds three times in four runs. The probe's interval contains both, so it neither confirms nor refutes that the harness context (browser checks and a server running in the same job) raises it.
+- **The "reuse" cells measure the cache, not the compiler.** A reused output directory with an unchanged source is a cache hit (0.8 to 0.9 s a build), so those cells hold 2 real compiles each, not 100. The harness's pattern (a source change between builds in one directory) was not probed. That is a design flaw of this probe, stated here instead of rerun: a probe that touches a source file between builds would have to run about 1,500 builds per cell to tell 1% from 0.1%.
+- **Nothing fails faster on one cell**, so nothing is pinned. The decision recorded is the one already in force: repeat, count, print; the count is in every merge line (`failed builds repeated`).
 
 ## TASK 1 — a probe that counts (CI-as-proxy, Rule 89: the artifact is the count)
 
