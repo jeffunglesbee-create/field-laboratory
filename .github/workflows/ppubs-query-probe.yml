@@ -1,0 +1,70 @@
+# Which PPUBS query forms answer for a date and an assignee? Measured on a runner.
+#
+# jubilant-bassoon's weekly patent watcher read bulkdata.uspto.gov, whose DNS
+# record was removed (that repo's ADR-PATENT-001), and ended green on every
+# fetch it failed. Its replacement reads PPUBS. Nothing in any repo has searched
+# PPUBS by assignee or by publication date; the syntax is undocumented, and a
+# query form the server does not understand answers 200 with zero documents,
+# which a watcher would read as "no matches this week".
+# scripts/probe-ppubs-query.py judges each candidate form on the documents it
+# returns against a known answer (US10328326, assignee RUWT, granted
+# 2019-06-25), then reads the real week for every watchlist term.
+#
+# WHY A RUNNER: ppubs.uspto.gov is outside the dev sandbox's egress allowlist.
+#
+# DISPATCH ONLY, no schedule: it answers a question once; it is not a monitor,
+# and a monitor is a recurring Actions cost (CLAUDE.md, "Actions budget").
+name: ppubs-query-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      grant_day:
+        description: 'YYYY-MM-DD of the grant Tuesday to read. Blank = the most recent Tuesday before today (UTC).'
+        required: false
+      pub_day:
+        description: 'YYYY-MM-DD of the publication Thursday to read. Blank = the most recent Thursday before today (UTC).'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests --quiet
+      - name: The verdict logic, before it judges anything
+        run: python3 scripts/probe-ppubs-query.py --self-test
+      - name: Probe PPUBS
+        id: probe
+        continue-on-error: true
+        run: python3 scripts/probe-ppubs-query.py 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+        env:
+          GRANT_DAY: ${{ inputs.grant_day }}
+          PUB_DAY: ${{ inputs.pub_day }}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/ppubs-query-probe-* 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: PPUBS query forms for a date and an assignee [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's verdict decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "ppubs-query-probe: no working query form was found, or the PPUBS session could not be opened; the report is in outbox/"
+          exit 1
