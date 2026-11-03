@@ -1,0 +1,49 @@
+# Rule 90 sweeps of scripts/proof-check.mjs, 2026-11-03
+
+## Pure half: each clause of --self-test broken in a copy (24 clauses at the time)
+CAUGHT    confirm on a code anywhere in the output   <- FAIL  attribute: one line before and one line after the range do NOT count | FAIL  attribute: the right code i
+CAUGHT    confirm on any error in range   <- FAIL  attribute: another code in the case's own lines does not confirm it
+CAUGHT    range exclusive at the end   <- FAIL  attribute: the stated code on the header line and on the last line both count | FAIL  attribute: a case 
+CAUGHT    range exclusive at the start   <- FAIL  attribute: the stated code on the header line and on the last line both count
+CAUGHT    range widened by one   <- FAIL  attribute: one line before and one line after the range do NOT count | FAIL  attribute: an error on the 
+CAUGHT    ranges shifted down one   <- FAIL  layout: each range starts on its own function header | FAIL  layout: each range ends on its last body li
+CAUGHT    stride one short   <- FAIL  layout: each range starts on its own function header | FAIL  layout: each range ends on its last body li
+CAUGHT    first line one off   <- FAIL  layout: each range starts on its own function header | FAIL  layout: each range ends on its last body li
+CAUGHT    injected with String.replace   <- FAIL  layout: a body containing $& and $' is written verbatim, not as a replacement pattern
+CAUGHT    anchor eaten   <- FAIL  layout: the anchor and the code under it survive, once | FAIL  layout: an empty case list changes nothin
+CAUGHT    parseErrors accepts warnings   <- FAIL  parseErrors: ignores a warning, an error in another file, and prose that mentions a code
+CAUGHT    parseErrors accepts any file   <- FAIL  parseErrors: ignores an error in a file that merely ENDS in Scoreboard.fs | FAIL  parseErrors: ignores a
+CAUGHT    parseErrors drops the range form   <- FAIL  parseErrors: reads the point form and the range form, and the line is the first number
+CAUGHT    parseErrors reads the column as the line   <- FAIL  parseErrors: reads the point form and the range form, and the line is the first number
+CAUGHT    strays never reported   <- FAIL  attribute: an error on the blank line is a stray, and is reported
+CAUGHT    parseErrors accepts a file that merely ends in Scoreboard.fs   <- FAIL  parseErrors: ignores an error in a file that merely ENDS in Scoreboard.fs
+CAUGHT    a malformed pid reads as alive   <- FAIL  a malformed pid reads as dead
+CAUGHT    a live marker heals   <- FAIL  A MARKER WHOSE PROCESS IS STILL ALIVE REFUSES, it does not repair
+
+18 mutation(s), 0 survived or did not apply
+
+## Live half: each clause of the real run broken in a copy of the repo, the full script run
+AS EXPECTED  L0 unmutated control run: exit 0, 0 failing, 79 s
+AS EXPECTED  L1 skip the serial decision: exit 1, 2 failing, 45 s
+AS EXPECTED  L2 serial decision drops the code predicate: exit 1, 1 failing, 84 s
+AS EXPECTED  L3 serial decision treats every build as rejected: exit 1, 1 failing, 88 s
+AS EXPECTED  L4 batch confirms on any error in the case: exit 1, 1 failing, 74 s
+AS EXPECTED  L5 the clean control is rejected: exit 1, 1 failing, 69 s
+AS EXPECTED  L6 the wrong-code control claims the real code: exit 1, 1 failing, 74 s
+AS EXPECTED  L7 the error cap bites (--max-errors 5 on one document): exit 1, 11 failing, 239 s
+AS EXPECTED  L8 a real case claims the wrong code: exit 1, 1 failing, 110 s
+AS EXPECTED  L9 a real case compiles cleanly: exit 1, 1 failing, 112 s
+AS EXPECTED  L10 gate mutation seal-goes-public: exit 1, 2 failing, 128 s
+AS EXPECTED  L11 the analyser is blind (one document): exit 1, 12 failing, 235 s
+AS EXPECTED  L12 the placed-count check cannot fail: exit 1, 1 failing, 85 s
+AS EXPECTED  L13 the old quiet fallback (alone-and-passing counts) under the cap: exit 0, 0 failing, 226 s
+AS EXPECTED  L14 a stray filename suffix is placed: exit 1, 1 failing, 0 s
+
+L13 is a mutation that is EXPECTED to go green: it puts back the quiet fallback (a case that passes alone counts) and runs under --max-errors 5. It goes green, which is why the clause it removes is in the script; the same run unmutated (L7) is red with 11 failing.
+
+## Oracle comparison
+ORACLE COMPARISON 2026-11-03: one build per case (outbox/proof-check-oracle-2026-11-03.json) against one batched compile (--out of the landed script)
+cases compared: 133 of 133 oracle / 133 batch
+identical code sets: 133 of 133; differing: 0
+stated code present - compiled alone: 133 of 133; in the batch: 133 of 133
+cases carrying more than one distinct code (alone): 6
