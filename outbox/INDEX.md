@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9db195a` | 2026-11-03 | [patent-watch-rehearsal-20261103T064218Z.md](patent-watch-rehearsal-20261103T064218Z.md) | rehearsal: patent watcher on the real host [skip ci] |
+| `58c6581` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | patent-watch: hold the client's watcher with a check, mutants and a real-host rehearsal |
 | `be9bf6f` | 2026-11-03 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: read the PPUBS counters as measured, and hold them as a contract |
 | `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.json](ppubs-query-probe-20261103T052138Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
 | `24e8113` | 2026-11-03 | [ppubs-query-probe-20261103T052138Z.md](ppubs-query-probe-20261103T052138Z.md) | probe: PPUBS query forms for a date and an assignee [skip ci] |
