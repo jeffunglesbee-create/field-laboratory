@@ -89,9 +89,18 @@ the relay's own payload and the script's own timeout are the evidence.
 
 For 10-30 the slate was not observed, only the identical log signature.
 
-Changed: `live-check.yml`'s axis step opens `?data=games-2026-08-09`. The
-manifest records the page `url`, so `outbox/axis-manifest-latest.json` changes
-once, to the pinned URL, on the next green live-check run.
+Changed: `live-check.yml`'s axis step opens `?data=games-2026-08-09` (lab `8bc1831`).
+The manifest records the page `url`, so `outbox/axis-manifest-latest.json`
+changes once, to the pinned URL, on the next green live-check run.
+
+Verified in CI, in the failing condition: live-check run 41597373225 (the chain
+from `8bc1831`'s deploy), step "The score's weight axis interpolates on the
+DEPLOYED page" `success`, with `/context/date/2026-11-03` still at 0 games at
+07:38:15Z. The runner committed the manifest (`4bd53ba`) with `url` ending
+`?data=games-2026-08-09` and `deployedCommit` `8bc1831`. An earlier dispatch
+(run 41596805043) failed in "The deploy landed" instead, because it was started
+before the deploy of `8bc1831` finished; the axis step was skipped in it, so it
+says nothing about the fix.
 
 Not changed: a pinned page that fails to render a card still ends in this raw
 `TimeoutError`. That would be a real regression in the deployed build, not an
