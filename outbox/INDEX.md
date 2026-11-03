@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `59a4f54` | 2026-11-03 | [ppubs-query-probe-20261103T045459Z.json](ppubs-query-probe-20261103T045459Z.json) | probe: PPUBS query forms for a date and an assignee [skip ci] |
+| `59a4f54` | 2026-11-03 | [ppubs-query-probe-20261103T045459Z.md](ppubs-query-probe-20261103T045459Z.md) | probe: PPUBS query forms for a date and an assignee [skip ci] |
+| `140dcfa` | 2026-11-02 | [cc-session-2026-11-03-ppubs-source.md](cc-session-2026-11-03-ppubs-source.md) | probe: PPUBS query forms for a date and an assignee, with a local stand-in |
+| `14e48ad` | 2026-11-03 | [cc-session-2026-10-28-gate-baseline-step.md](cc-session-2026-10-28-gate-baseline-step.md) | docs: the gate-ledger CC-CMD is DONE; the weekly scheduled gate recorded both lines after the fix |
+| `e20b8fd` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a3b2bac` | 2026-11-03 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-03T01:13 [skip ci] |
 | `fa66093` | 2026-11-02 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-02 [skip ci] |
 | `fa66093` | 2026-11-02 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-02 [skip ci] |
