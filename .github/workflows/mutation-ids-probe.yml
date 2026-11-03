@@ -6,8 +6,9 @@
 # compiler under `--build full`, on the runner, while both build and are caught on the sandbox. A table-wide run takes 60 minutes;
 # this takes the few minutes of a build and answers one question, "what did the compiler say".
 #
-# The ids are the first line of outbox/.trigger-mutation-ids-probe (comma separated). A push of that file runs this workflow from the
-# pushing ref's own copy; no schedule, it is a question about a change, not a monitor.
+# The ids are the lines of outbox/.trigger-mutation-ids-probe (comma separated, one list per line, at most 3 lists; a list runs in the
+# order given, so a probe can replay the mutations that PRECEDED a suspect one in its shard). A push of that file runs this workflow from
+# the pushing ref's own copy; no schedule, it is a question about a change, not a monitor.
 name: mutation-ids-probe
 
 on:
@@ -21,31 +22,33 @@ permissions:
 
 jobs:
   ids:
-    name: ${{ matrix.mode }} driver
+    name: ${{ matrix.mode }} driver, list ${{ matrix.list }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         mode: [watch, full]
+        list: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Read the ids
+      - name: Read this job's list
         id: ids
         run: |
-          IDS=$(head -1 outbox/.trigger-mutation-ids-probe | tr -d '[:space:]')
-          test -n "$IDS" || { echo "outbox/.trigger-mutation-ids-probe has no ids on its first line"; exit 1; }
+          IDS=$(sed -n "${{ matrix.list }}p" outbox/.trigger-mutation-ids-probe | tr -d '[:space:]')
+          # A list that is not there is a job with nothing to do, not an error: the file names how many lists it wants.
           echo "ids=$IDS" >> "$GITHUB_OUTPUT"
-          echo "ids: $IDS"
+          echo "list ${{ matrix.list }}: ${IDS:-(none)}"
       - uses: ./.github/actions/mutation-shard
+        if: steps.ids.outputs.ids != ''
         with:
           ids: ${{ steps.ids.outputs.ids }}
           mode: ${{ matrix.mode }}
-          artifact: mutation-ids-${{ matrix.mode }}
+          artifact: mutation-ids-${{ matrix.mode }}-${{ matrix.list }}
       - name: What the driver said about each id
-        if: always()
+        if: always() && steps.ids.outputs.ids != ''
         run: |
           F="$RUNNER_TEMP/mutation-shard-1-of-1.json"
           test -f "$F" || { echo "no result file: the run did not reach its end"; exit 0; }
