@@ -1,0 +1,94 @@
+{
+ "cells": [
+  {
+   "cell": "sdk 10.0.113, fresh outDir",
+   "sdk": "10.0.113",
+   "outMode": "fresh",
+   "fable": "5.13.0",
+   "image": "20261026.180.1",
+   "cpus": 4,
+   "builds": 100,
+   "crashes": 1,
+   "refusals": 0,
+   "faults": 0,
+   "msTotal": 2003039,
+   "signatures": {
+    "./../../../../../tmp/fable-probe-cerFk5/build-14/fable_modules/Thoth.Json.10.5.1/Types.fs(33,1): (37,6) error FSHARP: internal error: Object reference not set to an instance of an object. (code 193)": 1
+   },
+   "crashAt": [
+    "1:14"
+   ],
+   "crashRate": 0.01,
+   "interval95": {
+    "lo": 0.0017673865655472645,
+    "hi": 0.0544875247609346
+   },
+   "meanMs": 20030
+  },
+  {
+   "cell": "sdk 10.0.113, reuse outDir",
+   "sdk": "10.0.113",
+   "outMode": "reuse",
+   "fable": "5.13.0",
+   "image": "20261026.180.1",
+   "cpus": 4,
+   "builds": 100,
+   "crashes": 0,
+   "refusals": 0,
+   "faults": 0,
+   "msTotal": 90719,
+   "signatures": {},
+   "crashAt": [],
+   "crashRate": 0,
+   "interval95": {
+    "lo": 0,
+    "hi": 0.03699480747600191
+   },
+   "meanMs": 907
+  },
+  {
+   "cell": "sdk 10.0.x, fresh outDir",
+   "sdk": "10.0.403",
+   "outMode": "fresh",
+   "fable": "5.13.0",
+   "image": "20261026.180.1",
+   "cpus": 4,
+   "builds": 100,
+   "crashes": 0,
+   "refusals": 0,
+   "faults": 0,
+   "msTotal": 2173133,
+   "signatures": {},
+   "crashAt": [],
+   "crashRate": 0,
+   "interval95": {
+    "lo": 0,
+    "hi": 0.03699480747600191
+   },
+   "meanMs": 21731
+  },
+  {
+   "cell": "sdk 10.0.x, reuse outDir",
+   "sdk": "10.0.403",
+   "outMode": "reuse",
+   "fable": "5.13.0",
+   "image": "20261026.180.1",
+   "cpus": 4,
+   "builds": 100,
+   "crashes": 0,
+   "refusals": 0,
+   "faults": 0,
+   "msTotal": 84796,
+   "signatures": {},
+   "crashAt": [],
+   "crashRate": 0,
+   "interval95": {
+    "lo": 0,
+    "hi": 0.03699480747600191
+   },
+   "meanMs": 848
+  }
+ ],
+ "builds": 400,
+ "crashes": 1
+}
