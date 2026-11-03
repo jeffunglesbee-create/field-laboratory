@@ -22,6 +22,28 @@
 // an ```fsharp block holding a complete expression body. The body is wrapped in
 // a function, injected into a real source file, and compiled. The case passes
 // only if the build fails AND the stated error code appears.
+//
+// ONE COMPILE FOR ALL CASES, AND A SERIAL COMPILE FOR ANY CASE IT CANNOT CLEAR
+//
+// Until 2026-11-03 this was one `dotnet build` per case, 5.8 s each, 776 s for
+// 133 cases, and the longest path of the confidence gate. The F# compiler does
+// not stop at a function's first error and does not let one function's error
+// hide another's, so every case is injected as its own `__proofN` function in
+// ONE build, with the error cap lifted (`--maxerrors`), and each error is
+// attributed to the case whose lines it falls in. Measured: 133 of 133
+// attributed with the stated code, 217 errors, 14.5 s.
+//
+// A batch can only CONFIRM. A case whose range carries the stated code is
+// confirmed, which is the same predicate the serial run used (the stated code
+// appears) narrowed to the case's own lines. Every other case — no error in its
+// lines, only another code, a parse error that stopped the file early, the cap
+// reached — is compiled ALONE, by the old method, and that compile decides.
+// So the batch can speed up a pass and can never turn a failure into a pass.
+//
+// TWO CONTROLS RUN IN EVERY RUN, because a check that has only ever passed has
+// proven nothing (Rule 90): one case that compiles cleanly and one whose stated
+// code is wrong. Both travel the same path as the real cases and MUST come out
+// as failures. If either is accepted the run fails, whatever the 133 said.
 
 import { readFileSync, writeFileSync, existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs'
 import { execSync } from 'node:child_process'
@@ -74,15 +96,66 @@ const MARKER = 'let private __proof'
 // sits below every type the proof cases reference.
 const ANCHOR = 'let private dramaText (g: Game) (state: GameState) ='
 
-const build = () => {
+// `extra` is appended to the command: the batch lifts the compiler's error cap
+// with it, every other build runs exactly as it always did. The F# compiler
+// stops at 100 errors by default, and MSBuild prints each one twice, so the
+// first batch experiment (2026-11-03) saw 67 of 133 cases and nothing else.
+const build = (extra = '') => {
   try {
-    return execSync('dotnet build src/Laboratory.fsproj --no-restore -clp:NoSummary', {
-      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+    return execSync(`dotnet build src/Laboratory.fsproj --no-restore -clp:NoSummary${extra}`, {
+      encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 1 << 28,
     })
   } catch (e) {
     // A failed build is the expected outcome for a proof case, not an error.
     return `${e.stdout || ''}${e.stderr || ''}`
   }
+}
+
+/** The body, indented to sit inside the wrapper function. */
+const indentBody = body => body.split('\n').map(l => (l ? `    ${l}` : l)).join('\n')
+
+/**
+ * Lays cases out as one function each directly above ANCHOR, and returns the
+ * text together with the 1-based lines each case occupies (its `let` header
+ * through its last body line). The ranges are what error attribution stands on,
+ * so they are computed from the same strings that are written, not estimated.
+ *
+ * Built by slicing at ANCHOR, not by String.replace: a replacement STRING treats
+ * `$&`, `` $` `` and `$'` as patterns, and a case body is free text.
+ */
+const layout = (src, cs) => {
+  const at = src.indexOf(ANCHOR)
+  let line = src.slice(0, at).split('\n').length
+  const ranges = []
+  const chunks = cs.map((c, k) => {
+    const indented = indentBody(c.body)
+    const n = indented.split('\n').length
+    ranges.push({ first: line, last: line + n })
+    line += n + 2 // the header, the body, and the blank line that follows it
+    return `let private __proof${k} (g: Game) =\n${indented}\n\n`
+  })
+  return { text: src.slice(0, at) + chunks.join('') + src.slice(at), ranges }
+}
+
+/** `src/Scoreboard.fs(L,C): error FSxxxx` and the range form `(L,C,L2,C2)`. */
+const parseErrors = out =>
+  [...out.matchAll(/Scoreboard\.fs\((\d+),\d+(?:,\d+,\d+)?\): error (FS\d+)/g)]
+    .map(m => ({ line: Number(m[1]), code: m[2] }))
+
+/**
+ * Which errors belong to which case. A case is CONFIRMED when an error carrying
+ * its stated code sits inside its own lines; anything else is left for the
+ * serial compile to decide. `strays` are errors that fall in no case at all,
+ * which are reported, not ignored: they mean the ranges or the baseline are off.
+ */
+const attribute = (cs, ranges, errors) => {
+  const within = r => e => e.line >= r.first && e.line <= r.last
+  const per = cs.map((c, i) => {
+    const codes = [...new Set(errors.filter(within(ranges[i])).map(e => e.code))].sort()
+    return { codes, confirmed: codes.includes(c.code) }
+  })
+  const strays = errors.filter(e => !ranges.some(r => within(r)(e)))
+  return { per, strays }
 }
 
 /** Extracts `<!-- proof: FSxxxx -->` + the following fsharp block. */
@@ -113,6 +186,26 @@ const parseCases = doc => {
 const ONLY = process.argv.includes('--only')
   ? process.argv[process.argv.indexOf('--only') + 1]
   : null
+// `--max-errors N` is the compiler's error cap for the BATCH build (default 5000,
+// 23 times what 133 cases produce). `--out FILE` writes what each case was
+// decided by. Both refuse an empty or missing value with exit 2: a flag that
+// silently falls back to its default is a flag that was not applied.
+const flagValue = name => {
+  const at = process.argv.indexOf(name)
+  if (at === -1) return null
+  const v = process.argv[at + 1]
+  if (v === undefined || v === '' || v.startsWith('--')) {
+    console.error(`proof-check: ${name} needs a value`)
+    process.exit(2)
+  }
+  return v
+}
+const MAX_ERRORS = flagValue('--max-errors') === null ? 5000 : Number(flagValue('--max-errors'))
+if (!Number.isInteger(MAX_ERRORS) || MAX_ERRORS < 1) {
+  console.error(`proof-check: --max-errors must be a positive integer, got ${flagValue('--max-errors')}`)
+  process.exit(2)
+}
+const OUT = flagValue('--out')
 const allDocs = DOCS()
 const selectedDocs = ONLY ? allDocs.filter(f => f.includes(ONLY)) : allDocs
 const cases = selectedDocs.flatMap(f =>
@@ -195,6 +288,67 @@ if (process.argv.includes('--self-test')) {
   sc('a pid that cannot exist reads as dead', !isAlive(2 ** 30), 'pid 2^30')
   sc('a malformed pid reads as dead', !isAlive(null) && !isAlive(0) && !isAlive(-1),
     'null, 0 and -1 must not be treated as running processes')
+
+  // --- the batch: where a case's lines are, and which errors are its own ----
+  //
+  // Each of these has a must-fail twin in the mutation sweep (Rule 90): move a
+  // boundary, drop the range test, trust the code anywhere in the output, and
+  // the clause beside it has to go red. They run on strings, so they cost
+  // nothing, and they are the half of the batch a real compile cannot check:
+  // a range shifted by a few lines still confirms every case whose neighbour
+  // fails the same way, and the real cases would never say so.
+  const src = `open X\n\n${ANCHOR}\n    ""\n`
+  const two = [{ code: 'FS0001', body: 'a\nb' }, { code: 'FS0025', body: 'c' }]
+  const lay = layout(src, two)
+  const lines = lay.text.split('\n')
+  const [r0, r1] = lay.ranges
+
+  sc('layout: each range starts on its own function header',
+    lines[r0.first - 1].startsWith('let private __proof0') && lines[r1.first - 1].startsWith('let private __proof1'),
+    `line ${r0.first}: ${lines[r0.first - 1]} | line ${r1.first}: ${lines[r1.first - 1]}`)
+  sc('layout: each range ends on its last body line, and a blank line follows',
+    lines[r0.last - 1] === '    b' && lines[r0.last] === '' && lines[r1.last - 1] === '    c' && lines[r1.last] === '',
+    `line ${r0.last}: ${JSON.stringify(lines[r0.last - 1])} then ${JSON.stringify(lines[r0.last])}`)
+  sc('layout: ranges are disjoint and in order', r0.last < r1.first, `${JSON.stringify(lay.ranges)}`)
+  sc('layout: the anchor and the code under it survive, once',
+    lay.text.split(ANCHOR).length === 2 && lay.text.endsWith(`${ANCHOR}\n    ""\n`),
+    'the injected block must sit directly above the anchor')
+  sc('layout: a body containing $& and $\' is written verbatim, not as a replacement pattern',
+    layout(src, [{ code: 'FS0001', body: 'let s = "$& $\' $$"' }]).text.includes('let s = "$& $\' $$"'),
+    'String.replace would have expanded these')
+  sc('layout: an empty case list changes nothing', layout(src, []).text === src, 'text must equal the source')
+
+  const e = (line, code) => ({ line, code })
+  const att = (errs, cs = two) => attribute(cs, lay.ranges, errs)
+  sc('attribute: the stated code inside the case\'s own lines confirms it',
+    att([e(r0.first + 1, 'FS0001')]).per[0].confirmed === true, 'an error on a body line, same code')
+  sc('attribute: the stated code on the header line and on the last line both count',
+    att([e(r0.first, 'FS0001')]).per[0].confirmed && att([e(r0.last, 'FS0001')]).per[0].confirmed,
+    'the range is inclusive at both ends')
+  sc('attribute: one line before and one line after the range do NOT count',
+    !att([e(r0.first - 1, 'FS0001')]).per[0].confirmed && !att([e(r0.last + 1, 'FS0001')]).per[0].confirmed,
+    'the blank line after a case belongs to nobody')
+  sc('attribute: the right code in the NEIGHBOUR\'s lines does not confirm this case',
+    !att([e(r1.first + 1, 'FS0001')]).per[0].confirmed, 'case 0 claims FS0001; the FS0001 is in case 1')
+  sc('attribute: another code in the case\'s own lines does not confirm it',
+    !att([e(r0.first + 1, 'FS0025')]).per[0].confirmed, 'wrong code only')
+  sc('attribute: no error at all confirms nothing', att([]).per.every(p => !p.confirmed), 'a clean compile')
+  sc('attribute: a case with several codes is confirmed by any one of them',
+    att([e(r1.first + 1, 'FS0001'), e(r1.first + 1, 'FS0025')]).per[1].confirmed
+      && att([e(r1.first + 1, 'FS0001'), e(r1.first + 1, 'FS0025')]).per[1].codes.join() === 'FS0001,FS0025',
+    'the serial run asked only whether the stated code appeared')
+  sc('attribute: an error on the blank line is a stray, and is reported',
+    att([e(r0.last + 1, 'FS0001')]).strays.length === 1 && att([e(r0.first + 1, 'FS0001')]).strays.length === 0,
+    'strays mean the ranges or the baseline are off')
+
+  const real = '/x/src/Scoreboard.fs(434,9): error FS0025: Incomplete matches [/x/src/Laboratory.fsproj]'
+  const rng = '/x/src/Scoreboard.fs(12,3,12,9): error FS0001: type mismatch'
+  sc('parseErrors: reads the point form and the range form, and the line is the first number',
+    JSON.stringify(parseErrors(`${real}\n${rng}`)) === JSON.stringify([e(434, 'FS0025'), e(12, 'FS0001')]),
+    JSON.stringify(parseErrors(`${real}\n${rng}`)))
+  sc('parseErrors: ignores a warning, an error in another file, and prose that mentions a code',
+    parseErrors('/x/src/Scoreboard.fs(5,1): warning FS0025: x\n/x/src/Desk.fs(5,1): error FS0025: x\nerror FS0025 happened')
+      .length === 0, 'only Scoreboard.fs errors can be attributed to a case')
 
   process.exit(ss())
 }
@@ -305,16 +459,60 @@ check('baseline tree compiles', baselineClean,
 check('the proof doc contains machine-checkable cases', cases.length > 0,
   `${cases.length} case(s) across ${selectedDocs.join(', ') || '(no doc matched --only)'}`)
 
+// Two cases that MUST be rejected by this very run. They are not in the proof
+// documents and they are not counted among the claimed rejections; they exist so
+// that the run can fail on purpose every time (Rule 90). Appended after the real
+// cases so that case numbering in the output does not move.
+//
+//   clean  — compiles. A run that accepts it has a batch that confirms what it
+//            did not see fail, or a serial compile that does not look.
+//   wrong  — is rejected, with a code other than the one it claims. A run that
+//            accepts it checks "was rejected" and not "was rejected with".
+const CONTROLS = [
+  { doc: '(control)', kind: 'clean', code: 'FS0001', body: '""' },
+  { doc: '(control)', kind: 'wrong', code: 'FS9999', body: '1 + "a"' },
+]
+
+/** One case compiled ALONE: the original method, and the one that decides. */
+const decideAlone = c => {
+  writeFileSync(TARGET, layout(source, [c]).text)
+  const out = build()
+  const rejected = /error FS\d+/.test(out)
+  const codes = [...new Set(out.match(/error FS\d+/g) || [])].join(', ')
+  return {
+    ok: rejected && out.includes(`error ${c.code}`),
+    detail: rejected ? `compiler said ${codes}, doc claims ${c.code}`
+                     : 'COMPILED CLEANLY — the gate does not hold',
+  }
+}
+
 if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
   try {
-    for (const [i, c] of cases.entries()) {
-      const indented = c.body.split('\n').map(l => (l ? `    ${l}` : l)).join('\n')
-      const injected = `let private __proof${i} (g: Game) =\n${indented}\n\n${ANCHOR}`
-      writeFileSync(TARGET, source.replace(ANCHOR, injected))
+    const all = [...cases, ...CONTROLS]
+    const batch = layout(source, all)
+    writeFileSync(TARGET, batch.text)
+    const batchStart = performance.now()
+    const batchOut = build(` -p:OtherFlags=--maxerrors:${MAX_ERRORS}`)
+    const batchMs = Math.round(performance.now() - batchStart)
+    const { per, strays } = attribute(all, batch.ranges, parseErrors(batchOut))
+    // The count of ALL error lines, wherever they are reported, against the ones
+    // that could be attributed: a gap means errors in a file this cannot place.
+    const errorLines = (batchOut.match(/error FS\d+/g) || []).length
+    const placed = parseErrors(batchOut).length
 
-      const out = build()
-      const rejected = /error FS\d+/.test(out)
-      const codes = [...new Set(out.match(/error FS\d+/g) || [])].join(', ')
+    const decided = all.map((c, i) => {
+      if (per[i].confirmed) return { by: 'batch', ok: true, detail: '' }
+      return { by: 'alone', ...decideAlone(c) }
+    })
+    const confirmed = decided.filter(d => d.by === 'batch').length
+    const alone = decided.length - confirmed
+    console.log(`\nproof batch: ${cases.length} case(s) + ${CONTROLS.length} control(s) in ONE compile `
+      + `(--maxerrors ${MAX_ERRORS}, ${batchMs} ms): ${confirmed} confirmed from their own lines, `
+      + `${alone} compiled alone to be decided; ${errorLines} error line(s) reported, `
+      + `${placed} placed in Scoreboard.fs, ${strays.length} in no case`)
+
+    for (const [i, c] of cases.entries()) {
+      const d = decided[i]
       // Label with the line that actually carries the violation, not the
       // `match ... with` every case opens on — otherwise all four read alike.
       const lines = c.body.split('\n').map(l => l.trim()).filter(Boolean)
@@ -322,8 +520,31 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
         || lines[0]
 
       check(`${c.doc} case ${i + 1} rejected with ${c.code}: ${salient.slice(0, 34)}`,
-        rejected && out.includes(`error ${c.code}`),
-        rejected ? `compiler said ${codes}, doc claims ${c.code}` : 'COMPILED CLEANLY — the gate does not hold')
+        d.ok,
+        d.ok ? '' : d.detail)
+    }
+
+    // The controls are a check of the checker, so they are reported as such: a
+    // control that is ACCEPTED is the failure.
+    for (const [k, c] of CONTROLS.entries()) {
+      const d = decided[cases.length + k]
+      check(`control (${c.kind}): a case that ${c.kind === 'clean' ? 'compiles' : 'is rejected with another code'} is not accepted`,
+        !d.ok,
+        `ACCEPTED by the ${d.by} path — the check cannot fail`)
+    }
+    // A batch whose errors were not placed anywhere may be reading the wrong file
+    // or the wrong lines; the verdicts above are still sound (anything unplaced
+    // was compiled alone), but a reader should not have to infer that.
+    check('every batch error landed in some case\'s lines', strays.length === 0,
+      `${strays.length} stray error(s): ${strays.slice(0, 3).map(s => `${s.code}@${s.line}`).join(', ')}`)
+
+    if (OUT) {
+      writeFileSync(OUT, JSON.stringify({
+        maxErrors: MAX_ERRORS, batchMs, confirmed, alone, errorLines, placed, strays,
+        cases: all.map((c, i) => ({
+          doc: c.doc, code: c.code, codesInRange: per[i].codes, decidedBy: decided[i].by, ok: decided[i].ok,
+        })),
+      }, null, 1) + '\n')
     }
   } finally {
     restore()
@@ -361,5 +582,5 @@ if (baselineClean) {
   }
 }
 
-console.log(`\ndocs/*-PROOF.md: ${cases.length} claimed rejection(s), each compiled for real\n`)
+console.log(`\ndocs/*-PROOF.md: ${cases.length} claimed rejection(s), each decided by the real compiler\n`)
 finish(summarize())
