@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-10-20 by CC, split out of `docs/CC-CMD-2026-10-17-weather-live-http-outage.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL: TASK 0 DONE 2026-10-27 (`outbox/cc-session-2026-10-27-weather-first-call-task0.md`): neither failed sentinel run was a first-call connect failure, and 13 of 13 weather steps are green since the retry (7 days of the 14). Task 1 not triggered; closes on the 14-day count at 2026-11-03, or runs if a first-call failure appears.
+**Status:** DONE 2026-11-03, by its own Task 0.3 rule: the 14-day count is 28 of 28 weather steps `success` (0 failures, no re-runs, 15 days, 2026-10-20T17:39Z to 2026-11-03T17:39Z), artifact `outbox/cc-session-2026-11-03-weather-first-call-14day-count.md`; Task 0.2 is in `outbox/cc-session-2026-10-27-weather-first-call-task0.md`. Task 1 not run, no code. Limit: 0 of 84 single-shot first calls is what the venue loop's 0.123% per-call rate predicts (0.10 expected), so the count does not show a first call cannot fail; the venue-loop retry absorbed 14 of 14 unanswered venues in 13 of the 28 runs. Building Task 1 anyway is the owner's call.
 
 ---
 
@@ -44,3 +44,8 @@ exit 0. Mutation: remove the retry; that case must go red.
 
 1. Task 0.2's finding, and the 14-day count, in `outbox/`.
 2. If Task 1 ran: its self-test case and mutation, and `npm run gate` >= 95.
+
+**Result (2026-11-03):** 1 MET: Task 0.2 in `outbox/cc-session-2026-10-27-weather-first-call-task0.md`, the 14-day count in
+`outbox/cc-session-2026-11-03-weather-first-call-14day-count.md` (28 runs, one row each, run ids). 2 not applicable: Task 1 did not run, because no first call
+failed. The drift-sentinel runs the script without `--tolerate-unreachable` and the step has no `continue-on-error`, so a first-call failure would have been red.
+`npm run gate` 530/530 before this commit (with `PW_CHROMIUM` set; two earlier local runs failed for reasons outside this change, in the outbox document).
