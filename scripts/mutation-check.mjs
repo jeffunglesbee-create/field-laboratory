@@ -3250,6 +3250,8 @@ for (const m of selected) {
     // catching it — the invariant is enforced by the type system.
     check(`[${m.id}] ${m.claim}`, true, '')
     console.log(`      → defended by the COMPILER (the mutation does not build)`)
+    // What the compiler said, so "refused by the type system" is a quotation and not a verdict taken on trust.
+    for (const line of (res?.errors ?? []).slice(0, 3)) console.log(`        ${String(line).slice(0, 600)}`)
   } else {
     check(`[${m.id}] ${m.claim}`, !survived,
       `mutation SURVIVED — ${m.file} was broken and \`${m.expect}\` still passed. ` +
@@ -3260,6 +3262,8 @@ for (const m of selected) {
     buildMs: res?.ms ?? 0, restoreMs: back?.ms ?? 0, expectMs, digestChanged: res ? res.digest !== builder.cleanDigest : null, cycles: res?.cycles ?? 0,
     // The compiled digest itself, not only whether it moved: `mutation-compare.mjs` needs the two drivers' digests of the SAME mutation to be equal, and a boolean cannot say that.
     digest: res?.digest ?? null,
+    // Only for a mutation the compiler refused: the first lines it said.
+    ...(built ? {} : { errors: (res?.errors ?? []).slice(0, 8).map(e => String(e).slice(0, 1200)) }),
   })
 }
 

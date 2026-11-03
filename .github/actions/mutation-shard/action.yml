@@ -11,11 +11,17 @@ description: Build the site and run one shard of the mutation table, then upload
 
 inputs:
   index:
-    description: Which shard, 1-based.
-    required: true
+    description: Which shard, 1-based. Ignored when `ids` is given.
+    required: false
+    default: '1'
   of:
-    description: How many shards the table is split into.
-    required: true
+    description: How many shards the table is split into. Ignored when `ids` is given.
+    required: false
+    default: '1'
+  ids:
+    description: A comma-separated list of mutation ids to run instead of a shard (a targeted probe). Empty means run the shard.
+    required: false
+    default: ''
   mode:
     description: Build driver, watch or full.
     required: true
@@ -62,9 +68,15 @@ runs:
     # file there would be a file the mutation under test could move.
     - name: Run the shard
       shell: bash
+      env:
+        IDS: ${{ inputs.ids }}
       run: |
-        node scripts/mutation-check.mjs \
-          --shard "${{ inputs.index }}/${{ inputs.of }}" \
+        if [ -n "$IDS" ]; then
+          SELECT=(--ids "$IDS")
+        else
+          SELECT=(--shard "${{ inputs.index }}/${{ inputs.of }}")
+        fi
+        node scripts/mutation-check.mjs "${SELECT[@]}" \
           --build "${{ inputs.mode }}" \
           --out "$RUNNER_TEMP/mutation-shard-${{ inputs.index }}-of-${{ inputs.of }}.json"
 

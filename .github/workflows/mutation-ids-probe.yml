@@ -1,0 +1,56 @@
+# Run a few named mutations under both build drivers on a runner, and keep what each driver said.
+# scripts/mutation-check.mjs --ids; docs/CC-CMD-2026-11-03-gate-speed.md.
+#
+# WHY IT EXISTS. The whole-table equivalence run (mutation-equivalence.yml) found two mutations the drivers disagree on
+# (`proxy-silent-becomes-false`, `tactical-lock-bars-take-a-negative-best`): built and caught under `--build watch`, refused by the
+# compiler under `--build full`, on the runner, while both build and are caught on the sandbox. A table-wide run takes 60 minutes;
+# this takes the few minutes of a build and answers one question, "what did the compiler say".
+#
+# The ids are the first line of outbox/.trigger-mutation-ids-probe (comma separated). A push of that file runs this workflow from the
+# pushing ref's own copy; no schedule, it is a question about a change, not a monitor.
+name: mutation-ids-probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-mutation-ids-probe'
+
+permissions:
+  contents: read
+
+jobs:
+  ids:
+    name: ${{ matrix.mode }} driver
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [watch, full]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Read the ids
+        id: ids
+        run: |
+          IDS=$(head -1 outbox/.trigger-mutation-ids-probe | tr -d '[:space:]')
+          test -n "$IDS" || { echo "outbox/.trigger-mutation-ids-probe has no ids on its first line"; exit 1; }
+          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
+          echo "ids: $IDS"
+      - uses: ./.github/actions/mutation-shard
+        with:
+          ids: ${{ steps.ids.outputs.ids }}
+          mode: ${{ matrix.mode }}
+          artifact: mutation-ids-${{ matrix.mode }}
+      - name: What the driver said about each id
+        if: always()
+        run: |
+          F="$RUNNER_TEMP/mutation-shard-1-of-1.json"
+          test -f "$F" || { echo "no result file: the run did not reach its end"; exit 0; }
+          node -e '
+            const d = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))
+            console.log(`mode ${d.mode}, clean digest ${d.cleanDigest}`)
+            for (const r of d.records) console.log(JSON.stringify(r))
+          ' "$F" | tee -a "$GITHUB_STEP_SUMMARY"
