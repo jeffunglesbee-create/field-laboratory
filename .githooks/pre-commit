@@ -7,8 +7,9 @@
 # for exactly that reason, and verify.yml's check:clean-source exists to catch it
 # ninety seconds into CI — this catches the same class at the door instead.
 #
-# Kept to seconds on purpose: package.json validity, the injected-proof guard,
-# and workflow sanity. The full suite — build, browser, mutation, the confidence
+# Kept short on purpose (about 21 s at idle on the 4-core dev container, 2026-11-04,
+# 13 s of it the mutation harness's self-test, see check:mutation-anchors below):
+# package.json validity, the injected-proof guard, and workflow sanity. The full suite — build, browser, mutation, the confidence
 # gate — stays in verify; a pre-commit that ran all of it is one nobody keeps
 # enabled, and a disabled gate guards nothing.
 #
@@ -47,8 +48,12 @@ npm run --silent check:boundary
 # log. The probe imports 25 modules in fresh processes and takes about a second,
 # no network and no build, so the door is where it belongs.
 npm run --silent check:import-purity
-# Added 2026-10-25. A mutation whose search string no longer matches fails the
-# gate's mutation row 97 minutes in. This reads files and applies nothing: a second.
+# Added 2026-10-25. A mutation whose search string no longer matches, or matches
+# twice, fails the gate's mutation row 97 minutes in or mutates the wrong place.
+# `--anchors` reads files and applies nothing (0.2 s); the script is chained to the
+# harness's self-test, which starts the real script in scratch git repositories
+# (13 s at idle, 2026-11-04): the heal is what keeps a killed gate run recoverable,
+# and it is asked at the door because nothing else asks it before the gate.
 npm run --silent check:mutation-anchors
 # Added 2026-08-29, after this exact check failed verify on THREE consecutive
 # commits and blocked the deploy each time -- deploy.yml triggers on

@@ -1,5 +1,18 @@
 # Where the gate's time actually goes
 
+## 2026-11-04 — what the kill-recovery hardening added to the mutation row (not yet measured on a runner)
+
+`docs/CC-CMD-2026-11-03-gate-state-hazards.md`. The harness's `--self-test` grew from 21 clauses to 118, because it now starts the real script in a scratch git repository for each way a run can end (SIGKILL, SIGTERM, SIGINT, SIGHUP, an exception, a planted lock, a broken git directory, two runs at once, a restarted run), and `proof-check.mjs --self-test` from 41 to 85 because it now runs the real script in a scratch directory per state it can find. Measured in the 4-core dev container at idle (load average 0.7 to 1.0 before and after; an earlier round of these figures was taken at load 5.4 with five runaway processes from review scratch copies running, and was about 50% high), each tree exported with `git archive`, one run each, 2026-11-04:
+
+| tree | `mutation-check.mjs --self-test` | `proof-check.mjs --self-test` | table entries whose expectation is the mutation-check self-test / the proof-check self-test / the row-confidence self-test |
+|---|---|---|---|
+| `f38fc97`, the base of this work | 21 clauses, 0.57 s | 41 clauses, 1.35 s | 2 / 14 / 0 |
+| `7703dd2`, the tree as the third review saw it | 68 clauses, 4.5 s | 55 clauses, 1.9 s | 36 / 22 / 0 |
+| the tree as the fourth review saw it | 96 clauses, 8.9 s | 65 clauses, 2.6 s | 66 / 33 / 12 |
+| now | 118 clauses, 13.2 s | 85 clauses, 5.8 s (the row-confidence self-test: 15 clauses, 0.14 s) | 94 / 62 / 50 |
+
+Each of those entries starts its self-test once, so the mutation row's self-test work, serial, went from about 20 s (2 x 0.57 + 14 x 1.35) at the base to about 27 minutes now (94 x 13.2 + 62 x 5.8 + 50 x 0.14 = 1,608 s). That is serial CPU-and-wait on one core's worth of the container; the eight shards partition the table by position (`--shard i/8`), and the per-shard spread of these entries was not recomputed for this table, so the slowest shard is estimated, not known: an even split would add about 200 s to each shard (1,608 / 8), against the last recorded range of 3 min 28 s to 6 min 10 s below. The pre-commit hook runs `--anchors` and then the mutation-check self-test, so that step is about 13 s now where it was about 1 s at the base. **The local gate on the final tree** (`npm run gate`, this container, 12:49 to 13:57 UTC on 2026-11-04, load average 1.4 at its first check): 4,077 s in all, 3,967 s of it the row "breaking each invariant makes a check fail" (the first gate on the tree of Review 3 took 51 minutes in all). **Not measured on a runner**: the figures that matter (the slowest shard, the gate step of `verify-full`) are recorded by the first CI run after this lands; if the slowest shard has moved by more than the estimate above, something other than the self-tests is slow.
+
 ## 2026-11-03 (later) — the proof checks became one compile, and the gate is 6 minutes
 
 `docs/CC-CMD-2026-11-03-proof-check-shards.md`. The proof checks were the longest path once the mutation suite was sharded (729 to 760 s). The filed answer was to shard them too; Task 0 found

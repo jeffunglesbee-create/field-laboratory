@@ -29,13 +29,20 @@
 //         --out FILE         write a record per mutation (verdict, build and expectation times, whether the compiled output changed)
 //         --build watch|full watch (default): one `dotnet fable watch -c Release` for the whole run, about 3 s a compile; full: `npm run build` every time,
 //                            the reference. Both make the build CLEAN, and check its digest, before every mutation.
+//
+// And for recovery and for the checks that stand guard over this file:
+//         --heal             undo what a killed run left applied (the same heal every start does first), say so, and stop; runs no mutation
+//         --anchors          read-only: every mutation's anchor is still in its file, and unique there; non-zero if any is not
+//         --self-test        the heal, the locks, the markers and the scratch-repository runs, on throwaway files in a state directory of their own (the pre-commit hook runs it)
 
-import { execSync } from 'node:child_process'
+import { execSync, spawn, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, mkdtempSync, readdirSync, rmdirSync, copyFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { join, dirname, resolve } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
+import { isLive, startOf } from './run-marker.mjs'
 import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
@@ -994,16 +1001,22 @@ const MUTATIONS = [
     // Found on 2026-09-05, when a `decision-2026-09-05-*.md` sat beside the
     // session doc. The glob has to be the predicate's glob; anything narrower
     // tests a claim the row does not make.
-    mutate: 'mkdir -p /tmp/mut-outbox && mv outbox/*$(TZ=America/New_York date +%F)*.md /tmp/mut-outbox/ 2>/dev/null || true',
-    restore: 'mv /tmp/mut-outbox/*.md outbox/ 2>/dev/null || true; rmdir /tmp/mut-outbox 2>/dev/null || true',
+    //
+    // THE STASH IS $STASH, A DIRECTORY IN THE STATE DIRECTORY, NOT /tmp (2026-11-04). This moves the
+    // session's real write-ups out of outbox/; the stash used to be /tmp/mut-outbox, which a container
+    // restart wipes, so a kill in the window and a restart lost whatever was not yet committed. The
+    // harness sets STASH, keeps it as long as the marker, and reads the tree back after the restore.
+    mutate: 'mkdir -p "$STASH" && mv outbox/*$(TZ=America/New_York date +%F)*.md "$STASH"/ 2>/dev/null || true',
+    restore: 'mv "$STASH"/*.md outbox/ 2>/dev/null || true',
     expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
   },
   {
     id: 'outbox-stub',
     claim: 'an empty stub does not count as a write-up',
     // Widened with `outbox-missing` above, and for the same reason.
-    mutate: 'mkdir -p /tmp/mut-stub && cp outbox/*$(TZ=America/New_York date +%F)*.md /tmp/mut-stub/ 2>/dev/null; for f in outbox/*$(TZ=America/New_York date +%F)*.md; do [ -e "$f" ] || continue; echo stub > "$f"; done',
-    restore: 'cp /tmp/mut-stub/*.md outbox/ 2>/dev/null || true; rm -rf /tmp/mut-stub',
+    // $STASH, as above: the copies of the real write-ups that the stubs replace.
+    mutate: 'mkdir -p "$STASH" && cp outbox/*$(TZ=America/New_York date +%F)*.md "$STASH"/ 2>/dev/null; for f in outbox/*$(TZ=America/New_York date +%F)*.md; do [ -e "$f" ] || continue; echo stub > "$f"; done',
+    restore: 'cp "$STASH"/*.md outbox/ 2>/dev/null || true',
     expect: 'node scripts/run-row.mjs "this session wrote its outbox"',
   },
   // Targets the row's OWN predicate rather than the working tree.
@@ -1045,7 +1058,10 @@ const MUTATIONS = [
     // Replaces the sha and keeps the count, which is exactly the edit the
     // boundary file says must fail the check. Exits non-zero if the line is not
     // found, so a malformed boundary file is a loud failure here too.
-    mutate: 'node -e "' +
+    // A copy of the file goes in $STASH first and is what the restore puts back: it used to be
+    // `git checkout -- docs/history-boundary.txt`, which also discards any uncommitted edit to the file that
+    // was there BEFORE the run, even when nothing is killed.
+    mutate: 'mkdir -p "$STASH" && cp docs/history-boundary.txt "$STASH"/history-boundary.txt && node -e "' +
       'const fs=require(\'fs\'),f=\'docs/history-boundary.txt\';' +
       'const t=fs.readFileSync(f,\'utf8\');' +
       'const m=/^([0-9a-f]{40})(\\s+)(\\d+)\\s*$/m.exec(t);' +
@@ -1053,7 +1069,7 @@ const MUTATIONS = [
       'const other=m[1][0]===\'a\'?\'b\':\'a\';' +
       'fs.writeFileSync(f,t.replace(m[0],other.repeat(40)+m[2]+m[3]))' +
       '"',
-    restore: 'git checkout -- docs/history-boundary.txt',
+    restore: 'cp "$STASH"/history-boundary.txt docs/history-boundary.txt',
     expect: 'node scripts/run-row.mjs "every governed commit paired source with outbox"',
   },
 
@@ -1086,12 +1102,768 @@ const MUTATIONS = [
     id: 'harness-blind',
     file: 'scripts/mutation-check.mjs',
     claim: 'a harness that calls everything caught is itself caught',
-    find: '  const survived = built && run(m.expect)',
+    find: '  const survived = built && run(expectOf(m))',
     replace: '  const survived = false',
     // Inverted: the row passes when this command FAILS (a survivor is
     // correctly reported). Blinding the harness makes it pass, which is the
     // survival condition.
     expect: `bash -c '! node scripts/mutation-check.mjs --only known-survivor'`,
+  },
+
+  // --- the harness's kill recovery (2026-11-04) --------------------------------------------------
+  //
+  // docs/CC-CMD-2026-11-03-gate-state-hazards.md. A marker says a run was killed; it does not say the
+  // tree is still as that run left it, and heal() used to write the backup over the file on that
+  // sentence alone. These break each part of the rule that replaced it, and of the ownership rule
+  // beside it (the exit handler cleared state it had not written, so `--self-test` erased a real
+  // stranded marker). Each is caught by the self-test, which plants state in a directory of its
+  // own and runs the real planHeal() and healAt(); a few by the real script started over a real
+  // stranded state. They target this file after the table, as the entries above do.
+  {
+    id: 'heal-writes-over-a-moved-file',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a file that is neither the original nor the mutation is not overwritten from a backup",
+    find: "  if (now !== m.mutatedSha) return 'diverged'\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-trusts-any-backup',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a backup that is gone, or is not the original, is not written over the file",
+    find: "  return probes.fileSha(m.backup) === m.originalSha ? 'restore' : 'lost'",
+    replace: "  return 'restore'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-rewrites-what-is-already-undone',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a file already back to the original is left alone, whatever state its backup is in",
+    find: "  if (now === m.originalSha) return 'clear'",
+    replace: "  if (false) return 'clear'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-goes-under-a-live-run',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a marker whose process is still running stops this run instead of being healed under it",
+    find: "  if (probes.live(m)) return 'refuse'",
+    replace: "  if (false) return 'refuse'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-applies-a-marker-it-cannot-check',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a marker written before the hashes existed is reported as such and not applied",
+    find: "  if (typeof m.originalSha !== 'string' || typeof m.mutatedSha !== 'string') return 'legacy'",
+    replace: "  if (false) return 'legacy'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-reads-an-unreadable-marker',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a marker that does not parse stops the run with the state kept",
+    find: "  if (m === null || typeof m !== 'object' || typeof m.id !== 'string') return 'unreadable'",
+    replace: "  if (false) return 'unreadable'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-restores-a-moved-world',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a change made outside the source is undone only if the tree is exactly as the mutation left it",
+    find: "      return where === 'other' ? 'diverged' : 'restore'",
+    replace: "      return 'restore'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-trusts-a-world-restore',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a restore command that ran is not taken to have worked until the tree is read back",
+    find: "    if (!back) return stop(",
+    replace: "    if (false) return stop(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-reruns-an-undone-world',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world mutation already undone runs nothing",
+    find: "      if (where === 'undone') return 'clear'",
+    replace: "      if (false) return 'clear'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-forgets-the-stash',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world restore is handed the stash its mutation used",
+    find: "    probes.exec(m.restoreCmd, { STASH: m.stash })",
+    replace: "    probes.exec(m.restoreCmd, {})",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'exit-handler-clears-foreign-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the exit handler clears only state this process wrote",
+    find: "  if (ownsState && undone && !buildDirty) clearActive()",
+    replace: "  if (undone && !buildDirty) clearActive()",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'claiming-state-does-not-own-it',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a process that writes state owns it and clears it",
+    find: "const claimState = () => { mkdirSync(stateDir, { recursive: true }); ownsState = true }",
+    replace: "const claimState = () => { mkdirSync(stateDir, { recursive: true }) }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-uses-the-real-state-dir',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test works in a state directory of its own",
+    // The mutated self-test is started by the harness as its expectation, with MUTATION_STATE_DIR set to a directory beneath the harness's OWN. Replacing the
+    // temp directory with a bare '.mutation-state' pointed the mutated self-test at the harness's own directory instead, and its clean-up deleted the harness's
+    // marker, backup and run lock while it was running (reproduced 2026-11-03: a gate run killed by a container restart a few entries later had no run.json
+    // and the marker of the entry under test as the only record). The variable is honoured here, so the child keeps to the directory it was given. With no variable it
+    // uses a directory that is neither under tmp nor the real state directory, NOT `.mutation-state`: a run killed while this entry is applied leaves the mutated file on
+    // disk, and the next `--self-test` (the pre-commit hook, the gate row's first command) loads it. With `.mutation-state` that self-test emptied the real directory and the
+    // stranded marker and backup went with it (found by review, 2026-11-04, after the first version of this fix).
+    find: "  ? mkdtempSync(join(tmpdir(), 'mutation-state-'))",
+    replace: "  ? (process.env.MUTATION_STATE_DIR || 'mutation-state-not-under-tmp')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'child-shares-the-state-dir',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a harness run started by a harness run keeps its state beneath its parent's, not in it",
+    find: "MUTATION_STATE_DIR: join(stateDir, 'nested'), ...extra",
+    replace: "MUTATION_STATE_DIR: stateDir, ...extra",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-skips-the-nested-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a mutation applied by a nested harness run is healed with its parent's",
+    find: "  const nested = healAt(join(dir, 'nested'), options)",
+    replace: "  const nested = false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'marker-forgets-the-mutated-hash',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source marker records what the file becomes under the mutation",
+    find: "  ({ id: m.id, file: m.file, backup, originalSha: sha(original), mutatedSha: sha(mutated), rebuild, ...identity() })",
+    replace: "  ({ id: m.id, file: m.file, backup, originalSha: sha(original), mutatedSha: sha(original), rebuild, ...identity() })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'source-marker-forgets-who-wrote-it',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source marker records its process and when it started",
+    find: "  ({ id: m.id, file: m.file, backup, originalSha: sha(original), mutatedSha: sha(mutated), rebuild, ...identity() })",
+    replace: "  ({ id: m.id, file: m.file, backup, originalSha: sha(original), mutatedSha: sha(mutated), rebuild })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-marker-forgets-who-wrote-it',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world marker records its process and when it started",
+    find: "  ({ id: m.id, restoreCmd: m.restore, stash, before, head: headOf(), ...identity() })",
+    replace: "  ({ id: m.id, restoreCmd: m.restore, stash, before, head: headOf() })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  // The wiring of the main flow, which no scenario above runs: the self-test starts the REAL script in a scratch repository, kills it
+  // (SIGKILL, or a throw the handler can see) at a chosen moment, and looks at what is on disk.
+  {
+    id: 'source-marker-not-written',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source mutation writes its marker before the run can be killed",
+    find: "  writeFileSync(marker, markerText)",
+    replace: "  void markerText",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-touched-not-recorded',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world mutation records the paths it touched in its marker once it is applied",
+    find: "    const worldMarkerText = JSON.stringify({ ...worldMarker, touched })",
+    replace: "    const worldMarkerText = JSON.stringify(worldMarker)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'exit-handler-leaves-a-world-mutation-applied',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an exit undoes a world mutation that is still applied, before the state that holds its stash goes",
+    find: "  const undone = undoWorld()",
+    replace: "  const undone = true",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-undo-runs-nothing-useful',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the exit handler undoes a world mutation with the mutation's own restore command",
+    find: "  run(process.env.MUTATION_FAULT === 'world-restore-noop' ? 'true' : partial, { STASH: w.stash })",
+    replace: "  run('true', { STASH: w.stash })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-undo-forgets-the-readback',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world restore that ran is not taken to have worked until the paths it touched are read back",
+    find: "    ok = w.touched ? worldState(w.touched, now) === 'undone' : sameSnapshot(w.before, now)",
+    replace: "    ok = true",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'snapshot-sees-only-names',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the snapshot of the tree sees a content change to a file that was already modified",
+    find: "    try { snap[path] = existsSync(path) ? sha(readFileSync(path)) : '<missing>' } catch { snap[path] = '<unreadable>' }",
+    replace: "    snap[path] = existsSync(path) ? 'present' : '<missing>'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'run-lock-is-not-exclusive',
+    file: 'scripts/mutation-check.mjs',
+    claim: "two runs starting together cannot both take the run lock",
+    find: "writeFileSync(runLock, JSON.stringify(identity()), { flag: 'wx' })",
+    replace: "writeFileSync(runLock, JSON.stringify(identity()), { flag: 'w' })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'run-lock-never-taken',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run takes the run lock before it mutates anything",
+    find: "if (!acquireRunLock()) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'lock-held-by-a-live-run-is-ignored',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run lock naming a process that is still running stops the next run",
+    find: "  if (held !== null && probes.live(held)) {",
+    replace: "  if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-loss-never-checked',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run whose expectation deleted the harness's own state stops and says so, once the file is back",
+    find: "  if (!intactAfterExpect) fatal(",
+    replace: "  if (false) fatal(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-state-loss-never-checked',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world mutation whose expectation deleted the harness's own state stops and says so",
+    find: "    if (!worldIntact) fatal(",
+    replace: "    if (false) fatal(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-intact-reads-nothing',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the state a run wrote is compared with what is on disk, marker and lock both",
+    find: "    return readFileSync(marker, 'utf8') === markerText && JSON.parse(readFileSync(runLock, 'utf8')).pid === process.pid",
+    replace: "    return true",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'uncaught-exception-is-swallowed',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a crash says what threw before the exit handler ends the process",
+    find: "    if (signal === 'uncaughtException') console.error(err?.stack ?? String(err))",
+    replace: "    void err",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-skips-the-rebuild-when-clear',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source file already back to the original is still followed by a rebuild",
+    find: "    if (rebuilds && !probes.exec('npm run build')) return stop(`names [${m.id}], which was already undone, but ${rebuildFailed()}`, false)",
+    replace: "    void rebuilds",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-skips-the-rebuild-after-a-restore',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source file restored from its backup is followed by a rebuild",
+    find: "    if (rebuilds && !probes.exec('npm run build')) return stop(`names [${m.id}]; ${m.file} is restored, but ${rebuildFailed()}`, false)",
+    replace: "    void rebuilds",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-honours-the-env-var',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a self-test the harness starts as an expectation does not use the directory it inherits",
+    find: "const stateDir = process.argv.includes('--self-test')\n  ? mkdtempSync(join(tmpdir(), 'mutation-state-'))\n  : (process.env.MUTATION_STATE_DIR || '.mutation-state')",
+    replace: "const stateDir = process.env.MUTATION_STATE_DIR || (process.argv.includes('--self-test') ? mkdtempSync(join(tmpdir(), 'mutation-state-')) : '.mutation-state')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+
+  {
+    id: 'lock-taken-after-the-heal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run holds its lock before it heals, so a second run started during the heal is refused",
+    find: "checkLocks(stateDir)\nif (!acquireRunLock()) {",
+    replace: "const healedEarly = healHeld(stateDir)\ncheckLocks(stateDir)\nif (!acquireRunLock()) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-cleanup-takes-the-run-lock',
+    file: 'scripts/mutation-check.mjs',
+    claim: "dropping a healed marker leaves the run lock of the run that is healing",
+    find: "  emptyEntries(dir)\n  try { rmdirSync(dir) } catch { /* the run lock is still in it */ }",
+    replace: "  rmSync(dir, { recursive: true, force: true })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'clearing-state-takes-the-run-lock',
+    file: 'scripts/mutation-check.mjs',
+    claim: "clearing a run's state leaves its run lock",
+    find: "    if (entry !== 'run.json') rmSync(join(dir, entry), { recursive: true, force: true })",
+    replace: "    rmSync(join(dir, entry), { recursive: true, force: true })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-ignores-head-moving',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world mutation's heal notices that HEAD has moved since the kill",
+    find: "const headMovedSince = (m, probes) => typeof m.head === 'string' && probes.head() !== m.head",
+    replace: "const headMovedSince = (m, probes) => false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-reads-null-as-undone-after-head-moves',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a touched path that no longer differs from HEAD is not taken for one put back once HEAD has moved",
+    find: "  if (here === t.before) return headMoved && here === null ? 'other' : 'undone'",
+    replace: "  if (here === t.before) return 'undone'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-marker-forgets-head',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world marker records the commit the tree was on",
+    find: "stash, before, head: headOf(), ...identity() })",
+    replace: "stash, before, ...identity() })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'lost-is-judged-before-diverged',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a file edited after the kill is diverged whether or not its backup survived",
+    find: "  if (now !== m.mutatedSha) return 'diverged'\n  return probes.fileSha(m.backup) === m.originalSha ? 'restore' : 'lost'",
+    replace: "  if (probes.fileSha(m.backup) !== m.originalSha) return 'lost'\n  return now === m.mutatedSha ? 'restore' : 'diverged'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-ignores-a-failed-rebuild-after-a-restore',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a rebuild that failed after a source restore is not called healed",
+    find: "    if (rebuilds && !probes.exec('npm run build')) return stop(`names [${m.id}]; ${m.file} is restored, but ${rebuildFailed()}`, false)",
+    replace: "    if (rebuilds) probes.exec('npm run build')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-ignores-a-failed-rebuild-when-clear',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a rebuild that failed after \"already undone\" is not called healed",
+    find: "    if (rebuilds && !probes.exec('npm run build')) return stop(`names [${m.id}], which was already undone, but ${rebuildFailed()}`, false)",
+    replace: "    if (rebuilds) probes.exec('npm run build')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refusal-over-a-stash-says-delete',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal over a stash that holds files does not tell a person to delete the directory",
+    find: "const how = !clears ? '' : stashHeld()",
+    replace: "const how = !clears ? '' : false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-refusal-offers-the-restore-command',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal for an edited path does not hand over the command that overwrites it",
+    find: "its restore command would overwrite the ones listed.`)",
+    replace: "its restore command would overwrite the ones listed. To undo it by hand: STASH=${m.stash} sh -c '${m.restoreCmd}'.`)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-refusal-does-not-name-the-path',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal for an edited path names it",
+    find: " (${stray.slice(0, 6).join(', ')}${stray.length > 6 ? `, and ${stray.length - 6} more` : ''})",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-refusal-blames-a-person-with-no-record',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a kill before the touched paths were recorded does not blame a person",
+    find: "The mutation itself may have made those changes, or a person may have after the kill; the two cannot be told apart, so nothing was run.",
+    replace: "A person changed it after the kill, so nothing was run.",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'live-refusal-says-to-delete-the-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal on a live run says to wait, not to delete the directory that run is using",
+    find: "(kill -9 if it ignores a plain kill), then run this again.`, false)\n  if (outcome === 'legacy')",
+    replace: "(kill -9 if it ignores a plain kill), then run this again.`)\n  if (outcome === 'legacy')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'healed-files-not-recorded',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a heal records the files it wrote back",
+    find: "    healedFiles.add(resolve(m.file))",
+    replace: "    void resolve(m.file)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'no-restart-after-healing-itself',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that restored a file it is built from starts again as the restored code",
+    find: "if ([...healedFiles].some(f => SELF_SOURCES.includes(f)) && !RESTARTED) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-guard-dropped',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that is itself the restart does not restart again",
+    find: "if ([...healedFiles].some(f => SELF_SOURCES.includes(f)) && !RESTARTED) {",
+    replace: "if ([...healedFiles].some(f => SELF_SOURCES.includes(f))) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-flag-leaks-to-children',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the restart flag is consumed, so the baseline's self-test and every other child run without it",
+    find: "delete process.env.MUTATION_REEXEC\n",
+    replace: "void 0\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-drops-the-flag',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the restarted run is told it is the restart",
+    find: "env: { ...process.env, MUTATION_REEXEC: '1' } })",
+    replace: "env: { ...process.env } })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-loses-the-childs-status',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a restarted run that is killed fails the run that started it",
+    find: "  process.exit(again.status ?? 1)",
+    replace: "  process.exit(again.status ?? 0)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-turns-green-into-red',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a restarted run that ends green ends the run that started it green",
+    find: "  process.exit(again.status ?? 1)",
+    replace: "  process.exit(again.status || 1)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'rebuild-refusal-after-a-restore-offers-to-delete-the-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a failed rebuild after a restore does not tell a person to delete the state that is the only record of the build",
+    find: "is restored, but ${rebuildFailed()}`, false)",
+    replace: "is restored, but ${rebuildFailed()}`)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-scrub-leaves-the-index-file',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's scratch repositories never inherit the caller's index",
+    find: "for (const k of Object.keys(process.env)) if (/^GIT_/.test(k)) delete process.env[k]",
+    replace: "for (const k of Object.keys(process.env)) if (/^GIT_(DIR|WORK_TREE|CONFIG.*)$/.test(k)) delete process.env[k]",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-scrub-removes-only-the-git-dir',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's scratch repositories inherit none of the caller's repository location variables",
+    find: "for (const k of Object.keys(process.env)) if (/^GIT_/.test(k)) delete process.env[k]",
+    replace: "for (const k of Object.keys(process.env)) if (/^GIT_DIR$/.test(k)) delete process.env[k]",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-scrub-leaves-the-object-directory',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's scratch repositories inherit neither the caller's work tree nor its object directory",
+    find: "for (const k of Object.keys(process.env)) if (/^GIT_/.test(k)) delete process.env[k]",
+    replace: "for (const k of Object.keys(process.env)) if (/^GIT_(DIR|INDEX_FILE|CONFIG.*)$/.test(k)) delete process.env[k]",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'baseline-output-limit-is-the-default',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an expectation that prints more than a megabyte and passes is not a failing baseline",
+    find: "env: childEnv(), maxBuffer: OUTPUT_LIMIT })\n    return { cmd, passed: true }",
+    replace: "env: childEnv() })\n    return { cmd, passed: true }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'anchors-ignore-duplicates',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an anchor that occurs twice is reported, because the first occurrence is the one mutated",
+    find: "    else if (anchorCount(source, m) > 1) stale.push(",
+    replace: "    else if (false) stale.push(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'anchors-count-before-the-table',
+    file: 'scripts/mutation-check.mjs',
+    claim: "in this file only what comes after the table is counted for an anchor",
+    find: "const anchorCount = (source, m) => source.slice(guardOf(source, m)).split(m.find).length - 1",
+    replace: "const anchorCount = (source, m) => source.split(m.find).length - 1",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-continues-in-process',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the restart is a new process running the restored files, not the same one carrying on",
+    find: "  const again = spawnSync(process.execPath, process.argv.slice(1), { stdio: 'inherit', env: { ...process.env, MUTATION_REEXEC: '1' } })\n  process.exit(again.status ?? 1)\n",
+    replace: "  acquireRunLock()\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-rebuilds-what-cannot-reach-the-build',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a heal does not run `npm run build` for a mutation of a file the build never reads",
+    find: "const rebuilds = rebuild && !m.restoreCmd && m.rebuild !== false",
+    replace: "const rebuilds = rebuild && !m.restoreCmd",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'marker-forgets-whether-the-build-was-reachable',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source marker records whether the mutation could reach build/",
+    find: "originalSha: sha(original), mutatedSha: sha(mutated), rebuild, ...identity() })",
+    replace: "originalSha: sha(original), mutatedSha: sha(mutated), ...identity() })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'child-output-limit-is-the-default',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a command that prints more than a megabyte is not read as a failed one",
+    find: "env: childEnv(extra), maxBuffer: OUTPUT_LIMIT })",
+    replace: "env: childEnv(extra) })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'rebuild-refusal-hides-the-failure',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal over a failed rebuild carries the build's own failure",
+    find: "failed${lastFailure ? ` (${lastFailure})` : ''}, so build/",
+    replace: "failed, so build/",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'signal-handler-skips-sigterm',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a SIGTERM puts a mutated file back before the run ends",
+    find: "for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {",
+    replace: "for (const signal of ['exit', 'SIGINT', 'SIGHUP', 'uncaughtException']) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'signal-handler-skips-sigint',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a SIGINT (Ctrl-C) puts a mutated file back before the run ends",
+    find: "for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {",
+    replace: "for (const signal of ['exit', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'signal-handler-skips-sighup',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a SIGHUP (a closed terminal) puts a mutated file back before the run ends",
+    find: "for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {",
+    replace: "for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'uncaughtException']) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'kill-hook-does-not-yield',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a test-only catchable signal is handled where it was sent, not after the run has finished",
+    find: "  if (signal !== 'SIGKILL') await new Promise(done => setTimeout(done, 400))",
+    replace: "  void signal",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-undo-accepts-a-partial-restore',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world restore that put back only some of what it touched is not taken for a restore",
+    find: "    ok = w.touched ? worldState(w.touched, now) === 'undone' : sameSnapshot(w.before, now)",
+    replace: "    ok = w.touched ? worldState(w.touched, now) !== 'applied' : sameSnapshot(w.before, now)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-accepts-a-partial-restore',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a heal's restore that put back only some of what the mutation touched is not called healed",
+    find: "    try { back = m.touched ? worldState(m.touched, probes.snapshot()) === 'undone' : sameSnapshot(m.before, probes.snapshot()) } catch { back = false }",
+    replace: "    try { back = m.touched ? worldState(m.touched, probes.snapshot()) !== 'applied' : sameSnapshot(m.before, probes.snapshot()) } catch { back = false }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'unreadable-tree-is-nothing-to-heal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a tree that cannot be read is not reported as having nothing to heal",
+    find: "    return stop(`could not be checked against the tree (${String(e.message).split('\\n')[0]}). Nothing was touched.`)",
+    replace: "    return false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-marker-records-an-empty-before',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world marker records the tree as it was when the run started, files a person had already modified included",
+    find: "    const worldMarker = worldMarkerOf(m, stash, before)",
+    replace: "    const worldMarker = worldMarkerOf(m, stash, {})",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-builds-for-a-world-mutation',
+    file: 'scripts/mutation-check.mjs',
+    claim: "healing a world mutation, which moves write-ups, runs no build",
+    find: "const rebuilds = rebuild && !m.restoreCmd && m.rebuild !== false",
+    replace: "const rebuilds = rebuild && m.rebuild !== false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-keeps-the-callers-git-environment',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's scratch repositories never inherit a repository location from the hook or shell that started it",
+    find: "for (const k of Object.keys(process.env)) if (/^GIT_/.test(k)) delete process.env[k]",
+    replace: "void 0",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-keeps-the-callers-git-config',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's scratch repositories never read the developer's own git configuration",
+    find: "process.env.GIT_CONFIG_GLOBAL = '/dev/null'",
+    replace: "void 0",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restart-list-misses-a-module',
+    file: 'scripts/mutation-check.mjs',
+    claim: "every module the harness is built from is one a heal restarts for",
+    find: "['mutation-check.mjs', 'mutation-lib.mjs', 'checks.mjs', 'run-marker.mjs'].map(f =>",
+    replace: "['mutation-check.mjs', 'mutation-lib.mjs', 'checks.mjs'].map(f =>",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'baseline-without-the-child-environment',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the baseline runs each expectation in the child environment",
+    find: "env: childEnv(), maxBuffer: OUTPUT_LIMIT })\n    return { cmd, passed: true }",
+    replace: "maxBuffer: OUTPUT_LIMIT })\n    return { cmd, passed: true }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'no-heal-mode',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--heal` heals a stranded tree and stops",
+    find: "if (process.argv.includes('--heal')) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-stays-silent-about-a-stranded-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test names a stranded state and the command that heals it",
+    find: "if (stranded !== null) console.log(`::warning::",
+    replace: "if (false) console.log(`::warning::",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restore-clears-the-marker-over-a-dirty-build',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a handler that puts a source file back before its build is verified keeps the marker",
+    find: "  if (ownsState && undone && !buildDirty) clearActive()",
+    replace: "  if (ownsState && undone) clearActive()",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'build-never-marked-dirty',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a source mutation marks the build dirty from the moment it can reach it",
+    find: "  buildDirty = reachesBuild",
+    replace: "  buildDirty = false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'restore-skips-the-source-backups',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the exit handler puts a mutated source file back from its backup",
+    find: "    if (existsSync(path)) writeFileSync(file, readFileSync(path))",
+    replace: "    void path",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'source-marker-written-after-the-hook',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the marker is written before the file can be touched",
+    find: "  writeFileSync(marker, markerText)\n  backups.set(m.file, backupPath)\n  buildDirty = reachesBuild\n  await killHere('source-prepared')\n",
+    replace: "  backups.set(m.file, backupPath)\n  buildDirty = reachesBuild\n  await killHere('source-prepared')\n  writeFileSync(marker, markerText)\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'source-backup-written-after-the-hook',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the backup is written before the file can be touched",
+    find: "  writeFileSync(backupPath, original)\n  const reachesBuild = needsRebuild || MUTATION_FAULT === 'build-never-verified'\n  const markerText = JSON.stringify(sourceMarker(m, backupPath, original, mutated, reachesBuild))\n  writeFileSync(marker, markerText)\n  backups.set(m.file, backupPath)\n  buildDirty = reachesBuild\n  await killHere('source-prepared')\n",
+    replace: "  const reachesBuild = needsRebuild || MUTATION_FAULT === 'build-never-verified'\n  const markerText = JSON.stringify(sourceMarker(m, backupPath, original, mutated, reachesBuild))\n  writeFileSync(marker, markerText)\n  backups.set(m.file, backupPath)\n  buildDirty = reachesBuild\n  await killHere('source-prepared')\n  writeFileSync(backupPath, original)\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-marker-written-after-the-hook',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world mutation's marker is written before it moves anything",
+    find: "    writeFileSync(marker, JSON.stringify(worldMarker))\n    worldApplied = { restore: m.restore, stash, before, touched: null }\n    await killHere('world-prepared')\n",
+    replace: "    worldApplied = { restore: m.restore, stash, before, touched: null }\n    await killHere('world-prepared')\n    writeFileSync(marker, JSON.stringify(worldMarker))\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'touched-not-kept-in-memory',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the run remembers which paths a world mutation touched, so an unrelated change cannot fail its restore",
+    find: "    worldApplied.touched = touched",
+    replace: "    void touched",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'no-op-world-mutation-not-noticed',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a world mutation that changes nothing is reported as broken",
+    find: "    if (Object.keys(touched).length === 0) {",
+    replace: "    if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refused-run-releases-a-lock-it-never-held',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that was refused leaves the live holder's lock",
+    find: "  if (!ownsLock) return\n  rmSync(runLock, { force: true })",
+    replace: "  rmSync(runLock, { force: true })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'nested-lock-not-checked',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a live run inside a run stops this one too",
+    find: "  checkLockAt(join(dir, 'nested'), options)\n}",
+    replace: "}",
+    expect: 'node scripts/mutation-check.mjs --self-test',
   },
 
   {
@@ -1101,6 +1873,506 @@ const MUTATIONS = [
     find: 'const score = (hasTeeth, hasClock) => (hasTeeth ? 70 : 0) + (hasClock ? 0 : 30)',
     replace: 'const score = () => 100',
     expect: 'node scripts/run-row.mjs "every gate row has teeth and is deterministic"',
+  },
+
+  // The clock scan (2026-11-04). The gate's mutation row found `harness-reads-the-clock-twice` surviving once this table grew: the scan under the row
+  // "every gate row has teeth and is deterministic" had lost sync at a `//` inside a string and could not see a second clock read in this file. It is a scanner now; one entry per
+  // branch of it, each the line a clause of `row-confidence.mjs --self-test` stands on.
+  {
+    id: 'row-scan-pairs-quotes-across-the-file',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the determinism scan reads comments, strings and regular expressions as a scanner does, not as three passes that disagree about a `//` in a string",
+    find: "  const code = stripNonCode(src)\n",
+    replace: "  const code = src\n    .replace(/\\/\\*[\\s\\S]*?\\*\\//g, ' ')\n    .split('\\n').map(l => l.replace(/\\/\\/.*$/, '')).join('\\n')\n    .replace(/(['\"`])(?:\\\\.|(?!\\1)[\\s\\S])*\\1/g, \"''\")\n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-keeps-line-comments',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a clock read in a line comment is not a clock read",
+    find: "      if (c === '/' && d === '/') { while (i < n && src[i] !== '\\n') i++; continue }",
+    replace: "      if (false) { while (i < n && src[i] !== '\\n') i++; continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-keeps-block-comments',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a clock read in a block comment is not a clock read",
+    find: "      if (c === '/' && d === '*') { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }",
+    replace: "      if (false) { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-lets-a-quote-run-on',
+    file: 'scripts/row-confidence.mjs',
+    claim: "an unclosed quote ends at its line",
+    find: "        while (i < n && src[i] !== c && src[i] !== '\\n') i += src[i] === '\\\\' ? 2 : 1",
+    replace: "        while (i < n && src[i] !== c) i += src[i] === '\\\\' ? 2 : 1",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-ignores-string-escapes',
+    file: 'scripts/row-confidence.mjs',
+    claim: "an escaped quote does not end a string",
+    find: "i += src[i] === '\\\\' ? 2 : 1",
+    replace: "i += 1",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-reads-every-slash-as-division',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a regular expression literal is not read as division",
+    find: "        if (!regexAllowed()) { out += '/'; i++; continue }",
+    replace: "        if (true) { out += '/'; i++; continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-reads-every-slash-as-a-regex',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a division is not read as a regular expression",
+    find: "  const regexAllowed = () => {",
+    replace: "  const regexAllowed = () => true\n  const unusedRegexAllowed = () => {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'proof-failed-restore-called-stale',
+    file: 'scripts/proof-check.mjs',
+    claim: "a run whose restore did not read back never has its state discarded as stale",
+    find: "  if (restoreFailed && !((targetStranded || targetIntact) && (registryStranded || registryIntact))) return 'diverged'",
+    replace: "  void restoreFailed",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-failed-restore-ignores-the-registry',
+    file: 'scripts/proof-check.mjs',
+    claim: "a registry that is not its backup, after a restore that did not read back, keeps the state",
+    find: "(registryStranded || registryIntact))) return 'diverged'",
+    replace: "true)) return 'diverged'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-failed-restore-ignores-the-target',
+    file: 'scripts/proof-check.mjs',
+    claim: "a target that is not its backup, after a restore that did not read back, keeps the state",
+    find: "if (restoreFailed && !((targetStranded || targetIntact) &&",
+    replace: "if (restoreFailed && !(true &&",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-restore-failure-says-nothing',
+    file: 'scripts/proof-check.mjs',
+    claim: "a run whose restore did not read back names the files that did not come back",
+    find: "could NOT be put back (a write failed",
+    replace: "put back (a write failed",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-main-flow-target-always-intact',
+    file: 'scripts/proof-check.mjs',
+    claim: "the run that finds a marker compares the target with its backup",
+    find: "  targetIntact: backupTarget !== null && currentTarget === backupTarget,",
+    replace: "  targetIntact: true,",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-main-flow-registry-always-intact',
+    file: 'scripts/proof-check.mjs',
+    claim: "the run that finds a marker compares the registry with its backup",
+    find: "  registryIntact: backupRegistry !== null && currentRegistry === backupRegistry,",
+    replace: "  registryIntact: true,",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-stranger-pid-refuses',
+    file: 'scripts/proof-check.mjs',
+    claim: "a marker with no start time over a pid running something else is a dead run's",
+    find: "    && !((prior.start === undefined || prior.start === null) && isStranger(command(prior.pid)))",
+    replace: "    && true",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-unconfirmed-pid-offers-kill',
+    file: 'scripts/proof-check.mjs',
+    claim: "a refusal over a pid nobody can identify says to look at it, not to kill it",
+    find: "  const unconfirmed = (prior.start === undefined || prior.start === null) && holder === null",
+    replace: "  const unconfirmed = false",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-unconfirmed-pid-offers-delete',
+    file: 'scripts/proof-check.mjs',
+    claim: "a refusal never offers to delete the state, which holds the only whole copy",
+    find: "do not delete it.`)",
+    replace: "delete ${STATE_DIR} to clear it.`)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-stranded-target-needs-no-marker',
+    file: 'scripts/proof-check.mjs',
+    claim: "an insertion without the marker is newer work, however proof-like its shape",
+    find: "return block !== null && block.includes(MARKER) && onlyProofFunctions(block)",
+    replace: "return block !== null && onlyProofFunctions(block)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-committed-registry-from-working-tree',
+    file: 'scripts/proof-check.mjs',
+    claim: "the committed registry is read from HEAD, not from the working tree",
+    find: "execSync(`git show HEAD:${path}`",
+    replace: "execSync(`cat ${path}`",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-restore-skips-the-registry-readback',
+    file: 'scripts/proof-check.mjs',
+    claim: "a restore is not called one until the registry reads back too",
+    find: " && readFileSync(REGISTRY, 'utf8') === registrySource",
+    replace: "",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'row-scan-leaves-regex-flags-in-the-text',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a regular expression's flags go with it",
+    find: "        while (i < n && /[a-z]/.test(src[i])) i++\n",
+    replace: "",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-ignores-regex-escapes',
+    file: 'scripts/row-confidence.mjs',
+    claim: "an escaped slash does not end a regular expression",
+    find: "          if (r === '\\\\') { i += 2; continue }",
+    replace: "          if (false) { i += 2; continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-regex-runs-past-its-line',
+    file: 'scripts/row-confidence.mjs',
+    claim: "an unterminated regular expression ends at its line",
+    find: "        while (i < n && src[i] !== '\\n') {\n          const r = src[i]",
+    replace: "        while (i < n) {\n          const r = src[i]",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-start-of-text-divides',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash at the very start of the text begins a regular expression",
+    find: "    if (tail === '') return true",
+    replace: "    if (tail === '') return false",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-a-punctuation-mark',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after any operator or opening bracket begins a regular expression",
+    find: "'(,=:[!&|?{};+-*%<>~^'.includes(tail[tail.length - 1])",
+    replace: "'(,=:[!&|?{};+-*%<>~'.includes(tail[tail.length - 1])",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-a-keyword',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after any of its keywords begins a regular expression",
+    find: "'do', 'yield', 'await'])\n  const n",
+    replace: "'do', 'yield'])\n  const n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-line-comment-eats-the-newline',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a line comment ends at its newline and leaves it",
+    find: "if (c === '/' && d === '/') { while (i < n && src[i] !== '\\n') i++; continue }",
+    replace: "if (c === '/' && d === '/') { while (i < n && src[i] !== '\\n') i++; i++; continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-block-comment-ends-on-its-opener',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a block comment cannot end on the slash that opened it",
+    find: "src.indexOf('*/', i + 2)",
+    replace: "src.indexOf('*/', i + 1)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-comment-after-an-operator',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a comment where a regular expression could begin is still a comment",
+    find: "      if (c === '/' && d === '/') {",
+    replace: "      if (c === '/' && d === '/' && regexAllowed() === false) {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-regex-leaves-no-marker',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a regular expression leaves a marker where it was",
+    find: "        out += '0'\n",
+    replace: "        out += ''\n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-template-leaves-no-marker',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a template leaves a marker where it was",
+    find: "if (c === '`') { i = skipTemplate(i + 1); out += \"''\"; continue }",
+    replace: "if (c === '`') { i = skipTemplate(i + 1); continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-captures-any-name',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a capture is a top-level constant in capitals",
+    find: "const [A-Z][A-Z0-9_]* = ",
+    replace: "const [A-Za-z][A-Za-z0-9_]* = ",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgives-one-bare-read',
+    file: 'scripts/row-confidence.mjs',
+    claim: "one clock read more than the captures is flagged",
+    find: "    if (reads > captures) {",
+    replace: "    if (reads > captures + 1) {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-regex-after-return',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after `return` begins a regular expression",
+    find: "    return found !== null && REGEX_AFTER.has(found[1]) && !isPropertyDot(text.slice(0, found.index).trimEnd())",
+    replace: "    return false",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-divides-nothing-after-an-increment',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after a postfix `++` divides",
+    find: "    if (/(\\+\\+|--)$/.test(tail)) {",
+    replace: "    if (false) {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-increment-anchor-dropped',
+    file: 'scripts/row-confidence.mjs',
+    claim: "only a `++` at the very end of the window makes the slash a division",
+    find: "    if (/(\\+\\+|--)$/.test(tail)) {",
+    replace: "    if (/(\\+\\+|--)/.test(tail)) {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-increment-after-a-bracket',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after `a[0]++` divides",
+    find: "/[\\w$)\\]]$/.test(operand)",
+    replace: "/[\\w$)]$/.test(operand)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-increment-after-a-paren',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after `(a)++` divides",
+    find: "/[\\w$)\\]]$/.test(operand)",
+    replace: "/[\\w$\\]]$/.test(operand)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-increment-after-a-space',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after `n ++` divides",
+    find: "const operand = before.trimEnd()",
+    replace: "const operand = before",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-increment-crosses-a-line',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a `++` that starts its statement is a prefix, and a slash after it begins a regular expression",
+    find: " && !before.slice(operand.length).includes('\\n')",
+    replace: "",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-increment-after-a-keyword',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a `++` after a keyword is a prefix",
+    find: " && !endsInKeyword(operand)) return false",
+    replace: ") return false",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-dot-anywhere',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a keyword is a property only when the dot is right before it",
+    find: "before.endsWith('.') && !before.endsWith('...') && !/(?<![\\w$.])\\d+\\.$/.test(before)",
+    replace: "before.includes('.')",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-reads-a-keyword-property-as-a-keyword',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a property spelled like a keyword is not the keyword",
+    find: " && !isPropertyDot(text.slice(0, found.index).trimEnd())",
+    replace: "",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-spread-is-a-property',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a keyword after a spread is a keyword",
+    find: " && !before.endsWith('...')",
+    replace: "",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-number-dot-is-a-property',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a number's decimal point is not a property access",
+    find: " && !/(?<![\\w$.])\\d+\\.$/.test(before)",
+    replace: "",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-property-dot-not-trimmed',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a dot before a space and a keyword is still a property access",
+    find: "text.slice(0, found.index).trimEnd()",
+    replace: "text.slice(0, found.index)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-whitespace-window-is-the-start',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after a long run of spaces is judged by what came before them",
+    find: "    if (tail === '' && out.length > raw.length) tail = out.trimEnd().slice(-64)\n",
+    replace: "",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-to-trim-the-tail',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash after a keyword and a space begins a regular expression",
+    find: "    let tail = raw.trimEnd()",
+    replace: "    let tail = raw",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-looks-back-too-little',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the scan looks back far enough to reach a keyword through spaces",
+    find: "    const raw = out.slice(-64)",
+    replace: "    const raw = out.slice(-8)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-looks-back-one-character',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the scan looks at more than the last character",
+    find: "    const raw = out.slice(-64)",
+    replace: "    const raw = out.slice(-1)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-looks-back-twenty',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the scan reaches a dot further back than twenty characters",
+    find: "    const raw = out.slice(-64)",
+    replace: "    const raw = out.slice(-20)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-captures-fieldday-nospace',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a capture may have whitespace before the call parentheses",
+    find: "(new\\s+Date\\s*\\(\\s*\\)|fieldDay\\s*\\(\\s*\\)|fieldToday",
+    replace: "(new\\s+Date\\s*\\(\\s*\\)|fieldDay\\(\\s*\\)|fieldToday",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-captures-newdate-single-space',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a capture may have any whitespace between new and Date",
+    find: "(new\\s+Date\\s*\\(\\s*\\)|fieldDay\\s*\\(\\s*\\)|fieldToday",
+    replace: "(new Date\\s*\\(\\s*\\)|fieldDay\\s*\\(\\s*\\)|fieldToday",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-captures-greedy',
+    file: 'scripts/row-confidence.mjs',
+    claim: "two captures on one line are two captures",
+    find: "[^\\n]*?(new\\s+Date",
+    replace: "[^\\n]*(new\\s+Date",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-date-now',
+    file: 'scripts/row-confidence.mjs',
+    claim: "Date.now() is a clock read",
+    find: "Date\\s*\\.\\s*now\\s*\\(\\s*\\)|new\\s+Date",
+    replace: "new\\s+Date",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-now-without-whitespace',
+    file: 'scripts/row-confidence.mjs',
+    claim: "Date.now( ) is a clock read",
+    find: "Date\\s*\\.\\s*now\\s*\\(\\s*\\)|new\\s+Date",
+    replace: "Date\\.now\\(\\)|new\\s+Date",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-reads-newdate-single-space',
+    file: 'scripts/row-confidence.mjs',
+    claim: "new  Date() is a clock read",
+    find: "|new\\s+Date\\s*\\(\\s*\\)|fieldDay\\s*\\(\\s*\\)|fieldToday\\s*\\(\\s*\\)/g) ?? []",
+    replace: "|new Date\\s*\\(\\s*\\)|fieldDay\\s*\\(\\s*\\)|fieldToday\\s*\\(\\s*\\)/g) ?? []",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-field-today',
+    file: 'scripts/row-confidence.mjs',
+    claim: "fieldToday() is a clock read",
+    find: "|fieldDay\\s*\\(\\s*\\)|fieldToday\\s*\\(\\s*\\)/g) ?? []\n  return",
+    replace: "|fieldDay\\s*\\(\\s*\\)/g) ?? []\n  return",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-field-day',
+    file: 'scripts/row-confidence.mjs',
+    claim: "fieldDay() is a clock read",
+    find: "|new\\s+Date\\s*\\(\\s*\\)|fieldDay\\s*\\(\\s*\\)|fieldToday\\s*\\(\\s*\\)/g) ?? []",
+    replace: "|new\\s+Date\\s*\\(\\s*\\)|fieldToday\\s*\\(\\s*\\)/g) ?? []",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-ends-a-regex-class-at-a-slash',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash inside a regular expression's character class does not end it",
+    find: "          else if (r === '/' && !inClass) break",
+    replace: "          else if (r === '/') break",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-skips-no-template-expressions',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a template literal's expressions are scanned for where they end",
+    find: "      if (c === '$' && src[i + 1] === '{') {",
+    replace: "      if (false) {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-forgets-template-braces',
+    file: 'scripts/row-confidence.mjs',
+    claim: "braces inside a template expression are counted",
+    find: "        if (c === '{') depth++",
+    replace: "        if (c === '{') depth += 0",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-ignores-template-escapes',
+    file: 'scripts/row-confidence.mjs',
+    claim: "an escaped backtick does not end a template",
+    find: "      if (c === '\\\\') { i += 2; continue }",
+    replace: "      if (false) { i += 2; continue }",
+    expect: 'node scripts/row-confidence.mjs --self-test',
   },
 
   {
@@ -1331,9 +2603,9 @@ const MUTATIONS = [
     // row directly.
     id: 'harness-reads-the-clock-twice',
     file: 'scripts/mutation-check.mjs',
-    claim: "the harness captures its one clock read, so the scorer's own row stays at 100",
-    find: '  at: BASELINE_AT.toISOString(),',
-    replace: '  at: new Date().toISOString(),',
+    claim: "the harness captures each clock read into a constant, so the scorer's own row stays at 100",
+    find: "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: BASELINE_AT.toISOString(),",
+    replace: "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: new Date().toISOString(),",
     expect: 'node scripts/row-confidence.mjs',
   },
 
@@ -1546,6 +2818,142 @@ const MUTATIONS = [
   // the 2026-09-07 incident needed: healing a file a LIVE run is about to
   // rewrite is a race, not a fix.
   {
+    id: 'proof-sentinel-not-created',
+    file: 'scripts/proof-check.mjs',
+    claim: "a restore leaves a sentinel before it starts, so a failure or a kill in the middle of it is remembered",
+    find: "  try { writeFileSync(PENDING_FILE, ''); pending = true } catch {",
+    replace: "  try { pending = true } catch {",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-sentinel-ignored',
+    file: 'scripts/proof-check.mjs',
+    claim: "the run that finds a restore-pending sentinel treats the restore as failed",
+    find: "const restoreFlagged = (priorState !== null && priorState.restoreFailed === true) || existsSync(PENDING_FILE)",
+    replace: "const restoreFlagged = (priorState !== null && priorState.restoreFailed === true)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-flag-ignored',
+    file: 'scripts/proof-check.mjs',
+    claim: "the run that finds a restoreFailed flag in the marker treats the restore as failed",
+    find: "const restoreFlagged = (priorState !== null && priorState.restoreFailed === true) || existsSync(PENDING_FILE)",
+    replace: "const restoreFlagged = existsSync(PENDING_FILE)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-git-env-not-filtered',
+    file: 'scripts/proof-check.mjs',
+    claim: "the scratch repository never inherits a repository location from the caller",
+    find: "...Object.fromEntries(Object.entries(env).filter(([k]) => !/^GIT_/.test(k))), GIT_CONFIG_GLOBAL: '/dev/null'",
+    replace: "...env, GIT_CONFIG_GLOBAL: '/dev/null'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-git-global-config-kept',
+    file: 'scripts/proof-check.mjs',
+    claim: "the scratch repository never reads the caller's git configuration",
+    find: ", GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' })",
+    replace: ", GIT_CONFIG_NOSYSTEM: '1' })",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-git-system-config-kept',
+    file: 'scripts/proof-check.mjs',
+    claim: "the scratch repository never reads the system git configuration",
+    find: ", GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' })",
+    replace: ", GIT_CONFIG_GLOBAL: '/dev/null' })",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-run-identified-by-substring',
+    file: 'scripts/proof-check.mjs',
+    claim: "a process is the run by its arguments, not because its command line mentions the name",
+    find: "const runsProofCheck = command => {",
+    replace: "const runsProofCheck = command => /proof-check/.test(command)\nconst unusedRunsProofCheck = command => {",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-empty-command-is-unreadable',
+    file: 'scripts/proof-check.mjs',
+    claim: "a command line that reads as nothing is a command, not a failed read",
+    find: "try { return read(`/proc/${pid}/cmdline`).split('\\0').join(' ').trim() } catch { return null }",
+    replace: "try { return read(`/proc/${pid}/cmdline`).split('\\0').join(' ').trim() || null } catch { return null }",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-unconfirmed-pid-says-kill',
+    file: 'scripts/proof-check.mjs',
+    claim: "a refusal over a pid nobody can identify offers a way forward that does not kill anything",
+    find: "set \"pid\": 0 in ${MARKER_FILE}",
+    replace: "kill the process; ${MARKER_FILE}",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-classifier-target-alternative-dropped',
+    file: 'scripts/proof-check.mjs',
+    claim: "after a failed restore a target that is provably the run's injection is healed",
+    find: "(targetStranded || targetIntact) &&",
+    replace: "(targetIntact) &&",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-classifier-registry-alternative-dropped',
+    file: 'scripts/proof-check.mjs',
+    claim: "after a failed restore a registry that is provably the run's probe is healed",
+    find: "(registryStranded || registryIntact))) return 'diverged'",
+    replace: "(registryIntact))) return 'diverged'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-diverged-names-both-files',
+    file: 'scripts/proof-check.mjs',
+    claim: "the refusal names only the files that are not as their backups describe",
+    find: "[...new Set(reasons.map(r => r[0]))].join(' and ')",
+    replace: "[TARGET, REGISTRY].join(' and ')",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-unrecorded-failure-claims-recorded',
+    file: 'scripts/proof-check.mjs',
+    claim: "a failed restore that could not be recorded does not say the next run will know",
+    find: "(pending || flagged\n",
+    replace: "(true\n",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-restore-failure-exits-zero',
+    file: 'scripts/proof-check.mjs',
+    claim: "a run whose restore did not read back fails, whatever its checks said",
+    find: "  process.exitCode = 1\n  const notBack =",
+    replace: "  const notBack =",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-main-flow-forgets-the-restore-flag',
+    file: 'scripts/proof-check.mjs',
+    claim: "the run that finds a marker reads whether its restore had failed",
+    find: "  restoreFailed: restoreFlagged,",
+    replace: "  restoreFailed: false,",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-unreadable-pid-is-a-stranger',
+    file: 'scripts/proof-check.mjs',
+    claim: "a pid whose command cannot be read is not called a stranger",
+    find: "const isStranger = command => command !== null && !runsProofCheck(command)",
+    replace: "const isStranger = command => !runsProofCheck(command)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-restore-failure-not-recorded',
+    file: 'scripts/proof-check.mjs',
+    claim: "a restore that did not read back says so in the marker, for the run after it",
+    find: "  try { writeFileSync(MARKER_FILE, JSON.stringify({ ...runMarker, restoreFailed: true }, null, 2) + '\\n'); flagged = true } catch { /* the sentinel still says so */ }",
+    replace: "  void runMarker",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
     id: 'proof-marker-always-heals',
     file: 'scripts/proof-check.mjs',
     claim: 'a marker whose process is still alive refuses rather than repairing',
@@ -1579,8 +2987,8 @@ const MUTATIONS = [
     id: 'proof-marker-heals-over-a-moved-file',
     file: 'scripts/proof-check.mjs',
     claim: 'an injection on a file that has moved on from the backups is not healed: nothing is written and the run stops',
-    find: "  if (injected && !targetStranded) return 'diverged'",
-    replace: "  if (false) return 'diverged'",
+    find: "  if ((injected && !targetStranded) ||",
+    replace: "  if (false ||",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -1603,7 +3011,7 @@ const MUTATIONS = [
     id: 'proof-marker-ignores-liveness',
     file: 'scripts/proof-check.mjs',
     claim: 'whether the marker\'s process is alive is read from the process table and handed to the classifier',
-    find: '  alive: isAlive(priorState?.pid),',
+    find: '  alive: runningElsewhere(priorState),',
     replace: '  alive: false,',
     expect: 'node scripts/proof-check.mjs --self-test',
   },
@@ -1627,16 +3035,16 @@ const MUTATIONS = [
     id: 'proof-marker-never-reads-the-target',
     file: 'scripts/proof-check.mjs',
     claim: 'whether the target is the backup plus an injection is computed and handed to the classifier',
-    find: '  targetStranded,\n  registryStranded,\n})) {',
-    replace: '  targetStranded: false,\n  registryStranded,\n})) {',
+    find: '  targetStranded,\n  registryStranded,\n  registryInjected:',
+    replace: '  targetStranded: false,\n  registryStranded,\n  registryInjected:',
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
     id: 'proof-marker-never-reads-the-registry',
     file: 'scripts/proof-check.mjs',
     claim: 'whether the registry is the backup plus the probe case is computed and handed to the classifier',
-    find: '  targetStranded,\n  registryStranded,\n})) {',
-    replace: '  targetStranded,\n  registryStranded: false,\n})) {',
+    find: '  targetStranded,\n  registryStranded,\n  registryInjected:',
+    replace: '  targetStranded,\n  registryStranded: false,\n  registryInjected:',
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -1655,12 +3063,168 @@ const MUTATIONS = [
     replace: '    if (true) { writeFileSync(TARGET, backupTarget)',
     expect: 'node scripts/proof-check.mjs --self-test',
   },
+  // The marker's lifetime and the identity of its pid (2026-11-04). The phase-2 entries need a
+  // real two-phase run, which the self-test makes with a stand-in dotnet; the others are caught by
+  // the liveness cases, which feed run-marker.mjs a recycled pid, a zombie and an injected /proc.
+  {
+    id: 'proof-marker-trusts-a-recycled-pid',
+    file: 'scripts/run-marker.mjs',
+    claim: 'a pid that a different process now holds is not the run the marker recorded',
+    find: '  return start === undefined || start === null || String(start) === s.start',
+    replace: '  return true',
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-trusts-a-zombie',
+    file: 'scripts/run-marker.mjs',
+    claim: 'a process that has died and not been reaped is not a run still going',
+    find: "  if (s.state === 'Z' || s.state === 'X') return false",
+    replace: '  if (false) return false',
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-refuses-our-own-pid',
+    file: 'scripts/proof-check.mjs',
+    claim: 'a marker that names our own pid is a dead run\'s, judged by the tree, not another run still going',
+    find: '  prior !== null && prior.pid !== selfPid && isLive(prior, probes)',
+    replace: '  prior !== null && isLive(prior, probes)',
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-records-no-start-time',
+    file: 'scripts/proof-check.mjs',
+    claim: 'the marker records when its run started, so a recycled pid can be told from the run',
+    find: '  start: startOf(process.pid),',
+    replace: '  start: null,',
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-dropped-after-the-first-phase',
+    file: 'scripts/proof-check.mjs',
+    claim: 'the marker and backups outlive the first phase, so a kill in the registry phase is healed and a second run there is refused',
+    find: '    restoreFiles()\n  }\n} else if (!source.includes(ANCHOR)) {',
+    replace: '    restore()\n  }\n} else if (!source.includes(ANCHOR)) {',
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
   {
     id: 'proof-marker-never-proceeds',
     file: 'scripts/proof-check.mjs',
     claim: 'no marker on disk means there is nothing to heal or refuse',
     find: "  if (!markerExists) return 'proceed'",
     replace: "  if (false) return 'proceed'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-ignores-a-moved-registry',
+    file: 'scripts/proof-check.mjs',
+    claim: 'a probe case on a registry the backups do not describe is not discarded as stale',
+    find: " || (registryInjected && !registryStranded)) return 'diverged'",
+    replace: ") return 'diverged'",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-never-reads-the-probe',
+    file: 'scripts/proof-check.mjs',
+    claim: 'whether the registry carries the probe case is read from the registry and handed to the classifier',
+    find: '  registryInjected: probeOnRegistry(currentRegistry),',
+    replace: '  registryInjected: false,',
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-refusal-recommends-a-checkout',
+    file: 'scripts/proof-check.mjs',
+    claim: 'the live-run refusal does not tell a person to discard what else is uncommitted in the two files',
+    find: "Wait for it. If it is hung: kill -9 ${prior.pid}. The next run restores the file that still carries its injection, and only that file.`",
+    replace: "Wait for it, or: kill -9 ${prior.pid} && git checkout -- ${TARGET} ${REGISTRY}`",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  // The third review (2026-11-04): one entry per fix to proof-check.mjs and run-marker.mjs, each of which was first written as a clause that passed.
+  {
+    id: 'proof-marker-restore-drops-state-after-a-failed-write',
+    file: 'scripts/proof-check.mjs',
+    claim: "a restore that did not put the files back keeps the state that can",
+    find: "  if (restoreFiles()) { dropState(); return }",
+    replace: "  restoreFiles(); dropState(); return",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-restore-trusts-its-own-write',
+    file: 'scripts/proof-check.mjs',
+    claim: "a restore is judged by reading the files back, not by the write having returned",
+    find: "    return readFileSync(TARGET, 'utf8') === source && readFileSync(REGISTRY, 'utf8') === registrySource",
+    replace: "    return true",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-restore-swallows-a-throwing-write',
+    file: 'scripts/proof-check.mjs',
+    claim: "a restore whose write throws is a failed restore",
+    find: "    return false // best effort — the on-disk backups are the fallback, and they stay",
+    replace: "    return true // best effort — the on-disk backups are the fallback, and they stay",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-gap-may-hold-any-code',
+    file: 'scripts/proof-check.mjs',
+    claim: "a block above the anchor that carries the marker and also other code is not this script's injection",
+    find: "  return block !== null && block.includes(MARKER) && onlyProofFunctions(block)",
+    replace: "  return block !== null && block.includes(MARKER)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-proceeds-over-an-injected-target',
+    file: 'scripts/proof-check.mjs',
+    claim: "a target carrying injected code with no run state is not adopted as the original",
+    find: "      if (injectedNow) strays.push(TARGET)",
+    replace: "      if (false) strays.push(TARGET)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-proceeds-over-a-probed-registry',
+    file: 'scripts/proof-check.mjs',
+    claim: "a registry carrying the probe case with no run state is not adopted as the original",
+    find: "      if (probeOnRegistry(currentRegistry)) strays.push(REGISTRY)",
+    replace: "      if (false) strays.push(REGISTRY)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-refusal-advises-a-plain-kill',
+    file: 'scripts/proof-check.mjs',
+    claim: "the live-run refusal tells a person to kill -9, because a plain kill is not acted on while the synchronous run is going",
+    find: "kill -9 ${prior.pid}. The next run restores",
+    replace: "kill ${prior.pid}. The next run restores",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-refusal-hides-what-the-pid-is',
+    file: 'scripts/proof-check.mjs',
+    claim: "the live-run refusal shows what the pid is running",
+    find: "refusalLines(priorState, commandOf(priorState.pid))",
+    replace: "refusalLines(priorState, null)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-refusal-ignores-a-missing-start',
+    file: 'scripts/proof-check.mjs',
+    claim: "a recorded start time is identity enough: only a marker without one is called unconfirmed",
+    find: "  const unconfirmed = (prior.start === undefined || prior.start === null) && holder === null",
+    replace: "  const unconfirmed = holder === null",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-eperm-reads-as-dead',
+    file: 'scripts/run-marker.mjs',
+    claim: "a process of another user answers signal 0 with EPERM and is alive",
+    find: "    if (e.code !== 'EPERM') return false",
+    replace: "    return false",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: 'proof-marker-trusts-a-torn-down-process',
+    file: 'scripts/run-marker.mjs',
+    claim: "a process in state X is not running",
+    find: "  if (s.state === 'Z' || s.state === 'X') return false",
+    replace: "  if (s.state === 'Z') return false",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   // --- the Draw panel -------------------------------------------------------
@@ -2210,7 +3774,7 @@ const MUTATIONS = [
   // --- Flow over the committed BSD captures (real bytes) ---
   {
     // The real-bytes row sets this against rawShotRows, a generic decode of the same text.
-    id: "flow-census-counts-every-row",
+    id: 'flow-census-counts-every-row',
     file: "src/Flow.fs",
     claim: "the census counts every shotmap row once, read or not",
     find: "      Shots = List.length c.Raws\n",
@@ -2219,7 +3783,7 @@ const MUTATIONS = [
   },
   {
     // flow-full-time-at-90 loosens the marker; this removes the route it opens.
-    id: "flow-full-time-route-records",
+    id: 'flow-full-time-route-records',
     file: "src/Flow.fs",
     claim: "a seen full-time marker records the clock past the last shot, up to 90'",
     find: "|| (sawFullTime c && at < periodEnd SecondHalf))",
@@ -2228,7 +3792,7 @@ const MUTATIONS = [
   },
   {
     // The one sanctioned string form, checked minute by minute on the real capture.
-    id: "flow-label-two-decimals",
+    id: 'flow-label-two-decimals',
     file: "src/Flow.fs",
     claim: "an InFlow accessible name carries sequential xG to two decimals and no more",
     find: "sprintf \"InFlow state active, sequential xG %.2f\"",
@@ -2237,7 +3801,7 @@ const MUTATIONS = [
   },
   {
     // A renderer reading only the opacity would show nothing while the name said InFlow.
-    id: "flow-pulse-draws-inflow",
+    id: 'flow-pulse-draws-inflow',
     file: "src/Flow.fs",
     claim: "the pulse draws exactly where the accessible name says InFlow",
     find: "    | State(InFlow x) -> sprintf \"opacity: %.2f\" (min 1.0 (float (x / 1.0f<xg>)))",
@@ -2248,7 +3812,7 @@ const MUTATIONS = [
   {
     // bdb-frame-types Task 6, first direction. A public Vintage lets any caller write `Current 2022` and
     // relabel an archive as live; VINTAGE-PROOF case 2 compiles cleanly the moment it is public.
-    id: "vintage-cases-public",
+    id: 'vintage-cases-public',
     file: "src/Vintage.fs",
     claim: "a Vintage cannot be built outside the decoder, so an archive cannot be relabelled current",
     find: "type Vintage = private Archive of int<season> | Current of int<season>",
@@ -2257,7 +3821,7 @@ const MUTATIONS = [
   },
   {
     // bdb-frame-types Task 6, second direction: the default that made six files' staleness invisible.
-    id: "vintage-missing-season-defaults",
+    id: 'vintage-missing-season-defaults',
     file: "src/Vintage.fs",
     claim: "an envelope with no season is refused, never stamped with the current year",
     find: "        | Ok(None, _) -> Error NoSeason",
@@ -2266,7 +3830,7 @@ const MUTATIONS = [
   },
   {
     // A blank provenance string is not a provenance.
-    id: "vintage-blank-source-accepted",
+    id: 'vintage-blank-source-accepted',
     file: "src/Vintage.fs",
     claim: "a missing or blank sourceDataset is refused",
     find: "            match source |> Option.filter (fun s -> s.Trim() <> \"\") with",
@@ -2275,7 +3839,7 @@ const MUTATIONS = [
   },
   {
     // Thoth's integer decoder parses "2022"; the guard in front of it is the only thing refusing a string season.
-    id: "vintage-season-string-accepted",
+    id: 'vintage-season-string-accepted',
     file: "src/Vintage.fs",
     claim: "a season written as a JSON string is refused, not parsed into a stamp",
     find: "        if Decode.Helpers.isNumber value then Decode.int path value",
@@ -2284,7 +3848,7 @@ const MUTATIONS = [
   },
   {
     // A season from the future stamped current is the same defect as a missing one, from the other side.
-    id: "vintage-future-season-stamped-current",
+    id: 'vintage-future-season-stamped-current',
     file: "src/Vintage.fs",
     claim: "a season later than the current one is refused, not stamped current",
     find: "    if stated > current then Error(FutureSeason(stated, current))",
@@ -2293,7 +3857,7 @@ const MUTATIONS = [
   },
   {
     // The witness route. Admitting a current season here hands Gravity's projections a live season's wells.
-    id: "vintage-archive-granted-to-current",
+    id: 'vintage-archive-granted-to-current',
     file: "src/Vintage.fs",
     claim: "only an archive season yields the archive value, and so the gravity witness",
     find: "    | Tracked(value, Archive s) when s = displaying -> Some value",
@@ -2302,7 +3866,7 @@ const MUTATIONS = [
   },
   {
     // A receiver level with the snapper is not past the line; inclusive, he becomes a route runner on no route.
-    id: "gridiron-past-line-inclusive",
+    id: 'gridiron-past-line-inclusive',
     file: "src/Gridiron.fs",
     claim: "past the line means strictly beyond the snapper at the snap",
     find: "let pastLine (p: Position<Scrimmage, 'Instant>) : bool = yardsPast p > 0.0<yd>",
@@ -2312,7 +3876,7 @@ const MUTATIONS = [
   {
     // Conservation. The snap counterfactual must assign the same defenders as the release, or drawn
     // stops summing to zero and a receiver "draws" a defender nobody lost.
-    id: "gravity-snap-counts-a-defender-twice",
+    id: 'gravity-snap-counts-a-defender-twice',
     file: "src/Gravity.fs",
     claim: "the snap counterfactual assigns the same defenders as the release, so drawn cancels within a play",
     find: "    (c.Defenders |> List.map (fun p -> p.NflId, c.SnapAt.[p.NflId]))",
@@ -2321,7 +3885,7 @@ const MUTATIONS = [
   },
   {
     // The sign. A zero is Level; counted as Drawing, every unchanged receiver reads as drawing coverage.
-    id: "gravity-drawing-at-zero",
+    id: 'gravity-drawing-at-zero',
     file: "src/Gravity.fs",
     claim: "a receiver who drew nothing beyond his alignment is Level, not Drawing",
     find: "    if drawn > 0 then Drawing pull",
@@ -2330,7 +3894,7 @@ const MUTATIONS = [
   },
   {
     // Rule 99 at the layer that reaches the DOM: a measured zero drawn as nothing is an absence.
-    id: "gravity-level-drawn-as-absence",
+    id: 'gravity-level-drawn-as-absence',
     file: "src/Gravity.fs",
     claim: "Drawing, Level, Ceding and NotRouteRunner are drawn four different ways",
     find: "        | Level p -> Some { Opacity = share p; Shape = Steady }",
@@ -2563,7 +4127,7 @@ const MUTATIONS = [
   // --- Second Wind over the committed NHL capture (real bytes) ---
   {
     // The real-bytes row's counterexample is the capture with its total rewritten to 1.
-    id: "stamina-chart-total-checked",
+    id: 'stamina-chart-total-checked',
     file: "src/Stamina.fs",
     claim: "a shift chart whose total disagrees with its own rows is refused",
     find: "        if total <> List.length rows then",
@@ -2572,7 +4136,7 @@ const MUTATIONS = [
   },
   {
     // The committed game went past regulation; the row requires an attempt there.
-    id: "stamina-overtime-counted",
+    id: 'stamina-overtime-counted',
     file: "src/Stamina.fs",
     claim: "attempts past regulation are counted, not dropped",
     find: "BeyondRegulation = pbp.Attempts |> List.filter (fun a -> a.AttemptPeriod > 3) |> List.length",
@@ -2581,7 +4145,7 @@ const MUTATIONS = [
   },
   {
     // Without the shift the +600 s control covers as much as the real clock, and the row has no control.
-    id: "stamina-coverage-clock-shift",
+    id: 'stamina-coverage-clock-shift',
     file: "src/Stamina.fs",
     claim: "the coverage control moves every instant by its shift",
     find: "        let later = t + clockShift\n",
@@ -2658,7 +4222,7 @@ const MUTATIONS = [
   },
   {
     // The shootout flag. Ignored, a shootout play is drawn as a standard play with a WPA it never had.
-    id: "play-frames-shootout-flag-ignored",
+    id: 'play-frames-shootout-flag-ignored',
     file: "src/LaboratorySurface.fs",
     claim: "a scoring-flag byte of 2 marks a shootout play, which carries no WPA",
     find: "        if flagAt i = ShootoutFlag then",
@@ -2667,7 +4231,7 @@ const MUTATIONS = [
   },
   {
     // The play after a shootout play has nothing before it to differ from.
-    id: "play-frames-wpa-across-a-shootout",
+    id: 'play-frames-wpa-across-a-shootout',
     file: "src/LaboratorySurface.fs",
     claim: "the play after a shootout play has no WPA",
     find: "                if i > 0 && flagAt (i - 1) <> ShootoutFlag then",
@@ -2676,7 +4240,7 @@ const MUTATIONS = [
   },
   {
     // The direction. Reversed, a rise in win probability prints as a fall.
-    id: "play-frames-wpa-reversed",
+    id: 'play-frames-wpa-reversed',
     file: "src/LaboratorySurface.fs",
     claim: "WPA is this play's win probability minus the previous play's",
     find: 'sprintf "%+.3f" (wp - prev)',
@@ -2685,7 +4249,7 @@ const MUTATIONS = [
   },
   {
     // Which record. Named at record 0 whatever the record, the reader looks at the wrong 24 bytes.
-    id: "play-frames-reserved-wrong-record",
+    id: 'play-frames-reserved-wrong-record',
     file: "src/LaboratorySurface.fs",
     claim: "a reserved byte in use is named at the record that holds it",
     find: 'sprintf "bytes 22-23 are not zero at record %d" at',
@@ -2694,7 +4258,7 @@ const MUTATIONS = [
   },
   {
     // The exhibit drops a state: the section would no longer show everything the decoder can say.
-    id: "play-frames-exhibit-drops-a-state",
+    id: 'play-frames-exhibit-drops-a-state',
     file: "src/LaboratorySurface.fs",
     claim: "the exhibit shows each of the six states the decoder names, exactly once",
     find: '      "PLAY 1047", PlayFrame.Wire.allocateBytes 0 ]',
@@ -2772,12 +4336,13 @@ const MUTATIONS = [
  *
  * So when the target is this file, only the region AFTER the table is mutated.
  */
+const guardOf = (source, m) => (m.file === 'scripts/mutation-check.mjs' ? source.indexOf('const selected = ONLY') : 0)
 const applyMutation = (source, m) => {
-  const guard = m.file === 'scripts/mutation-check.mjs'
-    ? source.indexOf('const selected = ONLY')
-    : 0
+  const guard = guardOf(source, m)
   return source.slice(0, guard) + source.slice(guard).replace(m.find, m.replace)
 }
+/** How many times the anchor occurs where the mutation would be applied. `replace` takes the first, so two means the entry may be mutating something other than what its claim says. */
+const anchorCount = (source, m) => source.slice(guardOf(source, m)).split(m.find).length - 1
 
 const eligible = MUTATIONS.filter(m => !m.selfTestOnly)
 // A malformed or out-of-range --shard is a usage error (exit 2, a sentence), not a stack trace; --shard and --ids both choose the mutations, so giving both is ambiguous.
@@ -2813,6 +4378,7 @@ const staleAnchors = (mutations, read) => {
     let source
     try { source = read(m.file) } catch (_) { stale.push(`${m.id}: ${m.file} is unreadable`); continue }
     if (applyMutation(source, m) === source) stale.push(`${m.id}: not found in ${m.file}: ${m.find.trim().slice(0, 100)}`)
+    else if (anchorCount(source, m) > 1) stale.push(`${m.id}: AMBIGUOUS in ${m.file}, ${anchorCount(source, m)} matches, and the first is the one mutated: ${m.find.trim().slice(0, 100)}`)
   }
   return { checked, stale }
 }
@@ -2927,32 +4493,138 @@ const writesBaseline = (only, subset) => ownsBaseline(only) && !subset
 //
 // So the backup is durable, in-repo (gitignored), and carries a marker naming
 // what is applied right now. SIGKILL cannot stop a file already on disk from
-// still being there afterwards. The next run finds the marker, restores from
-// the backup, and says so out loud.
-const stateDir = '.mutation-state'
+// still being there afterwards. The next run finds the marker and, if what it names is provably still as that run left it, undoes it and says so out loud;
+// if the tree has moved on since, it writes nothing and says why (planHeal).
+//
+// WHOSE STATE IT IS (2026-11-04). The exit handler below runs on every invocation that gets
+// this far, and it used to clear the state directory unconditionally. So `--self-test`, which
+// the pre-commit hook runs on every commit, deleted a stranded marker and its backup that a
+// killed run had left, while the mutated file stayed mutated: reproduced, 21/21 passing, the
+// directory gone. (`--anchors` and `--list-ids` exit before this point and never did.) Now a
+// process clears only state it wrote itself (`ownsState`); the self-test works in a temp
+// directory of its own whatever MUTATION_STATE_DIR says (a self-test the harness starts as an
+// `expect` inherits that variable, and must not be pointed at the harness's own directory); and
+// a harness run INSIDE a harness run gets a nested directory, so it neither heals nor overwrites
+// its parent's marker.
+//
+// ONE RUN AT A TIME. The marker exists only while a mutation is applied and heal() looks once,
+// at the start, so a second run started during the first one's baseline found nothing to refuse
+// and read the first run's MUTATED file as its own original. `run.json` in the state directory
+// names the running process for the whole run, created exclusively, and a second run stops.
+//
+// EACH CLOCK READ IS CAPTURED INTO A CONSTANT (RUN_STARTED_AT here, BASELINE_AT where the baseline is written), and nothing else reads the clock. `row-confidence.mjs`
+// scores a script that reads it in any other shape as nondeterministic, and a bare `new Date()` beside these would have failed the gate row that scores this file. (That
+// scan is not a tokenizer and does not see every line of this file; the property is kept by writing the constants, not by the scan.)
+const RUN_STARTED_AT = new Date()
+const stateDir = process.argv.includes('--self-test')
+  ? mkdtempSync(join(tmpdir(), 'mutation-state-'))
+  : (process.env.MUTATION_STATE_DIR || '.mutation-state')
 const marker = join(stateDir, 'active.json')
+const runLock = join(stateDir, 'run.json')
 const backups = new Map()
 let builder = null
+let ownsState = false
+let ownsLock = false
+// While a change made outside the source is applied: how to undo it, and what the tree looked like. An exit undoes it.
+let worldApplied = null
+// True from the moment a mutation of a file the build reads is about to be written until the build has been made clean again and checked. The file going back
+// is not the build going back: a handler that clears the marker in between leaves build/ holding the mutation with no record anywhere (review 2026-11-04).
+let buildDirty = false
+// The files a heal wrote back. A heal that restores a file THIS PROCESS IS BUILT FROM leaves the process running the mutated copy it had already loaded.
+const healedFiles = new Set()
+// Every file this process loaded as code: this one and what it imports, transitively (the self-test reads the import lines and fails if one is missing here).
+const SELF_SOURCES = ['mutation-check.mjs', 'mutation-lib.mjs', 'checks.mjs', 'run-marker.mjs'].map(f => join(dirname(fileURLToPath(import.meta.url)), f))
 
-/** Drop the marker and its backups — the tree is known-good from here. */
-const clearActive = () => rmSync(stateDir, { recursive: true, force: true })
+// Test-only: lets the self-test end a real run at a chosen moment in a way no handler can catch (SIGKILL), or with a throw the handler can.
+const KILL_AT = process.env.MUTATION_KILL_AT || null
+const killHere = async where => {
+  if (KILL_AT !== where) return
+  if (process.env.MUTATION_KILL_SIGNAL === 'throw') throw new Error(`MUTATION_KILL_AT=${where}`)
+  const signal = process.env.MUTATION_KILL_SIGNAL || 'SIGKILL'
+  process.kill(process.pid, signal)
+  // A signal this process catches is not handled where it is sent: Node runs the handler when the event loop turns, and a run with no `await` in its path (a docs mutation)
+  // would otherwise finish the mutation, restore and exit before the handler ever ran, which no clause could tell from a handler that was never installed. SIGKILL needs no turn.
+  if (signal !== 'SIGKILL') await new Promise(done => setTimeout(done, 400))
+}
 
-const restore = () => {
-  for (const [file, path] of backups) {
-    if (existsSync(path)) writeFileSync(file, readFileSync(path))
+const sha = data => createHash('sha256').update(data).digest('hex')
+const shaOfFile = path => (existsSync(path) ? sha(readFileSync(path)) : null)
+/** Who is writing a marker, so a later run can tell this process from a recycled pid (run-marker.mjs). */
+const identity = () => ({ pid: process.pid, start: startOf(process.pid), startedAt: RUN_STARTED_AT.toISOString() })
+/** Where a world mutation keeps what it moves aside: in the state directory, which a restart does not wipe (`/tmp` does). */
+const stashOf = id => join(stateDir, 'world', id)
+
+/** Everything in a state directory but the run lock: the marker, the backups, the stashes. The lock lasts as long as the run that holds it, so nothing that clears state may take it. */
+const emptyEntries = dir => {
+  if (!existsSync(dir)) return
+  for (const entry of readdirSync(dir)) {
+    if (entry !== 'run.json') rmSync(join(dir, entry), { recursive: true, force: true })
   }
-  backups.clear()
-  clearActive()
 }
-for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {
-  process.on(signal, () => { restore(); builder?.stop(); if (signal !== 'exit') process.exit(1) })
+/** Drop the marker, the backups and the stashes — the tree is known-good from here. The run lock stays: it lasts as long as the run. */
+const clearActive = () => {
+  emptyEntries(stateDir)
+  ownsState = false
+}
+/** This process is about to write state, so it is this process's to clear. */
+const claimState = () => { mkdirSync(stateDir, { recursive: true }); ownsState = true }
+/** Created exclusively, so two runs starting together cannot both hold it. False if another has it. */
+const acquireRunLock = () => {
+  mkdirSync(stateDir, { recursive: true })
+  try {
+    writeFileSync(runLock, JSON.stringify(identity()), { flag: 'wx' })
+  } catch (e) {
+    if (e.code === 'EEXIST') return false
+    throw e
+  }
+  ownsLock = true
+  return true
+}
+const releaseRunLock = () => {
+  if (!ownsLock) return
+  rmSync(runLock, { force: true })
+  ownsLock = false
+  try { rmdirSync(stateDir) } catch { /* not empty: state a person still needs */ }
 }
 
-const run = cmd => {
+/**
+ * Is the state this run wrote still there? An expectation runs code that was just mutated, and nothing stops that code from deleting the directory the
+ * harness keeps its marker, backup and lock in: it happened (2026-11-03), through a table entry whose mutated self-test cleaned up the directory it was given,
+ * and the only sign was a run lock that had vanished. A run that loses its own state is one SIGKILL away from a tree nothing can heal, so it says so.
+ */
+const stateIntact = markerText => {
   try {
-    execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
-    return true
+    return readFileSync(marker, 'utf8') === markerText && JSON.parse(readFileSync(runLock, 'utf8')).pid === process.pid
   } catch {
+    return false
+  }
+}
+/** The command an expectation runs. Test-only: one fault makes it delete the harness's marker and run lock first (not the stash or backup), to prove that is noticed; the other makes it write an unrelated file. */
+const expectOf = m => {
+  if (process.env.MUTATION_FAULT === 'expect-wipes-state') return `d="$(dirname "$MUTATION_STATE_DIR")" && rm -f "$d/active.json" "$d/run.json" && ${m.expect}`
+  // ...or writes a file nobody asked for (another session, a build), which a world mutation must not mistake for a failed restore.
+  if (process.env.MUTATION_FAULT === 'expect-writes-unrelated') return `date +%s%N > unrelated-during-window.txt && ${m.expect}`
+  // ...or reports whether it inherited the restart flag, which only the run that was restarted may have (and not its children).
+  if (process.env.MUTATION_FAULT === 'expect-reports-env') return `echo "REEXEC=[$MUTATION_REEXEC]" > expect-env.txt && ${m.expect}`
+  return m.expect
+}
+
+// What a command this script starts sees: a state directory of its own beneath ours, so a harness
+// run inside a harness run (the `harness-blind` expectation is one) never touches this run's marker.
+const childEnv = extra => ({ ...process.env, MUTATION_STATE_DIR: join(stateDir, 'nested'), ...extra })
+
+// Why the last failed run() failed, for the one caller that reports it (a heal's `npm run build`): the exit status or signal and the end of its stderr. execSync's default
+// maxBuffer is 1 MiB, and a command that merely PRINTS more than that is killed and reported as failed (ENOBUFS), so the limit is raised well past anything a build prints and a
+// failure says which kind it was. (Review 4, 2026-11-04: a build that succeeds by hand but prints 1.2 MB wedged every later run behind "npm run build failed".)
+let lastFailure = ''
+const OUTPUT_LIMIT = 256 * 1024 * 1024
+const run = (cmd, extra) => {
+  try {
+    execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(extra), maxBuffer: OUTPUT_LIMIT })
+    return true
+  } catch (e) {
+    const tail = String(e.stderr ?? '').trim().split('\n').slice(-3).join(' | ').slice(0, 300)
+    lastFailure = `${e.code ?? (e.status !== null && e.status !== undefined ? `exit ${e.status}` : `signal ${e.signal}`)}${tail ? `: ${tail}` : ''}`
     return false
   }
 }
@@ -2967,79 +4639,314 @@ const run = cmd => {
  */
 const capture = cmd => {
   try {
-    return execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
+    return execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv() })
   } catch {
     return ''
   }
 }
 
 /**
- * A digest of the working tree, INCLUDING the contents of untracked files.
+ * The working tree as a map of path to content hash, for every file git sees as changed from HEAD or
+ * as untracked (a deleted one reads '<missing>'). Content, not just names: that is what the no-op
+ * detector below needs and what the old whole-tree digest only half had.
  *
- * The no-op detector compared `git status --porcelain` alone, which misses one
- * case exactly: a mutation that REWRITES an untracked file. Porcelain prints
- * `?? path` before and after, `git diff` never sees an untracked file at all,
- * and the comparison concludes nothing happened.
+ * It replaced `treeDigest`, a single hash of `git status --porcelain` plus the contents of UNTRACKED
+ * files, for two reasons the review of 2026-11-04 found. (1) The digest cannot see a content change
+ * to a TRACKED file that is already modified, so a hand edit to such a file left heal() certain the
+ * tree was as the mutation left it, and it wrote the stale stash over the edit. (2) One hash of the
+ * whole tree cannot say which part changed, so any unrelated change during a world mutation (another
+ * session writing a document, a `git add`) read as "the restore failed", aborted a healthy run and
+ * wedged every later one. A map says which paths the mutation touched, and only those are judged.
  *
- * Measured rather than theorised. `outbox-stub` overwrites today's outbox entry
- * with the word "stub". On 2026-08-19 that entry was untracked — newly written,
- * not yet committed — and the mutation was reported as broken rather than run:
- *
- *   FAIL  [outbox-stub] the mutation actually applies
- *         → … left the tree unchanged. Nothing was tested …
- *
- * It had applied perfectly. The detector could not see it, which is the detector
- * committing the error it was built to report.
- *
- * Same root cause as the exposed-secret scanner missing untracked files one day
- * earlier: a git-based view of "the tree" that only covers what git already
- * tracks. Hashing rather than concatenating keeps this cheap on a repo carrying
- * a 13k-line capture.
+ * The original reason for hashing untracked content survives: on 2026-08-19 `outbox-stub` rewrote an
+ * entry that was untracked, `git status --porcelain` printed `?? path` before and after, and the
+ * detector reported a mutation that had applied perfectly as "left the tree unchanged".
  */
-const treeDigest = () => {
-  const h = createHash('sha256').update(capture('git status --porcelain'))
-  for (const f of capture('git ls-files --others --exclude-standard').split('\n').filter(Boolean)) {
-    h.update(f)
-    try { h.update(readFileSync(f)) } catch { h.update('<unreadable>') }
+const treeSnapshot = () => {
+  const git = args => execSync(`git ${args}`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', maxBuffer: 1 << 28 })
+  const snap = {}
+  for (const path of [...git('diff --name-only -z HEAD').split('\0'), ...git('ls-files --others --exclude-standard -z').split('\0')]) {
+    if (!path) continue
+    try { snap[path] = existsSync(path) ? sha(readFileSync(path)) : '<missing>' } catch { snap[path] = '<unreadable>' }
   }
-  return h.digest('hex')
+  return snap
+}
+const sameSnapshot = (a, b) => {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  for (const k of keys) if (a[k] !== b[k]) return false
+  return true
+}
+/** The paths whose content differs between two snapshots, with what each held before and after (null: not in the snapshot). */
+const touchedBy = (before, after) => {
+  const touched = {}
+  for (const k of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    if (before[k] !== after[k]) touched[k] = { before: before[k] ?? null, after: after[k] ?? null }
+  }
+  return touched
+}
+/**
+ * Where one touched path is now: as the mutation left it, as it was, or somewhere else.
+ *
+ * A path the snapshot does not list (`null`) is a path that EQUALS HEAD, because the snapshot lists only what differs from it. So `null` means "as it was" only while
+ * HEAD is where it was: once HEAD has moved, a stub that was committed reads null too. `headMoved` makes that ambiguity an 'other' instead of a restore it did not earn
+ * (review 2026-11-04: the stubbed write-ups were committed, the next run read "already undone", deleted the stash, and the stubs stayed in HEAD).
+ */
+const pathState = (t, here, headMoved = false) => {
+  if (here === t.after) return 'applied'
+  if (here === t.before) return headMoved && here === null ? 'other' : 'undone'
+  return 'other'
+}
+/** Where the paths a world mutation touched are now: all as the mutation left them, all as they were, some of each (a restore cut short), or somewhere else. */
+const worldState = (touched, now, headMoved = false) => {
+  let applied = 0
+  let undone = 0
+  const paths = Object.keys(touched)
+  for (const k of paths) {
+    const s = pathState(touched[k], now[k] ?? null, headMoved)
+    if (s === 'other') return 'other'
+    if (s === 'applied') applied++
+    else undone++
+  }
+  if (applied === paths.length) return 'applied'
+  return undone === paths.length ? 'undone' : 'mixed'
+}
+/** The touched paths that are somewhere else (named in the refusal, so a person does not have to find them). */
+const strayPaths = (touched, now, headMoved = false) => Object.keys(touched).filter(k => pathState(touched[k], now[k] ?? null, headMoved) === 'other')
+/** The commit the working tree is on, or null where it cannot be asked. */
+const headOf = () => {
+  try { return execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf8' }).trim() } catch { return null }
 }
 
 /**
- * Undo a mutation a previous run was killed before it could undo itself.
- *
- * Returns true if there was something to heal. Runs BEFORE the baseline, so
- * the baseline measures the tree as its author left it rather than as a dead
- * process left it.
- *
- * A world mutation carries a shell restore instead of a backup, so the marker
- * carries whichever applies and this heals both kinds.
+ * Undo the world mutation that is applied right now, and READ THE TREE BACK. True only if every path it
+ * touched is as it was. A restore command that ran is not a restore that worked (`|| true` hides a
+ * stash a restart wiped).
  */
-const heal = ({ rebuild = true } = {}) => {
-  if (!existsSync(marker)) return false
+const undoWorld = () => {
+  const w = worldApplied
+  if (w === null) return true
+  // Test-only faults: a restore that does nothing, and one that puts back the first thing in the stash and stops (a `cp` that ran out of disk part-way; written for the
+  // outbox-stub entry, whose write-ups are stashed flat by name). The second leaves the tree a read-back must call `mixed`, not `undone`.
+  const partial = process.env.MUTATION_FAULT === 'world-restore-partial' ? 'f=$(ls "$STASH" | head -1) && cp "$STASH/$f" "outbox/$f"' : w.restore
+  run(process.env.MUTATION_FAULT === 'world-restore-noop' ? 'true' : partial, { STASH: w.stash })
+  let ok = false
+  try {
+    const now = treeSnapshot()
+    ok = w.touched ? worldState(w.touched, now) === 'undone' : sameSnapshot(w.before, now)
+  } catch { ok = false }
+  if (ok) worldApplied = null
+  return ok
+}
 
-  const { id, file, backup, restoreCmd } = JSON.parse(readFileSync(marker, 'utf8'))
-  console.log(`\n  HEALED: a previous run was killed with [${id}] still applied.`)
+const restore = () => {
+  for (const [file, path] of backups) {
+    if (existsSync(path)) writeFileSync(file, readFileSync(path))
+  }
+  backups.clear()
+  // A world mutation still applied is undone BEFORE the state goes: its stash is in the state directory, and is the only copy of
+  // whatever it moved aside. If the undo could not be verified the state stays, for heal() and for a person.
+  const undone = undoWorld()
+  // ...and a source mutation whose BUILD has not been verified clean keeps its marker too. The file is back, so the next heal reads "already undone" and rebuilds;
+  // clearing the marker here would leave build/ holding the mutation with nothing to say so. (A catchable signal or fatal() takes this path; SIGKILL never reaches it.)
+  if (ownsState && undone && !buildDirty) clearActive()
+  releaseRunLock()
+}
+for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException']) {
+  process.on(signal, err => {
+    // A listener for uncaughtException replaces Node's own report of it, so without this line a crash exits 1 and says nothing (found 2026-11-04, when a mutated
+    // lock check crashed the self-test before its first clause and the only output was the heading).
+    if (signal === 'uncaughtException') console.error(err?.stack ?? String(err))
+    restore(); builder?.stop(); if (signal !== 'exit') process.exit(1)
+  })
+}
 
-  if (restoreCmd) {
-    run(restoreCmd)
-    console.log(`  Ran its restore command before measuring anything.`)
-  } else if (existsSync(backup)) {
-    writeFileSync(file, readFileSync(backup))
-    console.log(`  Restored ${file} from its backup before measuring anything.`)
+/** The marker for a source mutation: what the file is before, what the mutation makes it, whether it could reach build/ (a heal rebuilds only if so), and who is writing. */
+const sourceMarker = (m, backup, original, mutated, rebuild) =>
+  ({ id: m.id, file: m.file, backup, originalSha: sha(original), mutatedSha: sha(mutated), rebuild, ...identity() })
+/** The marker for a change made outside the source: where its stash is and the tree before (the paths it touched are added once it is applied). */
+const worldMarkerOf = (m, stash, before) =>
+  ({ id: m.id, restoreCmd: m.restore, stash, before, head: headOf(), ...identity() })
+
+/**
+ * What to do about a marker a previous run left, as a value rather than as control flow.
+ *
+ * A marker says a run was killed. It does not say the tree is still as that run left it, and
+ * heal() used to write the backup over the file on that sentence alone: the same defect as the
+ * one proof-check had (docs/CC-CMD-2026-11-03-proof-check-stale-state.md), in the harness that
+ * runs after it. A backup is applied only to a file that is exactly what the run made it, and
+ * the marker now records what that is: the hash of the original and of the mutation for a
+ * source file; for a change made outside the source, the tree before and the paths it touched,
+ * each with its hash before and after. Nothing else in the tree is judged.
+ *
+ *   refuse     its process is still running (and is the one it names): a second run would
+ *              mutate the same files. Nothing is touched.
+ *   restore    the file (or every path touched) is exactly as the mutation left it, or a restore
+ *              was cut short: undo it. The restore commands are written to be re-run.
+ *   clear      it is already as it was before: the run died after its restore and before it
+ *              dropped the marker. Nothing to write; drop the state.
+ *   diverged   it is neither: it changed after the kill (or, for a change made outside the source, HEAD moved and a path can no longer be
+ *              told from one that was put back). Nothing is written, the state stays. A file that is neither the original nor the mutation
+ *              is diverged whether or not its backup survives: its edit is a person's work, not damage.
+ *   lost       the file is exactly the mutation, but the backup is missing or is not the original it should be.
+ *   legacy     the marker predates the hashes and cannot be checked.
+ *   unreadable it does not parse, or names no mutation.
+ *
+ * Every outcome but restore and clear stops the run with the state on disk, because the state
+ * is the evidence a person needs.
+ */
+const planHeal = (m, probes) => {
+  if (m === null || typeof m !== 'object' || typeof m.id !== 'string') return 'unreadable'
+  if (probes.live(m)) return 'refuse'
+  if (typeof m.restoreCmd === 'string') {
+    if (m.before === null || typeof m.before !== 'object') return 'legacy'
+    const now = probes.snapshot()
+    if (m.touched) {
+      const where = worldState(m.touched, now, headMovedSince(m, probes))
+      if (where === 'undone') return 'clear'
+      return where === 'other' ? 'diverged' : 'restore'
+    }
+    // Killed before the mutation was recorded as applied: partial and moved-on cannot be told apart, so only "nothing changed" is acted on.
+    return sameSnapshot(m.before, now) ? 'clear' : 'diverged'
+  }
+  if (typeof m.originalSha !== 'string' || typeof m.mutatedSha !== 'string') return 'legacy'
+  const now = probes.fileSha(m.file)
+  if (now === m.originalSha) return 'clear'
+  // Neither the original nor the mutation is somebody's edit. It is judged before the backup: an edit made after the kill, with the backup also gone, is
+  // new work and not damage, and "restore that file by hand" would send a person to discard it.
+  if (now !== m.mutatedSha) return 'diverged'
+  return probes.fileSha(m.backup) === m.originalSha ? 'restore' : 'lost'
+}
+/** Has HEAD moved since the marker was written? Only a marker that recorded it can say. */
+const headMovedSince = (m, probes) => typeof m.head === 'string' && probes.head() !== m.head
+
+const healProbes = { live: isLive, fileSha: shaOfFile, snapshot: treeSnapshot, head: headOf, exec: (cmd, extra) => run(cmd, extra) }
+
+/**
+ * Undo a mutation a previous run was killed before it could undo itself, in the state directory
+ * `dir`, if what it left is provably its own. Returns true if there was a marker it dealt with.
+ *
+ * Runs BEFORE the baseline, so the baseline measures the tree as its author left it rather than as
+ * a dead process left it. `exit` and `log` are parameters so the self-test can see the refusals.
+ */
+const healAt = (dir, { rebuild = true, probes = healProbes, exit = process.exit, log = console.log } = {}) => {
+  const where = join(dir, 'active.json')
+  if (!existsSync(where)) return false
+
+  let m = null
+  try { m = JSON.parse(readFileSync(where, 'utf8')) } catch { m = null }
+  // A world mutation's stash is the only copy of whatever it moved aside (an untracked write-up is not in `git status` once it is moved). A refusal that tells a
+  // person to delete the state directory must not do so over a stash that is not empty.
+  const stashHeld = () => { try { return readdirSync(join(dir, 'world')).length > 0 } catch { return false } }
+  // Every refusal ends the same way: how to make it stop, once a person has looked. A live run's refusal says to wait instead, so it passes `clears` false.
+  const stop = (text, clears = true) => {
+    const how = !clears ? '' : stashHeld()
+      ? ` What a world mutation moved aside is in ${join(dir, 'world')}: put it back first, because deleting ${dir} deletes the only copy.`
+      : ` When the tree is right, delete ${dir} to clear this.`
+    log(`::error::${where} ${text}${how}`)
+    exit(1)
+    return true
+  }
+  let outcome
+  try {
+    outcome = planHeal(m, probes)
+  } catch (e) {
+    return stop(`could not be checked against the tree (${String(e.message).split('\n')[0]}). Nothing was touched.`)
+  }
+
+  if (outcome === 'unreadable') return stop('is not a marker this harness wrote (it does not parse, or names no mutation). Nothing was touched; read `git status` first.')
+  if (outcome === 'refuse') return stop(`names pid ${m.pid}, which is still running: a mutation run is IN PROGRESS. A second one would mutate the same files, so this one stops. Nothing was touched. Wait for pid ${m.pid} to finish, or stop it (kill -9 if it ignores a plain kill), then run this again.`, false)
+  if (outcome === 'legacy') return stop(`was written before markers recorded what the mutation did, so it cannot be checked against the tree. Nothing was touched. [${m.id}]: ${m.restoreCmd ? `\`${m.restoreCmd}\` undoes it` : `${m.backup} is the original of ${m.file}`}.`)
+  if (outcome === 'lost') return stop(`names [${m.id}] on ${m.file}, which is still exactly the mutation, but its backup is gone or is not the original — restore that file by hand (\`git diff\` shows the damage).`)
+  if (outcome === 'diverged') {
+    if (m.restoreCmd) {
+      // Named, not generic: the paths that are somewhere else are the ones a person must not put the stash over. The restore command is not offered, because
+      // it copies the stash over every path it touched, including the ones listed here.
+      if (!m.touched) {
+        return stop(`names [${m.id}], a change made outside the source, and it was killed before it recorded which paths it touched, and the tree now differs from what it was before it ran. The mutation itself may have made those changes, or a person may have after the kill; the two cannot be told apart, so nothing was run. What it moved aside is in ${m.stash}.`)
+      }
+      const moved = headMovedSince(m, probes)
+      const stray = strayPaths(m.touched, probes.snapshot(), moved)
+      return stop(`names [${m.id}], a change made outside the source, and a path it touched is neither as it was nor as the mutation left it (${stray.slice(0, 6).join(', ')}${stray.length > 6 ? `, and ${stray.length - 6} more` : ''}): ${moved ? 'HEAD has moved since the kill, so a path that now matches HEAD cannot be told from one that was put back' : 'it changed after the kill'}. Nothing was run. Put back from ${m.stash} only the paths that are still as the mutation left them; its restore command would overwrite the ones listed.`)
+    }
+    const original = probes.fileSha(m.backup) === m.originalSha
+    return stop(`names [${m.id}] on ${m.file}, and that file is neither the original nor the mutation: it changed after the kill. Nothing was written. ${original ? `The original is ${m.backup}.` : `Its backup (${m.backup}) is also gone or is not the original.`}`)
+  }
+
+  // A source file back to the original is not a build back to the original: the restore writes the file and THEN waits for the compile, and a kill in between leaves
+  // build/ holding the mutation. The old heal always rebuilt. A rebuild that FAILED is not a clean build either (dotnet missing after a restart, a compile error), and the
+  // marker is the only record that build/ may hold the mutation, so it stays: the next run reads "already undone" and tries the build again.
+  //
+  // ONLY A MUTATION THAT COULD REACH build/ is rebuilt for (`m.rebuild`, written with the marker; a marker without the field is treated as one that could). A docs or script
+  // mutation cannot, and the forced build used to wedge it: a failed `npm run build` (dotnet missing after a restart) refused every later run over a file that was already back
+  // (review 4, 2026-11-04). The refusal carries the build's own failure, so it can be told from a build that merely printed too much.
+  const rebuilds = rebuild && !m.restoreCmd && m.rebuild !== false
+  const rebuildFailed = () => `\`npm run build\` failed${lastFailure ? ` (${lastFailure})` : ''}, so build/ may still hold the mutation. Run it by hand, then run this again. The marker stays until a build succeeds.`
+  if (outcome === 'clear') {
+    log(`\n  Nothing to heal: [${m.id}] was already undone (the run was killed after its restore, before it dropped its marker).`)
+    if (rebuilds && !probes.exec('npm run build')) return stop(`names [${m.id}], which was already undone, but ${rebuildFailed()}`, false)
+    dropState(dir)
+    return true
+  }
+
+  log(`\n  HEALED: a previous run was killed with [${m.id}] still applied.`)
+  if (m.restoreCmd) {
+    probes.exec(m.restoreCmd, { STASH: m.stash })
+    // The command is not trusted to have worked: `|| true` in a restore hides a stash a restart wiped.
+    let back = false
+    try { back = m.touched ? worldState(m.touched, probes.snapshot()) === 'undone' : sameSnapshot(m.before, probes.snapshot()) } catch { back = false }
+    if (!back) return stop(`ran [${m.id}]'s restore command, but what it touched is not as it was before the mutation. The stash is ${m.stash}; compare \`git status\` with it.`)
+    log('  Ran its restore command, and what the mutation touched is as it was before.')
+  } else {
+    writeFileSync(m.file, readFileSync(m.backup))
+    healedFiles.add(resolve(m.file))
+    log(`  Restored ${m.file} from its backup before measuring anything.`)
     // The stranded file is source more often than not, and every check below
     // reads build/ rather than src/. Healing the source and leaving the stale
     // build in place would reproduce the exact failure this is fixing.
-    if (rebuild) run('npm run build')
-  } else {
-    // Naming it and stopping beats guessing. `git diff` will show the damage
-    // and the id says which mutation to look for.
-    console.log(`::error::${marker} names [${id}] on ${file}, but its backup is gone — restore that file by hand`)
-    process.exit(1)
+    if (rebuilds && !probes.exec('npm run build')) return stop(`names [${m.id}]; ${m.file} is restored, but ${rebuildFailed()}`, false)
   }
-
-  clearActive()
+  dropState(dir)
   return true
+}
+/** Remove a state directory's contents (the run lock is not among them: a heal runs while this process holds it) and then the directory, if that leaves it empty. */
+const dropState = dir => {
+  emptyEntries(dir)
+  try { rmdirSync(dir) } catch { /* the run lock is still in it */ }
+}
+
+/**
+ * The run lock of a state directory: stop if the run it names is still going, remove it if that run is gone.
+ * (A lock left by a killed run is stale; a marker left beside it is healed by healAt.)
+ */
+const checkLockAt = (dir, { probes = healProbes, exit = process.exit, log = console.log } = {}) => {
+  const lockFile = join(dir, 'run.json')
+  if (!existsSync(lockFile)) return
+  let held = null
+  try { held = JSON.parse(readFileSync(lockFile, 'utf8')) } catch { held = null }
+  if (held !== null && probes.live(held)) {
+    log(`::error::${lockFile} names pid ${held.pid}, which is still running: a mutation run is IN PROGRESS here. A second one would read its mutated file as its own original, so this one stops. Nothing was touched. Wait for pid ${held.pid} to finish, or stop it (kill -9 if it ignores a plain kill), then run this again.`)
+    exit(1)
+    return
+  }
+  rmSync(lockFile, { force: true })
+}
+/** Both run locks of a state directory: the run's own, and the one a harness run inside it would hold. */
+const checkLocks = (dir, options) => {
+  checkLockAt(dir, options)
+  checkLockAt(join(dir, 'nested'), options)
+}
+
+// A harness run inside a harness run keeps its state in a directory of its own (see childEnv); if its parent was killed
+// while it had a mutation applied, that is where the evidence is, and the parent's heal must look there too, first.
+// This is the heal itself, for a directory whose run lock (if there is one) is already this process's: the main flow takes the lock BEFORE it heals, because a heal
+// is the longest phase of a start (a source restore ends in a full compile) and a second run starting during it found no lock to refuse.
+const healHeld = (dir, options) => {
+  const nested = healAt(join(dir, 'nested'), options)
+  return healAt(dir, options) || nested
+}
+const healIn = (dir, options) => {
+  checkLocks(dir, options)
+  return healHeld(dir, options)
 }
 
 const { check, summarize } = createChecks()
@@ -3050,37 +4957,851 @@ const { check, summarize } = createChecks()
 // something untrue about a tree nobody meant to create, and that is not
 // something the normal suite would ever notice about itself.
 //
-// Deliberately operates on a throwaway file in tmp, never on real source. The
-// bug being guarded against is one that damages the working tree; a self-test
-// that damaged the working tree to prove it would be its own worst example.
+// Deliberately operates on throwaway files in tmp, never on real source, and in a state
+// directory of its own, never the real one (see stateDir). The bug being guarded against
+// is one that damages the working tree; a self-test that damaged the working tree, or
+// deleted the evidence a killed run left, to prove it would be its own worst example.
 if (process.argv.includes('--self-test')) {
   console.log('\nHeal self-test\n')
+  // The scratch repositories below are made and committed to with git, and git does not start from nothing. Run from a hook (the pre-commit hook runs this through
+  // `check:mutation-anchors`) it carries GIT_DIR / GIT_INDEX_FILE for the repository BEING COMMITTED (absolute in a linked worktree and in `git commit -a`), and those send
+  // `git init` / `git add -A` / `git commit` at that repository: core.bare=true, the identity overwritten, the index replaced by the scratch repository's (reproduced in review 4,
+  // 2026-11-04). A developer's own configuration is the same kind of input: commit.gpgsign dies at the first scratch commit, core.hooksPath runs a hook inside it, core.autocrlf
+  // rewrites the fixtures. None of it is read here. (GIT_CONFIG_NOSYSTEM is not exercised by a clause: a system config file cannot be planted without privileges.)
+  for (const k of Object.keys(process.env)) if (/^GIT_/.test(k)) delete process.env[k]
+  process.env.GIT_CONFIG_GLOBAL = '/dev/null'
+  process.env.GIT_CONFIG_NOSYSTEM = '1'
+  // A killed run's mutation of THIS FILE makes most of the clauses below fail, and the failures name the harness, not the killed run. Say what is stranded and how to
+  // heal it, before the clauses, so the report points at the cause. (The self-test itself never heals: it works in a directory of its own.)
+  {
+    const real = process.env.MUTATION_STATE_DIR || '.mutation-state'
+    let stranded = null
+    try { stranded = JSON.parse(readFileSync(join(real, 'active.json'), 'utf8')) } catch { stranded = null }
+    if (stranded !== null) console.log(`::warning::${join(real, 'active.json')} is a mutation a killed run left applied ([${stranded.id ?? 'unknown'}] on ${stranded.file ?? 'the tree'}). This self-test does not touch it, and clauses below may fail because of it. Heal it first: node scripts/mutation-check.mjs --heal`)
+  }
 
-  const victim = join(tmpdir(), 'mutation-selftest-victim.txt')
-  const backup = join(tmpdir(), 'mutation-selftest-backup.txt')
-  writeFileSync(backup, 'ORIGINAL')
-  writeFileSync(victim, 'MUTATED')
-  mkdirSync(stateDir, { recursive: true })
-  writeFileSync(marker, JSON.stringify({ id: 'self-test', file: victim, backup }))
+  // Every scenario below runs the real planHeal() and healAt() in a temp directory of its own, with the process check, the tree snapshot
+  // and the commands replaced by fakes where a scenario needs them: nothing reads the working tree, writes outside tmp, or builds.
+  // The last group starts the REAL script in a scratch git repository and ends it in the ways a handler cannot catch.
+  const scratch = mkdtempSync(join(tmpdir(), 'heal-selftest-'))
+  let caseNo = 0
+  const DEAD = { pid: 2 ** 30, start: '1', startedAt: '2026-10-20T20:00:00.000Z' }
+  // Where /proc cannot say when a process started, a recycled pid cannot be told from the run: the signal's answer stands (run-marker.mjs),
+  // and the clauses that need the difference are not asserted rather than failed.
+  const haveProc = startOf(process.pid) !== null
+  const read = p => (existsSync(p) ? readFileSync(p, 'utf8') : '<missing>')
+  const said = []
+  const stops = []
+  const options = (probes, rebuild = false) => ({ rebuild, probes: { ...healProbes, ...probes }, exit: code => { stops.push(code); throw new Error('exit') }, log: t => said.push(t) })
+  // exit() throws, so a refusal can be seen and the scenario goes on; the lines heal prints are kept, not shown (an `::error::` line in a
+  // passing self-test would be an annotation on a green run).
+  const attempt = (state, probes = {}, rebuild = false) => {
+    stops.length = 0
+    said.length = 0
+    try {
+      const r = healAt(state, options(probes, rebuild))
+      return { returned: r, code: null, said: said.join('\n') }
+    } catch (e) {
+      // Anything but the stop is a failure of THIS scenario, reported as one, not an exception that ends the self-test and hides the rest.
+      return { returned: null, code: e.message === 'exit' ? stops[0] : null, said: said.join('\n'), threw: e.message === 'exit' ? null : e.message }
+    }
+  }
+  // A refusal is judged by its reason as well as its exit code: a stop for the wrong reason is a different bug.
+  const stoppedFor = (r, re) => r.code === 1 && re.test(r.said)
+  // A source marker over a victim file and its backup. `strip` removes fields to make a marker of an older shape.
+  const source = ({ victim, backupText, original = 'ORIGINAL', mutated = 'MUTATED', over = {}, strip = [] }) => {
+    const dir = join(scratch, `case-${++caseNo}`)
+    const state = join(dir, 'state')
+    mkdirSync(state, { recursive: true })
+    const file = join(dir, 'victim.txt')
+    const backup = join(dir, 'backup.txt')
+    if (victim !== null) writeFileSync(file, victim)
+    if (backupText !== null) writeFileSync(backup, backupText)
+    const body = { id: 'selftest', file, backup, originalSha: sha(original), mutatedSha: sha(mutated), ...DEAD, ...over }
+    for (const k of strip) delete body[k]
+    writeFileSync(join(state, 'active.json'), JSON.stringify(body))
+    return { file, state, kept: () => existsSync(join(state, 'active.json')) }
+  }
 
-  // No rebuild: the victim is a text file in tmp, and a `npm run build` here
-  // would make a self-test of the recovery path cost as much as a real run.
-  const healed = heal({ rebuild: false })
-  const content = existsSync(victim) ? readFileSync(victim, 'utf8') : '<missing>'
-
-  check('an abandoned mutation is detected', healed,
+  const killed = source({ victim: 'MUTATED', backupText: 'ORIGINAL' })
+  const healedKilled = attempt(killed.state)
+  check('an abandoned mutation is detected', healedKilled.returned === true,
     'the marker was on disk and heal() reported nothing to do')
-  check('the abandoned file is restored from its backup', content === 'ORIGINAL',
-    `the file still reads ${JSON.stringify(content)}`)
+  check('the abandoned file is restored from its backup', read(killed.file) === 'ORIGINAL',
+    `the file still reads ${JSON.stringify(read(killed.file))}`)
   check('the marker is cleared, so the next run does not heal twice',
-    !existsSync(marker), 'the marker is still on disk after healing')
-  check('a clean tree reports nothing to heal', heal({ rebuild: false }) === false,
+    !killed.kept(), 'the marker is still on disk after healing')
+  check('a clean tree reports nothing to heal', attempt(join(scratch, 'no-such-state')).returned === false,
     'heal() claimed to heal a tree with no marker — it would fire on every run')
+
+  const moved = source({ victim: 'NEWER CONTENT, written after the kill', backupText: 'ORIGINAL' })
+  const movedRun = attempt(moved.state)
+  check('A STALE MARKER OVER A FILE THAT HAS MOVED ON OVERWRITES NOTHING: it stops, the file is untouched, the state is kept',
+    stoppedFor(movedRun, /neither the original nor the mutation/) && read(moved.file) === 'NEWER CONTENT, written after the kill' && moved.kept(),
+    `exit ${movedRun.code}, file reads ${JSON.stringify(read(moved.file))}, marker kept ${moved.kept()}`)
+  check('...and a refusal that leaves state behind says how to clear it', /delete .* to clear this/.test(movedRun.said), movedRun.said)
+  // An edit made after the kill is a person's work whether or not the backup survived: judged before the backup, it is `diverged`, not `lost` ("damage").
+  const movedNoBackup = source({ victim: 'NEWER CONTENT, written after the kill', backupText: null })
+  const movedNoBackupRun = attempt(movedNoBackup.state)
+  check('AN EDIT MADE AFTER THE KILL IS NOT CALLED DAMAGE WHEN THE BACKUP IS ALSO GONE: it is diverged, the file is untouched, and the message says the backup is gone too',
+    stoppedFor(movedNoBackupRun, /neither the original nor the mutation/) && /also gone or is not the original/.test(movedNoBackupRun.said) && read(movedNoBackup.file) === 'NEWER CONTENT, written after the kill' && movedNoBackup.kept(),
+    `exit ${movedNoBackupRun.code}; ${movedNoBackupRun.said.slice(0, 200)}; file ${JSON.stringify(read(movedNoBackup.file))}`)
+
+  const undone = source({ victim: 'ORIGINAL', backupText: 'NOT THE ORIGINAL, AND NOT NEEDED' })
+  const undoneBuilds = []
+  const undoneRun = attempt(undone.state, { exec: cmd => { undoneBuilds.push(cmd); return true } }, true)
+  check('a run killed AFTER its restore has nothing healed: no write, the state is dropped, even with a damaged backup',
+    undoneRun.returned === true && read(undone.file) === 'ORIGINAL' && !undone.kept(),
+    `returned ${undoneRun.returned}, file reads ${JSON.stringify(read(undone.file))}, marker kept ${undone.kept()}`)
+  const restoredBuilds = []
+  const stranded = source({ victim: 'MUTATED', backupText: 'ORIGINAL' })
+  attempt(stranded.state, { exec: cmd => { restoredBuilds.push(cmd); return true } }, true)
+  check('A SOURCE RESTORE IS FOLLOWED BY A REBUILD, AND SO IS "ALREADY UNDONE": a kill between the file going back and the build going back leaves the file right and build/ holding the mutation',
+    restoredBuilds.join() === 'npm run build' && undoneBuilds.join() === 'npm run build',
+    `after a restore: [${restoredBuilds}], after "already undone": [${undoneBuilds}]`)
+
+  // The marker is the only record that build/ may hold the mutation, so a rebuild that FAILED does not drop it: the next run reads "already undone" and builds again.
+  const failedRestore = source({ victim: 'MUTATED', backupText: 'ORIGINAL' })
+  const failedRestoreRun = attempt(failedRestore.state, { exec: () => false }, true)
+  const failedRestoreKept = failedRestore.kept()
+  const failedClear = source({ victim: 'ORIGINAL', backupText: 'ORIGINAL' })
+  const failedClearRun = attempt(failedClear.state, { exec: () => false }, true)
+  const retriedBuild = attempt(failedRestore.state, { exec: () => true }, true)
+  check('A REBUILD THAT FAILED IS NOT CALLED HEALED, after a restore or after "already undone": the run stops, the marker is kept, and the next run builds again and drops it',
+    stoppedFor(failedRestoreRun, /npm run build. failed/) && read(failedRestore.file) === 'ORIGINAL' && failedRestoreKept && /Run it by hand/.test(failedRestoreRun.said) && !/delete .* to clear this/.test(failedRestoreRun.said)
+      && stoppedFor(failedClearRun, /npm run build. failed/) && failedClear.kept() && !/delete .* to clear this/.test(failedClearRun.said)
+      && retriedBuild.returned === true && !failedRestore.kept(),
+    `after a restore: exit ${failedRestoreRun.code}, marker kept ${failedRestoreKept}; after "already undone": exit ${failedClearRun.code}, marker kept ${failedClear.kept()}; next run returned ${retriedBuild.returned}`)
+
+  // Only a mutation that could reach build/ is rebuilt for. A docs or script mutation cannot, and a build that fails used to refuse every later run over a file that was already back.
+  const docsRestored = source({ victim: 'MUTATED', backupText: 'ORIGINAL', over: { rebuild: false } })
+  const docsRestoredBuilds = []
+  const docsRestoredRun = attempt(docsRestored.state, { exec: cmd => { docsRestoredBuilds.push(cmd); return false } }, true)
+  const docsUndone = source({ victim: 'ORIGINAL', backupText: 'ORIGINAL', over: { rebuild: false } })
+  const docsUndoneBuilds = []
+  const docsUndoneRun = attempt(docsUndone.state, { exec: cmd => { docsUndoneBuilds.push(cmd); return false } }, true)
+  check('A MUTATION THAT COULD NOT REACH build/ IS HEALED WITHOUT A BUILD, so a build that fails cannot hold it: restored or already undone, the file is right, no build was started, the state is dropped',
+    docsRestoredRun.returned === true && read(docsRestored.file) === 'ORIGINAL' && !docsRestored.kept() && docsRestoredBuilds.length === 0
+      && docsUndoneRun.returned === true && !docsUndone.kept() && docsUndoneBuilds.length === 0,
+    `restored: returned ${docsRestoredRun.returned}, builds [${docsRestoredBuilds}], kept ${docsRestored.kept()}; undone: returned ${docsUndoneRun.returned}, builds [${docsUndoneBuilds}], kept ${docsUndone.kept()}`)
+  const reachable = sourceMarker({ id: 'x', file: 'f' }, 'b', 'A', 'B', true)
+  const unreachable = sourceMarker({ id: 'x', file: 'f' }, 'b', 'A', 'B', false)
+  check('a source marker records whether the mutation could reach build/, for the run that heals it',
+    reachable.rebuild === true && unreachable.rebuild === false, JSON.stringify({ reachable: reachable.rebuild, unreachable: unreachable.rebuild }))
+
+  const noBackup = source({ victim: 'MUTATED', backupText: null })
+  const wrongBackup = source({ victim: 'MUTATED', backupText: 'SOMETHING ELSE' })
+  const lostRuns = [noBackup, wrongBackup].map(c => ({ c, r: attempt(c.state) }))
+  check('A BACKUP THAT IS GONE, OR IS NOT THE ORIGINAL, IS NOT WRITTEN: the run stops, the file is untouched, the state is kept',
+    lostRuns.every(({ c, r }) => stoppedFor(r, /backup is gone or is not the original/) && read(c.file) === 'MUTATED' && c.kept()),
+    lostRuns.map(({ c, r }) => `exit ${r.code} file ${JSON.stringify(read(c.file))} kept ${c.kept()}`).join(' / '))
+
+  const live = source({ victim: 'MUTATED', backupText: 'ORIGINAL', over: { pid: process.pid, start: startOf(process.pid) } })
+  const liveRun = attempt(live.state)
+  check('A RUN STILL GOING IS NOT HEALED UNDER: its marker stops this run, and the file is untouched',
+    stoppedFor(liveRun, /still running/) && read(live.file) === 'MUTATED' && live.kept(),
+    `exit ${liveRun.code}, file ${JSON.stringify(read(live.file))}, marker kept ${live.kept()}`)
+  // A refusal on a live run says to wait, not to delete the state directory: the run that owns it is still using it.
+  check('...and says to wait for it, not to delete its state',
+    /Wait for pid \d+/.test(liveRun.said) && !/delete .* to clear this/.test(liveRun.said), liveRun.said)
+  const recycled = source({ victim: 'MUTATED', backupText: 'ORIGINAL', over: { pid: process.pid, start: '1' } })
+  const recycledRun = attempt(recycled.state)
+  check('...but a pid that another process now holds is not that run: the marker is judged by the file and healed (where /proc can say so)',
+    haveProc ? (recycledRun.returned === true && read(recycled.file) === 'ORIGINAL') : stoppedFor(recycledRun, /still running/),
+    `returned ${recycledRun.returned}, code ${recycledRun.code}, file ${JSON.stringify(read(recycled.file))}`)
+
+  const legacy = source({ victim: 'MUTATED', backupText: 'ORIGINAL', strip: ['originalSha', 'mutatedSha', 'pid', 'start', 'startedAt'] })
+  const legacyRun = attempt(legacy.state)
+  check('A MARKER OF THE OLD SHAPE, WITH NO HASHES, CANNOT BE CHECKED AND IS NOT APPLIED: the run stops, nothing is written',
+    stoppedFor(legacyRun, /before markers recorded/) && read(legacy.file) === 'MUTATED' && legacy.kept(), `exit ${legacyRun.code}, file ${JSON.stringify(read(legacy.file))}`)
+  const garbage = source({ victim: 'MUTATED', backupText: 'ORIGINAL' })
+  writeFileSync(join(garbage.state, 'active.json'), '{not json')
+  const garbageRun = attempt(garbage.state)
+  check('a marker that does not parse stops the run with the state kept, not a stack trace',
+    stoppedFor(garbageRun, /not a marker this harness wrote/) && garbage.kept(), `exit ${garbageRun.code}, marker kept ${garbage.kept()}`)
+
+  // A mutation made outside the source: judged by the paths it touched (content hashes), restored through the command, and READ BACK. Nothing
+  // else in the tree is judged. The fake tree is a snapshot; its exec restores it to `before` (or, for the broken restore, does nothing).
+  const BEFORE = { 'out/a.md': 'h-a', 'out/b.md': 'h-b' }
+  const TOUCHED = { 'out/a.md': { before: 'h-a', after: null } }
+  const worldCase = (over = {}) => {
+    const dir = join(scratch, `case-${++caseNo}`)
+    const state = join(dir, 'state')
+    mkdirSync(state, { recursive: true })
+    writeFileSync(join(state, 'active.json'), JSON.stringify({ id: 'world-selftest', restoreCmd: 'RESTORE', stash: '/stash/here', before: BEFORE, touched: TOUCHED, ...DEAD, ...over }))
+    return { state, kept: () => existsSync(join(state, 'active.json')) }
+  }
+  const fakeTree = (snap, { restores = true } = {}) => {
+    const t = { snap, calls: [] }
+    t.probes = { snapshot: () => t.snap, exec: (cmd, env) => { t.calls.push([cmd, env]); if (restores) t.snap = { ...BEFORE }; return true } }
+    return t
+  }
+  const aGone = { 'out/b.md': 'h-b' }
+  const wApplied = fakeTree({ ...aGone }); const w1 = worldCase(); const w1r = attempt(w1.state, wApplied.probes)
+  check('a world mutation left as the mutation made it is restored, with its stash handed over, and the state is dropped',
+    w1r.returned === true && wApplied.calls.length === 1 && wApplied.calls[0][0] === 'RESTORE' && wApplied.calls[0][1].STASH === '/stash/here' && !w1.kept(),
+    `returned ${w1r.returned}, calls ${JSON.stringify(wApplied.calls)}, marker kept ${w1.kept()}`)
+  const wUnrelated = fakeTree({ ...aGone, 'docs/someone-elses.md': 'h-x' }); const w1b = worldCase(); const w1br = attempt(w1b.state, wUnrelated.probes)
+  check('A CHANGE ELSEWHERE IN THE TREE IS NOBODY\'S BUSINESS: a path the mutation did not touch changing after the kill does not stop the heal',
+    w1br.returned === true && wUnrelated.calls.length === 1, `returned ${w1br.returned}, exit ${w1br.code}, calls ${wUnrelated.calls.length}`)
+  const wEdited = fakeTree({ ...aGone, 'out/a.md': 'h-edited-by-a-person' }); const w2 = worldCase(); const w2r = attempt(w2.state, wEdited.probes)
+  check('A PATH THE MUTATION TOUCHED, EDITED AFTER THE KILL, IS NOT RESTORED OVER: the command is not run, the state is kept',
+    stoppedFor(w2r, /neither as it was nor as the mutation left it/) && wEdited.calls.length === 0 && w2.kept(), `exit ${w2r.code}, calls ${wEdited.calls.length}, marker kept ${w2.kept()}`)
+  // The refusal names the path that moved, and does not hand over the command that would copy the stash over it.
+  check('...and the refusal NAMES the path that was edited, and does not offer the restore command that would overwrite it',
+    /out\/a\.md/.test(w2r.said) && !/sh -c/.test(w2r.said) && !/RESTORE/.test(w2r.said), w2r.said)
+  const wBroken = fakeTree({ ...aGone }, { restores: false }); const w3 = worldCase(); const w3r = attempt(w3.state, wBroken.probes)
+  check('A RESTORE THAT RAN BUT DID NOT RETURN WHAT IT TOUCHED IS NOT CALLED HEALED: the run stops and the state is kept for the stash',
+    stoppedFor(w3r, /not as it was before the mutation/) && wBroken.calls.length === 1 && w3.kept(), `exit ${w3r.code}, calls ${wBroken.calls.length}, marker kept ${w3.kept()}`)
+  const wBefore = fakeTree({ ...BEFORE }); const w4 = worldCase(); const w4r = attempt(w4.state, wBefore.probes)
+  check('a world mutation already undone runs nothing and drops the state',
+    w4r.returned === true && wBefore.calls.length === 0 && !w4.kept(), `returned ${w4r.returned}, calls ${wBefore.calls.length}`)
+  const TWO = { 'out/a.md': { before: 'h-a', after: null }, 'out/b.md': { before: 'h-b', after: null } }
+  const wMixed = fakeTree({ 'out/a.md': 'h-a' }); const w5m = worldCase({ touched: TWO }); const w5mr = attempt(w5m.state, wMixed.probes)
+  check('a restore the kill cut short (some paths back, some not) is finished: the commands are written to be run again',
+    w5mr.returned === true && wMixed.calls.length === 1, `returned ${w5mr.returned}, exit ${w5mr.code}, calls ${wMixed.calls.length}`)
+  const wNoTouched = fakeTree({ ...BEFORE }); const w5a = worldCase({ touched: undefined }); const w5ar = attempt(w5a.state, wNoTouched.probes)
+  const wNoTouchedMoved = fakeTree({ ...BEFORE, 'docs/x.md': 'h' }); const w5b = worldCase({ touched: undefined }); const w5br = attempt(w5b.state, wNoTouchedMoved.probes)
+  check('a kill BEFORE the mutation was recorded as applied is not guessed at: the tree equal to what it was is nothing to do, anything else is left for a person',
+    w5ar.returned === true && wNoTouched.calls.length === 0 && stoppedFor(w5br, /killed before it recorded which paths it touched/) && wNoTouchedMoved.calls.length === 0,
+    `unchanged: returned ${w5ar.returned}; changed: exit ${w5br.code}, calls ${wNoTouchedMoved.calls.length}`)
+  // ...and the message does not say a person changed it after the kill: the mutation itself is the likelier cause, and the stash holds the originals.
+  check('...and its message does not blame the person: it says the mutation may have made the changes, and names the stash',
+    /mutation itself may have made those changes/.test(w5br.said) && /\/stash\/here/.test(w5br.said) && !/changed after the kill/.test(w5br.said), w5br.said)
+  const wLive = fakeTree({ ...aGone }); const w6 = worldCase({ pid: process.pid, start: startOf(process.pid) }); const w6r = attempt(w6.state, wLive.probes)
+  check('A WORLD MARKER WHOSE RUN IS STILL GOING STOPS THIS RUN TOO: nothing is restored under a live run',
+    stoppedFor(w6r, /still running/) && wLive.calls.length === 0 && w6.kept() && /Wait for pid/.test(w6r.said) && !/delete .* to clear this/.test(w6r.said), `exit ${w6r.code}, calls ${wLive.calls.length}; ${w6r.said}`)
+
+  // The read-back after a heal's restore: SOME paths back is not back (a `cp` that ran out of disk part-way), and the stash is the only copy of the rest.
+  const wPartial = { snap: {}, calls: [] }
+  wPartial.probes = { snapshot: () => wPartial.snap, exec: cmd => { wPartial.calls.push(cmd); wPartial.snap = { 'out/a.md': 'h-a' }; return true } }
+  const w8 = worldCase({ touched: TWO }); const w8r = attempt(w8.state, wPartial.probes)
+  check('A RESTORE THAT PUT BACK ONLY SOME OF WHAT THE MUTATION TOUCHED IS NOT CALLED HEALED: the run stops, and the state is kept for the stash',
+    stoppedFor(w8r, /not as it was before the mutation/) && wPartial.calls.length === 1 && w8.kept(), `exit ${w8r.code}, calls ${wPartial.calls.length}, marker kept ${w8.kept()}`)
+  // A tree that cannot be read is neither undone nor applied. "Nothing to heal" over it would delete the stash.
+  const unreadableCalls = []
+  const w9 = worldCase({}); const w9r = attempt(w9.state, { snapshot: () => { throw new Error('fatal: not a git repository') }, exec: cmd => { unreadableCalls.push(cmd); return true } })
+  check('A TREE THAT CANNOT BE READ IS NOT "NOTHING TO HEAL": the run stops with the reason, runs nothing, and keeps the state',
+    stoppedFor(w9r, /could not be checked against the tree \(fatal: not a git repository\)/) && unreadableCalls.length === 0 && w9.kept(), `exit ${w9r.code}, calls ${unreadableCalls.length}, kept ${w9.kept()}; ${w9r.said}`)
+  // Healing a world mutation moves write-ups. It has no use for a build, and a build that fails must not hold them.
+  const wBuild = fakeTree({ ...aGone }); const wBuildExec = wBuild.probes.exec
+  wBuild.probes.exec = (cmd, env) => (cmd === 'npm run build' ? false : wBuildExec(cmd, env))
+  const w10 = worldCase({}); const w10r = attempt(w10.state, wBuild.probes, true)
+  check('HEALING A WORLD MUTATION RUNS NO BUILD, even where builds are on, so a build that fails cannot hold the write-ups: restored by its own command only, and the state is dropped',
+    w10r.returned === true && wBuild.calls.length === 1 && wBuild.calls[0][0] === 'RESTORE' && !w10.kept(), `returned ${w10r.returned}, calls ${JSON.stringify(wBuild.calls.map(c => c[0]))}, kept ${w10.kept()}`)
+
+  // HEAD moved since the kill. The snapshot lists only paths that differ from HEAD, so a stub that was COMMITTED reads exactly like a path that was put back, and
+  // the heal said "already undone", deleted the stash, and left the stubs in HEAD (reproduced in review, 2026-11-04). With HEAD where it was, null is the original.
+  const STUBBED = { 'out/a.md': { before: null, after: 'h-stub' } }
+  const committed = fakeTree({}) // the stub is now what HEAD holds, so the path is not listed
+  const wHeadMoved = worldCase({ touched: STUBBED, before: {}, head: 'old-head' })
+  const wHeadMovedRun = attempt(wHeadMoved.state, { ...committed.probes, head: () => 'new-head' })
+  const wHeadSame = worldCase({ touched: STUBBED, before: {}, head: 'old-head' })
+  const wHeadSameRun = attempt(wHeadSame.state, { ...fakeTree({}).probes, head: () => 'old-head' })
+  check('A STUB THAT WAS COMMITTED IS NOT "ALREADY UNDONE": with HEAD moved, a path that now matches HEAD is not taken for one put back, the stash is kept, and the message says HEAD moved',
+    stoppedFor(wHeadMovedRun, /HEAD has moved since the kill/) && committed.calls.length === 0 && wHeadMoved.kept() && /out\/a\.md/.test(wHeadMovedRun.said),
+    `exit ${wHeadMovedRun.code}, calls ${committed.calls.length}, kept ${wHeadMoved.kept()}; ${wHeadMovedRun.said.slice(0, 200)}`)
+  check('...while with HEAD where it was, the same tree IS "already undone", and a marker that recorded no HEAD is judged as before',
+    wHeadSameRun.returned === true && !wHeadSame.kept(), `exit ${wHeadSameRun.code}, returned ${wHeadSameRun.returned}, kept ${wHeadSame.kept()}`)
+
+  // A refusal over a non-empty stash must not tell a person to delete the directory the stash is in: an untracked write-up that was moved aside is not in `git status`.
+  const wStashed = worldCase({})
+  writeFileSync(join(wStashed.state, 'active.json'), '{not json')
+  mkdirSync(join(wStashed.state, 'world', 'x'), { recursive: true })
+  writeFileSync(join(wStashed.state, 'world', 'x', 'cc-session.md'), 'the only copy\n')
+  const wStashedRun = attempt(wStashed.state)
+  check('A REFUSAL OVER A STASH THAT HOLDS FILES DOES NOT SAY TO DELETE THE DIRECTORY: it says the originals are in the stash and to put them back first',
+    stoppedFor(wStashedRun, /put it back first/) && !/delete .* to clear this/.test(wStashedRun.said) && existsSync(join(wStashed.state, 'world', 'x', 'cc-session.md')),
+    wStashedRun.said)
+  const wOld = fakeTree({ ...aGone }); const w7 = worldCase({ before: undefined }); const w7r = attempt(w7.state, wOld.probes)
+  check('a world marker of the old shape (a digest, not the tree) cannot be checked and runs nothing',
+    stoppedFor(w7r, /before markers recorded/) && wOld.calls.length === 0, `exit ${w7r.code}, calls ${wOld.calls.length}`)
+
+  // The snapshot itself, on a scratch git repository: names AND content, so a tracked file already modified is seen to change again.
+  const touchedDemo = touchedBy({ a: 'h1', b: 'h2', c: 'h3' }, { a: 'h1', b: 'h2x', d: 'h4' })
+  check('touchedBy names exactly the paths whose content differs, with both values',
+    JSON.stringify(Object.keys(touchedDemo).sort()) === JSON.stringify(['b', 'c', 'd']) && touchedDemo.b.before === 'h2' && touchedDemo.b.after === 'h2x' && touchedDemo.c.after === null && touchedDemo.d.before === null,
+    JSON.stringify(touchedDemo))
+  check('worldState: all as the mutation left them, all as they were, some of each, or somewhere else',
+    worldState(TOUCHED, aGone) === 'applied' && worldState(TOUCHED, BEFORE) === 'undone' && worldState(TWO, { 'out/a.md': 'h-a' }) === 'mixed' && worldState(TOUCHED, { 'out/a.md': 'zzz' }) === 'other',
+    'applied, undone, mixed, other')
+  const snapRepo = join(scratch, `case-${++caseNo}`)
+  mkdirSync(snapRepo)
+  const inSnap = cmd => execSync(cmd, { cwd: snapRepo, stdio: 'pipe', encoding: 'utf8' })
+  inSnap('git init -q && git config user.email t@t && git config user.name t')
+  writeFileSync(join(snapRepo, 'tracked.txt'), 'v1\n')
+  inSnap('git add -A && git commit -qm base')
+  const snapNow = () => { const was = process.cwd(); process.chdir(snapRepo); try { return treeSnapshot() } finally { process.chdir(was) } }
+  writeFileSync(join(snapRepo, 'tracked.txt'), 'v2\n')
+  const snapOne = snapNow()
+  writeFileSync(join(snapRepo, 'tracked.txt'), 'v3 (a later edit to a file that was already modified)\n')
+  const snapTwo = snapNow()
+  writeFileSync(join(snapRepo, 'fresh.txt'), 'untracked\n')
+  const snapThree = snapNow()
+  check('THE SNAPSHOT SEES A CONTENT CHANGE TO A TRACKED FILE THAT WAS ALREADY MODIFIED (the whole-tree digest did not), and an untracked file',
+    snapOne['tracked.txt'] !== snapTwo['tracked.txt'] && !('fresh.txt' in snapTwo) && typeof snapThree['fresh.txt'] === 'string',
+    JSON.stringify({ one: snapOne, two: snapTwo, three: snapThree }))
+
+  // The markers the MAIN FLOW writes are the ones heal() must be able to read: built by the same functions, then healed.
+  const roundTrip = (() => {
+    const dir = join(scratch, `case-${++caseNo}`)
+    mkdirSync(join(dir, 'state'), { recursive: true })
+    const file = join(dir, 'victim.txt')
+    const backup = join(dir, 'backup.txt')
+    writeFileSync(backup, 'ORIGINAL')
+    writeFileSync(file, 'MUTATED')
+    const written = sourceMarker({ id: 'rt', file }, backup, 'ORIGINAL', 'MUTATED')
+    writeFileSync(join(dir, 'state', 'active.json'), JSON.stringify({ ...written, pid: 2 ** 30 }))
+    return { written, file, state: join(dir, 'state') }
+  })()
+  check('a source marker records who wrote it and what the file is before and after the mutation',
+    roundTrip.written.pid === process.pid && roundTrip.written.start === startOf(process.pid)
+      && roundTrip.written.originalSha === sha('ORIGINAL') && roundTrip.written.mutatedSha === sha('MUTATED'),
+    JSON.stringify(roundTrip.written))
+  const roundTripRun = attempt(roundTrip.state)
+  check('...and a killed run\'s marker, as the main flow writes it, is healed by heal()',
+    roundTripRun.returned === true && read(roundTrip.file) === 'ORIGINAL', `returned ${roundTripRun.returned}, file ${JSON.stringify(read(roundTrip.file))}`)
+  const worldWritten = { ...worldMarkerOf({ id: 'rt-world', restore: 'RESTORE' }, '/stash/rt', BEFORE), touched: TOUCHED, pid: 2 ** 30 }
+  const wRound = worldCase(worldWritten)
+  const wRoundTree = fakeTree({ ...aGone }); const wRoundRun = attempt(wRound.state, wRoundTree.probes)
+  check('a world marker records its stash and the tree before, and as the main flow writes it is healed through its restore command',
+    worldWritten.stash === '/stash/rt' && sameSnapshot(worldWritten.before, BEFORE) && worldWritten.start === startOf(process.pid) && worldWritten.head === headOf()
+      && wRoundRun.returned === true && wRoundTree.calls.length === 1 && wRoundTree.calls[0][0] === 'RESTORE',
+    `returned ${wRoundRun.returned}, calls ${JSON.stringify(wRoundTree.calls)}`)
+
+  // A harness run INSIDE a harness run keeps its state in the nested directory; if the parent was killed with that applied, heal() looks there.
+  const nestedParent = join(scratch, `case-${++caseNo}`)
+  const nestedAt = join(nestedParent, 'nested')
+  mkdirSync(nestedAt, { recursive: true })
+  const nestedFile = join(nestedParent, 'inner.txt'); const nestedBackup = join(nestedParent, 'inner.bak')
+  writeFileSync(nestedFile, 'MUTATED'); writeFileSync(nestedBackup, 'ORIGINAL')
+  writeFileSync(join(nestedAt, 'active.json'), JSON.stringify({ id: 'inner', file: nestedFile, backup: nestedBackup, originalSha: sha('ORIGINAL'), mutatedSha: sha('MUTATED'), ...DEAD }))
+  const nestedHeal = (() => { stops.length = 0; said.length = 0; try { return healIn(nestedParent, options({})) } catch (e) { if (e.message !== 'exit') throw e; return null } })()
+  check('A MUTATION APPLIED BY A NESTED HARNESS RUN IS HEALED TOO: the parent looks in its nested state directory first',
+    nestedHeal === true && read(nestedFile) === 'ORIGINAL' && !existsSync(nestedAt), `returned ${nestedHeal}, file ${JSON.stringify(read(nestedFile))}`)
+
+  // One run at a time: a lock naming a run that is still going stops this one; one left by a run that is gone is cleared.
+  const lockDir = join(scratch, `case-${++caseNo}`)
+  mkdirSync(lockDir, { recursive: true })
+  writeFileSync(join(lockDir, 'run.json'), JSON.stringify({ pid: process.pid, start: startOf(process.pid), startedAt: DEAD.startedAt }))
+  stops.length = 0; said.length = 0
+  const lockedOut = (() => { try { checkLockAt(lockDir, options({})); return false } catch (e) { if (e.message !== 'exit') throw e; return stops[0] === 1 && /IN PROGRESS/.test(said.join('\n')) } })()
+  writeFileSync(join(lockDir, 'run.json'), JSON.stringify(DEAD))
+  stops.length = 0
+  checkLockAt(lockDir, options({}))
+  check('A RUN LOCK NAMING A RUN STILL GOING STOPS THIS ONE, and a stale one is cleared',
+    lockedOut && stops.length === 0 && !existsSync(join(lockDir, 'run.json')), `refused a live holder: ${lockedOut}; stale lock gone: ${!existsSync(join(lockDir, 'run.json'))}`)
+
+  // The lock a run takes for its whole life: exclusive, so two runs starting together cannot both hold it.
+  mkdirSync(stateDir, { recursive: true })
+  writeFileSync(runLock, JSON.stringify(DEAD))
+  const refusedWhileHeld = acquireRunLock() === false && !ownsLock
+  rmSync(runLock, { force: true })
+  const tookIt = acquireRunLock() === true && ownsLock && JSON.parse(readFileSync(runLock, 'utf8')).pid === process.pid
+  releaseRunLock()
+  check('THE RUN LOCK IS EXCLUSIVE: a held lock is refused, a free one is taken in this process\'s name, and releasing it removes the file',
+    refusedWhileHeld && tookIt && !existsSync(runLock), `refused while held ${refusedWhileHeld}, took a free one ${tookIt}, file gone after release ${!existsSync(runLock)}`)
+
+  // The state a run wrote is checked after every expectation: marker as written, lock naming this process.
+  mkdirSync(stateDir, { recursive: true })
+  const wrote = JSON.stringify({ id: 'x', n: 1 })
+  writeFileSync(marker, wrote)
+  writeFileSync(runLock, JSON.stringify({ pid: process.pid }))
+  const intactAsWritten = stateIntact(wrote)
+  writeFileSync(marker, JSON.stringify({ id: 'x', n: 2 }))
+  const markerChanged = !stateIntact(wrote)
+  writeFileSync(marker, wrote)
+  writeFileSync(runLock, JSON.stringify({ pid: process.pid + 1 }))
+  const lockNotOurs = !stateIntact(wrote)
+  rmSync(runLock, { force: true })
+  const lockGone = !stateIntact(wrote)
+  rmSync(marker, { force: true })
+  const markerGone = !stateIntact(wrote)
+  check('stateIntact: true only for the marker as written and a lock naming this process; a changed marker, another pid, no lock and no marker are all losses',
+    intactAsWritten && markerChanged && lockNotOurs && lockGone && markerGone,
+    `as written ${intactAsWritten}, marker changed ${markerChanged}, lock of another pid ${lockNotOurs}, no lock ${lockGone}, no marker ${markerGone}`)
+  rmSync(stateDir, { recursive: true, force: true })
+
+  // The run lock lasts as long as the run: clearing state and dropping a healed marker take the marker, the backups and the stashes, never the lock.
+  // (Each write is preceded by its mkdir: a mutated clear that removes the directory must fail this clause, not crash the self-test before it reports.)
+  const lay = () => { mkdirSync(stateDir, { recursive: true }); writeFileSync(runLock, JSON.stringify({ pid: process.pid })); writeFileSync(marker, '{}') }
+  lay()
+  clearActive()
+  const lockSurvivedClear = existsSync(runLock) && !existsSync(marker)
+  lay()
+  dropState(stateDir)
+  const lockSurvivedDrop = existsSync(runLock) && !existsSync(marker) && existsSync(stateDir)
+  mkdirSync(stateDir, { recursive: true })
+  rmSync(runLock, { force: true })
+  writeFileSync(marker, '{}')
+  dropState(stateDir)
+  const emptyDirRemoved = !existsSync(stateDir)
+  check('THE RUN LOCK OUTLIVES A CLEAR AND A HEAL: clearActive and dropState leave run.json where it is, and a directory left empty is removed',
+    lockSurvivedClear && lockSurvivedDrop && emptyDirRemoved, `lock survived clearActive ${lockSurvivedClear}, survived dropState ${lockSurvivedDrop}, empty directory removed ${emptyDirRemoved}`)
+  rmSync(stateDir, { recursive: true, force: true })
+
+  // A live run inside a run (its lock is in the nested directory) stops this one too.
+  const nestedLockDir = join(scratch, `case-${++caseNo}`)
+  mkdirSync(join(nestedLockDir, 'nested'), { recursive: true })
+  writeFileSync(join(nestedLockDir, 'nested', 'run.json'), JSON.stringify({ pid: process.pid, start: startOf(process.pid), startedAt: DEAD.startedAt }))
+  stops.length = 0; said.length = 0
+  const nestedLocked = (() => { try { healIn(nestedLockDir, options({})); return false } catch (e) { if (e.message !== 'exit') throw e; return stops[0] === 1 && /IN PROGRESS/.test(said.join('\n')) } })()
+  check('A LIVE RUN INSIDE A RUN STOPS THIS ONE TOO: a lock in the nested directory is judged like the run\'s own', nestedLocked, said.join('\n'))
+
+  // A heal that restores a file this process is built from must start again as the restored code, and has to know which files those are.
+  check('a heal records the file it wrote back, which is how a run knows it restored part of itself', healedFiles.has(resolve(killed.file)), `recorded: ${[...healedFiles].join(', ')}`)
+  const reach = new Set(['mutation-check.mjs'])
+  const sourceDir = dirname(fileURLToPath(import.meta.url))
+  for (const f of reach) for (const [, dep] of readFileSync(join(sourceDir, f), 'utf8').matchAll(/from '\.\/([\w.-]+\.mjs)'/g)) reach.add(dep)
+  const unlisted = [...reach].filter(f => !SELF_SOURCES.includes(join(sourceDir, f)))
+  check('THE FILES THIS HARNESS IS BUILT FROM ARE ALL LISTED: every module it reaches through ./imports is one a heal that restores it starts again for, and none listed is gone',
+    unlisted.length === 0 && reach.size === SELF_SOURCES.length, `reached ${[...reach].join(', ')}; not listed ${unlisted.join(', ') || 'none'}; listed ${SELF_SOURCES.length}`)
+
+  // The baseline runs a harness-run expectation (harness-blind, only-selects-nothing-passes) under this run's live lock, so it needs the child environment.
+  // The marker below is built from two strings so that the only place the pair occurs contiguously is the baseline itself.
+  const ownSource = readFileSync(fileURLToPath(import.meta.url), 'utf8')
+  const baselineAt = ownSource.indexOf('baselineResults' + ' = distinctExpects')
+  check('THE BASELINE RUNS EACH EXPECTATION IN THE CHILD ENVIRONMENT: a harness run it starts gets a state directory of its own instead of meeting this run\'s live lock and "passing" by being refused',
+    baselineAt > 0 && /execSync\([^\n]*env: childEnv\(\)/.test(ownSource.slice(baselineAt, baselineAt + 1600)), baselineAt > 0 ? 'the baseline execSync carries no env: childEnv()' : 'the baseline block was not found')
+
+  // Whose state it is (Task 2): the exit handler clears only what this process wrote.
+  mkdirSync(stateDir, { recursive: true })
+  writeFileSync(marker, JSON.stringify({ id: 'someone-elses', file: 'x', backup: 'y' }))
+  restore()
+  check('THE EXIT HANDLER LEAVES A STATE DIRECTORY IT DID NOT WRITE: a stranded marker survives a run that only started and stopped',
+    existsSync(marker), 'restore() cleared a marker this process never wrote')
+  claimState()
+  restore()
+  check('...and clears the one it did', !existsSync(marker), 'restore() left this process\'s own state behind')
+  check('the self-test works in a temp directory of its own, not the real state directory',
+    stateDir !== '.mutation-state' && stateDir.startsWith(tmpdir()), `stateDir is ${stateDir}`)
+  check('a command this run starts gets a state directory of its own beneath this one',
+    capture('node -e "process.stdout.write(process.env.MUTATION_STATE_DIR)"') === join(stateDir, 'nested'),
+    'a harness run inside a harness run would share this run\'s marker')
+  const staysOnDisk = MUTATIONS.filter(m => m.mutate)
+  check('no world mutation keeps its stash in /tmp, and each uses the one the harness hands it',
+    staysOnDisk.length > 0 && staysOnDisk.every(m => !/\/tmp\//.test(m.mutate + m.restore) && /\$STASH/.test(m.mutate) && /\$STASH/.test(m.restore)),
+    staysOnDisk.filter(m => /\/tmp\//.test(m.mutate + m.restore) || !/\$STASH/.test(m.mutate + m.restore)).map(m => m.id).join(', '))
+
+  // The REAL script. Not from inside such a run (MUTATION_SELFTEST_CHILD), or each level would start the next.
+  if (!process.env.MUTATION_SELFTEST_CHILD) {
+    const here = fileURLToPath(import.meta.url)
+    const clean = { MUTATION_STATE_DIR: '', MUTATION_SELFTEST_CHILD: '', MUTATION_KILL_AT: '', MUTATION_KILL_SIGNAL: '', MUTATION_FAULT: '', MUTATION_REEXEC: '' }
+
+    // Started and stopped over a real stranded state, in a directory with no repository: --self-test, --list-ids and --anchors each leave it.
+    const stranded = join(scratch, `case-${++caseNo}`)
+    mkdirSync(join(stranded, '.mutation-state'), { recursive: true })
+    writeFileSync(join(stranded, '.mutation-state', 'src_Stranded.fs'), 'ORIGINAL FILE CONTENT\n')
+    writeFileSync(join(stranded, '.mutation-state', 'active.json'), JSON.stringify({ id: 'stranded', file: 'src/Stranded.fs', backup: '.mutation-state/src_Stranded.fs', originalSha: sha('a'), mutatedSha: sha('b'), ...DEAD }))
+    const survivors = ['--self-test', '--list-ids', '--anchors'].map(mode => {
+      const r = spawnSync(process.execPath, [here, mode], { cwd: stranded, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
+      return { mode, out: String(r.stdout), marker: existsSync(join(stranded, '.mutation-state', 'active.json')), backup: existsSync(join(stranded, '.mutation-state', 'src_Stranded.fs')) }
+    })
+    check('A REAL STRANDED STATE SURVIVES THE SCRIPT BEING STARTED AND STOPPED: --self-test, --list-ids and --anchors each leave the marker and the backup',
+      survivors.every(x => x.marker && x.backup), survivors.map(x => `${x.mode}: marker ${x.marker}, backup ${x.backup}`).join(' / '))
+    // ...and the self-test says so, before its clauses, with the command that heals it: when the stranded file is this one, most clauses fail and name the harness.
+    const noted = survivors.find(x => x.mode === '--self-test')
+    check('...and the self-test NAMES a stranded state and the command that heals it, instead of failing clauses that point at the harness',
+      /is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(noted.out) && /node scripts\/mutation-check\.mjs --heal/.test(noted.out), noted.out.split('\n').filter(l => /warning|stranded/i.test(l)).join(' | ').slice(0, 300))
+
+    // A self-test the HARNESS starts as an expectation inherits MUTATION_STATE_DIR (a nested directory beneath its own). It must use a
+    // directory of its own, and pass: it did neither, so 20 mutation entries were caught by a self-test that failed on clean source.
+    const given = join(scratch, `case-${++caseNo}`, 'nested')
+    mkdirSync(given, { recursive: true })
+    writeFileSync(join(given, 'active.json'), '{"id":"the-harnesses-own"}')
+    const nestedSelf = spawnSync(process.execPath, [here, '--self-test'], { cwd: process.cwd(), encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_STATE_DIR: given, MUTATION_SELFTEST_CHILD: '1' } })
+    check('A SELF-TEST STARTED AS AN EXPECTATION PASSES ON CLEAN SOURCE AND LEAVES THE DIRECTORY IT WAS GIVEN: it does not use it',
+      nestedSelf.status === 0 && existsSync(join(given, 'active.json')), `status ${nestedSelf.status}, given dir intact ${existsSync(join(given, 'active.json'))}; ${String(nestedSelf.stdout).split('\n').filter(l => /^FAIL/.test(l)).join(' | ')}`)
+
+    // A self-test started from a git hook or a developer's shell carries that environment, and must not act on it. A decoy repository stands for the one being committed (its
+    // location is exported the way a hook in a linked worktree exports it), and a home directory whose git configuration runs a failing hook on every commit stands for a
+    // developer's own. Run with them, the self-test must pass, leave the decoy as it was, and not be stopped by the hook.
+    const decoy = join(scratch, `case-${++caseNo}`)
+    mkdirSync(decoy, { recursive: true })
+    // The decoy has a commit and a staged file, so that what a stray `git add -A` / `git commit` does to its INDEX and HISTORY, and to its identity, can be seen.
+    execSync('git init -q && git config user.email real@real && git config user.name real', { cwd: decoy, stdio: 'pipe' })
+    writeFileSync(join(decoy, 'a.txt'), 'a\n')
+    execSync('git add -A && git commit -qm decoy', { cwd: decoy, stdio: 'pipe' })
+    writeFileSync(join(decoy, 'staged.txt'), 's\n')
+    execSync('git add staged.txt', { cwd: decoy, stdio: 'pipe' })
+    const homeHooks = join(scratch, `case-${++caseNo}`)
+    mkdirSync(join(homeHooks, 'hooks'), { recursive: true })
+    writeFileSync(join(homeHooks, 'hooks', 'pre-commit'), '#!/bin/sh\nexit 1\n', { mode: 0o755 })
+    writeFileSync(join(homeHooks, '.gitconfig'), `[core]\n\thooksPath = ${join(homeHooks, 'hooks')}\n`)
+    const decoyGit = cmd => { try { return execSync(`git ${cmd}`, { cwd: decoy, encoding: 'utf8', stdio: 'pipe' }).trim() } catch (e) { return `failed: ${String(e.message).split('\n')[0]}` } }
+    // HEAD, identity, bare-ness, what is staged, and `git status` (which fails outright if the index points at objects the repository does not have).
+    const decoyState = () => [decoyGit('rev-parse HEAD'), decoyGit('config user.email'), decoyGit('config core.bare'), decoyGit('ls-files -s'), decoyGit('status --porcelain')].join(' | ')
+    const decoyBefore = decoyState()
+    const hooked = spawnSync(process.execPath, [here, '--self-test'], { cwd: process.cwd(), encoding: 'utf8', timeout: 120_000,
+      env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', HOME: homeHooks, XDG_CONFIG_HOME: join(homeHooks, 'xdg'),
+        GIT_DIR: join(decoy, '.git'), GIT_INDEX_FILE: join(decoy, '.git', 'index'), GIT_WORK_TREE: decoy, GIT_OBJECT_DIRECTORY: join(decoy, '.git', 'objects') } })
+    const decoyAfter = decoyState()
+    check('A SELF-TEST STARTED FROM A HOOK OR A DEVELOPER\'S SHELL IGNORES THEIR GIT ENVIRONMENT: it passes, and the repository they pointed it at comes out exactly as it went in (history, identity, work tree, index, status), their configured hook never running',
+      hooked.status === 0 && decoyBefore === decoyAfter && !/failed:/.test(decoyAfter),
+      `status ${hooked.status}; decoy before ${decoyBefore.slice(0, 160)}; after ${decoyAfter.slice(0, 160)}; ${String(hooked.stdout).split('\n').filter(l => /^FAIL/.test(l)).join(' | ').slice(0, 200)} ${String(hooked.stderr).split('\n')[0]}`)
+
+    // A scratch git repository with the files three real table entries act on, and the real script copied in. The runs below are real
+    // processes, killed with SIGKILL at a chosen moment (MUTATION_KILL_AT), and then a second run heals.
+    const day = execSync('TZ=America/New_York date +%F', { encoding: 'utf8' }).trim()
+    const repo = join(scratch, 'e2e-repo')
+    mkdirSync(join(repo, 'scripts'), { recursive: true })
+    mkdirSync(join(repo, 'docs'))
+    mkdirSync(join(repo, 'outbox'))
+    for (const f of ['mutation-check.mjs', 'checks.mjs', 'mutation-lib.mjs', 'run-marker.mjs']) copyFileSync(join(dirname(here), f), join(repo, 'scripts', f))
+    // The row an expectation runs. Empty, it passes; with ROW_FAILS_ON_STUB set it fails while a write-up is a stub, which makes `outbox-stub` a CAUGHT mutation (a run that ends green).
+    writeFileSync(join(repo, 'scripts', 'run-row.mjs'),
+      "import { readdirSync, readFileSync } from 'node:fs'\nif (process.env.ROW_FAILS_ON_STUB && readdirSync('outbox').some(f => readFileSync('outbox/' + f, 'utf8') === 'stub\\n')) process.exit(1)\n")
+    // The heal of a source mutation ends in `npm run build`, and a failed build now stops the run, so the fixture has one. It records that it ran, and can be told to take its time
+    // (BUILD_SLEEP_MS), which is how a second run is started while the first is still healing.
+    writeFileSync(join(repo, 'package.json'), JSON.stringify({ name: 'scratch', private: true, scripts: { build: 'node scripts/fake-build.mjs' } }))
+    writeFileSync(join(repo, 'scripts', 'fake-build.mjs'),
+      "import { appendFileSync } from 'node:fs'\nappendFileSync('.build-log', 'build\\n')\n"
+      + "if (process.env.BUILD_NOISE_MB) process.stdout.write('x'.repeat(Number(process.env.BUILD_NOISE_MB) * 1024 * 1024))\n"
+      + "if (process.env.BUILD_FAIL) { console.error('fake build failed on purpose'); process.exit(1) }\n"
+      + "Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, Number(process.env.BUILD_SLEEP_MS || 0))\n")
+    const rows = '# THE GATE IS A CONJUNCTION.\nthe rest of the file\n'
+    const writeUps = { [`outbox/cc-session-${day}-one.md`]: 'the first write-up, long enough to matter\n', [`outbox/cc-session-${day}-two.md`]: 'the second write-up\n' }
+    // The real repository ignores the state directory (.gitignore); the snapshot of the tree is git's view, so the fixture has to ignore it too.
+    writeFileSync(join(repo, '.gitignore'), '.mutation-state/\n.build-log\n')
+    writeFileSync(join(repo, 'docs', 'gate-rows.txt'), rows)
+    for (const [p, text] of Object.entries(writeUps)) writeFileSync(join(repo, p), text)
+    const git = cmd => execSync(`git ${cmd}`, { cwd: repo, stdio: 'pipe', encoding: 'utf8' })
+    git('init -q'); git('config user.email t@t'); git('config user.name t'); git('add -A'); git('commit -qm base')
+    const reset = () => {
+      rmSync(join(repo, '.mutation-state'), { recursive: true, force: true })
+      rmSync(join(repo, '.build-log'), { force: true })
+      git('checkout -q -- .'); git('clean -fdq')
+      for (const [p, text] of Object.entries(writeUps)) writeFileSync(join(repo, p), text)
+    }
+    const buildsRun = () => (existsSync(join(repo, '.build-log')) ? readFileSync(join(repo, '.build-log'), 'utf8').split('\n').filter(Boolean).length : 0)
+    // MUTATION_SELFTEST_CHILD for everything started here: a run that is NOT the mode it was asked for (a mutated copy that ignores `--heal` or `--only` falls into the whole
+    // suite, whose baseline runs `--self-test`, whose group E starts these runs again) would otherwise recurse until the timeouts end it. Found when `no-heal-mode` did exactly that.
+    const go = (args, env = {}) => spawnSync(process.execPath, ['scripts/mutation-check.mjs', ...args], { cwd: repo, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', ...env } })
+    const text = r => `${r.stdout}${r.stderr}`
+    const markerOf = () => JSON.parse(readFileSync(join(repo, '.mutation-state', 'active.json'), 'utf8'))
+    const stateLeft = () => existsSync(join(repo, '.mutation-state', 'active.json'))
+    const writeUpsBack = () => Object.entries(writeUps).every(([p, t]) => read(join(repo, p)) === t)
+    const MUTATED_ROWS = rows.replace('# THE GATE IS A CONJUNCTION.', '# THE GATE IS A CONJUNCTION (mutated).')
+
+    // E1: a source mutation, SIGKILLed the moment it is applied.
+    reset()
+    const k1 = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied' })
+    let m1 = null
+    try { m1 = markerOf() } catch { m1 = null }
+    let lockOf1 = null
+    try { lockOf1 = JSON.parse(readFileSync(join(repo, '.mutation-state', 'run.json'), 'utf8')) } catch { lockOf1 = null }
+    check('E1: A REAL SIGKILL RIGHT AFTER A SOURCE MUTATION LEAVES THE FILE MUTATED, THE BACKUP, AND A MARKER THAT RECORDS ITS HASHES AND WHO WROTE IT',
+      k1.signal === 'SIGKILL' && read(join(repo, 'docs/gate-rows.txt')) === MUTATED_ROWS && m1 !== null && m1.id === 'known-survivor'
+        && m1.originalSha === sha(rows) && m1.mutatedSha === sha(MUTATED_ROWS) && Number.isInteger(m1.pid) && read(m1.backup && join(repo, m1.backup)) === rows && (!haveProc || typeof m1.start === 'string')
+        && lockOf1 !== null && lockOf1.pid === m1.pid,
+      `signal ${k1.signal}, file mutated ${read(join(repo, 'docs/gate-rows.txt')) === MUTATED_ROWS}, marker ${JSON.stringify(m1)}`)
+    const h1 = go(['--only', 'known-survivor'])
+    check('E1: ...and the next run HEALS it: the file is back, NO build was run (a docs file cannot reach build/), the state is gone',
+      /HEALED/.test(text(h1)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')) && buildsRun() === 0,
+      `${text(h1).split('\n').filter(l => /HEALED|::error::/.test(l)).join(' | ')}; file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}; builds ${buildsRun()}`)
+    // ...so a build that FAILS cannot wedge it. (It used to: the forced rebuild failed, the marker stayed, and every later run refused over a file that was already back.)
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied' })
+    const h1w = go(['--only', 'known-survivor'], { BUILD_FAIL: '1' })
+    check('E1: ...and a build that would fail cannot wedge the heal of a file the build never reads: HEALED, the file is back, no build ran, nothing was refused, the state is gone',
+      /HEALED/.test(text(h1w)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')) && buildsRun() === 0 && !/npm run build/.test(text(h1w)),
+      `${text(h1w).split('\n').filter(l => /HEALED|::error::/.test(l)).join(' | ').slice(0, 220)}; builds ${buildsRun()}`)
+
+    // E2: the same kill, then the stranded file is edited before the next run.
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied' })
+    writeFileSync(join(repo, 'docs/gate-rows.txt'), `${MUTATED_ROWS}edited by a person after the kill\n`)
+    const h2 = go(['--only', 'known-survivor'])
+    check('E2: A FILE EDITED AFTER THE KILL IS NOT WRITTEN OVER: the next run stops, the file is untouched, the state is kept',
+      h2.status === 1 && /neither the original nor the mutation/.test(text(h2)) && read(join(repo, 'docs/gate-rows.txt')) === `${MUTATED_ROWS}edited by a person after the kill\n` && stateLeft(),
+      `status ${h2.status}; ${text(h2).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 200)}`)
+
+    // E3 to E5: a world mutation (the real outbox-stub entry) killed once it is applied.
+    reset()
+    const k3 = go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-applied' })
+    let m3 = null
+    try { m3 = markerOf() } catch { m3 = null }
+    const stash = join(repo, '.mutation-state', 'world', 'outbox-stub')
+    const stashHolds = Object.keys(writeUps).every(p => read(join(stash, p.split('/').pop())) === writeUps[p])
+    check('E3: A REAL SIGKILL WHILE THE WRITE-UPS ARE REPLACED BY STUBS LEAVES THEM IN A STASH INSIDE THE STATE DIRECTORY, AND A MARKER THAT NAMES THE PATHS TOUCHED AND THE COMMIT THE TREE WAS ON',
+      k3.signal === 'SIGKILL' && Object.keys(writeUps).every(p => read(join(repo, p)) === 'stub\n') && stashHolds && m3 !== null
+        && Object.keys(m3.touched ?? {}).sort().join() === Object.keys(writeUps).sort().join() && m3.head === git('rev-parse HEAD').trim(),
+      `signal ${k3.signal}, stash holds the originals ${stashHolds}, touched ${m3 && Object.keys(m3.touched ?? {})}`)
+    writeFileSync(join(repo, 'unrelated-file.txt'), 'written by someone else after the kill\n')
+    const h3 = go(['--only', 'known-survivor'])
+    check('E3: ...and the next run HEALS it although an unrelated file appeared meanwhile: the write-ups are back byte for byte, the unrelated file is still there, the state is gone',
+      /HEALED/.test(text(h3)) && writeUpsBack() && read(join(repo, 'unrelated-file.txt')) === 'written by someone else after the kill\n' && !existsSync(join(repo, '.mutation-state')) && buildsRun() === 0,
+      `${text(h3).split('\n').filter(l => /HEALED|::error::/.test(l)).join(' | ').slice(0, 220)}; write-ups back ${writeUpsBack()}`)
+
+    reset()
+    go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-applied' })
+    writeFileSync(join(repo, `outbox/cc-session-${day}-one.md`), 'a person rewrote this write-up after the kill\n')
+    const h4 = go(['--only', 'known-survivor'])
+    check('E4: A WRITE-UP EDITED AFTER THE KILL IS NOT RESTORED OVER: the next run stops, runs nothing, and the stash is still there',
+      h4.status === 1 && /neither as it was nor as the mutation left it/.test(text(h4)) && read(join(repo, `outbox/cc-session-${day}-one.md`)) === 'a person rewrote this write-up after the kill\n'
+        && read(join(stash, `cc-session-${day}-one.md`)) === writeUps[`outbox/cc-session-${day}-one.md`] && stateLeft(),
+      `status ${h4.status}; ${text(h4).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 200)}`)
+
+    // E5: an exception inside the window, which the handler can see: it must put the write-ups back BEFORE it clears the state.
+    reset()
+    const k5 = go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-applied', MUTATION_KILL_SIGNAL: 'throw' })
+    check('E5: AN EXCEPTION WHILE THE WRITE-UPS ARE STUBBED IS UNDONE BY THE EXIT HANDLER BEFORE THE STASH GOES: the write-ups are back and the state is gone',
+      k5.status === 1 && writeUpsBack() && !existsSync(join(repo, '.mutation-state')) && /MUTATION_KILL_AT=world-applied/.test(text(k5)),
+      `status ${k5.status}, write-ups back ${writeUpsBack()}, state gone ${!existsSync(join(repo, '.mutation-state'))}, the exception said ${/MUTATION_KILL_AT=world-applied/.test(text(k5))}`)
+
+    // E6: a restore that does not work (the fault hook) must keep the state, and the next run must finish the job.
+    reset()
+    const k6 = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'world-restore-noop' })
+    const stubbed = Object.keys(writeUps).every(p => read(join(repo, p)) === 'stub\n')
+    check('E6: A RESTORE THAT DID NOT WORK IS REPORTED AND KEEPS THE STATE AND THE STASH, instead of clearing them',
+      k6.status === 1 && /did not return what the mutation touched/.test(text(k6)) && stubbed && stateLeft() && stashHolds && Object.keys(writeUps).every(p => read(join(stash, p.split('/').pop())) === writeUps[p]),
+      `status ${k6.status}, stubs still in place ${stubbed}, state kept ${stateLeft()}; ${text(k6).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 160)}`)
+    const h6 = go(['--only', 'known-survivor'])
+    check('E6: ...and the next run finishes it: HEALED, the write-ups are back, and no build ran (a heal that moves write-ups has no use for one)',
+      /HEALED/.test(text(h6)) && writeUpsBack() && !existsSync(join(repo, '.mutation-state')) && buildsRun() === 0, `${text(h6).split('\n').filter(l => /HEALED|::error::/.test(l)).join(' | ').slice(0, 200)}; builds ${buildsRun()}`)
+
+    // E7: one run at a time.
+    reset()
+    mkdirSync(join(repo, '.mutation-state'), { recursive: true })
+    writeFileSync(join(repo, '.mutation-state', 'run.json'), JSON.stringify({ pid: process.pid, start: startOf(process.pid), startedAt: DEAD.startedAt }))
+    const h7 = go(['--only', 'known-survivor'])
+    const untouched7 = read(join(repo, 'docs/gate-rows.txt')) === rows
+    // The run that was refused must not release a lock it never held: the live holder's lock is still there, naming it.
+    let heldAfter7 = null
+    try { heldAfter7 = JSON.parse(readFileSync(join(repo, '.mutation-state', 'run.json'), 'utf8')) } catch { heldAfter7 = null }
+    check('E7: ...and the refused run leaves the live holder\'s lock where it was, naming the holder',
+      heldAfter7 !== null && heldAfter7.pid === process.pid, `lock after the refusal: ${JSON.stringify(heldAfter7)}`)
+    mkdirSync(join(repo, '.mutation-state'), { recursive: true })
+    writeFileSync(join(repo, '.mutation-state', 'run.json'), JSON.stringify(DEAD))
+    const h7b = go(['--only', 'known-survivor'])
+    check('E7: A SECOND RUN WHILE ANOTHER IS GOING STOPS BEFORE IT TOUCHES ANYTHING, and a lock left by a run that is gone does not',
+      h7.status === 1 && /IN PROGRESS/.test(text(h7)) && untouched7 && /known-survivor/.test(text(h7b)) && !/IN PROGRESS/.test(text(h7b)),
+      `live holder: status ${h7.status}, untouched ${untouched7}; stale lock: ran ${/known-survivor/.test(text(h7b))}`)
+
+    // E8: an expectation that deletes the harness's own state (the test-only fault does it before the real command) is noticed AFTER the file is back.
+    reset()
+    const k8 = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-wipes-state' })
+    check('E8: AN EXPECTATION THAT DELETES THE HARNESS\'S OWN STATE IS NOTICED: the file is back from memory, and the run stops and says so',
+      k8.status === 1 && /deleted or changed this run's own state/.test(text(k8)) && read(join(repo, 'docs/gate-rows.txt')) === rows,
+      `status ${k8.status}, file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}; ${text(k8).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 200)}`)
+    // ...and a world mutation's expectation likewise: the stash is still there, so the write-ups are restored, and only then does the run say so.
+    // (An expectation that deleted the stash too would leave the restore failing, which the run also reports, as a failed restore: that case is E6's.)
+    reset()
+    const k9 = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-wipes-state' })
+    check('E8: ...and so is a world mutation\'s: the write-ups are back from the stash, and the run stops and says so',
+      k9.status === 1 && /deleted or changed this run's own state/.test(text(k9)) && writeUpsBack(),
+      `status ${k9.status}; write-ups back ${writeUpsBack()}; ${text(k9).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 220)}`)
+
+    // E9: an exception while a SOURCE file is mutated. E5 is the same for a world mutation; nothing else sent the exit handler through the source half of restore().
+    reset()
+    const k10 = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied', MUTATION_KILL_SIGNAL: 'throw' })
+    check('E9: AN EXCEPTION WHILE A SOURCE FILE IS MUTATED IS UNDONE BY THE EXIT HANDLER: the file is back from its backup, and the state is gone',
+      k10.status === 1 && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')) && /MUTATION_KILL_AT=source-applied/.test(text(k10)),
+      `status ${k10.status}, file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
+
+    // E10: killed AFTER the marker and backup are written and BEFORE the file is touched (and, for a world mutation, before anything is moved). The order of those writes is what
+    // makes a kill at any later moment recoverable; a kill at 'source-applied' or 'world-applied' comes after both writes, so it cannot see the order.
+    reset()
+    const kp = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-prepared', MUTATION_FAULT: 'build-never-verified' })
+    let mp = null
+    try { mp = markerOf() } catch { mp = null }
+    check('E10: A KILL AFTER THE MARKER AND BACKUP ARE WRITTEN AND BEFORE THE FILE IS TOUCHED LEAVES BOTH, AND THE FILE AS IT WAS (the order those writes exist to guarantee)',
+      kp.signal === 'SIGKILL' && mp !== null && mp.id === 'known-survivor' && read(join(repo, mp.backup)) === rows && read(join(repo, 'docs/gate-rows.txt')) === rows,
+      `signal ${kp.signal}, marker ${JSON.stringify(mp)}, file untouched ${read(join(repo, 'docs/gate-rows.txt')) === rows}`)
+    const hp = go(['--only', 'known-survivor'])
+    check('E10: ...and the next run says there was nothing to heal, rebuilds once, and drops the state',
+      /Nothing to heal/.test(text(hp)) && !/HEALED/.test(text(hp)) && buildsRun() === 1 && !existsSync(join(repo, '.mutation-state')) && read(join(repo, 'docs/gate-rows.txt')) === rows,
+      `${text(hp).split('\n').filter(l => /Nothing to heal|HEALED|::error::/.test(l)).join(' | ').slice(0, 200)}; builds ${buildsRun()}`)
+    reset()
+    // A tracked file a person had already modified when the run started: it is in the marker's `before`, and the next run must read it as unchanged, not as damage.
+    const DIRTY_ROWS = `${rows}a line a person had not committed yet\n`
+    writeFileSync(join(repo, 'docs/gate-rows.txt'), DIRTY_ROWS)
+    const kw = go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-prepared' })
+    let mw = null
+    try { mw = markerOf() } catch { mw = null }
+    check('E10: ...and a world mutation killed after its marker is written and before it has moved anything leaves the marker (no paths recorded yet), the stash directory, and every write-up as it was',
+      kw.signal === 'SIGKILL' && mw !== null && mw.id === 'outbox-stub' && mw.touched === undefined && existsSync(stash) && writeUpsBack(),
+      `signal ${kw.signal}, marker ${JSON.stringify(mw && { id: mw.id, touched: mw.touched })}, stash directory ${existsSync(stash)}, write-ups as they were ${writeUpsBack()}`)
+    const hw = go(['--only', 'known-survivor'])
+    check('E10: ...and the next run finds nothing to heal although a tracked file was already modified (the tree is as it was before the mutation: the marker recorded it), the write-ups and that file are untouched, and no build ran',
+      /Nothing to heal/.test(text(hw)) && writeUpsBack() && read(join(repo, 'docs/gate-rows.txt')) === DIRTY_ROWS && !existsSync(join(repo, '.mutation-state')) && buildsRun() === 0,
+      `${text(hw).split('\n').filter(l => /Nothing to heal|HEALED|::error::/.test(l)).join(' | ').slice(0, 200)}; builds ${buildsRun()}`)
+
+    // E11: `--heal` heals and stops.
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied', MUTATION_FAULT: 'build-never-verified' })
+    const hh = go(['--heal'])
+    const hh2 = go(['--heal'])
+    check('E11: `--heal` RESTORES A STRANDED FILE AND STOPS THERE: the file is back, the build ran once, the state is gone, and no mutation was run',
+      hh.status === 0 && /HEALED/.test(text(hh)) && read(join(repo, 'docs/gate-rows.txt')) === rows && buildsRun() === 1 && !existsSync(join(repo, '.mutation-state')) && !/Mutation testing/.test(text(hh)),
+      `status ${hh.status}; ${text(hh).split('\n').filter(l => /HEALED|::error::|Mutation testing/.test(l)).join(' | ').slice(0, 200)}; builds ${buildsRun()}`)
+    check('E11: ...and with nothing stranded it says so and exits 0',
+      hh2.status === 0 && /Nothing to heal: no run left a mutation applied/.test(text(hh2)) && !/Mutation testing/.test(text(hh2)), `status ${hh2.status}; ${text(hh2).slice(0, 200)}`)
+
+    // E12: a stranded mutation of a file the harness is built from. The run that heals it had loaded the mutated copy; it must start again as the restored one.
+    const selfFile = join(repo, 'scripts', 'run-marker.mjs')
+    const selfOriginal = readFileSync(selfFile, 'utf8')
+    const selfMutated = `${selfOriginal}\n// MUTATED by a killed run\n`
+    const strandSelf = () => {
+      reset()
+      mkdirSync(join(repo, '.mutation-state'), { recursive: true })
+      const selfBackup = join('.mutation-state', 'scripts_run-marker.mjs')
+      writeFileSync(join(repo, selfBackup), selfOriginal)
+      writeFileSync(selfFile, selfMutated)
+      writeFileSync(join(repo, '.mutation-state', 'active.json'), JSON.stringify({ id: 'strand-self', file: 'scripts/run-marker.mjs', backup: selfBackup, originalSha: sha(selfOriginal), mutatedSha: sha(selfMutated), ...DEAD }))
+    }
+    strandSelf()
+    const hr = go(['--only', 'known-survivor'])
+    const againLines = text(hr).split('\n').filter(l => /starts again as the restored code/.test(l)).length
+    check('E12: A HEAL THAT RESTORES A FILE THE HARNESS IS BUILT FROM STARTS THE RUN AGAIN AS THE RESTORED CODE: it says so once, the file is back, and the run that follows is the whole one',
+      /HEALED/.test(text(hr)) && againLines === 1 && read(selfFile) === selfOriginal && /FAIL  \[known-survivor\]/.test(text(hr)) && hr.status === 1,
+      `status ${hr.status}, said it ${againLines} time(s), file back ${read(selfFile) === selfOriginal}; ${text(hr).split('\n').filter(l => /HEALED|starts again|FAIL|::error::/.test(l)).join(' | ').slice(0, 260)}`)
+    // ...and the restart is a NEW PROCESS that knows it is the restart, and its fate is the run's. The clause above cannot tell a restart from the same process carrying on (the
+    // stranded file differs from the original by a comment); this one kills the run that follows the heal, which a continuation would take down with it.
+    strandSelf()
+    const hk = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied' })
+    let mk = null
+    try { mk = markerOf() } catch { mk = null }
+    check('E12: ...the restart is a new process told that it is one, and when it is killed the run that started it exits 1 (it is not killed itself, and does not exit 0)',
+      hk.status === 1 && hk.signal === null && /\(this run is the restored code/.test(text(hk)) && /starts again as the restored code/.test(text(hk)) && mk !== null && mk.id === 'known-survivor',
+      `status ${hk.status}, signal ${hk.signal}; ${text(hk).split('\n').filter(l => /HEALED|starts again|restored code|::error::/.test(l)).join(' | ').slice(0, 260)}; marker ${JSON.stringify(mk && { id: mk.id })}`)
+    // ...and a restarted run that ends GREEN ends the run that started it green: its status is passed on, not replaced by a failure (`again.status || 1` turns 0 into 1).
+    strandSelf()
+    const hz = go(['--only', 'outbox-stub'], { ROW_FAILS_ON_STUB: '1' })
+    check('E12: ...the restart\'s own exit status is the run\'s: a restarted run that catches its mutation exits 0, and so does the run that started it',
+      hz.status === 0 && /starts again as the restored code/.test(text(hz)) && /2\/2 checks passed/.test(text(hz)) && /PASS  \[outbox-stub\]/.test(text(hz)) && writeUpsBack(),
+      `status ${hz.status}; ${text(hz).split('\n').filter(l => /HEALED|starts again|PASS|FAIL|checks passed|::error::/.test(l)).join(' | ').slice(0, 260)}; write-ups back ${writeUpsBack()}`)
+    // ...and a run that IS the restart does not restart again, and its children do not inherit the flag (the baseline's self-test did, and could not re-exec in its own group E).
+    strandSelf()
+    const hg = go(['--only', 'known-survivor'], { MUTATION_REEXEC: '1', MUTATION_FAULT: 'expect-reports-env' })
+    check('E12: ...a run started as the restart heals in place and does not restart again, and what it starts does not inherit the flag',
+      /HEALED/.test(text(hg)) && !/starts again as the restored code/.test(text(hg)) && read(selfFile) === selfOriginal && /FAIL  \[known-survivor\]/.test(text(hg)) && read(join(repo, 'expect-env.txt')) === 'REEXEC=[]\n',
+      `${text(hg).split('\n').filter(l => /HEALED|starts again|FAIL|::error::/.test(l)).join(' | ').slice(0, 200)}; the expectation saw ${JSON.stringify(read(join(repo, 'expect-env.txt')))}`)
+
+    // E13: two runs over one stranded marker. The first heals (its build takes two seconds); the second starts while it does. It must be refused by the first's lock, and the
+    // first must finish with its state intact. (With the lock taken after the heal, both healed, and the slower one's cleanup deleted the faster one's lock.)
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied', MUTATION_FAULT: 'build-never-verified' })
+    const runA = spawn(process.execPath, ['scripts/mutation-check.mjs', '--only', 'known-survivor'], { cwd: repo, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', BUILD_SLEEP_MS: '2000' } })
+    let outA = ''
+    runA.stdout.on('data', d => { outA += d })
+    runA.stderr.on('data', d => { outA += d })
+    const doneA = new Promise(done => runA.on('close', (code, signal) => done({ code, signal })))
+    for (let waited = 0; buildsRun() === 0 && waited < 160; waited++) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50)
+    const startedMidHeal = buildsRun() > 0
+    const runB = go(['--only', 'known-survivor'])
+    const resultA = await doneA
+    check('E13: A SECOND RUN STARTED WHILE THE FIRST IS HEALING IS REFUSED BY ITS LOCK, and the first finishes with its own state intact',
+      startedMidHeal && runB.status === 1 && /IN PROGRESS/.test(text(runB)) && /HEALED/.test(outA) && /FAIL  \[known-survivor\]/.test(outA)
+        && !/deleted or changed this run's own state/.test(outA) && resultA.code === 1 && read(join(repo, 'docs/gate-rows.txt')) === rows,
+      `second run started during the first's build: ${startedMidHeal}; second: status ${runB.status}, refused ${/IN PROGRESS/.test(text(runB))}; first: code ${resultA.code}, ${outA.split('\n').filter(l => /HEALED|::error::|FAIL/.test(l)).join(' | ').slice(0, 220)}`)
+
+    // E14: a run that ends in a handler (an exception, a catchable signal, fatal()) with a source mutation's build not yet verified clean puts the FILE back but keeps the marker, so the
+    // next run rebuilds. (Test-only fault: a docs mutation is treated as one whose build is dirty, since a source one would need the Fable build.)
+    reset()
+    const kd = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'build-never-verified', MUTATION_KILL_AT: 'source-applied', MUTATION_KILL_SIGNAL: 'throw' })
+    let md = null
+    try { md = markerOf() } catch { md = null }
+    check('E14: A HANDLER THAT PUTS A SOURCE FILE BACK BEFORE ITS BUILD IS VERIFIED CLEAN KEEPS THE MARKER AND BACKUP: the file is back, and the marker still names it',
+      kd.status === 1 && md !== null && md.id === 'known-survivor' && read(join(repo, 'docs/gate-rows.txt')) === rows && read(join(repo, md.backup)) === rows,
+      `status ${kd.status}, marker ${JSON.stringify(md && { id: md.id })}, file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}`)
+    const hd = go(['--only', 'known-survivor'])
+    check('E14: ...and the next run reads "already undone", rebuilds, and drops it',
+      /Nothing to heal/.test(text(hd)) && buildsRun() === 1 && !existsSync(join(repo, '.mutation-state')), `${text(hd).split('\n').filter(l => /Nothing to heal|HEALED|::error::/.test(l)).join(' | ').slice(0, 200)}; builds ${buildsRun()}`)
+
+    // E15: a file nobody asked for, written while a world mutation is applied, is not "the restore failed".
+    reset()
+    const ku = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-writes-unrelated' })
+    check('E15: AN UNRELATED FILE WRITTEN WHILE A WORLD MUTATION IS APPLIED DOES NOT ABORT A HEALTHY RUN: the write-ups are back, the state is gone, and no restore failure is reported',
+      writeUpsBack() && existsSync(join(repo, 'unrelated-during-window.txt')) && !existsSync(join(repo, '.mutation-state')) && !/did not return what the mutation touched/.test(text(ku)) && !/deleted or changed this run's own state/.test(text(ku)),
+      `write-ups back ${writeUpsBack()}, the fault ran ${existsSync(join(repo, 'unrelated-during-window.txt'))}, state gone ${!existsSync(join(repo, '.mutation-state'))}; ${text(ku).split('\n').filter(l => /::error::|did not return/.test(l)).join(' | ').slice(0, 200)}`)
+
+    // E16: a world mutation that changes nothing is reported as a broken mutation and leaves nothing behind.
+    reset()
+    for (const p of Object.keys(writeUps)) rmSync(join(repo, p))
+    const kn = go(['--only', 'outbox-stub'])
+    check('E16: A WORLD MUTATION THAT CHANGES NOTHING IS REPORTED AS A BROKEN MUTATION, and leaves no state behind',
+      kn.status === 1 && /the mutation actually applies/.test(text(kn)) && !/did not return what the mutation touched/.test(text(kn)) && !existsSync(join(repo, '.mutation-state')),
+      `status ${kn.status}; ${text(kn).split('\n').filter(l => /actually applies|::error::|FAIL/.test(l)).join(' | ').slice(0, 220)}; state gone ${!existsSync(join(repo, '.mutation-state'))}`)
+
+    // E17: a mutation that COULD reach build/ (the test-only fault marks a docs mutation as one) is rebuilt for on heal, and the build's own result decides what happens next.
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_FAULT: 'build-never-verified', MUTATION_KILL_AT: 'source-applied' })
+    let m17 = null
+    try { m17 = markerOf() } catch { m17 = null }
+    const h17f = go(['--only', 'known-survivor'], { BUILD_FAIL: '1' })
+    const kept17 = stateLeft()
+    check('E17: A MUTATION THAT COULD REACH build/ IS REBUILT FOR ON HEAL, AND A BUILD THAT FAILS STOPS THE RUN WITH ITS OWN FAILURE: the marker says it could, the file is back, the build ran, the refusal carries what the build said, and the marker stays',
+      m17 !== null && m17.rebuild === true && h17f.status === 1 && read(join(repo, 'docs/gate-rows.txt')) === rows && buildsRun() === 1 && /npm run build. failed \(exit 1: fake build failed on purpose\)/.test(text(h17f)) && kept17 && !/delete .* to clear this/.test(text(h17f)),
+      `marker rebuild ${m17 && m17.rebuild}; status ${h17f.status}; builds ${buildsRun()}; kept ${kept17}; ${text(h17f).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 260)}`)
+    const h17 = go(['--only', 'known-survivor'])
+    check('E17: ...and the next run, with a working build, reads "already undone", builds again, and drops it',
+      /Nothing to heal/.test(text(h17)) && buildsRun() === 2 && !existsSync(join(repo, '.mutation-state')), `${text(h17).split('\n').filter(l => /Nothing to heal|::error::/.test(l)).join(' | ').slice(0, 200)}; builds ${buildsRun()}`)
+    // A build that succeeds but PRINTS a lot is a build that succeeded (execSync's default 1 MiB would have killed it and called it failed).
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_FAULT: 'build-never-verified', MUTATION_KILL_AT: 'source-applied' })
+    const h17n = go(['--only', 'known-survivor'], { BUILD_NOISE_MB: '2' })
+    check('E17: ...and a build that prints two megabytes and succeeds is not read as failed: HEALED, the build ran once, nothing was refused, the state is gone',
+      /HEALED/.test(text(h17n)) && buildsRun() === 1 && !/npm run build. failed/.test(text(h17n)) && !existsSync(join(repo, '.mutation-state')) && read(join(repo, 'docs/gate-rows.txt')) === rows,
+      `${text(h17n).split('\n').filter(l => /HEALED|::error::/.test(l)).join(' | ').slice(0, 220)}; builds ${buildsRun()}`)
+
+    // E18: a catchable signal. The handler (not SIGKILL, which no handler sees, and not `throw`, which is the exception path) must put the file back and clear the state, and the run
+    // must stop THERE: a run that merely finished would have printed its verdict for the mutation.
+    for (const sig of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
+      reset()
+      const ks = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied', MUTATION_KILL_SIGNAL: sig })
+      check(`E18: A ${sig} WHILE A SOURCE FILE IS MUTATED IS HANDLED: the file is back, the state is gone, and the run exits 1 having stopped there (not killed by it, not finished)`,
+        ks.status === 1 && ks.signal === null && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')) && !/(PASS|FAIL)\s+\[known-survivor\]/.test(text(ks)),
+        `status ${ks.status}, signal ${ks.signal}, file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}, state gone ${!existsSync(join(repo, '.mutation-state'))}, finished ${/(PASS|FAIL)\s+\[known-survivor\]/.test(text(ks))}`)
+    }
+    reset()
+    const kt = go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-applied', MUTATION_KILL_SIGNAL: 'SIGTERM' })
+    check('E18: ...and a SIGTERM while the write-ups are stubbed puts them back from the stash before the state goes',
+      kt.status === 1 && kt.signal === null && writeUpsBack() && !existsSync(join(repo, '.mutation-state')) && !/(PASS|FAIL)\s+\[outbox-stub\]/.test(text(kt)),
+      `status ${kt.status}, signal ${kt.signal}, write-ups back ${writeUpsBack()}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
+
+    // E19: a restore that put back SOME of what the mutation touched (a `cp` that ran out of disk part-way). It is not a restore: the stash is the only copy of the rest.
+    reset()
+    const kq = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'world-restore-partial' })
+    const stubsLeft = Object.keys(writeUps).filter(p => read(join(repo, p)) === 'stub\n').length
+    check('E19: A RESTORE THAT PUT BACK ONLY SOME OF THE WRITE-UPS IS NOT CALLED A RESTORE: the run stops and says so, one write-up is still a stub, and the state and the stash are kept',
+      kq.status === 1 && /did not return what the mutation touched/.test(text(kq)) && stubsLeft === 1 && stateLeft() && Object.keys(writeUps).every(p => read(join(stash, p.split('/').pop())) === writeUps[p]),
+      `status ${kq.status}, stubs left ${stubsLeft}, state kept ${stateLeft()}; ${text(kq).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 160)}`)
+    const hq = go(['--only', 'known-survivor'])
+    check('E19: ...and the next run finishes it: HEALED, every write-up is back, and the state is gone',
+      /HEALED/.test(text(hq)) && writeUpsBack() && !existsSync(join(repo, '.mutation-state')), `${text(hq).split('\n').filter(l => /HEALED|::error::/.test(l)).join(' | ').slice(0, 200)}`)
+
+    // E21: the baseline runs each expectation once on the unmutated tree. An expectation that merely PRINTS more than a megabyte passes there, as it does in the mutation loop.
+    reset()
+    const kb = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'baseline-prints-a-lot' })
+    check('E21: AN EXPECTATION THAT PRINTS TWO MEGABYTES AND PASSES IS NOT A FAILING BASELINE',
+      /baseline: ran 1 of 1 distinct expectation\(s\) from 1 mutation\(s\), 0 failing/.test(text(kb)) && !/the unmutated tree passes every expectation[^\n]*\n[^\n]*already failing/.test(text(kb)),
+      `${text(kb).split('\n').filter(l => /baseline:|already failing/.test(l)).join(' | ').slice(0, 220)}`)
+
+    // E20: a tree that cannot be read is not "nothing to heal". (GIT_DIR points nowhere for the run that heals; the stubs, the state and the stash must all still be there.)
+    reset()
+    go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-applied' })
+    const hu = go(['--only', 'known-survivor'], { GIT_DIR: join(scratch, 'no-such-git-dir') })
+    check('E20: A TREE THAT CANNOT BE READ IS NOT "NOTHING TO HEAL": the run stops and says so, and the stubs, the state and the stash are all still there',
+      hu.status === 1 && /could not be checked against the tree/.test(text(hu)) && Object.keys(writeUps).every(p => read(join(repo, p)) === 'stub\n') && stateLeft() && Object.keys(writeUps).every(p => read(join(stash, p.split('/').pop())) === writeUps[p]),
+      `status ${hu.status}; ${text(hu).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 200)}`)
+    reset()
+  } else {
+    console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
+  }
 
   const fixture = [{ id: 'live', file: 'a', find: 'x', replace: 'y' }, { id: 'stale', file: 'a', find: 'gone', replace: 'y' }, { id: 'world', mutate: 'z' }]
   const probe = staleAnchors(fixture, () => 'x is here')
   check('A STALE ANCHOR IS FOUND, a live one is not, a world mutation is not counted',
     probe.checked === 2 && probe.stale.length === 1 && probe.stale[0].startsWith('stale:'), JSON.stringify(probe))
+  // ...and an anchor that occurs TWICE is reported: `replace` takes the first, so the entry may be mutating something other than what its claim says (one was: the harness's own
+  // `harness-reads-the-clock-twice`, whose two-space anchor was a substring of a four-space line above the one it meant). In this file only the region after the table counts.
+  const twice = staleAnchors([{ id: 'twice', file: 'a', find: 'x', replace: 'y' }, { id: 'once', file: 'a', find: 'q', replace: 'y' }], () => 'x and x and q')
+  const inTable = staleAnchors([{ id: 'harness', file: 'scripts/mutation-check.mjs', find: 'x', replace: 'y' }], () => 'x in the table\nconst selected = ONLY\nx after it, once')
+  const inTable2 = staleAnchors([{ id: 'harness', file: 'scripts/mutation-check.mjs', find: 'x', replace: 'y' }], () => 'x in the table\nconst selected = ONLY\nx after it, and x again')
+  check('AN ANCHOR THAT OCCURS TWICE IS REPORTED AS AMBIGUOUS, and one that occurs once is not; in this file only what comes after the table is counted',
+    twice.stale.length === 1 && /^twice: AMBIGUOUS/.test(twice.stale[0]) && inTable.stale.length === 0 && inTable2.stale.length === 1 && /^harness: AMBIGUOUS/.test(inTable2.stale[0]),
+    JSON.stringify({ twice, inTable, inTable2 }))
 
   check('A FULL RUN OWNS THE BASELINE ARTIFACT', ownsBaseline(null) === true,
     'the full suite is the only run whose baseline describes the whole suite')
@@ -3122,15 +5843,43 @@ if (process.argv.includes('--self-test')) {
     check(`MUTATION: \`${args}\` is a usage error that says why`, r.status === 2 && re.test(r.err), `status ${r.status}: ${r.err.split('\n').find(l => l.trim()) ?? '(no message)'}`)
   }
 
-  rmSync(victim, { force: true })
-  rmSync(backup, { force: true })
+  rmSync(scratch, { recursive: true, force: true })
   clearActive()
+  // The directory itself too: it is a mkdtemp of this run's own, and the pre-commit hook and every table entry that expects a self-test left three of them in tmp each time.
+  rmSync(stateDir, { recursive: true, force: true })
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
 // Before the baseline, not after: a stranded mutation would otherwise be
 // measured as a product failure, which is precisely what happened today.
-heal()
+//
+// THE LOCK COMES FIRST, then the heal. A heal ends in a full compile when a source file was stranded, so it is the longest phase of a start, and a lock taken after it
+// left that whole phase open: two runs started over one stranded marker both healed, and the slower one's cleanup deleted the faster one's lock, marker and backup
+// (reproduced in review, 2026-11-04). The heal's cleanup keeps run.json for the same reason.
+// Read once and REMOVED, so nothing this run starts inherits it: the baseline's `--self-test` ran with it set in the re-executed child, and group E's own re-exec clause
+// could not re-exec, so the re-executed run failed its baseline on a clean tree (review 4, 2026-11-04). A guard that is set is for this process only.
+const RESTARTED = process.env.MUTATION_REEXEC === '1'
+delete process.env.MUTATION_REEXEC
+checkLocks(stateDir)
+if (!acquireRunLock()) {
+  console.log(`::error::${runLock} appeared while this run was starting: another mutation run holds this state directory. It would read this run's mutated files as its own originals, so this one stops. Nothing was touched.`)
+  process.exit(1)
+}
+const healedAny = healHeld(stateDir)
+if (process.argv.includes('--heal')) {
+  console.log(healedAny ? '\n  Healed. The tree is as it was before the killed run.' : '\n  Nothing to heal: no run left a mutation applied.')
+  process.exit(0)
+}
+// A heal that restored a file THIS PROCESS IS BUILT FROM leaves the process running the copy it loaded before the restore: the mutated harness, judging everything that
+// follows. (`harness-blind` stranded, then `--only known-survivor`: the healing run printed PASS and exited 0; the same run on the restored file fails, as it should.)
+// So it starts again, as the restored code. MUTATION_REEXEC stops it doing so twice.
+if ([...healedFiles].some(f => SELF_SOURCES.includes(f)) && !RESTARTED) {
+  releaseRunLock()
+  console.log('\n  The heal restored a file this harness is built from, so it starts again as the restored code.')
+  const again = spawnSync(process.execPath, process.argv.slice(1), { stdio: 'inherit', env: { ...process.env, MUTATION_REEXEC: '1' } })
+  process.exit(again.status ?? 1)
+}
+if (RESTARTED) console.log('\n  (this run is the restored code, started by the one that healed it)')
 
 console.log(`\nMutation testing ${selected.length} invariant(s)\n`)
 
@@ -3171,7 +5920,12 @@ const distinctExpects = [...new Set(selected.map(m => m.expect))]
 const lapBaseline = stopwatch()
 const baselineResults = distinctExpects.map(cmd => {
   try {
-    execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' })
+    // In the child environment, like every other command this run starts (run, capture): a harness run that is an EXPECTATION (harness-blind, only-selects-nothing-passes)
+    // must find a state directory of its own. Without it the baseline ran it into this run's live lock, which it refuses, and `! node …` counted the refusal as a pass:
+    // the baseline of a harness that had gone blind read "0 failing" (review 2026-11-04).
+    // Test-only fault: the expectation prints two megabytes first. A command that merely PRINTS a lot passes; execSync's own limit (1 MiB) would have called it failed.
+    const printsALot = 'node -e "process.stdout.write(\'x\'.repeat(2 * 1024 * 1024))" && '
+    execSync(process.env.MUTATION_FAULT === 'baseline-prints-a-lot' ? printsALot + cmd : cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(), maxBuffer: OUTPUT_LIMIT })
     return { cmd, passed: true }
   } catch (e) {
     // EXIT 3 IS `run-row.mjs` SAYING ITS ROW HAS NO SUBJECT ON THIS RUN: the
@@ -3297,11 +6051,24 @@ for (const m of selected) {
   if (m.mutate) {
     cleanBefore(`world mutation [${m.id}]`)
     // Marker first. A world mutation moves real files around — the outbox one
-    // moves this session's write-ups into /tmp — so being killed between
+    // moves this session's write-ups aside — so being killed between
     // `mutate` and `restore` is the most expensive interruption here, not the
     // cheapest.
-    mkdirSync(stateDir, { recursive: true })
-    writeFileSync(marker, JSON.stringify({ id: m.id, restoreCmd: m.restore }))
+    //
+    // The marker records WHERE the stash is and the tree before; the paths the mutation touched are added once it
+    // has run. heal() restores only when every one of those paths is exactly as the mutation left it, and reads
+    // them back afterwards; anything else in the tree is nobody's business. The stash lives in the state
+    // directory, which a restart does not wipe, and from the moment the mutation is applied an exit undoes it
+    // (see restore()) before the state goes.
+    const stash = stashOf(m.id)
+    claimState()
+    mkdirSync(stash, { recursive: true })
+    const before = treeSnapshot()
+    const worldMarker = worldMarkerOf(m, stash, before)
+    // (`killHere('world-prepared')` is test-only: it ends the run with the marker written and the stash made, before the mutation has moved anything.)
+    writeFileSync(marker, JSON.stringify(worldMarker))
+    worldApplied = { restore: m.restore, stash, before, touched: null }
+    await killHere('world-prepared')
 
     // A WORLD MUTATION MUST PROVE IT APPLIED.
     //
@@ -3323,13 +6090,13 @@ for (const m of selected) {
     // no-oping and being counted as CAUGHT, is how a suite turns green while
     // proving nothing.
     //
-    // The tree state before and after is the general test, so it holds for
-    // mutations that edit a file, move files to /tmp, or overwrite them.
-    const treeBefore = treeDigest()
-    run(m.mutate)
-    const treeAfter = treeDigest()
-    if (treeBefore === treeAfter) {
-      run(m.restore)
+    // The tree before and after is the general test, so it holds for
+    // mutations that edit a file, move files aside, or overwrite them.
+    run(m.mutate, { STASH: stash })
+    const touched = touchedBy(before, treeSnapshot())
+    if (Object.keys(touched).length === 0) {
+      run(m.restore, { STASH: stash })
+      worldApplied = null
       clearActive()
       check(`[${m.id}] the mutation actually applies`, false,
         `\`${m.mutate.slice(0, 90)}${m.mutate.length > 90 ? '…' : ''}\` left the tree unchanged. ` +
@@ -3338,10 +6105,21 @@ for (const m of selected) {
       continue
     }
 
+    worldApplied.touched = touched
+    const worldMarkerText = JSON.stringify({ ...worldMarker, touched })
+    writeFileSync(marker, worldMarkerText)
+    await killHere('world-applied')
+
     const lapWorld = stopwatch()
-    const passed = run(m.expect)
+    const passed = run(expectOf(m))
     const worldMs = lapWorld()
-    run(m.restore)
+    const worldIntact = stateIntact(worldMarkerText)
+    // A restore that ran is not a restore that worked (`|| true` hides a missing stash), so what it touched is read back. If it is not as it
+    // was, the stash is the only copy of what was moved aside: the state stays on disk through exit, and heal() will say so next run.
+    if (!undoWorld()) {
+      fatal(`[${m.id}] the restore did not return what the mutation touched to what it was. The exit handler tries it once more; unless that verifies, the state and the stash (${stash}) stay on disk — compare them with \`git status\`.`)
+    }
+    if (!worldIntact) fatal(`[${m.id}] its expectation deleted or changed this run's own state in ${stateDir}. The tree is as it was, but a kill during that expectation would have left nothing to heal from; look at what the mutation changes.`)
     clearActive()
     const caught = !passed
     check(`[${m.id}] ${m.claim}`, caught,
@@ -3375,17 +6153,31 @@ for (const m of selected) {
   // Backup and marker land BEFORE the file is touched. The window this closes
   // is the one that actually opened today: the process died holding a mutated
   // file with its only backup in a tmpdir that died with it.
-  mkdirSync(stateDir, { recursive: true })
+  //
+  // The marker records what the file is before and what the mutation makes it, so heal() can tell a file still holding this
+  // mutation from one that has moved on, and a restore that happened from one that did not.
+  //
+  // The build is dirty from the moment the mutation can reach it. (Test-only: `build-never-verified` marks a mutation that does not rebuild the same way, so a docs
+  // mutation killed by an exception stands in for a source one, which would need the Fable build.)
+  //
+  // `killHere('source-prepared')` is test-only: it ends the run with the marker and backup written and the file NOT yet touched, which is the order these writes exist to
+  // guarantee. Nothing else sat between the writes and the mutation, so no kill hook could see that order.
+  claimState()
   const backupPath = join(stateDir, m.file.replace(/\//g, '_'))
   writeFileSync(backupPath, original)
-  writeFileSync(marker, JSON.stringify({ id: m.id, file: m.file, backup: backupPath }))
+  const reachesBuild = needsRebuild || MUTATION_FAULT === 'build-never-verified'
+  const markerText = JSON.stringify(sourceMarker(m, backupPath, original, mutated, reachesBuild))
+  writeFileSync(marker, markerText)
   backups.set(m.file, backupPath)
+  buildDirty = reachesBuild
+  await killHere('source-prepared')
 
   let res = null
   try {
     // The write happens INSIDE compile(): the cycle count is read before it, so the compile waited for is the one this write caused.
     if (needsRebuild) res = await compileSteadily(builder, () => writeFileSync(m.file, mutated), { label: `[${m.id}]`, noCycle: html }, retryNote(m.id, 'applying'))
     else writeFileSync(m.file, mutated)
+    await killHere('source-applied')
   } catch (e) {
     fatal(`[${m.id}] ${e.message}`)
   }
@@ -3397,8 +6189,9 @@ for (const m of selected) {
   // anything else. An `inverted` option existed here briefly and was removed
   // unused: a branch nothing exercises is precisely what this harness is for.
   const lapExpect = stopwatch()
-  const survived = built && run(m.expect)
+  const survived = built && run(expectOf(m))
   const expectMs = lapExpect()
+  const intactAfterExpect = stateIntact(markerText)
 
   // A WATCH SURVIVOR IS NOT FINAL until the full compiler has seen the same source (confirmFullCompile): watch re-checks the file that changed, not the files
   // after it, so a mutation that breaks only a later file builds and survives here and is refused by the full compile. The source is still mutated at this point.
@@ -3422,6 +6215,9 @@ for (const m of selected) {
   if (back && !back.ok) fatal(`restoring [${m.id}]: the restore build failed: ${back.errors.join(' | ')}`)
   cleanBefore(`the restore of [${m.id}] was verified`)
   backups.delete(m.file)
+  buildDirty = false
+  // The file is back (from memory, not from the backup that may be gone); only now say the state was not.
+  if (!intactAfterExpect) fatal(`[${m.id}] its expectation deleted or changed this run's own state in ${stateDir}. ${m.file} is restored, but a kill during that expectation would have left nothing to heal from; look at what the mutation changes.`)
   clearActive()
 
   const refusedOnConfirm = Boolean(confirmed?.refused)
