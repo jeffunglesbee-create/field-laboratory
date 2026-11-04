@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6a2e444` | 2026-11-03 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-03T23:39 [skip ci] |
+| `a2ac2b7` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `4621f98` | 2026-11-03 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f38fc97` | 2026-11-03 | [cc-session-2026-11-03-proof-check-stale-state.md](cc-session-2026-11-03-proof-check-stale-state.md) | fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects |
 | `f38fc97` | 2026-11-03 | [cc-session-2026-11-03-weather-first-call-14day-count.md](cc-session-2026-11-03-weather-first-call-14day-count.md) | fix: proof-check applies a killed run's backups only to a file that is exactly that backup plus what the script injects |
