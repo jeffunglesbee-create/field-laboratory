@@ -1952,5 +1952,37 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-11-04",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-04",
+    "at": "2026-11-04T19:38:13.296Z",
+    "sports": {
+      "NBA": {
+        "rows": 14,
+        "withOdds": 14,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 4,
+        "withOdds": 4,
+        "withDraw": 0
+      },
+      "UEFA Champions League": {
+        "rows": 9,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "UEFA Europa League": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 3,
+        "withOdds": 3,
+        "withDraw": 0
+      }
+    }
   }
 ]
