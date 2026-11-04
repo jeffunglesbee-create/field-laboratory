@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `18a4165`
+**green** on `18a4165` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `18a4165`
+`live-check` (post-deploy, against the deployed page): **green** on `18a4165` — but that is not `main` HEAD
 
 ## Is it published?
 
