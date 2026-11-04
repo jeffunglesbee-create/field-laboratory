@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ba1bd33` | 2026-11-04 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-04T14:52 [skip ci] |
 | `a9d12aa` | 2026-11-04 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `18a4165` | 2026-11-04 | [cc-session-2026-11-04-gate-state-hazards.md](cc-session-2026-11-04-gate-state-hazards.md) | fix: the gate's kill recovery writes only over what it can prove is its own, and its tests can fail |
 | `3f59ab6` | 2026-11-04 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-04 [skip ci] |
