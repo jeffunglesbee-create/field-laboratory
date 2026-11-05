@@ -115,6 +115,9 @@ const mutationsFor = (scripts, rowName) => {
  * Network use is a CALL, or a reference that becomes one. The scan used to look for `https://` in the text left when comments and strings were removed, and a URL is always in one or the other, so
  * it could not fire (measured 2026-11-05 on this tree: it flagged 0 of 169 scripts). What it looks for now is the callee, in code: `fetch` as a call or as a value (`fetchImpl = fetch`),
  * `globalThis.fetch`, `new WebSocket`, `https.request`, `net.connect`, `sendBeacon`. A property or a key named like one is not use (`o.fetch(x)`, `{ fetch: 1 }`), and a longer name is not (`fetchImpl(u)`).
+ * Nor is a DECLARATION of the name or an ASSIGNMENT to it: a script that stubs `fetch` (`globalThis.fetch = (url) => …`, `function fetch(u) {}`, `const fetch = …`, a method or a class field called `fetch`) makes no request, and
+ * was reported as one (`weather-burst-check.mjs`: `global fetch x2`). A declaration is the name after `function`, `const`, `let` or `var`, or followed on its line by a parameter list and a `{`; an assignment is the
+ * name followed by a single `=` (also through a global object). What is read from it, compared or passed on is still use (`fetch === undefined`, `const f = globalThis.fetch`, `f(fetch)`).
  * Each is a label and the number of times it was seen, which is what the objection prints (`reaches the network (fetch x1)`).
  *
  * WHAT IT CANNOT SEE (Rule 91; the clause that checks it prints the same list): a named import from `node:https` (`import { get } from 'node:https'; get(u)`), a child process (`spawn('curl')`, `gh api`),
@@ -123,8 +126,8 @@ const mutationsFor = (scripts, rowName) => {
  * imports that does the fetching: the scan does not follow imports.
  */
 const NETWORK_USE = [
-  [/(?<![\w$])(?<!\.\s*)fetch(?![\w$])(?!\s*:)/g, 'fetch'],
-  [/(?<![\w$])(?<!\.\s*)(?:globalThis|window|self|global)\s*\.\s*fetch(?![\w$])/g, 'global fetch'],
+  [/(?<!\b(?:function(?:\s*\*)?|const|let|var)\s+)(?<![\w$])(?<!\.\s*)fetch(?![\w$])(?!\s*:)(?!\s*=(?!=))(?![ \t]*\((?:[^()]|\([^()]*\))*\)[ \t]*\{)/g, 'fetch'],
+  [/(?<![\w$])(?<!\.\s*)(?:globalThis|window|self|global)\s*\.\s*fetch(?![\w$])(?!\s*=(?!=))/g, 'global fetch'],
   [/(?<![\w$])(?<!\.\s*)new\s+(?:WebSocket|EventSource|XMLHttpRequest)(?![\w$])/g, 'new WebSocket|EventSource|XMLHttpRequest'],
   [/(?<![\w$])(?<!\.\s*)https?\s*\.\s*(?:request|get)\s*\(/g, 'http(s).request|get'],
   [/(?<![\w$])(?<!\.\s*)(?:net|tls|http2)\s*\.\s*(?:connect|createConnection)\s*\(/g, 'net|tls|http2.connect'],
@@ -564,6 +567,17 @@ function networkClauses(check) {
     ['const r = await fetch(`${base}/x`)', KINDS.fetch], ['const t = `${fetch(a)}`', KINDS.fetch], ['fetch (u)', KINDS.fetch],
     // fetch through a global object.
     ['globalThis.fetch(u)', KINDS.global], ['window.fetch(u)', KINDS.global], ['self.fetch(u)', KINDS.global], ['global.fetch(u)', KINDS.global], ['globalThis . fetch(u)', KINDS.global],
+    // a DECLARATION of the name or an ASSIGNMENT to it is not use (a script that stubs fetch makes no request): a function, a variable, a method of a class or an object (one the engine calls, as a Worker's
+    // `export default { fetch }` is), a class field, an assignment target, through a global too. The neighbours beside them are still use: compared, read, passed on, or a call with a callback.
+    ['function fetch(u){}', ''], ['function fetch(u = g(h())) {}', ''], ['async function fetch(u){}', ''], ['function* fetch(){}', ''], ['function* fetch(u = g(h())) {}', ''], ['let fetch', ''], ['var fetch, other', ''], ['const fetch = realFetch', ''], ['for (const fetch of list) {}', ''],
+    ['class A { fetch(u){} }', ''], ['class A { async fetch(u){} }', ''], ['class A { static fetch(u = g()) {} }', ''], ['const o = { fetch(u){} }', ''], ['export default { async fetch(request, env) { return 1 } }', ''],
+    ['class A { fetch = 1 }', ''], ['fetch = stub', ''], ['fetch=stub', ''],
+    ['globalThis.fetch = (url) => ({})', ''], ['window.fetch=s', ''], ['self . fetch = s', ''], ['global.fetch = s', ''],
+    ['fetch === undefined', KINDS.fetch], ['fetch == g', KINDS.fetch], ['typeof fetch', KINDS.fetch], ['globalThis.fetch === undefined', KINDS.global], ['const f = globalThis.fetch', KINDS.global],
+    ['window.fetch = window.fetch.bind(window)', KINDS.global], ['globalThis.fetch ??= stub', KINDS.global], ['x = fetch(u).then(function () { return 1 })', KINDS.fetch], ['fetch(function () {})', KINDS.fetch],
+    ['x = fetch(u)\n.then(() => {})', KINDS.fetch], ['const r = await fetch(u)\n{ }', KINDS.fetch],
+    // the one spelling this gets wrong in the safe direction: a method whose brace is on the NEXT line reads as a call.
+    ['class A { fetch(u)\n{ } }', KINDS.fetch],
     // the other clients.
     ['new WebSocket(u)', KINDS.socket], ['new EventSource(u)', KINDS.socket], ['new XMLHttpRequest()', KINDS.socket], ['new  WebSocket(u)', KINDS.socket],
     ['https.request(o)', KINDS.http], ['http.get(u)', KINDS.http], ['https . get (u)', KINDS.http], ['net.connect(80)', KINDS.connect], ['tls.connect(o)', KINDS.connect],
@@ -577,7 +591,7 @@ function networkClauses(check) {
     ['const g = https.get', ''], ['const c = net.connect', ''], ['const b = navigator.sendBeacon', ''], ['resendBeacon(x)', ''], ['$sendBeacon(x)', ''],
   ]
   const wrongSeen = SEEN.filter(([src, kinds]) => clockCounts(src).network.join(', ') !== kinds)
-  check(`THESE ${SEEN.length} SPELLINGS ARE NETWORK USE (${SEEN.filter(x => x[1] !== '').length}) OR NOT (${SEEN.filter(x => x[1] === '').length}): fetch as a call or a value, through a global, new WebSocket|EventSource|XMLHttpRequest, http(s).request|get, net|tls|http2.connect, sendBeacon; not text, a key, a property or a longer name. NOT COVERED: a named import from node:https (\`import { get } from 'node:https'\`), a child process (\`spawn('curl')\`, \`gh api\`), \`dotnet restore\` in proof-check.mjs and the build row, a browser's \`route.fetch()\` or \`page.goto\` to an external address, a computed name (\`globalThis['fe' + 'tch']\`), \`c ? fetch : g\` (read as a key), \`const g = https.get\` or \`const c = net.connect\` (a reference to those that is not called on the spot), and a module the script imports that does the fetching`,
+  check(`THESE ${SEEN.length} SPELLINGS ARE NETWORK USE (${SEEN.filter(x => x[1] !== '').length}) OR NOT (${SEEN.filter(x => x[1] === '').length}): fetch as a call or a value, through a global, new WebSocket|EventSource|XMLHttpRequest, http(s).request|get, net|tls|http2.connect, sendBeacon; not text, a key, a property, a longer name, a declaration or an assignment to the name (\`function fetch\`, \`let fetch\`, a method or a class field, \`globalThis.fetch = stub\`). NOT COVERED: a named import from node:https (\`import { get } from 'node:https'\`), a child process (\`spawn('curl')\`, \`gh api\`), \`dotnet restore\` in proof-check.mjs and the build row, a browser's \`route.fetch()\` or \`page.goto\` to an external address, a computed name (\`globalThis['fe' + 'tch']\`), \`c ? fetch : g\` (read as a key), \`const g = https.get\` or \`const c = net.connect\` (a reference to those that is not called on the spot), and a module the script imports that does the fetching`,
     wrongSeen.length === 0, wrongSeen.map(([src, kinds]) => `${JSON.stringify(src)}: saw [${clockCounts(src).network.join(', ')}], wanted [${kinds}]`).slice(0, 4).join(' / ') + ` (${wrongSeen.length} wrong of ${SEEN.length})`)
 
   // The exemption, on real files and a row declaration written for the case. The row is `r`, its script writes a fetch; the declaration is the text `gate-checks.mjs` would hold for it.
