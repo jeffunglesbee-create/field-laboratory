@@ -5264,9 +5264,70 @@ const MUTATIONS = [
     id: 'proof-marker-collision-carries-on',
     file: "scripts/proof-check.mjs",
     claim: "a run that lost the marker to another run stops before it builds or injects anything",
-    find: "Run this again once it has finished.`)\n  process.exit(1)",
-    replace: "Run this again once it has finished.`)",
+    find: "  process.exit(1)\n}\nwriteFileSync(BACKUP, source)\n",
+    replace: "}\nwriteFileSync(BACKUP, source)\n",
     expect: "node scripts/proof-check.mjs --self-test",
+  },
+  // --- the marker first, and a link called what it is (review 6, findings 4 and 5, 2026-11-05) -----------------------------------------------------------------------------------------------------------
+  //
+  // The backups were written before the exclusive create, so a run that lost it (to another run, or to a link standing at the marker's path) overwrote the backups of the run that held it. The marker is
+  // now created first, and a loser writes nothing into the state directory; a marker with no backups behind it is a kill before any injection and reads as stale. A link at the marker's path is not another
+  // run, and the message says what it is and to remove it. Each of these breaks one part of that and is caught by the clauses that plant a link, plant a marker just before the create, and plant a marker alone.
+  {
+    id: "proof-state-written-before-the-marker",
+    file: 'scripts/proof-check.mjs',
+    claim: "a run that loses the exclusive create has written nothing into the state directory: the backups are written after it, not before",
+    find: "mkdirSync(STATE_DIR, { recursive: true })\nconst runMarker = {",
+    replace: "mkdirSync(STATE_DIR, { recursive: true })\nwriteFileSync(BACKUP, source)\nwriteFileSync(`${BACKUP}.registry`, registrySource)\nconst runMarker = {",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-link-called-another-run",
+    file: 'scripts/proof-check.mjs',
+    claim: "a link standing where the marker goes is told from another run's marker",
+    find: "lstatSync(MARKER_FILE).isSymbolicLink() ? readlinkSync(MARKER_FILE) : null",
+    replace: "null",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-another-run-called-a-link",
+    file: 'scripts/proof-check.mjs',
+    claim: "another run's marker is not called a link: the two messages are not swapped",
+    find: "console.error(link === null\n",
+    replace: "console.error(link !== null\n",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-link-message-offers-no-remedy",
+    file: 'scripts/proof-check.mjs',
+    claim: "the message over a link says to remove it, not to run again once another run has finished (which can never succeed)",
+    find: "Remove it (rm ${MARKER_FILE}) and run this again.`)\n  process.exit(1)",
+    replace: "Run this again once it has finished.`)\n  process.exit(1)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-link-message-blames-another-run",
+    file: 'scripts/proof-check.mjs',
+    claim: "the message over a link says no other run is involved",
+    find: "so no other run is involved. Remove it (rm ${MARKER_FILE}) and run this again.`)\n  process.exit(1)",
+    replace: "so another run may be involved. Remove it (rm ${MARKER_FILE}) and run this again.`)\n  process.exit(1)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-link-message-hides-where-it-points",
+    file: 'scripts/proof-check.mjs',
+    claim: "the message over a link says where the link points",
+    find: "is a symbolic link (to ${link})",
+    replace: "is a symbolic link",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-marker-without-backups-is-no-marker",
+    file: 'scripts/proof-check.mjs',
+    claim: "a marker with no backups behind it, a kill between the create and the backups, is a stale one and not a dead end",
+    find: "  markerExists: priorState !== null,",
+    replace: "  markerExists: priorState !== null && backupTarget !== null,",
+    expect: 'node scripts/proof-check.mjs --self-test',
   },
   // A torn file is asked about per file, and before the heal (2026-11-05, residual Task 6): the target had an anchor input and the registry had none.
   {

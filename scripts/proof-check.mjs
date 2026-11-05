@@ -66,7 +66,7 @@
 // its relatives). It stops type-checking for every case in the file, so the
 // batch would see nothing and the run would fail loudly, by the rule above.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, mkdtempSync, symlinkSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, mkdtempSync, symlinkSync, lstatSync, readlinkSync } from 'node:fs'
 import { execSync, spawn, spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -674,15 +674,17 @@ if (process.argv.includes('--self-test')) {
   // exits 1 whatever it decides (there is no project, so its own cases fail), so its status says
   // nothing; what counts is the two files, the state directory, and whether it got past the
   // repair into its own checks (it prints "baseline tree compiles" there, pass or fail).
-  const sandbox = ({ target, registry, backupTarget, backupRegistry, pid, start, noState = false, markerExtra = {}, files = {} }) => {
+  const sandbox = ({ target, registry, backupTarget, backupRegistry, pid, start, noState = false, noBackups = false, markerExtra = {}, files = {} }) => {
     const dir = mkdtempSync(join(tmpdir(), 'proof-state-'))
     try {
       for (const d of ['src', 'docs', ...(noState ? [] : [STATE_DIR])]) mkdirSync(join(dir, d))
       writeFileSync(join(dir, TARGET), target)
       writeFileSync(join(dir, REGISTRY), registry)
       if (!noState) {
-        writeFileSync(join(dir, BACKUP), backupTarget)
-        writeFileSync(join(dir, `${BACKUP}.registry`), backupRegistry)
+        if (!noBackups) {
+          writeFileSync(join(dir, BACKUP), backupTarget)
+          writeFileSync(join(dir, `${BACKUP}.registry`), backupRegistry)
+        }
         writeFileSync(join(dir, MARKER_FILE), JSON.stringify({
           pid, ...(start === undefined ? {} : { start }), startedAt: '2026-10-20T20:00:00.000Z', target: TARGET, registry: REGISTRY, ...markerExtra,
         }))
@@ -996,21 +998,55 @@ if (process.argv.includes('--self-test')) {
     }
   }
 
-  // A marker that appears between the classification and the write. A DANGLING LINK at the marker's path is the deterministic way to make that happen: existsSync follows the link and finds nothing, so the
-  // run classifies `proceed`; an exclusive create then fails with EEXIST where a plain write follows the link and creates its target (the committed script did exactly that: it ran seven builds, and wrote
-  // its marker into the link's target). Coverage (Rule 91): ONE run, the EEXIST branch. Two runs started in the same tick is the real race, which is probabilistic (both reached their baseline in
-  // 4 of 20 trials at a 0 ms gap on 2026-11-05, and in 0 of 10 on a re-run that day on a busy machine) and is not a clause.
+  // THE RUN THAT LOSES THE MARKER WRITES NOTHING INTO THE STATE DIRECTORY (review 6, findings 4 and 5). The state directory below holds the files of "the run that has the marker": a stand-in for whoever holds it. The
+  // backups used to be written before the exclusive create, so a loser overwrote them with its own reading of the files, whether it lost to another run or to a link standing where the marker goes. Two ways to lose:
+  //
+  // A DANGLING LINK at the marker's path: existsSync follows it and finds nothing, so the run classifies `proceed`; an exclusive create then fails with EEXIST where a plain write follows the link and creates
+  // its target (the committed script did exactly that: it ran seven builds, and wrote its marker into the link's target). It is not another run, and "run this again once it has finished" can never succeed, so the
+  // message says what is at the path and to remove it. Coverage (Rule 91): ONE run.
+  const HOLDER = "THE HOLDER'S BACKUP\n"
+  const holdsTheState = dir => { mkdirSync(join(dir, STATE_DIR)); writeFileSync(join(dir, BACKUP), HOLDER); writeFileSync(join(dir, `${BACKUP}.registry`), HOLDER) }
+  const backupsOf = read => [read(BACKUP), read(`${BACKUP}.registry`)]
   let linked = false
   const exclusive = withStandIn({
     dotnet: '#!/bin/sh\necho build >> calls.log\nexit 0\n',
     before: dir => {
-      mkdirSync(join(dir, STATE_DIR))
+      holdsTheState(dir)
       try { symlinkSync(join(dir, 'taken-by-another-run.json'), join(dir, MARKER_FILE)); linked = true } catch { /* no symlinks here: the clause says it was not asserted */ }
     },
-  }, ({ go, has }) => ({ r: go(), builds: has('calls.log'), wrote: has('taken-by-another-run.json') }))
-  sc(`A MARKER THAT APPEARS BETWEEN THE CHECK AND THE WRITE IS REFUSED, not written through: exit 1, no build runs, the other run's file is not created, and it says another run took it (1 run, the EEXIST branch; asserted: ${linked})`,
-    !linked || (exclusive.r.status === 1 && !exclusive.builds && !exclusive.wrote && /another run took/.test(exclusive.r.stderr)),
-    `status ${exclusive.r.status}, builds ran ${exclusive.builds}, link target created ${exclusive.wrote}; ${exclusive.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
+  }, ({ dir, go, has, read }) => ({ r: go(), dir, builds: has('calls.log'), wrote: has('taken-by-another-run.json'), backups: backupsOf(read) }))
+  sc(`A LINK STANDING WHERE THE MARKER GOES IS REFUSED, not written through, and called what it is: exit 1, no build runs, the link's target is not created, the state directory is untouched, and the message says it is a link to remove, not that another run took it (1 run, the EEXIST branch; asserted: ${linked})`,
+    !linked || (exclusive.r.status === 1 && !exclusive.builds && !exclusive.wrote && exclusive.backups.every(b => b === HOLDER) && !/another run took/.test(exclusive.r.stderr)
+      && exclusive.r.stderr.includes(`proof-check: ${MARKER_FILE} is a symbolic link (to ${join(exclusive.dir, 'taken-by-another-run.json')}) and this run does not write through a link, so no other run is involved. Remove it (rm ${MARKER_FILE}) and run this again.`)),
+    `status ${exclusive.r.status}, builds ran ${exclusive.builds}, link target created ${exclusive.wrote}, backups untouched ${exclusive.backups.every(b => b === HOLDER)}; ${exclusive.r.stderr.slice(0, 200).replace(/\n/g, ' | ')}`)
+
+  // A MARKER THAT APPEARS BETWEEN THE CHECK AND THE CREATE, a regular file standing for the other run's: a module preloaded into the child (NODE_OPTIONS=--require) creates it just before the run's own exclusive
+  // create, which is then refused with EEXIST for a reason that really is another run. (Two runs started in the same tick is the real race, which is probabilistic and is not a clause.) Coverage (Rule 91): one run.
+  const raced = withStandIn({
+    dotnet: '#!/bin/sh\necho build >> calls.log\nexit 0\n',
+    before: dir => {
+      holdsTheState(dir)
+      writeFileSync(join(dir, 'other-run.cjs'), [
+        "const fs = require('node:fs')",
+        'const real = fs.writeFileSync',
+        'fs.writeFileSync = function (path, data, options) {',
+        "  if (String(path).endsWith('active.json') && options && options.flag === 'wx') real.call(this, path, 'THE OTHER RUN\\n')",
+        '  return real.apply(this, arguments)',
+        '}', '',
+      ].join('\n'))
+    },
+  }, ({ dir, go, has, read }) => ({ r: go({ NODE_OPTIONS: `--require ${join(dir, 'other-run.cjs')}` }), builds: has('calls.log'), marker: read(MARKER_FILE), backups: backupsOf(read) }))
+  sc('A MARKER THAT APPEARS BETWEEN THE CHECK AND THE CREATE IS ANOTHER RUN, AND THE LOSER WRITES NOTHING: exit 1, no build runs, it says another run took the marker, and the other run\'s marker and both its backups are exactly as it left them (1 run)',
+    raced.r.status === 1 && !raced.builds && raced.marker === 'THE OTHER RUN\n' && raced.backups.every(b => b === HOLDER) && !/symbolic link/.test(raced.r.stderr)
+      && raced.r.stderr.includes(`proof-check: another run took ${MARKER_FILE} while this one was starting. Run this again once it has finished.`),
+    `status ${raced.r.status}, builds ran ${raced.builds}, marker ${JSON.stringify(raced.marker)}, backups untouched ${raced.backups.every(b => b === HOLDER)}; ${raced.r.stderr.slice(0, 200).replace(/\n/g, ' | ')}`)
+
+  // The window the order opens, which is why it is sound: a kill after the marker is created and before the backups leaves a marker with none of them, over files the run has not touched (nothing is injected
+  // before both backups exist). The next run must read that as stale, not as a dead end.
+  const markerOnly = sandbox({ target: clean, registry: union, pid: DEAD, noBackups: true })
+  sc('A MARKER WITH NO BACKUPS BEHIND IT (A KILL BETWEEN THE CREATE AND THE BACKUPS) IS A STALE ONE: both files are as the run found them, the state is discarded, and the next run carries on (1 planted state)',
+    markerOnly.target === clean && markerOnly.registry === union && /STALE STATE DISCARDED/.test(markerOnly.stderr) && carriedOn(markerOnly) && !markerOnly.stateLeft,
+    show(markerOnly))
 
   // The create can fail for a reason that is not another run (EACCES, ENOSPC, ENOENT). The branch said "another run took ..." for every code but threw nothing, so the person was sent to wait for a run that
   // does not exist, and no clause could tell (review 6, finding 3: deleting the `throw` left the self-test green). A scratch directory cannot be made to refuse a write to a root-owned run, so the failure is
@@ -1565,11 +1601,6 @@ switch (classifyState({
 const source = readFileSync(TARGET, 'utf8')
 const registrySource = readFileSync(REGISTRY, 'utf8')
 mkdirSync(STATE_DIR, { recursive: true })
-writeFileSync(BACKUP, source)
-writeFileSync(`${BACKUP}.registry`, registrySource)
-// Written LAST of the three, so a marker on disk always has backups behind it.
-// The reverse order would leave a window where a kill produced a marker pointing
-// at nothing, which heals into the "backup is missing" dead end above.
 const runMarker = {
   pid: process.pid,
   start: startOf(process.pid),
@@ -1577,16 +1608,33 @@ const runMarker = {
   target: TARGET,
   registry: REGISTRY,
 }
-// CREATED EXCLUSIVELY. The check above and this write are two steps, and a second run that started in between (two runs begun in the same tick both reached their baseline in 4 of 20 trials,
-// measured 2026-11-05) would otherwise write its marker over this one's and run its builds over this one's injection. `wx` makes the loser fail here, before it has injected anything, and the
-// refusal is all it does: its exit handler is registered below, so it restores nothing, which is right because it owns nothing.
+// THE MARKER IS CREATED FIRST, EXCLUSIVELY, AND NOTHING ELSE IS WRITTEN INTO THE STATE DIRECTORY BEFORE IT EXISTS. The check above and this create are two steps, and a second run that started in between
+// (two runs begun in the same tick both reached their baseline in 4 of 20 trials, measured 2026-11-05) would otherwise write its marker over this one's and run its builds over this one's injection.
+// `wx` makes the loser fail here, before it has injected anything, and the refusal is all it does: its exit handler is registered below, so it restores nothing, which is right because it owns nothing.
+// The backups come after the create so that a loser has written nothing into a directory that is not its own: written first, they were overwritten with the loser's reading of the files, whether it lost
+// to another run or to a link standing where the marker goes. The window this opens is harmless. A kill after the create and before the backups leaves a marker with none of them, or one, over files
+// this run has not touched (the first injection is after the baseline build, which is after both backups), and the next run reads that as stale and discards it. Until 2026-11-05 the marker went LAST, so
+// that "a marker on disk always has backups behind it"; the dead end that order guarded, a marker pointing at nothing over an injected tree, cannot happen, because nothing is injected before the backups.
+//
+// WHAT THE CREATE DOES NOT MAKE TRUE: "two runs started together cannot both proceed" holds over a tree with NO marker, and not over a stale or healable one. Both runs read the same dead marker, and
+// the 'heal' and 'stale' cases remove the whole state directory BEFORE this create, so the slower run's removal can delete the faster run's fresh marker, after which its own create succeeds. Measured
+// 2026-11-05 with the interleaving forced (run A holds its removal until run B has built): both printed STALE STATE DISCARDED, A's `inject` threw "changed while the run was going" (B's injection was
+// on the file), and A's exit message told a person to delete the block in a file that was B's live injection; a natural collision did not reproduce (0 of 20 starts over a stale marker). It stays,
+// because closing it takes a lock that a dead run cannot leave behind (which is what the marker is for) or a compare-and-swap the filesystem does not give: renaming the state directory away claims
+// whatever is at that name at that moment, the stale one or the fresh one. What stops two injections in that window is `inject`, not the marker: its guard throws before the late injector has written.
 try {
   writeFileSync(MARKER_FILE, JSON.stringify(runMarker, null, 2) + '\n', { flag: 'wx' })
 } catch (e) {
   if (e.code !== 'EEXIST') throw e
-  console.error(`proof-check: another run took ${MARKER_FILE} while this one was starting. Run this again once it has finished.`)
+  // Something is at the marker's path. A link is not another run: `existsSync` follows it, so a link to nothing reads as "no marker" and `wx` then refuses it, and "run this again" can never succeed.
+  const link = (() => { try { return lstatSync(MARKER_FILE).isSymbolicLink() ? readlinkSync(MARKER_FILE) : null } catch { return null } })()
+  console.error(link === null
+    ? `proof-check: another run took ${MARKER_FILE} while this one was starting. Run this again once it has finished.`
+    : `proof-check: ${MARKER_FILE} is a symbolic link (to ${link}) and this run does not write through a link, so no other run is involved. Remove it (rm ${MARKER_FILE}) and run this again.`)
   process.exit(1)
 }
+writeFileSync(BACKUP, source)
+writeFileSync(`${BACKUP}.registry`, registrySource)
 
 // The original is held in memory AND on disk (in .proof-state, in the repo), and put back when the run ends or throws. NO SIGNAL HANDLER IS REGISTERED, on purpose: this script is one
 // synchronous run with no await, so a handler could not run until the run was over (measured in review 4: SIGTERM sent mid-run, seven builds still ran and the handler never did), and its
@@ -1640,9 +1688,9 @@ const restoreFiles = () => {
   outcome[REGISTRY] = restoreOne(REGISTRY, registrySource)
   return outcome[TARGET] === 'ok' && outcome[REGISTRY] === 'ok'
 }
-// The marker goes with the backups. A marker outliving its backups is the dead end
-// the write order above exists to avoid, and leaving one behind would make the NEXT
-// run refuse against a pid that has exited.
+// The marker goes with the backups, as one directory. A marker left behind by a run that
+// finished would make the NEXT run judge a run that is over (stale at best), and the
+// backups of a finished run describe nothing.
 const dropState = () => {
   try { rmSync(STATE_DIR, { recursive: true, force: true }) } catch { /* nothing to drop */ }
 }
