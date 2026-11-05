@@ -7,15 +7,19 @@ push, and every file in this repo would pass with the loops still silent.
 
 Each mutation asserts its anchor is unique and applied before reporting a
 verdict; NOT CAUGHT with nothing mutated is worse than no test.
+
+The mutation is made on a COPY in a temporary directory and the tracked file is only
+read, as mutate-ppubs-probe.py, mutate-patent-watch.py and mutate-drama-backfill.py do.
+It used to be written in place with the original held in memory, so a run killed
+between the two writes left scripts/check-push-lands.py mutated and the next run
+refused to start ("has unstaged changes"). A run killed now leaves a temporary
+directory and a clean tree. scripts/mutate-copy-check.mjs holds it to that.
 """
-import subprocess, pathlib, sys
+import subprocess, pathlib, sys, tempfile
 
 CHECK = pathlib.Path('scripts/check-push-lands.py')
-SELF = [sys.executable, str(CHECK), '--self-test']
 
-if subprocess.run(['git', 'diff', '--quiet', '--', str(CHECK)]).returncode != 0:
-    print(f'FAIL — {CHECK} has unstaged changes; restore would lose them.'); sys.exit(1)
-if subprocess.run(SELF, capture_output=True).returncode != 0:
+if subprocess.run([sys.executable, str(CHECK), '--self-test'], capture_output=True).returncode != 0:
     print(f'FAIL — {CHECK} --self-test is already red on clean source.'); sys.exit(1)
 print(f'baseline: {CHECK} --self-test passes on clean source\n')
 
@@ -46,21 +50,28 @@ MUTATIONS = [
      'ordinary loops containing a push are counted as retry loops and the numbers stop meaning anything'),
 ]
 
+original = CHECK.read_text()
 caught = 0
-for name, anchor, repl, why in MUTATIONS:
-    original = CHECK.read_text()
-    hits = original.count(anchor)
-    if hits != 1:
-        print(f'FAIL       {name}\n            anchor matched {hits} times, expected 1 — NOTHING MUTATED.')
-        continue
-    CHECK.write_text(original.replace(anchor, repl))
-    if CHECK.read_text() == original:
-        print(f'FAIL       {name}\n            file unchanged — NOTHING MUTATED.')
-        continue
-    red = subprocess.run(SELF, capture_output=True).returncode != 0
-    CHECK.write_text(original)
-    print(f'{"CAUGHT    " if red else "NOT CAUGHT"} {name}\n            ({why})')
-    caught += 1 if red else 0
+with tempfile.TemporaryDirectory(prefix='mutate-push-lands-') as td:
+    COPY = pathlib.Path(td) / CHECK.name
+    SELF = [sys.executable, str(COPY), '--self-test']
+    COPY.write_text(original)
+    # POSITIVE CONTROL: the unmutated copy must pass, or "caught" below could mean only that the copy cannot run.
+    if subprocess.run(SELF, capture_output=True).returncode != 0:
+        print('FAIL — the UNMUTATED copy is red, so no verdict below would be about the mutation.'); sys.exit(1)
+    print('positive control: the unmutated copy passes\n')
+    for name, anchor, repl, why in MUTATIONS:
+        hits = original.count(anchor)
+        if hits != 1:
+            print(f'FAIL       {name}\n            anchor matched {hits} times, expected 1 — NOTHING MUTATED.')
+            continue
+        COPY.write_text(original.replace(anchor, repl))
+        if COPY.read_text() == original:
+            print(f'FAIL       {name}\n            file unchanged — NOTHING MUTATED.')
+            continue
+        red = subprocess.run(SELF, capture_output=True).returncode != 0
+        print(f'{"CAUGHT    " if red else "NOT CAUGHT"} {name}\n            ({why})')
+        caught += 1 if red else 0
 
 print(f'\n{caught} of {len(MUTATIONS)} mutations caught.')
 print('COVERAGE: the three pure predicates via --self-test. It does NOT re-run the')

@@ -739,9 +739,9 @@ jobs:
           node scripts/deploy-landed-check.mjs --self-test
           node scripts/mutate-deploy-landed.mjs
 
-      # The seven scripts/mutate-*.mjs break a COPY of scripts/ and only read the tracked file. They used to write it in place and hold the original in
-      # memory, so a kill between the two writes left a mutated tracked file that nothing healed (measured 2026-11-05). This runs each of them under a guard that
-      # refuses and logs every write under scripts/, so a regression to the in-place form fails here at its first write instead of stranding a tree.
+      # The seven scripts/mutate-*.mjs and scripts/mutate-push-lands.py break a COPY and only read the tracked file. They used to write it in place and hold the
+      # original in memory, so a kill between the two writes left a mutated tracked file that nothing healed (measured 2026-11-05). This runs each of them under a
+      # guard that refuses and logs every write under scripts/, so a regression to the in-place form fails here at its first write instead of stranding a tree.
       - name: The mutate scripts break a copy, never the tracked tree
         run: npm run check:mutate-copy
 
