@@ -221,10 +221,33 @@ const strandedTarget = (current, backup) => {
 }
 
 /**
- * Does `src` carry the probe case at all? The real union has `| UFL` above its last case, not `| NHL`, so a clean registry never matches
- * (and the self-test reads the real file to say so).
+ * Is the probe case where this script writes it, directly above the union's last case? The real union has `| UFL` above its last case, not `| NHL`, so a clean registry never matches
+ * (and the self-test reads the real file to say so). It cannot see a probe an edit has separated from the last case (a sport added directly above that case lands between them): `carriesProbe` can.
  */
 const probeOnRegistry = src => src.includes(REGISTRY_PROBE_SITE)
+
+/**
+ * Is the probe's line there twice in one declaration? The probe is a second `    | NHL` in a union that has one of its own, and a union cannot have a case twice (the build says so), so two of them in
+ * one top-level declaration are the probe, wherever in the union an edit has since put it. A plain "has `| NHL`" would be true of a clean registry, and so would "has more of them than the backup":
+ * a backup older than the tree (the stale case) can be older than the union's own `| NHL`. Looked at per declaration so that two unions in one file, each with an `| NHL`, are not one. The real
+ * registry has exactly one such line (the self-test reads the committed file to say so); measured 2026-11-05, no other file in src/ has one and no declaration in any of the 49 has it twice.
+ */
+const probeDuplicated = src => src.split(/\n(?=\S)/).some(declaration => declaration.split('\n').filter(l => l === REGISTRY_PROBE.trimEnd()).length > 1)
+
+/**
+ * Does `src` carry this script's probe case, wherever in the union it now sits? Directly above the last case, where this script writes it, or duplicated: an edit that separates the two (a sport
+ * added directly above the last case lands between them) used to read as a registry with none of this script's code in it, and the state that held the original was deleted (review 6, finding 0).
+ */
+const carriesProbe = src => probeOnRegistry(src) || probeDuplicated(src)
+
+/**
+ * What a person deletes to take this script's code out of `file`, as a phrase that names the file. The registry's line is described by what it is and where it was written, because an edit made
+ * since can have put lines between it and the last case.
+ */
+const removalOf = file => file === TARGET
+  ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
+  : `the probe case in ${REGISTRY} (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: this run wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; `
+    + `\`grep -n "^${REGISTRY_PROBE.trimEnd()}$" ${REGISTRY}\` lists both)`
 
 /** Is `current` the backed-up registry with the probe case inserted, and nothing else different? */
 const strandedRegistry = (current, backup) => {
@@ -616,6 +639,16 @@ if (process.argv.includes('--self-test')) {
   sc(`probeOnRegistry: the probed union carries it, the clean one does not, and neither does the REAL ${REGISTRY} as committed (asserted: ${committedRegistry !== null})`,
     probeOnRegistry(probeRegistry(union)) && !probeOnRegistry(union) && (committedRegistry === null || !probeOnRegistry(committedRegistry)),
     `the committed registry has the probe's line above its last case: ${committedRegistry !== null && probeOnRegistry(committedRegistry)} — a union whose case above the last one is the probe's own line`)
+  // The probe wherever an edit has put it. Fixtures: the probed union (adjacent), the same with a sport between the probe and the last case (separated), a union whose own `| NHL` has gone with the probe
+  // still adjacent, two declarations that each have an `| NHL` of their own, and the committed registry, which has exactly one such line (the premise of the duplicate test).
+  const separatedProbe = probeRegistry(union).replace('    | Unrecognised', '    | MyNewSport\n    | Unrecognised')
+  const noOwnNhl = probeRegistry('type Sport =\n    | MLB\n    | UFL\n    | Unrecognised of raw: string\n')
+  const twoUnions = 'type A =\n    | NHL\n    | X\n\ntype B =\n    | NHL\n    | Y\n'
+  const oneNhlLine = src => src.split('\n').filter(l => l === '    | NHL').length === 1
+  sc(`carriesProbe: the probe is found adjacent to the last case and separated from it by a sport, and neither the clean union, two unions with an \`| NHL\` each, nor the REAL ${REGISTRY} as committed carries it; probeOnRegistry alone cannot see the separated one (6 sources; asserted: ${committedRegistry !== null})`,
+    carriesProbe(probeRegistry(union)) && carriesProbe(separatedProbe) && !probeOnRegistry(separatedProbe) && probeDuplicated(separatedProbe) && !carriesProbe(union) && !carriesProbe(twoUnions)
+      && carriesProbe(noOwnNhl) && !probeDuplicated(noOwnNhl) && (committedRegistry === null || (!carriesProbe(committedRegistry) && oneNhlLine(committedRegistry))),
+    `adjacent ${carriesProbe(probeRegistry(union))}, separated ${carriesProbe(separatedProbe)} (adjacency alone: ${probeOnRegistry(separatedProbe)}), clean union ${carriesProbe(union)}, two unions ${carriesProbe(twoUnions)}, probe with no case of its own ${carriesProbe(noOwnNhl)}; the committed registry has one \`| NHL\` line: ${committedRegistry !== null && oneNhlLine(committedRegistry)}`)
   sc('strandedRegistry: a union that moved on, a missing backup and a union with no last case are not',
     !strandedRegistry(probeRegistry(union.replace('| MLB', '| MLB\n    | MLS')), union)
       && !strandedRegistry(probeRegistry(union), null) && probeRegistry('x') === 'x' && !strandedRegistry('x', 'x'),
@@ -762,6 +795,12 @@ if (process.argv.includes('--self-test')) {
   const targetPart = `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
   const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string$" ${REGISTRY}\` shows it)`
   const costSentence = (files, many) => `If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${files}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`
+  // A registry shaped like the real one (`| NHL` is a case of its own, in the middle) with the probe and a sport the person added between the probe and the last case, and the same with the probe taken out by hand.
+  // The sentence a person is given for the probe's line, typed by hand here: it describes the line by what it is, because "directly above the last case" is no longer true of it.
+  const LAST_CASE = '    | Unrecognised of raw: string'
+  const separatedUnion = union.replace(LAST_CASE, `    | NHL\n    | MyNewSport\n${LAST_CASE}`)
+  const unionWithSport = union.replace(LAST_CASE, `    | MyNewSport\n${LAST_CASE}`)
+  const probeCase = `the probe case in ${REGISTRY} (the second line "    | NHL" in the union: this run wrote it directly above "    | Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "^    | NHL$" ${REGISTRY}\` lists both)`
   sc(`THE NO-STATE REFUSAL FOR AN INJECTED TARGET TELLS A PERSON TO DELETE THE LINES, and to check the file out only if the injection is uncommitted, saying what that discards; "Restore it (git checkout ...)" is gone, and the registry is not named (1 of 3 planted states)`,
     strayTarget.stderr.includes(`Delete ${targetPart}, then run this again.`) && strayTarget.stderr.includes(costSentence(TARGET, false))
       && oldAdviceGone(strayTarget) && !strayTarget.stderr.includes(REGISTRY),
@@ -774,6 +813,14 @@ if (process.argv.includes('--self-test')) {
     strayBoth.status === 1 && strayBoth.stderr.includes(`Delete ${targetPart} and ${registryPart}, then run this again.`)
       && strayBoth.stderr.includes(costSentence(`${TARGET} ${REGISTRY}`, true)) && oldAdviceGone(strayBoth),
     advice(strayBoth))
+
+  // The same refusal over a probe an edit has separated from the last case. `clean-source-check` says of a tree in that state that proof-check "refuses" with no run state, and the guard looked only for the
+  // probe directly above the last case, so it proceeded (and its baseline then failed on the duplicate case). The line is described by what it is, as the carrying message does: "directly above" is not true of it.
+  const straySeparated = sandbox({ target: clean, registry: separatedUnion, noState: true })
+  sc('A REGISTRY WHOSE PROBE A SPORT HAS SEPARATED FROM THE LAST CASE IS NOT ADOPTED AS THE ORIGINAL EITHER: with no run state, untouched, the run stops, and it is told which line to delete without being told the line is directly above the last case (1 planted state)',
+    straySeparated.status === 1 && straySeparated.registry === separatedUnion && straySeparated.target === clean && !straySeparated.stateLeft && /no run state exists/.test(straySeparated.stderr) && !carriedOn(straySeparated)
+      && straySeparated.stderr.includes(`Delete ${probeCase}, then run this again.`) && straySeparated.stderr.includes(costSentence(REGISTRY, false)) && !straySeparated.stderr.includes('-B1'),
+    advice(straySeparated))
 
   // A foreign line in the gap, with the marker beside it: newer work, not the script's. Nothing is written and the state is kept.
   const helperRun = sandbox({ target: withHelper, registry: union, backupTarget: clean, backupRegistry: union, pid: DEAD })
@@ -894,7 +941,7 @@ if (process.argv.includes('--self-test')) {
 
   // A scratch project with a stand-in `dotnet`, and this script run in it. The registry is `oldUnion`, which has no `| NHL` (the probe the registry phase adds), so a stand-in can tell that phase by grepping for it.
   // `dotnet` is the stand-in's text, `target` the file the injections go into, `before(dir)` plants anything else, and
-  // `body` gets `go` (one run of the script, whose result is a spawnSync result; with a size limit in KB it runs under `ulimit -S -f`, bash: a write that would pass the limit is cut short and
+  // `body` gets `dir` (the scratch directory, for a test that plays the person), `go` (one run of the script, whose result is a spawnSync result; with a size limit in KB it runs under `ulimit -S -f`, bash: a write that would pass the limit is cut short and
   // then fails with EFBIG, as a full disk does with ENOSPC), `has` (does a file exist there), `read` (its text, null when it cannot be read) and `replaceDotnet` (a different stand-in for the next
   // run). The scratch directory goes when `body` returns.
   const withStandIn = ({ dotnet, target = clean, before = () => {} }, body) => {
@@ -914,7 +961,7 @@ if (process.argv.includes('--self-test')) {
           : spawnSync('bash', ['-c', `ulimit -S -f ${fileSizeLimitKB}; exec "$0" "$1"`, process.execPath, self], options)
       }
       return body({
-        go, has: p => existsSync(join(dir, p)), read: p => { try { return readFileSync(join(dir, p), 'utf8') } catch { return null } },
+        dir, go, has: p => existsSync(join(dir, p)), read: p => { try { return readFileSync(join(dir, p), 'utf8') } catch { return null } },
         replaceDotnet: text => writeFileSync(join(dir, 'bin/dotnet'), text, { mode: 0o755 }),
       })
     } finally {
@@ -968,7 +1015,8 @@ if (process.argv.includes('--self-test')) {
   // The file that cannot even be READ is named: the failure list is the files whose restore failed, not a re-read of both (whose `catch { return true }` had no clause, and which said "the original files" when it named nothing).
   const unreadable = failedRestores.find(f => f.how === 'directory')
   sc('A RESTORE THAT CANNOT EVEN READ THE FILE NAMES IT: src/Scoreboard.fs could NOT be put back, not "the original files" (the target made a directory: 1 run)',
-    /src\/Scoreboard\.fs could NOT be put back/.test(unreadable.stderr) && !/the original files could NOT/.test(unreadable.stderr), unreadable.stderr.split('\n')[0])
+    /src\/Scoreboard\.fs could NOT be put back/.test(unreadable.stderr) && !/the original files could NOT/.test(unreadable.stderr)
+      && unreadable.stderr.includes(`Put ${TARGET} right by hand, then: rm -rf ${STATE_DIR}. `) && !/still carries/.test(unreadable.stderr), unreadable.stderr.split('\n')[0])
 
   // A FILE THIS RUN DID NOT WRITE IS NOT THIS RUN'S TO WRITE OVER (residual Task 4, 2026-11-05). The stand-in compilers append ONE line to a file at a chosen moment, as a person saving an edit while
   // the gate runs would. The run used to put both files back from memory at the end of every phase, whatever was on disk, and to write each injection over whatever was there: every line below was lost
@@ -982,9 +1030,11 @@ if (process.argv.includes('--self-test')) {
     'a prefix is what a write that failed part-way leaves behind')
   const appendOn = (cond, file, tag) => `#!/bin/sh\nif ${cond}; then echo "// ${tag}" >> ${file}; fi\nexit 0\n`
   // A stand-in that is exact (every check of the run passes against it, as in the torn-registry clause above), and runs `onProbe` in the build that sees the registry's probe case.
-  const exactCompiler = onProbe => [
+  // `seesProbe` is the shell test for "this build sees the registry's probe": the registry of the scratch projects has no `| NHL` of its own, so its presence is the probe; a registry shaped like the
+  // real one has its own, and the probe is the second.
+  const exactCompiler = (onProbe, seesProbe = 'grep -q "| NHL" src/Desk.fs 2>/dev/null') => [
     '#!/bin/sh',
-    'if grep -q "| NHL" src/Desk.fs 2>/dev/null; then',
+    `if ${seesProbe}; then`,
     '  echo "src/Desk.fs(9,1): error FS0025: Incomplete matches, for example NHL"',
     `  ${onProbe}`,
     '  exit 1',
@@ -1019,6 +1069,7 @@ if (process.argv.includes('--self-test')) {
   sc('A LINE ADDED TO THE INJECTED TARGET IS NOT LOST: it is left as found with its injection, the state is kept (the original is only there), the run fails, and the next run writes nothing and stops',
     onTheInjection.first.status === 1 && onTheInjection.after.target.includes('// EDIT-ON-THE-INJECTION') && onTheInjection.after.target.includes(MARKER) && onTheInjection.after.stateLeft
       && onTheInjection.after.backup === clean && unwritten(onTheInjection.first, TARGET)
+      && onTheInjection.first.stderr.includes(`(${TARGET} still carries this run's proof functions, with what was changed meanwhile, which is not in them). Put ${TARGET} right by hand: delete ${targetPart}, then: rm -rf ${STATE_DIR}.`)
       && onTheInjection.second.status === 1 && /nothing was written/.test(onTheInjection.second.stderr) && onTheInjection.target === onTheInjection.after.target && !/baseline tree compiles/.test(onTheInjection.second.stdout),
     `first: status ${onTheInjection.first.status}, edit kept ${onTheInjection.after.target.includes('// EDIT-ON-THE-INJECTION')}, state kept ${onTheInjection.after.stateLeft}; second: status ${onTheInjection.second.status}, ${onTheInjection.second.stderr.slice(0, 120).replace(/\n/g, ' | ')}`)
 
@@ -1031,8 +1082,61 @@ if (process.argv.includes('--self-test')) {
   })
   sc('A LINE ADDED TO THE PROBED REGISTRY IS NOT LOST: it is left as found with its probe, the state is kept, the run FAILS although every check passed, and the next run writes nothing and stops',
     /(\d+)\/\1 checks passed/.test(onTheProbe.first.stdout) && onTheProbe.first.status === 1 && onTheProbe.after.registry.includes('// EDIT-ON-THE-PROBE') && onTheProbe.after.registry.includes('| NHL')
-      && onTheProbe.after.stateLeft && unwritten(onTheProbe.first, REGISTRY) && onTheProbe.second.status === 1 && /nothing was written/.test(onTheProbe.second.stderr) && onTheProbe.registry === onTheProbe.after.registry,
+      && onTheProbe.after.stateLeft && unwritten(onTheProbe.first, REGISTRY)
+      && onTheProbe.first.stderr.includes(`(${REGISTRY} still carries this run's probe case, with what was changed meanwhile, which is not in them). Put ${REGISTRY} right by hand: delete ${probeCase}, then: rm -rf ${STATE_DIR}.`) && onTheProbe.second.status === 1 && /nothing was written/.test(onTheProbe.second.stderr) && onTheProbe.registry === onTheProbe.after.registry,
     `first: status ${onTheProbe.first.status}, edit kept ${onTheProbe.after.registry.includes('// EDIT-ON-THE-PROBE')}, state kept ${onTheProbe.after.stateLeft}; second: status ${onTheProbe.second.status}, ${onTheProbe.second.stderr.slice(0, 120).replace(/\n/g, ' | ')}`)
+
+  // One file that could not be put back and one that carries the probe: both go in the list to put right, and only the file that carries something has lines to delete.
+  const failedAndCarrying = observed(exactCompiler('rm -f src/Scoreboard.fs; mkdir src/Scoreboard.fs; echo "// EDIT-BESIDE-A-TARGET-THAT-IS-GONE" >> src/Desk.fs'))
+  sc('A TARGET THAT CANNOT BE RESTORED BESIDE A REGISTRY THAT CARRIES ITS PROBE: the message puts both on the list to put right by hand and gives the lines to delete only for the registry, and the state is kept (1 run)',
+    failedAndCarrying.r.status === 1 && failedAndCarrying.stateLeft && /src\/Scoreboard\.fs could NOT be put back/.test(failedAndCarrying.r.stderr)
+      && failedAndCarrying.r.stderr.includes(`(${REGISTRY} still carries this run's probe case, with what was changed meanwhile, which is not in them). Put ${TARGET} and ${REGISTRY} right by hand: delete ${probeCase}, then: rm -rf ${STATE_DIR}.`),
+    failedAndCarrying.r.stderr.replace(/\n/g, ' | ').slice(0, 500))
+  // AN EDIT BETWEEN THE PROBE AND THE UNION'S LAST CASE (review 6, finding 0). The registry phase writes its probe directly above the union's last case, and adding a sport is writing it directly above that
+  // case too, so a sport saved during that phase lands between the two. The restore decided a changed registry "carries the probe" by finding the probe DIRECTLY above the last case, which that edit had just
+  // stopped being true: the file was called someone else's with none of the run's code in it, the state (the only whole copy) was deleted, and the message said "left exactly as found" with the second `| NHL`
+  // still in the file. Measured 2026-11-05 on the real Desk.fs with a stand-in compiler: exit 1, no .proof-state, the file one `| NHL` over its backup, and the next run proceeded over it. The registry
+  // here is shaped like the real one, which has an `| NHL` case of its own in the middle: a test for "the file has `| NHL`" would be true of a registry that carries nothing.
+  const nhlTwice = `[ "$(grep -c '^    | NHL$' src/Desk.fs 2>/dev/null)" -ge 2 ]`
+  const sportAboveLast = name => `awk '/^    [|] Unrecognised of raw: string$/ { print "    | ${name}" } { print }' src/Desk.fs > Desk.edit && mv Desk.edit src/Desk.fs`
+  const separated = withStandIn({ dotnet: exactCompiler(sportAboveLast('MyNewSport'), nhlTwice), before: dir => writeFileSync(join(dir, REGISTRY), union) }, ({ dir, go, read, has, replaceDotnet }) => {
+    const first = go()
+    const after = { registry: read(REGISTRY), backup: read(`${BACKUP}.registry`), marker: (() => { try { return JSON.parse(read(MARKER_FILE)) } catch { return null } })() }
+    const second = go()
+    const refused = { registry: read(REGISTRY), stateLeft: has(MARKER_FILE) }
+    // The person does what the message says: takes the probe's line out by hand (the sport they added stays) and removes the state.
+    writeFileSync(join(dir, REGISTRY), unionWithSport)
+    rmSync(join(dir, STATE_DIR), { recursive: true, force: true })
+    replaceDotnet(exactCompiler('true', nhlTwice))
+    const third = go()
+    return { first, after, second, refused, third, registry: read(REGISTRY), stateLeft: has(STATE_DIR) }
+  })
+  sc('A SPORT ADDED BETWEEN THE PROBE AND THE LAST CASE KEEPS THE STATE: the registry is left as found, the run fails, the marker records the failed restore, the backup is the whole original, and the message names the file, says the probe is still in it and which line to delete (1 run, a registry shaped like the real one)',
+    separated.first.status === 1 && /(\d+)\/\1 checks passed/.test(separated.first.stdout) && separated.after.registry === separatedUnion && separated.after.backup === union && separated.after.marker?.restoreFailed === true
+      && unwritten(separated.first, REGISTRY)
+      && separated.first.stderr.includes(`(${REGISTRY} still carries this run's probe case, with what was changed meanwhile, which is not in them). Put ${REGISTRY} right by hand: delete ${probeCase}, then: rm -rf ${STATE_DIR}.`),
+    `status ${separated.first.status}, registry as found ${separated.after.registry === separatedUnion}, backup is the original ${separated.after.backup === union}, marker ${JSON.stringify(separated.after.marker && { restoreFailed: separated.after.marker.restoreFailed })}; ${separated.first.stderr.slice(0, 400).replace(/\n/g, ' | ')}`)
+  sc('...AND THE NEXT RUN REFUSES: it writes nothing, keeps the state, runs no build, and says the registry carries the probe case; once the line is out by hand and the state removed, the run after it proceeds and puts the registry back to what it found (3 runs)',
+    separated.second.status === 1 && separated.refused.registry === separatedUnion && separated.refused.stateLeft && /nothing was written/.test(separated.second.stderr) && !/baseline tree compiles/.test(separated.second.stdout)
+      && separated.second.stderr.includes(`${REGISTRY} carries the probe case and has changed since`)
+      && separated.third.status === 0 && /baseline tree compiles/.test(separated.third.stdout) && /(\d+)\/\1 checks passed/.test(separated.third.stdout) && separated.registry === unionWithSport && !separated.stateLeft,
+    `second: status ${separated.second.status}, registry as found ${separated.refused.registry === separatedUnion}, state kept ${separated.refused.stateLeft}, ${separated.second.stderr.slice(0, 200).replace(/\n/g, ' | ')}; third: status ${separated.third.status}, registry ${separated.registry === unionWithSport}, state left ${separated.stateLeft}`)
+  // The other direction, which a test of "the file has `| NHL`" gets wrong: the person took the probe's line out themselves. The registry still has its own `| NHL`, carries none of the run's code, and is theirs: left as found, and
+  // the state has nothing left to put right.
+  const probeTakenOut = withStandIn({
+    dotnet: exactCompiler(`awk '/^    [|] NHL$/ { n++; if (n == 2) next } { print }' src/Desk.fs > Desk.edit && mv Desk.edit src/Desk.fs && echo "// EDIT-TOOK-THE-PROBE-OUT" >> src/Desk.fs`, nhlTwice),
+    before: dir => writeFileSync(join(dir, REGISTRY), union),
+  }, ({ go, read, has }) => ({ r: go(), registry: read(REGISTRY), stateLeft: has(STATE_DIR) }))
+  sc('A REGISTRY WHOSE PROBE THE PERSON TOOK OUT IS THEIRS: left as found, the state goes (nothing of the run is on it), and the message does not say the probe is still in it (1 run, a registry with an `| NHL` of its own)',
+    probeTakenOut.registry === `${union}// EDIT-TOOK-THE-PROBE-OUT\n` && !probeTakenOut.stateLeft && probeTakenOut.r.status === 1 && unwritten(probeTakenOut.r, REGISTRY) && !/still carries/.test(probeTakenOut.r.stderr),
+    `registry ${JSON.stringify(probeTakenOut.registry.slice(-60))}, state left ${probeTakenOut.stateLeft}, status ${probeTakenOut.r.status}; ${probeTakenOut.r.stderr.slice(0, 300).replace(/\n/g, ' | ')}`)
+  // The same registry after a KILL, not a failed restore: no restoreFailed flag, so the classifier alone decides. Its backups say the probe was not there; the file has a second `| NHL` and a sport between it and the
+  // last case. Called stale, the state would go and the second run would adopt the probe as the original.
+  const killedSeparated = sandbox({ target: clean, registry: separatedUnion, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('A KILLED RUN WHOSE PROBE A SPORT HAS SEPARATED FROM THE LAST CASE IS NOT DISCARDED AS STALE: nothing is written, the state is kept, the registry is named as carrying the probe case, the run stops (1 planted state)',
+    killedSeparated.status === 1 && killedSeparated.registry === separatedUnion && killedSeparated.stateLeft && !/STALE/.test(killedSeparated.stderr) && /nothing was written/.test(killedSeparated.stderr)
+      && killedSeparated.stderr.includes(`${REGISTRY} carries the probe case and has changed since`) && !carriedOn(killedSeparated),
+    show(killedSeparated))
 
   // The injection write is guarded too: an edit made while the BASELINE build ran (nothing injected yet) is not written over by the injection.
   const duringBaseline = observed('#!/bin/sh\nif ! grep -q "let private __proof" src/Scoreboard.fs 2>/dev/null && [ ! -f done ]; then touch done; echo "// EDIT-BEFORE-INJECTION" >> src/Scoreboard.fs; fi\nexit 0\n')
@@ -1320,7 +1424,7 @@ switch (classifyState({
   registryAnchored: currentRegistry.includes(REGISTRY_ANCHOR),
   targetStranded,
   registryStranded,
-  registryInjected: probeOnRegistry(currentRegistry),
+  registryInjected: carriesProbe(currentRegistry),
   restoreFailed: restoreFlagged,
   targetIntact: backupTarget !== null && currentTarget === backupTarget,
   registryIntact: backupRegistry !== null && currentRegistry === backupRegistry,
@@ -1361,7 +1465,7 @@ switch (classifyState({
     // No restore is registered yet, deliberately: exiting here touches nothing.
     const reasons = []   // [file, why]
     if (injectedNow && !targetStranded) reasons.push([TARGET, `${TARGET} carries injected proof code and has changed since`])
-    if (probeOnRegistry(currentRegistry) && !registryStranded) reasons.push([REGISTRY, `${REGISTRY} carries the probe case and has changed since`])
+    if (carriesProbe(currentRegistry) && !registryStranded) reasons.push([REGISTRY, `${REGISTRY} carries the probe case and has changed since`])
     // A run whose restore did not read back: a file that is not what it backed up may be torn (and must not be called stale), the backup being the only whole copy.
     if (restoreFlagged) {
       if (!targetStranded && currentTarget !== backupTarget) reasons.push([TARGET, `${TARGET} is not what that run backed up, and its restore did not read back, so it may be torn`])
@@ -1388,7 +1492,7 @@ switch (classifyState({
     {
       const strays = []
       if (injectedNow) strays.push(TARGET)
-      if (probeOnRegistry(currentRegistry)) strays.push(REGISTRY)
+      if (carriesProbe(currentRegistry)) strays.push(REGISTRY)
       if (strays.length) {
         console.error(`proof-check: ${strays.join(' and ')} contain${strays.length > 1 ? '' : 's'} injected proof code (${strays.length > 1 ? 'the target and the probe case' : strays[0] === TARGET ? 'the proof functions' : 'the probe case'}) and no run state exists.`)
         // With no state there is nothing to restore from, so the lines are deleted by hand. A checkout is named only for an uncommitted injection, with what it costs: it puts a file back to the index,
@@ -1397,7 +1501,9 @@ switch (classifyState({
         const many = strays.length > 1
         const parts = strays.map(f => f === TARGET
           ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
-          : `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${REGISTRY}\` shows it)`)
+          : probeOnRegistry(currentRegistry)
+            ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${REGISTRY}\` shows it)`
+            : removalOf(REGISTRY))
         console.error(`Delete ${parts.join(' and ')}, then run this again.`)
         console.error(`If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${strays.join(' ')}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`)
         process.exit(1)
@@ -1469,7 +1575,7 @@ const restoreOne = (file, original) => {
   try {
     const now = readFileSync(file, 'utf8')
     if (now === original) return 'ok'
-    if (!ours(now, original, attempted.get(file))) return (file === TARGET ? now.includes(MARKER) : probeOnRegistry(now)) ? 'carrying' : 'foreign'
+    if (!ours(now, original, attempted.get(file))) return (file === TARGET ? now.includes(MARKER) : carriesProbe(now)) ? 'carrying' : 'foreign'
     writeFileSync(file, original)
     return readFileSync(file, 'utf8') === original ? 'ok' : 'failed'
   } catch {
@@ -1510,7 +1616,8 @@ const restore = () => {
   let flagged = false
   try { writeFileSync(MARKER_FILE, JSON.stringify({ ...runMarker, restoreFailed: true }, null, 2) + '\n'); flagged = true } catch { /* the sentinel still says so */ }
   console.error(`proof-check: ${failed.length ? `${failed.join(' and ')} could NOT be put back (a write failed, or what was written did not read back). ` : ''}${STATE_DIR} was kept: ${BACKUP} and ${BACKUP}.registry `
-    + `are the whole originals${carrying.length ? ` (${carrying.join(' and ')} also carries what was changed meanwhile, which is not in them)` : ''}. Put ${named('failed', 'carrying').join(' and ')} right by hand, then: rm -rf ${STATE_DIR}. `
+    + `are the whole originals${carrying.length ? ` (${carrying.map(f => `${f} still carries this run's ${f === TARGET ? 'proof functions' : 'probe case'}`).join(' and ')}, with what was changed meanwhile, which is not in them)` : ''}. `
+    + `Put ${named('failed', 'carrying').join(' and ')} right by hand${carrying.length ? `: delete ${carrying.map(removalOf).join(' and ')}` : ''}, then: rm -rf ${STATE_DIR}. `
     + (pending || flagged
       ? 'The next run writes nothing over a file that is not what this run backed up.'
       : 'This failure could NOT be recorded in the state directory either, so the next run cannot tell: do not run proof-check again until the files are right.'))
