@@ -1834,6 +1834,46 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'state-dir-guard-removed',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that holds files the harness did not write is refused, not emptied at the first clear",
+    find: "if (holds.length > 0 && !holds.some(",
+    replace: "if (false && holds.length > 0 && !holds.some(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refuses-its-own-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that holds the harness's own entries (a stranded marker, a dead run's lock) is used, so the heal can look at what a killed run left",
+    find: "['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h))) {",
+    replace: "[].includes(h))) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refuses-a-stranded-nested-run',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that holds only what a nested run stranded is used, so the next run can heal it",
+    find: "'run.json', 'driver.json', 'nested', 'world'].includes(h)",
+    replace: "'run.json', 'driver.json', 'world'].includes(h)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refuses-a-dead-drivers-record',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that holds only a dead build driver's record is used, so a run killed while it was stopping that driver does not wedge the next",
+    find: "['active.json', 'run.json', 'driver.json', 'nested', 'world']",
+    replace: "['active.json', 'run.json', 'nested', 'world']",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-swallows-an-unreadable-directory',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that cannot be read as a directory (a file) is refused like one that holds foreign files, not let through to crash at the first write",
+    find: "if (e.code !== 'ENOENT') holds = ['not a directory it can read']",
+    replace: "holds = []",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'rebuild-refusal-after-a-restore-offers-to-delete-the-state',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal over a failed rebuild after a restore does not tell a person to delete the state that is the only record of the build",
@@ -6528,6 +6568,39 @@ if (process.argv.includes('--self-test')) {
       childLeft && childFileMutated && strandedBack && /HEALED/.test(text(healsChild)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
       `after the parent (exit ${strands.status}): child marker kept ${childLeft}, its file mutated ${childFileMutated}, the parent's write-ups back ${strandedBack}; heal: ${text(healsChild).split('\n').filter(l => /HEALED|Nothing to heal|::error::/.test(l)).join(' | ').slice(0, 200)}; file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
     reset()
+
+    // E27: a MUTATION_STATE_DIR that already holds something this harness did not write is refused, not emptied (the first clear would delete it: measured 2026-11-05, a directory with
+    // two files was gone after one `--only known-survivor`). A directory that is absent, empty, or holds one of the harness's own names (a dead run's lock, a stranded nested run, a
+    // dead build driver's record) is used. The refusal is a usage error (status 2) and happens before anything is touched.
+    reset()
+    const foreignDir = join(scratch, 'foreign-dir')
+    mkdirSync(join(foreignDir, 'sub'), { recursive: true })
+    writeFileSync(join(foreignDir, 'keep.txt'), 'not the harness\'s\n')
+    writeFileSync(join(foreignDir, 'sub', 'also.txt'), 'nor this\n')
+    const kf = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: foreignDir })
+    const foreignKept = read(join(foreignDir, 'keep.txt')) === 'not the harness\'s\n' && read(join(foreignDir, 'sub', 'also.txt')) === 'nor this\n'
+    check('E27: A STATE DIRECTORY THAT HOLDS FILES THE HARNESS DID NOT WRITE IS REFUSED, NOT EMPTIED: exit 2, the message names what is in it (keep.txt, sub), both files are still there, nothing was mutated and no run started',
+      kf.status === 2 && /already holds files this harness did not write \(keep\.txt, sub\)/.test(text(kf)) && foreignKept && !/Mutation testing/.test(text(kf)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `status ${kf.status}, files kept ${foreignKept}, ran ${/Mutation testing/.test(text(kf))}; ${text(kf).split('\n')[0].slice(0, 160)}`)
+    // ...and a path that is a file, not a directory, is not one this harness can use either.
+    const fileAsDir = join(scratch, 'state-is-a-file')
+    writeFileSync(fileAsDir, 'a file\n')
+    const kfile = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: fileAsDir })
+    check('E27: ...and so is a state directory that is a file: exit 2 with the same refusal, and the file is untouched',
+      kfile.status === 2 && /already holds files this harness did not write \(not a directory it can read\)/.test(text(kfile)) && read(fileAsDir) === 'a file\n' && !/Mutation testing/.test(text(kfile)),
+      `status ${kfile.status}; ${text(kfile).split('\n')[0].slice(0, 160)}`)
+    // The harness's own names are used: a dead run's lock, and a dead build driver's record (a run killed after it cleared a stale lock and before it finished stopping that driver
+    // leaves only the record), each in a directory of its own. Both runs start, and neither refuses.
+    const ownLock = join(scratch, 'own-lock')
+    mkdirSync(ownLock)
+    writeFileSync(join(ownLock, 'run.json'), JSON.stringify(DEAD))
+    const ownDriver = join(scratch, 'own-driver')
+    mkdirSync(ownDriver)
+    writeFileSync(join(ownDriver, 'driver.json'), JSON.stringify({ run: DEAD, driver: { pid: 2 ** 30, start: '1' } }))
+    const kown = [ownLock, ownDriver].map(d => { reset(); const r = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: d }); return { d, started: /Mutation testing/.test(text(r)), refused: /did not write/.test(text(r)), status: r.status } })
+    check('E27: ...and a directory that holds only the harness\'s own entries is used, not refused: a dead run\'s lock, and a dead build driver\'s record (2 directories)',
+      kown.every(x => x.started && !x.refused), kown.map(x => `${x.d.split('/').pop()}: started ${x.started}, refused ${x.refused}, status ${x.status}`).join(' / '))
+    reset()
   } else {
     console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
   }
@@ -6665,6 +6738,18 @@ if (process.argv.includes('--self-test')) {
 // could not re-exec, so the re-executed run failed its baseline on a clean tree (review 4, 2026-11-04). A guard that is set is for this process only.
 const RESTARTED = process.env.MUTATION_REEXEC === '1'
 delete process.env.MUTATION_REEXEC
+// A state directory is the harness's to empty: clearActive() removes everything in it but the run lock, the build driver's record and a nested run's state. A MUTATION_STATE_DIR that already
+// holds something this harness did not write would lose it at the first clear (measured 2026-11-05: a directory with two files was gone after one `--only known-survivor`). So only a directory
+// that is absent, empty, or holds one of the five names this harness gives its own entries is used (a child harness run's `nested` directory holds only such names).
+// Lenient on purpose, and said so: ONE of those names is enough, so a person's directory that happens to hold `nested/` or `run.json` among its files would still be emptied.
+{
+  let holds = []
+  try { holds = readdirSync(stateDir).sort() } catch (e) { if (e.code !== 'ENOENT') holds = ['not a directory it can read'] }
+  if (holds.length > 0 && !holds.some(h => ['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h))) {
+    console.error(`${stateDir} already holds files this harness did not write (${holds.slice(0, 4).join(', ')}${holds.length > 4 ? ', ...' : ''}), and it empties its state directory: give MUTATION_STATE_DIR one that is absent or empty. Nothing was touched.`)
+    process.exit(2)
+  }
+}
 checkLocks(stateDir)
 // A watcher a dead run left running is stopped before this run starts one of its own (two would write one build/). After checkLocks, which has refused a live run: a live run's
 // watcher is that run's.
