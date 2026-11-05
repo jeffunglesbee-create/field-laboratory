@@ -54,6 +54,10 @@ npm run --silent check:import-purity
 # harness's self-test, which starts the real script in scratch git repositories
 # (13 s at idle, 2026-11-04): the heal is what keeps a killed gate run recoverable,
 # and it is asked at the door because nothing else asks it before the gate.
+# Since 2026-11-05 the script runs `--stranded` first: a marker in .mutation-state means
+# a killed run left a mutation applied in the tree being committed, and the hook REFUSES,
+# naming `node scripts/mutation-check.mjs --heal`, where it used to warn and pass. It does
+# not heal (no build and no tree writes under a commit): a person runs the command.
 npm run --silent check:mutation-anchors
 # Added 2026-08-29, after this exact check failed verify on THREE consecutive
 # commits and blocked the deploy each time -- deploy.yml triggers on

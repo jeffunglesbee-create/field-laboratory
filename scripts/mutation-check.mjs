@@ -2261,6 +2261,54 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'gate-preflight-removed',
+    file: 'scripts/confidence.mjs',
+    claim: "the gate refuses to score a tree a killed mutation run left mutated, before any row",
+    find: "if (strandedCheck.status !== 0) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'gate-preflight-exits-zero',
+    file: 'scripts/confidence.mjs',
+    claim: "the gate's refusal over a stranded tree is a failing exit, not a quiet stop that a caller reads as a pass",
+    find: "Nothing was run.\\n`)\n  process.exit(2)",
+    replace: "Nothing was run.\\n`)\n  process.exit(0)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'gate-preflight-refuses-every-tree',
+    file: 'scripts/confidence.mjs',
+    claim: "the gate's preflight lets a tree with no stranded mutation through",
+    find: "if (strandedCheck.status !== 0) {",
+    replace: "if (true) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'hook-script-without-stranded',
+    file: 'package.json',
+    claim: "the script the pre-commit hook runs refuses a stranded state",
+    find: "node scripts/mutation-check.mjs --stranded && node scripts/mutation-check.mjs --anchors",
+    replace: "node scripts/mutation-check.mjs --anchors",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'hook-script-stranded-last',
+    file: 'package.json',
+    claim: "the script the pre-commit hook runs asks about a stranded state first, so it is named before an anchor check that a stranded file would fail with the wrong diagnosis",
+    find: '"check:mutation-anchors": "node scripts/mutation-check.mjs --stranded && node scripts/mutation-check.mjs --anchors && node scripts/mutation-check.mjs --self-test"',
+    replace: '"check:mutation-anchors": "node scripts/mutation-check.mjs --anchors && node scripts/mutation-check.mjs --self-test && node scripts/mutation-check.mjs --stranded"',
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'hook-drops-the-mutation-anchors-line',
+    file: '.githooks/pre-commit',
+    claim: "the pre-commit hook runs the mutation-anchors script, which is where a stranded state is refused",
+    find: "npm run --silent check:mutation-anchors\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'restore-clears-the-marker-over-a-dirty-build',
     file: 'scripts/mutation-check.mjs',
     claim: "a handler that puts a source file back before its build is verified keeps the marker",
@@ -8006,7 +8054,7 @@ if (process.argv.includes('--self-test')) {
       const walk = rel => {
         for (const e of readdirSync(join(dir, rel), { withFileTypes: true })) {
           if (e.isDirectory()) walk(join(rel, e.name))
-          else out.push(`${join(rel, e.name)} ${sha(readFileSync(join(dir, rel, e.name)))}`)
+          else if (!e.isSymbolicLink()) out.push(`${join(rel, e.name)} ${sha(readFileSync(join(dir, rel, e.name)))}`)
         }
       }
       walk('')
@@ -8089,6 +8137,36 @@ if (process.argv.includes('--self-test')) {
         && /--heal/.test(worldRun.stdout) && /--heal/.test(tornRun.stdout) && !/undefined|^\s+at /m.test(worldRun.stdout + tornRun.stdout + worldRun.stderr + tornRun.stderr)
         && listing(worldDir) === worldBefore && listing(tornDir) === tornBefore,
       `world: status ${worldRun.status}, ${first(worldRun)}; torn: status ${tornRun.status}, ${first(tornRun)}; ${String(tornRun.stderr).split('\n')[0].slice(0, 120)}`)
+
+    // The mode is a refusal at the door only if the door runs it, and runs it first. The hook runs an npm script and the gate runs a preflight; each is driven here over the same stranded
+    // fixture, as the real thing: the script text is read from package.json and run by npm, and the gate is the real confidence.mjs started in a scratch directory (which has no
+    // inventory and no rows, so a gate that is NOT stopped by the preflight is seen to go on, to the inventory, and fail there).
+    const repoRoot = resolve(dirname(here), '..')
+    const doorDir = fresh()
+    strandedFixture(doorDir)
+    writeFileSync(join(doorDir, 'package.json'), JSON.stringify({ scripts: { 'check:mutation-anchors': JSON.parse(read(join(repoRoot, 'package.json'))).scripts['check:mutation-anchors'] } }))
+    execSync(`ln -s ${JSON.stringify(dirname(here))} scripts`, { cwd: doorDir })
+    const doorBefore = listing(doorDir)
+    const door = spawnSync('npm', ['run', '--silent', 'check:mutation-anchors'], { cwd: doorDir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
+    check('THE HOOK\'S SCRIPT REFUSES A STRANDED STATE BEFORE IT DOES ANYTHING ELSE: `check:mutation-anchors` as package.json has it, run by npm over the stranded fixture, exits non-zero with the `--stranded` message and has not reached the anchor check or the self-test; the directory is byte-identical afterwards (1 state)',
+      door.status !== 0 && /is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(door.stdout) && !/mutation anchors|STALE|Heal self-test/.test(door.stdout) && listing(doorDir) === doorBefore,
+      `status ${door.status}; ${first(door)}; reached the anchor check or the self-test: ${/mutation anchors|STALE|Heal self-test/.test(door.stdout)}; directory unchanged ${listing(doorDir) === doorBefore}`)
+    const hookText = read(join(repoRoot, '.githooks', 'pre-commit'))
+    check('THE PRE-COMMIT HOOK RUNS THAT SCRIPT: `npm run --silent check:mutation-anchors` is a line of .githooks/pre-commit that is not a comment (1 hook)',
+      /^npm run --silent check:mutation-anchors$/m.test(hookText), `the hook holds ${hookText.split('\n').filter(l => /mutation-anchors/.test(l)).join(' | ').slice(0, 200) || 'no such line'}`)
+    const gateScript = join(dirname(here), 'confidence.mjs')
+    const askGate = cwd => spawnSync(process.execPath, [gateScript], { cwd, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
+    const gateStranded = fresh()
+    strandedFixture(gateStranded)
+    const gateBefore = listing(gateStranded)
+    const gateClean = fresh()
+    const gateRefused = askGate(gateStranded)
+    const gateGoesOn = askGate(gateClean)
+    check('THE GATE REFUSES TO SCORE A STRANDED TREE, AHEAD OF EVERYTHING ELSE: `confidence.mjs` over the stranded fixture exits 2 with the `--stranded` message and `Refusing to score`, runs no row, and touches nothing; over a directory with no marker it is not refused by this check, and goes on to the inventory (which a scratch directory does not have) and fails there (1 stranded directory, 1 clean one)',
+      gateRefused.status === 2 && /\(\[stranded\] on src\/Stranded\.fs\)/.test(gateRefused.stdout) && /Refusing to score: `node scripts\/mutation-check\.mjs --stranded` exited 1/.test(gateRefused.stdout)
+        && !/\[\s*\d+s\] (PASS|FAIL)/.test(gateRefused.stdout) && listing(gateStranded) === gateBefore
+        && !/Refusing to score: `node scripts\/mutation-check\.mjs --stranded`/.test(gateGoesOn.stdout) && /gate-rows\.txt/.test(gateGoesOn.stderr),
+      `stranded: status ${gateRefused.status}, ${first(gateRefused) || String(gateRefused.stdout).split('\n').find(l => l.trim()) || '(no output)'}; directory unchanged ${listing(gateStranded) === gateBefore}; clean: status ${gateGoesOn.status}, refused by the check ${/Refusing to score: `node scripts\/mutation-check\.mjs --stranded`/.test(gateGoesOn.stdout)}, stderr names the inventory ${/gate-rows\.txt/.test(gateGoesOn.stderr)}`)
 
     // A self-test the HARNESS starts as an expectation inherits MUTATION_STATE_DIR (a nested directory beneath its own). It must use a
     // directory of its own, and pass: it did neither, so 20 mutation entries were caught by a self-test that failed on clean source.

@@ -41,8 +41,9 @@
 // Usage:  node scripts/confidence.mjs [--quick]
 //         --quick skips the rows that need a browser or the .NET build.
 
-import { execSync, spawn } from 'node:child_process'
+import { execSync, spawn, spawnSync } from 'node:child_process'
 import { readdirSync, readFileSync, appendFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { readInventory, diffAgainst, INVENTORY_PATH } from './gate-inventory.mjs'
 import { rows, ok, failures, NOT_APPLICABLE } from './gate-checks.mjs'
 import { runIdentity } from './checks.mjs'
@@ -70,6 +71,27 @@ const BAR = 95
 // the gate runs again.
 const RECORD_PATH = 'docs/confidence-log.jsonl'
 
+
+// A TREE A KILLED MUTATION RUN LEFT MUTATED IS NOT THE TREE THIS GATE IS ASKED ABOUT, and it is refused first, ahead of the inventory comparison below.
+//
+// `scripts/mutation-check.mjs` puts a mutation on disk and a marker beside it; a SIGKILL (a container restart is one) leaves both. The rows then score a tree nobody meant to
+// create and name the product for it: that file tells how a stranded `Verify.fs` was scored as two failing product rows, and that had the mutation landed where every check still
+// passed, the gate would have gone green on a deliberately broken invariant.
+//
+// `--stranded` is the read-only mode that says so: it exits 1 naming the mutation, the file and `node scripts/mutation-check.mjs --heal`, and heals nothing. The owner chose a
+// refusal over a heal (2026-11-05): a heal writes files and runs `npm run build`, and a gate that repaired the tree it is about to score would be scoring its own repair.
+// It runs as a process because the harness does its work at module scope and exports nothing (import-purity-check.mjs), and by this file's own directory so that a gate run
+// from another directory still finds it.
+//
+// A HARD STOP, NOT A ROW, for the reason the inventory below is one: it is not a measurement of the product, so it earns and risks no points, and a row could be dropped
+// alongside the state it was meant to catch. Any non-zero status refuses, not only 1: a check that crashed has not said the tree is clean. Exit 2, the status of the inventory's
+// refusal. Nothing is recorded in the confidence log, because nothing was scored.
+const strandedCheck = spawnSync(process.execPath, [fileURLToPath(new URL('./mutation-check.mjs', import.meta.url)), '--stranded'], { encoding: 'utf8' })
+if (strandedCheck.status !== 0) {
+  console.log(`\n${`${strandedCheck.stdout}${strandedCheck.stderr}`.trimEnd()}`)
+  console.log(`\n  Refusing to score: \`node scripts/mutation-check.mjs --stranded\` ${strandedCheck.status === null ? 'did not finish' : `exited ${strandedCheck.status}`}. Nothing was run.\n`)
+  process.exit(2)
+}
 
 // The denominator is `possible`, summed from the rows above — which means the
 // rows above can move it. Deleting a failing row raises the score: measured at
