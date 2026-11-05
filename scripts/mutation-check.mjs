@@ -1794,6 +1794,30 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'heal-runs-a-restore-for-an-empty-touched',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a marker that recorded no touched path (`touched: {}`) is not read as every touched path applied, so its restore command is not run blind",
+    find: "const hasTouched = m => m.touched !== null && typeof m.touched === 'object' && Object.keys(m.touched).length > 0",
+    replace: "const hasTouched = m => m.touched !== null && typeof m.touched === 'object'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'plan-heal-reads-an-empty-touched-as-a-list',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the plan for a marker with an empty touched list is the one for a marker with none: nothing to do over an unchanged tree, a refusal over any other",
+    find: "    if (hasTouched(m)) {\n      const where = worldState(",
+    replace: "    if (m.touched) {\n      const where = worldState(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'heal-refusal-for-an-empty-touched-lists-no-path',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a marker with an empty touched list says it was killed before it recorded its paths, not that a path is neither as it was nor as the mutation left it (it names none)",
+    find: "      if (!hasTouched(m)) {\n",
+    replace: "      if (!m.touched) {\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'rebuild-refusal-after-a-restore-offers-to-delete-the-state',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal over a failed rebuild after a restore does not tell a person to delete the state that is the only record of the build",
@@ -5186,6 +5210,8 @@ const sourceMarker = (m, backup, original, mutated, rebuild) =>
 const worldMarkerOf = (m, stash, before) =>
   ({ id: m.id, restoreCmd: m.restore, stash, before, head: headOf(), ...identity() })
 
+/** A marker that recorded which paths a mutation touched. `{}` records none, and no run writes it (a mutation that touched nothing is stopped as broken before the marker is written). */
+const hasTouched = m => m.touched !== null && typeof m.touched === 'object' && Object.keys(m.touched).length > 0
 /**
  * What to do about a marker a previous run left, as a value rather than as control flow.
  *
@@ -5219,7 +5245,7 @@ const planHeal = (m, probes) => {
   if (typeof m.restoreCmd === 'string') {
     if (m.before === null || typeof m.before !== 'object') return 'legacy'
     const now = probes.snapshot()
-    if (m.touched) {
+    if (hasTouched(m)) {
       const where = worldState(m.touched, now, headMovedSince(m, probes))
       if (where === 'undone') return 'clear'
       return where === 'other' ? 'diverged' : 'restore'
@@ -5280,7 +5306,7 @@ const healAt = (dir, { rebuild = true, probes = healProbes, exit = process.exit,
     if (m.restoreCmd) {
       // Named, not generic: the paths that are somewhere else are the ones a person must not put the stash over. The restore command is not offered, because
       // it copies the stash over every path it touched, including the ones listed here.
-      if (!m.touched) {
+      if (!hasTouched(m)) {
         return stop(`names [${m.id}], a change made outside the source, and it was killed before it recorded which paths it touched, and the tree now differs from what it was before it ran. The mutation itself may have made those changes, or a person may have after the kill; the two cannot be told apart, so nothing was run. What it moved aside is in ${m.stash}.`)
       }
       const moved = headMovedSince(m, probes)
@@ -5661,6 +5687,14 @@ if (process.argv.includes('--self-test')) {
   // ...and the message does not say a person changed it after the kill: the mutation itself is the likelier cause, and the stash holds the originals.
   check('...and its message does not blame the person: it says the mutation may have made the changes, and names the stash',
     /mutation itself may have made those changes/.test(w5br.said) && /\/stash\/here/.test(w5br.said) && !/changed after the kill/.test(w5br.said), w5br.said)
+  // A marker with `touched: {}` records no path, and no run writes one (a mutation that touched nothing is stopped as a broken mutation before the marker is written), so it is hand-made
+  // or corrupt. `{}` is truthy and counts zero paths as "all of them applied", which sent it to the restore command and then to a refusal that said the restore had failed. It is the
+  // same as a marker with no list: the tree equal to what it was is nothing to do, and any other tree is for a person.
+  const wEmptyTouched = fakeTree({ ...BEFORE }); const w5c = worldCase({ touched: {} }); const w5cr = attempt(w5c.state, wEmptyTouched.probes)
+  const wEmptyTouchedMoved = fakeTree({ ...BEFORE, 'docs/x.md': 'h' }); const w5d = worldCase({ touched: {} }); const w5dr = attempt(w5d.state, wEmptyTouchedMoved.probes)
+  check('A MARKER THAT RECORDS NO PATH (`touched: {}`) RUNS NO RESTORE COMMAND: over a tree equal to what it was nothing runs and the state is dropped; over any other tree the refusal is the one for a kill before the paths were recorded, nothing runs, and the state is kept',
+    w5cr.returned === true && wEmptyTouched.calls.length === 0 && !w5c.kept() && stoppedFor(w5dr, /killed before it recorded which paths it touched/) && wEmptyTouchedMoved.calls.length === 0 && w5d.kept(),
+    `equal: returned ${w5cr.returned}, exit ${w5cr.code}, calls ${wEmptyTouched.calls.length}, kept ${w5c.kept()}; moved: exit ${w5dr.code}, calls ${wEmptyTouchedMoved.calls.length}, kept ${w5d.kept()}; ${w5dr.said.slice(0, 160)}`)
   const wLive = fakeTree({ ...aGone }); const w6 = worldCase({ pid: process.pid, start: startOf(process.pid) }); const w6r = attempt(w6.state, wLive.probes)
   check('A WORLD MARKER WHOSE RUN IS STILL GOING STOPS THIS RUN TOO: nothing is restored under a live run',
     stoppedFor(w6r, /still running/) && wLive.calls.length === 0 && w6.kept() && /Wait for pid/.test(w6r.said) && !/delete .* to clear this/.test(w6r.said), `exit ${w6r.code}, calls ${wLive.calls.length}; ${w6r.said}`)
