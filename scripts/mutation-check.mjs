@@ -33,6 +33,7 @@
 // And for recovery and for the checks that stand guard over this file:
 //         --heal             undo what a killed run left applied, and stop a build driver it left running (what every start does first), say so, and stop; runs no mutation
 //         --anchors          read-only: every mutation's anchor is still in its file, and unique there; non-zero if any is not
+//         --stranded         read-only: exit 1, naming the command that heals it, while a killed run's mutation is still applied (.mutation-state/active.json or nested/active.json); exit 0 when there is none. It heals nothing: the hook and the gate run it first
 //         --self-test        the heal, the locks, the markers and the scratch-repository runs, on throwaway files in a state directory of their own (the pre-commit hook runs it)
 
 import { execSync, spawn, spawnSync } from 'node:child_process'
@@ -2185,6 +2186,78 @@ const MUTATIONS = [
     claim: "the self-test over a stranded state leaves it alone: it names it and does not heal it",
     find: "Heal it first: node scripts/mutation-check.mjs --heal`)\n  }",
     replace: "Heal it first: node scripts/mutation-check.mjs --heal`)\n    if (!process.env.MUTATION_STATE_DIR) healHeld(real, { rebuild: false })\n  }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'no-stranded-mode',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` is a mode of its own that refuses a stranded state; without it the script falls through to a heal and a whole run",
+    find: "if (process.argv.includes('--stranded')) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-exit-inverted',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` exits 1 when a mutation is left applied and 0 when none is",
+    find: "process.exit(left.length ? 1 : 0)",
+    replace: "process.exit(left.length ? 0 : 1)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-refuses-a-directory-with-no-marker',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` lets a directory with no marker through (a stale run lock is not a stranded mutation)",
+    find: "process.exit(left.length ? 1 : 0)",
+    replace: "process.exit(1)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-heals',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` refuses and does not heal: it writes nothing, in a commit hook or a gate run",
+    find: "    console.log(text)\n  }\n  console.log(`checked ${files.length}",
+    replace: "    console.log(text)\n    if (m?.file && m?.backup && existsSync(m.backup)) writeFileSync(m.file, readFileSync(m.backup))\n  }\n  console.log(`checked ${files.length}",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-skips-a-nested-marker',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` looks in `nested` too, where a harness run inside a harness run keeps its state",
+    find: "const files = [join(real, 'active.json'), join(real, 'nested', 'active.json')]",
+    replace: "const files = [join(real, 'active.json')]",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-reads-a-live-run-as-killed',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` does not call a run that is still going a killed one, or send a person to a heal that would refuse it",
+    find: "const live = m !== null && typeof m === 'object' && isLive(m)",
+    replace: "const live = false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-waits-for-the-heal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` is decided before the heal: given `--heal` as well it still only refuses",
+    find: "if (process.argv.includes('--stranded')) {",
+    replace: "if (process.argv.includes('--stranded') && !process.argv.includes('--heal')) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-prints-undefined',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` names a marker that holds no file, or no id, as `the tree` and `unknown`, not `undefined`",
+    find: "const id = m?.id ?? 'unknown'\n    const where = m?.file ?? 'the tree'",
+    replace: "const id = m?.id\n    const where = m?.file",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-mode-crashes-on-a-torn-marker',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` refuses a marker cut off mid-write by what it is, with the heal command, instead of crashing on the read",
+    find: "try { m = JSON.parse(readFileSync(file, 'utf8')) } catch { m = null }\n    const id = m?.id",
+    replace: "m = JSON.parse(readFileSync(file, 'utf8'))\n    const id = m?.id",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -6704,6 +6777,37 @@ if (process.argv.includes('--anchors')) {
   for (const x of stale) console.log(`  STALE  ${x}`)
   process.exit(stale.length ? 1 : 0)
 }
+// `--stranded` sits here too: it reads one or two small files and runs nothing. It is the refusal the pre-commit hook and the gate run FIRST, because a tree that still holds
+// a mutation is not the tree they are asked about. Until now the hook printed a warning and passed (measured 2026-11-05 on a stranded `outbox-stub`: 46 outbox files stubbed,
+// `npm run check:mutation-anchors` exited 0; on a stranded source file its anchor check failed first, naming a stale table entry, which sent a reader to the wrong file).
+//
+// IT REFUSES AND DOES NOT HEAL, on purpose. A heal writes files, and for a source file it runs `npm run build` (the hook promises no build and takes a fraction of a minute);
+// a commit hook has no business rewriting the tree of the commit it is part of, whose index may already hold the mutated version. `clean-source-check.mjs` makes the same
+// choice for an injected proof body. The command that heals is named, and a person runs it.
+//
+// It reads its own directory instead of `stateDir`, `marker` or `healHeld`: those are consts defined further down, and a mode that exits up here would read them before they
+// exist (a ReferenceError, not a refusal). The expression is the one `stateDir` uses for a real run. It sits above the heal, the run lock and the exit handlers, so it also
+// takes no lock, removes no stale one and clears no state; the clauses run it with `--heal` beside it and a stale lock beside the marker to hold it to that.
+if (process.argv.includes('--stranded')) {
+  const real = process.env.MUTATION_STATE_DIR || '.mutation-state'
+  const files = [join(real, 'active.json'), join(real, 'nested', 'active.json')]
+  const left = files.filter(f => existsSync(f))
+  for (const file of left) {
+    // A marker that does not parse is still a marker: it is refused by what it is, and `--heal` says more about it.
+    let m = null
+    try { m = JSON.parse(readFileSync(file, 'utf8')) } catch { m = null }
+    const id = m?.id ?? 'unknown'
+    const where = m?.file ?? 'the tree'
+    // A run that is still going is not a killed run's, and the heal would refuse it: say to wait instead.
+    const live = m !== null && typeof m === 'object' && isLive(m)
+    const text = live
+      ? `::error::${file} names pid ${m.pid}, which is still running: [${id}] on ${where} is applied by a mutation run that is IN PROGRESS. Nothing was touched. Wait for pid ${m.pid} to finish, then run this again.`
+      : `::error::${file} is a mutation a killed run left applied ([${id}] on ${where}). Nothing was touched, and this mode does not undo it: a commit or a gate run over this tree would carry the mutation. Heal it first: node scripts/mutation-check.mjs --heal`
+    console.log(text)
+  }
+  console.log(`checked ${files.length} marker files (${files.join(', ')}); ${left.length} hold a mutation a run left applied`)
+  process.exit(left.length ? 1 : 0)
+}
 if (process.argv.includes('--list-ids')) {
   console.log(JSON.stringify(eligible.map(m => m.id)))
   process.exit(0)
@@ -7891,6 +7995,100 @@ if (process.argv.includes('--self-test')) {
     const noted = survivors.find(x => x.mode === '--self-test')
     check('...and the self-test NAMES a stranded state and the command that heals it, instead of failing clauses that point at the harness',
       /is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(noted.out) && /node scripts\/mutation-check\.mjs --heal/.test(noted.out), noted.out.split('\n').filter(l => /warning|stranded/i.test(l)).join(' | ').slice(0, 300))
+
+    // `--stranded`: the refusal the pre-commit hook and the gate run first. Each clause starts the REAL script over a stranded directory and compares EVERY file in it before and
+    // after, because "touched nothing" is a claim about the whole directory (the mutated source, the marker, the backup, a stale lock), not about one file. The fixture is the healable
+    // one from above, so a mode that healed would be seen to: the file would come back.
+    const ask = (cwd, args) => spawnSync(process.execPath, [here, ...args], { cwd, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
+    /** Every file below a directory with a hash of its content, sorted: two listings are equal only if nothing was added, removed or changed. */
+    const listing = dir => {
+      const out = []
+      const walk = rel => {
+        for (const e of readdirSync(join(dir, rel), { withFileTypes: true })) {
+          if (e.isDirectory()) walk(join(rel, e.name))
+          else out.push(`${join(rel, e.name)} ${sha(readFileSync(join(dir, rel, e.name)))}`)
+        }
+      }
+      walk('')
+      return out.sort().join('\n')
+    }
+    const fresh = () => { const dir = join(scratch, `case-${++caseNo}`); mkdirSync(dir, { recursive: true }); return dir }
+    const strandedMarkerOf = dir => join(dir, '.mutation-state', 'active.json')
+    const first = r => String(r.stdout).split('\n')[0].slice(0, 220)
+
+    const refusedDir = fresh()
+    strandedFixture(refusedDir)
+    const refusedBefore = listing(refusedDir)
+    const refused = ask(refusedDir, ['--stranded'])
+    check('`--stranded` REFUSES A REAL STRANDED STATE AND TOUCHES NOTHING: exit 1, it names the marker, the mutation and the file and says to run `node scripts/mutation-check.mjs --heal`; every file in the directory (the mutated source, the marker, the backup) is byte-identical afterwards (1 healable state, 3 files)',
+      refused.status === 1 && /\.mutation-state\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(refused.stdout) && /Heal it first: node scripts\/mutation-check\.mjs --heal/.test(refused.stdout) && listing(refusedDir) === refusedBefore,
+      `status ${refused.status}; ${first(refused)}; directory unchanged ${listing(refusedDir) === refusedBefore}`)
+
+    const noMarker = fresh()
+    const lockOnly = fresh()
+    mkdirSync(join(lockOnly, '.mutation-state'))
+    writeFileSync(join(lockOnly, '.mutation-state', 'run.json'), JSON.stringify(DEAD))
+    const lockBefore = listing(lockOnly)
+    const quiet = ask(noMarker, ['--stranded'])
+    const lockOnlyRun = ask(lockOnly, ['--stranded'])
+    check('`--stranded` LETS THROUGH A DIRECTORY WITH NO MARKER: exit 0 over a directory with no state at all and over one that holds only a stale run lock (a lock is not a stranded mutation), which it leaves where it is; it says it checked 2 marker files (2 directories)',
+      quiet.status === 0 && lockOnlyRun.status === 0 && /checked 2 marker files \(.*\); 0 hold a mutation/.test(quiet.stdout) && /checked 2 marker files \(.*\); 0 hold a mutation/.test(lockOnlyRun.stdout) && listing(lockOnly) === lockBefore,
+      `empty directory: status ${quiet.status}, ${first(quiet)}; stale lock only: status ${lockOnlyRun.status}, ${first(lockOnlyRun)}; lock kept ${listing(lockOnly) === lockBefore}`)
+
+    // A harness run inside a harness run keeps its state in `nested`: the second place a stranded marker is.
+    const nestedDir = fresh()
+    strandedFixture(nestedDir)
+    const nestedAt = join(nestedDir, '.mutation-state', 'nested')
+    mkdirSync(nestedAt)
+    copyFileSync(join(nestedDir, '.mutation-state', 'src_Stranded.fs'), join(nestedAt, 'src_Stranded.fs'))
+    writeFileSync(join(nestedAt, 'active.json'), JSON.stringify({ ...JSON.parse(read(strandedMarkerOf(nestedDir))), backup: '.mutation-state/nested/src_Stranded.fs' }))
+    rmSync(strandedMarkerOf(nestedDir))
+    rmSync(join(nestedDir, '.mutation-state', 'src_Stranded.fs'))
+    const nestedBefore = listing(nestedDir)
+    const nestedRun = ask(nestedDir, ['--stranded'])
+    check('`--stranded` REFUSES A MARKER A NESTED RUN STRANDED TOO: with the only marker in `.mutation-state/nested`, it exits 1 naming that file, and the directory is byte-identical afterwards (1 nested state)',
+      nestedRun.status === 1 && /\.mutation-state\/nested\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(nestedRun.stdout) && listing(nestedDir) === nestedBefore,
+      `status ${nestedRun.status}; ${first(nestedRun)}; directory unchanged ${listing(nestedDir) === nestedBefore}`)
+
+    // A run that is still going is not a killed run's, and `--heal` would refuse it: the message says to wait, and does not send a person to the heal. This self-test is that run.
+    const liveDir = fresh()
+    strandedFixture(liveDir)
+    writeFileSync(strandedMarkerOf(liveDir), JSON.stringify({ ...JSON.parse(read(strandedMarkerOf(liveDir))), pid: process.pid, start: startOf(process.pid), startedAt: DEAD.startedAt }))
+    const liveBefore = listing(liveDir)
+    const liveRun = ask(liveDir, ['--stranded'])
+    check('`--stranded` DOES NOT CALL A RUN THAT IS STILL GOING A KILLED ONE: over a marker naming a live pid it exits 1, says the run is IN PROGRESS and to wait for that pid, does not offer `--heal`, and touches nothing (1 live state)',
+      liveRun.status === 1 && new RegExp(`names pid ${process.pid}, which is still running: \\[stranded\\] on src/Stranded\\.fs is applied by a mutation run that is IN PROGRESS`).test(liveRun.stdout) && !/--heal/.test(liveRun.stdout) && listing(liveDir) === liveBefore,
+      `status ${liveRun.status}; ${first(liveRun)}; directory unchanged ${listing(liveDir) === liveBefore}`)
+
+    // Above the heal and above the run lock. With `--heal` beside it a mode placed after the heal would heal; with a stale lock beside the marker a mode placed after the lock check would
+    // delete the lock. Neither may happen: the directory is byte-identical, the file still mutated, the lock still there.
+    const orderDir = fresh()
+    strandedFixture(orderDir)
+    writeFileSync(join(orderDir, '.mutation-state', 'run.json'), JSON.stringify(DEAD))
+    const orderBefore = listing(orderDir)
+    const ordered = ask(orderDir, ['--stranded', '--heal'])
+    check('`--stranded` COMES BEFORE THE HEAL AND THE RUN LOCK: given `--heal` as well and a stale run lock beside the marker, it still only refuses (exit 1, the message) and the directory is byte-identical: the file is still mutated, the marker and backup are there, the lock was neither taken nor removed (1 state, 4 files)',
+      ordered.status === 1 && /is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(ordered.stdout) && listing(orderDir) === orderBefore,
+      `status ${ordered.status}; ${first(ordered)}; directory unchanged ${listing(orderDir) === orderBefore}`)
+
+    // What a marker holds decides what the message says. A world mutation's marker names no file, and a marker cut off mid-write names nothing and does not parse: both are refused by what
+    // they are, with the heal command, instead of crashing on the read or printing `undefined`.
+    const worldDir = fresh()
+    mkdirSync(join(worldDir, '.mutation-state'))
+    writeFileSync(strandedMarkerOf(worldDir), JSON.stringify({ id: 'outbox-stub', restoreCmd: 'true', stash: '.mutation-state/world/outbox-stub', before: {}, touched: { 'outbox/x.md': { before: 'a', after: 'b' } }, head: 'h', ...DEAD }))
+    const tornDir = fresh()
+    mkdirSync(join(tornDir, '.mutation-state'))
+    writeFileSync(strandedMarkerOf(tornDir), '{"id":"stran')
+    const worldBefore = listing(worldDir)
+    const tornBefore = listing(tornDir)
+    const worldRun = ask(worldDir, ['--stranded'])
+    const tornRun = ask(tornDir, ['--stranded'])
+    check('`--stranded` NAMES A MARKER BY WHAT IT HOLDS: a world mutation\'s marker (no file) reads `[outbox-stub] on the tree`, one cut off mid-write reads `[unknown] on the tree`, both exit 1 with the heal command and no stack trace, and neither directory is touched (2 states)',
+      worldRun.status === 1 && tornRun.status === 1
+        && /\(\[outbox-stub\] on the tree\)/.test(worldRun.stdout) && /\(\[unknown\] on the tree\)/.test(tornRun.stdout)
+        && /--heal/.test(worldRun.stdout) && /--heal/.test(tornRun.stdout) && !/undefined|^\s+at /m.test(worldRun.stdout + tornRun.stdout + worldRun.stderr + tornRun.stderr)
+        && listing(worldDir) === worldBefore && listing(tornDir) === tornBefore,
+      `world: status ${worldRun.status}, ${first(worldRun)}; torn: status ${tornRun.status}, ${first(tornRun)}; ${String(tornRun.stderr).split('\n')[0].slice(0, 120)}`)
 
     // A self-test the HARNESS starts as an expectation inherits MUTATION_STATE_DIR (a nested directory beneath its own). It must use a
     // directory of its own, and pass: it did neither, so 20 mutation entries were caught by a self-test that failed on clean source.
