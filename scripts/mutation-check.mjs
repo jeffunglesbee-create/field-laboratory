@@ -1345,6 +1345,30 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'race-refusal-exits-zero',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that finds the lock taken between looking for it and taking it stops with a failing status",
+    find: "Nothing was touched.`)\n  process.exit(1)\n}\nconst healedAny",
+    replace: "Nothing was touched.`)\n  process.exit(0)\n}\nconst healedAny",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'race-refusal-carries-on',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that finds the lock taken between looking for it and taking it stops, it does not go on to heal and mutate",
+    find: "  process.exit(1)\n}\nconst healedAny",
+    replace: "}\nconst healedAny",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'torn-lock-reads-as-live',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run lock that is not JSON names no run: it is stale and removed, not read as a live holder",
+    find: "catch { held = null }",
+    replace: "catch { held = { pid: process.pid } }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'state-loss-never-checked',
     file: 'scripts/mutation-check.mjs',
     claim: "a run whose expectation deleted the harness's own state stops and says so, once the file is back",
@@ -5139,6 +5163,9 @@ const claimState = () => { mkdirSync(stateDir, { recursive: true }); ownsState =
 /** Created exclusively, so two runs starting together cannot both hold it. False if another has it. */
 const acquireRunLock = () => {
   mkdirSync(stateDir, { recursive: true })
+  // Test-only fault (E28): a rival run that took the lock after `checkLocks` found none and before the create below. It is this process's parent, so the planted lock names a pid that is
+  // alive and is not this run's own. Inside the taking rather than between `checkLocks` and the `if`, so the anchors that need those two contiguous are undisturbed.
+  if (process.env.MUTATION_FAULT === 'lock-appears') writeFileSync(runLock, JSON.stringify({ pid: process.ppid, start: startOf(process.ppid), startedAt: RUN_STARTED_AT.toISOString() }))
   try {
     writeFileSync(runLock, JSON.stringify(identity()), { flag: 'wx' })
   } catch (e) {
@@ -6741,6 +6768,26 @@ if (process.argv.includes('--self-test')) {
     const kown = [ownLock, ownDriver].map(d => { reset(); const r = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: d }); return { d, started: /Mutation testing/.test(text(r)), refused: /did not write/.test(text(r)), status: r.status } })
     check('E27: ...and a directory that holds only the harness\'s own entries is used, not refused: a dead run\'s lock, and a dead build driver\'s record (2 directories)',
       kown.every(x => x.started && !x.refused), kown.map(x => `${x.d.split('/').pop()}: started ${x.started}, refused ${x.refused}, status ${x.status}`).join(' / '))
+
+    // E28: a lock that appears between looking for one and taking it. `checkLocks` has just found none, so the exclusive create is what stands between two runs and one state
+    // directory; MUTATION_FAULT=lock-appears has a rival take the lock inside acquireRunLock, just before that create, which is the only way to put it there on a test's schedule. The rival
+    // is this self-test (the run's parent), so the planted lock names a pid that is alive and is not the run's own: if the run overwrote it, or went on, the file would say so.
+    reset()
+    const kl = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'lock-appears' })
+    let heldAfterRace = null
+    try { heldAfterRace = JSON.parse(readFileSync(join(repo, '.mutation-state', 'run.json'), 'utf8')) } catch { heldAfterRace = null }
+    check('E28: A LOCK THAT APPEARS BETWEEN LOOKING FOR ONE AND TAKING IT REFUSES THE RUN: exit 1, it says so, no mutation run started, docs/gate-rows.txt is untouched, and the lock that appeared is still there, naming whoever took it (1 race, 1 run)',
+      kl.status === 1 && /appeared while this run was starting/.test(text(kl)) && !/Mutation testing/.test(text(kl)) && read(join(repo, 'docs/gate-rows.txt')) === rows && heldAfterRace !== null && heldAfterRace.pid === process.pid,
+      `status ${kl.status}; ${text(kl).split('\n').filter(l => /::error::|Mutation testing/.test(l)).join(' | ').slice(0, 200)}; lock after: ${JSON.stringify(heldAfterRace)}`)
+    // ...and a lock file that is not JSON is a stale lock, not a live run: `acquireRunLock` creates it and then writes it, so a run killed between the two (or a reader that looks between
+    // them) finds an empty or half-written file. Today's rule is that it names no run and is removed; a live holder caught in that gap can be mistaken for stale, which this does not fix.
+    reset()
+    mkdirSync(join(repo, '.mutation-state'), { recursive: true })
+    writeFileSync(join(repo, '.mutation-state', 'run.json'), '{"pid": 12')
+    const kj = go(['--only', 'known-survivor'])
+    check('E28: ...and a lock file that is not JSON (a run killed between creating it and writing it) is a stale lock: the run goes ahead, it is not refused as live, and it does not crash on the parse (1 torn lock)',
+      /Mutation testing/.test(text(kj)) && /known-survivor/.test(text(kj)) && !/IN PROGRESS/.test(text(kj)) && !/SyntaxError/.test(text(kj)),
+      `status ${kj.status}; ${text(kj).split('\n').filter(l => /IN PROGRESS|SyntaxError|::error::|Mutation testing/.test(l)).join(' | ').slice(0, 200)}`)
     reset()
   } else {
     console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
