@@ -1762,6 +1762,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'world-mutated-hook-dropped',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
+    find: "    await killHere('world-mutated')\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'rebuild-refusal-after-a-restore-offers-to-delete-the-state',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal over a failed rebuild after a restore does not tell a person to delete the state that is the only record of the build",
@@ -6337,6 +6345,22 @@ if (process.argv.includes('--self-test')) {
     } else {
       console.log('  (E22 was not asserted: /proc cannot be read here, and it finds the watcher by it)')
     }
+    // E23: killed AFTER a world mutation has run and BEFORE the marker names the paths it touched (the window between the two marker writes: the mutation's own run and a snapshot of the tree, about
+    // 15 ms measured 2026-11-05). The next run cannot heal it: the stubs cannot be told from a person's edit, because the hash of what the mutation left was never written. It refuses, and the stash
+    // still holds everything it moved aside. (Restoring from the stash would write over a possible edit, the defect "write only over what is provably yours" exists to prevent.)
+    reset()
+    const kx = go(['--only', 'outbox-stub'], { MUTATION_KILL_AT: 'world-mutated' })
+    let mx = null
+    try { mx = markerOf() } catch { mx = null }
+    const stashed = () => Object.keys(writeUps).every(p => read(join(repo, '.mutation-state', 'world', 'outbox-stub', p.split('/').pop())) === writeUps[p])
+    check('E23: A KILL AFTER A WORLD MUTATION HAS RUN AND BEFORE ITS MARKER NAMES THE PATHS IT TOUCHED LEAVES THE STUBS IN PLACE, THE ORIGINALS IN THE STASH (2 of 2 write-ups, byte for byte), AND A MARKER WITH NO PATHS',
+      kx.signal === 'SIGKILL' && Object.keys(writeUps).every(p => read(join(repo, p)) === 'stub\n') && stashed() && mx !== null && mx.id === 'outbox-stub' && mx.touched === undefined,
+      `signal ${kx.signal}, stubs ${Object.keys(writeUps).map(p => read(join(repo, p)) === 'stub\n')}, stash holds originals ${stashed()}, marker ${JSON.stringify(mx && { id: mx.id, touched: mx.touched })}`)
+    const hx = go(['--only', 'known-survivor'])
+    check('E23: ...and the next run writes nothing over any path and keeps the state: it says the run was killed before it recorded the paths, names where the originals are, and the stash still holds them',
+      hx.status === 1 && /killed before it recorded which paths it touched/.test(text(hx)) && text(hx).includes(join(repo, '.mutation-state', 'world', 'outbox-stub').slice(repo.length + 1)) && Object.keys(writeUps).every(p => read(join(repo, p)) === 'stub\n') && stateLeft() && stashed(),
+      `status ${hx.status}; ${text(hx).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 260)}`)
+
     // E24: a signal during an expectation (measured 2026-11-05 on the real script with an expectation that sleeps: a SIGTERM was acted on 23 s later, when the command ended and the
     // run had printed its own verdict; Ctrl-C to the process group killed the expectation and printed `PASS [known-survivor]`, exit status 0). Ctrl-C reaches the expectation (same
     // process group); a SIGTERM reaches the harness itself while the command runs synchronously. `known-survivor` is a mutation of a file, `outbox-stub` one made outside the source.
@@ -6767,6 +6791,9 @@ for (const m of selected) {
     // The tree before and after is the general test, so it holds for
     // mutations that edit a file, move files aside, or overwrite them.
     run(m.mutate, { STASH: stash })
+    // (`killHere('world-mutated')` is test-only: the mutation has run, and the marker does not yet say which paths it touched. A kill here leaves the stubs applied with a marker that has no
+    // `touched`, which the next run refuses over and does not heal: after the kill nothing can tell the mutation's stubs from a person's edit of a path it touched.)
+    await killHere('world-mutated')
     const touched = touchedBy(before, treeSnapshot())
     if (Object.keys(touched).length === 0) {
       run(m.restore, { STASH: stash })
