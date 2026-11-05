@@ -2043,6 +2043,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'run-keeps-the-last-signal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a command that passes after one that was killed leaves no signal behind, so the next expectation is not stopped for a kill it did not suffer",
+    find: "const run = (cmd, extra) => {\n  lastSignal = null\n",
+    replace: "const run = (cmd, extra) => {\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'driver-record-names-the-harness',
     file: 'scripts/mutation-check.mjs',
     claim: "the record of the build driver names the process it was given, not the harness that wrote it: a record that held its own writer's pid would send the reaper after the wrong group",
@@ -9820,6 +9828,14 @@ if (process.argv.includes('--self-test')) {
     const reads = Object.fromEntries([1, 127, 128, 129, 130, 159, 160, 255].map(n => [n, readOf(n)]))
     check('RUN: ONLY 129 TO 159 READS AS A COMMAND THAT WAS KILLED: 129, 130 and 159 read as killed, and 1, 127, 128, 160 and 255 are failures that answered (8 statuses). LIMIT, kept on purpose: a command that exits 130 on its own reads as killed too',
       [1, 127, 128, 160, 255].every(n => reads[n] === null) && reads[129] === 'status 129' && reads[130] === 'status 130' && reads[159] === 'status 159', JSON.stringify(reads))
+
+    // The signal that ended one command is not remembered by the next. `expectation` reads `lastSignal` after every `run`, and only a command that FAILS reassigns it (the catch), so one that
+    // passes leaves whatever the last one left: a stale kill would stop the run for a command that did nothing wrong.
+    run('kill -KILL $$')
+    const afterKill = lastSignal
+    const passedAfter = run('true')
+    check('RUN: A COMMAND THAT ENDS BY ITSELF LEAVES NO SIGNAL BEHIND IT: after a command that killed its own shell (SIGKILL), one that exits 0 returns true and `lastSignal` is null again (2 commands)',
+      afterKill === 'SIGKILL' && passedAfter === true && lastSignal === null, `after the kill ${afterKill}, the next returned ${passedAfter}, signal now ${lastSignal}`)
   }
 
   const fixture = [{ id: 'live', file: 'a', find: 'x', replace: 'y' }, { id: 'stale', file: 'a', find: 'gone', replace: 'y' }, { id: 'world', mutate: 'z' }]
