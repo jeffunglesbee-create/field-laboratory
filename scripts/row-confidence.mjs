@@ -401,6 +401,20 @@ function scannerClauses(check) {
     ['a\u0301if (x) / 2 / z', 'a\u0301if (x) / 2 / z', 'a name that ends in if after a combining mark is not the keyword'],
     ['await (x) / 2 / z', 'await (x) / 2 / z', 'a parenthesis after await alone is an operand: its slash divides'],
     ['x = await (y) / 2 / z', 'x = await (y) / 2 / z', 'a parenthesis after await in an expression is an operand, not a header'])
+  // Review 6, 2026-11-05. A slash after `...` begins a regular expression (a spread is not member access), and `of` is a keyword after something that ends an operand (`for (x of /re/...)`) and a name where an expression
+  // begins (`= of / 2`, `in of / 2`, `; of / 2`, `if (x) of / 2`, `return of / 2`, `f(...of / 2)`): it is the keyword when a slash could not begin a regular expression in front of it.
+  STRIPS.push(
+    [`f(.../${Q}/.exec(x))`, 'f(...0.exec(x))', 'a slash after a spread in a call begins a regular expression'],
+    [`[.../${Q}/.exec(x)]`, '[...0.exec(x)]', 'a slash after a spread in an array begins a regular expression'],
+    [`for (const m of /${Q}/.exec(y))`, 'for (const m of 0.exec(y))', 'a slash after the of of a for-of header begins a regular expression'],
+    [`for (const [a] of /${Q}/.exec(y))`, 'for (const [a] of 0.exec(y))', 'a slash after the of of a for-of header with a pattern in brackets begins a regular expression'],
+    [`for await (const m of /${Q}/.exec(y))`, 'for await (const m of 0.exec(y))', 'a slash after the of of a for-await header begins a regular expression'],
+    ['x = of / 2 / z', 'x = of / 2 / z', 'an identifier named of after an equals sign divides'],
+    ['for (x in of / 2 / z)', 'for (x in of / 2 / z)', 'an identifier named of after in divides'],
+    ['y; of / 2 / z', 'y; of / 2 / z', 'an identifier named of at the start of a statement divides'],
+    ['if (x) of / 2 / z', 'if (x) of / 2 / z', 'an identifier named of right after a header divides'],
+    ['return of / 2 / z', 'return of / 2 / z', 'an identifier named of after return divides'],
+    ['f(...of / 2 / z)', 'f(...of / 2 / z)', 'an identifier named of after a spread divides'])
   // Residuals Task 10 item 13. The language ends a line at a carriage return, U+2028 and U+2029 as well as at a line feed, so a `//` comment, a `++` that starts its statement and a regular expression end there too;
   // a quote ends at a line feed or a carriage return (U+2028 and U+2029 are legal inside a string since ES2019), and a backslash before a CR LF continues the string over both. No file in the repo has any of them.
   const CRc = '\r', LSc = String.fromCharCode(0x2028), PSc = String.fromCharCode(0x2029)
@@ -447,9 +461,11 @@ function scannerClauses(check) {
     ['a string left open at U+2028, which the language lets it hold (the read after it is inside it)', `const a = 'oops${LSc}${BARE2}`, '1/0'],
     ['a backtick in a regular expression after instanceof', `x = a instanceof /\`/.constructor\n${BARE2}`, '2/0'],
     ['a backtick in a regular expression after extends', `class A extends /\`/.constructor {}\n${BARE2}`, '2/0'],
-    ['a backtick in a regular expression after default', `export default /\`/.test(y)\n${BARE2}`, '2/0']]
+    ['a backtick in a regular expression after default', `export default /\`/.test(y)\n${BARE2}`, '2/0'],
+    ['a backtick in a regular expression after a spread', `f(.../\`/.exec(x))\n${BARE2}`, '2/0'],
+    ['a backtick in a regular expression after the of of a for-of header', `for (const m of /\`/g.exec(y)) {}\n${BARE2}`, '2/0']]
   const off13 = CASES13.map(([what, src, want]) => ({ what, want, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.want !== x.got)
-  check(`A LINE THAT ENDS AT A CARRIAGE RETURN, U+2028 OR U+2029 (A COMMENT, A REGULAR EXPRESSION; a string at a CR, not at U+2028), A BACKSLASH BEFORE A CR LF, AND instanceof, extends AND default BEFORE A REGULAR EXPRESSION, DO NOT HIDE THE CLOCK READS AFTER THEM, for ${CASES13.length} inputs`,
+  check(`A LINE THAT ENDS AT A CARRIAGE RETURN, U+2028 OR U+2029 (A COMMENT, A REGULAR EXPRESSION; a string at a CR, not at U+2028), A BACKSLASH BEFORE A CR LF, AND instanceof, extends, default, A SPREAD AND THE of OF A for-of HEADER BEFORE A REGULAR EXPRESSION, DO NOT HIDE THE CLOCK READS AFTER THEM, for ${CASES13.length} inputs`,
     off13.length === 0, off13.map(x => `${x.what}: wanted ${x.want}, got ${x.got}`).join(' / '))
 
   // The same one level up: each of these is a division that was read as a regular expression, which ran to the end of its line and took the clock read after it. Each is followed by that read, so "1/0" is it seen.

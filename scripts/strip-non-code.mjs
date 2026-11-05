@@ -34,8 +34,9 @@
  * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
  * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). A line ends at a line feed, a carriage return, U+2028 or
  * U+2029: a `//` comment, a regular expression and the `++` test stop there; a string stops at a line feed or a carriage return (U+2028 and U+2029 may be inside one), and a backslash
- * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression; `of` is not in that list (in a module it is an identifier, and
- * the one use that takes a regular expression, `for (x of /re/...)`, does not occur), and neither a private name (`this.#in`) nor a name that has a keyword after a non-ASCII letter or a
+ * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression, and so can `...` (`f(.../re/.exec(x))`: a spread is not member access). `of` is a keyword where an operator can stand, after
+ * something that ends an operand (`for (x of /re/.exec(s))`), and a name where an expression begins (`= of / 2`, `in of / 2`, `if (x) of / 2`); after the `}` of a destructuring pattern
+ * (`for (const {a} of /re/.exec(s))`) it is read as a name, because a `}` is read as the end of a block (above). Neither a private name (`this.#in`) nor a name that has a keyword after a non-ASCII letter or a
  * combining mark (`éin`) is the keyword it ends in. (A leading `#!`
  * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
  */
@@ -53,18 +54,15 @@ export const scanNonCode = src => {
   const isPropertyDot = before => before.endsWith('.') && !before.endsWith('...') && !/(?<![\w$.])\d+\.$/.test(before)
   // The keywords whose parenthesis opens a header (`for await` is `for` here: see regexAllowed).
   const HEADER = new Set(['if', 'while', 'for', 'with'])
+  const OF = new Set(['of'])
   // Does `text` end in one of `words` (the keywords that a regular expression can follow, or the keywords of a header)? The trailing word is a whole identifier (any letter, combining mark or digit the language
   // allows, so `éin` is not `in`), and it is not a property spelled like one (`c.new`, `o?.in`, `o. if`) or a private name (`this.#in`).
   const endsInKeyword = (text, words = REGEX_AFTER) => {
     const found = /[\p{ID_Continue}$]+$/u.exec(text)
     return found !== null && words.has(found[0]) && text[found.index - 1] !== '#' && !isPropertyDot(text.slice(0, found.index).trimEnd())
   }
-  // Can a `/` here begin a regular expression? Only after something that cannot end an expression.
-  const regexAllowed = () => {
-    const raw = out.slice(-64)
-    let tail = raw.trimEnd()
-    // A window of nothing but whitespace is the start of the text only if nothing but whitespace came before it: `w` and sixty spaces and then `/ 2` divides.
-    if (tail === '' && out.length > raw.length) tail = out.trimEnd().slice(-64)
+  // Can a `/` begin a regular expression after `tail`, the last sixty-four characters of the code so far without the white space at their end? Only after something that cannot end an expression.
+  const allowedAfter = tail => {
     if (tail === '') return true
     // `x++ / y` and `x-- / y` divide: the operator ended an operand. Not when the operator starts its statement (`a` newline `++/re/` is a prefix), nor after a keyword
     // (`return ++/re/`). Otherwise `+` and `-` end nothing, and a `/` after them begins a regular expression.
@@ -78,7 +76,19 @@ export const scanNonCode = src => {
     // `for await (` is a header once the `await` is set aside; an `await` alone (`await (x) / 2`) is not a header word.
     if (tail.endsWith(')') && endsInKeyword(out.slice(Math.max(0, closed - 40), closed).trimEnd().replace(/\s+await$/, ''), HEADER)) return true
     if ('(,=:[!&|?{};+-*%<>~^/'.includes(tail[tail.length - 1])) return true
-    return endsInKeyword(tail)
+    // A spread is not member access: an expression follows `...` (`f(.../re/.exec(x))`).
+    if (tail.endsWith('...')) return true
+    // `of` is a keyword where an operator can stand, after something that ends an operand (`for (x of /re/.exec(s))`), and a name where an expression begins (`= of / 2`, `in of / 2`, `; of / 2`, `if (x) of / 2`). It is the
+    // second kind when a `/` could begin a regular expression in front of it.
+    return endsInKeyword(tail) || (endsInKeyword(tail, OF) && !allowedAfter(tail.slice(0, -2).trimEnd()))
+  }
+  // Can a `/` here begin a regular expression?
+  const regexAllowed = () => {
+    const raw = out.slice(-64)
+    let tail = raw.trimEnd()
+    // A window of nothing but whitespace is the start of the text only if nothing but whitespace came before it: `w` and sixty spaces and then `/ 2` divides.
+    if (tail === '' && out.length > raw.length) tail = out.trimEnd().slice(-64)
+    return allowedAfter(tail)
   }
   // Code from `start`. With `inExpr` it stops after the `}` that closes a template's `${`. Returns the index after what it consumed.
   const scanCode = (start, inExpr) => {
