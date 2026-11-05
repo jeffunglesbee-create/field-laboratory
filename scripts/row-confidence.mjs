@@ -111,9 +111,11 @@ const mutationsFor = (scripts, rowName) => {
  * A template literal's TEXT is hidden (`new Date() ${1}` holds no clock read); its `${…}` expressions are code, so a read in one is counted (`new Date(\`${fieldDay()}T12:00:00Z\`)` was a clock read
  * this scan could not see until `pickem-check.mjs` captured the day once), and a `/` that begins one begins a regular expression whatever stood before the template (a tag, `)`, `]`, a word).
  *
- * What it still does not do: a `/` after `)` or `]`
- * is read as division, which is wrong for `if (x) /re/.test(y)`, a shape this repo does not use; where that regular expression holds a backtick the scan opens a template that
- * swallows the rest of the file, so such a line makes every later clock read invisible. A `/` after `}` is read as the start of a regular expression, which is right after a block
+ * A `/` after the `)` that closes the header of an if, while, for or with begins a regular expression (`if (x) /re/.test(y)`; where that regular expression holds a backtick the scan used to open a template that
+ * swallowed the rest of the file, so every later clock read was invisible); after any other `)`, and after `]`, it divides, and so does a `/` after a name that merely ends in `if` (`elif (x) / 2`). A `/` after a
+ * `/` begins one (`a / /re/.source`).
+ *
+ * What it still does not do: a `/` after `}` is read as the start of a regular expression, which is right after a block
  * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
  * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
  * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). Not handled, and filed with the rest: a comment or string
@@ -124,6 +126,9 @@ const stripNonCode = src => {
   const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'of', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
   const n = src.length
   let out = ''
+  // The parentheses seen so far, in code: where in `out` each open one began, and where the one closed last began.
+  const opens = []
+  let closed = 0
   // A `.` that is member access: not the end of `...` (a spread, after which a keyword is a keyword) and not a number's decimal point (`1.`).
   const isPropertyDot = before => before.endsWith('.') && !before.endsWith('...') && !/(?<![\w$.])\d+\.$/.test(before)
   // Does `text` end in a keyword that a regular expression can follow, as opposed to a property spelled like one (`c.new`, `o?.in`)?
@@ -145,7 +150,9 @@ const stripNonCode = src => {
       const operand = before.trimEnd()
       if (/[\w$)\]]$/.test(operand) && !before.slice(operand.length).includes('\n') && !endsInKeyword(operand)) return false
     }
-    if ('(,=:[!&|?{};+-*%<>~^'.includes(tail[tail.length - 1])) return true
+    // The `)` that closes the header of an if, while, for or with begins a statement, so a `/` after it begins a regular expression: `if (x) /re/.test(y)`. After any other `)` it divides.
+    if (tail.endsWith(')') && /(?<![\w$.#])(?:if|while|for(?:\s+await)?|with)$/.test(out.slice(Math.max(0, closed - 40), closed).trimEnd())) return true
+    if ('(,=:[!&|?{};+-*%<>~^/'.includes(tail[tail.length - 1])) return true
     return endsInKeyword(tail)
   }
   // Code from `start`. With `inExpr` it stops after the `}` that closes a template's `${`. Returns the index after what it consumed.
@@ -183,6 +190,8 @@ const stripNonCode = src => {
         out += '0'
         continue
       }
+      if (c === '(') opens.push(out.length)
+      else if (c === ')') closed = opens.pop() ?? 0
       if (inExpr) {
         if (c === '{') depth++
         else if (c === '}') { if (depth === 0) return i + 1; depth-- }
@@ -352,6 +361,8 @@ function scannerClauses(check) {
   sloppy('A REGULAR EXPRESSION LITERAL WITH QUOTES, A SLASH IN A CLASS, OR RIGHT AFTER `return` IS NOT A STRING',
     ['const RE = /["\'`]/g', "const CL = /[/'\"]x/", "const f = x => { return /'/.test(x) }"])
   sloppy('A SLASH THAT DIVIDES IS NOT A REGULAR EXPRESSION', ["const q = a / b / c", "const r = (d + e) / 2 + 'x'"])
+  sloppy('A REGULAR EXPRESSION AFTER THE PARENTHESIS OF AN if, while OR for HEADER IS NOT DIVISION: a quote or a backtick in it must not open a string or a template that swallows what comes after',
+    ['if (x) /"/.test(y)', 'while (x) /`/.test(y)', "for (const a of b) /'/.test(a)", 'if (x) /`/.test(y)'])
   sloppy('AN ESCAPED QUOTE, AN ESCAPED BACKTICK, A NESTED TEMPLATE WITH STRINGS AND BRACES IN ITS EXPRESSION: each ends where it ends',
     ["const E = 'it\\'s'", 'const T = `x\\`y`', 'const N = `a ${ `b ${ {x: 1}.x } c` + \'`\' + "}" } d`', 'const B = `p ${ {a: 1}.a + `y` } q`', "const G = `p ${ {a: 1}.a + '`' } q`"])
   // A block comment where a `/` can only be division (after a value), so it is the comment rule that has to end it and nothing else would: quotes and a clock read inside it.
@@ -413,6 +424,22 @@ function scannerClauses(check) {
     [`${' '.repeat(100)}/${Q}/`, `${' '.repeat(100)}0`, 'a slash after nothing but spaces begins a regular expression'],
     [`return/${Q}/`, 'return0', 'a regular expression straight after a keyword, with no space'],
     [`o.${' '.repeat(30)}new / 2 / z`, `o.${' '.repeat(30)}new / 2 / z`, 'a property named like a keyword, with its dot further back than a short window reaches'])
+  // Residuals Task 9 item 3. The `)` that closes the header of an if, while, for or with begins a statement, so a slash after it begins a regular expression (after any other `)` it divides; after `]` it always divides,
+  // and nothing was wrong there). And a slash after a division sign begins one too, which the punctuation list did not have.
+  for (const h of ['if', 'while', 'for', 'with', 'for await', 'else if']) STRIPS.push([`${h} (x) /${Q}/.test(y)`, `${h} (x) 0.test(y)`, `a slash after the parenthesis of ${h} begins a regular expression`])
+  STRIPS.push(
+    [`if (f(x)) /${Q}/.test(y)`, 'if (f(x)) 0.test(y)', 'the header closes at its own parenthesis, not at the one inside it'],
+    [`while (a && (b)) /${Q}/.test(y)`, 'while (a && (b)) 0.test(y)', 'a header with a parenthesis of its own after the condition'],
+    [`do ; while (x)\n/${Q}/.test(y)`, 'do ; while (x)\n0.test(y)', 'the parenthesis that ends a do-while is a header too'],
+    ['f(x) / 2 / z', 'f(x) / 2 / z', 'a slash after a call divides'],
+    ['f(g(x)) / 2 / z', 'f(g(x)) / 2 / z', 'a slash after nested calls divides'],
+    ['o.if (x) / 2 / z', 'o.if (x) / 2 / z', 'a method named if is a call: its slash divides'],
+    ['this.#if (x) / 2 / z', 'this.#if (x) / 2 / z', 'a private method named if is a call: its slash divides'],
+    ['elif (x) / 2 / z', 'elif (x) / 2 / z', 'a name that ends in if is not the keyword'],
+    ['$if (x) / 2 / z', '$if (x) / 2 / z', 'a name that ends in if after a dollar sign is not the keyword'],
+    ['if (x) y / 2 / z', 'if (x) y / 2 / z', 'a slash after the statement of an if divides: only the slash right after the header\'s parenthesis begins a regular expression'],
+    [`if${' '.repeat(30)}(x) /${Q}/.test(y)`, `if${' '.repeat(30)}(x) 0.test(y)`, 'a header whose keyword is thirty spaces before its parenthesis is still one (the window the keyword is looked for in is forty characters)'],
+    [`a / /${Q}/.source`, 'a / 0.source', 'a slash after a division sign begins a regular expression'])
   STRIPS.push(['x = /a\\/b/g + c', 'x = 0 + c', 'an escaped slash does not end a regular expression'], ['x = /[\\]/]y/ + c', 'x = 0 + c', 'an escaped bracket does not end a class'],
     ['x = /oops\nb', 'x = 0\nb', 'an unterminated regular expression ends at its line'])
   const wrong = STRIPS.filter(([from, want]) => stripNonCode(from) !== want)
