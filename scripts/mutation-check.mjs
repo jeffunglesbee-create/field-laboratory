@@ -1571,6 +1571,22 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'head-moved-refusal-gives-no-way-to-tell',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a path that matches a HEAD that moved tells a person how to tell a path they put back from a stub that was committed: compare it with the stash",
+    find: "${atHead.length ? `Compare ${atHead.length === 1 ? 'the one that matches HEAD' : 'each that matches HEAD'} with ${m.stash} to tell which it is. ` : ''}",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'head-moved-refusal-says-the-one-for-several',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the advice to compare a path that matches HEAD with the stash agrees in number with the paths: the one for one, each for several",
+    find: "${atHead.length === 1 ? 'the one that matches HEAD' : 'each that matches HEAD'}",
+    replace: "${atHead.length === 1 ? 'each that matches HEAD' : 'the one that matches HEAD'}",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'refusal-forgets-to-count-the-rest',
     file: 'scripts/mutation-check.mjs',
     claim: "a refusal over many touched paths says how many it left out of the list",
@@ -2032,6 +2048,22 @@ const MUTATIONS = [
     claim: "a state directory that cannot be read as a directory (a file) is refused like one that holds foreign files, not let through to crash at the first write",
     find: "if (e.code !== 'ENOENT') holds = ['not a directory it can read']",
     replace: "holds = []",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refuses-an-existing-empty-directory',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that exists and is empty is used, not refused (an absent one is accepted by every other run, so only this shape can show it): it is what a run killed between removing a stale lock and taking its own leaves",
+    find: "if (holds.length > 0 && !holds.some(",
+    replace: "if ((holds.length > 0 || existsSync(stateDir)) && !holds.some(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refusal-gives-no-remedy',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal of a state directory that holds files the harness did not write says what to give instead: one that is absent or empty",
+    find: "give MUTATION_STATE_DIR one that is absent or empty. Nothing was touched.",
+    replace: "Nothing was touched.",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -8181,6 +8213,19 @@ if (process.argv.includes('--self-test')) {
   const wSameHeadRun = attempt(wSameHead.state, { ...fakeTree({}).probes, head: () => 'old-head' })
   check('...and with HEAD where it was, a path that matches HEAD is an edit: the refusal says it changed after the kill and does not say HEAD moved',
     stoppedFor(wSameHeadRun, /\(out\/c\.md\): it changed after the kill/) && !/HEAD/.test(wSameHeadRun.said) && wSameHead.kept(), wSameHeadRun.said.slice(0, 300))
+  // The one sentence that tells a person how to tell a path they put back from a stub that was committed: compare it with the stash. It is there only where a path matches a HEAD that moved, it names the
+  // stash, and it agrees in number with the paths ("the one" for one, "each" for several), as do the sentences that list them. Nothing asserted any of it (a mutant that deleted the sentence, and one that swapped
+  // "the one" and "each", both left the self-test green).
+  const TWO_STUBBED = { 'out/a.md': { before: null, after: 'h-stub' }, 'out/b.md': { before: null, after: 'h-stub-b' } }
+  const wTwoAtHead = worldCase({ touched: TWO_STUBBED, before: {}, head: 'old-head' })
+  const wTwoAtHeadRun = attempt(wTwoAtHead.state, { ...fakeTree({}).probes, head: () => 'new-head' })
+  check('THE HEAD-MOVED REFUSAL SAYS HOW TO TELL A PATH PUT BACK FROM A STUB THAT WAS COMMITTED, WHERE A PATH MATCHES HEAD AND NOWHERE ELSE, AND IN THE RIGHT NUMBER: "Compare the one that matches HEAD with <stash> to tell which it is" for one path, "each that matches HEAD" for two, no such sentence over an edit alone; the sentences that list the paths agree in number too (singular and plural, 4 phrases in 5 refusals)',
+    /paths it touched now match HEAD \(out\/a\.md, out\/b\.md\)/.test(wTwoAtHeadRun.said) && /Nothing was run\. Compare each that matches HEAD with \/stash\/here to tell which it is\. Put back from /.test(wTwoAtHeadRun.said)
+      && /a path it touched now matches HEAD \(out\/a\.md\)/.test(wHeadMovedRun.said) && /Nothing was run\. Compare the one that matches HEAD with \/stash\/here to tell which it is\. Put back from /.test(wHeadMovedRun.said)
+      && /a path it touched is neither as it was nor as the mutation left it \(out\/b\.md\)/.test(wMixedHeadRun.said) && /Compare the one that matches HEAD with \/stash\/here to tell which it is\./.test(wMixedHeadRun.said)
+      && /paths it touched are neither as it was nor as the mutation left it/.test(wEightRun.said) && /a path it touched is neither as it was nor as the mutation left it/.test(w2r.said)
+      && !/Compare /.test(w2r.said) && !/Compare /.test(wEightRun.said) && !/Compare /.test(wSameHeadRun.said),
+    [wTwoAtHeadRun, wHeadMovedRun, wMixedHeadRun, wEightRun, w2r, wSameHeadRun].map(r => r.said.slice(0, 100)).join(' / '))
 
   // A refusal over a non-empty stash must not tell a person to delete the directory the stash is in: an untracked write-up that was moved aside is not in `git status`.
   const wStashed = worldCase({})
@@ -9154,8 +9199,8 @@ if (process.argv.includes('--self-test')) {
     writeFileSync(join(foreignDir, 'sub', 'also.txt'), 'nor this\n')
     const kf = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: foreignDir })
     const foreignKept = read(join(foreignDir, 'keep.txt')) === 'not the harness\'s\n' && read(join(foreignDir, 'sub', 'also.txt')) === 'nor this\n'
-    check('E27: A STATE DIRECTORY THAT HOLDS FILES THE HARNESS DID NOT WRITE IS REFUSED, NOT EMPTIED: exit 2, the message names what is in it (keep.txt, sub), both files are still there, nothing was mutated and no run started',
-      kf.status === 2 && /already holds files this harness did not write \(keep\.txt, sub\)/.test(text(kf)) && foreignKept && !/Mutation testing/.test(text(kf)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+    check('E27: A STATE DIRECTORY THAT HOLDS FILES THE HARNESS DID NOT WRITE IS REFUSED, NOT EMPTIED: exit 2, the message names what is in it (keep.txt, sub) and what to give instead (a directory that is absent or empty), both files are still there, nothing was mutated and no run started',
+      kf.status === 2 && /already holds files this harness did not write \(keep\.txt, sub\)/.test(text(kf)) && /give MUTATION_STATE_DIR one that is absent or empty\. Nothing was touched\./.test(text(kf)) && foreignKept && !/Mutation testing/.test(text(kf)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
       `status ${kf.status}, files kept ${foreignKept}, ran ${/Mutation testing/.test(text(kf))}; ${text(kf).split('\n')[0].slice(0, 160)}`)
     // ...and a path that is a file, not a directory, is not one this harness can use either.
     const fileAsDir = join(scratch, 'state-is-a-file')
@@ -9175,6 +9220,15 @@ if (process.argv.includes('--self-test')) {
     const kown = [ownLock, ownDriver].map(d => { reset(); const r = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: d }); return { d, started: /Mutation testing/.test(text(r)), refused: /did not write/.test(text(r)), status: r.status } })
     check('E27: ...and a directory that holds only the harness\'s own entries is used, not refused: a dead run\'s lock, and a dead build driver\'s record (2 directories)',
       kown.every(x => x.started && !x.refused), kown.map(x => `${x.d.split('/').pop()}: started ${x.started}, refused ${x.refused}, status ${x.status}`).join(' / '))
+    // ...and a directory that EXISTS and is EMPTY. The guard's own comment names it (absent, empty, or one of the harness's names), and it arises: the next run's checkLocks removes a stale run.json and leaves
+    // the directory empty until the lock is taken again, so a kill in that gap leaves exactly this. Refusing it would wedge every later run behind a message about files that are not there.
+    const emptyState = join(scratch, 'empty-state')
+    mkdirSync(emptyState)
+    reset()
+    const kempty = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: emptyState })
+    check('E27: ...and a directory that exists and is EMPTY is used, not refused (what a run killed between removing a stale lock and taking its own leaves): the run starts and nothing says the harness did not write it (1 directory)',
+      /Mutation testing/.test(text(kempty)) && !/did not write/.test(text(kempty)),
+      `status ${kempty.status}; started ${/Mutation testing/.test(text(kempty))}, refused ${/did not write/.test(text(kempty))}; ${text(kempty).split('\n')[0].slice(0, 160)}`)
 
     // E28: a lock that appears between looking for one and taking it. `checkLocks` has just found none, so the exclusive create is what stands between two runs and one state
     // directory; MUTATION_FAULT=lock-appears has a rival take the lock inside acquireRunLock, just before that create, which is the only way to put it there on a test's schedule. The rival
