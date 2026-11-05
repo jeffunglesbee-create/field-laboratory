@@ -275,13 +275,22 @@ export class WatchBuild {
     }
   }
 
+  /**
+   * Signal the watcher's whole process group. It was spawned as the leader of one (`detached`), so its pid is the group's id. `child.kill` reaches the leader only, and a host that does not pass
+   * the signal on (a shell, a wedged `dotnet`, any host that was sent KILL) leaves the compiler under it running and writing build/: the reason the harness's reaper signals the group too.
+   * The real `dotnet` host does pass a TERM on (probed 2026-11-05 on Fable 5.13.0), which is why leader-only never showed as a failure; it is the host's courtesy, not a guarantee.
+   */
+  #signalGroup(child, signal) {
+    try { process.kill(-child.pid, signal) } catch (e) { void e }
+  }
+
   /** Stop the watcher and WAIT for it to be gone: two watchers on one build/ would write it together. */
   async #stopAndWait() {
     const child = this.child
     if (!child) return
-    try { child.kill('SIGTERM') } catch (e) { void e }
+    this.#signalGroup(child, 'SIGTERM')
     for (let i = 0; i < 200 && this.child; i++) await sleep(50)
-    if (this.child) { try { child.kill('SIGKILL') } catch (e) { void e }; for (let i = 0; i < 100 && this.child; i++) await sleep(50) }
+    if (this.child) { this.#signalGroup(child, 'SIGKILL'); for (let i = 0; i < 100 && this.child; i++) await sleep(50) }
   }
 
   /**
@@ -342,7 +351,7 @@ export class WatchBuild {
   assertClean(label) { assertCleanOf(this, label) }
 
   stop() {
-    if (this.child) { try { this.child.kill('SIGTERM') } catch (e) { void e } }
+    if (this.child) this.#signalGroup(this.child, 'SIGTERM')
   }
 }
 

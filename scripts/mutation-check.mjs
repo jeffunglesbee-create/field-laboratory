@@ -1931,6 +1931,30 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'watch-stop-signals-nobody',
+    file: 'scripts/mutation-lib.mjs',
+    claim: "WatchBuild.stop() signals the watcher, so a run that finishes or is told to end leaves no compiler running",
+    find: "    if (this.child) this.#signalGroup(this.child, 'SIGTERM')\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'watch-stop-signals-the-leader-only',
+    file: 'scripts/mutation-lib.mjs',
+    claim: "WatchBuild.stop() signals the watcher's whole process group, so a host that does not pass the TERM on leaves no compiler running under it",
+    find: "    if (this.child) this.#signalGroup(this.child, 'SIGTERM')",
+    replace: "    if (this.child) { try { this.child.kill('SIGTERM') } catch (e) { void e } }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'watch-restart-signals-the-leader-only',
+    file: 'scripts/mutation-lib.mjs',
+    claim: "the stop between two starts of the watcher signals its whole process group, so the first compiler is gone before the second starts and the stop does not wait out its 10 s TERM grace",
+    find: "    this.#signalGroup(child, 'SIGTERM')\n    for (let i = 0; i < 200",
+    replace: "    try { child.kill('SIGTERM') } catch (e) { void e }\n    for (let i = 0; i < 200",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-mutated-hook-dropped',
     file: 'scripts/mutation-check.mjs',
     claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
@@ -9572,6 +9596,56 @@ if (process.argv.includes('--self-test')) {
     const droppedDir = !existsSync(stateDir)
     builder = savedBuilder
     check('REAP: stopping the watcher signals it, forgets the record, and removes the state directory the record was keeping', stopped === 1 && droppedRecord && droppedDir, `stop called ${stopped} time(s), record dropped ${droppedRecord}, directory dropped ${droppedDir}`)
+
+    // THE REAL WatchBuild, started over a host that does NOT pass a TERM on. The real `dotnet` host does (probed 2026-11-05 on Fable 5.13.0: a TERM to the leader of a detached `dotnet fable
+    // watch` left nothing in its group 6 s later), but that is the host's courtesy: a wedged host, or one sent KILL, cannot extend it, and the compiler under it would go on writing build/. The
+    // stand-in host is `sh -c 'node fake-fable-watch.mjs ... & wait'`, which dies of a TERM and leaves the compiler it started in the group. /proc finds the group, so none of this is asserted without it.
+    // The two cases go at once, each in a directory of its own. Not from inside a self-test the harness started (MUTATION_SELFTEST_CHILD): the two of those that every self-test starts would
+    // each run these real processes again, and what they check (that a self-test passes inside another) does not need them.
+    if (!process.env.MUTATION_SELFTEST_CHILD && haveProc) {
+      const fake = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'fake-fable-watch.mjs')
+      const groupSize = pgid => (procGroups() ?? []).filter(entry => groupHasLive([entry], pgid)).length
+      const until = async (done, ms = 4000) => { for (let waited = 0; waited < ms && !done(); waited += 25) await new Promise(r => setTimeout(r, 25)); return done() }
+      /** A real WatchBuild over that host, and the pid of every group it started (the pid the harness would write in driver.json). */
+      const hostOf = (name, env = {}) => {
+        const wdir = join(scratch, `watchbuild-${name}`)
+        mkdirSync(wdir, { recursive: true })
+        writeFileSync(join(wdir, 'Watched.fs'), 'let x = 1\n')
+        const pids = []
+        const wb = new WatchBuild({
+          command: 'sh', args: ['-c', `node ${JSON.stringify(fake)} ${JSON.stringify(join(wdir, 'Watched.fs'))} ${JSON.stringify(join(wdir, 'out'))} & wait`],
+          cwd: wdir, env: { ...process.env, ...env }, outDir: join(wdir, 'out'), extraFiles: [], assemble: () => true, settleMs: 50, startPauseMs: 10, onSpawn: pid => pids.push(pid),
+        })
+        return { wb, pids }
+      }
+      const reapGroups = pids => { for (const pid of pids) { try { process.kill(-pid, 'SIGKILL') } catch { /* gone */ } } }
+      const stopCase = async () => {
+        const { wb, pids } = hostOf('stop')
+        try {
+          await wb.start()
+          const before = groupSize(pids[0])
+          wb.stop()
+          const gone = await until(() => groupSize(pids[0]) === 0)
+          return { before, gone, left: groupSize(pids[0]) }
+        } finally { reapGroups(pids) }
+      }
+      const retryCase = async () => {
+        const { wb, pids } = hostOf('retry', { FAKE_START_MODE: 'crash-once', FAKE_START_MARK: join(scratch, 'watchbuild-retry-mark') })
+        try {
+          const lap = stopwatch()
+          await wb.start()
+          return { groups: pids.length, repeats: wb.startRepeats, firstLeft: groupSize(pids[0]), secondUp: groupSize(pids[1]), ms: lap() }
+        } finally { reapGroups(pids) }
+      }
+      const [stopRun, retryRun] = await Promise.all([stopCase(), retryCase()])
+      check('WATCHBUILD: stop() signals the watcher\'s whole process group, so a host that does not pass the TERM on leaves no compiler running (the group held 2 live processes, the shell and the compiler, before the call and 0 within 4 s after it)',
+        stopRun.before >= 2 && stopRun.gone, JSON.stringify(stopRun))
+      // The time is the observable that tells a group TERM from a leader-only one: the escalation to KILL signals the group too, so after the 10 s it waits for the TERM the first compiler is gone either way.
+      check('WATCHBUILD: a first start that dies of a compiler crash is stopped by signalling the whole group before the second one begins, so the first compiler is gone when start() returns and the stop did not wait out its 10 s TERM grace (2 groups started, 1 retry, the first holds 0 live processes, the second at least 2, start() took under 6 s)',
+        retryRun.groups === 2 && retryRun.repeats === 1 && retryRun.firstLeft === 0 && retryRun.secondUp >= 2 && retryRun.ms < 6000, JSON.stringify(retryRun))
+    } else if (!process.env.MUTATION_SELFTEST_CHILD) {
+      console.log('  (the WATCHBUILD clauses were not asserted: /proc cannot be read here, and they find the group by it)')
+    }
   }
 
   const fixture = [{ id: 'live', file: 'a', find: 'x', replace: 'y' }, { id: 'stale', file: 'a', find: 'gone', replace: 'y' }, { id: 'world', mutate: 'z' }]
