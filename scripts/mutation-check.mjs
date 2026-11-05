@@ -1939,6 +1939,22 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'unrelated-write-fault-asks-for-nanoseconds',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the fault that writes an unrelated file asks `date` for something every date answers (seconds), not for nanoseconds, which only GNU's does",
+    find: "date +%s > unrelated-during-window.txt",
+    replace: "date +%s%N > unrelated-during-window.txt",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'unrelated-write-fault-writes-no-timestamp',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the file the fault writes while a world mutation is applied holds a timestamp, and the clause that reads it wants digits and not merely a file",
+    find: "date +%s > unrelated-during-window.txt",
+    replace: "date +%F > unrelated-during-window.txt",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'heal-runs-a-restore-for-an-empty-touched',
     file: 'scripts/mutation-check.mjs',
     claim: "a marker that recorded no touched path (`touched: {}`) is not read as every touched path applied, so its restore command is not run blind",
@@ -7515,8 +7531,9 @@ const stateIntact = markerText => {
 /** The command an expectation runs. Test-only: one fault makes it delete the harness's marker and run lock first (not the stash or backup), to prove that is noticed; the other makes it write an unrelated file. */
 const expectOf = m => {
   if (process.env.MUTATION_FAULT === 'expect-wipes-state') return `d="$(dirname "$MUTATION_STATE_DIR")" && rm -f "$d/active.json" "$d/run.json" && ${m.expect}`
-  // ...or writes a file nobody asked for (another session, a build), which a world mutation must not mistake for a failed restore.
-  if (process.env.MUTATION_FAULT === 'expect-writes-unrelated') return `date +%s%N > unrelated-during-window.txt && ${m.expect}`
+  // ...or writes a file nobody asked for (another session, a build), which a world mutation must not mistake for a failed restore. The content is a timestamp in SECONDS: `%N` is GNU's alone (BSD and busybox
+  // print it as the letter, `1793915440N`), and the clause that reads the file wants digits so that a `date` that never ran is not mistaken for one that did.
+  if (process.env.MUTATION_FAULT === 'expect-writes-unrelated') return `date +%s > unrelated-during-window.txt && ${m.expect}`
   // ...or is ended by a signal (a Ctrl-C reaching it, a crash, the OOM killer), or sends this run a SIGTERM while it works and then passes.
   if (process.env.MUTATION_FAULT === 'expect-interrupted') return 'kill -INT $$'
   if (process.env.MUTATION_FAULT === 'expect-terms-the-run') return 'kill -TERM $PPID && sleep 0.3'
@@ -8721,7 +8738,7 @@ if (process.argv.includes('--self-test')) {
     // The write-ups are named for a day, and the two world mutations that act on them ask `date` which day it is. A day read once here and again by the mutation went red when midnight ET
     // fell between the two (measured 2026-11-05 with a stand-in `date` that rolled the day on its second answer: 16 clauses, E3 to E24 among them). So both read one day: a constant that
     // is not today, and a `date` first on the PATH of every run `go` starts that answers the question `+%F` with it. A run that did not get the stand-in would find no write-up and fail.
-    // Anything else asked of `date` (the `expect-writes-unrelated` fault asks for `+%s%N`) is the real one's: the stand-in drops its own directory from PATH and runs it.
+    // Anything else asked of `date` (the `expect-writes-unrelated` fault asks for `+%s`) is the real one's: the stand-in drops its own directory from PATH and runs it.
     const day = '2000-01-01'
     const bin = join(scratch, 'bin')
     mkdirSync(bin)
@@ -8999,11 +9016,22 @@ if (process.argv.includes('--self-test')) {
     // E15: a file nobody asked for, written while a world mutation is applied, is not "the restore failed".
     reset()
     const ku = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-writes-unrelated' })
-    // The fault writes `date +%s%N`. A `date` that did not run (the stand-in above exits 2 if it does not pass this question through) still leaves the file, empty: the redirect creates it.
+    // The fault writes `date +%s`. A `date` that did not run (the stand-in above exits 2 if it does not pass this question through) still leaves the file, empty: the redirect creates it.
     const unrelatedStamp = read(join(repo, 'unrelated-during-window.txt')).trim()
     check('E15: AN UNRELATED FILE WRITTEN WHILE A WORLD MUTATION IS APPLIED DOES NOT ABORT A HEALTHY RUN: the write-ups are back, the state is gone, and no restore failure is reported',
       writeUpsBack() && /^\d{10,}$/.test(unrelatedStamp) && !existsSync(join(repo, '.mutation-state')) && !/did not return what the mutation touched/.test(text(ku)) && !/deleted or changed this run's own state/.test(text(ku)),
       `write-ups back ${writeUpsBack()}, the fault wrote ${JSON.stringify(unrelatedStamp)}, state gone ${!existsSync(join(repo, '.mutation-state'))}; ${text(ku).split('\n').filter(l => /::error::|did not return/.test(l)).join(' | ').slice(0, 200)}`)
+    // ...and where `date` is not GNU's. A first-on-PATH `date` that prints `%N` as the letter (BSD and busybox do; measured 2026-11-05 on a stand-in that answered `+%s%N` with `1793915440N`) failed the clause above
+    // on a machine whose fault asked for nanoseconds, for a reason that has nothing to do with the harness. The fault asks for seconds, which every date answers; this runs it with that date first on the PATH.
+    const bsdBin = join(scratch, 'bsd-bin')
+    mkdirSync(bsdBin)
+    writeFileSync(join(bsdBin, 'date'), `#!/bin/sh\na=$(printf '%s' "$1" | sed 's/%N/N/g')\nshift\nPATH=\${PATH#${bsdBin}:}\nexec date "$a" "$@"\n`, { mode: 0o755 })
+    reset()
+    const kbsd = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-writes-unrelated', PATH: `${bsdBin}:${bin}:${process.env.PATH}` })
+    const bsdStamp = read(join(repo, 'unrelated-during-window.txt')).trim()
+    check('E15: ...AND SO IS THE SAME FAULT WHERE `date` IS NOT GNU\'S (it prints `%N` as the letter, as BSD and busybox do): the file holds a timestamp in digits, the write-ups are back and the state is gone (1 run)',
+      /^\d{10,}$/.test(bsdStamp) && writeUpsBack() && !existsSync(join(repo, '.mutation-state')) && !/did not return what the mutation touched/.test(text(kbsd)),
+      `the fault wrote ${JSON.stringify(bsdStamp)}, write-ups back ${writeUpsBack()}, state gone ${!existsSync(join(repo, '.mutation-state'))}; status ${kbsd.status}`)
 
     // E16: a world mutation that changes nothing is reported as a broken mutation and leaves nothing behind.
     reset()
