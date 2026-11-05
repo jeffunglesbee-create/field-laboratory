@@ -587,6 +587,11 @@ function networkClauses(check) {
     ["const s = 'fetch(u)'", ''], ['// fetch(u)\nconst a = 1', ''], ['/* new WebSocket(u) */', ''], ['const t = `fetch(u) ${1}`', ''], ['const o = { fetch: 1 }', ''], ['const o = { fetch : 1 }', ''],
     ['o.fetch(x)', ''], ['o?.fetch(x)', ''], ['o . fetch(x)', ''], ['fetchImpl(u)', ''], ['refetch(u)', ''], ['$fetch(u)', ''], ['const fetched = 1', ''], ['https.Agent', ''], ['http.STATUS_CODES', ''],
     ['net.isIP(x)', ''], ['o.http.get(1)', ''], ['new WebSocketServer(u)', ''], ['new URL(u, base)', ''], ['xnet.connect(1)', ''],
+    // the guards of each pattern, from both sides (review 7: a guard nothing pinned could be deleted with every clause green). A name that merely ENDS in a global's or a module's name, a property of one (with a space after
+    // the dot too), a member that merely BEGINS like fetch; and then the spellings with spaces that the patterns allow, which the unspaced ones above do not reach.
+    ['window.fetchSlate(x)', ''], ['self.fetchPending = 1', ''], ['itself.fetch(x)', ''], ['myglobal.fetch(x)', ''], ['o.window.fetch(x)', ''], ['o. window.fetch(x)', ''],
+    ['myhttp.get(u)', ''], ['o. http.get(u)', ''], ['o.net.connect(1)', ''], ['o. net.connect(1)', ''], ['function * fetch(u = g(h())) {}', ''],
+    ['net . connect (80)', KINDS.connect], ['tls . connect (o)', KINDS.connect], ['http2 . createConnection (u)', KINDS.connect], ['sendBeacon (u)', KINDS.beacon], ['navigator . sendBeacon (u)', KINDS.beacon],
     // a reference that is not a call on the spot is not seen for these (it is for fetch): pinned here, and in the NOT COVERED list below.
     ['const g = https.get', ''], ['const c = net.connect', ''], ['const b = navigator.sendBeacon', ''], ['resendBeacon(x)', ''], ['$sendBeacon(x)', ''],
   ]
