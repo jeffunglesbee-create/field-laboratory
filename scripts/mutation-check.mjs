@@ -1493,8 +1493,32 @@ const MUTATIONS = [
     id: 'world-refusal-does-not-name-the-path',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal for an edited path names it",
-    find: " (${stray.slice(0, 6).join(', ')}${stray.length > 6 ? `, and ${stray.length - 6} more` : ''})",
+    find: " (${list(edited)})",
     replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'head-moved-refusal-calls-a-path-at-head-edited',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a tree whose HEAD moved does not call a path that matches HEAD an edit",
+    find: "const atHead = moved ? stray.filter(k => (now[k] ?? null) === null) : []",
+    replace: "const atHead = []",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'head-moved-refusal-lists-a-path-at-head-as-edited',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a tree whose HEAD moved does not list a path that matches HEAD among the edited ones",
+    find: "const edited = stray.filter(k => !atHead.includes(k))",
+    replace: "const edited = stray.filter(k => atHead.includes(k) || true)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'head-moved-refusal-says-head-moved-when-it-did-not',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal says HEAD has moved only when it has: a path a person put back to HEAD's version, with HEAD where it was, is an edit",
+    find: "const atHead = moved ? stray.filter(k => (now[k] ?? null) === null) : []",
+    replace: "const atHead = stray.filter(k => (now[k] ?? null) === null)",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -5372,8 +5396,17 @@ const healAt = (dir, { rebuild = true, probes = healProbes, exit = process.exit,
         return stop(`names [${m.id}], a change made outside the source, and it was killed before it recorded which paths it touched, and the tree now differs from what it was before it ran. The mutation itself may have made those changes, or a person may have after the kill; the two cannot be told apart, so nothing was run. What it moved aside is in ${m.stash}.`)
       }
       const moved = headMovedSince(m, probes)
-      const stray = strayPaths(m.touched, probes.snapshot(), moved)
-      return stop(`names [${m.id}], a change made outside the source, and a path it touched is neither as it was nor as the mutation left it (${stray.slice(0, 6).join(', ')}${stray.length > 6 ? `, and ${stray.length - 6} more` : ''}): ${moved ? 'HEAD has moved since the kill, so a path that now matches HEAD cannot be told from one that was put back' : 'it changed after the kill'}. Nothing was run. Put back from ${m.stash} only the paths that are still as the mutation left them; its restore command would overwrite the ones listed.`)
+      const now = probes.snapshot()
+      const stray = strayPaths(m.touched, now, moved)
+      // Where HEAD has moved, a stray path the snapshot does not list matches HEAD now. That is where a path put back ends up, and also where a committed stub or edit ends up, and the
+      // marker cannot tell them apart. It is not an edit, and the message must not call it one ("it changed after the kill" is true of the others).
+      const atHead = moved ? stray.filter(k => (now[k] ?? null) === null) : []
+      const edited = stray.filter(k => !atHead.includes(k))
+      const list = ks => `${ks.slice(0, 6).join(', ')}${ks.length > 6 ? `, and ${ks.length - 6} more` : ''}`
+      const parts = []
+      if (edited.length) parts.push(`${edited.length === 1 ? 'a path it touched is' : 'paths it touched are'} neither as it was nor as the mutation left it (${list(edited)}): it changed after the kill`)
+      if (atHead.length) parts.push(`HEAD has moved since the kill and ${atHead.length === 1 ? 'a path it touched now matches' : 'paths it touched now match'} HEAD (${list(atHead)}), which is where a path put back ends up and also where a committed stub or edit ends up, so the two cannot be told apart`)
+      return stop(`names [${m.id}], a change made outside the source: ${parts.join('; and ')}. Nothing was run. ${atHead.length ? `Compare ${atHead.length === 1 ? 'the one that matches HEAD' : 'each that matches HEAD'} with ${m.stash} to tell which it is. ` : ''}Put back from ${m.stash} only the paths that are still as the mutation left them; its restore command would overwrite the ones listed.`)
     }
     const original = probes.fileSha(m.backup) === m.originalSha
     return stop(`names [${m.id}] on ${m.file}, and that file is neither the original nor the mutation: it changed after the kill. Nothing was written. ${original ? `The original is ${m.backup}.` : `Its backup (${m.backup}) is also gone or is not the original.`}`)
@@ -5792,6 +5825,27 @@ if (process.argv.includes('--self-test')) {
     `exit ${wHeadMovedRun.code}, calls ${committed.calls.length}, kept ${wHeadMoved.kept()}; ${wHeadMovedRun.said.slice(0, 200)}`)
   check('...while with HEAD where it was, the same tree IS "already undone", and a marker that recorded no HEAD is judged as before',
     wHeadSameRun.returned === true && !wHeadSame.kept(), `exit ${wHeadSameRun.code}, returned ${wHeadSameRun.returned}, kept ${wHeadSame.kept()}`)
+  // The same refusal does not say of a path that matches HEAD what it cannot know. Once HEAD has moved, a path the snapshot does not list matches HEAD, which is where a path put
+  // back ends up as well as where a committed stub ends up; "neither as it was nor as the mutation left it ... it changed after the kill" is true of an edit and not of that (a tree
+  // put back by hand, with HEAD moved on by an unrelated commit, was refused with it: residual Task 10 item 7, measured again 2026-11-05 on a scratch repository). A path that matches HEAD
+  // and a path that was edited are each named under what is true of it.
+  check('THE HEAD-MOVED REFUSAL DOES NOT CALL A PATH THAT MATCHES HEAD "NEITHER AS IT WAS NOR AS THE MUTATION LEFT IT": it says HEAD moved and the path matches HEAD, names the path, and keeps the state (1 path, 0 edited)',
+    stoppedFor(wHeadMovedRun, /HEAD has moved since the kill and a path it touched now matches HEAD \(out\/a\.md\)/) && !/neither as it was nor as the mutation left it/.test(wHeadMovedRun.said) && wHeadMoved.kept(),
+    wHeadMovedRun.said.slice(0, 300))
+  const HEADS = { 'out/a.md': { before: null, after: 'h-stub' }, 'out/b.md': { before: 'h-b', after: 'h-b2' } }
+  const wMixedHead = worldCase({ touched: HEADS, before: { 'out/b.md': 'h-b' }, head: 'old-head' })
+  const wMixedHeadRun = attempt(wMixedHead.state, { ...fakeTree({ 'out/b.md': 'h-edited' }).probes, head: () => 'new-head' })
+  const editedNamed = /neither as it was nor as the mutation left it \(([^)]*)\)/.exec(wMixedHeadRun.said)?.[1]
+  const atHeadNamed = /now match(?:es)? HEAD \(([^)]*)\)/.exec(wMixedHeadRun.said)?.[1]
+  check('...and where one path was edited and another matches HEAD, each is named under what is true of it: the edited one as changed after the kill, the other as matching HEAD (1 path each)',
+    stoppedFor(wMixedHeadRun, /it changed after the kill/) && editedNamed === 'out/b.md' && atHeadNamed === 'out/a.md' && wMixedHead.kept(),
+    `edited: ${editedNamed}; matches HEAD: ${atHeadNamed}; ${wMixedHeadRun.said.slice(0, 300)}`)
+  // ...and only where HEAD HAS moved. With HEAD where it was, a touched path that now matches HEAD was put back to HEAD's version by a person (neither of the marker's two hashes), which is
+  // an edit, and the refusal must not say that HEAD moved.
+  const wSameHead = worldCase({ touched: { 'out/c.md': { before: 'h-c', after: 'h-c2' } }, before: { 'out/c.md': 'h-c' }, head: 'old-head' })
+  const wSameHeadRun = attempt(wSameHead.state, { ...fakeTree({}).probes, head: () => 'old-head' })
+  check('...and with HEAD where it was, a path that matches HEAD is an edit: the refusal says it changed after the kill and does not say HEAD moved',
+    stoppedFor(wSameHeadRun, /\(out\/c\.md\): it changed after the kill/) && !/HEAD/.test(wSameHeadRun.said) && wSameHead.kept(), wSameHeadRun.said.slice(0, 300))
 
   // A refusal over a non-empty stash must not tell a person to delete the directory the stash is in: an untracked write-up that was moved aside is not in `git status`.
   const wStashed = worldCase({})
