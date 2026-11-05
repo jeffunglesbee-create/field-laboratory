@@ -2003,6 +2003,46 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'refusal-hides-the-seventh-path',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal over seven touched paths names six and counts the seventh, it does not leave it out of the list and the count",
+    find: "${ks.length > 6 ?",
+    replace: "${ks.length > 7 ?",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'status-window-takes-git-fatal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an expectation that exits 128 (git's fatal status) answered, it was not killed: the window of statuses read as a kill starts at 129",
+    find: "e.status > 128 && e.status < 160",
+    replace: "e.status >= 128 && e.status < 160",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'status-window-has-no-top',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an expectation that exits 160 or more answered, it was not killed: the window of statuses read as a kill (128 plus a signal from 1 to 31) ends at 159",
+    find: "e.status > 128 && e.status < 160",
+    replace: "e.status > 128 && e.status < 256",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-counts-five',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the state-directory guard says \"...\" when it holds more than four entries and not when it holds exactly four",
+    find: "${holds.length > 4 ? ', ...' : ''}",
+    replace: "${holds.length > 5 ? ', ...' : ''}",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-names-three',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the state-directory guard names the first four entries it found, not three",
+    find: "holds.slice(0, 4)",
+    replace: "holds.slice(0, 3)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-mutated-hook-dropped',
     file: 'scripts/mutation-check.mjs',
     claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
@@ -7673,6 +7713,9 @@ const childEnv = extra => ({ ...process.env, MUTATION_STATE_DIR: join(stateDir, 
 let lastFailure = ''
 // The signal that ended the last command, or null if it ended by itself (a check that fails exits non-zero: that is its answer; one that is killed has given none) or was ended by this run's own
 // output limit (it failed). `sh -c a && b` reports a killed `b` as exit status 128 plus the signal, so a status in that range counts too (the OOM killer and a browser crash both look like this).
+// That window (129 to 159) cannot be narrowed to `e.signal` alone: probed 2026-11-05, `sleep 5 & kill -KILL $!; wait $!` ends with status 137 and NO signal, which is the shape a killed child
+// has under a shell, and the table's expectations run through one. The price is that a command which EXITS 129..159 on its own reads as killed too (`exit 130` does), and the run stops. No
+// script in the repository exits in that range on purpose; of the scripts that exit with a failure count (`process.exit(summarize())`, two of them, 4 checks each) none can reach it.
 let lastSignal = null
 // Test-only: MUTATION_OUTPUT_LIMIT lowers it, so the self-test can run an expectation past the limit with kilobytes of output (a real flood past 256 MiB took 3.1 s here, measured 2026-11-05, and does it again for every run of the self-test).
 const OUTPUT_LIMIT = Number(process.env.MUTATION_OUTPUT_LIMIT) || 256 * 1024 * 1024
@@ -9429,6 +9472,20 @@ if (process.argv.includes('--self-test')) {
       announced.every(h => khk.stderr.includes(`test hook active: ${h}\n`)) && !khk.stdout.includes('test hook active') && /Mutation testing/.test(khk.stdout) && !/test hook active/.test(text(kno)) && /Mutation testing/.test(kno.stdout),
       `with hooks: stderr ${JSON.stringify(String(khk.stderr).slice(0, 220))}, ran ${/Mutation testing/.test(khk.stdout)}; without: ${JSON.stringify(text(kno).split('\n').filter(l => /test hook/.test(l)))}`)
     reset()
+    // The state-directory guard names the first four entries it found and says "..." for the rest. E27 holds two files and reaches neither bound: five files list four and the "...", exactly four list
+    // four and no "...".
+    const guardDir = n => {
+      const dir = join(scratch, `guard-dir-${n}`)
+      mkdirSync(dir, { recursive: true })
+      for (const f of ['a.txt', 'b.txt', 'c.txt', 'd.txt', 'e.txt'].slice(0, n)) writeFileSync(join(dir, f), 'not the harness\'s\n')
+      return dir
+    }
+    const g5 = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: guardDir(5) })
+    const g4 = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: guardDir(4) })
+    check('STATE-DIRECTORY GUARD: IT NAMES THE FIRST FOUR ENTRIES AND SAYS "..." FOR THE REST: of 5 foreign files it lists a.txt to d.txt and ", ..." and not e.txt, of exactly 4 it lists the four and no "..." (both exit 2; E27 holds two files and reaches neither bound)',
+      g5.status === 2 && /already holds files this harness did not write \(a\.txt, b\.txt, c\.txt, d\.txt, \.\.\.\)/.test(text(g5)) && g4.status === 2 && /already holds files this harness did not write \(a\.txt, b\.txt, c\.txt, d\.txt\)/.test(text(g4)),
+      `5 files: status ${g5.status}, ${text(g5).split('\n')[0].slice(0, 180)} / 4 files: status ${g4.status}, ${text(g4).split('\n')[0].slice(0, 180)}`)
+    reset()
 
     // E25: a self-test that crashes leaves none of the directories it made. Git is made to fail (a stand-in first on PATH), which is how the crash was found: the crash is at the first git
     // call of the scratch repository, about 0.1 s in, with the scratch directory and the state directory (two mkdtemp calls) already made. The child's TMPDIR is an empty directory, so
@@ -9734,6 +9791,19 @@ if (process.argv.includes('--self-test')) {
     } else if (!process.env.MUTATION_SELFTEST_CHILD) {
       console.log('  (the WATCHBUILD clauses were not asserted: /proc cannot be read here, and they find the group by it)')
     }
+
+    // The bound between "exactly six" and "eight" in the refusal over a world mutation's touched paths: SEVEN edited paths read as the first six and "and 1 more". An off-by-one in the bound hides a path
+    // from the person deciding what to put back, and the clause that holds the bound tests 8 and 6.
+    const wSevenRun = editedRun(7)
+    check('THE REFUSAL COUNTS THE SEVENTH PATH: of 7 edited paths it lists the first six and "and 1 more" and does not name the seventh (the bound between exactly 6 and 8, which the clause above does not reach)',
+      wSevenRun.code === 1 && wSevenRun.said.includes(`(${SIX}, and 1 more)`) && !wSevenRun.said.includes('out/p6.md'), wSevenRun.said.slice(0, 260))
+
+    // run()'s reading of an exit status: only 129 to 159 reads as a command that was KILLED (a shell reports a killed child as 128 plus the signal). 127 (command not found), 128 (git's fatal status),
+    // 160 and above are answers. The window stays: see the comment on `lastSignal`. `exit 130` here is the limit that comes with it, pinned so that it is a decision and not an accident.
+    const readOf = n => { run(`exit ${n}`); return lastSignal }
+    const reads = Object.fromEntries([1, 127, 128, 129, 130, 159, 160, 255].map(n => [n, readOf(n)]))
+    check('RUN: ONLY 129 TO 159 READS AS A COMMAND THAT WAS KILLED: 129, 130 and 159 read as killed, and 1, 127, 128, 160 and 255 are failures that answered (8 statuses). LIMIT, kept on purpose: a command that exits 130 on its own reads as killed too',
+      [1, 127, 128, 160, 255].every(n => reads[n] === null) && reads[129] === 'status 129' && reads[130] === 'status 130' && reads[159] === 'status 159', JSON.stringify(reads))
   }
 
   const fixture = [{ id: 'live', file: 'a', find: 'x', replace: 'y' }, { id: 'stale', file: 'a', find: 'gone', replace: 'y' }, { id: 'world', mutate: 'z' }]
