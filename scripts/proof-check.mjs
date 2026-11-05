@@ -411,13 +411,14 @@ const refusalLines = (prior, holder) => {
  *             marker, and is discarded, never applied;
  *   diverged  something on a file is not described by the backups: an injection (the
  *             target's proof code, the registry's probe case) the file has moved on from
- *             (a stash pop, an edit), or a target with no anchor, which may be torn:
- *             write nothing, keep the state, say what to do by hand.
+ *             (a stash pop, an edit), or a file with no anchor (the target's, the registry's
+ *             last case), which may be torn, whatever the other file holds: write nothing,
+ *             keep the state, say what to do by hand.
  *
  * Pure, so the self-test can exercise every answer without a dotnet build in sight.
  */
 const classifyState = ({
-  markerExists, alive, injected, anchored, targetStranded, registryStranded, registryInjected,
+  markerExists, alive, injected, anchored, registryAnchored, targetStranded, registryStranded, registryInjected,
   restoreFailed, targetIntact, registryIntact,
 }) => {
   if (!markerExists) return 'proceed'
@@ -426,8 +427,12 @@ const classifyState = ({
   // injection is healed; anything else must be exactly its backup, or the state stays for a person. It is never called stale: a torn file keeps its anchor, and `stale` deletes the state.
   if (restoreFailed && !((targetStranded || targetIntact) && (registryStranded || registryIntact))) return 'diverged'
   if ((injected && !targetStranded) || (registryInjected && !registryStranded)) return 'diverged'
+  // A file that is not provably this script's injection and has lost its anchor (the target's, the registry's last case) may be TORN, and the state holds its only whole copy. Each file is
+  // asked, and BEFORE the heal: a stranded registry beside a torn target was healed, and the heal deleted the state and with it the only whole target (the mirror too: a torn registry beside
+  // a stranded target). A file that is provably the injection is not asked: it is its backup with a block inserted, so it has its anchor anyway.
+  if ((!targetStranded && !anchored) || (!registryStranded && !registryAnchored)) return 'diverged'
   if (targetStranded || registryStranded) return 'heal'
-  return anchored ? 'stale' : 'diverged'
+  return 'stale'
 }
 
 // --- self-test ---------------------------------------------------------------
@@ -443,7 +448,7 @@ if (process.argv.includes('--self-test')) {
   // combination the real flow cannot produce, and let the `Stranded ||` alternatives it needs go untested (review 5).
   const st = over => classifyState({
     markerExists: true, alive: false,
-    injected: false, anchored: true, targetStranded: false, registryStranded: false, registryInjected: false, restoreFailed: false,
+    injected: false, anchored: true, registryAnchored: true, targetStranded: false, registryStranded: false, registryInjected: false, restoreFailed: false,
     targetIntact: !over.targetStranded, registryIntact: !over.registryStranded, ...over,
   })
 
@@ -472,6 +477,11 @@ if (process.argv.includes('--self-test')) {
     st({ injected: true, registryStranded: true }) === 'diverged', `got ${st({ injected: true, registryStranded: true })}`)
   sc('...and a target with no anchor, which may be torn, is not called clean',
     st({ anchored: false }) === 'diverged', `got ${st({ anchored: false })}`)
+  // Each file is asked, and before the heal: a torn file beside a stranded one is not healed over, in either direction. A file that is provably the injection is not asked about its anchor.
+  const tornAsked = [st({ anchored: false, registryStranded: true }), st({ registryAnchored: false, targetStranded: true, injected: true }), st({ registryAnchored: false }),
+    st({ anchored: false, targetStranded: true, injected: true }), st({ registryAnchored: false, registryStranded: true })]
+  sc('A TORN FILE IS ASKED ABOUT PER FILE, AND BEFORE THE HEAL: a target with no anchor beside a stranded registry, a registry with no last case beside a stranded target, and one over nothing stranded are diverged; a file that is provably the injection is not asked (5 classifier inputs)',
+    tornAsked.join() === 'diverged,diverged,diverged,heal,heal', `got ${tornAsked.join()}`)
   sc('DIVERGED: a probe case the backups do not describe is not discarded as stale, and one they do describe is healed',
     st({ registryInjected: true }) === 'diverged' && st({ registryInjected: true, registryStranded: true }) === 'heal',
     `got ${st({ registryInjected: true })} / ${st({ registryInjected: true, registryStranded: true })}`)
@@ -661,6 +671,25 @@ if (process.argv.includes('--self-test')) {
     tornRun.target === '// head, cut off' && tornRun.status === 1 && /nothing was written/.test(tornRun.stderr)
       && tornRun.stateLeft && !carriedOn(tornRun),
     show(tornRun))
+  // The torn file and the stranded one are different files. A target cut off before its anchor beside a registry that carries the run's probe (a kill in phase 2, then a tear that no failed restore of
+  // ours explains) was HEALED, and the heal deleted the state, which held the only whole target. The mirror, a registry cut off before its last case beside a stranded target, was the same: only the
+  // target had an anchor input. (Each is one planted state on the real script.)
+  const tornUnion = 'type Sport =\n    | MLB\n'
+  const tornTargetBesideProbe = sandbox({ target: '// head, cut off', registry: probeRegistry(union), backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('A TARGET WITH NO ANCHOR BESIDE A STRANDED REGISTRY IS NOT HEALED OVER: nothing is written (the registry keeps its probe), the state is kept, the target is named, the run stops (1 planted state)',
+    tornTargetBesideProbe.status === 1 && tornTargetBesideProbe.target === '// head, cut off' && tornTargetBesideProbe.registry === probeRegistry(union) && tornTargetBesideProbe.stateLeft
+      && /src\/Scoreboard\.fs has no injection anchor/.test(tornTargetBesideProbe.stderr) && !/HEALED/.test(tornTargetBesideProbe.stderr) && !carriedOn(tornTargetBesideProbe),
+    show(tornTargetBesideProbe))
+  const tornRegistryBesideInjection = sandbox({ target: injectedClean, registry: tornUnion, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('...AND THE MIRROR: a registry with no last case beside a stranded target is not healed over either: nothing is written, the state is kept, the registry is named, the run stops (1 planted state)',
+    tornRegistryBesideInjection.status === 1 && tornRegistryBesideInjection.target === injectedClean && tornRegistryBesideInjection.registry === tornUnion && tornRegistryBesideInjection.stateLeft
+      && /src\/Desk\.fs has no last case/.test(tornRegistryBesideInjection.stderr) && !/HEALED/.test(tornRegistryBesideInjection.stderr) && !carriedOn(tornRegistryBesideInjection),
+    show(tornRegistryBesideInjection))
+  const tornRegistryAlone = sandbox({ target: clean, registry: tornUnion, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('...and a registry with no last case over nothing stranded is not called STALE: nothing is written, the state is kept, the registry is named (1 planted state)',
+    tornRegistryAlone.status === 1 && tornRegistryAlone.registry === tornUnion && tornRegistryAlone.stateLeft && !/STALE/.test(tornRegistryAlone.stderr)
+      && /src\/Desk\.fs has no last case/.test(tornRegistryAlone.stderr) && !carriedOn(tornRegistryAlone),
+    show(tornRegistryAlone))
 
   // The probe is still on the registry but the registry has moved on from the backup (a stash pop, an edit): the same rule as the target's.
   const movedProbed = probeRegistry(newerUnion)
@@ -1118,6 +1147,7 @@ switch (classifyState({
   alive: runningElsewhere(priorState),
   injected: injectedNow,
   anchored: currentTarget.includes(ANCHOR),
+  registryAnchored: currentRegistry.includes(REGISTRY_ANCHOR),
   targetStranded,
   registryStranded,
   registryInjected: probeOnRegistry(currentRegistry),
@@ -1167,7 +1197,9 @@ switch (classifyState({
       if (!targetStranded && currentTarget !== backupTarget) reasons.push([TARGET, `${TARGET} is not what that run backed up, and its restore did not read back, so it may be torn`])
       if (!registryStranded && currentRegistry !== backupRegistry) reasons.push([REGISTRY, `${REGISTRY} is not what that run backed up, and its restore did not read back, so it may be torn`])
     }
-    if (reasons.length === 0) reasons.push([TARGET, `${TARGET} has no injection anchor, so it may be torn`])
+    // A file with no anchor that is not provably this run's injection may be torn (the same file can also be named above: both reasons are true). Every way to be `diverged` names a file, so there is no empty case to fall back on.
+    if (!targetStranded && !currentTarget.includes(ANCHOR)) reasons.push([TARGET, `${TARGET} has no injection anchor, so it may be torn`])
+    if (!registryStranded && !currentRegistry.includes(REGISTRY_ANCHOR)) reasons.push([REGISTRY, `${REGISTRY} has no last case, so it may be torn`])
     console.error(`proof-check: a previous run (pid ${priorState.pid ?? 'unknown'}, started `
       + `${priorState.startedAt ?? 'unknown'}) did not finish cleanly (it was killed, or its restore did not read back), and a file is not in a state its backups `
       + `describe: ${reasons.map(r => r[1]).join('; ')}. `
