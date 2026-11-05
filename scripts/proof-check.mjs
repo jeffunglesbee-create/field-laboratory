@@ -752,6 +752,28 @@ if (process.argv.includes('--self-test')) {
     strayRegistry.registry === probeRegistry(union) && strayRegistry.target === clean && strayRegistry.status === 1 && /no run state exists/.test(strayRegistry.stderr)
       && /src\/Desk\.fs/.test(strayRegistry.stderr) && !strayRegistry.stateLeft && !carriedOn(strayRegistry),
     show(strayRegistry))
+  // The same refusal, read for what it tells a person to DO. It said `Restore it (git checkout -- <file>) before re-running.`: a checkout puts a file back to the index, so it threw away every uncommitted
+  // edit to the file, and when the injection was already committed (217282b) it changed nothing and the lines stayed (measured 2026-11-05 in a scratch repository: after the checkout the committed marker
+  // line was still there, and an uncommitted edit was gone). clean-source-check.mjs has given the other advice for the same state since the residuals Task 3; the wording is kept by eye in both, not shared, because that check must
+  // keep working when this script is the thing that broke. Three planted states (target only, registry only, both), each the real script with no run state.
+  const strayBoth = sandbox({ target: injectedClean, registry: probeRegistry(union), noState: true })
+  const advice = r => r.stderr.split('\n').slice(1).join(' | ')
+  const oldAdviceGone = r => !/Restore (it|them)\b/.test(r.stderr) && !/before re-running/.test(r.stderr)
+  const targetPart = `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
+  const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string$" ${REGISTRY}\` shows it)`
+  const costSentence = (files, many) => `If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${files}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`
+  sc(`THE NO-STATE REFUSAL FOR AN INJECTED TARGET TELLS A PERSON TO DELETE THE LINES, and to check the file out only if the injection is uncommitted, saying what that discards; "Restore it (git checkout ...)" is gone, and the registry is not named (1 of 3 planted states)`,
+    strayTarget.stderr.includes(`Delete ${targetPart}, then run this again.`) && strayTarget.stderr.includes(costSentence(TARGET, false))
+      && oldAdviceGone(strayTarget) && !strayTarget.stderr.includes(REGISTRY),
+    advice(strayTarget))
+  sc(`...AND FOR A PROBED REGISTRY: it names the one line and a grep that shows it above the union's last case, the same conditional checkout, and does not name the target (2 of 3 planted states)`,
+    strayRegistry.stderr.includes(`Delete ${registryPart}, then run this again.`) && strayRegistry.stderr.includes(costSentence(REGISTRY, false))
+      && oldAdviceGone(strayRegistry) && !strayRegistry.stderr.includes(TARGET),
+    advice(strayRegistry))
+  sc(`...AND FOR BOTH AT ONCE: each file gets its own instruction and one checkout names both, in the plural (3 of 3 planted states)`,
+    strayBoth.status === 1 && strayBoth.stderr.includes(`Delete ${targetPart} and ${registryPart}, then run this again.`)
+      && strayBoth.stderr.includes(costSentence(`${TARGET} ${REGISTRY}`, true)) && oldAdviceGone(strayBoth),
+    advice(strayBoth))
 
   // A foreign line in the gap, with the marker beside it: newer work, not the script's. Nothing is written and the state is kept.
   const helperRun = sandbox({ target: withHelper, registry: union, backupTarget: clean, backupRegistry: union, pid: DEAD })
@@ -1369,7 +1391,15 @@ switch (classifyState({
       if (probeOnRegistry(currentRegistry)) strays.push(REGISTRY)
       if (strays.length) {
         console.error(`proof-check: ${strays.join(' and ')} contain${strays.length > 1 ? '' : 's'} injected proof code (${strays.length > 1 ? 'the target and the probe case' : strays[0] === TARGET ? 'the proof functions' : 'the probe case'}) and no run state exists.`)
-        console.error(`Restore ${strays.length > 1 ? 'them' : 'it'} (git checkout -- ${strays.join(' ')}) before re-running.`)
+        // With no state there is nothing to restore from, so the lines are deleted by hand. A checkout is named only for an uncommitted injection, with what it costs: it puts a file back to the index,
+        // which discards every uncommitted edit to the file and, on a committed injection (217282b), changes nothing. clean-source-check.mjs gives the same advice for the same state; the wording is
+        // kept by eye in both, because that check must keep working when this script is the thing that broke.
+        const many = strays.length > 1
+        const parts = strays.map(f => f === TARGET
+          ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
+          : `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${REGISTRY}\` shows it)`)
+        console.error(`Delete ${parts.join(' and ')}, then run this again.`)
+        console.error(`If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${strays.join(' ')}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`)
         process.exit(1)
       }
     }
