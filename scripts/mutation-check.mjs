@@ -1923,6 +1923,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'signal-handler-leaves-the-watcher',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that is told to end (a plain kill, a Ctrl-C, a closed terminal) stops its own build watcher before it goes, so no compiler is left running over build/",
+    find: "    restore(); stopBuilder(); if (signal !== 'exit') process.exit(1)",
+    replace: "    restore(); if (signal !== 'exit') process.exit(1)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-mutated-hook-dropped',
     file: 'scripts/mutation-check.mjs',
     claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
@@ -9173,19 +9181,25 @@ if (process.argv.includes('--self-test')) {
       const denv = (extra = {}) => ({ ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', PATH: `${join(drepo, 'bin')}:${process.env.PATH}`, ...extra })
       const dgo = (args, extra) => spawnSync(process.execPath, ['scripts/mutation-check.mjs', ...args], { cwd: drepo, encoding: 'utf8', timeout: 60_000, env: denv(extra) })
       const dtext = r => `${r.stdout}${r.stderr}`
-      const dread = f => (existsSync(join(drepo, f)) ? readFileSync(join(drepo, f), 'utf8') : null)
+      const dread = (f, dir = drepo) => (existsSync(join(dir, f)) ? readFileSync(join(dir, f), 'utf8') : null)
       const dbuilds = () => (dread('.build-log') ?? '').split('\n').filter(Boolean)
       const dreset = () => { rmSync(join(drepo, '.build-log'), { force: true }); rmSync(join(drepo, '.mutation-state'), { recursive: true, force: true }); dgit('checkout -q -- .') }
+      // A run that was told to end mid-mutation leaves build/ holding the mutation (the marker that says so is what makes the next run rebuild, and `dreset` deleted it), and the next run refuses a
+      // watcher whose first compile is not the build it finds. So a run that starts from `dreset` alone after such a run needs the clean build back, made as the stand-in build makes it.
+      const cleanBuild = () => { dreset(); rmSync(join(drepo, 'build'), { recursive: true, force: true }); spawnSync(process.execPath, ['scripts/fake-build.mjs'], { cwd: drepo }); rmSync(join(drepo, '.build-log'), { force: true }) }
       // Every live process whose working directory is the scratch repository and that is the stand-in or the watcher under it (a zombie is nothing).
-      const watchers = () => readdirSync('/proc').filter(d => /^\d+$/.test(d)).flatMap(pid => {
+      const watchersIn = dir => readdirSync('/proc').filter(d => /^\d+$/.test(d)).flatMap(pid => {
         try {
-          if (readlinkSync(`/proc/${pid}/cwd`) !== drepo) return []
+          if (readlinkSync(`/proc/${pid}/cwd`) !== dir) return []
           const cmd = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ').trim()
           const stat = readFileSync(`/proc/${pid}/stat`, 'utf8')
           return stat.slice(stat.lastIndexOf(')') + 2).startsWith('Z') || !/fake-fable-watch|bin\/dotnet/.test(cmd) ? [] : [{ pid: Number(pid), parent: !/fake-fable-watch/.test(cmd) }]
         } catch { return [] }
       })
-      const stopAll = () => { for (const w of watchers()) { try { process.kill(w.pid, 'SIGKILL') } catch { /* gone */ } } }
+      const watchers = () => watchersIn(drepo)
+      // The copies of the repository the signal runs below use, one each, so that they can run at once. A copy's watchers are stopped with the rest.
+      const copies = []
+      const stopAll = () => { for (const dir of [drepo, ...copies]) for (const w of watchersIn(dir)) { try { process.kill(w.pid, 'SIGKILL') } catch { /* gone */ } } }
       const pause = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
       const waitFor = (what, ms = 8000) => { for (let waited = 0; waited < ms; waited += 10) { const v = what(); if (v) return v; pause(10) } return null }
       const recordOf = () => { try { return JSON.parse(dread('.mutation-state/driver.json')) } catch { return null } }
@@ -9235,6 +9249,35 @@ if (process.argv.includes('--self-test')) {
           two.left.length === 2 && healB.status === 0 && watchers().length === 0 && dread('src/Pickem.fs') === original && /HEALED/.test(said2) && /Stopping it before/.test(said2)
             && builds2.length >= 1 && !builds2.includes('failed') && dread('build/Out.js') === `compiled:${original}` && dread('.mutation-state/driver.json') === null && dread('.mutation-state/active.json') === null,
           `watchers before ${two.left.length}, after ${watchers().length}; status ${healB.status}; builds ${builds2.join()}; file back ${dread('src/Pickem.fs') === original}; ${said2.split('\n').filter(l => /Stopping|HEALED|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+        stopAll(); dreset()
+
+        // (3) A RUN THAT IS TOLD TO END STOPS ITS OWN WATCHER, and only its exit and signal handler can: the mutation is half way through, the watcher has a process group of its own (so a
+        // terminal's Ctrl-C, which goes to the foreground group, no longer reaches it), and nothing else knows it is there until the next run reaps it. `MUTATION_KILL_AT=source-applied` with
+        // `MUTATION_KILL_SIGNAL` delivers the signal from inside the run at the one moment that matters: the watcher is up and has compiled the mutation. SIGTERM is a plain kill. SIGINT is what a
+        // Ctrl-C sends the harness, which stays in the terminal's group: the harness's handler is how a Ctrl-C reaches the watcher (review 6, 2026-11-05, a pty on the real Fable: with the handler's
+        // stop deleted the watcher was still running 15 s after the harness had gone; with it, none). SIGHUP is a closed terminal. Each signal gets a run, a copy of the repository and a stand-in
+        // watcher of its own, and the three go at once (a run is 1.4 s, and this self-test runs once for each of 159 table entries). The watcher is looked for AFTER the harness has gone, for up to
+        // 3 s: the stand-in's TERM handler kills its child, which takes a moment.
+        cleanBuild()
+        const told = await Promise.all(['SIGTERM', 'SIGINT', 'SIGHUP'].map(sig => new Promise(done => {
+          const dir = `${drepo}-${sig.toLowerCase()}`
+          copies.push(dir)
+          spawnSync('cp', ['-a', drepo, dir])
+          let said = ''
+          const child = spawn(process.execPath, ['scripts/mutation-check.mjs', '--only', 'draw'], { cwd: dir, env: denv({ MUTATION_KILL_AT: 'source-applied', MUTATION_KILL_SIGNAL: sig }), stdio: ['ignore', 'pipe', 'pipe'] })
+          child.stdout.on('data', b => { said += b }); child.stderr.on('data', b => { said += b })
+          const timer = setTimeout(() => child.kill('SIGKILL'), 60_000)
+          child.on('close', async status => {
+            clearTimeout(timer)
+            for (let waited = 0; waited < 3000 && watchersIn(dir).length > 0; waited += 10) await new Promise(r => setTimeout(r, 10))
+            done({ sig, status, up: /build driver: watch, ready/.test(said), left: watchersIn(dir).length, record: dread('.mutation-state/driver.json', dir) !== null, fileBack: dread('src/Pickem.fs', dir) === original })
+          })
+        })))
+        stopAll()
+        check('E22: ...and a run told to end by SIGTERM, SIGINT or SIGHUP, with its watcher up and a mutation compiled, stops that watcher before it goes: status 1, the watcher and its stand-in are gone, the record is gone, and the file is back (3 signals, one run and one stand-in watcher each)',
+          told.every(x => x.up && x.status === 1 && x.left === 0 && !x.record && x.fileBack),
+          told.map(x => `${x.sig}: status ${x.status}, watcher was up ${x.up}, processes left ${x.left}, record kept ${x.record}, file back ${x.fileBack}`).join(' / '))
+        cleanBuild()
       } finally {
         stopAll()
       }
