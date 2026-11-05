@@ -2776,6 +2776,32 @@ const MUTATIONS = [
     replace: "      if (false) { i += 2; continue }",
     expect: 'node scripts/row-confidence.mjs --self-test',
   },
+  // Template expressions are code (2026-11-05). The scan keeps each `${...}` of a template as an operand in parentheses and still hides the template text, so a clock read inside a template is
+  // counted and the first slash in one begins a regular expression whatever stood before the template. One entry per half of what it emits, and one for putting the old behaviour back.
+  {
+    id: 'tpl-expression-hidden',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a clock read inside a template expression is counted, as a read in any other code is",
+    find: "        out += ' ('\n        i = scanCode(i + 2, true)\n        out += ') '\n",
+    replace: "        const kept = out\n        i = scanCode(i + 2, true)\n        out = kept\n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'tpl-expression-opens-no-operand',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a slash that begins a template expression begins a regular expression, whatever stood before the template (a tag, a parenthesis, a bracket, a word)",
+    find: "        out += ' ('\n",
+    replace: "        out += ' '\n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'tpl-expression-closes-nothing',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a template expression is kept between parentheses that pair, so the text left of a template has balanced brackets",
+    find: "        out += ') '\n",
+    replace: "        out += ' '\n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
   // The bracket count over every script a row names (2026-11-05). `stripNonCode` is checked against fixtures above; this is the check that needs none: what it leaves of a real script must pair its
   // brackets, and it carries three controls the old three-regular-expression scan fails. One entry per kind of bracket and per direction, so a counter blind to any one of the six is caught.
   {
@@ -2883,6 +2909,14 @@ const MUTATIONS = [
     find: 'const DATE = (() => {',
     replace: "const DATE = '2026-08-12'\nconst _unusedDate = (() => {",
     expect: 'node scripts/run-row.mjs "pick\'em grades only finished games"',
+  },
+  {
+    id: 'pickem-reads-the-day-inside-a-template',
+    file: 'scripts/pickem-check.mjs',
+    claim: "the pick'em check takes the FIELD day once, into a constant, and not again inside a template where a read is easy to miss",
+    find: "const d = new Date(`${FIELD_DAY}T12:00:00Z`)",
+    replace: "const d = new Date(`${fieldDay()}T12:00:00Z`)",
+    expect: 'node scripts/run-row.mjs "every gate row has teeth and is deterministic"',
   },
   {
     id: 'record-becomes-optional',

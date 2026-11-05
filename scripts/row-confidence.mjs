@@ -96,7 +96,7 @@ const mutationsFor = (scripts, rowName) => {
 }
 
 /**
- * The source with comments removed, every string and template literal replaced by an empty string and every regular-expression literal by `0`: what is left is code.
+ * The source with comments removed, every string replaced by an empty string, every regular-expression literal by `0`, and every template literal by an empty string preceded by its `${…}` expressions, each kept as code in parentheses (`a ${b} c` leaves ` (b) ''`): what is left is code.
  *
  * IT IS A SCANNER, NOT THREE REGULAR EXPRESSIONS. The version before this one removed `//` comments line by line and then paired quotes across the whole file, and the two
  * disagree about a `//` inside a string (`'http://…'`, `"URL='http://…' node …"`): the comment pass cut the line at the `//`, which took the closing quote with it, and every
@@ -105,11 +105,13 @@ const mutationsFor = (scripts, rowName) => {
  * mutation that proves this row can see a second clock read in that very file, survived (2026-11-04, the gate's mutation row), and the row's claim for that file had been
  * undefended for as long as the parity happened to be wrong.
  *
- * Checked against a real tokenizer: acorn's, over all 168 scripts, counted the same clock reads as this does (with template text revealed; see below). That comparison is a
+ * Checked against a real tokenizer: acorn's, over all 168 scripts, left the same text as this does (template expressions kept, template text not). That comparison is a
  * one-off, not a test in the repo, because acorn is only reachable through `node --expose-internals`.
  *
- * What it still does not do: the contents of a template literal are not scanned, as before (`new Date(\`${fieldDay()}T12:00:00Z\`)` in `pickem-check.mjs` is a clock read this scan
- * does not see, and revealing them would flag that script and take its row below the bar; filed in docs/CC-CMD-2026-11-03-gate-hazard-residuals.md). A `/` after `)` or `]`
+ * A template literal's TEXT is hidden (`new Date() ${1}` holds no clock read); its `${…}` expressions are code, so a read in one is counted (`new Date(\`${fieldDay()}T12:00:00Z\`)` was a clock read
+ * this scan could not see until `pickem-check.mjs` captured the day once), and a `/` that begins one begins a regular expression whatever stood before the template (a tag, `)`, `]`, a word).
+ *
+ * What it still does not do: a `/` after `)` or `]`
  * is read as division, which is wrong for `if (x) /re/.test(y)`, a shape this repo does not use; where that regular expression holds a backtick the scan opens a template that
  * swallows the rest of the file, so such a line makes every later clock read invisible. A `/` after `}` is read as the start of a regular expression, which is right after a block
  * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
@@ -190,7 +192,8 @@ const stripNonCode = src => {
     }
     return i
   }
-  // A template literal's text, and (to find where it ends) its `${…}` expressions, which may hold strings and templates of their own. None of it is kept.
+  // A template literal: its text is not kept, but each `${…}` expression is, as code between ` (` and `) `. The parenthesis is what lets a `/` that begins the expression begin a regular expression
+  // whatever stood before the template, and keeps the stripped text balanced. Expressions may hold strings and templates of their own.
   const skipTemplate = start => {
     let i = start
     while (i < n) {
@@ -198,9 +201,9 @@ const stripNonCode = src => {
       if (c === '\\') { i += 2; continue }
       if (c === '`') return i + 1
       if (c === '$' && src[i + 1] === '{') {
-        const kept = out
+        out += ' ('
         i = scanCode(i + 2, true)
-        out = kept
+        out += ') '
         continue
       }
       i++
@@ -345,7 +348,7 @@ function scannerClauses(check) {
     ["const E = 'it\\'s'", 'const T = `x\\`y`', 'const N = `a ${ `b ${ {x: 1}.x } c` + \'`\' + "}" } d`', 'const B = `p ${ {a: 1}.a + `y` } q`', "const G = `p ${ {a: 1}.a + '`' } q`"])
   // A block comment where a `/` can only be division (after a value), so it is the comment rule that has to end it and nothing else would: quotes and a clock read inside it.
   sloppy('A BLOCK COMMENT AFTER A VALUE ENDS AT ITS `*/`, WHATEVER IS INSIDE IT', ["const C = 1 /* it's new Date() */ + 2", 'const D = x /* "\' ` */'])
-  check('A CLOCK READ IN A COMMENT, A STRING OR A TEMPLATE IS NOT ONE',
+  check('A CLOCK READ IN A COMMENT, A STRING OR A TEMPLATE\'S TEXT IS NOT ONE (an expression inside a template is code: see the spellings below)',
     clockCounts("// new Date()\n/* Date.now() */\nconst s = 'new Date()'\nconst t = `new Date() ${1}`\n").reads === 0,
     `saw ${clockCounts("// new Date()\n/* Date.now() */\nconst s = 'new Date()'\nconst t = `new Date() ${1}`\n").reads} reads in text that is not code`)
   check('AN UNCLOSED QUOTE ENDS AT ITS LINE: it cannot swallow the rest of the file', seen("const a = 'oops") === '2/1', `saw ${seen("const a = 'oops")}`)
@@ -354,13 +357,17 @@ function scannerClauses(check) {
   // Each pair is an input and exactly what must be left of it: comments gone, strings and regular expressions and templates reduced to a marker, division left alone.
   const STRIPS = [
     ['a = \'x\' + "y"', 'a = \'\' + \'\'', 'both quote kinds, each kept as an empty string'],
-    ['a = `t ${1} u`', "a = ''", 'a template, expression and all, as one empty string'],
+    ['a = `t ${1} u`', "a =  (1) ''", 'a template: its text is gone and its expression is kept, as an operand in parentheses'],
     ['a = /x[/]/gi + b', 'a = 0 + b', 'a regular expression with a slash in a class, and its flags'],
     ['a /* c */ b', 'a   b', 'a block comment becomes one space'],
     ['a // c\nb', 'a \nb', 'a line comment ends at its newline and leaves it'],
     ['a /*/ b */ c', 'a   c', 'a block comment cannot end on the slash that opened it'],
     ['x = // new Date()\ny', 'x = \ny', 'a comment where a regular expression could begin is still a comment'],
     ['/"\'`/.test(a)', '0.test(a)', 'a regular expression at the very start of the text'],
+    ['a = `just text`', "a = ''", 'a template with no expression is one empty string'],
+    ['`${a}${b} t`', " (a)  (b) ''", 'each expression of a template is kept, in order'],
+    ['tag`${/"/.test(y)}`', "tag (0.test(y)) ''", 'a slash that begins a template expression begins a regular expression, whatever stood before the template'],
+    ['`${a}` / 2 / z', " (a) '' / 2 / z", 'a slash after a template divides'],
     ["'oops\nb", "''\nb", 'an unclosed quote ends at its line'],
     ['x = y / 2 / z', 'x = y / 2 / z', 'division'],
     ['x = (a) / 2 / b', 'x = (a) / 2 / b', 'division after a parenthesis'],
@@ -369,9 +376,9 @@ function scannerClauses(check) {
     ['n-- / 2 / y', 'n-- / 2 / y', 'division after a postfix decrement'],
     ['x = ++/"/.lastIndex', 'x = ++0.lastIndex', 'a prefix increment is not an operand end'],
     ['return /x/.test(y)', 'return 0.test(y)', 'a regular expression after a keyword'],
-    ['`${ {a:{b:1}}.a } x` + c', "'' + c", 'braces nested inside a template expression close where they close'],
-    ['`a ${ Date.now() } b`', "''", 'the inside of a template expression is not kept'],
-    ['`a ${ `b ${1}` + "}" } c` + d', "'' + d", 'a template inside a template expression, with a brace in a string'],
+    ['`${ {a:{b:1}}.a } x` + c', " ( {a:{b:1}}.a ) '' + c", 'braces nested inside a template expression close where they close'],
+    ['`a ${ Date.now() } b`', " ( Date.now() ) ''", 'the inside of a template expression is kept'],
+    ['`a ${ `b ${1}` + "}" } c` + d', " (  (1) '' + '' ) '' + d", 'a template inside a template expression, with a brace in a string'],
   ]
   for (const k of ['return', 'typeof', 'case', 'in', 'of', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await']) {
     STRIPS.push([`${k} /"'\`/`, `${k} 0`, `a regular expression after the keyword ${k}`], [`o.${k} / 2`, `o.${k} / 2`, `a property named ${k} is not the keyword`])
@@ -420,9 +427,11 @@ function scannerClauses(check) {
     ['new\nDate()', 1, 0], ['fieldDay()', 1, 0], ['fieldDay( )', 1, 0], ['fieldDay ()', 1, 0], ['fieldToday()', 1, 0], ['fieldToday( )', 1, 0],
     ['const NOW = new Date()', 1, 1], ['const NOW = new Date( )', 1, 1], ['const NOW = new  Date()', 1, 1], ['const DAY = fieldDay()', 1, 1], ['const DAY = fieldDay( )', 1, 1], ['const DAY = fieldDay ()', 1, 1],
     ['const DAY = fieldToday( )', 1, 1], ['const later = new Date()', 1, 0], ['const NOW = Date.now()', 1, 0],
-    ['const A = new Date(); const B = fieldDay()', 2, 2], ['const A = new Date(); const b = fieldDay()', 2, 1]]
+    ['const A = new Date(); const B = fieldDay()', 2, 2], ['const A = new Date(); const b = fieldDay()', 2, 1],
+    ['`${fieldDay()}T12`', 1, 0], ['const DAY = `${fieldDay()}T12`', 1, 1], ['`${ `${new Date()}` }`', 1, 0], ['`new Date() ${1}`', 0, 0],
+    ['tag`${/"/.test(y)}` + Date.now()', 1, 0], ['f(x)`${/"/.test(y)}` + Date.now()', 1, 0], ['a[0]`${/"/.test(y)}` + Date.now()', 1, 0]]
   const badForms = FORMS.filter(([src, reads, captures]) => { const c = clockCounts(src); return c.reads !== reads || c.captures !== captures })
-  check(`THESE ${FORMS.length} SPELLINGS OF A CLOCK READ ARE COUNTED (whitespace inside and around the call included), and a capture is a \`const\` in capitals on the same line as new Date(), fieldDay() or fieldToday()`,
+  check(`THESE ${FORMS.length} SPELLINGS OF A CLOCK READ ARE COUNTED (whitespace inside and around the call included, and inside a template expression but not in template text), and a capture is a \`const\` in capitals on the same line as new Date(), fieldDay() or fieldToday()`,
     badForms.length === 0, badForms.map(([src, reads, captures]) => `${src}: ${JSON.stringify(clockCounts(src))}, wanted ${reads} read(s) and ${captures} capture(s)`).join(' / '))
 
   // The comparison itself, on real files: one bare read more than the captures flags the script, balanced reads do not.
