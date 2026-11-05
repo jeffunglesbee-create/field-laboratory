@@ -215,9 +215,9 @@ export class WatchBuild {
   constructor({
     command = 'dotnet', args = ['fable', 'watch', 'src/Laboratory.fsproj', '-c', 'Release', '--outDir', 'build'], cwd = '.', env = process.env,
     outDir = 'build', extraFiles = ['public/index.html'], assemble = () => runSync('node scripts/build-site.mjs'),
-    settleMs = 300, startTimeoutMs = 20000, cycleTimeoutMs = 300000, initialTimeoutMs = 300000, fault = null, onLine = null, onRetry = () => {}, startPauseMs = 3000,
+    settleMs = 300, startTimeoutMs = 20000, cycleTimeoutMs = 300000, initialTimeoutMs = 300000, fault = null, onLine = null, onRetry = () => {}, startPauseMs = 3000, onSpawn = null,
   } = {}) {
-    Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, onRetry, startPauseMs, mode: 'watch', cleanDigest: null, cleanManifest: null, startRepeats: 0 })
+    Object.assign(this, { command, args, cwd, env, outDir, extraFiles, assemble, settleMs, startTimeoutMs, cycleTimeoutMs, initialTimeoutMs, fault, onLine, onRetry, startPauseMs, onSpawn, mode: 'watch', cleanDigest: null, cleanManifest: null, startRepeats: 0 })
     this.tracker = new CycleTracker()
     this.child = null
     this.tail = []
@@ -250,7 +250,11 @@ export class WatchBuild {
   /** One spawn of the watcher and the wait for its first compile. Returns { ok, errors }; a watcher that dies or never finishes still throws. */
   async #startOnce() {
     this.tracker = new CycleTracker(); this.tail = []; this.exit = null
-    this.child = spawn(this.command, this.args, { cwd: this.cwd, env: this.env, stdio: ['ignore', 'pipe', 'pipe'] })
+    // Its own process group (and session), so that one signal to the group reaches the muxer and the compiler under it (`dotnet` starts `fable.dll` as a child) and the pid recorded
+    // below names that group. A terminal's Ctrl-C no longer reaches the watcher: whoever started it stops it (`stop()`).
+    this.child = spawn(this.command, this.args, { cwd: this.cwd, env: this.env, stdio: ['ignore', 'pipe', 'pipe'], detached: true })
+    // Called synchronously, before anything can be awaited: a SIGKILL from here on leaves a process nobody else knows about unless the caller has written it down.
+    this.onSpawn?.(this.child.pid)
     const feed = b => {
       const s = b.toString(); this.onLine?.(s); this.tracker.feed(s)
       for (const l of stripAnsi(s).split('\n')) if (l.trim()) this.tail.push(l.trimEnd())

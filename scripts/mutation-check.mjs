@@ -31,18 +31,18 @@
 //                            the reference. Both make the build CLEAN, and check its digest, before every mutation.
 //
 // And for recovery and for the checks that stand guard over this file:
-//         --heal             undo what a killed run left applied (the same heal every start does first), say so, and stop; runs no mutation
+//         --heal             undo what a killed run left applied, and stop a build driver it left running (what every start does first), say so, and stop; runs no mutation
 //         --anchors          read-only: every mutation's anchor is still in its file, and unique there; non-zero if any is not
 //         --self-test        the heal, the locks, the markers and the scratch-repository runs, on throwaway files in a state directory of their own (the pre-commit hook runs it)
 
 import { execSync, spawn, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, mkdtempSync, readdirSync, rmdirSync, copyFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync, mkdtempSync, readdirSync, rmdirSync, copyFileSync, readlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { join, dirname, resolve } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
-import { isLive, startOf } from './run-marker.mjs'
+import { isLive, startOf, statOf } from './run-marker.mjs'
 import { WatchBuild, FullBuild, digestDir, parseShard, shardOf, verdictOf, stopwatch, compileSteadily, confirmFullCompile } from './mutation-lib.mjs'
 
 const ONLY = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
@@ -1405,8 +1405,8 @@ const MUTATIONS = [
     id: 'lock-taken-after-the-heal',
     file: 'scripts/mutation-check.mjs',
     claim: "a run holds its lock before it heals, so a second run started during the heal is refused",
-    find: "checkLocks(stateDir)\nif (!acquireRunLock()) {",
-    replace: "const healedEarly = healHeld(stateDir)\ncheckLocks(stateDir)\nif (!acquireRunLock()) {",
+    find: "const reapedDriver = await reapDriver(stateDir)\nif (!acquireRunLock()) {",
+    replace: "const reapedDriver = await reapDriver(stateDir)\nconst healedEarly = healHeld(stateDir)\nif (!acquireRunLock()) {",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -1421,8 +1421,8 @@ const MUTATIONS = [
     id: 'clearing-state-takes-the-run-lock',
     file: 'scripts/mutation-check.mjs',
     claim: "clearing a run's state leaves its run lock",
-    find: "    if (entry !== 'run.json') rmSync(join(dir, entry), { recursive: true, force: true })",
-    replace: "    rmSync(join(dir, entry), { recursive: true, force: true })",
+    find: "    if (entry !== 'run.json' && entry !== 'driver.json') rmSync(join(dir, entry), { recursive: true, force: true })",
+    replace: "    if (entry !== 'driver.json') rmSync(join(dir, entry), { recursive: true, force: true })",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -1567,6 +1567,142 @@ const MUTATIONS = [
     claim: "a restarted run that ends green ends the run that started it green",
     find: "  process.exit(again.status ?? 1)",
     replace: "  process.exit(again.status || 1)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'driver-never-recorded',
+    file: 'scripts/mutation-lib.mjs',
+    claim: "the watcher's pid is handed to the harness in the turn it is spawned, so a run killed at any later moment has said where its watcher is",
+    find: "    this.onSpawn?.(this.child.pid)\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'watcher-not-its-own-group',
+    file: 'scripts/mutation-lib.mjs',
+    claim: "the watcher is spawned as the leader of a process group of its own, so one signal to the recorded pid's group reaches the compiler under it",
+    find: "stdio: ['ignore', 'pipe', 'pipe'], detached: true })",
+    replace: "stdio: ['ignore', 'pipe', 'pipe'] })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'driver-record-forgets-its-start',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the record of the build driver carries its start time, so a pid that has been recycled is not mistaken for it",
+    find: "driver: { pid, start: startOf(pid) } }))",
+    replace: "driver: { pid, start: null } }))",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'driver-record-forgets-its-run',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the record of the build driver names the run that started it, so a live run's watcher is not taken for an orphan",
+    find: "JSON.stringify({ run: identity(), driver:",
+    replace: "JSON.stringify({ run: null, driver:",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-never-called',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run stops the build driver a dead run left before it starts one of its own",
+    find: "const reapedDriver = await reapDriver(stateDir)",
+    replace: "const reapedDriver = false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-ignores-the-recorded-run',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build driver whose run is still alive is left alone",
+    find: "  if (rec.run && probes.live(rec.run)) return false\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-trusts-a-recycled-pid',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a pid that now holds a process with another start time is not signalled",
+    find: "d.start !== undefined && d.start !== null && String(d.start) !== s.start",
+    replace: "false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-signals-the-pid-not-the-group',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the build driver is stopped by signalling its process group, not the pid the record names (which may be gone while its child is not)",
+    find: "try { kill(-d.pid, 'SIGTERM') }",
+    replace: "try { kill(d.pid, 'SIGTERM') }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-never-escalates',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build driver that ignores TERM is killed",
+    find: "    try { kill(-d.pid, 'SIGKILL') } catch { /* same */ }\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-signals-every-process',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a record that names pid 1 or 0 is never signalled (a negative pid of -1 is every process the user may signal)",
+    find: "d.pid <= 1) {",
+    replace: "d.pid < 0) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'group-liveness-counts-zombies',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a process group of nothing but zombies has nothing left to stop, so a container whose init never reaps does not wait forever",
+    find: "pgrp === pgid && state !== 'Z' && state !== 'X'",
+    replace: "pgrp === pgid",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reap-skips-the-rebuild',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build driver that was stopped is followed by a build, because the compile it cut off may have left build/ half written",
+    find: "if (reapedDriver && !run('npm run build')) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reap-builds-before-the-heal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the build after a reap runs once the heal has put the source back, so a stranded mutation that does not compile cannot make it fail",
+    find: "const healedAny = healHeld(stateDir)\n",
+    replace: "if (reapedDriver && !run('npm run build')) process.exit(1)\nconst healedAny = healHeld(stateDir)\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stop-leaves-the-record',
+    file: 'scripts/mutation-check.mjs',
+    claim: "stopping the watcher forgets its record, so the next run does not go looking for a process that is gone",
+    find: "  rmSync(driverFile, { force: true })\n  try { rmdirSync(stateDir) }",
+    replace: "  try { rmdirSync(stateDir) }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'clearing-state-removes-the-driver-record',
+    file: 'scripts/mutation-check.mjs',
+    claim: "clearing the state between two mutations keeps the build driver's record, because the watcher is still running",
+    find: "if (entry !== 'run.json' && entry !== 'driver.json') rmSync",
+    replace: "if (entry !== 'run.json') rmSync",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-carries-on-over-a-driver-that-will-not-stop',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build driver that survives TERM and KILL stops the run, because two drivers would write one build/",
+    find: "Stop it by hand, then run this again.`); exit(1); return false }",
+    replace: "Stop it by hand, then run this again.`); return false }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stop-forgets-to-stop-the-watcher',
+    file: 'scripts/mutation-check.mjs',
+    claim: "stopping the build driver signals the watcher, so an ordinary run leaves no process behind",
+    find: "  builder.stop()\n  rmSync(driverFile, { force: true })",
+    replace: "  rmSync(driverFile, { force: true })",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -4702,6 +4838,9 @@ const stateDir = process.argv.includes('--self-test')
   : (process.env.MUTATION_STATE_DIR || '.mutation-state')
 const marker = join(stateDir, 'active.json')
 const runLock = join(stateDir, 'run.json')
+// The build driver this run started and who started it: written the moment the watcher is spawned, kept until it is stopped. Not the marker: the marker exists only while a
+// mutation is applied (the watcher's first compile, about 25 s, is before any), and is cleared between mutations while the watcher keeps running.
+const driverFile = join(stateDir, 'driver.json')
 const backups = new Map()
 let builder = null
 let ownsState = false
@@ -4735,11 +4874,11 @@ const identity = () => ({ pid: process.pid, start: startOf(process.pid), started
 /** Where a world mutation keeps what it moves aside: in the state directory, which a restart does not wipe (`/tmp` does). */
 const stashOf = id => join(stateDir, 'world', id)
 
-/** Everything in a state directory but the run lock: the marker, the backups, the stashes. The lock lasts as long as the run that holds it, so nothing that clears state may take it. */
+/** Everything in a state directory but the run lock and the build driver's record: the marker, the backups, the stashes. The lock lasts as long as the run that holds it, and the record as long as the watcher it names (which outlives every mutation), so nothing that clears state may take either. */
 const emptyEntries = dir => {
   if (!existsSync(dir)) return
   for (const entry of readdirSync(dir)) {
-    if (entry !== 'run.json') rmSync(join(dir, entry), { recursive: true, force: true })
+    if (entry !== 'run.json' && entry !== 'driver.json') rmSync(join(dir, entry), { recursive: true, force: true })
   }
 }
 /** Drop the marker, the backups and the stashes — the tree is known-good from here. The run lock stays: it lasts as long as the run. */
@@ -4937,7 +5076,7 @@ for (const signal of ['exit', 'SIGINT', 'SIGTERM', 'SIGHUP', 'uncaughtException'
     // A listener for uncaughtException replaces Node's own report of it, so without this line a crash exits 1 and says nothing (found 2026-11-04, when a mutated
     // lock check crashed the self-test before its first clause and the only output was the heading).
     if (signal === 'uncaughtException') console.error(err?.stack ?? String(err))
-    restore(); builder?.stop(); if (signal !== 'exit') process.exit(1)
+    restore(); stopBuilder(); if (signal !== 'exit') process.exit(1)
   })
 }
 
@@ -5128,6 +5267,76 @@ const healHeld = (dir, options) => {
 const healIn = (dir, options) => {
   checkLocks(dir, options)
   return healHeld(dir, options)
+}
+
+// --- a build driver a dead run left behind -----------------------------------------------------------------------------------------
+/** Write down who started the watcher, in one synchronous write. */
+const recordDriver = pid => {
+  mkdirSync(stateDir, { recursive: true })
+  // One write. A SIGKILL between the open and the write leaves an empty file, which the next run reads as a record that names nothing and says so (reapDriver).
+  writeFileSync(driverFile, JSON.stringify({ run: identity(), driver: { pid, start: startOf(pid) } }))
+}
+/** Stop the watcher (it has been sent its signal) and forget it. */
+const stopBuilder = () => {
+  if (!builder) return
+  builder.stop()
+  rmSync(driverFile, { force: true })
+  try { rmdirSync(stateDir) } catch { /* the run lock or a marker is still in it */ }
+}
+/** Is any of these `[state, pgrp]` pairs a live process of group `pgid`? A zombie is a process that has finished and not yet been reaped, and nothing is left of it. */
+const groupHasLive = (entries, pgid) => entries.some(([state, pgrp]) => pgrp === pgid && state !== 'Z' && state !== 'X')
+/** Every process's `[state, pgrp]` from /proc, or null where /proc cannot be read (signal 0 to the group is the answer there, and it counts a zombie). */
+const procGroups = () => {
+  try {
+    return readdirSync('/proc').filter(d => /^\d+$/.test(d)).flatMap(d => {
+      try {
+        const text = readFileSync(`/proc/${d}/stat`, 'utf8')
+        const f = text.slice(text.lastIndexOf(')') + 2).split(' ')
+        return [[f[0], Number(f[2])]]
+      } catch { return [] }
+    })
+  } catch { return null }
+}
+const groupAlive = pgid => {
+  const all = procGroups()
+  if (all !== null) return groupHasLive(all, pgid)
+  try { process.kill(-pgid, 0); return true } catch (e) { return e.code === 'EPERM' }
+}
+/**
+ * The build driver a run that is dead left running. A SIGKILL runs no handler, so `dotnet fable watch` is still there, writing build/, with nothing to say so (measured
+ * 2026-11-05 on the real Fable 5.13.0: parent pid 1, the compiler under it at about 490 MB). The run that started it recorded the group in driver.json; the next run stops it
+ * BEFORE it starts a driver of its own.
+ *
+ * Only the recorded run's death makes it an orphan (a live run's driver is that run's), and a pid that now holds a different process (another start time) is not ours.
+ * The group is signalled, not the pid: `dotnet` starts the compiler as a child and a signal to the parent alone can leave it. TERM first, KILL if it persists.
+ * Returns true if it stopped one, because the compile it cut off may have left build/ half written.
+ */
+const reapDriver = async (dir, { probes = healProbes, log = console.log, kill = process.kill, alive = groupAlive, stat = statOf, graceMs = 10_000, killMs = 2000, exit = process.exit } = {}) => {
+  const file = join(dir, 'driver.json')
+  if (!existsSync(file)) return false
+  let rec = null
+  try { rec = JSON.parse(readFileSync(file, 'utf8')) } catch { rec = null }
+  const d = rec?.driver
+  // `kill(-1)` signals every process the user may signal, and pid 0 is this run's own group: a record that names either is not a record of a watcher.
+  if (!d || !Number.isInteger(d.pid) || d.pid <= 1) {
+    log(`::warning::${file} does not name a build driver (it does not parse, or names no process), so a watcher it was meant to record may still be running. Look for \`dotnet fable watch\` and stop it.`)
+    rmSync(file, { force: true })
+    return false
+  }
+  if (rec.run && probes.live(rec.run)) return false
+  const s = stat(d.pid)
+  // (A zombie needs no clause of its own here: a zombie of the recorded host keeps its start time, and while any process of the group lives its id cannot be handed to another process.)
+  const recycled = s !== null && d.start !== undefined && d.start !== null && String(d.start) !== s.start
+  if (recycled || !alive(d.pid)) { rmSync(file, { force: true }); return false }
+  const gone = async ms => { for (let waited = 0; waited < ms && alive(d.pid); waited += 50) await new Promise(r => setTimeout(r, 50)); return !alive(d.pid) }
+  log(`\n  A previous run was killed with its build driver still running (process group ${d.pid}). Stopping it before this run starts one of its own.`)
+  try { kill(-d.pid, 'SIGTERM') } catch { /* gone between the check and the signal */ }
+  if (!(await gone(graceMs))) {
+    try { kill(-d.pid, 'SIGKILL') } catch { /* same */ }
+    if (!(await gone(killMs))) { log(`::error::${file} names process group ${d.pid}, a build driver of a run that is dead, and it did not stop. Two drivers would write one build/. Stop it by hand, then run this again.`); exit(1); return false }
+  }
+  rmSync(file, { force: true })
+  return true
 }
 
 const { check, summarize } = createChecks()
@@ -5966,9 +6175,167 @@ if (process.argv.includes('--self-test')) {
     check('E20: A TREE THAT CANNOT BE READ IS NOT "NOTHING TO HEAL": the run stops and says so, and the stubs, the state and the stash are all still there',
       hu.status === 1 && /could not be checked against the tree/.test(text(hu)) && Object.keys(writeUps).every(p => read(join(repo, p)) === 'stub\n') && stateLeft() && Object.keys(writeUps).every(p => read(join(stash, p.split('/').pop())) === writeUps[p]),
       `status ${hu.status}; ${text(hu).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 200)}`)
+    // E22: THE WATCHER A KILLED RUN LEAVES. A stand-in for `dotnet` (a shell that starts the compiler as a child and forwards TERM to it, as the real host does: measured by hand on the real
+    // Fable 5.13.0, 2026-11-05, where a TERM to the host took the compiler with it) runs the stand-in watcher fixture under the REAL harness. It stands for the dotnet host and for fable.dll's
+    // process, and for nothing of Fable's own output or timing, or of its running on after the harness that read its pipe is gone (seen on the real one, not asserted here). The watcher
+    // is found by /proc, so none of this is asserted without it.
+    if (haveProc) {
+      const drepo = join(scratch, 'e22-repo')
+      for (const d of ['scripts', 'src', 'bin']) mkdirSync(join(drepo, d), { recursive: true })
+      for (const f of ['mutation-check.mjs', 'checks.mjs', 'mutation-lib.mjs', 'run-marker.mjs']) copyFileSync(join(dirname(here), f), join(drepo, 'scripts', f))
+      copyFileSync(join(dirname(here), 'fixtures', 'fake-fable-watch.mjs'), join(drepo, 'scripts', 'fake-fable-watch.mjs'))
+      const original = 'module Pickem\nlet f home away =\n        if home = away then None\n        else Some 1\n'
+      writeFileSync(join(drepo, 'src', 'Pickem.fs'), original)
+      // `draw`'s expectation fails while the mutation is in the source; `npm run build` records whether it succeeded and refuses the mutated source, as a mutation the compiler refuses does.
+      writeFileSync(join(drepo, 'scripts', 'pickem-check.mjs'), "import { readFileSync } from 'node:fs'\nprocess.exit(readFileSync('src/Pickem.fs', 'utf8').includes('if false then None') ? 1 : 0)\n")
+      writeFileSync(join(drepo, 'scripts', 'build-site.mjs'), '')
+      writeFileSync(join(drepo, 'scripts', 'fake-build.mjs'),
+        "import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'\nconst src = readFileSync('src/Pickem.fs', 'utf8')\nconst ok = !src.includes('if false then None')\n"
+        + "appendFileSync('.build-log', ok ? 'ok\\n' : 'failed\\n')\nif (!ok) { console.error('the fake build refused the mutated source'); process.exit(1) }\nmkdirSync('build', { recursive: true })\nwriteFileSync('build/Out.js', 'compiled:' + src)\n")
+      // The stand-in watcher dies on its first write after the harness is gone, where the real compiler was measured to run on: it ignores that.
+      writeFileSync(join(drepo, 'scripts', 'keep-running.cjs'), "process.stdout.on('error', () => {}); process.stderr.on('error', () => {})\n")
+      writeFileSync(join(drepo, 'package.json'), JSON.stringify({ name: 'scratch', private: true, scripts: { build: 'node scripts/fake-build.mjs' } }))
+      writeFileSync(join(drepo, 'bin', 'dotnet'), '#!/bin/sh\nnode -r ./scripts/keep-running.cjs scripts/fake-fable-watch.mjs src/Pickem.fs build &\nchild=$!\ntrap \'kill $child; wait $child; exit 0\' TERM\nwait $child\n', { mode: 0o755 })
+      writeFileSync(join(drepo, '.gitignore'), '.mutation-state/\n.build-log\nbuild/\n')
+      const dgit = cmd => execSync(`git ${cmd}`, { cwd: drepo, stdio: 'pipe', encoding: 'utf8' })
+      dgit('init -q'); dgit('config user.email t@t'); dgit('config user.name t'); dgit('add -A'); dgit('commit -qm base')
+      const denv = (extra = {}) => ({ ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', PATH: `${join(drepo, 'bin')}:${process.env.PATH}`, ...extra })
+      const dgo = (args, extra) => spawnSync(process.execPath, ['scripts/mutation-check.mjs', ...args], { cwd: drepo, encoding: 'utf8', timeout: 60_000, env: denv(extra) })
+      const dtext = r => `${r.stdout}${r.stderr}`
+      const dread = f => (existsSync(join(drepo, f)) ? readFileSync(join(drepo, f), 'utf8') : null)
+      const dbuilds = () => (dread('.build-log') ?? '').split('\n').filter(Boolean)
+      const dreset = () => { rmSync(join(drepo, '.build-log'), { force: true }); rmSync(join(drepo, '.mutation-state'), { recursive: true, force: true }); dgit('checkout -q -- .') }
+      // Every live process whose working directory is the scratch repository and that is the stand-in or the watcher under it (a zombie is nothing).
+      const watchers = () => readdirSync('/proc').filter(d => /^\d+$/.test(d)).flatMap(pid => {
+        try {
+          if (readlinkSync(`/proc/${pid}/cwd`) !== drepo) return []
+          const cmd = readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0').join(' ').trim()
+          const stat = readFileSync(`/proc/${pid}/stat`, 'utf8')
+          return stat.slice(stat.lastIndexOf(')') + 2).startsWith('Z') || !/fake-fable-watch|bin\/dotnet/.test(cmd) ? [] : [{ pid: Number(pid), parent: !/fake-fable-watch/.test(cmd) }]
+        } catch { return [] }
+      })
+      const stopAll = () => { for (const w of watchers()) { try { process.kill(w.pid, 'SIGKILL') } catch { /* gone */ } } }
+      const pause = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms)
+      const waitFor = (what, ms = 8000) => { for (let waited = 0; waited < ms; waited += 10) { const v = what(); if (v) return v; pause(10) } return null }
+      const recordOf = () => { try { return JSON.parse(dread('.mutation-state/driver.json')) } catch { return null } }
+      // Start the harness, wait until the compiler has exec'd, then kill the harness: its watcher is left running, as a SIGKILL leaves it. The wait is for the process, not for the record,
+      // so that code which writes no record still gets its watcher stranded and fails the clause for that reason (the record is written in the turn the watcher is spawned, so it is there
+      // long before the compiler is; the short wait for it is for a slow disk). With `killParent` the stand-in under it is killed too, so that the compiler is left alone in its process group.
+      const strand = killParent => {
+        const run = spawn(process.execPath, ['scripts/mutation-check.mjs', '--only', 'draw'], { cwd: drepo, env: denv(), stdio: 'ignore' })
+        waitFor(() => watchers().some(w => !w.parent))
+        const recorded = waitFor(recordOf, 300)
+        const markerThen = existsSync(join(drepo, '.mutation-state', 'active.json'))
+        process.kill(run.pid, 'SIGKILL')
+        const standIn = watchers()
+        const parent = standIn.find(w => w.parent)
+        if (killParent && parent) process.kill(parent.pid, 'SIGKILL')
+        // Gone: the run (a zombie reads as dead, run-marker.mjs) and, if asked, the stand-in.
+        waitFor(() => !isLive({ pid: run.pid, start: recorded?.run?.start }) && (!killParent || !watchers().some(w => w.parent)))
+        return { run, recorded, markerThen, standIn, parent, left: watchers() }
+      }
+      try {
+        // (1) A run killed during the watcher's FIRST compile, which is before any marker exists (the first mutation writes it), and then the PARENT of the watcher killed too, so the compiler
+        // is left in its process group with nothing above it. Only the record says it is there.
+        const one = strand(true)
+        check('E22: A RUN KILLED DURING THE WATCHER\'S FIRST COMPILE LEAVES THE WATCHER RUNNING WITH NO MARKER, BUT WITH A RECORD NAMING ITS PARENT, ITS START TIME AND THE RUN THAT STARTED IT (and with the parent killed, the compiler is left alone in the group)',
+          !one.markerThen && one.recorded !== null && one.recorded.driver?.pid === one.parent?.pid && one.recorded.run?.pid === one.run.pid && typeof one.recorded.driver?.start === 'string' && one.standIn.length === 2 && one.left.length === 1 && !one.left[0].parent,
+          `marker ${one.markerThen}; record ${JSON.stringify(one.recorded)}; stand-in ${JSON.stringify(one.standIn)}; after the parent was killed ${JSON.stringify(one.left)}`)
+        const healed = dgo(['--heal'])
+        const said1 = dtext(healed)
+        check('E22: ...and the next run stops the compiler (the whole group: the record names a parent that is gone), says so, builds once because the compile it cut off may have left build/ half written, and forgets the record',
+          healed.status === 0 && watchers().length === 0 && /Stopping it before this run starts one of its own/.test(said1) && dbuilds().join() === 'ok' && dread('.mutation-state/driver.json') === null,
+          `status ${healed.status}; watchers left ${JSON.stringify(watchers())}; builds ${dbuilds().join()}; record ${dread('.mutation-state/driver.json')}; ${said1.split('\n').filter(l => /Stopping|::error::/.test(l)).join(' | ').slice(0, 200)}`)
+        stopAll(); dreset()
+
+        // (2) The same, with a mutation stranded as well (the premise run's state: `MUTATION_KILL_AT=source-applied` leaves a marker, the mutated file and a live watcher; planted here, in
+        // the shape sourceMarker writes, because a real kill there costs 1.5 s of every self-test), and the stand-in left running above its compiler. The mutated source does not build in this
+        // fixture, as a mutation the compiler refuses does, so a build made before the heal has put the file back fails and the run refuses with a command that cannot pass.
+        const two = strand(false)
+        const mutatedSrc = original.replace('if home = away then None', 'if false then None')
+        mkdirSync(join(drepo, '.mutation-state'), { recursive: true })
+        writeFileSync(join(drepo, '.mutation-state', 'src_Pickem.fs'), original)
+        writeFileSync(join(drepo, 'src', 'Pickem.fs'), mutatedSrc)
+        writeFileSync(join(drepo, '.mutation-state', 'active.json'), JSON.stringify({ id: 'draw', file: 'src/Pickem.fs', backup: '.mutation-state/src_Pickem.fs', originalSha: sha(original), mutatedSha: sha(mutatedSrc), rebuild: true, ...DEAD }))
+        const healB = dgo(['--heal'])
+        const said2 = dtext(healB)
+        const builds2 = dbuilds()
+        check('E22: ...and a stranded mutation is healed by the same run: the watcher and its stand-in are both stopped, the file is back, and every build made is of the restored source (a build of the mutated one fails here)',
+          two.left.length === 2 && healB.status === 0 && watchers().length === 0 && dread('src/Pickem.fs') === original && /HEALED/.test(said2) && /Stopping it before/.test(said2)
+            && builds2.length >= 1 && !builds2.includes('failed') && dread('build/Out.js') === `compiled:${original}` && dread('.mutation-state/driver.json') === null && dread('.mutation-state/active.json') === null,
+          `watchers before ${two.left.length}, after ${watchers().length}; status ${healB.status}; builds ${builds2.join()}; file back ${dread('src/Pickem.fs') === original}; ${said2.split('\n').filter(l => /Stopping|HEALED|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+      } finally {
+        stopAll()
+      }
+    } else {
+      console.log('  (E22 was not asserted: /proc cannot be read here, and it finds the watcher by it)')
+    }
     reset()
   } else {
     console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
+  }
+
+  // THE BUILD DRIVER A DEAD RUN LEFT (reapDriver): each branch against fakes, in a directory of its own.
+  {
+    const dir = join(scratch, 'driver-units')
+    const plant = rec => { rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true }); writeFileSync(join(dir, 'driver.json'), typeof rec === 'string' ? rec : JSON.stringify(rec)) }
+    const rec = (pid = 4242, start = '111', run = DEAD) => ({ run, driver: { pid, start } })
+    // `ends` is the signal that makes the fake group go away; `graceMs`/`killMs` are 0 so a clause that is meant to wait for nothing waits for nothing.
+    const reap = async (record, { live = false, stat = () => null, ends = null } = {}) => {
+      plant(record)
+      const sent = []
+      const logged = []
+      let exited = null, up = true
+      const kill = (pid, sig) => { sent.push(`${sig}@${pid}`); if (ends === sig) up = false }
+      const out = await reapDriver(dir, { probes: { ...healProbes, live: () => live }, log: t => logged.push(t), kill, alive: () => up, stat, graceMs: 0, killMs: 0, exit: c => { exited = c } })
+      return { out, sent, exited, logged, kept: existsSync(join(dir, 'driver.json')) }
+    }
+    const a = await reap(rec(), { stat: () => ({ state: 'S', start: '999' }) })
+    check('REAP: a pid that now holds a process with another start time is not ours: nothing is signalled and the record is dropped',
+      a.sent.length === 0 && a.out === false && !a.kept, JSON.stringify(a))
+    const b = await reap(rec(), { live: true })
+    check('REAP: a driver whose run is still running is that run\'s, not an orphan: nothing is signalled and the record stays',
+      b.sent.length === 0 && b.out === false && b.kept, JSON.stringify(b))
+    const c = await reap(rec(), { stat: () => null, ends: 'SIGTERM' })
+    check('REAP: a dead parent with its child still in the group is stopped by signalling the GROUP (a negative pid), TERM only, and the record is dropped',
+      JSON.stringify(c.sent) === '["SIGTERM@-4242"]' && c.out === true && !c.kept, JSON.stringify(c))
+    const d = await reap(rec(), { stat: () => ({ state: 'S', start: '111' }), ends: 'SIGKILL' })
+    check('REAP: a driver that ignores TERM is killed: TERM, then KILL, both to the group',
+      JSON.stringify(d.sent) === '["SIGTERM@-4242","SIGKILL@-4242"]' && d.out === true && !d.kept, JSON.stringify(d))
+    const e = await reap(rec(), { stat: () => ({ state: 'S', start: '111' }) })
+    check('REAP: a driver that survives KILL stops the run and keeps the record (two drivers would write one build/)',
+      e.exited === 1 && e.sent.length === 2 && e.kept && e.logged.some(l => /did not stop/.test(l)), JSON.stringify(e))
+    const f = await reap(rec(1), { stat: () => ({ state: 'S', start: '111' }) })
+    const g = await reap(rec(0))
+    const h = await reap('{not json')
+    check('REAP: a record that names pid 1 or 0, or does not parse (3 shapes), signals nothing (-1 is every process the user may signal) and is dropped with a warning',
+      [f, g, h].every(x => x.sent.length === 0 && !x.kept && x.logged.some(l => /does not name a build driver/.test(l))), JSON.stringify({ f, g, h }))
+    check('REAP: a process group is alive only while a process in it is not a zombie (4 groups)',
+      groupHasLive([['S', 7], ['Z', 42], ['S', 8]], 42) === false && groupHasLive([['Z', 42], ['S', 42]], 42) === true && groupHasLive([], 42) === false && groupHasLive([['X', 42]], 42) === false, 'a group of nothing but zombies has nothing left to stop')
+    rmSync(dir, { recursive: true, force: true }); mkdirSync(dir, { recursive: true })
+    const nothing = []
+    check('REAP: a directory with no driver record has nothing to stop, and says nothing about it', (await reapDriver(dir, { log: t => nothing.push(t) })) === false && nothing.length === 0, `driver.json is absent; said ${JSON.stringify(nothing)}`)
+    // The record outlives a clear and a heal (the watcher outlives a mutation), and goes when the watcher is stopped.
+    writeFileSync(join(dir, 'driver.json'), '{}'); writeFileSync(join(dir, 'active.json'), '{}')
+    emptyEntries(dir)
+    check('REAP: clearing the state (between two mutations) keeps the driver record, because the watcher is still running',
+      existsSync(join(dir, 'driver.json')) && !existsSync(join(dir, 'active.json')), `driver.json kept ${existsSync(join(dir, 'driver.json'))}, marker gone ${!existsSync(join(dir, 'active.json'))}`)
+    mkdirSync(stateDir, { recursive: true })
+    recordDriver(process.pid)
+    const written = JSON.parse(readFileSync(driverFile, 'utf8'))
+    rmSync(driverFile, { force: true })
+    check('REAP: the record names the process it was given with its start time, and the run that wrote it',
+      written.driver.pid === process.pid && written.run?.pid === process.pid && (!haveProc || written.driver.start === startOf(process.pid)), JSON.stringify(written))
+    // Stopping the watcher signals it, forgets the record, and leaves no empty state directory behind (the record was all that kept `releaseRunLock`'s rmdir from removing it).
+    const savedBuilder = builder
+    let stopped = 0
+    builder = { stop: () => { stopped++ } }
+    rmSync(stateDir, { recursive: true, force: true }); mkdirSync(stateDir, { recursive: true }); writeFileSync(driverFile, '{}')
+    stopBuilder()
+    const droppedRecord = !existsSync(driverFile)
+    const droppedDir = !existsSync(stateDir)
+    builder = savedBuilder
+    check('REAP: stopping the watcher signals it, forgets the record, and removes the state directory the record was keeping', stopped === 1 && droppedRecord && droppedDir, `stop called ${stopped} time(s), record dropped ${droppedRecord}, directory dropped ${droppedDir}`)
   }
 
   const fixture = [{ id: 'live', file: 'a', find: 'x', replace: 'y' }, { id: 'stale', file: 'a', find: 'gone', replace: 'y' }, { id: 'world', mutate: 'z' }]
@@ -6042,11 +6409,21 @@ if (process.argv.includes('--self-test')) {
 const RESTARTED = process.env.MUTATION_REEXEC === '1'
 delete process.env.MUTATION_REEXEC
 checkLocks(stateDir)
+// A watcher a dead run left running is stopped before this run starts one of its own (two would write one build/). After checkLocks, which has refused a live run: a live run's
+// watcher is that run's.
+const reapedDriver = await reapDriver(stateDir)
 if (!acquireRunLock()) {
   console.log(`::error::${runLock} appeared while this run was starting: another mutation run holds this state directory. It would read this run's mutated files as its own originals, so this one stops. Nothing was touched.`)
   process.exit(1)
 }
 const healedAny = healHeld(stateDir)
+// A watcher that was stopped may have been stopped in the middle of a compile, and build/ is whole only after a full build (the same rule the heal follows for a source file:
+// measured 2026-11-05, the next run's start refused with "the watched initial compile is not the build that was there"). AFTER the heal, so that the source is the original: a
+// stranded mutation that does not compile would fail this build and send a person to run by hand a command that cannot pass until the heal has run.
+if (reapedDriver && !run('npm run build')) {
+  console.log(`::error::a build driver left by a killed run was stopped, and \`npm run build\` failed (${lastFailure}), so build/ may be half written. Run it by hand, then run this again.`)
+  process.exit(1)
+}
 if (process.argv.includes('--heal')) {
   console.log(healedAny ? '\n  Healed. The tree is as it was before the killed run.' : '\n  Nothing to heal: no run left a mutation applied.')
   process.exit(0)
@@ -6200,7 +6577,7 @@ const startBuilder = async () => {
   if (builder) return
   if (process.env.MUTATION_BUILDER_ACTIVE) fatal('a harness run inside a harness run may not start a second build driver: two would write one build/')
   const existing = existsSync('build') ? digestDir('build', ['public/index.html']) : null
-  builder = BUILD_MODE === 'full' ? new FullBuild({ fault: MUTATION_FAULT }) : new WatchBuild({ fault: MUTATION_FAULT, onRetry: retryNote('the build driver', 'starting') })
+  builder = BUILD_MODE === 'full' ? new FullBuild({ fault: MUTATION_FAULT }) : new WatchBuild({ fault: MUTATION_FAULT, onRetry: retryNote('the build driver', 'starting'), onSpawn: recordDriver })
   try {
     const started = await builder.start(BUILD_MODE === 'watch' ? { expectDigest: existing } : {})
     console.log(`  build driver: ${BUILD_MODE}, ready in ${started.ms} ms, clean digest ${started.digest}`)
@@ -6438,7 +6815,7 @@ for (const m of selected) {
 restore()
 if (builder) {
   try { builder.assertClean('the end of the run') } catch (e) { check('the build is clean at the end of the run', false, e.message) }
-  builder.stop()
+  stopBuilder()
 }
 
 if (OUT) {
