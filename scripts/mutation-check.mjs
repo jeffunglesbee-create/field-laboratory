@@ -1778,6 +1778,22 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: "self-test-reads-the-real-day",
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's write-ups and the world mutations that act on them agree on what day it is: both read the one the stand-in gives, not the clock twice (midnight ET between the two reads failed 16 clauses)",
+    find: "PATH: `${bin}:${process.env.PATH}`, ",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: "self-test-date-stand-in-answers-only-the-day",
+    file: 'scripts/mutation-check.mjs',
+    claim: "the stand-in for date answers the one question it stands in for and passes every other to the real date, so the fault that asks for a timestamp still gets one",
+    find: "PATH=\\${PATH#${bin}:}\\nexec date \"$@\"\\n",
+    replace: "echo stand-in >&2; exit 2\\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'rebuild-refusal-after-a-restore-offers-to-delete-the-state',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal over a failed rebuild after a restore does not tell a person to delete the state that is the only record of the build",
@@ -5919,7 +5935,14 @@ if (process.argv.includes('--self-test')) {
 
     // A scratch git repository with the files three real table entries act on, and the real script copied in. The runs below are real
     // processes, killed with SIGKILL at a chosen moment (MUTATION_KILL_AT), and then a second run heals.
-    const day = execSync('TZ=America/New_York date +%F', { encoding: 'utf8' }).trim()
+    // The write-ups are named for a day, and the two world mutations that act on them ask `date` which day it is. A day read once here and again by the mutation went red when midnight ET
+    // fell between the two (measured 2026-11-05 with a stand-in `date` that rolled the day on its second answer: 16 clauses, E3 to E24 among them). So both read one day: a constant that
+    // is not today, and a `date` first on the PATH of every run `go` starts that answers the question `+%F` with it. A run that did not get the stand-in would find no write-up and fail.
+    // Anything else asked of `date` (the `expect-writes-unrelated` fault asks for `+%s%N`) is the real one's: the stand-in drops its own directory from PATH and runs it.
+    const day = '2000-01-01'
+    const bin = join(scratch, 'bin')
+    mkdirSync(bin)
+    writeFileSync(join(bin, 'date'), `#!/bin/sh\nif [ "$#" = 1 ] && [ "$1" = "+%F" ]; then echo ${day}; exit 0; fi\nPATH=\${PATH#${bin}:}\nexec date "$@"\n`, { mode: 0o755 })
     const repo = join(scratch, 'e2e-repo')
     mkdirSync(join(repo, 'scripts'), { recursive: true })
     mkdirSync(join(repo, 'docs'))
@@ -5953,7 +5976,7 @@ if (process.argv.includes('--self-test')) {
     const buildsRun = () => (existsSync(join(repo, '.build-log')) ? readFileSync(join(repo, '.build-log'), 'utf8').split('\n').filter(Boolean).length : 0)
     // MUTATION_SELFTEST_CHILD for everything started here: a run that is NOT the mode it was asked for (a mutated copy that ignores `--heal` or `--only` falls into the whole
     // suite, whose baseline runs `--self-test`, whose group E starts these runs again) would otherwise recurse until the timeouts end it. Found when `no-heal-mode` did exactly that.
-    const go = (args, env = {}) => spawnSync(process.execPath, ['scripts/mutation-check.mjs', ...args], { cwd: repo, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', ...env } })
+    const go = (args, env = {}) => spawnSync(process.execPath, ['scripts/mutation-check.mjs', ...args], { cwd: repo, encoding: 'utf8', timeout: 120_000, env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, ...clean, MUTATION_SELFTEST_CHILD: '1', ...env } })
     const text = r => `${r.stdout}${r.stderr}`
     const markerOf = () => JSON.parse(readFileSync(join(repo, '.mutation-state', 'active.json'), 'utf8'))
     const stateLeft = () => existsSync(join(repo, '.mutation-state', 'active.json'))
@@ -6189,9 +6212,11 @@ if (process.argv.includes('--self-test')) {
     // E15: a file nobody asked for, written while a world mutation is applied, is not "the restore failed".
     reset()
     const ku = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-writes-unrelated' })
+    // The fault writes `date +%s%N`. A `date` that did not run (the stand-in above exits 2 if it does not pass this question through) still leaves the file, empty: the redirect creates it.
+    const unrelatedStamp = read(join(repo, 'unrelated-during-window.txt')).trim()
     check('E15: AN UNRELATED FILE WRITTEN WHILE A WORLD MUTATION IS APPLIED DOES NOT ABORT A HEALTHY RUN: the write-ups are back, the state is gone, and no restore failure is reported',
-      writeUpsBack() && existsSync(join(repo, 'unrelated-during-window.txt')) && !existsSync(join(repo, '.mutation-state')) && !/did not return what the mutation touched/.test(text(ku)) && !/deleted or changed this run's own state/.test(text(ku)),
-      `write-ups back ${writeUpsBack()}, the fault ran ${existsSync(join(repo, 'unrelated-during-window.txt'))}, state gone ${!existsSync(join(repo, '.mutation-state'))}; ${text(ku).split('\n').filter(l => /::error::|did not return/.test(l)).join(' | ').slice(0, 200)}`)
+      writeUpsBack() && /^\d{10,}$/.test(unrelatedStamp) && !existsSync(join(repo, '.mutation-state')) && !/did not return what the mutation touched/.test(text(ku)) && !/deleted or changed this run's own state/.test(text(ku)),
+      `write-ups back ${writeUpsBack()}, the fault wrote ${JSON.stringify(unrelatedStamp)}, state gone ${!existsSync(join(repo, '.mutation-state'))}; ${text(ku).split('\n').filter(l => /::error::|did not return/.test(l)).join(' | ').slice(0, 200)}`)
 
     // E16: a world mutation that changes nothing is reported as a broken mutation and leaves nothing behind.
     reset()
