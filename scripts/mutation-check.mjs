@@ -1915,6 +1915,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'test-hook-announces-nothing',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a test-only hook that is set (a fault, a moment to be killed at, a lower output limit) is named on stderr before the run starts, so a leftover export in a shell is not a mystery",
+    find: "  if (process.env[name]) console.error(`test hook active: ${name}=${process.env[name]}`)\n",
+    replace: "  void name\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-mutated-hook-dropped',
     file: 'scripts/mutation-check.mjs',
     claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
@@ -9286,6 +9294,15 @@ if (process.argv.includes('--self-test')) {
       kfl.status === 0 && /PASS\s+\[known-survivor\]/.test(text(kfl)) && !/ended by/.test(text(kfl)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
       `status ${kfl.status}; ${text(kfl).split('\n').filter(l => /PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
     reset()
+    // A test hook that is set is NAMED on stderr before the run does anything, and the run goes on. The three hooks below do nothing but exist (a fault that only reports the environment, a moment no
+    // run reaches, a limit equal to the default), so the run is an ordinary one with three hooks set; the control is the same run with none.
+    const khk = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-reports-env', MUTATION_KILL_AT: 'nowhere', MUTATION_OUTPUT_LIMIT: String(256 * 1024 * 1024) })
+    const kno = go(['--only', 'known-survivor'])
+    const announced = ['MUTATION_FAULT=expect-reports-env', 'MUTATION_KILL_AT=nowhere', `MUTATION_OUTPUT_LIMIT=${256 * 1024 * 1024}`]
+    check('E24: A TEST HOOK THAT IS SET IS NAMED ON STDERR BEFORE THE RUN STARTS, AND THE RUN GOES ON: `test hook active: <name>=<value>` for each of 3 hooks (MUTATION_FAULT, MUTATION_KILL_AT, MUTATION_OUTPUT_LIMIT), none on stdout, and none in the control run that sets no hook',
+      announced.every(h => khk.stderr.includes(`test hook active: ${h}\n`)) && !khk.stdout.includes('test hook active') && /Mutation testing/.test(khk.stdout) && !/test hook active/.test(text(kno)) && /Mutation testing/.test(kno.stdout),
+      `with hooks: stderr ${JSON.stringify(String(khk.stderr).slice(0, 220))}, ran ${/Mutation testing/.test(khk.stdout)}; without: ${JSON.stringify(text(kno).split('\n').filter(l => /test hook/.test(l)))}`)
+    reset()
 
     // E25: a self-test that crashes leaves none of the directories it made. Git is made to fail (a stand-in first on PATH), which is how the crash was found: the crash is at the first git
     // call of the scratch repository, about 0.1 s in, with the scratch directory and the state directory (two mkdtemp calls) already made. The child's TMPDIR is an empty directory, so
@@ -9586,6 +9603,13 @@ const RESTARTED = process.env.MUTATION_REEXEC === '1'
 delete process.env.MUTATION_REEXEC
 /** The name a source mutation's backup has in the state directory: the file's path with its slashes flattened. One definition for the run that writes it and the guard that must recognise it. */
 const backupName = file => file.replace(/\//g, '_')
+// The test-only hooks (a fault, a moment to be killed at, a lower output limit) are read by any run, and the self-test is the only thing that should set them. One left exported in a developer's shell
+// makes a real run die or stop with a cause that does not point at the environment (review 6, 2026-11-05: MUTATION_FAULT=expect-interrupted printed only "ended by SIGINT"; MUTATION_KILL_AT=source-applied
+// exited 137 with docs/gate-rows.txt left mutated). So each one that is set is named, on stderr, before anything is touched. Named and not refused: a manual kill drill on the real tree sets them on purpose.
+// (MUTATION_KILL_SIGNAL is not in the list: it only chooses the signal MUTATION_KILL_AT sends, and does nothing alone.)
+for (const name of ['MUTATION_FAULT', 'MUTATION_KILL_AT', 'MUTATION_OUTPUT_LIMIT']) {
+  if (process.env[name]) console.error(`test hook active: ${name}=${process.env[name]}`)
+}
 // A state directory is the harness's to empty: clearActive() removes everything in it but the run lock, the build driver's record and a nested run's state. A MUTATION_STATE_DIR that already
 // holds something this harness did not write would lose it at the first clear (measured 2026-11-05: a directory with two files was gone after one `--only known-survivor`). So only a directory
 // that is absent, empty, or holds one of the five names this harness gives its own entries, or the backup of a file it mutates, is used (a child harness run's `nested` directory holds only such names).
