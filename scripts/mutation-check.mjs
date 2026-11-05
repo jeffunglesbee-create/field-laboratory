@@ -1248,6 +1248,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'heal-looks-at-the-top-state-before-the-nested-one',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a parent's and a nested run's marker over one file are healed child first, so the child's change comes off the parent's mutation and then the parent's comes off the original",
+    find: "  const nested = healAt(join(dir, 'nested'), options)\n  return healAt(dir, options) || nested",
+    replace: "  const top = healAt(dir, options)\n  return healAt(join(dir, 'nested'), options) || top",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'marker-forgets-the-mutated-hash',
     file: 'scripts/mutation-check.mjs',
     claim: "a source marker records what the file becomes under the mutation",
@@ -1592,6 +1600,14 @@ const MUTATIONS = [
     claim: "a refusal over many touched paths says how many it left out of the list",
     find: "${ks.slice(0, 6).join(', ')}${ks.length > 6 ? `, and ${ks.length - 6} more` : ''}",
     replace: "${ks.slice(0, 6).join(', ')}",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refusal-drops-the-seventh-path',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal over seven touched paths counts the seventh as 'and 1 more' instead of leaving it out of the list and the count",
+    find: "ks.length > 6 ? `, and",
+    replace: "ks.length > 7 ? `, and",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -2064,6 +2080,30 @@ const MUTATIONS = [
     claim: "the refusal of a state directory that holds files the harness did not write says what to give instead: one that is absent or empty",
     find: "give MUTATION_STATE_DIR one that is absent or empty. Nothing was touched.",
     replace: "Nothing was touched.",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refuses-a-lone-stash',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that holds only a stash (`world`) is used, so the run after a kill between making the stash and writing its marker is not wedged",
+    find: "['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h)",
+    replace: "['active.json', 'run.json', 'driver.json', 'nested'].includes(h)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-names-too-few',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal of a state directory names four of the entries it found, not three",
+    find: "holds.slice(0, 4)",
+    replace: "holds.slice(0, 3)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-counts-the-fifth-wrong',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal of a state directory marks a list cut at four with an ellipsis from the fifth entry, not the sixth",
+    find: "holds.length > 4 ? ', ...' : ''",
+    replace: "holds.length > 5 ? ', ...' : ''",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -8127,10 +8167,13 @@ if (process.argv.includes('--self-test')) {
   }
   const SIX = Array.from({ length: 6 }, (_, i) => `out/p${i}.md`).join(', ')
   const wEightRun = editedRun(8)
+  const wSevenRun = editedRun(7)
   const wSixRun = editedRun(6)
-  check('THE REFUSAL NAMES SIX PATHS AND COUNTS THE REST: of 8 edited paths it lists the first six and "and 2 more" and not the seventh; of exactly 6 it lists the six and no count',
-    wEightRun.code === 1 && wEightRun.said.includes(`(${SIX}, and 2 more)`) && !wEightRun.said.includes('out/p6.md') && wSixRun.code === 1 && wSixRun.said.includes(`(${SIX})`) && !/and \d+ more/.test(wSixRun.said),
-    `8 paths: ${wEightRun.said.slice(0, 260)} / 6 paths: ${wSixRun.said.slice(0, 260)}`)
+  check('THE REFUSAL NAMES SIX PATHS AND COUNTS THE REST: of 8 edited paths it lists the first six and "and 2 more" and not the seventh; of 7 the first six and "and 1 more" (the seventh is counted, not dropped); of exactly 6 it lists the six and no count (3 sizes)',
+    wEightRun.code === 1 && wEightRun.said.includes(`(${SIX}, and 2 more)`) && !wEightRun.said.includes('out/p6.md')
+      && wSevenRun.code === 1 && wSevenRun.said.includes(`(${SIX}, and 1 more)`) && !wSevenRun.said.includes('out/p6.md')
+      && wSixRun.code === 1 && wSixRun.said.includes(`(${SIX})`) && !/and \d+ more/.test(wSixRun.said),
+    `8 paths: ${wEightRun.said.slice(0, 260)} / 7 paths: ${wSevenRun.said.slice(0, 260)} / 6 paths: ${wSixRun.said.slice(0, 260)}`)
   const wBroken = fakeTree({ ...aGone }, { restores: false }); const w3 = worldCase(); const w3r = attempt(w3.state, wBroken.probes)
   check('A RESTORE THAT RAN BUT DID NOT RETURN WHAT IT TOUCHED IS NOT CALLED HEALED: the run stops and the state is kept for the stash',
     stoppedFor(w3r, /not as it was before the mutation/) && wBroken.calls.length === 1 && w3.kept(), `exit ${w3r.code}, calls ${wBroken.calls.length}, marker kept ${w3.kept()}`)
@@ -8318,6 +8361,20 @@ if (process.argv.includes('--self-test')) {
   const nestedHeal = (() => { stops.length = 0; said.length = 0; try { return healIn(nestedParent, options({})) } catch (e) { if (e.message !== 'exit') throw e; return null } })()
   check('A MUTATION APPLIED BY A NESTED HARNESS RUN IS HEALED TOO: the parent looks in its nested state directory first',
     nestedHeal === true && read(nestedFile) === 'ORIGINAL' && !existsSync(nestedAt), `returned ${nestedHeal}, file ${JSON.stringify(read(nestedFile))}`)
+  // The ORDER matters when both touch ONE file. The child read the parent's mutated file as its own original, so its backup is the parent's mutation and the file now holds the child's change on top of it.
+  // The child's heal puts the parent's mutation back; the parent's then puts the original back. Parent first, the file is neither of the parent's two hashes and its heal refuses (nothing else in this
+  // self-test has a parent and a child on one file: the clause above uses two, and swapping the order left it green).
+  const sameDir = join(scratch, `case-${++caseNo}`)
+  const sameState = join(sameDir, 'state')
+  const sameNested = join(sameState, 'nested')
+  mkdirSync(sameNested, { recursive: true })
+  const sameFile = join(sameDir, 'one.txt')
+  writeFileSync(sameFile, 'CHILD ON PARENT'); writeFileSync(join(sameDir, 'parent.bak'), 'ORIGINAL'); writeFileSync(join(sameDir, 'child.bak'), 'PARENT MUTATION')
+  writeFileSync(join(sameState, 'active.json'), JSON.stringify({ id: 'parent', file: sameFile, backup: join(sameDir, 'parent.bak'), originalSha: sha('ORIGINAL'), mutatedSha: sha('PARENT MUTATION'), ...DEAD }))
+  writeFileSync(join(sameNested, 'active.json'), JSON.stringify({ id: 'child', file: sameFile, backup: join(sameDir, 'child.bak'), originalSha: sha('PARENT MUTATION'), mutatedSha: sha('CHILD ON PARENT'), ...DEAD }))
+  const sameHeal = (() => { stops.length = 0; said.length = 0; try { return healIn(sameState, options({})) } catch (e) { if (e.message !== 'exit') throw e; return null } })()
+  check('...AND WHEN A PARENT AND THE CHILD IT STARTED BOTH TOUCHED ONE FILE, THE CHILD IS HEALED FIRST: its change comes off the parent\'s mutation and then the parent\'s comes off the original, so the file ends as the original and both states are gone (1 file, 2 markers)',
+    sameHeal === true && read(sameFile) === 'ORIGINAL' && !existsSync(sameState), `returned ${sameHeal}, file ${JSON.stringify(read(sameFile))}, state kept ${existsSync(sameState)}; ${said.join(' | ').slice(0, 200)}`)
 
   // One run at a time: a lock naming a run that is still going stops this one; one left by a run that is gone is cleared.
   const lockDir = join(scratch, `case-${++caseNo}`)
@@ -9229,6 +9286,29 @@ if (process.argv.includes('--self-test')) {
     check('E27: ...and a directory that exists and is EMPTY is used, not refused (what a run killed between removing a stale lock and taking its own leaves): the run starts and nothing says the harness did not write it (1 directory)',
       /Mutation testing/.test(text(kempty)) && !/did not write/.test(text(kempty)),
       `status ${kempty.status}; started ${/Mutation testing/.test(text(kempty))}, refused ${/did not write/.test(text(kempty))}; ${text(kempty).split('\n')[0].slice(0, 160)}`)
+    // ...and a directory that holds only a stash (`world`): the fifth name, the one the clauses above do not use. A run killed between making a stash directory and writing its marker, whose stale lock the next
+    // run then removed before that one was killed too, leaves exactly this; the stash directory is empty then, because the mutation had not run.
+    const ownWorld = join(scratch, 'own-world')
+    mkdirSync(join(ownWorld, 'world', 'outbox-stub'), { recursive: true })
+    reset()
+    const kworld = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: ownWorld })
+    check('E27: ...and a directory that holds only a stash (`world`, the name no other clause here uses) is used, not refused (1 directory)',
+      /Mutation testing/.test(text(kworld)) && !/did not write/.test(text(kworld)),
+      `status ${kworld.status}; started ${/Mutation testing/.test(text(kworld))}, refused ${/did not write/.test(text(kworld))}; ${text(kworld).split('\n')[0].slice(0, 160)}`)
+    // The refusal names at most four entries and ends the list with `, ...` when there are more: five foreign entries read as the first four (sorted) and the ellipsis, exactly four read as the four and
+    // none. (E27's first clause lists two, so a bound moved by one, or a slice cut short, changed nothing it could see.)
+    const foreignMany = n => {
+      const d = join(scratch, `foreign-${n}`)
+      mkdirSync(d)
+      for (const f of ['a.txt', 'b.txt', 'c.txt', 'd.txt', 'e.txt'].slice(0, n)) writeFileSync(join(d, f), 'not the harness\'s\n')
+      return d
+    }
+    const kfive = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: foreignMany(5) })
+    const kfour = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: foreignMany(4) })
+    check('E27: THE REFUSAL NAMES FOUR ENTRIES AND ENDS THE LIST WITH `...` WHEN THERE ARE MORE: of 5 foreign entries it lists the first four (sorted) and `, ...`; of exactly 4 it lists the four and no ellipsis (2 directories)',
+      kfive.status === 2 && /did not write \(a\.txt, b\.txt, c\.txt, d\.txt, \.\.\.\)/.test(text(kfive)) && !/e\.txt/.test(text(kfive))
+        && kfour.status === 2 && /did not write \(a\.txt, b\.txt, c\.txt, d\.txt\), and it empties/.test(text(kfour)),
+      `5 entries: status ${kfive.status}, ${text(kfive).split('\n')[0].slice(0, 130)} / 4 entries: status ${kfour.status}, ${text(kfour).split('\n')[0].slice(0, 130)}`)
 
     // E28: a lock that appears between looking for one and taking it. `checkLocks` has just found none, so the exclusive create is what stands between two runs and one state
     // directory; MUTATION_FAULT=lock-appears has a rival take the lock inside acquireRunLock, just before that create, which is the only way to put it there on a test's schedule. The rival
