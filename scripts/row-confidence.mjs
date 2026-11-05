@@ -117,7 +117,7 @@ const mutationsFor = (scripts, rowName) => {
  * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
  * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
  * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). Not handled, and filed with the rest: a comment or string
- * ended by CR, U+2028 or U+2029 or by a backslash-CRLF, `default`, `instanceof` and `extends` before a regular expression, and `new Date` with no parentheses. (A leading `#!`
+ * ended by CR, U+2028 or U+2029 or by a backslash-CRLF, `default`, `instanceof` and `extends` before a regular expression. (A leading `#!`
  * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
  */
 const stripNonCode = src => {
@@ -230,8 +230,14 @@ const clockCounts = src => {
   // can satisfy it the same way everything else does.
   // A capture is the read ITSELF: the constant holds the instant. A `=>`, a `class`, a `) {` or a `;` between the `=` and the read means it holds a function, a class, a method or
   // nothing of the kind, and the read happens later, every time it is called (`const NOW = () => new Date()`), so it is not counted as one.
-  const captures = code.match(/const [A-Z][A-Z0-9_]* = (?:(?!=>|\bclass\b|\)\s*\{|;)[^\n])*?(new\s+Date\s*\(\s*\)|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\))/g) ?? []
-  const clockReads = code.match(/Date\s*\.\s*now\s*\(\s*\)|new\s+Date\s*\(\s*\)|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\)/g) ?? []
+  const captures = code.match(/const [A-Z][A-Z0-9_]* = (?:(?!=>|\bclass\b|\)\s*\{|;)[^\n])*?(new\s+Date(?![\w$])(?!\s*\(\s*[^\s)])|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\))/g) ?? []
+  // A read is any way of asking the wall clock for an INSTANT: `Date.now` (called or not: `const clock = Date.now` reads it later), `Date['now']()` (a string is already `''` by now, so any computed member
+  // called with nothing is counted and `Date['UTC'](1)` is not), `new Date` with no argument (parentheses or none; `new Date(x)` builds a date from x and reads nothing), `Date()` and `Date(5)` (they return the
+  // current time whatever they are given), and a bare `Date` that is stored or passed on (`const D = Date`, `f(Date)`, `{ Date }`), since the time can then be asked for under another name. Not reads: `Date.UTC`, `o.Date`,
+  // a `{ Date: 1 }` key, `x instanceof Date`, `typeof Date`, `new Date(5)`, and longer names. `performance.now()` and `process.hrtime()` are deliberately not counted: they are durations, and counting them takes the row
+  // `doc claims are compiler-verified, not prose` below the bar on the two timings `proof-check.mjs` prints; if they are ever wanted, that script's `batchMs` has to go first. A capture takes the same `new Date`
+  // spelling as the reads do, so that a capture is always also a read.
+  const clockReads = code.match(/Date\s*\.\s*now(?![\w$])|Date\s*\[\s*''\s*\]\s*\(\s*\)|new\s+Date(?![\w$])(?!\s*\(\s*[^\s)])|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\)|(?<![.\w$])(?<!\b(?:new|instanceof|typeof)\s+)Date(?![\w$])(?!\s*[.\[:])/g) ?? []
   return { captures: captures.length, reads: clockReads.length, network: /https?:\/\/(?!localhost)/.test(code) }
 }
 
@@ -434,9 +440,18 @@ function scannerClauses(check) {
     ['tag`${/"/.test(y)}` + Date.now()', 1, 0], ['f(x)`${/"/.test(y)}` + Date.now()', 1, 0], ['a[0]`${/"/.test(y)}` + Date.now()', 1, 0],
     ['const NOW = () => new Date()', 1, 0], ['const NOW = async () => new Date()', 1, 0], ['const NOW = function () { return new Date() }', 1, 0], ['const O = { f() { return new Date() } }', 1, 0],
     ['const A = class { static t = new Date() }', 1, 0], ['const NOW = 1; log(new Date())', 1, 0],
-    ['const T = process.env.T || new Date().toISOString().slice(0, 10)', 1, 1], ['const D = fieldDayIso(fieldToday())', 1, 1], ['const X = { at: new Date() }', 1, 1]]
+    ['const T = process.env.T || new Date().toISOString().slice(0, 10)', 1, 1], ['const D = fieldDayIso(fieldToday())', 1, 1], ['const X = { at: new Date() }', 1, 1],
+    // Residuals Task 10 item 2: the spellings the scan matched as text and so did not see. `new Date` with no parentheses, the computed `Date['now']()`, `Date.now` or `Date` itself passed on as a value
+    // (`const D = Date`, `f(Date)`, `{ Date }`), and `Date()` and `Date(5)`, which return the current time whatever they are given. Then the neighbours that are not reads: a `Date` that is constructed
+    // from an argument or named in a type test, a static that is not `now`, a property or key spelled Date, and longer names.
+    ['new Date', 1, 0], ['const NOW = new Date', 1, 1], ['new Date;', 1, 0], ["Date['now']()", 1, 0], ['Date.now', 1, 0], ['const clock = Date.now', 1, 0], ['const D = Date', 1, 0], ['f(Date)', 1, 0], ['{ Date }', 1, 0],
+    ['Date()', 1, 0], ['Date(5)', 1, 0], ['new Date(5)', 0, 0], ['new Date(x)', 0, 0], ['new Date\n(5)', 0, 0], ['x instanceof Date', 0, 0], ['typeof Date', 0, 0], ['Date.UTC(1)', 0, 0], ["Date['UTC'](1)", 0, 0],
+    ['o.Date', 0, 0], ['{ Date: 1 }', 0, 0], ['new DateTimeFormat()', 0, 0], ['const F = DateFormatter', 0, 0], ['const D = Dates', 0, 0],
+    // Whitespace inside the spelling (a `Date` and its `.`, the computed form), and a capture that is not a read: `new Date(5)` and `new DateTimeFormat()` hold no clock read, so a constant holding one must not count
+    // as a capture either, or it would hide a bare read somewhere else in the script.
+    ['Date . now()', 1, 0], ['Date.nowish', 0, 0], ['Date\n.now()', 1, 0], ["Date [ 'now' ] ( )", 1, 0], ['const NOW = new Date(5)', 0, 0], ['const N = new DateTimeFormat()', 0, 0]]
   const badForms = FORMS.filter(([src, reads, captures]) => { const c = clockCounts(src); return c.reads !== reads || c.captures !== captures })
-  check(`THESE ${FORMS.length} SPELLINGS OF A CLOCK READ ARE COUNTED (whitespace inside and around the call included, and inside a template expression but not in template text), and a capture is a \`const\` in capitals whose value IS new Date(), fieldDay() or fieldToday() on the same line, not a function, class or later statement that holds one`,
+  check(`THESE ${FORMS.length} SPELLINGS OF A CLOCK READ ARE COUNTED OR NOT (whitespace inside and around the call, a template expression but not template text, \`new Date\` with no parentheses, \`Date.now\` and \`Date\` passed on as values, \`Date['now']()\`), and a capture is a \`const\` in capitals whose value IS new Date(), fieldDay() or fieldToday() on the same line, not a function, class or later statement that holds one. NOT COVERED: \`performance.now()\` and \`process.hrtime()\` (durations, not instants, and proof-check.mjs reads them for its report), \`process.uptime()\`, \`Intl\` and \`Atomics\` timers, and a \`Date\` reached through a computed or concatenated name (\`globalThis['Da' + 'te']\`)`,
     badForms.length === 0, badForms.map(([src, reads, captures]) => `${src}: ${JSON.stringify(clockCounts(src))}, wanted ${reads} read(s) and ${captures} capture(s)`).join(' / '))
 
   // The comparison itself, on real files: one bare read more than the captures flags the script, balanced reads do not.
