@@ -1421,8 +1421,8 @@ const MUTATIONS = [
     id: 'clearing-state-takes-the-run-lock',
     file: 'scripts/mutation-check.mjs',
     claim: "clearing a run's state leaves its run lock",
-    find: "    if (entry !== 'run.json' && entry !== 'driver.json') rmSync(join(dir, entry), { recursive: true, force: true })",
-    replace: "    if (entry !== 'driver.json') rmSync(join(dir, entry), { recursive: true, force: true })",
+    find: "    if (entry === 'run.json' || entry === 'driver.json') continue\n",
+    replace: "    if (entry === 'driver.json') continue\n",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -1685,8 +1685,8 @@ const MUTATIONS = [
     id: 'clearing-state-removes-the-driver-record',
     file: 'scripts/mutation-check.mjs',
     claim: "clearing the state between two mutations keeps the build driver's record, because the watcher is still running",
-    find: "if (entry !== 'run.json' && entry !== 'driver.json') rmSync",
-    replace: "if (entry !== 'run.json') rmSync",
+    find: "    if (entry === 'run.json' || entry === 'driver.json') continue\n",
+    replace: "    if (entry === 'run.json') continue\n",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -1815,6 +1815,22 @@ const MUTATIONS = [
     claim: "the refusal over a marker with an empty touched list says it was killed before it recorded its paths, not that a path is neither as it was nor as the mutation left it (it names none)",
     find: "      if (!hasTouched(m)) {\n",
     replace: "      if (!m.touched) {\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'nested-state-deleted-with-its-parent',
+    file: 'scripts/mutation-check.mjs',
+    claim: "clearing a run's state leaves what a harness run inside it stranded, so the next run can heal the mutation that run left applied",
+    find: "    if (entry === 'nested') { try { rmdirSync(join(dir, entry)) } catch { /* not empty: a child's state */ } continue }\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'empty-nested-directory-kept',
+    file: 'scripts/mutation-check.mjs',
+    claim: "clearing a run's state removes a nested state directory that holds nothing, so an ordinary run leaves no directory behind",
+    find: "try { rmdirSync(join(dir, entry)) } catch { /* not empty: a child's state */ } continue }",
+    replace: "continue }",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -4988,11 +5004,15 @@ const identity = () => ({ pid: process.pid, start: startOf(process.pid), started
 /** Where a world mutation keeps what it moves aside: in the state directory, which a restart does not wipe (`/tmp` does). */
 const stashOf = id => join(stateDir, 'world', id)
 
-/** Everything in a state directory but the run lock and the build driver's record: the marker, the backups, the stashes. The lock lasts as long as the run that holds it, and the record as long as the watcher it names (which outlives every mutation), so nothing that clears state may take either. */
+/** Everything in a state directory but the run lock, the build driver's record and what a nested run left: the marker, the backups, the stashes. The lock lasts as long as the run that holds it, and the record as long as the watcher it names (which outlives every mutation), so nothing that clears state may take either. */
 const emptyEntries = dir => {
   if (!existsSync(dir)) return
   for (const entry of readdirSync(dir)) {
-    if (entry !== 'run.json' && entry !== 'driver.json') rmSync(join(dir, entry), { recursive: true, force: true })
+    if (entry === 'run.json' || entry === 'driver.json') continue
+    // A harness run inside this one keeps its state in `nested`. What a child that was killed left there is the next run's to heal (healHeld looks there first), not this run's to
+    // delete: an emptied directory goes, one that holds a child's state stays.
+    if (entry === 'nested') { try { rmdirSync(join(dir, entry)) } catch { /* not empty: a child's state */ } continue }
+    rmSync(join(dir, entry), { recursive: true, force: true })
   }
 }
 /** Drop the marker, the backups and the stashes — the tree is known-good from here. The run lock stays: it lasts as long as the run. */
@@ -5042,6 +5062,8 @@ const expectOf = m => {
   if (process.env.MUTATION_FAULT === 'expect-interrupted') return 'kill -INT $$'
   if (process.env.MUTATION_FAULT === 'expect-terms-the-run') return 'kill -TERM $PPID && sleep 0.3'
   if (process.env.MUTATION_FAULT === 'expect-child-killed') return 'sleep 5 & kill -KILL $!; wait $!'
+  // ...or starts a harness run of its own that is SIGKILLed with a mutation applied (it keeps its state beneath this run's), and then runs the real expectation.
+  if (process.env.MUTATION_FAULT === 'expect-strands-a-child') return `MUTATION_KILL_AT=source-applied node scripts/mutation-check.mjs --only known-survivor; ${m.expect}`
   // ...or reports whether it inherited the restart flag, which only the run that was restarted may have (and not its children).
   if (process.env.MUTATION_FAULT === 'expect-reports-env') return `echo "REEXEC=[$MUTATION_REEXEC]" > expect-env.txt && ${m.expect}`
   return m.expect
@@ -5867,6 +5889,23 @@ if (process.argv.includes('--self-test')) {
     lockSurvivedClear && lockSurvivedDrop && emptyDirRemoved, `lock survived clearActive ${lockSurvivedClear}, survived dropState ${lockSurvivedDrop}, empty directory removed ${emptyDirRemoved}`)
   rmSync(stateDir, { recursive: true, force: true })
 
+  // Clearing a run's state leaves what a harness run INSIDE it stranded. A child killed with a mutation applied keeps its marker in `nested`; the parent's clear used to delete it, and the
+  // child's file stayed mutated with nothing to say so (measured 2026-11-05: `git status` showed the file, the state directory was gone, the next `--heal` said there was nothing to heal).
+  // The next run's heal looks in `nested` first. An empty `nested` is no one's state and goes with the rest. (`force`: a clause that fails must not crash before it reports.)
+  mkdirSync(join(stateDir, 'nested'), { recursive: true })
+  writeFileSync(join(stateDir, 'nested', 'active.json'), '{"id":"a child\'s"}')
+  writeFileSync(marker, '{}')
+  clearActive()
+  const childSurvivedClear = existsSync(join(stateDir, 'nested', 'active.json')) && !existsSync(marker)
+  rmSync(join(stateDir, 'nested', 'active.json'), { force: true })
+  mkdirSync(stateDir, { recursive: true })
+  writeFileSync(marker, '{}')
+  clearActive()
+  const emptyNestedGone = !existsSync(join(stateDir, 'nested'))
+  check('CLEARING A RUN\'S STATE LEAVES WHAT A NESTED RUN STRANDED: the nested marker survives the clear (this run\'s own marker does not), and an empty nested directory is removed with the rest',
+    childSurvivedClear && emptyNestedGone, `nested marker survived ${childSurvivedClear}, empty nested directory removed ${emptyNestedGone}`)
+  rmSync(stateDir, { recursive: true, force: true })
+
   // A live run inside a run (its lock is in the nested directory) stops this one too.
   const nestedLockDir = join(scratch, `case-${++caseNo}`)
   mkdirSync(join(nestedLockDir, 'nested'), { recursive: true })
@@ -6475,6 +6514,20 @@ if (process.argv.includes('--self-test')) {
     check('E25: A SELF-TEST THAT CRASHES LEAVES NO DIRECTORY BEHIND: it did crash (exit 1, the git stand-in named in its report), and its temp directory holds none of the 2 directories it made (heal-selftest-*, mutation-state-*)',
       crashed.status === 1 && /git: stand-in, fails on purpose/.test(String(crashed.stderr)) && leftBehind.length === 0,
       `status ${crashed.status}; left behind in its TMPDIR: ${leftBehind.join(', ') || 'nothing'}; stderr ${String(crashed.stderr).split('\n')[0].slice(0, 120)}`)
+
+    // E26: a harness run killed INSIDE another's expectation keeps its state beneath the parent's, and the parent's own clear must not delete it. The test-only fault starts the child
+    // from the parent's expectation and kills it with its mutation applied; the parent then finishes (it catches or not: either way it clears its state), and the next run heals the child.
+    reset()
+    const strands = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-strands-a-child' })
+    const childMarker = join(repo, '.mutation-state', 'nested', 'active.json')
+    const childLeft = existsSync(childMarker)
+    const childFileMutated = read(join(repo, 'docs/gate-rows.txt')) === MUTATED_ROWS
+    const strandedBack = writeUpsBack()
+    const healsChild = go(['--heal'])
+    check('E26: A CHILD RUN KILLED INSIDE ANOTHER\'S EXPECTATION KEEPS ITS MARKER WHEN THE PARENT CLEARS ITS OWN STATE (the parent put its own write-ups back), and the next run heals it: HEALED, the file is back, the state is gone',
+      childLeft && childFileMutated && strandedBack && /HEALED/.test(text(healsChild)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `after the parent (exit ${strands.status}): child marker kept ${childLeft}, its file mutated ${childFileMutated}, the parent's write-ups back ${strandedBack}; heal: ${text(healsChild).split('\n').filter(l => /HEALED|Nothing to heal|::error::/.test(l)).join(' | ').slice(0, 200)}; file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
+    reset()
   } else {
     console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
   }
