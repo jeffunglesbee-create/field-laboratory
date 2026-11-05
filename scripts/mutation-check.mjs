@@ -1955,6 +1955,54 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'reaper-signals-a-group-that-is-gone',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a record whose process group is already gone (a container restart) is dropped without a word and without a signal, and does not cost a rebuild",
+    find: "  if (recycled || !alive(d.pid)) { rmSync(file, { force: true }); return false }",
+    replace: "  if (recycled) { rmSync(file, { force: true }); return false }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-does-not-wait-for-a-signal-to-work',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the reaper gives a group time to obey the TERM, and then the KILL, before it escalates or gives up",
+    find: "  const gone = async ms => { for (let waited = 0; waited < ms && alive(d.pid); waited += 50) await new Promise(r => setTimeout(r, 50)); return !alive(d.pid) }",
+    replace: "  const gone = async () => !alive(d.pid)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-gives-the-term-no-grace',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build driver that is going down is given its grace after the TERM before it is sent the KILL",
+    find: "if (!(await gone(graceMs))) {",
+    replace: "if (!(await gone(0))) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reaper-gives-the-kill-no-grace',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build driver that is going down after the KILL is waited for before the reaper says it did not stop",
+    find: "if (!(await gone(killMs))) {",
+    replace: "if (!(await gone(0))) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reap-rebuild-failure-exits-zero',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build that fails after the reaper stopped the watcher stops the run with a failing status",
+    find: "so build/ may be half written. Run it by hand, then run this again.`)\n  process.exit(1)",
+    replace: "so build/ may be half written. Run it by hand, then run this again.`)\n  process.exit(0)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'reap-rebuild-failure-is-ignored',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a build that fails after the reaper stopped the watcher is not ignored: the run stops, because build/ may be half written",
+    find: "if (reapedDriver && !run('npm run build')) {",
+    replace: "if (reapedDriver && !run('npm run build') && false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-mutated-hook-dropped',
     file: 'scripts/mutation-check.mjs',
     claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
@@ -9193,8 +9241,8 @@ if (process.argv.includes('--self-test')) {
       writeFileSync(join(drepo, 'scripts', 'pickem-check.mjs'), "import { readFileSync } from 'node:fs'\nprocess.exit(readFileSync('src/Pickem.fs', 'utf8').includes('if false then None') ? 1 : 0)\n")
       writeFileSync(join(drepo, 'scripts', 'build-site.mjs'), '')
       writeFileSync(join(drepo, 'scripts', 'fake-build.mjs'),
-        "import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'\nconst src = readFileSync('src/Pickem.fs', 'utf8')\nconst ok = !src.includes('if false then None')\n"
-        + "appendFileSync('.build-log', ok ? 'ok\\n' : 'failed\\n')\nif (!ok) { console.error('the fake build refused the mutated source'); process.exit(1) }\nmkdirSync('build', { recursive: true })\nwriteFileSync('build/Out.js', 'compiled:' + src)\n")
+        "import { appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'\nconst src = readFileSync('src/Pickem.fs', 'utf8')\nconst ok = !src.includes('if false then None') && !process.env.BUILD_FAIL\n"
+        + "appendFileSync('.build-log', ok ? 'ok\\n' : 'failed\\n')\nif (!ok) { console.error(process.env.BUILD_FAIL ? 'the fake build failed on purpose' : 'the fake build refused the mutated source'); process.exit(1) }\nmkdirSync('build', { recursive: true })\nwriteFileSync('build/Out.js', 'compiled:' + src)\n")
       // The stand-in watcher dies on its first write after the harness is gone, where the real compiler was measured to run on: it ignores that.
       writeFileSync(join(drepo, 'scripts', 'keep-running.cjs'), "process.stdout.on('error', () => {}); process.stderr.on('error', () => {})\n")
       writeFileSync(join(drepo, 'package.json'), JSON.stringify({ name: 'scratch', private: true, scripts: { build: 'node scripts/fake-build.mjs' } }))
@@ -9302,6 +9350,17 @@ if (process.argv.includes('--self-test')) {
           told.every(x => x.up && x.status === 1 && x.left === 0 && !x.record && x.fileBack),
           told.map(x => `${x.sig}: status ${x.status}, watcher was up ${x.up}, processes left ${x.left}, record kept ${x.record}, file back ${x.fileBack}`).join(' / '))
         cleanBuild()
+
+        // (4) A watcher the reaper stopped is followed by `npm run build`, and a build that FAILS stops the run: build/ may be half written, and going on would start a watcher over it. The stand-in
+        // build fails on request (BUILD_FAIL) with the source clean, so nothing but the reap's own build can be what fails; the watcher is stopped before it, so it is gone either way.
+        const four = strand(false)
+        const failedBuild = dgo(['--heal'], { BUILD_FAIL: '1' })
+        const said4 = dtext(failedBuild)
+        check('E22: ...and a build that FAILS after the reaper has stopped the watcher stops the run: exit 1, the message names the failed build and says build/ may be half written, no heal is reported, and the watcher is gone',
+          four.left.length === 2 && failedBuild.status === 1 && /a build driver left by a killed run was stopped, and `npm run build` failed \(.*the fake build failed on purpose.*\), so build\/ may be half written/.test(said4)
+            && !/Healed|Nothing to heal/.test(said4) && watchers().length === 0 && dread('.mutation-state/driver.json') === null,
+          `watchers before ${four.left.length}, after ${watchers().length}; status ${failedBuild.status}; ${said4.split('\n').filter(l => /::error::|Healed|Nothing to heal/.test(l)).join(' | ').slice(0, 300)}`)
+        stopAll(); dreset()
       } finally {
         stopAll()
       }
@@ -9596,6 +9655,35 @@ if (process.argv.includes('--self-test')) {
     const droppedDir = !existsSync(stateDir)
     builder = savedBuilder
     check('REAP: stopping the watcher signals it, forgets the record, and removes the state directory the record was keeping', stopped === 1 && droppedRecord && droppedDir, `stop called ${stopped} time(s), record dropped ${droppedRecord}, directory dropped ${droppedDir}`)
+
+    // THE TWO WAITS IN reapDriver, which every clause above sets to 0 ms: the grace a group gets to obey a TERM (10 s), the grace it gets to obey the KILL after it (2 s), and the case where nothing
+    // is left to stop. The fake group goes down 150 ms after the signal it is made to obey, so a reaper that waits is told from one that does not by what it SENDS: nothing at all for a group that
+    // is already gone; TERM alone for one that obeys it inside the grace; TERM and then KILL for one that obeys only the KILL. Each case has a directory of its own, and the three go at once.
+    {
+      const reapTimed = async (name, { down = false, termDownMs = null, killDownMs = null, graceMs = 3000, killMs = 3000 }) => {
+        const at = join(scratch, `driver-timed-${name}`)
+        rmSync(at, { recursive: true, force: true }); mkdirSync(at, { recursive: true })
+        writeFileSync(join(at, 'driver.json'), JSON.stringify(rec()))
+        const sent = []
+        const logged = []
+        let exited = null, up = !down
+        const kill = (pid, sig) => { sent.push(`${sig}@${pid}`); const after = sig === 'SIGTERM' ? termDownMs : killDownMs; if (after !== null) setTimeout(() => { up = false }, after) }
+        const lap = stopwatch()
+        const out = await reapDriver(at, { probes: { ...healProbes, live: () => false }, log: t => logged.push(t), kill, alive: () => up, stat: () => ({ state: 'S', start: '111' }), graceMs, killMs, exit: c => { exited = c } })
+        return { out, sent, exited, logged: logged.length, kept: existsSync(join(at, 'driver.json')), ms: lap() }
+      }
+      const [goneCase, graceCase, killCase] = await Promise.all([
+        reapTimed('gone', { down: true }),
+        reapTimed('grace', { termDownMs: 150 }),
+        reapTimed('kill', { killDownMs: 150, graceMs: 50 }),
+      ])
+      check('REAP: a record whose group is already gone has nothing to stop: nothing is signalled, nothing is said, the record is dropped, and the answer is false (so no rebuild follows)',
+        goneCase.sent.length === 0 && goneCase.logged === 0 && goneCase.out === false && !goneCase.kept && goneCase.exited === null, JSON.stringify(goneCase))
+      check('REAP: a group that obeys the TERM inside its grace gets the TERM and nothing more: no KILL is sent while it is still going down (3 s grace, down after 150 ms)',
+        JSON.stringify(graceCase.sent) === '["SIGTERM@-4242"]' && graceCase.out === true && !graceCase.kept && graceCase.exited === null, JSON.stringify(graceCase))
+      check('REAP: a group that ignores the TERM and obeys the KILL is waited for after the KILL, and the run goes on (50 ms grace, 3 s kill grace, down 150 ms after the KILL)',
+        JSON.stringify(killCase.sent) === '["SIGTERM@-4242","SIGKILL@-4242"]' && killCase.out === true && !killCase.kept && killCase.exited === null, JSON.stringify(killCase))
+    }
 
     // THE REAL WatchBuild, started over a host that does NOT pass a TERM on. The real `dotnet` host does (probed 2026-11-05 on Fable 5.13.0: a TERM to the leader of a detached `dotnet fable
     // watch` left nothing in its group 6 s later), but that is the host's courtesy: a wedged host, or one sent KILL, cannot extend it, and the compiler under it would go on writing build/. The
