@@ -12,13 +12,34 @@
 // This calls `shardedSuite` with stub commands, so each wiring decision is shown to matter: await failing, merge failing, merge never
 // running, a shard count that is not a positive integer, a stale shard directory. The table of mutations breaks each of those clauses in
 // gate-checks.mjs and expects THIS script to go red.
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createChecks, finish, isMain } from './checks.mjs'
 import { failures, rows, shardedSuite } from './gate-checks.mjs'
 
 const ROW = 'breaking each invariant makes a check fail'
+const WORKFLOW = '.github/workflows/verify-full.yml'
+
+/**
+ * Does the workflow set `GATE_MUTATION_SHARDS` on the step that runs the gate, to a positive integer? `{ ok, why }`.
+ *
+ * It is the other half of the branch above: the row takes the shard branch only when the variable is set, and nothing but this reads where it is set. Removing it from `verify-full.yml` left
+ * `workflow-check.mjs`, this script and `row-confidence.mjs` green (review 7, 2026-11-05), and CI would have run the whole suite in-process again, the cost the sharding exists to avoid; the
+ * exemption table's sanction for `mutation-await.mjs` says `verify-full` sets it. Not a YAML parser (there is none in the repo): steps are cut at `      - `, a name inside a comment is not at the start of a line, and the step
+ * that holds the variable is asked for its `run:`.
+ */
+export const gateShardsSet = text => {
+  const steps = text.split(/\n(?= {6}- )/)
+  const holders = steps.filter(st => /^\s+GATE_MUTATION_SHARDS:/m.test(st))
+  if (holders.length === 0) return { ok: false, why: 'no step sets GATE_MUTATION_SHARDS' }
+  if (holders.length > 1) return { ok: false, why: `${holders.length} steps set GATE_MUTATION_SHARDS (wanted the one that runs the gate)` }
+  const value = /^\s+GATE_MUTATION_SHARDS:[ \t]*['"]?([^'"\n#]*?)['"]?[ \t]*(?:#.*)?$/m.exec(holders[0])?.[1] ?? ''
+  if (!/^[1-9]\d*$/.test(value)) return { ok: false, why: `GATE_MUTATION_SHARDS is ${JSON.stringify(value)}, not a positive integer` }
+  const run = /^\s+run:[ \t]*(.*)$/m.exec(holders[0])?.[1].trim()
+  if (run !== 'npm run gate') return { ok: false, why: `the step that sets GATE_MUTATION_SHARDS runs ${JSON.stringify(run ?? '(nothing)')}, not npm run gate` }
+  return { ok: true, why: '' }
+}
 
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const { check, summarize } = createChecks()
@@ -62,6 +83,27 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       /GATE_MUTATION_SHARDS/.test(src) && /shardedSuite\(/.test(src) && /scripts\/mutation-await\.mjs/.test(src) && /scripts\/mutation-merge\.mjs/.test(src), src.slice(0, 300))
     check('MUTATION: the unset branch still runs the in-process suite and the known-survivor half is still there',
       /=== undefined/.test(src) && /ok\('node scripts\/mutation-check\.mjs'\)/.test(src) && /fails\('node scripts\/mutation-check\.mjs --only known-survivor'\)/.test(src), src.slice(0, 300))
+
+    // The workflow side: where the variable is set. Stand-in workflows for each way it can be wrong, and the real file.
+    const STEP = (env, run = 'npm run gate') => `jobs:\n  full:\n    steps:\n      - name: Build\n        run: npm run build\n\n      - name: Gate\n${env}        run: ${run}\n`
+    const SETS = [
+      ['set to 8 on the gate step', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n          GITHUB_TOKEN: x\n"), true],
+      ['set to 12 without quotes', STEP('        env:\n          GATE_MUTATION_SHARDS: 12\n'), true],
+      ['set to "3" in double quotes, with a trailing comment', STEP('        env:\n          GATE_MUTATION_SHARDS: "3" # shards\n'), true],
+      ['not set at all', STEP(''), false],
+      ['named only in a comment', STEP("        env:\n          # GATE_MUTATION_SHARDS: '8'\n          GITHUB_TOKEN: x\n"), false],
+      ['empty', STEP("        env:\n          GATE_MUTATION_SHARDS: ''\n"), false],
+      ['zero', STEP("        env:\n          GATE_MUTATION_SHARDS: '0'\n"), false],
+      ['not a number', STEP("        env:\n          GATE_MUTATION_SHARDS: 'eight'\n"), false],
+      ['a number with a suffix', STEP("        env:\n          GATE_MUTATION_SHARDS: '8x'\n"), false],
+      ['set on a step that does not run the gate', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n", 'npm run build'), false],
+      ['set on two steps that both run the gate', STEP("        env:\n          GATE_MUTATION_SHARDS: '8'\n") + "\n      - name: Gate again\n        env:\n          GATE_MUTATION_SHARDS: '8'\n        run: npm run gate\n", false],
+    ]
+    const offSets = SETS.filter(([, text, want]) => gateShardsSet(text).ok !== want)
+    check(`MUTATION: the workflow sets GATE_MUTATION_SHARDS to a positive integer on the step that runs the gate, for ${SETS.length} stand-in workflows (${SETS.filter(x => x[2]).length} do, ${SETS.filter(x => !x[2]).length} do not: unset, a comment, empty, zero, text, a suffix, the wrong step, two steps)`,
+      offSets.length === 0, offSets.map(([what, text]) => `${what}: ${JSON.stringify(gateShardsSet(text))}`).join(' / '))
+    const real = gateShardsSet(readFileSync(WORKFLOW, 'utf8'))
+    check(`MUTATION: ${WORKFLOW} sets GATE_MUTATION_SHARDS on the step that runs the gate (checked: 1 workflow file)`, real.ok, real.why)
   } finally {
     delete process.env.AWAIT_MARK; delete process.env.MERGE_MARK
     rmSync(work, { recursive: true, force: true })
