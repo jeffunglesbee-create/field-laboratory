@@ -4791,7 +4791,7 @@ const MUTATIONS = [
     id: 'proof-marker-calls-a-torn-target-clean',
     file: 'scripts/proof-check.mjs',
     claim: 'a target with no anchor, which may be torn, is not called clean and its backups are not discarded',
-    find: "  if ((!targetStranded && !anchored) ||",
+    find: "  if ((!targetStranded && !targetIntact && !anchored) ||",
     replace: "  if ((false) ||",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
@@ -5273,7 +5273,7 @@ const MUTATIONS = [
     id: 'proof-heal-ignores-a-torn-registry',
     file: "scripts/proof-check.mjs",
     claim: "a registry with no last case, which may be torn, is not called clean or healed over, whatever the target holds",
-    find: "|| (!registryStranded && !registryAnchored)) return 'diverged'",
+    find: "|| (!registryStranded && !registryIntact && !registryAnchored)) return 'diverged'",
     replace: "|| (false)) return 'diverged'",
     expect: "node scripts/proof-check.mjs --self-test",
   },
@@ -5281,8 +5281,8 @@ const MUTATIONS = [
     id: 'proof-torn-file-checked-after-the-heal',
     file: "scripts/proof-check.mjs",
     claim: "a torn file is found before the heal, so a stranded file beside it cannot delete the state that holds the only whole copy",
-    find: "  if ((!targetStranded && !anchored) || (!registryStranded && !registryAnchored)) return 'diverged'\n  if (targetStranded || registryStranded) return 'heal'\n",
-    replace: "  if (targetStranded || registryStranded) return 'heal'\n  if ((!targetStranded && !anchored) || (!registryStranded && !registryAnchored)) return 'diverged'\n",
+    find: "  if ((!targetStranded && !targetIntact && !anchored) || (!registryStranded && !registryIntact && !registryAnchored)) return 'diverged'\n  if (targetStranded || registryStranded) return 'heal'\n",
+    replace: "  if (targetStranded || registryStranded) return 'heal'\n  if ((!targetStranded && !targetIntact && !anchored) || (!registryStranded && !registryIntact && !registryAnchored)) return 'diverged'\n",
     expect: "node scripts/proof-check.mjs --self-test",
   },
   {
@@ -5308,6 +5308,58 @@ const MUTATIONS = [
     find: "if (!registryStranded && !currentRegistry.includes(REGISTRY_ANCHOR)) reasons.push(",
     replace: "if (false) reasons.push(",
     expect: "node scripts/proof-check.mjs --self-test",
+  },
+  // --- a file that is its backup is whole, anchor or not (review 6, finding 2, 2026-11-05) ----------------------------------------------------------------------------------------------------------
+  //
+  // The per-file anchor question ignored the intact flags the main flow already computes, so a registry whose last case had been renamed away, byte for byte its backup, was called possibly torn:
+  // the stranded target beside it was refused, the message named the whole file, and the injection and the state stayed. A file is asked about its anchor only when it is not its backup.
+  {
+    id: "proof-classifier-asks-a-whole-target-for-an-anchor",
+    file: 'scripts/proof-check.mjs',
+    claim: "a target that is its backup is whole whether or not it has the anchor, so a stranded registry beside it is healed",
+    find: "(!targetStranded && !targetIntact && !anchored)",
+    replace: "(!targetStranded && !anchored)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-classifier-asks-a-whole-registry-for-an-anchor",
+    file: 'scripts/proof-check.mjs',
+    claim: "a registry that is its backup is whole whether or not it has its last case, so a stranded target beside it is healed",
+    find: "(!registryStranded && !registryIntact && !registryAnchored)",
+    replace: "(!registryStranded && !registryAnchored)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-classifier-asks-only-a-whole-target-for-an-anchor",
+    file: 'scripts/proof-check.mjs',
+    claim: "a target that is NOT its backup and has no anchor may be torn: it is the file asked, not the one excused",
+    find: "(!targetStranded && !targetIntact && !anchored)",
+    replace: "(!targetStranded && targetIntact && !anchored)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-classifier-asks-only-a-whole-registry-for-an-anchor",
+    file: 'scripts/proof-check.mjs',
+    claim: "a registry that is NOT its backup and has no last case may be torn: it is the file asked, not the one excused",
+    find: "(!registryStranded && !registryIntact && !registryAnchored)",
+    replace: "(!registryStranded && registryIntact && !registryAnchored)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-main-flow-target-never-intact",
+    file: 'scripts/proof-check.mjs',
+    claim: "whether the target is exactly its backup is read from the target and handed to the classifier",
+    find: "  targetIntact: backupTarget !== null && currentTarget === backupTarget,",
+    replace: "  targetIntact: false,",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-main-flow-registry-never-intact",
+    file: 'scripts/proof-check.mjs',
+    claim: "whether the registry is exactly its backup is read from the registry and handed to the classifier",
+    find: "  registryIntact: backupRegistry !== null && currentRegistry === backupRegistry,",
+    replace: "  registryIntact: false,",
+    expect: 'node scripts/proof-check.mjs --self-test',
   },
   // A restore writes only over what is provably the run's own (2026-11-05, residual Task 4 and 10.17a): a file someone else changed during the run is left as found.
   {

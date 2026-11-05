@@ -444,7 +444,8 @@ const refusalLines = (prior, holder) => {
  *   diverged  something on a file is not described by the backups: an injection (the
  *             target's proof code, the registry's probe case) the file has moved on from
  *             (a stash pop, an edit), or a file with no anchor (the target's, the registry's
- *             last case), which may be torn, whatever the other file holds: write nothing,
+ *             last case) that is not its own backup, which may be torn, whatever the other file
+ *             holds: write nothing,
  *             keep the state, say what to do by hand.
  *
  * Pure, so the self-test can exercise every answer without a dotnet build in sight.
@@ -459,10 +460,12 @@ const classifyState = ({
   // injection is healed; anything else must be exactly its backup, or the state stays for a person. It is never called stale: a torn file keeps its anchor, and `stale` deletes the state.
   if (restoreFailed && !((targetStranded || targetIntact) && (registryStranded || registryIntact))) return 'diverged'
   if ((injected && !targetStranded) || (registryInjected && !registryStranded)) return 'diverged'
-  // A file that is not provably this script's injection and has lost its anchor (the target's, the registry's last case) may be TORN, and the state holds its only whole copy. Each file is
-  // asked, and BEFORE the heal: a stranded registry beside a torn target was healed, and the heal deleted the state and with it the only whole target (the mirror too: a torn registry beside
-  // a stranded target). A file that is provably the injection is not asked: it is its backup with a block inserted, so it has its anchor anyway.
-  if ((!targetStranded && !anchored) || (!registryStranded && !registryAnchored)) return 'diverged'
+  // A file that is not provably whole and has lost its anchor (the target's, the registry's last case) may be TORN, and the state holds its only whole copy. Each file is asked, and BEFORE the
+  // heal: a stranded registry beside a torn target was healed, and the heal deleted the state and with it the only whole target (the mirror too: a torn registry beside a stranded target). A file
+  // that is provably the injection is not asked: it is its backup with a block inserted, so it has its anchor anyway. Nor is a file that IS its backup: whole, whatever it holds, and a refusal
+  // over it names a file that is not torn while the injection in the other file stays (review 6, finding 2: a registry whose last case had been renamed, byte for byte its backup, refused to let
+  // the stranded target beside it be healed, and the message sent a person to the wrong file).
+  if ((!targetStranded && !targetIntact && !anchored) || (!registryStranded && !registryIntact && !registryAnchored)) return 'diverged'
   if (targetStranded || registryStranded) return 'heal'
   return 'stale'
 }
@@ -507,13 +510,18 @@ if (process.argv.includes('--self-test')) {
     st({ injected: true }) === 'diverged', `got ${st({ injected: true })}`)
   sc('...and an unexplained injection on the target outranks a stranded registry',
     st({ injected: true, registryStranded: true }) === 'diverged', `got ${st({ injected: true, registryStranded: true })}`)
-  sc('...and a target with no anchor, which may be torn, is not called clean',
-    st({ anchored: false }) === 'diverged', `got ${st({ anchored: false })}`)
+  sc('...and a target with no anchor, which may be torn (it is not its backup), is not called clean',
+    st({ anchored: false, targetIntact: false }) === 'diverged', `got ${st({ anchored: false, targetIntact: false })}`)
   // Each file is asked, and before the heal: a torn file beside a stranded one is not healed over, in either direction. A file that is provably the injection is not asked about its anchor.
-  const tornAsked = [st({ anchored: false, registryStranded: true }), st({ registryAnchored: false, targetStranded: true, injected: true }), st({ registryAnchored: false }),
+  const tornAsked = [st({ anchored: false, targetIntact: false, registryStranded: true }), st({ registryAnchored: false, registryIntact: false, targetStranded: true, injected: true }), st({ registryAnchored: false, registryIntact: false }),
     st({ anchored: false, targetStranded: true, injected: true }), st({ registryAnchored: false, registryStranded: true })]
   sc('A TORN FILE IS ASKED ABOUT PER FILE, AND BEFORE THE HEAL: a target with no anchor beside a stranded registry, a registry with no last case beside a stranded target, and one over nothing stranded are diverged; a file that is provably the injection is not asked (5 classifier inputs)',
     tornAsked.join() === 'diverged,diverged,diverged,heal,heal', `got ${tornAsked.join()}`)
+  // A file that IS its backup is whole, anchor or not, and is not asked (review 6, finding 2). Torn above means "not its backup"; here the same missing anchor sits on a file equal to its backup.
+  const wholeNotAsked = [st({ anchored: false }), st({ registryAnchored: false }), st({ anchored: false, registryStranded: true }), st({ registryAnchored: false, targetStranded: true, injected: true }),
+    st({ anchored: false, registryAnchored: false })]
+  sc('A FILE THAT IS ITS BACKUP IS WHOLE AND IS NOT ASKED ABOUT ITS ANCHOR: a target or a registry with no anchor over nothing stranded is stale, beside a stranded file the stranded one is healed, and neither having an anchor is stale (5 classifier inputs)',
+    wholeNotAsked.join() === 'stale,stale,heal,heal,stale', `got ${wholeNotAsked.join()}`)
   sc('DIVERGED: a probe case the backups do not describe is not discarded as stale, and one they do describe is healed',
     st({ registryInjected: true }) === 'diverged' && st({ registryInjected: true, registryStranded: true }) === 'heal',
     `got ${st({ registryInjected: true })} / ${st({ registryInjected: true, registryStranded: true })}`)
@@ -731,6 +739,20 @@ if (process.argv.includes('--self-test')) {
     tornRun.target === '// head, cut off' && tornRun.status === 1 && /nothing was written/.test(tornRun.stderr)
       && tornRun.stateLeft && !carriedOn(tornRun),
     show(tornRun))
+  // A file with no anchor that IS its backup is whole, and the stranded file beside it is healed (review 6, finding 2). The registry here has had its last case renamed away since the run started and is byte for
+  // byte its backup; the target is the mirror. Refused, the message named the whole file ("Put src/Desk.fs right by hand") while the injection in the other stayed, and the state with it.
+  const noLastCase = 'type Sport =\n    | MLB\n    | EPL\n'
+  const noAnchorTarget = '// head, no anchor line below\n  body\n'
+  const healBesideWholeRegistry = sandbox({ target: injectedClean, registry: noLastCase, backupTarget: clean, backupRegistry: noLastCase, pid: DEAD })
+  sc('A STRANDED TARGET IS HEALED BESIDE A REGISTRY THAT HAS NO LAST CASE BUT IS ITS BACKUP: the target is back, the registry is untouched and not named, the state goes (1 planted state)',
+    healBesideWholeRegistry.target === clean && healBesideWholeRegistry.registry === noLastCase && /HEALED/.test(healBesideWholeRegistry.stderr) && !/src\/Desk\.fs/.test(healBesideWholeRegistry.stderr) && !/nothing was written/.test(healBesideWholeRegistry.stderr)
+      && !healBesideWholeRegistry.stateLeft,
+    show(healBesideWholeRegistry))
+  const healBesideWholeTarget = sandbox({ target: noAnchorTarget, registry: probeRegistry(union), backupTarget: noAnchorTarget, backupRegistry: union, pid: DEAD })
+  sc('...AND THE MIRROR: a stranded registry is healed beside a target that has no anchor but is its backup: the registry is back, the target is untouched and not named, the state goes (1 planted state)',
+    healBesideWholeTarget.registry === union && healBesideWholeTarget.target === noAnchorTarget && /HEALED/.test(healBesideWholeTarget.stderr) && /src\/Desk\.fs/.test(healBesideWholeTarget.stderr) && !/src\/Scoreboard\.fs/.test(healBesideWholeTarget.stderr)
+      && !healBesideWholeTarget.stateLeft,
+    show(healBesideWholeTarget))
   // The torn file and the stranded one are different files. A target cut off before its anchor beside a registry that carries the run's probe (a kill in phase 2, then a tear that no failed restore of
   // ours explains) was HEALED, and the heal deleted the state, which held the only whole target. The mirror, a registry cut off before its last case beside a stranded target, was the same: only the
   // target had an anchor input. (Each is one planted state on the real script.)
