@@ -10,6 +10,7 @@
 // HOW. Each script is run as it is, with $TMPDIR reached through a SYMLINK to a directory of its own (macOS's is: /var is a link), and with a guard that REFUSES any
 // write whose path is under <root>/scripts/ and logs every write. For the .mjs scripts the guard is a preload (NODE_OPTIONS --require) that wraps the fs write
 // functions; for the .py script it is a sitecustomize.py (PYTHONPATH) that installs an audit hook. Both are inherited by the self-test processes the script starts.
+// "Under scripts/" includes scripts/ itself: moving or removing the directory is how a script would swap in a whole mutated tree and put the original back.
 // Seven clauses per script, in the order they print:
 //   1. it runs to the end and every mutation is caught                    (exit 0 and `N of N mutations caught`, with $TMPDIR behind the symlink)
 //   2. it prints `positive control: the unmutated copy passes`
@@ -31,7 +32,7 @@
 // shutil.copy) and the audit events os.rename (so os.replace and shutil.move), os.remove (so os.unlink), os.truncate and shutil.rmtree, on a path under scripts/.
 // It does NOT see os.mkdir or os.rmdir, a remove relative to a directory descriptor, a file descriptor, chmod or utime, or a shell-out. rmtree has an event of its
 // own because it deletes the files in a tree relative to a descriptor, which the remove event cannot place: without it the files go first and only the last rmdir is
-// refused. Clause 6 is the check on an inert guard: a script that is seen writing nothing at all passes clause 5 for the wrong reason, so it fails clause 6.
+// refused. The directory itself is probed empty, so that no refused write inside it can be what stops the rename or the removal. Clause 6 is the check on an inert guard: a script that is seen writing nothing at all passes clause 5 for the wrong reason, so it fails clause 6.
 //
 // --self-test runs the same verdicts over stand-ins in a root of their own: a probe of each guard over every function it covers, a script that mutates in place,
 // one that works on a copy, and copy-based ones that each lack one thing. Each stand-in is pinned to the whole pattern of the seven clauses (T = passes, F = fails), so a
@@ -58,6 +59,7 @@ writeFileSync(guard, `
 const fs = require('node:fs'), path = require('node:path')
 const root = fs.realpathSync(process.env.MC_ROOT)
 const tracked = path.join(root, 'scripts') + path.sep
+const under = abs => abs.startsWith(tracked) || abs + path.sep === tracked
 const { openSync, writeSync, closeSync } = fs
 const append = (file, line) => { const fd = openSync(file, 'a'); writeSync(fd, line); closeSync(fd) }
 // A second and a third run in which a copy cannot run: every --self-test started from outside the repo exits 1, as a broken copy would, or exits 0 saying nothing, as a
@@ -70,7 +72,7 @@ for (const name of ${JSON.stringify(WRITERS)}) {
   const real = fs[name]
   fs[name] = function (...args) {
     const paths = (written[name] ?? [0]).map(i => path.resolve(String(args[i])))
-    const hit = paths.find(abs => abs.startsWith(tracked))
+    const hit = paths.find(under)
     append(process.env.MC_LOG, (hit ? 'BLOCKED ' : 'WROTE ') + (hit ?? paths[0]) + '\\n')
     if (hit) throw Object.assign(new Error('EACCES: a mutate script wrote the tracked tree: ' + hit), { code: 'EACCES' })
     return real.apply(this, args)
@@ -86,6 +88,8 @@ writeFileSync(join(pyGuardDir, 'sitecustomize.py'), String.raw`
 import os, sys
 root = os.path.realpath(os.environ['MC_ROOT'])
 tracked = os.path.join(root, 'scripts') + os.sep
+def under(p):
+    return p.startswith(tracked) or p + os.sep == tracked
 argv = sys.orig_argv
 # A second and a third run in which a copy cannot run: every --self-test started from outside the repo exits 1, as a broken copy would, or exits 0 saying nothing.
 fault = os.environ.get('MC_COPY_FAULT')
@@ -110,7 +114,7 @@ def hook(event, args):
     paths = [os.path.abspath(os.fsdecode(args[i])) for i in which if not isinstance(args[i], int)]
     if not paths:
         return
-    hit = next((p for p in paths if p.startswith(tracked)), None)
+    hit = next((p for p in paths if under(p)), None)
     busy = True
     try:
         fd = os.open(os.environ['MC_LOG'], os.O_WRONLY | os.O_APPEND | os.O_CREAT)
@@ -319,7 +323,27 @@ attempt('elsewhere', lambda: open(os.path.join(dir, 'x'), 'w').close())
 `)
     writeFileSync(join(root, 'in-place.py'), "import pathlib\npathlib.Path('scripts/target.py').write_text('mutated')\nprint('positive control: the unmutated copy passes')\nprint('1 of 1 mutations caught.')\n")
 
-    const probe = run('probe.mjs', root, false)
+    // The directory itself, in a root of its own where scripts/ is EMPTY: nothing inside it could be what refuses the move or the removal.
+    const dirRoot = join(root, 'dir-root')
+    mkdirSync(dirRoot)
+    writeFileSync(join(dirRoot, 'probe.mjs'), `import fs from 'node:fs'
+const attempt = (label, fn) => { try { fn(); console.log(label + ': written') } catch (e) { console.log(label + ': ' + e.code) } finally { fs.mkdirSync('scripts', { recursive: true }) } }
+attempt('renameDir', () => fs.renameSync('scripts', 'moved'))
+attempt('rmDir', () => fs.rmSync('scripts', { recursive: true }))
+`)
+    writeFileSync(join(dirRoot, 'probe.py'), `import os, shutil
+def attempt(label, fn):
+    try:
+        fn()
+        print(label + ': written')
+    except PermissionError:
+        print(label + ': EACCES')
+    finally:
+        os.makedirs('scripts', exist_ok=True)
+attempt('renameDir', lambda: os.rename('scripts', 'moved'))
+attempt('rmtreeDir', lambda: shutil.rmtree('scripts'))
+`)
+    const probe = run('probe.mjs', root)
     const probed = Object.keys(PROBED)
     const refused = probed.filter(w => probe.out.includes(`${w}: EACCES\n`))
     check(`THE NODE GUARD REFUSES EACH OF THE ${probed.length} WRITE FUNCTIONS ON A TRACKED PATH (a copy by its destination, a rename by either end), ALLOWS A WRITE ELSEWHERE AND A COPY THAT ONLY READS THE TRACKED FILE, AND LOGS BOTH`,
@@ -327,12 +351,20 @@ attempt('elsewhere', lambda: open(os.path.join(dir, 'x'), 'w').close())
       probe.blocked.length === probed.length + 1 && probe.lines.some(l => l.startsWith('WROTE ')) && tracked('target.mjs') === TRACKED,
       `refused ${refused.length} of ${probed.length}: ${refused.join(',')}; logged ${probe.blocked.length} refusals; ${probe.out.replace(/\n/g, ' | ')}`)
 
-    const pyProbe = run('probe.py', root, false)
+    const pyProbe = run('probe.py', root)
     const pyRefused = PROBED_PY.filter(w => pyProbe.out.includes(`${w}: EACCES\n`))
     check(`THE PYTHON GUARD REFUSES EACH OF THE ${PROBED_PY.length} WAYS TO WRITE A TRACKED PATH (a rename by either end), ALLOWS A READ, A WRITE ELSEWHERE AND A COPY THAT ONLY READS THE TRACKED FILE, AND LOGS BOTH`,
       pyRefused.length === PROBED_PY.length && ['renameOut: EACCES', 'copyOut: written', 'read: written', 'elsewhere: written'].every(l => pyProbe.out.includes(`${l}\n`)) &&
       pyProbe.blocked.length === PROBED_PY.length + 1 && pyProbe.lines.some(l => l.startsWith('WROTE ')) && tracked('target.py') === TRACKED_PY && existsSync(join(root, 'scripts', 'sub', 'x.py')),
       `refused ${pyRefused.length} of ${PROBED_PY.length}: ${pyRefused.join(',')}; logged ${pyProbe.blocked.length} refusals; ${pyProbe.out.replace(/\n/g, ' | ')}`)
+
+    mkdirSync(join(dirRoot, 'scripts'))
+    const dirProbe = run('probe.mjs', dirRoot)
+    const pyDirProbe = run('probe.py', dirRoot)
+    check('BOTH GUARDS REFUSE TO MOVE OR REMOVE THE scripts/ DIRECTORY ITSELF (an empty one, so no write inside it can be what refuses): a rename and a recursive removal, in node and in python, and log all four as refused',
+      ['renameDir: EACCES', 'rmDir: EACCES'].every(l => dirProbe.out.includes(`${l}\n`)) && ['renameDir: EACCES', 'rmtreeDir: EACCES'].every(l => pyDirProbe.out.includes(`${l}\n`)) &&
+      dirProbe.blocked.length === 2 && pyDirProbe.blocked.length === 2,
+      `node: ${dirProbe.out.replace(/\n/g, ' | ')} ${dirProbe.blocked.length} refused; python: ${pyDirProbe.out.replace(/\n/g, ' | ')} ${pyDirProbe.blocked.length} refused`)
 
     const inPlace = evaluate('in-place.mjs', root)
     check('A STAND-IN THAT MUTATES IN PLACE FAILS EVERY CLAUSE (the guard stopped it at its first write), and its tracked file is byte-identical',

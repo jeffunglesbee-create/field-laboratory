@@ -8121,6 +8121,38 @@ const MUTATIONS = [
     replace: "completes: Boolean(a.tally) && a.tally[1] === a.tally[2],",
     expect: "node scripts/mutate-copy-check.mjs --self-test",
   },
+  {
+    id: "mutate-copy-check-guard-allows-the-dir-itself",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: the node guard refuses to move or remove scripts/ itself, not only a path under it",
+    find: "const under = abs => abs.startsWith(tracked) || abs + path.sep === tracked",
+    replace: "const under = abs => abs.startsWith(tracked)",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
+  {
+    id: "mutate-copy-check-guard-dir-only",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: the node guard refuses a write under scripts/, not only scripts/ itself",
+    find: "const under = abs => abs.startsWith(tracked) || abs + path.sep === tracked",
+    replace: "const under = abs => abs + path.sep === tracked",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
+  {
+    id: "mutate-copy-check-py-guard-allows-the-dir-itself",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: the python guard refuses to move or remove scripts/ itself, not only a path under it",
+    find: "    return p.startswith(tracked) or p + os.sep == tracked",
+    replace: "    return p.startswith(tracked)",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
+  {
+    id: "mutate-copy-check-py-guard-dir-only",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: the python guard refuses a write under scripts/, not only scripts/ itself",
+    find: "    return p.startswith(tracked) or p + os.sep == tracked",
+    replace: "    return p + os.sep == tracked",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
