@@ -4895,6 +4895,34 @@ const MUTATIONS = [
     replace: "Restored it before measuring anything.",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
+  // --- how a pid is told to be a proof-check (review 6, test-vacuity lens, finding 4, 2026-11-05) -----------------------------------------------------------------------------------------------------
+  //
+  // The clauses fed `commandOf` a fake reader that ignored its path, so reading `comm` instead of `cmdline` passed, and the two anchors on the patterns (`ts-node`, `my-proof-check.mjs`) were never tried. A
+  // clause now reads three real processes through the real /proc, and the string clause has the two lookalikes.
+  {
+    id: "proof-command-read-from-comm",
+    file: 'scripts/proof-check.mjs',
+    claim: "what a pid is running is read from its command line, which holds its arguments, and not from its short name",
+    find: "read(`/proc/${pid}/cmdline`)",
+    replace: "read(`/proc/${pid}/comm`)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-run-is-any-node-suffix",
+    file: 'scripts/proof-check.mjs',
+    claim: "a process is a proof-check only if its program is node itself: ts-node running proof-check.mjs is not",
+    find: "/(^|\\/)node[\\d.]*$/.test(words[0])",
+    replace: "/node[\\d.]*$/.test(words[0])",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-run-is-any-file-suffix",
+    file: 'scripts/proof-check.mjs',
+    claim: "a process is a proof-check only if the file it runs is named proof-check.mjs: my-proof-check.mjs is not",
+    find: "/(^|\\/)proof-check\\.mjs$/.test(w)",
+    replace: "/proof-check\\.mjs$/.test(w)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
   // The marker's lifetime and the identity of its pid (2026-11-04). The phase-2 entries need a
   // real two-phase run, which the self-test makes with a stand-in dotnet; the others are caught by
   // the liveness cases, which feed run-marker.mjs a recycled pid, a zombie and an injected /proc.

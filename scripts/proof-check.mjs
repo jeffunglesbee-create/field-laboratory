@@ -890,8 +890,24 @@ if (process.argv.includes('--self-test')) {
     asCmd('') === '' && asCmd('\0') === '' && commandOf(1, () => { throw new Error('ENOENT') }) === null && asCmd('node\0scripts/proof-check.mjs\0--self-test\0') === 'node scripts/proof-check.mjs --self-test'
       && runsProofCheck('node scripts/proof-check.mjs') && runsProofCheck('/opt/node22/bin/node /x/scripts/proof-check.mjs --self-test') && runsProofCheck('node22 proof-check.mjs')
       && !runsProofCheck('') && !runsProofCheck('sleep 30') && !runsProofCheck("sh -c sleep 60; true vim-proof-check-notes.txt") && !runsProofCheck('vim scripts/proof-check.mjs')
-      && !runsProofCheck('node scripts/other.mjs proof-check.mjs.bak') && !runsProofCheck('node'),
-    'the kernel thread, the failed read, the real run in three spellings, and five strangers')
+      && !runsProofCheck('node scripts/other.mjs proof-check.mjs.bak') && !runsProofCheck('node')
+      && !runsProofCheck('ts-node scripts/proof-check.mjs') && !runsProofCheck('node scripts/my-proof-check.mjs'),
+    'the kernel thread, the failed read, the real run in three spellings, and seven strangers (two of them lookalikes: ts-node, my-proof-check.mjs)')
+  // The same by effect, through the REAL /proc: a fake reader that ignores its path cannot tell cmdline from comm or from any other file (review 6, tests-vacuity 4: a `comm` read passed every clause above). Three
+  // real processes: node running a file named proof-check.mjs, node running my-proof-check.mjs, and sleep. `spawn` returns once the child has exec'd (300 spawns, 0 reads of the parent's command line).
+  const procDir = mkdtempSync(join(tmpdir(), 'proof-proc-'))
+  writeFileSync(join(procDir, 'proof-check.mjs'), 'setTimeout(() => {}, 60000)\n')
+  writeFileSync(join(procDir, 'my-proof-check.mjs'), 'setTimeout(() => {}, 60000)\n')
+  const realRun = spawn(process.execPath, [join(procDir, 'proof-check.mjs')], { stdio: 'ignore' })
+  const lookalike = spawn(process.execPath, [join(procDir, 'my-proof-check.mjs')], { stdio: 'ignore' })
+  const sleeper = spawn('sleep', ['30'], { stdio: 'ignore' })
+  const procSeen = { run: commandOf(realRun.pid), look: commandOf(lookalike.pid), sleep: commandOf(sleeper.pid) }
+  for (const child of [realRun, lookalike, sleeper]) child.kill('SIGKILL')
+  rmSync(procDir, { recursive: true, force: true })
+  sc(`commandOf reads the REAL /proc/<pid>/cmdline: a node process running a file named proof-check.mjs is a proof-check, and node running my-proof-check.mjs and a sleep are strangers (3 real processes; asserted: ${haveProcForCmd})`,
+    !haveProcForCmd || (procSeen.run === `${process.execPath} ${join(procDir, 'proof-check.mjs')}` && runsProofCheck(procSeen.run) && !isStranger(procSeen.run)
+      && procSeen.look === `${process.execPath} ${join(procDir, 'my-proof-check.mjs')}` && !runsProofCheck(procSeen.look) && isStranger(procSeen.look) && procSeen.sleep === 'sleep 30' && isStranger(procSeen.sleep)),
+    JSON.stringify(procSeen))
   sc('isStranger: a known command that is not a proof-check is one (the empty one too); an unreadable command is not',
     isStranger('') && isStranger('sleep 30') && !isStranger(null) && !isStranger('node scripts/proof-check.mjs'), 'empty, sleep, null, the real run')
   const liveNow = { kill: () => {}, stat: () => ({ state: 'S', start: '5' }) }
