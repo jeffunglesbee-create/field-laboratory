@@ -1507,11 +1507,35 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'refusal-over-an-edit-says-put-the-stash-back-first',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal that has just listed paths a person edited does not tell them to put the stash back first, which is an instruction to copy it over those paths",
+    find: "? (listsPaths",
+    replace: "? (false",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refusal-over-an-edit-forgets-it-lists-paths',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal for a path changed after the kill is the one that lists paths a person owns, so it carries the advice that is true of them",
+    find: "its restore command would overwrite the ones listed.`, true, true)",
+    replace: "its restore command would overwrite the ones listed.`)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refusal-over-an-edit-does-not-say-the-state-may-go',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal that lists paths a person owns says what to do after putting back the rest: delete the state once what is still needed is out of the stash",
+    find: " Then delete ${dir} to clear this: it holds the only copy of what was moved aside, so take anything you still need out of ${join(dir, 'world')} first.",
+    replace: " It holds the only copy of what was moved aside.",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-refusal-offers-the-restore-command',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal for an edited path does not hand over the command that overwrites it",
-    find: "its restore command would overwrite the ones listed.`)",
-    replace: "its restore command would overwrite the ones listed. To undo it by hand: STASH=${m.stash} sh -c '${m.restoreCmd}'.`)",
+    find: "its restore command would overwrite the ones listed.",
+    replace: "its restore command would overwrite the ones listed. To undo it by hand: STASH=${m.stash} sh -c '${m.restoreCmd}'.",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -7652,9 +7676,15 @@ const healAt = (dir, { rebuild = true, probes = healProbes, exit = process.exit,
   // person to delete the state directory must not do so over a stash that is not empty.
   const stashHeld = () => { try { return readdirSync(join(dir, 'world')).length > 0 } catch { return false } }
   // Every refusal ends the same way: how to make it stop, once a person has looked. A live run's refusal says to wait instead, so it passes `clears` false.
-  const stop = (text, clears = true) => {
+  //
+  // `listsPaths`: the refusal has just told a person which paths are theirs (an edit made after the kill, or a path that matches a HEAD that moved) and to put back only the others. "Put it back first"
+  // after that is an instruction to copy the stash over the very paths it named (measured 2026-11-05, in the sentence after "its restore command would overwrite the ones listed"), and the stash is
+  // a full copy of every write-up. What is true there is the sentence before it, and then that the state may go once what is still needed is out of the stash.
+  const stop = (text, clears = true, listsPaths = false) => {
     const how = !clears ? '' : stashHeld()
-      ? ` What a world mutation moved aside is in ${join(dir, 'world')}: put it back first, because deleting ${dir} deletes the only copy.`
+      ? (listsPaths
+        ? ` Then delete ${dir} to clear this: it holds the only copy of what was moved aside, so take anything you still need out of ${join(dir, 'world')} first.`
+        : ` What a world mutation moved aside is in ${join(dir, 'world')}: put it back first, because deleting ${dir} deletes the only copy.`)
       : ` When the tree is right, delete ${dir} to clear this.`
     log(`::error::${where} ${text}${how}`)
     exit(1)
@@ -7689,7 +7719,7 @@ const healAt = (dir, { rebuild = true, probes = healProbes, exit = process.exit,
       const parts = []
       if (edited.length) parts.push(`${edited.length === 1 ? 'a path it touched is' : 'paths it touched are'} neither as it was nor as the mutation left it (${list(edited)}): it changed after the kill`)
       if (atHead.length) parts.push(`HEAD has moved since the kill and ${atHead.length === 1 ? 'a path it touched now matches' : 'paths it touched now match'} HEAD (${list(atHead)}), which is where a path put back ends up and also where a committed stub or edit ends up, so the two cannot be told apart`)
-      return stop(`names [${m.id}], a change made outside the source: ${parts.join('; and ')}. Nothing was run. ${atHead.length ? `Compare ${atHead.length === 1 ? 'the one that matches HEAD' : 'each that matches HEAD'} with ${m.stash} to tell which it is. ` : ''}Put back from ${m.stash} only the paths that are still as the mutation left them; its restore command would overwrite the ones listed.`)
+      return stop(`names [${m.id}], a change made outside the source: ${parts.join('; and ')}. Nothing was run. ${atHead.length ? `Compare ${atHead.length === 1 ? 'the one that matches HEAD' : 'each that matches HEAD'} with ${m.stash} to tell which it is. ` : ''}Put back from ${m.stash} only the paths that are still as the mutation left them; its restore command would overwrite the ones listed.`, true, true)
     }
     const original = probes.fileSha(m.backup) === m.originalSha
     return stop(`names [${m.id}] on ${m.file}, and that file is neither the original nor the mutation: it changed after the kill. Nothing was written. ${original ? `The original is ${m.backup}.` : `Its backup (${m.backup}) is also gone or is not the original.`}`)
@@ -8161,6 +8191,22 @@ if (process.argv.includes('--self-test')) {
   check('A REFUSAL OVER A STASH THAT HOLDS FILES DOES NOT SAY TO DELETE THE DIRECTORY: it says the originals are in the stash and to put them back first',
     stoppedFor(wStashedRun, /put it back first/) && !/delete .* to clear this/.test(wStashedRun.said) && existsSync(join(wStashed.state, 'world', 'x', 'cc-session.md')),
     wStashedRun.said)
+  // ...and the same stash under a refusal that has JUST LISTED paths a person owns must not say "put it back first": the stash is a full copy, so that is an instruction to copy it over them
+  // (measured 2026-11-05: the sentence after "its restore command would overwrite the ones listed" was "put it back first, because deleting the directory deletes the only copy"). What is true
+  // there is to put back only the paths still as the mutation left them, and then to delete the state once what is still needed is out of the stash. Both shapes of "listed" are driven: a path
+  // edited after the kill, and a path that matches a HEAD that moved.
+  const stashFiles = state => { mkdirSync(join(state, 'world', 'x'), { recursive: true }); writeFileSync(join(state, 'world', 'x', 'out-a.md'), 'the only copy\n') }
+  const wStashedEdit = worldCase({})
+  stashFiles(wStashedEdit.state)
+  const wStashedEditRun = attempt(wStashedEdit.state, fakeTree({ ...aGone, 'out/a.md': 'h-edited-by-a-person' }).probes)
+  const wStashedHead = worldCase({ touched: STUBBED, before: {}, head: 'old-head' })
+  stashFiles(wStashedHead.state)
+  const wStashedHeadRun = attempt(wStashedHead.state, { ...fakeTree({}).probes, head: () => 'new-head' })
+  const STATE_MAY_GO = /Then delete \S+ to clear this: it holds the only copy of what was moved aside, so take anything you still need out of \S+\/world first\./
+  check('A REFUSAL THAT LISTS PATHS A PERSON OWNS DOES NOT SAY TO PUT THE STASH BACK FIRST: over a stash that holds files, after an edited path and after a path that matches a HEAD that moved (2 shapes), it says to delete the state once what is still needed is out of the stash, never "put it back first", and the stash and the state are kept',
+    [wStashedEditRun, wStashedHeadRun].every(r => stoppedFor(r, STATE_MAY_GO) && !/put it back first/.test(r.said) && /only the paths that are still as the mutation left them/.test(r.said))
+      && existsSync(join(wStashedEdit.state, 'world', 'x', 'out-a.md')) && wStashedEdit.kept() && existsSync(join(wStashedHead.state, 'world', 'x', 'out-a.md')) && wStashedHead.kept(),
+    `edited: exit ${wStashedEditRun.code}, ${wStashedEditRun.said.slice(-230)} / matches HEAD: exit ${wStashedHeadRun.code}, ${wStashedHeadRun.said.slice(-230)}`)
   const wOld = fakeTree({ ...aGone }); const w7 = worldCase({ before: undefined }); const w7r = attempt(w7.state, wOld.probes)
   check('a world marker of the old shape (a digest, not the tree) cannot be checked and runs nothing',
     stoppedFor(w7r, /before markers recorded/) && wOld.calls.length === 0, `exit ${w7r.code}, calls ${wOld.calls.length}`)
@@ -8660,6 +8706,10 @@ if (process.argv.includes('--self-test')) {
       h4.status === 1 && /neither as it was nor as the mutation left it/.test(text(h4)) && read(join(repo, `outbox/cc-session-${day}-one.md`)) === 'a person rewrote this write-up after the kill\n'
         && read(join(stash, `cc-session-${day}-one.md`)) === writeUps[`outbox/cc-session-${day}-one.md`] && stateLeft(),
       `status ${h4.status}; ${text(h4).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(0, 200)}`)
+    check('E4: ...and its refusal does not tell a person to put the stash back over the edit: it says to put back only the paths still as the mutation left them, then to delete the state once what is still needed is out of the stash (the stash holds both write-ups, the edited one among them), and never "put it back first"',
+      /only the paths that are still as the mutation left them/.test(text(h4)) && /Then delete \.mutation-state to clear this: it holds the only copy of what was moved aside, so take anything you still need out of \.mutation-state\/world first\./.test(text(h4)) && !/put it back first/.test(text(h4))
+        && Object.keys(writeUps).every(p => read(join(stash, p.split('/').pop())) === writeUps[p]),
+      text(h4).split('\n').filter(l => /::error::/.test(l)).join(' | ').slice(-300))
 
     // E5: an exception inside the window, which the handler can see: it must put the write-ups back BEFORE it clears the state.
     reset()
