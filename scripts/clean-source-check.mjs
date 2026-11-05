@@ -34,6 +34,13 @@
 // It deliberately does NOT try to repair. Repair is proof-check's business and
 // it needs the backup; this only has to make the state impossible to miss.
 //
+// THE PROBE CASE (added 2026-11-05)
+//
+// `proof-check.mjs` leaves a second kind of injection. Its registry phase writes one line, a second `| NHL`, directly above the Sport union's last case in `src/Desk.fs`, and a kill there strands
+// it as the block above is stranded. This scan did not look for it. Measured 2026-11-05: with that line injected the way proof-check writes it, `npm run check:clean-source` printed
+// `4/4 checks passed` and exited 0, while `node scripts/proof-check.mjs` on the same tree refused with "src/Desk.fs contains injected proof code (the probe case) and no run state exists".
+// It is looked for in every source file, as the block is, and the constants that define it are asserted against proof-check's source, like the marker.
+//
 // WHAT IT TELLS THE READER TO DO depends on whether proof-check has a run state
 // to work from, because the two cases have different remedies and `git checkout`
 // is the right answer to neither. It restores a file to the INDEX: that throws
@@ -74,6 +81,14 @@ const STATE_DIR = '.proof-state'
 const ACTIVE = 'active.json'
 const ACTIVE_FILE = join(STATE_DIR, ACTIVE)
 
+// The registry phase's probe case: proof-check's second phase writes one case line directly above the Sport union's last case in src/Desk.fs, and a kill there strands it as silently as a
+// stranded block. Kept by eye and asserted against its source below, like MARKER. `asSource` is the text of one of these strings as it is written in a source file (its newline as \n).
+const REGISTRY_ANCHOR = '\n    | Unrecognised of raw: string'
+const REGISTRY_PROBE = '    | NHL\n'
+const SITE_SOURCE = 'REGISTRY_PROBE + REGISTRY_ANCHOR.slice(1)'
+const PROBE_SITE = REGISTRY_PROBE + REGISTRY_ANCHOR.slice(1)
+const asSource = text => text.replace('\n', '\\n')
+
 const SRC = 'src'
 
 if (process.argv.includes('--self-test')) {
@@ -101,13 +116,30 @@ if (process.argv.includes('--self-test')) {
     harness.includes(`const STATE_DIR = '${STATE_DIR}'`) && harness.includes(`const MARKER_FILE = join(STATE_DIR, '${ACTIVE}')`),
     `looking for the constants STATE_DIR = ${JSON.stringify(STATE_DIR)} and MARKER_FILE = join(STATE_DIR, ${JSON.stringify(ACTIVE)}) in scripts/proof-check.mjs`)
 
-  const dirty = sources.filter(f => readFileSync(join(SRC, f), 'utf8').includes(MARKER))
-  const paths = dirty.map(f => join(SRC, f)).join(' ')
+  // And for the registry's probe case: the same silent pass if proof-check changed the line it writes, the case it writes it above, or how it composes the two into the text it looks for.
+  check('the registry probe this scans for is the one proof-check injects',
+    harness.includes(`const REGISTRY_ANCHOR = '${asSource(REGISTRY_ANCHOR)}'`) && harness.includes(`const REGISTRY_PROBE = '${asSource(REGISTRY_PROBE)}'`)
+      && harness.includes(`const REGISTRY_PROBE_SITE = ${SITE_SOURCE}`),
+    `looking for the constants REGISTRY_ANCHOR = '${asSource(REGISTRY_ANCHOR)}', REGISTRY_PROBE = '${asSource(REGISTRY_PROBE)}' and REGISTRY_PROBE_SITE = ${SITE_SOURCE} in scripts/proof-check.mjs`)
+
+  // Every source file, for each of the two things proof-check leaves: the block of proof functions, and the probe case. (The probe is looked for in every file, as the block is, not only in the
+  // registry proof-check names: that file is its business, and a scan that knew it would go blind when it moved. Measured 2026-11-05: no file in src/ carries the probe's site on a clean tree.)
+  const where = needle => sources.filter(f => readFileSync(join(SRC, f), 'utf8').includes(needle))
+  const blocks = where(MARKER)
+  const probes = where(PROBE_SITE)
+  const dirty = sources.filter(f => blocks.includes(f) || probes.includes(f))
+  const at = files => files.map(f => join(SRC, f)).join(' ')
+  const paths = at(dirty)
+  // What to delete, for each kind that is there. The probe is one line, and its grep shows the line above the union's last case, because that line is the probe: the last case itself is always there.
+  const deletions = [
+    ...(blocks.length ? [`the injected block (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${at(blocks)}\` finds them)`] : []),
+    ...(probes.length ? [`the probe case (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${at(probes)}\` shows it)`] : []),
+  ]
   // The remedy is one line (it is also a GitHub annotation) and depends on whether proof-check has the state it needs.
   const remedy = existsSync(ACTIVE_FILE)
     ? `a proof-check run left this. Run \`node scripts/proof-check.mjs\`: it puts a file back only when that file is exactly its backup plus the injection (edits made before that run are kept), ` +
       `and refuses, writing nothing, when the file has moved on since or that run is still going; after a restore it goes on to run the proofs. The backups are in ${STATE_DIR}/; do not delete it`
-    : `${ACTIVE_FILE} does not exist, so \`node scripts/proof-check.mjs\` has nothing to restore from and refuses. Delete the injected block (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${paths}\` finds them). ` +
+    : `${ACTIVE_FILE} does not exist, so \`node scripts/proof-check.mjs\` has nothing to restore from and refuses. Delete ${deletions.join(' and ')}. ` +
       `If the injection is uncommitted, \`git checkout -- ${paths}\` also removes it but discards every uncommitted edit to the file`
 
   check('no source file carries injected proof code',
@@ -130,8 +162,9 @@ function selfTest () {
   const here = fileURLToPath(import.meta.url)
   const dirs = []
   // What proof-check's source has to say for the scan to accept it. Built from this file's own constants, so a fixture that drifts changes exactly one of them.
-  const harnessOf = ({ marker = MARKER, stateDir = STATE_DIR, active = ACTIVE } = {}) =>
+  const harnessOf = ({ marker = MARKER, stateDir = STATE_DIR, active = ACTIVE, anchor = asSource(REGISTRY_ANCHOR), probe = asSource(REGISTRY_PROBE), site = SITE_SOURCE } = {}) =>
     `const STATE_DIR = '${stateDir}'\nconst MARKER_FILE = join(STATE_DIR, '${active}')\nconst MARKER = '${marker}'\n`
+    + `const REGISTRY_ANCHOR = '${anchor}'\nconst REGISTRY_PROBE = '${probe}'\nconst REGISTRY_PROBE_SITE = ${site}\n`
   const run = ({ files, state = null, harness = harnessOf() }) => {
     const dir = mkdtempSync(join(tmpdir(), 'clean-source-'))
     dirs.push(dir)
@@ -156,12 +189,23 @@ function selfTest () {
     const stateDirDrift = run({ files: injected, harness: harnessOf({ stateDir: '.proof-run' }) })
     const stateFileDrift = run({ files: injected, harness: harnessOf({ active: 'marker.json' }) })
     const empty = run({ files: {} })
+    // The registry's probe case. A union as src/Desk.fs has it: `| NHL` is a real case in the middle, and the case above the last one is another (the probe is a SECOND `| NHL`, directly above the last case).
+    const unionOf = cases => `type Sport =\n${cases.map(c => `    | ${c}`).join('\n')}\n    | Unrecognised of raw: string\n`
+    const cleanUnion = unionOf(['MLB', 'NHL', 'UFL'])
+    const probedUnion = unionOf(['MLB', 'NHL', 'UFL', 'NHL'])
+    const probed = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': probedUnion } })
+    const bothKinds = run({ files: { ...injected, 'D.fs': probedUnion } })
+    const unionClean = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': cleanUnion } })
+    const probeDrift = run({ files: { 'D.fs': probedUnion }, harness: harnessOf({ probe: asSource('    | NFL\n') }) })
+    const anchorDrift = run({ files: { 'D.fs': probedUnion }, harness: harnessOf({ anchor: asSource('\n    | Other of raw: string') }) })
+    const siteDrift = run({ files: { 'D.fs': probedUnion }, harness: harnessOf({ site: 'REGISTRY_PROBE + REGISTRY_ANCHOR' }) })
     const FAILS = /FAIL  no source file carries injected proof code/
 
-    // Coverage (Rule 91): 8 fixtures, each the real script in a directory of its own: clean, injected with no state, with active.json, with a state directory that holds no active.json,
-    // a renamed marker, a renamed state directory, a renamed state file, and no sources.
-    check('a clean tree passes all 4 checks (fixture: one clean file)',
-      clean.status === 0 && /4\/4 checks passed/.test(clean.out), clean.verdict)
+    // Coverage (Rule 91): 14 fixtures, each the real script in a directory of its own: clean, injected with no state, with active.json, with a state directory that holds no active.json,
+    // a renamed marker, a renamed state directory, a renamed state file, and no sources; then the registry's probe case: carried, carried beside an injected block, a clean union that has `| NHL`
+    // in the middle, and a probe line, a last-case anchor and a site definition that proof-check no longer uses.
+    check('a clean tree passes all 5 checks (fixture: one clean file)',
+      clean.status === 0 && /5\/5 checks passed/.test(clean.out), clean.verdict)
     check('an injected file fails, and is the one named (fixtures: src/A.fs clean, src/B.fs injected)',
       noState.status === 1 && FAILS.test(noState.out) && /→ B\.fs — /.test(noState.out) && !/A\.fs/.test(noState.out), noState.verdict)
     check('WITH a run state (.proof-state/active.json), the remedy is proof-check, and it says to keep the state directory',
@@ -184,6 +228,21 @@ function selfTest () {
         && stateFileDrift.status === 1 && /FAIL  the run state this reads is the one proof-check keeps/.test(stateFileDrift.out), `${stateDirDrift.verdict} // ${stateFileDrift.verdict}`)
     check('no F# sources at all fails',
       empty.status === 1 && /FAIL  there are F# sources to scan/.test(empty.out), empty.verdict)
+    check('a stranded registry probe fails the scan, and is the file named (fixtures: src/A.fs clean, src/D.fs carries the probe directly above the union\'s last case)',
+      probed.status === 1 && FAILS.test(probed.out) && /→ D\.fs — /.test(probed.out) && !/A\.fs/.test(probed.out), probed.verdict)
+    check('WITHOUT a run state, the probe\'s remedy names the line and a grep that shows it with the line above, and says nothing of an injected block',
+      /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(probed.out)
+        && /If the injection is uncommitted, \`git checkout -- src\/D\.fs\` also removes it but discards every uncommitted edit to the file/.test(probed.out) && !/injected block/.test(probed.out), probed.verdict)
+    check('a probe and an injected block in one tree each get their own instruction, naming only their own file, and one checkout names both',
+      bothKinds.status === 1 && /→ B\.fs, D\.fs — /.test(bothKinds.out)
+        && /Delete the injected block \(each "let private __proofN" header and the indented lines under it; \`grep -n "let private __proof" src\/B\.fs\` finds them\) and the probe case \(the line/.test(bothKinds.out)
+        && /\`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(bothKinds.out)
+        && /\`git checkout -- src\/B\.fs src\/D\.fs\` also removes it/.test(bothKinds.out), bothKinds.verdict)
+    check('a union that has `| NHL` in the middle and another case above its last is clean, as the real one is (the probe is a second `| NHL`, directly above the last case)',
+      unionClean.status === 0 && /5\/5 checks passed/.test(unionClean.out), unionClean.verdict)
+    check('a probe line, a last-case anchor or a site definition that proof-check no longer uses fails the scan: three renamed constants',
+      [probeDrift, anchorDrift, siteDrift].every(r => r.status === 1 && /FAIL  the registry probe this scans for is the one proof-check injects/.test(r.out)),
+      `${probeDrift.verdict} // ${anchorDrift.verdict} // ${siteDrift.verdict}`)
   } finally {
     for (const d of dirs) rmSync(d, { recursive: true, force: true })
   }
