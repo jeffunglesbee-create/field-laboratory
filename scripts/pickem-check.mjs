@@ -37,8 +37,9 @@ const { check, summarize } = createChecks()
 // row, `NOW` in zone-check, and now this. Derived from the FIELD day rather
 // than pinned, so it cannot expire again. Noon UTC to stay clear of the DST
 // boundary when adding a day.
+const FIELD_DAY = fieldDay()
 const DATE = (() => {
-  const d = new Date(`${fieldDay()}T12:00:00Z`)
+  const d = new Date(`${FIELD_DAY}T12:00:00Z`)
   d.setUTCDate(d.getUTCDate() + 1)
   return d.toISOString().slice(0, 10)
 })()
