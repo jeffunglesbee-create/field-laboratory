@@ -78,7 +78,7 @@
     "census:gravity": "node scripts/gravity-census.mjs",
     "census:bdb": "node scripts/bdb-census.mjs",
     "check:weather-burst": "node scripts/weather-burst-check.mjs",
-    "check:clean-source": "node scripts/clean-source-check.mjs",
+    "check:clean-source": "node scripts/clean-source-check.mjs --self-test && node scripts/clean-source-check.mjs",
     "check:outlet-scan": "node scripts/outlet-scan-check.mjs",
     "check:sports": "node scripts/sport-registry-check.mjs",
     "fix:citations": "node scripts/check-doc-citations.mjs --fix",

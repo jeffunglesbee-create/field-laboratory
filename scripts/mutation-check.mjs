@@ -5873,6 +5873,142 @@ const MUTATIONS = [
     replace: ": ok('node scripts/mutation-check.mjs'))",
     expect: 'node scripts/sharded-row-check.mjs --self-test',
   },
+
+  // --- clean-source-check's remedy (2026-11-05) ----------------------------------------------------
+  //
+  // docs/CC-CMD-2026-11-03-gate-hazard-residuals.md Task 3. The check used to tell a reader to restore
+  // an injected file with `git checkout --`, which throws away every uncommitted edit to it and, when
+  // the injection is already committed, changes nothing. It now says what proof-check does with the run
+  // state it has, and what to do by hand without one. Each of these breaks one part of that, and is
+  // caught by the check's own `--self-test`, which runs the real script over fixture directories.
+  {
+    id: "clean-source-remedy-is-a-checkout",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the remedy names the heal or the lines, never a bare checkout that also discards uncommitted edits",
+    find: "      ? `${dirty.join(', ')} — ${remedy}`",
+    replace: "      ? `${dirty.join(', ')} — restore with: git checkout -- ${paths}`",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-state-always-assumed",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a tree with no run state is not told to run proof-check as if it could heal",
+    find: "const remedy = existsSync(ACTIVE_FILE)",
+    replace: "const remedy = true",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-state-never-seen",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a tree with a run state is told to run proof-check, and not to delete the state",
+    find: "const remedy = existsSync(ACTIVE_FILE)",
+    replace: "const remedy = false",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-state-is-any-directory",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a state directory with no active.json counts as no run state, as it does to proof-check",
+    find: "const remedy = existsSync(ACTIVE_FILE)",
+    replace: "const remedy = existsSync(STATE_DIR)",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-marker-drift-unchecked",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a proof-check that no longer writes the marker fails the scan instead of letting it pass vacuously",
+    find: "harness.includes(`const MARKER = '${MARKER}'`),",
+    replace: "true,",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-state-dir-drift-unchecked",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a proof-check that keeps its state in another directory fails the scan, so the remedy cannot branch on a path nobody writes",
+    find: "harness.includes(`const STATE_DIR = '${STATE_DIR}'`) && ",
+    replace: "",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-state-file-drift-unchecked",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a proof-check whose run marker is another file fails the scan, so the remedy cannot branch on a file nobody writes",
+    find: " && harness.includes(`const MARKER_FILE = join(STATE_DIR, '${ACTIVE}')`),",
+    replace: ",",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-scan-blind",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a source file that carries the marker is found",
+    find: ".includes(MARKER))\n  const paths",
+    replace: ".includes(MARKER + 'x'))\n  const paths",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-state-dir-unnamed",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the remedy for a tree with a run state names the directory that holds the backups and says to keep it",
+    find: "The backups are in ${STATE_DIR}/; do not delete it",
+    replace: "The backups are kept",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-no-sources-passes",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a tree with no F# sources fails, not passes on nothing",
+    find: "    sources.length > 0,\n",
+    replace: "    true,\n",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-checkout-cost-unsaid",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "when a checkout is named, so is what it discards",
+    find: "${paths}\\` also removes it but discards every uncommitted edit to the file",
+    replace: "${paths}\\` also removes it but restores the file",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-checkout-unconditional",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a checkout is named only for an uncommitted injection (on a committed one it changes nothing)",
+    find: "If the injection is uncommitted, \\`git checkout -- ${paths}",
+    replace: "\\`git checkout -- ${paths}",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-refusal-unsaid",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the remedy says proof-check refuses, writing nothing, when the run is still going",
+    find: " or that run is still going; after a restore",
+    replace: "; after a restore",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-grep-hint-is-git-diff",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the lines are found with a command that works on a committed injection too, not git diff, which prints nothing there",
+    find: "\\`grep -n \"${MARKER}\" ${paths}\\` finds them",
+    replace: "\\`git diff -- ${paths}\\` finds them",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-always-fails",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a clean tree passes",
+    find: "    dirty.length === 0,\n",
+    replace: "    false,\n",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-names-every-source",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "only the files that carry the marker are named",
+    find: "? `${dirty.join(', ')} — ",
+    replace: "? `${sources.join(', ')} — ",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
