@@ -15,11 +15,18 @@ between the two writes left scripts/check-push-lands.py mutated and the next run
 refused to start ("has unstaged changes"). A run killed now leaves a temporary
 directory and a clean tree. scripts/mutate-copy-check.mjs holds it to that.
 """
-import subprocess, pathlib, sys, tempfile
+import re, subprocess, pathlib, sys, tempfile
 
 CHECK = pathlib.Path('scripts/check-push-lands.py')
 
-if subprocess.run([sys.executable, str(CHECK), '--self-test'], capture_output=True).returncode != 0:
+# THE CONTROL MUST SEE A RUN. A self-test that never started exits 0 and prints nothing, and an exit status alone reads that as a pass. What only a run produces is the
+# line it prints when every check passed.
+TALLY = re.compile(r'^self-test: ([1-9]\d*)/\1$', re.M)
+def passes(cmd):
+    p = subprocess.run(cmd, capture_output=True, text=True)
+    return p.returncode == 0 and bool(TALLY.search(p.stdout))
+
+if not passes([sys.executable, str(CHECK), '--self-test']):
     print(f'FAIL — {CHECK} --self-test is already red on clean source.'); sys.exit(1)
 print(f'baseline: {CHECK} --self-test passes on clean source\n')
 
@@ -57,7 +64,7 @@ with tempfile.TemporaryDirectory(prefix='mutate-push-lands-') as td:
     SELF = [sys.executable, str(COPY), '--self-test']
     COPY.write_text(original)
     # POSITIVE CONTROL: the unmutated copy must pass, or "caught" below could mean only that the copy cannot run.
-    if subprocess.run(SELF, capture_output=True).returncode != 0:
+    if not passes(SELF):
         print('FAIL — the UNMUTATED copy is red, so no verdict below would be about the mutation.'); sys.exit(1)
     print('positive control: the unmutated copy passes\n')
     for name, anchor, repl, why in MUTATIONS:
@@ -69,7 +76,7 @@ with tempfile.TemporaryDirectory(prefix='mutate-push-lands-') as td:
         if COPY.read_text() == original:
             print(f'FAIL       {name}\n            file unchanged — NOTHING MUTATED.')
             continue
-        red = subprocess.run(SELF, capture_output=True).returncode != 0
+        red = not passes(SELF)
         print(f'{"CAUGHT    " if red else "NOT CAUGHT"} {name}\n            ({why})')
         caught += 1 if red else 0
 

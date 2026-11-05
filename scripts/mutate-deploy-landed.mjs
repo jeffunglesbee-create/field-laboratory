@@ -12,8 +12,11 @@ import { execFileSync } from 'node:child_process'
 
 const F = 'scripts/deployable.mjs'
 const CHECK = 'scripts/deploy-landed-check.mjs'
+// THE CONTROL MUST SEE A RUN. A self-test that never started exits 0 and prints nothing (a copy reached through a symlinked path is not the entry point, so its
+// isMain block is skipped), and an exit status alone reads that as a pass. What only a run produces is the tally line it prints when every check passed.
+const TALLY = /^([1-9]\d*)\/\1 checks passed$/m
 const passes = (at = CHECK) => {
-  try { execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe' }); return true }
+  try { return TALLY.test(execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe', encoding: 'utf8' })) }
   catch { return false }
 }
 

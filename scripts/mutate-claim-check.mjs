@@ -9,14 +9,17 @@
 //
 // Each mutation asserts its anchor is unique and applied before reporting a
 // verdict. NOT CAUGHT with nothing mutated is worse than no test.
-import { readFileSync, writeFileSync, mkdtempSync, cpSync, rmSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, realpathSync, cpSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
 const F = 'scripts/claim-check.mjs'
+// THE CONTROL MUST SEE A RUN. A self-test that never started exits 0 and prints nothing (a copy reached through a symlinked path is not the entry point, so its
+// isMain block is skipped), and an exit status alone reads that as a pass. What only a run produces is the tally line it prints when every check passed.
+const TALLY = /^([1-9]\d*)\/\1 checks passed$/m
 const selfTestPasses = (at = F) => {
-  try { execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe' }); return true }
+  try { return TALLY.test(execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe', encoding: 'utf8' })) }
   catch { return false }
 }
 
@@ -86,7 +89,10 @@ const MUTATIONS = [
 // THE MUTATION IS MADE ON A COPY of scripts/ in a temp directory, and the tracked scripts/claim-check.mjs is only read, as mutate-ppubs-probe.py,
 // mutate-patent-watch.py and mutate-drama-backfill.py do. A run killed part-way leaves a temp directory in $TMPDIR and a clean tree: there is nothing to heal,
 // and an uncommitted edit to scripts/claim-check.mjs is in the file and in the copy, never only in memory.
-const TMP = mkdtempSync(join(tmpdir(), 'mutate-claim-check-'))
+// TMP is the REAL path: reached through a symlink (macOS's $TMPDIR is under /var, which is one) node reports a script's import.meta.url as its real path and leaves
+// process.argv[1] as the symlinked one, so isMain() is false, the self-test block is skipped and the copy exits 0 printing nothing. scripts/mutate-copy-check.mjs runs this
+// script with $TMPDIR behind a symlink.
+const TMP = realpathSync(mkdtempSync(join(tmpdir(), 'mutate-claim-check-')))
 process.on('exit', () => rmSync(TMP, { recursive: true, force: true }))
 cpSync('scripts', join(TMP, 'scripts'), { recursive: true })
 const COPY = join(TMP, F)
