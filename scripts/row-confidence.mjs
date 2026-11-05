@@ -33,11 +33,11 @@
 //
 // Usage:  node scripts/row-confidence.mjs
 
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { rows } from './gate-checks.mjs'
-import { stripNonCode } from './strip-non-code.mjs'
+import { stripNonCode, blankComments } from './strip-non-code.mjs'
 import { createChecks, finish } from './checks.mjs'
 
 const BAR = 95
@@ -45,16 +45,22 @@ const BAR = 95
 const gateSource = readFileSync('scripts/gate-checks.mjs', 'utf8')
 const mutationSource = readFileSync('scripts/mutation-check.mjs', 'utf8')
 
-/** The scripts a row shells out to, read from its declaration. */
-const scriptsOf = rowName => {
+/** A row's own declaration in `gate-checks.mjs`, comments included: the text its commands are read from. Empty when no row has that name. */
+const declOf = rowName => {
   // Slice the row's own object literal, so a neighbouring row's command is not
   // attributed to it.
   const at = gateSource.indexOf(`name: '${rowName}'`) >= 0
     ? gateSource.indexOf(`name: '${rowName}'`)
     : gateSource.indexOf(`name: "${rowName}"`)
-  if (at === -1) return []
+  if (at === -1) return ''
   const end = gateSource.indexOf('\n\n', at)
-  const decl = gateSource.slice(at, end === -1 ? gateSource.length : end)
+  return gateSource.slice(at, end === -1 ? gateSource.length : end)
+}
+
+/** The scripts a row shells out to, read from its declaration. */
+const scriptsOf = rowName => {
+  const decl = declOf(rowName)
+  if (decl === '') return []
   const named = [...decl.matchAll(/scripts\/([\w.-]+\.mjs)/g)].map(m => `scripts/${m[1]}`)
   // A row whose `run` is a local function — the outbox and history rows — names
   // no script, and its logic lives in gate-checks.mjs. Those rows were scanned
@@ -65,7 +71,8 @@ const scriptsOf = rowName => {
   // row-evaluation time, the run crossed midnight ET, and the row asked about a
   // different day than the one it started in. This scorer's own rule would have
   // caught it, if it had been looking at the file.
-  return named.length > 0 ? named : ['scripts/gate-checks.mjs']
+  // Once each: a row that runs a script twice (two captures through `drift-check.mjs`) is scanned once, and an objection about it is listed once, not once per command.
+  return named.length > 0 ? [...new Set(named)] : ['scripts/gate-checks.mjs']
 }
 
 /**
@@ -96,6 +103,28 @@ const mutationsFor = (scripts, rowName) => {
   return found
 }
 
+/**
+ * Network use is a CALL, or a reference that becomes one. The scan used to look for `https://` in the text left when comments and strings were removed, and a URL is always in one or the other, so
+ * it could not fire (measured 2026-11-05 on this tree: it flagged 0 of 169 scripts). What it looks for now is the callee, in code: `fetch` as a call or as a value (`fetchImpl = fetch`),
+ * `globalThis.fetch`, `new WebSocket`, `https.request`, `net.connect`, `sendBeacon`. A property or a key named like one is not use (`o.fetch(x)`, `{ fetch: 1 }`), and a longer name is not (`fetchImpl(u)`).
+ * Each is a label and the number of times it was seen, which is what the objection prints (`reaches the network (fetch x1)`).
+ *
+ * WHAT IT CANNOT SEE (Rule 91; the clause that checks it prints the same list): a named import from `node:https` (`import { get } from 'node:https'; get(u)`), a child process (`spawn('curl')`, `gh api`),
+ * `dotnet restore` inside `proof-check.mjs` and the build row, a browser's `route.fetch()` and `page.goto` to an external address, access by a computed name (`globalThis['fe' + 'tch']`), a ternary that
+ * names `fetch` before a colon (`c ? fetch : g` reads as a key), a reference to `https.get`, `net.connect` or `navigator.sendBeacon` that is not called on the spot (only `fetch` is counted as a value), and a module the script
+ * imports that does the fetching: the scan does not follow imports.
+ */
+const NETWORK_USE = [
+  [/(?<![\w$])(?<!\.\s*)fetch(?![\w$])(?!\s*:)/g, 'fetch'],
+  [/(?<![\w$])(?<!\.\s*)(?:globalThis|window|self|global)\s*\.\s*fetch(?![\w$])/g, 'global fetch'],
+  [/(?<![\w$])(?<!\.\s*)new\s+(?:WebSocket|EventSource|XMLHttpRequest)(?![\w$])/g, 'new WebSocket|EventSource|XMLHttpRequest'],
+  [/(?<![\w$])(?<!\.\s*)https?\s*\.\s*(?:request|get)\s*\(/g, 'http(s).request|get'],
+  [/(?<![\w$])(?<!\.\s*)(?:net|tls|http2)\s*\.\s*(?:connect|createConnection)\s*\(/g, 'net|tls|http2.connect'],
+  [/(?<![\w$])sendBeacon\s*\(/g, 'sendBeacon'],
+]
+/** The kinds of network use in `code` (already stripped of comments and strings), each with its count: `['fetch x1']`. Empty when there is none. */
+const networkUses = code => NETWORK_USE.map(([re, kind]) => [kind, (code.match(re) ?? []).length]).filter(([, n]) => n > 0).map(([kind, n]) => `${kind} x${n}`)
+
 /** Clock reads, captured clock reads and network use in one source text. Pure, so the self-test can feed it snippets. */
 const clockCounts = src => {
   const code = stripNonCode(src)
@@ -120,8 +149,52 @@ const clockCounts = src => {
   // `doc claims are compiler-verified, not prose` below the bar on the two timings `proof-check.mjs` prints; if they are ever wanted, that script's `batchMs` has to go first. A capture takes the same `new Date`
   // spelling as the reads do, so that a capture is always also a read.
   const clockReads = code.match(/Date\s*\.\s*now(?![\w$])|Date\s*\[\s*''\s*\]\s*\(\s*\)|new\s+Date(?![\w$])(?!\s*\(\s*[^\s)])|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\)|(?<![.\w$])(?<!\b(?:new|instanceof|typeof)\s+)Date(?![\w$])(?!\s*[.\[:])/g) ?? []
-  return { captures: captures.length, reads: clockReads.length, network: /https?:\/\/(?!localhost)/.test(code) }
+  return { captures: captures.length, reads: clockReads.length, network: networkUses(code) }
 }
+
+/**
+ * Network use a row's script has on purpose, or reaches only behind a flag the row does not pass. One entry per ROW and script, because rows are scored one at a time (a script two rows run needs two).
+ *
+ * `flag`: the script fetches only when it is given this flag: `drift-check.mjs` only from the `--url` it is given, `venue-coverage-check.mjs` only under `--report --url`. The drift sentinel passes them and no gate row does.
+ * The entry holds only while the row's OWN text, in `gate-checks.mjs`, does not pass that flag to that script: a row that adds `--url` is red whatever this table says. `sanctioned`: the ONE network read a gate row is
+ * allowed to make, with the reason. That is the shard wait of `verify-full`: `mutation-await.mjs` has no flag to key on, it reaches the GitHub API whenever it runs, and the row runs it whenever `verify-full` sets
+ * `GATE_MUTATION_SHARDS` (a clause pins that there is exactly one sanctioned read).
+ * An entry with neither exempts nothing. An entry that names a row the gate does not have, or a script that row does not run, is itself an objection (`staleExemptions`).
+ *
+ * Checked 2026-11-05: `drift-check.mjs` with the two `--file` arguments of its rows, `test/malformed-nested.json`, and `venue-coverage-check.mjs` with none, were run with `fetch`, `http(s).request|get` and `net.connect`
+ * replaced by stand-ins that end the process: no attempt in any of the four, and the same stand-ins ended `drift-check.mjs --url` (exit 97), so they can fire.
+ */
+const NETWORK_EXEMPT = [
+  { row: 'decoders accept both real captures', script: 'scripts/drift-check.mjs', flag: '--url' },
+  { row: 'decoders accept both real captures', script: 'scripts/venue-coverage-check.mjs', flag: '--report' },
+  { row: 'decoders still REJECT the corrupted fixture', script: 'scripts/drift-check.mjs', flag: '--url' },
+  { row: 'breaking each invariant makes a check fail', script: 'scripts/mutation-await.mjs', sanctioned: 'the shard wait: verify-full sets GATE_MUTATION_SHARDS, and this script lists the artifacts of the run at the GitHub API so the row can read the shards (a local gate does not run it)' },
+]
+
+/** The arguments of each command that runs `script` in a row's declaration: what follows the script's path up to the end of its string. Comments are blanked first, so a flag named in one is not passed. */
+const commandsOf = (decl, script) => blankComments(decl).split(script).slice(1).map(rest => /^[^'"\x60]*/.exec(rest)[0])
+
+/** Does the row's own text pass `flag` to `script`, as `--flag` or `--flag=value`? Arguments built at run time (a template, a variable, the environment) are not seen. */
+const passesFlag = (decl, script, flag) => commandsOf(decl, script).some(args => args.split(/\s+/).some(t => t === flag || t.startsWith(`${flag}=`)))
+
+/**
+ * What a script's network use costs the row that runs it: nothing under a sanctioned entry, nothing under a flag entry while the row's own text does not pass the flag, an objection otherwise.
+ * `row` is `{ name, decl, exempt }`; with none (`null`), nothing is exempt.
+ */
+const networkObjections = (script, kinds, row) => {
+  const seen = `${script}: reaches the network (${kinds.join(', ')})`
+  const entry = row?.exempt.find(e => e.row === row.name && e.script === script)
+  if (entry === undefined) return [seen]
+  if (entry.sanctioned) return []
+  if (typeof entry.flag !== 'string') return [`${seen}; its exemption names no flag and is not the sanctioned wait, so it exempts nothing`]
+  if (passesFlag(row.decl, script, entry.flag)) return [`${seen}, and this row passes ${entry.flag}, the only way it gets there`]
+  return []
+}
+
+/** Exemptions that name a row the gate does not have, or a script their row does not run. `scriptsByRow` maps a row's name to the scripts `scriptsOf` finds in its declaration. */
+const staleExemptions = (exempt, scriptsByRow) => exempt
+  .filter(e => !(scriptsByRow.get(e.row) ?? []).includes(e.script))
+  .map(e => `${e.script}: exempt from the network scan in "${e.row}", ${scriptsByRow.has(e.row) ? 'a row that does not run it' : 'which is not a row of the gate'} (a stale exemption)`)
 
 /**
  * Wall-clock or network use anywhere the row reaches.
@@ -133,11 +206,13 @@ const clockCounts = src => {
  * explaining why a step was absent as the step itself. A detector that reads
  * documentation as code will fire on the sentence documenting it.
  *
+ * Network use is a callee in code (`NETWORK_USE`), and a script that has it is flagged unless `NETWORK_EXEMPT` names it for THIS row and the row's own text does not pass the flag that is its only way there.
+ *
  * The rule it applies: every clock read must be on the line of a `const NAME = ...` whose name is in capitals (a capture), and a script is flagged when it has more reads than
  * captures. A capture is the read itself, so `const A = () => new Date()` is not one. How many captures a script may have is not limited and nothing checks that one is at top level, so two
  * captures can straddle midnight between them. The shape this repo settled on is the same as `gameStateAt`'s: capture the instant ONCE, into `const NOW = new Date()`, then be pure.
  */
-const nondeterminism = scripts => {
+const nondeterminism = (scripts, row = null) => {
   const flagged = []
   for (const s of scripts) {
     let src
@@ -146,7 +221,7 @@ const nondeterminism = scripts => {
     if (reads > captures) {
       flagged.push(`${s}: reads the clock ${reads}x (capture it once as NOW)`)
     }
-    if (network) flagged.push(`${s}: reaches the network`)
+    if (network.length > 0) flagged.push(...networkObjections(s, network, row))
   }
   return flagged
 }
@@ -174,14 +249,16 @@ if (process.argv.includes('--self-test')) {
     `a clock-reading row scored ${score(true, true)}`)
 
   scannerClauses(check)
+  networkClauses(check)
   process.exit(summarize() === 0 ? 0 : 1)
 }
 
 const report = []
+const scriptsByRow = new Map(rows.map(r => [r.name, scriptsOf(r.name)]))
 for (const row of rows) {
-  const scripts = scriptsOf(row.name)
+  const scripts = scriptsByRow.get(row.name)
   const muts = mutationsFor(scripts, row.name)
-  const nd = nondeterminism(scripts)
+  const nd = nondeterminism(scripts, { name: row.name, decl: declOf(row.name), exempt: NETWORK_EXEMPT })
 
   // RUNS is asserted from the row's own command where it is cheap, and taken
   // from the last full gate run otherwise. Rows that need a browser or a build
@@ -211,6 +288,8 @@ if (below.length > 0) {
 const { check, summarize } = createChecks()
 check(`every gate row is at or above ${BAR}`, below.length === 0,
   below.map(r => `${r.name} = ${r.score}`).join('\n      → '))
+const stale = staleExemptions(NETWORK_EXEMPT, scriptsByRow)
+check(`every network exemption names a row of the gate and a script that row runs (${NETWORK_EXEMPT.length} exemptions)`, stale.length === 0, stale.join('\n      → '))
 finish(summarize())
 
 // The scanner's own clauses, at the END of the file, called through a hoisted declaration. They went here on 2026-11-04 because `scripts/check-exit-drains.mjs` then blanked comments and
@@ -461,4 +540,98 @@ function scannerClauses(check) {
     splices !== 1 ? `the place to put the bare read, ${JSON.stringify(SPLICE_AT)}, is in scripts/mutation-check.mjs ${splices}x (wanted 1)`
       : harnessNow.reads !== harnessNow.captures ? `the harness reads the clock ${harnessNow.reads}x and captures it ${harnessNow.captures}x: a read is not captured`
         : `a bare read put after the table moved the count from ${harnessNow.reads} reads, ${harnessNow.captures} captures to ${harnessMut.reads} reads, ${harnessMut.captures} captures (wanted one more read and the same captures)`)
+}
+
+// The network half of the scan and its exemptions (2026-11-05). A hoisted function after the scanner's, for the same reason: it holds fixtures that put quotes and slashes inside each other.
+function networkClauses(check) {
+  const KINDS = {
+    fetch: 'fetch x1', global: 'global fetch x1', socket: 'new WebSocket|EventSource|XMLHttpRequest x1', http: 'http(s).request|get x1', connect: 'net|tls|http2.connect x1', beacon: 'sendBeacon x1',
+  }
+  const SEEN = [
+    // fetch, as a call and as a value (`fetchImpl = fetch` is how mutation-await.mjs reaches the network), in a template's expression, and twice.
+    ['await fetch(u)', KINDS.fetch], ['const f = fetch', KINDS.fetch], ['const run = async ({ fetchImpl = fetch }) => fetchImpl(u)', KINDS.fetch], ['fetch(a); fetch(b)', 'fetch x2'],
+    ['const r = await fetch(`${base}/x`)', KINDS.fetch], ['const t = `${fetch(a)}`', KINDS.fetch], ['fetch (u)', KINDS.fetch],
+    // fetch through a global object.
+    ['globalThis.fetch(u)', KINDS.global], ['window.fetch(u)', KINDS.global], ['self.fetch(u)', KINDS.global], ['global.fetch(u)', KINDS.global], ['globalThis . fetch(u)', KINDS.global],
+    // the other clients.
+    ['new WebSocket(u)', KINDS.socket], ['new EventSource(u)', KINDS.socket], ['new XMLHttpRequest()', KINDS.socket], ['new  WebSocket(u)', KINDS.socket],
+    ['https.request(o)', KINDS.http], ['http.get(u)', KINDS.http], ['https . get (u)', KINDS.http], ['net.connect(80)', KINDS.connect], ['tls.connect(o)', KINDS.connect],
+    ['http2.connect(u)', KINDS.connect], ['net.createConnection(80)', KINDS.connect], ['navigator.sendBeacon(u, d)', KINDS.beacon], ['sendBeacon(u)', KINDS.beacon],
+    ['fetch(a); new WebSocket(b)', `${KINDS.fetch}, ${KINDS.socket}`],
+    // not use: text (a string, a comment, a template's text), a key, a property, a longer name, a module's other members, a constructor of something else.
+    ["const s = 'fetch(u)'", ''], ['// fetch(u)\nconst a = 1', ''], ['/* new WebSocket(u) */', ''], ['const t = `fetch(u) ${1}`', ''], ['const o = { fetch: 1 }', ''], ['const o = { fetch : 1 }', ''],
+    ['o.fetch(x)', ''], ['o?.fetch(x)', ''], ['o . fetch(x)', ''], ['fetchImpl(u)', ''], ['refetch(u)', ''], ['$fetch(u)', ''], ['const fetched = 1', ''], ['https.Agent', ''], ['http.STATUS_CODES', ''],
+    ['net.isIP(x)', ''], ['o.http.get(1)', ''], ['new WebSocketServer(u)', ''], ['new URL(u, base)', ''], ['xnet.connect(1)', ''],
+    // a reference that is not a call on the spot is not seen for these (it is for fetch): pinned here, and in the NOT COVERED list below.
+    ['const g = https.get', ''], ['const c = net.connect', ''], ['const b = navigator.sendBeacon', ''], ['resendBeacon(x)', ''], ['$sendBeacon(x)', ''],
+  ]
+  const wrongSeen = SEEN.filter(([src, kinds]) => clockCounts(src).network.join(', ') !== kinds)
+  check(`THESE ${SEEN.length} SPELLINGS ARE NETWORK USE (${SEEN.filter(x => x[1] !== '').length}) OR NOT (${SEEN.filter(x => x[1] === '').length}): fetch as a call or a value, through a global, new WebSocket|EventSource|XMLHttpRequest, http(s).request|get, net|tls|http2.connect, sendBeacon; not text, a key, a property or a longer name. NOT COVERED: a named import from node:https (\`import { get } from 'node:https'\`), a child process (\`spawn('curl')\`, \`gh api\`), \`dotnet restore\` in proof-check.mjs and the build row, a browser's \`route.fetch()\` or \`page.goto\` to an external address, a computed name (\`globalThis['fe' + 'tch']\`), \`c ? fetch : g\` (read as a key), \`const g = https.get\` or \`const c = net.connect\` (a reference to those that is not called on the spot), and a module the script imports that does the fetching`,
+    wrongSeen.length === 0, wrongSeen.map(([src, kinds]) => `${JSON.stringify(src)}: saw [${clockCounts(src).network.join(', ')}], wanted [${kinds}]`).slice(0, 4).join(' / ') + ` (${wrongSeen.length} wrong of ${SEEN.length})`)
+
+  // The exemption, on real files and a row declaration written for the case. The row is `r`, its script writes a fetch; the declaration is the text `gate-checks.mjs` would hold for it.
+  const dir = mkdtempSync(join(tmpdir(), 'row-network-'))
+  try {
+    const F = join(dir, 'fetches.mjs'), Q = join(dir, 'quiet.mjs')
+    writeFileSync(F, 'const res = await fetch(url)\n')
+    writeFileSync(Q, 'console.log(1)\n')
+    const declOfCommands = (...cmds) => "name: 'r',\n    run: () => " + cmds.map(c => "ok('node " + c + "')").join(' &&\n               ') + ' },'
+    const guarded = { row: 'r', script: F, flag: '--url' }
+    const rowOf = (exempt, decl) => ({ name: 'r', decl, exempt })
+    const OFFLINE = declOfCommands(`${F} --file data/a.json`)
+    const CASES = [
+      ['no row at all: nothing is exempt', null, false, 'reaches the network (fetch x1)'],
+      ['no entry for it', rowOf([], OFFLINE), false, 'reaches the network (fetch x1)'],
+      ['an entry with a flag the row does not pass', rowOf([guarded], OFFLINE), true],
+      ['the same entry once the row passes the flag', rowOf([guarded], declOfCommands(`${F} --url https://example.test/x`)), false, 'this row passes --url'],
+      ['the same entry once the row passes the flag as --url=value', rowOf([guarded], declOfCommands(`${F} --url=https://example.test/x`)), false, 'this row passes --url'],
+      ['a flag that only begins like the guard flag (--urls)', rowOf([guarded], declOfCommands(`${F} --urls data/a.json`)), true],
+      ['the flag named only in a comment of the row', rowOf([guarded], "name: 'r',\n    // the sentinel passes " + F + " --url https://example.test/x\n    run: () => ok('node " + F + " --file data/a.json') },"), true],
+      ['the flag passed to another script of the row', rowOf([guarded], declOfCommands(`${F} --file data/a.json`, `${Q} --url https://example.test/x`)), true],
+      ['the flag passed to this script by the second of two commands', rowOf([guarded], declOfCommands(`${F} --file data/a.json`, `${F} --url https://example.test/x`)), false, 'this row passes --url'],
+      ['an entry that names another row', rowOf([{ ...guarded, row: 'other' }], OFFLINE), false, 'reaches the network (fetch x1)'],
+      ['an entry that names another script', rowOf([{ ...guarded, script: Q }], OFFLINE), false, 'reaches the network (fetch x1)'],
+      ['a sanctioned entry, whatever the row passes', rowOf([{ row: 'r', script: F, sanctioned: 'the one read' }], declOfCommands(`${F} --url https://example.test/x`)), true],
+      ['an entry with neither a flag nor a sanction', rowOf([{ row: 'r', script: F }], OFFLINE), false, 'names no flag and is not the sanctioned wait'],
+    ]
+    const off = CASES.map(([what, row, clean, mention]) => {
+      const found = nondeterminism([F], row)
+      const mark = score(true, found.length > 0)
+      const right = (clean ? mark >= BAR : mark < BAR) && (clean || (found.length === 1 && (mention === undefined || found[0].includes(mention))))
+      return right ? null : `${what}: scored ${mark}${clean ? '' : ' (wanted below the bar)'}, objections [${found.join(' | ')}]`
+    }).filter(x => x !== null)
+    check(`A SCRIPT THAT REACHES THE NETWORK SCORES CLEAN ONLY UNDER AN EXEMPTION FOR ITS OWN ROW AND SCRIPT THAT THE ROW'S OWN TEXT DOES NOT CONTRADICT, for ${CASES.length} cases (a flag in a comment or in another script's command is not passed; \`--flag=value\` is; a sanction holds whatever the row passes; an entry with no flag exempts nothing). NOT COVERED: arguments built at run time (a template, a variable, the environment) are not seen, which is why the shard wait is a sanction and not a flag`,
+      off.length === 0, off.slice(0, 3).join(' / ') + ` (${off.length} wrong of ${CASES.length})`)
+
+    // An exemption that names a row the gate does not have, or a script its row does not run, is an objection of its own.
+    const BYROW = new Map([['a', ['scripts/x.mjs', 'scripts/y.mjs']], ['b', ['scripts/y.mjs']]])
+    const e = (row, script) => ({ row, script, flag: '--url' })
+    const STALE = [
+      ['a script its row runs', [e('a', 'scripts/x.mjs')], 0, ''], ['a script its row does not run', [e('b', 'scripts/x.mjs')], 1, 'a row that does not run it'],
+      ['a row the gate does not have', [e('c', 'scripts/x.mjs')], 1, 'which is not a row of the gate'], ['one live and two stale', [e('a', 'scripts/y.mjs'), e('b', 'scripts/x.mjs'), e('c', 'scripts/y.mjs')], 2, 'a stale exemption'],
+    ]
+    const offStale = STALE.map(([what, entries, want, mention]) => { const found = staleExemptions(entries, BYROW); return found.length === want && found.every(m => m.includes(mention)) ? null : `${what}: ${found.length} stale, wanted ${want} [${found.join(' | ')}]` }).filter(x => x !== null)
+    check(`AN EXEMPTION FOR A ROW THE GATE DOES NOT HAVE, OR FOR A SCRIPT ITS ROW DOES NOT RUN, IS STALE AND SAID SO (${STALE.length} cases)`, offStale.length === 0, offStale.join(' / '))
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+
+  // The table itself. There is exactly one sanctioned network read in the gate, the shard wait, and a guarded entry's flag is a flag: a flag spelled `url` would never be passed, and its exemption would never lapse.
+  const sanctioned = NETWORK_EXEMPT.filter(x => x.sanctioned).map(x => x.script)
+  const badFlags = NETWORK_EXEMPT.filter(x => !x.sanctioned && !/^--[a-z][a-z-]*$/.test(x.flag ?? '')).map(x => `${x.script} in "${x.row}": ${JSON.stringify(x.flag)}`)
+  check(`THE TABLE OF ${NETWORK_EXEMPT.length} EXEMPTIONS HOLDS EXACTLY ONE SANCTIONED NETWORK READ, THE SHARD WAIT, AND EVERY OTHER ENTRY IS KEYED ON A FLAG`,
+    sanctioned.join() === 'scripts/mutation-await.mjs' && badFlags.length === 0, `sanctioned: [${sanctioned.join()}] (wanted scripts/mutation-await.mjs); not a flag: ${badFlags.join(' / ') || '(none)'}`)
+
+  // On the real tree the scan has to fire somewhere. The denominators are in the label, from the data; holding each script a row runs to the table is the scorer's job, above.
+  const every = readdirSync('scripts').filter(f => f.endsWith('.mjs')).map(f => `scripts/${f}`)
+  const hits = every.filter(f => clockCounts(readFileSync(f, 'utf8')).network.length > 0)
+  const rowScripts = [...new Set(rows.flatMap(r => scriptsOf(r.name)))]
+  const rowHits = rowScripts.filter(f => hits.includes(f))
+  check(`THE NETWORK SCAN FIRES ON THE REAL TREE: ${hits.length} of ${every.length} scripts under scripts/ reach the network by its reading, ${rowHits.length} of the ${rowScripts.length} that a gate row runs (${rowHits.join(', ')}); the scorer holds each of those to the table`,
+    hits.length > 0, `it flagged none of ${every.length} scripts`)
+
+  // A row that runs one script twice lists it once: an objection about the script is one line, not one per command.
+  const listedTwice = rows.map(r => [r.name, scriptsOf(r.name)]).filter(([, list]) => new Set(list).size !== list.length).map(([name, list]) => `${name}: ${list.join(' ')}`)
+  check(`NO GATE ROW LISTS A SCRIPT TWICE, for ${rows.length} rows (${rows.filter(r => (declOf(r.name).match(/scripts\/[\w.-]+\.mjs/g) ?? []).length > scriptsOf(r.name).length).length} of them name one script in more than one command)`,
+    listedTwice.length === 0, listedTwice.join(' / '))
 }
