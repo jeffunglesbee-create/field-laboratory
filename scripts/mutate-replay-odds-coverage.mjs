@@ -4,24 +4,31 @@
 // odds-coverage.mjs. A replay that cannot be wrong is not evidence, it is a
 // second opinion from the same source, so each mutation below breaks one thing
 // its self-test claims to catch.
-import { readFileSync, writeFileSync, copyFileSync, unlinkSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, cpSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
 const F = 'scripts/replay-odds-coverage.mjs'
-const BAK = `${F}.mutbak`
 const original = readFileSync(F, 'utf8')
-const run = () => {
-  try { execFileSync('node', [F, '--self-test'], { stdio: 'pipe' }); return true } catch { return false }
+// THE MUTATION IS MADE ON A COPY of scripts/ in a temp directory, and the tracked scripts/replay-odds-coverage.mjs is only read, as mutate-ppubs-probe.py,
+// mutate-patent-watch.py and mutate-drama-backfill.py do. A run killed part-way leaves a temp directory in $TMPDIR and a clean tree: there is nothing to heal,
+// and an uncommitted edit to scripts/replay-odds-coverage.mjs is in the file and in the copy, never only in memory.
+const TMP = mkdtempSync(join(tmpdir(), 'mutate-replay-odds-coverage-'))
+process.on('exit', () => rmSync(TMP, { recursive: true, force: true }))
+cpSync('scripts', join(TMP, 'scripts'), { recursive: true })
+const COPY = join(TMP, F)
+const run = (at = COPY) => {
+  try { execFileSync('node', [at, '--self-test'], { stdio: 'pipe' }); return true } catch { return false }
 }
 
-// POSITIVE CONTROL FIRST. An unmutated copy written to the mutant's own
-// location must pass, or no verdict below is about the code.
-copyFileSync(F, BAK)
-writeFileSync(F, original)
+// POSITIVE CONTROL FIRST. The unmutated copy, at the mutant's own location,
+// must pass, or no verdict below is about the code.
 if (!run()) {
   console.log('FAIL — an UNMUTATED copy at the mutant location is red, so no verdict below would mean anything.')
-  copyFileSync(BAK, F); unlinkSync(BAK); process.exit(1)
+  process.exit(1)
 }
+console.log('positive control: the unmutated copy passes\n')
 
 const MUTATIONS = [
   ['P1 the replay only looks at the newest reading',
@@ -64,15 +71,14 @@ let caught = 0
 for (const [name, anchor, repl, why] of MUTATIONS) {
   const hits = original.split(anchor).length - 1
   if (hits !== 1) { console.log(`FAIL       ${name}\n            anchor matched ${hits} times, expected 1 — NOTHING MUTATED.`); continue }
-  writeFileSync(F, original.replace(anchor, repl))
-  if (readFileSync(F, 'utf8') === original) { console.log(`FAIL       ${name}\n            the written copy is identical — NOTHING MUTATED.`); continue }
+  writeFileSync(COPY, original.replace(anchor, repl))
+  if (readFileSync(COPY, 'utf8') === original) { console.log(`FAIL       ${name}\n            the written copy is identical — NOTHING MUTATED.`); continue }
   const red = !run()
   console.log(`${red ? 'CAUGHT    ' : 'NOT CAUGHT'} ${name}\n            (${why})`)
   if (red) caught++
 }
 
-copyFileSync(BAK, F); unlinkSync(BAK)
-if (readFileSync(F, 'utf8') !== original) { console.log('FAIL — restore did not return the original.'); process.exit(1) }
+if (readFileSync(F, 'utf8') !== original) { console.log(`FAIL — ${F} was written while the mutants ran.`); process.exit(1) }
 console.log(`\n${caught} of ${MUTATIONS.length} mutations caught.`)
 console.log('COVERAGE: replay, thinSkips and floorAgrees. It does NOT cover the git read')
 console.log('— that is shown by the live run reproducing the six-alarm table from the')

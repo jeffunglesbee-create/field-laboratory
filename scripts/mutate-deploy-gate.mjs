@@ -4,17 +4,17 @@
 // G1 is the done condition's own mutation: held merged back into unknown, so a
 // census commit reads "could NOT BE READ" again. G2 is the one that would change
 // what ships: a held tree proceeding means verify-unseen bytes are published.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, cpSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
 const F = 'scripts/deploy-gate.mjs'
-const passes = () => {
-  try { execFileSync(process.execPath, [F, '--self-test'], { stdio: 'pipe' }); return true }
+const passes = (at = F) => {
+  try { execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe' }); return true }
   catch { return false }
 }
 
-try { execFileSync('git', ['diff', '--quiet', '--', F], { stdio: 'pipe' }) }
-catch { console.log(`NOTE — ${F} has uncommitted changes; restored byte-for-byte after each mutation.`) }
 if (!passes()) { console.log(`FAIL — ${F} --self-test is already red on clean source.`); process.exit(1) }
 console.log(`baseline: ${F} --self-test passes on current source\n`)
 
@@ -40,6 +40,17 @@ const MUTATIONS = [
    'a genuinely unreadable verdict (HTTP 403, shallow clone) is explained away as a skip'],
 ]
 
+// THE MUTATION IS MADE ON A COPY of scripts/ in a temp directory, and the tracked scripts/deploy-gate.mjs is only read, as mutate-ppubs-probe.py,
+// mutate-patent-watch.py and mutate-drama-backfill.py do. A run killed part-way leaves a temp directory in $TMPDIR and a clean tree: there is nothing to heal,
+// and an uncommitted edit to scripts/deploy-gate.mjs is in the file and in the copy, never only in memory.
+const TMP = mkdtempSync(join(tmpdir(), 'mutate-deploy-gate-'))
+process.on('exit', () => rmSync(TMP, { recursive: true, force: true }))
+cpSync('scripts', join(TMP, 'scripts'), { recursive: true })
+const COPY = join(TMP, F)
+const RUN = join(TMP, F)
+// POSITIVE CONTROL: the unmutated copy must pass, or "caught" below could mean only that the copy cannot run.
+if (!passes(RUN)) { console.log('FAIL — the UNMUTATED copy is red, so no verdict below would be about the mutation.'); process.exit(1) }
+console.log('positive control: the unmutated copy passes\n')
 const original = readFileSync(F, 'utf8')
 let caught = 0
 for (const [name, anchor, repl, why] of MUTATIONS) {
@@ -47,9 +58,9 @@ for (const [name, anchor, repl, why] of MUTATIONS) {
   if (hits !== 1) { console.log(`FAIL       ${name}\n            anchor matched ${hits} times, expected 1 — NOTHING MUTATED.`); continue }
   const mutated = original.replace(anchor, repl)
   if (mutated === original) { console.log(`FAIL       ${name}\n            replacement was a no-op — NOTHING MUTATED.`); continue }
-  writeFileSync(F, mutated)
-  const survived = passes()
-  writeFileSync(F, original)
+  writeFileSync(COPY, mutated)
+  const survived = passes(RUN)
+  writeFileSync(COPY, original)
   console.log(`${survived ? 'NOT CAUGHT' : 'CAUGHT    '} ${name}\n            (${why})`)
   if (!survived) caught++
 }

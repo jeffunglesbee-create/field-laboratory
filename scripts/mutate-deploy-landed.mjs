@@ -5,18 +5,18 @@
 // L1 is the one that matters: the check must keep catching a real undeployed
 // change. L2 is the naive fix — walk back to the first skipped commit and stop
 // — which turns "both present" green and hides the code commit underneath.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, cpSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
 const F = 'scripts/deployable.mjs'
 const CHECK = 'scripts/deploy-landed-check.mjs'
-const passes = () => {
-  try { execFileSync(process.execPath, [CHECK, '--self-test'], { stdio: 'pipe' }); return true }
+const passes = (at = CHECK) => {
+  try { execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe' }); return true }
   catch { return false }
 }
 
-try { execFileSync('git', ['diff', '--quiet', '--', F], { stdio: 'pipe' }) }
-catch { console.log(`NOTE — ${F} has uncommitted changes; restored byte-for-byte after each mutation.`) }
 if (!passes()) { console.log(`FAIL — ${CHECK} --self-test is already red on clean source.`); process.exit(1) }
 console.log(`baseline: ${CHECK} --self-test passes on current source\n`)
 
@@ -47,6 +47,17 @@ const MUTATIONS = [
    'an unmeasured spelling hides a code commit; if GitHub does not honour it, that change never deployed and the check calls it fine'],
 ]
 
+// THE MUTATION IS MADE ON A COPY of scripts/ in a temp directory, and the tracked scripts/deployable.mjs is only read, as mutate-ppubs-probe.py,
+// mutate-patent-watch.py and mutate-drama-backfill.py do. A run killed part-way leaves a temp directory in $TMPDIR and a clean tree: there is nothing to heal,
+// and an uncommitted edit to scripts/deployable.mjs is in the file and in the copy, never only in memory.
+const TMP = mkdtempSync(join(tmpdir(), 'mutate-deploy-landed-'))
+process.on('exit', () => rmSync(TMP, { recursive: true, force: true }))
+cpSync('scripts', join(TMP, 'scripts'), { recursive: true })
+const COPY = join(TMP, F)
+const RUN = join(TMP, CHECK)
+// POSITIVE CONTROL: the unmutated copy must pass, or "caught" below could mean only that the copy cannot run.
+if (!passes(RUN)) { console.log('FAIL — the UNMUTATED copy is red, so no verdict below would be about the mutation.'); process.exit(1) }
+console.log('positive control: the unmutated copy passes\n')
 const original = readFileSync(F, 'utf8')
 let caught = 0
 for (const [name, anchor, repl, why] of MUTATIONS) {
@@ -54,9 +65,9 @@ for (const [name, anchor, repl, why] of MUTATIONS) {
   if (hits !== 1) { console.log(`FAIL       ${name}\n            anchor matched ${hits} times, expected 1 — NOTHING MUTATED.`); continue }
   const mutated = original.replace(anchor, repl)
   if (mutated === original) { console.log(`FAIL       ${name}\n            replacement was a no-op — NOTHING MUTATED.`); continue }
-  writeFileSync(F, mutated)
-  const survived = passes()
-  writeFileSync(F, original)
+  writeFileSync(COPY, mutated)
+  const survived = passes(RUN)
+  writeFileSync(COPY, original)
   console.log(`${survived ? 'NOT CAUGHT' : 'CAUGHT    '} ${name}\n            (${why})`)
   if (!survived) caught++
 }

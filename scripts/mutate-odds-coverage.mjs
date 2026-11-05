@@ -6,17 +6,17 @@
 // has never carried odds, which is the standing red this design exists to
 // avoid. O2 deletes the alarm entirely, which is the MLS case going unnoticed
 // a second time.
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, cpSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { execFileSync } from 'node:child_process'
 
 const F = 'scripts/odds-coverage.mjs'
-const passes = () => {
-  try { execFileSync(process.execPath, [F, '--self-test'], { stdio: 'pipe' }); return true }
+const passes = (at = F) => {
+  try { execFileSync(process.execPath, [at, '--self-test'], { stdio: 'pipe' }); return true }
   catch { return false }
 }
 
-try { execFileSync('git', ['diff', '--quiet', '--', F], { stdio: 'pipe' }) }
-catch { console.log(`NOTE — ${F} has uncommitted changes; restored byte-for-byte after each mutation.`) }
 if (!passes()) { console.log(`FAIL — ${F} --self-test is already red on clean source.`); process.exit(1) }
 console.log(`baseline: ${F} --self-test passes on current source\n`)
 
@@ -130,6 +130,17 @@ const MUTATIONS = [
    'a one-row reading sits below the covered floor by arithmetic, so a first sighting of a real collapse would be filed as `continuing` and never fire'],
 ]
 
+// THE MUTATION IS MADE ON A COPY of scripts/ in a temp directory, and the tracked scripts/odds-coverage.mjs is only read, as mutate-ppubs-probe.py,
+// mutate-patent-watch.py and mutate-drama-backfill.py do. A run killed part-way leaves a temp directory in $TMPDIR and a clean tree: there is nothing to heal,
+// and an uncommitted edit to scripts/odds-coverage.mjs is in the file and in the copy, never only in memory.
+const TMP = mkdtempSync(join(tmpdir(), 'mutate-odds-coverage-'))
+process.on('exit', () => rmSync(TMP, { recursive: true, force: true }))
+cpSync('scripts', join(TMP, 'scripts'), { recursive: true })
+const COPY = join(TMP, F)
+const RUN = join(TMP, F)
+// POSITIVE CONTROL: the unmutated copy must pass, or "caught" below could mean only that the copy cannot run.
+if (!passes(RUN)) { console.log('FAIL — the UNMUTATED copy is red, so no verdict below would be about the mutation.'); process.exit(1) }
+console.log('positive control: the unmutated copy passes\n')
 const original = readFileSync(F, 'utf8')
 let caught = 0
 for (const [name, anchor, repl, why] of MUTATIONS) {
@@ -137,9 +148,9 @@ for (const [name, anchor, repl, why] of MUTATIONS) {
   if (hits !== 1) { console.log(`FAIL       ${name}\n            anchor matched ${hits} times, expected 1 — NOTHING MUTATED.`); continue }
   const mutated = original.replace(anchor, repl)
   if (mutated === original) { console.log(`FAIL       ${name}\n            file unchanged — NOTHING MUTATED.`); continue }
-  writeFileSync(F, mutated)
-  const red = !passes()
-  writeFileSync(F, original)
+  writeFileSync(COPY, mutated)
+  const red = !passes(RUN)
+  writeFileSync(COPY, original)
   console.log(`${red ? 'CAUGHT    ' : 'NOT CAUGHT'} ${name}\n            (${why})`)
   if (red) caught++
 }
