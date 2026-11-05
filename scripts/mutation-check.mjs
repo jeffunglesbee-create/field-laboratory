@@ -1522,6 +1522,46 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'refusal-forgets-to-count-the-rest',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal over many touched paths says how many it left out of the list",
+    find: "${ks.slice(0, 6).join(', ')}${ks.length > 6 ? `, and ${ks.length - 6} more` : ''}",
+    replace: "${ks.slice(0, 6).join(', ')}",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refusal-lists-every-path',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a refusal over many touched paths names six and counts the rest, it does not print them all",
+    find: "ks.slice(0, 6).join(', ')",
+    replace: "ks.join(', ')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'refusal-forgets-the-edit-came-after-the-kill',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal says an edited path changed after the kill",
+    find: "): it changed after the kill`",
+    replace: ")`",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'live-refusal-drops-the-kill-advice',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a marker whose run is still going says how to stop it: a plain kill first, kill -9 if that is ignored",
+    find: "Wait for pid ${m.pid} to finish, or stop it (kill -9 if it ignores a plain kill), then run this again.",
+    replace: "Wait for pid ${m.pid} to finish, then run this again.",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'lock-refusal-drops-the-kill-advice',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the refusal over a run lock whose run is still going says how to stop it: a plain kill first, kill -9 if that is ignored",
+    find: "Wait for pid ${held.pid} to finish, or stop it (kill -9 if it ignores a plain kill), then run this again.",
+    replace: "Wait for pid ${held.pid} to finish, then run this again.",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-refusal-blames-a-person-with-no-record',
     file: 'scripts/mutation-check.mjs',
     claim: "a kill before the touched paths were recorded does not blame a person",
@@ -5718,6 +5758,9 @@ if (process.argv.includes('--self-test')) {
   // A refusal on a live run says to wait, not to delete the state directory: the run that owns it is still using it.
   check('...and says to wait for it, not to delete its state',
     /Wait for pid \d+/.test(liveRun.said) && !/delete .* to clear this/.test(liveRun.said), liveRun.said)
+  // ...and how to make it stop, in the order that does the least damage: kill -9 orphans the dead run's children (its build), so it is for a run that ignores a plain kill.
+  check('...and says how to stop it: a plain kill first, kill -9 if that is ignored',
+    /stop it \(kill -9 if it ignores a plain kill\)/.test(liveRun.said), liveRun.said)
   const recycled = source({ victim: 'MUTATED', backupText: 'ORIGINAL', over: { pid: process.pid, start: '1' } })
   const recycledRun = attempt(recycled.state)
   check('...but a pid that another process now holds is not that run: the marker is judged by the file and healed (where /proc can say so)',
@@ -5764,6 +5807,22 @@ if (process.argv.includes('--self-test')) {
   // The refusal names the path that moved, and does not hand over the command that would copy the stash over it.
   check('...and the refusal NAMES the path that was edited, and does not offer the restore command that would overwrite it',
     /out\/a\.md/.test(w2r.said) && !/sh -c/.test(w2r.said) && !/RESTORE/.test(w2r.said), w2r.said)
+  // ...and says what is true of it: it changed after the kill, with no word about HEAD (HEAD did not move here; the HEAD-moved wording is for a path that matches HEAD).
+  check('...and says the path changed after the kill, and does not blame HEAD',
+    /it changed after the kill/.test(w2r.said) && !/HEAD/.test(w2r.said), w2r.said)
+  // At most six paths are named and the rest counted, so a mutation that touched many does not print the tree. Each side of the bound: eight edited paths read as the first six and
+  // "and 2 more" (not the seventh), exactly six read as the six and no count.
+  const editedRun = n => {
+    const touched = Object.fromEntries(Array.from({ length: n }, (_, i) => [`out/p${i}.md`, { before: `h${i}`, after: null }]))
+    const c = worldCase({ touched, before: Object.fromEntries(Object.keys(touched).map((k, i) => [k, `h${i}`])) })
+    return attempt(c.state, fakeTree(Object.fromEntries(Object.keys(touched).map(k => [k, 'edited']))).probes)
+  }
+  const SIX = Array.from({ length: 6 }, (_, i) => `out/p${i}.md`).join(', ')
+  const wEightRun = editedRun(8)
+  const wSixRun = editedRun(6)
+  check('THE REFUSAL NAMES SIX PATHS AND COUNTS THE REST: of 8 edited paths it lists the first six and "and 2 more" and not the seventh; of exactly 6 it lists the six and no count',
+    wEightRun.code === 1 && wEightRun.said.includes(`(${SIX}, and 2 more)`) && !wEightRun.said.includes('out/p6.md') && wSixRun.code === 1 && wSixRun.said.includes(`(${SIX})`) && !/and \d+ more/.test(wSixRun.said),
+    `8 paths: ${wEightRun.said.slice(0, 260)} / 6 paths: ${wSixRun.said.slice(0, 260)}`)
   const wBroken = fakeTree({ ...aGone }, { restores: false }); const w3 = worldCase(); const w3r = attempt(w3.state, wBroken.probes)
   check('A RESTORE THAT RAN BUT DID NOT RETURN WHAT IT TOUCHED IS NOT CALLED HEALED: the run stops and the state is kept for the stash',
     stoppedFor(w3r, /not as it was before the mutation/) && wBroken.calls.length === 1 && w3.kept(), `exit ${w3r.code}, calls ${wBroken.calls.length}, marker kept ${w3.kept()}`)
@@ -5929,11 +5988,14 @@ if (process.argv.includes('--self-test')) {
   writeFileSync(join(lockDir, 'run.json'), JSON.stringify({ pid: process.pid, start: startOf(process.pid), startedAt: DEAD.startedAt }))
   stops.length = 0; said.length = 0
   const lockedOut = (() => { try { checkLockAt(lockDir, options({})); return false } catch (e) { if (e.message !== 'exit') throw e; return stops[0] === 1 && /IN PROGRESS/.test(said.join('\n')) } })()
+  const lockRefusal = said.join('\n')
   writeFileSync(join(lockDir, 'run.json'), JSON.stringify(DEAD))
   stops.length = 0
   checkLockAt(lockDir, options({}))
   check('A RUN LOCK NAMING A RUN STILL GOING STOPS THIS ONE, and a stale one is cleared',
     lockedOut && stops.length === 0 && !existsSync(join(lockDir, 'run.json')), `refused a live holder: ${lockedOut}; stale lock gone: ${!existsSync(join(lockDir, 'run.json'))}`)
+  check('...and its refusal says how to stop that run: a plain kill first, kill -9 if that is ignored',
+    /stop it \(kill -9 if it ignores a plain kill\)/.test(lockRefusal), lockRefusal)
 
   // The lock a run takes for its whole life: exclusive, so two runs starting together cannot both hold it.
   mkdirSync(stateDir, { recursive: true })
