@@ -1,12 +1,14 @@
-// What is code and what is not, in one scanner.
+// What is code and what is not, in one scanner with two outputs.
 //
-// `stripNonCode(src)` is the scanner under the determinism half of `row-confidence.mjs` (the gate row "every gate row has teeth and is deterministic"), moved here unchanged so that
-// a second checker can use it: its comment, below, says what it replaces and what it still does not do. It is a module of its own because `row-confidence.mjs` does its work at
+// `scanNonCode(src)` is the scanner under the determinism half of `row-confidence.mjs` (the gate row "every gate row has teeth and is deterministic"); its comment, below, says what it
+// replaces and what it still does not do. `stripNonCode` is its text (what `row-confidence.mjs` counts clock reads in) and `blankNonCode` is where it found non-code, turned into a blank of
+// the same length and the same lines (what `check-exit-drains.mjs` classifies exits in, and reports line numbers from). It is a module of its own because `row-confidence.mjs` does its work at
 // module scope (it reads the gate's rows and prints a table when it is imported), and `scripts/import-purity-check.mjs` imports every script with a top-level `export` in a fresh
 // process and fails one that prints. This file imports nothing and does nothing when imported.
 
 /**
- * The source with comments removed, every string replaced by an empty string, every regular-expression literal by `0`, and every template literal by an empty string preceded by its `${…}` expressions, each kept as code in parentheses (`a ${b} c` leaves ` (b) ''`): what is left is code.
+ * `{ marked, spans }`. `spans` is where the text that is not code stood in `src`, as `[start, end)` pairs: every comment, string, regular-expression literal and template literal, a template from its opening
+ * backtick to its closing one. The spans of what is inside a template's `${…}` expressions are in the list too, inside the template's own, so spans can overlap (blanking them is the same either way). `marked` is the source with comments removed, every string replaced by an empty string, every regular-expression literal by `0`, and every template literal by an empty string preceded by its `${…}` expressions, each kept as code in parentheses (`a ${b} c` leaves ` (b) ''`): what is left is code.
  *
  * IT IS A SCANNER, NOT THREE REGULAR EXPRESSIONS. The version before this one removed `//` comments line by line and then paired quotes across the whole file, and the two
  * disagree about a `//` inside a string (`'http://…'`, `"URL='http://…' node …"`): the comment pass cut the line at the `//`, which took the closing quote with it, and every
@@ -35,10 +37,11 @@
  * combining mark (`éin`) is the keyword it ends in. (A leading `#!`
  * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
  */
-export const stripNonCode = src => {
+export const scanNonCode = src => {
   const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
   const n = src.length
   let out = ''
+  const spans = []
   // The parentheses seen so far, in code: where in `out` each open one began, and where the one closed last began.
   const opens = []
   let closed = 0
@@ -78,20 +81,23 @@ export const stripNonCode = src => {
     while (i < n) {
       const c = src[i]
       const d = src[i + 1]
-      if (c === '/' && d === '/') { while (i < n && !isEol(src[i])) i++; continue }
-      if (c === '/' && d === '*') { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }
+      if (c === '/' && d === '/') { const s = i; while (i < n && !isEol(src[i])) i++; spans.push([s, i]); continue }
+      if (c === '/' && d === '*') { const s = i; const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; spans.push([s, i]); out += ' '; continue }
       if (c === "'" || c === '"') {
         // A string that reaches a line feed or a carriage return unclosed ends there: a stray quote must not be able to swallow the rest of the file. (U+2028 and U+2029 may be inside a string.)
         // A backslash and the line end after it continue the string, and a CR LF is one line end: skip both characters.
+        const s = i
         i++
         while (i < n && src[i] !== c && src[i] !== '\n' && src[i] !== '\r') i += src[i] !== '\\' ? 1 : src[i + 1] === '\r' && src[i + 2] === '\n' ? 3 : 2
         if (src[i] === c) i++
+        spans.push([s, i])
         out += "''"
         continue
       }
-      if (c === '`') { i = skipTemplate(i + 1); out += "''"; continue }
+      if (c === '`') { const s = i; i = skipTemplate(i + 1); spans.push([s, i]); out += "''"; continue }
       if (c === '/') {
         if (!regexAllowed()) { out += '/'; i++; continue }
+        const s = i
         i++
         let inClass = false
         while (i < n && !isEol(src[i])) {
@@ -104,6 +110,7 @@ export const stripNonCode = src => {
         }
         if (src[i] === '/') i++
         while (i < n && /[a-z]/.test(src[i])) i++
+        spans.push([s, i])
         out += '0'
         continue
       }
@@ -137,5 +144,19 @@ export const stripNonCode = src => {
     return i
   }
   scanCode(0, false)
-  return out
+  // A construct left open at the end of the text (a string that ends in a backslash, a template or a regular expression that does) runs to the end of the text and no further.
+  return { marked: out, spans: spans.map(([s, e]) => [s, Math.min(e, n)]) }
+}
+
+export const stripNonCode = src => scanNonCode(src).marked
+
+/**
+ * `src` with every character of every span replaced by a space, except a line feed: the same length, and the same lines, so a line number found in it is the line of the source. A leading `#!` line
+ * is read as a regular expression (see above), so part of it stays (`#!        /env node`): the line cannot hold a statement.
+ */
+export const blankNonCode = src => {
+  const chars = src.split('')
+  const { spans } = scanNonCode(src)
+  for (const [s, e] of spans) for (let i = s; i < e; i++) if (chars[i] !== '\n') chars[i] = ' '
+  return chars.join('')
 }

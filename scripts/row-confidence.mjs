@@ -213,10 +213,11 @@ check(`every gate row is at or above ${BAR}`, below.length === 0,
   below.map(r => `${r.name} = ${r.score}`).join('\n      → '))
 finish(summarize())
 
-// The scanner's own clauses, at the END of the file on purpose. `scripts/check-exit-drains.mjs` blanks comments and strings with regular-expression passes (single quotes
-// first, then double, then backticks, over the whole text) and these fixtures put quotes, backticks and slashes inside each other: after the first of them it pairs the wrong
-// ends for the rest of the file and cannot see the exit line of the self-test above, so its count of early exits fell by one with nothing changed in what the script does
-// (found 2026-11-04 by `check:exit-drains`: 59 against a budget of 60). Called through a hoisted declaration, so nothing before this line is affected. Residual Task 10 item 19.
+// The scanner's own clauses, at the END of the file, called through a hoisted declaration. They went here on 2026-11-04 because `scripts/check-exit-drains.mjs` then blanked comments and
+// strings with regular-expression passes (single quotes first, then double, then backticks, over the whole text), and these fixtures put quotes, backticks and slashes inside each other:
+// after the first of them it paired the wrong ends for the rest of the file and could not see the exit line of the self-test above, so its count of early exits fell by one with nothing
+// changed in what the script does (59 against a budget of 60). It blanks with the scanner these clauses test (`scripts/strip-non-code.mjs`) now, and its own clauses put the same shapes
+// in front of an exit, so the position no longer matters; the call is left where it is. Residual Task 10 item 19.
 function scannerClauses(check) {
   // The scanner under the determinism half. Each snippet is one the previous regular-expression version got wrong or could be made to: it is followed by a capture and a second,
   // bare clock read, which has to be counted wherever the quotes, comments and braces before it sit ("2/1" is reads over captures, and means the second read was seen).
