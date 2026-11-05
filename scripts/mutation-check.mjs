@@ -1923,6 +1923,54 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'killed-child-in-nested-ends-the-run-green',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run whose child harness run was killed with a mutation applied does not end green over it: it fails, so the entries and gate rows that read the mutated file are not trusted",
+    find: "if (existsSync(strandedChild)) {",
+    replace: "if (false) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'killed-child-in-nested-is-healed-silently',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a run that finds a killed child's mutation in `nested` reports it and leaves it for a person: it does not repair the tree under verdicts it has already printed",
+    find: "if (existsSync(strandedChild)) {",
+    replace: "if (existsSync(strandedChild) && (healAt(join(stateDir, 'nested'), { rebuild: false }) || true)) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'killed-child-check-looks-in-the-wrong-directory',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the end-of-run look for a killed child's mutation reads `nested`, where the child keeps its marker, and not the run's own directory (already cleared by then)",
+    find: "const strandedChild = join(stateDir, 'nested', 'active.json')",
+    replace: "const strandedChild = join(stateDir, 'active.json')",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'killed-child-failure-names-no-heal-command',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the failure over a killed child's mutation names the command that heals it",
+    find: "read a tree that holds it. Heal it: node scripts/mutation-check.mjs --heal`)",
+    replace: "read a tree that holds it.`)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'killed-child-failure-names-no-child',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the failure over a killed child's mutation names the mutation and the file it left applied",
+    find: "left applied ([${child?.id ?? 'unknown'}] on ${child?.file ?? 'the tree'}): that run was killed",
+    replace: "left applied (a child): that run was killed",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-skips-a-nested-stranded-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test names a marker a nested run stranded too, not only the run's own",
+    find: "for (const file of [join(real, 'active.json'), join(real, 'nested', 'active.json')]) {",
+    replace: "for (const file of [join(real, 'active.json')]) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'state-dir-guard-removed',
     file: 'scripts/mutation-check.mjs',
     claim: "a state directory that holds files the harness did not write is refused, not emptied at the first clear",
@@ -2184,8 +2232,8 @@ const MUTATIONS = [
     id: 'self-test-heals-a-stranded-state',
     file: 'scripts/mutation-check.mjs',
     claim: "the self-test over a stranded state leaves it alone: it names it and does not heal it",
-    find: "Heal it first: node scripts/mutation-check.mjs --heal`)\n  }",
-    replace: "Heal it first: node scripts/mutation-check.mjs --heal`)\n    if (!process.env.MUTATION_STATE_DIR) healHeld(real, { rebuild: false })\n  }",
+    find: "Heal it first: node scripts/mutation-check.mjs --heal`)\n    }\n  }",
+    replace: "Heal it first: node scripts/mutation-check.mjs --heal`)\n    }\n    if (!process.env.MUTATION_STATE_DIR) healHeld(real, { rebuild: false })\n  }",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -7820,9 +7868,12 @@ if (process.argv.includes('--self-test')) {
   // heal it, before the clauses, so the report points at the cause. (The self-test itself never heals: it works in a directory of its own.)
   {
     const real = process.env.MUTATION_STATE_DIR || '.mutation-state'
-    let stranded = null
-    try { stranded = JSON.parse(readFileSync(join(real, 'active.json'), 'utf8')) } catch { stranded = null }
-    if (stranded !== null) console.log(`::warning::${join(real, 'active.json')} is a mutation a killed run left applied ([${stranded.id ?? 'unknown'}] on ${stranded.file ?? 'the tree'}). This self-test does not touch it, and clauses below may fail because of it. Heal it first: node scripts/mutation-check.mjs --heal`)
+    // The second place a stranded marker is: a harness run inside a harness run keeps its state in `nested`, and a child killed with a mutation applied leaves it there (`--stranded` looks there too).
+    for (const file of [join(real, 'active.json'), join(real, 'nested', 'active.json')]) {
+      let stranded = null
+      try { stranded = JSON.parse(readFileSync(file, 'utf8')) } catch { stranded = null }
+      if (stranded !== null) console.log(`::warning::${file} is a mutation a killed run left applied ([${stranded.id ?? 'unknown'}] on ${stranded.file ?? 'the tree'}). This self-test does not touch it, and clauses below may fail because of it. Heal it first: node scripts/mutation-check.mjs --heal`)
+    }
   }
 
   // Every scenario below runs the real planHeal() and healAt() in a temp directory of its own, with the process check, the tree snapshot
@@ -8389,6 +8440,11 @@ if (process.argv.includes('--self-test')) {
     check('`--stranded` REFUSES A MARKER A NESTED RUN STRANDED TOO: with the only marker in `.mutation-state/nested`, it exits 1 naming that file, and the directory is byte-identical afterwards (1 nested state)',
       nestedRun.status === 1 && /\.mutation-state\/nested\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(nestedRun.stdout) && listing(nestedDir) === nestedBefore,
       `status ${nestedRun.status}; ${first(nestedRun)}; directory unchanged ${listing(nestedDir) === nestedBefore}`)
+    // ...and the self-test, whose first lines name a stranded state so that the clauses it then fails point at the cause, looks there too. It read only `active.json`, and over this directory it was silent.
+    const nestedNoted = ask(nestedDir, ['--self-test'])
+    check('...and the self-test NAMES A MARKER A NESTED RUN STRANDED TOO: with the only marker in `.mutation-state/nested` its report says so, with the file, the mutation and the heal command, and the directory is byte-identical afterwards (1 nested state)',
+      /::warning::\.mutation-state\/nested\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(nestedNoted.stdout) && /Heal it first: node scripts\/mutation-check\.mjs --heal/.test(nestedNoted.stdout) && listing(nestedDir) === nestedBefore,
+      `${String(nestedNoted.stdout).split('\n').filter(l => /warning|stranded/i.test(l)).join(' | ').slice(0, 260) || '(no warning)'}; directory unchanged ${listing(nestedDir) === nestedBefore}`)
 
     // A run that is still going is not a killed run's, and `--heal` would refuse it: the message says to wait, and does not send a person to the heal. This self-test is that run.
     const liveDir = fresh()
@@ -9017,6 +9073,25 @@ if (process.argv.includes('--self-test')) {
     check('E26: A CHILD RUN KILLED INSIDE ANOTHER\'S EXPECTATION KEEPS ITS MARKER WHEN THE PARENT CLEARS ITS OWN STATE (the parent put its own write-ups back), and the next run heals it: HEALED, the file is back, the state is gone',
       childLeft && childFileMutated && strandedBack && /HEALED/.test(text(healsChild)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
       `after the parent (exit ${strands.status}): child marker kept ${childLeft}, its file mutated ${childFileMutated}, the parent's write-ups back ${strandedBack}; heal: ${text(healsChild).split('\n').filter(l => /HEALED|Nothing to heal|::error::/.test(l)).join(' | ').slice(0, 200)}; file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
+    // ...and the run that owns that child does not end green over it. The run above is a survivor (the fixture's row passes on a stub), so it exits 1 on its own account; with
+    // ROW_FAILS_ON_STUB the row fails on a stub, `outbox-stub` is CAUGHT, and the parent is green by itself (measured 2026-11-05: `2/2 checks passed`, exit 0, docs/gate-rows.txt mutated).
+    // It must then exit 1 BECAUSE of the child, name the child, the file and the heal command, and heal nothing: the marker and the mutation are still there afterwards, for a person to hear about.
+    reset()
+    const caughtAlone = go(['--only', 'outbox-stub'], { ROW_FAILS_ON_STUB: '1' })
+    reset()
+    const caughtOverChild = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-strands-a-child', ROW_FAILS_ON_STUB: '1' })
+    const childStillThere = existsSync(childMarker)
+    const childStillMutated = read(join(repo, 'docs/gate-rows.txt')) === MUTATED_ROWS
+    const parentBack = writeUpsBack()
+    const healsNamed = go(['--heal'])
+    check('E26: A RUN THAT IS GREEN ON ITS OWN ACCOUNT BUT HAS A KILLED CHILD\'S MUTATION LEFT IN `nested` FAILS: exit 1 where it exits 0 alone, it prints PASS for its own entry and names the child, the file and `node scripts/mutation-check.mjs --heal`; it heals nothing (the marker and the mutated file are still there, its own write-ups are back), and the command it names heals it (1 run with a stranded child, 1 control without)',
+      caughtAlone.status === 0 && !/left applied/.test(text(caughtAlone))
+        && caughtOverChild.status === 1 && /PASS  \[outbox-stub\]/.test(text(caughtOverChild))
+        && /\.mutation-state\/nested\/active\.json is a mutation a harness run started inside this one left applied \(\[known-survivor\] on docs\/gate-rows\.txt\)/.test(text(caughtOverChild))
+        && /Heal it: node scripts\/mutation-check\.mjs --heal/.test(text(caughtOverChild)) && /\d+\/\d+ checks passed/.test(text(caughtOverChild)) && !/HEALED/.test(text(caughtOverChild))
+        && childStillThere && childStillMutated && parentBack
+        && /HEALED/.test(text(healsNamed)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `alone: exit ${caughtAlone.status}; over the child: exit ${caughtOverChild.status}, ${text(caughtOverChild).split('\n').filter(l => /^PASS|^FAIL|left applied/.test(l)).join(' | ').slice(0, 260)}; child marker kept ${childStillThere}, file mutated ${childStillMutated}, own write-ups back ${parentBack}; heal: ${text(healsNamed).split('\n').filter(l => /HEALED|Nothing to heal|::error::/.test(l)).join(' | ').slice(0, 120)}`)
     reset()
 
     // E27: a MUTATION_STATE_DIR that already holds something this harness did not write is refused, not emptied (the first clear would delete it: measured 2026-11-05, a directory with
@@ -9652,6 +9727,19 @@ restore()
 if (builder) {
   try { builder.assertClean('the end of the run') } catch (e) { check('the build is clean at the end of the run', false, e.message) }
   stopBuilder()
+}
+
+// A harness run an expectation started inside this one keeps its state in `nested`, and the clear above leaves it there on purpose: the next run heals it (healHeld looks there first). That is
+// the right place for a mutation a killed child left applied and the wrong whole answer. The run that owns the child used to end green over it (measured 2026-11-05: `outbox-stub` caught, 2 of 2
+// checks passed, exit 0, docs/gate-rows.txt left mutated, and only the self-test and `--anchors` said anything, the second of them blaming the table), while every entry and gate row after
+// the kill had read that file. So this run FAILS, naming the child and the command that heals it. It does not heal it: a child that was killed is something a person should hear, and a
+// heal here would repair the tree under verdicts already printed. (After the restore above, so the run's own files are back before it says so.)
+const strandedChild = join(stateDir, 'nested', 'active.json')
+if (existsSync(strandedChild)) {
+  let child = null
+  try { child = JSON.parse(readFileSync(strandedChild, 'utf8')) } catch { child = null }
+  check('no harness run started inside this one was killed with its mutation still applied', false,
+    `${strandedChild} is a mutation a harness run started inside this one left applied ([${child?.id ?? 'unknown'}] on ${child?.file ?? 'the tree'}): that run was killed, and a kill runs no handler. This run did not undo it, and every entry and gate row after the kill read a tree that holds it. Heal it: node scripts/mutation-check.mjs --heal`)
 }
 
 if (OUT) {
