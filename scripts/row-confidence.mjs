@@ -437,13 +437,54 @@ function scannerClauses(check) {
     rmSync(dir, { recursive: true, force: true })
   }
 
-  // The file the mutation `harness-reads-the-clock-twice` breaks: as it is, every clock read is a capture; with a bare read added where that entry puts one, it is flagged.
+  // Every script a row names, as this scan leaves it: its brackets must pair. A scan that has lost its place reads code as a string or a string as code, and then they stop pairing
+  // (the three-regular-expression scan this one replaced left 96 of the 168 scripts unbalanced, among them rows' own). It needs no tokenizer to be checked, and it is the test that
+  // would have caught that failure on the day it was introduced.
+  const imbalance = text => {
+    const delta = { '(': 0, '{': 0, '[': 0 }
+    for (const ch of text) {
+      if (ch in delta) delta[ch]++
+      else if (ch === ')') delta['(']--
+      else if (ch === '}') delta['{']--
+      else if (ch === ']') delta['[']--
+    }
+    return delta['('] === 0 && delta['{'] === 0 && delta['['] === 0 ? '' : `( ${delta['(']} { ${delta['{']} [ ${delta['[']}`
+  }
+  // The three passes that scan was (block comments, then line comments, then quotes paired over the whole text), written out so the controls below can run it.
+  const threePasses = src => src.replace(/\/\*[\s\S]*?\*\//g, ' ').split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n').replace(/(['"\x60])(?:\\.|(?!\1)[\s\S])*\1/g, "''")
+  // A check that has only ever passed proves nothing, so it carries its own controls: each is a `//` inside a string followed by a line with one kind of bracket in a string. The old
+  // scan must leave every one unbalanced and this scan balanced, and one per kind means a counter that is blind to a kind of bracket is caught.
+  const CONTROLS = ["const u = 'http://x'\nf('y')\n", "const u = 'http://x'\nconst o = { a: 'y' }\n", "const u = 'http://x'\nconst a = ['y']\n"]
+  const unbalanced = []
+  for (const c of CONTROLS) {
+    if (imbalance(threePasses(c)) === '') unbalanced.push(`control ${JSON.stringify(c)}: the three-pass scan left it balanced, so this count cannot tell a lost scan from a good one`)
+    if (imbalance(stripNonCode(c)) !== '') unbalanced.push(`control ${JSON.stringify(c)}: this scan left it unbalanced (${imbalance(stripNonCode(c))})`)
+  }
+  const reached = [...new Set(rows.flatMap(r => scriptsOf(r.name)))]
+  let checked = 0
+  for (const s of reached) {
+    let left
+    try { left = stripNonCode(readFileSync(s, 'utf8')) } catch { unbalanced.push(`${s}: unreadable`); continue }
+    checked++
+    const off = imbalance(left)
+    if (off !== '') unbalanced.push(`${s} ${off}`)
+  }
+  check(`EVERY SCRIPT A ROW NAMES LEAVES BALANCED BRACKETS WHEN THE SCAN IS DONE WITH IT (${reached.length} scripts, and ${CONTROLS.length} controls the three-pass scan it replaced fails): a scan that loses its place reads code as a string, and the brackets stop pairing`,
+    unbalanced.length === 0 && checked === reached.length, unbalanced.slice(0, 4).join(' / ') + ` (checked ${checked} of ${reached.length} scripts and ${CONTROLS.length} controls, ${unbalanced.length} problems)`)
+
+  // The harness, the file whose table once hid a second read from this scan (it lost sync at the first `//` in a string). Three things, none tied to how many reads the harness has today:
+  // the place this clause splices at is there exactly once, every read the harness makes is a capture, and a bare read put at that place is one more read than before and no more captures
+  // (a scan that sees nothing cannot pass by agreeing with itself). The anchor starts with the newline because the table entry that respells it holds the same words inside a string, and it
+  // is not the guard's own text (`const selected` and the rest): an entry holding THAT would move the harness's own guard up into the table and make every entry below it ambiguous.
   const harness = readFileSync('scripts/mutation-check.mjs', 'utf8')
-  const afterGuard = harness.indexOf('const selected = ONLY')
-  const harnessTwice = harness.slice(0, afterGuard) + harness.slice(afterGuard).replace("writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: BASELINE_AT.toISOString(),", "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: new Date().toISOString(),")
+  const SPLICE_AT = '\nconst applyMutation = '
+  const splices = harness.split(SPLICE_AT).length - 1
   const harnessNow = clockCounts(harness)
-  const harnessMut = clockCounts(harnessTwice)
-  check('THE HARNESS\'S OWN CLOCK READS ARE ALL CAPTURES, AND A SECOND BARE READ IN IT IS SEEN (it was not, once its table grew: the scan lost sync at the first `//` in a string)',
-    harnessNow.reads === harnessNow.captures && harnessNow.reads >= 2 && harnessTwice !== harness && harnessMut.reads === harnessMut.captures + 1,
-    `as it is ${harnessNow.reads} reads, ${harnessNow.captures} captures; with a bare read added ${harnessMut.reads} reads, ${harnessMut.captures} captures`)
+  const spliceIndex = harness.indexOf(SPLICE_AT)
+  const harnessMut = clockCounts(splices === 1 ? harness.slice(0, spliceIndex) + '\nDate.now()' + harness.slice(spliceIndex) : harness)
+  check('THE HARNESS: EVERY CLOCK READ IN IT IS A CAPTURE, AND A BARE READ PUT AFTER ITS TABLE IS SEEN (it was not, once its table grew: the scan lost sync at the first `//` in a string)',
+    splices === 1 && harnessNow.reads === harnessNow.captures && harnessMut.reads === harnessNow.reads + 1 && harnessMut.captures === harnessNow.captures,
+    splices !== 1 ? `the place to put the bare read, ${JSON.stringify(SPLICE_AT)}, is in scripts/mutation-check.mjs ${splices}x (wanted 1)`
+      : harnessNow.reads !== harnessNow.captures ? `the harness reads the clock ${harnessNow.reads}x and captures it ${harnessNow.captures}x: a read is not captured`
+        : `a bare read put after the table moved the count from ${harnessNow.reads} reads, ${harnessNow.captures} captures to ${harnessMut.reads} reads, ${harnessMut.captures} captures (wanted one more read and the same captures)`)
 }

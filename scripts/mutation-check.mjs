@@ -2776,6 +2776,72 @@ const MUTATIONS = [
     replace: "      if (false) { i += 2; continue }",
     expect: 'node scripts/row-confidence.mjs --self-test',
   },
+  // The bracket count over every script a row names (2026-11-05). `stripNonCode` is checked against fixtures above; this is the check that needs none: what it leaves of a real script must pair its
+  // brackets, and it carries three controls the old three-regular-expression scan fails. One entry per kind of bracket and per direction, so a counter blind to any one of the six is caught.
+  {
+    id: 'balance-detector-blind-to-parens',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names counts a closing parenthesis",
+    find: "else if (ch === ')') delta['(']--",
+    replace: "else if (ch === ')') delta['('] += 0",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-detector-blind-to-braces',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names counts a closing brace",
+    find: "else if (ch === '}') delta['{']--",
+    replace: "else if (ch === '}') delta['{'] += 0",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-detector-blind-to-brackets',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names counts a closing square bracket",
+    find: "else if (ch === ']') delta['[']--",
+    replace: "else if (ch === ']') delta['['] += 0",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-detector-blind-to-opening-parens',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names counts an opening parenthesis",
+    find: "if (ch in delta) delta[ch]++",
+    replace: "if (ch in delta && ch !== '(') delta[ch]++",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-detector-blind-to-opening-braces',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names counts an opening brace",
+    find: "if (ch in delta) delta[ch]++",
+    replace: "if (ch in delta && ch !== '{') delta[ch]++",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-detector-blind-to-opening-brackets',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names counts an opening square bracket",
+    find: "if (ch in delta) delta[ch]++",
+    replace: "if (ch in delta && ch !== '[') delta[ch]++",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-loop-skips-the-scripts',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names checks every script it names, not only its controls",
+    find: "for (const s of reached) {",
+    replace: "for (const s of []) {",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'balance-reads-half-a-script',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the bracket-balance clause over the scripts a row names reads each script whole",
+    find: "left = stripNonCode(readFileSync(s, 'utf8'))",
+    replace: "left = stripNonCode(readFileSync(s, 'utf8').slice(0, 4000))",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
 
   {
     // The same claim, aimed at GENERATED source, because that is where it
@@ -3009,6 +3075,31 @@ const MUTATIONS = [
     find: "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: BASELINE_AT.toISOString(),",
     replace: "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: new Date().toISOString(),",
     expect: 'node scripts/row-confidence.mjs',
+  },
+  // The same file, asked of the self-test (2026-11-05): the clause that stands on the harness no longer counts how many reads it has, so each way it can fail has its own entry.
+  {
+    id: 'harness-reads-the-clock-twice-by-hand',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a second, bare clock read in the harness is seen by the scanner's own self-test, not only by the scored row",
+    find: "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: BASELINE_AT.toISOString(),",
+    replace: "writeFileSync('outbox/mutation-baseline-latest.json', JSON.stringify({\n    at: new Date().toISOString(),",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'harness-anchor-renamed',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the place the harness clause splices its bare read at is asserted to be there, so a respelled anchor is a named failure and not a pass",
+    find: "\nconst applyMutation = ",
+    replace: "\nconst applyMutation  = ",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'harness-bare-read-after-the-table-unseen',
+    file: 'scripts/row-confidence.mjs',
+    claim: "the harness clause puts a bare read at its anchor and requires one more read than before",
+    find: "harness.slice(0, spliceIndex) + '\\nDate.now()' + harness.slice(spliceIndex)",
+    replace: "harness.slice(0, spliceIndex) + '\\n' + harness.slice(spliceIndex)",
+    expect: 'node scripts/row-confidence.mjs --self-test',
   },
 
   {
