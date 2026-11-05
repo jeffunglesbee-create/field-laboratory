@@ -10,17 +10,20 @@
 // HOW. Each script is run as it is, with $TMPDIR reached through a SYMLINK to a directory of its own (macOS's is: /var is a link), and with a guard that REFUSES any
 // write whose path is under <root>/scripts/ and logs every write. For the .mjs scripts the guard is a preload (NODE_OPTIONS --require) that wraps the fs write
 // functions; for the .py script it is a sitecustomize.py (PYTHONPATH) that installs an audit hook. Both are inherited by the self-test processes the script starts.
-// Six clauses per script, in the order they print:
+// Seven clauses per script, in the order they print:
 //   1. it runs to the end and every mutation is caught                    (exit 0 and `N of N mutations caught`, with $TMPDIR behind the symlink)
 //   2. it prints `positive control: the unmutated copy passes`
 //   3. a copy that cannot run stops the script with its FAIL line         (a second run, in which every --self-test started from outside the repo exits 1)
 //   4. so does a copy whose self-test never ran                           (a third run, in which every one of them exits 0 and prints nothing)
 //   5. it wrote nothing under scripts/                                    (no BLOCKED line in the log)
 //   6. it wrote somewhere else, so clause 5 is not vacuous                (a WROTE line in the log)
+//   7. it removes its temporary copy when it ends                         (a write under $TMPDIR was logged, and $TMPDIR is empty after each of the three runs)
 // Clause 3 is what makes clause 2 more than a printed sentence: without the control a copy that cannot run reads as every mutation caught. Clause 4 is the same for a copy
 // that exits 0 without running. A copy reached through a symlinked path is not the entry point of its own file, so the isMain block of the file it copies is skipped and
 // an exit status cannot tell that from a pass: with $TMPDIR behind a symlink six of the seven .mjs scripts printed the control line and then NOT CAUGHT for every
 // mutation (reproduced 2026-11-05). The scripts now resolve their temporary directory, and clause 1 under the symlink is what holds them to it.
+// Clause 7 exists because deleting the exit handler that removes the copy left every other clause green and leaked a 3.4 MB directory per run (reproduced 2026-11-05); a
+// run with no logged write under $TMPDIR fails it, so a script that keeps its copy somewhere else cannot pass it by leaving $TMPDIR empty.
 //
 // COVERAGE (Rule 91), printed with the verdict. The node guard wraps writeFileSync, appendFileSync, copyFileSync, renameSync, unlinkSync, rmSync and truncateSync
 // with a string or Buffer path, and looks at the path that is WRITTEN: the destination of a copy, both ends of a rename. It does NOT see fs.promises, write
@@ -31,14 +34,14 @@
 // refused. Clause 6 is the check on an inert guard: a script that is seen writing nothing at all passes clause 5 for the wrong reason, so it fails clause 6.
 //
 // --self-test runs the same verdicts over stand-ins in a root of their own: a probe of each guard over every function it covers, a script that mutates in place,
-// one that works on a copy, and copy-based ones that each lack one thing. Each stand-in is pinned to the whole pattern of the six clauses (T = passes, F = fails), so a
+// one that works on a copy, and copy-based ones that each lack one thing. Each stand-in is pinned to the whole pattern of the seven clauses (T = passes, F = fails), so a
 // clause that is wired to the wrong fact, or that cannot fail, changes a pattern.
 // --only NAME checks one script.
 
-import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, realpathSync, existsSync, symlinkSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync, realpathSync, existsSync, symlinkSync, readdirSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
-import { join, delimiter } from 'node:path'
+import { join, delimiter, sep } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
 
 const SCRIPTS = ['claim-check', 'deploy-gate', 'deploy-landed', 'odds-coverage', 'odds-shape-census', 'run-steps', 'replay-odds-coverage', 'push-lands']
@@ -145,13 +148,16 @@ const run = (file, root, fault = '') => {
   const blocked = lines.filter(l => l.startsWith('BLOCKED '))
   const tally = /(\d+) of (\d+) mutations caught/.exec(out)
   const crash = (r.stderr ?? '').split('\n').findLast(l => /^\w*Error: /.test(l)) ?? ''
+  // What the script left in its $TMPDIR, and whether the guard saw it write there at all (a script that keeps its copy elsewhere leaves $TMPDIR empty for the wrong reason).
+  const leftover = readdirSync(tmp)
+  const usedTmp = lines.some(l => [tmp, link].some(d => l.startsWith(`WROTE ${d}${sep}`)))
   return {
-    out, lines, blocked, tally, status: r.status,
+    out, lines, blocked, tally, status: r.status, leftover, usedTmp,
     detail: `exit ${r.status}; ${tally ? tally[0] : 'no tally'}${blocked.length ? `; ${blocked.length} write(s) refused, first: ${blocked[0]}` : ''}${crash ? `; ${crash.slice(0, 160)}` : ''}`,
   }
 }
 
-/** The six facts about a mutate script. */
+/** The seven facts about a mutate script. */
 const evaluate = (file, root) => {
   const a = run(file, root)
   const b = run(file, root, 'red')
@@ -163,15 +169,17 @@ const evaluate = (file, root) => {
     refusesSilentCopy: c.status === 1 && /UNMUTATED/.test(c.out),
     cleanTree: a.blocked.length === 0,
     wroteElsewhere: a.lines.some(l => l.startsWith('WROTE ')),
+    cleansUp: a.usedTmp && [a, b, c].every(r => r.leftover.length === 0),
     caught: a.tally ? Number(a.tally[1]) : 0,
     total: a.tally ? Number(a.tally[2]) : 0,
     detail: a.detail,
     redDetail: `second run, every copy made red: ${b.detail}`,
     silentDetail: `third run, every copy's self-test made to exit 0 saying nothing: ${c.detail}`,
+    cleanupDetail: `a write under $TMPDIR was ${a.usedTmp ? '' : 'NOT '}logged; left in $TMPDIR by the three runs: ${[...a.leftover, ...b.leftover, ...c.leftover].join(', ') || 'nothing'}`,
   }
 }
 
-/** The six clauses, in this order. `say` is `check`, or in the self-test a recorder that turns them into a pattern. */
+/** The seven clauses, in this order. `say` is `check`, or in the self-test a recorder that turns them into a pattern. */
 const verdict = (label, e, say = check) => {
   say(`${label}: runs to the end and every mutation is caught, with $TMPDIR behind a symlink`, e.completes, e.detail)
   say(`${label}: prints the positive control`, e.controlled, e.detail)
@@ -179,6 +187,7 @@ const verdict = (label, e, say = check) => {
   say(`${label}: a copy whose self-test never ran stops it too (exit 0 and no output is not a pass)`, e.refusesSilentCopy, e.silentDetail)
   say(`${label}: writes nothing under scripts/ that its guard can see (the coverage is printed at the end)`, e.cleanTree, e.detail)
   say(`${label}: wrote somewhere else, so the clause above is not vacuous`, e.wroteElsewhere, e.detail)
+  say(`${label}: removes its temporary copy when it ends, whether it passes or stops (nothing is left in $TMPDIR)`, e.cleansUp, e.cleanupDetail)
 }
 const pattern = e => { const out = []; verdict('', e, (_name, ok) => out.push(ok ? 'T' : 'F')); return out.join('') }
 
@@ -252,23 +261,28 @@ with tempfile.TemporaryDirectory(prefix='sf-') as td:
     const CONTROL = "if (!passes()) { console.log('FAIL — the UNMUTATED copy is red'); process.exit(1) }\n"
     const PRINT = "console.log('positive control: the unmutated copy passes')\n"
     const WRITE = "writeFileSync(COPY, 'mutated')\n"
+    const EXIT_HANDLER = "process.on('exit', () => rmSync(TMP, { recursive: true, force: true }))\n"
     // The clauses a copy-based stand-in lacks are the ones that fail. A control that is missing altogether fails both enforcement clauses (a red copy and a silent one).
     const STAND_INS = [
-      ['on-a-copy.py', PY_ON_A_COPY, 'TTTTTT', 'A PYTHON STAND-IN THAT WORKS ON A COPY, PROVES IT FIRST AND STOPS ON A BROKEN COPY PASSES ALL SIX CLAUSES'],
-      ['on-a-copy.mjs', ON_A_COPY, 'TTTTTT', 'A STAND-IN THAT WORKS ON A COPY, PROVES IT FIRST AND STOPS ON A BROKEN COPY PASSES ALL SIX CLAUSES'],
-      ['misses.mjs', variant(ON_A_COPY, '1 of 1', '1 of 2'), 'FTTTTT', 'A COPY-BASED STAND-IN THAT PRINTS 1 of 2 FAILS ONLY THE COMPLETION CLAUSE'],
-      ['unannounced.mjs', variant(ON_A_COPY, PRINT, ''), 'TFTTTT', 'A COPY-BASED STAND-IN THAT NEVER PRINTS THE POSITIVE CONTROL FAILS ONLY THE PRINT CLAUSE'],
-      ['print-only.mjs', variant(ON_A_COPY, CONTROL, ''), 'TTFFTT', 'A COPY-BASED STAND-IN THAT PRINTS THE POSITIVE CONTROL WITHOUT RUNNING IT FAILS BOTH ENFORCEMENT CLAUSES (it would read as every mutation caught on a broken copy)'],
-      ['reports-and-goes-on.mjs', variant(ON_A_COPY, CONTROL, "if (!passes()) console.log('FAIL — the UNMUTATED copy is red')\n"), 'TTFFTT', 'A STAND-IN THAT SAYS THE COPY IS RED AND CARRIES ON FAILS BOTH ENFORCEMENT CLAUSES (the exit status)'],
-      ['stops-silently.mjs', variant(ON_A_COPY, CONTROL, 'if (!passes()) process.exit(1)\n'), 'TTFFTT', 'A STAND-IN THAT STOPS ON A RED COPY WITHOUT SAYING WHY FAILS BOTH ENFORCEMENT CLAUSES (the FAIL line)'],
+      ['on-a-copy.py', PY_ON_A_COPY, 'TTTTTTT', 'A PYTHON STAND-IN THAT WORKS ON A COPY, PROVES IT FIRST AND STOPS ON A BROKEN COPY PASSES ALL SEVEN CLAUSES'],
+      ['on-a-copy.mjs', ON_A_COPY, 'TTTTTTT', 'A STAND-IN THAT WORKS ON A COPY, PROVES IT FIRST AND STOPS ON A BROKEN COPY PASSES ALL SEVEN CLAUSES'],
+      ['misses.mjs', variant(ON_A_COPY, '1 of 1', '1 of 2'), 'FTTTTTT', 'A COPY-BASED STAND-IN THAT PRINTS 1 of 2 FAILS ONLY THE COMPLETION CLAUSE'],
+      ['unannounced.mjs', variant(ON_A_COPY, PRINT, ''), 'TFTTTTT', 'A COPY-BASED STAND-IN THAT NEVER PRINTS THE POSITIVE CONTROL FAILS ONLY THE PRINT CLAUSE'],
+      ['print-only.mjs', variant(ON_A_COPY, CONTROL, ''), 'TTFFTTT', 'A COPY-BASED STAND-IN THAT PRINTS THE POSITIVE CONTROL WITHOUT RUNNING IT FAILS BOTH ENFORCEMENT CLAUSES (it would read as every mutation caught on a broken copy)'],
+      ['reports-and-goes-on.mjs', variant(ON_A_COPY, CONTROL, "if (!passes()) console.log('FAIL — the UNMUTATED copy is red')\n"), 'TTFFTTT', 'A STAND-IN THAT SAYS THE COPY IS RED AND CARRIES ON FAILS BOTH ENFORCEMENT CLAUSES (the exit status)'],
+      ['stops-silently.mjs', variant(ON_A_COPY, CONTROL, 'if (!passes()) process.exit(1)\n'), 'TTFFTTT', 'A STAND-IN THAT STOPS ON A RED COPY WITHOUT SAYING WHY FAILS BOTH ENFORCEMENT CLAUSES (the FAIL line)'],
       // The control as it was before 2026-11-05: an exit status alone. A copy whose self-test never ran exits 0, so this one carries on and reports every mutation caught.
-      ['accepts-silence.py', variant(PY_ON_A_COPY, "if done.returncode != 0 or 'self-test: 1/1' not in done.stdout:", 'if done.returncode != 0:'), 'TTTFTT', 'A PYTHON STAND-IN WHOSE CONTROL IS AN EXIT STATUS ALONE FAILS ONLY THE SILENT-COPY CLAUSE (a self-test that never ran exits 0)'],
-      ['accepts-silence.mjs', variant(ON_A_COPY, "return /^([1-9]\\d*)\\/\\1 checks passed$/m.test(execFileSync(process.execPath, [COPY, '--self-test'], { stdio: 'pipe', encoding: 'utf8' }))", "execFileSync(process.execPath, [COPY, '--self-test'], { stdio: 'pipe' }); return true"), 'TTTFTT', 'A STAND-IN WHOSE CONTROL IS AN EXIT STATUS ALONE FAILS ONLY THE SILENT-COPY CLAUSE (a self-test that never ran exits 0)'],
+      ['accepts-silence.py', variant(PY_ON_A_COPY, "if done.returncode != 0 or 'self-test: 1/1' not in done.stdout:", 'if done.returncode != 0:'), 'TTTFTTT', 'A PYTHON STAND-IN WHOSE CONTROL IS AN EXIT STATUS ALONE FAILS ONLY THE SILENT-COPY CLAUSE (a self-test that never ran exits 0)'],
+      ['accepts-silence.mjs', variant(ON_A_COPY, "return /^([1-9]\\d*)\\/\\1 checks passed$/m.test(execFileSync(process.execPath, [COPY, '--self-test'], { stdio: 'pipe', encoding: 'utf8' }))", "execFileSync(process.execPath, [COPY, '--self-test'], { stdio: 'pipe' }); return true"), 'TTTFTTT', 'A STAND-IN WHOSE CONTROL IS AN EXIT STATUS ALONE FAILS ONLY THE SILENT-COPY CLAUSE (a self-test that never ran exits 0)'],
       // TMP is not resolved: with $TMPDIR behind a symlink the copy is reached by a symlinked path, the target stays silent, and the control (correctly) stops the script.
-      ['tmp-not-resolved.mjs', variant(ON_A_COPY, "realpathSync(mkdtempSync(join(tmpdir(), 'sf-')))", "mkdtempSync(join(tmpdir(), 'sf-'))"), 'FFTTTT', 'A STAND-IN WHOSE TEMPORARY DIRECTORY IS NOT RESOLVED FAILS THE COMPLETION AND PRINT CLAUSES WHEN $TMPDIR IS A SYMLINK (the macOS case)'],
-      ['tracked-write-swallowed.mjs', variant(ON_A_COPY, WRITE, WRITE + "try { writeFileSync('scripts/target.mjs', 'x') } catch {}\n"), 'TTTTFT', 'A COPY-BASED STAND-IN THAT TRIES TO WRITE THE TRACKED FILE AND SWALLOWS THE REFUSAL FAILS ONLY THE TRACKED-TREE CLAUSE'],
+      ['tmp-not-resolved.mjs', variant(ON_A_COPY, "realpathSync(mkdtempSync(join(tmpdir(), 'sf-')))", "mkdtempSync(join(tmpdir(), 'sf-'))"), 'FFTTTTT', 'A STAND-IN WHOSE TEMPORARY DIRECTORY IS NOT RESOLVED FAILS THE COMPLETION AND PRINT CLAUSES WHEN $TMPDIR IS A SYMLINK (the macOS case)'],
+      // The exit handler that removes the copy is gone: the review's reproduction. Every run leaves its directory behind.
+      ['leaks-its-copy.mjs', variant(ON_A_COPY, EXIT_HANDLER, ''), 'TTTTTTF', 'A STAND-IN THAT NEVER REMOVES ITS COPY FAILS ONLY THE CLEANUP CLAUSE'],
+      // The copy is removed only if the script gets past its control: a run that stops on a broken copy leaves the directory behind.
+      ['leaks-on-refusal.mjs', variant(variant(ON_A_COPY, EXIT_HANDLER, ''), CONTROL, CONTROL + EXIT_HANDLER), 'TTTTTTF', 'A STAND-IN THAT REMOVES ITS COPY ONLY WHEN IT GETS PAST THE CONTROL FAILS ONLY THE CLEANUP CLAUSE (the runs that stop at the control leave it behind)'],
+      ['tracked-write-swallowed.mjs', variant(ON_A_COPY, WRITE, WRITE + "try { writeFileSync('scripts/target.mjs', 'x') } catch {}\n"), 'TTTTFTT', 'A COPY-BASED STAND-IN THAT TRIES TO WRITE THE TRACKED FILE AND SWALLOWS THE REFUSAL FAILS ONLY THE TRACKED-TREE CLAUSE'],
       // No write and no guarded cleanup either (the exit handler's rmSync is a logged write): to the guard this script does nothing, which is what an inert guard looks like.
-      ['writes-nothing.mjs', variant(variant(ON_A_COPY, WRITE, ''), "rmSync(TMP, { recursive: true, force: true })", "execFileSync('rm', ['-rf', TMP])"), 'TTTTTF', 'A COPY-BASED STAND-IN THAT THE GUARD SEES WRITING NOTHING FAILS ONLY THE WROTE-ELSEWHERE CLAUSE'],
+      ['writes-nothing.mjs', variant(variant(ON_A_COPY, WRITE, ''), "rmSync(TMP, { recursive: true, force: true })", "execFileSync('rm', ['-rf', TMP])"), 'TTTTTFF', 'A COPY-BASED STAND-IN THAT THE GUARD SEES WRITING NOTHING FAILS THE WROTE-ELSEWHERE CLAUSE AND THE CLEANUP CLAUSE (with no logged write under $TMPDIR the cleanup cannot be vouched for)'],
     ]
     for (const [file, source] of STAND_INS) writeFileSync(join(root, file), source)
 
@@ -318,11 +332,11 @@ attempt('elsewhere', lambda: open(os.path.join(dir, 'x'), 'w').close())
       `refused ${pyRefused.length} of ${PROBED_PY.length}: ${pyRefused.join(',')}; logged ${pyProbe.blocked.length} refusals; ${pyProbe.out.replace(/\n/g, ' | ')}`)
 
     const inPlace = evaluate('in-place.mjs', root)
-    check('A STAND-IN THAT MUTATES IN PLACE FAILS ALL SIX CLAUSES (the guard stopped it at its first write), and its tracked file is byte-identical',
-      pattern(inPlace) === 'FFFFFF' && tracked('target.mjs') === TRACKED, `${pattern(inPlace)} ${JSON.stringify(inPlace)}`)
+    check('A STAND-IN THAT MUTATES IN PLACE FAILS EVERY CLAUSE (the guard stopped it at its first write), and its tracked file is byte-identical',
+      pattern(inPlace) === 'FFFFFFF' && tracked('target.mjs') === TRACKED, `${pattern(inPlace)} ${JSON.stringify(inPlace)}`)
     const pyInPlace = evaluate('in-place.py', root)
-    check('A PYTHON STAND-IN THAT MUTATES IN PLACE FAILS ALL SIX CLAUSES (the guard stopped it at its first write), and its tracked file is byte-identical',
-      pattern(pyInPlace) === 'FFFFFF' && tracked('target.py') === TRACKED_PY, `${pattern(pyInPlace)} ${JSON.stringify(pyInPlace)}`)
+    check('A PYTHON STAND-IN THAT MUTATES IN PLACE FAILS EVERY CLAUSE (the guard stopped it at its first write), and its tracked file is byte-identical',
+      pattern(pyInPlace) === 'FFFFFFF' && tracked('target.py') === TRACKED_PY, `${pattern(pyInPlace)} ${JSON.stringify(pyInPlace)}`)
     for (const [file, , want, label] of STAND_INS) {
       const e = evaluate(file, root)
       check(`${label}`, pattern(e) === want, `wanted ${want}, got ${pattern(e)} ${JSON.stringify(e)}`)
