@@ -3391,6 +3391,23 @@ const MUTATIONS = [
     replace: "process.on('exit', restore)\nprocess.on('SIGHUP', () => {})\n",
     expect: "node scripts/proof-check.mjs --self-test",
   },
+  // The system git configuration is asked of git itself (2026-11-05, residual 10.17c): a variable name wrong in the code and in the clause that pins it passed the name-pinning clause alone.
+  {
+    id: 'proof-git-system-config-honoured-by-git',
+    file: "scripts/proof-check.mjs",
+    claim: "the scratch repository's environment makes git itself ignore the system configuration, whatever the variable is called",
+    find: "GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' })",
+    replace: "GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NO_SYSTEM: '1' })",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
+  {
+    id: 'proof-git-system-plant-ignored',
+    file: "scripts/proof-check.mjs",
+    claim: "the by-effect check of the system configuration is not vacuous: its control must read a plant git honours",
+    find: "GIT_CONFIG_SYSTEM: join(dir, 'system.gitconfig')",
+    replace: "GIT_CONFIG_SYSTM: join(dir, 'system.gitconfig')",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
   // --- the Draw panel -------------------------------------------------------
   //
   // The canonical-size law has FOUR answers and two of them are "not compared".

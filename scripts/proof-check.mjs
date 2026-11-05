@@ -592,6 +592,24 @@ if (process.argv.includes('--self-test')) {
   sc('scrubbedGitEnv: no GIT_* of the caller goes through, the caller\'s configuration is replaced by /dev/null and the system\'s is switched off, everything else stays',
     JSON.stringify(Object.entries(scrubbed).sort()) === JSON.stringify([['GIT_CONFIG_GLOBAL', '/dev/null'], ['GIT_CONFIG_NOSYSTEM', '1'], ['HOME', '/h'], ['PATH', '/p']]),
     JSON.stringify(scrubbed))
+  // The same fact BY EFFECT. The clause above pins the variable's NAME on the environment `scrubbedGitEnv` builds, and a name that is wrong in the code and in that clause together (a misspelling made in
+  // both places) passes it, while git reads the system configuration. A system configuration CAN be planted without privileges (GIT_CONFIG_SYSTEM, git 2.32 or later; measured 2026-11-05 on git 2.43.0), so
+  // git is asked: the control (the scrubbed environment WITHOUT GIT_CONFIG_NOSYSTEM) must read the planted value, so that a plant git ignores cannot pass, and the scrubbed one must read nothing. The two
+  // differ in that one entry and nothing else. Where the control reads nothing (an older git), the clause fails rather than passing empty.
+  const systemLeak = env => {
+    const dir = mkdtempSync(join(tmpdir(), 'proof-syscfg-'))
+    try {
+      writeFileSync(join(dir, 'system.gitconfig'), '[proofprobe]\n\tleak = system\n')
+      try { return execSync('git config --get proofprobe.leak', { cwd: dir, env: { ...env, GIT_CONFIG_SYSTEM: join(dir, 'system.gitconfig') }, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() } catch { return '' }
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }
+  const withoutNoSystem = Object.fromEntries(Object.entries(scrubbedGitEnv(process.env)).filter(([k]) => k !== 'GIT_CONFIG_NOSYSTEM'))
+  const leakControl = haveGit ? systemLeak(withoutNoSystem) : null
+  const leakScrubbed = haveGit ? systemLeak(scrubbedGitEnv(process.env)) : null
+  sc(`THE SYSTEM GIT CONFIGURATION IS NOT READ BY THE SCRATCH REPOSITORIES, asked of git itself: a plant git honours is read without GIT_CONFIG_NOSYSTEM and not with the scrubbed environment (2 reads; asserted: ${haveGit})`,
+    !haveGit || (leakControl === 'system' && leakScrubbed === ''), `control read ${JSON.stringify(leakControl)} (expected "system"), scrubbed environment read ${JSON.stringify(leakScrubbed)} (expected "")`)
   const committedDemo0 = haveGit ? committedDemo(process.env) : null
   sc('THE COMMITTED REGISTRY IS READ FROM HEAD, NOT FROM THE WORKING TREE: a working copy that differs does not change what is returned',
     !haveGit || committedDemo0 === 'committed\n', JSON.stringify(committedDemo0))
