@@ -120,11 +120,13 @@ const mutationsFor = (scripts, rowName) => {
  * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
  * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). A line ends at a line feed, a carriage return, U+2028 or
  * U+2029: a `//` comment, a regular expression and the `++` test stop there; a string stops at a line feed or a carriage return (U+2028 and U+2029 may be inside one), and a backslash
- * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression. (A leading `#!`
+ * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression; `of` is not in that list (in a module it is an identifier, and
+ * the one use that takes a regular expression, `for (x of /re/...)`, does not occur), and neither a private name (`this.#in`) nor a name that has a keyword after a non-ASCII letter or a
+ * combining mark (`éin`) is the keyword it ends in. (A leading `#!`
  * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
  */
 const stripNonCode = src => {
-  const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'of', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
+  const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
   const n = src.length
   let out = ''
   // The parentheses seen so far, in code: where in `out` each open one began, and where the one closed last began.
@@ -134,10 +136,11 @@ const stripNonCode = src => {
   const isEol = ch => ch === '\n' || ch === '\r' || ch === String.fromCharCode(0x2028) || ch === String.fromCharCode(0x2029)
   // A `.` that is member access: not the end of `...` (a spread, after which a keyword is a keyword) and not a number's decimal point (`1.`).
   const isPropertyDot = before => before.endsWith('.') && !before.endsWith('...') && !/(?<![\w$.])\d+\.$/.test(before)
-  // Does `text` end in a keyword that a regular expression can follow, as opposed to a property spelled like one (`c.new`, `o?.in`)?
+  // Does `text` end in a keyword that a regular expression can follow? The trailing word is a whole identifier (any letter, combining mark or digit the language allows, so `éin` is not `in`), and
+  // it is not a property spelled like one (`c.new`, `o?.in`) or a private name (`this.#in`).
   const endsInKeyword = text => {
-    const found = /([A-Za-z_$][\w$]*)$/.exec(text)
-    return found !== null && REGEX_AFTER.has(found[1]) && !isPropertyDot(text.slice(0, found.index).trimEnd())
+    const found = /[\p{ID_Continue}$]+$/u.exec(text)
+    return found !== null && REGEX_AFTER.has(found[0]) && text[found.index - 1] !== '#' && !isPropertyDot(text.slice(0, found.index).trimEnd())
   }
   // Can a `/` here begin a regular expression? Only after something that cannot end an expression.
   const regexAllowed = () => {
@@ -403,7 +406,7 @@ function scannerClauses(check) {
     ['`a ${ Date.now() } b`', " ( Date.now() ) ''", 'the inside of a template expression is kept'],
     ['`a ${ `b ${1}` + "}" } c` + d', " (  (1) '' + '' ) '' + d", 'a template inside a template expression, with a brace in a string'],
   ]
-  for (const k of ['return', 'typeof', 'case', 'in', 'of', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await']) {
+  for (const k of ['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await']) {
     STRIPS.push([`${k} /"'\`/`, `${k} 0`, `a regular expression after the keyword ${k}`], [`o.${k} / 2`, `o.${k} / 2`, `a property named ${k} is not the keyword`])
   }
   STRIPS.push(['o?.in / 2', 'o?.in / 2', 'an optional-chained property named like a keyword'], ['o. of / 2', 'o. of / 2', 'a property after a dot and a space'])
@@ -457,6 +460,12 @@ function scannerClauses(check) {
     [`'oops${CRc}b`, `''${CRc}b`, 'an unclosed quote ends at a carriage return'],
     [`'a${LSc}b' + c`, "'' + c", 'U+2028 is legal inside a string'],
     [`x = a instanceof /${Q}/`, 'x = a instanceof 0', 'a regular expression after instanceof'])
+  // Residuals Task 10 item 16. A name is not the keyword it ends in: a private name (`this.#in`), `of` (an identifier in a module, where `for (x of /re/...)` does not occur), a name that has a keyword after a non-ASCII
+  // letter (`éin`) or after a combining mark (`a` and U+0301, then `in`), and a name that ends in a non-ASCII letter after one (`iné`). Each divides.
+  for (const k of ['in', 'new', 'do', 'of', 'return', 'default', 'extends', 'instanceof']) STRIPS.push([`this.#${k} / 2 / z`, `this.#${k} / 2 / z`, `a private name spelled ${k} is not the keyword`])
+  for (const k of ['in', 'of', 'new', 'return']) STRIPS.push([`é${k} / 2 / z`, `é${k} / 2 / z`, `a name that has ${k} after a non-ASCII letter is not the keyword`], [`${k}é / 2 / z`, `${k}é / 2 / z`, `a name that ends in a non-ASCII letter after ${k} is not the keyword`])
+  STRIPS.push(['of / 2 / z', 'of / 2 / z', 'an identifier named of divides'], ['o.of / 2 / z', 'o.of / 2 / z', 'a property named of divides'], ['a\u0301in / 2 / z', 'a\u0301in / 2 / z', 'a name with a combining mark before in is not the keyword'],
+    ['$in / 2 / z', '$in / 2 / z', 'a name that begins with a dollar sign and ends in a keyword is not the keyword'])
   STRIPS.push(['x = /a\\/b/g + c', 'x = 0 + c', 'an escaped slash does not end a regular expression'], ['x = /[\\]/]y/ + c', 'x = 0 + c', 'an escaped bracket does not end a class'],
     ['x = /oops\nb', 'x = 0\nb', 'an unterminated regular expression ends at its line'])
   const wrong = STRIPS.filter(([from, want]) => stripNonCode(from) !== want)
@@ -488,6 +497,16 @@ function scannerClauses(check) {
   const off13 = CASES13.map(([what, src, want]) => ({ what, want, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.want !== x.got)
   check(`A LINE THAT ENDS AT A CARRIAGE RETURN, U+2028 OR U+2029 (A COMMENT, A REGULAR EXPRESSION; a string at a CR, not at U+2028), A BACKSLASH BEFORE A CR LF, AND instanceof, extends AND default BEFORE A REGULAR EXPRESSION, DO NOT HIDE THE CLOCK READS AFTER THEM, for ${CASES13.length} inputs`,
     off13.length === 0, off13.map(x => `${x.what}: wanted ${x.want}, got ${x.got}`).join(' / '))
+
+  // The same one level up: each of these is a division that was read as a regular expression, which ran to the end of its line and took the clock read after it. Each is followed by that read, so "1/0" is it seen.
+  const DIVIDES = [...['in', 'new', 'do', 'died'].map(k => [`a private name spelled ${k}`, `class A { #${k} = 1; f() { return this.#${k} / 2 + Date.now() } }\n`]),
+    ['an identifier named of', 'var of = 4; var y = of / 2 + Date.now()\n'],
+    ...['in', 'of', 'new', 'return'].map(k => [`a name with ${k} after a non-ASCII letter`, `var é${k} = 4; var y = é${k} / 2 + Date.now()\n`]),
+    ['a name with a combining mark before in', 'var a\u0301in = 4; var y = a\u0301in / 2 + Date.now()\n'],
+    ['a name that ends in a non-ASCII letter', 'var café = 4; var y = café / 2 + Date.now()\n']]
+  const off16 = DIVIDES.map(([what, src]) => ({ what, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.got !== '1/0')
+  check(`A DIVISION AFTER A PRIVATE NAME, \`of\`, OR A NAME THAT HAS A KEYWORD AFTER A NON-ASCII LETTER, DOES NOT HIDE THE CLOCK READ AFTER IT, for ${DIVIDES.length} inputs (a keyword is the whole trailing word, and a private name is not one)`,
+    off16.length === 0, off16.map(x => `${x.what}: wanted 1/0, got ${x.got}`).join(' / '))
 
   // Every spelling of a clock read is counted as one, and only the three that can be captured are captured. A scanner that counted fewer would pass every other clause here.
   const FORMS = [['Date.now()', 1, 0], ['Date.now( )', 1, 0], ['Date.now ()', 1, 0], ['globalThis.Date.now()', 1, 0], ['new Date()', 1, 0], ['new Date( )', 1, 0], ['new  Date()', 1, 0],
