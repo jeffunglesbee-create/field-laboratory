@@ -1984,5 +1984,17 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-11-05",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-05",
+    "at": "2026-11-05T08:00:51.311Z",
+    "sports": {
+      "MLS": {
+        "rows": 1,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    }
   }
 ]
