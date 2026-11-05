@@ -228,7 +228,9 @@ const clockCounts = src => {
   // rule about vocabulary; this makes it about shape, and zone-check's
   // `fieldToday()` — the zero-argument production reader it exists to test —
   // can satisfy it the same way everything else does.
-  const captures = code.match(/const [A-Z][A-Z0-9_]* = [^\n]*?(new\s+Date\s*\(\s*\)|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\))/g) ?? []
+  // A capture is the read ITSELF: the constant holds the instant. A `=>`, a `class`, a `) {` or a `;` between the `=` and the read means it holds a function, a class, a method or
+  // nothing of the kind, and the read happens later, every time it is called (`const NOW = () => new Date()`), so it is not counted as one.
+  const captures = code.match(/const [A-Z][A-Z0-9_]* = (?:(?!=>|\bclass\b|\)\s*\{|;)[^\n])*?(new\s+Date\s*\(\s*\)|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\))/g) ?? []
   const clockReads = code.match(/Date\s*\.\s*now\s*\(\s*\)|new\s+Date\s*\(\s*\)|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\)/g) ?? []
   return { captures: captures.length, reads: clockReads.length, network: /https?:\/\/(?!localhost)/.test(code) }
 }
@@ -244,7 +246,7 @@ const clockCounts = src => {
  * documentation as code will fire on the sentence documenting it.
  *
  * The rule it applies: every clock read must be on the line of a `const NAME = ...` whose name is in capitals (a capture), and a script is flagged when it has more reads than
- * captures. How many captures a script may have is not limited and nothing checks that one is at top level, so `const A = () => new Date()` passes (residual Task 10) and two
+ * captures. A capture is the read itself, so `const A = () => new Date()` is not one. How many captures a script may have is not limited and nothing checks that one is at top level, so two
  * captures can straddle midnight between them. The shape this repo settled on is the same as `gameStateAt`'s: capture the instant ONCE, into `const NOW = new Date()`, then be pure.
  */
 const nondeterminism = scripts => {
@@ -427,11 +429,14 @@ function scannerClauses(check) {
     ['new\nDate()', 1, 0], ['fieldDay()', 1, 0], ['fieldDay( )', 1, 0], ['fieldDay ()', 1, 0], ['fieldToday()', 1, 0], ['fieldToday( )', 1, 0],
     ['const NOW = new Date()', 1, 1], ['const NOW = new Date( )', 1, 1], ['const NOW = new  Date()', 1, 1], ['const DAY = fieldDay()', 1, 1], ['const DAY = fieldDay( )', 1, 1], ['const DAY = fieldDay ()', 1, 1],
     ['const DAY = fieldToday( )', 1, 1], ['const later = new Date()', 1, 0], ['const NOW = Date.now()', 1, 0],
-    ['const A = new Date(); const B = fieldDay()', 2, 2], ['const A = new Date(); const b = fieldDay()', 2, 1],
+    ['const A = new Date(); const B = fieldDay()', 2, 2], ['const A = new Date(); const b = fieldDay()', 2, 1], ['{ const A = new Date() } { const B = fieldDay() }', 2, 2],
     ['`${fieldDay()}T12`', 1, 0], ['const DAY = `${fieldDay()}T12`', 1, 1], ['`${ `${new Date()}` }`', 1, 0], ['`new Date() ${1}`', 0, 0],
-    ['tag`${/"/.test(y)}` + Date.now()', 1, 0], ['f(x)`${/"/.test(y)}` + Date.now()', 1, 0], ['a[0]`${/"/.test(y)}` + Date.now()', 1, 0]]
+    ['tag`${/"/.test(y)}` + Date.now()', 1, 0], ['f(x)`${/"/.test(y)}` + Date.now()', 1, 0], ['a[0]`${/"/.test(y)}` + Date.now()', 1, 0],
+    ['const NOW = () => new Date()', 1, 0], ['const NOW = async () => new Date()', 1, 0], ['const NOW = function () { return new Date() }', 1, 0], ['const O = { f() { return new Date() } }', 1, 0],
+    ['const A = class { static t = new Date() }', 1, 0], ['const NOW = 1; log(new Date())', 1, 0],
+    ['const T = process.env.T || new Date().toISOString().slice(0, 10)', 1, 1], ['const D = fieldDayIso(fieldToday())', 1, 1], ['const X = { at: new Date() }', 1, 1]]
   const badForms = FORMS.filter(([src, reads, captures]) => { const c = clockCounts(src); return c.reads !== reads || c.captures !== captures })
-  check(`THESE ${FORMS.length} SPELLINGS OF A CLOCK READ ARE COUNTED (whitespace inside and around the call included, and inside a template expression but not in template text), and a capture is a \`const\` in capitals on the same line as new Date(), fieldDay() or fieldToday()`,
+  check(`THESE ${FORMS.length} SPELLINGS OF A CLOCK READ ARE COUNTED (whitespace inside and around the call included, and inside a template expression but not in template text), and a capture is a \`const\` in capitals whose value IS new Date(), fieldDay() or fieldToday() on the same line, not a function, class or later statement that holds one`,
     badForms.length === 0, badForms.map(([src, reads, captures]) => `${src}: ${JSON.stringify(clockCounts(src))}, wanted ${reads} read(s) and ${captures} capture(s)`).join(' / '))
 
   // The comparison itself, on real files: one bare read more than the captures flags the script, balanced reads do not.
