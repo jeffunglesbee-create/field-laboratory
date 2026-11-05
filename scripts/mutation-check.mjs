@@ -4859,6 +4859,42 @@ const MUTATIONS = [
     replace: '    if (true) { writeFileSync(TARGET, backupTarget)',
     expect: 'node scripts/proof-check.mjs --self-test',
   },
+  // --- the heal of two stranded files (review 6, test-vacuity lens, finding 0, 2026-11-05) ----------------------------------------------------------------------------------------------------------
+  //
+  // Each file is healed on its own and every clause planted one at a time, so a heal that skips one file when the other is stranded too, and then drops the state, was not seen. A planted state with both
+  // stranded holds it, and the message's plural.
+  {
+    id: "proof-heal-skips-the-registry-beside-a-stranded-target",
+    file: 'scripts/proof-check.mjs',
+    claim: "a heal puts the registry back whether or not the target was stranded too, before it drops the state that holds the only whole copy",
+    find: "    if (registryStranded) { writeFileSync(REGISTRY, backupRegistry)",
+    replace: "    if (registryStranded && !targetStranded) { writeFileSync(REGISTRY, backupRegistry)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-heal-skips-the-target-beside-a-stranded-registry",
+    file: 'scripts/proof-check.mjs',
+    claim: "a heal puts the target back whether or not the registry was stranded too, before it drops the state that holds the only whole copy",
+    find: "    if (targetStranded) { writeFileSync(TARGET, backupTarget)",
+    replace: "    if (targetStranded && !registryStranded) { writeFileSync(TARGET, backupTarget)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-heal-names-only-the-first-file",
+    file: 'scripts/proof-check.mjs',
+    claim: "a heal that restored two files says which two",
+    find: "was killed with `\n      + `${restored.join(' and ')} injected.",
+    replace: "was killed with `\n      + `${restored[0]} injected.",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-heal-says-it-for-two-files",
+    file: 'scripts/proof-check.mjs',
+    claim: "a heal that restored two files says it restored them, not it",
+    find: "Restored ${restored.length > 1 ? 'them' : 'it'} before measuring anything.",
+    replace: "Restored it before measuring anything.",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
   // The marker's lifetime and the identity of its pid (2026-11-04). The phase-2 entries need a
   // real two-phase run, which the self-test makes with a stand-in dotnet; the others are caught by
   // the liveness cases, which feed run-marker.mjs a recycled pid, a zombie and an injected /proc.

@@ -732,6 +732,15 @@ if (process.argv.includes('--self-test')) {
       && /src\/Desk\.fs/.test(killedRegistry.stderr) && carriedOn(killedRegistry) && !killedRegistry.stateLeft,
     show(killedRegistry))
 
+  // BOTH FILES STRANDED AT ONCE (review 6, test-vacuity lens, finding 0). The heal writes each file on its own, and every clause above plants one: breaking the heal so that it skips one file when the other is
+  // stranded too left the self-test at 103/103, with the state deleted on the next line and the file still injected. It is reachable: when phase 1's restore fails, phase 2 still injects the registry, and a kill
+  // there strands both. The message has a plural for it (`Restored them`) that no clause produced. Coverage (Rule 91): the state is planted, not reached by a failed restore and then a kill.
+  const killedBoth = sandbox({ target: injectedClean, registry: probeRegistry(union), backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('A KILLED RUN THAT LEFT BOTH FILES INJECTED HAS BOTH HEALED: the target and the registry are back, the message names both and says it restored them, the state goes and the run carries on (1 planted state)',
+    killedBoth.target === clean && killedBoth.registry === union && !killedBoth.stateLeft && carriedOn(killedBoth)
+      && killedBoth.stderr.includes(`HEALED — a previous run (pid ${DEAD}) was killed with ${TARGET} and ${REGISTRY} injected. Restored them before measuring anything.`),
+    show(killedBoth))
+
   // The injection is still there but the file has moved on from the backup (a stash pop, an edit): nothing may be written.
   const movedInjected = layout(moved, [{ body: 'let x = 1' }]).text
   const divergedRun = sandbox({ target: movedInjected, registry: union, backupTarget: clean, backupRegistry: union, pid: DEAD })
