@@ -8089,6 +8089,38 @@ const MUTATIONS = [
     replace: "if True:\n    td = tempfile.mkdtemp(prefix='mutate-push-lands-')\n",
     expect: "node scripts/mutate-copy-check.mjs --only push-lands",
   },
+  {
+    id: "mutate-copy-check-controlled-any-mention",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: only the exact positive-control line satisfies the print clause, not any line that mentions one",
+    find: "controlled: /^positive control: the unmutated copy passes$/m.test(a.out),",
+    replace: "controlled: /positive control/.test(a.out),",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
+  {
+    id: "mutate-copy-check-controlled-unanchored-start",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: the positive-control line must start the line, a sentence ending in it does not satisfy the print clause",
+    find: "controlled: /^positive control: the unmutated copy passes$/m.test(a.out),",
+    replace: "controlled: /positive control: the unmutated copy passes$/m.test(a.out),",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
+  {
+    id: "mutate-copy-check-controlled-unanchored-end",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: the positive-control line must end the line, a sentence that continues after it does not satisfy the print clause",
+    find: "controlled: /^positive control: the unmutated copy passes$/m.test(a.out),",
+    replace: "controlled: /^positive control: the unmutated copy passes/m.test(a.out),",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
+  {
+    id: "mutate-copy-check-completes-ignores-status",
+    file: "scripts/mutate-copy-check.mjs",
+    claim: "mutate-copy-check: a script that prints N of N mutations caught and then exits non-zero does not complete",
+    find: "completes: a.status === 0 && Boolean(a.tally) && a.tally[1] === a.tally[2],",
+    replace: "completes: Boolean(a.tally) && a.tally[1] === a.tally[2],",
+    expect: "node scripts/mutate-copy-check.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
