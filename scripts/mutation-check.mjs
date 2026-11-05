@@ -2038,8 +2038,8 @@ const MUTATIONS = [
     id: 'state-dir-guard-refuses-its-own-state',
     file: 'scripts/mutation-check.mjs',
     claim: "a state directory that holds the harness's own entries (a stranded marker, a dead run's lock) is used, so the heal can look at what a killed run left",
-    find: "['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h))) {",
-    replace: "[].includes(h))) {",
+    find: "['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h)",
+    replace: "[].includes(h)",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -2064,6 +2064,22 @@ const MUTATIONS = [
     claim: "a state directory that cannot be read as a directory (a file) is refused like one that holds foreign files, not let through to crash at the first write",
     find: "if (e.code !== 'ENOENT') holds = ['not a directory it can read']",
     replace: "holds = []",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-refuses-a-lone-backup',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory that holds only a source mutation's backup (a kill between writing it and writing the marker) is used, not refused, and `--heal` is not refused either",
+    find: " || backupNames.has(h))) {",
+    replace: ")) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'state-dir-guard-takes-any-underscore-for-a-backup',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a state directory is used for a file whose name is the backup name of a file in the table, and not for any other file with an underscore in its name",
+    find: "backupNames.has(h)",
+    replace: "h.includes('_')",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -9295,6 +9311,26 @@ if (process.argv.includes('--self-test')) {
     check('E27: ...and a directory that holds only a stash (`world`, the name no other clause here uses) is used, not refused (1 directory)',
       /Mutation testing/.test(text(kworld)) && !/did not write/.test(text(kworld)),
       `status ${kworld.status}; started ${/Mutation testing/.test(text(kworld))}, refused ${/did not write/.test(text(kworld))}; ${text(kworld).split('\n')[0].slice(0, 160)}`)
+    // ...and a directory that holds only a source mutation's BACKUP: the name is the file's path with its slashes flattened, here the backup of docs/gate-rows.txt, which the table mutates. It is what a kill
+    // between writing the backup and writing the marker leaves once the next run has removed the stale lock and been killed too (the file was not yet touched, so there is nothing to heal). It was refused,
+    // `--heal` included, with a sentence saying the harness did not write it (measured 2026-11-05). A file with an underscore that is NOT a backup of a table file is still foreign.
+    const ownBackup = join(scratch, 'own-backup')
+    mkdirSync(ownBackup)
+    writeFileSync(join(ownBackup, 'docs_gate-rows.txt'), rows)
+    const ownBackupHeal = join(scratch, 'own-backup-heal')
+    mkdirSync(ownBackupHeal)
+    writeFileSync(join(ownBackupHeal, 'docs_gate-rows.txt'), rows)
+    const notABackup = join(scratch, 'not-a-backup')
+    mkdirSync(notABackup)
+    writeFileSync(join(notABackup, 'docs_not-a-file-in-the-table.txt'), 'x\n')
+    reset()
+    const kbackup = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: ownBackup })
+    const kbackupHeal = go(['--heal'], { MUTATION_STATE_DIR: ownBackupHeal })
+    const kunder = go(['--only', 'known-survivor'], { MUTATION_STATE_DIR: notABackup })
+    check('E27: ...and a directory that holds only a source mutation\'s BACKUP (docs_gate-rows.txt) is used, not refused, by a run and by `--heal` (which says there was nothing to heal); a file that is not the backup of a file in the table (docs_not-a-file-in-the-table.txt) is still refused (3 directories)',
+      /Mutation testing/.test(text(kbackup)) && !/did not write/.test(text(kbackup)) && kbackupHeal.status === 0 && /Nothing to heal/.test(text(kbackupHeal)) && !/did not write/.test(text(kbackupHeal))
+        && kunder.status === 2 && /did not write \(docs_not-a-file-in-the-table\.txt\)/.test(text(kunder)),
+      `run: started ${/Mutation testing/.test(text(kbackup))}, refused ${/did not write/.test(text(kbackup))}; --heal: status ${kbackupHeal.status}, ${text(kbackupHeal).split('\n').filter(l => /Nothing to heal|did not write/.test(l)).join(' | ').slice(0, 140)}; not a backup: status ${kunder.status}, ${text(kunder).split('\n')[0].slice(0, 130)}`)
     // The refusal names at most four entries and ends the list with `, ...` when there are more: five foreign entries read as the first four (sorted) and the ellipsis, exactly four read as the four and
     // none. (E27's first clause lists two, so a bound moved by one, or a slice cut short, changed nothing it could see.)
     const foreignMany = n => {
@@ -9467,14 +9503,20 @@ if (process.argv.includes('--self-test')) {
 // could not re-exec, so the re-executed run failed its baseline on a clean tree (review 4, 2026-11-04). A guard that is set is for this process only.
 const RESTARTED = process.env.MUTATION_REEXEC === '1'
 delete process.env.MUTATION_REEXEC
+/** The name a source mutation's backup has in the state directory: the file's path with its slashes flattened. One definition for the run that writes it and the guard that must recognise it. */
+const backupName = file => file.replace(/\//g, '_')
 // A state directory is the harness's to empty: clearActive() removes everything in it but the run lock, the build driver's record and a nested run's state. A MUTATION_STATE_DIR that already
 // holds something this harness did not write would lose it at the first clear (measured 2026-11-05: a directory with two files was gone after one `--only known-survivor`). So only a directory
-// that is absent, empty, or holds one of the five names this harness gives its own entries is used (a child harness run's `nested` directory holds only such names).
+// that is absent, empty, or holds one of the five names this harness gives its own entries, or the backup of a file it mutates, is used (a child harness run's `nested` directory holds only such names).
+// The backup is a name of its own: a kill between writing a source mutation's backup and writing its marker leaves a directory holding that file alone once the next run has removed the stale lock and
+// been killed too, and the file was not yet touched (the marker is written before it), so there is nothing to heal and nothing to lose. It was refused, `--heal` included, with a sentence that
+// said the harness did not write it (measured 2026-11-05), and only a hand-made `rm -r` got past it. The names are the table's own, so a file the harness does not mutate is still foreign.
 // Lenient on purpose, and said so: ONE of those names is enough, so a person's directory that happens to hold `nested/` or `run.json` among its files would still be emptied.
 {
   let holds = []
   try { holds = readdirSync(stateDir).sort() } catch (e) { if (e.code !== 'ENOENT') holds = ['not a directory it can read'] }
-  if (holds.length > 0 && !holds.some(h => ['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h))) {
+  const backupNames = new Set(MUTATIONS.filter(m => m.file).map(m => backupName(m.file)))
+  if (holds.length > 0 && !holds.some(h => ['active.json', 'run.json', 'driver.json', 'nested', 'world'].includes(h) || backupNames.has(h))) {
     console.error(`${stateDir} already holds files this harness did not write (${holds.slice(0, 4).join(', ')}${holds.length > 4 ? ', ...' : ''}), and it empties its state directory: give MUTATION_STATE_DIR one that is absent or empty. Nothing was touched.`)
     process.exit(2)
   }
@@ -9816,7 +9858,7 @@ for (const m of selected) {
   // `killHere('source-prepared')` is test-only: it ends the run with the marker and backup written and the file NOT yet touched, which is the order these writes exist to
   // guarantee. Nothing else sat between the writes and the mutation, so no kill hook could see that order.
   claimState()
-  const backupPath = join(stateDir, m.file.replace(/\//g, '_'))
+  const backupPath = join(stateDir, backupName(m.file))
   writeFileSync(backupPath, original)
   const reachesBuild = needsRebuild || MUTATION_FAULT === 'build-never-verified'
   const markerText = JSON.stringify(sourceMarker(m, backupPath, original, mutated, reachesBuild))
