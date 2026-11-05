@@ -66,7 +66,7 @@
 // its relatives). It stops type-checking for every case in the file, so the
 // batch would see nothing and the run would fail loudly, by the rule above.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, mkdtempSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, rmSync, mkdtempSync, symlinkSync } from 'node:fs'
 import { execSync, spawn, spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
@@ -814,6 +814,42 @@ if (process.argv.includes('--self-test')) {
     p2.stranded.calls.length >= 2 && p2.stranded.calls.every(c => new RegExp(`^state=present .*fp=${fpSeen}$`).test(c)) && p2.stranded.calls.at(-1) === `state=present probe=2 fp=${fpSeen}`,
     `builds saw: ${p2.stranded.calls.join(' ; ')}`)
 
+  // A scratch project with a stand-in `dotnet`, and this script run in it. `dotnet` is the stand-in's text, `before(dir)` plants anything else, and `body` gets `go` (one run of the script, whose
+  // result is a spawnSync result) and `has` (does a file exist there). The scratch directory goes when `body` returns.
+  const withStandIn = ({ dotnet, before = () => {} }, body) => {
+    const dir = mkdtempSync(join(tmpdir(), 'proof-standin-'))
+    try {
+      for (const d of ['src', 'docs', 'bin']) mkdirSync(join(dir, d))
+      writeFileSync(join(dir, TARGET), clean)
+      writeFileSync(join(dir, REGISTRY), union)
+      writeFileSync(join(dir, 'docs/SANDBOX-PROOF.md'), '<!-- proof: FS0001 -->\n```fsharp\nlet x = 1\n```\n')
+      writeFileSync(join(dir, 'bin/dotnet'), dotnet, { mode: 0o755 })
+      before(dir)
+      const go = (extraEnv = {}) => spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+        cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, PATH: `${join(dir, 'bin')}:${process.env.PATH}`, ...extraEnv },
+      })
+      return body({ go, has: p => existsSync(join(dir, p)) })
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }
+
+  // A marker that appears between the classification and the write. A DANGLING LINK at the marker's path is the deterministic way to make that happen: existsSync follows the link and finds nothing, so the
+  // run classifies `proceed`; an exclusive create then fails with EEXIST where a plain write follows the link and creates its target (the committed script did exactly that: it ran seven builds, and wrote
+  // its marker into the link's target). Coverage (Rule 91): ONE run, the EEXIST branch. Two runs started in the same tick is the real race, which is probabilistic (both reached their baseline in
+  // 4 of 20 trials at a 0 ms gap on 2026-11-05, and in 0 of 10 on a re-run that day on a busy machine) and is not a clause.
+  let linked = false
+  const exclusive = withStandIn({
+    dotnet: '#!/bin/sh\necho build >> calls.log\nexit 0\n',
+    before: dir => {
+      mkdirSync(join(dir, STATE_DIR))
+      try { symlinkSync(join(dir, 'taken-by-another-run.json'), join(dir, MARKER_FILE)); linked = true } catch { /* no symlinks here: the clause says it was not asserted */ }
+    },
+  }, ({ go, has }) => ({ r: go(), builds: has('calls.log'), wrote: has('taken-by-another-run.json') }))
+  sc(`A MARKER THAT APPEARS BETWEEN THE CHECK AND THE WRITE IS REFUSED, not written through: exit 1, no build runs, the other run's file is not created, and it says another run took it (1 run, the EEXIST branch; asserted: ${linked})`,
+    !linked || (exclusive.r.status === 1 && !exclusive.builds && !exclusive.wrote && /another run took/.test(exclusive.r.stderr)),
+    `status ${exclusive.r.status}, builds ran ${exclusive.builds}, link target created ${exclusive.wrote}; ${exclusive.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
+
   // A restore that cannot write leaves a tracked file injected. The state must stay then: it is the only thing that can put the file right. The stand-in breaks the target on the
   // first build that sees the injection, two ways: it becomes a directory (every write throws EISDIR, as a full disk or EIO would), or a link to /dev/null (every write succeeds and
   // lands nowhere, so only reading the file back can tell).
@@ -1175,7 +1211,16 @@ const runMarker = {
   target: TARGET,
   registry: REGISTRY,
 }
-writeFileSync(MARKER_FILE, JSON.stringify(runMarker, null, 2) + '\n')
+// CREATED EXCLUSIVELY. The check above and this write are two steps, and a second run that started in between (two runs begun in the same tick both reached their baseline in 4 of 20 trials,
+// measured 2026-11-05) would otherwise write its marker over this one's and run its builds over this one's injection. `wx` makes the loser fail here, before it has injected anything, and the
+// refusal is all it does: its exit handler is registered below, so it restores nothing, which is right because it owns nothing.
+try {
+  writeFileSync(MARKER_FILE, JSON.stringify(runMarker, null, 2) + '\n', { flag: 'wx' })
+} catch (e) {
+  if (e.code !== 'EEXIST') throw e
+  console.error(`proof-check: another run took ${MARKER_FILE} while this one was starting. Run this again once it has finished.`)
+  process.exit(1)
+}
 
 // The original is held in memory AND on disk (in .proof-state, in the repo), and put back when the run ends or throws. This script is one synchronous run with no await, so a
 // signal handler cannot run until it is over (a plain kill is not acted on in the meantime; measured in review 4), and a plain kill is not what leaves the tree broken here:

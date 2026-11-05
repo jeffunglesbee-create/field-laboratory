@@ -3227,6 +3227,23 @@ const MUTATIONS = [
     replace: "  if (s.state === 'Z') return false",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
+  // The marker is created exclusively (2026-11-04, residual Task 5): two runs started in the same tick could both proceed.
+  {
+    id: 'proof-marker-not-exclusive',
+    file: "scripts/proof-check.mjs",
+    claim: "the run's marker is created exclusively, so a marker that appeared since the check is refused, not written through",
+    find: "{ flag: 'wx' }",
+    replace: "{ flag: 'w' }",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
+  {
+    id: 'proof-marker-collision-carries-on',
+    file: "scripts/proof-check.mjs",
+    claim: "a run that lost the marker to another run stops before it builds or injects anything",
+    find: "Run this again once it has finished.`)\n  process.exit(1)",
+    replace: "Run this again once it has finished.`)",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
   // --- the Draw panel -------------------------------------------------------
   //
   // The canonical-size law has FOUR answers and two of them are "not compared".
