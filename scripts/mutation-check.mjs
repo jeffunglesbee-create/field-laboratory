@@ -2154,6 +2154,16 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    // The `if` is the entry's own guard: the harness hands MUTATION_STATE_DIR to every expectation it runs, so the self-test it starts would otherwise heal the harness's OWN
+    // state (caught, but by an unrelated clause, and for the wrong reason). The real-script clause starts the self-test with the variable cleared, in a stranded directory.
+    id: 'self-test-heals-a-stranded-state',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test over a stranded state leaves it alone: it names it and does not heal it",
+    find: "Heal it first: node scripts/mutation-check.mjs --heal`)\n  }",
+    replace: "Heal it first: node scripts/mutation-check.mjs --heal`)\n    if (!process.env.MUTATION_STATE_DIR) healHeld(real, { rebuild: false })\n  }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'restore-clears-the-marker-over-a-dirty-build',
     file: 'scripts/mutation-check.mjs',
     claim: "a handler that puts a source file back before its build is verified keeps the marker",
@@ -6111,16 +6121,31 @@ if (process.argv.includes('--self-test')) {
     const clean = { MUTATION_STATE_DIR: '', MUTATION_SELFTEST_CHILD: '', MUTATION_KILL_AT: '', MUTATION_KILL_SIGNAL: '', MUTATION_FAULT: '', MUTATION_REEXEC: '' }
 
     // Started and stopped over a real stranded state, in a directory with no repository: --self-test, --list-ids and --anchors each leave it.
+    // The state is one a heal COULD undo: the file is exactly the mutation and the backup exactly the original, so a mode that healed would put the file back and the clause below sees it.
+    // (It was a file that did not exist and a backup that was not the original, which a heal refuses: a mode that healed and refused left what a mode that touched nothing left.)
+    // `rebuild: false` because nothing here builds. Written by a helper, called once for the directory the modes run in and once for the control's copy of it.
+    const strandedFixture = dir => {
+      mkdirSync(join(dir, '.mutation-state'), { recursive: true })
+      mkdirSync(join(dir, 'src'))
+      writeFileSync(join(dir, 'src', 'Stranded.fs'), 'MUTATED FILE CONTENT\n')
+      writeFileSync(join(dir, '.mutation-state', 'src_Stranded.fs'), 'ORIGINAL FILE CONTENT\n')
+      writeFileSync(join(dir, '.mutation-state', 'active.json'), JSON.stringify({ id: 'stranded', file: 'src/Stranded.fs', backup: '.mutation-state/src_Stranded.fs', originalSha: sha('ORIGINAL FILE CONTENT\n'), mutatedSha: sha('MUTATED FILE CONTENT\n'), rebuild: false, ...DEAD }))
+    }
     const stranded = join(scratch, `case-${++caseNo}`)
-    mkdirSync(join(stranded, '.mutation-state'), { recursive: true })
-    writeFileSync(join(stranded, '.mutation-state', 'src_Stranded.fs'), 'ORIGINAL FILE CONTENT\n')
-    writeFileSync(join(stranded, '.mutation-state', 'active.json'), JSON.stringify({ id: 'stranded', file: 'src/Stranded.fs', backup: '.mutation-state/src_Stranded.fs', originalSha: sha('a'), mutatedSha: sha('b'), ...DEAD }))
+    strandedFixture(stranded)
+    // The control: the fixture IS healable. `--heal` over a second copy puts the file back and drops the state; without this the clause below could not tell "left alone" from "could not heal".
+    const healable = join(scratch, `case-${++caseNo}`)
+    strandedFixture(healable)
+    spawnSync(process.execPath, [here, '--heal'], { cwd: healable, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
+    check('THE STRANDED FIXTURE IS HEALABLE (the control for the clause below): `--heal` over a copy of it puts the file back and drops the state',
+      read(join(healable, 'src', 'Stranded.fs')) === 'ORIGINAL FILE CONTENT\n' && !existsSync(join(healable, '.mutation-state', 'active.json')),
+      `file reads ${JSON.stringify(read(join(healable, 'src', 'Stranded.fs')))}, marker kept ${existsSync(join(healable, '.mutation-state', 'active.json'))}`)
     const survivors = ['--self-test', '--list-ids', '--anchors'].map(mode => {
       const r = spawnSync(process.execPath, [here, mode], { cwd: stranded, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
-      return { mode, out: String(r.stdout), marker: existsSync(join(stranded, '.mutation-state', 'active.json')), backup: existsSync(join(stranded, '.mutation-state', 'src_Stranded.fs')) }
+      return { mode, out: String(r.stdout), marker: existsSync(join(stranded, '.mutation-state', 'active.json')), backup: existsSync(join(stranded, '.mutation-state', 'src_Stranded.fs')), file: read(join(stranded, 'src', 'Stranded.fs')) }
     })
-    check('A REAL STRANDED STATE SURVIVES THE SCRIPT BEING STARTED AND STOPPED: --self-test, --list-ids and --anchors each leave the marker and the backup',
-      survivors.every(x => x.marker && x.backup), survivors.map(x => `${x.mode}: marker ${x.marker}, backup ${x.backup}`).join(' / '))
+    check('A REAL STRANDED STATE SURVIVES THE SCRIPT BEING STARTED AND STOPPED: --self-test, --list-ids and --anchors each leave the marker, the backup and the mutated file as they were (3 modes, one healable state)',
+      survivors.every(x => x.marker && x.backup && x.file === 'MUTATED FILE CONTENT\n'), survivors.map(x => `${x.mode}: marker ${x.marker}, backup ${x.backup}, file ${JSON.stringify(x.file)}`).join(' / '))
     // ...and the self-test says so, before its clauses, with the command that heals it: when the stranded file is this one, most clauses fail and name the harness.
     const noted = survivors.find(x => x.mode === '--self-test')
     check('...and the self-test NAMES a stranded state and the command that heals it, instead of failing clauses that point at the harness',
