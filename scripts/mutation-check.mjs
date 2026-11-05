@@ -4815,6 +4815,43 @@ const MUTATIONS = [
   },
 
   {
+    // The orphan walk's own scan (2026-11-05). `check-script-orphans.mjs` reads the edges a script makes (`node scripts/x.mjs`, which live in strings) after removing comments, and it removed them with
+    // a block-comment regular expression over the whole text and a `//` rule: a `/*` in a string or a line comment, or a `//` after a space in a string, lost the edges after it (88 of 16,289 planted
+    // positions in 11 scripts), and a `//` that followed code with no space was not removed at all, so a comment became an edge (16,201 of 16,289). It blanks with `blankComments` now; the entries
+    // are the swap back, no blank at all, and the two properties of the blank this consumer stands on (strings are left alone, a string that begins with a slash pair is a string).
+    id: 'orphan-comments-read-by-regex',
+    file: 'scripts/check-script-orphans.mjs',
+    claim: "the edges a script makes survive a /* in a string or a line comment and a // after a space in a string, and a comment after code with no space is not an edge: a scanner decides what a comment is",
+    find: "export const stripJsComments = blankComments",
+    replace: "export const stripJsComments = t => t.replace(/\\/\\*[\\s\\S]*?\\*\\//g, '').replace(/(^|\\s)\\/\\/.*$/gm, '$1')",
+    expect: 'node scripts/check-script-orphans.mjs --self-test',
+  },
+  {
+    id: 'orphan-edges-read-comments',
+    file: 'scripts/check-script-orphans.mjs',
+    claim: "a script named in a comment is not an edge to it: prose that names a file must not make a retired probe read as reachable",
+    find: "export const stripJsComments = blankComments",
+    replace: "export const stripJsComments = t => t",
+    expect: 'node scripts/check-script-orphans.mjs --self-test',
+  },
+  {
+    id: 'orphan-edges-blanked-with-the-strings',
+    file: 'scripts/strip-non-code.mjs',
+    claim: "the comment blank leaves strings alone, because the edges the orphan walk reads (`node scripts/x.mjs`) are in them",
+    find: "s => src[s] === '/' && (src[s + 1] === '/' || src[s + 1] === '*'))",
+    replace: "() => true)",
+    expect: 'node scripts/check-script-orphans.mjs --self-test',
+  },
+  {
+    id: 'comment-blank-takes-slash-strings',
+    file: 'scripts/strip-non-code.mjs',
+    claim: "a span is a comment because it STARTS with // or /*: a string that merely begins with those characters after its quote is a string, and the edge in it stays",
+    find: "src[s] === '/' && (",
+    replace: "(",
+    expect: 'node scripts/check-script-orphans.mjs --self-test',
+  },
+
+  {
     // THE PREDICTED XI, and the five mutations that would each produce a page
     // that looks right. docs/CC-CMD-2026-10-11-predicted-xi-render-decision.md
     // in field-relay-nba commissioned this surface; its done condition 4 is "no

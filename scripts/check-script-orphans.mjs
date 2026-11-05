@@ -36,6 +36,7 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { isMain } from './checks.mjs'
+import { blankComments } from './strip-non-code.mjs'
 
 const WF = '.github/workflows'
 
@@ -61,12 +62,21 @@ export function scriptFiles (cmd) {
 // in the other language, found the same way: by asking who references the file
 // rather than trusting the count.
 //
-// `//` is stripped only at line start or after whitespace, so `https://` and
-// any other scheme survive. A `//` inside a template literal would be stripped;
-// no script here has one, and losing an edge is the direction that fails LOUD.
-export function stripJsComments (t) {
-  return t.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1')
-}
+// WHAT A COMMENT IS, is decided by the scanner in `scripts/strip-non-code.mjs`.
+// It was two regular expressions (a block-comment pass over the whole text, then
+// `//` at a line start or after whitespace), and they were wrong in both
+// directions. A `/*` in a string (`'/**'`) or in a line comment (`src/*.js`)
+// opened a "comment" that ran to the next `*/` and took the edges between with
+// it, and so did a `//` after a space inside a string: planting an edge at every
+// statement start of every script, 88 of 16,289 positions in 11 scripts were not
+// seen (2026-11-05). And a `//` that follows code with no space (`x();// see
+// scripts/y.mjs`) was not stripped at all, so a comment became an edge (planted
+// that way, 16,201 of the 16,289 positions read it as one), which is the quiet
+// direction: an orphan reads as reachable. Nothing in the tree was changed by
+// either: the edge sets of 169 scripts differ only by two self-edges, which
+// reachability does not need. Only comments are blanked; the edges are IN the
+// strings (`node scripts/x.mjs`), so those stay.
+export const stripJsComments = blankComments
 
 /**
  * Every scripts/*.mjs reachable from a set of npm script names, one hop at a
@@ -112,6 +122,25 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
     scriptFiles(stripJsComments("// found by scripts/probe.mjs\nrun('node scripts/real.mjs')")).join(',') === 'real.mjs')
   T('a URL survives comment-stripping',
     stripJsComments("const u = 'https://x.dev/a'").includes('https://x.dev/a'))
+  // What a comment is was decided by a regular expression over the whole text and another per line, until 2026-11-05. Each fixture is a whole file with ONE real edge in it (`real.mjs`) placed
+  // where the old stripper lost it, or with a comment that names a script (`ghost.mjs`) where it kept it. RULE 91: these are fixtures, not the tree (the live half reads the tree).
+  const lost = [
+    ["const a = glob.endsWith('/**')\nrun('node scripts/real.mjs')\nconst b = glob.startsWith('**/*.')\n", 'a glob string that opens a block comment, and a later one that closes it'],
+    ["// matches src/*.js and nothing else\nrun('node scripts/real.mjs')\n/** doc */\n", 'a line comment that holds a /*, and a doc comment that closes later'],
+    ["const base = ' //cdn.example'; run('node scripts/real.mjs')\n", 'a // after a space, inside a string'],
+  ]
+  const unseen = lost.filter(([src]) => scriptFiles(stripJsComments(src)).join() !== 'real.mjs')
+  check(`AN EDGE IS STILL SEEN AFTER EACH CONSTRUCT THAT LOST THE OLD STRIPPER ITS PLACE (${lost.length} fixtures)`,
+    unseen.length === 0, `${unseen.length} of ${lost.length} not seen: ${JSON.stringify(unseen.map(f => f[1]))}`)
+  const kept = ["run('node scripts/real.mjs');// see scripts/ghost.mjs\n", "run('node scripts/real.mjs') /* see scripts/ghost.mjs */\n", "/* one\n   see scripts/ghost.mjs\n*/\nrun('node scripts/real.mjs')\n"]
+  const ghosts = kept.filter(src => scriptFiles(stripJsComments(src)).join() !== 'real.mjs')
+  check(`A SCRIPT NAMED IN A COMMENT IS NOT AN EDGE, whatever stands before the comment, on one line or several (${kept.length} fixtures)`,
+    ghosts.length === 0, `${ghosts.length} of ${kept.length} read a comment as an edge: ${JSON.stringify(ghosts.map(src => scriptFiles(stripJsComments(src))))}`)
+  check('a string that merely BEGINS with // or /* is a string, not a comment: the edge in it stays',
+    scriptFiles(stripJsComments("run('//scripts/real.mjs')")).join() === 'real.mjs' &&
+    scriptFiles(stripJsComments("run('/*scripts/real.mjs')")).join() === 'real.mjs')
+  check('an edge inside a template literal stays: only comments are blanked',
+    scriptFiles(stripJsComments('run(`node scripts/real.mjs ${x}`)')).join() === 'real.mjs')
   // The clobber, as a fixture: the KEY survives, the FILE it named does not.
   const before = { 'check:sports': 'node scripts/sport-registry-check.mjs' }
   const after  = { 'check:sports': "URL='x' node scripts/render-check.mjs" }
