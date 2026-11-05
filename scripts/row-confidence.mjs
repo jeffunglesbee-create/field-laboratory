@@ -391,6 +391,16 @@ function scannerClauses(check) {
     ['if (x) y / 2 / z', 'if (x) y / 2 / z', 'a slash after the statement of an if divides: only the slash right after the header\'s parenthesis begins a regular expression'],
     [`if${' '.repeat(30)}(x) /${Q}/.test(y)`, `if${' '.repeat(30)}(x) 0.test(y)`, 'a header whose keyword is thirty spaces before its parenthesis is still one (the window the keyword is looked for in is forty characters)'],
     [`a / /${Q}/.source`, 'a / 0.source', 'a slash after a division sign begins a regular expression'])
+  // Review 6, 2026-11-05. The keyword of a header is read as every other keyword is (a whole name, not a property, not a private name), so the shapes the one-character lookbehind could not see are calls: a method after a dot
+  // and a space or a line feed (`o. if (x)`, `o.\nwhile (x)`, `o?.with (x)`), a name that ends in a keyword after a non-ASCII letter or a combining mark; and `await` is a header word only after `for`.
+  STRIPS.push(
+    ['o. if (x) / 2 / z', 'o. if (x) / 2 / z', 'a method named if after a dot and a space is a call: its slash divides'],
+    ['o.\nwhile (x) / 2 / z', 'o.\nwhile (x) / 2 / z', 'a method named while after a dot and a line feed is a call: its slash divides'],
+    ['o?.with (x) / 2 / z', 'o?.with (x) / 2 / z', 'a method named with after an optional chain is a call: its slash divides'],
+    ['\u00e9if (x) / 2 / z', '\u00e9if (x) / 2 / z', 'a name that ends in if after a non-ASCII letter is not the keyword'],
+    ['a\u0301if (x) / 2 / z', 'a\u0301if (x) / 2 / z', 'a name that ends in if after a combining mark is not the keyword'],
+    ['await (x) / 2 / z', 'await (x) / 2 / z', 'a parenthesis after await alone is an operand: its slash divides'],
+    ['x = await (y) / 2 / z', 'x = await (y) / 2 / z', 'a parenthesis after await in an expression is an operand, not a header'])
   // Residuals Task 10 item 13. The language ends a line at a carriage return, U+2028 and U+2029 as well as at a line feed, so a `//` comment, a `++` that starts its statement and a regular expression end there too;
   // a quote ends at a line feed or a carriage return (U+2028 and U+2029 are legal inside a string since ES2019), and a backslash before a CR LF continues the string over both. No file in the repo has any of them.
   const CRc = '\r', LSc = String.fromCharCode(0x2028), PSc = String.fromCharCode(0x2029)
@@ -447,9 +457,12 @@ function scannerClauses(check) {
     ['an identifier named of', 'var of = 4; var y = of / 2 + Date.now()\n'],
     ...['in', 'of', 'new', 'return'].map(k => [`a name with ${k} after a non-ASCII letter`, `var é${k} = 4; var y = é${k} / 2 + Date.now()\n`]),
     ['a name with a combining mark before in', 'var a\u0301in = 4; var y = a\u0301in / 2 + Date.now()\n'],
-    ['a name that ends in a non-ASCII letter', 'var café = 4; var y = café / 2 + Date.now()\n']]
+    ['a name that ends in a non-ASCII letter', 'var café = 4; var y = café / 2 + Date.now()\n'],
+    ...['if', 'while', 'with'].map(k => [`a method named ${k} after a dot and a space (the header rule read it as a header)`, `var o = { ${k}: () => 1 }; var y = o. ${k} (1) / 2 + Date.now()\n`]),
+    ['a method named while after a dot and a line feed', 'var o = { while: () => 1 }; var y = o.\nwhile (1) / 2 + Date.now()\n'],
+    ['a name that ends in if after a non-ASCII letter', 'function \u00e9if(x) { return x }; var y = \u00e9if(1) / 2 + Date.now()\n']]
   const off16 = DIVIDES.map(([what, src]) => ({ what, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.got !== '1/0')
-  check(`A DIVISION AFTER A PRIVATE NAME, \`of\`, OR A NAME THAT HAS A KEYWORD AFTER A NON-ASCII LETTER, DOES NOT HIDE THE CLOCK READ AFTER IT, for ${DIVIDES.length} inputs (a keyword is the whole trailing word, and a private name is not one)`,
+  check(`A DIVISION AFTER A PRIVATE NAME, \`of\`, A NAME THAT HAS A KEYWORD AFTER A NON-ASCII LETTER, OR A METHOD SPELLED LIKE A HEADER WORD, DOES NOT HIDE THE CLOCK READ AFTER IT, for ${DIVIDES.length} inputs (a keyword is the whole trailing word, and a private name or a property is not one)`,
     off16.length === 0, off16.map(x => `${x.what}: wanted 1/0, got ${x.got}`).join(' / '))
 
   // Every spelling of a clock read is counted as one, and only the three that can be captured are captured. A scanner that counted fewer would pass every other clause here.

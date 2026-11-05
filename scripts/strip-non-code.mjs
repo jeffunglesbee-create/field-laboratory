@@ -25,8 +25,9 @@
  * this scan could not see until `pickem-check.mjs` captured the day once), and a `/` that begins one begins a regular expression whatever stood before the template (a tag, `)`, `]`, a word).
  *
  * A `/` after the `)` that closes the header of an if, while, for or with begins a regular expression (`if (x) /re/.test(y)`; where that regular expression holds a backtick the scan used to open a template that
- * swallowed the rest of the file, so every later clock read was invisible); after any other `)`, and after `]`, it divides, and so does a `/` after a name that merely ends in `if` (`elif (x) / 2`). A `/` after a
- * `/` begins one (`a / /re/.source`).
+ * swallowed the rest of the file, so every later clock read was invisible); after any other `)`, and after `]`, it divides, and so does a `/` after a name that merely ends in `if` (`elif (x) / 2`, `éif (x) / 2`) and after a method that is spelled like a
+ * header word (`o.if (x) / 2`, `o. if (x) / 2`, `o?.with (x) / 2`): the keyword is read as every other keyword is, as a whole name that is neither a property nor a private name. `await` is a header word only after
+ * `for`; the keyword is looked for in the forty characters before the parenthesis. A `/` after a `/` begins a regular expression (`a / /re/.source`).
  *
  * What it still does not do: a `/` after `}` is read as the start of a regular expression, which is right after a block
  * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
@@ -50,11 +51,13 @@ export const scanNonCode = src => {
   const isEol = ch => ch === '\n' || ch === '\r' || ch === String.fromCharCode(0x2028) || ch === String.fromCharCode(0x2029)
   // A `.` that is member access: not the end of `...` (a spread, after which a keyword is a keyword) and not a number's decimal point (`1.`).
   const isPropertyDot = before => before.endsWith('.') && !before.endsWith('...') && !/(?<![\w$.])\d+\.$/.test(before)
-  // Does `text` end in a keyword that a regular expression can follow? The trailing word is a whole identifier (any letter, combining mark or digit the language allows, so `éin` is not `in`), and
-  // it is not a property spelled like one (`c.new`, `o?.in`) or a private name (`this.#in`).
-  const endsInKeyword = text => {
+  // The keywords whose parenthesis opens a header (`for await` is `for` here: see regexAllowed).
+  const HEADER = new Set(['if', 'while', 'for', 'with'])
+  // Does `text` end in one of `words` (the keywords that a regular expression can follow, or the keywords of a header)? The trailing word is a whole identifier (any letter, combining mark or digit the language
+  // allows, so `éin` is not `in`), and it is not a property spelled like one (`c.new`, `o?.in`, `o. if`) or a private name (`this.#in`).
+  const endsInKeyword = (text, words = REGEX_AFTER) => {
     const found = /[\p{ID_Continue}$]+$/u.exec(text)
-    return found !== null && REGEX_AFTER.has(found[0]) && text[found.index - 1] !== '#' && !isPropertyDot(text.slice(0, found.index).trimEnd())
+    return found !== null && words.has(found[0]) && text[found.index - 1] !== '#' && !isPropertyDot(text.slice(0, found.index).trimEnd())
   }
   // Can a `/` here begin a regular expression? Only after something that cannot end an expression.
   const regexAllowed = () => {
@@ -71,7 +74,9 @@ export const scanNonCode = src => {
       if (/[\w$)\]]$/.test(operand) && ![...before.slice(operand.length)].some(isEol) && !endsInKeyword(operand)) return false
     }
     // The `)` that closes the header of an if, while, for or with begins a statement, so a `/` after it begins a regular expression: `if (x) /re/.test(y)`. After any other `)` it divides.
-    if (tail.endsWith(')') && /(?<![\w$.#])(?:if|while|for(?:\s+await)?|with)$/.test(out.slice(Math.max(0, closed - 40), closed).trimEnd())) return true
+    // The keyword is read as every other keyword here is, by `endsInKeyword`, so a method (`o. if (x)`, `o?.with (x)`), a private name and a longer name (`éif (x)`, `elif (x)`) are calls, not headers.
+    // `for await (` is a header once the `await` is set aside; an `await` alone (`await (x) / 2`) is not a header word.
+    if (tail.endsWith(')') && endsInKeyword(out.slice(Math.max(0, closed - 40), closed).trimEnd().replace(/\s+await$/, ''), HEADER)) return true
     if ('(,=:[!&|?{};+-*%<>~^/'.includes(tail[tail.length - 1])) return true
     return endsInKeyword(tail)
   }
