@@ -2043,6 +2043,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'driver-record-names-the-harness',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the record of the build driver names the process it was given, not the harness that wrote it: a record that held its own writer's pid would send the reaper after the wrong group",
+    find: "driver: { pid, start: startOf(pid) } }))",
+    replace: "driver: { pid: process.pid, start: startOf(process.pid) } }))",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'world-mutated-hook-dropped',
     file: 'scripts/mutation-check.mjs',
     claim: "a run can be killed after a world mutation has run and before its marker names the paths it touched, so what the next run does with that state is tested",
@@ -9697,11 +9705,19 @@ if (process.argv.includes('--self-test')) {
     check('REAP: clearing the state (between two mutations) keeps the driver record, because the watcher is still running',
       existsSync(join(dir, 'driver.json')) && !existsSync(join(dir, 'active.json')), `driver.json kept ${existsSync(join(dir, 'driver.json'))}, marker gone ${!existsSync(join(dir, 'active.json'))}`)
     mkdirSync(stateDir, { recursive: true })
-    recordDriver(process.pid)
-    const written = JSON.parse(readFileSync(driverFile, 'utf8'))
-    rmSync(driverFile, { force: true })
-    check('REAP: the record names the process it was given with its start time, and the run that wrote it',
-      written.driver.pid === process.pid && written.run?.pid === process.pid && (!haveProc || written.driver.start === startOf(process.pid)), JSON.stringify(written))
+    // A process that is NOT this one: given process.pid, the clause passed with the argument ignored, because the harness's own pid is what a record that ignored it would hold (review 6, 2026-11-05).
+    const other = spawn('sleep', ['30'], { stdio: 'ignore' })
+    const otherStart = startOf(other.pid)
+    let written = null
+    try {
+      recordDriver(other.pid)
+      written = JSON.parse(readFileSync(driverFile, 'utf8'))
+    } finally {
+      other.kill('SIGKILL')
+      rmSync(driverFile, { force: true })
+    }
+    check('REAP: the record names the process it was given, a pid that is not the harness\'s own, with that process\'s start time, and the run that wrote it (the harness)',
+      written.driver.pid === other.pid && written.driver.pid !== process.pid && written.run?.pid === process.pid && (!haveProc || written.driver.start === otherStart), JSON.stringify(written))
     // Stopping the watcher signals it, forgets the record, and leaves no empty state directory behind (the record was all that kept `releaseRunLock`'s rmdir from removing it).
     const savedBuilder = builder
     let stopped = 0
