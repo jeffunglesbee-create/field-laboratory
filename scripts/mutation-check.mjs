@@ -7378,6 +7378,14 @@ const MUTATIONS = [
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
+    id: "clean-source-with-state-recommends-a-reset",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "with a run state the remedy is proof-check and names no git command: a reset discards uncommitted edits as a checkout does",
+    find: "The backups are in ${STATE_DIR}/; do not delete it`",
+    replace: "The backups are in ${STATE_DIR}/; do not delete it. To discard every uncommitted edit to the file instead: git reset --hard HEAD -- ${paths}`",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
     id: "clean-source-moved-omits-that-a-line-may-sit-between",
     file: 'scripts/clean-source-check.mjs',
     claim: "a reader is told the probe's line may no longer be directly above the last case",

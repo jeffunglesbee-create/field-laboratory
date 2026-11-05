@@ -227,8 +227,10 @@ function selfTest () {
       noState.status === 1 && FAILS.test(noState.out) && /→ B\.fs — /.test(noState.out) && !/A\.fs/.test(noState.out), noState.verdict)
     check('WITH a run state (.proof-state/active.json), the remedy is proof-check, and it says to keep the state directory',
       withState.status === 1 && /node scripts\/proof-check\.mjs/.test(withState.out) && /backups are in \.proof-state\/; do not delete it/.test(withState.out), withState.verdict)
-    check('WITH a run state, no checkout is recommended',
-      withState.status === 1 && FAILS.test(withState.out) && !/git checkout/.test(withState.out), withState.verdict)
+    // Not `git checkout` alone: that is one spelling of the hazard, and a remedy that said `git reset --hard HEAD -- <files>` or `git restore --source=HEAD -- <files>` instead passed this clause (review 6,
+    // test-vacuity lens, finding 1c). With a run state the remedy is proof-check; any git command in it discards uncommitted work.
+    check('WITH a run state, no git command is recommended (a checkout, a restore, a reset, a clean or a stash each discards uncommitted work)',
+      withState.status === 1 && FAILS.test(withState.out) && !/\bgit\b/.test(withState.out), withState.verdict)
     check('WITH a run state, it says what proof-check does when the file has moved on, or the run is still going',
       /refuses, writing nothing, when the file has moved on since or that run is still going/.test(withState.out), withState.verdict)
     check('WITHOUT a run state, it says proof-check has nothing to restore from, and how to find the lines',
@@ -262,8 +264,8 @@ function selfTest () {
     check('WITHOUT a run state, its remedy names the line by what it is (the second `| NHL`) and a grep that lists both, and does not say the grep shows the line above the last case',
       /Delete the probe case \(the second line "    \| NHL" in the union: proof-check wrote it directly above "    \| Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "\^    \| NHL\$" src\/D\.fs\` lists both\)\./.test(movedProbe.out)
         && /If the injection is uncommitted, \`git checkout -- src\/D\.fs\` also removes it but discards every uncommitted edit to the file/.test(movedProbe.out) && !/-B1/.test(movedProbe.out) && !/injected block/.test(movedProbe.out), movedProbe.verdict)
-    check('WITH a run state, a probe a sport has been added in front of gets the proof-check remedy and no checkout, as a block does',
-      movedWithState.status === 1 && FAILS.test(movedWithState.out) && /node scripts\/proof-check\.mjs/.test(movedWithState.out) && !/git checkout/.test(movedWithState.out), movedWithState.verdict)
+    check('WITH a run state, a probe a sport has been added in front of gets the proof-check remedy and no git command, as a block does',
+      movedWithState.status === 1 && FAILS.test(movedWithState.out) && /node scripts\/proof-check\.mjs/.test(movedWithState.out) && !/\bgit\b/.test(movedWithState.out), movedWithState.verdict)
     check('a probe directly above the last case in one file and a separated one in another each get their own instruction, naming only their own file, and one checkout names both',
       probeKinds.status === 1 && /→ D\.fs, E\.fs — /.test(probeKinds.out)
         && /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\) and the probe case \(the second line/.test(probeKinds.out)
