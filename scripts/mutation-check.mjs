@@ -1102,7 +1102,7 @@ const MUTATIONS = [
     id: 'harness-blind',
     file: 'scripts/mutation-check.mjs',
     claim: 'a harness that calls everything caught is itself caught',
-    find: '  const survived = built && run(expectOf(m))',
+    find: '  const survived = built && await expectation(m)',
     replace: '  const survived = false',
     // Inverted: the row passes when this command FAILS (a survivor is
     // correctly reported). Blinding the harness makes it pass, which is the
@@ -1703,6 +1703,62 @@ const MUTATIONS = [
     claim: "stopping the build driver signals the watcher, so an ordinary run leaves no process behind",
     find: "  builder.stop()\n  rmSync(driverFile, { force: true })",
     replace: "  rmSync(driverFile, { force: true })",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'signal-killed-expectation-reads-as-caught',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an expectation that was ended by a signal is not a caught mutation: the run stops instead of printing a verdict",
+    find: "  if (lastSignal) fatal(",
+    replace: "  if (false) fatal(",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'run-forgets-the-signal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a command that run() saw killed is remembered as killed, not as failed",
+    find: "    lastSignal = e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null)",
+    replace: "    lastSignal = null",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'killed-child-status-is-a-verdict',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a child killed under `sh -c`, which the shell reports as a status above 128 and not as a signal, is a killed command too",
+    find: "lastSignal = e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null)",
+    replace: "lastSignal = e.signal ?? null",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'expectation-never-yields',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the loop turns after an expectation, so a plain kill that arrived while it ran is acted on even for a mutation with nothing to await",
+    find: "  await tick()\n  return passed",
+    replace: "  return passed",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'baseline-never-yields',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the loop turns after each baseline expectation, so a plain kill that arrives during the baseline is acted on before the run goes on",
+    find: "  baselineResults.push(baselineOne(cmd))\n  await tick()",
+    replace: "  baselineResults.push(baselineOne(cmd))",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'world-expectation-forgets-the-signal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the expectation of a change made outside the source goes through the same guard as any other",
+    find: "    const passed = await expectation(m)\n",
+    replace: "    const passed = run(expectOf(m))\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'file-expectation-forgets-the-signal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the expectation of a mutation of a file goes through the same guard as any other",
+    find: "  const survived = built && await expectation(m)\n",
+    replace: "  const survived = built && run(expectOf(m))\n",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -4867,6 +4923,8 @@ const killHere = async where => {
   if (signal !== 'SIGKILL') await new Promise(done => setTimeout(done, 400))
 }
 
+/** One turn of the event loop. A signal that arrived while a synchronous command was running is acted on here and nowhere else (see `expectation`). */
+const tick = () => new Promise(done => setImmediate(done))
 const sha = data => createHash('sha256').update(data).digest('hex')
 const shaOfFile = path => (existsSync(path) ? sha(readFileSync(path)) : null)
 /** Who is writing a marker, so a later run can tell this process from a recycled pid (run-marker.mjs). */
@@ -4924,6 +4982,10 @@ const expectOf = m => {
   if (process.env.MUTATION_FAULT === 'expect-wipes-state') return `d="$(dirname "$MUTATION_STATE_DIR")" && rm -f "$d/active.json" "$d/run.json" && ${m.expect}`
   // ...or writes a file nobody asked for (another session, a build), which a world mutation must not mistake for a failed restore.
   if (process.env.MUTATION_FAULT === 'expect-writes-unrelated') return `date +%s%N > unrelated-during-window.txt && ${m.expect}`
+  // ...or is ended by a signal (a Ctrl-C reaching it, a crash, the OOM killer), or sends this run a SIGTERM while it works and then passes.
+  if (process.env.MUTATION_FAULT === 'expect-interrupted') return 'kill -INT $$'
+  if (process.env.MUTATION_FAULT === 'expect-terms-the-run') return 'kill -TERM $PPID && sleep 0.3'
+  if (process.env.MUTATION_FAULT === 'expect-child-killed') return 'sleep 5 & kill -KILL $!; wait $!'
   // ...or reports whether it inherited the restart flag, which only the run that was restarted may have (and not its children).
   if (process.env.MUTATION_FAULT === 'expect-reports-env') return `echo "REEXEC=[$MUTATION_REEXEC]" > expect-env.txt && ${m.expect}`
   return m.expect
@@ -4937,12 +4999,17 @@ const childEnv = extra => ({ ...process.env, MUTATION_STATE_DIR: join(stateDir, 
 // maxBuffer is 1 MiB, and a command that merely PRINTS more than that is killed and reported as failed (ENOBUFS), so the limit is raised well past anything a build prints and a
 // failure says which kind it was. (Review 4, 2026-11-04: a build that succeeds by hand but prints 1.2 MB wedged every later run behind "npm run build failed".)
 let lastFailure = ''
+// The signal that ended the last command, or null if it ended by itself (a check that fails exits non-zero: that is its answer; one that is killed has given none). `sh -c a && b` reports
+// a killed `b` as exit status 128 plus the signal, so a status in that range counts too (the OOM killer and a browser crash both look like this).
+let lastSignal = null
 const OUTPUT_LIMIT = 256 * 1024 * 1024
 const run = (cmd, extra) => {
+  lastSignal = null
   try {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(extra), maxBuffer: OUTPUT_LIMIT })
     return true
   } catch (e) {
+    lastSignal = e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null)
     const tail = String(e.stderr ?? '').trim().split('\n').slice(-3).join(' | ').slice(0, 300)
     lastFailure = `${e.code ?? (e.status !== null && e.status !== undefined ? `exit ${e.status}` : `signal ${e.signal}`)}${tail ? `: ${tail}` : ''}`
     return false
@@ -5750,7 +5817,7 @@ if (process.argv.includes('--self-test')) {
   // The baseline runs a harness-run expectation (harness-blind, only-selects-nothing-passes) under this run's live lock, so it needs the child environment.
   // The marker below is built from two strings so that the only place the pair occurs contiguously is the baseline itself.
   const ownSource = readFileSync(fileURLToPath(import.meta.url), 'utf8')
-  const baselineAt = ownSource.indexOf('baselineResults' + ' = distinctExpects')
+  const baselineAt = ownSource.indexOf('const baselineOne' + ' = cmd')
   check('THE BASELINE RUNS EACH EXPECTATION IN THE CHILD ENVIRONMENT: a harness run it starts gets a state directory of its own instead of meeting this run\'s live lock and "passing" by being refused',
     baselineAt > 0 && /execSync\([^\n]*env: childEnv\(\)/.test(ownSource.slice(baselineAt, baselineAt + 1600)), baselineAt > 0 ? 'the baseline execSync carries no env: childEnv()' : 'the baseline block was not found')
 
@@ -6270,6 +6337,34 @@ if (process.argv.includes('--self-test')) {
     } else {
       console.log('  (E22 was not asserted: /proc cannot be read here, and it finds the watcher by it)')
     }
+    // E24: a signal during an expectation (measured 2026-11-05 on the real script with an expectation that sleeps: a SIGTERM was acted on 23 s later, when the command ended and the
+    // run had printed its own verdict; Ctrl-C to the process group killed the expectation and printed `PASS [known-survivor]`, exit status 0). Ctrl-C reaches the expectation (same
+    // process group); a SIGTERM reaches the harness itself while the command runs synchronously. `known-survivor` is a mutation of a file, `outbox-stub` one made outside the source.
+    reset()
+    const ki = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-interrupted' })
+    check('E24: AN EXPECTATION ENDED BY A SIGNAL IS NOT A CAUGHT MUTATION: the run stops with status 1 and says so, no verdict is printed for the mutation, and the file and the state are put back',
+      ki.status === 1 && /ended by SIGINT/.test(text(ki)) && !/(PASS|FAIL)\s+\[known-survivor\]/.test(text(ki)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `status ${ki.status}; ${text(ki).split('\n').filter(l => /PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+    reset()
+    const kc = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-child-killed' })
+    check('E24: ...and so is one whose child was killed (the OOM killer, a browser crash), which the shell reports as a status above 128 rather than as a signal',
+      kc.status === 1 && /ended by status 137/.test(text(kc)) && !/(PASS|FAIL)\s+\[known-survivor\]/.test(text(kc)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `status ${kc.status}; ${text(kc).split('\n').filter(l => /PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+    reset()
+    const kow = go(['--only', 'outbox-stub'], { MUTATION_FAULT: 'expect-interrupted' })
+    check('E24: ...and so is one of a change made outside the source: the run stops, no verdict is printed, and the write-ups it moved aside are back with the state gone',
+      kow.status === 1 && /ended by SIGINT/.test(text(kow)) && !/(PASS|FAIL)\s+\[outbox-stub\]/.test(text(kow)) && writeUpsBack() && !existsSync(join(repo, '.mutation-state')),
+      `status ${kow.status}; write-ups back ${writeUpsBack()}; ${text(kow).split('\n').filter(l => /PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+    reset()
+    const kv = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-terms-the-run' })
+    check('E24: ...and a SIGTERM that arrives while an expectation runs is acted on when it ends, even for a mutation with nothing to await: the run exits 1 with no verdict printed, and the file and the state are put back',
+      kv.status === 1 && kv.signal === null && !/(PASS|FAIL)\s+\[known-survivor\]/.test(text(kv)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `status ${kv.status}, signal ${kv.signal}; ${text(kv).split('\n').filter(l => /PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+    reset()
+    const kbt = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'baseline-terms-the-run' })
+    check('E24: ...and so is one that arrives during the baseline, the longest synchronous stretch of a run: the run exits 1 before the baseline is reported or any mutation is applied',
+      kbt.status === 1 && kbt.signal === null && !/baseline: ran/.test(text(kbt)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `status ${kbt.status}, signal ${kbt.signal}; ${text(kbt).split('\n').filter(l => /baseline|PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
     reset()
   } else {
     console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
@@ -6476,14 +6571,14 @@ const distinctExpects = [...new Set(selected.map(m => m.expect))]
 // WHY AND WHAT, not just which. A failing command's name moves the question
 // rather than answering it, and the output is the half nobody can get back.
 const lapBaseline = stopwatch()
-const baselineResults = distinctExpects.map(cmd => {
+const baselineOne = cmd => {
   try {
     // In the child environment, like every other command this run starts (run, capture): a harness run that is an EXPECTATION (harness-blind, only-selects-nothing-passes)
     // must find a state directory of its own. Without it the baseline ran it into this run's live lock, which it refuses, and `! node …` counted the refusal as a pass:
     // the baseline of a harness that had gone blind read "0 failing" (review 2026-11-04).
     // Test-only fault: the expectation prints two megabytes first. A command that merely PRINTS a lot passes; execSync's own limit (1 MiB) would have called it failed.
     const printsALot = 'node -e "process.stdout.write(\'x\'.repeat(2 * 1024 * 1024))" && '
-    execSync(process.env.MUTATION_FAULT === 'baseline-prints-a-lot' ? printsALot + cmd : cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(), maxBuffer: OUTPUT_LIMIT })
+    execSync(process.env.MUTATION_FAULT === 'baseline-prints-a-lot' ? printsALot + cmd : process.env.MUTATION_FAULT === 'baseline-terms-the-run' ? `kill -TERM $PPID && ${cmd}` : cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(), maxBuffer: OUTPUT_LIMIT })
     return { cmd, passed: true }
   } catch (e) {
     // EXIT 3 IS `run-row.mjs` SAYING ITS ROW HAS NO SUBJECT ON THIS RUN: the
@@ -6498,7 +6593,13 @@ const baselineResults = distinctExpects.map(cmd => {
     return { cmd, passed: false, status: e.status ?? null,
              tail: text.split("\n").slice(-30).join("\n") }
   }
-})
+}
+// One turn of the loop after each: the baseline is the longest stretch of synchronous work in a run (every distinct expectation, once), and a plain kill is acted on only when the loop turns.
+const baselineResults = []
+for (const cmd of distinctExpects) {
+  baselineResults.push(baselineOne(cmd))
+  await tick()
+}
 const baselineMs = lapBaseline()
 const notApplicableExpects = new Set(baselineResults.filter(r => r.notApplicable).map(r => r.cmd))
 const baselineFailures = baselineResults.filter(r => !r.passed && !r.notApplicable).map(r => r.cmd)
@@ -6572,6 +6673,21 @@ const wall = stopwatch()
 const fatal = msg => {
   console.log(`::error::${msg}`)
   process.exit(1)
+}
+/**
+ * Run a mutation's expectation and give its verdict. TWO THINGS THE BARE `run()` DID NOT DO (measured 2026-11-05, real script, an expectation that sleeps):
+ *   - A command ended by a signal is not a failed check. Ctrl-C reaches the expectation (it is in the terminal's process group) and `run()` read the death as "the check failed", so the
+ *     mutation was reported CAUGHT: `PASS [known-survivor]`, exit status 0, for a mutation that survives by design. A killed expectation has given no answer, so the run stops
+ *     (the exit handler puts the file back).
+ *   - A signal that reaches THIS process while a synchronous command runs is queued until the event loop turns, and a mutation that is not a source file has nothing to await after its
+ *     expectation: a SIGTERM was never acted on and the run went to its end (23 s later, its own verdict printed). One turn of the loop after each expectation acts on it.
+ * Not fixed here: a SIGKILL of this process leaves the expectation's own children running (it needs a spawn with process groups, which `run()` being synchronous rules out).
+ */
+const expectation = async m => {
+  const passed = run(expectOf(m))
+  if (lastSignal) fatal(`[${m.id}] its expectation was ended by ${lastSignal}: a command that is killed has not failed, so the mutation is neither caught nor a survivor, and the run stops. The file and the state are put back as for any other exit.`)
+  await tick()
+  return passed
 }
 const startBuilder = async () => {
   if (builder) return
@@ -6669,7 +6785,7 @@ for (const m of selected) {
     await killHere('world-applied')
 
     const lapWorld = stopwatch()
-    const passed = run(expectOf(m))
+    const passed = await expectation(m)
     const worldMs = lapWorld()
     const worldIntact = stateIntact(worldMarkerText)
     // A restore that ran is not a restore that worked (`|| true` hides a missing stash), so what it touched is read back. If it is not as it
@@ -6747,7 +6863,7 @@ for (const m of selected) {
   // anything else. An `inverted` option existed here briefly and was removed
   // unused: a branch nothing exercises is precisely what this harness is for.
   const lapExpect = stopwatch()
-  const survived = built && run(expectOf(m))
+  const survived = built && await expectation(m)
   const expectMs = lapExpect()
   const intactAfterExpect = stateIntact(markerText)
 
