@@ -1915,11 +1915,27 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
-    id: 'crash-leaves-the-self-test-directories',
+    id: 'crash-leaves-the-self-test-scratch-directory',
     file: 'scripts/mutation-check.mjs',
-    claim: "a self-test that crashes removes the two temp directories it made, so a crash does not accumulate them in the temp directory",
-    find: "  process.on('exit', () => { rmSync(scratch, { recursive: true, force: true }); rmSync(stateDir, { recursive: true, force: true }) })\n",
+    claim: "a self-test that crashes removes the scratch directory it made, so a crash does not accumulate them in the temp directory",
+    find: "  process.on('exit', () => rmSync(scratch, { recursive: true, force: true }))\n",
     replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'crash-leaves-the-self-test-state-directory',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a self-test that crashes removes the state directory it made, so a crash does not accumulate them in the temp directory",
+    find: "if (process.argv.includes('--self-test')) process.on('exit', () => rmSync(stateDir, { recursive: true, force: true }))\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'self-test-state-directory-removal-registered-late',
+    file: 'scripts/mutation-check.mjs',
+    claim: "the self-test's state directory is removed by a crash at any point after it is made: its removal is registered where the directory is made, not after something that can throw",
+    find: "if (process.argv.includes('--self-test')) process.on('exit', () => rmSync(stateDir, { recursive: true, force: true }))\n",
+    replace: "if (process.env.MUTATION_FAULT === 'self-test-crashes-early') throw new Error('MUTATION_FAULT=self-test-crashes-early')\nif (process.argv.includes('--self-test')) process.on('exit', () => rmSync(stateDir, { recursive: true, force: true }))\n",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -7436,6 +7452,10 @@ const RUN_STARTED_AT = new Date()
 const stateDir = process.argv.includes('--self-test')
   ? mkdtempSync(join(tmpdir(), 'mutation-state-'))
   : (process.env.MUTATION_STATE_DIR || '.mutation-state')
+// The self-test's state directory is a mkdtemp of its own, made on the line above, and a crash anywhere after it must not leave it behind. So its removal is registered HERE and not further down, where a
+// throw before the registration (the stranded-state read, or the scratch directory's own mkdtemp failing on a full or read-only tmp) leaked one directory per run: measured 2026-11-05 with an injected throw,
+// `mutation-state-MpP87T` left in TMPDIR. A normal end removes it already, at the end of the self-test; removing twice with `force` is harmless. (A SIGKILL cannot be covered.)
+if (process.argv.includes('--self-test')) process.on('exit', () => rmSync(stateDir, { recursive: true, force: true }))
 const marker = join(stateDir, 'active.json')
 const runLock = join(stateDir, 'run.json')
 // The build driver this run started and who started it: written the moment the watcher is spawned, kept until it is stopped. Not the marker: the marker exists only while a
@@ -8014,11 +8034,13 @@ if (process.argv.includes('--self-test')) {
   // Every scenario below runs the real planHeal() and healAt() in a temp directory of its own, with the process check, the tree snapshot
   // and the commands replaced by fakes where a scenario needs them: nothing reads the working tree, writes outside tmp, or builds.
   // The last group starts the REAL script in a scratch git repository and ends it in the ways a handler cannot catch.
+  // Test-only fault (E25): a crash before the scratch directory exists, the window in which the state directory's removal used to be unregistered (it was registered after the scratch directory was made).
+  if (MUTATION_FAULT === 'self-test-crashes-early') throw new Error('MUTATION_FAULT=self-test-crashes-early')
   const scratch = mkdtempSync(join(tmpdir(), 'heal-selftest-'))
-  // A crash ends in the uncaughtException handler's process.exit, and exit runs this: the two directories this self-test made (this one and its state directory, a mkdtemp of its own
-  // above) do not outlive it. A normal end removes them already, at the end of the file's own cleanup; removing twice with `force` is harmless. Not in restore(): the self-test
-  // calls that itself, part-way, and would lose its scratch. (A SIGKILL cannot be covered.)
-  process.on('exit', () => { rmSync(scratch, { recursive: true, force: true }); rmSync(stateDir, { recursive: true, force: true }) })
+  // A crash ends in the uncaughtException handler's process.exit, and exit runs this: the scratch directory does not outlive it (the state directory's removal is registered where that directory is made,
+  // above). A normal end removes it already, at the end of the file's own cleanup; removing twice with `force` is harmless. Not in restore(): the self-test calls that itself, part-way, and would lose its
+  // scratch. (A SIGKILL cannot be covered.)
+  process.on('exit', () => rmSync(scratch, { recursive: true, force: true }))
   let caseNo = 0
   const DEAD = { pid: 2 ** 30, start: '1', startedAt: '2026-10-20T20:00:00.000Z' }
   // Where /proc cannot say when a process started, a recycled pid cannot be told from the run: the signal's answer stands (run-marker.mjs),
@@ -9256,6 +9278,15 @@ if (process.argv.includes('--self-test')) {
     check('E25: A SELF-TEST THAT CRASHES LEAVES NO DIRECTORY BEHIND: it did crash (exit 1, the git stand-in named in its report), and its temp directory holds none of the 2 directories it made (heal-selftest-*, mutation-state-*)',
       crashed.status === 1 && /git: stand-in, fails on purpose/.test(String(crashed.stderr)) && leftBehind.length === 0,
       `status ${crashed.status}; left behind in its TMPDIR: ${leftBehind.join(', ') || 'nothing'}; stderr ${String(crashed.stderr).split('\n')[0].slice(0, 120)}`)
+    // ...and a crash BEFORE the scratch directory exists. The state directory's removal used to be registered after that, so a throw in between left it behind (an injected throw: exit 1, and `mutation-state-*`
+    // in TMPDIR). The fault is a throw placed where the scratch directory is about to be made; the state directory (1 directory) is all that exists by then.
+    const crashEarlyTmp = join(scratch, 'crash-early-tmp')
+    mkdirSync(crashEarlyTmp)
+    const crashedEarly = spawnSync(process.execPath, [here, '--self-test'], { cwd: process.cwd(), encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', MUTATION_FAULT: 'self-test-crashes-early', TMPDIR: crashEarlyTmp } })
+    const leftEarly = readdirSync(crashEarlyTmp)
+    check('E25: ...AND SO DOES ONE BEFORE THE SCRATCH DIRECTORY IS MADE: it did crash (exit 1, the injected fault named in its report), and its temp directory holds nothing (1 directory made by then, mutation-state-*)',
+      crashedEarly.status === 1 && /MUTATION_FAULT=self-test-crashes-early/.test(String(crashedEarly.stderr)) && leftEarly.length === 0,
+      `status ${crashedEarly.status}; left behind in its TMPDIR: ${leftEarly.join(', ') || 'nothing'}; stderr ${String(crashedEarly.stderr).split('\n')[0].slice(0, 120)}`)
 
     // E26: a harness run killed INSIDE another's expectation keeps its state beneath the parent's, and the parent's own clear must not delete it. The test-only fault starts the child
     // from the parent's expectation and kills it with its mutation applied; the parent then finishes (it catches or not: either way it clears its state), and the next run heals the child.
