@@ -1,0 +1,141 @@
+// What is code and what is not, in one scanner.
+//
+// `stripNonCode(src)` is the scanner under the determinism half of `row-confidence.mjs` (the gate row "every gate row has teeth and is deterministic"), moved here unchanged so that
+// a second checker can use it: its comment, below, says what it replaces and what it still does not do. It is a module of its own because `row-confidence.mjs` does its work at
+// module scope (it reads the gate's rows and prints a table when it is imported), and `scripts/import-purity-check.mjs` imports every script with a top-level `export` in a fresh
+// process and fails one that prints. This file imports nothing and does nothing when imported.
+
+/**
+ * The source with comments removed, every string replaced by an empty string, every regular-expression literal by `0`, and every template literal by an empty string preceded by its `${…}` expressions, each kept as code in parentheses (`a ${b} c` leaves ` (b) ''`): what is left is code.
+ *
+ * IT IS A SCANNER, NOT THREE REGULAR EXPRESSIONS. The version before this one removed `//` comments line by line and then paired quotes across the whole file, and the two
+ * disagree about a `//` inside a string (`'http://…'`, `"URL='http://…' node …"`): the comment pass cut the line at the `//`, which took the closing quote with it, and every
+ * quote after that paired with the wrong one. From the first such line in `mutation-check.mjs` (measured 2026-11-04: line 111 of the file as committed) the scan read the file's strings as code and
+ * its code as strings, so a clock read could sit in a region it never saw. It held up by parity until the table grew by 41 entries; then `harness-reads-the-clock-twice`, the
+ * mutation that proves this row can see a second clock read in that very file, survived (2026-11-04, the gate's mutation row), and the row's claim for that file had been
+ * undefended for as long as the parity happened to be wrong.
+ *
+ * Checked against a real tokenizer: acorn's, over all 168 scripts, left the same text as this does (template expressions kept, template text not). That comparison is a
+ * one-off, not a test in the repo, because acorn is only reachable through `node --expose-internals`.
+ *
+ * A template literal's TEXT is hidden (`new Date() ${1}` holds no clock read); its `${…}` expressions are code, so a read in one is counted (`new Date(\`${fieldDay()}T12:00:00Z\`)` was a clock read
+ * this scan could not see until `pickem-check.mjs` captured the day once), and a `/` that begins one begins a regular expression whatever stood before the template (a tag, `)`, `]`, a word).
+ *
+ * A `/` after the `)` that closes the header of an if, while, for or with begins a regular expression (`if (x) /re/.test(y)`; where that regular expression holds a backtick the scan used to open a template that
+ * swallowed the rest of the file, so every later clock read was invisible); after any other `)`, and after `]`, it divides, and so does a `/` after a name that merely ends in `if` (`elif (x) / 2`). A `/` after a
+ * `/` begins one (`a / /re/.source`).
+ *
+ * What it still does not do: a `/` after `}` is read as the start of a regular expression, which is right after a block
+ * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
+ * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
+ * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). A line ends at a line feed, a carriage return, U+2028 or
+ * U+2029: a `//` comment, a regular expression and the `++` test stop there; a string stops at a line feed or a carriage return (U+2028 and U+2029 may be inside one), and a backslash
+ * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression; `of` is not in that list (in a module it is an identifier, and
+ * the one use that takes a regular expression, `for (x of /re/...)`, does not occur), and neither a private name (`this.#in`) nor a name that has a keyword after a non-ASCII letter or a
+ * combining mark (`éin`) is the keyword it ends in. (A leading `#!`
+ * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
+ */
+export const stripNonCode = src => {
+  const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
+  const n = src.length
+  let out = ''
+  // The parentheses seen so far, in code: where in `out` each open one began, and where the one closed last began.
+  const opens = []
+  let closed = 0
+  // The characters the language ends a line at (no raw U+2028 or U+2029 in this file: an editor would change what it means).
+  const isEol = ch => ch === '\n' || ch === '\r' || ch === String.fromCharCode(0x2028) || ch === String.fromCharCode(0x2029)
+  // A `.` that is member access: not the end of `...` (a spread, after which a keyword is a keyword) and not a number's decimal point (`1.`).
+  const isPropertyDot = before => before.endsWith('.') && !before.endsWith('...') && !/(?<![\w$.])\d+\.$/.test(before)
+  // Does `text` end in a keyword that a regular expression can follow? The trailing word is a whole identifier (any letter, combining mark or digit the language allows, so `éin` is not `in`), and
+  // it is not a property spelled like one (`c.new`, `o?.in`) or a private name (`this.#in`).
+  const endsInKeyword = text => {
+    const found = /[\p{ID_Continue}$]+$/u.exec(text)
+    return found !== null && REGEX_AFTER.has(found[0]) && text[found.index - 1] !== '#' && !isPropertyDot(text.slice(0, found.index).trimEnd())
+  }
+  // Can a `/` here begin a regular expression? Only after something that cannot end an expression.
+  const regexAllowed = () => {
+    const raw = out.slice(-64)
+    let tail = raw.trimEnd()
+    // A window of nothing but whitespace is the start of the text only if nothing but whitespace came before it: `w` and sixty spaces and then `/ 2` divides.
+    if (tail === '' && out.length > raw.length) tail = out.trimEnd().slice(-64)
+    if (tail === '') return true
+    // `x++ / y` and `x-- / y` divide: the operator ended an operand. Not when the operator starts its statement (`a` newline `++/re/` is a prefix), nor after a keyword
+    // (`return ++/re/`). Otherwise `+` and `-` end nothing, and a `/` after them begins a regular expression.
+    if (/(\+\+|--)$/.test(tail)) {
+      const before = tail.slice(0, -2)
+      const operand = before.trimEnd()
+      if (/[\w$)\]]$/.test(operand) && ![...before.slice(operand.length)].some(isEol) && !endsInKeyword(operand)) return false
+    }
+    // The `)` that closes the header of an if, while, for or with begins a statement, so a `/` after it begins a regular expression: `if (x) /re/.test(y)`. After any other `)` it divides.
+    if (tail.endsWith(')') && /(?<![\w$.#])(?:if|while|for(?:\s+await)?|with)$/.test(out.slice(Math.max(0, closed - 40), closed).trimEnd())) return true
+    if ('(,=:[!&|?{};+-*%<>~^/'.includes(tail[tail.length - 1])) return true
+    return endsInKeyword(tail)
+  }
+  // Code from `start`. With `inExpr` it stops after the `}` that closes a template's `${`. Returns the index after what it consumed.
+  const scanCode = (start, inExpr) => {
+    let i = start
+    let depth = 0
+    while (i < n) {
+      const c = src[i]
+      const d = src[i + 1]
+      if (c === '/' && d === '/') { while (i < n && !isEol(src[i])) i++; continue }
+      if (c === '/' && d === '*') { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }
+      if (c === "'" || c === '"') {
+        // A string that reaches a line feed or a carriage return unclosed ends there: a stray quote must not be able to swallow the rest of the file. (U+2028 and U+2029 may be inside a string.)
+        // A backslash and the line end after it continue the string, and a CR LF is one line end: skip both characters.
+        i++
+        while (i < n && src[i] !== c && src[i] !== '\n' && src[i] !== '\r') i += src[i] !== '\\' ? 1 : src[i + 1] === '\r' && src[i + 2] === '\n' ? 3 : 2
+        if (src[i] === c) i++
+        out += "''"
+        continue
+      }
+      if (c === '`') { i = skipTemplate(i + 1); out += "''"; continue }
+      if (c === '/') {
+        if (!regexAllowed()) { out += '/'; i++; continue }
+        i++
+        let inClass = false
+        while (i < n && !isEol(src[i])) {
+          const r = src[i]
+          if (r === '\\') { i += 2; continue }
+          if (r === '[') inClass = true
+          else if (r === ']') inClass = false
+          else if (r === '/' && !inClass) break
+          i++
+        }
+        if (src[i] === '/') i++
+        while (i < n && /[a-z]/.test(src[i])) i++
+        out += '0'
+        continue
+      }
+      if (c === '(') opens.push(out.length)
+      else if (c === ')') closed = opens.pop() ?? 0
+      if (inExpr) {
+        if (c === '{') depth++
+        else if (c === '}') { if (depth === 0) return i + 1; depth-- }
+      }
+      out += c
+      i++
+    }
+    return i
+  }
+  // A template literal: its text is not kept, but each `${…}` expression is, as code between ` (` and `) `. The parenthesis is what lets a `/` that begins the expression begin a regular expression
+  // whatever stood before the template, and keeps the stripped text balanced. Expressions may hold strings and templates of their own.
+  const skipTemplate = start => {
+    let i = start
+    while (i < n) {
+      const c = src[i]
+      if (c === '\\') { i += 2; continue }
+      if (c === '`') return i + 1
+      if (c === '$' && src[i + 1] === '{') {
+        out += ' ('
+        i = scanCode(i + 2, true)
+        out += ') '
+        continue
+      }
+      i++
+    }
+    return i
+  }
+  scanCode(0, false)
+  return out
+}

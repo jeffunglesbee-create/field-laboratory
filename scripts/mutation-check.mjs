@@ -2290,7 +2290,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-keeps-line-comments',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a clock read in a line comment is not a clock read",
     find: "      if (c === '/' && d === '/') { while (i < n && !isEol(src[i])) i++; continue }",
     replace: "      if (false) { while (i < n && !isEol(src[i])) i++; continue }",
@@ -2298,7 +2298,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-keeps-block-comments',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a clock read in a block comment is not a clock read",
     find: "      if (c === '/' && d === '*') { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }",
     replace: "      if (false) { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }",
@@ -2306,7 +2306,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-lets-a-quote-run-on',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an unclosed quote ends at its line",
     find: "        while (i < n && src[i] !== c && src[i] !== '\\n' && src[i] !== '\\r') i += src[i] !== '\\\\' ? 1 : src[i + 1] === '\\r' && src[i + 2] === '\\n' ? 3 : 2",
     replace: "        while (i < n && src[i] !== c) i += src[i] !== '\\\\' ? 1 : src[i + 1] === '\\r' && src[i + 2] === '\\n' ? 3 : 2",
@@ -2314,7 +2314,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-ignores-string-escapes',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an escaped quote does not end a string",
     find: "i += src[i] !== '\\\\' ? 1 : src[i + 1] === '\\r' && src[i + 2] === '\\n' ? 3 : 2",
     replace: "i += 1",
@@ -2322,7 +2322,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-reads-every-slash-as-division',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a regular expression literal is not read as division",
     find: "        if (!regexAllowed()) { out += '/'; i++; continue }",
     replace: "        if (true) { out += '/'; i++; continue }",
@@ -2330,7 +2330,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-reads-every-slash-as-a-regex',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a division is not read as a regular expression",
     find: "  const regexAllowed = () => {",
     replace: "  const regexAllowed = () => true\n  const unusedRegexAllowed = () => {",
@@ -2434,7 +2434,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-leaves-regex-flags-in-the-text',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a regular expression's flags go with it",
     find: "        while (i < n && /[a-z]/.test(src[i])) i++\n",
     replace: "",
@@ -2442,7 +2442,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-ignores-regex-escapes',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an escaped slash does not end a regular expression",
     find: "          if (r === '\\\\') { i += 2; continue }",
     replace: "          if (false) { i += 2; continue }",
@@ -2450,7 +2450,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-regex-runs-past-its-line',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an unterminated regular expression ends at its line",
     find: "        while (i < n && !isEol(src[i])) {\n          const r = src[i]",
     replace: "        while (i < n) {\n          const r = src[i]",
@@ -2458,7 +2458,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-start-of-text-divides',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash at the very start of the text begins a regular expression",
     find: "    if (tail === '') return true",
     replace: "    if (tail === '') return false",
@@ -2466,7 +2466,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-forgets-a-punctuation-mark',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after any operator or opening bracket begins a regular expression",
     find: "'(,=:[!&|?{};+-*%<>~^/'.includes(tail[tail.length - 1])",
     replace: "'(,=:[!&|?{};+-*%<>~/'.includes(tail[tail.length - 1])",
@@ -2476,7 +2476,7 @@ const MUTATIONS = [
   // lookbehind that keeps `o.if`, `this.#if`, `elif` and `$if` out, the window, the parenthesis stack and its pop; then the slash in the punctuation list.
   {
     id: 'hdr-rule-dropped',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after the parenthesis that closes an if, while, for or with header begins a regular expression (a quote or a backtick in it must not open a string or a template)",
     find: "    if (tail.endsWith(')') && /(?<![\\w$.#])(?:if|while|for(?:\\s+await)?|with)$/.test(out.slice(Math.max(0, closed - 40), closed).trimEnd())) return true\n",
     replace: "",
@@ -2484,7 +2484,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-if',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`if (x) /re/` is a statement that begins with a regular expression",
     find: "(?:if|while|for",
     replace: "(?:while|for",
@@ -2492,7 +2492,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-while',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`while (x) /re/` is a statement that begins with a regular expression",
     find: "(?:if|while|for",
     replace: "(?:if|for",
@@ -2500,7 +2500,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-for',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`for (...) /re/` is a statement that begins with a regular expression",
     find: "|for(?:\\s+await)?|with)$/",
     replace: "|with)$/",
@@ -2508,7 +2508,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-with',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`with (o) /re/` is a statement that begins with a regular expression",
     find: "|with)$/.test(out.slice",
     replace: ")$/.test(out.slice",
@@ -2516,7 +2516,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-for-await',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`for await (...) /re/` is a statement that begins with a regular expression",
     find: "for(?:\\s+await)?",
     replace: "for",
@@ -2524,7 +2524,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-lookbehind',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a method named like a header keyword, or a name that ends in one, is a call, and its slash divides",
     find: "/(?<![\\w$.#])(?:if",
     replace: "/(?:if",
@@ -2532,7 +2532,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-lookbehind-no-dot',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`o.if (x) / 2` is a method call: its slash divides",
     find: "(?<![\\w$.#])(?:if",
     replace: "(?<![\\w$#])(?:if",
@@ -2540,7 +2540,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-lookbehind-no-hash',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`this.#if (x) / 2` is a private method call: its slash divides",
     find: "(?<![\\w$.#])(?:if",
     replace: "(?<![\\w$.])(?:if",
@@ -2548,7 +2548,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-lookbehind-no-word',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`elif (x) / 2` is a call to a name that ends in if: its slash divides",
     find: "(?<![\\w$.#])(?:if",
     replace: "(?<![$.#])(?:if",
@@ -2556,7 +2556,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-lookbehind-no-dollar',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`$if (x) / 2` is a call to a name that ends in if after a dollar sign: its slash divides",
     find: "(?<![\\w$.#])(?:if",
     replace: "(?<![\\w.#])(?:if",
@@ -2564,7 +2564,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-window-one',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the keyword is read from the text just before the opening parenthesis of the header, not one character of it",
     find: "closed - 40), closed",
     replace: "closed - 1), closed",
@@ -2572,7 +2572,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-window-twenty',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a header whose keyword is thirty spaces before its parenthesis is still one (the window the keyword is looked for in is forty characters)",
     find: "closed - 40), closed",
     replace: "closed - 20), closed",
@@ -2580,7 +2580,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-close-paren-test',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after the statement of an if divides: the header rule applies only when the text before the slash ends in the header's own parenthesis",
     find: "if (tail.endsWith(')') && /(?<![",
     replace: "if (/(?<![",
@@ -2588,7 +2588,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-no-trim',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the space between a header keyword and its parenthesis does not hide the keyword",
     find: "closed).trimEnd())) return true",
     replace: "closed))) return true",
@@ -2596,7 +2596,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-opens-not-pushed',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an opening parenthesis is recorded where it begins, or a header's keyword is looked for in the wrong place",
     find: "if (c === '(') opens.push(out.length)",
     replace: "if (c === '(') opens.push(0)",
@@ -2604,7 +2604,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-pop-missing',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a closing parenthesis takes back the opening parenthesis it matches, not the latest one",
     find: "closed = opens.pop() ?? 0",
     replace: "closed = opens[opens.length - 1] ?? 0",
@@ -2612,7 +2612,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-close-never-recorded',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the parenthesis that closes a header is the one whose opening is looked at",
     find: "else if (c === ')') closed = opens.pop() ?? 0",
     replace: "else if (c === ')') opens.pop()",
@@ -2620,7 +2620,7 @@ const MUTATIONS = [
   },
   {
     id: 'hdr-close-keeps-the-paren-out',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the text before a header's opening parenthesis ends with its keyword, so the parenthesis is not part of it",
     find: "if (c === '(') opens.push(out.length)\n      else if",
     replace: "if (c === '(') opens.push(out.length + 1)\n      else if",
@@ -2628,7 +2628,7 @@ const MUTATIONS = [
   },
   {
     id: 'punct-no-slash',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after a division sign begins a regular expression (`a / /re/.source`)",
     find: "~^/'.includes",
     replace: "~^'.includes",
@@ -2636,7 +2636,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-forgets-a-keyword',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after any of its keywords begins a regular expression",
     find: "'do', 'yield', 'await'])\n  const n",
     replace: "'do', 'yield'])\n  const n",
@@ -2646,7 +2646,7 @@ const MUTATIONS = [
   // a string stops at a line feed or a carriage return only; a backslash before a CR LF continues it over both; and `instanceof`, `extends` and `default` can be followed by a regular expression.
   {
     id: 'kw-no-instanceof',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `instanceof` begins a regular expression",
     find: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
     replace: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
@@ -2654,7 +2654,7 @@ const MUTATIONS = [
   },
   {
     id: 'kw-no-extends',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `extends` begins a regular expression",
     find: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
     replace: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
@@ -2662,7 +2662,7 @@ const MUTATIONS = [
   },
   {
     id: 'kw-no-default',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `default` begins a regular expression",
     find: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
     replace: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
@@ -2671,7 +2671,7 @@ const MUTATIONS = [
   // A name is not the keyword it ends in (2026-11-05, residuals Task 10 item 16): `of` is an identifier in a module and left the list; the trailing word is a whole Unicode name (not its last ASCII letters), and a private name is never the keyword.
   {
     id: 'kw-of-back',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "`of` is an identifier in a module, so a slash after it divides (`for (x of /re/...)` does not occur)",
     find: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
     replace: "const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'of', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])",
@@ -2679,7 +2679,7 @@ const MUTATIONS = [
   },
   {
     id: 'private-name-is-keyword',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a private name spelled like a keyword (`this.#in`, `#new`, `#do`) is not that keyword: its slash divides",
     find: "text[found.index - 1] !== '#' && ",
     replace: "",
@@ -2687,7 +2687,7 @@ const MUTATIONS = [
   },
   {
     id: 'identifier-ascii-only',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a keyword after a non-ASCII letter (`éin`, `éreturn`) is part of a longer name, not the keyword",
     find: "/[\\p{ID_Continue}$]+$/u.exec(text)",
     replace: "/[\\w$]+$/.exec(text)",
@@ -2695,7 +2695,7 @@ const MUTATIONS = [
   },
   {
     id: 'identifier-first-hit-only',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the trailing word is a whole name: `éin` is not `in`, whatever its last letters spell",
     find: "REGEX_AFTER.has(found[0])",
     replace: "REGEX_AFTER.has(found[0].slice(-2))",
@@ -2703,7 +2703,7 @@ const MUTATIONS = [
   },
   {
     id: 'identifier-continue-class-start-only',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a combining mark is part of a name: `á` as `a` and U+0301, then `in`, is one name, not the keyword",
     find: "/[\\p{ID_Continue}$]+$/u.exec(text)",
     replace: "/[\\p{ID_Start}$]+$/u.exec(text)",
@@ -2711,7 +2711,7 @@ const MUTATIONS = [
   },
   {
     id: 'identifier-dollar-dropped',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a name that begins with a dollar sign and ends in a keyword (`$in`) is not the keyword",
     find: "/[\\p{ID_Continue}$]+$/u.exec(text)",
     replace: "/[\\p{ID_Continue}]+$/u.exec(text)",
@@ -2719,7 +2719,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-comment-lf-only',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a `//` comment ends at a carriage return, U+2028 and U+2029 as well as at a line feed",
     find: "{ while (i < n && !isEol(src[i])) i++; continue }",
     replace: "{ while (i < n && src[i] !== '\\n') i++; continue }",
@@ -2727,7 +2727,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-string-no-cr',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a string left open ends at a carriage return as well as at a line feed",
     find: "src[i] !== '\\n' && src[i] !== '\\r') i +=",
     replace: "src[i] !== '\\n') i +=",
@@ -2735,7 +2735,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-string-stops-at-ls',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "U+2028 and U+2029 are legal inside a string, so an open string does not end at them",
     find: "src[i] !== '\\n' && src[i] !== '\\r') i +=",
     replace: "!isEol(src[i])) i +=",
@@ -2743,7 +2743,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-string-crlf-continuation',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a backslash before a CR LF continues the string over both characters",
     find: "src[i + 1] === '\\r' && src[i + 2] === '\\n' ? 3 : 2",
     replace: "2",
@@ -2751,7 +2751,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-string-lone-cr-continuation',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a backslash before a lone CR continues the string over the CR only",
     find: "src[i + 1] === '\\r' && src[i + 2] === '\\n' ? 3 : 2",
     replace: "src[i + 1] === '\\r' ? 3 : 2",
@@ -2759,7 +2759,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-regex-lf-only',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an unterminated regular expression ends at a carriage return, U+2028 and U+2029 as well as at a line feed",
     find: "while (i < n && !isEol(src[i])) {\n          const r",
     replace: "while (i < n && src[i] !== '\\n') {\n          const r",
@@ -2767,7 +2767,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-asi-lf-only',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a `++` after a carriage return, U+2028 or U+2029 starts its statement as it does after a line feed",
     find: "![...before.slice(operand.length)].some(isEol)",
     replace: "!before.slice(operand.length).includes('\\n')",
@@ -2775,7 +2775,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-no-cr',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a carriage return ends a line",
     find: "ch === '\\n' || ch === '\\r' || ch ===",
     replace: "ch === '\\n' || ch ===",
@@ -2783,7 +2783,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-no-ls',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "U+2028 ends a line",
     find: "ch === String.fromCharCode(0x2028) || ",
     replace: "",
@@ -2791,7 +2791,7 @@ const MUTATIONS = [
   },
   {
     id: 'eol-no-ps',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "U+2029 ends a line",
     find: " || ch === String.fromCharCode(0x2029)",
     replace: "",
@@ -2799,7 +2799,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-line-comment-eats-the-newline',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a line comment ends at its newline and leaves it",
     find: "if (c === '/' && d === '/') { while (i < n && !isEol(src[i])) i++; continue }",
     replace: "if (c === '/' && d === '/') { while (i < n && !isEol(src[i])) i++; i++; continue }",
@@ -2807,7 +2807,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-block-comment-ends-on-its-opener',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a block comment cannot end on the slash that opened it",
     find: "src.indexOf('*/', i + 2)",
     replace: "src.indexOf('*/', i + 1)",
@@ -2815,7 +2815,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-comment-after-an-operator',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a comment where a regular expression could begin is still a comment",
     find: "      if (c === '/' && d === '/') {",
     replace: "      if (c === '/' && d === '/' && regexAllowed() === false) {",
@@ -2823,7 +2823,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-regex-leaves-no-marker',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a regular expression leaves a marker where it was",
     find: "        out += '0'\n",
     replace: "        out += ''\n",
@@ -2831,7 +2831,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-template-leaves-no-marker',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a template leaves a marker where it was",
     find: "if (c === '`') { i = skipTemplate(i + 1); out += \"''\"; continue }",
     replace: "if (c === '`') { i = skipTemplate(i + 1); continue }",
@@ -2855,7 +2855,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-forgets-regex-after-return',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `return` begins a regular expression",
     find: "    return found !== null && REGEX_AFTER.has(found[0]) && text[found.index - 1] !== '#' && !isPropertyDot(text.slice(0, found.index).trimEnd())",
     replace: "    return false",
@@ -2863,7 +2863,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-divides-nothing-after-an-increment',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after a postfix `++` divides",
     find: "    if (/(\\+\\+|--)$/.test(tail)) {",
     replace: "    if (false) {",
@@ -2871,7 +2871,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-increment-anchor-dropped',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "only a `++` at the very end of the window makes the slash a division",
     find: "    if (/(\\+\\+|--)$/.test(tail)) {",
     replace: "    if (/(\\+\\+|--)/.test(tail)) {",
@@ -2879,7 +2879,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-increment-after-a-bracket',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `a[0]++` divides",
     find: "/[\\w$)\\]]$/.test(operand)",
     replace: "/[\\w$)]$/.test(operand)",
@@ -2887,7 +2887,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-increment-after-a-paren',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `(a)++` divides",
     find: "/[\\w$)\\]]$/.test(operand)",
     replace: "/[\\w$\\]]$/.test(operand)",
@@ -2895,7 +2895,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-increment-after-a-space',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after `n ++` divides",
     find: "const operand = before.trimEnd()",
     replace: "const operand = before",
@@ -2903,7 +2903,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-increment-crosses-a-line',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a `++` that starts its statement is a prefix, and a slash after it begins a regular expression",
     find: " && ![...before.slice(operand.length)].some(isEol)",
     replace: "",
@@ -2911,7 +2911,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-increment-after-a-keyword',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a `++` after a keyword is a prefix",
     find: " && !endsInKeyword(operand)) return false",
     replace: ") return false",
@@ -2919,7 +2919,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-dot-anywhere',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a keyword is a property only when the dot is right before it",
     find: "before.endsWith('.') && !before.endsWith('...') && !/(?<![\\w$.])\\d+\\.$/.test(before)",
     replace: "before.includes('.')",
@@ -2927,7 +2927,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-reads-a-keyword-property-as-a-keyword',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a property spelled like a keyword is not the keyword",
     find: " && !isPropertyDot(text.slice(0, found.index).trimEnd())",
     replace: "",
@@ -2935,7 +2935,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-spread-is-a-property',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a keyword after a spread is a keyword",
     find: " && !before.endsWith('...')",
     replace: "",
@@ -2943,7 +2943,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-number-dot-is-a-property',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a number's decimal point is not a property access",
     find: " && !/(?<![\\w$.])\\d+\\.$/.test(before)",
     replace: "",
@@ -2951,7 +2951,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-property-dot-not-trimmed',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a dot before a space and a keyword is still a property access",
     find: "text.slice(0, found.index).trimEnd()",
     replace: "text.slice(0, found.index)",
@@ -2959,7 +2959,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-whitespace-window-is-the-start',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after a long run of spaces is judged by what came before them",
     find: "    if (tail === '' && out.length > raw.length) tail = out.trimEnd().slice(-64)\n",
     replace: "",
@@ -2967,7 +2967,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-forgets-to-trim-the-tail',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash after a keyword and a space begins a regular expression",
     find: "    let tail = raw.trimEnd()",
     replace: "    let tail = raw",
@@ -2975,7 +2975,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-looks-back-too-little',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the scan looks back far enough to reach a keyword through spaces",
     find: "    const raw = out.slice(-64)",
     replace: "    const raw = out.slice(-8)",
@@ -2983,7 +2983,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-looks-back-one-character',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the scan looks at more than the last character",
     find: "    const raw = out.slice(-64)",
     replace: "    const raw = out.slice(-1)",
@@ -2991,7 +2991,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-looks-back-twenty',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "the scan reaches a dot further back than twenty characters",
     find: "    const raw = out.slice(-64)",
     replace: "    const raw = out.slice(-20)",
@@ -3258,7 +3258,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-ends-a-regex-class-at-a-slash',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash inside a regular expression's character class does not end it",
     find: "          else if (r === '/' && !inClass) break",
     replace: "          else if (r === '/') break",
@@ -3266,7 +3266,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-skips-no-template-expressions',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a template literal's expressions are scanned for where they end",
     find: "      if (c === '$' && src[i + 1] === '{') {",
     replace: "      if (false) {",
@@ -3274,7 +3274,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-forgets-template-braces',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "braces inside a template expression are counted",
     find: "        if (c === '{') depth++",
     replace: "        if (c === '{') depth += 0",
@@ -3282,7 +3282,7 @@ const MUTATIONS = [
   },
   {
     id: 'row-scan-ignores-template-escapes',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "an escaped backtick does not end a template",
     find: "      if (c === '\\\\') { i += 2; continue }",
     replace: "      if (false) { i += 2; continue }",
@@ -3292,7 +3292,7 @@ const MUTATIONS = [
   // counted and the first slash in one begins a regular expression whatever stood before the template. One entry per half of what it emits, and one for putting the old behaviour back.
   {
     id: 'tpl-expression-hidden',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a clock read inside a template expression is counted, as a read in any other code is",
     find: "        out += ' ('\n        i = scanCode(i + 2, true)\n        out += ') '\n",
     replace: "        const kept = out\n        i = scanCode(i + 2, true)\n        out = kept\n",
@@ -3300,7 +3300,7 @@ const MUTATIONS = [
   },
   {
     id: 'tpl-expression-opens-no-operand',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a slash that begins a template expression begins a regular expression, whatever stood before the template (a tag, a parenthesis, a bracket, a word)",
     find: "        out += ' ('\n",
     replace: "        out += ' '\n",
@@ -3308,7 +3308,7 @@ const MUTATIONS = [
   },
   {
     id: 'tpl-expression-closes-nothing',
-    file: 'scripts/row-confidence.mjs',
+    file: 'scripts/strip-non-code.mjs',
     claim: "a template expression is kept between parentheses that pair, so the text left of a template has balanced brackets",
     find: "        out += ') '\n",
     replace: "        out += ' '\n",
