@@ -205,6 +205,15 @@ const insertedAt = (current, backup, at) => {
  */
 const onlyProofFunctions = block => block.split('\n').every(l => l === '' || l.startsWith('    ') || l.startsWith(MARKER))
 
+/**
+ * Is `now`, what a file holds, still what THIS run left it as: the original, or a prefix of the last text this run tried to write (`mine`, undefined before the first attempt)? A prefix
+ * covers the whole injection, a half-written one (a write that failed part-way keeps what it wrote: a full disk, a file size limit) and the empty file. Anything else is someone else's: an
+ * edit made while the run was going, on the original or on top of the injection. The run writes nothing over it. This is not `strandedTarget`, which asks whether a file is its backup plus
+ * a WHOLE block and says no to a half-written injection (3072 bytes of a 3092-byte one, marker present, anchor absent: false, measured 2026-11-05); the blind write that repaired that file
+ * would have gone with it.
+ */
+const ours = (now, original, mine) => now === original || (mine !== undefined && mine.startsWith(now))
+
 /** Is `current` the backed-up target with this script's proof functions inserted, and nothing else different? */
 const strandedTarget = (current, backup) => {
   const block = backup === null ? null : insertedAt(current, backup, backup.indexOf(ANCHOR))
@@ -843,21 +852,27 @@ if (process.argv.includes('--self-test')) {
     p2.stranded.calls.length >= 2 && p2.stranded.calls.every(c => new RegExp(`^state=present .*fp=${fpSeen}$`).test(c)) && p2.stranded.calls.at(-1) === `state=present probe=2 fp=${fpSeen}`,
     `builds saw: ${p2.stranded.calls.join(' ; ')}`)
 
-  // A scratch project with a stand-in `dotnet`, and this script run in it. `dotnet` is the stand-in's text, `before(dir)` plants anything else, and `body` gets `go` (one run of the script, whose
-  // result is a spawnSync result) and `has` (does a file exist there). The scratch directory goes when `body` returns.
-  const withStandIn = ({ dotnet, before = () => {} }, body) => {
+  // A scratch project with a stand-in `dotnet`, and this script run in it. The registry is `oldUnion`, which has no `| NHL` (the probe the registry phase adds), so a stand-in can tell that phase by grepping for it.
+  // `dotnet` is the stand-in's text, `target` the file the injections go into, `before(dir)` plants anything else, and
+  // `body` gets `go` (one run of the script, whose result is a spawnSync result; with a size limit in KB it runs under `ulimit -S -f`, bash: a write that would pass the limit is cut short and
+  // then fails with EFBIG, as a full disk does with ENOSPC), `has` (does a file exist there) and `read` (its text, null when it cannot be read). The scratch directory goes when `body` returns.
+  const withStandIn = ({ dotnet, target = clean, before = () => {} }, body) => {
     const dir = mkdtempSync(join(tmpdir(), 'proof-standin-'))
     try {
       for (const d of ['src', 'docs', 'bin']) mkdirSync(join(dir, d))
-      writeFileSync(join(dir, TARGET), clean)
-      writeFileSync(join(dir, REGISTRY), union)
+      writeFileSync(join(dir, TARGET), target)
+      writeFileSync(join(dir, REGISTRY), oldUnion)
       writeFileSync(join(dir, 'docs/SANDBOX-PROOF.md'), '<!-- proof: FS0001 -->\n```fsharp\nlet x = 1\n```\n')
       writeFileSync(join(dir, 'bin/dotnet'), dotnet, { mode: 0o755 })
       before(dir)
-      const go = (extraEnv = {}) => spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
-        cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, PATH: `${join(dir, 'bin')}:${process.env.PATH}`, ...extraEnv },
-      })
-      return body({ go, has: p => existsSync(join(dir, p)) })
+      const self = fileURLToPath(import.meta.url)
+      const go = (extraEnv = {}, fileSizeLimitKB = null) => {
+        const options = { cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, PATH: `${join(dir, 'bin')}:${process.env.PATH}`, ...extraEnv } }
+        return fileSizeLimitKB === null
+          ? spawnSync(process.execPath, [self], options)
+          : spawnSync('bash', ['-c', `ulimit -S -f ${fileSizeLimitKB}; exec "$0" "$1"`, process.execPath, self], options)
+      }
+      return body({ go, has: p => existsSync(join(dir, p)), read: p => { try { return readFileSync(join(dir, p), 'utf8') } catch { return null } } })
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
@@ -895,7 +910,7 @@ if (process.argv.includes('--self-test')) {
         cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, PATH: `${join(dir, 'bin')}:${process.env.PATH}` },
       })
       return {
-        status: r.status, broken: (() => { try { return how === 'directory' ? readdirSync(join(dir, TARGET)).length === 0 : readFileSync(join(dir, TARGET), 'utf8') === '' } catch { return false } })(),
+        status: r.status, stderr: r.stderr ?? '', broken: (() => { try { return how === 'directory' ? readdirSync(join(dir, TARGET)).length === 0 : readFileSync(join(dir, TARGET), 'utf8') === '' } catch { return false } })(),
         backup: existsSync(join(dir, BACKUP)) ? readFileSync(join(dir, BACKUP), 'utf8') : null, marker: existsSync(join(dir, MARKER_FILE)),
       }
     } finally {
@@ -906,6 +921,96 @@ if (process.argv.includes('--self-test')) {
   sc('A RESTORE THAT CANNOT WRITE, OR WRITES NOWHERE, KEEPS THE STATE: the backup and the marker are still on disk, for the next run to heal from',
     failedRestores.every(f => f.broken && f.backup === clean && f.marker),
     failedRestores.map(f => `${f.how}: target was broken ${f.broken}, backup kept ${f.backup === clean}, marker kept ${f.marker}, status ${f.status}`).join(' / '))
+  // The file that cannot even be READ is named: the failure list is the files whose restore failed, not a re-read of both (whose `catch { return true }` had no clause, and which said "the original files" when it named nothing).
+  const unreadable = failedRestores.find(f => f.how === 'directory')
+  sc('A RESTORE THAT CANNOT EVEN READ THE FILE NAMES IT: src/Scoreboard.fs could NOT be put back, not "the original files" (the target made a directory: 1 run)',
+    /src\/Scoreboard\.fs could NOT be put back/.test(unreadable.stderr) && !/the original files could NOT/.test(unreadable.stderr), unreadable.stderr.split('\n')[0])
+
+  // A FILE THIS RUN DID NOT WRITE IS NOT THIS RUN'S TO WRITE OVER (residual Task 4, 2026-11-05). The stand-in compilers append ONE line to a file at a chosen moment, as a person saving an edit while
+  // the gate runs would. The run used to put both files back from memory at the end of every phase, whatever was on disk, and to write each injection over whatever was there: every line below was lost
+  // (measured on the committed script, 2026-11-05: four variants, four losses). Each clause is one stand-in run, one file, one moment.
+  const inj = 'HEAD\nBLOCK\nTAIL\n'
+  const orig = 'HEAD\nTAIL\n'
+  const prefixes = Array.from({ length: inj.length + 1 }, (_, n) => inj.slice(0, n))
+  sc(`ours: the original, the whole injection and every prefix of it (the empty file included: ${prefixes.length} of them) are this run's; an edit on the original or on the injection, and anything when no attempt is recorded, are not`,
+    ours(orig, orig, undefined) && ours(orig, orig, inj) && prefixes.every(p => ours(p, orig, inj))
+      && !ours(`${inj}// x\n`, orig, inj) && !ours(`${orig}// x\n`, orig, inj) && !ours('HEAD', orig, undefined) && !ours('', orig, undefined),
+    'a prefix is what a write that failed part-way leaves behind')
+  const appendOn = (cond, file, tag) => `#!/bin/sh\nif ${cond}; then echo "// ${tag}" >> ${file}; fi\nexit 0\n`
+  // A stand-in that is exact (every check of the run passes against it, as in the torn-registry clause above), and runs `onProbe` in the build that sees the registry's probe case.
+  const exactCompiler = onProbe => [
+    '#!/bin/sh',
+    'if grep -q "| NHL" src/Desk.fs 2>/dev/null; then',
+    '  echo "src/Desk.fs(9,1): error FS0025: Incomplete matches, for example NHL"',
+    `  ${onProbe}`,
+    '  exit 1',
+    'fi',
+    `awk '/^let private __proof/ { h=NR; next } h && NR==h+1 && $0 !~ /^    ""$/ { printf "src/Scoreboard.fs(%d,5): error FS0001: fake\\n", NR; h=0 }' src/Scoreboard.fs`,
+    'exit 0', '',
+  ].join('\n')
+  const observed = (dotnet, options = {}) => withStandIn({ dotnet, ...options }, ({ go, read, has }) => {
+    const r = go()
+    return { r, target: read(TARGET), registry: read(REGISTRY), stateLeft: has(MARKER_FILE) }
+  })
+  const unwritten = (r, file) => new RegExp(`${file.replace('.', '\\.').replace('/', '\\/')} changed while the run was going and was left exactly as found`).test(r.stderr)
+
+  const inPhase1 = observed(appendOn('grep -q "let private __proof" src/Scoreboard.fs 2>/dev/null', 'src/Desk.fs', 'EDIT-DURING-PHASE-1'))
+  sc('A LINE ADDED TO THE REGISTRY WHILE THE TARGET IS INJECTED IS NOT LOST: the registry keeps it and is named as changed, the target is put back, the run fails, and nothing is left to put right, so the state goes',
+    inPhase1.registry.includes('// EDIT-DURING-PHASE-1') && inPhase1.target === clean && inPhase1.r.status === 1 && unwritten(inPhase1.r, REGISTRY) && !inPhase1.stateLeft,
+    `registry ${JSON.stringify(inPhase1.registry.slice(-40))}, target back ${inPhase1.target === clean}, status ${inPhase1.r.status}, state left ${inPhase1.stateLeft}; ${inPhase1.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
+
+  // Every check of this run passes against the exact compiler, so the exit status 1 below is the restore's and nothing else's.
+  const inPhase2 = observed(exactCompiler('echo "// EDIT-DURING-PHASE-2" >> src/Scoreboard.fs'))
+  sc('A LINE ADDED TO THE TARGET WHILE THE REGISTRY CARRIES ITS PROBE IS NOT LOST: the target keeps it and is named, the registry is put back, and the run FAILS although every check passed',
+    /(\d+)\/\1 checks passed/.test(inPhase2.r.stdout) && inPhase2.target.includes('// EDIT-DURING-PHASE-2') && inPhase2.registry === oldUnion && inPhase2.r.status === 1 && unwritten(inPhase2.r, TARGET) && !inPhase2.stateLeft,
+    `checks all passed ${/(\d+)\/\1 checks passed/.test(inPhase2.r.stdout)}, target ${JSON.stringify(inPhase2.target.slice(-40))}, registry back ${inPhase2.registry === oldUnion}, status ${inPhase2.r.status}, state left ${inPhase2.stateLeft}`)
+
+  // A change made to the file the run injected: it is left as found, with its injection, and the state is kept, because the original is only there. The next run refuses and writes nothing.
+  const onTheInjection = withStandIn({ dotnet: appendOn('grep -q "let private __proof" src/Scoreboard.fs 2>/dev/null', 'src/Scoreboard.fs', 'EDIT-ON-THE-INJECTION') }, ({ go, read, has }) => {
+    const first = go()
+    const after = { target: read(TARGET), backup: read(BACKUP), stateLeft: has(MARKER_FILE) }
+    const second = go()
+    return { first, after, second, target: read(TARGET) }
+  })
+  sc('A LINE ADDED TO THE INJECTED TARGET IS NOT LOST: it is left as found with its injection, the state is kept (the original is only there), the run fails, and the next run writes nothing and stops',
+    onTheInjection.first.status === 1 && onTheInjection.after.target.includes('// EDIT-ON-THE-INJECTION') && onTheInjection.after.target.includes(MARKER) && onTheInjection.after.stateLeft
+      && onTheInjection.after.backup === clean && unwritten(onTheInjection.first, TARGET)
+      && onTheInjection.second.status === 1 && /nothing was written/.test(onTheInjection.second.stderr) && onTheInjection.target === onTheInjection.after.target && !/baseline tree compiles/.test(onTheInjection.second.stdout),
+    `first: status ${onTheInjection.first.status}, edit kept ${onTheInjection.after.target.includes('// EDIT-ON-THE-INJECTION')}, state kept ${onTheInjection.after.stateLeft}; second: status ${onTheInjection.second.status}, ${onTheInjection.second.stderr.slice(0, 120).replace(/\n/g, ' | ')}`)
+
+  // The same on the registry's probe: the exact compiler, so that the run's own status is the restore's.
+  const onTheProbe = withStandIn({ dotnet: exactCompiler('echo "// EDIT-ON-THE-PROBE" >> src/Desk.fs') }, ({ go, read, has }) => {
+    const first = go()
+    const after = { registry: read(REGISTRY), stateLeft: has(MARKER_FILE) }
+    const second = go()
+    return { first, after, second, registry: read(REGISTRY) }
+  })
+  sc('A LINE ADDED TO THE PROBED REGISTRY IS NOT LOST: it is left as found with its probe, the state is kept, the run FAILS although every check passed, and the next run writes nothing and stops',
+    /(\d+)\/\1 checks passed/.test(onTheProbe.first.stdout) && onTheProbe.first.status === 1 && onTheProbe.after.registry.includes('// EDIT-ON-THE-PROBE') && onTheProbe.after.registry.includes('| NHL')
+      && onTheProbe.after.stateLeft && unwritten(onTheProbe.first, REGISTRY) && onTheProbe.second.status === 1 && /nothing was written/.test(onTheProbe.second.stderr) && onTheProbe.registry === onTheProbe.after.registry,
+    `first: status ${onTheProbe.first.status}, edit kept ${onTheProbe.after.registry.includes('// EDIT-ON-THE-PROBE')}, state kept ${onTheProbe.after.stateLeft}; second: status ${onTheProbe.second.status}, ${onTheProbe.second.stderr.slice(0, 120).replace(/\n/g, ' | ')}`)
+
+  // The injection write is guarded too: an edit made while the BASELINE build ran (nothing injected yet) is not written over by the injection.
+  const duringBaseline = observed('#!/bin/sh\nif ! grep -q "let private __proof" src/Scoreboard.fs 2>/dev/null && [ ! -f done ]; then touch done; echo "// EDIT-BEFORE-INJECTION" >> src/Scoreboard.fs; fi\nexit 0\n')
+  sc('A LINE ADDED TO THE TARGET DURING THE BASELINE BUILD IS NOT WRITTEN OVER BY THE INJECTION: it is there afterwards, nothing was injected, the run fails and says the file changed',
+    duringBaseline.target.includes('// EDIT-BEFORE-INJECTION') && !duringBaseline.target.includes(MARKER) && duringBaseline.r.status === 1 && unwritten(duringBaseline.r, TARGET) && !duringBaseline.stateLeft,
+    `target ${JSON.stringify(duringBaseline.target.slice(-40))}, status ${duringBaseline.r.status}, state left ${duringBaseline.stateLeft}; ${duringBaseline.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
+
+  // The two files are put back on their own: a target that cannot be touched does not keep the registry from going back.
+  const targetGoneInPhase2 = observed('#!/bin/sh\nif grep -q "| NHL" src/Desk.fs 2>/dev/null; then rm -f src/Scoreboard.fs; mkdir src/Scoreboard.fs; fi\nexit 0\n')
+  sc('A TARGET THAT CANNOT BE RESTORED DOES NOT KEEP THE REGISTRY FROM BEING RESTORED: the registry is back, the state is kept for the target, and the run fails naming it',
+    targetGoneInPhase2.registry === oldUnion && targetGoneInPhase2.stateLeft && targetGoneInPhase2.r.status === 1 && /src\/Scoreboard\.fs could NOT be put back/.test(targetGoneInPhase2.r.stderr),
+    `registry back ${targetGoneInPhase2.registry === oldUnion}, state kept ${targetGoneInPhase2.stateLeft}, status ${targetGoneInPhase2.r.status}; ${targetGoneInPhase2.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
+
+  // The trade-off the rule has to keep: a write that fails PART-WAY leaves a half-written injection, which only the blind restore used to repair, and `strandedTarget` does not recognise it. A real one: under a
+  // file size limit of 3 KB the injection write is cut short at 3072 bytes and then fails with EFBIG, leaving the marker in and the anchor out. It is a prefix of what the run tried to write, so it is put back.
+  // (Linux, bash, `ulimit -S -f`: where bash cannot set it the clause says it was not asserted; where the write does not fail with EFBIG it fails rather than passes empty.)
+  const haveBash = spawnSync('bash', ['-c', 'ulimit -S -f 3'], { stdio: 'ignore' }).status === 0
+  const halfTarget = `// head\n// ${'x'.repeat(2930)}\n${ANCHOR}\n  body\n`
+  const halfWritten = haveBash ? withStandIn({ dotnet: '#!/bin/sh\nexit 0\n', target: halfTarget }, ({ go, read, has }) => ({ r: go({}, 3), target: read(TARGET), stateLeft: has(STATE_DIR) })) : null
+  sc(`A HALF-WRITTEN INJECTION (a real partial write: the file size limit cut it short, EFBIG) IS STILL PUT BACK: the target is the original, the state is gone (1 run; asserted: ${haveBash})`,
+    !haveBash || (/EFBIG/.test(halfWritten.r.stderr) && halfWritten.target === halfTarget && !halfWritten.stateLeft),
+    haveBash ? `EFBIG in stderr ${/EFBIG/.test(halfWritten.r.stderr)}, target is the original ${halfWritten.target === halfTarget} (${halfWritten.target?.length} bytes of ${halfTarget.length}), state left ${halfWritten.stateLeft}` : 'no bash')
 
   // A restore that fails at the END of a run whose checks all passed, on the REGISTRY (the second file written), and the run after it. The stand-in compiler is exact: every injected proof
   // function whose body is not the clean control is an FS0001 on its first body line, and the registry phase (the probe's `| NHL`) is an FS0025 naming NHL, so all the run's checks pass;
@@ -1271,17 +1376,38 @@ try {
 // FS0025 until someone ran `git checkout`, and a second run started during that
 // phase was not refused. With the state kept, a kill in phase 2 classifies as a
 // stranded registry and is healed, and a live run in phase 2 is refused.
+// WRITTEN ONLY OVER WHAT IS PROVABLY THIS RUN'S OWN (2026-11-05, residual Task 4). The files used to be written back blind, from memory, whatever was on disk: a line appended to
+// either file while a phase ran was gone after the run (four stand-in variants, four losses), and the injection write itself overwrote an edit made during the baseline build. What this
+// run last TRIED to write to each file is recorded before the write (a write that fails part-way has still been attempted), and a file is written, injected or restored, only when `ours`
+// (above) says it is the original or a prefix of that text.
+const attempted = new Map()
+const inject = (file, original, text) => {
+  if (!ours(readFileSync(file, 'utf8'), original, attempted.get(file))) throw new Error(`${file} changed while the run was going, so nothing was written to it`)
+  attempted.set(file, text)
+  writeFileSync(file, text)
+}
+// What a restore did to each file, judged and written on its own (a target that cannot be written does not stop the registry going back): 'ok' (it is the original, or was put back and
+// read back), 'failed' (it could not be read or written, or did not read back), 'foreign' (it is someone else's and carries none of this run's code: left exactly as found), 'carrying'
+// (someone else's, and it still carries this run's injection: left as found, and the state is what holds the original).
+const outcome = { [TARGET]: 'ok', [REGISTRY]: 'ok' }
+const restoreOne = (file, original) => {
+  try {
+    const now = readFileSync(file, 'utf8')
+    if (now === original) return 'ok'
+    if (!ours(now, original, attempted.get(file))) return (file === TARGET ? now.includes(MARKER) : probeOnRegistry(now)) ? 'carrying' : 'foreign'
+    writeFileSync(file, original)
+    return readFileSync(file, 'utf8') === original ? 'ok' : 'failed'
+  } catch {
+    return 'failed' // best effort — the on-disk backups are the fallback, and they stay
+  }
+}
 // TRUE ONLY IF BOTH FILES READ BACK AS THEY WERE. The state is dropped on that answer and no other: a write that failed (a full disk, a lock, EIO) leaves a tracked file
 // injected, and the backups on disk are then the only thing that can put it right. The previous version dropped the state whether or not the files went back, so after a
 // failed write the next run found a mutated file and no state, and the only advice it had was `git checkout --`, which discards whatever else is uncommitted in the file.
 const restoreFiles = () => {
-  try {
-    writeFileSync(TARGET, source)
-    writeFileSync(REGISTRY, registrySource)
-    return readFileSync(TARGET, 'utf8') === source && readFileSync(REGISTRY, 'utf8') === registrySource
-  } catch {
-    return false // best effort — the on-disk backups are the fallback, and they stay
-  }
+  outcome[TARGET] = restoreOne(TARGET, source)
+  outcome[REGISTRY] = restoreOne(REGISTRY, registrySource)
+  return outcome[TARGET] === 'ok' && outcome[REGISTRY] === 'ok'
 }
 // The marker goes with the backups. A marker outliving its backups is the dead end
 // the write order above exists to avoid, and leaving one behind would make the NEXT
@@ -1298,13 +1424,18 @@ const restore = () => {
   let pending = false
   try { writeFileSync(PENDING_FILE, ''); pending = true } catch { /* the state directory is already gone (a second call), or cannot be written */ }
   if (restoreFiles()) { dropState(); return }
+  const named = (...kinds) => [TARGET, REGISTRY].filter(f => kinds.includes(outcome[f]))
+  const failed = named('failed')
+  const carrying = named('carrying')
+  const changed = named('foreign', 'carrying')
+  process.exitCode = 1
+  if (changed.length) console.error(`proof-check: ${changed.join(' and ')} changed while the run was going and was left exactly as found (nothing was written over ${changed.length > 1 ? 'them' : 'it'}). This run's result is not to be trusted.`)
+  // A file that is someone else's and carries none of this run's code is theirs, and fine as it is: the state has nothing left to put right, and goes.
+  if (failed.length === 0 && carrying.length === 0) { dropState(); return }
   let flagged = false
   try { writeFileSync(MARKER_FILE, JSON.stringify({ ...runMarker, restoreFailed: true }, null, 2) + '\n'); flagged = true } catch { /* the sentinel still says so */ }
-  process.exitCode = 1
-  const notBack = [[TARGET, source], [REGISTRY, registrySource]].filter(([f, text]) => { try { return readFileSync(f, 'utf8') !== text } catch { return true } }).map(([f]) => f)
-  const which = notBack.length ? notBack.join(' and ') : 'the original files'
-  console.error(`proof-check: ${which} could NOT be put back (a write failed, or what was written did not read back). ${STATE_DIR} was kept: ${BACKUP} and ${BACKUP}.registry `
-    + `are the whole originals. Put ${notBack.length ? notBack.join(' and ') : 'the files'} right from them by hand, then: rm -rf ${STATE_DIR}. `
+  console.error(`proof-check: ${failed.length ? `${failed.join(' and ')} could NOT be put back (a write failed, or what was written did not read back). ` : ''}${STATE_DIR} was kept: ${BACKUP} and ${BACKUP}.registry `
+    + `are the whole originals${carrying.length ? ` (${carrying.join(' and ')} also carries what was changed meanwhile, which is not in them)` : ''}. Put ${named('failed', 'carrying').join(' and ')} right by hand, then: rm -rf ${STATE_DIR}. `
     + (pending || flagged
       ? 'The next run writes nothing over a file that is not what this run backed up.'
       : 'This failure could NOT be recorded in the state directory either, so the next run cannot tell: do not run proof-check again until the files are right.'))
@@ -1353,7 +1484,7 @@ const CONTROLS = [
  * for the controls.
  */
 const decideAlone = c => {
-  writeFileSync(TARGET, layout(source, [c]).text)
+  inject(TARGET, source, layout(source, [c]).text)
   const out = build()
   const rejected = /error FS\d+/.test(out)
   const codes = [...new Set(out.match(/error FS\d+/g) || [])].join(', ')
@@ -1373,7 +1504,7 @@ if (baselineClean && cases.length > 0 && source.includes(ANCHOR)) {
   try {
     const all = [...cases, ...CONTROLS]
     const batch = layout(source, all)
-    writeFileSync(TARGET, batch.text)
+    inject(TARGET, source, batch.text)
     const batchStart = performance.now()
     const batchFlags = ` -p:OtherFlags=--maxerrors:${MAX_ERRORS}`
     let batchOut = build(batchFlags)
@@ -1497,7 +1628,7 @@ if (baselineClean) {
     if (withCase === registrySource) {
       check('registry mutation applied', false, 'could not add a probe case to the Sport union')
     } else {
-      writeFileSync(REGISTRY, withCase)
+      inject(REGISTRY, registrySource, withCase)
       const out = build()
       check('adding a Sport case without the registry does not compile',
         /error FS0025/.test(out) && /NHL/.test(out),
