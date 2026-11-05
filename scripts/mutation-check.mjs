@@ -1110,6 +1110,14 @@ const MUTATIONS = [
     // survival condition.
     expect: `bash -c '! node scripts/mutation-check.mjs --only known-survivor'`,
   },
+  {
+    id: 'harness-applies-a-replacement-as-a-pattern',
+    file: 'scripts/mutation-check.mjs',
+    claim: "an entry's replace is applied as the text written: a `$'`, `$&`, `$$` or backtick-dollar in it is those characters, not what String.prototype.replace expands them to (`lineups-two-prefix-characters-unread` holds `'$'` and was applied as 16,106 characters of the rest of the file)",
+    find: "source.slice(guard).replace(m.find, () => m.replace)",
+    replace: "source.slice(guard).replace(m.find, m.replace)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
 
   // --- the harness's kill recovery (2026-11-04) --------------------------------------------------
   //
@@ -9063,9 +9071,10 @@ const MUTATIONS = [
  * So when the target is this file, only the region AFTER the table is mutated.
  */
 const guardOf = (source, m) => (m.file === 'scripts/mutation-check.mjs' ? source.indexOf('const selected = ONLY') : 0)
+// The replacement goes in through a function, not as a string: a string is read for `$'`, `$&`, `$$` and `` $` ``, and an entry's replace is source text, not a pattern (the self-test's first clause).
 const applyMutation = (source, m) => {
   const guard = guardOf(source, m)
-  return source.slice(0, guard) + source.slice(guard).replace(m.find, m.replace)
+  return source.slice(0, guard) + source.slice(guard).replace(m.find, () => m.replace)
 }
 /** How many times the anchor occurs where the mutation would be applied. `replace` takes the first, so two means the entry may be mutating something other than what its claim says. */
 const anchorCount = (source, m) => source.slice(guardOf(source, m)).split(m.find).length - 1
@@ -9874,6 +9883,29 @@ if (process.argv.includes('--self-test')) {
   // above). A normal end removes it already, at the end of the file's own cleanup; removing twice with `force` is harmless. Not in restore(): the self-test calls that itself, part-way, and would lose its
   // scratch. (A SIGKILL cannot be covered.)
   process.on('exit', () => rmSync(scratch, { recursive: true, force: true }))
+
+  // A MUTATION IS ITS TEXT. `String.prototype.replace` reads `$'`, `` $` ``, `$&` and `$$` in a replacement STRING as the text after the match, the text before it, the match and a dollar sign, so an entry whose replace holds
+  // one was applied as something else: `lineups-two-prefix-characters-unread` holds `'$'`, which is `$'`, and the harness wrote the rest of the file into the middle of its own source (a syntax error, 16,106 characters
+  // longer than the entry says; found by review 6, 2026-11-05, by applying all 772 anchored entries both ways: it was the only one of them that differed). It was CAUGHT, because no command can load a file that does not parse,
+  // and it would have stayed CAUGHT with the code it was written to defend deleted. Each text goes through a scratch file and the bytes that come back are compared with the replace written after the rest of the source, which
+  // is the expected text built without `replace`.
+  {
+    const DOLLARS = ["'$'", "$'", '$&', '$$', '$`', '$1', '$<x>', "a $' b $& c $$ d $` e"]
+    const TEXT = 'const a = 1\nconst b = 2\n'
+    const FIND = 'const a'
+    const file = join(scratch, 'dollars.txt')
+    const wrong = []
+    for (const r of DOLLARS) {
+      writeFileSync(file, TEXT)
+      writeFileSync(file, applyMutation(readFileSync(file, 'utf8'), { file, find: FIND, replace: r }))
+      const got = readFileSync(file, 'utf8')
+      const want = r + TEXT.slice(FIND.length)
+      if (got !== want) wrong.push(`${JSON.stringify(r)}: ${JSON.stringify(got.slice(0, 60))}`)
+    }
+    check(`A REPLACEMENT IS APPLIED AS WRITTEN, whatever dollar sequence it holds (${DOLLARS.length} texts: \`$'\`, \`$&\`, \`$$\`, a backtick one, \`$1\`, \`$<x>\`, \`'$'\` and a mix, each through a scratch file and compared byte for byte; NOT COVERED: the anchored entries one by one, which all go through the one line this tests)`,
+      wrong.length === 0, `${wrong.length} of ${DOLLARS.length} applied as something else: ${wrong.slice(0, 3).join(' / ')}`)
+  }
+
   let caseNo = 0
   const DEAD = { pid: 2 ** 30, start: '1', startedAt: '2026-10-20T20:00:00.000Z' }
   // Where /proc cannot say when a process started, a recycled pid cannot be told from the run: the signal's answer stands (run-marker.mjs),
