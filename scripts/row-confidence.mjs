@@ -118,17 +118,20 @@ const mutationsFor = (scripts, rowName) => {
  * What it still does not do: a `/` after `}` is read as the start of a regular expression, which is right after a block
  * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
  * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
- * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). Not handled, and filed with the rest: a comment or string
- * ended by CR, U+2028 or U+2029 or by a backslash-CRLF, `default`, `instanceof` and `extends` before a regular expression. (A leading `#!`
+ * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). A line ends at a line feed, a carriage return, U+2028 or
+ * U+2029: a `//` comment, a regular expression and the `++` test stop there; a string stops at a line feed or a carriage return (U+2028 and U+2029 may be inside one), and a backslash
+ * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression. (A leading `#!`
  * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
  */
 const stripNonCode = src => {
-  const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'of', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
+  const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'of', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
   const n = src.length
   let out = ''
   // The parentheses seen so far, in code: where in `out` each open one began, and where the one closed last began.
   const opens = []
   let closed = 0
+  // The characters the language ends a line at (no raw U+2028 or U+2029 in this file: an editor would change what it means).
+  const isEol = ch => ch === '\n' || ch === '\r' || ch === String.fromCharCode(0x2028) || ch === String.fromCharCode(0x2029)
   // A `.` that is member access: not the end of `...` (a spread, after which a keyword is a keyword) and not a number's decimal point (`1.`).
   const isPropertyDot = before => before.endsWith('.') && !before.endsWith('...') && !/(?<![\w$.])\d+\.$/.test(before)
   // Does `text` end in a keyword that a regular expression can follow, as opposed to a property spelled like one (`c.new`, `o?.in`)?
@@ -148,7 +151,7 @@ const stripNonCode = src => {
     if (/(\+\+|--)$/.test(tail)) {
       const before = tail.slice(0, -2)
       const operand = before.trimEnd()
-      if (/[\w$)\]]$/.test(operand) && !before.slice(operand.length).includes('\n') && !endsInKeyword(operand)) return false
+      if (/[\w$)\]]$/.test(operand) && ![...before.slice(operand.length)].some(isEol) && !endsInKeyword(operand)) return false
     }
     // The `)` that closes the header of an if, while, for or with begins a statement, so a `/` after it begins a regular expression: `if (x) /re/.test(y)`. After any other `)` it divides.
     if (tail.endsWith(')') && /(?<![\w$.#])(?:if|while|for(?:\s+await)?|with)$/.test(out.slice(Math.max(0, closed - 40), closed).trimEnd())) return true
@@ -162,12 +165,13 @@ const stripNonCode = src => {
     while (i < n) {
       const c = src[i]
       const d = src[i + 1]
-      if (c === '/' && d === '/') { while (i < n && src[i] !== '\n') i++; continue }
+      if (c === '/' && d === '/') { while (i < n && !isEol(src[i])) i++; continue }
       if (c === '/' && d === '*') { const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; out += ' '; continue }
       if (c === "'" || c === '"') {
-        // A string that reaches a newline unclosed ends there: a stray quote must not be able to swallow the rest of the file.
+        // A string that reaches a line feed or a carriage return unclosed ends there: a stray quote must not be able to swallow the rest of the file. (U+2028 and U+2029 may be inside a string.)
+        // A backslash and the line end after it continue the string, and a CR LF is one line end: skip both characters.
         i++
-        while (i < n && src[i] !== c && src[i] !== '\n') i += src[i] === '\\' ? 2 : 1
+        while (i < n && src[i] !== c && src[i] !== '\n' && src[i] !== '\r') i += src[i] !== '\\' ? 1 : src[i + 1] === '\r' && src[i + 2] === '\n' ? 3 : 2
         if (src[i] === c) i++
         out += "''"
         continue
@@ -177,7 +181,7 @@ const stripNonCode = src => {
         if (!regexAllowed()) { out += '/'; i++; continue }
         i++
         let inClass = false
-        while (i < n && src[i] !== '\n') {
+        while (i < n && !isEol(src[i])) {
           const r = src[i]
           if (r === '\\') { i += 2; continue }
           if (r === '[') inClass = true
@@ -399,7 +403,7 @@ function scannerClauses(check) {
     ['`a ${ Date.now() } b`', " ( Date.now() ) ''", 'the inside of a template expression is kept'],
     ['`a ${ `b ${1}` + "}" } c` + d', " (  (1) '' + '' ) '' + d", 'a template inside a template expression, with a brace in a string'],
   ]
-  for (const k of ['return', 'typeof', 'case', 'in', 'of', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await']) {
+  for (const k of ['return', 'typeof', 'case', 'in', 'of', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await']) {
     STRIPS.push([`${k} /"'\`/`, `${k} 0`, `a regular expression after the keyword ${k}`], [`o.${k} / 2`, `o.${k} / 2`, `a property named ${k} is not the keyword`])
   }
   STRIPS.push(['o?.in / 2', 'o?.in / 2', 'an optional-chained property named like a keyword'], ['o. of / 2', 'o. of / 2', 'a property after a dot and a space'])
@@ -440,6 +444,19 @@ function scannerClauses(check) {
     ['if (x) y / 2 / z', 'if (x) y / 2 / z', 'a slash after the statement of an if divides: only the slash right after the header\'s parenthesis begins a regular expression'],
     [`if${' '.repeat(30)}(x) /${Q}/.test(y)`, `if${' '.repeat(30)}(x) 0.test(y)`, 'a header whose keyword is thirty spaces before its parenthesis is still one (the window the keyword is looked for in is forty characters)'],
     [`a / /${Q}/.source`, 'a / 0.source', 'a slash after a division sign begins a regular expression'])
+  // Residuals Task 10 item 13. The language ends a line at a carriage return, U+2028 and U+2029 as well as at a line feed, so a `//` comment, a `++` that starts its statement and a regular expression end there too;
+  // a quote ends at a line feed or a carriage return (U+2028 and U+2029 are legal inside a string since ES2019), and a backslash before a CR LF continues the string over both. No file in the repo has any of them.
+  const CRc = '\r', LSc = String.fromCharCode(0x2028), PSc = String.fromCharCode(0x2029)
+  for (const [name, eol] of [['a carriage return', CRc], ['U+2028', LSc], ['U+2029', PSc]]) STRIPS.push(
+    [`a // c${eol}b`, `a ${eol}b`, `a line comment ends at ${name}`],
+    [`a${eol}++/${Q}/.lastIndex`, `a${eol}++0.lastIndex`, `a ++ after ${name} starts its statement, so it is a prefix`],
+    [`x = /oops${eol}b`, `x = 0${eol}b`, `an unterminated regular expression ends at ${name}`])
+  STRIPS.push(
+    [`'a\\${CRc}\nb' + c`, "'' + c", 'a backslash and a CR LF continue a string over both'],
+    [`'a\\${CRc}' + c`, "'' + c", 'a backslash and a lone CR continue a string over the CR only'],
+    [`'oops${CRc}b`, `''${CRc}b`, 'an unclosed quote ends at a carriage return'],
+    [`'a${LSc}b' + c`, "'' + c", 'U+2028 is legal inside a string'],
+    [`x = a instanceof /${Q}/`, 'x = a instanceof 0', 'a regular expression after instanceof'])
   STRIPS.push(['x = /a\\/b/g + c', 'x = 0 + c', 'an escaped slash does not end a regular expression'], ['x = /[\\]/]y/ + c', 'x = 0 + c', 'an escaped bracket does not end a class'],
     ['x = /oops\nb', 'x = 0\nb', 'an unterminated regular expression ends at its line'])
   const wrong = STRIPS.filter(([from, want]) => stripNonCode(from) !== want)
@@ -456,6 +473,21 @@ function scannerClauses(check) {
   const off = CASES.map(([src, want]) => ({ want, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.want !== x.got)
   check('A DIVISION AFTER `++`, OR AFTER A PROPERTY NAMED LIKE A KEYWORD, DOES NOT HIDE THE CLOCK READS AFTER IT (nor, inside a template expression, the rest of the file)',
     off.length === 0, off.map(x => `wanted ${x.want}, got ${x.got}`).join(' / '))
+
+  // The same, one level up, for a line that ends in a character the scan did not know and a keyword that takes a regular expression: each of these lost the read after it. Each is followed by two bare reads, so "2/0" is both seen.
+  const EOLS = [['a carriage return', CRc], ['U+2028', LSc], ['U+2029', PSc]]
+  const BARE2 = 'Date.now()\nDate.now()\n'
+  const CASES13 = [...EOLS.map(([name, eol]) => [`a line comment ended by ${name}`, `// c${eol}${BARE2}`, '2/0']),
+    ['a string left open at a carriage return', `const a = 'oops${CRc}${BARE2}`, '2/0'],
+    ['a string continued by a backslash and CR LF', `const a = 'a\\${CRc}\nb' + ${BARE2}`, '2/0'],
+    ['a regular expression left open at a carriage return', `x = /oops${CRc}${BARE2}`, '2/0'],
+    ['a string left open at U+2028, which the language lets it hold (the read after it is inside it)', `const a = 'oops${LSc}${BARE2}`, '1/0'],
+    ['a backtick in a regular expression after instanceof', `x = a instanceof /\`/.constructor\n${BARE2}`, '2/0'],
+    ['a backtick in a regular expression after extends', `class A extends /\`/.constructor {}\n${BARE2}`, '2/0'],
+    ['a backtick in a regular expression after default', `export default /\`/.test(y)\n${BARE2}`, '2/0']]
+  const off13 = CASES13.map(([what, src, want]) => ({ what, want, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.want !== x.got)
+  check(`A LINE THAT ENDS AT A CARRIAGE RETURN, U+2028 OR U+2029 (A COMMENT, A REGULAR EXPRESSION; a string at a CR, not at U+2028), A BACKSLASH BEFORE A CR LF, AND instanceof, extends AND default BEFORE A REGULAR EXPRESSION, DO NOT HIDE THE CLOCK READS AFTER THEM, for ${CASES13.length} inputs`,
+    off13.length === 0, off13.map(x => `${x.what}: wanted ${x.want}, got ${x.got}`).join(' / '))
 
   // Every spelling of a clock read is counted as one, and only the three that can be captured are captured. A scanner that counted fewer would pass every other clause here.
   const FORMS = [['Date.now()', 1, 0], ['Date.now( )', 1, 0], ['Date.now ()', 1, 0], ['globalThis.Date.now()', 1, 0], ['new Date()', 1, 0], ['new Date( )', 1, 0], ['new  Date()', 1, 0],
