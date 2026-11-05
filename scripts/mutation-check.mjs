@@ -4237,6 +4237,22 @@ const MUTATIONS = [
     expect: 'node scripts/row-confidence.mjs --self-test',
   },
   {
+    id: 'row-scan-script-read-from-comments',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a script named only in a comment of a row is not one the row runs",
+    find: "[...blankComments(decl).matchAll(/scripts",
+    replace: "[...decl.matchAll(/scripts",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'row-scan-script-comment-cut-by-line',
+    file: 'scripts/row-confidence.mjs',
+    claim: "a double slash inside the string of one command is not a comment: the next command's script is still the row's",
+    find: "[...blankComments(decl).matchAll(/scripts",
+    replace: "[...decl.replace(/\\/\\/.*$/gm, '').matchAll(/scripts",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
     id: 'network-exempt-for-everything',
     file: 'scripts/row-confidence.mjs',
     claim: "a script with no exemption is an objection",

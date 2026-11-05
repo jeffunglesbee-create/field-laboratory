@@ -45,7 +45,7 @@ const BAR = 95
 const gateSource = readFileSync('scripts/gate-checks.mjs', 'utf8')
 const mutationSource = readFileSync('scripts/mutation-check.mjs', 'utf8')
 
-/** A row's own declaration in `gate-checks.mjs`, comments included: the text its commands are read from. Empty when no row has that name. */
+/** A row's own declaration in `gate-checks.mjs`, comments included (a caller that reads commands out of it blanks them first: `scriptsIn`, `commandsOf`). Empty when no row has that name. */
 const declOf = rowName => {
   // Slice the row's own object literal, so a neighbouring row's command is not
   // attributed to it.
@@ -57,11 +57,15 @@ const declOf = rowName => {
   return gateSource.slice(at, end === -1 ? gateSource.length : end)
 }
 
-/** The scripts a row shells out to, read from its declaration. */
+/** The scripts a row shells out to, read from its declaration. Empty when no row has that name. */
 const scriptsOf = rowName => {
   const decl = declOf(rowName)
-  if (decl === '') return []
-  const named = [...decl.matchAll(/scripts\/([\w.-]+\.mjs)/g)].map(m => `scripts/${m[1]}`)
+  return decl === '' ? [] : scriptsIn(decl)
+}
+
+/** The scripts a declaration runs: the paths in its code and its strings, not in its comments (`commandsOf` blanks them the same way, so the two agree on what the row runs). */
+const scriptsIn = decl => {
+  const named = [...blankComments(decl).matchAll(/scripts\/([\w.-]+\.mjs)/g)].map(m => `scripts/${m[1]}`)
   // A row whose `run` is a local function — the outbox and history rows — names
   // no script, and its logic lives in gate-checks.mjs. Those rows were scanned
   // for nondeterminism against an EMPTY file list, so they scored full marks for
@@ -615,6 +619,23 @@ function networkClauses(check) {
   } finally {
     rmSync(dir, { recursive: true, force: true })
   }
+
+  // The scripts a row runs are read from its code and its strings, not from its comments: a path named in a comment is documentation, and the row does not run it. It was scanned as if the row did,
+  // and with the network half alive a sentence naming any of the 55 scripts that reach the network dropped its row to 70 (review 7). The last case is the way the comment pass can go wrong the other
+  // way: a `//` inside the string of one command (a URL) must not take the next command's path with it.
+  const IN = [
+    ['a path in a line comment', "name: 'r',\n    // the live counterpart is scripts/window-check.mjs, which this row does not run\n    run: () => ok('node scripts/spark-check.mjs') },", 'scripts/spark-check.mjs'],
+    ['a path in a block comment', "name: 'r', /* scripts/window-check.mjs */ run: () => ok('node scripts/spark-check.mjs') },", 'scripts/spark-check.mjs'],
+    ['a path in a comment after the command, on the same line', "name: 'r', run: () => ok('node scripts/spark-check.mjs') }, // not scripts/window-check.mjs", 'scripts/spark-check.mjs'],
+    ['a path only in a comment names no script: the row is its own logic', "name: 'r',\n    // scripts/window-check.mjs\n    run: () => localFn() },", 'scripts/gate-checks.mjs'],
+    ['a `//` inside the string of one command does not hide the next command', "name: 'r', run: () => " + ["ok('node scripts/a-check.mjs --url http://x')", "ok('node scripts/b-check.mjs')"].join(' && ') + ' },', 'scripts/a-check.mjs,scripts/b-check.mjs'],
+  ]
+  const offIn = IN.map(([what, decl, want]) => ({ what, want, got: scriptsIn(decl).join() })).filter(x => x.want !== x.got)
+  const mentioned = scriptsIn(IN[0][1])
+  const staleForComment = staleExemptions([{ row: 'r', script: 'scripts/window-check.mjs', flag: '--url' }], new Map([['r', mentioned]]))
+  check(`THE SCRIPTS A ROW RUNS ARE THE ONES IN ITS CODE AND STRINGS, NOT IN ITS COMMENTS, for ${IN.length} declarations (a line comment, a block comment, a comment after the command, a comment alone; a \`//\` in a URL inside a string is not a comment), and an exemption for a script a row only names in a comment is stale`,
+    offIn.length === 0 && staleForComment.length === 1,
+    offIn.map(x => `${x.what}: scanned [${x.got}], wanted [${x.want}]`).join(' / ') + ` (${offIn.length} wrong of ${IN.length}; ${staleForComment.length} stale of 1 exemption for the commented script)`)
 
   // The table itself. There is exactly one sanctioned network read in the gate, the shard wait, and a guarded entry's flag is a flag: a flag spelled `url` would never be passed, and its exemption would never lapse.
   const sanctioned = NETWORK_EXEMPT.filter(x => x.sanctioned).map(x => x.script)
