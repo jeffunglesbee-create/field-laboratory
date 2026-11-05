@@ -1770,6 +1770,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: 'crash-leaves-the-self-test-directories',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a self-test that crashes removes the two temp directories it made, so a crash does not accumulate them in the temp directory",
+    find: "  process.on('exit', () => { rmSync(scratch, { recursive: true, force: true }); rmSync(stateDir, { recursive: true, force: true }) })\n",
+    replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'rebuild-refusal-after-a-restore-offers-to-delete-the-state',
     file: 'scripts/mutation-check.mjs',
     claim: "the refusal over a failed rebuild after a restore does not tell a person to delete the state that is the only record of the build",
@@ -5449,6 +5457,10 @@ if (process.argv.includes('--self-test')) {
   // and the commands replaced by fakes where a scenario needs them: nothing reads the working tree, writes outside tmp, or builds.
   // The last group starts the REAL script in a scratch git repository and ends it in the ways a handler cannot catch.
   const scratch = mkdtempSync(join(tmpdir(), 'heal-selftest-'))
+  // A crash ends in the uncaughtException handler's process.exit, and exit runs this: the two directories this self-test made (this one and its state directory, a mkdtemp of its own
+  // above) do not outlive it. A normal end removes them already, at the end of the file's own cleanup; removing twice with `force` is harmless. Not in restore(): the self-test
+  // calls that itself, part-way, and would lose its scratch. (A SIGKILL cannot be covered.)
+  process.on('exit', () => { rmSync(scratch, { recursive: true, force: true }); rmSync(stateDir, { recursive: true, force: true }) })
   let caseNo = 0
   const DEAD = { pid: 2 ** 30, start: '1', startedAt: '2026-10-20T20:00:00.000Z' }
   // Where /proc cannot say when a process started, a recycled pid cannot be told from the run: the signal's answer stands (run-marker.mjs),
@@ -6390,6 +6402,20 @@ if (process.argv.includes('--self-test')) {
       kbt.status === 1 && kbt.signal === null && !/baseline: ran/.test(text(kbt)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
       `status ${kbt.status}, signal ${kbt.signal}; ${text(kbt).split('\n').filter(l => /baseline|PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
     reset()
+
+    // E25: a self-test that crashes leaves none of the directories it made. Git is made to fail (a stand-in first on PATH), which is how the crash was found: the crash is at the first git
+    // call of the scratch repository, about 0.1 s in, with the scratch directory and the state directory (two mkdtemp calls) already made. The child's TMPDIR is an empty directory, so
+    // what it leaves is all that is in it. The stand-in's own line in the report is the proof that it crashed for the reason planned.
+    const crashTmp = join(scratch, 'crash-tmp')
+    const noGit = join(scratch, 'no-git')
+    mkdirSync(crashTmp)
+    mkdirSync(noGit)
+    writeFileSync(join(noGit, 'git'), '#!/bin/sh\necho "git: stand-in, fails on purpose" >&2\nexit 1\n', { mode: 0o755 })
+    const crashed = spawnSync(process.execPath, [here, '--self-test'], { cwd: process.cwd(), encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1', TMPDIR: crashTmp, PATH: `${noGit}:${process.env.PATH}` } })
+    const leftBehind = readdirSync(crashTmp)
+    check('E25: A SELF-TEST THAT CRASHES LEAVES NO DIRECTORY BEHIND: it did crash (exit 1, the git stand-in named in its report), and its temp directory holds none of the 2 directories it made (heal-selftest-*, mutation-state-*)',
+      crashed.status === 1 && /git: stand-in, fails on purpose/.test(String(crashed.stderr)) && leftBehind.length === 0,
+      `status ${crashed.status}; left behind in its TMPDIR: ${leftBehind.join(', ') || 'nothing'}; stderr ${String(crashed.stderr).split('\n')[0].slice(0, 120)}`)
   } else {
     console.log('  (the real-script clauses were skipped: this self-test was started by another, and each of them would start the next)')
   }
