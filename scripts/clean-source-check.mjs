@@ -41,6 +41,10 @@
 // `4/4 checks passed` and exited 0, while `node scripts/proof-check.mjs` on the same tree refused with "src/Desk.fs contains injected proof code (the probe case) and no run state exists".
 // It is looked for in every source file, as the block is, and the constants that define it are asserted against proof-check's source, like the marker.
 //
+// A sport added directly above the union's last case lands between the probe and that case, and the probe is then no longer directly above it (review 6, finding 0: proof-check kept the state for
+// such a registry and this scan, which looked only for the adjacent line, passed over it). The probe is a second `    | NHL` line in a union that has one of its own, and a union cannot have a case twice, so
+// the same line there twice in one top-level declaration is the probe wherever in the union it sits. Measured 2026-11-05: no declaration in the 49 files of src/ has it twice.
+//
 // WHAT IT TELLS THE READER TO DO depends on whether proof-check has a run state
 // to work from, because the two cases have different remedies and `git checkout`
 // is the right answer to neither. It restores a file to the INDEX: that throws
@@ -88,6 +92,8 @@ const REGISTRY_PROBE = '    | NHL\n'
 const SITE_SOURCE = 'REGISTRY_PROBE + REGISTRY_ANCHOR.slice(1)'
 const PROBE_SITE = REGISTRY_PROBE + REGISTRY_ANCHOR.slice(1)
 const asSource = text => text.replace('\n', '\\n')
+// The probe's line twice in one top-level declaration (a line that starts in column 0 starts the next one): the probe, whether or not it is still directly above the union's last case.
+const probeDuplicated = text => text.split(/\n(?=\S)/).some(declaration => declaration.split('\n').filter(l => l === REGISTRY_PROBE.trimEnd()).length > 1)
 
 const SRC = 'src'
 
@@ -127,13 +133,17 @@ if (process.argv.includes('--self-test')) {
   const where = needle => sources.filter(f => readFileSync(join(SRC, f), 'utf8').includes(needle))
   const blocks = where(MARKER)
   const probes = where(PROBE_SITE)
-  const dirty = sources.filter(f => blocks.includes(f) || probes.includes(f))
+  // A probe an edit has separated from the last case: not directly above it, but there twice in its declaration.
+  const moved = sources.filter(f => !probes.includes(f) && probeDuplicated(readFileSync(join(SRC, f), 'utf8')))
+  const dirty = sources.filter(f => blocks.includes(f) || probes.includes(f) || moved.includes(f))
   const at = files => files.map(f => join(SRC, f)).join(' ')
   const paths = at(dirty)
   // What to delete, for each kind that is there. The probe is one line, and its grep shows the line above the union's last case, because that line is the probe: the last case itself is always there.
   const deletions = [
     ...(blocks.length ? [`the injected block (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${at(blocks)}\` finds them)`] : []),
     ...(probes.length ? [`the probe case (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${at(probes)}\` shows it)`] : []),
+    // Where a sport now sits between the probe and the last case, the line above the last case is that sport: the grep lists the line itself, both of them, and the probe is the second.
+    ...(moved.length ? [`the probe case (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: proof-check wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; \`grep -n "^${REGISTRY_PROBE.trimEnd()}$" ${at(moved)}\` lists both)`] : []),
   ]
   // The remedy is one line (it is also a GitHub annotation) and depends on whether proof-check has the state it needs.
   const remedy = existsSync(ACTIVE_FILE)
@@ -199,11 +209,18 @@ function selfTest () {
     const probeDrift = run({ files: { 'D.fs': probedUnion }, harness: harnessOf({ probe: asSource('    | NFL\n') }) })
     const anchorDrift = run({ files: { 'D.fs': probedUnion }, harness: harnessOf({ anchor: asSource('\n    | Other of raw: string') }) })
     const siteDrift = run({ files: { 'D.fs': probedUnion }, harness: harnessOf({ site: 'REGISTRY_PROBE + REGISTRY_ANCHOR' }) })
+    // A sport added directly above the last case lands between the probe and that case: the probe is then the second `| NHL`, no longer directly above the last case.
+    const movedUnion = unionOf(['MLB', 'NHL', 'UFL', 'NHL', 'MyNewSport'])
+    const movedProbe = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': movedUnion } })
+    const movedWithState = run({ files: { 'D.fs': movedUnion }, state: ACTIVE })
+    const probeKinds = run({ files: { 'D.fs': probedUnion, 'E.fs': movedUnion } })
+    const twoDeclarations = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': 'type A =\n    | NHL\n    | X\n\ntype B =\n    | NHL\n    | Y\n' } })
     const FAILS = /FAIL  no source file carries injected proof code/
 
-    // Coverage (Rule 91): 14 fixtures, each the real script in a directory of its own: clean, injected with no state, with active.json, with a state directory that holds no active.json,
+    // Coverage (Rule 91): 18 fixtures, each the real script in a directory of its own: clean, injected with no state, with active.json, with a state directory that holds no active.json,
     // a renamed marker, a renamed state directory, a renamed state file, and no sources; then the registry's probe case: carried, carried beside an injected block, a clean union that has `| NHL`
-    // in the middle, and a probe line, a last-case anchor and a site definition that proof-check no longer uses.
+    // in the middle, and a probe line, a last-case anchor and a site definition that proof-check no longer uses; then a probe a sport has been added in front of: alone, with a run state, beside
+    // a probe that is directly above the last case, and the same line in two declarations that each have one of their own.
     check('a clean tree passes all 5 checks (fixture: one clean file)',
       clean.status === 0 && /5\/5 checks passed/.test(clean.out), clean.verdict)
     check('an injected file fails, and is the one named (fixtures: src/A.fs clean, src/B.fs injected)',
@@ -240,6 +257,19 @@ function selfTest () {
         && /\`git checkout -- src\/B\.fs src\/D\.fs\` also removes it/.test(bothKinds.out), bothKinds.verdict)
     check('a union that has `| NHL` in the middle and another case above its last is clean, as the real one is (the probe is a second `| NHL`, directly above the last case)',
       unionClean.status === 0 && /5\/5 checks passed/.test(unionClean.out), unionClean.verdict)
+    check('a probe a sport has been added in front of fails the scan, and is the file named (fixtures: src/A.fs clean, src/D.fs carries `| NHL` twice with a sport above the last case)',
+      movedProbe.status === 1 && FAILS.test(movedProbe.out) && /→ D\.fs — /.test(movedProbe.out) && !/A\.fs/.test(movedProbe.out), movedProbe.verdict)
+    check('WITHOUT a run state, its remedy names the line by what it is (the second `| NHL`) and a grep that lists both, and does not say the grep shows the line above the last case',
+      /Delete the probe case \(the second line "    \| NHL" in the union: proof-check wrote it directly above "    \| Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "\^    \| NHL\$" src\/D\.fs\` lists both\)\./.test(movedProbe.out)
+        && /If the injection is uncommitted, \`git checkout -- src\/D\.fs\` also removes it but discards every uncommitted edit to the file/.test(movedProbe.out) && !/-B1/.test(movedProbe.out) && !/injected block/.test(movedProbe.out), movedProbe.verdict)
+    check('WITH a run state, a probe a sport has been added in front of gets the proof-check remedy and no checkout, as a block does',
+      movedWithState.status === 1 && FAILS.test(movedWithState.out) && /node scripts\/proof-check\.mjs/.test(movedWithState.out) && !/git checkout/.test(movedWithState.out), movedWithState.verdict)
+    check('a probe directly above the last case in one file and a separated one in another each get their own instruction, naming only their own file, and one checkout names both',
+      probeKinds.status === 1 && /→ D\.fs, E\.fs — /.test(probeKinds.out)
+        && /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\) and the probe case \(the second line/.test(probeKinds.out)
+        && /\`grep -n "\^    \| NHL\$" src\/E\.fs\` lists both\)\./.test(probeKinds.out) && /\`git checkout -- src\/D\.fs src\/E\.fs\` also removes it/.test(probeKinds.out), probeKinds.verdict)
+    check('the same line in two declarations that each have it as a case of their own is clean: it is counted per declaration, not per file',
+      twoDeclarations.status === 0 && /5\/5 checks passed/.test(twoDeclarations.out), twoDeclarations.verdict)
     check('a probe line, a last-case anchor or a site definition that proof-check no longer uses fails the scan: three renamed constants',
       [probeDrift, anchorDrift, siteDrift].every(r => r.status === 1 && /FAIL  the registry probe this scans for is the one proof-check injects/.test(r.out)),
       `${probeDrift.verdict} // ${anchorDrift.verdict} // ${siteDrift.verdict}`)
