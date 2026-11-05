@@ -2,7 +2,8 @@
 //
 // `scanNonCode(src)` is the scanner under the determinism half of `row-confidence.mjs` (the gate row "every gate row has teeth and is deterministic"); its comment, below, says what it
 // replaces and what it still does not do. `stripNonCode` is its text (what `row-confidence.mjs` counts clock reads in) and `blankNonCode` is where it found non-code, turned into a blank of
-// the same length and the same lines (what `check-exit-drains.mjs` classifies exits in, and reports line numbers from). It is a module of its own because `row-confidence.mjs` does its work at
+// the same length and the same lines (what `check-exit-drains.mjs` classifies exits in, and reports line numbers from); `blankComments` is the same blank of the comments only (what `short-circuit-check.mjs`
+// scans, because its subject is code and a template's `${…}` is code). It is a module of its own because `row-confidence.mjs` does its work at
 // module scope (it reads the gate's rows and prints a table when it is imported), and `scripts/import-purity-check.mjs` imports every script with a top-level `export` in a fresh
 // process and fails one that prints. This file imports nothing and does nothing when imported.
 
@@ -150,13 +151,24 @@ export const scanNonCode = src => {
 
 export const stripNonCode = src => scanNonCode(src).marked
 
+// The one place text is blanked: every character of each span `which` picks (by where it starts) becomes a space, except a line feed.
+const blankSpans = (src, which) => {
+  const chars = src.split('')
+  const { spans } = scanNonCode(src)
+  for (const [s, e] of spans) if (which(s)) for (let i = s; i < e; i++) if (chars[i] !== '\n') chars[i] = ' '
+  return chars.join('')
+}
+
 /**
  * `src` with every character of every span replaced by a space, except a line feed: the same length, and the same lines, so a line number found in it is the line of the source. A leading `#!` line
  * is read as a regular expression (see above), so part of it stays (`#!        /env node`): the line cannot hold a statement.
  */
-export const blankNonCode = src => {
-  const chars = src.split('')
-  const { spans } = scanNonCode(src)
-  for (const [s, e] of spans) for (let i = s; i < e; i++) if (chars[i] !== '\n') chars[i] = ' '
-  return chars.join('')
-}
+export const blankNonCode = src => blankSpans(src, () => true)
+
+/**
+ * `src` with only the COMMENTS blanked, as `blankNonCode` blanks them (same length, same lines); strings, regular expressions and templates are left as they were, `${…}` expressions included. It is
+ * for a reader whose subject is in the strings (`scripts/x.mjs` named in a command) or in a template's expressions (a call inside `${…}`), which `blankNonCode` would blank with the rest. A span is a comment
+ * if it starts with `//` or `/*`: nothing else the scanner records can (a string starts with a quote, a template with a backtick, and a regular expression with a `/` that is neither `//` nor `/*`,
+ * because the scanner took those two as comments before it asked whether a `/` begins a regular expression).
+ */
+export const blankComments = src => blankSpans(src, s => src[s] === '/' && (src[s + 1] === '/' || src[s + 1] === '*'))

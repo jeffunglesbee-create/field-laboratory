@@ -12,6 +12,29 @@
     "  const survived = built && run(m.expect)",
     "  // see https://example.com/x"
   ],
+  "blind": [
+    {
+      "why": "a glob string that opens a block comment ('/**') and a later one that closes it ('**/*.'); the shape of check-ignore-parity.mjs. The old stripper paired the two across the line between them",
+      "src": "if (glob.endsWith('/**')) { return 1 }\nrun('a') && run('b')\nif (glob.startsWith('**/*.')) { return 2 }\n",
+      "line": 2
+    },
+    {
+      "why": "a line comment that holds a /* (src/*.js) and a doc comment that closes later; the shape of history-check.mjs. The old stripper read the line comment's /* as a block comment's opener",
+      "src": "// matches src/*.js and nothing else\nrun('a') && run('b')\n/** doc */\n",
+      "line": 2
+    },
+    {
+      "why": "a // inside a string, on the line of the offence. The old per-line rule skipped only '://' and cut the line there",
+      "src": "const base = '//cdn.example/x'; run('a') && run('b')\n",
+      "line": 1
+    },
+    {
+      "why": "a multi-line block comment before the offence. The old stripper deleted it, newlines included, so every later line number came out too low",
+      "src": "/* one\n   two */\nrun('a') && run('b')\n",
+      "line": 3
+    }
+  ],
+  "_blind_notes": "Each entry holds ONE offence, on `line` (1-based). `src` is the whole file text, so a comment's opener and closer can be a few lines apart. The first three were missed by the old stripper (measured 2026-11-05: 81 of 16,281 positions in 10 scripts, by planting this offence at every statement start); the fourth was seen on the wrong line.",
   "_good_notes": {
     "survived": "A PRECONDITION, not a second measurement. `built` is the result of `npm run build`; if the build failed, running the expect would measure a broken tree rather than the mutation. Short-circuiting is correct here, and a rule that flagged it would train the reader to ignore the rule."
   }

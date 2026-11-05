@@ -44,18 +44,23 @@
 
 import { readFileSync, readdirSync } from 'node:fs'
 import { createChecks, isMain, finish } from './checks.mjs'
+import { blankComments } from './strip-non-code.mjs'
 
 // This file quotes every banned form above, in prose, on purpose. Scanning it
-// would flag its own documentation — so comments are stripped before scanning,
-// and the self-test below proves that stripping does not also blind the scan to
+// would flag its own documentation — so comments are blanked before scanning,
+// and the self-test below proves that blanking does not also blind the scan to
 // real code. Excluding the file by name would have been the cheaper fix and the
 // worse one: it makes the checker the one place its own rule does not apply.
-const stripComments = src =>
-  src
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .split('\n')
-    .map(l => l.replace(/(^|[^:])\/\/.*$/, '$1'))
-    .join('\n')
+//
+// WHAT A COMMENT IS, is decided by the scanner in `scripts/strip-non-code.mjs`
+// and not here. This was a regular expression over the whole text plus a rule per
+// line, and a `/*` inside a string (`'/**'`) or inside a line comment (`src/*.js`)
+// opened a "comment" that ran to the next `*/` wherever that was, taking the lines
+// between with it: planting `run('a') && run('b')` at every statement start of
+// every script measured 81 of 16,281 positions it could not see, in 10 scripts
+// (2026-11-05; nothing in the tree was hidden by it, so what it threatened was an
+// offence added later). Only comments are blanked: a string is kept, and so is a
+// template's `${…}`, which is code.
 
 // BOTH SIDES must be command calls. `built && run(m.expect)` in
 // `mutation-check.mjs` is a PRECONDITION, not a second measurement: `built` is
@@ -72,7 +77,7 @@ const RULES = [
 
 /** Every offence in one file's source, as {line, id, why, text}. */
 export const offences = src =>
-  stripComments(src)
+  blankComments(src)
     .split('\n')
     .flatMap((text, i) =>
       RULES.filter(r => r.re.test(text))
@@ -107,6 +112,26 @@ if (isMain(import.meta.url)) {
   check('...but code followed by a comment still is',
     offences(`${fx.bad[0]} // two commands`).length === 1,
     'stripping must not swallow the line it is attached to')
+
+  // The stripper decides what is a comment, and until 2026-11-05 it did that with a regular expression over the whole text and a per-line rule, so a /* inside a string or inside a
+  // line comment opened a "comment" that ran to the next */ wherever that was, and took the lines between with it. Each fixture is a whole file with one offence in it, planted where
+  // the real tree's blind spots were; RULE 91: this covers the fixtures, not the tree (the tree's own scan is below).
+  const unseen = fx.blind.filter(f => offences(f.src).length !== 1)
+  check(`AN OFFENCE IS STILL SEEN AFTER EACH CONSTRUCT THAT LOST THE OLD STRIPPER ITS PLACE (${fx.blind.length} fixtures)`,
+    unseen.length === 0,
+    `${unseen.length} of ${fx.blind.length} unseen: ${JSON.stringify(unseen.map(f => f.why.slice(0, 60)))}`)
+  const misplaced = fx.blind.filter(f => offences(f.src).some(o => o.line !== f.line))
+  check(`THE REPORTED LINE IS THE SOURCE LINE, past a block comment of several lines (${fx.blind.length} fixtures)`,
+    misplaced.length === 0,
+    `${misplaced.length} of ${fx.blind.length} on another line: ${JSON.stringify(misplaced.map(f => [f.line, offences(f.src).map(o => o.line)]))}`)
+  // Two pins on what the stripper must NOT take. A block comment is blank, whatever its length; but a template's `${…}` is code and a string is kept, so blanking everything that
+  // is not code (which hides the expression of a template from the scan) is not the fix.
+  check('a banned form inside a block comment, on one line or several, is not an offence',
+    offences(`/* ${fx.bad[0].trim()} */`).length === 0 && offences(`/*\n  ${fx.bad[0].trim()}\n*/\nconst x = 1`).length === 0,
+    'the stripper must clear a block comment')
+  check('...and one inside the ${…} of a template literal still is: that is code',
+    offences('const t = `${' + fx.bad[2].trim().replace(/,$/, '') + '}`').length === 1,
+    'a template literal is not a comment')
 
   if (process.argv.includes('--self-test')) process.exit(summarize() === 0 ? 0 : 1)
 

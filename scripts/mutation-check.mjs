@@ -4692,8 +4692,8 @@ const MUTATIONS = [
     id: 'exit-blank-keeps-every-span',
     file: 'scripts/strip-non-code.mjs',
     claim: "the blank is made of the spans the scan found: with none of them blanked, a report exit in a comment, a string, a regular expression or a template counts",
-    find: "for (const [s, e] of spans) for (let i = s; i < e; i++) if (chars[i] !== '\\n') chars[i] = ' '",
-    replace: "for (const [s, e] of []) for (let i = s; i < e; i++) if (chars[i] !== '\\n') chars[i] = ' '",
+    find: "for (const [s, e] of spans) if (which(s)) for (let i = s; i < e; i++) if (chars[i] !== '\\n') chars[i] = ' '",
+    replace: "for (const [s, e] of []) if (which(s)) for (let i = s; i < e; i++) if (chars[i] !== '\\n') chars[i] = ' '",
     expect: 'node scripts/check-exit-drains.mjs --self-test',
   },
   {
@@ -4759,6 +4759,59 @@ const MUTATIONS = [
     find: "63",
     replace: "64",
     expect: 'node scripts/check-exit-drains.mjs',
+  },
+
+  {
+    // The short-circuit guard's own scan (2026-11-05). `short-circuit-check.mjs` decided what a comment is with a regular expression over the whole text and a rule per line, so a `/*` inside a
+    // string (`'/**'`) or a line comment (`src/*.js`) opened a "comment" that ran to the next `*/` and took the lines between with it: planting a short-circuited pair at every statement start of
+    // every script, 81 of 16,281 positions in 10 scripts were not seen. It blanks with `blankComments` (`scripts/strip-non-code.mjs`) now. One entry for the swap back, one for no blank at all, and
+    // one per branch of the comment blank, each the line a clause of `short-circuit-check.mjs --self-test` stands on.
+    id: 'short-circuit-reads-comments-by-regex',
+    file: 'scripts/short-circuit-check.mjs',
+    claim: "the short-circuit scan sees an offence after a /* in a string or a line comment, and reports the line it is on: a scanner decides what a comment is, not a regular expression over the whole text",
+    find: "  blankComments(src)\n    .split('\\n')",
+    replace: "  src\n    .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '')\n    .split('\\n')\n    .map(l => l.replace(/(^|[^:])\\/\\/.*$/, '$1'))\n    .join('\\n')\n    .split('\\n')",
+    expect: 'node scripts/short-circuit-check.mjs --self-test',
+  },
+  {
+    id: 'short-circuit-scans-comments',
+    file: 'scripts/short-circuit-check.mjs',
+    claim: "a banned form in a comment is not an offence: the guard's own header quotes every one of them",
+    find: "  blankComments(src)\n    .split('\\n')",
+    replace: "  src\n    .split('\\n')",
+    expect: 'node scripts/short-circuit-check.mjs --self-test',
+  },
+  {
+    id: 'comment-blank-takes-strings',
+    file: 'scripts/strip-non-code.mjs',
+    claim: "the comment blank leaves strings, regular expressions and templates alone: a call inside a template's ${} is code, and blanking it hides it from the short-circuit scan",
+    find: "s => src[s] === '/' && (src[s + 1] === '/' || src[s + 1] === '*'))",
+    replace: "() => true)",
+    expect: 'node scripts/short-circuit-check.mjs --self-test',
+  },
+  {
+    id: 'comment-blank-keeps-block-comments',
+    file: 'scripts/strip-non-code.mjs',
+    claim: "a block comment is blanked, on one line or several",
+    find: "(src[s + 1] === '/' || src[s + 1] === '*')",
+    replace: "src[s + 1] === '/'",
+    expect: 'node scripts/short-circuit-check.mjs --self-test',
+  },
+  {
+    id: 'comment-blank-keeps-line-comments',
+    file: 'scripts/strip-non-code.mjs',
+    claim: "a line comment is blanked",
+    find: "(src[s + 1] === '/' || src[s + 1] === '*')",
+    replace: "src[s + 1] === '*'",
+    expect: 'node scripts/short-circuit-check.mjs --self-test',
+  },
+  {
+    id: 'comment-blank-eats-newlines',
+    file: 'scripts/strip-non-code.mjs',
+    claim: "the comment blank keeps the line feeds, so an offence is reported on the line of the source after a block comment of several lines",
+    find: "if (chars[i] !== '\\n') chars[i] = ' '\n  return",
+    replace: "chars[i] = ' '\n  return",
+    expect: 'node scripts/short-circuit-check.mjs --self-test',
   },
 
   {
