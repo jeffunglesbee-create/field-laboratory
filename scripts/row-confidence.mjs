@@ -45,17 +45,21 @@ const BAR = 95
 const gateSource = readFileSync('scripts/gate-checks.mjs', 'utf8')
 const mutationSource = readFileSync('scripts/mutation-check.mjs', 'utf8')
 
-/** A row's own declaration in `gate-checks.mjs`, comments included (a caller that reads commands out of it blanks them first: `scriptsIn`, `commandsOf`). Empty when no row has that name. */
-const declOf = rowName => {
+/**
+ * A row's own declaration in a source text laid out like `gate-checks.mjs`, comments included (a caller that reads commands out of it blanks them first: `scriptsIn`, `commandsOf`): from its `name:` to the
+ * next row's `{ name:` or the `]` that closes the table. Empty when no row has that name. A blank line inside a row does not end it (it used to: a command written after one was invisible to the scan).
+ */
+const declIn = (source, rowName) => {
   // Slice the row's own object literal, so a neighbouring row's command is not
   // attributed to it.
-  const at = gateSource.indexOf(`name: '${rowName}'`) >= 0
-    ? gateSource.indexOf(`name: '${rowName}'`)
-    : gateSource.indexOf(`name: "${rowName}"`)
+  const at = source.indexOf(`name: '${rowName}'`) >= 0
+    ? source.indexOf(`name: '${rowName}'`)
+    : source.indexOf(`name: "${rowName}"`)
   if (at === -1) return ''
-  const end = gateSource.indexOf('\n\n', at)
-  return gateSource.slice(at, end === -1 ? gateSource.length : end)
+  const ends = ['\n  { name:', '\n]'].map(mark => source.indexOf(mark, at + 1)).filter(i => i !== -1)
+  return source.slice(at, ends.length === 0 ? source.length : Math.min(...ends))
 }
+const declOf = rowName => declIn(gateSource, rowName)
 
 /** The scripts a row shells out to, read from its declaration. Empty when no row has that name. */
 const scriptsOf = rowName => {
@@ -175,11 +179,14 @@ const NETWORK_EXEMPT = [
   { row: 'breaking each invariant makes a check fail', script: 'scripts/mutation-await.mjs', sanctioned: 'the shard wait: verify-full sets GATE_MUTATION_SHARDS, and this script lists the artifacts of the run at the GitHub API so the row can read the shards (a local gate does not run it)' },
 ]
 
-/** The arguments of each command that runs `script` in a row's declaration: what follows the script's path up to the end of its string. Comments are blanked first, so a flag named in one is not passed. */
-const commandsOf = (decl, script) => blankComments(decl).split(script).slice(1).map(rest => /^[^'"\x60]*/.exec(rest)[0])
+/**
+ * The arguments of each command that runs `script` in a row's declaration: what follows the script's path up to the next script path or the next `ok(`, `fails(` or `all(` call, whatever quotes, `+` or lines
+ * are between (the first version stopped at the first quote, so `--file "a.json" --url …` and `'--file a.json ' + '--url …'` hid the flag). Comments are blanked first, so a flag named in one is not passed.
+ */
+const commandsOf = (decl, script) => blankComments(decl).split(script).slice(1).map(rest => rest.split(/scripts\/[\w.-]+\.mjs|\b(?:ok|fails|all)\(/)[0])
 
-/** Does the row's own text pass `flag` to `script`, as `--flag` or `--flag=value`? Arguments built at run time (a template, a variable, the environment) are not seen. */
-const passesFlag = (decl, script, flag) => commandsOf(decl, script).some(args => args.split(/\s+/).some(t => t === flag || t.startsWith(`${flag}=`)))
+/** Does the row's own text pass `flag` to `script`, as `--flag` or `--flag=value`, in a string of any quote or in several joined by `+`? Arguments built at run time (a template's `${…}`, a variable, the environment) are not seen. */
+const passesFlag = (decl, script, flag) => commandsOf(decl, script).some(args => args.split(/[\s'"\x60]+/).some(t => t === flag || t.startsWith(`${flag}=`)))
 
 /**
  * What a script's network use costs the row that runs it: nothing under a sanctioned entry, nothing under a flag entry while the row's own text does not pass the flag, an objection otherwise.
@@ -593,6 +600,8 @@ function networkClauses(check) {
       ['the flag named only in a comment of the row', rowOf([guarded], "name: 'r',\n    // the sentinel passes " + F + " --url https://example.test/x\n    run: () => ok('node " + F + " --file data/a.json') },"), true],
       ['the flag passed to another script of the row', rowOf([guarded], declOfCommands(`${F} --file data/a.json`, `${Q} --url https://example.test/x`)), true],
       ['the flag passed to this script by the second of two commands', rowOf([guarded], declOfCommands(`${F} --file data/a.json`, `${F} --url https://example.test/x`)), false, 'this row passes --url'],
+      ['the flag after a double-quoted argument (the first version stopped reading at any quote)', rowOf([guarded], declOfCommands(`${F} --file "data/a.json" --url https://example.test/x`)), false, 'this row passes --url'],
+      ['the flag in a second string joined to the first by +', rowOf([guarded], "name: 'r',\n    run: () => ok('node " + F + " --file data/a.json ' + '--url https://example.test/x') },"), false, 'this row passes --url'],
       ['an entry that names another row', rowOf([{ ...guarded, row: 'other' }], OFFLINE), false, 'reaches the network (fetch x1)'],
       ['an entry that names another script', rowOf([{ ...guarded, script: Q }], OFFLINE), false, 'reaches the network (fetch x1)'],
       ['a sanctioned entry, whatever the row passes', rowOf([{ row: 'r', script: F, sanctioned: 'the one read' }], declOfCommands(`${F} --url https://example.test/x`)), true],
@@ -636,6 +645,47 @@ function networkClauses(check) {
   check(`THE SCRIPTS A ROW RUNS ARE THE ONES IN ITS CODE AND STRINGS, NOT IN ITS COMMENTS, for ${IN.length} declarations (a line comment, a block comment, a comment after the command, a comment alone; a \`//\` in a URL inside a string is not a comment), and an exemption for a script a row only names in a comment is stale`,
     offIn.length === 0 && staleForComment.length === 1,
     offIn.map(x => `${x.what}: scanned [${x.got}], wanted [${x.want}]`).join(' / ') + ` (${offIn.length} wrong of ${IN.length}; ${staleForComment.length} stale of 1 exemption for the commented script)`)
+
+  // Whether a row passes the flag, in every shape the text of a command can take (review 7, C4). The version before this one read a command up to its first quote of any kind and split the rest at whitespace
+  // only (so `'--url` was not `--url`): a flag behind a quote, a `+` join, a line break or an argument array was passed and not seen. Those are the first cases. The neighbours the new cut must still get right
+  // follow: a path under scripts/ is an argument and a call named like ok( is not the end of one; and the ones that must stay not passed: no flag, a flag that belongs to the next script of the same command,
+  // and one named in a later, different call.
+  const A = 'scripts/a-check.mjs', B = 'scripts/b-check.mjs'
+  const call = (...cmds) => cmds.map(c => "ok('node " + c + "')").join(' &&\n               ')
+  const FLAGS = [
+    ['a double-quoted argument before the flag', "ok('node " + A + ' --file "data/a.json" --url https://example.test/x' + "')", A, '--url', true],
+    ['a single-quoted argument before the flag, in a double-quoted command', 'ok("node ' + A + " --file 'data/a.json' --url https://example.test/x" + '")', A, '--url', true],
+    ['a second string joined by + after a space', "ok('node " + A + " --file data/a.json ' + '--url https://example.test/x')", A, '--url', true],
+    ['a second string joined by + with no space', "ok('node " + A + " --file data/a.json '+'--url=https://example.test/x')", A, '--url', true],
+    ['the strings on separate lines', "ok('node " + A + " --file data/a.json ' +\n               '--url https://example.test/x')", A, '--url', true],
+    ['a template literal', 'ok(`node ' + A + ' --file data/a.json --url ${u}`)', A, '--url', true],
+    ['a second template literal joined by +', 'ok(`node ' + A + ' --file data/a.json ` + `--url ${u}`)', A, '--url', true],
+    ['an argument array', "run(['node', '" + A + "', '--file', 'data/a.json', '--url', u])", A, '--url', true],
+    ['an argument array in double quotes', 'run(["node", "' + A + '", "--file", "data/a.json", "--url", u])', A, '--url', true],
+    ['a path under scripts/ before the flag (it is not the next script)', "ok('node " + A + " --file scripts/data.json --url https://example.test/x')", A, '--url', true],
+    ['no flag at all', call(A + ' --file data/a.json'), A, '--url', false],
+    ['the flag belongs to the next script of the same command', "ok('node " + A + ' --file a.json && node ' + B + " --url https://example.test/x')", A, '--url', false],
+    ['...and is that script\'s', "ok('node " + A + ' --file a.json && node ' + B + " --url https://example.test/x')", B, '--url', true],
+    ['the flag named in a later, different ok( call', call(A + ' --file a.json', "echo --url x"), A, '--url', false],
+    ['the flag named in a later fails( call', "ok('node " + A + " --file a.json') &&\n               fails('echo --url x')", A, '--url', false],
+    ['the flag named in a later all( call', "ok('node " + A + " --file a.json') &&\n               all('echo --url x')", A, '--url', false],
+    ['a call whose name merely ends in ok( inside the arguments does not end them', "ok('node " + A + " --file ' + book('a') + ' --url https://example.test/x')", A, '--url', true],
+    ['the flag in a comment after the command', "ok('node " + A + " --file a.json') // --url https://example.test/x", A, '--url', false],
+  ]
+  const offFlags = FLAGS.map(([what, decl, script, flag, want]) => ({ what, want, got: passesFlag(decl, script, flag) })).filter(x => x.want !== x.got)
+  check(`A FLAG IS FOUND IN A COMMAND WHATEVER QUOTES, JOINS OR LINES ARE IN FRONT OF IT, for ${FLAGS.length} commands (${FLAGS.filter(x => x[4]).length} pass it: double and single quotes, + with and without a space, separate lines, a template, an argument array, a path under scripts/ and a call named like ok( before it; ${FLAGS.filter(x => !x[4]).length} do not: none, the next script's, a later ok( fails( or all( call's, a comment's). NOT COVERED: arguments built at run time (a variable, the environment, the text inside a template's expression)`,
+    offFlags.length === 0, offFlags.map(x => `${x.what}: wanted ${x.want}, got ${x.got}`).join(' / ') + ` (${offFlags.length} wrong of ${FLAGS.length})`)
+
+  // Where a row's declaration ends: at the next row or at the end of the table, and not at a blank line. A source laid out like `gate-checks.mjs`, written for the case: a comment above a row belongs to the row
+  // before it (and is blanked when read), a command after a blank line belongs to its row, a name in double quotes is found, and the table's `]` ends the last row (the code after it is not a row's).
+  const SRC = ['export const rows = [', "  { name: 'one', weight: 1,", "    run: () => ok('node scripts/a.mjs') },", '', '  // a note on the next row, naming scripts/z-note.mjs', "  { name: 'two', weight: 1,",
+    '    run: () => ' + [ "ok('node scripts/b.mjs')", "ok('node scripts/c.mjs --url https://example.test/x')" ].join(' &&\n\n               ') + ' },', '', '  { name: "three\'s", weight: 1,', "    run: () => ok('node scripts/d.mjs') },", ']', '',
+    "const after = () => ok('node scripts/after.mjs')", ''].join('\n')
+  const DECLS = [['one', 'scripts/a.mjs'], ['two', 'scripts/b.mjs,scripts/c.mjs'], ["three's", 'scripts/d.mjs'], ['no such row', '']]
+  const offDecls = DECLS.map(([name, want]) => ({ name, want, got: (d => d === '' ? '' : scriptsIn(d).join())(declIn(SRC, name)) })).filter(x => x.want !== x.got)
+  check(`A ROW'S DECLARATION RUNS TO THE NEXT ROW OR THE END OF THE TABLE, NOT TO A BLANK LINE, for ${DECLS.length} rows of a table written for the case (a command after a blank line is the row's; a comment above the next row is blanked; a name in double quotes is found; the code after the table is no row's), and a flag after that blank line is passed`,
+    offDecls.length === 0 && passesFlag(declIn(SRC, 'two'), 'scripts/c.mjs', '--url') && !passesFlag(declIn(SRC, 'one'), 'scripts/c.mjs', '--url'),
+    offDecls.map(x => `${x.name}: scanned [${x.got}], wanted [${x.want}]`).join(' / ') + ` (${offDecls.length} wrong of ${DECLS.length}; flag after the blank line passed: ${passesFlag(declIn(SRC, 'two'), 'scripts/c.mjs', '--url')}, flag in the row above passed: ${passesFlag(declIn(SRC, 'one'), 'scripts/c.mjs', '--url')})`)
 
   // The table itself. There is exactly one sanctioned network read in the gate, the shard wait, and a guarded entry's flag is a flag: a flag spelled `url` would never be passed, and its exemption would never lapse.
   const sanctioned = NETWORK_EXEMPT.filter(x => x.sanctioned).map(x => x.script)
