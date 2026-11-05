@@ -1862,7 +1862,7 @@ const MUTATIONS = [
     id: 'run-forgets-the-signal',
     file: 'scripts/mutation-check.mjs',
     claim: "a command that run() saw killed is remembered as killed, not as failed",
-    find: "    lastSignal = e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null)",
+    find: "    lastSignal = e.code === 'ENOBUFS' ? null : (e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null))",
     replace: "    lastSignal = null",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
@@ -1870,8 +1870,8 @@ const MUTATIONS = [
     id: 'killed-child-status-is-a-verdict',
     file: 'scripts/mutation-check.mjs',
     claim: "a child killed under `sh -c`, which the shell reports as a status above 128 and not as a signal, is a killed command too",
-    find: "lastSignal = e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null)",
-    replace: "lastSignal = e.signal ?? null",
+    find: "(e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null))",
+    replace: "(e.signal ?? null)",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -1904,6 +1904,14 @@ const MUTATIONS = [
     claim: "the expectation of a mutation of a file goes through the same guard as any other",
     find: "  const survived = built && await expectation(m)\n",
     replace: "  const survived = built && run(expectOf(m))\n",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'flooded-expectation-reads-as-killed',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a command the harness ends for printing past its output limit (ENOBUFS, reported by execSync as SIGTERM) failed, it was not killed from outside: the mutation is caught and the run goes on",
+    find: "lastSignal = e.code === 'ENOBUFS' ? null : (",
+    replace: "lastSignal = (",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -7558,6 +7566,8 @@ const expectOf = m => {
   if (process.env.MUTATION_FAULT === 'expect-interrupted') return 'kill -INT $$'
   if (process.env.MUTATION_FAULT === 'expect-terms-the-run') return 'kill -TERM $PPID && sleep 0.3'
   if (process.env.MUTATION_FAULT === 'expect-child-killed') return 'sleep 5 & kill -KILL $!; wait $!'
+  // ...or prints without end (an infinite loop in a mutated check), which the output limit ends: a command that floods has failed, it has not been killed from outside.
+  if (process.env.MUTATION_FAULT === 'expect-floods') return 'node -e "process.stdout.write(\'x\'.repeat(2 * 1024 * 1024))"'
   // ...or starts a harness run of its own that is SIGKILLed with a mutation applied (it keeps its state beneath this run's), and then runs the real expectation.
   if (process.env.MUTATION_FAULT === 'expect-strands-a-child') return `MUTATION_KILL_AT=source-applied node scripts/mutation-check.mjs --only known-survivor; ${m.expect}`
   // ...or reports whether it inherited the restart flag, which only the run that was restarted may have (and not its children).
@@ -7573,17 +7583,21 @@ const childEnv = extra => ({ ...process.env, MUTATION_STATE_DIR: join(stateDir, 
 // maxBuffer is 1 MiB, and a command that merely PRINTS more than that is killed and reported as failed (ENOBUFS), so the limit is raised well past anything a build prints and a
 // failure says which kind it was. (Review 4, 2026-11-04: a build that succeeds by hand but prints 1.2 MB wedged every later run behind "npm run build failed".)
 let lastFailure = ''
-// The signal that ended the last command, or null if it ended by itself (a check that fails exits non-zero: that is its answer; one that is killed has given none). `sh -c a && b` reports
-// a killed `b` as exit status 128 plus the signal, so a status in that range counts too (the OOM killer and a browser crash both look like this).
+// The signal that ended the last command, or null if it ended by itself (a check that fails exits non-zero: that is its answer; one that is killed has given none) or was ended by this run's own
+// output limit (it failed). `sh -c a && b` reports a killed `b` as exit status 128 plus the signal, so a status in that range counts too (the OOM killer and a browser crash both look like this).
 let lastSignal = null
-const OUTPUT_LIMIT = 256 * 1024 * 1024
+// Test-only: MUTATION_OUTPUT_LIMIT lowers it, so the self-test can run an expectation past the limit with kilobytes of output (a real flood past 256 MiB took 3.1 s here, measured 2026-11-05, and does it again for every run of the self-test).
+const OUTPUT_LIMIT = Number(process.env.MUTATION_OUTPUT_LIMIT) || 256 * 1024 * 1024
 const run = (cmd, extra) => {
   lastSignal = null
   try {
     execSync(cmd, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', env: childEnv(extra), maxBuffer: OUTPUT_LIMIT })
     return true
   } catch (e) {
-    lastSignal = e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null)
+    // A command that prints more than OUTPUT_LIMIT is ended by execSync with SIGTERM and reported as ENOBUFS (probed 2026-11-05 on Node 22: code ENOBUFS, signal SIGTERM, status null). That SIGTERM is this
+    // run's own limit, not a kill from outside: the command did not finish, and a check that cannot finish has failed. Told apart by the code, never by the name of the signal (review 6, 2026-11-05: a
+    // mutated check that printed without end was reported as "ended by SIGTERM" and stopped the shard at that mutation, where before the signal rule it was a caught mutation).
+    lastSignal = e.code === 'ENOBUFS' ? null : (e.signal ?? (e.status > 128 && e.status < 160 ? `status ${e.status}` : null))
     const tail = String(e.stderr ?? '').trim().split('\n').slice(-3).join(' | ').slice(0, 300)
     lastFailure = `${e.code ?? (e.status !== null && e.status !== undefined ? `exit ${e.status}` : `signal ${e.signal}`)}${tail ? `: ${tail}` : ''}`
     return false
@@ -8557,7 +8571,7 @@ if (process.argv.includes('--self-test')) {
   // The REAL script. Not from inside such a run (MUTATION_SELFTEST_CHILD), or each level would start the next.
   if (!process.env.MUTATION_SELFTEST_CHILD) {
     const here = fileURLToPath(import.meta.url)
-    const clean = { MUTATION_STATE_DIR: '', MUTATION_SELFTEST_CHILD: '', MUTATION_KILL_AT: '', MUTATION_KILL_SIGNAL: '', MUTATION_FAULT: '', MUTATION_REEXEC: '' }
+    const clean = { MUTATION_STATE_DIR: '', MUTATION_SELFTEST_CHILD: '', MUTATION_KILL_AT: '', MUTATION_KILL_SIGNAL: '', MUTATION_FAULT: '', MUTATION_REEXEC: '', MUTATION_OUTPUT_LIMIT: '' }
 
     // Started and stopped over a real stranded state, in a directory with no repository: --self-test, --list-ids and --anchors each leave it.
     // The state is one a heal COULD undo: the file is exactly the mutation and the backup exactly the original, so a mode that healed would put the file back and the clause below sees it.
@@ -9263,6 +9277,14 @@ if (process.argv.includes('--self-test')) {
     check('E24: ...and so is one that arrives during the baseline, the longest synchronous stretch of a run: the run exits 1 before the baseline is reported or any mutation is applied',
       kbt.status === 1 && kbt.signal === null && !/baseline: ran/.test(text(kbt)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
       `status ${kbt.status}, signal ${kbt.signal}; ${text(kbt).split('\n').filter(l => /baseline|PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
+    reset()
+    // ...but a command the harness ITSELF ends is not one that was killed from outside. execSync ends a command that prints past the output limit with SIGTERM and reports ENOBUFS, so the signal
+    // field alone cannot tell the two apart (measured 2026-11-05 with a 400 MB flood: "ended by SIGTERM", the run stopped, exit 1; before the signal rule the same expectation was a caught mutation).
+    // `expect-floods` prints 2 MiB and MUTATION_OUTPUT_LIMIT is 64 KiB, so the flood is kilobytes of work. Caught is `PASS` and exit 0: the survivor's own run (`FAIL [known-survivor]`, exit 1) is the control.
+    const kfl = go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-floods', MUTATION_OUTPUT_LIMIT: String(64 * 1024) })
+    check('E24: ...but a command the harness itself ends for printing past its output limit (ENOBUFS, which execSync reports as SIGTERM) FAILED, it was not killed from outside: the mutation is caught (PASS, exit 0), nothing says it was ended by a signal, and the file and the state are put back (1 flood: 2 MiB past a 64 KiB limit)',
+      kfl.status === 0 && /PASS\s+\[known-survivor\]/.test(text(kfl)) && !/ended by/.test(text(kfl)) && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `status ${kfl.status}; ${text(kfl).split('\n').filter(l => /PASS|FAIL|::error::/.test(l)).join(' | ').slice(0, 240)}`)
     reset()
 
     // E25: a self-test that crashes leaves none of the directories it made. Git is made to fail (a stand-in first on PATH), which is how the crash was found: the crash is at the first git
