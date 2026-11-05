@@ -3134,8 +3134,8 @@ const MUTATIONS = [
     id: 'proof-marker-refusal-recommends-a-checkout',
     file: 'scripts/proof-check.mjs',
     claim: 'the live-run refusal does not tell a person to discard what else is uncommitted in the two files',
-    find: "Wait for it. If it is hung: kill -9 ${prior.pid}. The next run restores the file that still carries its injection, and only that file.`",
-    replace: "Wait for it, or: kill -9 ${prior.pid} && git checkout -- ${TARGET} ${REGISTRY}`",
+    find: "Wait for it. If it is hung: kill ${prior.pid}. The next run restores the file that still carries its injection, and only that file.`",
+    replace: "Wait for it, or: kill ${prior.pid} && git checkout -- ${TARGET} ${REGISTRY}`",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   // The third review (2026-11-04): one entry per fix to proof-check.mjs and run-marker.mjs, each of which was first written as a clause that passed.
@@ -3188,11 +3188,11 @@ const MUTATIONS = [
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
-    id: 'proof-marker-refusal-advises-a-plain-kill',
+    id: 'proof-marker-refusal-advises-kill-9',
     file: 'scripts/proof-check.mjs',
-    claim: "the live-run refusal tells a person to kill -9, because a plain kill is not acted on while the synchronous run is going",
-    find: "kill -9 ${prior.pid}. The next run restores",
-    replace: "kill ${prior.pid}. The next run restores",
+    claim: "the live-run refusal tells a person to stop a hung run with a plain kill, which stops it at once now that nothing in it catches a signal",
+    find: "kill ${prior.pid}. The next run restores",
+    replace: "kill -9 ${prior.pid}. The next run restores",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -3364,6 +3364,31 @@ const MUTATIONS = [
     claim: "a restore that cannot even read a file names that file, not \"the original files\"",
     find: "${failed.join(' and ')} could NOT be put back",
     replace: "the original files could NOT be put back",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
+  // proof-check registers no signal handler (2026-11-05, residual Task 7): one could not run during the synchronous run, so a kill, Ctrl-C and a hangup stop the run at once and the next run heals.
+  {
+    id: 'proof-signal-handler-swallows-sigterm',
+    file: "scripts/proof-check.mjs",
+    claim: "a plain kill stops the run at once: nothing in it catches SIGTERM",
+    find: "process.on('exit', restore)\n",
+    replace: "process.on('exit', restore)\nprocess.on('SIGTERM', () => {})\n",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
+  {
+    id: 'proof-signal-handler-swallows-sigint',
+    file: "scripts/proof-check.mjs",
+    claim: "Ctrl-C stops the run at once: nothing in it catches SIGINT",
+    find: "process.on('exit', restore)\n",
+    replace: "process.on('exit', restore)\nprocess.on('SIGINT', () => {})\n",
+    expect: "node scripts/proof-check.mjs --self-test",
+  },
+  {
+    id: 'proof-signal-handler-swallows-sighup',
+    file: "scripts/proof-check.mjs",
+    claim: "a hangup stops the run at once: nothing in it catches SIGHUP",
+    find: "process.on('exit', restore)\n",
+    replace: "process.on('exit', restore)\nprocess.on('SIGHUP', () => {})\n",
     expect: "node scripts/proof-check.mjs --self-test",
   },
   // --- the Draw panel -------------------------------------------------------

@@ -4,7 +4,7 @@
 //
 // `proof-check.mjs` proves its claims by INJECTING code into a real source file
 // and requiring the build to fail. It is careful about cleaning up: it keeps a
-// backup, restores on `exit`, and traps SIGINT/SIGTERM/SIGHUP.
+// backup, and restores on `exit` (it registers no signal handler, on purpose: see the comment above its exit handler).
 //
 // On 2026-08-15 a foreground 2-minute timeout killed it mid-run anyway, leaving
 //

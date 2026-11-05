@@ -362,7 +362,7 @@ const scrubbedGitEnv = env => ({ ...Object.fromEntries(Object.entries(env).filte
 /**
  * What a refusal over a live marker says, as lines. Pure, so the self-test can read every shape of it.
  *
- * A marker with no recorded start is judged by the pid alone. If /proc says the pid is a proof-check it is the run (wait, or kill -9 it if hung). If /proc cannot say, nothing
+ * A marker with no recorded start is judged by the pid alone. If /proc says the pid is a proof-check it is the run (wait, or kill it if hung). If /proc cannot say, nothing
  * here can tell the run from a stranger, so the advice is to LOOK, and never to delete the state (it holds the only whole copy of the files that run backed up) or to kill a
  * process nobody has identified. (A pid shown NOT to be a proof-check never gets here: runningElsewhere calls it dead.)
  */
@@ -375,12 +375,12 @@ const refusalLines = (prior, holder) => {
   }
   lines.push(`It has ${TARGET} (phase 1) or ${REGISTRY} (phase 2) modified right now. Starting a second run would inject on top of it and neither could restore the original.`)
   // No `git checkout` here: the heal restores exactly the file that still carries that run's injection, and a checkout would also throw away whatever else is uncommitted in these two files.
-  // kill -9, not kill: this script is one synchronous run with no await, so the event loop does not turn until it ends and a plain kill is not acted on at all in the meantime
-  // (measured in review 4, 2026-11-04: SIGTERM sent mid-run, seven builds still ran and the handler never did). SIGKILL leaves the injection where it is, which is what the state
-  // and the next run's heal are for.
+  // A plain kill, not kill -9: nothing in this script catches a signal (see the exit handler below), so a kill, Ctrl-C or a hangup stops the run at once. It leaves the injection where
+  // it is, which is what the state and the next run's heal are for, as it does for SIGKILL. (Until 2026-11-05 this said kill -9, because the handlers that were registered could not run
+  // during the synchronous run: SIGTERM sent mid-run, seven builds still ran and the handler never did, measured in review 4.)
   lines.push(unconfirmed
     ? `If it is a proof run, wait for it. If it is not, it is not this script's to stop: set "pid": 0 in ${MARKER_FILE} (the marker then reads as a dead run's, judged by the tree) and run this again; the next run restores the file that still carries the injection, and only that file.`
-    : `Wait for it. If it is hung: kill -9 ${prior.pid}. The next run restores the file that still carries its injection, and only that file.`)
+    : `Wait for it. If it is hung: kill ${prior.pid}. The next run restores the file that still carries its injection, and only that file.`)
   return lines
 }
 
@@ -719,8 +719,8 @@ if (process.argv.includes('--self-test')) {
 
   sc(`...and shows what the pid is running, so a stranger is not mistaken for the run (asserted: ${haveProcForCmd0})`,
     !haveProcForCmd0 || /ALREADY IN PROGRESS as pid \d+ \(\S*node/.test(liveRun.stderr), liveRun.stderr.split('\n')[0])
-  sc('...and tells a person to kill -9 it, because a plain kill is not acted on while the synchronous run is going',
-    /kill -9 \d+/.test(liveRun.stderr) && !/kill \d+\./.test(liveRun.stderr), liveRun.stderr.split('\n').find(l => /kill/.test(l)) ?? '(no kill advice)')
+  sc('...and tells a person to kill it with a plain kill, which stops the run at once now that nothing in it catches a signal (not kill -9)',
+    /kill \d+\./.test(liveRun.stderr) && !/kill -9/.test(liveRun.stderr), liveRun.stderr.split('\n').find(l => /kill/.test(l)) ?? '(no kill advice)')
 
   // NO STATE AT ALL, and a file that carries an injection: nothing says it is ours, so nothing is guessed, in either file. (The target half was untested: the guard
   // could be deleted with every check green; the registry half did not exist, and the probe was adopted as the original.)
@@ -780,9 +780,9 @@ if (process.argv.includes('--self-test')) {
   const unknown = refusalFor({ pid: 77, startedAt: 't' }, null)
   const recorded = refusalFor({ pid: 77, start: '5', startedAt: 't' }, null)
   const nullStart = refusalFor({ pid: 77, start: null, startedAt: 't' }, null)
-  sc('THE REFUSAL OVER A PID NOBODY CAN IDENTIFY SAYS TO LOOK AT IT: no kill -9, no advice to delete the state, and the state is called the only whole copy; over a proof-check or a recorded start it is the plain wait-or-kill',
-    /ps -p 77/.test(unknown) && /only whole copy/.test(unknown) && !/kill -9/.test(unknown) && !/delete \.proof-state/.test(unknown) && /\(node scripts\/proof-check\.mjs\)/.test(hung)
-      && /kill -9 77/.test(hung) && !/ps -p/.test(hung) && /kill -9 77/.test(recorded) && !/ps -p/.test(recorded) && !/delete \.proof-state/.test(`${hung}${recorded}`)
+  sc('THE REFUSAL OVER A PID NOBODY CAN IDENTIFY SAYS TO LOOK AT IT: no kill, no advice to delete the state, and the state is called the only whole copy; over a proof-check or a recorded start it is the plain wait-or-kill',
+    /ps -p 77/.test(unknown) && /only whole copy/.test(unknown) && !/kill/.test(unknown) && !/delete \.proof-state/.test(unknown) && /\(node scripts\/proof-check\.mjs\)/.test(hung)
+      && /kill 77\./.test(hung) && !/ps -p/.test(hung) && /kill 77\./.test(recorded) && !/ps -p/.test(recorded) && !/delete \.proof-state/.test(`${hung}${recorded}`)
       && /ps -p 77/.test(nullStart) && !/kill/.test(nullStart) && /"pid": 0 in \.proof-state\/active\.json/.test(unknown),
     `unknown: ${unknown.replace(/\n/g, ' | ').slice(0, 300)}`)
 
@@ -855,7 +855,8 @@ if (process.argv.includes('--self-test')) {
   // A scratch project with a stand-in `dotnet`, and this script run in it. The registry is `oldUnion`, which has no `| NHL` (the probe the registry phase adds), so a stand-in can tell that phase by grepping for it.
   // `dotnet` is the stand-in's text, `target` the file the injections go into, `before(dir)` plants anything else, and
   // `body` gets `go` (one run of the script, whose result is a spawnSync result; with a size limit in KB it runs under `ulimit -S -f`, bash: a write that would pass the limit is cut short and
-  // then fails with EFBIG, as a full disk does with ENOSPC), `has` (does a file exist there) and `read` (its text, null when it cannot be read). The scratch directory goes when `body` returns.
+  // then fails with EFBIG, as a full disk does with ENOSPC), `has` (does a file exist there), `read` (its text, null when it cannot be read) and `replaceDotnet` (a different stand-in for the next
+  // run). The scratch directory goes when `body` returns.
   const withStandIn = ({ dotnet, target = clean, before = () => {} }, body) => {
     const dir = mkdtempSync(join(tmpdir(), 'proof-standin-'))
     try {
@@ -872,7 +873,10 @@ if (process.argv.includes('--self-test')) {
           ? spawnSync(process.execPath, [self], options)
           : spawnSync('bash', ['-c', `ulimit -S -f ${fileSizeLimitKB}; exec "$0" "$1"`, process.execPath, self], options)
       }
-      return body({ go, has: p => existsSync(join(dir, p)), read: p => { try { return readFileSync(join(dir, p), 'utf8') } catch { return null } } })
+      return body({
+        go, has: p => existsSync(join(dir, p)), read: p => { try { return readFileSync(join(dir, p), 'utf8') } catch { return null } },
+        replaceDotnet: text => writeFileSync(join(dir, 'bin/dotnet'), text, { mode: 0o755 }),
+      })
     } finally {
       rmSync(dir, { recursive: true, force: true })
     }
@@ -1001,6 +1005,27 @@ if (process.argv.includes('--self-test')) {
   sc('A TARGET THAT CANNOT BE RESTORED DOES NOT KEEP THE REGISTRY FROM BEING RESTORED: the registry is back, the state is kept for the target, and the run fails naming it',
     targetGoneInPhase2.registry === oldUnion && targetGoneInPhase2.stateLeft && targetGoneInPhase2.r.status === 1 && /src\/Scoreboard\.fs could NOT be put back/.test(targetGoneInPhase2.r.stderr),
     `registry back ${targetGoneInPhase2.registry === oldUnion}, state kept ${targetGoneInPhase2.stateLeft}, status ${targetGoneInPhase2.r.status}; ${targetGoneInPhase2.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
+
+  // A SIGNAL STOPS THE RUN AT ONCE (residual Task 7, 2026-11-05). The handlers that used to be registered for SIGINT, SIGTERM and SIGHUP could not run: the script is one synchronous run with no
+  // await, so the event loop does not turn until it ends (measured on the old code: the signal was sent from inside the first injected build, seven builds ran, the run took 7 s, exit status 1, the
+  // handler's 130 never). With none registered the default action applies. The stand-in compiler signals the run's own pid, read from its marker, in the first build that sees the injection, and then
+  // exits 0, so the build count says whether anything ran after the signal: two calls (the baseline, and the one that signalled). The injection and the state stay where the signal found them, and the
+  // next run heals them. Coverage (Rule 91): a stand-in compiler, one run per signal; a real `dotnet` under a signal is not exercised.
+  for (const sig of ['SIGTERM', 'SIGINT', 'SIGHUP']) {
+    const dotnet = ['#!/bin/sh', 'echo call >> calls.log', 'if grep -q "let private __proof" src/Scoreboard.fs 2>/dev/null && [ ! -f sent ]; then touch sent;',
+      `  pid=$(sed -n 's/.*"pid": *\\([0-9][0-9]*\\).*/\\1/p' .proof-state/active.json); kill -${sig.slice(3)} "$pid"; fi`, 'exit 0', ''].join('\n')
+    const stopped = withStandIn({ dotnet }, ({ go, has, read, replaceDotnet }) => {
+      const first = go()
+      const calls = (read('calls.log') ?? '').split('\n').filter(Boolean).length
+      const stranded = (read(TARGET) ?? '').includes(MARKER) && has(MARKER_FILE)
+      replaceDotnet('#!/bin/sh\nexit 0\n')
+      const second = go()
+      return { first, calls, stranded, second, target: read(TARGET) }
+    })
+    sc(`${sig} SENT FROM INSIDE THE FIRST INJECTED BUILD STOPS THE RUN AT ONCE: it dies of the signal, no build runs after it, the injection and the state are left for the next run, which HEALS the target (stand-in compiler, 1 run)`,
+      stopped.first.signal === sig && stopped.calls === 2 && stopped.stranded && /HEALED/.test(stopped.second.stderr) && stopped.target === clean,
+      `signal ${stopped.first.signal} (status ${stopped.first.status}), builds ${stopped.calls}, stranded ${stopped.stranded}, next run healed ${/HEALED/.test(stopped.second.stderr)}, target back ${stopped.target === clean}`)
+  }
 
   // The trade-off the rule has to keep: a write that fails PART-WAY leaves a half-written injection, which only the blind restore used to repair, and `strandedTarget` does not recognise it. A real one: under a
   // file size limit of 3 KB the injection write is cut short at 3072 bytes and then fails with EFBIG, leaving the marker in and the anchor out. It is a prefix of what the run tried to write, so it is put back.
@@ -1359,9 +1384,11 @@ try {
   process.exit(1)
 }
 
-// The original is held in memory AND on disk (in .proof-state, in the repo), and put back when the run ends or throws. This script is one synchronous run with no await, so a
-// signal handler cannot run until it is over (a plain kill is not acted on in the meantime; measured in review 4), and a plain kill is not what leaves the tree broken here:
-// SIGKILL is, and the state on disk and the next run's heal are the answer to that. (A plain try/finally does not run on SIGTERM either, which is how the tree got left broken before the state existed.)
+// The original is held in memory AND on disk (in .proof-state, in the repo), and put back when the run ends or throws. NO SIGNAL HANDLER IS REGISTERED, on purpose: this script is one
+// synchronous run with no await, so a handler could not run until the run was over (measured in review 4: SIGTERM sent mid-run, seven builds still ran and the handler never did), and its
+// existence made a plain kill look handled when it was not. With none, a kill, Ctrl-C or a hangup takes the default action and stops the run at once, leaving the injection where it is,
+// exactly as SIGKILL does. The state on disk and the next run's heal are the answer to that for every signal. (A plain try/finally does not run on SIGTERM either, which is how the tree
+// got left broken before the state existed.)
 // NOT one-shot. An earlier version guarded this with a `restored` flag, so the
 // second phase's `finally` was a no-op after the first phase had already
 // restored — leaving the mutated Sport union on disk and every later run
@@ -1441,9 +1468,6 @@ const restore = () => {
       : 'This failure could NOT be recorded in the state directory either, so the next run cannot tell: do not run proof-check again until the files are right.'))
 }
 process.on('exit', restore)
-for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
-  process.on(sig, () => { restore(); process.exit(130) })
-}
 
 // The baseline matters more than it looks. If the tree did not compile, every
 // violation below would "fail to build" and the whole suite would pass while
