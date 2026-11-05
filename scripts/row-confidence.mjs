@@ -120,10 +120,12 @@ const mutationsFor = (scripts, rowName) => {
  * name followed by a single `=` (also through a global object). What is read from it, compared or passed on is still use (`fetch === undefined`, `const f = globalThis.fetch`, `f(fetch)`).
  * Each is a label and the number of times it was seen, which is what the objection prints (`reaches the network (fetch x1)`).
  *
- * WHAT IT CANNOT SEE (Rule 91; the clause that checks it prints the same list): a named import from `node:https` (`import { get } from 'node:https'; get(u)`), a child process (`spawn('curl')`, `gh api`),
- * `dotnet restore` inside `proof-check.mjs` and the build row, a browser's `route.fetch()` and `page.goto` to an external address, access by a computed name (`globalThis['fe' + 'tch']`), a ternary that
- * names `fetch` before a colon (`c ? fetch : g` reads as a key), a reference to `https.get`, `net.connect` or `navigator.sendBeacon` that is not called on the spot (only `fetch` is counted as a value), and a module the script
- * imports that does the fetching: the scan does not follow imports.
+ * WHAT IT CANNOT SEE (Rule 91; the clause that checks it prints the same list and pins each spelling in it as not seen): optional chaining on a global or a module (`globalThis?.fetch(u)`, `http?.get(u)`), a constructor reached through a global or
+ * in parentheses (`new globalThis.WebSocket(u)`, `new (WebSocket)(u)`), a module reached by `require('https').get(u)` or `import('node:net')`, a module imported or required under a name of its own (`import h from 'node:https'; h.request(o)`)
+ * or by a named import (`import { get } from 'node:https'; get(u)`), a destructured alias (`const { fetch: f } = globalThis; f(u)`), `new net.Socket().connect(80)`, `dgram` and `dns`, a spread of fetch (`f(...fetch)`: the dot of
+ * the spread reads as a property), a child process (`spawn('curl')`, `gh api`), `dotnet restore` inside `proof-check.mjs` and the build row, a browser's `route.fetch()` and `page.goto` to an external address, access by a computed name
+ * (`globalThis['fe' + 'tch']`), a ternary that names `fetch` before a colon (`c ? fetch : g` reads as a key), a reference to `https.get`, `net.connect` or `navigator.sendBeacon` that is not called on the spot (only `fetch` is counted as a
+ * value), and a module the script imports that does the fetching: the scan does not follow imports. It errs the safe way on a method whose brace is on the next line (it reads as a call).
  */
 const NETWORK_USE = [
   [/(?<!\b(?:function(?:\s*\*)?|const|let|var)\s+)(?<![\w$])(?<!\.\s*)fetch(?![\w$])(?!\s*:)(?!\s*=(?!=))(?![ \t]*\((?:[^()]|\([^()]*\))*\)[ \t]*\{)/g, 'fetch'],
@@ -592,12 +594,32 @@ function networkClauses(check) {
     ['window.fetchSlate(x)', ''], ['self.fetchPending = 1', ''], ['itself.fetch(x)', ''], ['myglobal.fetch(x)', ''], ['o.window.fetch(x)', ''], ['o. window.fetch(x)', ''],
     ['myhttp.get(u)', ''], ['o. http.get(u)', ''], ['o.net.connect(1)', ''], ['o. net.connect(1)', ''], ['function * fetch(u = g(h())) {}', ''],
     ['net . connect (80)', KINDS.connect], ['tls . connect (o)', KINDS.connect], ['http2 . createConnection (u)', KINDS.connect], ['sendBeacon (u)', KINDS.beacon], ['navigator . sendBeacon (u)', KINDS.beacon],
-    // a reference that is not a call on the spot is not seen for these (it is for fetch): pinned here, and in the NOT COVERED list below.
-    ['const g = https.get', ''], ['const c = net.connect', ''], ['const b = navigator.sendBeacon', ''], ['resendBeacon(x)', ''], ['$sendBeacon(x)', ''],
+    ['resendBeacon(x)', ''], ['$sendBeacon(x)', ''],
   ]
-  const wrongSeen = SEEN.filter(([src, kinds]) => clockCounts(src).network.join(', ') !== kinds)
-  check(`THESE ${SEEN.length} SPELLINGS ARE NETWORK USE (${SEEN.filter(x => x[1] !== '').length}) OR NOT (${SEEN.filter(x => x[1] === '').length}): fetch as a call or a value, through a global, new WebSocket|EventSource|XMLHttpRequest, http(s).request|get, net|tls|http2.connect, sendBeacon; not text, a key, a property, a longer name, a declaration or an assignment to the name (\`function fetch\`, \`let fetch\`, a method or a class field, \`globalThis.fetch = stub\`). NOT COVERED: a named import from node:https (\`import { get } from 'node:https'\`), a child process (\`spawn('curl')\`, \`gh api\`), \`dotnet restore\` in proof-check.mjs and the build row, a browser's \`route.fetch()\` or \`page.goto\` to an external address, a computed name (\`globalThis['fe' + 'tch']\`), \`c ? fetch : g\` (read as a key), \`const g = https.get\` or \`const c = net.connect\` (a reference to those that is not called on the spot), and a module the script imports that does the fetching`,
-    wrongSeen.length === 0, wrongSeen.map(([src, kinds]) => `${JSON.stringify(src)}: saw [${clockCounts(src).network.join(', ')}], wanted [${kinds}]`).slice(0, 4).join(' / ') + ` (${wrongSeen.length} wrong of ${SEEN.length})`)
+  // NOT COVERED, PINNED AS NOT SEEN. Spellings of network use this scan does not see, each measured on this tree (review 7, 2026-11-05: none of them gives a network use) and listed in the label below. They are pinned
+  // here so that the list cannot drift from the scan: if the scan learns one, this clause fails and the label has to change with it. Grepped over scripts/*.mjs on 2026-11-05: no script uses any of the forms (the two that
+  // import node:http, mutation-await.mjs and serve.mjs, import only createServer).
+  const NOT_SEEN = [
+    'globalThis?.fetch(u)', 'self?.fetch(u)', 'http?.get(u)', 'http?.request(o)',
+    'new globalThis.WebSocket(u)', 'new window.WebSocket(u)', 'new (WebSocket)(u)',
+    "require('https').get(u)", "require('node:https').request(o)", "import('node:https').then(h => h.get(u))", "(await import('node:net')).connect(80)",
+    "import h from 'node:https'; h.request(o)", "const h = require('https'); h.get(u)", "import { get } from 'node:https'; get(u)",
+    'const { fetch: f } = globalThis; f(u)', 'new net.Socket().connect(80)',
+    "import dgram from 'node:dgram'; dgram.createSocket('udp4').send(m, 80, 'h')", "dns.lookup('x', cb)",
+    '[...fetch]', 'f(...fetch)',
+    "spawn('curl', [u])", 'route.fetch()', "globalThis['fe' + 'tch'](u)", 'c ? fetch : g',
+    'const g = https.get', 'const c = net.connect', 'const b = navigator.sendBeacon',
+  ]
+  const wrongSeenIn = list => list.filter(([src, kinds]) => clockCounts(src).network.join(', ') !== kinds)
+  const wrongNotSeenIn = list => list.filter(src => clockCounts(src).network.length !== 0)
+  const wrongSeen = wrongSeenIn(SEEN)
+  const wrongNotSeen = wrongNotSeenIn(NOT_SEEN)
+  // A check that has only ever passed proves nothing: each comparison is shown to report a pin that is wrong (a call of fetch pinned as not use, and as not seen).
+  const controlsHold = wrongSeenIn([['fetch(u)', '']]).length === 1 && wrongNotSeenIn(['fetch(u)']).length === 1
+  check(`THESE ${SEEN.length} SPELLINGS ARE NETWORK USE (${SEEN.filter(x => x[1] !== '').length}) OR NOT (${SEEN.filter(x => x[1] === '').length}): fetch as a call or a value, through a global, new WebSocket|EventSource|XMLHttpRequest, http(s).request|get, net|tls|http2.connect, sendBeacon; not text, a key, a property, a longer name, a declaration or an assignment to the name (\`function fetch\`, \`let fetch\`, a method or a class field, \`globalThis.fetch = stub\`). NOT COVERED, AND PINNED AS NOT SEEN (${NOT_SEEN.length} spellings): optional chaining on a global or a module (\`globalThis?.fetch(u)\`, \`self?.fetch(u)\`, \`http?.get(u)\`), a constructor reached through a global or in parentheses (\`new globalThis.WebSocket(u)\`, \`new window.WebSocket(u)\`, \`new (WebSocket)(u)\`), a module reached by \`require('https').get(u)\` or \`import('node:net')\`, a module imported or required under a name of its own (\`import h from 'node:https'; h.request(o)\`, \`const h = require('https'); h.get(u)\`) or by a named import (\`import { get } from 'node:https'; get(u)\`), a destructured alias (\`const { fetch: f } = globalThis; f(u)\`), \`new net.Socket().connect(80)\`, \`dgram\` and \`dns\`, a spread of fetch (\`f(...fetch)\`, \`[...fetch]\`: the dot of the spread reads as a property), a child process (\`spawn('curl')\`, \`gh api\`), \`dotnet restore\` in proof-check.mjs and the build row, a browser's \`route.fetch()\` or \`page.goto\` to an external address, a computed name (\`globalThis['fe' + 'tch']\`), \`c ? fetch : g\` (read as a key), \`const g = https.get\`, \`const c = net.connect\` or \`const b = navigator.sendBeacon\` (a reference that is not called on the spot), and a module the script imports that does the fetching. It errs in the safe direction on a method whose brace is on the NEXT line: it reads as a call.`,
+    wrongSeen.length === 0 && wrongNotSeen.length === 0 && controlsHold,
+    [...wrongSeen.map(([src, kinds]) => `${JSON.stringify(src)}: saw [${clockCounts(src).network.join(', ')}], wanted [${kinds}]`), ...wrongNotSeen.map(src => `${JSON.stringify(src)}: saw [${clockCounts(src).network.join(', ')}], listed as NOT COVERED`)].slice(0, 4).join(' / ')
+      + ` (${wrongSeen.length} wrong of ${SEEN.length}; ${wrongNotSeen.length} of the ${NOT_SEEN.length} listed as not seen are seen; a pin that is wrong is reported by both comparisons: ${controlsHold})`)
 
   // The exemption, on real files and a row declaration written for the case. The row is `r`, its script writes a fetch; the declaration is the text `gate-checks.mjs` would hold for it.
   const dir = mkdtempSync(join(tmpdir(), 'row-network-'))
