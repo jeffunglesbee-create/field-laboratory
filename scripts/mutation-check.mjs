@@ -5484,6 +5484,50 @@ const MUTATIONS = [
     replace: "GIT_CONFIG_SYSTM: join(dir, 'system.gitconfig')",
     expect: "node scripts/proof-check.mjs --self-test",
   },
+  // --- assertions that could not fail (review 6, finding 3 and the proof-check part of 6, 2026-11-05) ----------------------------------------------------------------------------------------
+  //
+  // Each of these survived the self-test: the prefix rule of `ours` (a suffix or a middle chunk passed as the run's own), the non-EEXIST branch of the marker create, the four-space boundary of a proof
+  // body, and what `inject` throws. A clause now holds each.
+  {
+    id: "proof-ours-accepts-a-chunk-of-the-injection",
+    file: 'scripts/proof-check.mjs',
+    claim: "only the head of what the run wrote is the run's own: a suffix or a middle chunk of it is a file someone else changed",
+    find: "mine !== undefined && mine.startsWith(now)",
+    replace: "mine !== undefined && mine.includes(now)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-marker-create-error-swallowed",
+    file: 'scripts/proof-check.mjs',
+    claim: "a marker that cannot be created for a reason that is not another run throws, and is not reported as another run",
+    find: "if (e.code !== 'EEXIST') throw e",
+    replace: "void e",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-body-shape-accepts-one-space",
+    file: 'scripts/proof-check.mjs',
+    claim: "a line indented by one space in the gap above the anchor is newer work, not a line of a proof body",
+    find: "l === '' || l.startsWith('    ') || l.startsWith(MARKER)",
+    replace: "l === '' || l.startsWith(' ') || l.startsWith(MARKER)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-body-shape-accepts-three-spaces",
+    file: 'scripts/proof-check.mjs',
+    claim: "a line indented by three spaces in the gap above the anchor is newer work: a proof body is indented by exactly four",
+    find: "l === '' || l.startsWith('    ') || l.startsWith(MARKER)",
+    replace: "l === '' || l.startsWith('   ') || l.startsWith(MARKER)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-inject-throws-no-error",
+    file: 'scripts/proof-check.mjs',
+    claim: "an injection refused because the file changed throws an Error that says so, not a bare value",
+    find: "throw new Error(`${file} changed while the run was going, so nothing was written to it`)",
+    replace: "throw 0",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
   // --- the Draw panel -------------------------------------------------------
   //
   // The canonical-size law has FOUR answers and two of them are "not compared".

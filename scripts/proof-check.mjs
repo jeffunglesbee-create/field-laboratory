@@ -561,6 +561,11 @@ if (process.argv.includes('--self-test')) {
   sc('STRANDEDTARGET: A BLOCK THAT CARRIES THE MARKER AND ALSO CODE THAT IS NOT PROOF CODE IS NOT THIS SCRIPT\'S',
     !strandedTarget(withHelper, clean) && strandedTarget(layout(clean, [{ body: 'let x = 1' }, { body: 'let y = 2\n\nlet z = 3' }]).text, clean),
     'a helper in the injection gap, next to the marker, must not read as stranded; a two-block injection with a blank line inside a body must')
+  // The shape test is four spaces exactly: layout() indents a body by four, so a line indented by one, two or three is not the script's, and one indented by four is (review 6: `startsWith(' ')` passed the clauses above).
+  const indentedHelper = n => injectedClean.replace(ANCHOR, `${' '.repeat(n)}let h = 1\n${ANCHOR}`)
+  sc('STRANDEDTARGET: A LINE INDENTED BY ONE, TWO OR THREE SPACES IN THE GAP IS NEWER WORK, AND ONE INDENTED BY FOUR IS A PROOF BODY (the boundary of the shape test: 4 sources)',
+    [1, 2, 3].every(n => !strandedTarget(indentedHelper(n), clean)) && strandedTarget(indentedHelper(4), clean),
+    `stranded at 1, 2, 3, 4 spaces: ${[1, 2, 3, 4].map(n => strandedTarget(indentedHelper(n), clean)).join(', ')}`)
   // ...and an insertion with NO marker is not this script's, however proof-like it looks: a blank line or an indented comment passes the shape test on its own, so only the marker separates
   // them from an injection.
   sc('STRANDEDTARGET: A BLANK LINE OR AN INDENTED COMMENT IN THE GAP, WITH NO MARKER, IS NEWER WORK AND NOT THIS SCRIPT\'S',
@@ -1007,6 +1012,24 @@ if (process.argv.includes('--self-test')) {
     !linked || (exclusive.r.status === 1 && !exclusive.builds && !exclusive.wrote && /another run took/.test(exclusive.r.stderr)),
     `status ${exclusive.r.status}, builds ran ${exclusive.builds}, link target created ${exclusive.wrote}; ${exclusive.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
 
+  // The create can fail for a reason that is not another run (EACCES, ENOSPC, ENOENT). The branch said "another run took ..." for every code but threw nothing, so the person was sent to wait for a run that
+  // does not exist, and no clause could tell (review 6, finding 3: deleting the `throw` left the self-test green). A scratch directory cannot be made to refuse a write to a root-owned run, so the failure is
+  // planted where it happens: a module preloaded into the child (NODE_OPTIONS=--require) wraps `fs.writeFileSync` and fails the marker's exclusive create, and only that, with ENOSPC. Coverage (Rule 91): one run.
+  const failingCreate = withStandIn({
+    dotnet: '#!/bin/sh\necho build >> calls.log\nexit 0\n',
+    before: dir => writeFileSync(join(dir, 'fault.cjs'), [
+      "const fs = require('node:fs')",
+      'const real = fs.writeFileSync',
+      'fs.writeFileSync = function (path, data, options) {',
+      "  if (String(path).endsWith('active.json') && options && options.flag === 'wx') throw Object.assign(new Error(`ENOSPC: no space left on device, open '${path}'`), { code: 'ENOSPC' })",
+      '  return real.apply(this, arguments)',
+      '}', '',
+    ].join('\n')),
+  }, ({ dir, go, has }) => ({ r: go({ NODE_OPTIONS: `--require ${join(dir, 'fault.cjs')}` }), builds: has('calls.log') }))
+  sc('A MARKER THAT CANNOT BE CREATED FOR A REASON THAT IS NOT ANOTHER RUN IS NOT CALLED ANOTHER RUN: the error is thrown (ENOSPC, planted), the run stops before any build, and nothing tells a person to wait (1 run, the non-EEXIST branch)',
+    failingCreate.r.status === 1 && /ENOSPC/.test(failingCreate.r.stderr) && !/another run took/.test(failingCreate.r.stderr) && !failingCreate.builds,
+    `status ${failingCreate.r.status}, builds ran ${failingCreate.builds}; ${failingCreate.r.stderr.slice(0, 200).replace(/\n/g, ' | ')}`)
+
   // A restore that cannot write leaves a tracked file injected. The state must stay then: it is the only thing that can put the file right. The stand-in breaks the target on the
   // first build that sees the injection, two ways: it becomes a directory (every write throws EISDIR, as a full disk or EIO would), or a link to /dev/null (every write succeeds and
   // lands nowhere, so only reading the file back can tell).
@@ -1046,9 +1069,13 @@ if (process.argv.includes('--self-test')) {
   const inj = 'HEAD\nBLOCK\nTAIL\n'
   const orig = 'HEAD\nTAIL\n'
   const prefixes = Array.from({ length: inj.length + 1 }, (_, n) => inj.slice(0, n))
-  sc(`ours: the original, the whole injection and every prefix of it (the empty file included: ${prefixes.length} of them) are this run's; an edit on the original or on the injection, and anything when no attempt is recorded, are not`,
+  // A suffix and a middle chunk of the injection are not the run's own: what a write that failed part-way leaves is the HEAD of what it wrote. (`mine.includes(now)` passed the clause without them, review 6.)
+  const suffixes = Array.from({ length: inj.length - 1 }, (_, n) => inj.slice(n + 1))
+  const middles = ['EAD\nBLOCK\nTAI', 'BLOCK\n', 'LOCK']
+  sc(`ours: the original, the whole injection and every prefix of it (the empty file included: ${prefixes.length} of them) are this run's; an edit on the original or on the injection, anything when no attempt is recorded, and every suffix and middle chunk of the injection (${suffixes.length} and ${middles.length}) are not`,
     ours(orig, orig, undefined) && ours(orig, orig, inj) && prefixes.every(p => ours(p, orig, inj))
-      && !ours(`${inj}// x\n`, orig, inj) && !ours(`${orig}// x\n`, orig, inj) && !ours('HEAD', orig, undefined) && !ours('', orig, undefined),
+      && !ours(`${inj}// x\n`, orig, inj) && !ours(`${orig}// x\n`, orig, inj) && !ours('HEAD', orig, undefined) && !ours('', orig, undefined)
+      && suffixes.every(x => !ours(x, orig, inj)) && middles.every(x => !ours(x, orig, inj)),
     'a prefix is what a write that failed part-way leaves behind')
   const appendOn = (cond, file, tag) => `#!/bin/sh\nif ${cond}; then echo "// ${tag}" >> ${file}; fi\nexit 0\n`
   // A stand-in that is exact (every check of the run passes against it, as in the torn-registry clause above), and runs `onProbe` in the build that sees the registry's probe case.
@@ -1163,7 +1190,8 @@ if (process.argv.includes('--self-test')) {
   // The injection write is guarded too: an edit made while the BASELINE build ran (nothing injected yet) is not written over by the injection.
   const duringBaseline = observed('#!/bin/sh\nif ! grep -q "let private __proof" src/Scoreboard.fs 2>/dev/null && [ ! -f done ]; then touch done; echo "// EDIT-BEFORE-INJECTION" >> src/Scoreboard.fs; fi\nexit 0\n')
   sc('A LINE ADDED TO THE TARGET DURING THE BASELINE BUILD IS NOT WRITTEN OVER BY THE INJECTION: it is there afterwards, nothing was injected, the run fails and says the file changed',
-    duringBaseline.target.includes('// EDIT-BEFORE-INJECTION') && !duringBaseline.target.includes(MARKER) && duringBaseline.r.status === 1 && unwritten(duringBaseline.r, TARGET) && !duringBaseline.stateLeft,
+    duringBaseline.target.includes('// EDIT-BEFORE-INJECTION') && !duringBaseline.target.includes(MARKER) && duringBaseline.r.status === 1 && unwritten(duringBaseline.r, TARGET) && !duringBaseline.stateLeft
+      && duringBaseline.r.stderr.includes(`Error: ${TARGET} changed while the run was going, so nothing was written to it`),
     `target ${JSON.stringify(duringBaseline.target.slice(-40))}, status ${duringBaseline.r.status}, state left ${duringBaseline.stateLeft}; ${duringBaseline.r.stderr.slice(0, 160).replace(/\n/g, ' | ')}`)
 
   // The two files are put back on their own: a target that cannot be touched does not keep the registry from going back.
