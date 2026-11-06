@@ -6201,8 +6201,8 @@ const MUTATIONS = [
     id: "proof-check-stray-grep-hint-is-git-diff",
     file: 'scripts/proof-check.mjs',
     claim: "the injected block is found with a command that works on a committed injection too, not git diff, which prints nothing there",
-    find: "\\`grep -n \"${MARKER}\" ${TARGET}\\` finds them)`\n          :",
-    replace: "\\`git diff -- ${TARGET}\\` finds them)`\n          :",
+    find: "\\`grep -n \"${MARKER}\" ${TARGET}\\` finds the headers)`\n  : `the probe case",
+    replace: "\\`git diff -- ${TARGET}\\` finds the headers)`\n  : `the probe case",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -6269,6 +6269,15 @@ const MUTATIONS = [
     claim: "the grep that lists both `| NHL` lines of a separated probe finds them on a registry with CRLF line ends",
     find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$\" ${REGISTRY}\\` lists both)",
     replace: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}$\" ${REGISTRY}\\` lists both)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  // The block's extent (review 7, finding L12, 2026-11-06): "each header and the indented lines under it" leaves the blank line layout() writes after every block.
+  {
+    id: "proof-check-block-extent-is-headers-only",
+    file: 'scripts/proof-check.mjs',
+    claim: "the instruction for the injected block gives its real extent (first header through the line above the anchor), not the headers and indented lines, which leave a blank line per block",
+    find: "? `the injected block in ${TARGET} (every line from the first \"${MARKER}N\" header down to the line directly above \"${ANCHOR}\", the blank line after each block included; ",
+    replace: "? `the injected block in ${TARGET} (each \"${MARKER}N\" header and the indented lines under it; ",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   // --- a probe an edit has separated from the union's last case (review 6, finding 0, 2026-11-05) ----------------------------------------------------------------------------------------------
@@ -8303,8 +8312,16 @@ const MUTATIONS = [
     id: "clean-source-marker-drift-unchecked",
     file: 'scripts/clean-source-check.mjs',
     claim: "a proof-check that no longer writes the marker fails the scan instead of letting it pass vacuously",
-    find: "harness.includes(`const MARKER = '${MARKER}'`),",
-    replace: "true,",
+    find: "harness.includes(`const MARKER = '${MARKER}'`) &&",
+    replace: "true &&",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-anchor-drift-unchecked",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "a proof-check that no longer writes the block above the function the instruction names fails the scan instead of letting the instruction go stale",
+    find: "harness.includes(`const MARKER = '${MARKER}'`) && harness.includes(`const ANCHOR = '${ANCHOR}'`),",
+    replace: "harness.includes(`const MARKER = '${MARKER}'`),",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
@@ -8375,8 +8392,8 @@ const MUTATIONS = [
     id: "clean-source-grep-hint-is-git-diff",
     file: 'scripts/clean-source-check.mjs',
     claim: "the lines are found with a command that works on a committed injection too, not git diff, which prints nothing there",
-    find: "\\`grep -n \"${MARKER}\" ${at(blocks)}\\` finds them",
-    replace: "\\`git diff -- ${at(blocks)}\\` finds them",
+    find: "\\`grep -n \"${MARKER}\" ${at(blocks)}\\` finds the headers",
+    replace: "\\`git diff -- ${at(blocks)}\\` finds the headers",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   // --- clean-source-check's registry probe (2026-11-05) --------------------------------------------
@@ -8444,8 +8461,8 @@ const MUTATIONS = [
     id: "clean-source-block-grep-names-the-probe-file",
     file: 'scripts/clean-source-check.mjs',
     claim: "the grep for the injected block names the files that carry a block, not the file that carries a probe",
-    find: "\\`grep -n \"${MARKER}\" ${at(blocks)}\\` finds them",
-    replace: "\\`grep -n \"${MARKER}\" ${paths}\\` finds them",
+    find: "\\`grep -n \"${MARKER}\" ${at(blocks)}\\` finds the headers",
+    replace: "\\`grep -n \"${MARKER}\" ${paths}\\` finds the headers",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
@@ -8630,6 +8647,15 @@ const MUTATIONS = [
     claim: "the grep that lists both `| NHL` lines of a separated probe finds them on a tree with CRLF line ends",
     find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$\" ${at(moved)}\\` lists both)",
     replace: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}$\" ${at(moved)}\\` lists both)",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  // The block's extent (review 7, finding L12, 2026-11-06): "each header and the indented lines under it" leaves the blank line layout() writes after every block.
+  {
+    id: "clean-source-block-extent-is-headers-only",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the instruction for the injected block gives its real extent (first header through the line above the function it was written above), not the headers and indented lines, which leave a blank line per block",
+    find: "[`the injected block (every line from the first \"${MARKER}N\" header down to the line directly above \"${ANCHOR}\", the blank line after each block included; ",
+    replace: "[`the injected block (each \"${MARKER}N\" header and the indented lines under it; ",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {

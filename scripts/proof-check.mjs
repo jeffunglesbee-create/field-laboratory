@@ -245,7 +245,7 @@ const carriesProbe = src => probeOnRegistry(src) || probeDuplicated(src)
  * since can have put lines between it and the last case.
  */
 const removalOf = file => file === TARGET
-  ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
+  ? `the injected block in ${TARGET} (every line from the first "${MARKER}N" header down to the line directly above "${ANCHOR}", the blank line after each block included; \`grep -n "${MARKER}" ${TARGET}\` finds the headers)`
   : `the probe case in ${REGISTRY} (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: this run wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; `
     + `\`grep -n "^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$" ${REGISTRY}\` lists both)`
 
@@ -831,7 +831,7 @@ if (process.argv.includes('--self-test')) {
   const strayBoth = sandbox({ target: injectedClean, registry: probeRegistry(union), noState: true })
   const advice = r => r.stderr.split('\n').slice(1).join(' | ')
   const oldAdviceGone = r => !/Restore (it|them)\b/.test(r.stderr) && !/before re-running/.test(r.stderr)
-  const targetPart = `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
+  const targetPart = `the injected block in ${TARGET} (every line from the first "${MARKER}N" header down to the line directly above "${ANCHOR}", the blank line after each block included; \`grep -n "${MARKER}" ${TARGET}\` finds the headers)`
   const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string[[:space:]]*$" ${REGISTRY}\` shows it)`
   const costSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`
   // A registry shaped like the real one (`| NHL` is a case of its own, in the middle) with the probe and a sport the person added between the probe and the last case, and the same with the probe taken out by hand.
@@ -852,6 +852,19 @@ if (process.argv.includes('--self-test')) {
     strayBoth.status === 1 && strayBoth.stderr.includes(`Delete ${targetPart} and ${registryPart}, then run this again.`)
       && strayBoth.stderr.includes(costSentence(`${TARGET} ${REGISTRY}`, true)) && oldAdviceGone(strayBoth),
     advice(strayBoth))
+  // The extent the refusal gives for the block (review 7, finding L12). It said to delete "each header and the indented lines under it", which leaves the blank line layout() writes after every block (measured
+  // 2026-11-06 on the real corpus with the parseCases regex: 133 cases, none with a blank line inside, so following the words literally on a full injection leaves 133 added blank lines in the diff against
+  // HEAD, and every line number below shifts by that many). The extent is exact: from the first header down to the line directly above the anchor. Both are applied here to what layout() writes into a
+  // file shaped like the real one (a doc comment above the anchor), for three blocks, the second with a blank line inside its body.
+  const docClean = `// head\n\n/// The drama slot, for whatever state the game is currently in.\n${ANCHOR}\n  body\n`
+  const threeBlocks = layout(docClean, [{ body: 'let x = 1' }, { body: 'let y = 2\n\nlet z = 3' }, { body: 'let w = 4' }]).text
+  const byExtent = text => { const ls = text.split('\n'); return [...ls.slice(0, ls.findIndex(l => l.startsWith(MARKER))), ...ls.slice(ls.indexOf(ANCHOR))].join('\n') }
+  const byHeadersAndIndented = text => text.split('\n').filter(l => !(l.startsWith(MARKER) || l.startsWith('    '))).join('\n')
+  const leftBehind = byHeadersAndIndented(threeBlocks).split('\n').length - docClean.split('\n').length
+  sc('THE EXTENT THE REFUSAL GIVES FOR THE INJECTED BLOCK RESTORES THE FILE BYTE FOR BYTE: every line from the first header down to the line above the anchor, where "each header and the indented lines under it" leaves a blank line behind (3 blocks, one with a blank inside)',
+    byExtent(threeBlocks) === docClean && byHeadersAndIndented(threeBlocks) !== docClean && leftBehind === 4
+      && strayTarget.stderr.includes('every line from the first "let private __proofN" header down to the line directly above "let private dramaText (g: Game) (state: GameState) =", the blank line after each block included'),
+    `by extent: ${byExtent(threeBlocks) === docClean}; by headers and indented lines: ${byHeadersAndIndented(threeBlocks) === docClean}, ${leftBehind} blank lines left behind (3 after the blocks and 1 inside one)`)
 
   // The same refusal over a probe an edit has separated from the last case. `clean-source-check` says of a tree in that state that proof-check "refuses" with no run state, and the guard looked only for the
   // probe directly above the last case, so it proceeded (and its baseline then failed on the duplicate case). The line is described by what it is, as the carrying message does: "directly above" is not true of it.
@@ -1652,7 +1665,7 @@ switch (classifyState({
         // file. clean-source-check.mjs gives the same advice for the same state; the wording is kept by eye in both, because that check must keep working when this script is the thing that broke.
         const many = strays.length > 1
         const parts = strays.map(f => f === TARGET
-          ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
+          ? removalOf(TARGET)
           : probeOnRegistry(currentRegistry)
             ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$" ${REGISTRY}\` shows it)`
             : removalOf(REGISTRY))

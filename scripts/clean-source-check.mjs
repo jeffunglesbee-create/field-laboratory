@@ -79,6 +79,8 @@ const { check, summarize } = createChecks()
 // because this check must keep working if proof-check is the thing that broke.
 // Asserted against proof-check's own source below so the two cannot drift.
 const MARKER = 'let private __proof'
+// The function proof-check writes the block above: the block ends on the line directly above it, and that is how far a person deletes. Kept by eye and asserted against its source below, like MARKER.
+const ANCHOR = 'let private dramaText (g: Game) (state: GameState) ='
 
 // proof-check's run state: the directory, and the file in it that makes a run one it can heal.
 // Without `active.json` it treats the tree as having no state (measured 2026-11-05: a
@@ -114,9 +116,9 @@ if (process.argv.includes('--self-test')) {
   // is the failure shape this repo keeps finding. So the marker is verified
   // against the harness that produces it.
   const harness = readFileSync('scripts/proof-check.mjs', 'utf8')
-  check('the marker this scans for is the one proof-check injects',
-    harness.includes(`const MARKER = '${MARKER}'`),
-    `looking for ${JSON.stringify(MARKER)} in scripts/proof-check.mjs`)
+  check('the marker this scans for, and the function the block is written above, are the ones proof-check uses',
+    harness.includes(`const MARKER = '${MARKER}'`) && harness.includes(`const ANCHOR = '${ANCHOR}'`),
+    `looking for ${JSON.stringify(MARKER)} and ${JSON.stringify(ANCHOR)} in scripts/proof-check.mjs`)
 
   // The same for the run state the remedy below branches on: if proof-check moved it, the
   // remedy would say "no state" over a directory that is there, and advise deleting lines
@@ -145,7 +147,7 @@ if (process.argv.includes('--self-test')) {
   const many = dirty.length > 1
   // What to delete, for each kind that is there. The probe is one line, and its grep shows the line above the union's last case, because that line is the probe: the last case itself is always there.
   const deletions = [
-    ...(blocks.length ? [`the injected block (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${at(blocks)}\` finds them)`] : []),
+    ...(blocks.length ? [`the injected block (every line from the first "${MARKER}N" header down to the line directly above "${ANCHOR}", the blank line after each block included; \`grep -n "${MARKER}" ${at(blocks)}\` finds the headers)`] : []),
     ...(probes.length ? [`the probe case (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$" ${at(probes)}\` shows it)`] : []),
     // Where a sport now sits between the probe and the last case, the line above the last case is that sport: the grep lists the line itself, both of them, and the probe is the second.
     ...(moved.length ? [`the probe case (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: proof-check wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; \`grep -n "^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$" ${at(moved)}\` lists both)`] : []),
@@ -177,8 +179,8 @@ function selfTest () {
   const here = fileURLToPath(import.meta.url)
   const dirs = []
   // What proof-check's source has to say for the scan to accept it. Built from this file's own constants, so a fixture that drifts changes exactly one of them.
-  const harnessOf = ({ marker = MARKER, stateDir = STATE_DIR, active = ACTIVE, anchor = asSource(REGISTRY_ANCHOR), probe = asSource(REGISTRY_PROBE), site = SITE_SOURCE } = {}) =>
-    `const STATE_DIR = '${stateDir}'\nconst MARKER_FILE = join(STATE_DIR, '${active}')\nconst MARKER = '${marker}'\n`
+  const harnessOf = ({ marker = MARKER, anchorFn = ANCHOR, stateDir = STATE_DIR, active = ACTIVE, anchor = asSource(REGISTRY_ANCHOR), probe = asSource(REGISTRY_PROBE), site = SITE_SOURCE } = {}) =>
+    `const STATE_DIR = '${stateDir}'\nconst MARKER_FILE = join(STATE_DIR, '${active}')\nconst MARKER = '${marker}'\nconst ANCHOR = '${anchorFn}'\n`
     + `const REGISTRY_ANCHOR = '${anchor}'\nconst REGISTRY_PROBE = '${probe}'\nconst REGISTRY_PROBE_SITE = ${site}\n`
   const run = ({ files, state = null, harness = harnessOf() }) => {
     const dir = mkdtempSync(join(tmpdir(), 'clean-source-'))
@@ -201,6 +203,7 @@ function selfTest () {
     const withState = run({ files: injected, state: ACTIVE })
     const strayState = run({ files: injected, state: 'restore-pending' })
     const markerDrift = run({ files: injected, harness: harnessOf({ marker: 'let private __renamed' }) })
+    const anchorFnDrift = run({ files: injected, harness: harnessOf({ anchorFn: 'let private renamedText (g: Game) =' }) })
     const stateDirDrift = run({ files: injected, harness: harnessOf({ stateDir: '.proof-run' }) })
     const stateFileDrift = run({ files: injected, harness: harnessOf({ active: 'marker.json' }) })
     const empty = run({ files: {} })
@@ -233,6 +236,8 @@ function selfTest () {
       const g = spawnSync('sh', ['-c', cmd], { cwd: r.dir, encoding: 'utf8' })
       return { cmd, status: g.status, lines: g.stdout.split('\n').filter(l => l) }
     }
+    // The block's instruction as a reader sees it, typed by hand here and not built from the scan's template.
+    const blockPart = files => `the injected block (every line from the first "let private __proofN" header down to the line directly above "let private dramaText (g: Game) (state: GameState) =", the blank line after each block included; \`grep -n "let private __proof" ${files}\` finds the headers)`
     // The checkout sentence as a reader sees it, typed by hand here and not built from the scan's template, so that a drift in either shows.
     const checkoutSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed `
       + `(the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}`
@@ -256,12 +261,15 @@ function selfTest () {
     check('WITHOUT a run state, it says proof-check has nothing to restore from, and how to find the lines',
       noState.status === 1 && /\.proof-state\/active\.json does not exist, so \`node scripts\/proof-check\.mjs\` has nothing to restore from and refuses/.test(noState.out)
         && /grep -n "let private __proof" src\/B\.fs/.test(noState.out), noState.verdict)
+    check('WITHOUT a run state, the block\'s extent is exact: every line from the first header down to the line above the function it was written above, the blank lines included, and the grep finds the headers',
+      noState.out.includes(blockPart('src/B.fs')), noState.verdict)
     check('WITHOUT a run state, a checkout is named with where it works (not once the injection is staged or committed) and what it costs',
       noState.out.includes(checkoutSentence('src/B.fs', false)), noState.verdict)
     check('a .proof-state/ that holds no active.json counts as no run state, as it does to proof-check',
       strayState.status === 1 && /does not exist, so \`node scripts\/proof-check\.mjs\` has nothing to restore from/.test(strayState.out) && !/backups are in/.test(strayState.out), strayState.verdict)
-    check('a marker that proof-check no longer writes fails the scan, so it cannot pass vacuously',
-      markerDrift.status === 1 && /FAIL  the marker this scans for is the one proof-check injects/.test(markerDrift.out), markerDrift.verdict)
+    check('a marker that proof-check no longer writes, or a function it no longer writes the block above, fails the scan, so it cannot pass vacuously',
+      [markerDrift, anchorFnDrift].every(r => r.status === 1 && /FAIL  the marker this scans for, and the function the block is written above, are the ones proof-check uses/.test(r.out)),
+      `${markerDrift.verdict} // ${anchorFnDrift.verdict}`)
     check('a run state that proof-check keeps elsewhere fails the scan: a renamed directory, and a renamed file',
       stateDirDrift.status === 1 && /FAIL  the run state this reads is the one proof-check keeps/.test(stateDirDrift.out)
         && stateFileDrift.status === 1 && /FAIL  the run state this reads is the one proof-check keeps/.test(stateFileDrift.out), `${stateDirDrift.verdict} // ${stateFileDrift.verdict}`)
@@ -274,7 +282,7 @@ function selfTest () {
         && probed.out.includes(checkoutSentence('src/D.fs', false)) && !/injected block/.test(probed.out), probed.verdict)
     check('a probe and an injected block in one tree each get their own instruction, naming only their own file, and one checkout names both',
       bothKinds.status === 1 && /→ B\.fs, D\.fs — /.test(bothKinds.out)
-        && /Delete the injected block \(each "let private __proofN" header and the indented lines under it; \`grep -n "let private __proof" src\/B\.fs\` finds them\) and the probe case \(the line/.test(bothKinds.out)
+        && bothKinds.out.includes(`Delete ${blockPart('src/B.fs')} and the probe case (the line`)
         && /\`grep -n -B1 "\^    \| Unrecognised of raw: string\[\[:space:\]\]\*\$" src\/D\.fs\` shows it\)\./.test(bothKinds.out)
         && bothKinds.out.includes(checkoutSentence('src/B.fs src/D.fs', true)), bothKinds.verdict)
     check('a union that has `| NHL` in the middle and another case above its last is clean, as the real one is (the probe is a second `| NHL`, directly above the last case)',
