@@ -4448,6 +4448,30 @@ const MUTATIONS = [
     replace: "harness.slice(0, spliceIndex) + '\\n' + harness.slice(spliceIndex)",
     expect: 'node scripts/row-confidence.mjs --self-test',
   },
+  {
+    id: 'harness-first-capture-hidden',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a bare clock read put before the harness's first capture is seen: nothing between the end of its table and its captures hides the scan's place from the scorer (the single probe at the end of the table did not reach this far)",
+    find: "\nconst RUN_STARTED_AT = new Date()",
+    replace: "\n/*\nconst RUN_STARTED_AT = new Date()",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'harness-second-capture-hidden',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a bare clock read put before the harness's second capture is seen",
+    find: "\nconst BASELINE_AT = new Date()",
+    replace: "\n/*\nconst BASELINE_AT = new Date()",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
+  {
+    id: 'harness-end-of-text-hidden',
+    file: 'scripts/mutation-check.mjs',
+    claim: "a bare clock read put at the end of the harness is seen: nothing at the end of the text hides the scan's place from the scorer",
+    find: "\nfinish(summarize())\n",
+    replace: "\n/*\nfinish(summarize())\n",
+    expect: 'node scripts/row-confidence.mjs --self-test',
+  },
 
   // The network half of the determinism scan (2026-11-05). It used to look for a URL in the text left after strings and comments were removed, and could not fire; it looks for the callee now (fetch,
   // new WebSocket, https.request, net.connect, sendBeacon), and a script that has one is an objection of its row unless the table of exemptions names it for THAT row and the row's own text does not

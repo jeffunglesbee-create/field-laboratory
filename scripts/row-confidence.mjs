@@ -598,21 +598,34 @@ function scannerClauses(check) {
   check(`EVERY SCRIPT A ROW NAMES LEAVES BALANCED BRACKETS WHEN THE SCAN IS DONE WITH IT (${reached.length} scripts, and ${CONTROLS.length} controls the three-pass scan it replaced fails): a scan that loses its place reads code as a string, and the brackets stop pairing`,
     unbalanced.length === 0 && checked === reached.length, unbalanced.slice(0, 4).join(' / ') + ` (checked ${checked} of ${reached.length} scripts and ${CONTROLS.length} controls, ${unbalanced.length} problems)`)
 
-  // The harness, the file whose table once hid a second read from this scan (it lost sync at the first `//` in a string). Three things, none tied to how many reads the harness has today:
-  // the place this clause splices at is there exactly once, every read the harness makes is a capture, and a bare read put at that place is one more read than before and no more captures
-  // (a scan that sees nothing cannot pass by agreeing with itself). The anchor starts with the newline because the table entry that respells it holds the same words inside a string, and it
+  // The harness, the file whose table once hid a second read from this scan (it lost sync at the first `//` in a string). Four things, none tied to how many reads the harness has today:
+  // the place this clause splices at is there exactly once, every read the harness makes is a capture, a bare read put at that place is one more read than before and no more captures
+  // (a scan that sees nothing cannot pass by agreeing with itself), and the same bare read is seen at the other places a lost scan could hide it: before each line that holds a capture of the harness's own, and at the
+  // end of the text (review 6, 2026-11-05: the one place was about three quarters of the way down the file, so the two real reads, and everything after the table's end, lay past the only probe). A line is a capture line
+  // when the pattern finds a capture in that line alone.
+  // The anchor starts with the newline because the table entry that respells it holds the same words inside a string, and it
   // is not the guard's own text (`const selected` and the rest): an entry holding THAT would move the harness's own guard up into the table and make every entry below it ambiguous.
+  // WHAT THIS DOES NOT DO: it does not limit how many captures the harness has (the rule is reads over captures, and the scorer says so above); a third captured read would pass it.
   const harness = readFileSync('scripts/mutation-check.mjs', 'utf8')
   const SPLICE_AT = '\nconst applyMutation = '
   const splices = harness.split(SPLICE_AT).length - 1
   const harnessNow = clockCounts(harness)
   const spliceIndex = harness.indexOf(SPLICE_AT)
   const harnessMut = clockCounts(splices === 1 ? harness.slice(0, spliceIndex) + '\nDate.now()' + harness.slice(spliceIndex) : harness)
-  check('THE HARNESS: EVERY CLOCK READ IN IT IS A CAPTURE, AND A BARE READ PUT AFTER ITS TABLE IS SEEN (it was not, once its table grew: the scan lost sync at the first `//` in a string)',
-    splices === 1 && harnessNow.reads === harnessNow.captures && harnessMut.reads === harnessNow.reads + 1 && harnessMut.captures === harnessNow.captures,
+  const captureLines = []
+  let offset = 0
+  for (const line of harness.split('\n')) {
+    if (line.includes('const ') && clockCounts(line).captures > 0) captureLines.push([line.trim().split(' = ')[0], offset])
+    offset += line.length + 1
+  }
+  const probes = [...captureLines.map(([name, at]) => [`before ${name}`, at]), ['at the end of the text', harness.length]]
+  const unseen = probes.filter(([, at]) => { const c = clockCounts(harness.slice(0, at) + '\nDate.now()\n' + harness.slice(at)); return c.reads !== harnessNow.reads + 1 || c.captures !== harnessNow.captures }).map(([where]) => where)
+  check(`THE HARNESS: EVERY CLOCK READ IN IT IS A CAPTURE, AND A BARE READ IS SEEN WHEREVER IT IS PUT (${probes.length + 1} places: after the table, before each of its ${captureLines.length} capture lines, at the end of the text; it was not, once its table grew: the scan lost sync at the first \`//\` in a string). NOT COVERED: how many captures the harness has`,
+    splices === 1 && harnessNow.reads === harnessNow.captures && harnessMut.reads === harnessNow.reads + 1 && harnessMut.captures === harnessNow.captures && unseen.length === 0,
     splices !== 1 ? `the place to put the bare read, ${JSON.stringify(SPLICE_AT)}, is in scripts/mutation-check.mjs ${splices}x (wanted 1)`
       : harnessNow.reads !== harnessNow.captures ? `the harness reads the clock ${harnessNow.reads}x and captures it ${harnessNow.captures}x: a read is not captured`
-        : `a bare read put after the table moved the count from ${harnessNow.reads} reads, ${harnessNow.captures} captures to ${harnessMut.reads} reads, ${harnessMut.captures} captures (wanted one more read and the same captures)`)
+        : harnessMut.reads !== harnessNow.reads + 1 || harnessMut.captures !== harnessNow.captures ? `a bare read put after the table moved the count from ${harnessNow.reads} reads, ${harnessNow.captures} captures to ${harnessMut.reads} reads, ${harnessMut.captures} captures (wanted one more read and the same captures)`
+          : `a bare read was not seen (one more read, the same captures) at ${unseen.length} of ${probes.length} places: ${unseen.join(', ')}`)
 }
 
 // The network half of the scan and its exemptions (2026-11-05). A hoisted function after the scanner's, for the same reason: it holds fixtures that put quotes and slashes inside each other.
