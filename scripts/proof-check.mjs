@@ -223,6 +223,11 @@ const strandedTarget = (current, backup) => {
 /**
  * Is the probe case where this script writes it, directly above the union's last case? The real union has `| UFL` above its last case, not `| NHL`, so a clean registry never matches
  * (and the self-test reads the real file to say so). It cannot see a probe an edit has separated from the last case (a sport added directly above that case lands between them): `carriesProbe` can.
+ *
+ * ITS LIMIT, which the refusal says to a reader: it cannot tell the probe from a real case. A union whose last case before `Unrecognised` is `| NHL` (this registry reordered, or any other union with a
+ * case of that name, in a file the scan in clean-source-check.mjs also reads) matches, and the instruction to delete the line would delete a real case. Two lines that are not adjacent do not match,
+ * so the escape is any line between them (measured 2026-11-06: a doc comment between `| NHL` and `| Unrecognised` compiles under `dotnet fsi`; the same case twice is FS0037, which is why a
+ * duplicate needs no such escape).
  */
 const probeOnRegistry = src => src.includes(REGISTRY_PROBE_SITE)
 
@@ -651,7 +656,7 @@ if (process.argv.includes('--self-test')) {
     !haveGit || committedDemo0 === 'committed\n', JSON.stringify(committedDemo0))
   sc(`probeOnRegistry: the probed union carries it, the clean one does not, and neither does the REAL ${REGISTRY} as committed (asserted: ${committedRegistry !== null})`,
     probeOnRegistry(probeRegistry(union)) && !probeOnRegistry(union) && (committedRegistry === null || !probeOnRegistry(committedRegistry)),
-    `the committed registry has the probe's line above its last case: ${committedRegistry !== null && probeOnRegistry(committedRegistry)} — a union whose case above the last one is the probe's own line`)
+    `the committed registry has the probe's line above its last case: ${committedRegistry !== null && probeOnRegistry(committedRegistry)} — a union whose case above the last one is the probe's own line; if ${REGISTRY} now really ends in it, put a line (a doc comment) between the two`)
   // The probe wherever an edit has put it. Fixtures: the probed union (adjacent), the same with a sport between the probe and the last case (separated), a union whose own `| NHL` has gone with the probe
   // still adjacent, two declarations that each have an `| NHL` of their own, and the committed registry, which has exactly one such line (the premise of the duplicate test).
   const separatedProbe = probeRegistry(union).replace('    | Unrecognised', '    | MyNewSport\n    | Unrecognised')
@@ -832,7 +837,7 @@ if (process.argv.includes('--self-test')) {
   const advice = r => r.stderr.split('\n').slice(1).join(' | ')
   const oldAdviceGone = r => !/Restore (it|them)\b/.test(r.stderr) && !/before re-running/.test(r.stderr)
   const targetPart = `the injected block in ${TARGET} (every line from the first "${MARKER}N" header down to the line directly above "${ANCHOR}", the blank line after each block included; \`grep -n "${MARKER}" ${TARGET}\` finds the headers)`
-  const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string[[:space:]]*$" ${REGISTRY}\` shows it)`
+  const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string[[:space:]]*$" ${REGISTRY}\` shows it; if it is a real case instead, because a union of yours ends in it, keep it and put any line between the two (a doc comment will do): lines that are not adjacent no longer match)`
   const costSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`
   // A registry shaped like the real one (`| NHL` is a case of its own, in the middle) with the probe and a sport the person added between the probe and the last case, and the same with the probe taken out by hand.
   // The sentence a person is given for the probe's line, typed by hand here: it describes the line by what it is, because "directly above the last case" is no longer true of it.
@@ -873,6 +878,17 @@ if (process.argv.includes('--self-test')) {
     straySeparated.status === 1 && straySeparated.registry === separatedUnion && straySeparated.target === clean && !straySeparated.stateLeft && /no run state exists/.test(straySeparated.stderr) && !carriedOn(straySeparated)
       && straySeparated.stderr.includes(`Delete ${probeCase}, then run this again.`) && straySeparated.stderr.includes(costSentence(REGISTRY, false)) && !straySeparated.stderr.includes('-B1'),
     advice(straySeparated))
+  // A registry that REALLY ends `| NHL` then `| Unrecognised` (review 7, finding L13): it reads as probed, the refusal names the line and would have a person delete a real case, and nothing said what to do instead.
+  // The refusal now says to keep the case and put any line between the two, and that is tried: with a doc comment between them the same registry is no longer refused and the run goes on to its checks.
+  const endsInNhl = 'type Sport =\n    | MLB\n    | NHL\n    | Unrecognised of raw: string\n'
+  const endsInNhlSeparated = endsInNhl.replace('    | Unrecognised', '    /// the raw label, kept verbatim\n    | Unrecognised')
+  const realNhlLast = sandbox({ target: clean, registry: endsInNhl, noState: true })
+  const realNhlSeparated = sandbox({ target: clean, registry: endsInNhlSeparated, noState: true })
+  sc('A REGISTRY THAT REALLY ENDS IN `| NHL` IS TOLD HOW TO GET PAST THE REFUSAL, AND THE WAY OUT WORKS: it is refused (untouched, no state) with the instruction to keep the case and put a line between the two, and the same registry with a doc comment between them is not refused (2 planted states)',
+    realNhlLast.status === 1 && /no run state exists/.test(realNhlLast.stderr) && realNhlLast.registry === endsInNhl && !carriedOn(realNhlLast)
+      && realNhlLast.stderr.includes('if it is a real case instead, because a union of yours ends in it, keep it and put any line between the two (a doc comment will do): lines that are not adjacent no longer match')
+      && !/no run state exists/.test(realNhlSeparated.stderr) && carriedOn(realNhlSeparated) && realNhlSeparated.registry === endsInNhlSeparated,
+    `ends in NHL: ${show(realNhlLast)}; with a doc comment between: ${show(realNhlSeparated)}`)
   // The greps the refusal prints, RUN (review 7, finding L11). A grep that ends in `$` printed nothing on a registry whose lines end in a carriage return, so "shows it" and "lists both" were false on a
   // Windows checkout with autocrlf (measured 2026-11-06: exit 1 and no output, on the registry this script's own probe is written into). The probe is inserted after the existing newline as a bare `\n`
   // line, so on such a registry it is the one line without the carriage return. Each grep is run by sh over both kinds of line end; the refusal itself is also run on the CRLF registry.
@@ -1667,7 +1683,7 @@ switch (classifyState({
         const parts = strays.map(f => f === TARGET
           ? removalOf(TARGET)
           : probeOnRegistry(currentRegistry)
-            ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$" ${REGISTRY}\` shows it)`
+            ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$" ${REGISTRY}\` shows it; if it is a real case instead, because a union of yours ends in it, keep it and put any line between the two (a doc comment will do): lines that are not adjacent no longer match)`
             : removalOf(REGISTRY))
         console.error(`Delete ${parts.join(' and ')}, then run this again.`)
         console.error(`\`git checkout -- ${strays.join(' ')}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)

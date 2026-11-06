@@ -6225,8 +6225,8 @@ const MUTATIONS = [
     id: "proof-check-stray-registry-grep-shows-the-wrong-line",
     file: 'scripts/proof-check.mjs',
     claim: "the registry's grep shows the line ABOVE the union's last case, which is the probe, not only the last case itself",
-    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)",
-    replace: "\\`grep -n \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)",
+    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it",
+    replace: "\\`grep -n \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -6259,8 +6259,8 @@ const MUTATIONS = [
     id: "proof-check-stray-grep-misses-a-carriage-return",
     file: 'scripts/proof-check.mjs',
     claim: "the grep the no-state refusal prints for a probe directly above the last case finds it on a registry with CRLF line ends",
-    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)`\n            : removalOf",
-    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${REGISTRY}\\` shows it)`\n            : removalOf",
+    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it",
+    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${REGISTRY}\\` shows it",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -6278,6 +6278,15 @@ const MUTATIONS = [
     claim: "the instruction for the injected block gives its real extent (first header through the line above the anchor), not the headers and indented lines, which leave a blank line per block",
     find: "? `the injected block in ${TARGET} (every line from the first \"${MARKER}N\" header down to the line directly above \"${ANCHOR}\", the blank line after each block included; ",
     replace: "? `the injected block in ${TARGET} (each \"${MARKER}N\" header and the indented lines under it; ",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  // A registry that REALLY ends `| NHL` then `| Unrecognised` (review 7, finding L13, 2026-11-06): the refusal named the line and would have a person delete a real case, and gave no way out.
+  {
+    id: "proof-check-probe-escape-unsaid",
+    file: 'scripts/proof-check.mjs',
+    claim: "the refusal over a probe directly above the last case says what to do when the line is a real case: keep it and put a line between the two",
+    find: "shows it; if it is a real case instead, because a union of yours ends in it, keep it and put any line between the two (a doc comment will do): lines that are not adjacent no longer match)`\n            : removalOf",
+    replace: "shows it)`\n            : removalOf",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   // --- a probe an edit has separated from the union's last case (review 6, finding 0, 2026-11-05) ----------------------------------------------------------------------------------------------
@@ -8656,6 +8665,23 @@ const MUTATIONS = [
     claim: "the instruction for the injected block gives its real extent (first header through the line above the function it was written above), not the headers and indented lines, which leave a blank line per block",
     find: "[`the injected block (every line from the first \"${MARKER}N\" header down to the line directly above \"${ANCHOR}\", the blank line after each block included; ",
     replace: "[`the injected block (each \"${MARKER}N\" header and the indented lines under it; ",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  // A union that REALLY ends `| NHL` then `| Unrecognised` (review 7, finding L13, 2026-11-06): the remedy would have a person delete a real case, gave no way out, and said proof-check refuses where it reads only two files.
+  {
+    id: "clean-source-probe-escape-unsaid",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the remedy for a probe directly above the last case says what to do when the line is a real case: keep it and put a line between the two",
+    find: "shows it; if it is a real case instead, because a union of yours ends in it, keep it and put any line between the two (a doc comment will do): lines that are not adjacent no longer match)`] : []),",
+    replace: "shows it)`] : []),",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-claims-proof-check-refuses",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the remedy does not say proof-check refuses: it reads only the two files it writes, so over a file it does not read it runs",
+    find: "has nothing to restore from. Delete",
+    replace: "has nothing to restore from and refuses. Delete",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
