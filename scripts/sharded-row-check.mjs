@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createChecks, finish, isMain } from './checks.mjs'
 import { failures, rows, shardedSuite } from './gate-checks.mjs'
+import { optionsOf } from './mutation-await.mjs'
 
 const ROW = 'breaking each invariant makes a check fail'
 const WORKFLOW = '.github/workflows/verify-full.yml'
@@ -39,6 +40,32 @@ export const gateShardsSet = text => {
   const run = /^\s+run:[ \t]*(.*)$/m.exec(holders[0])?.[1].trim()
   if (run !== 'npm run gate') return { ok: false, why: `the step that sets GATE_MUTATION_SHARDS runs ${JSON.stringify(run ?? '(nothing)')}, not npm run gate` }
   return { ok: true, why: '' }
+}
+
+/**
+ * How long `verify-full` lets a shard job run, in minutes: the `timeout-minutes` of the job named "mutation shard ...". `{ ok, minutes, why }`.
+ *
+ * The gate's wait for the shards (`mutation-await.mjs`) counts polls, and a shard that is still inside its cap when the polls are spent is reported as one that never uploaded: a
+ * failure of the gate on a run in which nothing was wrong. Measured 2026-11-06 (docs/GATE-TIMING.md): one shard alone on the idle dev container took 43 minutes, and the wait was
+ * 40. Not a YAML parser (there is none in the repo): jobs are cut at a two-space key with nothing after the colon, the job is the one whose four-space `name:` starts "mutation shard",
+ * and only a four-space `timeout-minutes:` counts, so a comment or a step's own timeout is not the job's.
+ */
+export const shardJobCap = text => {
+  const jobs = text.split(/\n(?= {2}[A-Za-z_][\w-]*:[ \t]*(?:#.*)?\n)/)
+  const holders = jobs.filter(j => /^ {4}name:[ \t]*mutation shard\b/m.test(j))
+  if (holders.length !== 1) return { ok: false, minutes: NaN, why: `${holders.length} jobs are named "mutation shard ..." (wanted one)` }
+  const m = /^ {4}timeout-minutes:[ \t]*(\d+)[ \t]*(?:#.*)?$/m.exec(holders[0])
+  if (!m) return { ok: false, minutes: NaN, why: 'the shard job sets no timeout-minutes of its own, so no wait can be shown to outlast it' }
+  return { ok: true, minutes: Number(m[1]), why: '' }
+}
+
+/** Is a wait of `attempts` polls `intervalS` seconds apart at least as long as a shard job may run? `{ ok, why }` */
+export const waitOutlastsShards = (text, attempts, intervalS) => {
+  const cap = shardJobCap(text)
+  if (!cap.ok) return { ok: false, why: cap.why }
+  const wait = attempts * intervalS / 60
+  if (wait >= cap.minutes) return { ok: true, why: '' }
+  return { ok: false, why: `the gate gives up on the shards after ${wait} minutes (${attempts} polls of ${intervalS} s) but a shard job may run for ${cap.minutes}: a shard still inside its cap would be reported as one that never uploaded` }
 }
 
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
@@ -104,6 +131,29 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
       offSets.length === 0, offSets.map(([what, text]) => `${what}: ${JSON.stringify(gateShardsSet(text))}`).join(' / '))
     const real = gateShardsSet(readFileSync(WORKFLOW, 'utf8'))
     check(`MUTATION: ${WORKFLOW} sets GATE_MUTATION_SHARDS on the step that runs the gate (checked: 1 workflow file)`, real.ok, real.why)
+
+    // The wait against the shard jobs' cap. Stand-in workflows for each way the reading can go wrong, then the real file with the options the command really uses.
+    const JOBS = (cap, extra = '') => `jobs:\n  full:\n    runs-on: ubuntu-latest\n    timeout-minutes: 240\n\n  shard:\n    name: mutation shard \${{ matrix.index }} of 8\n    runs-on: ubuntu-latest\n${extra}${cap}    strategy:\n      fail-fast: false\n`
+    const CAP90 = '    timeout-minutes: 90\n'
+    const WAITS = [
+      ['a wait longer than the cap', JOBS(CAP90), 200, 30, true],
+      ['a wait exactly the cap', JOBS(CAP90), 180, 30, true],
+      ['a wait one poll short of the cap', JOBS(CAP90), 179, 30, false],
+      ['the wait that was in force, 80 polls of 30 s, against a 90 minute cap', JOBS(CAP90), 80, 30, false],
+      ['a cap in a comment does not count (the comment says 500, the job says 90)', JOBS(CAP90, '    # timeout-minutes: 500\n'), 200, 30, true],
+      ['a timeout on a step does not count (the step says 500, the job says 90)', JOBS(CAP90, '    steps:\n      - run: x\n        timeout-minutes: 500\n'), 200, 30, true],
+      ['the first timeout-minutes in the file is the full job\'s 240, not the shard\'s 90', JOBS(CAP90), 200, 30, true],
+      ['no timeout on the shard job (the full job has one) cannot be outlasted', JOBS(''), 10000, 30, false],
+      ['two jobs named mutation shard are ambiguous', JOBS(CAP90) + '\n  shard2:\n    name: mutation shard two\n    timeout-minutes: 90\n', 200, 30, false],
+    ]
+    const offWaits = WAITS.filter(([, text, a, i, want]) => waitOutlastsShards(text, a, i).ok !== want)
+    check(`MUTATION: the gate's wait outlasts a shard job's cap, for ${WAITS.length} stand-in workflows (${WAITS.filter(x => x[4]).length} do, ${WAITS.filter(x => !x[4]).length} do not: one poll short, the old 80 polls, no cap, two shard jobs)`,
+      offWaits.length === 0, offWaits.map(([what, text, a, i]) => `${what}: ${JSON.stringify(waitOutlastsShards(text, a, i))}`).join(' / '))
+    const opts = optionsOf(['node', 'mutation-await.mjs', 'dir', '--of', '8'])
+    const outlasts = waitOutlastsShards(readFileSync(WORKFLOW, 'utf8'), opts.attempts, opts.interval)
+    check(`MUTATION: the wait mutation-await.mjs really uses (${opts.attempts} polls of ${opts.interval} s, with no --attempts or --interval given) outlasts the shard job cap in ${WORKFLOW} (checked: 1 workflow file)`, outlasts.ok, outlasts.why)
+    check('MUTATION: the options come from the flags when they are given, so a caller that passes --attempts is not read as the default',
+      optionsOf(['node', 'x', 'd', '--of', '8', '--attempts', '7', '--interval', '2']).attempts === 7 && optionsOf(['node', 'x', 'd', '--of', '8', '--attempts', '7', '--interval', '2']).interval === 2)
   } finally {
     delete process.env.AWAIT_MARK; delete process.env.MERGE_MARK
     rmSync(work, { recursive: true, force: true })

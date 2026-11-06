@@ -81,7 +81,8 @@ jobs:
   shard:
     name: mutation shard ${{ matrix.index }} of 8
     runs-on: ubuntu-latest
-    # Measured shards are a fraction of the old 90+ minute row; this bounds a hung browser mutation, not a normal run.
+    # One shard alone took 43 minutes on the idle 4-core dev container (docs/GATE-TIMING.md, 2026-11-06; not yet measured on a runner); this bounds a hung browser mutation.
+    # The gate's wait for the shards (scripts/mutation-await.mjs) has to outlast it, and scripts/sharded-row-check.mjs fails if it does not: change one and the other with it.
     timeout-minutes: 90
     strategy:
       fail-fast: false

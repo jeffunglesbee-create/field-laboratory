@@ -2,7 +2,7 @@
 // Wait for the mutation shards of THIS workflow run to upload their results, then download them.
 // docs/CC-CMD-2026-11-03-gate-speed.md, Task 4.
 //
-//   node scripts/mutation-await.mjs <dir> --of N [--attempts 80] [--interval 30]
+//   node scripts/mutation-await.mjs <dir> --of N [--attempts 200] [--interval 30]
 //   node scripts/mutation-await.mjs --self-test
 //
 // WHY THE GATE POLLS INSTEAD OF DEPENDING. `verify-full`'s `full` job does not wait for the shard jobs to start: it builds,
@@ -14,10 +14,12 @@
 // there. This script is the only place that can say WHICH shard, and why. Two ways to say it:
 //   - a shard JOB that has completed with no artifact is dead; the gate stops waiting at the second poll that sees it
 //     (one poll is not enough: a job can finish a moment before its upload becomes listable), and names the job and its
-//     conclusion. It does not sit out the remaining forty minutes of a wait that cannot succeed.
+//     conclusion. It does not sit out the rest of a wait that cannot succeed.
 //   - a shard that is still running when the attempts are spent is named with its job state.
 //
-// Time is counted in POLLS, not read from a clock: `attempts` x `interval` is the budget (80 x 30 s = 40 min). This script is
+// Time is counted in POLLS, not read from a clock: `attempts` x `interval` is the budget (200 x 30 s = 100 min). It has to outlast the 90 minutes a shard job
+// is allowed to run (`sharded-row-check.mjs` reads both and fails if it does not), or the gate would give up on a shard that the runner still lets finish: one shard alone on the idle
+// dev container took 43 minutes on 2026-11-06 (docs/GATE-TIMING.md), and 80 polls were 40. This script is
 // named in the gate's mutation row, and row-confidence.mjs permits a clock read only as a captured constant.
 //
 // THE TOKEN GOES TO THE API AND NOWHERE ELSE. The artifact download answers with a redirect to blob storage; fetch drops the
@@ -34,6 +36,16 @@ export const jobName = (i, n) => `mutation shard ${i} of ${n}`
 const indexOf = name => Number(/^mutation-shard-(\d+)-of-/.exec(name)[1])
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
+
+/** The wait, in polls and seconds between them. `sharded-row-check.mjs` reads these through `optionsOf`, so the budget it compares with the shard jobs' cap is the one the command really uses. */
+export const DEFAULT_ATTEMPTS = 200
+export const DEFAULT_INTERVAL_S = 30
+
+/** The command's options, from an argv in `process.argv`'s shape (`[node, script, <dir>, ...flags]`). */
+export const optionsOf = argv => {
+  const arg = name => { const k = argv.indexOf(name); return k > 0 ? argv[k + 1] : undefined }
+  return { dir: argv[2], n: Number(arg('--of')), attempts: Number(arg('--attempts') ?? DEFAULT_ATTEMPTS), interval: Number(arg('--interval') ?? DEFAULT_INTERVAL_S) }
+}
 
 /** A 4xx cannot heal by waiting (bad token, wrong repository), so it is thrown as-is; a 5xx or a dropped connection is retried. */
 class Transient extends Error {}
@@ -334,13 +346,9 @@ const selfTest = async () => {
 if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   finish(await selfTest())
 } else if (isMain(import.meta.url)) {
-  const arg = name => { const k = process.argv.indexOf(name); return k > 0 ? process.argv[k + 1] : undefined }
-  const dir = process.argv[2]
-  const n = Number(arg('--of'))
-  const attempts = Number(arg('--attempts') ?? 80)
-  const interval = Number(arg('--interval') ?? 30)
+  const { dir, n, attempts, interval } = optionsOf(process.argv)
   if (!dir || dir.startsWith('--') || !Number.isInteger(n) || n < 1 || !Number.isInteger(attempts) || attempts < 1 || !(interval >= 0)) {
-    console.error('usage: node scripts/mutation-await.mjs <dir> --of N [--attempts 80] [--interval 30]')
+    console.error(`usage: node scripts/mutation-await.mjs <dir> --of N [--attempts ${DEFAULT_ATTEMPTS}] [--interval ${DEFAULT_INTERVAL_S}]`)
     process.exit(2)
   }
   try {
