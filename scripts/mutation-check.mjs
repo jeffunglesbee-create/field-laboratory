@@ -2437,7 +2437,7 @@ const MUTATIONS = [
   {
     id: 'kill-hook-does-not-yield',
     file: 'scripts/mutation-check.mjs',
-    claim: "a test-only catchable signal is handled where it was sent, not after the run has finished",
+    claim: "a test-only catchable signal is handled where it was sent, before the expectation runs, not one turn later after it has",
     find: "  if (signal !== 'SIGKILL') await new Promise(done => setTimeout(done, 400))",
     replace: "  void signal",
     expect: 'node scripts/mutation-check.mjs --self-test',
@@ -9846,8 +9846,11 @@ const killHere = async where => {
   if (process.env.MUTATION_KILL_SIGNAL === 'throw') throw new Error(`MUTATION_KILL_AT=${where}`)
   const signal = process.env.MUTATION_KILL_SIGNAL || 'SIGKILL'
   process.kill(process.pid, signal)
-  // A signal this process catches is not handled where it is sent: Node runs the handler when the event loop turns, and a run with no `await` in its path (a docs mutation)
-  // would otherwise finish the mutation, restore and exit before the handler ever ran, which no clause could tell from a handler that was never installed. SIGKILL needs no turn.
+  // A signal this process catches is not handled where it is sent: Node runs the handler when the event loop turns. Without this wait it would be handled one turn late, at the
+  // `tick()` that ends `expectation()`, AFTER the expectation had run, and every end state a clause can look at (exit 1, the file back, the state gone, no verdict line) is the
+  // same whether the handler ran before the expectation or after it. (Before `expectation()` had that turn, a docs mutation had no `await` in its path at all and finished, restored and
+  // exited before the handler ran.) The wait makes the signal handled where it was sent, before the expectation; the E18 clause with `expect-writes-unrelated` is what tells the two apart.
+  // SIGKILL needs no turn.
   if (signal !== 'SIGKILL') await new Promise(done => setTimeout(done, 400))
 }
 
@@ -11494,6 +11497,18 @@ if (process.argv.includes('--self-test')) {
     check('E18: ...and a SIGTERM while the write-ups are stubbed puts them back from the stash before the state goes',
       kt.status === 1 && kt.signal === null && writeUpsBack() && !existsSync(join(repo, '.mutation-state')) && !/(PASS|FAIL)\s+\[outbox-stub\]/.test(text(kt)),
       `status ${kt.status}, signal ${kt.signal}, write-ups back ${writeUpsBack()}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
+    // ...and the signal is handled WHERE IT WAS SENT, before the expectation runs. `expectation()` ends in a turn of the event loop, so a signal that is only queued when the expectation
+    // starts is acted on right after it, and every end state the clauses above look at (exit 1, the file back, the state gone, no verdict line) is the same either way. What differs is whether
+    // the expectation RAN. The fault makes it leave a file when it does; the control run (no signal) proves the fault leaves it, so its absence after the SIGTERM means the expectation did not run.
+    reset()
+    go(['--only', 'known-survivor'], { MUTATION_FAULT: 'expect-writes-unrelated' })
+    const ranWithoutSignal = existsSync(join(repo, 'unrelated-during-window.txt'))
+    reset()
+    const yieldRun = go(['--only', 'known-survivor'], { MUTATION_KILL_AT: 'source-applied', MUTATION_KILL_SIGNAL: 'SIGTERM', MUTATION_FAULT: 'expect-writes-unrelated' })
+    const ranAfterSignal = existsSync(join(repo, 'unrelated-during-window.txt'))
+    check('E18: ...and a SIGTERM while a source file is mutated is handled BEFORE the expectation runs, not one turn after it: with a fault that makes the expectation write a file, the file is absent after the signal and present after the same run with no signal (2 runs; the end state alone cannot tell the two orders apart)',
+      ranWithoutSignal && yieldRun.status === 1 && yieldRun.signal === null && !ranAfterSignal && read(join(repo, 'docs/gate-rows.txt')) === rows && !existsSync(join(repo, '.mutation-state')),
+      `control (no signal) wrote the file ${ranWithoutSignal}; after the SIGTERM: status ${yieldRun.status}, signal ${yieldRun.signal}, the expectation ran ${ranAfterSignal}, file back ${read(join(repo, 'docs/gate-rows.txt')) === rows}, state gone ${!existsSync(join(repo, '.mutation-state'))}`)
 
     // E19: a restore that put back SOME of what the mutation touched (a `cp` that ran out of disk part-way). It is not a restore: the stash is the only copy of the rest.
     reset()
