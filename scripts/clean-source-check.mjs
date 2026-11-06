@@ -138,6 +138,8 @@ if (process.argv.includes('--self-test')) {
   const dirty = sources.filter(f => blocks.includes(f) || probes.includes(f) || moved.includes(f))
   const at = files => files.map(f => join(SRC, f)).join(' ')
   const paths = at(dirty)
+  // More than one file carries an injection (a block and a probe always live in two): the sentence about the checkout is then plural, as proof-check's is for the same state. Kept by eye in both.
+  const many = dirty.length > 1
   // What to delete, for each kind that is there. The probe is one line, and its grep shows the line above the union's last case, because that line is the probe: the last case itself is always there.
   const deletions = [
     ...(blocks.length ? [`the injected block (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${at(blocks)}\` finds them)`] : []),
@@ -150,7 +152,7 @@ if (process.argv.includes('--self-test')) {
     ? `a proof-check run left this. Run \`node scripts/proof-check.mjs\`: it puts a file back only when that file is exactly its backup plus the injection (edits made before that run are kept), ` +
       `and refuses, writing nothing, when the file has moved on since or that run is still going; after a restore it goes on to run the proofs. The backups are in ${STATE_DIR}/; do not delete it`
     : `${ACTIVE_FILE} does not exist, so \`node scripts/proof-check.mjs\` has nothing to restore from and refuses. Delete ${deletions.join(' and ')}. ` +
-      `If the injection is uncommitted, \`git checkout -- ${paths}\` also removes it but discards every uncommitted edit to the file`
+      `If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${paths}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}`
 
   check('no source file carries injected proof code',
     dirty.length === 0,
@@ -256,7 +258,7 @@ function selfTest () {
       bothKinds.status === 1 && /→ B\.fs, D\.fs — /.test(bothKinds.out)
         && /Delete the injected block \(each "let private __proofN" header and the indented lines under it; \`grep -n "let private __proof" src\/B\.fs\` finds them\) and the probe case \(the line/.test(bothKinds.out)
         && /\`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(bothKinds.out)
-        && /\`git checkout -- src\/B\.fs src\/D\.fs\` also removes it/.test(bothKinds.out), bothKinds.verdict)
+        && /If the injections are uncommitted, \`git checkout -- src\/B\.fs src\/D\.fs\` also removes them but discards every uncommitted edit to the files/.test(bothKinds.out), bothKinds.verdict)
     check('a union that has `| NHL` in the middle and another case above its last is clean, as the real one is (the probe is a second `| NHL`, directly above the last case)',
       unionClean.status === 0 && /5\/5 checks passed/.test(unionClean.out), unionClean.verdict)
     check('a probe a sport has been added in front of fails the scan, and is the file named (fixtures: src/A.fs clean, src/D.fs carries `| NHL` twice with a sport above the last case)',
@@ -269,7 +271,8 @@ function selfTest () {
     check('a probe directly above the last case in one file and a separated one in another each get their own instruction, naming only their own file, and one checkout names both',
       probeKinds.status === 1 && /→ D\.fs, E\.fs — /.test(probeKinds.out)
         && /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\) and the probe case \(the second line/.test(probeKinds.out)
-        && /\`grep -n "\^    \| NHL\$" src\/E\.fs\` lists both\)\./.test(probeKinds.out) && /\`git checkout -- src\/D\.fs src\/E\.fs\` also removes it/.test(probeKinds.out), probeKinds.verdict)
+        && /\`grep -n "\^    \| NHL\$" src\/E\.fs\` lists both\)\./.test(probeKinds.out)
+        && /If the injections are uncommitted, \`git checkout -- src\/D\.fs src\/E\.fs\` also removes them but discards every uncommitted edit to the files/.test(probeKinds.out), probeKinds.verdict)
     check('the same line in two declarations that each have it as a case of their own is clean: it is counted per declaration, not per file',
       twoDeclarations.status === 0 && /5\/5 checks passed/.test(twoDeclarations.out), twoDeclarations.verdict)
     check('a probe line, a last-case anchor or a site definition that proof-check no longer uses fails the scan: three renamed constants',
