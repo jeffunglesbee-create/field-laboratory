@@ -33,7 +33,8 @@
  * and wrong after an object literal or a class body (`{a: 1} / 2`). A `/` after `++`/`--` that ends an operand on the same line, and after a property spelled like a keyword
  * (`c.new`), is division (review 4, 2026-11-04: both were read as regular expressions, which inside a template expression hid the rest of the file); a `++` that starts its
  * statement, or follows a keyword, is a prefix, and a `.` that ends `...` or a number is not member access (review 5). A line ends at a line feed, a carriage return, U+2028 or
- * U+2029: a `//` comment, a regular expression and the `++` test stop there; a string stops at a line feed or a carriage return (U+2028 and U+2029 may be inside one), and a backslash
+ * U+2029: a `//` comment, a regular expression and the `++` test stop there, and a block comment that holds one is a line feed in the stripped text (it is a line end to the language, so a `++` after
+ * such a comment, with an operand before it, is a prefix); a string stops at a line feed or a carriage return (U+2028 and U+2029 may be inside one), and a backslash
  * before a CR LF continues it over both. `instanceof`, `extends` and `default` can be followed by a regular expression, and so can `...` (`f(.../re/.exec(x))`: a spread is not member access). `of` is a keyword where an operator can stand, after
  * something that ends an operand (`for (x of /re/.exec(s))`), and a name where an expression begins (`= of / 2`, `in of / 2`, `if (x) of / 2`); after the `}` of a destructuring pattern
  * (`for (const {a} of /re/.exec(s))`) it is read as a name, because a `}` is read as the end of a block (above). Neither a private name (`this.#in`) nor a name that has a keyword after a non-ASCII letter or a
@@ -98,7 +99,7 @@ export const scanNonCode = src => {
       const c = src[i]
       const d = src[i + 1]
       if (c === '/' && d === '/') { const s = i; while (i < n && !isEol(src[i])) i++; spans.push([s, i]); continue }
-      if (c === '/' && d === '*') { const s = i; const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; spans.push([s, i]); out += ' '; continue }
+      if (c === '/' && d === '*') { const s = i; const end = src.indexOf('*/', i + 2); i = end < 0 ? n : end + 2; spans.push([s, i]); out += [...src.slice(s, i)].some(isEol) ? '\n' : ' '; continue }
       if (c === "'" || c === '"') {
         // A string that reaches a line feed or a carriage return unclosed ends there: a stray quote must not be able to swallow the rest of the file. (U+2028 and U+2029 may be inside a string.)
         // A backslash and the line end after it continue the string, and a CR LF is one line end: skip both characters.
