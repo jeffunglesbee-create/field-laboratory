@@ -38,6 +38,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { rows } from './gate-checks.mjs'
 import { stripNonCode, blankComments } from './strip-non-code.mjs'
+import { NETWORK_EXEMPT } from './network-exempt.mjs'
 import { createChecks, finish } from './checks.mjs'
 
 const BAR = 95
@@ -164,25 +165,6 @@ const clockCounts = src => {
   const clockReads = code.match(/Date\s*\.\s*now(?![\w$])|Date\s*\[\s*''\s*\]\s*\(\s*\)|new\s+Date(?![\w$])(?!\s*\(\s*[^\s)])|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\)|(?<![.\w$])(?<!\b(?:new|instanceof|typeof)\s+)Date(?![\w$])(?!\s*[.\[:])/g) ?? []
   return { captures: captures.length, reads: clockReads.length, network: networkUses(code) }
 }
-
-/**
- * Network use a row's script has on purpose, or reaches only behind a flag the row does not pass. One entry per ROW and script, because rows are scored one at a time (a script two rows run needs two).
- *
- * `flag`: the script fetches only when it is given this flag: `drift-check.mjs` only from the `--url` it is given, `venue-coverage-check.mjs` only under `--report --url`. The drift sentinel passes them and no gate row does.
- * The entry holds only while the row's OWN text, in `gate-checks.mjs`, does not pass that flag to that script: a row that adds `--url` is red whatever this table says. `sanctioned`: the ONE network read a gate row is
- * allowed to make, with the reason. That is the shard wait of `verify-full`: `mutation-await.mjs` has no flag to key on, it reaches the GitHub API whenever it runs, and the row runs it whenever `verify-full` sets
- * `GATE_MUTATION_SHARDS` (a clause pins that there is exactly one sanctioned read).
- * An entry with neither exempts nothing. An entry that names a row the gate does not have, or a script that row does not run, is itself an objection (`staleExemptions`).
- *
- * Checked 2026-11-05: `drift-check.mjs` with the two `--file` arguments of its rows, `test/malformed-nested.json`, and `venue-coverage-check.mjs` with none, were run with `fetch`, `http(s).request|get` and `net.connect`
- * replaced by stand-ins that end the process: no attempt in any of the four, and the same stand-ins ended `drift-check.mjs --url` (exit 97), so they can fire.
- */
-const NETWORK_EXEMPT = [
-  { row: 'decoders accept both real captures', script: 'scripts/drift-check.mjs', flag: '--url' },
-  { row: 'decoders accept both real captures', script: 'scripts/venue-coverage-check.mjs', flag: '--report' },
-  { row: 'decoders still REJECT the corrupted fixture', script: 'scripts/drift-check.mjs', flag: '--url' },
-  { row: 'breaking each invariant makes a check fail', script: 'scripts/mutation-await.mjs', sanctioned: 'the shard wait: verify-full sets GATE_MUTATION_SHARDS, and this script lists the artifacts of the run at the GitHub API so the row can read the shards (a local gate does not run it)' },
-]
 
 /**
  * The arguments of each command that runs `script` in a row's declaration: what follows the script's path up to the next script path or the next `ok(`, `fails(` or `all(` call, whatever quotes, `+` or lines

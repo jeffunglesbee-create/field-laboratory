@@ -63,6 +63,7 @@
     "check:mutation-parts": "node scripts/mutation-lib.mjs --self-test && node scripts/mutation-merge.mjs --self-test && node scripts/mutation-await.mjs --self-test && node scripts/mutation-compare.mjs --self-test && node scripts/sharded-row-check.mjs --self-test && node scripts/build-steady.mjs --self-test",
     "check:mutate-copy": "node scripts/mutate-copy-check.mjs --self-test && node scripts/mutate-copy-check.mjs",
     "check:rows": "node scripts/row-confidence.mjs",
+    "check:network-exempt": "node scripts/network-exempt-check.mjs --self-test && node scripts/network-exempt-check.mjs",
     "check:verify": "node build/VerifyMain.js",
     "capture:nhl-fixture": "node scripts/capture-nhl-fixture.mjs --self-test && node scripts/capture-nhl-fixture.mjs",
     "census:second-wind": "node scripts/second-wind-population.mjs --self-test && node scripts/second-wind-population.mjs",

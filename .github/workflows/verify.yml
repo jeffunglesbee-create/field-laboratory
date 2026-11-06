@@ -962,6 +962,16 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:rows
 
+      # The exemptions the step above scores with, RUN instead of read. check:rows exempts three scripts from the network half of its scan (drift-check and venue-coverage-check because they fetch
+      # only behind a flag the rows do not pass, mutation-await as the one sanctioned read), and it only reads: an unconditional fetch added to any of the three left it at 23/23 (measured
+      # 2026-11-05). This runs the exempt rows' commands with the network closed, requires a control run with each flag to be stopped on an attempt, and FAILS when build/ is missing; it needs the
+      # build because the exempt scripts import it, which is why it is gated on the build like its neighbour. About a second and a half.
+      - name: The network exemptions hold when run
+        # Runs even if a SIBLING report failed — see the block above
+        # `Every gate row has teeth`.
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:network-exempt
+
       # A red main must be visible in the repo, not only in the Actions tab.
       - name: A red main is reported, not softened
         # Runs even if a SIBLING report failed — see the block above
