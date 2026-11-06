@@ -1,4 +1,4 @@
-// The seven scripts/mutate-*.mjs and scripts/mutate-push-lands.py never write the tracked tree.
+// Every scripts/mutate-* script that can be run here never writes the tracked tree.
 //
 // WHY. Until 2026-11-05 each of them broke a tracked file IN PLACE, held the original only in memory, and wrote it back at the end. A SIGKILL between the two
 // writes left the mutation in the file: `git status` showed ` M scripts/odds-coverage.mjs` after `mutate-odds-coverage.mjs` was killed inside a mutation window
@@ -7,9 +7,14 @@
 // a COPY in a temp directory and only read the tracked file (docs/CC-CMD-2026-11-03-gate-hazard-residuals.md, Task 2). This check says so mechanically, so a
 // later edit back to `writeFileSync(F, mutated)` is stopped at its first write instead of stranding the tree.
 //
+// WHICH. The scripts are the directory, not a list kept in this file: every file in scripts/ named mutate-* is run and judged below unless it is on EXEMPT with the
+// reason it cannot be run here, so a script added tomorrow, in place or not, is checked without anyone remembering to add it. A mutate-* file with an extension this check
+// cannot launch, an exemption that names no file, and a line in .github/workflows that runs a mutate script the glob does not see (scripts/mutate_x.mjs, scripts/sub/mutate-x.py)
+// are failures of their own. The count printed with the verdict is files checked, files exempt and files in the directory.
+//
 // HOW. Each script is run as it is, with $TMPDIR reached through a SYMLINK to a directory of its own (macOS's is: /var is a link), and with a guard that REFUSES any
-// write whose path is under <root>/scripts/ and logs every write. For the .mjs scripts the guard is a preload (NODE_OPTIONS --require) that wraps the fs write
-// functions; for the .py script it is a sitecustomize.py (PYTHONPATH) that installs an audit hook. Both are inherited by the self-test processes the script starts.
+// write whose path is under <root>/scripts/ and logs every write. For a .mjs script the guard is a preload (NODE_OPTIONS --require) that wraps the fs write
+// functions; for a .py script it is a sitecustomize.py (PYTHONPATH) that installs an audit hook. Both are inherited by the self-test processes the script starts.
 // "Under scripts/" includes scripts/ itself: moving or removing the directory is how a script would swap in a whole mutated tree and put the original back.
 // Seven clauses per script, in the order they print:
 //   1. it runs to the end and every mutation is caught                    (exit 0 and `N of N mutations caught`, with $TMPDIR behind the symlink)
@@ -48,8 +53,37 @@ import { tmpdir } from 'node:os'
 import { join, delimiter, sep } from 'node:path'
 import { createChecks, finish } from './checks.mjs'
 
-const SCRIPTS = ['claim-check', 'deploy-gate', 'deploy-landed', 'odds-coverage', 'odds-shape-census', 'run-steps', 'replay-odds-coverage', 'push-lands']
-const fileOf = name => (name === 'push-lands' ? 'scripts/mutate-push-lands.py' : `scripts/mutate-${name}.mjs`)
+// The scripts this check is told NOT to run, each with the reason (measured 2026-11-05 on the gate's own tree). Nothing else in scripts/mutate-* is exempt.
+const EXEMPT = {
+  'mutate-copy-check.mjs': 'this file: it runs the others, it is not one of them',
+  'mutate-ppubs-probe.py': 'works in a tempfile.TemporaryDirectory by its source, but it had not finished in 200 s natively nor in 300 s under the python guard, so it is not run here; ppubs-query-probe.yml runs it',
+  'mutate-patent-watch.py': 'needs .client-src/.github/scripts/patent_watch.py, a checkout of another repo that its verify.yml job makes ("FAIL: no watcher at ..." when absent); works in a tempfile.TemporaryDirectory by its source',
+  'mutate-drama-backfill.py': 'needs .relay-src/scripts/drama-backfill.mjs, a checkout of another repo that its verify.yml job makes ("FAIL: no script at ..." when absent); works in a tempfile.TemporaryDirectory by its source',
+}
+/** `mutate-claim-check.mjs` is checked as `claim-check`: the name --only takes and the label of its clauses. */
+const nameOf = f => f.replace(/^mutate-/, '').replace(/\.(mjs|py)$/, '')
+const RUN_LINE = /\b(?:node|python3?)\s+(scripts\/[\w./-]*mutate[\w./-]*)/g
+/** What scripts/ holds under `root`: the scripts to run, the ones told not to be, the ones that cannot be launched, the workflow run lines the glob does not see, and exemptions that name nothing. */
+const inventory = root => {
+  const files = readdirSync(join(root, 'scripts')).filter(f => f.startsWith('mutate-')).sort()
+  const launchable = f => /\.(mjs|py)$/.test(f)
+  const workflows = join(root, '.github', 'workflows')
+  const wired = existsSync(workflows)
+    ? [...new Set(readdirSync(workflows).filter(f => /\.ya?ml$/.test(f)).flatMap(f => [...readFileSync(join(workflows, f), 'utf8').matchAll(RUN_LINE)].map(m => m[1])))].sort()
+    : []
+  return {
+    files, wired,
+    checked: files.filter(f => !(f in EXEMPT) && launchable(f)),
+    exempt: files.filter(f => f in EXEMPT),
+    stray: files.filter(f => !(f in EXEMPT) && !launchable(f)),
+    unreachable: wired.filter(p => !files.includes(p.slice('scripts/'.length))),
+    staleExempt: Object.keys(EXEMPT).filter(f => !files.includes(f)),
+  }
+}
+/** The clause about the inventory. `say` is `check`, or in the self-test a recorder, so the fixtures can be put to the very clause the real run applies. */
+const inventoryClause = (found, say = check) => say(`EVERY scripts/mutate-* FILE IS CHECKED OR EXEMPT WITH A REASON, AND EVERY WORKFLOW RUN LINE NAMES ONE (${found.checked.length} checked + ${found.exempt.length} exempt = ${found.files.length} files; ${found.wired.length} distinct run lines in .github/workflows)`,
+  found.stray.length === 0 && found.unreachable.length === 0 && found.staleExempt.length === 0,
+  `cannot be launched: ${found.stray.join(', ') || 'none'}; run lines the glob does not see: ${found.unreachable.join(', ') || 'none'}; exemptions naming no file: ${found.staleExempt.join(', ') || 'none'}`)
 const WRITERS = ['writeFileSync', 'appendFileSync', 'copyFileSync', 'renameSync', 'unlinkSync', 'rmSync', 'truncateSync']
 const TIMEOUT_MS = 180000
 
@@ -466,6 +500,29 @@ ${UNSEEN_PY.map(([key, , code], i) => `def t${i}(): ${code}\nattempt(${JSON.stri
     check(`THE PRINTED COVERAGE NAMES EVERY ONE OF THE ${labelsOf(UNSEEN_NODE).length + labelsOf(UNSEEN_PY).length} STATEMENTS IN BOTH LISTS, AND SAYS WHAT cpSync DOES ONLY AS A DATED MEASUREMENT`,
       [...UNSEEN_NODE, ...UNSEEN_PY].every(e => printed.includes(e[1])) && /cpSync[^\n]*v22\.22\.0 \(measured 2026-11-05\)/.test(printed), printed)
 
+    // The inventory over directories of its own: it is the directory, with the exemptions told apart, and each way it can be wrong fails.
+    const fixture = (name, { extra = [], without = [], workflow = 'node scripts/mutate-a.mjs\npython3 scripts/mutate-b.py\n' } = {}) => {
+      const dir = join(root, name)
+      mkdirSync(join(dir, 'scripts'), { recursive: true })
+      mkdirSync(join(dir, '.github', 'workflows'), { recursive: true })
+      for (const f of ['mutate-a.mjs', 'mutate-b.py', 'check-not-a-mutate.mjs', ...Object.keys(EXEMPT), ...extra]) if (!without.includes(f)) writeFileSync(join(dir, 'scripts', f), '// x\n')
+      writeFileSync(join(dir, '.github', 'workflows', 'verify.yml'), `jobs:\n  x:\n    steps:\n      - run: |\n${workflow.split('\n').filter(Boolean).map(l => `          ${l}`).join('\n')}\n`)
+      return inventory(dir)
+    }
+    const clean = fixture('inv-clean')
+    const ninth = fixture('inv-ninth', { extra: ['mutate-zzz.mjs'], workflow: 'node scripts/mutate-a.mjs\nnode scripts/mutate-zzz.mjs\n' })
+    const weird = fixture('inv-stray', { extra: ['mutate-weird.sh'] })
+    const hidden = fixture('inv-unreachable', { workflow: 'node scripts/mutate_under.mjs\npython3 scripts/sub/mutate-deep.py\nnode scripts/mutate-a.mjs\n' })
+    const stale = fixture('inv-stale', { without: ['mutate-ppubs-probe.py'] })
+    const ok = found => { let r; inventoryClause(found, (_name, passed) => { r = passed }); return r }
+    check('THE INVENTORY OF MUTATE SCRIPTS IS THE DIRECTORY: a ninth script nobody listed is checked, the exemptions are told apart, and a file it cannot launch, a workflow run line the glob does not see and an exemption naming no file each fail it',
+      JSON.stringify(clean.checked) === JSON.stringify(['mutate-a.mjs', 'mutate-b.py']) && clean.exempt.length === Object.keys(EXEMPT).length && clean.files.length === 2 + Object.keys(EXEMPT).length && clean.wired.length === 2 && ok(clean) &&
+      ninth.checked.includes('mutate-zzz.mjs') && ok(ninth) &&
+      JSON.stringify(weird.stray) === JSON.stringify(['mutate-weird.sh']) && !weird.checked.includes('mutate-weird.sh') && !ok(weird) &&
+      JSON.stringify(hidden.unreachable) === JSON.stringify(['scripts/mutate_under.mjs', 'scripts/sub/mutate-deep.py']) && !ok(hidden) &&
+      JSON.stringify(stale.staleExempt) === JSON.stringify(['mutate-ppubs-probe.py']) && !ok(stale),
+      JSON.stringify({ clean, ninth: ninth.checked, weird: weird.stray, hidden: hidden.unreachable, stale: stale.staleExempt }))
+
     const inPlace = evaluate('in-place.mjs', root)
     check('A STAND-IN THAT MUTATES IN PLACE FAILS EVERY CLAUSE (the guard stopped it at its first write), and its tracked file is byte-identical',
       pattern(inPlace) === 'FFFFFFF' && tracked('target.mjs') === TRACKED, `${pattern(inPlace)} ${JSON.stringify(inPlace)}`)
@@ -483,9 +540,13 @@ try {
   if (process.argv.includes('--self-test')) {
     selfTest()
   } else {
+    const found = inventory(process.cwd())
+    const SCRIPTS = found.checked.map(nameOf)
+    const fileOf = name => `scripts/${found.checked.find(f => nameOf(f) === name)}`
     const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : null
     const names = process.argv.includes('--only') ? SCRIPTS.filter(n => n === only) : SCRIPTS
     check('there are scripts to check', names.length > 0, `--only ${only} names none of: ${SCRIPTS.join(', ')}`)
+    inventoryClause(found)
     let caught = 0, total = 0
     for (const n of names) {
       const e = evaluate(fileOf(n), process.cwd())
@@ -493,7 +554,8 @@ try {
       caught += e.caught
       total += e.total
     }
-    console.log(`\nchecked ${names.length} of ${SCRIPTS.length} mutate scripts; ${caught} of ${total} mutations caught inside them`)
+    console.log(`\nchecked ${names.length} of ${SCRIPTS.length} mutate scripts (${found.files.length} files named scripts/mutate-*, ${found.exempt.length} exempt); ${caught} of ${total} mutations caught inside them`)
+    for (const f of found.exempt) console.log(`  exempt: ${f}: ${EXEMPT[f]}`)
     for (const line of coverageLines()) console.log(line)
     console.log()
   }
