@@ -80,8 +80,9 @@ const RECORD_PATH = 'docs/confidence-log.jsonl'
 //
 // `--stranded` is the read-only mode that says so: it exits 1 naming the mutation, the file and `node scripts/mutation-check.mjs --heal`, and heals nothing. The owner chose a
 // refusal over a heal (2026-11-05): a heal writes files and runs `npm run build`, and a gate that repaired the tree it is about to score would be scoring its own repair.
-// It runs as a process because the harness does its work at module scope and exports nothing (import-purity-check.mjs), and by this file's own directory so that a gate run
-// from another directory still finds it.
+// It runs as a process because the harness does its work at module scope and exports nothing (import-purity-check.mjs). The SCRIPT is found by this file's own directory, but what it
+// reads is not: `--stranded` looks for `.mutation-state` relative to the working directory, as the inventory and every row command below do, so the gate is run from the repository root
+// (from another directory the preflight would ask about that directory's state, and the inventory comparison right after it would fail).
 //
 // A HARD STOP, NOT A ROW, for the reason the inventory below is one: it is not a measurement of the product, so it earns and risks no points, and a row could be dropped
 // alongside the state it was meant to catch. Any non-zero status refuses, not only 1: a check that crashed has not said the tree is clean. Exit 2, the status of the inventory's
