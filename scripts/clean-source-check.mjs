@@ -146,9 +146,9 @@ if (process.argv.includes('--self-test')) {
   // What to delete, for each kind that is there. The probe is one line, and its grep shows the line above the union's last case, because that line is the probe: the last case itself is always there.
   const deletions = [
     ...(blocks.length ? [`the injected block (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${at(blocks)}\` finds them)`] : []),
-    ...(probes.length ? [`the probe case (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${at(probes)}\` shows it)`] : []),
+    ...(probes.length ? [`the probe case (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$" ${at(probes)}\` shows it)`] : []),
     // Where a sport now sits between the probe and the last case, the line above the last case is that sport: the grep lists the line itself, both of them, and the probe is the second.
-    ...(moved.length ? [`the probe case (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: proof-check wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; \`grep -n "^${REGISTRY_PROBE.trimEnd()}$" ${at(moved)}\` lists both)`] : []),
+    ...(moved.length ? [`the probe case (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: proof-check wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; \`grep -n "^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$" ${at(moved)}\` lists both)`] : []),
   ]
   // The remedy is one line (it is also a GitHub annotation) and depends on whether proof-check has the state it needs.
   const remedy = existsSync(ACTIVE_FILE)
@@ -192,7 +192,7 @@ function selfTest () {
     const out = `${r.stdout}${r.stderr}`
     // What a failure prints: the exit status and the FAIL lines with their detail, not the child's whole output.
     const verdict = `exit ${r.status}: ${out.split('\n').filter(l => /^FAIL|^ {6}→ /.test(l)).join(' | ') || 'no FAIL line'}`
-    return { status: r.status, out, verdict }
+    return { status: r.status, out, verdict, dir }
   }
   try {
     const injected = { 'A.fs': 'let a = 1\n', 'B.fs': `let b = 2\n${MARKER}23 (g: int) = 1\n` }
@@ -221,11 +221,23 @@ function selfTest () {
     const probeKinds = run({ files: { 'D.fs': probedUnion, 'E.fs': movedUnion } })
     const twoDeclarations = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': 'type A =\n    | NHL\n    | X\n\ntype B =\n    | NHL\n    | Y\n' } })
     const FAILS = /FAIL  no source file carries injected proof code/
+    // A Windows checkout with autocrlf: every line ends in a carriage return, and proof-check's probe is inserted after the existing newline as a bare `\n` line, so the probe is the one line without it.
+    const crlfProbed = unionOf(['MLB', 'NHL', 'UFL']).replace(/\n/g, '\r\n').replace('\r\n    | Unrecognised', '\r\n    | NHL\n    | Unrecognised')
+    const probedCrlf = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': crlfProbed } })
+    // The grep a remedy prints, run by sh over `text` written where the grep names its file. Its output lines are what a reader would see.
+    const haveGrep = spawnSync('grep', ['-V']).status === 0
+    const printedGrep = (r, text) => {
+      const cmd = /`(grep [^`]*)`/.exec(r.out)?.[1]
+      if (!cmd) return { cmd: null, lines: [] }
+      writeFileSync(join(r.dir, cmd.split(' ').pop()), text)
+      const g = spawnSync('sh', ['-c', cmd], { cwd: r.dir, encoding: 'utf8' })
+      return { cmd, status: g.status, lines: g.stdout.split('\n').filter(l => l) }
+    }
     // The checkout sentence as a reader sees it, typed by hand here and not built from the scan's template, so that a drift in either shows.
     const checkoutSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed `
       + `(the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}`
 
-    // Coverage (Rule 91): 18 fixtures, each the real script in a directory of its own: clean, injected with no state, with active.json, with a state directory that holds no active.json,
+    // Coverage (Rule 91): 19 fixtures, each the real script in a directory of its own (the 19th, a probe on a CRLF tree, is listed with the greps it feeds, below): clean, injected with no state, with active.json, with a state directory that holds no active.json,
     // a renamed marker, a renamed state directory, a renamed state file, and no sources; then the registry's probe case: carried, carried beside an injected block, a clean union that has `| NHL`
     // in the middle, and a probe line, a last-case anchor and a site definition that proof-check no longer uses; then a probe a sport has been added in front of: alone, with a run state, beside
     // a probe that is directly above the last case, and the same line in two declarations that each have one of their own.
@@ -258,32 +270,45 @@ function selfTest () {
     check('a stranded registry probe fails the scan, and is the file named (fixtures: src/A.fs clean, src/D.fs carries the probe directly above the union\'s last case)',
       probed.status === 1 && FAILS.test(probed.out) && /→ D\.fs — /.test(probed.out) && !/A\.fs/.test(probed.out), probed.verdict)
     check('WITHOUT a run state, the probe\'s remedy names the line and a grep that shows it with the line above, and says nothing of an injected block',
-      /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(probed.out)
+      /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\[\[:space:\]\]\*\$" src\/D\.fs\` shows it\)\./.test(probed.out)
         && probed.out.includes(checkoutSentence('src/D.fs', false)) && !/injected block/.test(probed.out), probed.verdict)
     check('a probe and an injected block in one tree each get their own instruction, naming only their own file, and one checkout names both',
       bothKinds.status === 1 && /→ B\.fs, D\.fs — /.test(bothKinds.out)
         && /Delete the injected block \(each "let private __proofN" header and the indented lines under it; \`grep -n "let private __proof" src\/B\.fs\` finds them\) and the probe case \(the line/.test(bothKinds.out)
-        && /\`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(bothKinds.out)
+        && /\`grep -n -B1 "\^    \| Unrecognised of raw: string\[\[:space:\]\]\*\$" src\/D\.fs\` shows it\)\./.test(bothKinds.out)
         && bothKinds.out.includes(checkoutSentence('src/B.fs src/D.fs', true)), bothKinds.verdict)
     check('a union that has `| NHL` in the middle and another case above its last is clean, as the real one is (the probe is a second `| NHL`, directly above the last case)',
       unionClean.status === 0 && /5\/5 checks passed/.test(unionClean.out), unionClean.verdict)
     check('a probe a sport has been added in front of fails the scan, and is the file named (fixtures: src/A.fs clean, src/D.fs carries `| NHL` twice with a sport above the last case)',
       movedProbe.status === 1 && FAILS.test(movedProbe.out) && /→ D\.fs — /.test(movedProbe.out) && !/A\.fs/.test(movedProbe.out), movedProbe.verdict)
     check('WITHOUT a run state, its remedy names the line by what it is (the second `| NHL`) and a grep that lists both, and does not say the grep shows the line above the last case',
-      /Delete the probe case \(the second line "    \| NHL" in the union: proof-check wrote it directly above "    \| Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "\^    \| NHL\$" src\/D\.fs\` lists both\)\./.test(movedProbe.out)
+      /Delete the probe case \(the second line "    \| NHL" in the union: proof-check wrote it directly above "    \| Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "\^    \| NHL\[\[:space:\]\]\*\$" src\/D\.fs\` lists both\)\./.test(movedProbe.out)
         && movedProbe.out.includes(checkoutSentence('src/D.fs', false)) && !/-B1/.test(movedProbe.out) && !/injected block/.test(movedProbe.out), movedProbe.verdict)
     check('WITH a run state, a probe a sport has been added in front of gets the proof-check remedy and no git command, as a block does',
       movedWithState.status === 1 && FAILS.test(movedWithState.out) && /node scripts\/proof-check\.mjs/.test(movedWithState.out) && !/\bgit\b/.test(movedWithState.out), movedWithState.verdict)
     check('a probe directly above the last case in one file and a separated one in another each get their own instruction, naming only their own file, and one checkout names both',
       probeKinds.status === 1 && /→ D\.fs, E\.fs — /.test(probeKinds.out)
-        && /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\) and the probe case \(the second line/.test(probeKinds.out)
-        && /\`grep -n "\^    \| NHL\$" src\/E\.fs\` lists both\)\./.test(probeKinds.out)
+        && /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\[\[:space:\]\]\*\$" src\/D\.fs\` shows it\) and the probe case \(the second line/.test(probeKinds.out)
+        && /\`grep -n "\^    \| NHL\[\[:space:\]\]\*\$" src\/E\.fs\` lists both\)\./.test(probeKinds.out)
         && probeKinds.out.includes(checkoutSentence('src/D.fs src/E.fs', true)), probeKinds.verdict)
     check('the same line in two declarations that each have it as a case of their own is clean: it is counted per declaration, not per file',
       twoDeclarations.status === 0 && /5\/5 checks passed/.test(twoDeclarations.out), twoDeclarations.verdict)
     check('a probe line, a last-case anchor or a site definition that proof-check no longer uses fails the scan: three renamed constants',
       [probeDrift, anchorDrift, siteDrift].every(r => r.status === 1 && /FAIL  the registry probe this scans for is the one proof-check injects/.test(r.out)),
       `${probeDrift.verdict} // ${anchorDrift.verdict} // ${siteDrift.verdict}`)
+    // The greps the remedies print, RUN (review 7, finding L11). A grep that ends in `$` printed nothing on a tree whose lines end in a carriage return, so "shows it" and "lists both" were false on a
+    // Windows checkout with autocrlf (measured 2026-11-06: exit 1, no output, on the real script's own fixture with CRLF line ends). Each is run by sh over both kinds of line end.
+    const adjacentLf = printedGrep(probed, probedUnion)
+    const adjacentCrlf = printedGrep(probedCrlf, crlfProbed)
+    const movedLf = printedGrep(movedProbe, movedUnion)
+    const movedCrlf = printedGrep(movedProbe, movedUnion.replace(/\n/g, '\r\n'))
+    check(`the grep the probe remedy prints shows the probe and the last case under it on LF and on CRLF line ends, and the scan itself fires on the CRLF tree (2 greps run, 1 scan; asserted: ${haveGrep})`,
+      !haveGrep || (probedCrlf.status === 1 && FAILS.test(probedCrlf.out)
+        && [adjacentLf, adjacentCrlf].every(g => g.status === 0 && g.lines.length === 2 && /\| NHL/.test(g.lines[0]) && /\| Unrecognised of raw: string/.test(g.lines[1]))),
+      `LF ${JSON.stringify(adjacentLf.lines)}, CRLF ${JSON.stringify(adjacentCrlf.lines)}; ${probedCrlf.verdict}`)
+    check(`the grep the separated-probe remedy prints lists both \`| NHL\` lines on LF and on CRLF line ends (2 greps run; asserted: ${haveGrep})`,
+      !haveGrep || [movedLf, movedCrlf].every(g => g.status === 0 && g.lines.length === 2 && g.lines.every(l => /\| NHL/.test(l))),
+      `LF ${JSON.stringify(movedLf.lines)}, CRLF ${JSON.stringify(movedCrlf.lines)}`)
   } finally {
     for (const d of dirs) rmSync(d, { recursive: true, force: true })
   }

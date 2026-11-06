@@ -6225,8 +6225,8 @@ const MUTATIONS = [
     id: "proof-check-stray-registry-grep-shows-the-wrong-line",
     file: 'scripts/proof-check.mjs',
     claim: "the registry's grep shows the line ABOVE the union's last case, which is the probe, not only the last case itself",
-    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${REGISTRY}\\` shows it)",
-    replace: "\\`grep -n \"^${REGISTRY_ANCHOR.slice(1)}$\" ${REGISTRY}\\` shows it)",
+    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)",
+    replace: "\\`grep -n \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -6252,6 +6252,23 @@ const MUTATIONS = [
     claim: "the refusal says the checkout removes an injection only while it is neither staged nor committed, and that on a staged one (the hook's state) it changes nothing",
     find: "only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
     replace: "only while that injection is uncommitted, and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  // The printed greps end in `[[:space:]]*$`, not `$` (review 7, finding L11, 2026-11-06): on a registry whose lines end in a carriage return the plain `$` printed nothing, so "shows it" and "lists both" were false.
+  {
+    id: "proof-check-stray-grep-misses-a-carriage-return",
+    file: 'scripts/proof-check.mjs',
+    claim: "the grep the no-state refusal prints for a probe directly above the last case finds it on a registry with CRLF line ends",
+    find: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)`\n            : removalOf",
+    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${REGISTRY}\\` shows it)`\n            : removalOf",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  {
+    id: "proof-check-moved-grep-misses-a-carriage-return",
+    file: 'scripts/proof-check.mjs',
+    claim: "the grep that lists both `| NHL` lines of a separated probe finds them on a registry with CRLF line ends",
+    find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$\" ${REGISTRY}\\` lists both)",
+    replace: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}$\" ${REGISTRY}\\` lists both)",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   // --- a probe an edit has separated from the union's last case (review 6, finding 0, 2026-11-05) ----------------------------------------------------------------------------------------------
@@ -6352,8 +6369,8 @@ const MUTATIONS = [
     id: "proof-removal-greps-the-line-above-the-last-case",
     file: 'scripts/proof-check.mjs',
     claim: "the grep for a probe an edit may have separated lists the `| NHL` lines, not the line above the last case (which is then the sport that was added)",
-    find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}$\" ${REGISTRY}\\` lists both)",
-    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${REGISTRY}\\` shows it)",
+    find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$\" ${REGISTRY}\\` lists both)",
+    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${REGISTRY}\\` shows it)",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -8419,8 +8436,8 @@ const MUTATIONS = [
     id: "clean-source-probe-grep-without-context",
     file: 'scripts/clean-source-check.mjs',
     claim: "the probe's grep shows the line above the union's last case, which is the probe (the last case itself is always there)",
-    find: "grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${at(probes)}",
-    replace: "grep -n \"^${REGISTRY_ANCHOR.slice(1)}$\" ${at(probes)}",
+    find: "grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${at(probes)}",
+    replace: "grep -n \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${at(probes)}",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
@@ -8435,8 +8452,8 @@ const MUTATIONS = [
     id: "clean-source-probe-grep-names-the-block-file",
     file: 'scripts/clean-source-check.mjs',
     claim: "the grep for the probe case names the files that carry a probe, not the file that carries a block",
-    find: "\"^${REGISTRY_ANCHOR.slice(1)}$\" ${at(probes)}",
-    replace: "\"^${REGISTRY_ANCHOR.slice(1)}$\" ${paths}",
+    find: "\"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${at(probes)}",
+    replace: "\"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${paths}",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
@@ -8528,8 +8545,8 @@ const MUTATIONS = [
     id: "clean-source-moved-grep-shows-the-line-above",
     file: 'scripts/clean-source-check.mjs',
     claim: "the grep for a separated probe lists the `| NHL` lines, not the line above the last case (which is then the sport that was added)",
-    find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}$\" ${at(moved)}\\` lists both)",
-    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${at(moved)}\\` shows it)",
+    find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$\" ${at(moved)}\\` lists both)",
+    replace: "\\`grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${at(moved)}\\` shows it)",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
@@ -8596,6 +8613,23 @@ const MUTATIONS = [
     claim: "the remedy says the checkout removes an injection only while it is neither staged nor committed, and that on a staged one (the hook's state) it changes nothing",
     find: "neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and",
     replace: "uncommitted, and",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  // The printed greps end in `[[:space:]]*$`, not `$` (review 7, finding L11, 2026-11-06): on a tree whose lines end in a carriage return the plain `$` printed nothing.
+  {
+    id: "clean-source-probe-grep-misses-a-carriage-return",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the grep the remedy prints for a probe directly above the last case finds it on a tree with CRLF line ends",
+    find: "grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$\" ${at(probes)}",
+    replace: "grep -n -B1 \"^${REGISTRY_ANCHOR.slice(1)}$\" ${at(probes)}",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  {
+    id: "clean-source-moved-grep-misses-a-carriage-return",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the grep that lists both `| NHL` lines of a separated probe finds them on a tree with CRLF line ends",
+    find: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$\" ${at(moved)}\\` lists both)",
+    replace: "\\`grep -n \"^${REGISTRY_PROBE.trimEnd()}$\" ${at(moved)}\\` lists both)",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {

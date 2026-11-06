@@ -247,7 +247,7 @@ const carriesProbe = src => probeOnRegistry(src) || probeDuplicated(src)
 const removalOf = file => file === TARGET
   ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
   : `the probe case in ${REGISTRY} (the second line "${REGISTRY_PROBE.trimEnd()}" in the union: this run wrote it directly above "${REGISTRY_ANCHOR.slice(1)}", and a line added since may now sit between them; `
-    + `\`grep -n "^${REGISTRY_PROBE.trimEnd()}$" ${REGISTRY}\` lists both)`
+    + `\`grep -n "^${REGISTRY_PROBE.trimEnd()}[[:space:]]*$" ${REGISTRY}\` lists both)`
 
 /** Is `current` the backed-up registry with the probe case inserted, and nothing else different? */
 const strandedRegistry = (current, backup) => {
@@ -832,14 +832,14 @@ if (process.argv.includes('--self-test')) {
   const advice = r => r.stderr.split('\n').slice(1).join(' | ')
   const oldAdviceGone = r => !/Restore (it|them)\b/.test(r.stderr) && !/before re-running/.test(r.stderr)
   const targetPart = `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
-  const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string$" ${REGISTRY}\` shows it)`
+  const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string[[:space:]]*$" ${REGISTRY}\` shows it)`
   const costSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`
   // A registry shaped like the real one (`| NHL` is a case of its own, in the middle) with the probe and a sport the person added between the probe and the last case, and the same with the probe taken out by hand.
   // The sentence a person is given for the probe's line, typed by hand here: it describes the line by what it is, because "directly above the last case" is no longer true of it.
   const LAST_CASE = '    | Unrecognised of raw: string'
   const separatedUnion = union.replace(LAST_CASE, `    | NHL\n    | MyNewSport\n${LAST_CASE}`)
   const unionWithSport = union.replace(LAST_CASE, `    | MyNewSport\n${LAST_CASE}`)
-  const probeCase = `the probe case in ${REGISTRY} (the second line "    | NHL" in the union: this run wrote it directly above "    | Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "^    | NHL$" ${REGISTRY}\` lists both)`
+  const probeCase = `the probe case in ${REGISTRY} (the second line "    | NHL" in the union: this run wrote it directly above "    | Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "^    | NHL[[:space:]]*$" ${REGISTRY}\` lists both)`
   sc(`THE NO-STATE REFUSAL FOR AN INJECTED TARGET TELLS A PERSON TO DELETE THE LINES, and to check the file out only where that works (not once the injection is staged or committed), saying what that discards; "Restore it (git checkout ...)" is gone, and the registry is not named (1 of 3 planted states)`,
     strayTarget.stderr.includes(`Delete ${targetPart}, then run this again.`) && strayTarget.stderr.includes(costSentence(TARGET, false))
       && oldAdviceGone(strayTarget) && !strayTarget.stderr.includes(REGISTRY),
@@ -860,6 +860,36 @@ if (process.argv.includes('--self-test')) {
     straySeparated.status === 1 && straySeparated.registry === separatedUnion && straySeparated.target === clean && !straySeparated.stateLeft && /no run state exists/.test(straySeparated.stderr) && !carriedOn(straySeparated)
       && straySeparated.stderr.includes(`Delete ${probeCase}, then run this again.`) && straySeparated.stderr.includes(costSentence(REGISTRY, false)) && !straySeparated.stderr.includes('-B1'),
     advice(straySeparated))
+  // The greps the refusal prints, RUN (review 7, finding L11). A grep that ends in `$` printed nothing on a registry whose lines end in a carriage return, so "shows it" and "lists both" were false on a
+  // Windows checkout with autocrlf (measured 2026-11-06: exit 1 and no output, on the registry this script's own probe is written into). The probe is inserted after the existing newline as a bare `\n`
+  // line, so on such a registry it is the one line without the carriage return. Each grep is run by sh over both kinds of line end; the refusal itself is also run on the CRLF registry.
+  const haveGrep = spawnSync('grep', ['-V']).status === 0
+  const crlfProbed = union.replace(/\n/g, '\r\n').replace('\r\n    | Unrecognised', '\r\n    | NHL\n    | Unrecognised')
+  const strayCrlf = sandbox({ target: clean, registry: crlfProbed, noState: true })
+  const printedGrep = (r, text) => {
+    const cmd = /`(grep [^`]*)`/.exec(r.stderr)?.[1]
+    if (!cmd) return { cmd: null, status: null, lines: [] }
+    const dir = mkdtempSync(join(tmpdir(), 'proof-grep-'))
+    try {
+      mkdirSync(join(dir, 'src'))
+      writeFileSync(join(dir, cmd.split(' ').pop()), text)
+      const g = spawnSync('sh', ['-c', cmd], { cwd: dir, encoding: 'utf8' })
+      return { cmd, status: g.status, lines: g.stdout.split('\n').filter(l => l) }
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  }
+  const adjacentLf = printedGrep(strayRegistry, probeRegistry(union))
+  const adjacentCrlf = printedGrep(strayCrlf, crlfProbed)
+  const movedLf = printedGrep(straySeparated, separatedUnion)
+  const movedCrlf = printedGrep(straySeparated, separatedUnion.replace(/\n/g, '\r\n'))
+  sc(`THE GREP THE PROBE REFUSAL PRINTS SHOWS THE PROBE AND THE LAST CASE UNDER IT ON LF AND ON CRLF LINE ENDS, and the refusal itself fires on the CRLF registry and leaves it as found (2 greps run, 1 refusal; asserted: ${haveGrep})`,
+    !haveGrep || (strayCrlf.status === 1 && /no run state exists/.test(strayCrlf.stderr) && strayCrlf.registry === crlfProbed && !strayCrlf.stateLeft
+      && [adjacentLf, adjacentCrlf].every(g => g.status === 0 && g.lines.length === 2 && /\| NHL/.test(g.lines[0]) && /\| Unrecognised of raw: string/.test(g.lines[1]))),
+    `LF ${JSON.stringify(adjacentLf.lines)}, CRLF ${JSON.stringify(adjacentCrlf.lines)}; ${show(strayCrlf)}`)
+  sc(`THE GREP FOR A SEPARATED PROBE LISTS BOTH \`| NHL\` LINES ON LF AND ON CRLF LINE ENDS (2 greps run; asserted: ${haveGrep})`,
+    !haveGrep || [movedLf, movedCrlf].every(g => g.status === 0 && g.lines.length === 2 && g.lines.every(l => /\| NHL/.test(l))),
+    `LF ${JSON.stringify(movedLf.lines)}, CRLF ${JSON.stringify(movedCrlf.lines)}`)
 
   // A foreign line in the gap, with the marker beside it: newer work, not the script's. Nothing is written and the state is kept.
   const helperRun = sandbox({ target: withHelper, registry: union, backupTarget: clean, backupRegistry: union, pid: DEAD })
@@ -1624,7 +1654,7 @@ switch (classifyState({
         const parts = strays.map(f => f === TARGET
           ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
           : probeOnRegistry(currentRegistry)
-            ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${REGISTRY}\` shows it)`
+            ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}[[:space:]]*$" ${REGISTRY}\` shows it)`
             : removalOf(REGISTRY))
         console.error(`Delete ${parts.join(' and ')}, then run this again.`)
         console.error(`\`git checkout -- ${strays.join(' ')}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)
