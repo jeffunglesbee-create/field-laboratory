@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b7d9877` | 2026-11-06 | [cc-session-2026-11-05-gate-residuals.md](cc-session-2026-11-05-gate-residuals.md) | docs: the gate-residuals session's gate result, the push, CI and the first runner measurement |
+| `b7d9877` | 2026-11-06 | [gate-local-2026-11-06.txt](gate-local-2026-11-06.txt) | docs: the gate-residuals session's gate result, the push, CI and the first runner measurement |
+| `b7d9877` | 2026-11-06 | [post-rebase-battery-2026-11-06.txt](post-rebase-battery-2026-11-06.txt) | docs: the gate-residuals session's gate result, the push, CI and the first runner measurement |
+| `b7d9877` | 2026-11-06 | [verify-full-runner-timing-2026-11-06.md](verify-full-runner-timing-2026-11-06.md) | docs: the gate-residuals session's gate result, the push, CI and the first runner measurement |
+| `dfda01c` | 2026-11-06 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 1f05aa4 [skip ci] |
+| `53f2a69` | 2026-11-06 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ff9c83a` | 2026-11-06 | [cc-session-2026-11-05-gate-residuals.md](cc-session-2026-11-05-gate-residuals.md) | docs: the gate-residuals work is BUILT, with its dispositions, its timings, its session record and the second CC-CMD for what was not built |
 | `ff9c83a` | 2026-11-06 | [self-test-idle-timing-2026-11-06.txt](self-test-idle-timing-2026-11-06.txt) | docs: the gate-residuals work is BUILT, with its dispositions, its timings, its session record and the second CC-CMD for what was not built |
 | `ff9c83a` | 2026-11-06 | [self-tests-under-load-2026-11-06.txt](self-tests-under-load-2026-11-06.txt) | docs: the gate-residuals work is BUILT, with its dispositions, its timings, its session record and the second CC-CMD for what was not built |
