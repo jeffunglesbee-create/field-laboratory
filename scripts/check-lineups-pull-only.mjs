@@ -81,7 +81,7 @@ export const RECURRENCE = [
  *  character literals are read as such (a `"*)"` does not end it), and in which `(*)` is neither an
  *  opener nor a closer; strings of every kind (`"…"` with backslash escapes, verbatim `@"…"` with
  *  `""`, triple-quoted `"""…"""`, interpolated `$"…{…}…"` whose holes are code); and character
- *  literals (`'"'`). Checked against the F# compiler's own line tokenizer (FSharpLineTokenizer),
+ *  literals (`'"'`); and double-backtick identifiers (``any text``), which hold `(*`, `//` and quotes as text and end at the next `` on their line (one that does not close is read to the end of its line). Checked against the F# compiler's own line tokenizer (FSharpLineTokenizer),
  *  which marks the same comment characters on all 49 sources in src/ and on the fixtures in this
  *  file's self-test (a one-off, not a test in the repo: the tokenizer is reachable only through
  *  `dotnet fsi`). Not read: an interpolated string with several `$` (`$$"""…"""`), a `$"` inside a
@@ -96,6 +96,13 @@ export const codeOnly = src => {
   const charEnd = i => { CHAR.lastIndex = i; return CHAR.test(src) ? CHAR.lastIndex : i + 1 }
   // Where a string starts at `i` (an optional `$` and `@`, then the quote): the index of its first quote, else -1.
   const quoteAt = i => { let j = i; while (j < i + 2 && (src[j] === '$' || src[j] === '@')) j++; return src[j] === '"' ? j : -1 }
+  // The index after the double-backtick identifier that starts at `i` (``any text``), which holds `(*`, `//` and quotes as text and ends at the next `` on its line. One that does not close is an error to the
+  // compiler, whose tokenizer reads the rest of its line as no comment; so does this.
+  const skipName = i => {
+    const close = src.indexOf('``', i + 2)
+    const eol = src.indexOf('\n', i + 2)
+    return close >= 0 && (eol < 0 || close < eol) ? close + 2 : eol < 0 ? n : eol
+  }
   // The index after the string that starts at `i`.
   const skipString = i => {
     const q = quoteAt(i)
@@ -134,6 +141,7 @@ export const codeOnly = src => {
     let depth = 0
     while (i < n) {
       const c = src[i]
+      if (c === '`' && src[i + 1] === '`') { i = skipName(i); continue }
       if (c === '/' && src[i + 1] === '/') { const s = i; while (i < n && src[i] !== '\n') i++; blank(s, i); continue }
       if (src.startsWith('(*', i) && !src.startsWith('(*)', i)) { const s = i; i = skipComment(i + 2); blank(s, i); continue }
       if (quoteAt(i) >= 0) { i = skipString(i); continue }
@@ -219,6 +227,12 @@ if (SELF_TEST) {
     ['let e = "q\\" // x" in setInterval(f, 1)', 'a string with an escaped quote'],
     ['let r = $"{ {1} + f "a//b" }" in setInterval(f, 1)', 'an interpolation hole with braces of its own'],
     ['let w = $@"{"a//b"}" in setInterval(f, 1)', 'a verbatim interpolated string'],
+    // Double-backtick identifiers (review 6, 2026-11-05): ``any text`` holds `(*`, `//` and quotes as text. Each fixture was run through the F# compiler's tokenizer, which marks the timer as code.
+    ['let ``a (* b`` () = ()\nlet go () = setInterval(f, 1)', 'a double-backtick name that holds (* , with no closer anywhere'],
+    ['let ``a // b`` () = setInterval(f, 1)', 'a double-backtick name that holds //'],
+    ['let ``a (* b () = ()\nlet go () = setInterval(f, 1)', 'a double-backtick name that never closes, read to the end of its line'],
+    ['let ``a b\nlet ``c (* d`` () = ()\nlet go () = setInterval(f, 1)', 'an unclosed name does not pair with the name on the next line'],
+    ['(* ``a *) b`` *) setInterval(f, 1)', 'a double-backtick name in a comment is text: its *) ends the comment'],
   ]
   const hidden = code.filter(([src]) => !seen(src))
   check(`A TIMER IS STILL SEEN AFTER EACH CONSTRUCT THAT LOST THE OLD SCAN ITS PLACE (${code.length} fixtures)`,
@@ -231,6 +245,8 @@ if (SELF_TEST) {
     ['let a = @"a"" \\" // setInterval(f, 1)', 'a comment after a verbatim string with a doubled quote'],
     ['let b = $"{{" // setInterval(f, 1)', 'a comment after an interpolated string with an escaped brace'],
     ['let q = \'\\"\' // setInterval(f, 1)\nlet r = "x"', 'a comment after a character literal that is an escaped quote'],
+    ['let ``a " b`` () = ()\n(* setInterval(f, 1) *)\nlet x = "s"', 'a comment after a double-backtick name that holds a lone quote'],
+    ['(* ``a (* b`` *) let go () = setInterval(f, 1)', 'a double-backtick name in a comment is text: its (* nests'],
   ]
   const flagged = quiet.filter(([src]) => seen(src))
   check(`A TIMER INSIDE A COMMENT IS NOT ONE, however the comment is written (${quiet.length} fixtures)`,

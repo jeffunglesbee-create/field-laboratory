@@ -7340,6 +7340,30 @@ const MUTATIONS = [
     replace: "const blank = (s, e) => { for (let k = s; k < e; k++) out[k] = ' ' }",
     expect: 'node scripts/check-lineups-pull-only.mjs --self-test',
   },
+  {
+    id: 'lineups-backtick-names-unread',
+    file: 'scripts/check-lineups-pull-only.mjs',
+    claim: "a double-backtick identifier is read as one: a (* or a // or a quote in it starts no comment and no string, so a timer after it is still seen and a timer in a comment after it is still a comment",
+    find: "if (c === '`' && src[i + 1] === '`') { i = skipName(i); continue }\n",
+    replace: "",
+    expect: 'node scripts/check-lineups-pull-only.mjs --self-test',
+  },
+  {
+    id: 'lineups-unclosed-name-pairs-across-lines',
+    file: 'scripts/check-lineups-pull-only.mjs',
+    claim: "a double-backtick identifier ends on its own line: one that does not close does not pair with the name on a later line",
+    find: "close >= 0 && (eol < 0 || close < eol) ? close + 2 : eol < 0 ? n : eol",
+    replace: "close >= 0 ? close + 2 : eol < 0 ? n : eol",
+    expect: 'node scripts/check-lineups-pull-only.mjs --self-test',
+  },
+  {
+    id: 'lineups-unclosed-name-skips-two-characters',
+    file: 'scripts/check-lineups-pull-only.mjs',
+    claim: "a double-backtick identifier that never closes is read to the end of its line, not as two ordinary characters (the (* after it starts no comment)",
+    find: "close >= 0 && (eol < 0 || close < eol) ? close + 2 : eol < 0 ? n : eol",
+    replace: "close >= 0 && (eol < 0 || close < eol) ? close + 2 : i + 2",
+    expect: 'node scripts/check-lineups-pull-only.mjs --self-test',
+  },
 
   {
     // THE PREDICTED XI, and the five mutations that would each produce a page
