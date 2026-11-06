@@ -427,7 +427,8 @@ function scannerClauses(check) {
     [`a /*${String.fromCharCode(0x2028)}*/ ++/${Q}/.lastIndex`, `a \n ++0.lastIndex`, 'a `++` after a block comment that holds U+2028 is a prefix'],
     [`a /*${String.fromCharCode(0x2029)}*/ ++/${Q}/.lastIndex`, `a \n ++0.lastIndex`, 'a `++` after a block comment that holds U+2029 is a prefix'],
     ['a /* c */ ++ / 2 / z', 'a   ++ / 2 / z', 'a `++` after a block comment of one line still ends an operand'],
-    ['a /* c\n d */ b', 'a \n b', 'a block comment of several lines leaves one line feed'])
+    ['a /* c\n d */ b', 'a \n b', 'a block comment of several lines leaves one line feed'],
+    ['a /**/ b /* c */ d', 'a   b   d', 'an empty block comment ends at its own closer, not at the next one'])
   // Residuals Task 10 item 13. The language ends a line at a carriage return, U+2028 and U+2029 as well as at a line feed, so a `//` comment, a `++` that starts its statement and a regular expression end there too;
   // a quote ends at a line feed or a carriage return (U+2028 and U+2029 are legal inside a string since ES2019), and a backslash before a CR LF continues the string over both. No file in the repo has any of them.
   const CRc = '\r', LSc = String.fromCharCode(0x2028), PSc = String.fromCharCode(0x2029)
@@ -453,6 +454,26 @@ function scannerClauses(check) {
   check(`WHAT THE SCANNER LEAVES IS EXACTLY WHAT IT SHOULD, for ${STRIPS.length} inputs (comments, strings, templates, regular expressions, and every place a slash divides or does not)`,
     wrong.length === 0, wrong.map(([from, want, why]) => `${why}: ${JSON.stringify(from)} left ${JSON.stringify(stripNonCode(from))}, wanted ${JSON.stringify(want)}`).slice(0, 4).join(' / ') + ` (${wrong.length} wrong of ${STRIPS.length})`)
 
+  // `blankComments` is what `check-script-orphans.mjs` and `short-circuit-check.mjs` read through: the comments of a script turned into spaces, and every string, regular expression and template left as written, because their
+  // subject is a script path in a string or a call in a template expression. It picks the comments out of the scanner's spans by how a span begins, and no consumer fixture held a regular expression (review 6, 2026-11-05: with
+  // the second character of that test read from the wrong place, every regular expression was blanked and both consumers' self-tests stayed green). A regular expression with a script path in it is the case.
+  const BLANKS = [
+    ['a // c\nb', 'a     \nb', 'a line comment becomes spaces and keeps its line feed'],
+    ['a /* c */ b', 'a         b', 'a block comment becomes spaces'],
+    ['a /* c\nd */ b', 'a     \n     b', 'a block comment of several lines keeps its line feeds'],
+    ['a /**/ b', 'a      b', 'an empty block comment becomes spaces'],
+    ['x = /node scripts\\/a\\.mjs/; y', 'x = /node scripts\\/a\\.mjs/; y', 'a regular expression that names a script is not a comment'],
+    ['x = /=/; y', 'x = /=/; y', 'a regular expression is not a comment'],
+    ["x = 'node scripts/a.mjs'; y", "x = 'node scripts/a.mjs'; y", 'a string is not a comment'],
+    ["x = '//u'; y", "x = '//u'; y", 'a string that begins with two slashes is not a comment'],
+    ["x = '/*u'; y", "x = '/*u'; y", 'a string that begins with a slash and a star is not a comment'],
+    ['x = `a ${ b /* c */ } d`; y', 'x = `a ${ b         } d`; y', 'a comment inside a template expression is blanked, the template is not'],
+    ['x = /a/ // c', 'x = /a/     ', 'a regular expression, then a comment on the same line'],
+  ]
+  const wrongBlanks = BLANKS.filter(([from, want]) => blankComments(from) !== want)
+  check(`WHAT blankComments BLANKS IS THE COMMENTS AND NOTHING ELSE, for ${BLANKS.length} inputs (line comments, block comments, an empty one; kept: a regular expression, a string that begins like a comment, a template; same length, same lines)`,
+    wrongBlanks.length === 0, wrongBlanks.map(([from, want, why]) => `${why}: ${JSON.stringify(from)} left ${JSON.stringify(blankComments(from))}, wanted ${JSON.stringify(want)}`).slice(0, 3).join(' / ') + ` (${wrongBlanks.length} wrong of ${BLANKS.length})`)
+
   // The shapes review 4 reproduced, as the scan sees them: a division that was read as a regular expression, where it swallowed the clock read after it, and inside a template
   // expression the rest of the file.
   const CASES = [
@@ -477,9 +498,10 @@ function scannerClauses(check) {
     ['a backtick in a regular expression after default', `export default /\`/.test(y)\n${BARE2}`, '2/0'],
     ['a backtick in a regular expression after a spread', `f(.../\`/.exec(x))\n${BARE2}`, '2/0'],
     ['a backtick in a regular expression after the of of a for-of header', `for (const m of /\`/g.exec(y)) {}\n${BARE2}`, '2/0'],
+    ['a bare read between an empty block comment and a block comment after it', `var a = 1 /**/ ; var b = Date.now() /* y */\n${BARE2}`, '3/0'],
     ['a backtick in a regular expression after a prefix ++ that follows a block comment holding a line feed', `var a = 1; a /*\n*/ ++/\`/.lastIndex\n${BARE2}`, '2/0']]
   const off13 = CASES13.map(([what, src, want]) => ({ what, want, got: (c => `${c.reads}/${c.captures}`)(clockCounts(src)) })).filter(x => x.want !== x.got)
-  check(`A LINE THAT ENDS AT A CARRIAGE RETURN, U+2028 OR U+2029 (A COMMENT, A REGULAR EXPRESSION; a string at a CR, not at U+2028), A BACKSLASH BEFORE A CR LF, AND instanceof, extends, default, A SPREAD, THE of OF A for-of HEADER AND A PREFIX ++ AFTER A MULTI-LINE COMMENT BEFORE A REGULAR EXPRESSION, DO NOT HIDE THE CLOCK READS AFTER THEM, for ${CASES13.length} inputs`,
+  check(`A LINE THAT ENDS AT A CARRIAGE RETURN, U+2028 OR U+2029 (A COMMENT, A REGULAR EXPRESSION; a string at a CR, not at U+2028), A BACKSLASH BEFORE A CR LF, AND instanceof, extends, default, A SPREAD, THE of OF A for-of HEADER AND A PREFIX ++ AFTER A MULTI-LINE COMMENT BEFORE A REGULAR EXPRESSION, AND AN EMPTY BLOCK COMMENT BEFORE A READ, DO NOT HIDE THE CLOCK READS AFTER THEM, for ${CASES13.length} inputs`,
     off13.length === 0, off13.map(x => `${x.what}: wanted ${x.want}, got ${x.got}`).join(' / '))
 
   // The same one level up: each of these is a division that was read as a regular expression, which ran to the end of its line and took the clock read after it. Each is followed by that read, so "1/0" is it seen.
