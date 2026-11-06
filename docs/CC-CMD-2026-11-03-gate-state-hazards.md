@@ -71,7 +71,7 @@ Five lenses over an immutable snapshot (kill windows, heal correctness, proof-ch
 | 10 | proof-check's restore drops its fallback even when the files did not go back | fixed: dropped only when both files read back as they were; a throwing write and a write that lands nowhere are both tested |
 | 11 | the injection gap accepts any code that carries the marker | fixed: only blank, indented and proof-header lines |
 | 12 | proof-check's marker is not created exclusively | filed (residual Task 5): 0 of 10 at 5 ms, 4 of 10 at 0 ms |
-| 13 | proof-check's signal handlers cannot run during a synchronous build; `kill <pid>` does nothing | the advice says `kill -9` and the comment says why; the handlers are filed (Task 7) |
+| 13 | proof-check's signal handlers cannot run during a synchronous build; `kill <pid>` does nothing | the advice says `kill -9` and the comment says why; the handlers are filed (Task 7). Updated 2026-11-06: Task 7 is built, the handlers are removed, so a plain kill stops the run and the next run heals; the advice no longer says `kill -9` |
 | 14 | a marker with no start is judged by the pid alone | the refusal shows what the pid is running, says the marker records no start, and says it may be deleted |
 | 15 | the `proceed` branch is untested for the target and absent for the registry | fixed: both refused, both tested |
 | 16 | `EPERM` and state `X` in `isLive` have no assertion | fixed, plus a real zombie |

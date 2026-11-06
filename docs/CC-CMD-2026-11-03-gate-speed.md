@@ -93,7 +93,7 @@ It prints the denominator (`235 of 235 mutations across 8 shards, 0 survived, 0 
 
 `verify-full.yml`: a matrix job `shard` (N = 8) builds, starts the server, runs `mutation-check.mjs --shard i/8 --build watch` and uploads `mutation-shard-i-of-8` with `if: always()`.
 The existing job `full` is NOT made to wait for them: it starts at once. Its mutation row (`gate-checks.mjs`, only when `GATE_MUTATION_SHARDS=<dir>` is set; unset, the row is exactly today's three commands) runs
-`--self-test`, then `scripts/mutation-await.mjs` (polls this run's artifacts through the Actions API, up to 40 minutes, downloads them, FAILS LOUDLY if a shard never uploads, naming it), then `mutation-merge.mjs`, then `--only known-survivor` must fail.
+`--self-test`, then `scripts/mutation-await.mjs` (polls this run's artifacts through the Actions API, up to 40 minutes (100 minutes since 2026-11-06, when one shard alone took 43: `docs/GATE-TIMING.md`), downloads them, FAILS LOUDLY if a shard never uploads, naming it), then `mutation-merge.mjs`, then `--only known-survivor` must fail.
 The pre-gate step `Proof-doc claims are compiler-verified` loses its duplicated suite: the gate's proof row runs `node scripts/proof-check.mjs`, the step ran `check:proof` (`proof-check.mjs --self-test && proof-check.mjs`). The row reports the same failure, and 13 minutes are not an early warning. **Corrected while building (Rule 100 miss, one command would have shown it):** the self-test half is in no gate row and runs nowhere else in CI, so the step stays as `proof-check.mjs --self-test` (0.06 s) and only the suite half is dropped.
 
 ## TASK 5 — Equivalence on the whole table, then the scored run

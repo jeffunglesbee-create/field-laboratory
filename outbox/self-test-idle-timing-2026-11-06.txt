@@ -1,0 +1,33 @@
+# Idle self-test timings, base tree against final tree, 2026-11-06
+# Two repetitions interleaved (base, final, base, final), nothing else running. Columns: label, tree, exit status, wall time, tally.
+# Trees: base-tree = 'git archive 4eceb98'; s-merged = the final code tree b9f8997.
+load at start: 0.35 1.75 2.85; cpus: 4
+rep1 mutation-check --self-test	base-tree	rc=0	13.7s	118/118 checks passed
+rep1 proof-check --self-test	base-tree	rc=0	5.7s	85/85 checks passed
+rep1 mutation-lib --self-test	base-tree	rc=0	27.7s	81/81 checks passed
+rep1 row-confidence --self-test	base-tree	rc=0	0.1s	15/15 checks passed
+rep1 clean-source-check --self-test	base-tree	rc=0	0.1s	3/3 checks passed
+rep1 check-exit-drains --self-test	base-tree	rc=0	0.1s	18/18 checks passed
+rep1 mutation-check --self-test	s-merged	rc=0	30.8s	213/213 checks passed
+rep1 proof-check --self-test	s-merged	rc=0	10.1s	127/127 checks passed
+rep1 mutation-lib --self-test	s-merged	rc=0	27.5s	81/81 checks passed
+rep1 row-confidence --self-test	s-merged	rc=0	1.0s	30/30 checks passed
+rep1 clean-source-check --self-test	s-merged	rc=0	1.0s	25/25 checks passed
+rep1 check-exit-drains --self-test	s-merged	rc=0	0.6s	22/22 checks passed
+rep1 npm run check:mutate-copy	s-merged	rc=0	11.2s
+rep1 npm run check:network-exempt	s-merged	rc=0	3.9s
+rep2 mutation-check --self-test	base-tree	rc=0	12.8s	118/118 checks passed
+rep2 proof-check --self-test	base-tree	rc=0	5.4s	85/85 checks passed
+rep2 mutation-lib --self-test	base-tree	rc=0	27.5s	81/81 checks passed
+rep2 row-confidence --self-test	base-tree	rc=0	0.1s	15/15 checks passed
+rep2 clean-source-check --self-test	base-tree	rc=0	0.0s	3/3 checks passed
+rep2 check-exit-drains --self-test	base-tree	rc=0	0.1s	18/18 checks passed
+rep2 mutation-check --self-test	s-merged	rc=0	27.8s	213/213 checks passed
+rep2 proof-check --self-test	s-merged	rc=0	9.8s	127/127 checks passed
+rep2 mutation-lib --self-test	s-merged	rc=0	27.1s	81/81 checks passed
+rep2 row-confidence --self-test	s-merged	rc=0	1.1s	30/30 checks passed
+rep2 clean-source-check --self-test	s-merged	rc=0	1.1s	25/25 checks passed
+rep2 check-exit-drains --self-test	s-merged	rc=0	0.6s	22/22 checks passed
+rep2 npm run check:mutate-copy	s-merged	rc=0	10.8s
+rep2 npm run check:network-exempt	s-merged	rc=0	4.2s
+DONE

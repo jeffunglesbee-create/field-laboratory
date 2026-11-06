@@ -1,0 +1,18 @@
+# The self-tests with all four CPUs held by busy loops, 2026-11-06
+# Four 'for(;;){}' node processes were started first and killed after; two repetitions of each self-test, in series, on the final code tree.
+hogs: 31114 31115 31116 31117; load: 0.36 0.57 0.77; cpus: 4
+rep1 mutation-check --self-test	rc=0	48.7s	213/213 checks passed
+rep1 proof-check --self-test	rc=0	19.0s	127/127 checks passed
+rep1 mutate-copy-check --self-test	rc=0	7.5s	26/26 checks passed
+rep1 sharded-row-check --self-test	rc=0	0.6s	18/18 checks passed
+rep1 mutation-await --self-test	rc=0	1.0s	27/27 checks passed
+rep1 row-confidence --self-test	rc=0	1.8s	30/30 checks passed
+rep1 clean-source-check --self-test	rc=0	2.1s	25/25 checks passed
+rep2 mutation-check --self-test	rc=0	49.7s	213/213 checks passed
+rep2 proof-check --self-test	rc=0	19.3s	127/127 checks passed
+rep2 mutate-copy-check --self-test	rc=0	7.6s	26/26 checks passed
+rep2 sharded-row-check --self-test	rc=0	0.6s	18/18 checks passed
+rep2 mutation-await --self-test	rc=0	0.9s	27/27 checks passed
+rep2 row-confidence --self-test	rc=0	1.3s	30/30 checks passed
+rep2 clean-source-check --self-test	rc=0	2.1s	25/25 checks passed
+DONE

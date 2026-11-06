@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-03, by CC, as the follow-up `docs/CC-CMD-2026-11-03-gate-state-hazards.md` names (Rule 87.4: out-of-scope work gets its own CC-CMD before the first closes)
 **Confidence gate:** `npm run gate` >= 95 before any commit that lands. Tasks 1, 3 and 6 to 10 change gate infrastructure (`scripts/mutation-check.mjs`, `scripts/mutation-lib.mjs`, `scripts/clean-source-check.mjs`, `scripts/proof-check.mjs`, `scripts/row-confidence.mjs`, `scripts/pickem-check.mjs`) beyond what the owner approved ("Gate hazards approved" covered the four tasks of that CC-CMD).
-**Status:** FILED 2026-11-03, extended 2026-11-04 with Tasks 4 to 8 from the third review of the gate-state-hazards change, Task 9 from the gate run that followed it, and Task 10 from the fourth and fifth reviews. Nothing here is built; it waits for an instruction. (Some items were narrowed or closed by those reviews' fixes; each says so where it does.)
+**Status:** BUILT 2026-11-06. Tasks 1 to 7 and every Task 8, 9 and 10 item the owner approved on 2026-11-05 ("follow ups approved", then three decisions: the `mutate-*` scripts run on a copy, a stranded run is refused read-only with the heal named, the network half of the scan is held to a flag-keyed exemption table) are built, in 98 commits on main (97 of build and fixes, and one found by running the whole table on the result: the gate's wait for the mutation shards; then the documentation commits), and read by two adversarial reviews (31 and 8 commits, a skeptic per medium-or-higher finding) whose confirmed findings are fixed in the commits after the first 39. What was not built is listed under "Disposition" with the reason, and is filed with its trigger in `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md` (Rule 87.4). The commits, the local gate and the CI runs are in `outbox/cc-session-2026-11-05-gate-residuals.md`.
 
 ---
 
@@ -102,6 +102,64 @@ Review 4 (`wf_206c6ee9-ad4`, six lenses over an immutable snapshot, a skeptic pe
 
 Equivalent mutants, so that nothing here is read as a gap (Rule 91): of the 66 mutants of `stripNonCode` and `clockCounts` the reviewer applied, 63 are now caught by the self-test; `expr-return-i` (returning the index of the closing brace instead of the one after it) and `captures-greedy` (a greedy instead of a lazy gap in the capture pattern) change nothing the scan reports, and `network-always-false` cannot be caught because the network half cannot fire (Task 9, item 2).
 
+## Disposition (2026-11-06)
+
+What happened to each task and item. A commit is named by the start of its subject, which survives a rebase where a hash does not. "Second CC-CMD" means `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md`, with the row id.
+
+| Task / item | Outcome | Where |
+|---|---|---|
+| 1, the watcher | BUILT | "a harness killed with SIGKILL no longer leaves its build watcher running"; then "WatchBuild stops the watcher's process group", "the exit and signal handler's stop of the build watcher is asserted", "the reaper's already-gone branch ... asserted", "recordDriver is given a pid that is not the harness's own" |
+| 2, the `mutate-*` scripts | BUILT as run-on-a-copy (owner decision) | "the seven mutate-*.mjs break a copy of scripts/", its table entries, "mutate-push-lands.py breaks a copy", then the symlinked-TMPDIR, cleanup, guard-directory, coverage and inventory fixes. Leftovers: second CC-CMD B1 to B5 |
+| 3, the clean-source remedy | BUILT | "clean-source-check names the heal or the lines", "sees a stranded registry probe", "sees a registry probe an edit has separated", and the matching "proof-check's no-state refusal tells a person to delete the lines" |
+| 4, restore writes only its own injection (with 10.17a) | BUILT | "proof-check writes a file only when it is provably this run's own" |
+| 5, exclusive marker | BUILT | "proof-check creates its run marker exclusively". The subject says more than the code guarantees over a stale marker: second CC-CMD D1 |
+| 6, per-file torn guard | BUILT | "proof-check asks each file whether it is torn before it heals", then "asks a file about its anchor only when the file is not its own backup" |
+| 7, stop the run | BUILT, option A (also closes 10.17b) | "proof-check registers no signal handler" |
+| 8, stale-lock takeover | NOT BUILT | second CC-CMD A1 |
+| 8, parent clears a nested marker | BUILT | "clearing a parent harness run's state no longer deletes the marker a killed child run left in it", and "a harness run that owns a killed child's mutation fails instead of ending green over it" |
+| 8, non-empty state directory | BUILT | "a state directory that holds files the harness did not write is refused, not emptied"; "holds only a source mutation's backup is used" |
+| 8, `touched: {}` | BUILT | "a heal over a marker that records no touched path no longer runs its restore command blind" |
+| 8, midnight in the self-test | BUILT | "the self-test reads the ET day once" |
+| 8, the old clock scan | CLOSED by Task 9 | |
+| 8, `(asserted: ...)` labels only in proof-check | NOT BUILT | Only Linux runs the harness, so the label would be a constant; nothing to build until another platform does |
+| 8, `--heal` first in the gate row and the hook | BUILT as REFUSE (owner decision) | "mutation-check --stranded, a read-only mode", "the pre-commit hook and the gate refuse a tree a killed mutation run left mutated", "--stranded reads the build driver's record", "--stranded says which state the marker is in" |
+| 9.1, templates | BUILT | "pickem-check reads the FIELD day once", "the clock scan reads the expressions inside template literals as code" |
+| 9.2, the network half | BUILT (owner decision) | "the determinism scan's network half can fire", the scorer-reads-code, flag-reading and declaration fixes, and "the network exemptions are run, not only read" (`check:network-exempt`). Leftovers: second CC-CMD C8 |
+| 9.3, slash after a header | BUILT | "the clock scan reads a slash after an if, while, for or with header as a regular expression" (the `]` half of the item never existed: only `)` was affected) |
+| 9.4, other scripts | BUILT | "the clock scan is checked by bracket balance over the scripts a row names" |
+| 10.1, a function that re-reads the clock | BUILT | "a clock capture in the determinism scan must BE the read" |
+| 10.2, clock spellings | BUILT except `performance.now()` and `process.hrtime()` | "the clock scan counts new Date with no parentheses, Date.now as a value" and later pattern fixes. Second CC-CMD C1 |
+| 10.3, a regular expression at the start of a template expression | BUILT | with 9.1 |
+| 10.4, quadratic scan time | NOT BUILT; figures corrected | second CC-CMD C2 |
+| 10.5, the harness clause | BUILT | with 9.4; later "the harness clause puts its bare clock read at every place" |
+| 10.6, a kill between a world mutation and its marker | BUILT as placement and pin; the heal is refused on purpose (the stubs cannot be told from an edit) | "a kill between a world mutation running and its marker naming the paths it touched can now be placed" |
+| 10.7 to 10.11 | BUILT | "the harness's HEAD-moved refusal no longer calls a path that matches HEAD ...", "the real-stranded-state clause now uses a state a heal could undo", "the race refusal in the main flow and the torn run lock are now asserted", "the harness's refusal messages are now asserted" |
+| 10.8, the kill advice | BUILT | "an expectation ended by a signal is no longer counted as a caught mutation, and a plain kill is acted on". Leftovers (the orphaned children, the 129 to 159 window, the missing timeout): second CC-CMD A2 to A4 |
+| 10.12, temp directories after a crash | BUILT | "a self-test that crashes no longer leaves its two temp directories behind", then "removes its state directory ... from the line that makes it" |
+| 10.13, line ends and continuations | BUILT | "the clock scan ends a line at a carriage return, U+2028 and U+2029" |
+| 10.14, runner measurement of the cost | OPEN until the first CI run | `docs/GATE-TIMING.md` records it after the push |
+| 10.15, the ET day in other clauses | BUILT | with 8 |
+| 10.16, private names and non-ASCII identifiers | BUILT | "the clock scan does not read a private name, an identifier named of ..." |
+| 10.17, proof-check smaller items | (a) BUILT, (b) CLOSED by Task 7, (c) BUILT | "the system git configuration is asked of git itself" |
+| 10.18, runaway review tooling | NOT BUILT | second CC-CMD A4: the table is the battery, and no scanner mutant hung in 149 runs |
+| 10.19, `check-exit-drains` and the checkers with the same chain | BUILT for four of six | "check-exit-drains blanks with the shared scanner" (the budget was re-counted from 60 to 63: three exits predate it), `short-circuit-check`, `check-script-orphans`, `check-lineups-pull-only`. `unused-check` and `fetch-silently-empty-probe`: second CC-CMD C7 |
+| After both reviews: the gate's wait for the mutation shards | BUILT | "the gate's wait for the mutation shards outlasts the longest a shard job may run". Found by timing one shard alone after the whole-table run: 43 minutes against a wait of 40. `outbox/cc-session-2026-11-06-shard-wait.md` |
+
+### What the two reviews added
+
+A sixth review (eight lenses over the first 31 commits) confirmed 16 findings, refuted 1 and left 21 low; a seventh (four lenses over the 8 commits after) confirmed 8, refuted none and left 15 low. Every confirmed finding is fixed or filed: the registry probe left behind when an edit separates it from the union's last case (the one rated high), two table entries that had been caught at `4eceb98` and survived after the first 39 commits (they would have failed the mutation row of the gate), `applyMutation` expanding a dollar sequence in a replacement, a run that ended green over a killed child's mutation, the `--stranded` blind spots, the symlinked-temporary-directory failure of the `mutate-*` scripts, and the unchecked premise of the network exemptions. The lows are fixed where they reproduced and are otherwise in the second CC-CMD.
+
+### Corrections to the text above
+
+Statements in this document that the work made false, kept above as written so that the history reads as it was:
+
+- Finding 2: what runs the `mutate-*` scripts is measured: seven CI steps (the `verify` job, `odds-shape-census.yml`, `status.yml`) and no gate row, npm script or hook; `check:mutate-copy` now runs in `verify`.
+- Finding 3 and Task 3: `proof-check.mjs`'s no-state refusal also recommended the checkout until the Task 3 follow-up; neither it nor `clean-source-check.mjs` recommends it without saying what it discards and that it does nothing for a committed or staged injection.
+- Task 7 and finding 7: the handlers are removed, so a plain kill stops the run and the next one heals.
+- Task 8, last item: the gate row and the hook do not heal first; they refuse (`--stranded`) and name `--heal`. The row text mirrored in `verify.yml` is unchanged.
+- Task 9, item 2: the network half now fires; item 3: only `)` ever divided wrongly.
+- Task 10, item 4: the quadratic figures were an order of magnitude too low (second CC-CMD C2); item 19: the budget in `docs/early-exit-budget.txt` is 63, a re-count, not 60.
+
 ## Not covered, on purpose
 
 Where `/proc` cannot be read (not Linux), a recycled pid cannot be told from the recorded run and the signal's answer stands; `scripts/run-marker.mjs` says so and the self-tests print which clauses were not asserted. Nothing to build until the harness runs on such a platform.
@@ -110,4 +168,4 @@ Where `/proc` cannot be read (not Linux), a recycled pid cannot be told from the
 
 1. Each task's artifact exists and each case was red before its change.
 2. `npm run gate` >= 95 with `PW_CHROMIUM` set, on the tree of the commit.
-3. The Status of this document set to DONE, with the commit.
+3. The Status of this document set to BUILT, with the commits and the gate in the session document (done 2026-11-06; the hashes and CI runs are added after the push, in a docs-only commit).
