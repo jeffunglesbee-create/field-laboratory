@@ -26,13 +26,16 @@
 // Clause 7 exists because deleting the exit handler that removes the copy left every other clause green and leaked a 3.4 MB directory per run (reproduced 2026-11-05); a
 // run with no logged write under $TMPDIR fails it, so a script that keeps its copy somewhere else cannot pass it by leaving $TMPDIR empty.
 //
-// COVERAGE (Rule 91), printed with the verdict. The node guard wraps writeFileSync, appendFileSync, copyFileSync, renameSync, unlinkSync, rmSync and truncateSync
-// with a string or Buffer path, and looks at the path that is WRITTEN: the destination of a copy, both ends of a rename. It does NOT see fs.promises, write
-// streams, cpSync or mkdirSync into scripts/, openSync with a write flag, a URL path, or a shell-out. The python guard sees an open for writing (so write_text and
-// shutil.copy) and the audit events os.rename (so os.replace and shutil.move), os.remove (so os.unlink), os.truncate and shutil.rmtree, on a path under scripts/.
-// It does NOT see os.mkdir or os.rmdir, a remove relative to a directory descriptor, a file descriptor, chmod or utime, or a shell-out. rmtree has an event of its
-// own because it deletes the files in a tree relative to a descriptor, which the remove event cannot place: without it the files go first and only the last rmdir is
-// refused. The directory itself is probed empty, so that no refused write inside it can be what stops the rename or the removal. Clause 6 is the check on an inert guard: a script that is seen writing nothing at all passes clause 5 for the wrong reason, so it fails clause 6.
+// COVERAGE (Rule 91), printed with the verdict. The node guard wraps writeFileSync, appendFileSync, copyFileSync, renameSync, unlinkSync, rmSync and truncateSync with a
+// string or Buffer path, and looks at the path that is WRITTEN: the destination of a copy, both ends of a rename; scripts/ itself counts. The python guard sees an open for
+// writing (so write_text and shutil.copy) and the audit events os.rename (so os.replace and shutil.move), os.remove (so os.unlink), os.truncate and shutil.rmtree. rmtree has
+// an event of its own because it deletes the files in a tree relative to a descriptor, which the remove event cannot place: without it the files go first and only the last
+// rmdir is refused. What neither guard sees is the data in UNSEEN_NODE and UNSEEN_PY, printed with the verdict and PROVED by --self-test, which attempts every listed form on a
+// fresh fixture and requires each to succeed: the printed list cannot go on saying a form is unseen after a guard has learned it, and what is printed is built from the same
+// data. cpSync is in neither list on purpose: on Node v22.22.0 (measured 2026-11-05) a file copy into scripts/ is refused only because cpSync calls the wrapped copyFileSync,
+// and a directory copy is not seen, so which of the two a Node does is not something this check promises. The directory itself is probed empty, so that no refused write inside
+// it can be what stops the rename or the removal. Clause 6 is the check on an inert guard: a script that is seen writing nothing at all passes clause 5 for the wrong reason, so
+// it fails clause 6.
 //
 // --self-test runs the same verdicts over stand-ins in a root of their own: a probe of each guard over every function it covers, a script that mutates in place,
 // one that works on a copy, and copy-based ones that each lack one thing. Each stand-in is pinned to the whole pattern of the seven clauses (T = passes, F = fails), so a
@@ -49,6 +52,56 @@ const SCRIPTS = ['claim-check', 'deploy-gate', 'deploy-landed', 'odds-coverage',
 const fileOf = name => (name === 'push-lands' ? 'scripts/mutate-push-lands.py' : `scripts/mutate-${name}.mjs`)
 const WRITERS = ['writeFileSync', 'appendFileSync', 'copyFileSync', 'renameSync', 'unlinkSync', 'rmSync', 'truncateSync']
 const TIMEOUT_MS = 180000
+
+// What neither guard sees: [key, what the verdict prints, the attempt]. --self-test runs every attempt on a fresh fixture (the files named are made for it) and requires it to
+// SUCCEED, and the verdict prints the second column, so the text cannot drift from the proof. A node attempt runs inside an async function with fs, path, pathToFileURL and
+// execFileSync in scope and cb(done => ...) for the callback forms; a python attempt is the body of a function with os and subprocess in scope.
+const CB_FORMS = 'the callback forms of those seven (fs.writeFile, fs.appendFile, fs.copyFile, fs.rename, fs.unlink, fs.rm, fs.truncate)'
+const UNSEEN_NODE = [
+  ['writeFile-cb', CB_FORMS, "await cb(done => fs.writeFile('scripts/w-cb', 'x', done))"],
+  ['appendFile-cb', CB_FORMS, "await cb(done => fs.appendFile('scripts/w-cb2', 'x', done))"],
+  ['copyFile-cb', CB_FORMS, "await cb(done => fs.copyFile('other/o1', 'scripts/copied-cb', done))"],
+  ['rename-cb', CB_FORMS, "await cb(done => fs.rename('other/o2', 'scripts/renamed-cb', done))"],
+  ['unlink-cb', CB_FORMS, "await cb(done => fs.unlink('scripts/del-cb', done))"],
+  ['rm-cb', CB_FORMS, "await cb(done => fs.rm('scripts/rm-cb-dir', { recursive: true }, done))"],
+  ['truncate-cb', CB_FORMS, "await cb(done => fs.truncate('scripts/trunc-cb', 0, done))"],
+  ['promises', 'fs.promises', "await fs.promises.writeFile('scripts/w-promise', 'x')"],
+  ['stream', 'write streams (fs.createWriteStream)', "await new Promise((ok, no) => { const s = fs.createWriteStream('scripts/w-stream'); s.on('error', no); s.on('close', ok); s.end('x') })"],
+  ['openSync-w', 'openSync with a write flag, and the writeSync on its descriptor', "const fd = fs.openSync('scripts/w-fd', 'w'); fs.writeSync(fd, 'x'); fs.closeSync(fd)"],
+  ['mkdirSync', 'mkdirSync, mkdtempSync and rmdirSync of a directory under scripts/', "fs.mkdirSync('scripts/new-dir')"],
+  ['mkdtempSync', 'mkdirSync, mkdtempSync and rmdirSync of a directory under scripts/', "fs.mkdtempSync('scripts/tmp-')"],
+  ['rmdirSync', 'mkdirSync, mkdtempSync and rmdirSync of a directory under scripts/', "fs.rmdirSync('scripts/empty-dir')"],
+  ['symlinkSync', 'symlinkSync and linkSync into scripts/', "fs.symlinkSync('other/o3', 'scripts/sym')"],
+  ['linkSync', 'symlinkSync and linkSync into scripts/', "fs.linkSync('other/o4', 'scripts/hard')"],
+  ['chmodSync', 'chmodSync and utimesSync', "fs.chmodSync('scripts/mode', 0o600)"],
+  ['utimesSync', 'chmodSync and utimesSync', "fs.utimesSync('scripts/stamp', 1, 1)"],
+  ['url', 'a URL path', "fs.writeFileSync(pathToFileURL(path.resolve('scripts/w-url')), 'x')"],
+  ['symlinked-dir', 'a path that reaches scripts/ through a symlinked directory', "fs.writeFileSync('other/via/w-via', 'x')"],
+  ['shell-out', 'a shell-out', "execFileSync('sh', ['-c', 'echo x > scripts/w-sh'])"],
+]
+const UNSEEN_PY = [
+  ['os.symlink', 'os.symlink and os.link into scripts/', "os.symlink('../other/o3', 'scripts/sym')"],
+  ['os.link', 'os.symlink and os.link into scripts/', "os.link('other/o4', 'scripts/hard')"],
+  ['os.mkdir', 'os.mkdir and os.rmdir of a directory under scripts/', "os.mkdir('scripts/new-dir')"],
+  ['os.rmdir', 'os.mkdir and os.rmdir of a directory under scripts/', "os.rmdir('scripts/empty-dir')"],
+  ['os.chmod', 'os.chmod and os.utime', "os.chmod('scripts/mode', 0o600)"],
+  ['os.utime', 'os.chmod and os.utime', "os.utime('scripts/stamp', (1, 1))"],
+  ['open-dir_fd', 'an open or a remove relative to a directory descriptor (dir_fd)', "dfd = os.open('scripts', os.O_RDONLY); fd = os.open('w-dirfd', os.O_WRONLY | os.O_CREAT, dir_fd=dfd); os.write(fd, b'x'); os.close(fd); os.close(dfd)"],
+  ['remove-dir_fd', 'an open or a remove relative to a directory descriptor (dir_fd)', "dfd = os.open('scripts', os.O_RDONLY); os.remove('del-dirfd', dir_fd=dfd); os.close(dfd)"],
+  ['symlinked-dir', 'a path that reaches scripts/ through a symlinked directory', "open('other/via/w-via', 'w').close()"],
+  ['shell-out', 'a shell-out', "subprocess.run(['sh', '-c', 'echo x > scripts/w-sh'], check=True)"],
+]
+const labelsOf = list => [...new Set(list.map(e => e[1]))]
+/** The test of a list against one probe: every listed form was attempted and succeeded, and the guard logged no refusal. */
+const listIsTrue = (probe, list) => list.every(([key]) => probe.out.includes(`${key}: written\n`)) && probe.blocked.length === 0
+/** What is printed after the verdict. */
+const coverageLines = () => [
+  `COVERAGE: the node guard wraps ${WRITERS.join(', ')} (string or Buffer path) on scripts/ itself and under it.`,
+  `It does NOT see: ${labelsOf(UNSEEN_NODE).join('; ')}. --self-test attempts ${UNSEEN_NODE.length} forms under those statements, each on a fresh fixture, and requires every one to succeed.`,
+  'cpSync is in neither list: on Node v22.22.0 (measured 2026-11-05) a file copy into scripts/ is refused only because cpSync calls the wrapped copyFileSync, and a directory copy is not seen; which of the two a Node does is not promised.',
+  'The python guard sees an open for writing, os.rename, os.remove, os.truncate and shutil.rmtree, on scripts/ itself and under it.',
+  `It does NOT see: ${labelsOf(UNSEEN_PY).join('; ')}. --self-test attempts ${UNSEEN_PY.length} forms under those statements, each on a fresh fixture, and requires every one to succeed.`,
+]
 const { check, summarize } = createChecks()
 
 const work = mkdtempSync(join(tmpdir(), 'mutate-copy-'))
@@ -327,7 +380,7 @@ attempt('elsewhere', lambda: open(os.path.join(dir, 'x'), 'w').close())
     const dirRoot = join(root, 'dir-root')
     mkdirSync(dirRoot)
     writeFileSync(join(dirRoot, 'probe.mjs'), `import fs from 'node:fs'
-const attempt = (label, fn) => { try { fn(); console.log(label + ': written') } catch (e) { console.log(label + ': ' + e.code) } finally { fs.mkdirSync('scripts', { recursive: true }) } }
+const attempt = (label, fn) => { try { fn(); console.log(label + ': written') } catch (e) { console.log(label + ': ' + e.code) } }
 attempt('renameDir', () => fs.renameSync('scripts', 'moved'))
 attempt('rmDir', () => fs.rmSync('scripts', { recursive: true }))
 `)
@@ -338,8 +391,6 @@ def attempt(label, fn):
         print(label + ': written')
     except PermissionError:
         print(label + ': EACCES')
-    finally:
-        os.makedirs('scripts', exist_ok=True)
 attempt('renameDir', lambda: os.rename('scripts', 'moved'))
 attempt('rmtreeDir', lambda: shutil.rmtree('scripts'))
 `)
@@ -365,6 +416,55 @@ attempt('rmtreeDir', lambda: shutil.rmtree('scripts'))
       ['renameDir: EACCES', 'rmDir: EACCES'].every(l => dirProbe.out.includes(`${l}\n`)) && ['renameDir: EACCES', 'rmtreeDir: EACCES'].every(l => pyDirProbe.out.includes(`${l}\n`)) &&
       dirProbe.blocked.length === 2 && pyDirProbe.blocked.length === 2,
       `node: ${dirProbe.out.replace(/\n/g, ' | ')} ${dirProbe.blocked.length} refused; python: ${pyDirProbe.out.replace(/\n/g, ' | ')} ${pyDirProbe.blocked.length} refused`)
+
+    // The forms the guards are said not to see, each attempted on a fresh fixture in a root of its own per language: an attempt that succeeds changes its fixtures.
+    const seedUnseen = name => {
+      const dir = join(root, name)
+      mkdirSync(join(dir, 'scripts', 'rm-cb-dir'), { recursive: true })
+      mkdirSync(join(dir, 'scripts', 'empty-dir'))
+      mkdirSync(join(dir, 'other'))
+      for (const f of ['other/o1', 'other/o2', 'other/o3', 'other/o4', 'scripts/del-cb', 'scripts/trunc-cb', 'scripts/mode', 'scripts/stamp', 'scripts/del-dirfd', 'scripts/rm-cb-dir/f']) writeFileSync(join(dir, f), 'x\n')
+      symlinkSync(join(dir, 'scripts'), join(dir, 'other', 'via'))
+      return dir
+    }
+    const uNode = seedUnseen('unseen-node')
+    writeFileSync(join(uNode, 'unseen.mjs'), `import fs from 'node:fs'
+import path from 'node:path'
+import { execFileSync } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
+const cb = fn => new Promise((ok, no) => fn(e => (e ? no(e) : ok())))
+const attempt = async (key, fn) => { try { await fn(); console.log(key + ': written') } catch (e) { console.log(key + ': ' + (e.code ?? e.message)) } }
+${UNSEEN_NODE.map(([key, , code]) => `await attempt(${JSON.stringify(key)}, async () => { ${code} })`).join('\n')}
+`)
+    const uPy = seedUnseen('unseen-py')
+    writeFileSync(join(uPy, 'unseen.py'), `import os, subprocess
+def attempt(key, fn):
+    try:
+        fn()
+        print(key + ': written')
+    except PermissionError:
+        print(key + ': EACCES')
+    except Exception as e:
+        print(key + ': ' + type(e).__name__)
+${UNSEEN_PY.map(([key, , code], i) => `def t${i}(): ${code}\nattempt(${JSON.stringify(key)}, t${i})`).join('\n')}
+`)
+    const unseenNode = run('unseen.mjs', uNode)
+    const unseenPy = run('unseen.py', uPy)
+    const notWritten = (probe, list) => list.filter(([key]) => !probe.out.includes(`${key}: written\n`)).map(e => e[0])
+    check(`EVERY ONE OF THE ${UNSEEN_NODE.length} FORMS THE PRINTED COVERAGE SAYS THE NODE GUARD DOES NOT SEE IS NOT SEEN (each attempted on a fresh fixture: it succeeds and nothing is logged as refused)`,
+      listIsTrue(unseenNode, UNSEEN_NODE), `not written: ${notWritten(unseenNode, UNSEEN_NODE).join(', ') || 'none'}; ${unseenNode.blocked.length} refused; ${unseenNode.out.replace(/\n/g, ' | ')}`)
+    check(`EVERY ONE OF THE ${UNSEEN_PY.length} FORMS THE PRINTED COVERAGE SAYS THE PYTHON GUARD DOES NOT SEE IS NOT SEEN (each attempted on a fresh fixture: it succeeds and nothing is logged as refused)`,
+      listIsTrue(unseenPy, UNSEEN_PY), `not written: ${notWritten(unseenPy, UNSEEN_PY).join(', ') || 'none'}; ${unseenPy.blocked.length} refused; ${unseenPy.out.replace(/\n/g, ' | ')}`)
+    const allWritten = list => list.map(([key]) => `${key}: written\n`).join('')
+    check('THE TEST OF THE LIST HOLDS WHEN EVERY FORM SUCCEEDED AND FAILS WHEN ONE IS REFUSED, ONE WAS NEVER ATTEMPTED, OR A REFUSAL WAS LOGGED (the same test the two clauses above apply)',
+      listIsTrue({ out: allWritten(UNSEEN_NODE), blocked: [] }, UNSEEN_NODE) &&
+      !listIsTrue({ out: allWritten(UNSEEN_NODE).replace('mkdirSync: written', 'mkdirSync: EACCES'), blocked: [] }, UNSEEN_NODE) &&
+      !listIsTrue({ out: allWritten(UNSEEN_NODE).replace('mkdirSync: written\n', ''), blocked: [] }, UNSEEN_NODE) &&
+      !listIsTrue({ out: allWritten(UNSEEN_NODE), blocked: ['BLOCKED x'] }, UNSEEN_NODE),
+      'the four cases of listIsTrue over the node list')
+    const printed = coverageLines().join('\n')
+    check(`THE PRINTED COVERAGE NAMES EVERY ONE OF THE ${labelsOf(UNSEEN_NODE).length + labelsOf(UNSEEN_PY).length} STATEMENTS IN BOTH LISTS, AND SAYS WHAT cpSync DOES ONLY AS A DATED MEASUREMENT`,
+      [...UNSEEN_NODE, ...UNSEEN_PY].every(e => printed.includes(e[1])) && /cpSync[^\n]*v22\.22\.0 \(measured 2026-11-05\)/.test(printed), printed)
 
     const inPlace = evaluate('in-place.mjs', root)
     check('A STAND-IN THAT MUTATES IN PLACE FAILS EVERY CLAUSE (the guard stopped it at its first write), and its tracked file is byte-identical',
@@ -394,9 +494,8 @@ try {
       total += e.total
     }
     console.log(`\nchecked ${names.length} of ${SCRIPTS.length} mutate scripts; ${caught} of ${total} mutations caught inside them`)
-    console.log(`COVERAGE: the node guard wraps ${WRITERS.join(', ')} (string or Buffer path) under scripts/.`)
-    console.log('It does NOT see fs.promises, write streams, cpSync or mkdirSync into scripts/, openSync with a write flag, a URL path, or a shell-out.')
-    console.log('The python guard sees an open for writing, os.rename, os.remove, os.truncate and shutil.rmtree; not os.mkdir, os.rmdir, a remove relative to a directory descriptor, chmod, utime, a file descriptor, or a shell-out.\n')
+    for (const line of coverageLines()) console.log(line)
+    console.log()
   }
 } finally { rmSync(work, { recursive: true, force: true }) }
 finish(summarize())
