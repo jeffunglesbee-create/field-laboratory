@@ -825,21 +825,22 @@ if (process.argv.includes('--self-test')) {
     show(strayRegistry))
   // The same refusal, read for what it tells a person to DO. It said `Restore it (git checkout -- <file>) before re-running.`: a checkout puts a file back to the index, so it threw away every uncommitted
   // edit to the file, and when the injection was already committed (217282b) it changed nothing and the lines stayed (measured 2026-11-05 in a scratch repository: after the checkout the committed marker
-  // line was still there, and an uncommitted edit was gone). clean-source-check.mjs has given the other advice for the same state since the residuals Task 3; the wording is kept by eye in both, not shared, because that check must
+  // line was still there, and an uncommitted edit was gone). Measured 2026-11-06 in the same way: with the injection STAGED (what the pre-commit hook sees) the checkout changed nothing either, `git status`
+  // still showed `M ` and the injected line was still there; an edit made after the `git add` was the only thing it removed. clean-source-check.mjs has given the other advice for the same state since the residuals Task 3; the wording is kept by eye in both, not shared, because that check must
   // keep working when this script is the thing that broke. Three planted states (target only, registry only, both), each the real script with no run state.
   const strayBoth = sandbox({ target: injectedClean, registry: probeRegistry(union), noState: true })
   const advice = r => r.stderr.split('\n').slice(1).join(' | ')
   const oldAdviceGone = r => !/Restore (it|them)\b/.test(r.stderr) && !/before re-running/.test(r.stderr)
   const targetPart = `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
   const registryPart = `the probe case in ${REGISTRY} (the line "    | NHL" directly above "    | Unrecognised of raw: string"; \`grep -n -B1 "^    | Unrecognised of raw: string$" ${REGISTRY}\` shows it)`
-  const costSentence = (files, many) => `If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${files}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`
+  const costSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`
   // A registry shaped like the real one (`| NHL` is a case of its own, in the middle) with the probe and a sport the person added between the probe and the last case, and the same with the probe taken out by hand.
   // The sentence a person is given for the probe's line, typed by hand here: it describes the line by what it is, because "directly above the last case" is no longer true of it.
   const LAST_CASE = '    | Unrecognised of raw: string'
   const separatedUnion = union.replace(LAST_CASE, `    | NHL\n    | MyNewSport\n${LAST_CASE}`)
   const unionWithSport = union.replace(LAST_CASE, `    | MyNewSport\n${LAST_CASE}`)
   const probeCase = `the probe case in ${REGISTRY} (the second line "    | NHL" in the union: this run wrote it directly above "    | Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "^    | NHL$" ${REGISTRY}\` lists both)`
-  sc(`THE NO-STATE REFUSAL FOR AN INJECTED TARGET TELLS A PERSON TO DELETE THE LINES, and to check the file out only if the injection is uncommitted, saying what that discards; "Restore it (git checkout ...)" is gone, and the registry is not named (1 of 3 planted states)`,
+  sc(`THE NO-STATE REFUSAL FOR AN INJECTED TARGET TELLS A PERSON TO DELETE THE LINES, and to check the file out only where that works (not once the injection is staged or committed), saying what that discards; "Restore it (git checkout ...)" is gone, and the registry is not named (1 of 3 planted states)`,
     strayTarget.stderr.includes(`Delete ${targetPart}, then run this again.`) && strayTarget.stderr.includes(costSentence(TARGET, false))
       && oldAdviceGone(strayTarget) && !strayTarget.stderr.includes(REGISTRY),
     advice(strayTarget))
@@ -1616,9 +1617,9 @@ switch (classifyState({
       if (carriesProbe(currentRegistry)) strays.push(REGISTRY)
       if (strays.length) {
         console.error(`proof-check: ${strays.join(' and ')} contain${strays.length > 1 ? '' : 's'} injected proof code (${strays.length > 1 ? 'the target and the probe case' : strays[0] === TARGET ? 'the proof functions' : 'the probe case'}) and no run state exists.`)
-        // With no state there is nothing to restore from, so the lines are deleted by hand. A checkout is named only for an uncommitted injection, with what it costs: it puts a file back to the index,
-        // which discards every uncommitted edit to the file and, on a committed injection (217282b), changes nothing. clean-source-check.mjs gives the same advice for the same state; the wording is
-        // kept by eye in both, because that check must keep working when this script is the thing that broke.
+        // With no state there is nothing to restore from, so the lines are deleted by hand. A checkout is named with where it works and what it costs: it puts a file back to the INDEX, which removes an
+        // injection only while that is neither staged nor committed (the pre-commit hook sees it staged, and on a committed one, 217282b, it changes nothing either) and discards every unstaged edit to the
+        // file. clean-source-check.mjs gives the same advice for the same state; the wording is kept by eye in both, because that check must keep working when this script is the thing that broke.
         const many = strays.length > 1
         const parts = strays.map(f => f === TARGET
           ? `the injected block in ${TARGET} (each "${MARKER}N" header and the indented lines under it; \`grep -n "${MARKER}" ${TARGET}\` finds them)`
@@ -1626,7 +1627,7 @@ switch (classifyState({
             ? `the probe case in ${REGISTRY} (the line "${REGISTRY_PROBE.trimEnd()}" directly above "${REGISTRY_ANCHOR.slice(1)}"; \`grep -n -B1 "^${REGISTRY_ANCHOR.slice(1)}$" ${REGISTRY}\` shows it)`
             : removalOf(REGISTRY))
         console.error(`Delete ${parts.join(' and ')}, then run this again.`)
-        console.error(`If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${strays.join(' ')}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`)
+        console.error(`\`git checkout -- ${strays.join(' ')}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)
         process.exit(1)
       }
     }

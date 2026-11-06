@@ -6171,30 +6171,30 @@ const MUTATIONS = [
   //
   // docs/CC-CMD-2026-11-03-gate-hazard-residuals.md Task 3, the half its first commit recorded as not built. The refusal said `Restore it (git checkout -- <file>) before re-running.`,
   // which discards every uncommitted edit to the file and, when the injection is committed, changes nothing. It now says to delete the lines, how to find them (a grep, which works on a
-  // committed injection too), and names a checkout only for an uncommitted injection with what it discards. Each of these breaks one part of that and is caught by the three clauses that run
+  // committed injection too), and names a checkout with where it works (an injection neither staged nor committed) and what it discards. Each of these breaks one part of that and is caught by the three clauses that run
   // the real script with no run state over an injected target, a probed registry, and both.
   {
     id: "proof-check-stray-checkout-unconditional",
     file: 'scripts/proof-check.mjs',
-    claim: "a checkout is named only for an uncommitted injection (on a committed one it changes nothing)",
-    find: "If the ${many ? 'injections are' : 'injection is'} uncommitted, \\`git checkout -- ${strays.join(' ')}",
-    replace: "\\`git checkout -- ${strays.join(' ')}",
+    claim: "a checkout is named only for an injection that is neither staged nor committed (on those it changes nothing)",
+    find: "puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
+    replace: "puts ${many ? 'each file' : 'the file'} back to what is staged: it removes the injection and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
     id: "proof-check-stray-checkout-cost-unsaid",
     file: 'scripts/proof-check.mjs',
     claim: "when a checkout is named, so is what it discards",
-    find: "but discards every uncommitted edit to the ${many ? 'files' : 'file'}.`)",
-    replace: "but restores the ${many ? 'files' : 'file'}.`)",
+    find: "and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
+    replace: "and it restores ${many ? 'those files' : 'the file'}.`)",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
     id: "proof-check-stray-checkout-names-a-clean-file",
     file: 'scripts/proof-check.mjs',
     claim: "the checkout names the files that carry an injection and no others (a clean one would lose its uncommitted edits for nothing)",
-    find: "\\`git checkout -- ${strays.join(' ')}\\` also removes",
-    replace: "\\`git checkout -- ${TARGET} ${REGISTRY}\\` also removes",
+    find: "\\`git checkout -- ${strays.join(' ')}\\` puts",
+    replace: "\\`git checkout -- ${TARGET} ${REGISTRY}\\` puts",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   {
@@ -6240,9 +6240,18 @@ const MUTATIONS = [
   {
     id: "proof-check-stray-plural-lost",
     file: 'scripts/proof-check.mjs',
-    claim: "with both files injected the refusal says injections, them and files, and names both in the one checkout",
+    claim: "with both files injected the refusal says each file and those files, and names both in the one checkout",
     find: "const many = strays.length > 1",
     replace: "const many = false",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
+  // The checkout does nothing to an injection that is staged, which is what the pre-commit hook sees (review 7, finding L10, 2026-11-06): the sentence said "uncommitted".
+  {
+    id: "proof-check-stray-checkout-ignores-staging",
+    file: 'scripts/proof-check.mjs',
+    claim: "the refusal says the checkout removes an injection only while it is neither staged nor committed, and that on a staged one (the hook's state) it changes nothing",
+    find: "only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
+    replace: "only while that injection is uncommitted, and it discards every unstaged edit to ${many ? 'those files' : 'the file'}.`)",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
   // --- a probe an edit has separated from the union's last case (review 6, finding 0, 2026-11-05) ----------------------------------------------------------------------------------------------
@@ -8325,16 +8334,16 @@ const MUTATIONS = [
     id: "clean-source-checkout-cost-unsaid",
     file: 'scripts/clean-source-check.mjs',
     claim: "when a checkout is named, so is what it discards",
-    find: "but discards every uncommitted edit to the ${many ? 'files' : 'file'}`",
-    replace: "but restores the ${many ? 'files' : 'file'}`",
+    find: "committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}`",
+    replace: "committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it restores ${many ? 'those files' : 'the file'}`",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
     id: "clean-source-checkout-unconditional",
     file: 'scripts/clean-source-check.mjs',
-    claim: "a checkout is named only for an uncommitted injection (on a committed one it changes nothing)",
-    find: "If the ${many ? 'injections are' : 'injection is'} uncommitted, \\`git checkout -- ${paths}",
-    replace: "\\`git checkout -- ${paths}",
+    claim: "a checkout is named only for an injection that is neither staged nor committed (on those it changes nothing)",
+    find: "it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards",
+    replace: "it removes the injection and it discards",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {
@@ -8567,7 +8576,7 @@ const MUTATIONS = [
   {
     id: "clean-source-checkout-singular-for-two-files",
     file: 'scripts/clean-source-check.mjs',
-    claim: "with an injection in two files the checkout sentence says injections, them and files",
+    claim: "with an injection in two files the checkout sentence says each file and those files",
     find: "const many = dirty.length > 1",
     replace: "const many = false",
     expect: 'node scripts/clean-source-check.mjs --self-test',
@@ -8578,6 +8587,15 @@ const MUTATIONS = [
     claim: "with an injection in one file the checkout sentence stays singular",
     find: "const many = dirty.length > 1",
     replace: "const many = true",
+    expect: 'node scripts/clean-source-check.mjs --self-test',
+  },
+  // The checkout does nothing to an injection that is staged, which is the state the pre-commit hook scans (review 7, finding L10, 2026-11-06): the sentence said "uncommitted".
+  {
+    id: "clean-source-checkout-ignores-staging",
+    file: 'scripts/clean-source-check.mjs',
+    claim: "the remedy says the checkout removes an injection only while it is neither staged nor committed, and that on a staged one (the hook's state) it changes nothing",
+    find: "neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and",
+    replace: "uncommitted, and",
     expect: 'node scripts/clean-source-check.mjs --self-test',
   },
   {

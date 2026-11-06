@@ -48,11 +48,14 @@
 // WHAT IT TELLS THE READER TO DO depends on whether proof-check has a run state
 // to work from, because the two cases have different remedies and `git checkout`
 // is the right answer to neither. It restores a file to the INDEX: that throws
-// away every uncommitted edit to the file, and when the injection is already
+// away every unstaged edit to the file, and when the injection is already
 // committed (217282b) it changes nothing at all. Measured 2026-11-05 in a scratch
 // repository: with the injection uncommitted `git diff -- file` printed 8 lines
 // and the checkout removed it; with it committed `git diff -- file` printed 0
-// lines and the marker was still there after the checkout.
+// lines and the marker was still there after the checkout. Measured 2026-11-06 the
+// same way: with the injection STAGED, which is what the pre-commit hook runs this
+// scan over, the checkout changed nothing either (`git status` still `M `, the
+// marker still there); only an edit made after the `git add` was removed.
 //
 //   state present   proof-check restores the file that still carries its own
 //                   injection and refuses otherwise: name it, and the directory.
@@ -152,7 +155,7 @@ if (process.argv.includes('--self-test')) {
     ? `a proof-check run left this. Run \`node scripts/proof-check.mjs\`: it puts a file back only when that file is exactly its backup plus the injection (edits made before that run are kept), ` +
       `and refuses, writing nothing, when the file has moved on since or that run is still going; after a restore it goes on to run the proofs. The backups are in ${STATE_DIR}/; do not delete it`
     : `${ACTIVE_FILE} does not exist, so \`node scripts/proof-check.mjs\` has nothing to restore from and refuses. Delete ${deletions.join(' and ')}. ` +
-      `If the ${many ? 'injections are' : 'injection is'} uncommitted, \`git checkout -- ${paths}\` also removes ${many ? 'them' : 'it'} but discards every uncommitted edit to the ${many ? 'files' : 'file'}`
+      `\`git checkout -- ${paths}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed (the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}`
 
   check('no source file carries injected proof code',
     dirty.length === 0,
@@ -218,6 +221,9 @@ function selfTest () {
     const probeKinds = run({ files: { 'D.fs': probedUnion, 'E.fs': movedUnion } })
     const twoDeclarations = run({ files: { 'A.fs': 'let a = 1\n', 'D.fs': 'type A =\n    | NHL\n    | X\n\ntype B =\n    | NHL\n    | Y\n' } })
     const FAILS = /FAIL  no source file carries injected proof code/
+    // The checkout sentence as a reader sees it, typed by hand here and not built from the scan's template, so that a drift in either shows.
+    const checkoutSentence = (files, many) => `\`git checkout -- ${files}\` puts ${many ? 'each file' : 'the file'} back to what is staged: it removes an injection only while that injection is neither staged nor committed `
+      + `(the pre-commit hook sees it staged, where the checkout changes nothing), and it discards every unstaged edit to ${many ? 'those files' : 'the file'}`
 
     // Coverage (Rule 91): 18 fixtures, each the real script in a directory of its own: clean, injected with no state, with active.json, with a state directory that holds no active.json,
     // a renamed marker, a renamed state directory, a renamed state file, and no sources; then the registry's probe case: carried, carried beside an injected block, a clean union that has `| NHL`
@@ -238,8 +244,8 @@ function selfTest () {
     check('WITHOUT a run state, it says proof-check has nothing to restore from, and how to find the lines',
       noState.status === 1 && /\.proof-state\/active\.json does not exist, so \`node scripts\/proof-check\.mjs\` has nothing to restore from and refuses/.test(noState.out)
         && /grep -n "let private __proof" src\/B\.fs/.test(noState.out), noState.verdict)
-    check('WITHOUT a run state, a checkout is named only for an uncommitted injection, with its cost',
-      /If the injection is uncommitted, \`git checkout -- src\/B\.fs\` also removes it but discards every uncommitted edit to the file/.test(noState.out), noState.verdict)
+    check('WITHOUT a run state, a checkout is named with where it works (not once the injection is staged or committed) and what it costs',
+      noState.out.includes(checkoutSentence('src/B.fs', false)), noState.verdict)
     check('a .proof-state/ that holds no active.json counts as no run state, as it does to proof-check',
       strayState.status === 1 && /does not exist, so \`node scripts\/proof-check\.mjs\` has nothing to restore from/.test(strayState.out) && !/backups are in/.test(strayState.out), strayState.verdict)
     check('a marker that proof-check no longer writes fails the scan, so it cannot pass vacuously',
@@ -253,26 +259,26 @@ function selfTest () {
       probed.status === 1 && FAILS.test(probed.out) && /→ D\.fs — /.test(probed.out) && !/A\.fs/.test(probed.out), probed.verdict)
     check('WITHOUT a run state, the probe\'s remedy names the line and a grep that shows it with the line above, and says nothing of an injected block',
       /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(probed.out)
-        && /If the injection is uncommitted, \`git checkout -- src\/D\.fs\` also removes it but discards every uncommitted edit to the file/.test(probed.out) && !/injected block/.test(probed.out), probed.verdict)
+        && probed.out.includes(checkoutSentence('src/D.fs', false)) && !/injected block/.test(probed.out), probed.verdict)
     check('a probe and an injected block in one tree each get their own instruction, naming only their own file, and one checkout names both',
       bothKinds.status === 1 && /→ B\.fs, D\.fs — /.test(bothKinds.out)
         && /Delete the injected block \(each "let private __proofN" header and the indented lines under it; \`grep -n "let private __proof" src\/B\.fs\` finds them\) and the probe case \(the line/.test(bothKinds.out)
         && /\`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\)\./.test(bothKinds.out)
-        && /If the injections are uncommitted, \`git checkout -- src\/B\.fs src\/D\.fs\` also removes them but discards every uncommitted edit to the files/.test(bothKinds.out), bothKinds.verdict)
+        && bothKinds.out.includes(checkoutSentence('src/B.fs src/D.fs', true)), bothKinds.verdict)
     check('a union that has `| NHL` in the middle and another case above its last is clean, as the real one is (the probe is a second `| NHL`, directly above the last case)',
       unionClean.status === 0 && /5\/5 checks passed/.test(unionClean.out), unionClean.verdict)
     check('a probe a sport has been added in front of fails the scan, and is the file named (fixtures: src/A.fs clean, src/D.fs carries `| NHL` twice with a sport above the last case)',
       movedProbe.status === 1 && FAILS.test(movedProbe.out) && /→ D\.fs — /.test(movedProbe.out) && !/A\.fs/.test(movedProbe.out), movedProbe.verdict)
     check('WITHOUT a run state, its remedy names the line by what it is (the second `| NHL`) and a grep that lists both, and does not say the grep shows the line above the last case',
       /Delete the probe case \(the second line "    \| NHL" in the union: proof-check wrote it directly above "    \| Unrecognised of raw: string", and a line added since may now sit between them; \`grep -n "\^    \| NHL\$" src\/D\.fs\` lists both\)\./.test(movedProbe.out)
-        && /If the injection is uncommitted, \`git checkout -- src\/D\.fs\` also removes it but discards every uncommitted edit to the file/.test(movedProbe.out) && !/-B1/.test(movedProbe.out) && !/injected block/.test(movedProbe.out), movedProbe.verdict)
+        && movedProbe.out.includes(checkoutSentence('src/D.fs', false)) && !/-B1/.test(movedProbe.out) && !/injected block/.test(movedProbe.out), movedProbe.verdict)
     check('WITH a run state, a probe a sport has been added in front of gets the proof-check remedy and no git command, as a block does',
       movedWithState.status === 1 && FAILS.test(movedWithState.out) && /node scripts\/proof-check\.mjs/.test(movedWithState.out) && !/\bgit\b/.test(movedWithState.out), movedWithState.verdict)
     check('a probe directly above the last case in one file and a separated one in another each get their own instruction, naming only their own file, and one checkout names both',
       probeKinds.status === 1 && /→ D\.fs, E\.fs — /.test(probeKinds.out)
         && /Delete the probe case \(the line "    \| NHL" directly above "    \| Unrecognised of raw: string"; \`grep -n -B1 "\^    \| Unrecognised of raw: string\$" src\/D\.fs\` shows it\) and the probe case \(the second line/.test(probeKinds.out)
         && /\`grep -n "\^    \| NHL\$" src\/E\.fs\` lists both\)\./.test(probeKinds.out)
-        && /If the injections are uncommitted, \`git checkout -- src\/D\.fs src\/E\.fs\` also removes them but discards every uncommitted edit to the files/.test(probeKinds.out), probeKinds.verdict)
+        && probeKinds.out.includes(checkoutSentence('src/D.fs src/E.fs', true)), probeKinds.verdict)
     check('the same line in two declarations that each have it as a case of their own is clean: it is counted per declaration, not per file',
       twoDeclarations.status === 0 && /5\/5 checks passed/.test(twoDeclarations.out), twoDeclarations.verdict)
     check('a probe line, a last-case anchor or a site definition that proof-check no longer uses fails the scan: three renamed constants',
