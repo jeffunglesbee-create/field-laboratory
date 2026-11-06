@@ -2581,11 +2581,35 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: "stranded-mode-names-only-the-first-marker",
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` prints a message for every marker it finds, not the first",
+    find: "  for (const file of left) {\n    // A marker that does not parse",
+    replace: "  for (const file of left.slice(0, 1)) {\n    // A marker that does not parse",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: "stranded-mode-ignores-the-state-dir-variable",
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` reads the directory MUTATION_STATE_DIR names, as every other mode does, and not always `.mutation-state`",
+    find: "  const real = process.env.MUTATION_STATE_DIR || '.mutation-state'\n  const files = [",
+    replace: "  const real = '.mutation-state'\n  const files = [",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'stranded-mode-reads-a-live-run-as-killed',
     file: 'scripts/mutation-check.mjs',
     claim: "`--stranded` does not call a run that is still going a killed one, or send a person to a heal that would refuse it",
     find: "if (isLive(m)) return 'live'",
     replace: "if (false) return 'live'",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: "stranded-live-ignores-the-start-time",
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` does not call a pid that now belongs to another process a run that is still going: it compares the start time the marker recorded",
+    find: "if (isLive(m)) return 'live'",
+    replace: "if (isLive({ pid: m.pid })) return 'live'",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -2893,6 +2917,14 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: "stranded-applied-without-the-consequence",
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` over a mutation that is still applied says that this mode does not undo it and that a commit or a gate run would carry it",
+    find: "Nothing was touched, and this mode does not undo it: a commit or a gate run over this tree would carry the mutation. Heal it first: ${heal}`",
+    replace: "Nothing was touched. Heal it first: ${heal}`",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'gate-preflight-removed',
     file: 'scripts/confidence.mjs',
     claim: "the gate refuses to score a tree a killed mutation run left mutated, before any row",
@@ -2917,6 +2949,30 @@ const MUTATIONS = [
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
+    id: "gate-preflight-refuses-only-status-one",
+    file: 'scripts/confidence.mjs',
+    claim: "the gate's preflight refuses on any status of the check but 0, not only on 1: a check that crashed has not said the tree is clean",
+    find: "if (strandedCheck.status !== 0) {",
+    replace: "if (strandedCheck.status === 1) {",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: "gate-preflight-drops-the-checks-stderr",
+    file: 'scripts/confidence.mjs',
+    claim: "the gate's preflight prints what the check said on stderr as well as on stdout",
+    find: "console.log(`\\n${`${strandedCheck.stdout}${strandedCheck.stderr}`.trimEnd()}`)",
+    replace: "console.log(`\\n${`${strandedCheck.stdout}`.trimEnd()}`)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: "gate-preflight-calls-a-killed-check-an-exit",
+    file: 'scripts/confidence.mjs',
+    claim: "the gate's preflight says a check that was killed did not finish, and does not report an exit status it never had",
+    find: "strandedCheck.status === null ? 'did not finish' : `exited ${strandedCheck.status}`",
+    replace: "`exited ${strandedCheck.status}`",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
     id: 'hook-script-without-stranded',
     file: 'package.json',
     claim: "the script the pre-commit hook runs refuses a stranded state",
@@ -2938,6 +2994,14 @@ const MUTATIONS = [
     claim: "the pre-commit hook runs the mutation-anchors script, which is where a stranded state is refused",
     find: "npm run --silent check:mutation-anchors\n",
     replace: "",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: "hook-exits-before-the-mutation-anchors-line",
+    file: '.githooks/pre-commit',
+    claim: "the pre-commit hook gets to the mutation-anchors line: nothing above it ends the hook",
+    find: "npm run --silent check:mutation-anchors\n",
+    replace: "exit 0\nnpm run --silent check:mutation-anchors\n",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -11363,8 +11427,8 @@ if (process.argv.includes('--self-test')) {
     strandedFixture(refusedDir)
     const refusedBefore = listing(refusedDir)
     const refused = ask(refusedDir, ['--stranded'])
-    check('`--stranded` REFUSES A REAL STRANDED STATE AND TOUCHES NOTHING: exit 1, it names the marker, the mutation and the file and says to run `node scripts/mutation-check.mjs --heal`; every file in the directory (the mutated source, the marker, the backup) is byte-identical afterwards (1 healable state, 3 files)',
-      refused.status === 1 && /\.mutation-state\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(refused.stdout) && /Heal it first: node scripts\/mutation-check\.mjs --heal/.test(refused.stdout) && listing(refusedDir) === refusedBefore,
+    check('`--stranded` REFUSES A REAL STRANDED STATE AND TOUCHES NOTHING: exit 1, it names the marker, the mutation and the file and says it was not undone here and a commit or a gate run would carry it, and says to run `node scripts/mutation-check.mjs --heal`; every file in the directory (the mutated source, the marker, the backup) is byte-identical afterwards (1 healable state, 3 files)',
+      refused.status === 1 && /\.mutation-state\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(refused.stdout) && /this mode does not undo it: a commit or a gate run over this tree would carry the mutation\. Heal it first: node scripts\/mutation-check\.mjs --heal/.test(refused.stdout) && listing(refusedDir) === refusedBefore,
       `status ${refused.status}; ${first(refused)}; directory unchanged ${listing(refusedDir) === refusedBefore}`)
 
     const noMarker = fresh()
@@ -11398,6 +11462,38 @@ if (process.argv.includes('--self-test')) {
       /::warning::\.mutation-state\/nested\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(nestedNoted.stdout) && /Heal it first: node scripts\/mutation-check\.mjs --heal/.test(nestedNoted.stdout) && listing(nestedDir) === nestedBefore,
       `${String(nestedNoted.stdout).split('\n').filter(l => /warning|stranded/i.test(l)).join(' | ').slice(0, 260) || '(no warning)'}; directory unchanged ${listing(nestedDir) === nestedBefore}`)
 
+    // THE DIRECTORY IS THE ONE `MUTATION_STATE_DIR` NAMES, as it is for every other mode (review 7, L6): a harness run inside a harness run keeps its state in a directory the variable names, and the self-test
+    // hands it to what it starts. A mode that always read `.mutation-state` would say "nothing stranded" over a state kept elsewhere, which is the one answer a refusal exists not to give. The same directory
+    // is asked twice, with the variable and without it, so that the first answer is the variable's and not a marker the mode found by itself.
+    const elsewhere = fresh()
+    mkdirSync(join(elsewhere, 'elsewhere'))
+    mkdirSync(join(elsewhere, 'src'))
+    writeFileSync(join(elsewhere, 'src', 'Stranded.fs'), 'MUTATED FILE CONTENT\n')
+    writeFileSync(join(elsewhere, 'elsewhere', 'src_Stranded.fs'), 'ORIGINAL FILE CONTENT\n')
+    writeFileSync(join(elsewhere, 'elsewhere', 'active.json'), JSON.stringify({ id: 'stranded', file: 'src/Stranded.fs', backup: 'elsewhere/src_Stranded.fs', originalSha: sha('ORIGINAL FILE CONTENT\n'), mutatedSha: sha('MUTATED FILE CONTENT\n'), rebuild: false, ...DEAD }))
+    const elsewhereBefore = listing(elsewhere)
+    const askNamed = spawnSync(process.execPath, [here, '--stranded'], { cwd: elsewhere, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_STATE_DIR: 'elsewhere', MUTATION_SELFTEST_CHILD: '1' } })
+    const askUnnamed = ask(elsewhere, ['--stranded'])
+    check('`--stranded` READS THE DIRECTORY `MUTATION_STATE_DIR` NAMES: with the variable naming a directory that holds a stranded marker it exits 1 naming `elsewhere/active.json` and counts it among the files it checked; over the same tree without the variable it exits 0 (the control: the marker is found by the variable and by nothing else); neither run changes the directory (1 tree, 2 runs)',
+      askNamed.status === 1 && /elsewhere\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(askNamed.stdout) && /checked 3 files \(elsewhere\/active\.json, elsewhere\/nested\/active\.json, elsewhere\/driver\.json\); 1 hold a marker/.test(askNamed.stdout)
+        && askUnnamed.status === 0 && /; 0 hold a marker; /.test(askUnnamed.stdout) && listing(elsewhere) === elsewhereBefore,
+      `with the variable: status ${askNamed.status}, ${first(askNamed)}; without it: status ${askUnnamed.status}, ${String(askUnnamed.stdout).split('\n').find(l => /^checked/.test(l)) || '(no summary)'}; directory unchanged ${listing(elsewhere) === elsewhereBefore}`)
+
+    // BOTH PLACES A MARKER CAN BE AT ONCE (review 7, L6). The clauses above put one marker in one of them; a mode that named only the first marker it found would pass each and still tell a person about half the
+    // state (its exit status and its count are the same). A run that was itself running a harness run when it was killed leaves both, and each names a different mutation here.
+    const bothDir = fresh()
+    strandedFixture(bothDir)
+    const bothNested = join(bothDir, '.mutation-state', 'nested')
+    mkdirSync(bothNested)
+    copyFileSync(join(bothDir, '.mutation-state', 'src_Stranded.fs'), join(bothNested, 'src_Stranded.fs'))
+    writeFileSync(join(bothNested, 'active.json'), JSON.stringify({ ...JSON.parse(read(strandedMarkerOf(bothDir))), id: 'stranded-in-nested', backup: '.mutation-state/nested/src_Stranded.fs' }))
+    const bothBefore = listing(bothDir)
+    const bothRun = ask(bothDir, ['--stranded'])
+    check('`--stranded` NAMES EVERY MARKER IT FINDS, NOT THE FIRST: with a marker in `.mutation-state` and another in `.mutation-state/nested` it exits 1, prints one message for each (`[stranded]` and `[stranded-in-nested]`), counts 2 in its summary, and changes nothing (2 markers)',
+      bothRun.status === 1 && /\.mutation-state\/active\.json is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(bothRun.stdout) && /\.mutation-state\/nested\/active\.json is a mutation a killed run left applied \(\[stranded-in-nested\] on src\/Stranded\.fs\)/.test(bothRun.stdout)
+        && /; 2 hold a marker; /.test(bothRun.stdout) && listing(bothDir) === bothBefore,
+      `status ${bothRun.status}; messages ${String(bothRun.stdout).split('\n').filter(l => /^::error::/.test(l)).length}; ${String(bothRun.stdout).split('\n').find(l => /^checked/.test(l)) || '(no summary)'}; directory unchanged ${listing(bothDir) === bothBefore}`)
+
     // A run that is still going is not a killed run's, and `--heal` would refuse it: the message says to wait, and does not send a person to the heal. This self-test is that run.
     const liveDir = fresh()
     strandedFixture(liveDir)
@@ -11407,6 +11503,24 @@ if (process.argv.includes('--self-test')) {
     check('`--stranded` DOES NOT CALL A RUN THAT IS STILL GOING A KILLED ONE: over a marker naming a live pid it exits 1, says the run is IN PROGRESS, to wait for that pid or stop it (kill -9 if it ignores a plain kill, the advice the heal gives for a live run), does not offer `--heal`, and touches nothing (1 live state)',
       liveRun.status === 1 && new RegExp(`names pid ${process.pid}, which is still running: \\[stranded\\] on src/Stranded\\.fs is applied by a mutation run that is IN PROGRESS`).test(liveRun.stdout) && new RegExp(`Wait for pid ${process.pid} to finish, or stop it \\(kill -9 if it ignores a plain kill\\), and run this again\\.`).test(liveRun.stdout) && !/--heal/.test(liveRun.stdout) && listing(liveDir) === liveBefore,
       `status ${liveRun.status}; ${first(liveRun)}; directory unchanged ${listing(liveDir) === liveBefore}`)
+
+    // ...and a pid that now belongs to ANOTHER process is not a run that is going (review 7, L6). A marker records when its process started, and `isLive` compares it; the pid alone would call a recycled one IN PROGRESS
+    // and send a person to wait for a run that died. The pid below is this process's and the start time is not; `--heal` over a copy treats it as dead too (it restores the file), so the sentence is held to it.
+    if (haveProc) {
+      const recycledDir = fresh()
+      const recycledCopy = fresh()
+      for (const d of [recycledDir, recycledCopy]) {
+        strandedFixture(d)
+        writeFileSync(strandedMarkerOf(d), JSON.stringify({ ...JSON.parse(read(strandedMarkerOf(d))), pid: process.pid, start: 'not-when-it-started', startedAt: DEAD.startedAt }))
+      }
+      const recycledBefore = listing(recycledDir)
+      const recycledRun = ask(recycledDir, ['--stranded'])
+      const recycledHeal = ask(recycledCopy, ['--heal'])
+      check('`--stranded` DOES NOT CALL A RECYCLED PID A RUN THAT IS STILL GOING: over a marker whose pid is alive but whose recorded start time is not that process\'s it exits 1 with the killed-run message, not IN PROGRESS, and changes nothing; `--heal` over a copy treats it as dead too and restores the file (1 state)',
+        recycledRun.status === 1 && /is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(recycledRun.stdout) && !/IN PROGRESS|which is still running/.test(recycledRun.stdout) && listing(recycledDir) === recycledBefore
+          && read(join(recycledCopy, 'src', 'Stranded.fs')) === 'ORIGINAL FILE CONTENT\n' && !existsSync(strandedMarkerOf(recycledCopy)),
+        `status ${recycledRun.status}; ${first(recycledRun)}; directory unchanged ${listing(recycledDir) === recycledBefore}; heal status ${recycledHeal.status}, file ${JSON.stringify(read(join(recycledCopy, 'src', 'Stranded.fs')))}, marker kept ${existsSync(strandedMarkerOf(recycledCopy))}`)
+    }
 
     // A MARKER WHOSE FILE IS ALREADY BACK (review 7, 2026-11-05). A run stopped by Ctrl-C or a SIGTERM while a source file was mutated puts the FILE back and keeps the marker, because its build is
     // not yet verified clean; a run killed between writing the marker and the mutation never changed the file. `--stranded` called both "a mutation a killed run left applied ... a commit or a gate
@@ -11607,6 +11721,24 @@ if (process.argv.includes('--self-test')) {
     const hookText = read(join(repoRoot, '.githooks', 'pre-commit'))
     check('THE PRE-COMMIT HOOK RUNS THAT SCRIPT: `npm run --silent check:mutation-anchors` is a line of .githooks/pre-commit that is not a comment (1 hook)',
       /^npm run --silent check:mutation-anchors$/m.test(hookText), `the hook holds ${hookText.split('\n').filter(l => /mutation-anchors/.test(l)).join(' | ').slice(0, 200) || 'no such line'}`)
+    // ...and the hook REACHES that line, and STOPS where it fails (review 7, L6). The clause above reads the file, so it passes with an `exit 0` above the line, which the hook then never gets to. Here the real hook runs in a
+    // directory of its own with an `npm` that logs what it is asked and fails the one script it is told to: once with every script passing (the line must be asked for, once, and the hook must finish), once with
+    // `check:mutation-anchors` failing (the hook must exit non-zero and ask for nothing after it).
+    const hookIn = fails => {
+      const dir = fresh()
+      writeFileSync(join(dir, 'package.json'), '{}')
+      mkdirSync(join(dir, 'bin'))
+      writeFileSync(join(dir, 'bin', 'npm'), '#!/bin/sh\necho "$@" >> npm.log\n[ "$3" = "$NPM_FAILS" ] && exit 1\nexit 0\n', { mode: 0o755 })
+      const r = spawnSync('bash', [join(repoRoot, '.githooks', 'pre-commit')], { cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, PATH: `${join(dir, 'bin')}:${process.env.PATH}`, NPM_FAILS: fails } })
+      return { r, asked: existsSync(join(dir, 'npm.log')) ? read(join(dir, 'npm.log')).split('\n').filter(Boolean) : [] }
+    }
+    const anchorsLine = 'run --silent check:mutation-anchors'
+    const hookPasses = hookIn('')
+    const hookFails = hookIn('check:mutation-anchors')
+    check('THE HOOK ASKS FOR THAT SCRIPT AND STOPS WHEN IT FAILS: the real `.githooks/pre-commit` run with an `npm` that logs asks for `check:mutation-anchors` exactly once and finishes (exit 0, "pre-commit: ok") when every script passes; when that script fails the hook exits non-zero, does not finish, and asks for nothing after it (2 runs of the hook, `npm` stubbed)',
+      hookPasses.r.status === 0 && /pre-commit: ok/.test(hookPasses.r.stdout) && hookPasses.asked.filter(l => l === anchorsLine).length === 1
+        && hookFails.r.status !== 0 && !/pre-commit: ok/.test(hookFails.r.stdout) && hookFails.asked.length > 0 && hookFails.asked[hookFails.asked.length - 1] === anchorsLine,
+      `passing run: status ${hookPasses.r.status}, asked ${hookPasses.asked.length} scripts, ${hookPasses.asked.filter(l => l === anchorsLine).length} for the anchors; failing run: status ${hookFails.r.status}, asked ${hookFails.asked.length}, last ${hookFails.asked[hookFails.asked.length - 1] ?? '(none)'}`)
     const gateScript = join(dirname(here), 'confidence.mjs')
     const askGate = cwd => spawnSync(process.execPath, [gateScript], { cwd, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
     const gateStranded = fresh()
@@ -11620,6 +11752,26 @@ if (process.argv.includes('--self-test')) {
         && !/\[\s*\d+s\] (PASS|FAIL)/.test(gateRefused.stdout) && listing(gateStranded) === gateBefore
         && !/Refusing to score: `node scripts\/mutation-check\.mjs --stranded`/.test(gateGoesOn.stdout) && /gate-rows\.txt/.test(gateGoesOn.stderr),
       `stranded: status ${gateRefused.status}, ${first(gateRefused) || String(gateRefused.stdout).split('\n').find(l => l.trim()) || '(no output)'}; directory unchanged ${listing(gateStranded) === gateBefore}; clean: status ${gateGoesOn.status}, refused by the check ${/Refusing to score: `node scripts\/mutation-check\.mjs --stranded`/.test(gateGoesOn.stdout)}, stderr names the inventory ${/gate-rows\.txt/.test(gateGoesOn.stderr)}`)
+
+    // ...and it refuses on ANY status of the check but 0, and prints what the check said on BOTH streams (review 7, L6). The real check exits 1 over a stranded state and says it on stdout, so the clause above holds
+    // `!== 0` to the one status it can see: `=== 1` passes it, and so does a gate that drops the check's stderr. Here the preflight is the real `confidence.mjs`, COPIED next to a stand-in `mutation-check.mjs`
+    // (the preflight finds the script by its own directory) with the three modules it imports linked in: one stand-in exits 2 after writing to both streams, one kills itself, and one exits 0.
+    const gateWith = body => {
+      const dir = fresh()
+      mkdirSync(join(dir, 'scripts'))
+      copyFileSync(gateScript, join(dir, 'scripts', 'confidence.mjs'))
+      for (const f of ['gate-inventory.mjs', 'gate-checks.mjs', 'checks.mjs']) execSync(`ln -s ${JSON.stringify(join(dirname(here), f))} ${f}`, { cwd: join(dir, 'scripts') })
+      writeFileSync(join(dir, 'scripts', 'mutation-check.mjs'), body)
+      return spawnSync(process.execPath, [join(dir, 'scripts', 'confidence.mjs')], { cwd: dir, encoding: 'utf8', timeout: 120_000, env: { ...process.env, ...clean, MUTATION_SELFTEST_CHILD: '1' } })
+    }
+    const gateExit2 = gateWith("process.stdout.write('stand-in said this on stdout\\n'); process.stderr.write('stand-in said this on stderr\\n'); process.exit(2)\n")
+    const gateKilled = gateWith("process.kill(process.pid, 'SIGKILL')\n")
+    const gateExit0 = gateWith('process.exit(0)\n')
+    check('THE GATE REFUSES ON ANY STATUS BUT 0 AND RELAYS BOTH STREAMS: with a check that exits 2 after writing to stdout and to stderr `confidence.mjs` exits 2, prints both lines and "exited 2"; with a check that kills itself it exits 2 and says the check "did not finish"; with a check that exits 0 it is not refused and goes on to the inventory, which a scratch directory does not have (3 stand-ins)',
+      gateExit2.status === 2 && /stand-in said this on stdout/.test(gateExit2.stdout) && /stand-in said this on stderr/.test(gateExit2.stdout) && /Refusing to score: `node scripts\/mutation-check\.mjs --stranded` exited 2\. Nothing was run\./.test(gateExit2.stdout)
+        && gateKilled.status === 2 && /Refusing to score: `node scripts\/mutation-check\.mjs --stranded` did not finish\. Nothing was run\./.test(gateKilled.stdout)
+        && !/Refusing to score: `node scripts\/mutation-check\.mjs --stranded`/.test(gateExit0.stdout) && /gate-rows\.txt/.test(gateExit0.stderr),
+      `exit 2: status ${gateExit2.status}, stdout relayed ${/said this on stdout/.test(gateExit2.stdout)}, stderr relayed ${/said this on stderr/.test(gateExit2.stdout)}; killed: status ${gateKilled.status}, ${String(gateKilled.stdout).split('\n').find(l => /Refusing/.test(l))?.trim().slice(0, 140) ?? '(no refusal)'}; exit 0: status ${gateExit0.status}, refused ${/Refusing to score/.test(gateExit0.stdout)}, stderr names the inventory ${/gate-rows\.txt/.test(gateExit0.stderr)}`)
 
     // A self-test the HARNESS starts as an expectation inherits MUTATION_STATE_DIR (a nested directory beneath its own). It must use a
     // directory of its own, and pass: it did neither, so 20 mutation entries were caught by a self-test that failed on clean source.
