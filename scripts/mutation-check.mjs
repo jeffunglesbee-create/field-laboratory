@@ -33,7 +33,7 @@
 // And for recovery and for the checks that stand guard over this file:
 //         --heal             undo what a killed run left applied, and stop a build driver it left running (what every start does first), say so, and stop; runs no mutation
 //         --anchors          read-only: every mutation's anchor is still in its file, and unique there; non-zero if any is not
-//         --stranded         read-only: exit 1, naming the command that heals it, while a killed run's mutation is still applied (.mutation-state/active.json or nested/active.json); exit 0 when there is none. It heals nothing: the hook and the gate run it first
+//         --stranded         read-only: exit 1, naming the command that heals it, while a killed run's mutation is still applied (.mutation-state/active.json or nested/active.json) or a build driver a dead run left running is still alive (.mutation-state/driver.json); exit 0 when there is none. It heals and stops nothing: the hook and the gate run it first. A live run's lock (run.json) is not read: a live run is not a stranded one, and every start refuses on its lock
 //         --self-test        the heal, the locks, the markers and the scratch-repository runs, on throwaway files in a state directory of their own (the pre-commit hook runs it)
 
 import { execSync, spawn, spawnSync } from 'node:child_process'
@@ -2552,15 +2552,15 @@ const MUTATIONS = [
     id: 'stranded-mode-exit-inverted',
     file: 'scripts/mutation-check.mjs',
     claim: "`--stranded` exits 1 when a mutation is left applied and 0 when none is",
-    find: "process.exit(left.length ? 1 : 0)",
-    replace: "process.exit(left.length ? 0 : 1)",
+    find: "process.exit((left.length > 0 || orphan !== null) ? 1 : 0)",
+    replace: "process.exit((left.length > 0 || orphan !== null) ? 0 : 1)",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
     id: 'stranded-mode-refuses-a-directory-with-no-marker',
     file: 'scripts/mutation-check.mjs',
     claim: "`--stranded` lets a directory with no marker through (a stale run lock is not a stranded mutation)",
-    find: "process.exit(left.length ? 1 : 0)",
+    find: "process.exit((left.length > 0 || orphan !== null) ? 1 : 0)",
     replace: "process.exit(1)",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
@@ -2568,8 +2568,8 @@ const MUTATIONS = [
     id: 'stranded-mode-heals',
     file: 'scripts/mutation-check.mjs',
     claim: "`--stranded` refuses and does not heal: it writes nothing, in a commit hook or a gate run",
-    find: "    console.log(text)\n  }\n  console.log(`checked ${files.length}",
-    replace: "    console.log(text)\n    if (m?.file && m?.backup && existsSync(m.backup)) writeFileSync(m.file, readFileSync(m.backup))\n  }\n  console.log(`checked ${files.length}",
+    find: "    console.log(text)\n  }\n  // THE THIRD THING",
+    replace: "    console.log(text)\n    if (m?.file && m?.backup && existsSync(m.backup)) writeFileSync(m.file, readFileSync(m.backup))\n  }\n  // THE THIRD THING",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -2610,6 +2610,78 @@ const MUTATIONS = [
     claim: "`--stranded` refuses a marker cut off mid-write by what it is, with the heal command, instead of crashing on the read",
     find: "try { m = JSON.parse(readFileSync(file, 'utf8')) } catch { m = null }\n    const id = m?.id",
     replace: "m = JSON.parse(readFileSync(file, 'utf8'))\n    const id = m?.id",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-orphan-passes',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` exits 1 over a build driver a dead run left running, though no marker is left",
+    find: "process.exit((left.length > 0 || orphan !== null) ? 1 : 0)",
+    replace: "process.exit(left.length > 0 ? 1 : 0)",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-live-run-refused',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` does not call the driver of a run that is still going an orphan (it is that run's)",
+    find: "d && Number.isInteger(d.pid) && d.pid > 1 && !(rec.run && isLive(rec.run))",
+    replace: "d && Number.isInteger(d.pid) && d.pid > 1",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-recycled-pid-refused',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` does not call a pid that now holds a process started at another time a build driver",
+    find: "if (!recycled && groupAlive(d.pid)) orphan = d",
+    replace: "if (groupAlive(d.pid)) orphan = d",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-gone-group-refused',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` does not refuse over a driver record whose process group is gone",
+    find: "if (!recycled && groupAlive(d.pid)) orphan = d",
+    replace: "if (!recycled) orphan = d",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-pid-zero-refused',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` does not read a record that names pid 0 or 1 as a build driver (their groups are alive on every machine)",
+    find: "d && Number.isInteger(d.pid) && d.pid > 1 &&",
+    replace: "d && Number.isInteger(d.pid) && d.pid >= 0 &&",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-torn-record-refuses',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` lets a driver record that does not parse through: it names no process, and the next run's reap says so",
+    find: "try { rec = JSON.parse(readFileSync(driverRecord, 'utf8')) } catch { rec = null }",
+    replace: "try { rec = JSON.parse(readFileSync(driverRecord, 'utf8')) } catch { if (existsSync(driverRecord)) process.exit(1); rec = null }",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-not-in-the-count',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` says that it read `driver.json`, in the count of files it checked",
+    find: "const looked = [...files, driverRecord]",
+    replace: "const looked = files",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-stopped-by-the-mode',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` stops nothing: the build driver it refuses over is still running afterwards",
+    find: "  const looked = [...files, driverRecord]",
+    replace: "  if (orphan) process.kill(-orphan.pid, 'SIGTERM')\n  const looked = [...files, driverRecord]",
+    expect: 'node scripts/mutation-check.mjs --self-test',
+  },
+  {
+    id: 'stranded-driver-refusal-without-the-heal',
+    file: 'scripts/mutation-check.mjs',
+    claim: "`--stranded` over a build driver names the command that stops it",
+    find: "Stop it first: node scripts/mutation-check.mjs --heal`)\n  const looked",
+    replace: "Stop it first.`)\n  const looked",
     expect: 'node scripts/mutation-check.mjs --self-test',
   },
   {
@@ -9673,7 +9745,28 @@ if (process.argv.includes('--anchors')) {
   for (const x of stale) console.log(`  STALE  ${x}`)
   process.exit(stale.length ? 1 : 0)
 }
-// `--stranded` sits here too: it reads one or two small files and runs nothing. It is the refusal the pre-commit hook and the gate run FIRST, because a tree that still holds
+// The three helpers below tell whether any process of a group is still running. They sit ABOVE `--stranded` because that mode reads them, and a mode that exits up here reads a
+// const defined further down before it exists (a ReferenceError, not a refusal). They use only imports, so nothing they need is defined after them. `reapDriver`, further down, uses the same three.
+/** Is any of these `[state, pgrp]` pairs a live process of group `pgid`? A zombie is a process that has finished and not yet been reaped, and nothing is left of it. */
+const groupHasLive = (entries, pgid) => entries.some(([state, pgrp]) => pgrp === pgid && state !== 'Z' && state !== 'X')
+/** Every process's `[state, pgrp]` from /proc, or null where /proc cannot be read (signal 0 to the group is the answer there, and it counts a zombie). */
+const procGroups = () => {
+  try {
+    return readdirSync('/proc').filter(d => /^\d+$/.test(d)).flatMap(d => {
+      try {
+        const text = readFileSync(`/proc/${d}/stat`, 'utf8')
+        const f = text.slice(text.lastIndexOf(')') + 2).split(' ')
+        return [[f[0], Number(f[2])]]
+      } catch { return [] }
+    })
+  } catch { return null }
+}
+const groupAlive = pgid => {
+  const all = procGroups()
+  if (all !== null) return groupHasLive(all, pgid)
+  try { process.kill(-pgid, 0); return true } catch (e) { return e.code === 'EPERM' }
+}
+// `--stranded` sits here too: it reads three small files and runs nothing. It is the refusal the pre-commit hook and the gate run FIRST, because a tree that still holds
 // a mutation is not the tree they are asked about. Until now the hook printed a warning and passed (measured 2026-11-05 on a stranded `outbox-stub`: 46 outbox files stubbed,
 // `npm run check:mutation-anchors` exited 0; on a stranded source file its anchor check failed first, naming a stale table entry, which sent a reader to the wrong file).
 //
@@ -9681,12 +9774,13 @@ if (process.argv.includes('--anchors')) {
 // a commit hook has no business rewriting the tree of the commit it is part of, whose index may already hold the mutated version. `clean-source-check.mjs` makes the same
 // choice for an injected proof body. The command that heals is named, and a person runs it.
 //
-// It reads its own directory instead of `stateDir`, `marker` or `healHeld`: those are consts defined further down, and a mode that exits up here would read them before they
+// It reads its own directory instead of `stateDir`, `marker`, `driverFile` or `healHeld`: those are consts defined further down, and a mode that exits up here would read them before they
 // exist (a ReferenceError, not a refusal). The expression is the one `stateDir` uses for a real run. It sits above the heal, the run lock and the exit handlers, so it also
 // takes no lock, removes no stale one and clears no state; the clauses run it with `--heal` beside it and a stale lock beside the marker to hold it to that.
 if (process.argv.includes('--stranded')) {
   const real = process.env.MUTATION_STATE_DIR || '.mutation-state'
   const files = [join(real, 'active.json'), join(real, 'nested', 'active.json')]
+  const driverRecord = join(real, 'driver.json')
   const left = files.filter(f => existsSync(f))
   for (const file of left) {
     // A marker that does not parse is still a marker: it is refused by what it is, and `--heal` says more about it.
@@ -9701,8 +9795,25 @@ if (process.argv.includes('--stranded')) {
       : `::error::${file} is a mutation a killed run left applied ([${id}] on ${where}). Nothing was touched, and this mode does not undo it: a commit or a gate run over this tree would carry the mutation. Heal it first: node scripts/mutation-check.mjs --heal`
     console.log(text)
   }
-  console.log(`checked ${files.length} marker files (${files.join(', ')}); ${left.length} hold a mutation a run left applied`)
-  process.exit(left.length ? 1 : 0)
+  // THE THIRD THING A KILLED RUN LEAVES: the build driver. A SIGKILL runs no handler, so `dotnet fable watch` is still there, writing build/, and only the next run's start stops it (`reapDriver`).
+  // Refused here when the record names a process group that is alive, the run that recorded it is dead, and the pid still holds the process that was recorded: the three tests `reapDriver` makes
+  // before it signals anything, made without signalling. A live run's driver is that run's; a record that names no process (pid 0 or 1, or a torn file) says nothing about a group; a recycled pid or
+  // a group that is gone is not a driver. (A live run's lock, `run.json`, is not read: a live run is not a stranded one, every start refuses on its lock, and a hook that refused on it would block
+  // every unrelated commit made while any mutation run is going.)
+  let orphan = null
+  let rec = null
+  try { rec = JSON.parse(readFileSync(driverRecord, 'utf8')) } catch { rec = null }
+  const d = rec?.driver
+  if (d && Number.isInteger(d.pid) && d.pid > 1 && !(rec.run && isLive(rec.run))) {
+    const now = statOf(d.pid)
+    const recorded = d.start === undefined || d.start === null ? null : String(d.start)
+    const recycled = now !== null && recorded !== null && recorded !== now.start
+    if (!recycled && groupAlive(d.pid)) orphan = d
+  }
+  if (orphan) console.log(`::error::${driverRecord} names process group ${orphan.pid}, a build driver (\`dotnet fable watch\`) of a run that is dead, and it is still running. Nothing was touched, and this mode does not stop it: it keeps writing build/ while anything scores that tree. Stop it first: node scripts/mutation-check.mjs --heal`)
+  const looked = [...files, driverRecord]
+  console.log(`checked ${looked.length} files (${looked.join(', ')}); ${left.length} hold a mutation a run left applied; ${orphan ? 1 : 0} name a build driver a dead run left running`)
+  process.exit((left.length > 0 || orphan !== null) ? 1 : 0)
 }
 if (process.argv.includes('--list-ids')) {
   console.log(JSON.stringify(eligible.map(m => m.id)))
@@ -10316,25 +10427,6 @@ const stopBuilder = () => {
   builder.stop()
   rmSync(driverFile, { force: true })
   try { rmdirSync(stateDir) } catch { /* the run lock or a marker is still in it */ }
-}
-/** Is any of these `[state, pgrp]` pairs a live process of group `pgid`? A zombie is a process that has finished and not yet been reaped, and nothing is left of it. */
-const groupHasLive = (entries, pgid) => entries.some(([state, pgrp]) => pgrp === pgid && state !== 'Z' && state !== 'X')
-/** Every process's `[state, pgrp]` from /proc, or null where /proc cannot be read (signal 0 to the group is the answer there, and it counts a zombie). */
-const procGroups = () => {
-  try {
-    return readdirSync('/proc').filter(d => /^\d+$/.test(d)).flatMap(d => {
-      try {
-        const text = readFileSync(`/proc/${d}/stat`, 'utf8')
-        const f = text.slice(text.lastIndexOf(')') + 2).split(' ')
-        return [[f[0], Number(f[2])]]
-      } catch { return [] }
-    })
-  } catch { return null }
-}
-const groupAlive = pgid => {
-  const all = procGroups()
-  if (all !== null) return groupHasLive(all, pgid)
-  try { process.kill(-pgid, 0); return true } catch (e) { return e.code === 'EPERM' }
 }
 /**
  * The build driver a run that is dead left running. A SIGKILL runs no handler, so `dotnet fable watch` is still there, writing build/, with nothing to say so (measured
@@ -11024,8 +11116,8 @@ if (process.argv.includes('--self-test')) {
     const lockBefore = listing(lockOnly)
     const quiet = ask(noMarker, ['--stranded'])
     const lockOnlyRun = ask(lockOnly, ['--stranded'])
-    check('`--stranded` LETS THROUGH A DIRECTORY WITH NO MARKER: exit 0 over a directory with no state at all and over one that holds only a stale run lock (a lock is not a stranded mutation), which it leaves where it is; it says it checked 2 marker files (2 directories)',
-      quiet.status === 0 && lockOnlyRun.status === 0 && /checked 2 marker files \(.*\); 0 hold a mutation/.test(quiet.stdout) && /checked 2 marker files \(.*\); 0 hold a mutation/.test(lockOnlyRun.stdout) && listing(lockOnly) === lockBefore,
+    check('`--stranded` LETS THROUGH A DIRECTORY WITH NO MARKER: exit 0 over a directory with no state at all and over one that holds only a stale run lock (a lock is not a stranded mutation), which it leaves where it is; it says it checked 3 files, `driver.json` among them, and that none holds a mutation or names a build driver (2 directories)',
+      quiet.status === 0 && lockOnlyRun.status === 0 && /checked 3 files \(.*\.mutation-state\/driver\.json\); 0 hold a mutation a run left applied; 0 name a build driver/.test(quiet.stdout) && /checked 3 files \(.*\.mutation-state\/driver\.json\); 0 hold a mutation a run left applied; 0 name a build driver/.test(lockOnlyRun.stdout) && listing(lockOnly) === lockBefore,
       `empty directory: status ${quiet.status}, ${first(quiet)}; stale lock only: status ${lockOnlyRun.status}, ${first(lockOnlyRun)}; lock kept ${listing(lockOnly) === lockBefore}`)
 
     // A harness run inside a harness run keeps its state in `nested`: the second place a stranded marker is.
@@ -11068,6 +11160,67 @@ if (process.argv.includes('--self-test')) {
     check('`--stranded` COMES BEFORE THE HEAL AND THE RUN LOCK: given `--heal` as well and a stale run lock beside the marker, it still only refuses (exit 1, the message) and the directory is byte-identical: the file is still mutated, the marker and backup are there, the lock was neither taken nor removed (1 state, 4 files)',
       ordered.status === 1 && /is a mutation a killed run left applied \(\[stranded\] on src\/Stranded\.fs\)/.test(ordered.stdout) && listing(orderDir) === orderBefore,
       `status ${ordered.status}; ${first(ordered)}; directory unchanged ${listing(orderDir) === orderBefore}`)
+
+    // A BUILD DRIVER A DEAD RUN LEFT RUNNING (`driver.json`): the third thing a SIGKILL leaves, and the one `--stranded` did not read (review 7, 2026-11-05: it printed "0 hold a mutation a run left
+    // applied" and exited 0 over a live `dotnet fable watch`). The mode reads the record and signals nothing. It refuses when the recorded run is dead, the record's process group is alive and the pid still
+    // holds the process that was recorded: the three tests `reapDriver` makes before it stops one, which are repeated here because `reapDriver` signals and cannot be called. The refusal is run against the `--heal` that reaps (a
+    // copy of the same state), and each state that is NOT an orphan against the exit and the group. The groups are REAL: a detached node process leads a group of its own, and `groupAlive` is the
+    // harness's zombie-aware test (a plain signal 0 counts a zombie as running).
+    const groupsStarted = []
+    process.on('exit', () => { for (const pid of groupsStarted) { try { process.kill(-pid, 'SIGKILL') } catch { /* already gone */ } } })
+    const startGroup = () => {
+      const child = spawn(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { detached: true, stdio: 'ignore' })
+      child.unref()
+      groupsStarted.push(child.pid)
+      return child.pid
+    }
+    const driverDir = rec => {
+      const dir = fresh()
+      mkdirSync(join(dir, '.mutation-state'))
+      writeFileSync(join(dir, '.mutation-state', 'driver.json'), typeof rec === 'string' ? rec : JSON.stringify(rec))
+      return dir
+    }
+    const driverKept = dir => existsSync(join(dir, '.mutation-state', 'driver.json'))
+    const thisRun = { pid: process.pid, start: startOf(process.pid), startedAt: DEAD.startedAt }
+    const driverPid = startGroup()
+    const orphanStart = startOf(driverPid)
+    try {
+      const orphanDir = driverDir({ run: DEAD, driver: { pid: driverPid, start: orphanStart } })
+      const orphanCopy = driverDir({ run: DEAD, driver: { pid: driverPid, start: orphanStart } })
+      const orphanBefore = listing(orphanDir)
+      const orphanRun = ask(orphanDir, ['--stranded'])
+      check('`--stranded` REFUSES A BUILD DRIVER A DEAD RUN LEFT RUNNING AND STOPS NOTHING: with `driver.json` naming a live process group whose recorded run is dead it exits 1, names the group, `driver.json` and `node scripts/mutation-check.mjs --heal`, says it checked `driver.json`, the group is still running afterwards and the directory is byte-identical (1 real group)',
+        orphanRun.status === 1 && new RegExp(`\\.mutation-state/driver\\.json names process group ${driverPid}, a build driver`).test(orphanRun.stdout) && /Stop it first: node scripts\/mutation-check\.mjs --heal/.test(orphanRun.stdout)
+          && /checked 3 files \(.*\.mutation-state\/driver\.json\); 0 hold a mutation a run left applied; 1 name a build driver/.test(orphanRun.stdout) && groupAlive(driverPid) && listing(orphanDir) === orphanBefore,
+        `status ${orphanRun.status}; ${first(orphanRun)}; group ${driverPid} still running ${groupAlive(driverPid)}; directory unchanged ${listing(orphanDir) === orphanBefore}; ${String(orphanRun.stdout).split('\n').find(l => /^checked/.test(l)) || '(no summary line)'}`)
+
+      // The states a driver is NOT an orphan in. `--stranded` lets each through (exit 0, the group untouched, the directory byte-identical) and the heal over a copy leaves the group running too.
+      const lets = [
+        ['its recorded run is still running (a live run\'s driver is that run\'s)', { run: thisRun, driver: { pid: driverPid, start: orphanStart } }],
+        ...(haveProc ? [['its pid now holds a process that started at another time (a recycled pid is not ours)', { run: DEAD, driver: { pid: driverPid, start: 'not-when-it-started' } }]] : []),
+        ['its group is gone', { run: DEAD, driver: { pid: 2 ** 30, start: '1' } }],
+        ['it names pid 0 (the group of the kernel\'s own processes) or pid 1, which are never a build driver', { run: DEAD, driver: { pid: 0 } }],
+        ['it names pid 1', { run: DEAD, driver: { pid: 1 } }],
+        ['it does not parse (a write cut off by a SIGKILL)', '{"run":'],
+      ]
+      const letRuns = lets.map(([why, rec]) => {
+        const dir = driverDir(rec)
+        const before = listing(dir)
+        const r = ask(dir, ['--stranded'])
+        return { why, status: r.status, refused: /names process group/.test(r.stdout), same: listing(dir) === before, summary: String(r.stdout).split('\n').find(l => /^checked/.test(l)) || '' }
+      })
+      check(`\`--stranded\` LETS A DRIVER RECORD THROUGH WHEN IT IS NOT AN ORPHAN: exit 0 and nothing named, the group still running and the directory byte-identical, for ${lets.length} states (${lets.map(([why]) => why.split(' (')[0]).join('; ')}), each with a real or an absent group`,
+        letRuns.every(x => x.status === 0 && !x.refused && x.same && /; 0 name a build driver/.test(x.summary)) && groupAlive(driverPid),
+        letRuns.map(x => `${x.why}: status ${x.status}, refused ${x.refused}, unchanged ${x.same}`).join(' / ').slice(0, 400) + `; group still running ${groupAlive(driverPid)}`)
+      // ...and the heal agrees with the refusal: it stops the orphan and drops its record. (Its `npm run build` after a reap fails in a directory with no package.json, so the heal exits 1 there;
+      // the group and the record are what is read.)
+      const reaped = ask(orphanCopy, ['--heal'])
+      check('`--stranded` AND THE HEAL AGREE ON A DRIVER: `--heal` over a copy of the refused state stops the group and drops `driver.json`, so the refusal names a command that does what it says (the build that follows a reap fails in a directory with no package.json, exit 1, and is not read)',
+        !groupAlive(driverPid) && !driverKept(orphanCopy) && /Stopping it before this run starts one of its own/.test(reaped.stdout),
+        `group ${driverPid} still running ${groupAlive(driverPid)}; record kept ${driverKept(orphanCopy)}; heal status ${reaped.status}; ${String(reaped.stdout).split('\n').filter(l => /Stopping|::error::/.test(l)).join(' | ').slice(0, 200)}`)
+    } finally {
+      try { process.kill(-driverPid, 'SIGKILL') } catch { /* already gone */ }
+    }
 
     // What a marker holds decides what the message says. A world mutation's marker names no file, and a marker cut off mid-write names nothing and does not parse: both are refused by what
     // they are, with the heal command, instead of crashing on the read or printing `undefined`.
