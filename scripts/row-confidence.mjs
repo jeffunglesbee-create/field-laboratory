@@ -154,8 +154,9 @@ const clockCounts = src => {
   // `fieldToday()` — the zero-argument production reader it exists to test —
   // can satisfy it the same way everything else does.
   // A capture is the read ITSELF: the constant holds the instant. A `=>`, a `class`, a `) {` or a `;` between the `=` and the read means it holds a function, a class, a method or
-  // nothing of the kind, and the read happens later, every time it is called (`const NOW = () => new Date()`), so it is not counted as one.
-  const captures = code.match(/const [A-Z][A-Z0-9_]* = (?:(?!=>|\bclass\b|\)\s*\{|;)[^\n])*?(new\s+Date(?![\w$])(?!\s*\(\s*[^\s)])|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\))/g) ?? []
+  // nothing of the kind, and the read happens later, every time it is called (`const NOW = () => new Date()`), so it is not counted as one. The read is on the constant's own line, and a line ends
+  // at a line feed, a carriage return, U+2028 or U+2029, as the scanner reads one (without the last three, `const NOW = 1` and a carriage return and `log(new Date())` was a capture).
+  const captures = code.match(/const [A-Z][A-Z0-9_]* = (?:(?!=>|\bclass\b|\)\s*\{|;)[^\n\r\u2028\u2029])*?(new\s+Date(?![\w$])(?!\s*\(\s*[^\s)])|fieldDay\s*\(\s*\)|fieldToday\s*\(\s*\))/g) ?? []
   // A read is any way of asking the wall clock for an INSTANT: `Date.now` (called or not: `const clock = Date.now` reads it later), `Date['now']()` (a string is already `''` by now, so any computed member
   // called with nothing is counted and `Date['UTC'](1)` is not), `new Date` with no argument (parentheses or none; `new Date(x)` builds a date from x and reads nothing), `Date()` and `Date(5)` (they return the
   // current time whatever they are given), and a bare `Date` that is stored or passed on (`const D = Date`, `f(Date)`, `{ Date }`), since the time can then be asked for under another name. Not reads: `Date.UTC`, `o.Date`,
@@ -502,6 +503,7 @@ function scannerClauses(check) {
     ['tag`${/"/.test(y)}` + Date.now()', 1, 0], ['f(x)`${/"/.test(y)}` + Date.now()', 1, 0], ['a[0]`${/"/.test(y)}` + Date.now()', 1, 0],
     ['const NOW = () => new Date()', 1, 0], ['const NOW = async () => new Date()', 1, 0], ['const NOW = function () { return new Date() }', 1, 0], ['const O = { f() { return new Date() } }', 1, 0],
     ['const A = class { static t = new Date() }', 1, 0], ['const NOW = 1; log(new Date())', 1, 0],
+    ['const NOW = 1\rlog(new Date())', 1, 0], ['const NOW = 1\u2028log(new Date())', 1, 0], ['const NOW = 1\u2029log(new Date())', 1, 0], ['const A = 1\r\nconst B = new Date()', 1, 1],
     ['const T = process.env.T || new Date().toISOString().slice(0, 10)', 1, 1], ['const D = fieldDayIso(fieldToday())', 1, 1], ['const X = { at: new Date() }', 1, 1],
     // Residuals Task 10 item 2: the spellings the scan matched as text and so did not see. `new Date` with no parentheses, the computed `Date['now']()`, `Date.now` or `Date` itself passed on as a value
     // (`const D = Date`, `f(Date)`, `{ Date }`), and `Date()` and `Date(5)`, which return the current time whatever they are given. Then the neighbours that are not reads: a `Date` that is constructed
