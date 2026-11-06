@@ -306,3 +306,12 @@ odds line is a movement, not `NOT SEQUENCED`.
   purely about feeding it a real sequence.
 - Not the live in-play odds path (`_fetchLiveOdds`) — that is unchanged.
 - Rule 78 cap stays; a 30/day ceiling is the point, not a limitation to lift.
+
+## Update 2026-11-06: the sentinel reads REGRESSED (added under BUILD-ON-A; the status above is unchanged)
+
+Found while reading CI after an unrelated push, not while working on this ask, and not investigated. Facts only:
+
+- The scheduled `drift-sentinel` run `42185163882` (2026-11-06 08:05Z, on `3358979`) failed at its step "Did the filed CC-CMDs land?" with `REGRESSED CC-CMD-2026-08-21-closing-odds-capture (surviving ask) — landed 2026-08-27, no longer holds on /context/date/2026-11-05`. That entry's own text says it "reads LANDED while any soccer game still carries an opening line, and turns false if that stops".
+- Five of the eight most recent scheduled runs of that workflow are red (`195`, `198`, `199`, `200`, `202`); `196`, `197` and `201` are green. Only the log of `202` was read, so whether the other four red runs are this same reading is not known.
+- Not known: whether `/context/date/2026-11-05` had a soccer slate at all, whether the relay stored an `opening_odds` for any of its games, and whether the probe's date (yesterday, UTC) simply landed on a day with no soccer. A day with no soccer would read `NOT OBSERVABLE`, which the sentinel does not fail on, so the reading as printed (REGRESSED, not NOT OBSERVABLE) says the slate had soccer games and none carried an opening line. That is an inference from the sentinel's own self-test names in the same log ("closing-odds: soccer served with NO opening line reads not-landed", "closing-odds: an off-day is null, not a regression"), and has not been checked against the route.
+- First probe for whoever picks this up: the route the sentinel reads, `/context/date/2026-11-05`, counting soccer games and, of those, the ones with an `opening_odds`.

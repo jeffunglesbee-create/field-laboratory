@@ -1,0 +1,65 @@
+The local gate on the tree of 2795b53, 2026-11-06. Verbatim output of `npm run gate` (PW_CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome, no edit to the repository during the run).
+started  2026-11-06T04:29:35Z (head 2795b53, load average 0.52 at the start)
+finished 2026-11-06T09:55:52Z (19,575 s by the gate's own count; the 23 rows' own seconds sum to 19,574: the mutation row 19,453 s, the other 22 rows 121 s)
+exit     0
+The gate recorded this run in docs/confidence-log.jsonl as 2795b539d5f4-be82ff9881c7 (tree dirty); that line, and the three other files the gate rewrites (outbox/mutation-baseline-latest.json, outbox/metrics-tab-latest.png, outbox/lineups-render-manifest.json), were discarded with git checkout, as after every local gate, so they are not in the history. The runner's ledger line for the same code is 1f05aa4cb4b3-7819400528d2.
+Afterwards: 99 commits rebased onto origin/main (28 bot commits, STATUS.md and outbox/ only; no file in common), then the identity of the 99 rewritten to Claude <noreply@anthropic.com> with filter-branch (author dates, commit dates, subjects and the tree unchanged), then pushed as ff9c83a.
+
+----- gate output -----
+
+  [  47s] PASS  build is clean, zero F#/NuGet warnings
+  [   0s] PASS  decoders accept both real captures
+  [   0s] PASS  decoders still REJECT the corrupted fixture
+  [   4s] PASS  render checks pass on both captures
+  [   2s] PASS  grouping and date navigation pass
+  [  45s] PASS  doc claims are compiler-verified, not prose
+  [   1s] PASS  the F# harness refuses a check with no counterexample
+  [   2s] PASS  games on a panel are separated from each other
+  [   0s] PASS  FIELD-zone day is correct at fixed instants
+  [   0s] PASS  workflow jobs can run the scripts they invoke
+  [   2s] PASS  every governed commit paired source with outbox
+  [   0s] PASS  pick decoders match the recorded live response
+  [   8s] PASS  tabs work and the pick score never renders
+  [   4s] PASS  pick'em grades only finished games
+  [   0s] PASS  game state is correct at fixed instants
+  [19453s] PASS  breaking each invariant makes a check fail
+  [   4s] PASS  the sparkline shows the value, not a silhouette
+  [   1s] PASS  every gate row has teeth and is deterministic
+  [   1s] PASS  no value is written without being read back
+  [   0s] PASS  a red main is reported, not softened
+  [   0s] PASS  generated source matches its generator and data
+  [   0s] PASS  this session wrote its outbox
+  [   0s] PASS  source changes arrive with an outbox entry
+
+Confidence gate
+
+  PASS  20/20  build is clean, zero F#/NuGet warnings               
+  PASS  30/30  decoders accept both real captures                   
+  PASS  20/20  decoders still REJECT the corrupted fixture          
+  PASS  30/30  render checks pass on both captures                  
+  PASS  30/30  grouping and date navigation pass                    
+  PASS  20/20  doc claims are compiler-verified, not prose          
+  PASS  20/20  the F# harness refuses a check with no counterexample
+  PASS  30/30  games on a panel are separated from each other       
+  PASS  30/30  FIELD-zone day is correct at fixed instants          
+  PASS  20/20  workflow jobs can run the scripts they invoke        
+  PASS  10/10  every governed commit paired source with outbox      
+  PASS  30/30  pick decoders match the recorded live response       
+  PASS  30/30  tabs work and the pick score never renders           
+  PASS  30/30  pick'em grades only finished games                   
+  PASS  30/30  game state is correct at fixed instants              
+  PASS  20/20  breaking each invariant makes a check fail           
+  PASS  30/30  the sparkline shows the value, not a silhouette      
+  PASS  20/20  every gate row has teeth and is deterministic        
+  PASS  20/20  no value is written without being read back          
+  PASS  20/20  a red main is reported, not softened                 
+  PASS  20/20  generated source matches its generator and data      
+  PASS  10/10  this session wrote its outbox                        
+  PASS  10/10  source changes arrive with an outbox entry           
+
+  530/530 points = 100/100   (bar: 95)   19575s
+  recorded in docs/confidence-log.jsonl as run 2795b539d5f4-be82ff9881c7 (tree dirty)
+
+  Gate passed — every row, not a passing average.
+
+gate-exit=0

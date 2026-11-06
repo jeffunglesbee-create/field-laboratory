@@ -1,0 +1,33 @@
+The cheap-check battery on the rebased tree (a9924e6, before the identity rewrite to ff9c83a; the tree is the same), 2026-11-06 09:57 to 09:59 UTC. 28 checks, one line each; every one exited 0.
+It was run because the rebase put 7 bot-written files (STATUS.md and six under outbox/) into a tree the local gate had not seen. The files this battery reads were checked, not the whole 19,575 s gate again.
+Command: bash post4.sh /home/user/field-laboratory (the script is the scratchpad's; it runs the anchors check, the six self-tests, the 23-row confidence scan and the check:* scripts named below).
+
+anchors                            rc=0   1s  checked 1137 of 1140 mutation anchors; 0 stale
+mutation-check-self-test           rc=0  31s  213/213 checks passed
+mutation-lib-self-test             rc=0  28s  81/81 checks passed
+proof-check-self-test              rc=0  10s  127/127 checks passed
+row-confidence-self-test           rc=0   1s  30/30 checks passed
+row-confidence-rows                rc=0   0s    23/23 rows at or above 95
+check:mutate-copy                  rc=0  12s  58/58 checks passed
+check:network-exempt               rc=0   4s  5/5 checks passed
+check:exit-drains                  rc=0   1s  4/4 checks passed
+check:import-purity                rc=0   7s  3/3 checks passed
+check:script-orphans               rc=0   1s  PASS  3/3 checks passed
+check:unused                       rc=0   1s  10/10 checks passed
+check:clean-source                 rc=0   2s  5/5 checks passed
+check:citations                    rc=0   2s  PASS  bare citations do not grow (budget 0)
+check:short-circuit                rc=0   1s  9/9 checks passed
+check:harness                      rc=0   0s  11/11 checks passed
+check:mutation-parts               rc=0  30s  9/9 checks passed
+check:docs                         rc=0   0s  3/3 checks passed
+check:workflows                    rc=0   0s  10/10 checks passed
+check:outbox-row                   rc=0   1s  9/9 checks passed
+check:gate-rows                    rc=0   0s  7/7 checks passed
+check:staged-verifier              rc=0   0s  10/10 checks passed
+check:history                      rc=0   1s  11/11 checks passed
+check:staged-outbox                rc=0   0s  ok — 0 staged path(s), source is paired or absent
+check:boundary                     rc=0   0s  5/5 checks passed
+check:setup-script                 rc=0   0s  1/1 checks passed
+check:unnamed                      rc=0   0s  9/9 checks passed
+check:prose                        rc=0   1s  11/11 checks passed
+battery-done rc=0

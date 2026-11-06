@@ -137,7 +137,7 @@ What happened to each task and item. A commit is named by the start of its subje
 | 10.8, the kill advice | BUILT | "an expectation ended by a signal is no longer counted as a caught mutation, and a plain kill is acted on". Leftovers (the orphaned children, the 129 to 159 window, the missing timeout): second CC-CMD A2 to A4 |
 | 10.12, temp directories after a crash | BUILT | "a self-test that crashes no longer leaves its two temp directories behind", then "removes its state directory ... from the line that makes it" |
 | 10.13, line ends and continuations | BUILT | "the clock scan ends a line at a carriage return, U+2028 and U+2029" |
-| 10.14, runner measurement of the cost | OPEN until the first CI run | `docs/GATE-TIMING.md` records it after the push |
+| 10.14, runner measurement of the cost | MEASURED 2026-11-06 | `verify-full` run 42200547950 on the pushed tree: success in 46 min 43 s, gate 530/530 in 2,705 s, longest shard job 46 min 07 s (harness 2,144 s plus 622 s of setup, 581 s of it a slow package mirror), 342 job-minutes (5.7 runner-hours, as estimated). `timeout-minutes` (90) and the wait (100 minutes) are unchanged: neither is near its limit. `docs/GATE-TIMING.md`, `outbox/verify-full-runner-timing-2026-11-06.md` |
 | 10.15, the ET day in other clauses | BUILT | with 8 |
 | 10.16, private names and non-ASCII identifiers | BUILT | "the clock scan does not read a private name, an identifier named of ..." |
 | 10.17, proof-check smaller items | (a) BUILT, (b) CLOSED by Task 7, (c) BUILT | "the system git configuration is asked of git itself" |
