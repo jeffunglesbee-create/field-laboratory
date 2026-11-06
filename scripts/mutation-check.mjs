@@ -6773,6 +6773,16 @@ const MUTATIONS = [
     replace: "throw 0",
     expect: 'node scripts/proof-check.mjs --self-test',
   },
+  // A registry that moved on but kept its last case (review 6, finding 14, 2026-11-06). `proof-main-flow-registry-always-intact` is caught by the fixtures whose registry has LOST its last case; this
+  // one reads an anchored registry as intact, and only a fixture that keeps the anchor (a registry that is not its backup, under a marker that records a failed restore) can tell.
+  {
+    id: "proof-main-flow-registry-intact-when-anchored",
+    file: 'scripts/proof-check.mjs',
+    claim: "a registry that keeps its last case but is not its backup is not called intact: after a failed restore the state that holds its only whole copy is kept",
+    find: "  registryIntact: backupRegistry !== null && currentRegistry === backupRegistry,",
+    replace: "  registryIntact: backupRegistry !== null && (currentRegistry === backupRegistry || currentRegistry.includes(REGISTRY_ANCHOR.slice(1))),",
+    expect: 'node scripts/proof-check.mjs --self-test',
+  },
   // --- the Draw panel -------------------------------------------------------
   //
   // The canonical-size law has FOUR answers and two of them are "not compared".

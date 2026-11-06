@@ -1346,6 +1346,16 @@ if (process.argv.includes('--self-test')) {
       && /src\/Scoreboard\.fs is not what that run backed up/.test(tornTargetAfterFailure.stderr) && tornTargetAfterFailure.stateLeft && tornTargetAfterFailure.target === tornTail
       && /STALE STATE DISCARDED/.test(sameTargetNoFlag.stderr) && !sameTargetNoFlag.stateLeft,
     `after a failure: ${show(tornTargetAfterFailure)}; no flag: ${show(sameTargetNoFlag)}`)
+  // The registry the same way (review 6, finding 14). The torn registries above have all lost their last case (an empty file, a link to /dev/null), so a wiring that took "has its last case" for
+  // "is its backup" would still keep every one of them. This one keeps its last case and is not its backup: it must keep the state under a marker that records a failed restore, and be stale under one that does not.
+  const tornRegTail = `${union}// the rest of a write that stopped here`
+  const tornRegAfterFailure = sandbox({ target: clean, registry: tornRegTail, backupTarget: clean, backupRegistry: union, pid: DEAD, markerExtra: { restoreFailed: true } })
+  const sameRegNoFlag = sandbox({ target: clean, registry: tornRegTail, backupTarget: clean, backupRegistry: union, pid: DEAD })
+  sc('A REGISTRY THAT IS NOT ITS BACKUP BUT KEEPS ITS LAST CASE, AFTER A RESTORE THAT FAILED, KEEPS THE STATE AND IS NAMED; the same file under a marker that says nothing of a failure is stale as before (2 planted states)',
+    tornRegAfterFailure.status === 1 && !/STALE/.test(tornRegAfterFailure.stderr) && /nothing was written/.test(tornRegAfterFailure.stderr)
+      && /src\/Desk\.fs is not what that run backed up/.test(tornRegAfterFailure.stderr) && tornRegAfterFailure.stateLeft && tornRegAfterFailure.registry === tornRegTail
+      && /STALE STATE DISCARDED/.test(sameRegNoFlag.stderr) && !sameRegNoFlag.stateLeft,
+    `after a failure: ${show(tornRegAfterFailure)}; no flag: ${show(sameRegNoFlag)}`)
   // The record of a failed restore must not depend on the marker being writable: it shares a directory, and a fault, with the file that did not come back. The sentinel the restore
   // creates first is the second record. Here the marker CANNOT be written (a directory stands in its place), the registry is torn, and the next run must still keep the state.
   const tornNoMarker = tornRegistry({ breakMarker: true })
