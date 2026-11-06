@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-03T17:12:15.710Z",
+  "at": "2026-11-06T10:56:30.807Z",
   "scope": "full",
-  "ran": 72,
-  "from_mutations": 241,
+  "ran": 88,
+  "from_mutations": 1139,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -167,6 +167,14 @@
       "passed": true
     },
     {
+      "cmd": "node scripts/row-confidence.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/proof-check.mjs --self-test",
+      "passed": true
+    },
+    {
       "cmd": "node scripts/run-row.mjs \"pick'em grades only finished games\"",
       "passed": true
     },
@@ -199,15 +207,23 @@
       "passed": true
     },
     {
+      "cmd": "node scripts/sharded-row-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/network-exempt-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/network-exempt-check.mjs --self-test",
+      "passed": true
+    },
+    {
       "cmd": "node scripts/run-row.mjs \"a red main is reported, not softened\"",
       "passed": true
     },
     {
       "cmd": "URL='http://localhost:8080/?tab=verify' node scripts/verify-render-check.mjs",
-      "passed": true
-    },
-    {
-      "cmd": "node scripts/proof-check.mjs --self-test",
       "passed": true
     },
     {
@@ -244,6 +260,18 @@
     },
     {
       "cmd": "node scripts/check-exit-drains.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-exit-drains.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/short-circuit-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-lineups-pull-only.mjs --self-test",
       "passed": true
     },
     {
@@ -291,7 +319,43 @@
       "passed": true
     },
     {
-      "cmd": "node scripts/sharded-row-check.mjs --self-test",
+      "cmd": "node scripts/clean-source-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only claim-check",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only deploy-gate",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only deploy-landed",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only odds-coverage",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only odds-shape-census",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only run-steps",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only replay-odds-coverage",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/mutate-copy-check.mjs --only push-lands",
       "passed": true
     }
   ],
@@ -299,16 +363,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      252687,
-      172696,
-      292477,
-      262776,
-      152838,
-      239196,
-      196375,
-      305927
+      2004696,
+      2087022,
+      2372605,
+      2143688,
+      1722955,
+      2047022,
+      2143786,
+      2079472
     ],
-    "longestMs": 305927,
-    "sumMs": 1874972
+    "longestMs": 2372605,
+    "sumMs": 16601246
   }
 }
