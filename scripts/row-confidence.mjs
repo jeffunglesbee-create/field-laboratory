@@ -218,7 +218,10 @@ const nondeterminism = (scripts, row = null) => {
   for (const s of scripts) {
     let src
     try { src = readFileSync(s, 'utf8') } catch { continue }
-    const { captures, reads, network } = clockCounts(src)
+    // A script the scan cannot finish (templates nested past the stack: strip-non-code.mjs says how deep) is not a script it found clean: it is an objection, and the row drops.
+    let counts
+    try { counts = clockCounts(src) } catch (e) { flagged.push(`${s}: cannot be scanned (${e.message}), so its clock reads and its network use are not known`); continue }
+    const { captures, reads, network } = counts
     if (reads > captures) {
       flagged.push(`${s}: reads the clock ${reads}x (capture it once as NOW)`)
     }
@@ -597,6 +600,28 @@ function scannerClauses(check) {
   }
   check(`EVERY SCRIPT A ROW NAMES LEAVES BALANCED BRACKETS WHEN THE SCAN IS DONE WITH IT (${reached.length} scripts, and ${CONTROLS.length} controls the three-pass scan it replaced fails): a scan that loses its place reads code as a string, and the brackets stop pairing`,
     unbalanced.length === 0 && checked === reached.length, unbalanced.slice(0, 4).join(' / ') + ` (checked ${checked} of ${reached.length} scripts and ${CONTROLS.length} controls, ${unbalanced.length} problems)`)
+
+  // A script the scan cannot finish. The scan recurses once for each template expression inside another, and the stack gives out at 2,848 levels on node 22.22.0 (2026-11-05; 2,847 scan). It used to end the whole
+  // scorer with a bare "Maximum call stack size exceeded" and a stack trace, no row scored; it says what the limit is, in the scanner's own words, and the row whose script it was drops below the bar with that
+  // message, while every other row is scored. A script it could not read is not one it found clean. The control is a nest of 50, which scans, and a read after it is counted.
+  const NEST = 5000
+  const nested = n => '`${'.repeat(n) + '1' + '}`'.repeat(n)
+  let overflow = null
+  try { stripNonCode(nested(NEST)) } catch (e) { overflow = e }
+  const nestDir = mkdtempSync(join(tmpdir(), 'row-nest-'))
+  try {
+    writeFileSync(join(nestDir, 'deep.mjs'), `const x = ${nested(NEST)}\n`)
+    writeFileSync(join(nestDir, 'shallow.mjs'), `const x = ${nested(50)}\nconst NOW = new Date()\n`)
+    const unscannable = nondeterminism(['deep.mjs', 'shallow.mjs'].map(f => join(nestDir, f)))
+    const control = clockCounts(`const x = ${nested(50)}\nDate.now()\n`)
+    check(`A SCRIPT THE SCAN CANNOT FINISH IS AN OBJECTION THAT NAMES THE LIMIT, NOT A CLEAN SCRIPT (templates nested ${NEST} deep against a stack that gives out at about 2,800; a nest of 50 is the control). NOT COVERED: another engine's depth, and any stack use that is not template nesting (nothing else in the scan recurses)`,
+      overflow instanceof RangeError && /template expressions nested more than the call stack allows/.test(overflow.message)
+        && unscannable.length === 1 && /deep\.mjs: cannot be scanned \(strip-non-code: template expressions nested more than the call stack allows/.test(unscannable[0]) && score(true, unscannable.length > 0) < BAR
+        && control.reads === 1,
+      `scan threw ${overflow === null ? 'nothing' : JSON.stringify(overflow.message.slice(0, 90))}; objections [${unscannable.join(' | ')}]; control ${JSON.stringify(control)}`)
+  } finally {
+    rmSync(nestDir, { recursive: true, force: true })
+  }
 
   // The harness, the file whose table once hid a second read from this scan (it lost sync at the first `//` in a string). Four things, none tied to how many reads the harness has today:
   // the place this clause splices at is there exactly once, every read the harness makes is a capture, a bare read put at that place is one more read than before and no more captures

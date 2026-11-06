@@ -40,6 +40,13 @@
  * (`for (const {a} of /re/.exec(s))`) it is read as a name, because a `}` is read as the end of a block (above). Neither a private name (`this.#in`) nor a name that has a keyword after a non-ASCII letter or a
  * combining mark (`éin`) is the keyword it ends in. (A leading `#!`
  * line is read as a regular expression that ends at its line, which changes no count: 23 scripts begin with one.)
+ *
+ * COST AND LIMITS (measured 2026-11-05 with node 22.22.0 on a machine shared by several jobs, load average about 2 on 4 cores, so the figures are not idle ones). The scan is linear except at a slash: to decide whether a
+ * slash begins a regular expression it reads the last sixty-four characters of the output, and slicing the end of a string that grows by appending costs time in proportion to the output so far, so a text with many slashes is
+ * quadratic in its length. Text of `a / b / c;` lines: 51 KB 39 ms, 102 KB 93 ms, 205 KB 1.5 s, 307 KB 4.2 s; one line of `a/b/c...`: 205 KB 3.7 s; text with no slash: 307 KB 10 ms. The real tree is nowhere near it:
+ * all 170 scripts under scripts/ (3.06 MB) in 111 ms, the largest, `mutation-check.mjs` (598 KB, 5,657 slashes), in 29 ms. A script that a gate row names and that is larger than about 100 KB with a slash in every few
+ * characters (a generated table, a bundle) is where the cost shows first. The other limit is the stack: each template expression inside another (`${` inside `${`) is one more level of recursion, and 2,847 levels scan
+ * and 2,848 do not (parentheses and braces nested 200,000 deep do, they are not recursion). Past it the scan throws a RangeError that says so, naming this limit; it does not return a text it did not finish.
  */
 export const scanNonCode = src => {
   const REGEX_AFTER = new Set(['return', 'typeof', 'case', 'in', 'instanceof', 'extends', 'default', 'delete', 'void', 'throw', 'new', 'else', 'do', 'yield', 'await'])
@@ -160,7 +167,13 @@ export const scanNonCode = src => {
     }
     return i
   }
-  scanCode(0, false)
+  // The stack gives out when template expressions are nested more than the recursion allows (see above). That is said, with the limit, and not left as a bare "Maximum call stack size exceeded" or as a partial text.
+  try {
+    scanCode(0, false)
+  } catch (e) {
+    if (e instanceof RangeError && /call stack/i.test(e.message)) throw new RangeError('strip-non-code: template expressions nested more than the call stack allows (about 2,800 levels on node 22: a `${` inside a `${` inside a `${`...); the scan stops rather than return a text it did not finish', { cause: e })
+    throw e
+  }
   // A construct left open at the end of the text (a string that ends in a backslash, a template or a regular expression that does) runs to the end of the text and no further.
   return { marked: out, spans: spans.map(([s, e]) => [s, Math.min(e, n)]) }
 }
