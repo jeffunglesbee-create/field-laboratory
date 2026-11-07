@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a9bc211` | 2026-11-07 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-07 [skip ci] |
+| `a9bc211` | 2026-11-07 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-07 [skip ci] |
+| `a9bc211` | 2026-11-07 | [sport-vocabulary-2026-11-07T07-26-26-205Z.json](sport-vocabulary-2026-11-07T07-26-26-205Z.json) | drift-sentinel: odds-coverage-lost on 2026-11-07 [skip ci] |
+| `36783a9` | 2026-11-07 | [cc-session-2026-11-07-fa-cup-registry-and-boundary.md](cc-session-2026-11-07-fa-cup-registry-and-boundary.md) | docs: move the history boundary past c8fd578 (the eighth move) and record the FA Cup session |
 | `e8487b2` | 2026-11-06 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-06T23:30 [skip ci] |
 | `6b13a4b` | 2026-11-06 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-06 [skip ci] |
 | `6b13a4b` | 2026-11-06 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-06 [skip ci] |
