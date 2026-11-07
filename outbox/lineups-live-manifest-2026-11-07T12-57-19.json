@@ -1,0 +1,164 @@
+{
+ "base": "https://field-laboratory.jeffunglesbee.workers.dev",
+ "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+ "routed": false,
+ "measuredAt": "2026-11-07T12:57:55.259Z",
+ "todayEt": "2026-11-07",
+ "dates": [
+  {
+   "date": "2026-11-07",
+   "cards": 146,
+   "soccerCards": 75,
+   "joined": 41,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-11-06",
+   "cards": 25,
+   "soccerCards": 7,
+   "joined": 5,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-11-05",
+   "cards": 52,
+   "soccerCards": 36,
+   "joined": 0,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-11-04",
+   "cards": 31,
+   "soccerCards": 10,
+   "joined": 0,
+   "requestsAtLoad": 0
+  },
+  {
+   "date": "2026-11-08",
+   "cards": 0,
+   "soccerCards": 0,
+   "joined": 0,
+   "requestsAtLoad": 0
+  }
+ ],
+ "chosen": "2026-11-07",
+ "cards": [
+  {
+   "event": "5410",
+   "game": "Philadelphia Union v Toronto FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5410/lineups"
+   ],
+   "status": 200,
+   "answer": "predicted",
+   "sides": 2,
+   "sideNames": [
+    "Philadelphia Union",
+    "Toronto FC"
+   ],
+   "rows": 46,
+   "markedRows": 46,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5414",
+   "game": "Orlando City v New England Revolution",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5414/lineups"
+   ],
+   "status": 200,
+   "answer": "predicted",
+   "sides": 2,
+   "sideNames": [
+    "Orlando City SC",
+    "New England Revolution"
+   ],
+   "rows": 46,
+   "markedRows": 46,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5411",
+   "game": "Red Bull New York v Atlanta United",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5411/lineups"
+   ],
+   "status": 200,
+   "answer": "predicted",
+   "sides": 2,
+   "sideNames": [
+    "New York Red Bulls",
+    "Atlanta United"
+   ],
+   "rows": 46,
+   "markedRows": 46,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5412",
+   "game": "CF Montréal v Vancouver Whitecaps FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5412/lineups"
+   ],
+   "status": 200,
+   "answer": "predicted",
+   "sides": 2,
+   "sideNames": [
+    "CF Montréal",
+    "Vancouver Whitecaps"
+   ],
+   "rows": 46,
+   "markedRows": 46,
+   "ok": true,
+   "why": []
+  },
+  {
+   "event": "5408",
+   "game": "Inter Miami CF v Charlotte FC",
+   "requestUrls": [
+    "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5408/lineups"
+   ],
+   "status": 200,
+   "answer": "predicted",
+   "sides": 2,
+   "sideNames": [
+    "Inter Miami CF",
+    "Charlotte FC"
+   ],
+   "rows": 46,
+   "markedRows": 46,
+   "ok": true,
+   "why": []
+  }
+ ],
+ "screenshots": {
+  "390": "outbox/lineups-live-390-2026-11-07T12-57-19.png",
+  "1000": "outbox/lineups-live-1000-2026-11-07T12-57-19.png"
+ },
+ "extraRequests": 0,
+ "reopen": {
+  "ok": true,
+  "why": []
+ },
+ "fixedOrStickyElementsSetStaticForThePhotographs": 13,
+ "narrow": {
+  "event": "5410",
+  "answer": "predicted",
+  "requestUrls": [
+   "https://field-relay-nba.jeffunglesbee.workers.dev/bsd/events/5410/lineups"
+  ],
+  "ok": true,
+  "why": []
+ },
+ "verdict": "PASS",
+ "judged": 5,
+ "wired": 5,
+ "sheets": 5,
+ "answers": {
+  "predicted": 5
+ },
+ "pageErrors": []
+}
