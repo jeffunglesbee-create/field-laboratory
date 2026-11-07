@@ -21,7 +21,13 @@ verify run 42324080403 and guards run 42324080426 failed in exactly one step, "S
 
 The rule is per commit and settled when the commit is made, so a later entry does not pair with it. The owner was asked and chose to move the boundary one commit (the other offers were rewriting `c8fd578` and force-pushing main, or leaving main red). `docs/history-boundary.txt` now ends `2c4ec401c7ea3723d5554dea237a8a3b370c3f99  39`, with the eighth move written out above it: 38 plus the one absorbed commit, derived on a full clone (`git fetch --unshallow`, 2859 non-merge commits) where `node scripts/history-check.mjs` named exactly `c8fd578`, and passes with the new pair.
 
+## Addendum 2026-11-07 13:40Z — it was not live until 12:50Z
+
+The section above says the laboratory's CI compiled `c8fd578`. It did not say the site was never published, and it was not: the page stayed at `ff9c83a`. `verify` was red on `c8fd578` (the history step), the boundary move `36783a96` is docs-only and paths-ignored, so verify never ran on a newer deployable commit, and `deploy` asks verify for the verdict of the newest DEPLOYABLE commit, which stayed `c8fd578`'s red run. `live-check` was red from 08:53Z for exactly that (run 42364844307, `deploy-landed-check`: "published ff9c83a is behind the newest deployable commit c8fd578"); I read it at 12:40Z. Verify dispatched on HEAD (run 42373737893, success) fired `deploy` through `workflow_run` (42374233305, success); `deploy` dispatched once more (42374496409, success); `live-check` 42374544456 `success`.
+
+**FA Cup on the board, what is and is not shown.** `lineups-live-probe` run 42374701964, `outbox/lineups-live-manifest-2026-11-07T12-57-19.json`: for 2026-11-07 the page holds 146 cards (the relay's `/context/date` has 146 rows), 75 soccer cards and 41 joined at that moment (42 after the relay's alias), and 5 of 5 joined cards opened drew a predicted lineup sheet (verdict PASS). 75 = 23 MLS + 19 big-five + 33 FA Cup, so the FA Cup cards are there by arithmetic. **Not read:** the `FA Cup` sport group itself on the deployed page (the sandbox browser tool is not allowed on `*.workers.dev`, and a probe for it would cost a verify run). The home-side order the first section staged is still unverified against a venue.
+
 ## Open
 
 - Two moves of this boundary in four days, from clones in the same state. The thing to act on is the guard not being in the committer's path in cloud sessions, not the boundary. A check that makes a cloud session say, at its first commit, that the hook is not installed would cost less than a move.
-- The first archived FA Cup row (above).
+- The first archived FA Cup row: it exists now (33 rows for 2026-11-07, D1), and the card's "Home v Away" order against the venue is still unread.
