@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `cc6ea53` | 2026-11-07 | [lineups-live-1000-2026-11-07T12-57-19.png](lineups-live-1000-2026-11-07T12-57-19.png) | probe: a card's lineup on the live relay path [skip ci] |
+| `cc6ea53` | 2026-11-07 | [lineups-live-390-2026-11-07T12-57-19.png](lineups-live-390-2026-11-07T12-57-19.png) | probe: a card's lineup on the live relay path [skip ci] |
+| `cc6ea53` | 2026-11-07 | [lineups-live-manifest-2026-11-07T12-57-19.json](lineups-live-manifest-2026-11-07T12-57-19.json) | probe: a card's lineup on the live relay path [skip ci] |
+| `364e144` | 2026-11-07 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `19cc44b` | 2026-11-07 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a9bc211` | 2026-11-07 | [drift-log.md](drift-log.md) | drift-sentinel: odds-coverage-lost on 2026-11-07 [skip ci] |
 | `a9bc211` | 2026-11-07 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: odds-coverage-lost on 2026-11-07 [skip ci] |
