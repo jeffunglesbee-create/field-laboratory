@@ -179,12 +179,12 @@ const CONTEST_SPORTS = [
   'Ligue 1', 'Serie A', 'UEFA Champions League', 'UEFA Champions League Qualifying',
   'UEFA Europa League', 'UEFA Europa League Qualifying',
   'UEFA Europa Conference League', 'UEFA Europa Conference League Qualifying',
-  'FIFA World Cup', 'EFL Trophy', 'NBA', 'NHL',
+  'FIFA World Cup', 'EFL Trophy', 'FA Cup', 'NBA', 'NHL',
 ]
 const notContest = CONTEST_SPORTS.filter(s =>
   caseOf(presentByMatchup(sportOfString(s), 'HOME', 'AWAY')) !== 'Contest')
 check('every other modelled sport is still a contest with two sides',
-  notContest.length === 0 && CONTEST_SPORTS.length === 21,
+  notContest.length === 0 && CONTEST_SPORTS.length === 22,
   notContest.length ? `not a contest: ${notContest.join(', ')}` : `${CONTEST_SPORTS.length} sports, all pairs`)
 
 // And an unknown sport must still degrade honestly rather than pick a side.

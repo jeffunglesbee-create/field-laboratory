@@ -321,6 +321,16 @@ type Sport =
     | UEFAEuropaConferenceLeagueQualifying
     | FIFAWorldCup
     | EFLTrophy
+    /// England's knockout cup, ESPN slug `eng.fa`. The relay registered it on
+    /// 2026-11-06 (field-relay-nba, CC-CMD-2026-08-08-fa-cup-coverage) as the
+    /// label "FA Cup", with the space, and it archives under that label. Modelled
+    /// the day the relay carries it rather than on the first slate that holds a
+    /// fixture, the CFB exception again: otherwise the first FA Cup day renders
+    /// under "FA Cup · UNMODELLED SPORT" with "vs" for both sides, as Bundesliga
+    /// once did. HomeVersusAway because the relay's ESPN adapter orders sides by
+    /// `homeAway`, the same code that serves EFL Cup and EFL Trophy; the first
+    /// archived row has not been read yet (see sport-registry-check).
+    | FACup
     /// North American basketball and ice hockey. The `Matchup` type's own
     /// documentation names both as "Away @ Home" — a statement already made in
     /// this file, not a convention imported from outside it.
@@ -404,7 +414,7 @@ type SportMeta =
 /// cases in this file's Sport DU, subtracts the payload-carrying one, and
 /// requires the two numbers to agree -- so a case added above and forgotten
 /// here fails the run.
-let allSports = [ Sport.AFL; Sport.MLB; Sport.MLS; Sport.WNBA; Sport.EFLCup; Sport.NFL; Sport.CFL; Sport.CFB; Sport.LaLiga; Sport.Bundesliga; Sport.EPL; Sport.Ligue1; Sport.SerieA; Sport.UEFAChampionsLeague; Sport.UEFAChampionsLeagueQualifying; Sport.UEFAEuropaLeague; Sport.UEFAEuropaLeagueQualifying; Sport.UEFAEuropaConferenceLeague; Sport.UEFAEuropaConferenceLeagueQualifying; Sport.FIFAWorldCup; Sport.EFLTrophy; Sport.NBA; Sport.NHL; Sport.Golf; Sport.PGATour; Sport.IPL; Sport.UFL ]
+let allSports = [ Sport.AFL; Sport.MLB; Sport.MLS; Sport.WNBA; Sport.EFLCup; Sport.NFL; Sport.CFL; Sport.CFB; Sport.LaLiga; Sport.Bundesliga; Sport.EPL; Sport.Ligue1; Sport.SerieA; Sport.UEFAChampionsLeague; Sport.UEFAChampionsLeagueQualifying; Sport.UEFAEuropaLeague; Sport.UEFAEuropaLeagueQualifying; Sport.UEFAEuropaConferenceLeague; Sport.UEFAEuropaConferenceLeagueQualifying; Sport.FIFAWorldCup; Sport.EFLTrophy; Sport.FACup; Sport.NBA; Sport.NHL; Sport.Golf; Sport.PGATour; Sport.IPL; Sport.UFL ]
 
 let sportMeta (sport: Sport) : SportMeta =
     match sport with
@@ -512,6 +522,7 @@ let sportMeta (sport: Sport) : SportMeta =
     | Sport.UEFAEuropaConferenceLeagueQualifying -> { Label = "UEFA Europa Conference League Qualifying"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     | Sport.FIFAWorldCup -> { Label = "FIFA World Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     | Sport.EFLTrophy -> { Label = "EFL Trophy"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
+    | Sport.FACup -> { Label = "FA Cup"; Matchup = HomeVersusAway; IsSoccer = true; Modelled = true; Omission = None }
     | Sport.NBA -> { Label = "NBA"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     | Sport.NHL -> { Label = "NHL"; Matchup = AwayAtHome; IsSoccer = false; Modelled = true; Omission = None }
     | Sport.PGATour ->
@@ -598,6 +609,7 @@ let sportOfString (raw: string) : Sport =
     | "UEFA Europa Conference League Qualifying" -> Sport.UEFAEuropaConferenceLeagueQualifying
     | "FIFA World Cup" -> Sport.FIFAWorldCup
     | "EFL Trophy" -> Sport.EFLTrophy
+    | "FA Cup" -> Sport.FACup
     | "NBA" -> Sport.NBA
     | "NHL" -> Sport.NHL
     // Two labels, one competition. The relay's games table carries BOTH "WNBA"

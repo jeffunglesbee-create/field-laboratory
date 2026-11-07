@@ -8,7 +8,7 @@ intent — a plan that does not record what happened to it is a wish.
 against FIELD's actual failure modes? Not "would types be nice" — would they
 have *caught the specific defects this project has shipped*.
 
-<!-- claim: sports.modelled = 24 -->
+<!-- claim: sports.modelled = 25 -->
 <!-- claim: briefTypes.modelled = 11 -->
 
 ## Status at a glance
