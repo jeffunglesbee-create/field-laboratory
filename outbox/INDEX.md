@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7d6ed4a` | 2026-11-07 | [cc-session-2026-11-07-fa-cup-registry-and-boundary.md](cc-session-2026-11-07-fa-cup-registry-and-boundary.md) | docs: the laboratory's FA Cup was not published until 12:50Z, and what the page shows now |
+| `68f7de8` | 2026-11-07 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-07T13:32 [skip ci] |
 | `cc6ea53` | 2026-11-07 | [lineups-live-1000-2026-11-07T12-57-19.png](lineups-live-1000-2026-11-07T12-57-19.png) | probe: a card's lineup on the live relay path [skip ci] |
 | `cc6ea53` | 2026-11-07 | [lineups-live-390-2026-11-07T12-57-19.png](lineups-live-390-2026-11-07T12-57-19.png) | probe: a card's lineup on the live relay path [skip ci] |
 | `cc6ea53` | 2026-11-07 | [lineups-live-manifest-2026-11-07T12-57-19.json](lineups-live-manifest-2026-11-07T12-57-19.json) | probe: a card's lineup on the live relay path [skip ci] |
