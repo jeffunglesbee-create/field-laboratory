@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `ff9c83a` — but that is not `main` HEAD
+**FAILURE** on `c8fd578` at "Source and outbox changed together, every commit" — 1 of 93 steps did not run behind it — [run 42324080403](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42324080403)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `19c4045`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `c8fd578` — failing step unknown: the run's steps could not be read — [run 42324924551](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42324924551)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `ff9c83a` — newest deployable `9a0b249` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `ff9c83a` — behind newest deployable `c8fd578` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
