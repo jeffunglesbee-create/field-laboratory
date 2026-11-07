@@ -615,4 +615,69 @@
 #
 # The governed violation count is 0 again.
 
-4bd53ba025836cb0dbf3ab813befff6ab8ce78cd  38
+# ────────────────────────────────────────────────────────────────────────�
+# MOVED ON 2026-11-07, FROM 4bd53ba / 38 TO 2c4ec401c7ea3723d5554dea237a8a3b370c3f99 / 39
+#
+# The eighth move, four days after the seventh. The commit it absorbs is mine.
+#
+# The owner WAS asked, in the session that made the commit, and chose this over
+# the two alternatives offered (rewrite the commit; leave main red). To undo it,
+# put `4bd53ba025836cb0dbf3ab813befff6ab8ce78cd  38` back on the last line of
+# this file. The check then fails on c8fd578 by name again.
+#
+# WHAT MOVED, AND WHAT IT ABSORBED — exactly one commit:
+#
+#   c8fd578  feat: model the FA Cup so its first day does not render as an
+#            unmodelled sport
+#
+# It changed src/Desk.fs and scripts/sport-registry-check.mjs (and one claim in
+# docs/JLAYER-PLAN.md) with no outbox entry, at 2026-11-07T01:26Z. verify run
+# 42324080403 and guards run 42324080426 failed on it by name, in the one step
+# "Source and outbox changed together, every commit". Every other step of both
+# passed, including the F# build with no compiler warning, "The sport registry
+# matches what production serves" and "Every claim a document makes is still
+# true". The work is documented in
+#
+#   outbox/cc-session-2026-11-07-fa-cup-registry-and-boundary.md
+#
+# and by this rule's per-commit design that entry does not pair with the commit.
+#
+# WHY NOT REWRITE HISTORY INSTEAD
+#
+# Amending c8fd578 would remove the violation outright and was offered. Not
+# chosen, for the 2026-08-23 reason: main is shared and actively written (status
+# and forecast commits landed on top of it within minutes), and a force-push to
+# make a check pass is a worse habit than a named boundary move.
+#
+# WHY 2c4ec401 IS THE BOUNDARY
+#
+# The first commit after the violation, and itself clean: it touches only
+# STATUS.md and outbox/INDEX.md. As on 2026-11-03, no commit after the violation
+# ships source beside an outbox entry yet, so the nearest clean commit is the one
+# that un-governs the fewest.
+#
+# HOW 39 WAS DERIVED
+#
+# 38 + 1, on a FULL clone (git rev-parse --is-shallow-repository: false, after
+# `git fetch --unshallow`; 2859 non-merge commits, CI's run printed 2857 for the
+# same history two commits earlier). `node scripts/history-check.mjs` reported
+# "predating the rule: 38 (declared 38)" against boundary 4bd53ba and named
+# exactly one governed violation, c8fd578. Moving past it moves it from governed
+# to predating. CI remains the authority if the two ever disagree.
+#
+# WHY THE GUARD DID NOT FIRE — MEASURED, in the clone that made it
+#
+# Read before anything was changed: `git config core.hooksPath` empty, so
+# .githooks/pre-commit was not installed; `ls node_modules | wc -l` 0; the
+# session's CLAUDE_CODE_REMOTE is "true". The same two readings as the
+# 2026-11-03 entry. Why scripts/install_pkgs.sh did not run is still NOT
+# established; two moves in four days from clones in that state is the pattern to
+# act on, not the boundary.
+#
+# WHAT THIS DOES NOT DO
+#
+# It grants no future amnesty. Everything from 2c4ec401 onward is governed.
+#
+# The governed violation count is 0 again.
+
+2c4ec401c7ea3723d5554dea237a8a3b370c3f99  39
