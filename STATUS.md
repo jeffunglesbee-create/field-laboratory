@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `7d6ed4a`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `7d6ed4a` at "A finished game shows the brief written after it finished" — nothing was skipped behind it — [run 42387767654](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42387767654)
 
 ## Is it published?
 
@@ -23,6 +23,6 @@ which is history by nature. Edits here will be overwritten._
 
 ## Drift sentinel
 
-`odds-coverage-lost` on 2026-11-07 — 8 games, 0 malformed (202 runs logged)
+`ok` on 2026-11-07 — 147 games, 0 malformed (203 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
