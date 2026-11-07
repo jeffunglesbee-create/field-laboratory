@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `7d6ed4a` at "A finished game shows the brief written after it finished" — nothing was skipped behind it — [run 42387767654](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42387767654)
+`live-check` (post-deploy, against the deployed page): **running** on `39686ee`
 
 ## Is it published?
 
