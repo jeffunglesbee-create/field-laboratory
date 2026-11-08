@@ -1,0 +1,104 @@
+training: 380 matches, 370 forecastable, 330 with both clubs on >= 5 games (fit set), 40 opening-week
+hold-out: 100 matches, 90 forecastable, 50 with both clubs on >= 5 games (rule set), 40 opening-week; bundle sha256 074a2512965761773bca2448b2437f94866b9a684b0ec023072d45539bae60c7
+the parametrised model at table-v1's constants vs the compiled model: 460 forecasts, max abs difference 0.00e+0
+
+table-v1 on the 330 training forecasts, mean probability vs how often it happened: home 50% vs 42%, draw 15% vs 27%, away 35% vs 31%
+draws by the model's own gap |d| (thirds, smallest first): gap 0.02-0.44: predicted 23%, happened 25% (n 110) | gap 0.44-1.00: predicted 15%, happened 30% (n 110) | gap 1.00-3.24: predicted 8%, happened 26% (n 110)
+
+FITS (maximum likelihood on the training set; log loss summed over the matches):
+  table-v1 (home 0.30, scale 0.55, drawBase 0.28, drawDecay 1.10): total log loss 380.63, per match 1.153
+  A (home + scale): home 0.308 +/- 0.107, scale 1.105 +/- 0.203; total log loss 368.56 (12.07 below table-v1's); per match 1.117
+     solvers: Nelder-Mead and golden-section coordinate descent end 1.7e-13 apart in log loss; |gradient| max 5.7e-6; Hessian positive definite: true; on a bound: false
+     5-fold cross-validated log loss per match 1.124 (table-v1 1.153); the folds partition the matches: true
+  B (home + scale + drawBase + drawDecay): home 0.428 +/- 0.184, scale 1.147 +/- 0.227, drawBase 0.276 +/- 0.044, drawDecay 63.095 +/- 643.971; total log loss 340.89 (39.74 below table-v1's); per match 1.033
+     solvers: Nelder-Mead and golden-section coordinate descent end 4.0e-13 apart in log loss; |gradient| max 6.3e-7; Hessian positive definite: true; on a bound: true
+     5-fold cross-validated log loss per match 1.047 (table-v1 1.153); the folds partition the matches: true
+
+POST HOC (training only; not a rule input): the profile of the draw decay. At each fixed decay, home, scale and draw base are re-fitted.
+  decay 0.5     total log loss 394.26 (53.36 above the lowest seen); home 0.30, scale 1.10, draw base 0.68
+  decay 1.1     total log loss 354.07 (13.17 above the lowest seen); home 0.57, scale 1.24, draw base 0.49
+  decay 2       total log loss 344.88 (3.99 above the lowest seen); home 0.58, scale 1.25, draw base 0.40
+  decay 5       total log loss 341.49 (0.60 above the lowest seen); home 0.54, scale 1.22, draw base 0.32
+  decay 10      total log loss 341.03 (0.13 above the lowest seen); home 0.46, scale 1.16, draw base 0.30
+  decay 20      total log loss 340.92 (0.02 above the lowest seen); home 0.44, scale 1.15, draw base 0.28
+  decay 63.095  total log loss 340.89 (0.00 above the lowest seen); home 0.43, scale 1.15, draw base 0.28
+  decay 200     total log loss 340.90 (0.00 above the lowest seen); home 0.42, scale 1.15, draw base 0.27
+  decay 1000    total log loss 340.90 (0.00 above the lowest seen); home 0.42, scale 1.14, draw base 0.27
+  decay 1000000 total log loss 340.90 (0.00 above the lowest seen); home 0.42, scale 1.14, draw base 0.27
+  a constant draw share (decay 1e6: home, scale, one draw share), 5-fold cross-validated log loss per match 1.045; against B -0.003 +/- 0.002 (z -1.61); against A -0.079 +/- 0.027 (z -2.96)
+  READ: a candidate with a constant draw share was NOT one of the two pre-registered; it is shown to say where the evidence points, and it is not a verdict.
+
+SELECTED: B. B's cross-validated log loss 1.047 against A's 1.124: paired difference -0.076 +/- 0.026, z -2.91 (B is chosen only at z <= -2). Constants rounded to two decimals: home 0.43, scale 1.15, drawBase 0.28, drawDecay 63.09
+
+SCORES, S (rounded) against table-v1; "z" = paired mean difference / its standard error, negative favours S:
+last season, in-sample, both clubs >= 5 games n 330 | Brier v1 0.689 S 0.623 | S - v1 -0.066 +/- 0.017 z -3.79 | logloss v1 1.153 S 1.033 | top claimed/happened v1 66%/46% S 48%/48%
+THIS season (hold-out), both clubs >= 5 games n  50 | Brier v1 0.739 S 0.649 | S - v1 -0.090 +/- 0.046 z -1.96 | logloss v1 1.266 S 1.092 | top claimed/happened v1 69%/40% S 50%/44%
+this season, every forecastable match        n  90 | Brier v1 0.814 S 0.664 | S - v1 -0.151 +/- 0.039 z -3.91 | logloss v1 1.460 S 1.101 | top claimed/happened v1 72%/40% S 52%/42%
+last season, opening weeks (1-4 games)       n  40 | Brier v1 0.860 S 0.681 | S - v1 -0.179 +/- 0.067 z -2.67 | logloss v1 1.715 S 1.186 | top claimed/happened v1 77%/45% S 54%/48%
+this season, opening weeks (1-4 games)       n  40 | Brier v1 0.908 S 0.681 | S - v1 -0.227 +/- 0.064 z -3.54 | logloss v1 1.703 S 1.113 | top claimed/happened v1 76%/40% S 54%/40%
+last season, 5-fold cross-validated, >= 5 games n 330 | Brier v1 0.689 S 0.631 | S - v1 -0.058 +/- 0.017 z -3.40
+last season, 5-fold cross-validated, vs uniform n 330 | Brier uniform 0.667 S 0.631 | S - uniform -0.036 +/- 0.014 z -2.58
+
+CALIBRATION of the home-win probability (calibrated = slope 1.00, intercept 0.00):
+table-v1, last season (the earlier record: 0.41 +/- 0.09)  n 330: slope 0.41 +/- 0.09, intercept -0.34 +/- 0.12
+S, last season, cross-validated                            n 330: slope 0.98 +/- 0.21, intercept 0.00 +/- 0.13
+S, last season, in-sample (rounded constants)              n 330: slope 1.08 +/- 0.22, intercept 0.05 +/- 0.13
+table-v1, this season                                      n  50: slope 0.15 +/- 0.16, intercept -0.06 +/- 0.29
+S, this season (hold-out)                                  n  50: slope 0.26 +/- 0.39, intercept 0.04 +/- 0.33
+S cross-validated on last season, mean probability vs how often it happened: home 42% vs 42%, draw 27% vs 27%, away 31% vs 31%
+S on this season (hold-out, 50), mean probability vs how often it happened: home 41% vs 48%, draw 28% vs 22%, away 32% vs 30%
+
+RULE
+  PASS R1 this season, >= 5 games: S beats table-v1, paired z <= -1.645 [z -1.96, n 50]
+  PASS R2 last season, cross-validated: S beats a uniform guess (0.667), paired z <= -2 [z -2.58, n 330, Brier 0.631]
+  PASS R3 last season, cross-validated: S beats table-v1, paired z <= -3 [z -3.40, n 330]
+  PASS R4 opening weeks, both seasons: S is no worse than table-v1 [last season 0.681 vs 0.860 (n 40), this season 0.681 vs 0.908 (n 40)]
+  PASS R5 S's cross-validated home-win slope on last season is within 1.96 standard errors of 1 [slope 0.98 +/- 0.21]
+  FAIL R6 the fit is well posed [false]
+  (R7, every integrity check, is judged after the check list below)
+
+CHECKS
+PASS verdict logic: a candidate that meets every rule ships 
+PASS verdict logic: R1 (z -1.6) alone vetoes, and says so [R1 hold-out paired z -1.60 is not <= -1.645]
+PASS verdict logic: R1 exactly at its threshold still ships 
+PASS verdict logic: R2 (z -1.9) alone vetoes, and says so [R2 cross-validated z against a uniform guess -1.90 is not <= -2]
+PASS verdict logic: R3 (z -2.9) alone vetoes, and says so [R3 cross-validated paired z -2.90 is not <= -3]
+PASS verdict logic: R4 (opening weeks worse last season) alone vetoes, and says so [R4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: R4 (opening weeks worse this season) alone vetoes, and says so [R4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: R5 (slope 0.6, SE 0.2) alone vetoes, and says so [R5 cross-validated slope 0.60 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: R5 (slope 1.5, SE 0.2) alone vetoes, and says so [R5 cross-validated slope 1.50 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: R5 just inside its band (slope 1.39, SE 0.2) still ships 
+PASS verdict logic: R6 alone vetoes, and says so [R6 the fit is not well posed]
+PASS verdict logic: R7 alone vetoes, and says so [R7 an integrity check failed]
+PASS verdict logic: a NaN z alone vetoes, and says so [R1 hold-out paired z NaN is not <= -1.645]
+PASS verdict logic: a NaN slope alone vetoes, and says so [R5 cross-validated slope NaN (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS precondition: the prior-season script, run on these sources, exits 0 with no red check [26 of 26 checks hold; coverage: 1 season (380 matches), no o]
+PASS source openfootball is the pinned file (51782 bytes, sha256) [51782 B, 38c1de56c9e9b666]
+PASS training: the file parses clean, 380 matches, dates 2025-08-15..2026-05-24 
+PASS source espnFinal is the pinned file (69451 bytes, sha256) [69451 B, 53b071579c206763]
+PASS training: the final table the results make equals ESPN's, club by club (20 of 20 on played, points, GF, GA) 
+PASS training: no club carries a deduction 
+PASS hold-out: 100 finished matches, 100 EPL rows in the archive, none unfinished 
+PASS hold-out: the archive's finished count equals ESPN's played count for 20 of 20 clubs, and the clubs are the same 20 
+PASS hold-out: the table the results make equals ESPN's current table (20 of 20 clubs on played, points, GF, GA); no deductions 
+PASS hold-out: FPL's played fixtures are exactly its scored ones (100 provisional-or-final, 100 with both scores; 90 of them final, the rest in the latest matchweek) 
+PASS hold-out: the relay's FPL fixtures hold the same 100 played matches by date and score (0 unequal groups), pairing one-to-one (100 pairs; 0 archive and 0 FPL left over), clubs mapping 20 of 20 with 0 conflicts 
+PASS hold-out: openfootball's 45 scored lines for 2026-27 are each an archive match on date and score (45 of 45); it has no later results to check 
+PASS hold-out: it begins after the training season ended (the seasons do not overlap) 
+PASS hold-out: no club plays twice on one date, so order within a day cannot change a table 
+PASS hold-out: before normalising, the only archive name the ESPN table does not carry is "Man United" ({"Man United":8}); after it, every archive club is one of the table's 20 
+PASS the four match sets are exactly the matches with both clubs on >= 5 games (330 and 50) or on 1-4 games (40 and 40), recounted from the clubs' own games played [training fit set 330/330; hold-out rule set 50/50; training opening weeks 40/40; hold-out opening weeks 40/40]
+PASS the parametrised model at the declared constants equals the compiled model on all 460 forecasts of both seasons 
+PASS table-v1 on the training set reproduces the earlier record: n 330 Brier 0.689 logloss 1.153; opening weeks n 40 Brier 0.860 logloss 1.715 [n 330 Brier 0.689 logloss 1.153; opening n 40 Brier 0.860 logloss 1.715]
+PASS table-v1 on the first 99 hold-out matches reproduces the 2026-27 record's five bins to the digit 
+PASS fit A: two unrelated solvers agree, the gradient vanishes, the Hessian is positive definite, no constant on a bound [1.7e-13, 5.7e-6]
+PASS fit A: the fit is no worse than table-v1 in-sample (log loss 368.56 <= 380.63) and the cross-validation folds partition the matches and train on none of their own test rows 
+FAIL fit B: two unrelated solvers agree, the gradient vanishes, the Hessian is positive definite, no constant on a bound [4.0e-13, 6.3e-7]
+PASS fit B: the fit is no worse than table-v1 in-sample (log loss 340.89 <= 380.63) and the cross-validation folds partition the matches and train on none of their own test rows 
+PASS slope: the two unrelated solvers agree to 1e-4, all finite, on all five fits 
+PASS slope: table-v1's last-season slope reproduces the earlier record (0.41 +/- 0.09) [0.41 +/- 0.09]
+PASS the verdict function and the rule table above agree on R1-R6 
+
+39 of 40 checks hold; coverage: 2 seasons (380 + 100 matches), 330 training forecasts fitted, 50 hold-out forecasts judged by R1 (40 opening-week), the hold-out read from a bundle of 4 sources
+
+VERDICT: DO NOT SHIP. R6 the fit is not well posed; R7 an integrity check failed

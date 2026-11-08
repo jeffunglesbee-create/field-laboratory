@@ -70,8 +70,25 @@ document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
   the calibration slope of its home-win probability is 0.41 ± 0.09 where 1.00 is
   calibrated: it ranks matches, and its probabilities are about 2.4 times too
   steep. Measurement only, nothing changed. Recorded in
-  `outbox/cc-session-2026-11-08-calibrate-prior-season.md`. Fitting is the next
-  step and waits for the owner.
+  `outbox/cc-session-2026-11-08-calibrate-prior-season.md`. The fit followed,
+  next bullet.
+- **The fit was run and did not pass its own rule, 2026-11-08.** The owner
+  approved a fit and, if it passed an out-of-sample rule fixed first, a
+  `table-v2`. The rule was committed before any candidate was fitted
+  (`6363ad8`). Two candidates were fitted on last season's 330 forecasts: A (home
+  edge and logistic scale) and B (A plus the draw share's base and decay). B was
+  selected on cross-validated log loss (1.047 against A's 1.124 and table-v1's
+  1.153). Its draw decay is unidentified (63 ± 644; the likelihood is flat above
+  about 10), so rule R6, a well-posed fit, failed and the verdict is DO NOT SHIP.
+  R1–R5 held: Brier 0.649 against table-v1's 0.739 on this season's 50 matches
+  (z −1.96), and 0.631 against 0.689 cross-validated on last season (z −3.40). The
+  larger defect is the draw share: table-v1 predicts 15% on average, 27% happened,
+  and draws are as common where the model sees a wide gap (26%) as a narrow one
+  (25%). Nothing in `src/` changed. Recorded in
+  `outbox/cc-session-2026-11-08-fit.md`; every number the rule uses was
+  recomputed independently in Python (14 of 14 agree). A constant draw share was
+  not pre-registered; testing it needs the owner's go and a season no number has
+  been read from (2024-25).
 
 **Phase 2 input unblocked 2026-10-10:** the fbref xG this document records as
 empty and 3.5 months stale is no longer the only source. BSD serves per-event

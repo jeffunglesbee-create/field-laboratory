@@ -44,9 +44,10 @@ import { decodePayload, sportMeta } from '../build/Desk.js'
 
 const argv = process.argv.slice(2)
 const writeBundle = (argv.find(a => a.startsWith('--write-bundle=')) ?? '').replace('--write-bundle=', '') || null
+const dumpPath = (argv.find(a => a.startsWith('--dump-features=')) ?? '').replace('--dump-features=', '') || null
 const bundleOnly = argv.includes('--bundle-only')       // DATA CHECKS ONLY: stops before any candidate is fitted or scored
 const [srcDir, holdoutArg] = argv.filter(a => !a.startsWith('--'))
-if (!srcDir || !holdoutArg) { console.error('usage: node outbox/forecast-fit-2026-11-08.mjs <sources-dir> <hold-out: a raw directory, or a bundle .json> [--write-bundle=<path>] [--bundle-only]'); process.exit(2) }
+if (!srcDir || !holdoutArg) { console.error('usage: node outbox/forecast-fit-2026-11-08.mjs <sources-dir> <hold-out: a raw directory, or a bundle .json> [--write-bundle=<path>] [--bundle-only] [--dump-features=<path>]'); process.exit(2) }
 const here = path.dirname(fileURLToPath(import.meta.url))
 const checks = []
 const check = (name, ok, detail = '') => { checks.push({ name, ok: Boolean(ok), detail }) }
@@ -300,6 +301,13 @@ const holdFit = usable(holdAll).filter(f => f.pre >= 5)
 const holdOpen = usable(holdAll).filter(f => f.pre >= 1 && f.pre <= 4)
 console.log(`training: ${trainAll.length} matches, ${usable(trainAll).length} forecastable, ${trainFit.length} with both clubs on >= 5 games (fit set), ${trainOpen.length} opening-week`)
 console.log(`hold-out: ${holdAll.length} matches, ${usable(holdAll).length} forecastable, ${holdFit.length} with both clubs on >= 5 games (rule set), ${holdOpen.length} opening-week${bundleSha ? `; bundle sha256 ${bundleSha}` : ''}`)
+// The sets the rule is judged on, recounted from the clubs' own games played rather than from `pre`.
+{
+  const both = (fs, lo, hi) => fs.filter(f => f.rh !== null && f.ra !== null && f.tH.p >= lo && f.tH.p <= hi && f.tA.p >= lo && f.tA.p <= hi)
+  const sets = [['training fit set', trainFit, both(trainAll, 5, 99)], ['hold-out rule set', holdFit, both(holdAll, 5, 99)], ['training opening weeks', trainOpen, both(trainAll, 1, 4)], ['hold-out opening weeks', holdOpen, both(holdAll, 1, 4)]]
+  check(`the four match sets are exactly the matches with both clubs on >= 5 games (${trainFit.length} and ${holdFit.length}) or on 1-4 games (${trainOpen.length} and ${holdOpen.length}), recounted from the clubs' own games played`,
+    sets.every(([, a, b]) => a.length === b.length && a.every(f => b.includes(f))), sets.map(([n, a, b]) => `${n} ${a.length}/${b.length}`).join('; '))
+}
 
 // The model-as-function equals the compiled model, on both seasons, every forecastable match.
 {
@@ -314,8 +322,10 @@ console.log(`hold-out: ${holdAll.length} matches, ${usable(holdAll).length} fore
 }
 // The earlier record's numbers, reproduced: ties this script's training pipeline to the record that was checked 29 ways.
 {
-  const v = trainFit.map(f => brier(probs(f.rh, f.ra, TH0), f.o))
-  check('table-v1 on the training set reproduces the earlier record: n 330, Brier 0.689', trainFit.length === 330 && f3(mean(v)) === '0.689', `${trainFit.length}, ${f3(mean(v))}`)
+  const v = trainFit.map(f => brier(probs(f.rh, f.ra, TH0), f.o)), vl = trainFit.map(f => logloss(probs(f.rh, f.ra, TH0), f.o))
+  const o = trainOpen.map(f => brier(probs(f.rh, f.ra, TH0), f.o)), ol = trainOpen.map(f => logloss(probs(f.rh, f.ra, TH0), f.o))
+  const got = `n ${trainFit.length} Brier ${f3(mean(v))} logloss ${f3(mean(vl))}; opening n ${trainOpen.length} Brier ${f3(mean(o))} logloss ${f3(mean(ol))}`
+  check('table-v1 on the training set reproduces the earlier record: n 330 Brier 0.689 logloss 1.153; opening weeks n 40 Brier 0.860 logloss 1.715', got === 'n 330 Brier 0.689 logloss 1.153; opening n 40 Brier 0.860 logloss 1.715', got)
 }
 {
   // The 2026-27 record (outbox/forecast-backtest-2026-11-08.txt) was made on the first 99 of these matches, in play order. Its five bins, to the digit.
@@ -387,15 +397,15 @@ function invert(Mx) {         // Gauss-Jordan with partial pivoting; null if sin
   }
   return A2.map(r => r.slice(n))
 }
-function fit(fs, free) {
-  const obj = u => nll(fs, fromU(u, free, TH0))
-  const u0 = toU(TH0, free)
+function fit(fs, free, baseTh = TH0) {
+  const obj = u => nll(fs, fromU(u, free, baseTh))
+  const u0 = toU(baseTh, free)
   const a = nelderMead(obj, u0), b = coordinateDescent(obj, u0.map(v => v + 0.2))
-  const th = fromU(a.x, free, TH0), thB = fromU(b.x, free, TH0)
+  const th = fromU(a.x, free, baseTh), thB = fromU(b.x, free, baseTh)
   // gradient in the transformed coordinates, central differences
   const grad = a.x.map((_, i) => { const h = 1e-6, up = a.x.slice(), dn = a.x.slice(); up[i] += h; dn[i] -= h; return (obj(up) - obj(dn)) / (2 * h) })
   // Hessian in NATURAL coordinates, for standard errors
-  const nat = free.map(k => th[k]), natNll = v => { const t = { ...TH0 }; free.forEach((k, i) => { t[k] = v[i] }); return nll(fs, t) }
+  const nat = free.map(k => th[k]), natNll = v => { const t = { ...baseTh }; free.forEach((k, i) => { t[k] = v[i] }); return nll(fs, t) }
   const H = nat.map((_, i) => nat.map((_, j) => {
     const hi = 1e-3 * Math.max(1, Math.abs(nat[i])), hj = 1e-3 * Math.max(1, Math.abs(nat[j]))
     const at = (di, dj) => { const v = nat.slice(); v[i] += di; v[j] += dj; return natNll(v) }
@@ -408,15 +418,18 @@ function fit(fs, free) {
   return { th, thB, f: a.f, fB: b.f, grad, se, free, pd, onBound, agree, wellPosed: agree && pd && !onBound && grad.every(g => Math.abs(g) < 1e-3) }
 }
 const cvFolds = 5
-function cvPredict(fs, free) {
+function cvPredict(fs, free, baseTh = TH0) {
   const preds = new Array(fs.length), seen = new Array(fs.length).fill(0)
+  let disjoint = true
   for (let k = 0; k < cvFolds; k++) {
     const tr = fs.filter((_, i) => i % cvFolds !== k)
-    const u = nelderMead(v => nll(tr, fromU(v, free, TH0)), toU(TH0, free)).x
-    const th = fromU(u, free, TH0)
+    const testRows = new Set(fs.filter((_, i) => i % cvFolds === k))
+    if (tr.some(f => testRows.has(f)) || tr.length + testRows.size !== fs.length) disjoint = false
+    const u = nelderMead(v => nll(tr, fromU(v, free, baseTh)), toU(baseTh, free)).x
+    const th = fromU(u, free, baseTh)
     fs.forEach((f, i) => { if (i % cvFolds === k) { preds[i] = probs(f.rh, f.ra, th); seen[i]++ } })
   }
-  return { preds, partition: seen.every(s => s === 1) }
+  return { preds, partition: seen.every(s => s === 1), disjoint }
 }
 const roundTh = th => Object.fromEntries(Object.entries(th).map(([k, v]) => [k, Math.round(v * 100) / 100]))
 const fmtTh = (th, free) => free.map(k => `${k} ${f2(th[k])}`).join(', ')
@@ -434,7 +447,20 @@ for (const [name, free] of Object.entries(cand)) {
   console.log(`     solvers: Nelder-Mead and golden-section coordinate descent end ${Math.abs(r.f - r.fB).toExponential(1)} apart in log loss${r.agree ? '' : ' and DISAGREE'}; |gradient| max ${Math.max(...r.grad.map(Math.abs)).toExponential(1)}; Hessian positive definite: ${r.pd}; on a bound: ${r.onBound}`)
   console.log(`     5-fold cross-validated log loss per match ${f3(cvLL)} (table-v1 ${f3(base / trainFit.length)}); the folds partition the matches: ${cv.partition}`)
   check(`fit ${name}: two unrelated solvers agree, the gradient vanishes, the Hessian is positive definite, no constant on a bound`, r.wellPosed, `${Math.abs(r.f - r.fB).toExponential(1)}, ${Math.max(...r.grad.map(Math.abs)).toExponential(1)}`)
-  check(`fit ${name}: the fit is no worse than table-v1 in-sample (log loss ${f2(r.f)} <= ${f2(base)}) and the cross-validation folds partition the matches`, r.f <= base + 1e-9 && cv.partition)
+  check(`fit ${name}: the fit is no worse than table-v1 in-sample (log loss ${f2(r.f)} <= ${f2(base)}) and the cross-validation folds partition the matches and train on none of their own test rows`, r.f <= base + 1e-9 && cv.partition && cv.disjoint)
+}
+// ---- POST HOC. Not a rule input, and written after the first run showed B's decay running away. Training data only; nothing here is scored on the hold-out.
+{
+  console.log('\nPOST HOC (training only; not a rule input): the profile of the draw decay. At each fixed decay, home, scale and draw base are re-fitted.')
+  const decays = [0.5, 1.1, 2, 5, 10, 20, 63.095, 200, 1000, 1e6]
+  const prof = decays.map(d => { const r = fit(trainFit, ['home', 'scale', 'drawBase'], { ...TH0, drawDecay: d }); return { d, f: r.f, th: r.th } })
+  const best = Math.min(...prof.map(r => r.f), res.B.f)
+  for (const r of prof) console.log(`  decay ${String(r.d).padEnd(7)} total log loss ${f2(r.f)} (${f2(r.f - best)} above the lowest seen); home ${f2(r.th.home)}, scale ${f2(r.th.scale)}, draw base ${f2(r.th.drawBase)}`)
+  const C = { free: ['home', 'scale', 'drawBase'], base: { ...TH0, drawDecay: 1e6 } }
+  const cvC = cvPredict(trainFit, C.free, C.base), cvCs = cvC.preds.map((p, i) => logloss(p, trainFit[i].o))
+  const pCB = paired(cvCs, res.B.cvLLs), pCA = paired(cvCs, res.A.cvLLs)
+  console.log(`  a constant draw share (decay 1e6: home, scale, one draw share), 5-fold cross-validated log loss per match ${f3(mean(cvCs))}; against B ${signed(pCB.mean)} +/- ${f3(pCB.se)} (z ${f2(pCB.z)}); against A ${signed(pCA.mean)} +/- ${f3(pCA.se)} (z ${f2(pCA.z)})`)
+  console.log('  READ: a candidate with a constant draw share was NOT one of the two pre-registered; it is shown to say where the evidence points, and it is not a verdict.')
 }
 const selPair = paired(res.B.cvLLs, res.A.cvLLs)
 const S = selPair.z <= RULE.selectZ ? 'B' : 'A'
@@ -510,6 +536,15 @@ const m = {
 }
 const verdict = decide(m)
 const METHOD_STATEMENT = `table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +${f2(thS.home)}, scale ${f2(thS.scale)}, draw ${f2(thS.drawBase)}*exp(-|gap|/${f2(thS.drawDecay)})`
+if (dumpPath) {
+  const slim = fs => fs.map(f => ({ rh: f.rh, ra: f.ra, o: f.o }))
+  fs.writeFileSync(dumpPath, JSON.stringify({
+    TH0, thS, train: slim(trainFit), trainOpen: slim(trainOpen), hold: slim(holdFit), holdOpen: slim(holdOpen), cvFolds,
+    js: { v1Nll: base, A: { th: res.A.th, nll: res.A.f, cvLL: res.A.cvLL }, B: { th: res.B.th, nll: res.B.f, cvLL: res.B.cvLL }, selZ: selPair.z, S,
+      r1: { brierS: rHold.brierS, brierV: rHold.brierV, z: rHold.pr.z }, r3z: prCV.z, r2z: prU.z, cvBrierS: mean(cvB), cvBrierV: mean(cvV.map(x => x.b)),
+      open: { trainS: rTrainOpen.brierS, trainV: rTrainOpen.brierV, holdS: rHoldOpen.brierS, holdV: rHoldOpen.brierV }, slCV: { b: slCV.newton.b, se: slCV.newton.seB } },
+  }))
+}
 console.log('\nRULE')
 const rules = [
   ['R1', `this season, >= 5 games: S beats table-v1, paired z <= ${RULE.z1}`, `z ${f2(m.z1)}, n ${holdFit.length}`, m.z1 <= RULE.z1],

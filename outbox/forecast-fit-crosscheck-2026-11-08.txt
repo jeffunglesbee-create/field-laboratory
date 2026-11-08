@@ -1,0 +1,16 @@
+PASS objective: table-v1's total log loss on the 330 training forecasts equals the script's (380.629711 vs 380.629711)
+PASS objective: at the script's own A constants the total log loss equals the script's (368.558782 vs 368.558782)
+PASS objective: at the script's own B constants the total log loss equals the script's (340.894344 vs 340.894344)
+PASS fit A: scipy's optimum is no higher than the script's (368.558782 vs 368.558782) and within 1e-6 of it
+PASS fit B: scipy's optimum is no higher than the script's (340.894344 vs 340.894344) and within 0.01 of it
+PASS fit A: the constants agree (home 0.3078 vs 0.3078, scale 1.1052 vs 1.1052) to 2e-3
+PASS fit B: scipy also finds no finite draw decay (it stops at 63.1; the script at 63.1; both above 20), and the other constants agree to 0.02 (home 0.428 vs 0.428, scale 1.147 vs 1.147, base 0.276 vs 0.276)
+PASS cross-validation A: log loss per match 1.12387 vs the script's 1.12387 (tolerance 0.0001)
+PASS cross-validation B: log loss per match 1.04745 vs the script's 1.04745 (tolerance 0.002)
+PASS selection: the paired z of B against A is -2.91 vs the script's -2.91 (tolerance 0.05) and picks the same candidate (B vs B)
+PASS R1 inputs: hold-out Brier S 0.6495 / table-v1 0.7392, paired z -1.965; the script's 0.6495 / 0.7392, z -1.965 (n 50)
+PASS R3 inputs: cross-validated paired z against table-v1 -3.40 vs the script's -3.40 (tolerance 0.05); R2 inputs: against a uniform guess -2.58 vs -2.58 (tolerance 0.05)
+PASS R4 inputs: opening-week Brier last season S 0.6808 / table-v1 0.8598, this season 0.6813 / 0.9082; the script's 0.6808 / 0.8598, 0.6813 / 0.9082
+PASS R5 inputs: cross-validated home-win slope 0.983 +/- 0.214 vs the script's 0.983 +/- 0.214 (tolerance 0.03 on the slope, 0.01 on its error)
+
+14 of 14 checks hold; coverage: 330 training rows, 50 hold-out rows, 40 + 40 opening-week rows recomputed from the script's feature dump; the ratings themselves are not re-derived here

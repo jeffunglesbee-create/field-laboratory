@@ -1,0 +1,36 @@
+CONTROL  (nothing broken)
+  script exit 1; Python recomputation exit 0; red: 1 (expected: the 1 pre-registered finding, seen); unexpected red: 0
+CAUGHT      a training score changed (Liverpool 4-2 -> 4-3)
+    script exit 1, Python exit 0; new red checks: 5; expected red: 3, red as expected: 3
+CAUGHT      a hold-out score changed (the first archive row's home goals + 1)
+    script exit 1, Python exit 0; new red checks: 4; expected red: 2, red as expected: 2
+CAUGHT      a hold-out match deleted from the bundle
+    script exit 1, Python exit 0; new red checks: 7; expected red: 2, red as expected: 2
+CAUGHT      the first hold-out match dated before the training season ended
+    script exit 1, Python exit 0; new red checks: 3; expected red: 1, red as expected: 1
+CAUGHT      the model-as-function given a wrong draw base (x 1.01)
+    script exit 1, Python exit 1; new red checks: 9; expected red: 2, red as expected: 2
+CAUGHT      the table engine awards 2 points for a win
+    script exit 1, Python exit 1; new red checks: 4; expected red: 2, red as expected: 2
+CAUGHT      log loss taken on the wrong outcome
+    script exit 1, Python exit 1; new red checks: 14; expected red: 1, red as expected: 1
+CAUGHT      the fit minimises Brier instead of log loss (two optimisers, one wrong objective)
+    script exit 1, Python exit 1; new red checks: 12; expected red: 1, red as expected: 1
+CAUGHT      the optimiser returns its starting point
+    script exit 1, Python exit 1; new red checks: 11; expected red: 1, red as expected: 1
+CAUGHT      cross-validation trains on every row, its own test rows included
+    script exit 1, Python exit 1; new red checks: 7; expected red: 1, red as expected: 1
+CAUGHT      rule R1 compared the wrong way round
+    script exit 1, Python exit 0; new red checks: 13; expected red: 1, red as expected: 1
+CAUGHT      the paired z leaves out the square root of n
+    script exit 1, Python exit 1; new red checks: 3; expected red: 2, red as expected: 2
+CAUGHT      the hold-out is scored with table-v1's constants instead of S's
+    script exit 1, Python exit 1; new red checks: 2; expected red: 1, red as expected: 1
+CAUGHT      the selection picks the other candidate
+    script exit 1, Python exit 1; new red checks: 1; expected red: 1, red as expected: 1
+CAUGHT      the Newton slope solver has the wrong sign on its residual
+    script exit 1, Python exit 1; new red checks: 3; expected red: 1, red as expected: 1
+CAUGHT      the rule set takes clubs on >= 4 games, not >= 5
+    script exit 1, Python exit 0; new red checks: 1; expected red: 1, red as expected: 1
+
+16 of 16 mutations caught by the checks written to catch them (0 broken harness anchors); control as expected
