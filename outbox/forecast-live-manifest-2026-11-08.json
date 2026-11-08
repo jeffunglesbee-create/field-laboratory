@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-08",
+  "probedAt": "2026-11-08T18:12:32.860Z",
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "deployed": "d9554f312008e7f06acb54a9f458179648dd555c",
+  "verdict": "NOTHING-TO-JUDGE",
+  "judged": 0,
+  "numbers": 0,
+  "reasons": [
+    "no EPL card is Scheduled with its kickoff ahead"
+  ],
+  "standingsRequests": 1,
+  "standingsStatuses": [
+    200
+  ],
+  "standingsRoute": "https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings",
+  "errors": [],
+  "screenshot": "outbox/forecast-live-2026-11-08.png",
+  "cards": [
+    {
+      "teams": "Brighton v Brentford",
+      "status": "Final",
+      "market": "win prob — Brighton 52% · draw 25% · Brentford 23%",
+      "kind": "none",
+      "text": "",
+      "method": null
+    },
+    {
+      "teams": "C Palace v Liverpool",
+      "status": "Final",
+      "market": "win prob — C Palace 17% · draw 21% · Liverpool 62%",
+      "kind": "none",
+      "text": "",
+      "method": null
+    },
+    {
+      "teams": "Ipswich v Bournemouth",
+      "status": "Final",
+      "market": "win prob — Ipswich 27% · draw 26% · Bournemouth 48%",
+      "kind": "none",
+      "text": "",
+      "method": null
+    },
+    {
+      "teams": "Sunderland v Chelsea",
+      "status": "Final",
+      "market": "win prob — Sunderland 30% · draw 28% · Chelsea 43%",
+      "kind": "none",
+      "text": "",
+      "method": null
+    },
+    {
+      "teams": "Man Utd v Aston Villa",
+      "status": "Scheduled 2026-11-08T16:30Z (parsed 16:30)",
+      "market": "win prob — Man Utd 48% · draw 24% · Aston Villa 28%",
+      "kind": "none",
+      "text": "",
+      "method": null
+    }
+  ]
+}
