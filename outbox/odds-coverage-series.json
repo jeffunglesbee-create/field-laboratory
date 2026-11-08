@@ -2140,5 +2140,62 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-11-08",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-08",
+    "at": "2026-11-08T17:50:30.493Z",
+    "sports": {
+      "NBA": {
+        "rows": 7,
+        "withOdds": 7,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 6,
+        "withOdds": 6,
+        "withDraw": 0
+      },
+      "EPL": {
+        "rows": 5,
+        "withOdds": 5,
+        "withDraw": 5
+      },
+      "La Liga": {
+        "rows": 5,
+        "withOdds": 5,
+        "withDraw": 5
+      },
+      "Serie A": {
+        "rows": 5,
+        "withOdds": 5,
+        "withDraw": 5
+      },
+      "Bundesliga": {
+        "rows": 3,
+        "withOdds": 3,
+        "withDraw": 3
+      },
+      "Ligue 1": {
+        "rows": 6,
+        "withOdds": 6,
+        "withDraw": 6
+      },
+      "FA Cup": {
+        "rows": 4,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "NFL": {
+        "rows": 13,
+        "withOdds": 13,
+        "withDraw": 0
+      },
+      "golf": {
+        "rows": 2,
+        "withOdds": 0,
+        "withDraw": 0
+      }
+    }
   }
 ]
