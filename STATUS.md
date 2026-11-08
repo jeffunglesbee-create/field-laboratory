@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `f8df1b7` at "No check script kills itself mid-write" — 38 of 98 steps did not run behind it — [run 42506920189](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42506920189)
+**green** on `d9554f3`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `16fe4e9` — failing step unknown: the run's steps could not be read — [run 42507380715](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42507380715)
+`live-check` (post-deploy, against the deployed page): **running** on `d9554f3`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `19cc44b` — behind newest deployable `f8df1b7` (deploy not landed) |
+| Cloudflare Workers | live | `d9554f3` — newest deployable ✓ |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

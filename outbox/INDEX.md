@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d9554f3` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | fix: the forecast scripts end their self-tests with finish(), not process.exit |
+| `d9554f3` | 2026-11-08 | [forecast-verify-steps-local-2026-11-08.txt](forecast-verify-steps-local-2026-11-08.txt) | fix: the forecast scripts end their self-tests with finish(), not process.exit |
 | `932d67b` | 2026-11-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-08 [skip ci] |
 | `932d67b` | 2026-11-08 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-08 [skip ci] |
 | `932d67b` | 2026-11-08 | [sport-vocabulary-2026-11-08T17-51-39-559Z.json](sport-vocabulary-2026-11-08T17-51-39-559Z.json) | drift-sentinel: ok on 2026-11-08 [skip ci] |
