@@ -1,0 +1,114 @@
+openfootball 2025-26: 380 matches parsed, 380 replayed in date order; the model exists for 370, declines 10 (a club that had played nothing: all of them)
+outcomes: all 380 matches: home win 43%, draw 27%, away win 30%; the 370 the model forecasts: home win 42%, draw 27%, away win 30%; pre >= 5 (330): home win 42%, draw 27%, away win 31%
+
+"pre" = the fewer matches either club had played before this one. "base rate" = the in-sample home/draw/away frequencies of the same band, a constant forecast; it is a reference, not a rival.
+all matches the model forecasts          n 370 | Brier model 0.707 uniform 0.667 base rate 0.654 | model - uniform +0.041 +/- 0.030 | logloss model 1.214 uniform 1.099 | mean top-prob 67% top outcome happened 46%
+pre 1-4                                  n  40 | Brier model 0.860 uniform 0.667 base rate 0.646 | model - uniform +0.193 +/- 0.119 | logloss model 1.715 uniform 1.099 | mean top-prob 77% top outcome happened 45%
+pre 5-9                                  n  50 | Brier model 0.661 uniform 0.667 base rate 0.577 | model - uniform -0.006 +/- 0.086 | logloss model 1.127 uniform 1.099 | mean top-prob 71% top outcome happened 56%
+pre 10-19                                n 100 | Brier model 0.634 uniform 0.667 base rate 0.660 | model - uniform -0.032 +/- 0.052 | logloss model 1.063 uniform 1.099 | mean top-prob 66% top outcome happened 51%
+pre 20-37                                n 180 | Brier model 0.727 uniform 0.667 base rate 0.661 | model - uniform +0.060 +/- 0.040 | logloss model 1.211 uniform 1.099 | mean top-prob 64% top outcome happened 41%
+pre >= 5 (the sibling record's "GW6+")   n 330 | Brier model 0.689 uniform 0.667 base rate 0.655 | model - uniform +0.022 +/- 0.030 | logloss model 1.153 uniform 1.099 | mean top-prob 66% top outcome happened 46%
+pre >= 8 (the sibling record's "GW9+")   n 300 | Brier model 0.685 uniform 0.667 base rate 0.657 | model - uniform +0.019 +/- 0.031 | logloss model 1.144 uniform 1.099 | mean top-prob 65% top outcome happened 46%
+
+model home-win probability bins, matches where both clubs had played >=5 (the sibling's bins, same definition):
+  0   - 0.2 n  58 | mean predicted 12% | home actually won 19%
+  0.2 - 0.4 n  75 | mean predicted 29% | home actually won 35%
+  0.4 - 0.6 n  67 | mean predicted 50% | home actually won 43%
+  0.6 - 0.8 n  65 | mean predicted 69% | home actually won 57%
+  0.8 - 1   n  65 | mean predicted 87% | home actually won 55%
+same bins, every forecast match:
+  0   - 0.2 n  74 | mean predicted 11% | home actually won 23%
+  0.2 - 0.4 n  80 | mean predicted 29% | home actually won 36%
+  0.4 - 0.6 n  69 | mean predicted 50% | home actually won 43%
+  0.6 - 0.8 n  71 | mean predicted 69% | home actually won 58%
+  0.8 - 1   n  76 | mean predicted 87% | home actually won 53%
+
+calibration of the home-win probability, pre >= 5, n 330: slope b 0.41 +/- 0.09, intercept a -0.34 +/- 0.12   (calibrated = slope 1.00, intercept 0.00)
+same, every forecast match, n 370: slope b 0.29 +/- 0.07, intercept a -0.30 +/- 0.11
+
+independent JS recomputation vs compiled model: matches 370, max abs difference 0.00e+0; pre-match played-count agrees on 380 of 380
+
+ENGINE ORACLE, 2026-27 snapshot (87 day files): finished EPL matches replayed: 99; with a model: 89
+  0   - 0.2 n  12 | mean predicted 7% | home actually won 50%
+  0.2 - 0.4 n   9 | mean predicted 34% | home actually won 33%
+  0.4 - 0.6 n   7 | mean predicted 50% | home actually won 43%
+  0.6 - 0.8 n  11 | mean predicted 71% | home actually won 36%
+  0.8 - 1   n  10 | mean predicted 88% | home actually won 80%
+2026-27 snapshot, same calibration slope, pre >= 5, n 49: slope b 0.14 +/- 0.16, intercept a -0.02 +/- 0.29
+
+club pairing found by date and score (openfootball name -> FPL name), read it by eye:
+  Arsenal -> Arsenal
+  Aston Villa -> Aston Villa
+  Bournemouth -> Bournemouth
+  Brentford -> Brentford
+  Brighton & Hove Albion -> Brighton
+  Burnley -> Burnley
+  Chelsea FC -> Chelsea
+  Crystal Palace -> Crystal Palace
+  Everton -> Everton
+  Fulham -> Fulham
+  Leeds United -> Leeds
+  Liverpool -> Liverpool
+  Manchester City -> Man City
+  Manchester United -> Man Utd
+  Newcastle United -> Newcastle
+  Nottingham Forest -> Nott'm Forest
+  Sunderland -> Sunderland
+  Tottenham Hotspur -> Spurs
+  West Ham United -> West Ham
+  Wolverhampton Wanderers -> Wolves
+
+final 2025-26 table rebuilt from the results, matched to ESPN by (played, points, GF, GA):
+  Arsenal                    P 38 Pts 85 GF 71 GA 27   ESPN: Arsenal
+  Manchester City            P 38 Pts 78 GF 77 GA 35   ESPN: Man City
+  Manchester United          P 38 Pts 71 GF 69 GA 50   ESPN: Man Utd
+  Aston Villa                P 38 Pts 65 GF 56 GA 49   ESPN: Aston Villa
+  Liverpool                  P 38 Pts 60 GF 63 GA 53   ESPN: Liverpool
+  Bournemouth                P 38 Pts 57 GF 58 GA 54   ESPN: Bournemouth
+  Sunderland                 P 38 Pts 54 GF 42 GA 48   ESPN: Sunderland
+  Brighton & Hove Albion     P 38 Pts 53 GF 52 GA 46   ESPN: Brighton
+  Brentford                  P 38 Pts 53 GF 55 GA 52   ESPN: Brentford
+  Chelsea FC                 P 38 Pts 52 GF 58 GA 52   ESPN: Chelsea
+  Fulham                     P 38 Pts 52 GF 47 GA 51   ESPN: Fulham
+  Newcastle United           P 38 Pts 49 GF 53 GA 55   ESPN: Newcastle
+  Everton                    P 38 Pts 49 GF 47 GA 50   ESPN: Everton
+  Leeds United               P 38 Pts 47 GF 49 GA 56   ESPN: Leeds
+  Crystal Palace             P 38 Pts 45 GF 41 GA 51   ESPN: C Palace
+  Nottingham Forest          P 38 Pts 44 GF 48 GA 51   ESPN: Nottm Forest
+  Tottenham Hotspur          P 38 Pts 41 GF 48 GA 57   ESPN: Spurs
+  West Ham United            P 38 Pts 39 GF 46 GA 65   ESPN: West Ham
+  Burnley                    P 38 Pts 22 GF 38 GA 75   ESPN: Burnley
+  Wolverhampton Wanderers    P 38 Pts 20 GF 27 GA 68   ESPN: Wolves
+
+CHECKS
+PASS source openfootball is the pinned file (51782 bytes, sha256) [51782 B, 38c1de56c9e9b666]
+PASS openfootball: every non-blank line is a header, a date, a match or a scorer line 
+PASS openfootball: the header's 380 matches and 20 teams are what the file holds (380, 20) 
+PASS openfootball: every club has 38 matches, 19 home and 19 away 
+PASS openfootball: every ordered pair of clubs meets exactly once (380 distinct, none against itself) 
+PASS openfootball: 38 rounds of 10 
+PASS openfootball: every date header names its own weekday (114 of 114) 
+PASS openfootball: dates never go backwards, and run from the header's first day to its last [2025-08-15..2026-05-24]
+PASS openfootball: no club plays twice on one date (so order within a day cannot change a table) 
+PASS source espnFinal is the pinned file (69451 bytes, sha256) [69451 B, 53b071579c206763]
+PASS espn final 2025 table decodes with the card's decoder (Standings.fromString) 
+PASS espn final: 20 rows, 20 distinct (played, points, GF, GA) tuples, so a club is identified by its tuple and not by its name 
+PASS results-derived final table equals ESPN's, club by club (20 of 20 clubs on played, points, GF, GA) 
+PASS espn final: no club carries a points deduction, so points rebuilt from results are the official points 
+PASS source fplFixtures is the pinned file (1014129 bytes, sha256) [1014129 B, 2d7e3950d346df14]
+PASS source fplTeams is the pinned file (1744 bytes, sha256) [1744 B, b29df099cb0ad254]
+PASS fpl fixtures: 380 rows parsed (the stats column holds commas and quotes), all finished, all scores whole numbers 
+PASS fpl: the same multiset of (date, home goals, away goals) as openfootball (0 unequal groups) 
+PASS fpl: every one of 380 openfootball matches and every one of 380 FPL fixtures pairs one-to-one (380 pairs; 0 openfootball and 0 FPL left over) 
+PASS fpl: openfootball clubs and FPL teams map one-to-one, 20 of 20, with 0 conflicts 
+PASS fpl: paired fixtures agree on date, both scores and both clubs under the one mapping (380 of 380) 
+PASS the model declines only where a club has played nothing 
+PASS the four pre bands partition the forecast matches (40+50+100+180 = 370) 
+PASS slope: two unrelated solvers (damped Newton; golden-section over a bisection profile) agree to 1e-4 on slope and intercept, all finite, on both 2025-26 sets [max diff 3.2e-8]
+PASS the compiled model equals a plain-JS recomputation of its published constants, from tables rebuilt separately, on all 370 forecasts 
+PASS the engine's played-count before each match equals the separately rebuilt table's (380 of 380) 
+PASS oracle: 99 finished matches replayed and 89 forecast, as the sibling record says [99 / 89]
+PASS oracle: this engine prints the sibling record's five calibration bins to the digit 
+PASS oracle: the same two solvers agree on the 2026-27 sample's slope too, and every figure is finite [max diff 1.0e-8]
+
+29 of 29 checks hold; coverage: 1 season (380 matches), 1 oracle snapshot (99 matches), 3 independent sources read

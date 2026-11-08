@@ -62,6 +62,16 @@ document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
   (n = 47) its Brier score is 0.752 against the market's 0.572 and a uniform
   guess's 0.667; once every club has played eight (n = 19) it is 0.591 against
   0.571. Changing the model needs a new `METHOD_TAG` and a `ModelRevised` stamp.
+- **The overconfidence replicates on last season, 2026-11-08.** Last season's
+  results are fetchable (openfootball 2025-26, checked against ESPN's final table
+  and FPL's fixtures; the relay's archive holds 26 of the 380 matches). Replayed
+  over the 330 forecasts where both clubs had played five or more, table-v1
+  scores a Brier of 0.689 against a uniform guess's 0.667 (+0.022 ± 0.030), and
+  the calibration slope of its home-win probability is 0.41 ± 0.09 where 1.00 is
+  calibrated: it ranks matches, and its probabilities are about 2.4 times too
+  steep. Measurement only, nothing changed. Recorded in
+  `outbox/cc-session-2026-11-08-calibrate-prior-season.md`. Fitting is the next
+  step and waits for the owner.
 
 **Phase 2 input unblocked 2026-10-10:** the fbref xG this document records as
 empty and 3.5 months stale is no longer the only source. BSD serves per-event

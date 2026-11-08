@@ -1,0 +1,18 @@
+CONTROL  (nothing broken)
+  exit 0; 29 of 29 checks hold; coverage: 1 season (380 matches), 1 oracle snapshot (99 matches), 3 independent sources read; red: 0
+CAUGHT   one score changed (Liverpool 4-2 -> 4-3)
+    exit 1; red checks: 5; expected red: 2, red as expected: 2
+CAUGHT   a weekday name wrong (Sat Aug 16 -> Sun Aug 16)
+    exit 1; red checks: 3; expected red: 1, red as expected: 1
+CAUGHT   a matchday moved a week with its weekday kept (Sat Aug 16 -> Sat Aug 23)
+    exit 1; red checks: 6; expected red: 2, red as expected: 2
+CAUGHT   one match line deleted (Tottenham 3-0 Burnley)
+    exit 1; red checks: 9; expected red: 3, red as expected: 3
+CAUGHT   the plain-JS model given a wrong constant (draw base 0.28 -> 0.29)
+    exit 1; red checks: 1; expected red: 1, red as expected: 1
+CAUGHT   the replay engine awards 2 points for a win
+    exit 1; red checks: 2; expected red: 2, red as expected: 2
+CAUGHT   the Newton slope solver given the wrong sign on its residual
+    exit 1; red checks: 2; expected red: 1, red as expected: 1
+
+7 of 7 mutations caught by the checks written to catch them (0 broken harness anchors); control clean
