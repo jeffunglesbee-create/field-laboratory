@@ -12,6 +12,17 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `932d67b` | 2026-11-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-08 [skip ci] |
+| `932d67b` | 2026-11-08 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-08 [skip ci] |
+| `932d67b` | 2026-11-08 | [sport-vocabulary-2026-11-08T17-51-39-559Z.json](sport-vocabulary-2026-11-08T17-51-39-559Z.json) | drift-sentinel: ok on 2026-11-08 [skip ci] |
+| `f8df1b7` | 2026-11-08 | [forecast-card-pinned.png](forecast-card-pinned.png) | ci: keep the card forecast true (render check, pull-only guard, live probe, mutations) |
+| `f8df1b7` | 2026-11-08 | [forecast-mutation-2026-11-08.json](forecast-mutation-2026-11-08.json) | ci: keep the card forecast true (render check, pull-only guard, live probe, mutations) |
+| `91c17b4` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | feat: the model's forecast on an EPL card, table-v1, pull only |
+| `91c17b4` | 2026-11-08 | [forecast-backtest-2026-11-08.mjs](forecast-backtest-2026-11-08.mjs) | feat: the model's forecast on an EPL card, table-v1, pull only |
+| `91c17b4` | 2026-11-08 | [forecast-backtest-2026-11-08.txt](forecast-backtest-2026-11-08.txt) | feat: the model's forecast on an EPL card, table-v1, pull only |
+| `91c17b4` | 2026-11-08 | [forecast-premises-2026-11-08.mjs](forecast-premises-2026-11-08.mjs) | feat: the model's forecast on an EPL card, table-v1, pull only |
+| `91c17b4` | 2026-11-08 | [forecast-premises-2026-11-08.txt](forecast-premises-2026-11-08.txt) | feat: the model's forecast on an EPL card, table-v1, pull only |
+| `5df5314` | 2026-11-08 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-08T13:51 [skip ci] |
 | `ca8f971` | 2026-11-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-08 [skip ci] |
 | `ca8f971` | 2026-11-08 | [sport-vocabulary-2026-11-08T07-37-13-094Z.json](sport-vocabulary-2026-11-08T07-37-13-094Z.json) | drift-sentinel: ok on 2026-11-08 [skip ci] |
 | `6a21570` | 2026-11-07 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-07T22:16 [skip ci] |
