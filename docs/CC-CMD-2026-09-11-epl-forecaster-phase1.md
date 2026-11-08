@@ -53,8 +53,10 @@ document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
   the change record, any D1 write. A card with no price says nothing about why.
 - NOT yet seen on a live card: none can exist before 2026-11-21 (first kickoff
   12:30Z). The wiring is proved on the page pinned to the 2026-10-10 capture at a
-  fixed clock, which is hindsight by construction; the live proof is staged, with
-  its unblock criteria and exact verify command in the session document.
+  fixed clock, which is hindsight by construction, and again on the DEPLOYED page
+  (`outbox/forecast-deployed-wiring-2026-11-08.json`, verdict `WIRED`, commit
+  d9554f3); the live proof is staged, with its unblock criteria and exact verify
+  command in the session document.
 - **The model is overconfident.** table-v1's constants are declared priors and
   were not fitted. Replayed over the 99 finished 2026-27 matches, at GW6 onward
   (n = 47) its Brier score is 0.752 against the market's 0.572 and a uniform
