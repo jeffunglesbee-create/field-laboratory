@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-06T10:56:30.807Z",
+  "at": "2026-11-08T18:49:47.607Z",
   "scope": "full",
-  "ran": 88,
-  "from_mutations": 1139,
+  "ran": 92,
+  "from_mutations": 1194,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -357,22 +357,38 @@
     {
       "cmd": "node scripts/mutate-copy-check.mjs --only push-lands",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/forecast-render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-forecast-pull-only.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-forecast-pull-only.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/forecast-render-check.mjs --self-test",
+      "passed": true
     }
   ],
   "shards": {
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2004696,
-      2087022,
-      2372605,
-      2143688,
-      1722955,
-      2047022,
-      2143786,
-      2079472
+      2013566,
+      2238579,
+      2328251,
+      1806199,
+      2110276,
+      2330223,
+      2202881,
+      2357860
     ],
-    "longestMs": 2372605,
-    "sumMs": 16601246
+    "longestMs": 2357860,
+    "sumMs": 17387835
   }
 }
