@@ -117,3 +117,11 @@ node outbox/forecast-backtest-prior-season-mutation-2026-11-08.mjs src <2026-27 
 ```
 
 Without the second argument the script skips the oracle and says so in its last line. The ESPN file is the relay's answer today; if ESPN or the relay changes it, the hash check says so instead of the numbers drifting.
+
+## Landing
+
+- Commit `1d4a01f` on `main` (`git branch --show-current` = main), rebased onto two bot commits first. It changes `outbox/` and `docs/` only, so `verify` and `deploy` do not run on it, by design (`paths-ignore`).
+- `guards` run 42518573440 on `1d4a01f`: success, 19 of 19 steps.
+- Before the push, on the committed and rebased tree: the 13 steps `guards.yml` runs and 22 of `verify.yml`'s file-reading steps (`check:exit-drains`, `check:mutate-copy`, `check:import-purity`, `check:docs`, `check:citations`, `check:history`, `check:mutation-anchors` among them) were run with `bash -e`, and all passed. The `verify` steps that need a browser, a server or the network were not run here.
+- Done-condition probes, read from the committed files: `tail -1 outbox/forecast-backtest-prior-season-2026-11-08.txt` is `29 of 29 checks hold; coverage: 1 season (380 matches), 1 oracle snapshot (99 matches), 3 independent sources read`; `outbox/forecast-backtest-prior-season-mutation-2026-11-08.txt` ends `7 of 7 mutations caught by the checks written to catch them (0 broken harness anchors); control clean`.
+- Residual: nothing deferred. The licence and terms of the sources are a flag for a human, above. The fit is the owner's decision.
