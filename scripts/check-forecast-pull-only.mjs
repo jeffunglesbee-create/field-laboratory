@@ -205,7 +205,7 @@ if (SELF_TEST) {
   check('MUTATION: a renamed end marker is null, never an empty scan',
     sliceBetween(board.replace('end forecast line', 'end forecast row'), SCOREBOARD_FROM, SCOREBOARD_TO) === null)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }
 
 // --- live --------------------------------------------------------------------

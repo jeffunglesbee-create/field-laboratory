@@ -1,0 +1,51 @@
+# verify.yml's steps that the red run of f8df1b7 skipped, run locally. 2026-11-08, after the three-line fix to the exit sites and before the second push.
+#
+# WHAT: every `run:` block of the 38 steps GitHub marked skipped in verify run 42506920189 (40 skipped in all; the other 2 are the post-run cleanups
+#       of setup-node and setup-dotnet, which have no command). Each block executed with `bash -e` from the repo root, in verify.yml's order, 500 s cap each,
+#       PW_CHROMIUM=/opt/pw-browsers/chromium, scripts/serve.mjs already serving public/ on :8080 (step 49's own server start dropped for that reason).
+# TREE: f8df1b7 plus the fix (scripts/check-forecast-pull-only.mjs, scripts/forecast-live-probe.mjs, scripts/forecast-render-check.mjs), `npm run build` run first.
+# COVERAGE: 38 of 38 skipped `run:` steps. The step that failed, "No check script kills itself mid-write" (`npm run check:exit-drains`), was re-run on its own: 4 of 4.
+#           The 62 steps CI itself ran and passed are not re-run here; they are CI's record.
+# NOT PROVEN HERE: CI's own run of these 38 steps. The second push's verify run is that record.
+#
+# step  result  seconds  name
+ 36 ok     0.2s  The truncation probe can still tell the difference
+ 37 ok     0.2s  Lineups is pull only
+ 38 ok     0.4s  The lineups panel's own checks
+ 39 ok     0.1s  The lineup card's own checks
+ 40 ok     0.1s  The live-path lineup probe's own checks
+ 41 ok     8.0s  Lineups, on the rendered page
+ 43 ok     0.2s  The forecast is pull only, and takes no market price
+ 44 ok     0.5s  The forecast card's own checks
+ 45 ok     0.1s  The live-path forecast probe's own checks
+ 46 ok    14.1s  The forecast, on the rendered page
+ 49 ok     2.0s  A card with a brief flips to reveal it
+ 50 ok     3.8s  Pick'em — chips, grading, and the row that wraps in production
+ 51 ok     1.4s  The composite-score scan skips outlets and nothing else
+ 52 ok     0.2s  A score cannot say which rubric produced it
+ 53 ok     0.2s  One column, seven key spaces — the brief-to-game join
+ 54 ok     0.2s  No brief claims a scoreline its game could not have reached
+ 55 ok     0.5s  Every claim a document makes is still true
+ 56 ok     0.2s  Workflow jobs can run what they invoke
+ 57 ok     0.6s  No script a workflow depends on became unreachable
+ 58 ok     0.4s  The deploy-landed classifier discriminates
+ 59 ok    12.3s  The mutate scripts break a copy, never the tracked tree
+ 60 ok     0.2s  Gate inventory guard has teeth
+ 61 ok     0.2s  Game state at fixed instants
+ 62 ok     0.2s  Rows the desk cannot name
+ 63 ok     0.2s  The sport registry matches what production serves
+ 64 ok     1.2s  Doc citations are anchored, not just numbered
+ 65 ok     0.1s  No workflow installs a credential from a literal
+ 66 ok     0.4s  JQ prose dimensions agree with production
+ 67 ok     0.2s  The quality bar is on the scale the scorer can reach
+ 68 ok     0.2s  J-layer provenance, time anchoring, and the unexercised fallback
+ 69 ok     0.2s  The census script runs, against the corpus it captured
+ 70 ok     1.6s  The weather fan-out stays inside its burst bound
+ 71 ok     0.2s  FIELD-zone day checks
+ 72 ok     0.8s  The zone choice changes the slate (window simulation)
+ 73 ok     0.0s  The forecast store cannot overwrite an observation
+ 74 ok     1.4s  No value is written without being read back
+ 75 ok     0.8s  The F# suite, on the F# harness
+ 76 ok     1.8s  Games are separated from each other
+
+DONE: 38 of 38 steps passed locally; failing: []

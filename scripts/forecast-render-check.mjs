@@ -112,7 +112,7 @@ if (SELF_TEST) {
   check('three pinned strings, each distinct', new Set(Object.values(EXPECTED)).size === 3)
   check('only the two joined clubs carry a number', Object.values(EXPECTED).filter(t => /\d+%/.test(t)).length === 2)
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }
 
 // --- live --------------------------------------------------------------------

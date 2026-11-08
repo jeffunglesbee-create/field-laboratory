@@ -167,7 +167,7 @@ if (SELF_TEST) {
   check('the four states are told apart',
     ['Scheduled x', 'In progress', 'Final', 'Final / OT', 'Postponed'].map(stateOf).join() === 'scheduled,inprogress,final,final,other')
 
-  process.exit(summarize() === 0 ? 0 : 1)
+  finish(summarize())
 }
 
 // --- live --------------------------------------------------------------------

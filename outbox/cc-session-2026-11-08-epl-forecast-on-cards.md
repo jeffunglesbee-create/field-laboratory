@@ -89,6 +89,7 @@ What this means on the card. The CC-CMD warned that a model shown beside the mar
 3. **A stale comment in `src/Program.fs`** (`RELAY_DATE`) says the sandbox cannot reach `*.workers.dev`. On 2026-11-08 the sandbox's Chromium loaded the deployed page (`/version.txt`, HTTP 200) and `curl` through the agent proxy read the relay. Not edited.
 4. **The CC-CMD's `Paired` type and `whyNoMarket` (Rule 99) are Phase 2 and not built.** A card with no market price shows the model line and says nothing about why there is no price.
 5. **The CC-CMD's Status said `src/Forecast.fs` was 268 lines.** True on 2026-10-04, false now. The count is removed from the Status instead of replaced.
+6. **No command runs `verify.yml`'s steps before a push.** `check:exit-drains` is a `verify.yml` step and is in none of the pre-commit hook, `scripts/gate-checks.mjs`, `scripts/confidence.mjs` or `docs/gate-rows.txt` (`grep -c exit-drains` returns 0 for the first three; the rows file has no line naming it). This session's three new scripts therefore reached CI without it having run, and the first push went red (Landing, push 1). A failing step also hides every step after it: 38 `run:` steps, all four forecast steps among them, were skipped. Searched `docs/*.md` and `outbox/*.md` by content for a CC-CMD that covers running the job's steps locally ("every step of verify", "verify steps locally", "steps CI skipped"): none. Candidate, not built: a script that executes the `run:` blocks of `verify.yml` in order, which is what was done by hand for the 38 (`outbox/forecast-verify-steps-local-2026-11-08.txt`).
 
 ## Verified, and STAGED
 
@@ -103,6 +104,7 @@ Verified before the first commit, by command:
 | mutation | 55 of 55 `forecast-*` entries caught, 0 survived (`outbox/forecast-mutation-2026-11-08.json`) |
 | from-scratch rebuild | same build digest as the incremental one (`2cee36178917803e` both) |
 | local gate, the 22 rows other than mutation (`node scripts/run-row.mjs "<row>"`, one at a time on the final tree) | 22 of 22 pass, 0 to 47 seconds each. Two things failed first and only because this container's clone was shallow (50 commits): the history row (`1 pre-rule commit, declared 39`) and the history half of `check:citations`. After `git fetch --unshallow` (2,904 commits) the history row reads 39 of 39 and every citation check passes. |
+| every step of `verify.yml`, locally | NOT run before the first push: no command does it (Finding 6), and the first push went red. After it, the 38 `run:` steps that red run skipped were run locally: 38 of 38 pass (`outbox/forecast-verify-steps-local-2026-11-08.txt`, coverage stated in its header). CI's own run of them is the record. |
 | the mutation row, locally | not run (about 5.4 hours); `verify-full` runs the whole table on the pushed tree and its run id is recorded in the landing section |
 
 The mutation run found 4 survivors the first time (a missing away club not named, a case-insensitive join, an away deduction unchecked, an unclipped refusal), each a claim the Suite did not defend. Six Suite checks and four mutation entries now defend them and the home-side twins. The first run's baseline was red for the render check because the browser path was unset; 12 records from it did not count and were re-run with a green baseline (16 superseded records are listed in the JSON).
@@ -127,4 +129,16 @@ node scripts/serve.mjs &                                         # then:
 PW_CHROMIUM=/opt/pw-browsers/chromium node scripts/forecast-render-check.mjs   # 38 of 38
 npm run check:forecast-pull-only && npm run check:forecast-live
 node scripts/mutation-check.mjs --ids "$(grep -o 'id: "forecast-[a-z0-9-]*"' scripts/mutation-check.mjs | cut -d'"' -f2 | paste -sd, -)"
+npm run check:exit-drains                                        # 63 of 63 (budget 63); 66 is the red run
 ```
+
+## Landing
+
+### Push 1: 2026-11-08 17:50Z, `5df5314..f8df1b7` on `main` (91c17b4 the feature, f8df1b7 the checks). `verify` RED.
+
+- `guards` (run 42506920196): success.
+- `verify` (run 42506920189): failed at 17:55Z in its step "No check script kills itself mid-write" (`npm run check:exit-drains`): `early report exits: 66 (ratchet, budget 63)`.
+- **Cause, from the check's own list.** It names `scripts/check-forecast-pull-only.mjs:208`, `scripts/forecast-live-probe.mjs:170` and `scripts/forecast-render-check.mjs:115`. Each ended its `--self-test` block with `process.exit(summarize() === 0 ? 0 : 1)` and had the live half after it, which is what the ratchet counts (`docs/CC-CMD-2026-10-11-process-exit-drops-the-annotation.md`). 63 already budgeted plus these 3 is 66.
+- **Why it was not caught before the push.** Finding 6. The checks run beforehand were the Suite, the new scripts, the 22 non-mutation gate rows and the pre-commit hook; this step is in none of them.
+- **Fix.** The three lines became `finish(summarize())`. The budget stays 63: a ratchet that rises to fit a new script is not one. Nothing falls through into the live half: after each self-test block the only top-level statements are definitions and the `!SELF_TEST`-guarded live block (listed per file with `awk` before the edit). A failing self-test still exits 1: a mutated copy of each script, one passing check made false, exited 1 with exactly one FAIL (43/44, 24/25, 11/12); the copies were deleted. Then `check:exit-drains` 63 of 63 (4 of 4 checks) and the three self-tests 44/44, 25/25, 12/12.
+- **What the red run hid.** 38 `run:` steps skipped, all four forecast steps among them. Run locally before the second push, 38 of 38 pass: `outbox/forecast-verify-steps-local-2026-11-08.txt`.
