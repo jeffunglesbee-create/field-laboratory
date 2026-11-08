@@ -1,0 +1,1923 @@
+{
+ "fetchedAt": {
+  "dayFilesFirst": "2026-11-08T20:45:58.237Z",
+  "dayFilesLast": "2026-11-08T20:46:01.777Z",
+  "standingsNow": "2026-11-08T20:46:02.081Z",
+  "fplFixtures": "2026-11-08T20:47:28.245Z",
+  "openfootball2026": "2026-11-08T20:46:15.455Z"
+ },
+ "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+ "raw": {
+  "dayFiles": 87,
+  "dayFilesSha256": "439aec0464f63d0f7423edcef1bcc68451b5a1ed325dc02caf01bd27945fe08d",
+  "standingsNowSha256": "e83fbf2b9dc8c9164414f9794d902b65f7c8596789e09bf3cfa59669e874d6e9",
+  "fplFixturesSha256": "3b34a4b50853fb93f84e9defe9b50910f38fb808fae40507e297ff6146bdfd73",
+  "openfootball2026": {
+   "url": "https://raw.githubusercontent.com/openfootball/england/9ee7a0c351805c99cc334478a9bf04b7d0432fec/2026-27/1-premierleague.txt",
+   "sha256": "a2366ea9f7f55b8afd666e455666ba9019f9c62da8864f6bcf3adff65300b445"
+  }
+ },
+ "eplRows": 100,
+ "unmatchedNames": {
+  "Man United": 8
+ },
+ "archive": [
+  {
+   "id": "EPL_2026-08-21_arsenal_coventry",
+   "start": "2026-08-21T19:00Z",
+   "home": "Arsenal",
+   "away": "Coventry",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-08-22_hull_manunited",
+   "start": "2026-08-22T11:30Z",
+   "home": "Hull",
+   "away": "Man Utd",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-08-22_everton_cpalace",
+   "start": "2026-08-22T14:00Z",
+   "home": "Everton",
+   "away": "C Palace",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-08-22_ipswich_sunderland",
+   "start": "2026-08-22T14:00Z",
+   "home": "Ipswich",
+   "away": "Sunderland",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-08-22_nottmforest_leeds",
+   "start": "2026-08-22T14:00Z",
+   "home": "Nottm Forest",
+   "away": "Leeds",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-08-22_brentford_spurs",
+   "start": "2026-08-22T16:30Z",
+   "home": "Brentford",
+   "away": "Spurs",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-08-23_brighton_astonvilla",
+   "start": "2026-08-23T13:00Z",
+   "home": "Brighton",
+   "away": "Aston Villa",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-08-23_mancity_bournemouth",
+   "start": "2026-08-23T13:00Z",
+   "home": "Man City",
+   "away": "Bournemouth",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-08-23_newcastle_liverpool",
+   "start": "2026-08-23T15:30Z",
+   "home": "Newcastle",
+   "away": "Liverpool",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-08-24_fulham_chelsea",
+   "start": "2026-08-24T19:00Z",
+   "home": "Fulham",
+   "away": "Chelsea",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-08-28_cpalace_mancity",
+   "start": "2026-08-28T19:00Z",
+   "home": "C Palace",
+   "away": "Man City",
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "id": "EPL_2026-08-29_liverpool_nottmforest",
+   "start": "2026-08-29T11:30Z",
+   "home": "Liverpool",
+   "away": "Nottm Forest",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-08-29_bournemouth_everton",
+   "start": "2026-08-29T14:00Z",
+   "home": "Bournemouth",
+   "away": "Everton",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-08-29_coventry_hull",
+   "start": "2026-08-29T14:00Z",
+   "home": "Coventry",
+   "away": "Hull",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-08-29_spurs_newcastle",
+   "start": "2026-08-29T16:30Z",
+   "home": "Spurs",
+   "away": "Newcastle",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-08-30_chelsea_brighton",
+   "start": "2026-08-30T13:00Z",
+   "home": "Chelsea",
+   "away": "Brighton",
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-08-30_leeds_brentford",
+   "start": "2026-08-30T13:00Z",
+   "home": "Leeds",
+   "away": "Brentford",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-08-30_sunderland_fulham",
+   "start": "2026-08-30T13:00Z",
+   "home": "Sunderland",
+   "away": "Fulham",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-08-30_manunited_ipswich",
+   "start": "2026-08-30T15:30Z",
+   "home": "Man Utd",
+   "away": "Ipswich",
+   "hg": 5,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-08-31_astonvilla_arsenal",
+   "start": "2026-08-31T19:00Z",
+   "home": "Aston Villa",
+   "away": "Arsenal",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-04_e401879288",
+   "start": "2026-09-04T19:00Z",
+   "home": "Ipswich",
+   "away": "Liverpool",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-05_e401879286",
+   "start": "2026-09-05T11:30Z",
+   "home": "Newcastle",
+   "away": "Bournemouth",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-05_e401878780",
+   "start": "2026-09-05T14:00Z",
+   "home": "Nottm Forest",
+   "away": "Spurs",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-05_e401879287",
+   "start": "2026-09-05T14:00Z",
+   "home": "Man City",
+   "away": "Coventry",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-05_e401879289",
+   "start": "2026-09-05T14:00Z",
+   "home": "Fulham",
+   "away": "C Palace",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-09-05_e401879290",
+   "start": "2026-09-05T14:00Z",
+   "home": "Brighton",
+   "away": "Leeds",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-05_e401879311",
+   "start": "2026-09-05T14:00Z",
+   "home": "Brentford",
+   "away": "Sunderland",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-05_e401878781",
+   "start": "2026-09-05T16:30Z",
+   "home": "Hull",
+   "away": "Aston Villa",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-06_e401879291",
+   "start": "2026-09-06T13:00Z",
+   "home": "Everton",
+   "away": "Man Utd",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-06_e401879292",
+   "start": "2026-09-06T15:30Z",
+   "home": "Arsenal",
+   "away": "Chelsea",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-12_e401879279",
+   "start": "2026-09-12T14:00Z",
+   "home": "Liverpool",
+   "away": "Fulham",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-12_e401879281",
+   "start": "2026-09-12T14:00Z",
+   "home": "C Palace",
+   "away": "Ipswich",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-09-12_e401879283",
+   "start": "2026-09-12T14:00Z",
+   "home": "Chelsea",
+   "away": "Hull",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-12_e401879284",
+   "start": "2026-09-12T14:00Z",
+   "home": "Aston Villa",
+   "away": "Nottm Forest",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-12_e401879285",
+   "start": "2026-09-12T14:00Z",
+   "home": "Bournemouth",
+   "away": "Brentford",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-12_e401879277",
+   "start": "2026-09-12T16:30Z",
+   "home": "Spurs",
+   "away": "Everton",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-12_e401878779",
+   "start": "2026-09-12T19:00Z",
+   "home": "Sunderland",
+   "away": "Arsenal",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-09-13_e401879282",
+   "start": "2026-09-13T13:00Z",
+   "home": "Coventry",
+   "away": "Brighton",
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "id": "EPL_2026-09-13_e401879278",
+   "start": "2026-09-13T15:30Z",
+   "home": "Man Utd",
+   "away": "Man City",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-14_e401879280",
+   "start": "2026-09-14T19:00Z",
+   "home": "Leeds",
+   "away": "Newcastle",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-18_e401879275",
+   "start": "2026-09-18T19:00Z",
+   "home": "Brentford",
+   "away": "Chelsea",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-19_e401879269",
+   "start": "2026-09-19T11:30Z",
+   "home": "Spurs",
+   "away": "Aston Villa",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-09-19_e401878778",
+   "start": "2026-09-19T14:00Z",
+   "home": "Everton",
+   "away": "Ipswich",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-19_e401879271",
+   "start": "2026-09-19T14:00Z",
+   "home": "Newcastle",
+   "away": "Hull",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-19_e401879274",
+   "start": "2026-09-19T14:00Z",
+   "home": "Brighton",
+   "away": "Arsenal",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-19_e401879270",
+   "start": "2026-09-19T16:30Z",
+   "home": "Nottm Forest",
+   "away": "Coventry",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-20_e401879272",
+   "start": "2026-09-20T13:00Z",
+   "home": "Man City",
+   "away": "Sunderland",
+   "hg": 5,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-09-20_e401879273",
+   "start": "2026-09-20T13:00Z",
+   "home": "Leeds",
+   "away": "C Palace",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-09-20_e401879276",
+   "start": "2026-09-20T13:00Z",
+   "home": "Bournemouth",
+   "away": "Liverpool",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-09-20_e401878777",
+   "start": "2026-09-20T15:30Z",
+   "home": "Fulham",
+   "away": "Man Utd",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-10_e401879268",
+   "start": "2026-10-10T11:30Z",
+   "home": "Arsenal",
+   "away": "Leeds",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-10_e401878772",
+   "start": "2026-10-10T14:00Z",
+   "home": "Sunderland",
+   "away": "Brighton",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-10_e401878775",
+   "start": "2026-10-10T14:00Z",
+   "home": "Chelsea",
+   "away": "Bournemouth",
+   "hg": 5,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-10_e401878776",
+   "start": "2026-10-10T14:00Z",
+   "home": "Aston Villa",
+   "away": "Brentford",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-10_e401879265",
+   "start": "2026-10-10T14:00Z",
+   "home": "Ipswich",
+   "away": "Fulham",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-10_e401878773",
+   "start": "2026-10-10T16:30Z",
+   "home": "Man Utd",
+   "away": "Spurs",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-11_e401878774",
+   "start": "2026-10-11T13:00Z",
+   "home": "Hull",
+   "away": "Everton",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-11_e401879266",
+   "start": "2026-10-11T13:00Z",
+   "home": "C Palace",
+   "away": "Nottm Forest",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-11_e401879264",
+   "start": "2026-10-11T15:30Z",
+   "home": "Liverpool",
+   "away": "Man City",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-10-12_e401879267",
+   "start": "2026-10-12T19:00Z",
+   "home": "Coventry",
+   "away": "Newcastle",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-17_e401878771",
+   "start": "2026-10-17T11:30Z",
+   "home": "Everton",
+   "away": "Chelsea",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-17_e401878770",
+   "start": "2026-10-17T14:00Z",
+   "home": "Fulham",
+   "away": "Hull",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-17_e401879259",
+   "start": "2026-10-17T14:00Z",
+   "home": "Man City",
+   "away": "Ipswich",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-17_e401879262",
+   "start": "2026-10-17T14:00Z",
+   "home": "Brentford",
+   "away": "Liverpool",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-17_e401879258",
+   "start": "2026-10-17T16:30Z",
+   "home": "Newcastle",
+   "away": "Aston Villa",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-18_e401879260",
+   "start": "2026-10-18T13:00Z",
+   "home": "Leeds",
+   "away": "Man Utd",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-18_e401879261",
+   "start": "2026-10-18T13:00Z",
+   "home": "Brighton",
+   "away": "C Palace",
+   "hg": 5,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-18_e401879263",
+   "start": "2026-10-18T13:00Z",
+   "home": "Bournemouth",
+   "away": "Sunderland",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-18_e401878769",
+   "start": "2026-10-18T15:30Z",
+   "home": "Nottm Forest",
+   "away": "Arsenal",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-19_e401879257",
+   "start": "2026-10-19T19:00Z",
+   "home": "Spurs",
+   "away": "Coventry",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-23_e401879253",
+   "start": "2026-10-23T19:00Z",
+   "home": "Ipswich",
+   "away": "Nottm Forest",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-24_e401879256",
+   "start": "2026-10-24T11:30Z",
+   "home": "Aston Villa",
+   "away": "Man City",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-24_e401878768",
+   "start": "2026-10-24T14:00Z",
+   "home": "Arsenal",
+   "away": "Everton",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-24_e401879255",
+   "start": "2026-10-24T14:00Z",
+   "home": "Coventry",
+   "away": "Fulham",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-24_e401878767",
+   "start": "2026-10-24T16:30Z",
+   "home": "Chelsea",
+   "away": "Spurs",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-25_e401878765",
+   "start": "2026-10-25T14:00Z",
+   "home": "Liverpool",
+   "away": "Brighton",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-25_e401878766",
+   "start": "2026-10-25T14:00Z",
+   "home": "Hull",
+   "away": "Brentford",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-25_e401879252",
+   "start": "2026-10-25T14:00Z",
+   "home": "Man Utd",
+   "away": "Bournemouth",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-10-25_e401879254",
+   "start": "2026-10-25T14:00Z",
+   "home": "C Palace",
+   "away": "Newcastle",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-25_e401878764",
+   "start": "2026-10-25T16:30Z",
+   "home": "Sunderland",
+   "away": "Leeds",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-31_e401879248",
+   "start": "2026-10-31T12:30Z",
+   "home": "Chelsea",
+   "away": "Man Utd",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-31_e401878763",
+   "start": "2026-10-31T15:00Z",
+   "home": "Hull",
+   "away": "Ipswich",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-10-31_e401879245",
+   "start": "2026-10-31T15:00Z",
+   "home": "Man City",
+   "away": "Brighton",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-31_e401879247",
+   "start": "2026-10-31T15:00Z",
+   "home": "Coventry",
+   "away": "Sunderland",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-10-31_e401879249",
+   "start": "2026-10-31T15:00Z",
+   "home": "Brentford",
+   "away": "Nottm Forest",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-31_e401879251",
+   "start": "2026-10-31T15:00Z",
+   "home": "Bournemouth",
+   "away": "Leeds",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-31_e401878761",
+   "start": "2026-10-31T17:30Z",
+   "home": "Spurs",
+   "away": "C Palace",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-10-31_e401879250",
+   "start": "2026-10-31T20:00Z",
+   "home": "Aston Villa",
+   "away": "Fulham",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-11-01_e401879246",
+   "start": "2026-11-01T16:30Z",
+   "home": "Liverpool",
+   "away": "Arsenal",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-11-02_e401878762",
+   "start": "2026-11-02T20:00Z",
+   "home": "Newcastle",
+   "away": "Everton",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-11-06_e401879242",
+   "start": "2026-11-06T20:00Z",
+   "home": "Everton",
+   "away": "Coventry",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-11-07_e401878758",
+   "start": "2026-11-07T12:30Z",
+   "home": "Leeds",
+   "away": "Spurs",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-11-07_e401878760",
+   "start": "2026-11-07T15:00Z",
+   "home": "Arsenal",
+   "away": "Hull",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-11-07_e401879241",
+   "start": "2026-11-07T15:00Z",
+   "home": "Fulham",
+   "away": "Newcastle",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-11-07_e401878757",
+   "start": "2026-11-07T17:30Z",
+   "home": "Nottm Forest",
+   "away": "Man City",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "id": "EPL_2026-11-08_e401878759",
+   "start": "2026-11-08T14:00Z",
+   "home": "Ipswich",
+   "away": "Bournemouth",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "id": "EPL_2026-11-08_e401879239",
+   "start": "2026-11-08T14:00Z",
+   "home": "Sunderland",
+   "away": "Chelsea",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-11-08_e401879243",
+   "start": "2026-11-08T14:00Z",
+   "home": "C Palace",
+   "away": "Liverpool",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "id": "EPL_2026-11-08_e401879244",
+   "start": "2026-11-08T14:00Z",
+   "home": "Brighton",
+   "away": "Brentford",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "id": "EPL_2026-11-08_e401879240",
+   "start": "2026-11-08T16:30Z",
+   "home": "Man Utd",
+   "away": "Aston Villa",
+   "hg": 4,
+   "ag": 4
+  }
+ ],
+ "standings": [
+  {
+   "team": "Arsenal",
+   "played": 10,
+   "points": 27,
+   "gf": 15,
+   "ga": 5,
+   "deductions": 0
+  },
+  {
+   "team": "Brighton",
+   "played": 10,
+   "points": 22,
+   "gf": 26,
+   "ga": 7,
+   "deductions": 0
+  },
+  {
+   "team": "Man City",
+   "played": 10,
+   "points": 21,
+   "gf": 21,
+   "ga": 13,
+   "deductions": 0
+  },
+  {
+   "team": "Liverpool",
+   "played": 10,
+   "points": 18,
+   "gf": 14,
+   "ga": 10,
+   "deductions": 0
+  },
+  {
+   "team": "Chelsea",
+   "played": 10,
+   "points": 16,
+   "gf": 19,
+   "ga": 16,
+   "deductions": 0
+  },
+  {
+   "team": "Everton",
+   "played": 10,
+   "points": 16,
+   "gf": 12,
+   "ga": 10,
+   "deductions": 0
+  },
+  {
+   "team": "Bournemouth",
+   "played": 10,
+   "points": 15,
+   "gf": 16,
+   "ga": 14,
+   "deductions": 0
+  },
+  {
+   "team": "Brentford",
+   "played": 10,
+   "points": 14,
+   "gf": 16,
+   "ga": 11,
+   "deductions": 0
+  },
+  {
+   "team": "Leeds",
+   "played": 10,
+   "points": 14,
+   "gf": 10,
+   "ga": 8,
+   "deductions": 0
+  },
+  {
+   "team": "Aston Villa",
+   "played": 10,
+   "points": 13,
+   "gf": 14,
+   "ga": 17,
+   "deductions": 0
+  },
+  {
+   "team": "Spurs",
+   "played": 10,
+   "points": 12,
+   "gf": 10,
+   "ga": 11,
+   "deductions": 0
+  },
+  {
+   "team": "Newcastle",
+   "played": 10,
+   "points": 12,
+   "gf": 13,
+   "ga": 16,
+   "deductions": 0
+  },
+  {
+   "team": "Hull",
+   "played": 10,
+   "points": 11,
+   "gf": 11,
+   "ga": 11,
+   "deductions": 0
+  },
+  {
+   "team": "Ipswich",
+   "played": 10,
+   "points": 11,
+   "gf": 15,
+   "ga": 20,
+   "deductions": 0
+  },
+  {
+   "team": "Fulham",
+   "played": 10,
+   "points": 10,
+   "gf": 10,
+   "ga": 12,
+   "deductions": 0
+  },
+  {
+   "team": "Nottm Forest",
+   "played": 10,
+   "points": 9,
+   "gf": 9,
+   "ga": 13,
+   "deductions": 0
+  },
+  {
+   "team": "Coventry",
+   "played": 10,
+   "points": 9,
+   "gf": 10,
+   "ga": 19,
+   "deductions": 0
+  },
+  {
+   "team": "Man Utd",
+   "played": 10,
+   "points": 8,
+   "gf": 14,
+   "ga": 19,
+   "deductions": 0
+  },
+  {
+   "team": "Sunderland",
+   "played": 10,
+   "points": 8,
+   "gf": 8,
+   "ga": 17,
+   "deductions": 0
+  },
+  {
+   "team": "C Palace",
+   "played": 10,
+   "points": 7,
+   "gf": 10,
+   "ga": 24,
+   "deductions": 0
+  }
+ ],
+ "fplCounts": {
+  "fixtures": 380,
+  "finished": 90,
+  "finishedProvisional": 100,
+  "bothScores": 100
+ },
+ "fplFinished": [
+  {
+   "date": "2026-08-21",
+   "h": 1,
+   "a": 7,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-22",
+   "h": 11,
+   "a": 16,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-22",
+   "h": 9,
+   "a": 8,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-22",
+   "h": 12,
+   "a": 20,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-22",
+   "h": 18,
+   "a": 13,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-22",
+   "h": 4,
+   "a": 19,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-23",
+   "h": 5,
+   "a": 2,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-23",
+   "h": 15,
+   "a": 3,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-23",
+   "h": 17,
+   "a": 14,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-24",
+   "h": 10,
+   "a": 6,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-08-28",
+   "h": 8,
+   "a": 15,
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "date": "2026-08-29",
+   "h": 14,
+   "a": 18,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-29",
+   "h": 3,
+   "a": 9,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-29",
+   "h": 7,
+   "a": 11,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-29",
+   "h": 19,
+   "a": 17,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-30",
+   "h": 6,
+   "a": 5,
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "date": "2026-08-30",
+   "h": 13,
+   "a": 4,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-30",
+   "h": 20,
+   "a": 10,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-30",
+   "h": 16,
+   "a": 12,
+   "hg": 5,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-31",
+   "h": 2,
+   "a": 1,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-04",
+   "h": 12,
+   "a": 14,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-05",
+   "h": 17,
+   "a": 3,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-05",
+   "h": 4,
+   "a": 20,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-05",
+   "h": 5,
+   "a": 13,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-05",
+   "h": 10,
+   "a": 8,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-05",
+   "h": 15,
+   "a": 7,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-05",
+   "h": 18,
+   "a": 19,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-05",
+   "h": 11,
+   "a": 2,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-06",
+   "h": 9,
+   "a": 16,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-06",
+   "h": 1,
+   "a": 6,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-12",
+   "h": 2,
+   "a": 18,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-12",
+   "h": 3,
+   "a": 4,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-12",
+   "h": 6,
+   "a": 11,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-12",
+   "h": 8,
+   "a": 12,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-12",
+   "h": 14,
+   "a": 10,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-12",
+   "h": 19,
+   "a": 9,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-12",
+   "h": 20,
+   "a": 1,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-13",
+   "h": 7,
+   "a": 5,
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "date": "2026-09-13",
+   "h": 16,
+   "a": 15,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-14",
+   "h": 13,
+   "a": 17,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-18",
+   "h": 4,
+   "a": 6,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-19",
+   "h": 19,
+   "a": 2,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-19",
+   "h": 5,
+   "a": 1,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-19",
+   "h": 9,
+   "a": 12,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-19",
+   "h": 17,
+   "a": 11,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-19",
+   "h": 18,
+   "a": 7,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-20",
+   "h": 3,
+   "a": 14,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-20",
+   "h": 13,
+   "a": 8,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-20",
+   "h": 15,
+   "a": 20,
+   "hg": 5,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-20",
+   "h": 10,
+   "a": 16,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-10",
+   "h": 1,
+   "a": 13,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-10",
+   "h": 2,
+   "a": 4,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-10",
+   "h": 6,
+   "a": 3,
+   "hg": 5,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-10",
+   "h": 12,
+   "a": 10,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-10",
+   "h": 20,
+   "a": 5,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-10",
+   "h": 16,
+   "a": 19,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-11",
+   "h": 8,
+   "a": 18,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-11",
+   "h": 11,
+   "a": 9,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-11",
+   "h": 14,
+   "a": 15,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2026-10-12",
+   "h": 7,
+   "a": 17,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-17",
+   "h": 9,
+   "a": 6,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-17",
+   "h": 4,
+   "a": 14,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-17",
+   "h": 10,
+   "a": 11,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-17",
+   "h": 15,
+   "a": 12,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-17",
+   "h": 17,
+   "a": 2,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-18",
+   "h": 3,
+   "a": 20,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-18",
+   "h": 5,
+   "a": 8,
+   "hg": 5,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-18",
+   "h": 13,
+   "a": 16,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-18",
+   "h": 18,
+   "a": 1,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-19",
+   "h": 19,
+   "a": 7,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-23",
+   "h": 12,
+   "a": 18,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-24",
+   "h": 2,
+   "a": 15,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-24",
+   "h": 1,
+   "a": 9,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-24",
+   "h": 7,
+   "a": 10,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-24",
+   "h": 6,
+   "a": 19,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-25",
+   "h": 8,
+   "a": 17,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-25",
+   "h": 11,
+   "a": 4,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-25",
+   "h": 14,
+   "a": 5,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-25",
+   "h": 16,
+   "a": 3,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2026-10-25",
+   "h": 20,
+   "a": 13,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-31",
+   "h": 6,
+   "a": 16,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-31",
+   "h": 3,
+   "a": 13,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-31",
+   "h": 4,
+   "a": 18,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-31",
+   "h": 7,
+   "a": 20,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-31",
+   "h": 11,
+   "a": 12,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-10-31",
+   "h": 15,
+   "a": 5,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-10-31",
+   "h": 19,
+   "a": 8,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-10-31",
+   "h": 2,
+   "a": 10,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-11-01",
+   "h": 14,
+   "a": 1,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-11-02",
+   "h": 17,
+   "a": 9,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-11-06",
+   "h": 9,
+   "a": 7,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2026-11-07",
+   "h": 13,
+   "a": 19,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-11-07",
+   "h": 1,
+   "a": 11,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-11-07",
+   "h": 10,
+   "a": 17,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-11-07",
+   "h": 18,
+   "a": 15,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2026-11-08",
+   "h": 5,
+   "a": 4,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-11-08",
+   "h": 8,
+   "a": 14,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2026-11-08",
+   "h": 12,
+   "a": 3,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2026-11-08",
+   "h": 20,
+   "a": 6,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-11-08",
+   "h": 16,
+   "a": 2,
+   "hg": 4,
+   "ag": 4
+  }
+ ],
+ "openfootballScored": [
+  {
+   "date": "2026-08-21",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-22",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-22",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-22",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-22",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-22",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-23",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-23",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-23",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-24",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-08-28",
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "date": "2026-08-29",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-29",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-29",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-29",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-30",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-08-30",
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "date": "2026-08-30",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-08-30",
+   "hg": 5,
+   "ag": 2
+  },
+  {
+   "date": "2026-08-31",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-04",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-05",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-05",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-05",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-05",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-05",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-06",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-06",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-12",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-12",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-12",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-12",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-12",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2026-09-13",
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "date": "2026-09-13",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-14",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-18",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-19",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-19",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-19",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2026-09-19",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-19",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-20",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2026-09-20",
+   "hg": 5,
+   "ag": 3
+  },
+  {
+   "date": "2026-09-20",
+   "hg": 1,
+   "ag": 1
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+training: 380 matches, 370 forecastable, 330 with both clubs on >= 5 games (fit set), 40 opening-week
+hold-out: 100 matches, 90 forecastable, 50 with both clubs on >= 5 games (rule set), 40 opening-week
+the parametrised model at table-v1's constants vs the compiled model: 460 forecasts, max abs difference 0.00e+0
+
+CHECKS (data only: no candidate has been fitted or scored)
+PASS verdict logic: a candidate that meets every rule ships 
+PASS verdict logic: R1 (z -1.6) alone vetoes, and says so [R1 hold-out paired z -1.60 is not <= -1.645]
+PASS verdict logic: R1 exactly at its threshold still ships 
+PASS verdict logic: R2 (z -1.9) alone vetoes, and says so [R2 cross-validated z against a uniform guess -1.90 is not <= -2]
+PASS verdict logic: R3 (z -2.9) alone vetoes, and says so [R3 cross-validated paired z -2.90 is not <= -3]
+PASS verdict logic: R4 (opening weeks worse last season) alone vetoes, and says so [R4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: R4 (opening weeks worse this season) alone vetoes, and says so [R4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: R5 (slope 0.6, SE 0.2) alone vetoes, and says so [R5 cross-validated slope 0.60 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: R5 (slope 1.5, SE 0.2) alone vetoes, and says so [R5 cross-validated slope 1.50 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: R5 just inside its band (slope 1.39, SE 0.2) still ships 
+PASS verdict logic: R6 alone vetoes, and says so [R6 the fit is not well posed]
+PASS verdict logic: R7 alone vetoes, and says so [R7 an integrity check failed]
+PASS verdict logic: a NaN z alone vetoes, and says so [R1 hold-out paired z NaN is not <= -1.645]
+PASS verdict logic: a NaN slope alone vetoes, and says so [R5 cross-validated slope NaN (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS precondition: the prior-season script, run on these sources, exits 0 with no red check [26 of 26 checks hold; coverage: 1 season (380 matches), no o]
+PASS source openfootball is the pinned file (51782 bytes, sha256) [51782 B, 38c1de56c9e9b666]
+PASS training: the file parses clean, 380 matches, dates 2025-08-15..2026-05-24 
+PASS source espnFinal is the pinned file (69451 bytes, sha256) [69451 B, 53b071579c206763]
+PASS training: the final table the results make equals ESPN's, club by club (20 of 20 on played, points, GF, GA) 
+PASS training: no club carries a deduction 
+PASS hold-out: 100 finished matches, 100 EPL rows in the archive, none unfinished 
+PASS hold-out: the archive's finished count equals ESPN's played count for 20 of 20 clubs, and the clubs are the same 20 
+PASS hold-out: the table the results make equals ESPN's current table (20 of 20 clubs on played, points, GF, GA); no deductions 
+PASS hold-out: FPL's played fixtures are exactly its scored ones (100 provisional-or-final, 100 with both scores; 90 of them final, the rest in the latest matchweek) 
+PASS hold-out: the relay's FPL fixtures hold the same 100 played matches by date and score (0 unequal groups), pairing one-to-one (100 pairs; 0 archive and 0 FPL left over), clubs mapping 20 of 20 with 0 conflicts 
+PASS hold-out: openfootball's 45 scored lines for 2026-27 are each an archive match on date and score (45 of 45); it has no later results to check 
+PASS hold-out: it begins after the training season ended (the seasons do not overlap) 
+PASS hold-out: no club plays twice on one date, so order within a day cannot change a table 
+PASS hold-out: before normalising, the only archive name the ESPN table does not carry is "Man United" ({"Man United":8}); after it, every archive club is one of the table's 20 
+PASS the parametrised model at the declared constants equals the compiled model on all 460 forecasts of both seasons 
+PASS table-v1 on the training set reproduces the earlier record: n 330, Brier 0.689 [330, 0.689]
+PASS table-v1 on the first 99 hold-out matches reproduces the 2026-27 record's five bins to the digit 
+
+32 of 32 checks hold; coverage: training 380 matches loaded, hold-out 100 matches loaded from a raw directory, 4 hold-out sources cross-checked
