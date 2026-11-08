@@ -414,6 +414,41 @@ game could not form a curve at all.
 the deployed site, fetched by a browser only when that section is opened.
 
 
+
+## `standings-eng1-2026-11-08.json`
+
+```
+GET https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings
+→ 200 application/json, 68,894 bytes
+date: Sun, 08 Nov 2026 16:33:04 GMT   last-modified: Sun, 08 Nov 2026 16:32:57 GMT
+cf-cache-status: HIT   age: 7   cache-control: public, max-age=900
+access-control-allow-origin: *
+sha256 4eebdf2a77497111bea9f4fc748e9d9bf87ab29e863ee0232d0ac75a5f8e4a7b
+```
+
+The response body, byte for byte, taken with `curl` from the authoring sandbox
+and copied unedited (the sha256 above is the same for the captured file and the
+committed one). There is no capture script: nothing refreshes this file, and
+nothing should — it is the table a PINNED page reads, so the render checks and
+the suite stay free of a network request (`standingsUrl` in `src/Program.fs`).
+A live page reads the relay and never this file.
+
+**What it holds, measured 2026-11-08.** One standings group of 20 entries; each
+has `team.shortDisplayName`, `team.abbreviation` and the stats `gamesPlayed`,
+`points`, `pointsFor`, `pointsAgainst`, `deductions` (`pointsFor` and
+`pointsAgainst` are goals for and against, ESPN's generic names for a soccer
+table). `gamesPlayed` runs 9 to 10 (198 in all, i.e. 99 matches), no club carries
+a deduction, and "Man Utd" is spelled that way (the archive spelled it "Man
+United" in eight rows before 2026-10-31).
+
+**What it is for, and what it is not.** It proves the decoder against a real
+payload and feeds the model's forecast on EPL cards (`src/Standings.fs`,
+`src/CardForecast.fs`). It is NOT a table as of any slate it is pinned beside:
+the 2026-10-10 capture and this one are four weeks apart, so a card of that
+capture flipped to Scheduled is scored against a table that already contains its
+result. That is hindsight, it says nothing about the model's accuracy, and every
+check that uses the pair says so (`scripts/forecast-render-check.mjs`).
+
 - `context-2026-10-10.json` — captured 2026-10-28 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-10` by `scripts/capture-render-fixture.mjs`. 125 rows, 13 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NBA, NHL, PGA Tour, Serie A, golf. Unedited — a hand-modified fixture is an invented one.
 
 - `context-2026-10-10.json` — captured 2026-10-28 from `https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-10-10` by `scripts/capture-render-fixture.mjs`. 125 rows, 13 sports: Bundesliga, CFB, CFL, EPL, La Liga, Ligue 1, MLB, MLS, NBA, NHL, PGA Tour, Serie A, golf. Unedited — a hand-modified fixture is an invented one.

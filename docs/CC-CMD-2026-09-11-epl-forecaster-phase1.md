@@ -10,8 +10,8 @@ market-implied one. **Rule A (autonomous push) is NOT cleared** and is out of
 scope — pull-only, rendered on request. If the design drifts toward notification
 or badge-on-change, stop and report.
 
-**Status:** PARTIAL. Phase 1 BUILT 2026-10-03/04 — `src/Forecast.fs` (268 lines:
-`NoForecastReason`, `ModelledForecast`, `threeWayFrom`, `forecastFor`,
+**Status:** PARTIAL. Phase 1 BUILT 2026-10-03/04 — `src/Forecast.fs`
+(`NoForecastReason`, `ModelledForecast`, `threeWayFrom`, `forecastFor`,
 `METHOD = "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"`) and
 `scripts/forecast-run.mjs`, recorded in
 `outbox/cc-session-2026-10-03-epl-forecaster-phase1.md` and
@@ -33,6 +33,33 @@ only ever dry-run. No observation has been stored unless someone dispatched it
 manually with `write: true`. The workflow states the intent: "cron cannot start
 writing the day the allow-list entry lands without someone deciding it should."
 That decision is the owner's and is the gate on closing this document.
+
+**On a card, 2026-11-08.** The modelled forecast is drawn on a lab EPL card: one
+line under the market line, `model table-v1 — Arsenal 94% · draw 4% · Spurs 2%`
+(`src/CardForecast.fs`, `src/Standings.fs`). That is the pull-only render the
+Rule F ruling above clears. It is not the record and it does not close this
+document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
+
+- Drawn only while it is not hindsight: an EPL card, `Scheduled`, kickoff ahead.
+  The served table already holds a match the moment it ends (20 of 20 clubs
+  equal the archive's finished count), and `Desk.gameStateAt` reads an unscored
+  row as `Scheduled` while it is in play (Man Utd v Aston Villa, 45 minutes in).
+  A card that should carry a forecast and cannot says why, in a sentence.
+- The ruling is structural: `lineFor` takes no market price, and
+  `npm run check:forecast-pull-only` fails on a timer, a second effect, a market
+  field or a word for a gap. Both lines are drawn independently, and the model
+  line reads the same whether the numbers agree or not.
+- NOT built, and still Phase 2's: the `Paired` type and `whyNoMarket` (Rule 99),
+  the change record, any D1 write. A card with no price says nothing about why.
+- NOT yet seen on a live card: none can exist before 2026-11-21 (first kickoff
+  12:30Z). The wiring is proved on the page pinned to the 2026-10-10 capture at a
+  fixed clock, which is hindsight by construction; the live proof is staged, with
+  its unblock criteria and exact verify command in the session document.
+- **The model is overconfident.** table-v1's constants are declared priors and
+  were not fitted. Replayed over the 99 finished 2026-27 matches, at GW6 onward
+  (n = 47) its Brier score is 0.752 against the market's 0.572 and a uniform
+  guess's 0.667; once every club has played eight (n = 19) it is 0.591 against
+  0.571. Changing the model needs a new `METHOD_TAG` and a `ModelRevised` stamp.
 
 **Phase 2 input unblocked 2026-10-10:** the fbref xG this document records as
 empty and 3.5 months stale is no longer the only source. BSD serves per-event

@@ -33,6 +33,12 @@ let private FALLBACK = "./data/context-2026-05-15.json"
 /// Fetched separately and allowed to fail on its own.
 let private RELAY_PICK = "https://field-relay-nba.jeffunglesbee.workers.dev/analytics/newspaper/"
 
+/// The EPL table the model reads. The relay's ESPN standings route, probed
+/// 2026-11-08: `access-control-allow-origin: *`, cached 15 minutes at the edge,
+/// 20 entries. Read by the page directly — no hop, no relay change — and asked
+/// for once per slate that has an EPL card on it.
+let private RELAY_STANDINGS = "https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings"
+
 /// Reads a query parameter, or None. Deliberately not URLSearchParams — this
 /// keeps the query handling in one place and identical across the params.
 let private queryParam (name: string) =
@@ -84,6 +90,17 @@ let private dataUrl () =
     match queryParam "data" with
     | Some name -> sprintf "./data/%s.json" name
     | None -> RELAY_DATE + viewedDate ()
+
+/// Where the table comes from. A page pinned to `?data=` renders a committed
+/// capture and must not reach the network — that is what keeps every render
+/// check free of a third-party request — so it reads the committed table, taken
+/// through the route above (`data/PROVENANCE.md` records when). A live page reads
+/// the relay, and NEVER falls back to the committed table: a failed live request
+/// is a named refusal on the card, not last week's standings under today's date.
+let private standingsUrl () =
+    match queryParam "data" with
+    | Some _ -> "./data/standings-eng1-2026-11-08.json"
+    | None -> RELAY_STANDINGS
 
 /// Fetches text, returning the failure as a value rather than throwing. A
 /// rejected promise here would take the whole render down, which is precisely
@@ -429,11 +446,39 @@ let private start () =
                     | Present rows -> rows
                     | Absent | EmptyOrFailed -> []
 
+                // ── Standings request ───────────────────────────────────────────
+                // docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md. PULL ONLY
+                // (ADR-002 Rule A): `scripts/check-forecast-pull-only.mjs` reads
+                // this region by its markers and fails if a timer, a socket, a
+                // listener, a second request or a push API appears in it.
+                //
+                // The standings, as ONE signal for the whole slate. Created here
+                // rather than per card so thirty EPL cards are one request, and
+                // outside the root because a signal owns no effect: the cards'
+                // effects, made inside it, are what the root disposes.
+                let table, setTable = Solid.createSignal CardForecast.Pending
+
                 Solid.createRoot (fun dispose ->
                     disposeRoot <- Some(fun () -> dispose.Invoke())
-                    let setters = Scoreboard.renderSlate mount games briefs
+                    let setters = Scoreboard.renderSlate mount games briefs table
                     if window.location.search.Contains "simulate=1" then
                         exposeForTesting setters)
+
+                // The model's forecast needs the table; nothing else on the page
+                // does, so a slate with no EPL card spends no request. ONE request,
+                // made now, answered once. No timer and no retry: a failure is
+                // drawn on the card and the next date navigation asks again, which
+                // is a reader's action and not a clock's (ADR-002 Rule A).
+                if games |> List.exists (fun g -> g.Sport = Sport.EPL) then
+                    tryFetchText (standingsUrl ())
+                    |> Promise.iter (fun result ->
+                        match result with
+                        | Error why -> setTable (CardForecast.Unavailable why)
+                        | Ok body ->
+                            match Standings.fromString body with
+                            | Ok rows -> setTable (CardForecast.Loaded rows)
+                            | Error why -> setTable (CardForecast.Unavailable("unreadable — " + why)))
+                // ── end standings request ───────────────────────────────────────
 
             // Scout's Pick runs on the SAME payload the slate came from — its
             // gates read game fields, not a separate endpoint.

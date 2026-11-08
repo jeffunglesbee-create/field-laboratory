@@ -99,7 +99,14 @@ type TableRow =
 // export for it, so `import { METHOD }` failed at run time with "does not
 // provide an export named 'METHOD'" while the F# compiled clean and the suite
 // passed — the value is only missing at the JS boundary.
-let METHOD = "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"
+let METHOD_TAG = "table-v1"
+
+/// The record's full statement of the model, and BYTE-IDENTICAL to what it was
+/// before the tag was split out — rows already in the store carry this string,
+/// and `ModelRevised` compares against it. The tag is the part a card can afford
+/// to print; the formula stays where it is checked rather than being re-parsed
+/// out of this sentence at render time.
+let METHOD = METHOD_TAG + ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"
 
 let private HOME_ADVANTAGE = 0.30
 let private DRAW_BASE = 0.28
@@ -139,6 +146,15 @@ let private threeWayFrom (h: float) (a: float) : Forecast =
     | Some m -> Modelled { Market = m; Method = METHOD }
     | None -> NoForecast SubstrateUnreachable
 
+/// Two clubs already joined to table rows: the model's answer, or the refusal
+/// when either has played nothing. Whether the FIXTURE is scheduled is the
+/// caller's fact, not this function's: `forecastFor` takes it from FPL's
+/// gameweek, and a card takes it from being on a day's slate.
+let private joined (home: TableRow) (away: TableRow) : Forecast =
+    match rating home, rating away with
+    | Some rh, Some ra -> threeWayFrom rh ra
+    | _ -> NoForecast SubstrateUnreachable
+
 /// The whole per-fixture decision, with every refusal named.
 ///
 /// `event` is FPL's gameweek: `None` is the `event: null` the CC-CMD requires a
@@ -151,11 +167,22 @@ let forecastFor (event: int option) (home: TableRow option) (away: TableRow opti
     | None -> NoForecast FixtureUnscheduled
     | Some _ ->
         match home, away with
-        | Some h, Some a ->
-            match rating h, rating a with
-            | Some rh, Some ra -> threeWayFrom rh ra
-            | _ -> NoForecast SubstrateUnreachable
+        | Some h, Some a -> joined h a
         | _ -> NoForecast SubstrateUnreachable
+
+/// The card's entry point: a fixture that is on a day's slate is scheduled by
+/// construction, so there is no gameweek to ask FPL for, and inventing one to
+/// satisfy `forecastFor`'s signature would be a number nobody observed. Same
+/// model, same guard — `joined` is the one path both callers take.
+///
+/// `None` is the model declining (a club that has played nothing, or the
+/// `Market.threeWay` sum guard refusing). It is spelled out case by case so a
+/// fourth `Forecast` case would not compile here.
+let modelOf (home: TableRow) (away: TableRow) : ModelledForecast option =
+    match joined home away with
+    | Modelled m -> Some m
+    | MarketImplied _ -> None
+    | NoForecast _ -> None
 
 // ── the boundary the JS writer calls across ───────────────────────────────
 //

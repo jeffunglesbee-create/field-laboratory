@@ -76,6 +76,14 @@
          (docs/CC-CMD-2026-10-27-lineups-on-game-cards.md). It depends on
          Lineups.fs and Palette.fs and on nothing below this line. -->
     <Compile Include="LineupsView.fs" />
+    <!-- The model's forecast on an EPL card (docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md).
+         Standings.fs decodes the relay's table into Forecast.TableRow and depends
+         on Forecast.fs alone; CardForecast.fs decides what a card carries and
+         needs Desk.fs for the game. Both above Scoreboard.fs, which draws the
+         line, and above Suite.fs, which checks them. No DOM, no node API: the
+         Verify tab runs them in a browser too. -->
+    <Compile Include="Standings.fs" />
+    <Compile Include="CardForecast.fs" />
     <Compile Include="Scout.fs" />
     <Compile Include="Pickem.fs" />
     <Compile Include="Stats.fs" />

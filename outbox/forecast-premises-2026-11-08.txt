@@ -1,0 +1,9 @@
+1. finished EPL rows in 100 archive rows (87 daily payloads): 99
+   clubs in the served table: 20; gamesPlayed equals the archive's finished count for 20 of 20
+2. row as fetched: Man Utd v Aston Villa, start 2026-11-08T16:30Z, home_score null, away_score null, finalized_at null
+   Desk.gameStateAt at 2026-11-08T17:15:00.000Z (45 minutes after the row's start): Scheduled
+3. fixtures in /fpl/fixtures: 380; with a kickoff after 2026-11-08T17:15:00.000Z: 280
+   earliest: gameweek 11, 2026-11-21T12:30:00Z (1 fixture(s) at that kickoff)
+4. EPL rows: 100; created on their own date: 100; before it: 0; after it: 0
+   hours after 00:00Z on the day: min 10.00, median 10.01, max 10.03
+   hours from creation to kickoff (100 rows with a start_time): min 1.47, median 3.99, max 9.99

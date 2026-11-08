@@ -45,7 +45,8 @@ let paths =
       "data/bsd-flow-finished-stats.json"
       "data/bsd-flow-finished-incidents.json"
       "data/bsd-flow-inplay-stats.json"
-      "data/bsd-flow-inplay-incidents.json" ]
+      "data/bsd-flow-inplay-incidents.json"
+      "data/standings-eng1-2026-11-08.json" ]
 
 /// Hand this module a file's bytes.
 let load (path: string) (text: string) = loaded <- Map.add path text loaded
@@ -61,6 +62,18 @@ let private read (path: string) : string =
     | Some text -> text
     | None ->
         failwithf "fixture not loaded: %s — a host must call Fixtures.load for every path in Fixtures.paths before the suite runs" path
+
+/// The EPL table, byte for byte as the relay's
+/// `/espn-standings/soccer/eng.1/standings` served it at 2026-11-08T16:33:04Z (its
+/// own `x-field-served-at`; `data/PROVENANCE.md` has the rest). Twenty clubs, every
+/// stat the model reads present on all of them, no deductions.
+///
+/// THE TABLE ALREADY CONTAINS THE FINISHED MATCHES OF THAT DAY and not Man Utd v
+/// Aston Villa (kicked off 16:30Z; both clubs stand at 9 played, the other
+/// eighteen at 10). A check that pairs this table with an older fixture is
+/// pairing a forecast with its own hindsight, which is why the card checks below
+/// build their fixtures at instants AFTER this capture's own date.
+let standingsEng1 () : string = read "data/standings-eng1-2026-11-08.json"
 
 /// Production's recorded statsapi schedule response.
 ///

@@ -4038,6 +4038,288 @@ let private lineupCards () =
           [ ""; " 5243"; "5243/../x"; "5243?x=1"; "\u0665\u0662\u0664\u0663" ]
           [ "5243" ] ]
 
+// ---------------------------------------------------------------------------
+// The forecast line on an EPL card (docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md).
+//
+// Two things are proved here and they fail differently. The DECODER is proved on
+// the real table the relay served, and every refusal is proved on a table
+// derived from it. The LINE is proved on rows decoded from JSON text through the
+// real `gameDecoder`, not built by hand, at fixed instants.
+//
+// Every MustFail is the neighbouring case. The look-ahead guards are the ones
+// that matter most: a Final card, and a card whose kickoff has passed, must carry
+// no forecast, and the counterexample for each is the SAME card one step earlier
+// — Scheduled, kickoff still ahead — so a guard that stopped looking would fail
+// here rather than pass twice.
+//
+// The fixtures sit at 2026-11-21, after the committed table's own date, so a
+// forecast built here is never a forecast built from a table that already
+// contains its result.
+// ---------------------------------------------------------------------------
+
+let private cardForecast () =
+    let tableJson = Fixtures.standingsEng1 ()
+    let rows =
+        match Standings.fromString tableJson with
+        | Ok r -> r
+        | Error _ -> []
+    let loaded = CardForecast.Loaded rows
+
+    // Matchday 11's first kickoff, and an instant either side of it.
+    let kickoff = ",\"start_time\":\"2026-11-21T12:30Z\""
+    let before = at "2026-11-21T09:00Z"
+    let after = at "2026-11-21T12:31Z"
+
+    let game (sport: string) (home: string) (away: string) (extra: string) : Game =
+        let json = sprintf "{\"id\":\"g1\",\"sport\":\"%s\",\"home\":\"%s\",\"away\":\"%s\"%s}" sport home away extra
+        match Thoth.Json.Decode.fromString gameDecoder json with
+        | Ok g -> g
+        | Error why -> failwithf "card-forecast fixture did not decode: %s" why
+
+    let lineAt (now: DateTimeOffset) (g: Game) (state: GameState) (table: CardForecast.TableState) =
+        CardForecast.lineFor now g state table
+    let kindAt now g state table = CardForecast.kind (lineAt now g state table)
+    let textAt now g state table = CardForecast.text g (lineAt now g state table)
+
+    let arsSpurs = game "EPL" "Arsenal" "Spurs" kickoff
+    let spursArs = game "EPL" "Spurs" "Arsenal" kickoff
+    let newcastle = game "EPL" "Newcastle" "Nottm Forest" kickoff
+
+    // A market price on the same fixture. The odds are a JSON string inside the
+    // JSON, which is how the archive serves them.
+    let priced =
+        game "EPL" "Arsenal" "Spurs"
+            (kickoff + ",\"opening_odds\":\"{\\\"source\\\":\\\"dk\\\",\\\"moneyline\\\":{\\\"home\\\":-250,\\\"away\\\":650,\\\"draw\\\":380}}\"")
+
+    let withRow (team: string) (change: Forecast.TableRow -> Forecast.TableRow) =
+        rows |> List.map (fun r -> if r.Team = team then change r else r)
+
+    [ // ── the decoder ──────────────────────────────────────────────────────
+      Verify.check "the committed standings capture decodes to twenty clubs"
+          (fun (json: string) ->
+              match Standings.fromString json with
+              | Ok r -> List.length r = 20
+              | Error _ -> false)
+          tableJson
+          "{}"
+
+      // A stat that is not there is an error and not a zero. Reading it as 0
+      // would hand the model a club that "has played nothing".
+      Verify.check "a table with a stat missing is refused by name, never read as zero"
+          (fun (json: string) ->
+              match Standings.fromString json with
+              | Error why -> why.Contains "gamesPlayed" && why.Contains "Arsenal"
+              | Ok _ -> false)
+          (tableJson.Replace("\"name\":\"gamesPlayed\"", "\"name\":\"gamesPlayedX\""))
+          tableJson
+
+      Verify.check "a count that is not a whole number is refused, not rounded"
+          (fun (json: string) ->
+              match Standings.fromString json with
+              | Error why -> why.Contains "not a whole number"
+              | Ok _ -> false)
+          (tableJson.Replace("\"type\":\"gamesplayed\",\"value\":10.0", "\"type\":\"gamesplayed\",\"value\":10.5"))
+          tableJson
+
+      Verify.check "a table in which two rows answer to one name is refused whole"
+          (fun (json: string) ->
+              match Standings.fromString json with
+              | Error why -> why.Contains "more than one row answers to: Brighton"
+              | Ok _ -> false)
+          (tableJson.Replace("\"shortDisplayName\":\"Arsenal\"", "\"shortDisplayName\":\"Brighton\""))
+          tableJson
+
+      Verify.check "a table with no entries is refused, not an empty table"
+          (fun (json: string) ->
+              match Standings.fromString json with
+              | Error why -> why.Contains "no entries"
+              | Ok _ -> false)
+          "{\"children\":[{\"standings\":{\"entries\":[]}}]}"
+          tableJson
+
+      // A points deduction is carried, so `deductionsUnsettled` can refuse it.
+      // Rounded to zero here, it would be silently modelled instead.
+      Verify.check "a points deduction in the payload reaches the row and is not zeroed"
+          (fun (json: string) ->
+              match Standings.fromString json with
+              | Ok r -> r |> List.forall (fun row -> row.Deductions = -6)
+              | Error _ -> false)
+          (tableJson.Replace("\"type\":\"deductions\",\"value\":0.0", "\"type\":\"deductions\",\"value\":-6.0"))
+          tableJson
+
+      // ── when the line is drawn at all ──────────────────────────────────
+      Verify.check "an EPL card that is Scheduled with kickoff ahead carries a forecast"
+          (fun (state: GameState) -> kindAt before arsSpurs state loaded = "model")
+          Scheduled
+          (Final(2, 1, false))
+
+      // THE LOOK-AHEAD GUARD. The table contains a match the moment it ends, so a
+      // Final card's "forecast" is hindsight under a forecast's label.
+      Verify.check "a Final EPL card carries no forecast, though the table is loaded"
+          (fun (state: GameState) -> lineAt before arsSpurs state loaded = CardForecast.NoLine)
+          (Final(2, 1, false))
+          Scheduled
+
+      Verify.check "an EPL card in play carries no forecast"
+          (fun (state: GameState) -> lineAt before arsSpurs state loaded = CardForecast.NoLine)
+          (InProgress(0, 1))
+          Scheduled
+
+      // `gameStateAt` calls ANY unscored row Scheduled, including a match that
+      // kicked off minutes ago. Man Utd v Aston Villa was one on 2026-11-08.
+      Verify.check "a Scheduled card whose kickoff has passed carries no forecast"
+          (fun (now: DateTimeOffset) -> lineAt now arsSpurs Scheduled loaded = CardForecast.NoLine)
+          after
+          before
+
+      Verify.check "a Scheduled card with no kickoff time is refused by name, not given a forecast"
+          (fun (g: Game) -> lineAt before g Scheduled loaded = CardForecast.NoModelLine CardForecast.KickoffUnknown)
+          (game "EPL" "Arsenal" "Spurs" "")
+          arsSpurs
+
+      Verify.check "a card that is not EPL carries no forecast line at all"
+          (fun (g: Game) -> lineAt before g Scheduled loaded = CardForecast.NoLine)
+          (game "MLS" "Arsenal" "Spurs" kickoff)
+          arsSpurs
+
+      // ── the refusals, each named ───────────────────────────────────────
+      Verify.check "a club the table does not list is named in the refusal"
+          (fun (g: Game) ->
+              let shown = textAt before g Scheduled loaded
+              shown = "model table-v1 — no forecast: not in the standings table: Man United")
+          (game "EPL" "Man United" "Arsenal" kickoff)
+          (game "EPL" "Man Utd" "Arsenal" kickoff)
+
+      Verify.check "when both clubs are missing both are named"
+          (fun (g: Game) ->
+              let expected = CardForecast.NoModelLine(CardForecast.ClubsNotInTable [ "Atlantis"; "Gotham" ])
+              lineAt before g Scheduled loaded = expected)
+          (game "EPL" "Atlantis" "Gotham" kickoff)
+          (game "EPL" "Atlantis" "Arsenal" kickoff)
+
+      // The missing side is the side that is named. "Man United" above is a home
+      // club; the away branch is a separate line of `decide` and needs its own pin,
+      // and its counterexample is the card with the OTHER club missing.
+      Verify.check "a missing away club is named, and the home club is not"
+          (fun (g: Game) ->
+              let expected = CardForecast.NoModelLine(CardForecast.ClubsNotInTable [ "Atlantis" ])
+              lineAt before g Scheduled loaded = expected)
+          (game "EPL" "Arsenal" "Atlantis" kickoff)
+          (game "EPL" "Gotham" "Arsenal" kickoff)
+
+      // EXACT equality. Both sides are ESPN's shortDisplayName, so a name that
+      // differs by case or by a stray space is a different name and the card says
+      // so. A client that folded it quietly would be inventing the alias
+      // convention the relay owns (Rule 60, Rule 64). The counterexample is the
+      // club spelled exactly as the table spells it, which joins.
+      Verify.check "a club joins to the table by exact name: case and spacing make a different name"
+          (fun (names: string list) ->
+              names
+              |> List.forall (fun n ->
+                  let expected = CardForecast.NoModelLine(CardForecast.ClubsNotInTable [ n ])
+                  lineAt before (game "EPL" n "Spurs" kickoff) Scheduled loaded = expected))
+          [ "arsenal"; "ARSENAL"; "Arsenal "; " Arsenal" ]
+          [ "arsenal"; "Arsenal" ]
+
+      Verify.check "a club carrying a points deduction is named, not modelled"
+          (fun (table: Forecast.TableRow list) ->
+              let expected = CardForecast.NoModelLine(CardForecast.PointsDeducted [ "Arsenal" ])
+              lineAt before arsSpurs Scheduled (CardForecast.Loaded table) = expected)
+          (withRow "Arsenal" (fun r -> { r with Deductions = -3 }))
+          rows
+
+      // The same guard, on the away side. `deductionsUnsettled` is handed both
+      // clubs, and a deduction carried by the visitor must refuse as the host's does.
+      Verify.check "a visiting club carrying a points deduction is named too"
+          (fun (table: Forecast.TableRow list) ->
+              let expected = CardForecast.NoModelLine(CardForecast.PointsDeducted [ "Spurs" ])
+              lineAt before arsSpurs Scheduled (CardForecast.Loaded table) = expected)
+          (withRow "Spurs" (fun r -> { r with Deductions = -3 }))
+          rows
+
+      Verify.check "a club that has played nothing is named, not modelled"
+          (fun (table: Forecast.TableRow list) ->
+              let expected = CardForecast.NoModelLine(CardForecast.NoMatchesPlayed [ "Spurs" ])
+              lineAt before arsSpurs Scheduled (CardForecast.Loaded table) = expected)
+          (withRow "Spurs" (fun r -> { r with Played = 0 }))
+          rows
+
+      Verify.check "a hosting club that has played nothing is named too"
+          (fun (table: Forecast.TableRow list) ->
+              let expected = CardForecast.NoModelLine(CardForecast.NoMatchesPlayed [ "Arsenal" ])
+              lineAt before arsSpurs Scheduled (CardForecast.Loaded table) = expected)
+          (withRow "Arsenal" (fun r -> { r with Played = 0 }))
+          rows
+
+      Verify.check "a card whose standings have not arrived says so rather than drawing nothing"
+          (fun (table: CardForecast.TableState) -> kindAt before arsSpurs Scheduled table = "standings-pending")
+          CardForecast.Pending
+          loaded
+
+      Verify.check "a card whose standings request failed carries the reason"
+          (fun (table: CardForecast.TableState) ->
+              (textAt before arsSpurs Scheduled table).Contains "HTTP 503")
+          (CardForecast.Unavailable "HTTP 503")
+          CardForecast.Pending
+
+      // A decoder's failure names a path into the payload and can run long; the
+      // card has room for 80 characters of it and marks the cut. Two checks, one
+      // per side of the boundary: 80 itself is shown whole, 81 is cut. Each one's
+      // counterexample is the other one's input.
+      Verify.check "a failure reason longer than 80 characters is cut at 80 and the cut is marked"
+          (fun (why: string) ->
+              let shown = textAt before arsSpurs Scheduled (CardForecast.Unavailable why)
+              shown = "model table-v1 — no forecast: standings unavailable (" + String.replicate 80 "x" + "…)")
+          (String.replicate 200 "x")
+          (String.replicate 80 "x")
+
+      Verify.check "a failure reason of exactly 80 characters is shown whole and unmarked"
+          (fun (why: string) ->
+              let shown = textAt before arsSpurs Scheduled (CardForecast.Unavailable why)
+              shown = "model table-v1 — no forecast: standings unavailable (" + why + ")")
+          (String.replicate 80 "x")
+          (String.replicate 81 "x")
+
+      // ── what the line says ─────────────────────────────────────────────
+      // PINNED to the model's own output, worked independently of the F# from the
+      // committed table: Arsenal 27 pts, goals 15-5 in 10 (rating 3.100); Spurs 12
+      // pts, 10-11 in 10 (rating 1.275); home +0.30 gives a gap of 2.125, draw
+      // share 0.28*exp(-2.125/1.10) = 4.1%, home 94.0%, away 2.0%.
+      //
+      // The pin is the point: a change to the model's constants moves this number,
+      // fails here, and has to be answered with a new `METHOD_TAG` and a
+      // `ModelRevised` row rather than a card that quietly says something else.
+      Verify.check "the line states the model's number for the fixture, home side first"
+          (fun (g: Game) ->
+              let shown = textAt before g Scheduled loaded
+              shown = "model table-v1 — Arsenal 94% · draw 4% · Spurs 2%")
+          arsSpurs
+          spursArs
+
+      // THE STRUCTURAL HALF OF "NO EDGE". `lineFor` has no market parameter, so a
+      // card cannot render a difference from the market; this proves the other
+      // half — that a market price on the card does not change the line.
+      Verify.check "the model line is the same whether or not the card carries a market price"
+          (fun (a: Game, b: Game) -> textAt before a Scheduled loaded = textAt before b Scheduled loaded)
+          (arsSpurs, priced)
+          (arsSpurs, newcastle)
+
+      // The ruling: divergence is never rendered as edge. The counterexample is a
+      // line that does render it.
+      Verify.check "no line, however the card is placed, names an edge or a gap"
+          (fun (texts: string list) ->
+              let banned = [ "edge"; "value"; "gap"; "vs market"; "pts" ]
+              let names (t: string) =
+                  let lower = t.ToLowerInvariant()
+                  banned |> List.exists (fun w -> lower.Contains w)
+              texts |> List.forall (fun t -> not (names t)))
+          [ textAt before arsSpurs Scheduled loaded
+            textAt before arsSpurs Scheduled CardForecast.Pending
+            textAt before arsSpurs Scheduled (CardForecast.Unavailable "HTTP 503")
+            textAt before (game "EPL" "Man United" "Arsenal" kickoff) Scheduled loaded
+            textAt before (game "EPL" "Arsenal" "Spurs" "") Scheduled loaded ]
+          [ "model table-v1 — Arsenal 94% · draw 4% · Spurs 2% · edge +12 pts vs market" ] ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -4054,6 +4336,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Tennis draws", draw ()
       "Lineups", lineups ()
       "Lineup cards", lineupCards ()
+      "Card forecasts", cardForecast ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
       "Second Wind", secondWind ()

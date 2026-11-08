@@ -1,0 +1,13 @@
+finished EPL matches replayed: 99
+all matches with both sides        n  83 | mean |home gap| 24.5 pts | Brier model 0.818 market 0.605 | logloss model 1.477 market 1.010 | mean top-prob model 72% market 51%
+both clubs >=5 played (GW6+)       n  47 | mean |home gap| 21.9 pts | Brier model 0.752 market 0.572 | logloss model 1.289 market 0.965 | mean top-prob model 70% market 49%
+both clubs >=8 played (GW9+)       n  19 | mean |home gap| 17.6 pts | Brier model 0.591 market 0.571 | logloss model 1.047 market 0.965 | mean top-prob model 67% market 50%
+matches where the model exists and the market does not (real ModelOnly cases): 6
+independent JS recomputation vs compiled model: matches 89 max abs difference 0.00e+0
+model home-win probability bins, matches where both clubs had played >=5:
+   0   - 0.2 n 12 | mean predicted 7% | home actually won 50%
+   0.2 - 0.4 n  9 | mean predicted 34% | home actually won 33%
+   0.4 - 0.6 n  7 | mean predicted 50% | home actually won 43%
+   0.6 - 0.8 n 11 | mean predicted 71% | home actually won 36%
+   0.8 - 1   n 10 | mean predicted 88% | home actually won 80%
+uniform guess (1/3, 1/3, 1/3), Brier, same sets: all 0.667 | GW6+ 0.667 | GW9+ 0.667 (analytic: 0.667 for any outcome)

@@ -381,6 +381,42 @@ let private staticNode (className: string) (testId: string) (text: string) =
     if testId <> "" then node.setAttribute("data-testid", testId)
     node
 
+// ── Forecast line ───────────────────────────────────────────────────────────
+// docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md. An EPL card carries the
+// model's three-way under the market line. What is drawn, and when, is decided
+// by `CardForecast.lineFor` and by nothing in this file: one decision, so the
+// line and its refusals are worded in one place.
+//
+// PULL ONLY (ADR-002 Rule A). The line is a function of the card's own state and
+// of one standings request made when the slate rendered. No timer, no interval,
+// no event source, no notification. `scripts/check-forecast-pull-only.mjs` reads
+// this region by its markers and fails if one appears.
+
+/// The card's forecast line. A function of TWO signals, the game's state and the
+/// standings, so it is a node that owns its effect — created together and never
+/// apart, as `stateNode` is. A baked-in text would repeat the bug the status
+/// node once had: a change the reactive system does not own is a change nothing
+/// ever draws.
+///
+/// `data-forecast` is the line's state in the DOM and `data-method` the full
+/// statement of the model that produced a number, so a check reads what
+/// rendered instead of matching prose.
+let private forecastNode (game: Game) (state: unit -> GameState) (table: unit -> CardForecast.TableState) =
+    let node = el "div" "desk-card__forecast" ""
+    node.setAttribute("data-testid", "forecast")
+    let apply () =
+        let line = CardForecast.lineFor System.DateTimeOffset.UtcNow game (state ()) (table ())
+        node.textContent <- CardForecast.text game line
+        node.setAttribute("data-forecast", CardForecast.kind line)
+        match line with
+        | CardForecast.ModelLine m -> node.setAttribute("data-method", m.Method)
+        | CardForecast.NoLine -> node.removeAttribute "data-method"
+        | CardForecast.NoModelLine _ -> node.removeAttribute "data-method"
+    apply ()
+    Solid.createEffect apply
+    node
+// ── end forecast line ───────────────────────────────────────────────────────
+
 // ── Lineup disclosure ───────────────────────────────────────────────────────
 // docs/CC-CMD-2026-10-27-lineups-on-game-cards.md. A soccer card can open its own
 // game's lineup. The sheet is drawn by `LineupsView.loadEvent` and by nothing in
@@ -448,7 +484,7 @@ let private lineupAffordance (game: Game) : HTMLElement option =
 /// Builds the card and mounts it. Returns the state setter so scores can be
 /// pushed reactively without re-rendering the card — the whole point of an
 /// island.
-let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
+let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: unit -> CardForecast.TableState) =
     let state, setState = Solid.createSignal (gameState game)
 
     // Derived values that recompute reactively rather than being baked in at
@@ -488,6 +524,11 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
           // explicit "no draw price served" rather than a two-way complement
           // when a soccer market lacks the draw.
           staticNode "desk-card__winprob" "winprob" (winProbabilityText game)
+          // The model's line, under the market's and in its layout. Only an EPL
+          // card has the node at all, so every other card keeps its old
+          // structure byte for byte.
+          if game.Sport = Sport.EPL then
+              forecastNode game state table
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
     // Where the front-face children are hosted. For a card with no brief this is
@@ -706,7 +747,11 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) =
 /// Cards keep their `.desk-card` class and are merely nested one level deeper,
 /// so every existing check that counts or queries cards is unaffected by the
 /// grouping.
-let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) =
+///
+/// `table` is the standings, ONE accessor for the whole slate. A card reads it
+/// and never fetches: the request is made once by the caller, so thirty cards
+/// cannot become thirty requests.
+let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) (table: unit -> CardForecast.TableState) =
     let setters = ResizeArray<GameState -> unit>()
 
     // game.Id -> its brief, resolved once for the whole slate. Empty when the
@@ -741,7 +786,7 @@ let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) =
 
         let grid = el "div" "sport-group__grid" ""
         for game in gs do
-            setters.Add(render grid game (Map.tryFind game.Id byGame))
+            setters.Add(render grid game (Map.tryFind game.Id byGame) table)
         section.appendChild grid |> ignore
 
         mount.appendChild section |> ignore

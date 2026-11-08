@@ -519,8 +519,13 @@
     font-variation-settings: 'wght' 700;
   }
   .desk-card__status { font-size: .8rem; opacity: .75; }
-  .desk-card__drama, .desk-card__odds, .desk-card__winprob { font-size: .75rem; opacity: .55; margin-top: .3rem; }
-  .desk-card__winprob { font-variant-numeric: tabular-nums; }
+  .desk-card__drama, .desk-card__odds, .desk-card__winprob, .desk-card__forecast { font-size: .75rem; opacity: .55; margin-top: .3rem; }
+  .desk-card__winprob, .desk-card__forecast { font-variant-numeric: tabular-nums; }
+  /* The model's line, under the market's and in the same type: two numbers read
+     as two numbers, with neither louder. An EPL card that has no line to draw
+     (every Final card) carries the node empty, and an empty node must not take
+     the margin above it. */
+  .desk-card__forecast:empty { display: none; }
   .desk-card__wx { font-size: .75rem; opacity: .7; margin-top: .3rem; }
 
   /* --- The brief flip -----------------------------------------------------
