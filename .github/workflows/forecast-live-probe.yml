@@ -1,0 +1,84 @@
+# The model's forecast on an EPL card, on the DEPLOYED page, at real time, from a runner.
+# scripts/forecast-live-probe.mjs; docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md.
+#
+# forecast-render-check judges the line on a pinned page at a fixed clock: wiring. This judges the page that is live, at the time the runner
+# runs it, with the table the relay serves then: a real fixture, before its kickoff. A real Chromium against the live URLs, a committed
+# screenshot and a manifest in outbox/. A runner so that it happens with nobody in a session: the authoring sandbox's Chromium DID reach
+# the deployed page on 2026-11-08 (measured: /version.txt, HTTP 200), which is why it is not the only way, and not why it exists.
+#
+# IT HAS A WINDOW. A card draws a forecast only while it is Scheduled with its kickoff ahead, and the archive creates a day's rows around
+# 10:00 UTC on the day, so a run is useful in the hours before a matchday's first kickoff and answers NOTHING-TO-JUDGE (not a pass) at
+# any other time. The first such day after this was written is 2026-11-21, first kickoff 12:30Z.
+#
+# Two triggers: a push of outbox/.trigger-forecast-live-probe, which runs from the pushing ref's own copy of this file, and workflow_dispatch
+# once it is on main (input `date`, default today in ET). The commit goes back to the ref that started the run. NO SCHEDULE: it answers a
+# question after a deploy; it is not a monitor, and a monitor is a recurring Actions cost (CLAUDE.md, "Actions budget"). It makes the
+# page's own requests and nothing else on the relay.
+#
+# A TRIGGER FILE RIDES ALONG IN A MERGE. A push to main whose diff contains outbox/.trigger-forecast-live-probe runs this workflow from
+# main. The file is therefore deleted before anything lands.
+name: forecast-live-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Slate day, YYYY-MM-DD (default: today in ET)'
+        required: false
+        default: ''
+  push:
+    paths:
+      - 'outbox/.trigger-forecast-live-probe'
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: The page that is live
+        run: |
+          SITE=https://field-laboratory.jeffunglesbee.workers.dev
+          echo "deployed: $(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')"
+          echo "this ref: $(git rev-parse HEAD)"
+          # Printed, not enforced: the probe is about the page that is live, and the manifest records what it did.
+      - name: The probe's own verdict logic, before it judges anything
+        run: node scripts/forecast-live-probe.mjs --self-test
+      - name: Probe the live page
+        id: probe
+        continue-on-error: true
+        env:
+          PROBE_DATE: ${{ github.event.inputs.date }}
+        run: |
+          ARGS=""
+          if [ -n "$PROBE_DATE" ]; then ARGS="--date $PROBE_DATE"; fi
+          node scripts/forecast-live-probe.mjs $ARGS 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/forecast-live-manifest-*.json outbox/forecast-live-*.png 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: the model's forecast on an EPL card, on the live page [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's verdict decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "forecast-live-probe did not PASS: see the manifest and the step summary"
+          exit 1

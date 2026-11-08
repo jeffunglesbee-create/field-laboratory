@@ -1,0 +1,766 @@
+{
+ "what": "every forecast-* entry in scripts/mutation-check.mjs, for the EPL forecast on the card (docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md)",
+ "coverage": "55 of 55 forecast-* entries in scripts/mutation-check.mjs counted; 55 caught, 0 survived; 16 run-1 records superseded by run 2 (listed below, not counted)",
+ "runs": [
+  {
+   "run": 1,
+   "at": "2026-11-08T17:18:11.371Z",
+   "treeSha": "5df53142c0290c281fb59ba85b78c87222ccf10e",
+   "ids": 51,
+   "cleanDigest": "faab45c2d6cc8b4c",
+   "baseline": {
+    "ran": 5,
+    "failing": 1,
+    "failed": [
+     "node scripts/forecast-render-check.mjs"
+    ]
+   },
+   "wallMs": 430117
+  },
+  {
+   "run": 2,
+   "at": "2026-11-08T17:28:47.711Z",
+   "treeSha": "5df53142c0290c281fb59ba85b78c87222ccf10e",
+   "ids": 20,
+   "cleanDigest": "bc1b527271627acb",
+   "baseline": {
+    "ran": 2,
+    "failing": 0,
+    "failed": []
+   },
+   "wallMs": 438579,
+   "env": "PW_CHROMIUM=/opt/pw-browsers/chromium"
+  }
+ ],
+ "note": "Between the runs no mutated source file changed; only src/Suite.fs gained 6 checks and scripts/mutation-check.mjs gained 4 entries, so every run-1 verdict that stands still describes the final tree. verify-full runs the whole table on the pushed tree and is the record for it.",
+ "counted": [
+  {
+   "id": "forecast-card-final-draws",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 1094,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-in-play-draws",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 705,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-kickoff-guard-dropped",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 744,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-unknown-kickoff-is-silent",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 824,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-sport-guard-dropped",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 864,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-home-club-not-named",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 864,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-away-unplayed-unchecked",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 810,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-home-shows-away-share",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 823,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-draw-shows-home-share",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 808,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-provenance-dropped",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 925,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-refusal-drops-provenance",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 837,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-rounds-to-tenths",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 828,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-missing-stat-is-zero",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 900,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-fraction-is-rounded",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 810,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-duplicate-allowed",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 781,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-empty-allowed",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 789,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-deductions-ignored",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 797,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-long-name-read",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 822,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-points-read-from-rank",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 812,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-standings-goals-swapped",
+   "file": "src/Standings.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 888,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-polls",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 70,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-arms-a-second-effect",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 59,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-reads-the-market",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 67,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-names-an-edge",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 65,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-takes-a-price",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 74,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-marker-renamed",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 54,
+   "digestChanged": false,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-asks-twice",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/check-forecast-pull-only.mjs",
+   "verdict": "caught",
+   "expectMs": 59,
+   "digestChanged": true,
+   "run": 1
+  },
+  {
+   "id": "forecast-pull-only-allows-timers",
+   "file": "scripts/check-forecast-pull-only.mjs",
+   "kind": "script",
+   "expect": "node scripts/check-forecast-pull-only.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 51,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-pull-only-counts-no-effects",
+   "file": "scripts/check-forecast-pull-only.mjs",
+   "kind": "script",
+   "expect": "node scripts/check-forecast-pull-only.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 42,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-pull-only-market-pattern-blind",
+   "file": "scripts/check-forecast-pull-only.mjs",
+   "kind": "script",
+   "expect": "node scripts/check-forecast-pull-only.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 49,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-pull-only-difference-pattern-blind",
+   "file": "scripts/check-forecast-pull-only.mjs",
+   "kind": "script",
+   "expect": "node scripts/check-forecast-pull-only.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 46,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-pull-only-counts-no-requests",
+   "file": "scripts/check-forecast-pull-only.mjs",
+   "kind": "script",
+   "expect": "node scripts/check-forecast-pull-only.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 46,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-render-check-banned-words-blind",
+   "file": "scripts/forecast-render-check.mjs",
+   "kind": "script",
+   "expect": "node scripts/forecast-render-check.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 473,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-render-check-off-origin-blind",
+   "file": "scripts/forecast-render-check.mjs",
+   "kind": "script",
+   "expect": "node scripts/forecast-render-check.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 451,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-render-check-counts-every-request",
+   "file": "scripts/forecast-render-check.mjs",
+   "kind": "script",
+   "expect": "node scripts/forecast-render-check.mjs --self-test",
+   "verdict": "caught",
+   "expectMs": 408,
+   "digestChanged": null,
+   "run": 1
+  },
+  {
+   "id": "forecast-card-away-club-not-named",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 1226,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-join-ignores-case",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 925,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-join-trims",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 845,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-away-deduction-unchecked",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 978,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-home-deduction-unchecked",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 845,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-home-unplayed-unchecked",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 1047,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-refusal-unclipped",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 769,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-clip-boundary",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "caught",
+   "expectMs": 927,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-no-effect",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 53966,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-on-every-card",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 14962,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-now-is-frozen",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 14843,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-method-not-on-the-node",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 15435,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-stale-method-kept",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 15290,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-empty-node-takes-space",
+   "file": "index.html",
+   "kind": "html",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 15268,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-fetches-for-any-slate",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 14690,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-failure-stays-pending",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 25186,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-unreadable-stays-pending",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 19860,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-pinned-page-uses-the-network",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 27192,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-live-falls-back-to-the-capture",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 20068,
+   "digestChanged": true,
+   "run": 2
+  },
+  {
+   "id": "forecast-card-relay-route-moves",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 20263,
+   "digestChanged": true,
+   "run": 2
+  }
+ ],
+ "superseded": [
+  {
+   "id": "forecast-card-away-club-not-named",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "survived",
+   "expectMs": 728,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1 verdict was survived: the Suite had no check that defended it"
+  },
+  {
+   "id": "forecast-card-join-ignores-case",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "survived",
+   "expectMs": 783,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1 verdict was survived: the Suite had no check that defended it"
+  },
+  {
+   "id": "forecast-card-away-deduction-unchecked",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "survived",
+   "expectMs": 979,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1 verdict was survived: the Suite had no check that defended it"
+  },
+  {
+   "id": "forecast-card-refusal-unclipped",
+   "file": "src/CardForecast.fs",
+   "kind": "src",
+   "expect": "node build/VerifyMain.js",
+   "verdict": "survived",
+   "expectMs": 809,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1 verdict was survived: the Suite had no check that defended it"
+  },
+  {
+   "id": "forecast-card-no-effect",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 515,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-on-every-card",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 501,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-now-is-frozen",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 409,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-method-not-on-the-node",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 582,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-stale-method-kept",
+   "file": "src/Scoreboard.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 460,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-empty-node-takes-space",
+   "file": "index.html",
+   "kind": "html",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 501,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-fetches-for-any-slate",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 532,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-failure-stays-pending",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 427,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-unreadable-stays-pending",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 427,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-pinned-page-uses-the-network",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 431,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-live-falls-back-to-the-capture",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 492,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  },
+  {
+   "id": "forecast-card-relay-route-moves",
+   "file": "src/Program.fs",
+   "kind": "src",
+   "expect": "node scripts/forecast-render-check.mjs",
+   "verdict": "caught",
+   "expectMs": 460,
+   "digestChanged": true,
+   "run": 1,
+   "why": "run 1's baseline was red for `node scripts/forecast-render-check.mjs` (the browser path was unset, so the launch failed before the check ran): this verdict meant nothing"
+  }
+ ]
+}

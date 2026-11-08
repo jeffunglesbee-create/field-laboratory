@@ -607,6 +607,42 @@ jobs:
             outbox/lineups-render-manifest.json
           if-no-files-found: ignore
 
+      # The model's forecast on an EPL card (docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md).
+      # Rule A is NOT cleared for it - pull only, and no difference from the market
+      # is ever drawn - and both are properties of one diff that nothing else
+      # enforces a week later. The first reads the forecast's five source files
+      # (two of them sliced to their forecast region) and never touches the
+      # network; the next two drive the page in the browser already
+      # installed, against the server already running, at a FIXED CLOCK: every
+      # card of every committed capture is in the past, so the forecast's
+      # kickoff guard would correctly draw nothing at real time.
+      - name: The forecast is pull only, and takes no market price
+        run: npm run check:forecast-pull-only
+
+      - name: The forecast card's own checks
+        run: node scripts/forecast-render-check.mjs --self-test
+
+      # The verdict logic of the deployed-page probe, each case handed inputs that
+      # must make it fail. The probe itself needs the live page and the live relay,
+      # and a card that is Scheduled with its kickoff ahead, so it runs from its
+      # own workflow on a matchday (forecast-live-probe.yml), not here.
+      - name: The live-path forecast probe's own checks
+        run: npm run check:forecast-live
+
+      - name: The forecast, on the rendered page
+        run: node scripts/forecast-render-check.mjs
+
+      # Wiring proof only: a card of the 2026-10-10 capture flipped to Scheduled
+      # and scored against a 2026-11-08 table is hindsight. Kept either way so a
+      # reader can look at the line in its card; it is not evidence of accuracy.
+      - name: Keep the forecast screenshot either way
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: forecast-screenshots
+          path: outbox/forecast-card-*.png
+          if-no-files-found: ignore
+
       # The screenshot is the artifact a red run needs and a green run does not.
       - name: Keep the screenshot when the tints check fails
         if: failure()
