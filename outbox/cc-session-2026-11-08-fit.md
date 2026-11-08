@@ -137,3 +137,25 @@ test needs a season no number has been read from: **2024-25**.
   a script whose rule block hashes the same in the commit that preceded the first 2024-25 number.
 - **If SHIP:** a new `METHOD_TAG`, a `ModelRevised` stamp, `Suite.fs` pins re-derived independently, the render check and live
   probe strings, a full local run of the verify steps, deploy, and a wiring proof on the deployed page.
+
+## Landing
+
+| | |
+|---|---|
+| Rule commit | `6363ad8`, guards run 42523009199, success |
+| Record commit | `a6aab5b`, guards run 42524132138, success, 19 of 19 steps |
+| Branch | `main` (`git branch --show-current`); no pull request, no feature branch |
+| `src/` | 0 files changed since `ad22828` (`git diff --name-only ad22828..a6aab5b -- src`), so no deploy and no CI beyond the guards |
+| Skip directive in either commit message | 0 hits (`git log -1 --format=%B <sha> \| grep -ciE 'skip[ -]?ci\|ci[ -]?skip\|skip-checks\|no-ci'`) |
+
+Done-condition probes, run on the committed tree:
+
+```
+rule block hashes, 6363ad8 and a6aab5b:   header 120bafe65e36772a | RULE+decide+tests 5e55a529ca5fc903   (equal)
+outbox/forecast-fit-2026-11-08.txt:        39 of 40 checks hold
+                                           VERDICT: DO NOT SHIP. R6 the fit is not well posed; R7 an integrity check failed
+outbox/forecast-fit-crosscheck-2026-11-08.txt:  14 of 14 checks hold
+outbox/forecast-fit-mutation-2026-11-08.txt:    16 of 16 mutations caught by the checks written to catch them (0 broken harness anchors); control as expected
+```
+
+Residual: the one decision under "Not started, and what it needs". Nothing else is deferred.
