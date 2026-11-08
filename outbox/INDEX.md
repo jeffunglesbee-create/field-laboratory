@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ae45a5a` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | docs: the mutation row is green on the pushed tree; the landing record is complete |
+| `fd4c6af` | 2026-11-08 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of d9554f3 [skip ci] |
+| `b4cf0aa` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | docs: the forecast on the deployed page, and what the first two pushes did |
+| `b4cf0aa` | 2026-11-08 | [forecast-deployed-wiring-2026-11-08.json](forecast-deployed-wiring-2026-11-08.json) | docs: the forecast on the deployed page, and what the first two pushes did |
+| `b4cf0aa` | 2026-11-08 | [forecast-deployed-wiring-2026-11-08.mjs](forecast-deployed-wiring-2026-11-08.mjs) | docs: the forecast on the deployed page, and what the first two pushes did |
+| `b4cf0aa` | 2026-11-08 | [forecast-deployed-wiring-2026-11-08.png](forecast-deployed-wiring-2026-11-08.png) | docs: the forecast on the deployed page, and what the first two pushes did |
+| `0f9d791` | 2026-11-08 | [forecast-live-2026-11-08.png](forecast-live-2026-11-08.png) | probe: the model's forecast on an EPL card, on the live page [skip ci] |
+| `0f9d791` | 2026-11-08 | [forecast-live-manifest-2026-11-08.json](forecast-live-manifest-2026-11-08.json) | probe: the model's forecast on an EPL card, on the live page [skip ci] |
+| `46a7d1a` | 2026-11-08 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d9554f3` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | fix: the forecast scripts end their self-tests with finish(), not process.exit |
 | `d9554f3` | 2026-11-08 | [forecast-verify-steps-local-2026-11-08.txt](forecast-verify-steps-local-2026-11-08.txt) | fix: the forecast scripts end their self-tests with finish(), not process.exit |
 | `932d67b` | 2026-11-08 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-08 [skip ci] |
