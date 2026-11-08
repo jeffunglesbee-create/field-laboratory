@@ -12,6 +12,25 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `16bda91` | 2026-11-08 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-08T22:28 [skip ci] |
+| `528e0dd` | 2026-11-08 | [cc-session-2026-11-08-fit.md](cc-session-2026-11-08-fit.md) | docs: landing record for the refit |
+| `a6aab5b` | 2026-11-08 | [cc-session-2026-11-08-fit.md](cc-session-2026-11-08-fit.md) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `a6aab5b` | 2026-11-08 | [forecast-fit-2026-11-08.mjs](forecast-fit-2026-11-08.mjs) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `a6aab5b` | 2026-11-08 | [forecast-fit-2026-11-08.txt](forecast-fit-2026-11-08.txt) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `a6aab5b` | 2026-11-08 | [forecast-fit-crosscheck-2026-11-08.py](forecast-fit-crosscheck-2026-11-08.py) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `a6aab5b` | 2026-11-08 | [forecast-fit-crosscheck-2026-11-08.txt](forecast-fit-crosscheck-2026-11-08.txt) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `a6aab5b` | 2026-11-08 | [forecast-fit-mutation-2026-11-08.mjs](forecast-fit-mutation-2026-11-08.mjs) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `a6aab5b` | 2026-11-08 | [forecast-fit-mutation-2026-11-08.txt](forecast-fit-mutation-2026-11-08.txt) | docs: table-v1 refitted under a rule fixed first; the rule says do not ship |
+| `6363ad8` | 2026-11-08 | [forecast-fit-2026-11-08.mjs](forecast-fit-2026-11-08.mjs) | docs: ship rule for a refitted forecaster, fixed before any candidate is fitted |
+| `6363ad8` | 2026-11-08 | [forecast-fit-bundle-check-2026-11-08.txt](forecast-fit-bundle-check-2026-11-08.txt) | docs: ship rule for a refitted forecaster, fixed before any candidate is fitted |
+| `6363ad8` | 2026-11-08 | [forecast-fit-holdout-2026-11-08.json](forecast-fit-holdout-2026-11-08.json) | docs: ship rule for a refitted forecaster, fixed before any candidate is fitted |
+| `ad22828` | 2026-11-08 | [cc-session-2026-11-08-calibrate-prior-season.md](cc-session-2026-11-08-calibrate-prior-season.md) | docs: landing record for the prior-season replay |
+| `1d4a01f` | 2026-11-08 | [cc-session-2026-11-08-calibrate-prior-season.md](cc-session-2026-11-08-calibrate-prior-season.md) | docs: table-v1 replayed on last season's 380 matches; the overconfidence replicates |
+| `1d4a01f` | 2026-11-08 | [forecast-backtest-prior-season-2026-11-08.mjs](forecast-backtest-prior-season-2026-11-08.mjs) | docs: table-v1 replayed on last season's 380 matches; the overconfidence replicates |
+| `1d4a01f` | 2026-11-08 | [forecast-backtest-prior-season-2026-11-08.txt](forecast-backtest-prior-season-2026-11-08.txt) | docs: table-v1 replayed on last season's 380 matches; the overconfidence replicates |
+| `1d4a01f` | 2026-11-08 | [forecast-backtest-prior-season-mutation-2026-11-08.mjs](forecast-backtest-prior-season-mutation-2026-11-08.mjs) | docs: table-v1 replayed on last season's 380 matches; the overconfidence replicates |
+| `1d4a01f` | 2026-11-08 | [forecast-backtest-prior-season-mutation-2026-11-08.txt](forecast-backtest-prior-season-mutation-2026-11-08.txt) | docs: table-v1 replayed on last season's 380 matches; the overconfidence replicates |
+| `0d7413d` | 2026-11-08 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `ae45a5a` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | docs: the mutation row is green on the pushed tree; the landing record is complete |
 | `fd4c6af` | 2026-11-08 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of d9554f3 [skip ci] |
 | `b4cf0aa` | 2026-11-08 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | docs: the forecast on the deployed page, and what the first two pushes did |
