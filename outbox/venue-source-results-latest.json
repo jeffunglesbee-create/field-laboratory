@@ -1,6 +1,6 @@
 {
- "at": "2026-10-24T23:10:39.159Z",
- "run": "40141634179",
+ "at": "2026-11-09T16:42:01.840Z",
+ "run": "42651498788",
  "eps": 0.02,
  "ambiguousDeg": 0.5,
  "from": "data/venue-source-candidates.json",
@@ -20,7 +20,7 @@
    "qid": "Q1983118",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The New York Stadium, currently known as the AESSEAL New York Stadium for sponsorship reasons, is a football stadium in Rotherham, South Yorkshire, England.",
+   "lead": "The New York Stadium, currently known as the AESSEAL New York Stadium for sponsorship reasons, is a football stadium in Rotherham, South Yorkshire, England. Opened in July 2012, it is the home ground ",
    "zone": "Europe/London"
   },
   {
@@ -38,7 +38,7 @@
    "via": "home team (tier 1, Q291590)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "AFAS Stadion is a stadium in Alkmaar, Netherlands.",
+   "lead": "AFAS Stadion is a stadium in Alkmaar, Netherlands. It is used for football matches and is the home stadium of AZ Alkmaar. AZ's women's team also plays select matches in the stadium. The stadium is abl",
    "zone": "Europe/Amsterdam"
   },
   {
@@ -55,7 +55,7 @@
    "qid": "Q838284",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "AT&T Stadium is a retractable roof stadium in Arlington, Texas, United States.",
+   "lead": "AT&T Stadium is a retractable roof stadium in Arlington, Texas, United States. It serves as the home of the Dallas Cowboys of the National Football League (NFL) and opened in 2009. It is also the home",
    "zone": "America/Chicago"
   },
   {
@@ -72,7 +72,7 @@
    "qid": "Q63928415",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "ATCO Field is a soccer stadium at Spruce Meadows in Foothills County, Alberta, Canada.",
+   "lead": "ATCO Field is a soccer stadium at Spruce Meadows in Foothills County, Alberta, Canada. It is home to Cavalry FC of the Canadian Premier League. The venue also serves as the home for several equestrian",
    "zone": "America/Edmonton"
   },
   {
@@ -89,7 +89,7 @@
    "qid": "Q2925356",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Acrisure Bounce House is an American football stadium located in the Orlando metropolitan area in Orange County, Florida, United States, on the main campus of the University of Central Florida.",
+   "lead": "The Acrisure Bounce House is an American football stadium located in the Orlando metropolitan area in Orange County, Florida, United States, on the main campus of the University of Central Florida. It",
    "zone": "America/New_York"
   },
   {
@@ -106,7 +106,7 @@
    "qid": "Q1067148",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Acrisure Stadium, formerly known as Heinz Field, is a stadium located in the North Shore neighborhood of Pittsburgh, Pennsylvania, U.S.",
+   "lead": "Acrisure Stadium, formerly known as Heinz Field, is a stadium located in the North Shore neighborhood of Pittsburgh, Pennsylvania, U.S. It primarily serves as the home of the Pittsburgh Steelers of th",
    "zone": "America/New_York"
   },
   {
@@ -123,7 +123,7 @@
    "qid": "Q351946",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Adams Park is a football stadium in High Wycombe, Buckinghamshire, and the home of Wycombe Wanderers F.C..",
+   "lead": "Adams Park is a football stadium in High Wycombe, Buckinghamshire, and the home of Wycombe Wanderers F.C.. Opened in 1990 to replace the club’s former Loakes Park ground, it has a capacity of 10,446 a",
    "zone": "Europe/London"
   },
   {
@@ -140,7 +140,7 @@
    "qid": "Q4692211",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Aggie Memorial Stadium is an outdoor football stadium in the southwestern United States, located on the campus of New Mexico State University in Las Cruces, New Mexico.",
+   "lead": "Aggie Memorial Stadium is an outdoor football stadium in the southwestern United States, located on the campus of New Mexico State University in Las Cruces, New Mexico. It is the home field of the New",
    "zone": "America/Denver"
   },
   {
@@ -157,7 +157,7 @@
    "qid": "Q1618347",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "The Alamodome is a 64,000-seat domed indoor multi-purpose stadium in San Antonio, Texas.",
+   "lead": "The Alamodome is a 64,000-seat domed indoor multi-purpose stadium in San Antonio, Texas. It is located on the southeastern fringe of downtown San Antonio. The facility opened on May 15, 1993, having b",
    "zone": "America/Chicago"
   },
   {
@@ -174,7 +174,7 @@
    "qid": "Q2926064",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Albertsons Stadium is an outdoor athletic stadium in the Western United States, located on the campus of Boise State University in Boise, Idaho.",
+   "lead": "Albertsons Stadium is an outdoor athletic stadium in the Western United States, located on the campus of Boise State University in Boise, Idaho. It is the home of the Boise State Broncos of the Pac-12",
    "zone": "America/Boise"
   },
   {
@@ -191,7 +191,7 @@
    "qid": "Q1028275",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Allegacy Federal Credit Union Stadium is a football stadium in Winston-Salem, North Carolina.",
+   "lead": "Allegacy Federal Credit Union Stadium is a football stadium in Winston-Salem, North Carolina. The stadium is just west of Gene Hooks Field at Wake Forest Baseball Park, home of the Wake Forest basebal",
    "zone": "America/New_York"
   },
   {
@@ -208,7 +208,7 @@
    "qid": "Q27768421",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "Allegiant Stadium is a multi-purpose indoor stadium in Paradise, Nevada, United States, southwest of adjacent Las Vegas.",
+   "lead": "Allegiant Stadium is a multi-purpose indoor stadium in Paradise, Nevada, United States, southwest of adjacent Las Vegas. Opened in 2020, it is the home field of the Las Vegas Raiders of the National F",
    "zone": "America/Los_Angeles"
   },
   {
@@ -226,7 +226,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Evans Family Field at Allen E.",
+   "lead": "Evans Family Field at Allen E. Paulson Stadium is a 25,000-seat on-campus football stadium in Statesboro, Georgia. It is home to the Georgia Southern Eagles football team and the focal point of Erk Ru",
    "zone": "America/New_York"
   },
   {
@@ -243,7 +243,7 @@
    "qid": "Q127372",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Allianz Riviera is a multi-use stadium in Nice, France, mostly used for football matches of host OGC Nice and occasionally for home matches of rugby union club Toulon.",
+   "lead": "Allianz Riviera is a multi-use stadium in Nice, France, mostly used for football matches of host OGC Nice and occasionally for home matches of rugby union club Toulon. The stadium has a capacity of 36",
    "zone": "Europe/Paris"
   },
   {
@@ -259,7 +259,7 @@
    "qid": "Q17310225",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Allianz Stadion is a football stadium in the Hütteldorf neighborhood of Vienna, Austria, and is the home ground of SK Rapid Wien.",
+   "lead": "Allianz Stadion is a football stadium in the Hütteldorf neighborhood of Vienna, Austria, and is the home ground of SK Rapid Wien. The stadium was built on the site of the former Gerhard Hanappi Stadiu",
    "zone": "Europe/Vienna"
   },
   {
@@ -294,7 +294,7 @@
    "via": "wider net (nominatim-alias + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Alumni Stadium is a college football stadium on the lower campus of Boston College in Chestnut Hill, Massachusetts.",
+   "lead": "Alumni Stadium is a college football stadium on the lower campus of Boston College in Chestnut Hill, Massachusetts. It is about 6 miles (9.7 km) west of downtown Boston, just inside the Boston city li",
    "zone": "America/New_York"
   },
   {
@@ -312,7 +312,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Burgess–Snow Field at AmFirst Stadium is a 22,500-seat stadium in Jacksonville, Alabama.",
+   "lead": "Burgess–Snow Field at AmFirst Stadium is a 22,500-seat stadium in Jacksonville, Alabama. It opened in 1947 and is home to the Jacksonville State Gamecocks football team. It was also home to the Jackso",
    "zone": "America/Chicago"
   },
   {
@@ -329,7 +329,7 @@
    "qid": "Q473943",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Amon G.",
+   "lead": "Amon G. Carter Stadium is an open-air college football stadium in the southern United States, located on the campus of Texas Christian University in Fort Worth, Texas. The home stadium of the TCU Horn",
    "zone": "America/Chicago"
   },
   {
@@ -346,7 +346,7 @@
    "qid": "Q271212",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Åråsen Stadion, officially written Åråsen stadion, is an all-seater football stadium located in Lillestrøm, a town east of Oslo.",
+   "lead": "The Åråsen Stadion, officially written Åråsen stadion, is an all-seater football stadium located in Lillestrøm, a town east of Oslo. With a capacity of 10,540 spectators, the venue is the home of the ",
    "zone": "Europe/Oslo"
   },
   {
@@ -363,7 +363,7 @@
    "qid": "Q544553",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Arrowhead Stadium is an American football stadium in Kansas City, Missouri, United States.",
+   "lead": "Arrowhead Stadium is an American football stadium in Kansas City, Missouri, United States. It primarily serves as the home venue of the Kansas City Chiefs of the National Football League (NFL), and ha",
    "zone": "America/Chicago"
   },
   {
@@ -380,7 +380,7 @@
    "qid": "Q376674",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Aspmyra Stadion is a football stadium in the town of Bodø, Norway.",
+   "lead": "Aspmyra Stadion is a football stadium in the town of Bodø, Norway. Home of Bodø/Glimt and Grand Bodø, it holds a seated capacity for 8,270 spectators. The venue has four stands: a modern all-seater wi",
    "zone": "Europe/Oslo"
   },
   {
@@ -397,7 +397,7 @@
    "qid": "Q189663",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Olympic Stadium of Athens \"Spyros Louis\" is a sports stadium in Marousi, in the north section of Athens, Greece.",
+   "lead": "The Olympic Stadium of Athens \"Spyros Louis\" is a sports stadium in Marousi, in the north section of Athens, Greece. With a total capacity of 75,000, it is the largest sports venue in Greece. It is a ",
    "zone": "Europe/Athens"
   },
   {
@@ -414,7 +414,7 @@
    "qid": "Q2873102",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Autzen Stadium is an outdoor football stadium in Eugene, Oregon, United States.",
+   "lead": "Autzen Stadium is an outdoor football stadium in Eugene, Oregon, United States. Located north of the University of Oregon campus, it is the home field of the Oregon Ducks of the Big Ten Conference. Op",
    "zone": "America/Los_Angeles"
   },
   {
@@ -431,7 +431,7 @@
    "qid": "Q244402",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Aviva Stadium, also known as the Dublin Arena, is a sports stadium located in Dublin, Ireland.",
+   "lead": "Aviva Stadium, also known as the Dublin Arena, is a sports stadium located in Dublin, Ireland. It has a capacity of 51,711. It is built on the site of the former Lansdowne Road Stadium, which was demo",
    "zone": "Europe/Dublin"
   },
   {
@@ -480,7 +480,7 @@
    "qid": "Q1326578",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Balaídos Stadium, known as Estadio Abanca Balaídos for sponsorship reasons, is an all-seater stadium located in Vigo, Spain.",
+   "lead": "The Balaídos Stadium, known as Estadio Abanca Balaídos for sponsorship reasons, is an all-seater stadium located in Vigo, Spain. It is owned by the Vigo's city council, and is the home of La Liga club",
    "zone": "Europe/Madrid"
   },
   {
@@ -498,7 +498,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Batumi Arena, formerly known as Adjarabet Arena, is a football stadium in Batumi, Adjara, Georgia.",
+   "lead": "The Batumi Arena, formerly known as Adjarabet Arena, is a football stadium in Batumi, Adjara, Georgia. The stadium has a capacity of 20,035 people.",
    "zone": "Asia/Tbilisi"
   },
   {
@@ -532,7 +532,7 @@
    "qid": "Q692816",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Beaver Stadium is a college football stadium on the campus of Pennsylvania State University in Penn State University Park.",
+   "lead": "Beaver Stadium is a college football stadium on the campus of Pennsylvania State University in Penn State University Park. It has been home to the Penn State Nittany Lions football of the Big Ten Conf",
    "zone": "America/New_York"
   },
   {
@@ -549,7 +549,7 @@
    "qid": "Q4883807",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Bellerive Country Club is a golf country club in the central United States, located in Town and Country, Missouri, a suburb west of St.",
+   "lead": "Bellerive Country Club is a golf country club in the central United States, located in Town and Country, Missouri, a suburb west of St. Louis. Established in 1897, it is considered one of the \"big fou",
    "zone": "America/Chicago"
   },
   {
@@ -566,7 +566,7 @@
    "qid": "Q816516",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Ben Hill Griffin Stadium, popularly known as \"The Swamp\", is a football stadium in Gainesville, Florida, United States.",
+   "lead": "Ben Hill Griffin Stadium, popularly known as \"The Swamp\", is a football stadium in Gainesville, Florida, United States. It is located on the campus of the University of Florida and is the home field o",
    "zone": "America/New_York"
   },
   {
@@ -582,7 +582,7 @@
    "qid": "Q609268",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Bescot Stadium, currently known as the Pallet-Track Bescot Stadium for sponsorship reasons, is a football stadium in the area of Bescot, Walsall, West Midlands, England.",
+   "lead": "Bescot Stadium, currently known as the Pallet-Track Bescot Stadium for sponsorship reasons, is a football stadium in the area of Bescot, Walsall, West Midlands, England. With a capacity of 11,300, it ",
    "zone": "Europe/London"
   },
   {
@@ -602,7 +602,7 @@
    "via": "wider net (nominatim + photon + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Bill Snyder Family Stadium is a stadium in Manhattan, Kansas.",
+   "lead": "Bill Snyder Family Stadium is a stadium in Manhattan, Kansas. It is used for American football, and is the home field of the Kansas State Wildcats of the Big 12 Conference. It is named after the famil",
    "zone": "America/Chicago"
   },
   {
@@ -619,7 +619,7 @@
    "qid": "Q3641228",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Blundell Park is a football ground in Cleethorpes, North East Lincolnshire, England and home to Grimsby Town Football Club.",
+   "lead": "Blundell Park is a football ground in Cleethorpes, North East Lincolnshire, England and home to Grimsby Town Football Club. The stadium was built in 1899, but only one of the original stands remains. ",
    "zone": "Europe/London"
   },
   {
@@ -653,7 +653,7 @@
    "qid": "Q2910505",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Boone Pickens Stadium is a college football stadium in the south central United States, located on the campus of Oklahoma State University in Stillwater, Oklahoma.",
+   "lead": "Boone Pickens Stadium is a college football stadium in the south central United States, located on the campus of Oklahoma State University in Stillwater, Oklahoma. It has been home to OSU Cowboys foot",
    "zone": "America/Chicago"
   },
   {
@@ -670,7 +670,7 @@
    "qid": "Q895151",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Boundary Park is a football stadium in Oldham, Greater Manchester, England.",
+   "lead": "Boundary Park is a football stadium in Oldham, Greater Manchester, England. Its name originates from the fact that it lies at the northwestern extremity of Oldham, with Royton and Chadderton lying imm",
    "zone": "Europe/London"
   },
   {
@@ -687,7 +687,7 @@
    "via": "wider net (nominatim + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Brann Stadion is a football stadium in Bergen, Norway.",
+   "lead": "Brann Stadion is a football stadium in Bergen, Norway. It was constructed in 1919, and has been the home of the football club Brann ever since. The stadium lies 3 km (1.9 mi) south of the city centre,",
    "zone": "Europe/Oslo"
   },
   {
@@ -704,7 +704,7 @@
    "qid": "Q4966496",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Bridgeforth Stadium is a football stadium located on the campus of James Madison University in Harrisonburg, Virginia.",
+   "lead": "Bridgeforth Stadium is a football stadium located on the campus of James Madison University in Harrisonburg, Virginia. It is home to the James Madison Dukes football team and the playing surface is na",
    "zone": "America/New_York"
   },
   {
@@ -721,7 +721,7 @@
    "qid": "Q609115",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Broadfield Stadium is a multi-purpose stadium in Crawley, West Sussex, England.",
+   "lead": "The Broadfield Stadium is a multi-purpose stadium in Crawley, West Sussex, England. It is currently used mostly for football matches and is the home ground of Crawley Town F.C., Brighton & Hove Albion",
    "zone": "Europe/London"
   },
   {
@@ -740,7 +740,7 @@
    "via": "wider net (nominatim + photon + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Broadview Stadium is a stadium in Amherst, New York, United States, on the campus of the University at Buffalo.",
+   "lead": "Broadview Stadium is a stadium in Amherst, New York, United States, on the campus of the University at Buffalo. It is primarily used for football, soccer, and track and field events, and is the home f",
    "zone": "America/New_York"
   },
   {
@@ -760,7 +760,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Brooks Stadium is a 21,000-seat multi-purpose stadium in Conway, South Carolina.",
+   "lead": "Brooks Stadium is a 21,000-seat multi-purpose stadium in Conway, South Carolina. It is home to the Coastal Carolina Chanticleers football team at Coastal Carolina University. The facility opened in 20",
    "zone": "America/New_York"
   },
   {
@@ -777,7 +777,7 @@
    "qid": "Q995161",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Saban Field at Bryant–Denny Stadium is an outdoor stadium on the campus of the University of Alabama in Tuscaloosa.",
+   "lead": "Saban Field at Bryant–Denny Stadium is an outdoor stadium on the campus of the University of Alabama in Tuscaloosa. It is the home field of the Alabama Crimson Tide football team of the Southeastern C",
    "zone": "America/Chicago"
   },
   {
@@ -794,7 +794,7 @@
    "qid": "Q2165358",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "CEFCU ('sef-kyü) Stadium, formerly known as Spartan Stadium, is an outdoor athletic stadium located in the Spartan Keyes neighborhood of San Jose, California.",
+   "lead": "CEFCU ('sef-kyü) Stadium, formerly known as Spartan Stadium, is an outdoor athletic stadium located in the Spartan Keyes neighborhood of San Jose, California. Owned by San José State University, the v",
    "zone": "America/Los_Angeles"
   },
   {
@@ -811,7 +811,7 @@
    "qid": "Q756452",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "Caesars Superdome commonly known as the Superdome, is an indoor stadium in New Orleans, Louisiana, U.S.",
+   "lead": "Caesars Superdome commonly known as the Superdome, is an indoor stadium in New Orleans, Louisiana, U.S. It has served as the home venue of the New Orleans Saints of the National Football League (NFL) ",
    "zone": "America/Chicago"
   },
   {
@@ -828,7 +828,7 @@
    "qid": "Q1026837",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "California Memorial Stadium is an outdoor college football stadium located on the campus of the University of California, Berkeley.",
+   "lead": "California Memorial Stadium is an outdoor college football stadium located on the campus of the University of California, Berkeley. It is the home field for the California Golden Bears of the Atlantic",
    "zone": "America/Los_Angeles"
   },
   {
@@ -845,7 +845,7 @@
    "qid": "Q1029941",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Camp Randall Stadium is an outdoor stadium in Madison, Wisconsin, located on the campus of the University of Wisconsin.",
+   "lead": "Camp Randall Stadium is an outdoor stadium in Madison, Wisconsin, located on the campus of the University of Wisconsin. It has been the home of the Wisconsin Badgers football team in rudimentary form ",
    "zone": "America/Chicago"
   },
   {
@@ -879,7 +879,7 @@
    "qid": "Q867902",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Cardiff City Stadium is a stadium in the Leckwith area of Cardiff, Wales.",
+   "lead": "Cardiff City Stadium is a stadium in the Leckwith area of Cardiff, Wales. It is the home of Cardiff City and the Wales national team.",
    "zone": "Europe/London"
   },
   {
@@ -896,7 +896,7 @@
    "qid": "Q123017",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Carrow Road is a football stadium in Norwich, Norfolk, England, and is the home of EFL Championship club Norwich City.",
+   "lead": "Carrow Road is a football stadium in Norwich, Norfolk, England, and is the home of EFL Championship club Norwich City. The stadium is east of the city, near Norwich railway station and the River Wensu",
    "zone": "Europe/London"
   },
   {
@@ -913,7 +913,7 @@
    "qid": "Q945172",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Wayne Day Family Field at Carter–Finley Stadium is a college football stadium located in Raleigh, North Carolina.",
+   "lead": "Wayne Day Family Field at Carter–Finley Stadium is a college football stadium located in Raleigh, North Carolina. It has been home to the NC State Wolfpack football team of the Atlantic Coast Conferen",
    "zone": "America/New_York"
   },
   {
@@ -932,7 +932,7 @@
    "via": "wider net (nominatim-alias + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Casino Del Sol Stadium is an outdoor college football stadium located on the campus of the University of Arizona in Tucson, Arizona.",
+   "lead": "Casino Del Sol Stadium is an outdoor college football stadium located on the campus of the University of Arizona in Tucson, Arizona. It is the home field of the Arizona Wildcats of the Big 12 Conferen",
    "zone": "America/Phoenix"
   },
   {
@@ -950,7 +950,7 @@
    "via": "home team (tier 1, Q216037)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Celtic Park is a football stadium and the home of Scottish Premiership team Celtic, in the Parkhead area of Glasgow, Scotland.",
+   "lead": "Celtic Park is a football stadium and the home of Scottish Premiership team Celtic, in the Parkhead area of Glasgow, Scotland. With a capacity of 60,411, it is the largest football stadium in Scotland",
    "zone": "Europe/London"
   },
   {
@@ -967,7 +967,7 @@
    "qid": "Q6541587",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Centennial Bank Stadium is a football stadium located in Jonesboro, Arkansas, on the campus of Arkansas State University that is home to the Arkansas State Red Wolves football team.",
+   "lead": "Centennial Bank Stadium is a football stadium located in Jonesboro, Arkansas, on the campus of Arkansas State University that is home to the Arkansas State Red Wolves football team. The stadium opened",
    "zone": "America/Chicago"
   },
   {
@@ -982,9 +982,9 @@
     "wikidata"
    ],
    "qid": "Q28449162",
-   "roof": "open",
-   "roofBasis": "inferred: the lead names no roof",
-   "lead": "Center Parc Stadium is an outdoor stadium in Atlanta, Georgia.",
+   "roof": "dome",
+   "roofBasis": "wikipedia lead",
+   "lead": "Center Parc Stadium is an outdoor stadium in Atlanta, Georgia. The stadium is the home of the Georgia State Panthers football team as of the 2017 season, replacing the Georgia Dome which had served as",
    "zone": "America/New_York"
   },
   {
@@ -1001,7 +1001,7 @@
    "qid": "Q784770",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Randers Stadium, known as Cepheus Park Randers for sponsorship reasons, is a football stadium located in Randers, Denmark.",
+   "lead": "Randers Stadium, known as Cepheus Park Randers for sponsorship reasons, is a football stadium located in Randers, Denmark. It is the home ground of Randers FC.",
    "zone": "Europe/Copenhagen"
   },
   {
@@ -1020,7 +1020,7 @@
    "via": "wider net (nominatim + osm-reverse + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Abbey Stadium, currently known as the Cledara Abbey Stadium for sponsorship reasons, is a football stadium in Cambridge, England.",
+   "lead": "The Abbey Stadium, currently known as the Cledara Abbey Stadium for sponsorship reasons, is a football stadium in Cambridge, England. It has been the home ground of Cambridge United since 1932, and cu",
    "zone": "Europe/London"
   },
   {
@@ -1037,7 +1037,7 @@
    "qid": "Q11597",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "DATCU Stadium is a college football stadium located at the north junction of Interstate 35E and Interstate 35W in Denton, Texas, United States.",
+   "lead": "DATCU Stadium is a college football stadium located at the north junction of Interstate 35E and Interstate 35W in Denton, Texas, United States. Opened in 2011, it is home to the University of North Te",
    "zone": "America/Chicago"
   },
   {
@@ -1057,7 +1057,7 @@
    "via": "wider net (nominatim-alias + photon + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Darrell K Royal–Texas Memorial Stadium, located in Austin, Texas, on the campus of the University of Texas at Austin, has been home to the Longhorns football team since 1924.",
+   "lead": "Darrell K Royal–Texas Memorial Stadium, located in Austin, Texas, on the campus of the University of Texas at Austin, has been home to the Longhorns football team since 1924. The stadium has delivered",
    "zone": "America/Chicago"
   },
   {
@@ -1074,7 +1074,7 @@
    "qid": "Q515782",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Daio Wasabi Stayen Stadium is a stadium in Sint-Truiden, the home ground of Belgian football club Sint-Truidense.",
+   "lead": "The Daio Wasabi Stayen Stadium is a stadium in Sint-Truiden, the home ground of Belgian football club Sint-Truidense. Originally constructed in 1927, the stadium holds 14,600 after its most recent reb",
    "zone": "Europe/Brussels"
   },
   {
@@ -1091,7 +1091,7 @@
    "qid": "Q3305513",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "David Booth Kansas Memorial Stadium is a college football stadium in Lawrence, Kansas, on the campus of the University of Kansas.",
+   "lead": "David Booth Kansas Memorial Stadium is a college football stadium in Lawrence, Kansas, on the campus of the University of Kansas. The original stadium was opened in 1921, and is the seventh oldest col",
    "zone": "America/Chicago"
   },
   {
@@ -1108,7 +1108,7 @@
    "qid": "Q949608",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Davis Wade Stadium, officially known as Davis Wade Stadium at Scott Field is the home venue for the Mississippi State Bulldogs football team.",
+   "lead": "Davis Wade Stadium, officially known as Davis Wade Stadium at Scott Field is the home venue for the Mississippi State Bulldogs football team. Originally constructed in 1914 as New Athletic Field, it i",
    "zone": "America/Chicago"
   },
   {
@@ -1125,7 +1125,7 @@
    "qid": "Q727389",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "De Grolsch Veste, previously known as Arke Stadion, is the stadium of football club FC Twente.",
+   "lead": "De Grolsch Veste, previously known as Arke Stadion, is the stadium of football club FC Twente. It is located in Enschede, Netherlands, at the Business & Science Park, near the University of Twente. Th",
    "zone": "Europe/Amsterdam"
   },
   {
@@ -1160,7 +1160,7 @@
    "qid": "Q1141958",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Deepdale is a football stadium in the Deepdale area of Preston, England that is the home ground of Preston North End.",
+   "lead": "Deepdale is a football stadium in the Deepdale area of Preston, England that is the home ground of Preston North End. Built in 1875 and in use since 1878, Deepdale is recognised as being one of the ol",
    "zone": "Europe/London"
   },
   {
@@ -1177,7 +1177,7 @@
    "qid": "Q14685363",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Delaware Stadium is an 18,500-seat stadium in Newark, Delaware, and is home to the University of Delaware Fightin' Blue Hens football and men's and women's lacrosse teams.",
+   "lead": "Delaware Stadium is an 18,500-seat stadium in Newark, Delaware, and is home to the University of Delaware Fightin' Blue Hens football and men's and women's lacrosse teams. The stadium is part of the D",
    "zone": "America/New_York"
   },
   {
@@ -1194,7 +1194,7 @@
    "qid": "Q5265935",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Detroit Golf Club is a private golf club in Detroit, Michigan, located north of downtown near the University of Detroit Mercy and Palmer Woods Historic District.",
+   "lead": "The Detroit Golf Club is a private golf club in Detroit, Michigan, located north of downtown near the University of Detroit Mercy and Palmer Woods Historic District. Its original six-hole course was d",
    "zone": "America/Detroit"
   },
   {
@@ -1211,7 +1211,7 @@
    "qid": "Q157273",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Waldstadion, currently known as Deutsche Bank Park for sponsorship purposes, is a retractable roof sports stadium in Frankfurt, Germany.",
+   "lead": "Waldstadion, currently known as Deutsche Bank Park for sponsorship purposes, is a retractable roof sports stadium in Frankfurt, Germany. The home stadium of the football club Eintracht Frankfurt, it w",
    "zone": "Europe/Berlin"
   },
   {
@@ -1228,7 +1228,7 @@
    "qid": "Q1210268",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Dick's Sporting Goods Park, also known as DSG Park, is a soccer-specific stadium in Commerce City, Colorado, that is home to the Colorado Rapids of Major League Soccer (MLS).",
+   "lead": "Dick's Sporting Goods Park, also known as DSG Park, is a soccer-specific stadium in Commerce City, Colorado, that is home to the Colorado Rapids of Major League Soccer (MLS). The stadium seats up to 1",
    "zone": "America/Denver"
   },
   {
@@ -1245,7 +1245,7 @@
    "qid": "Q901017",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "DVTK Stadion is a multi-purpose stadium in Miskolc, Hungary.",
+   "lead": "DVTK Stadion is a multi-purpose stadium in Miskolc, Hungary. It is the playing field of the local football association and it is the home of Diósgyőri VTK.",
    "zone": "Europe/Budapest"
   },
   {
@@ -1262,7 +1262,7 @@
    "via": "wider net (photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Við Djúpumýrar is a multi-use stadium in Klaksvík, Faroe Islands.",
+   "lead": "Við Djúpumýrar is a multi-use stadium in Klaksvík, Faroe Islands. It is mostly used for football matches. Við Djúpumýrar is the home ground of Klaksvíkar Ítróttarfelag men's and women's teams and has ",
    "zone": "Atlantic/Faroe"
   },
   {
@@ -1279,7 +1279,7 @@
    "qid": "Q1233077",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Doak S.",
+   "lead": "Doak S. Campbell Stadium, popularly known as \"Doak\", is a football stadium on the campus of Florida State University in Tallahassee, Florida, United States. It is the home field of the Florida State S",
    "zone": "America/New_York"
   },
   {
@@ -1296,7 +1296,7 @@
    "qid": "Q1124181",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Razorback Stadium is an American football stadium in Fayetteville, Arkansas and serves as the home field of the University of Arkansas Razorbacks football team since its opening in 1938.",
+   "lead": "Razorback Stadium is an American football stadium in Fayetteville, Arkansas and serves as the home field of the University of Arkansas Razorbacks football team since its opening in 1938. The stadium w",
    "zone": "America/Chicago"
   },
   {
@@ -1313,7 +1313,7 @@
    "qid": "Q2116283",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Doosan Arena, previously known as Stadion města Plzně, is a football stadium in Plzeň, Czech Republic.",
+   "lead": "Doosan Arena, previously known as Stadion města Plzně, is a football stadium in Plzeň, Czech Republic. It is located in Štrunc Park, near the confluence of the Mže and Radbuza rivers. The stadium is t",
    "zone": "Europe/Prague"
   },
   {
@@ -1330,7 +1330,7 @@
    "qid": "Q3038295",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Dowdy–Ficklen Stadium is the on-campus football facility at East Carolina University for the East Carolina Pirates in Greenville, North Carolina.",
+   "lead": "Dowdy–Ficklen Stadium is the on-campus football facility at East Carolina University for the East Carolina Pirates in Greenville, North Carolina. The official capacity of the stadium is 51,000. The re",
    "zone": "America/New_York"
   },
   {
@@ -1353,7 +1353,7 @@
    "via": "wider net (nominatim + nominatim-alias + osm-reverse + osm-reverse + photon + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Doyt L.",
+   "lead": "Doyt L. Perry Stadium is a stadium on the campus of Bowling Green State University in Bowling Green, Ohio, United States. It is primarily used for American football, and is the home field of the Bowli",
    "zone": "America/New_York"
   },
   {
@@ -1370,7 +1370,7 @@
    "qid": "Q1278116",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Easter Road is a football stadium located in the Leith area of Edinburgh, Scotland, which is the home ground of Scottish Premiership club Hibernian (Hibs).",
+   "lead": "Easter Road is a football stadium located in the Leith area of Edinburgh, Scotland, which is the home ground of Scottish Premiership club Hibernian (Hibs). The stadium currently has an all-seated capa",
    "zone": "Europe/London"
   },
   {
@@ -1387,7 +1387,7 @@
    "qid": "Q1336402",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Club Doncaster Sports Village is a multi-purpose stadium in Doncaster, England, with a capacity of 15,231.",
+   "lead": "The Club Doncaster Sports Village is a multi-purpose stadium in Doncaster, England, with a capacity of 15,231. It cost approximately £20 million to construct, as part of the wider Lakeside Sports Comp",
    "zone": "Europe/London"
   },
   {
@@ -1403,7 +1403,7 @@
    "qid": "Q1284381",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Edgeley Park is a football stadium in Edgeley, Stockport, England.",
+   "lead": "Edgeley Park is a football stadium in Edgeley, Stockport, England. Built for Stockport RFC, a rugby league club, in 1891, Stockport County Football Club moved in by 1902, a year before the rugby club ",
    "zone": "Europe/London"
   },
   {
@@ -1420,7 +1420,7 @@
    "qid": "Q735783",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio El Sadar is a football stadium in Pamplona, Navarre, Spain.",
+   "lead": "Estadio El Sadar is a football stadium in Pamplona, Navarre, Spain. The stadium holds 23,576 people. It was built in 1967 and is the home of Osasuna.",
    "zone": "Europe/Madrid"
   },
   {
@@ -1437,7 +1437,7 @@
    "via": "wider net (photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Campos de Sport de El Sardinero, or simply El Sardinero, is a sports complex in Santander, Spain.",
+   "lead": "Campos de Sport de El Sardinero, or simply El Sardinero, is a sports complex in Santander, Spain. The football stadium, which is named Estadio El Sardinero, is currently used mostly for football match",
    "zone": "Europe/Madrid"
   },
   {
@@ -1454,7 +1454,7 @@
    "qid": "Q7383667",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Elbasan Arena is a multi-purpose stadium in Elbasan, Albania.",
+   "lead": "Elbasan Arena is a multi-purpose stadium in Elbasan, Albania. The stadium was completed in 1967 and it is home ground of AF Elbasani. The stadium was under reconstruction and was officially inaugurate",
    "zone": "Europe/Tirane"
   },
   {
@@ -1470,7 +1470,7 @@
    "qid": "Q619505",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Elland Road, or Elland Road Stadium, is a football stadium in Beeston, Leeds, West Yorkshire, England, which has been the home of Leeds United since the club's formation in 1919.",
+   "lead": "Elland Road, or Elland Road Stadium, is a football stadium in Beeston, Leeds, West Yorkshire, England, which has been the home of Leeds United since the club's formation in 1919. With a capacity of 37",
    "zone": "Europe/London"
   },
   {
@@ -1492,7 +1492,7 @@
    "via": "wider net (nominatim-alias + osm-reverse + osm-reverse + photon + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Elliott T.",
+   "lead": "Elliott T. Bowers Stadium is a 14,000-seat multi-purpose stadium in Huntsville, Texas. The stadium has been home to the Sam Houston State University Sam Houston Bearkats football team since 1986. Prev",
    "zone": "America/Chicago"
   },
   {
@@ -1509,7 +1509,7 @@
    "qid": "Q163995",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Emirates Stadium is a football stadium in Holloway, London, England.",
+   "lead": "The Emirates Stadium is a football stadium in Holloway, London, England. It has been the home stadium of Arsenal Football Club since its completion in 2006. Arsenal's women's team made the stadium the",
    "zone": "Europe/London"
   },
   {
@@ -1526,7 +1526,7 @@
    "qid": "Q1046135",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Empower Field at Mile High is an American football stadium in the western United States, located in Denver, Colorado.",
+   "lead": "Invesco Field at Mile High is an American football stadium in the western United States, located in Denver, Colorado. Opened 25 years ago in 2001, its primary tenant is the Denver Broncos of the Natio",
    "zone": "America/Denver"
   },
   {
@@ -1543,7 +1543,7 @@
    "qid": "Q30591730",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Energizer Park, previously CityPark, is a 22,423-seat soccer-specific stadium in St.",
+   "lead": "Energizer Park, previously CityPark, is a 22,423-seat soccer-specific stadium in St. Louis, Missouri, United States. It is the home of St. Louis City SC, the city's Major League Soccer (MLS) franchise",
    "zone": "America/Chicago"
   },
   {
@@ -1560,7 +1560,7 @@
    "qid": "Q610546",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadio Ennio Tardini, commonly referred to as just Il Tardini, is a football stadium in Parma, Italy, located near the centre of Parma, between the town centre and the city walls.",
+   "lead": "Stadio Ennio Tardini, commonly referred to as just Il Tardini, is a football stadium in Parma, Italy, located near the centre of Parma, between the town centre and the city walls. It is the home of Pa",
    "zone": "Europe/Rome"
   },
   {
@@ -1577,7 +1577,7 @@
    "qid": "Q1122715",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadi Ciutat de València is a football stadium in Valencia and is the home ground of Levante UD.",
+   "lead": "Estadi Ciutat de València is a football stadium in Valencia and is the home ground of Levante UD. Built in 1969 and holding up to 26,354 spectators, it is the 23rd-largest stadium in Spain and the 4th",
    "zone": "Europe/Madrid"
   },
   {
@@ -1595,7 +1595,7 @@
    "via": "home team (tier 2, Q320454)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio Azteca, officially known as Estadio Banorte for sponsorship reasons, is a football stadium located in Coyoacán, Mexico City.",
+   "lead": "Estadio Azteca, officially known as Estadio Banorte for sponsorship reasons, is a football stadium located in Coyoacán, Mexico City. At an elevation of 2,241 meters (7,352 ft) above sea level it is th",
    "zone": "America/Mexico_City"
   },
   {
@@ -1612,7 +1612,7 @@
    "qid": "Q126844",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio Benito Villamarín is a stadium in Seville, Spain, and the home of Real Betis since its completion in 1929.",
+   "lead": "Estadio Benito Villamarín is a stadium in Seville, Spain, and the home of Real Betis since its completion in 1929. It has a capacity of 60,721.",
    "zone": "Europe/Madrid"
   },
   {
@@ -1628,7 +1628,7 @@
    "qid": "Q929109",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio Coliseum is a municipally owned football stadium in Getafe, Spain.",
+   "lead": "Estadio Coliseum is a municipally owned football stadium in Getafe, Spain. It is the home ground of Getafe CF.",
    "zone": "Europe/Madrid"
   },
   {
@@ -1645,7 +1645,7 @@
    "qid": "Q368737",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio La Cartuja, formerly Estadio Olímpico de Sevilla, officially known as Estadio La Cartuja de Sevilla, is a stadium situated in the Isla de La Cartuja in Seville, Spain.",
+   "lead": "Estadio La Cartuja, formerly Estadio Olímpico de Sevilla, officially known as Estadio La Cartuja de Sevilla, is a stadium situated in the Isla de La Cartuja in Seville, Spain. It is used mostly for fo",
    "zone": "Europe/Madrid"
   },
   {
@@ -1662,7 +1662,7 @@
    "qid": "Q953600",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estadio Martínez Valero is a stadium located in the Spanish city of Elche in the province of Alicante, Valencian Community.",
+   "lead": "The Estadio Martínez Valero is a stadium located in the Spanish city of Elche in the province of Alicante, Valencian Community. It is the home stadium of Elche CF, a team that is currently playing in ",
    "zone": "Europe/Madrid"
   },
   {
@@ -1679,7 +1679,7 @@
    "qid": "Q1369462",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estadio Municipal de Butarque, known for sponsorship reasons as the Ontime Butarque, is a multi-use stadium located in Leganés, Spain.",
+   "lead": "The Estadio Municipal de Butarque, known for sponsorship reasons as the Ontime Butarque, is a multi-use stadium located in Leganés, Spain. \nIt is currently used for football matches and is the home st",
    "zone": "Europe/Madrid"
   },
   {
@@ -1696,7 +1696,7 @@
    "qid": "Q604859",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Nemesio Diez Stadium, sometimes referred to as La Bombonera, for its resemblance, is an association football stadium located in Toluca, State of Mexico, Mexico.",
+   "lead": "Nemesio Diez Stadium, sometimes referred to as La Bombonera, for its resemblance, is an association football stadium located in Toluca, State of Mexico, Mexico. Opened on 8 August 1954, the stadium ha",
    "zone": "America/Mexico_City"
   },
   {
@@ -1713,7 +1713,7 @@
    "qid": "Q983806",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Campo de Fútbol de Vallecas is a football stadium in the Madrid district of Puente de Vallecas, Spain.",
+   "lead": "Campo de Fútbol de Vallecas is a football stadium in the Madrid district of Puente de Vallecas, Spain. Up until 2026, it has hosted football matches as the home of Primera Division club Rayo Vallecano",
    "zone": "Europe/Madrid"
   },
   {
@@ -1730,7 +1730,7 @@
    "qid": "Q741157",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio de la Cerámica, formerly and informally called El Madrigal, is a football stadium in Villarreal, Spain, in use since 1923.",
+   "lead": "Estadio de la Cerámica, formerly and informally called El Madrigal, is a football stadium in Villarreal, Spain, in use since 1923. It is the home venue of Villarreal CF of La Liga, the highest divisio",
    "zone": "Europe/Madrid"
   },
   {
@@ -1747,7 +1747,7 @@
    "qid": "Q1056864",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estádio Dr.",
+   "lead": "The Estádio Dr. Magalhães Pessoa is a football stadium in Leiria, Portugal, built as a venue for the UEFA Euro 2004 finals held in Portugal. It is the home for Leiria's main football club, União de Le",
    "zone": "Europe/Lisbon"
   },
   {
@@ -1764,7 +1764,7 @@
    "qid": "Q287359",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estádio José Alvalade is a football stadium in Lisbon, Portugal, and is the home of Sporting CP.",
+   "lead": "The Estádio José Alvalade is a football stadium in Lisbon, Portugal, and is the home of Sporting CP. It was built adjacent to the site of the older stadium. The stadium is named after José Alvalade (1",
    "zone": "Europe/Lisbon"
   },
   {
@@ -1781,7 +1781,7 @@
    "qid": "Q849239",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estádio Municipal de Braga is an all-seater football stadium located in Braga, Portugal, and the current home of Sporting Clube de Braga.",
+   "lead": "The Estádio Municipal de Braga is an all-seater football stadium located in Braga, Portugal, and the current home of Sporting Clube de Braga. It has a capacity of 30,286 spectators, making it the seve",
    "zone": "Europe/Lisbon"
   },
   {
@@ -1799,7 +1799,7 @@
    "via": "home team (tier 1, Q7875112)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estádio da Luz, officially named Estádio do Sport Lisboa e Benfica, is a multi-purpose stadium located in Lisbon, Portugal.",
+   "lead": "The Estádio da Luz, officially named Estádio do Sport Lisboa e Benfica, is a multi-purpose stadium located in Lisbon, Portugal. It is owned by association football club Sport Lisboa e Benfica, and hos",
    "zone": "Europe/Lisbon"
   },
   {
@@ -1816,7 +1816,7 @@
    "qid": "Q271454",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Estádio do Dragão is an all-seater football stadium in Porto, Portugal, and the home ground of FC Porto since 2003.",
+   "lead": "The Estádio do Dragão is an all-seater football stadium in Porto, Portugal, and the home ground of FC Porto since 2003. It has a seating capacity of 50,033, making it the third-largest football stadiu",
    "zone": "Europe/Lisbon"
   },
   {
@@ -1833,7 +1833,7 @@
    "qid": "Q635117",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "EverBank Stadium is an American football stadium in Jacksonville, Florida, United States.",
+   "lead": "EverBank Stadium is an American football stadium in Jacksonville, Florida, United States. It is the home facility of the Jacksonville Jaguars of the National Football League (NFL), and the headquarter",
    "zone": "America/New_York"
   },
   {
@@ -1850,7 +1850,7 @@
    "qid": "Q245085",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Ewood Park is a football stadium in Blackburn, Lancashire, England, and the home of Blackburn Rovers, founding members of the Football League and Premier League, who have played there since 1890.",
+   "lead": "Ewood Park is a football stadium in Blackburn, Lancashire, England, and the home of Blackburn Rovers, founding members of the Football League and Premier League, who have played there since 1890. It i",
    "zone": "Europe/London"
   },
   {
@@ -1867,7 +1867,7 @@
    "via": "wider net (photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Partizan Stadium is a football and track-and-field stadium in Autokomanda, Belgrade, Serbia.",
+   "lead": "The Partizan Stadium is a football and track-and-field stadium in Autokomanda, Belgrade, Serbia. The home ground of FK Partizan, it was formerly known as JNA Stadium after the Yugoslav People's Army (",
    "zone": "Europe/Belgrade"
   },
   {
@@ -1884,7 +1884,7 @@
    "qid": "Q907843",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Falcon Stadium is an outdoor football stadium in the western United States, on the campus of the U.S.",
+   "lead": "Falcon Stadium is an outdoor football stadium in the western United States, on the campus of the U.S. Air Force Academy near Colorado Springs, Colorado. It is the home field of the Air Force Falcons f",
    "zone": "America/Denver"
   },
   {
@@ -1901,7 +1901,7 @@
    "qid": "Q5435127",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "Fargodome is an indoor athletic stadium and convention center in the north central United States, located on the campus of North Dakota State University (NDSU) in Fargo, North Dakota.",
+   "lead": "Fargodome is an indoor athletic stadium and convention center in the north central United States, located on the campus of North Dakota State University (NDSU) in Fargo, North Dakota. It opened in 199",
    "zone": "America/Chicago"
   },
   {
@@ -1917,7 +1917,7 @@
    "qid": "Q252696",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Fir Park Stadium is a football stadium situated in Motherwell, North Lanarkshire, Scotland.",
+   "lead": "Fir Park Stadium is a football stadium situated in Motherwell, North Lanarkshire, Scotland. The stadium plays host to the home matches of Scottish Premiership club Motherwell and was the temporary hom",
    "zone": "Europe/London"
   },
   {
@@ -1936,7 +1936,7 @@
    "via": "wider net (nominatim-alias + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "First Community Stadium is an American football stadium located on the Rice University campus in Houston, Texas.",
+   "lead": "First Community Stadium is an American football stadium located on the Rice University campus in Houston, Texas. It has been the home of the Rice Owls football team since its completion in 1950, and h",
    "zone": "America/Chicago"
   },
   {
@@ -1953,7 +1953,7 @@
    "qid": "Q3554494",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "FirstBank Stadium is a college football stadium on the campus of Vanderbilt University in Nashville, Tennessee.",
+   "lead": "FirstBank Stadium is a college football stadium on the campus of Vanderbilt University in Nashville, Tennessee. Opened 104 years ago in 1922 as the first stadium in the South to be used exclusively fo",
    "zone": "America/Chicago"
   },
   {
@@ -1989,7 +1989,7 @@
    "qid": "Q3075131",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Folsom Field is an outdoor college football stadium in the western United States, located on the campus of the University of Colorado in Boulder, Colorado.",
+   "lead": "Folsom Field is an outdoor college football stadium in the western United States, located on the campus of the University of Colorado in Boulder, Colorado. It is the home field of the Colorado Buffalo",
    "zone": "America/Denver"
   },
   {
@@ -2007,7 +2007,7 @@
    "via": "home team (tier 2, Q1142586)",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "Ford Field is an indoor stadium in Detroit, Michigan, U.S.",
+   "lead": "Ford Field is an indoor stadium in Detroit, Michigan, U.S. It primarily serves as the home of the Detroit Lions of the National Football League (NFL), the Mid-American Conference championship game, th",
    "zone": "America/Detroit"
   },
   {
@@ -2025,7 +2025,7 @@
    "via": "home team (tier 1, Q64858)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Fortuna Arena is a football stadium, in Prague-Vršovice, Czech Republic.",
+   "lead": "Fortuna Arena is a football stadium, in Prague-Vršovice, Czech Republic. The stadium has a capacity of 19,370 people and it is the biggest and the most modern football stadium in the Czech Republic.",
    "zone": "Europe/Prague"
   },
   {
@@ -2042,7 +2042,7 @@
    "qid": "Q592491",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The GSP Stadium is a football stadium in Strovolos, Nicosia District, Cyprus.",
+   "lead": "The GSP Stadium is a football stadium in Strovolos, Nicosia District, Cyprus. Although small by international standards, it is the largest stadium in Cyprus, with a capacity of 22,859 and was opened i",
    "zone": "Asia/Nicosia"
   },
   {
@@ -2059,7 +2059,7 @@
    "qid": "Q3183551",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Galaxy Stadium is an outdoor athletic stadium on the campus of Texas Tech University in Lubbock, Texas.",
+   "lead": "Galaxy Stadium is an outdoor athletic stadium on the campus of Texas Tech University in Lubbock, Texas. Built in the style of Spanish Renaissance architecture, it is the home field of the Texas Tech R",
    "zone": "America/Chicago"
   },
   {
@@ -2076,7 +2076,7 @@
    "via": "home team (tier 2, Q60103)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Letná Stadium is a football stadium in Prague.",
+   "lead": "The Letná Stadium is a football stadium in Prague. It is the home venue of AC Sparta Prague and often hosts the home matches of the Czech Republic national football team. The stadium's capacity is 18,",
    "zone": "Europe/Prague"
   },
   {
@@ -2093,7 +2093,7 @@
    "qid": "Q213508",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Georgios Karaiskakis Stadium, commonly referred to as the Karaiskakis Stadium, and also known as “Bombonera”, is a football stadium in Piraeus, Attica, Greece, and the home ground of the Piraeus f",
+   "lead": "The Georgios Karaiskakis Stadium, commonly referred to as the Karaiskakis Stadium, is a football stadium in Piraeus, Attica, Greece, and the home ground of the Piraeus football club Olympiacos. It is ",
    "zone": "Europe/Athens"
   },
   {
@@ -2110,7 +2110,7 @@
    "qid": "Q390127",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Gerald J.",
+   "lead": "Gerald J. Ford Stadium is a stadium in Dallas, Texas. The stadium is owned by Southern Methodist University (SMU) and is used primarily for games played by the SMU Mustangs football team.",
    "zone": "America/Chicago"
   },
   {
@@ -2127,7 +2127,7 @@
    "qid": "Q1708705",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Planet Group Arena is a multi-use stadium in Ghent, Belgium, until 2024 known as Ghelamco Arena.",
+   "lead": "The Planet Group Arena is a multi-use stadium in Ghent, Belgium, until 2024 known as Ghelamco Arena. It hosts the home matches of football club K.A.A. Gent and was officially opened on 17 July 2013, m",
    "zone": "Europe/Brussels"
   },
   {
@@ -2144,7 +2144,7 @@
    "qid": "Q3305514",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Gies Memorial Stadium is a stadium on the campus of the University of Illinois Urbana-Champaign in Champaign, Illinois, United States.",
+   "lead": "Gies Memorial Stadium is a stadium on the campus of the University of Illinois Urbana-Champaign in Champaign, Illinois, United States. The stadium, used primarily for football, is a memorial to the un",
    "zone": "America/Chicago"
   },
   {
@@ -2162,7 +2162,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Rapid-Giulești Stadium, known as Superbet Arena-Giulești for sponsorship reasons, is a football-specific stadium located in the Giulești neighbourhood of Bucharest, Romania.",
+   "lead": "The Rapid-Giulești Stadium, known as Superbet Arena-Giulești for sponsorship reasons, is a football-specific stadium located in the Giulești neighbourhood of Bucharest, Romania. It has been home to Li",
    "zone": "Europe/Bucharest"
   },
   {
@@ -2180,7 +2180,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadio Giuseppe Sinigaglia  is a multi-use stadium in Como, Italy.",
+   "lead": "Stadio Giuseppe Sinigaglia  is a multi-use stadium in Como, Italy. It is primarily used for football matches as the home ground of Como 1907. The stadium has a capacity of 13,602 spectators.",
    "zone": "Europe/Rome"
   },
   {
@@ -2196,7 +2196,7 @@
    "qid": "Q5567033",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Glass Bowl is a stadium in Toledo, Ohio.",
+   "lead": "The Glass Bowl is a stadium in Toledo, Ohio. It is primarily used for American football, and is the home field of the American football team of the University of Toledo Rockets. It is located on the s",
    "zone": "America/New_York"
   },
   {
@@ -2213,7 +2213,7 @@
    "qid": "Q720983",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Goffertstadion, formerly known as McDOS Goffertstadion for sponsorship reasons, is a football stadium in Nijmegen, Netherlands, located in the Goffertpark.",
+   "lead": "The Goffertstadion, formerly known as McDOS Goffertstadion for sponsorship reasons, is a football stadium in Nijmegen, Netherlands, located in the Goffertpark. It is home to the football club NEC. The",
    "zone": "Europe/Amsterdam"
   },
   {
@@ -2230,7 +2230,7 @@
    "qid": "Q621027",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Banja Luka City Stadium is a multi-purpose stadium in Borik, Banja Luka, Republika Srpska an entity of Bosnia and Herzegovina.",
+   "lead": "Banja Luka City Stadium is a multi-purpose stadium in Borik, Banja Luka, Republika Srpska an entity of Bosnia and Herzegovina. It is currently used mostly for football matches and is the home ground o",
    "zone": "Europe/Sarajevo"
   },
   {
@@ -2247,7 +2247,7 @@
    "qid": "Q17394000",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Ferencváros Stadion, also known as the Groupama Aréna for sponsorship purposes, is a multi-purpose stadium in Ferencváros, Budapest, Hungary and the home of Ferencvárosi TC.",
+   "lead": "The Ferencváros Stadion, also known as the Groupama Aréna for sponsorship purposes, is a multi-purpose stadium in Ferencváros, Budapest, Hungary and the home of Ferencvárosi TC. With a capacity of 22,",
    "zone": "Europe/Budapest"
   },
   {
@@ -2264,7 +2264,7 @@
    "qid": "Q8507",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Parc Olympique Lyonnais, known for sponsorship reasons as Groupama Stadium, is a 59,186-seater stadium in Décines-Charpieu, a commune situated in the Metropolis of Lyon.",
+   "lead": "Parc Olympique Lyonnais, known for sponsorship reasons as Groupama Stadium, is a 59,186-seater stadium in Décines-Charpieu, a commune situated in the Metropolis of Lyon. It is the third largest stadiu",
    "zone": "Europe/Paris"
   },
   {
@@ -2299,7 +2299,7 @@
    "via": "wider net (photon + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Skelly Field at H.",
+   "lead": "Skelly Field at H. A. Chapman Stadium is an outdoor college football stadium in the south central United States, located on the campus of the University of Tulsa in Tulsa, Oklahoma. Commonly known as ",
    "zone": "America/Chicago"
   },
   {
@@ -2316,7 +2316,7 @@
    "qid": "Q7008048",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Hamilton Stadium is a multi-purpose stadium in Hamilton, Ontario, Canada.",
+   "lead": "Hamilton Stadium is a multi-purpose stadium in Hamilton, Ontario, Canada. Completed in 2014 with a capacity of 22,500, it was built as a replacement on the same site as the previous stadium, named Ivo",
    "zone": "America/Toronto"
   },
   {
@@ -2333,7 +2333,7 @@
    "qid": "Q83590158",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Hancock Whitney Stadium is a 25,450-seat multi-purpose stadium on the campus of the University of South Alabama in Mobile, Alabama.",
+   "lead": "Hancock Whitney Stadium is a 25,450-seat multi-purpose stadium on the campus of the University of South Alabama in Mobile, Alabama. It is the home of the South Alabama Jaguars football program, starti",
    "zone": "America/Chicago"
   },
   {
@@ -2350,7 +2350,7 @@
    "qid": "Q864339",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Hard Rock Stadium is a multi-purpose stadium in Miami Gardens, Florida, United States.",
+   "lead": "Hard Rock Stadium is a multi-purpose stadium in Miami Gardens, Florida, United States. The stadium is the home field for the Miami Dolphins of the National Football League (NFL) and the Miami Hurrican",
    "zone": "America/New_York"
   },
   {
@@ -2367,7 +2367,7 @@
    "qid": "Q619024",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Highbury Stadium is a football stadium in Fleetwood, Lancashire, England, with Wyre Borough Council as the landlords.",
+   "lead": "Highbury Stadium is a football stadium in Fleetwood, Lancashire, England, with Wyre Borough Council as the landlords. It is the home ground of Fleetwood Town and was also used for home matches by Blac",
    "zone": "Europe/London"
   },
   {
@@ -2401,7 +2401,7 @@
    "qid": "Q567402",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Home Deluxe Arena is a multi-use stadium in Paderborn, Germany, that was built between July 2005 and July 2008, as a replacement for the Hermann-Löns-Stadion.",
+   "lead": "Home Deluxe Arena is a multi-use stadium in Paderborn, Germany, that was built between July 2005 and July 2008, as a replacement for the Hermann-Löns-Stadion. The opening match between SC Paderborn an",
    "zone": "Europe/Berlin"
   },
   {
@@ -2418,7 +2418,7 @@
    "qid": "Q619350",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Home Park is a football stadium in the area of Milehouse, Plymouth, Devon, England.",
+   "lead": "Home Park is a football stadium in the area of Milehouse, Plymouth, Devon, England. With a capacity of 17,900, the ground has been the home of Plymouth Argyle Football Club since 1903, and was also us",
    "zone": "Europe/London"
   },
   {
@@ -2436,7 +2436,7 @@
    "via": "home team (tier 2, Q9004779)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Fred Anderson Field at Hornet Stadium is a 21,195-seat college football and track stadium on the campus of California State University, Sacramento.",
+   "lead": "Fred Anderson Field at Hornet Stadium is a 21,195-seat college football and track stadium on the campus of California State University, Sacramento. it is the home field of the Sacramento State Hornets",
    "zone": "America/Los_Angeles"
   },
   {
@@ -2453,7 +2453,7 @@
    "via": "wider net (photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Houchens Industries–L.",
+   "lead": "Houchens Industries–L. T. Smith Stadium at Jimmy Feix Field is a 22,000-seat stadium in Bowling Green, in the U.S. state of Kentucky. It is home to the Western Kentucky University Hilltoppers football",
    "zone": "America/Chicago"
   },
   {
@@ -2470,7 +2470,7 @@
    "qid": "Q1100756",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Huntington Bank Field is a stadium in Cleveland, Ohio, United States.",
+   "lead": "Huntington Bank Field is a stadium in Cleveland, Ohio, United States. It is the home field of the Cleveland Browns of the National Football League (NFL), and serves as a venue for other events such as",
    "zone": "America/New_York"
   },
   {
@@ -2487,7 +2487,7 @@
    "qid": "Q3512039",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Huntington Bank Stadium is an outdoor stadium located on the campus of the University of Minnesota in Minneapolis, Minnesota, United States.",
+   "lead": "Huntington Bank Stadium is an outdoor stadium located on the campus of the University of Minnesota in Minneapolis, Minnesota, United States. The stadium opened in 2009 after three years of constructio",
    "zone": "America/Chicago"
   },
   {
@@ -2504,7 +2504,7 @@
    "qid": "Q5949339",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Huskie Stadium is a college football stadium located on the campus of Northern Illinois University in DeKalb, Illinois.",
+   "lead": "Huskie Stadium is a college football stadium located on the campus of Northern Illinois University in DeKalb, Illinois. Opened 61 years ago in 1965, it is the home field of the NIU Huskies of the Moun",
    "zone": "America/Chicago"
   },
   {
@@ -2522,7 +2522,7 @@
    "via": "home team (tier 2, Q1136463)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Husky Stadium is an outdoor football stadium on the campus of the University of Washington in Seattle, Washington, United States.",
+   "lead": "Husky Stadium is an outdoor football stadium on the campus of the University of Washington in Seattle, Washington, United States. It has been home to the Washington Huskies of the Big Ten Conference s",
    "zone": "America/Los_Angeles"
   },
   {
@@ -2539,7 +2539,7 @@
    "qid": "Q208709",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Ibrox Stadium is a football stadium on the south side of the River Clyde in the Ibrox area of Glasgow, Scotland.",
+   "lead": "Ibrox Stadium is a football stadium on the south side of the River Clyde in the Ibrox area of Glasgow, Scotland. The home of Scottish Premiership team Rangers, Ibrox is the third-largest football stad",
    "zone": "Europe/London"
   },
   {
@@ -2556,7 +2556,7 @@
    "qid": "Q6030359",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "InfoCision Stadium–Summa Field is a college American football stadium in Akron, Ohio and the home field of the Akron Zips football team at the University of Akron.",
+   "lead": "InfoCision Stadium–Summa Field is a college American football stadium in Akron, Ohio and the home field of the Akron Zips football team at the University of Akron. New for the 2009 football season, th",
    "zone": "America/New_York"
   },
   {
@@ -2574,7 +2574,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Inter.co Stadium is a soccer-specific stadium in downtown Orlando, Florida, United States.",
+   "lead": "Inter.co Stadium is a soccer-specific stadium in downtown Orlando, Florida, United States. The stadium is located along West Church Street in the Parramore neighborhood west of downtown Orlando. It is",
    "zone": "America/New_York"
   },
   {
@@ -2590,7 +2590,7 @@
    "qid": "Q15228765",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Inver Park is a football stadium in Larne, County Antrim, Northern Ireland.",
+   "lead": "Inver Park is a football stadium in Larne, County Antrim, Northern Ireland. It is the home ground of Larne. The land was acquired by Larne in 1918 and has been in continuous use as a stadium ever sinc",
    "zone": "Europe/London"
   },
   {
@@ -2607,7 +2607,7 @@
    "qid": "Q2739617",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "The JMA Wireless Dome, originally the Carrier Dome (1980–2022), is a domed stadium in Syracuse, New York, United States.",
+   "lead": "The JMA Wireless Dome, originally the Carrier Dome (1980–2022), is a domed stadium in Syracuse, New York, United States. Located on the campus of Syracuse University in the University Hill neighborhoo",
    "zone": "America/New_York"
   },
   {
@@ -2624,7 +2624,7 @@
    "qid": "Q3157332",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Jack Trice Stadium is a stadium located in Ames, Iowa, United States.",
+   "lead": "Jack Trice Stadium is a stadium located in Ames, Iowa, United States. Primarily used for college football, it is the home field of the Iowa State Cyclones. It is named in honor of Jack Trice, Iowa Sta",
    "zone": "America/Chicago"
   },
   {
@@ -2641,7 +2641,7 @@
    "qid": "Q1070150",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Jan Breydel Stadium is a multi-purpose stadium in Sint-Andries, Bruges, Belgium.",
+   "lead": "Jan Breydel Stadium is a multi-purpose stadium in Sint-Andries, Bruges, Belgium. The city-owned stadium is the home stadium of two top-flight association football clubs and rivals, Club Brugge and Cer",
    "zone": "Europe/Brussels"
   },
   {
@@ -2673,9 +2673,9 @@
     "wikidata"
    ],
    "qid": "Q3179563",
-   "roof": "open",
-   "roofBasis": "inferred: the lead names no roof",
-   "lead": "Joan C.",
+   "roof": "dome",
+   "roofBasis": "wikipedia lead",
+   "lead": "Joan C. Edwards Stadium, formerly Marshall University Stadium, is a football stadium located on the campus of Marshall University in Huntington, West Virginia, United States. It currently can hold 38,",
    "zone": "America/New_York"
   },
   {
@@ -2692,7 +2692,7 @@
    "qid": "Q1141371",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Colchester Community Stadium, known as the JobServe Community Stadium for sponsorship reasons, is a football stadium in Myland, England.",
+   "lead": "Colchester Community Stadium, known as the JobServe Community Stadium for sponsorship reasons, is a football stadium in Myland, England. It is the home of Colchester United Football Club. It has a cap",
    "zone": "Europe/London"
   },
   {
@@ -2709,7 +2709,7 @@
    "qid": "Q6208302",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Joe Aillet Stadium is a college football stadium in Ruston, Louisiana and the home field of the Louisiana Tech University Bulldogs football team, which competes in the Sun Belt Conference.",
+   "lead": "Joe Aillet Stadium is a college football stadium in Ruston, Louisiana and the home field of the Louisiana Tech University Bulldogs football team, which competes in the Sun Belt Conference. The footbal",
    "zone": "America/Chicago"
   },
   {
@@ -2726,7 +2726,7 @@
    "qid": "Q619407",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kirklees Stadium, currently known as the Accu Stadium for sponsorship reasons, is a multi-purpose stadium in Huddersfield, West Yorkshire, England.",
+   "lead": "Kirklees Stadium, currently known as the Accu Stadium for sponsorship reasons, is a multi-purpose stadium in Huddersfield, West Yorkshire, England. With a capacity of 24,121, it has been the home grou",
    "zone": "Europe/London"
   },
   {
@@ -2743,7 +2743,7 @@
    "qid": "Q14709982",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Johnny \"Red\" Floyd Stadium is a stadium in Murfreesboro, Tennessee, United States.",
+   "lead": "Johnny \"Red\" Floyd Stadium is a stadium in Murfreesboro, Tennessee, United States. It is primarily used for American football, and is the home field of the Middle Tennessee State University Blue Raide",
    "zone": "America/Chicago"
   },
   {
@@ -2760,7 +2760,7 @@
    "qid": "Q945548",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Pat Dye Field at Jordan–Hare Stadium is an American football stadium in Auburn, Alabama on the campus of Auburn University.",
+   "lead": "Pat Dye Field at Jordan–Hare Stadium is an American football stadium in Auburn, Alabama on the campus of Auburn University. It primarily serves as the home venue of the Auburn Tigers football team. Th",
    "zone": "America/Chicago"
   },
   {
@@ -2776,7 +2776,7 @@
    "qid": "Q4951307",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Historic Bowman Field is a minor league baseball stadium in Williamsport, Pennsylvania, in the United States.",
+   "lead": "Historic Bowman Field is a minor league baseball stadium in Williamsport, Pennsylvania, in the United States. It is home to the Williamsport Crosscutters, a collegiate summer baseball team of the MLB ",
    "zone": "America/New_York"
   },
   {
@@ -2793,7 +2793,7 @@
    "qid": "Q3193033",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kardinia Park is a stadium located within Kardinia Park in the Victorian suburb of South Geelong.",
+   "lead": "Kardinia Park is a stadium located within Kardinia Park in the Victorian suburb of South Geelong. It is primarily used for Australian rules football as the home ground of the Geelong Football Club, in",
    "zone": "Australia/Melbourne"
   },
   {
@@ -2810,7 +2810,7 @@
    "qid": "Q6385914",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kramer/Deromedi Field at Kelly/Shorts Stadium is an American football stadium in Mount Pleasant, Michigan.",
+   "lead": "Kramer/Deromedi Field at Kelly/Shorts Stadium is an American football stadium in Mount Pleasant, Michigan. It serves as the home field for the Central Michigan University Chippewas. The stadium opened",
    "zone": "America/Detroit"
   },
   {
@@ -2831,7 +2831,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kenan Stadium is a college football stadium located on Stadium Drive in Chapel Hill, North Carolina.",
+   "lead": "Kenan Stadium is a college football stadium located on Stadium Drive in Chapel Hill, North Carolina. Opened in 1927, it is home to the University of North Carolina at Chapel Hill's (UNC) football team",
    "zone": "America/New_York"
   },
   {
@@ -2848,7 +2848,7 @@
    "qid": "Q6404623",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kidd Brewer Stadium is a 40,168-seat multi-purpose stadium located in Boone, North Carolina.",
+   "lead": "Kidd Brewer Stadium is a 40,168-seat multi-purpose stadium located in Boone, North Carolina. Nicknamed \"The Rock,\" the stadium is the home of the Appalachian State Mountaineers football team. Kidd Bre",
    "zone": "America/New_York"
   },
   {
@@ -2865,7 +2865,7 @@
    "qid": "Q620031",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "King Power Stadium is a football stadium located in the city of Leicester, East Midlands, England, and the home of Leicester City.",
+   "lead": "King Power Stadium is a football stadium located in the city of Leicester, East Midlands, England, and the home of Leicester City. The stadium opened in 2002 as the Walkers Stadium and has a capacity ",
    "zone": "Europe/London"
   },
   {
@@ -2882,7 +2882,7 @@
    "qid": "Q301760",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Den Dreef, also known as King Power at Den Dreef for sponsorship reasons, is a football stadium situated on Kardinaal Mercierlaan in the Heverlee suburb of Leuven in Belgium.",
+   "lead": "Den Dreef, also known as King Power at Den Dreef for sponsorship reasons, is a football stadium situated on Kardinaal Mercierlaan in the Heverlee suburb of Leuven in Belgium. It is home to Jupiler Pro",
    "zone": "Europe/Brussels"
   },
   {
@@ -2899,7 +2899,7 @@
    "qid": "Q3197181",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": " Kinnick Stadium is a stadium located in Iowa City, Iowa, United States.",
+   "lead": " Kinnick Stadium is a stadium located in Iowa City, Iowa, United States. It is the home stadium of the University of Iowa Hawkeyes football team. Opened in 1929 as Iowa Stadium to replace Iowa Field, ",
    "zone": "America/Chicago"
   },
   {
@@ -2933,7 +2933,7 @@
    "qid": "Q292010",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Sitterstadion, formerly known as the AFG Arena and Kybunpark, is a multi-purpose stadium in St.",
+   "lead": "The Sitterstadion, formerly known as the AFG Arena and Kybunpark, is a multi-purpose stadium in St. Gallen, Switzerland. Opened in 2008, it serves as the home ground for FC St. Gallen 1879, replacing ",
    "zone": "Europe/Zurich"
   },
   {
@@ -2950,7 +2950,7 @@
    "qid": "Q945223",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kyle Field is an American football stadium in College Station, Texas, located on the campus of Texas A&M University.",
+   "lead": "Kyle Field is an American football stadium in College Station, Texas, located on the campus of Texas A&M University. It has been the home to the Texas A&M Aggies football team in rudimentary form sinc",
    "zone": "America/Chicago"
   },
   {
@@ -2984,7 +2984,7 @@
    "qid": "Q20876317",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The York Community Stadium is a multi-purpose stadium in Huntington, York, England.",
+   "lead": "The York Community Stadium is a multi-purpose stadium in Huntington, York, England. It is owned by City of York Council, and is home to York City Football Club, York Knights Men's Rugby League Footbal",
    "zone": "Europe/London"
   },
   {
@@ -3000,7 +3000,7 @@
    "qid": "Q695879",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estadio La Rosaleda is a football stadium in the city of Málaga, in Andalusia, southern Spain.",
+   "lead": "Estadio La Rosaleda is a football stadium in the city of Málaga, in Andalusia, southern Spain. It is the home stadium of Málaga CF in La Liga and was previously that of Club Deportivo Málaga, of which",
    "zone": "Europe/Madrid"
   },
   {
@@ -3017,7 +3017,7 @@
    "qid": "Q907890",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "LaVell Edwards Stadium is an outdoor athletic stadium in the Western United States, on the campus of Brigham Young University (BYU) in Provo, Utah.",
+   "lead": "LaVell Edwards Stadium is an outdoor athletic stadium in the Western United States, on the campus of Brigham Young University (BYU) in Provo, Utah. Primarily used for college football, it is the home ",
    "zone": "America/Denver"
   },
   {
@@ -3034,7 +3034,7 @@
    "qid": "Q860790",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Lambeau Field is an outdoor athletic stadium in the north central United States, located in Green Bay, Wisconsin.",
+   "lead": "Lambeau Field is an outdoor athletic stadium in the north central United States, located in Green Bay, Wisconsin. The home field of the Green Bay Packers of the National Football League (NFL), it open",
    "zone": "America/Chicago"
   },
   {
@@ -3051,7 +3051,7 @@
    "qid": "Q619353",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Broadhall Way, known as the SPORTA Arena for sponsorship reasons, is a football stadium located in Stevenage, Hertfordshire, England.",
+   "lead": "Broadhall Way, known as the SPORTA Arena for sponsorship reasons, is a football stadium located in Stevenage, Hertfordshire, England. Built in 1960 and opened the following year, it has been the home ",
    "zone": "Europe/London"
   },
   {
@@ -3068,7 +3068,7 @@
    "qid": "Q3217144",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Lane Stadium is a college football stadium in the eastern United States, located on the campus of Virginia Polytechnic Institute and State University in Blacksburg, Virginia.",
+   "lead": "Lane Stadium is a college football stadium in the eastern United States, located on the campus of Virginia Polytechnic Institute and State University in Blacksburg, Virginia. The playing surface of th",
    "zone": "America/New_York"
   },
   {
@@ -3085,7 +3085,7 @@
    "qid": "Q7419343",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Levi's Stadium is an outdoor stadium near the West Coast of the United States, located in Santa Clara, California, just west of San Jose in the San Francisco Bay Area.",
+   "lead": "Levi's Stadium is an outdoor stadium near the West Coast of the United States, located in Santa Clara, California, just west of San Jose in the San Francisco Bay Area. It has served as the home venue ",
    "zone": "America/Los_Angeles"
   },
   {
@@ -3102,7 +3102,7 @@
    "qid": "Q1052370",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Lincoln Financial Field is an American football stadium in Philadelphia, Pennsylvania, United States.",
+   "lead": "Lincoln Financial Field is an American football stadium in Philadelphia, Pennsylvania, United States. It is the home stadium of the Philadelphia Eagles of the National Football League (NFL) and the Te",
    "zone": "America/New_York"
   },
   {
@@ -3118,7 +3118,7 @@
    "qid": "Q1156350",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "London Road, currently known as the Weston Homes Stadium for sponsorship reasons, is a multi-purpose stadium in Peterborough, England.",
+   "lead": "London Road, currently known as the Weston Homes Stadium for sponsorship reasons, is a multi-purpose stadium in Peterborough, England. The stadium is in Fletton, south of the River Nene. It is current",
    "zone": "Europe/London"
   },
   {
@@ -3135,7 +3135,7 @@
    "qid": "Q849784",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Los Angeles Memorial Coliseum is a multi-purpose stadium in the Exposition Park neighborhood of Los Angeles, California, United States.",
+   "lead": "The Los Angeles Memorial Coliseum is a multi-purpose stadium in the Exposition Park neighborhood of Los Angeles, California, United States. The Coliseum was commissioned in 1921 and completed in 1923 ",
    "zone": "America/Los_Angeles"
   },
   {
@@ -3152,7 +3152,7 @@
    "qid": "Q262326",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Constant Vanden Stock Stadium, also known as the Lotto Park for sponsorship reasons, is a football stadium in the municipality of Anderlecht in Brussels, Belgium.",
+   "lead": "The Constant Vanden Stock Stadium, also known as the Lotto Park for sponsorship reasons, is a football stadium in the municipality of Anderlecht in Brussels, Belgium. It is home to RSC Anderlecht. It ",
    "zone": "Europe/Brussels"
   },
   {
@@ -3169,7 +3169,7 @@
    "qid": "Q867160",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Lucas Oil Stadium is a retractable roof stadium in Indianapolis, Indiana, United States.",
+   "lead": "Lucas Oil Stadium is a retractable roof stadium in Indianapolis, Indiana, United States. It replaced the RCA Dome as the home field of the Indianapolis Colts of the National Football League (NFL). It ",
    "zone": "America/Indiana/Indianapolis"
   },
   {
@@ -3186,7 +3186,7 @@
    "qid": "Q1141336",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "M&T Bank Stadium is a multi-purpose stadium in Baltimore, Maryland, U.S.",
+   "lead": "M&T Bank Stadium is a multi-purpose stadium in Baltimore, Maryland, U.S. It has been the home of the Baltimore Ravens of the National Football League (NFL) since its opening in 1998. The stadium is im",
    "zone": "America/New_York"
   },
   {
@@ -3204,7 +3204,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Loftus Road, currently known as MATRADE Loftus Road Stadium for sponsorship reasons, is a football stadium in Shepherd's Bush, West London, Greater London, England, which is home to Queens Park Ranger",
+   "lead": "Loftus Road, known for sponsorship reasons as MATRADE Loftus Road Stadium, is a football stadium in Shepherd's Bush, West London, Greater London, England, which is home to Queens Park Rangers Football",
    "zone": "Europe/London"
   },
   {
@@ -3221,7 +3221,7 @@
    "qid": "Q1557426",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The MCH Arena is an association football stadium situated in the south of Herning, Denmark, that is part of MCH Messecenter Herning complex and owned by MCH Group A/S.",
+   "lead": "The MCH Arena is an association football stadium situated in the south of Herning, Denmark, that is part of MCH Messecenter Herning complex and owned by MCH Group A/S. It has been the home ground of F",
    "zone": "Europe/Copenhagen"
   },
   {
@@ -3238,7 +3238,7 @@
    "qid": "Q392494",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Mewa Arena is a multi-purpose stadium in Mainz, Rhineland-Palatinate, Germany, that opened in July 2011.",
+   "lead": "Mewa Arena is a multi-purpose stadium in Mainz, Rhineland-Palatinate, Germany, that opened in July 2011. It is used for football matches, and hosts the home matches of the German Bundesliga side Mainz",
    "zone": "Europe/Berlin"
   },
   {
@@ -3255,7 +3255,7 @@
    "qid": "Q152349",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "MHPArena, formerly Neckarstadion, is a stadium located in Stuttgart, Baden-Württemberg, Germany, and home to Bundesliga club VfB Stuttgart.",
+   "lead": "MHPArena, formerly Neckarstadion, is a stadium located in Stuttgart, Baden-Württemberg, Germany, and home to Bundesliga club VfB Stuttgart. It hosted football matches in the 1974 FIFA World Cup, the U",
    "zone": "Europe/Berlin"
   },
   {
@@ -3272,7 +3272,7 @@
    "qid": "Q6588235",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Mackay Stadium is an outdoor athletic stadium in the western United States, located on the campus of the University of Nevada, Reno.",
+   "lead": "Mackay Stadium is an outdoor athletic stadium in the western United States, located on the campus of the University of Nevada, Reno. The home venue for Nevada Wolf Pack football and women's soccer in ",
    "zone": "America/Los_Angeles"
   },
   {
@@ -3289,7 +3289,7 @@
    "qid": "Q31656",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Madejski Stadium, currently known as the Select Car Leasing Stadium for sponsorship reasons, is a football stadium in Reading, Berkshire, England.",
+   "lead": "The Madejski Stadium, currently known as the Select Car Leasing Stadium for sponsorship reasons, is a football stadium in Reading, Berkshire, England. It is the home of Reading Football Club, who play",
    "zone": "Europe/London"
   },
   {
@@ -3305,7 +3305,7 @@
    "qid": "Q723603",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Maksimir Stadium is a multi-use stadium in Zagreb, Croatia.",
+   "lead": "Maksimir Stadium is a multi-use stadium in Zagreb, Croatia. Named after the surrounding neighbourhood of Maksimir, it is one of the largest stadiums in the country with a current seating capacity of 2",
    "zone": "Europe/Zagreb"
   },
   {
@@ -3322,7 +3322,7 @@
    "qid": "Q6744512",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "FMOL Health/St.",
+   "lead": "FMOL Health/St. Francis Stadium is a stadium in Monroe, Louisiana, United States, on the campus of the University of Louisiana at Monroe. It is primarily used for football and is the home field of the",
    "zone": "America/Chicago"
   },
   {
@@ -3339,7 +3339,7 @@
    "qid": "Q115728674",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Malšovická aréna is a football stadium, in Hradec Králové, Czech Republic.",
+   "lead": "Malšovická aréna is a football stadium, in Hradec Králové, Czech Republic. The stadium has a capacity of 9,300 people and is one of the most modern football stadiums in the Czech Republic. FC Hradec K",
    "zone": "Europe/Prague"
   },
   {
@@ -3356,7 +3356,7 @@
    "qid": "Q1887221",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Mapei Stadium – Città del Tricolore is a multi-purpose stadium in Reggio Emilia, Italy.",
+   "lead": "Mapei Stadium – Città del Tricolore is a multi-purpose stadium in Reggio Emilia, Italy. It is the home ground of US Sassuolo and AC Reggiana, the former playing in Serie A, the latter in Serie C.",
    "zone": "Europe/Rome"
   },
   {
@@ -3373,7 +3373,7 @@
    "qid": "Q155174",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Estádio do Maracanã, officially known as Estádio Jornalista Mário Filho, is an association football stadium in Rio de Janeiro, Brazil.",
+   "lead": "Estádio do Maracanã, officially known as Estádio Jornalista Mário Filho, is an association football stadium in Rio de Janeiro, Brazil. Located in the Maracanã neighborhood, it is owned by the Rio de J",
    "zone": "America/Sao_Paulo"
   },
   {
@@ -3390,7 +3390,7 @@
    "via": "home team (tier 2, Q2409690)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Martin Stadium is an outdoor athletic stadium in the Northwestern United States, on the campus of Washington State University in Pullman, Washington.",
+   "lead": "Martin Stadium is an outdoor athletic stadium in the Northwestern United States, on the campus of Washington State University in Pullman, Washington. It is the home field of the Washington State Couga",
    "zone": "America/Los_Angeles"
   },
   {
@@ -3407,7 +3407,7 @@
    "qid": "Q7363266",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Maverik Stadium, also known as Merlin Olsen Field at Maverik Stadium, is an outdoor college football stadium in Logan, Utah, located on the campus of Utah State University.",
+   "lead": "Maverik Stadium, also known as Merlin Olsen Field at Maverik Stadium, is an outdoor college football stadium in Logan, Utah, located on the campus of Utah State University. It is the home of the Utah ",
    "zone": "America/Denver"
   },
   {
@@ -3423,7 +3423,7 @@
    "qid": "Q1192396",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Meadow Lane is a football stadium in Nottingham, England.",
+   "lead": "Meadow Lane is a football stadium in Nottingham, England. It is the home ground of Notts County, who have played there since it opened in 1910. The stadium was also home to Notts County Ladies F.C. fr",
    "zone": "Europe/London"
   },
   {
@@ -3441,7 +3441,7 @@
    "via": "wider net (nominatim + photon + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Memorial Stadium is an American football stadium in Bloomington, Indiana, United States.",
+   "lead": "Memorial Stadium is an American football stadium in Bloomington, Indiana, United States. It is primarily used for football, and has been the home of Indiana Hoosiers football since its opening in 1960",
    "zone": "America/Indiana/Indianapolis"
   },
   {
@@ -3458,7 +3458,7 @@
    "via": "wider net (photon + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Frank Howard Field at Memorial Stadium, known as \"Death Valley\", is an outdoor stadium on the campus of Clemson University near Clemson, South Carolina.",
+   "lead": "Frank Howard Field at Memorial Stadium, known as \"Death Valley\", is an outdoor stadium on the campus of Clemson University near Clemson, South Carolina. It is home to the Clemson Tigers football team ",
    "zone": "America/New_York"
   },
   {
@@ -3476,7 +3476,7 @@
    "via": "wider net (nominatim + photon + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Memorial Stadium, nicknamed \"The Sea of Red,\" is an American football stadium on the campus of the University of Nebraska–Lincoln in Lincoln, Nebraska.",
+   "lead": "Memorial Stadium\" is an American football stadium on the campus of the University of Nebraska–Lincoln in Lincoln, Nebraska. It primarily serves as the home venue of the Nebraska Cornhuskers football t",
    "zone": "America/Chicago"
   },
   {
@@ -3496,7 +3496,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Gaylord Family Oklahoma Memorial Stadium, also known as Owen Field or The Palace on the Prairie, is the football stadium on the campus of the University of Oklahoma in Norman, Oklahoma, US.",
+   "lead": "Gaylord Family Oklahoma Memorial Stadium, also known as Owen Field or The Palace on the Prairie, is the football stadium on the campus of the University of Oklahoma in Norman, Oklahoma, US. It serves ",
    "zone": "America/Chicago"
   },
   {
@@ -3513,7 +3513,7 @@
    "qid": "Q1369390",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Campo de Fútbol de Mendizorrotza is a football stadium in Vitoria-Gasteiz, in the province of Álava, Basque Country, Spain.",
+   "lead": "Campo de Fútbol de Mendizorrotza is a football stadium in Vitoria-Gasteiz, in the province of Álava, Basque Country, Spain. With a capacity of 19,840, the stadium is the home ground of Deportivo Alavé",
    "zone": "Europe/Madrid"
   },
   {
@@ -3531,7 +3531,7 @@
    "via": "home team (tier 1, Q696491)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stadium Graz-Liebenau, formerly known as the Arnold Schwarzenegger Stadium, UPC-Arena and Merkur-Arena, is a football stadium in the Liebenau area of Graz, Styria, Austria.",
+   "lead": "The Stadium Graz-Liebenau, formerly known as the Arnold Schwarzenegger Stadium, UPC-Arena and Merkur-Arena, is a football stadium in the Liebenau area of Graz, Styria, Austria. The ground is the home ",
    "zone": "Europe/Vienna"
   },
   {
@@ -3548,7 +3548,7 @@
    "qid": "Q155351",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Merkur Spiel-Arena, previously known as the Esprit Arena, the LTU Arena, and also called the Düsseldorf Arena, is a retractable roof football stadium in Düsseldorf, Germany.",
+   "lead": "Merkur Spiel-Arena, previously known as the Esprit Arena, the LTU Arena, and also called the Düsseldorf Arena, is a retractable roof football stadium in Düsseldorf, Germany. The arena currently hosts ",
    "zone": "Europe/Berlin"
   },
   {
@@ -3564,7 +3564,7 @@
    "qid": "Q202762",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Mestalla Stadium is a football stadium in Valencia, Spain.",
+   "lead": "Mestalla Stadium is a football stadium in Valencia, Spain. The stadium is the home of Valencia CF and has a capacity of 49,430 seats, making it the 8th-largest stadium in Spain, and the largest in the",
    "zone": "Europe/Madrid"
   },
   {
@@ -3581,7 +3581,7 @@
    "qid": "Q10862290",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "MetLife Stadium is a multi-purpose stadium located at the Meadowlands Sports Complex in East Rutherford, New Jersey, five miles (8 km) west of New York City.",
+   "lead": "MetLife Stadium is a multi-purpose stadium located at the Meadowlands Sports Complex in East Rutherford, New Jersey, five miles (8 km) west of New York City. Opened in 2010, it replaced Giants Stadium",
    "zone": "America/New_York"
   },
   {
@@ -3598,7 +3598,7 @@
    "qid": "Q3311487",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Michie Stadium is an outdoor football stadium on the campus of the U.S.",
+   "lead": "Michie Stadium is an outdoor college football stadium on the campus of the U.S. Military Academy in West Point, New York. The home field for the Army Black Knights, it opened in 1924 and has a seating",
    "zone": "America/New_York"
   },
   {
@@ -3615,7 +3615,7 @@
    "qid": "Q1640118",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Michigan Stadium, nicknamed \"The Big House,\" is the American football stadium for the University of Michigan in Ann Arbor, Michigan.",
+   "lead": "Michigan Stadium, nicknamed \"The Big House,\" is the American football stadium for the University of Michigan in Ann Arbor, Michigan. It is the largest stadium in the United States and the Western Hemi",
    "zone": "America/Detroit"
   },
   {
@@ -3632,7 +3632,7 @@
    "qid": "Q1179474",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Mountaineer Field at Milan Puskar Stadium is an American football stadium in the eastern United States, on the campus of West Virginia University in Morgantown, West Virginia.",
+   "lead": "Mountaineer Field at Milan Puskar Stadium is an American football stadium in the eastern United States, on the campus of West Virginia University in Morgantown, West Virginia. Opened 46 years ago in 1",
    "zone": "America/New_York"
   },
   {
@@ -3649,7 +3649,7 @@
    "qid": "Q380823",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Molineux Stadium is a football stadium situated in Wolverhampton, West Midlands, England.",
+   "lead": "Molineux Stadium is a football stadium situated in Wolverhampton, West Midlands, England. It has been the home ground of EFL Championship club Wolverhampton Wanderers since 1889. The first stadium bui",
    "zone": "Europe/London"
   },
   {
@@ -3666,7 +3666,7 @@
    "qid": "Q1849318",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Mountain America Stadium is an outdoor college football stadium in Tempe, Arizona, located on the campus of Arizona State University (ASU).",
+   "lead": "Mountain America Stadium is an outdoor college football stadium in Tempe, Arizona, United States, located on the campus of Arizona State University (ASU). It is the home of the Arizona State Sun Devil",
    "zone": "America/Phoenix"
   },
   {
@@ -3683,7 +3683,7 @@
    "qid": "Q1058864",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Reliant Stadium, previously known as NRG Stadium, is a retractable roof stadium in Houston, Texas, U.S.",
+   "lead": "Reliant Stadium, previously known as NRG Stadium, is a retractable roof stadium in Houston, Texas, U.S. It opened in 2002 at a cost of $352 million and has a seating capacity of 72,220. It was the fir",
    "zone": "America/Chicago"
   },
   {
@@ -3700,7 +3700,7 @@
    "qid": "Q3337331",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Navy–Marine Corps Memorial Stadium is an open-air stadium located off the campus of the United States Naval Academy in Annapolis, Maryland.",
+   "lead": "Navy–Marine Corps Memorial Stadium is an open-air stadium located off the campus of the United States Naval Academy in Annapolis, Maryland. Opened in 1959, it serves as the home stadium of the Navy Mi",
    "zone": "America/New_York"
   },
   {
@@ -3717,7 +3717,7 @@
    "qid": "Q780526",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The New Balance Arena, known as the Stadio di Bergamo, in UEFA competitions, is a stadium in Bergamo, Italy.",
+   "lead": "The New Balance Arena, known as the Stadio di Bergamo, in UEFA competitions, is a stadium in Bergamo, Italy. It is the home of Serie A club Atalanta and has a capacity of 23,439 seats. The field is 12",
    "zone": "Europe/Rome"
   },
   {
@@ -3734,7 +3734,7 @@
    "qid": "Q1984022",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Neyland Stadium is a sports stadium in Knoxville, Tennessee, United States.",
+   "lead": "Neyland Stadium is a sports stadium in Knoxville, Tennessee, United States. It serves primarily as the home of the Tennessee Volunteers football team, but is also used to host large conventions and ha",
    "zone": "America/New_York"
   },
   {
@@ -3751,7 +3751,7 @@
    "qid": "Q3342107",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "James Gamble Nippert Memorial Stadium is an outdoor stadium in Cincinnati, Ohio, located on the campus of University of Cincinnati.",
+   "lead": "James Gamble Nippert Memorial Stadium is an outdoor stadium in Cincinnati, Ohio, located on the campus of University of Cincinnati. Primarily used for American football, it has been home to the Cincin",
    "zone": "America/New_York"
   },
   {
@@ -3769,7 +3769,7 @@
    "via": "home team (tier 2, Q1142992)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Nissan Stadium is a multi-purpose stadium in Nashville, Tennessee, United States.",
+   "lead": "Nissan Stadium is a multi-purpose stadium in Nashville, Tennessee, United States. Owned by the Metropolitan Government of Nashville and Davidson County, it is primarily used for football and is the ho",
    "zone": "America/Chicago"
   },
   {
@@ -3786,7 +3786,7 @@
    "qid": "Q583085",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Northwest Stadium is a stadium near Landover, Maryland, in the census-designated place of Summerfield 2.5 miles (4 km) east of Washington, D.C.",
+   "lead": "Northwest Stadium is a stadium near Landover, Maryland, in the census-designated place of Summerfield 2.5 miles (4 km) east of Washington, D.C. It is the home venue of the Washington Commanders of the",
    "zone": "America/New_York"
   },
   {
@@ -3803,7 +3803,7 @@
    "qid": "Q134722468",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Lanny and Sharon Martin Stadium is an outdoor stadium on the campus of Northwestern University in Evanston, Illinois, United States.",
+   "lead": "Lanny and Sharon Martin Stadium is an outdoor stadium on the campus of Northwestern University in Evanston, Illinois, United States. It is home to the Northwestern Wildcats soccer and lacrosse teams, ",
    "zone": "America/Chicago"
   },
   {
@@ -3837,7 +3837,7 @@
    "qid": "Q7011535",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Tehelné pole or National football stadium is a multi-use stadium in Bratislava, Slovakia.",
+   "lead": "Tehelné pole or National football stadium is a multi-use stadium in Bratislava, Slovakia. It was completed in 2019 and is used for football matches, including the home matches of ŠK Slovan Bratislava ",
    "zone": "Europe/Bratislava"
   },
   {
@@ -3854,7 +3854,7 @@
    "qid": "Q15284032",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Agia Sophia Stadium, also known as Allwyn Arena for sponsorship reasons and as AEK Arena for UEFA competitions, is the home stadium of AEK Athens.",
+   "lead": "Agia Sophia Stadium, also known as Allwyn Arena for sponsorship reasons and as AEK Arena for UEFA competitions, is the home stadium of AEK Athens. With an all-seater capacity of 32,500 it is the third",
    "zone": "Europe/Athens"
   },
   {
@@ -3870,7 +3870,7 @@
    "qid": "Q1138270",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Oakwell is a multi-purpose sports ground in Barnsley, South Yorkshire, England used \nby Barnsley Football Club for home fixtures, and those of their reserves.",
+   "lead": "Oakwell is a multi-purpose sports ground in Barnsley, South Yorkshire, England used \nby Barnsley Football Club for home fixtures, and those of their reserves. From 2023, the Barnsley F.C. Women's team",
    "zone": "Europe/London"
   },
   {
@@ -3887,7 +3887,7 @@
    "qid": "Q774694",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Ohio Stadium is an American football stadium in Columbus, Ohio, on the campus of Ohio State University.",
+   "lead": "Ohio Stadium is an American football stadium in Columbus, Ohio, on the campus of Ohio State University. It primarily serves as the home venue of the Ohio State Buckeyes football team and is also the s",
    "zone": "America/New_York"
   },
   {
@@ -3904,7 +3904,7 @@
    "qid": "Q83457",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Old Trafford is a football stadium in the Old Trafford area of Greater Manchester, England.",
+   "lead": "Old Trafford is a football stadium in the Old Trafford area of Greater Manchester, England. It is the home ground of Manchester United. With a capacity of 74,158, it is the largest club football stadi",
    "zone": "Europe/London"
   },
   {
@@ -3937,7 +3937,7 @@
    "qid": "Q1141174",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Oriole Park at Camden Yards, commonly known as Camden Yards, is a ballpark in Baltimore, Maryland, United States.",
+   "lead": "Oriole Park at Camden Yards, commonly known as Camden Yards, is a ballpark in Baltimore, Maryland, United States. It is the home of Major League Baseball's (MLB) Baltimore Orioles, and the first of th",
    "zone": "America/New_York"
   },
   {
@@ -3954,7 +3954,7 @@
    "qid": "Q1928668",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Pankritio Stadium is a multi-purpose sports stadium located in Heraklion on the island of Crete.",
+   "lead": "The Pankritio Stadium is a multi-purpose sports stadium located in Heraklion on the island of Crete. It was completed on 31 December 2003, and officially opened on 31 March 2004. As one of the most mo",
    "zone": "Europe/Athens"
   },
   {
@@ -3971,7 +3971,7 @@
    "qid": "Q7012155",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Papara Park, officially known as the Şenol Güneş Spor Complex Papara Park, is a stadium located in Trabzon, Turkey.",
+   "lead": "The Papara Park, officially known as the Şenol Güneş Spor Complex Papara Park, is a stadium located in Trabzon, Turkey. It opened to public on 18 December 2016 and has a capacity of 41,131 spectators.",
    "zone": "Europe/Istanbul"
   },
   {
@@ -3988,8 +3988,24 @@
    "qid": "Q193431",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Le Parc des Princes is an all-seater football stadium in Paris, France.",
+   "lead": "Le Parc des Princes is an all-seater football stadium in Paris, France. It is located in the southwest of the French capital, within the 16th arrondissement, directly opposite the Stade Jean-Bouin. Th",
    "zone": "Europe/Paris"
+  },
+  {
+   "name": "Parken Stadium",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "København",
+   "lat": 55.7026,
+   "lon": 12.5722,
+   "agreeing": [
+    "nominatim",
+    "wikidata"
+   ],
+   "qid": "Q33003",
+   "roof": "retractable",
+   "roofBasis": "wikipedia lead",
+   "lead": "Parken is a football stadium in the Indre Østerbro district of Copenhagen, Denmark, built from 1990 to 1992. The stadium, which features a retractable roof, currently has a capacity of 38,190 for foot",
+   "zone": "Europe/Copenhagen"
   },
   {
    "name": "Paycor Stadium",
@@ -4005,7 +4021,7 @@
    "qid": "Q1632294",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Paycor Stadium, previously known as Paul Brown Stadium, is an outdoor football stadium in Cincinnati, Ohio.",
+   "lead": "Paycor Stadium, previously known as Paul Brown Stadium, is an outdoor football stadium in Cincinnati, Ohio. It is the home venue of the Cincinnati Bengals of the National Football League (NFL) and ope",
    "zone": "America/New_York"
   },
   {
@@ -4022,7 +4038,7 @@
    "qid": "Q7159081",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Peden Stadium, also known as Frank Solich Field at Peden Stadium since August 2022, is an American football stadium on the campus of Ohio University in Athens, Ohio.",
+   "lead": "Peden Stadium, also known as Frank Solich Field at Peden Stadium since August 2022, is an American football stadium on the campus of Ohio University in Athens, Ohio. Situated on the banks of the Hocki",
    "zone": "America/New_York"
   },
   {
@@ -4039,7 +4055,7 @@
    "qid": "Q7170896",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Perth Stadium is a stadium located in the Perth suburb of Burswood.",
+   "lead": "Perth Stadium is a stadium located in the Perth suburb of Burswood. It is primarily used for Australian rules football and cricket as the home ground of the West Coast Eagles and the Fremantle Footbal",
    "zone": "Australia/Perth"
   },
   {
@@ -4056,7 +4072,7 @@
    "qid": "Q500972",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Philips Stadion is a football stadium in Eindhoven, Netherlands.",
+   "lead": "The Philips Stadion is a football stadium in Eindhoven, Netherlands. As the home of PSV Eindhoven, it is also known as PSV Stadion. With a capacity of 35,119, it is the third-largest football stadium ",
    "zone": "Europe/Amsterdam"
   },
   {
@@ -4073,7 +4089,7 @@
    "qid": "Q619136",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Pirelli Stadium is an association football stadium on Princess Way in Burton upon Trent, Staffordshire, England.",
+   "lead": "Pirelli Stadium is an association football stadium on Princess Way in Burton upon Trent, Staffordshire, England. It was built in 2005 and is the current home of Burton Albion FC, replacing the club's ",
    "zone": "Europe/London"
   },
   {
@@ -4090,7 +4106,7 @@
    "qid": "Q1388701",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Pitbull Stadium is a college football and soccer stadium on the campus of Florida International University (FIU) in unincorporated Miami-Dade County, Florida with a Miami mailing address.",
+   "lead": "Pitbull Stadium is a college football and soccer stadium on the campus of Florida International University (FIU) in unincorporated Miami-Dade County, Florida with a Miami mailing address. It is the ho",
    "zone": "America/New_York"
   },
   {
@@ -4106,7 +4122,7 @@
    "qid": "Q619558",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Portman Road is a football stadium in Ipswich, Suffolk, England, which has been the home ground of Ipswich Town since 1884.",
+   "lead": "Portman Road is a football stadium in Ipswich, Suffolk, England, which has been the home ground of Ipswich Town since 1884. The stadium has also hosted many England youth international matches, and on",
    "zone": "Europe/London"
   },
   {
@@ -4123,7 +4139,7 @@
    "qid": "Q3113144",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Pratt & Whitney Stadium at Rentschler Field is a stadium in East Hartford, Connecticut.",
+   "lead": "Pratt & Whitney Stadium at Rentschler Field is a stadium in East Hartford, Connecticut. It is primarily used for football and soccer, and is the home field of the University of Connecticut Huskies (UC",
    "zone": "America/New_York"
   },
   {
@@ -4157,7 +4173,7 @@
    "qid": "Q619072",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Prenton Park is a football stadium in the area of Prenton, Birkenhead, Merseyside, England.",
+   "lead": "Prenton Park is a football stadium in the area of Prenton, Birkenhead, Merseyside, England. It is the home ground of Tranmere Rovers Football Club since opening in 1912, and formerly the home ground o",
    "zone": "Europe/London"
   },
   {
@@ -4173,7 +4189,7 @@
    "qid": "Q201612",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Pride Park Stadium is an all-seater football stadium in Derby, England, which is the home ground of English Football League club Derby County.",
+   "lead": "Pride Park Stadium is an all-seater football stadium in Derby, England, which is the home ground of English Football League club Derby County. With a capacity of 33,597, it is the 16th-largest footbal",
    "zone": "Europe/London"
   },
   {
@@ -4190,7 +4206,7 @@
    "qid": "Q619148",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Priestfield Stadium is a football stadium in Gillingham, Kent, England.",
+   "lead": "Priestfield Stadium is a football stadium in Gillingham, Kent, England. It has been the home of Gillingham Football Club since the club's formation in 1893, and was also the temporary home of Brighton",
    "zone": "Europe/London"
   },
   {
@@ -4207,7 +4223,7 @@
    "qid": "Q83506289",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Protective Stadium is an outdoor multi-purpose stadium located in downtown Birmingham, Alabama, United States.",
+   "lead": "Protective Stadium is an outdoor multi-purpose stadium located in downtown Birmingham, Alabama, United States. It is owned and operated by the Birmingham-Jefferson Civic Center Authority (BJCC). The s",
    "zone": "America/Chicago"
   },
   {
@@ -4241,7 +4257,7 @@
    "qid": "Q116693275",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Raiffeisen Arena is a football stadium in Linz, the capital of the state of Upper Austria.",
+   "lead": "Raiffeisen Arena is a football stadium in Linz, the capital of the state of Upper Austria. It opened in 2023 on the site of the Linzer Stadion, which was built in 1952 and demolished in 2021. The new ",
    "zone": "Europe/Vienna"
   },
   {
@@ -4275,7 +4291,7 @@
    "qid": "Q275429",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Ramón Sánchez-Pizjuán Stadium is a football stadium in Seville, Spain.",
+   "lead": "The Ramón Sánchez-Pizjuán Stadium is a football stadium in Seville, Spain. It is the home stadium of Sevilla, and is named after the club's former president, Ramón Sánchez-Pizjuán (1900–1956).",
    "zone": "Europe/Madrid"
   },
   {
@@ -4292,7 +4308,7 @@
    "qid": "Q1141343",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Raymond James Stadium is a multi-purpose stadium in Tampa, Florida, United States.",
+   "lead": "Raymond James Stadium is a multi-purpose stadium in Tampa, Florida, United States. It opened in 1998 and is home to the Tampa Bay Buccaneers of the National Football League (NFL) and the University of",
    "zone": "America/New_York"
   },
   {
@@ -4327,7 +4343,7 @@
    "qid": "Q1058864",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Reliant Stadium, previously known as NRG Stadium, is a retractable roof stadium in Houston, Texas, U.S.",
+   "lead": "Reliant Stadium, previously known as NRG Stadium, is a retractable roof stadium in Houston, Texas, U.S. It opened in 2002 at a cost of $352 million and has a seating capacity of 72,220. It was the fir",
    "zone": "America/Chicago"
   },
   {
@@ -4344,7 +4360,7 @@
    "qid": "Q757182",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadio Renato Dall'Ara is a multi-purpose stadium in Bologna, Italy.",
+   "lead": "Stadio Renato Dall'Ara is a multi-purpose stadium in Bologna, Italy. It is currently used mostly for football matches and the home of Bologna FC. The stadium was designed by Giulio Ulisse Arata and in",
    "zone": "Europe/Rome"
   },
   {
@@ -4361,7 +4377,7 @@
    "qid": "Q782386",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Reser Stadium is an outdoor athletic stadium on the campus of Oregon State University in Corvallis, Oregon, United States.",
+   "lead": "Reser Stadium is an outdoor athletic stadium on the campus of Oregon State University in Corvallis, Oregon, United States. The home of the Oregon State Beavers of the Pac-12 Conference, it opened in 1",
    "zone": "America/Los_Angeles"
   },
   {
@@ -4378,7 +4394,7 @@
    "qid": "Q151893",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "RheinEnergieStadion, formerly Müngersdorfer Stadion or Müngersdorfer Stadium, is a German football stadium in Cologne.",
+   "lead": "RheinEnergieStadion, formerly Müngersdorfer Stadion or Müngersdorfer Stadium, is a German football stadium in Cologne. It was built on the site of the two previous Müngersdorfer stadiums. It is the ho",
    "zone": "Europe/Berlin"
   },
   {
@@ -4396,7 +4412,7 @@
    "via": "home team (tier 2, Q1857419)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "First Community Stadium is an American football stadium located on the Rice University campus in Houston, Texas.",
+   "lead": "First Community Stadium is an American football stadium located on the Rice University campus in Houston, Texas. It has been the home of the Rice Owls football team since its completion in 1950, and h",
    "zone": "America/Chicago"
   },
   {
@@ -4413,7 +4429,7 @@
    "qid": "Q922761",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Rice–Eccles Stadium is an outdoor college football stadium located on the campus of the University of Utah in Salt Lake City, Utah.",
+   "lead": "Rice–Eccles Stadium is an outdoor college football stadium located on the campus of the University of Utah in Salt Lake City, Utah. It is the home field of the Utah Utes of the Big 12 Conference. It w",
    "zone": "America/Denver"
   },
   {
@@ -4430,7 +4446,7 @@
    "qid": "Q1397226",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Right to Dream Park, historically known as Farum Park, is a football stadium in Farum, Denmark.",
+   "lead": "Right to Dream Park, historically known as Farum Park, is a football stadium in Farum, Denmark. It is the home ground of FC Nordsjælland and Hillerød Fodbold. The stadium has a capacity of 9,200 of wh",
    "zone": "Europe/Copenhagen"
   },
   {
@@ -4465,7 +4481,7 @@
    "qid": "Q1121760",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Roazhon Park is a football stadium in Rennes, Brittany, France.",
+   "lead": "Roazhon Park is a football stadium in Rennes, Brittany, France. Roazhon or is the Breton name of Rennes.",
    "zone": "Europe/Paris"
   },
   {
@@ -4484,7 +4500,7 @@
    "via": "wider net (nominatim + photon + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Plaster Stadium is a 17,500-seat football stadium located in Springfield, Missouri.",
+   "lead": "Plaster Stadium is a 17,500-seat football stadium located in Springfield, Missouri. It is home to the Missouri State Bears football team.",
    "zone": "America/Chicago"
   },
   {
@@ -4501,7 +4517,7 @@
    "qid": "Q1611857",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Romssa Arena, previously known as Alfheim Stadion, is a football stadium located in Tromsø, Norway and home of Eliteserien side Tromsø IL.",
+   "lead": "Romssa Arena, previously known as Alfheim Stadion, is a football stadium located in Tromsø, Norway and home of Eliteserien side Tromsø IL. Romssa Arena has a seating capacity of 6,801 and artificial t",
    "zone": "Europe/Oslo"
   },
   {
@@ -4518,7 +4534,7 @@
    "via": "home team (tier 2, Q582280)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Rose Bowl is an outdoor athletic stadium located in Pasadena, California, United States.",
+   "lead": "The Rose Bowl is an outdoor athletic stadium located in Pasadena, California, United States. Opened in October 1922, the stadium is recognized as a National Historic Landmark and a California Historic",
    "zone": "America/Los_Angeles"
   },
   {
@@ -4535,7 +4551,7 @@
    "qid": "Q3442733",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Ross–Ade Stadium is a college football stadium in the midwestern United States, located on the campus of Purdue University in West Lafayette, Indiana.",
+   "lead": "Ross–Ade Stadium is a college football stadium in the midwestern United States, located on the campus of Purdue University in West Lafayette, Indiana. It is the home field of Purdue Boilermakers of th",
    "zone": "America/Indiana/Indianapolis"
   },
   {
@@ -4552,7 +4568,7 @@
    "via": "wider net (photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Royal Birkdale Golf Club is a golf course in Southport, England.",
+   "lead": "Royal Birkdale Golf Club is a golf course in Southport, England. It is one of the clubs in the rotation for both the Open Championship and Women's British Open and has hosted the Open Championship ele",
    "zone": "Europe/London"
   },
   {
@@ -4569,7 +4585,7 @@
    "qid": "Q14716273",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Rynearson Stadium, nicknamed \"The Factory\", is a stadium in Ypsilanti, Michigan.",
+   "lead": "Rynearson Stadium, nicknamed \"The Factory\", is a stadium in Ypsilanti, Michigan. It is primarily used for American football, and is the home field of the Eastern Michigan University Eagles. Currently,",
    "zone": "America/Detroit"
   },
   {
@@ -4586,7 +4602,7 @@
    "via": "wider net (photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Darius and Girėnas stadium is a multi-use stadium in Kaunas, Lithuania.",
+   "lead": "Darius and Girėnas stadium is a multi-use stadium in Kaunas, Lithuania. With a seating capacity of 15,026, it is the largest stadium in Lithuania and the Baltic states. Located in the Ąžuolynas park i",
    "zone": "Europe/Vilnius"
   },
   {
@@ -4602,7 +4618,7 @@
    "qid": "Q5468640",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kornblau Field at S.B.",
+   "lead": "Kornblau Field at S.B. Ballard Stadium is a 21,944-seat multi-purpose stadium on the campus of Old Dominion University in Norfolk, Virginia. It opened in 1936 with a football game between the Universi",
    "zone": "America/New_York"
   },
   {
@@ -4619,7 +4635,7 @@
    "qid": "Q2929171",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "SECU Stadium is an outdoor athletic stadium on the campus of the University of Maryland in College Park, Maryland.",
+   "lead": "SECU Stadium is an outdoor athletic stadium on the campus of the University of Maryland in College Park, Maryland, United States. It is the home of Maryland Terrapins football and men's lacrosse teams",
    "zone": "America/New_York"
   },
   {
@@ -4636,7 +4652,7 @@
    "qid": "Q3453599",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "SHI Stadium is the football stadium at Rutgers University in Piscataway, New Jersey.",
+   "lead": "SHI Stadium is the football stadium at Rutgers University in Piscataway, New Jersey. Rutgers Scarlet Knights football, Rutgers Scarlet Knights men's lacrosse, and women's lacrosse use the venue for ho",
    "zone": "America/New_York"
   },
   {
@@ -4654,7 +4670,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "SMH Group Stadium is an all-seater football stadium in Whittington Moor, Chesterfield, Derbyshire, on the site of the former Dema Glassworks.",
+   "lead": "SMH Group Stadium is an all-seater football stadium in Whittington Moor, Chesterfield, Derbyshire, on the site of the former Dema Glassworks. It is the home of Chesterfield Football Club, replacing Sa",
    "zone": "Europe/London"
   },
   {
@@ -4670,7 +4686,7 @@
    "qid": "Q182864",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The San Mamés Stadium is an all-seater football stadium in Rafael Moreno Pitxitxi Kalea, Bilbao, Basque Country, Spain.",
+   "lead": "The San Mamés Stadium is an all-seater football stadium in Rafael Moreno Pitxitxi Kalea, Bilbao, Basque Country, Spain. Inaugurated on 16 September 2013, the stadium replaced the \"old\" San Mamés as th",
    "zone": "Europe/Madrid"
   },
   {
@@ -4686,7 +4702,7 @@
    "qid": "Q133566",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stadio Giuseppe Meazza, commonly known as the San Siro, is a football stadium in the San Siro district of Milan, Italy.",
+   "lead": "The Stadio Giuseppe Meazza, commonly known as the San Siro, is a football stadium in the San Siro district of Milan, Italy. Nicknamed \"La Scala del calcio\", it has a seating capacity of 75,817, making",
    "zone": "Europe/Rome"
   },
   {
@@ -4703,7 +4719,7 @@
    "qid": "Q2221660",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Dooley Field at Sanford Stadium is the on-campus playing venue for football at the University of Georgia (UGA) in Athens, Georgia, United States.",
+   "lead": "Dooley Field at Sanford Stadium is the on-campus playing venue for football at the University of Georgia (UGA) in Athens, Georgia, United States. The 93,033-seat stadium is the ninth-largest American ",
    "zone": "America/New_York"
   },
   {
@@ -4719,7 +4735,7 @@
    "qid": "Q164027",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Bernabéu, formerly known as Santiago Bernabéu Stadium, is a retractable roof football stadium in the district of Chamartín, Madrid, Spain.",
+   "lead": "Bernabéu, formerly known as Santiago Bernabéu Stadium, is a retractable roof football stadium in the district of Chamartín, Madrid, Spain. With a seating capacity of 83,186 following its extensive ren",
    "zone": "Europe/Madrid"
   },
   {
@@ -4736,7 +4752,7 @@
    "qid": "Q7431225",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Scheumann Stadium, formerly known as Ball State Stadium, is in Muncie, Indiana.",
+   "lead": "Scheumann Stadium, formerly known as Ball State Stadium, is in Muncie, Indiana. It is primarily used for football, and it is the home field of the Ball State University Cardinals. The stadium opened i",
    "zone": "America/Indiana/Indianapolis"
   },
   {
@@ -4753,7 +4769,7 @@
    "qid": "Q1133538",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Scott Stadium, in full The Carl Smith Center, home of David A.",
+   "lead": "Scott Stadium, in full The Carl Smith Center, home of David A. Harrison III Field at Scott Stadium, is a stadium located in Charlottesville, Virginia. It is the home of the Virginia Cavaliers football",
    "zone": "America/New_York"
   },
   {
@@ -4787,7 +4803,7 @@
    "qid": "Q999781",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "SeatGeek Stadium is a stadium in Bridgeview, Illinois, United States, about 12 miles southwest of downtown Chicago.",
+   "lead": "SeatGeek Stadium is a stadium in Bridgeview, Illinois, United States, about 12 miles southwest of downtown Chicago. It is the home stadium of Chicago Fire FC II of MLS Next Pro, the Chicago Hounds of ",
    "zone": "America/Chicago"
   },
   {
@@ -4804,7 +4820,7 @@
    "qid": "Q7445230",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Sedgefield Country Club is a country club in the eastern United States, located in Greensboro, North Carolina, southwest of the city center.",
+   "lead": "Sedgefield Country Club is a country club in the eastern United States, located in Greensboro, North Carolina, southwest of the city center. Established in 1926, it is primarily known for its golf cou",
    "zone": "America/New_York"
   },
   {
@@ -4821,7 +4837,7 @@
    "qid": "Q150928",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Westfalenstadion is a football stadium in Dortmund, North Rhine-Westphalia, Germany, which is the home stadium of Borussia Dortmund.",
+   "lead": "Westfalenstadion is a football stadium in Dortmund, North Rhine-Westphalia, Germany, which is the home stadium of Borussia Dortmund. Officially called Signal Iduna Park for sponsorship reasons and BVB",
    "zone": "Europe/Berlin"
   },
   {
@@ -4855,7 +4871,7 @@
    "qid": "Q619615",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Sixfields Stadium is an 8,203-capacity all-seater sports stadium in the Sixfields area on the west side of Northampton, England.",
+   "lead": "Sixfields Stadium is an 8,203-capacity all-seater sports stadium in the Sixfields area on the west side of Northampton, England. It has been the home ground of Northampton Town Football Club following",
    "zone": "Europe/London"
   },
   {
@@ -4872,7 +4888,7 @@
    "qid": "Q1474452",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Skonto Stadium is a football stadium in Riga, Latvia.",
+   "lead": "Skonto Stadium is a football stadium in Riga, Latvia. The stadium was built in 2000 and currently has 8,087 seats in total. It is the second largest stadium in Latvia, behind Daugava Stadium, also in ",
    "zone": "Europe/Riga"
   },
   {
@@ -4889,7 +4905,7 @@
    "qid": "Q19520501",
    "roof": "dome",
    "roofBasis": "wikipedia lead",
-   "lead": "SoFi Stadium is a multi-purpose indoor stadium in Inglewood, California, United States, a suburb of Los Angeles.",
+   "lead": "SoFi Stadium is a multi-purpose indoor stadium in Inglewood, California, United States, a suburb of Los Angeles. SoFi occupies the former site of the Hollywood Park Racetrack and neighbors the Kia For",
    "zone": "America/Los_Angeles"
   },
   {
@@ -4906,7 +4922,7 @@
    "via": "home team (tier 2, Q2164621)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Spartan Stadium is an outdoor stadium in East Lansing, Michigan, United States that opened in 1923.",
+   "lead": "Spartan Stadium is an outdoor stadium in East Lansing, Michigan, United States that opened in 1923. It is primarily used for football, and is the home field of the Michigan State University Spartans. ",
    "zone": "America/Detroit"
   },
   {
@@ -4956,7 +4972,7 @@
    "qid": "Q819179",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "St Andrew's, known since 2024 for sponsorship reasons as St.",
+   "lead": "St Andrew's, known since 2024 for sponsorship reasons as St. Andrew's @ Knighthead Park, is an association football stadium in the Bordesley district of Birmingham, England. It has been the home groun",
    "zone": "Europe/London"
   },
   {
@@ -4974,7 +4990,7 @@
    "via": "home team (tier 2, Q191774)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "St.",
+   "lead": "St. James' Park is a football stadium in Newcastle upon Tyne, England. It is the home of Newcastle United. With a seating capacity of 52,719, it is the 9th largest football stadium in England.",
    "zone": "Europe/London"
   },
   {
@@ -4992,7 +5008,7 @@
    "via": "home team (tier 1, Q567339)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "St Mary's Stadium is a seated football stadium in Southampton, Hampshire, England.",
+   "lead": "St Mary's Stadium is a seated football stadium in Southampton, Hampshire, England. Since 2001, it has served as the home venue of EFL Championship club Southampton, following their move from The Dell.",
    "zone": "Europe/London"
   },
   {
@@ -5009,7 +5025,7 @@
    "qid": "Q854122",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade Bollaert-Delelis is the main football stadium in Lens, France, that was built in 1933.",
+   "lead": "The Stade Bollaert-Delelis is the main football stadium in Lens, France, that was built in 1933. It is the home of RC Lens. The stadium's capacity is 38,223 – about 7,000 more than the city's populati",
    "zone": "Europe/Paris"
   },
   {
@@ -5026,7 +5042,7 @@
    "qid": "Q1432517",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade Francis-Le Blé, formerly known as the Stade de l'Armoricaine, is a multi-use stadium in Brest, France.",
+   "lead": "The Stade Francis-Le Blé, formerly known as the Stade de l'Armoricaine, is a multi-use stadium in Brest, France. It is currently used mostly for football matches and is the home stadium of Stade Brest",
    "zone": "Europe/Paris"
   },
   {
@@ -5043,7 +5059,7 @@
    "qid": "Q318851",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade Louis II, or simply Louis II, is a stadium located in the Fontvieille district of Monaco, near the border with Cap-d'Ail commune of France.",
+   "lead": "The Stade Louis II, or simply Louis II, is a stadium located in the Fontvieille district of Monaco, near the border with Cap-d'Ail commune of France. It serves primarily as a venue for Athletics and f",
    "zone": "Europe/Monaco"
   },
   {
@@ -5060,7 +5076,7 @@
    "qid": "Q1862372",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade Marie-Marvingt is a multi-use stadium in Le Mans, France, that opened in January 2011.",
+   "lead": "The Stade Marie-Marvingt is a multi-use stadium in Le Mans, France, that opened in January 2011. It is used mostly for football matches and hosted the home matches of Le Mans FC. The stadium has a cap",
    "zone": "Europe/Paris"
   },
   {
@@ -5094,7 +5110,7 @@
    "qid": "Q387213",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade Raymond Kopa is a football stadium in Angers, France.",
+   "lead": "The Stade Raymond Kopa is a football stadium in Angers, France. It is the home ground of Ligue 1 side Angers SCO and seats 19,800 people.",
    "zone": "Europe/Paris"
   },
   {
@@ -5111,7 +5127,7 @@
    "qid": "Q669063",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade de Tourbillon is a multi-purpose stadium in Sion, Switzerland.",
+   "lead": "The Stade de Tourbillon is a multi-purpose stadium in Sion, Switzerland. It is currently used mostly for football matches and is the home stadium of FC Sion. The stadium holds 16,000 people and was bu",
    "zone": "Europe/Zurich"
   },
   {
@@ -5127,7 +5143,7 @@
    "qid": "Q1347183",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade Abbé-Deschamps is the home of AJ Auxerre football club in Auxerre, France.",
+   "lead": "The Stade Abbé-Deschamps is the home of AJ Auxerre football club in Auxerre, France. It has a capacity of 18,541. Renovated in 1994, it was renamed the Stade Abbé-Deschamps after the abbot Ernest-Théo",
    "zone": "Europe/Paris"
   },
   {
@@ -5145,7 +5161,7 @@
    "via": "home team (tier 1, Q2001732)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stade de l'Aube is a multi-use stadium in Troyes, France.",
+   "lead": "Stade de l'Aube is a multi-use stadium in Troyes, France. It is currently used mostly for football matches, by Troyes AC. The stadium is able to hold 20,400 people and was built in 1956.",
    "zone": "Europe/Paris"
   },
   {
@@ -5164,7 +5180,7 @@
    "via": "wider net (nominatim + osm-reverse + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stade du Moustoir - Yves Allainmat, known as the Stade du Moustoir, is a multi-use stadium in Lorient, France.",
+   "lead": "The Stade du Moustoir - Yves Allainmat, known as the Stade du Moustoir, is a multi-use stadium in Lorient, France. It is currently used mostly for football matches and is the home stadium of FC Lorien",
    "zone": "Europe/Paris"
   },
   {
@@ -5199,7 +5215,7 @@
    "via": "home team (tier 1, Q82709)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadio Diego Armando Maradona, formerly known as Stadio San Paolo, is a large multi-purpose stadium in Naples, Italy.",
+   "lead": "Stadio Diego Armando Maradona, formerly known as Stadio San Paolo, is a large multi-purpose stadium in Naples, Italy. Completed in 1959, it is the fourth-largest football stadium in Italy after Milan'",
    "zone": "Europe/Rome"
   },
   {
@@ -5233,7 +5249,7 @@
    "qid": "Q271568",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stadio Luigi Ferraris, also known as the Marassi from the name of the neighbourhood where it is located, is a multi-use stadium in Genoa, Italy.",
+   "lead": "The Stadio Luigi Ferraris, also known as the Marassi from the name of the neighbourhood where it is located, is a multi-use stadium in Genoa, Italy. The home of Genoa CFC and UC Sampdoria football clu",
    "zone": "Europe/Rome"
   },
   {
@@ -5250,7 +5266,7 @@
    "qid": "Q214629",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stadio Olimpico Grande Torino, named after the Grande Torino team, is a multi-purpose stadium located in Turin, Italy.",
+   "lead": "The Stadio Olimpico Grande Torino, named after the Grande Torino team, is a multi-purpose stadium located in Turin, Italy. It is the home ground of Serie A club Torino Football Club. The stadium is lo",
    "zone": "Europe/Rome"
   },
   {
@@ -5267,7 +5283,7 @@
    "qid": "Q588926",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadio Pier Luigi Penzo is a multi-use stadium in Venice, Italy.",
+   "lead": "Stadio Pier Luigi Penzo is a multi-use stadium in Venice, Italy. It is the largest sports facility in Venice and the home ground of Venezia F.C. The stadium was first opened in 1913 and takes its name",
    "zone": "Europe/Rome"
   },
   {
@@ -5284,7 +5300,7 @@
    "qid": "Q749172",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadion An der Alten Försterei is a football stadium in Köpenick and the largest single-purpose football stadium in the German capital of Berlin.",
+   "lead": "Stadion An der Alten Försterei is a football stadium in Köpenick and the largest single-purpose football stadium in the German capital of Berlin. It has been home to football club 1. FC Union Berlin s",
    "zone": "Europe/Berlin"
   },
   {
@@ -5300,7 +5316,7 @@
    "qid": "Q7596332",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadion Rujevica, officially known as Stadion HNK Rijeka, is a stadium in the city of Rijeka, Croatia.",
+   "lead": "Stadion Rujevica, officially known as Stadion HNK Rijeka, is a stadium in the city of Rijeka, Croatia. The stadium is commonly referred to as Rujevica after its location. From August 2015, the stadium",
    "zone": "Europe/Zagreb"
   },
   {
@@ -5318,7 +5334,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stadion Miejski is located in Białystok, Poland.",
+   "lead": "The Stadion Miejski is located in Białystok, Poland. It is currently used mostly for association football matches and is the home ground of Jagiellonia Białystok. The stadium is also known as the Stad",
    "zone": "Europe/Warsaw"
   },
   {
@@ -5335,7 +5351,7 @@
    "qid": "Q841384",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Gradski stadion u Poljudu, better known as Stadion Poljud or simply Poljud, is a multi-use stadium in Split, Croatia, which has been the home ground of Hajduk Split football club since 1979.",
+   "lead": "Gradski stadion u Poljudu, better known as Stadion Poljud or simply Poljud, is a multi-use stadium in Split, Croatia, which has been the home ground of Hajduk Split football club since 1979. The stadi",
    "zone": "Europe/Zagreb"
   },
   {
@@ -5352,7 +5368,7 @@
    "qid": "Q1061636",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Stadion Střelnice is a football stadium in Jablonec nad Nisou, Czech Republic.",
+   "lead": "The Stadion Střelnice is a football stadium in Jablonec nad Nisou, Czech Republic. It is the home ground of FK Jablonec. The stadium's current capacity is 5,690.",
    "zone": "Europe/Prague"
   },
   {
@@ -5369,7 +5385,7 @@
    "qid": "Q641455",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadion Z'dežele is a football stadium in Celje, Slovenia.",
+   "lead": "Stadion Z'dežele is a football stadium in Celje, Slovenia. It is the home ground of NK Celje and has a seating capacity of 13,059. The stadium stands in the sports park under Golovec on the site of th",
    "zone": "Europe/Ljubljana"
   },
   {
@@ -5385,7 +5401,7 @@
    "qid": "Q606059",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Arena Zabrze, officially known as the Stadion im.",
+   "lead": "The Arena Zabrze, officially known as the Stadion im. Ernesta Pohla w Zabrzu, is a football stadium in Zabrze, Poland. It is the home ground of Górnik Zabrze. Originally constructed in 1934, since 201",
    "zone": "Europe/Warsaw"
   },
   {
@@ -5402,7 +5418,7 @@
    "qid": "Q1409157",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Ion Oblemenco Stadium is a football stadium in Craiova, Romania.",
+   "lead": "The Ion Oblemenco Stadium is a football stadium in Craiova, Romania. The all-seater stadium opened in 2017 and has a capacity of 30,983, the fourth largest football ground in Romania. It is in the imm",
    "zone": "Europe/Bucharest"
   },
   {
@@ -5419,7 +5435,7 @@
    "qid": "Q1144973",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadium MK is a football stadium in the Denbigh district of Bletchley in Milton Keynes, Buckinghamshire, England.",
+   "lead": "Stadium MK is a football stadium in the Denbigh district of Bletchley in Milton Keynes, Buckinghamshire, England. Designed by Populous and opened in 2007, it is the home ground of EFL League One side ",
    "zone": "Europe/London"
   },
   {
@@ -5435,7 +5451,7 @@
    "qid": "Q738044",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadium de Toulouse, previously named Stadium Municipal, is the largest multi-purpose stadium in Toulouse, France.",
+   "lead": "Stadium de Toulouse, previously named Stadium Municipal, is the largest multi-purpose stadium in Toulouse, France. It is currently used mostly for football matches, mainly those of the Toulouse Footba",
    "zone": "Europe/Paris"
   },
   {
@@ -5469,7 +5485,7 @@
    "qid": "Q171458",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stamford Bridge is a football stadium in Fulham, in the Borough of Hammersmith and Fulham, in West London.",
+   "lead": "Stamford Bridge is a football stadium in Fulham, in the Borough of Hammersmith and Fulham, in West London. It is the home of Premier League club Chelsea. With a capacity of 40,044, it is the twelfth-l",
    "zone": "Europe/London"
   },
   {
@@ -5486,7 +5502,7 @@
    "qid": "Q756433",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "State Farm Stadium is a retractable roof stadium in Glendale, Arizona, U.S., a suburb west of Phoenix.",
+   "lead": "State Farm Stadium is a retractable roof stadium in Glendale, Arizona, U.S., a suburb west of Phoenix. It is the home of the Arizona Cardinals of the National Football League (NFL) and the annual Fies",
    "zone": "America/Phoenix"
   },
   {
@@ -5503,7 +5519,7 @@
    "qid": "Q241022",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Visana Stadion is a football stadium in the city of Thun, Switzerland.",
+   "lead": "Visana Stadion is a football stadium in the city of Thun, Switzerland. It has a capacity of 10,000 spectators and opened in 2011. It is the home of FC Thun men and women's team of the Swiss Super Leag",
    "zone": "Europe/Zurich"
   },
   {
@@ -5520,7 +5536,7 @@
    "qid": "Q1848079",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Strandvallen is a multi-use stadium in Hällevik, Sweden.",
+   "lead": "Strandvallen is a multi-use stadium in Hällevik, Sweden. It is currently used mostly for football matches and is the home stadium of Mjällby AIF. The stadium holds 6,000 people and was built in 1953.",
    "zone": "Europe/Stockholm"
   },
   {
@@ -5536,7 +5552,7 @@
    "qid": "Q3503735",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Sun Bowl is an outdoor football stadium in the Southwestern United States, on the campus of the University of Texas at El Paso (UTEP).",
+   "lead": "The Sun Bowl is an outdoor football stadium in the Southwestern United States, on the campus of the University of Texas at El Paso (UTEP). It is home to the UTEP Miners of the Mountain West Conference",
    "zone": "America/Denver"
   },
   {
@@ -5553,7 +5569,7 @@
    "qid": "Q920240",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Swangard Stadium is a multi-purpose stadium in Central Park in Burnaby, British Columbia.",
+   "lead": "Swangard Stadium is a multi-purpose stadium in Central Park in Burnaby, British Columbia. Primarily used for soccer, rugby, football, and athletics, the stadium also used to be home to the Simon Frase",
    "zone": "America/Vancouver"
   },
   {
@@ -5571,7 +5587,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Swansea.com Stadium is an all-seated multi-use sports stadium and conferencing venue located in the Landore area of Swansea, Wales, hosting both rugby union and football.",
+   "lead": "The Swansea.com Stadium is an all-seated multi-use sports stadium and conferencing venue located in the Landore area of Swansea, Wales, hosting both rugby union and football. The stadium opened in 200",
    "zone": "Europe/London"
   },
   {
@@ -5588,7 +5604,7 @@
    "qid": "Q1442809",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "TD Place Stadium is an outdoor stadium in Ottawa, Ontario, Canada.",
+   "lead": "TD Place Stadium is an outdoor stadium in Ottawa, Ontario, Canada. It is located at Lansdowne Park, on the southern edge of The Glebe neighbourhood, where Bank Street crosses the Rideau Canal. It is t",
    "zone": "America/Toronto"
   },
   {
@@ -5605,7 +5621,7 @@
    "qid": "Q12004985",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "TPC Deere Run is an 18-hole golf course in the central United States, located in Silvis, Illinois, along the Rock River.",
+   "lead": "TPC Deere Run is an 18-hole golf course in the central United States, located in Silvis, Illinois, along the Rock River. It is operated by the PGA Tour as a member of their Tournament Players Club net",
    "zone": "America/Chicago"
   },
   {
@@ -5639,7 +5655,7 @@
    "qid": "Q2459367",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Tallaght Stadium is an association football stadium in Ireland based in Tallaght, South Dublin.",
+   "lead": "Tallaght Stadium is an association football stadium in Ireland based in Tallaght, South Dublin. The club Shamrock Rovers originally announced details of the stadium in July 1996. The stadium is now ow",
    "zone": "Europe/Dublin"
   },
   {
@@ -5656,7 +5672,7 @@
    "qid": "Q124219206",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Tammelan Stadion is a football stadium in Tampere, Finland.",
+   "lead": "Tammelan Stadion is a football stadium in Tampere, Finland. It is the home ground for the Veikkausliiga club Ilves and the Ilves women's team, which competes in the Kansallinen Liiga. The stadium is a",
    "zone": "Europe/Helsinki"
   },
   {
@@ -5673,7 +5689,7 @@
    "qid": "Q593446",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The  City Ground is a football stadium in West Bridgford, Nottinghamshire, England, on the banks of the River Trent.",
+   "lead": "The  City Ground is a football stadium in West Bridgford, Nottinghamshire, England, on the banks of the River Trent. It has been home to Nottingham Forest since 1898 and has a capacity of 31,212, with",
    "zone": "Europe/London"
   },
   {
@@ -5690,7 +5706,7 @@
    "qid": "Q14437690",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Hive London is a football centre near Edgware, London, offering football pitches for hire, conference and banqueting facilities, an on-site gym, cafe, bar and more.",
+   "lead": "The Hive London is a football centre near Edgware, London, offering football pitches for hire, conference and banqueting facilities, an on-site gym, cafe, bar and more. It was built on the former site",
    "zone": "Europe/London"
   },
   {
@@ -5708,7 +5724,7 @@
    "via": "wider net (nominatim + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The MKM Stadium is a multi-purpose stadium in Kingston upon Hull, England.",
+   "lead": "The MKM Stadium is a multi-purpose stadium in Kingston upon Hull, England. It has a current capacity of 24,983. The stadium is home to both association football club Hull City A.F.C. of the Premier Le",
    "zone": "Europe/London"
   },
   {
@@ -5727,7 +5743,7 @@
    "via": "wider net (nominatim + osm-reverse + photon + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Renaissance Club is a golf club in Scotland, four miles (10 km) west of North Berwick, twenty miles (30 km) east of Edinburgh.",
+   "lead": "The Renaissance Club is a golf club in Scotland, four miles (10 km) west of North Berwick, twenty miles (30 km) east of Edinburgh. It hosted the 2017 Scottish Senior Open,the Scottish Open from 2019 t",
    "zone": "Europe/London"
   },
   {
@@ -5747,7 +5763,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Tiger Stadium, also called Death Valley, is an outdoor stadium located in Baton Rouge, Louisiana, on the campus of Louisiana State University.",
+   "lead": "Tiger Stadium, also called Death Valley, is an outdoor stadium located in Baton Rouge, Louisiana, on the campus of Louisiana State University. It is the home stadium of the LSU Tigers football team. P",
    "zone": "America/Chicago"
   },
   {
@@ -5764,7 +5780,7 @@
    "qid": "Q1138958",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Tofiq Bahramov Republican Stadium is a multi-purpose stadium in Baku, Azerbaijan.",
+   "lead": "The Tofiq Bahramov Republican Stadium is a multi-purpose stadium in Baku, Azerbaijan. It is currently used mostly for football matches. It served as the home ground for the Azerbaijan national footbal",
    "zone": "Asia/Baku"
   },
   {
@@ -5781,7 +5797,7 @@
    "qid": "Q55074091",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Tottenham Hotspur Stadium is a multi-purpose stadium in London, England.",
+   "lead": "Tottenham Hotspur Stadium is a multi-purpose stadium in Tottenham, London, England. It is owned and operated by the Premier League club Tottenham Hotspur, replacing the club's previous ground, White H",
    "zone": "Europe/London"
   },
   {
@@ -5798,7 +5814,7 @@
    "qid": "Q1141292",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Toumba Stadium is a multi-purpose stadium in Thessaloniki, Greece, mainly used for football.",
+   "lead": "Toumba Stadium is a multi-purpose stadium in Thessaloniki, Greece, mainly used for football. It is property of AC PAOK and hosts PAOK FC since its completion in 1959. The official name of the stadium ",
    "zone": "Europe/Athens"
   },
   {
@@ -5849,8 +5865,27 @@
    "qid": "Q1851616",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Stadio Brianteo is a multi-purpose stadium in Monza, Italy, and the home of AC Monza.",
+   "lead": "Stadio Brianteo is a multi-purpose stadium in Monza, Italy, and the home of AC Monza. Mostly used for football matches, the stadium was built in 1988 and has a capacity of 17,102. The stadium is also ",
    "zone": "Europe/Rome"
+  },
+  {
+   "name": "U.S. Bank Stadium",
+   "sports": "NFL",
+   "home": "Vikings",
+   "lat": 44.9739,
+   "lon": -93.2581,
+   "agreeing": [
+    "osm-reverse",
+    "osm-reverse",
+    "wikidata",
+    "wp-article"
+   ],
+   "qid": "Q7929512",
+   "via": "wider net (osm-reverse + osm-reverse + wikidata + wp-article)",
+   "roof": "dome",
+   "roofBasis": "wikipedia lead",
+   "lead": "U.S. Bank Stadium is an indoor stadium in Minneapolis, Minnesota, U.S. Opened in 2016, the stadium was built on the former site of the Hubert H. Humphrey Metrodome and is the home venue of the Minneso",
+   "zone": "America/Chicago"
   },
   {
    "name": "UFCU Stadium",
@@ -5868,7 +5903,7 @@
    "via": "wider net (nominatim + photon + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "UFCU Stadium is a college football stadium in the southern United States, located on the campus of Texas State University in San Marcos, Texas.",
+   "lead": "UFCU Stadium is a college football stadium in the southern United States, located on the campus of Texas State University in San Marcos, Texas. It opened 45 years ago in 1981 and was expanded in 2011–",
    "zone": "America/Chicago"
   },
   {
@@ -5885,7 +5920,7 @@
    "qid": "Q30880646",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The Unipol Domus is a football stadium in Cagliari, Sardinia, Italy.",
+   "lead": "The Unipol Domus is a football stadium in Cagliari, Sardinia, Italy. Built in 2017 as Sardegna Arena, it has hosted Cagliari Calcio football matches since the 2017–18 season, following the closure and",
    "zone": "Europe/Rome"
   },
   {
@@ -5905,7 +5940,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "University Stadium is an outdoor football stadium in the western United States, located on the south campus of the University of New Mexico in Albuquerque, New Mexico.",
+   "lead": "University Stadium is an outdoor football stadium in the western United States, located on the south campus of the University of New Mexico in Albuquerque, New Mexico. It is the home field of New Mexi",
    "zone": "America/Denver"
   },
   {
@@ -5922,7 +5957,7 @@
    "qid": "Q1724993",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Vale Park is a football stadium in the area of Burslem, Stoke-on-Trent, Staffordshire, England, and it has been the home ground of Port Vale Football Club since its opening in 1950.",
+   "lead": "Vale Park is a football stadium in the area of Burslem, Stoke-on-Trent, Staffordshire, England, and it has been the home ground of Port Vale Football Club since its opening in 1950. It has a capacity ",
    "zone": "Europe/London"
   },
   {
@@ -5955,7 +5990,7 @@
    "qid": "Q969279",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Valley Parade, currently known as Mbanq Valley Parade for sponsorship reasons, is an all-seater football stadium in Bradford, West Yorkshire, England.",
+   "lead": "Valley Parade, currently known as Mbanq Valley Parade for sponsorship reasons, is an all-seater football stadium in Bradford, West Yorkshire, England. The stadium was built in 1886 as the home of Mann",
    "zone": "Europe/London"
   },
   {
@@ -5972,7 +6007,7 @@
    "qid": "Q1327903",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Vasil Levski National Stadium, named after Bulgarian national hero and revolutionary Vasil Levski (1837–1873), is the country's second largest stadium.",
+   "lead": "Vasil Levski National Stadium, named after Bulgarian national hero and revolutionary Vasil Levski (1837–1873), is the country's second largest stadium. The stadium has 43,230 seats and is located in t",
    "zone": "Europe/Sofia"
   },
   {
@@ -5989,7 +6024,7 @@
    "qid": "Q3555083",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Vaught–Hemingway Stadium is an outdoor athletic stadium located in University, Mississippi, United States.",
+   "lead": "Vaught–Hemingway Stadium is an outdoor athletic stadium located in University, Mississippi, United States. The stadium serves as the home for the University of Mississippi Rebels college football team",
    "zone": "America/Chicago"
   },
   {
@@ -6006,7 +6041,7 @@
    "qid": "Q1459459",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Vazgen Sargsyan Republican Stadium, also known as the Republican Stadium, is an all-seater multi-use stadium located on 65 Vardanants Street, in the Armenian capital Yerevan.",
+   "lead": "Vazgen Sargsyan Republican Stadium, also known as the Republican Stadium, is an all-seater multi-use stadium located on 65 Vardanants Street, in the Armenian capital Yerevan. The stadium was built bet",
    "zone": "Asia/Yerevan"
   },
   {
@@ -6023,7 +6058,7 @@
    "qid": "Q150961",
    "roof": "retractable",
    "roofBasis": "wikipedia lead",
-   "lead": "Arena AufSchalke, currently known as Veltins-Arena for sponsorship reasons, is a football stadium with a retractable roof and slide-out pitch in Gelsenkirchen, North Rhine-Westphalia, Germany.",
+   "lead": "Arena AufSchalke, currently known as Veltins-Arena for sponsorship reasons, is a football stadium with a retractable roof and slide-out pitch in Gelsenkirchen, North Rhine-Westphalia, Germany. It open",
    "zone": "Europe/Berlin"
   },
   {
@@ -6040,7 +6075,7 @@
    "qid": "Q2004864",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Kupittaa Football Stadium, officially Veritas Stadion for sponsorship reasons since 2003, is a football stadium in Turku, Finland.",
+   "lead": "Kupittaa Football Stadium, officially Veritas Stadion for sponsorship reasons since 2003, is a football stadium in Turku, Finland. It is situated in the district of Kupittaa, in an area dedicated to s",
    "zone": "Europe/Helsinki"
   },
   {
@@ -6060,7 +6095,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Veterans Memorial Stadium at Larry Blakeney Field is a stadium in Troy, Alabama.",
+   "lead": "Veterans Memorial Stadium at Larry Blakeney Field is a stadium in Troy, Alabama. It is primarily used for American football, and is the home field of the Troy University Trojans. The seating capacity ",
    "zone": "America/Chicago"
   },
   {
@@ -6076,7 +6111,7 @@
    "qid": "Q10626",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Vicarage Road is a stadium in Watford, England, and is the home stadium of Championship club Watford.",
+   "lead": "Vicarage Road is a stadium in Watford, England, and is the home stadium of Championship club Watford. An all-seater stadium, its current capacity is 22,200.",
    "zone": "Europe/London"
   },
   {
@@ -6093,7 +6128,7 @@
    "qid": "Q1417248",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Viking Stadion, currently named Lyse Arena for sponsorship reasons, is a football stadium in Stavanger, Norway.",
+   "lead": "Viking Stadion, currently named Lyse Arena for sponsorship reasons, is a football stadium in Stavanger, Norway. It was inaugurated in May 2004 and cost 160 million NOK to build. 50 million NOK, plus t",
    "zone": "Europe/Oslo"
   },
   {
@@ -6110,7 +6145,7 @@
    "qid": "Q2333092",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Víkingsvöllur is a football stadium in Reykjavík, Iceland.",
+   "lead": "Víkingsvöllur is a football stadium in Reykjavík, Iceland. It is currently used for football matches and is the home ground of Víkingur F.C. The stadium holds around 2,000, with 1,149 seats, and is lo",
    "zone": "Atlantic/Reykjavik"
   },
   {
@@ -6127,7 +6162,7 @@
    "qid": "Q619094",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Dean Court, currently known as Vitality Stadium for sponsorship purposes, is a football stadium in Boscombe, a suburb of Bournemouth, Dorset, England, and is the home ground of AFC Bournemouth.",
+   "lead": "Dean Court, currently known as Vitality Stadium for sponsorship purposes, is a football stadium in Boscombe, a suburb of Bournemouth, Dorset, England, and is the home ground of AFC Bournemouth. The st",
    "zone": "Europe/London"
   },
   {
@@ -6145,7 +6180,7 @@
    "via": "home team (tier 2, Q150933)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Volksparkstadion is a football stadium in Hamburg, Germany, with a capacity of 57,000, which makes it the eighth largest stadium in Germany.",
+   "lead": "Volksparkstadion is a football stadium in Hamburg, Germany, with a capacity of 57,000, which makes it the eighth largest stadium in Germany. It has served as the home ground of Bundesliga side Hamburg",
    "zone": "Europe/Berlin"
   },
   {
@@ -6162,7 +6197,7 @@
    "qid": "Q167418",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Augsburg Arena, currently known commercially as the WWK Arena, is a football stadium in Augsburg, Bavaria, Germany.",
+   "lead": "Augsburg Arena, currently known commercially as the WWK Arena, is a football stadium in Augsburg, Bavaria, Germany. It is used mostly for football matches and hosts the home matches of FC Augsburg.",
    "zone": "Europe/Berlin"
   },
   {
@@ -6179,7 +6214,7 @@
    "qid": "Q7961584",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Waldo Stadium is a stadium in Kalamazoo, Michigan.",
+   "lead": "Waldo Stadium is a stadium in Kalamazoo, Michigan. It is primarily used for football, and has been the home of Western Michigan University Broncos football in rudimentary form since 1914, and as a com",
    "zone": "America/Detroit"
   },
   {
@@ -6249,7 +6284,7 @@
    "qid": "Q6588293",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Warren McGuirk Alumni Stadium, is a 17,000-seat multi-purpose stadium in Hadley, Massachusetts, on the campus of the University of Massachusetts Amherst.",
+   "lead": "Warren McGuirk Alumni Stadium, is a 17,000-seat multi-purpose stadium in Hadley, Massachusetts, on the campus of the University of Massachusetts Amherst. It has been the Massachusetts Minutemen footba",
    "zone": "America/New_York"
   },
   {
@@ -6267,7 +6302,7 @@
    "via": "home team (tier 2, Q154475, Q183353)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Weserstadion is a football stadium in Bremen, Germany.",
+   "lead": "Weserstadion is a football stadium in Bremen, Germany. The Weserstadion is scenically situated on the north bank of the Weser River and is surrounded by lush green parks. The city center is only about",
    "zone": "Europe/Berlin"
   },
   {
@@ -6287,7 +6322,7 @@
    "via": "wider net (nominatim + nominatim-alias + photon + photon-alias + team-venue)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Arthur L.",
+   "lead": "Arthur L. Williams Stadium is a 25,000-seat football stadium located on the campus of Liberty University in Lynchburg, Virginia, United States. The stadium was built in 1989 and plays host to Liberty ",
    "zone": "America/New_York"
   },
   {
@@ -6304,7 +6339,7 @@
    "qid": "Q940522",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Williams–Brice Stadium is a football stadium located in Columbia, South Carolina, United States.",
+   "lead": "Williams–Brice Stadium is a football stadium located in Columbia, South Carolina, United States. It serves primarily as the home of the South Carolina Gamecocks football team, but has also been the si",
    "zone": "America/New_York"
   },
   {
@@ -6321,7 +6356,7 @@
    "qid": "Q117100737",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Willoughby Stadium at Langley Events Centre is a soccer/rugby stadium located in the Township of Langley, British Columbia.",
+   "lead": "Willoughby Stadium at Langley Events Centre is a soccer/rugby stadium located in the Township of Langley, British Columbia. In 2023, spectator stands were constructed around the existing turf field fo",
    "zone": "America/Vancouver"
   },
   {
@@ -6338,7 +6373,7 @@
    "qid": "Q8060993",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Yulman Stadium is the on-campus venue for football at Tulane University in New Orleans, Louisiana.",
+   "lead": "Yulman Stadium is the on-campus venue for football at Tulane University in New Orleans, Louisiana. It currently has a capacity of 30,000 spectators, with 4,500 premium seats in two fan clubs – the Wes",
    "zone": "America/Chicago"
   },
   {
@@ -6359,7 +6394,7 @@
    "via": "wider net (nominatim-alias + osm-reverse + osm-reverse + photon-alias + team-venue + wp-article)",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "Dix Stadium is a stadium in Kent, Ohio, United States, on the campus of Kent State University.",
+   "lead": "Dix Stadium is a stadium in Kent, Ohio, United States, on the campus of Kent State University. It is the home field of the Kent State Golden Flashes football, women's soccer, and women's lacrosse team",
    "zone": "America/New_York"
   },
   {
@@ -6376,7 +6411,7 @@
    "qid": "Q500922",
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
-   "lead": "The bet365 Stadium is an all-seater football stadium in Stoke-on-Trent, Staffordshire, England and the home of EFL Championship club Stoke City.",
+   "lead": "The bet365 Stadium is an all-seater football stadium in Stoke-on-Trent, Staffordshire, England and the home of EFL Championship club Stoke City. The stadium was previously called the Britannia Stadium",
    "zone": "Europe/London"
   },
   {
@@ -6551,7 +6586,7 @@
    "qid": "Q870859",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Bloomfield Road is a football stadium in Blackpool, Lancashire, England, which has been the home of Blackpool Football Club since 1901.",
+   "lead": "Bloomfield Road is a football stadium in Blackpool, Lancashire, England, which has been the home of Blackpool Football Club since 1901. It is the third stadium since the club's founding, the previous ",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -6676,7 +6711,7 @@
    "qid": "Q842077",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "The Coventry Building Society Arena is a complex in Coventry, West Midlands, England.",
+   "lead": "The Coventry Building Society Arena is a complex in Coventry, West Midlands, England. It includes a 32,609-seater stadium which is currently home to Premier League club Coventry City, along with facil",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -6749,7 +6784,7 @@
    "qid": "Q330298",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Stadion Feijenoord, more commonly known by its nickname De Kuip, is a stadium in Rotterdam, Netherlands.",
+   "lead": "Stadion Feijenoord, more commonly known by its nickname De Kuip, is a stadium in Rotterdam, Netherlands. It was completed in 1937. The name is derived from the Feijenoord district in Rotterdam, and fr",
    "zone": "Europe/Amsterdam",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -6962,7 +6997,7 @@
    "qid": "Q968420",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Goodison Park is a football stadium in Walton, Liverpool, England, two miles (3 km) north of the city centre.",
+   "lead": "Goodison Park is a football stadium in Walton, Liverpool, England, two miles (3 km) north of the city centre. It was built to serve as the home ground of Everton and opened in 1892. Goodison Park host",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -6981,7 +7016,7 @@
    "via": "home team (tier 2, Q16251517, Q1475645)",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Highmark Stadium is an American football stadium located in Orchard Park, New York, a suburb of Buffalo.",
+   "lead": "Highmark Stadium is an American football stadium located in Orchard Park, New York, a suburb of Buffalo. It opened in 2026, serving as the home field of the Buffalo Bills of the National Football Leag",
    "zone": "America/New_York",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -7011,7 +7046,7 @@
    "qid": "Q207109",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam.",
+   "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam. Built from 1993 to 1996 at a cost equivalent to €140 mil",
    "zone": "Europe/Amsterdam",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -7028,7 +7063,7 @@
    "qid": "Q1613767",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Kenilworth Road, also known as the Kenny, is a football stadium in the area of Bury Park, Luton, Bedfordshire, England.",
+   "lead": "Kenilworth Road, also known as the Kenny, is a football stadium in the area of Bury Park, Luton, Bedfordshire, England. It has been the home ground of Luton Town Football Club since 1905. The stadium ",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -7351,23 +7386,6 @@
    }
   },
   {
-   "name": "Parken Stadium",
-   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
-   "home": "København",
-   "lat": 55.7026,
-   "lon": 12.5722,
-   "agreeing": [
-    "nominatim",
-    "wikidata"
-   ],
-   "qid": "Q33003",
-   "roof": null,
-   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Parken is a football stadium in the Indre Østerbro district of Copenhagen, Denmark, built from 1990 to 1992.",
-   "zone": "Europe/Copenhagen",
-   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
    "name": "Peninsula Stadium",
    "sports": "EFL Cup,EFL Trophy",
    "home": "Salford City",
@@ -7412,7 +7430,7 @@
    "qid": "Q81492",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Ali Sami Yen Sports Complex, commonly known as Ali Sami Yen Stadium, branded as Rams Park for sponsorship reasons, is a football stadium serving as the home ground of the Süper Lig club Galatasaray.",
+   "lead": "Ali Sami Yen Sports Complex, commonly known as Ali Sami Yen Stadium, branded as Rams Park for sponsorship reasons, is a football stadium serving as the home ground of the Süper Lig club Galatasaray. I",
    "zone": "Europe/Istanbul",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
@@ -7843,26 +7861,6 @@
    }
   },
   {
-   "name": "U.S. Bank Stadium",
-   "sports": "NFL",
-   "home": "Vikings",
-   "lat": 44.9739,
-   "lon": -93.2581,
-   "agreeing": [
-    "osm-reverse",
-    "osm-reverse",
-    "wikidata",
-    "wp-article"
-   ],
-   "qid": "Q7929512",
-   "via": "wider net (osm-reverse + osm-reverse + wikidata + wp-article)",
-   "roof": null,
-   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "U.S.",
-   "zone": "America/Chicago",
-   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
    "name": "URSAPHARM-Arena an der Kaiserlinde",
    "sports": "Bundesliga",
    "home": "Elversberg",
@@ -7981,7 +7979,7 @@
    "qid": "Q128468",
    "roof": null,
    "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England.",
+   "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England. It opened in 2007 on the site of the original Wembl",
    "zone": "Europe/London",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
