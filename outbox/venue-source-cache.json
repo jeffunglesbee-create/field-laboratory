@@ -251836,5 +251836,2706 @@
    "ok": true,
    "value": ""
   }
+ },
+ "wp-infobox|New_York_Stadium": {
+  "at": 1794252104728,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|AFAS_Stadion": {
+  "at": 1794252106227,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|AT%26T_Stadium": {
+  "at": 1794252107771,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|ATCO_Field": {
+  "at": 1794252109156,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Acrisure_Bounce_House": {
+  "at": 1794252110780,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Acrisure_Stadium": {
+  "at": 1794252112883,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Adams_Park": {
+  "at": 1794252114249,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Aggie_Memorial_Stadium": {
+  "at": 1794252115770,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Alamodome": {
+  "at": 1794252117347,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Albertsons_Stadium": {
+  "at": 1794252118874,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Allegacy_Federal_Credit_Union_Stadium": {
+  "at": 1794252121471,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Allegiant_Stadium": {
+  "at": 1794252123049,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Skylight]]"
+   ]
+  }
+ },
+ "wp-infobox|Allen_E._Paulson_Stadium": {
+  "at": 1794252124540,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Allianz_Riviera": {
+  "at": 1794252125964,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Allianz_Stadion": {
+  "at": 1794252127406,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Alphamega_Stadium": {
+  "at": 1794252128800,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Alumni_Stadium": {
+  "at": 1794252130356,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|AmFirst_Stadium": {
+  "at": 1794252131877,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Amon_G._Carter_Stadium": {
+  "at": 1794252133326,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|%C3%85r%C3%A5sen_Stadion": {
+  "at": 1794252134728,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Arrowhead_Stadium": {
+  "at": 1794252181456,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Aspmyra_Stadion": {
+  "at": 1794252182855,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Olympic_Stadium_(Athens)": {
+  "at": 1794252184410,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Autzen_Stadium": {
+  "at": 1794252185935,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Aviva_Stadium": {
+  "at": 1794252187607,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Borussia-Park": {
+  "at": 1794252189038,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Baku_Olympic_Stadium": {
+  "at": 1794252190634,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bala%C3%ADdos_Stadium": {
+  "at": 1794252192014,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Batumi_Arena": {
+  "at": 1794252193429,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|BayArena": {
+  "at": 1794252194932,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Beaver_Stadium": {
+  "at": 1794252241469,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bellerive_Country_Club": {
+  "at": 1794252242939,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ben_Hill_Griffin_Stadium": {
+  "at": 1794252244252,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bescot_Stadium": {
+  "at": 1794252245712,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bill_Snyder_Family_Football_Stadium": {
+  "at": 1794252247352,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bloomfield_Road": {
+  "at": 1794252248948,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Blundell_Park": {
+  "at": 1794252250499,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bobby_Dodd_Stadium": {
+  "at": 1794252251979,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Boone_Pickens_Stadium": {
+  "at": 1794252253563,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Boundary_Park": {
+  "at": 1794252254924,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Brann_Stadion": {
+  "at": 1794252301372,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bridgeforth_Stadium": {
+  "at": 1794252302848,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Broadfield_Stadium": {
+  "at": 1794252304213,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Broadview_Stadium": {
+  "at": 1794252305630,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Brooks_Stadium": {
+  "at": 1794252307216,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bryant%E2%80%93Denny_Stadium": {
+  "at": 1794252308606,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|CEFCU_Stadium": {
+  "at": 1794252309990,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Caesars_Superdome": {
+  "at": 1794252311720,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Dome]]"
+   ]
+  }
+ },
+ "wp-infobox|California_Memorial_Stadium": {
+  "at": 1794252313397,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Camp_Randall_Stadium": {
+  "at": 1794252314872,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Canvas_Stadium": {
+  "at": 1794252361456,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Cardiff_City_Stadium": {
+  "at": 1794252363113,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Carrow_Road": {
+  "at": 1794252364671,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Carter%E2%80%93Finley_Stadium": {
+  "at": 1794252366137,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Casino_Del_Sol_Stadium": {
+  "at": 1794252367640,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Celtic_Park": {
+  "at": 1794252369138,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Centennial_Bank_Stadium": {
+  "at": 1794252370472,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Center_Parc_Stadium": {
+  "at": 1794252371962,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Randers_Stadium": {
+  "at": 1794252373330,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Abbey_Stadium": {
+  "at": 1794252374622,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Coventry_Building_Society_Arena": {
+  "at": 1794252421099,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|DATCU_Stadium": {
+  "at": 1794252422838,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Darrell_K_Royal%E2%80%93Texas_Memorial_Stadium": {
+  "at": 1794252424155,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stayen": {
+  "at": 1794252425552,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|David_Booth_Kansas_Memorial_Stadium": {
+  "at": 1794252426981,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Davis_Wade_Stadium": {
+  "at": 1794252428334,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|De_Grolsch_Veste": {
+  "at": 1794252429703,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|De_Kuip": {
+  "at": 1794252431330,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Pierre-Mauroy": {
+  "at": 1794252432860,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Deepdale": {
+  "at": 1794252434273,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Delaware_Stadium": {
+  "at": 1794252480720,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Detroit_Golf_Club": {
+  "at": 1794252482131,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Waldstadion_(Frankfurt)": {
+  "at": 1794252483764,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Dick%27s_Sporting_Goods_Park": {
+  "at": 1794252485267,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Di%C3%B3sgy%C5%91ri_Stadion": {
+  "at": 1794252486730,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vi%C3%B0_Dj%C3%BApum%C3%BDrar": {
+  "at": 1794252488095,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Doak_Campbell_Stadium": {
+  "at": 1794252489545,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Razorback_Stadium": {
+  "at": 1794252491032,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Doosan_Arena": {
+  "at": 1794252492545,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Dowdy%E2%80%93Ficklen_Stadium": {
+  "at": 1794252493938,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Doyt_Perry_Stadium": {
+  "at": 1794252541479,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Easter_Road": {
+  "at": 1794252543135,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Club_Doncaster_Sports_Village": {
+  "at": 1794252544519,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Edgeley_Park": {
+  "at": 1794252545902,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|El_Sadar_Stadium": {
+  "at": 1794252547290,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Campos_de_Sport_de_El_Sardinero": {
+  "at": 1794252548650,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Elbasan_Arena": {
+  "at": 1794252550093,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Elland_Road": {
+  "at": 1794252551839,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bowers_Stadium": {
+  "at": 1794252553224,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Emirates_Stadium": {
+  "at": 1794252554819,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Empower_Field_at_Mile_High": {
+  "at": 1794252601645,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Energizer_Park": {
+  "at": 1794252603197,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Ennio_Tardini": {
+  "at": 1794252604572,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadi_Ciutat_de_Val%C3%A8ncia": {
+  "at": 1794252606178,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_Azteca": {
+  "at": 1794252607900,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_Benito_Villamar%C3%ADn": {
+  "at": 1794252609216,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_Coliseum": {
+  "at": 1794252610775,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_de_La_Cartuja": {
+  "at": 1794252612297,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_Mart%C3%ADnez_Valero": {
+  "at": 1794252613671,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Butarque_Stadium": {
+  "at": 1794252615053,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Nemesio_Diez_Stadium": {
+  "at": 1794252660654,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vallecas_Stadium": {
+  "at": 1794252662006,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_de_la_Cer%C3%A1mica": {
+  "at": 1794252663394,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Est%C3%A1dio_Dr._Magalh%C3%A3es_Pessoa": {
+  "at": 1794252664758,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Est%C3%A1dio_Jos%C3%A9_Alvalade": {
+  "at": 1794252666338,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Est%C3%A1dio_Municipal_de_Braga": {
+  "at": 1794252667814,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Est%C3%A1dio_da_Luz": {
+  "at": 1794252669593,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Est%C3%A1dio_do_Drag%C3%A3o": {
+  "at": 1794252671208,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|EverBank_Stadium": {
+  "at": 1794252672707,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ewood_Park": {
+  "at": 1794252674129,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Partizan_Stadium": {
+  "at": 1794252720582,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Falcon_Stadium": {
+  "at": 1794252721943,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Fargodome": {
+  "at": 1794252723474,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Fir_Park": {
+  "at": 1794252724860,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|First_Community_Stadium": {
+  "at": 1794252726354,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|FirstBank_Stadium": {
+  "at": 1794252728030,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Flagler_Credit_Union_Stadium": {
+  "at": 1794252729568,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Folsom_Field": {
+  "at": 1794252731056,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ford_Field": {
+  "at": 1794252732685,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Dome]]"
+   ]
+  }
+ },
+ "wp-infobox|Fortuna_Arena": {
+  "at": 1794252734042,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|GSP_Stadium": {
+  "at": 1794252780710,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Galaxy_Stadium": {
+  "at": 1794252782353,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_Letn%C3%A1": {
+  "at": 1794252784050,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Karaiskakis_Stadium": {
+  "at": 1794252785491,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Gerald_J._Ford_Stadium": {
+  "at": 1794252786962,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Planet_Group_Arena": {
+  "at": 1794252788293,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Gies_Memorial_Stadium": {
+  "at": 1794252789742,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Rapid-Giule%C8%99ti_Stadium": {
+  "at": 1794252791153,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Giuseppe_Sinigaglia": {
+  "at": 1794252792490,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Glass_Bowl": {
+  "at": 1794252794003,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Goffertstadion": {
+  "at": 1794252840435,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Goodison_Park": {
+  "at": 1794252841957,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Banja_Luka_City_Stadium": {
+  "at": 1794252843339,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ferencv%C3%A1ros_Stadion": {
+  "at": 1794252844730,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Parc_Olympique_Lyonnais": {
+  "at": 1794252846090,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Brentford_Community_Stadium": {
+  "at": 1794252847501,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Skelly_Field_at_H._A._Chapman_Stadium": {
+  "at": 1794252849001,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Hamilton_Stadium": {
+  "at": 1794252850414,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Hancock_Whitney_Stadium": {
+  "at": 1794252851961,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Hard_Rock_Stadium": {
+  "at": 1794252853553,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Highbury_Stadium_(Fleetwood)": {
+  "at": 1794252901035,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Highmark_Stadium": {
+  "at": 1794252902607,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Hill_Dickinson_Stadium": {
+  "at": 1794252904242,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Home_Deluxe_Arena": {
+  "at": 1794252905538,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Home_Park": {
+  "at": 1794252906954,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Hornet_Stadium_(Sacramento)": {
+  "at": 1794252908263,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Houchens_Industries%E2%80%93L._T._Smith_Stadium": {
+  "at": 1794252909614,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Huntington_Bank_Field": {
+  "at": 1794252911137,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Huntington_Bank_Stadium": {
+  "at": 1794252912546,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Huskie_Stadium": {
+  "at": 1794252914052,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Husky_Stadium": {
+  "at": 1794252960609,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ibrox_Stadium": {
+  "at": 1794252962143,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|InfoCision_Stadium%E2%80%93Summa_Field": {
+  "at": 1794252963445,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Inter.co_Stadium": {
+  "at": 1794252965134,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Inver_Park": {
+  "at": 1794252966541,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|JMA_Wireless_Dome": {
+  "at": 1794252968151,
+  "result": {
+   "ok": true,
+   "value": [
+    "Dome"
+   ]
+  }
+ },
+ "wp-infobox|Jack_Trice_Stadium": {
+  "at": 1794252969734,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Jan_Breydel_Stadium": {
+  "at": 1794252971206,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Jerry_Richardson_Stadium": {
+  "at": 1794252972633,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Joan_C._Edwards_Stadium": {
+  "at": 1794252974220,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Colchester_Community_Stadium": {
+  "at": 1794253020944,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Joe_Aillet_Stadium": {
+  "at": 1794253022639,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Johan_Cruyff_Arena": {
+  "at": 1794253024582,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Kirklees_Stadium": {
+  "at": 1794253025964,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Johnny_%22Red%22_Floyd_Stadium": {
+  "at": 1794253027394,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Jordan%E2%80%93Hare_Stadium": {
+  "at": 1794253028982,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bowman_Field": {
+  "at": 1794253030588,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kardinia_Park_(stadium)": {
+  "at": 1794253032009,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kelly/Shorts_Stadium": {
+  "at": 1794253033486,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kenan_Stadium": {
+  "at": 1794253034975,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kenilworth_Road": {
+  "at": 1794253081540,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kidd_Brewer_Stadium": {
+  "at": 1794253082912,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|King_Power_Stadium": {
+  "at": 1794253084442,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Den_Dreef": {
+  "at": 1794253085756,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kinnick_Stadium": {
+  "at": 1794253087089,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kroger_Field": {
+  "at": 1794253088614,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Sitterstadion": {
+  "at": 1794253090028,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Kyle_Field": {
+  "at": 1794253091572,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|L%26N_Federal_Credit_Union_Stadium": {
+  "at": 1794253092944,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|York_Community_Stadium": {
+  "at": 1794253094381,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Estadio_La_Rosaleda": {
+  "at": 1794253140994,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|LaVell_Edwards_Stadium": {
+  "at": 1794253142520,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Lambeau_Field": {
+  "at": 1794253144270,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Broadhall_Way": {
+  "at": 1794253145744,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Lane_Stadium": {
+  "at": 1794253147245,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Levi%27s_Stadium": {
+  "at": 1794253149011,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Lincoln_Financial_Field": {
+  "at": 1794253150850,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|London_Road_Stadium": {
+  "at": 1794253152208,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Los_Angeles_Memorial_Coliseum": {
+  "at": 1794253154174,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Constant_Vanden_Stock_Stadium": {
+  "at": 1794253155796,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Lucas_Oil_Stadium": {
+  "at": 1794253201352,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|M%26T_Bank_Stadium": {
+  "at": 1794253202913,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Loftus_Road": {
+  "at": 1794253204472,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|MCH_Arena": {
+  "at": 1794253206013,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Mewa_Arena": {
+  "at": 1794253207480,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|MHPArena": {
+  "at": 1794253209102,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Mackay_Stadium": {
+  "at": 1794253210445,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Madejski_Stadium": {
+  "at": 1794253211825,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Maksimir_Stadium": {
+  "at": 1794253213217,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|FMOL_Health/St._Francis_Stadium": {
+  "at": 1794253214648,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Mal%C5%A1ovick%C3%A1_ar%C3%A9na": {
+  "at": 1794253261194,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Mapei_Stadium_%E2%80%93_Citt%C3%A0_del_Tricolore": {
+  "at": 1794253262527,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Maracan%C3%A3_Stadium": {
+  "at": 1794253264214,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Martin_Stadium_(Pullman)": {
+  "at": 1794253265639,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Maverik_Stadium": {
+  "at": 1794253267022,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Meadow_Lane": {
+  "at": 1794253268429,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Memorial_Stadium_(Indiana_University)": {
+  "at": 1794253269815,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Memorial_Stadium_(Clemson)": {
+  "at": 1794253271356,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Memorial_Stadium_(Lincoln)": {
+  "at": 1794253272863,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Gaylord_Family_Oklahoma_Memorial_Stadium": {
+  "at": 1794253274377,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Mendizorrotza_Stadium": {
+  "at": 1794253320744,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Liebenauer_Stadium": {
+  "at": 1794253322275,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Merkur_Spiel-Arena": {
+  "at": 1794253323738,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Mestalla_Stadium": {
+  "at": 1794253325396,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|MetLife_Stadium": {
+  "at": 1794253327388,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Michie_Stadium": {
+  "at": 1794253328922,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Michigan_Stadium": {
+  "at": 1794253330324,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Milan_Puskar_Stadium": {
+  "at": 1794253331720,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Molineux_Stadium": {
+  "at": 1794253333411,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Mountain_America_Stadium": {
+  "at": 1794253335268,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Reliant_Stadium": {
+  "at": 1794253380992,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Navy%E2%80%93Marine_Corps_Memorial_Stadium": {
+  "at": 1794253382532,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_di_Bergamo": {
+  "at": 1794253384008,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Neyland_Stadium": {
+  "at": 1794253385475,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Nippert_Stadium": {
+  "at": 1794253387045,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Nissan_Stadium_(Nashville)": {
+  "at": 1794253388550,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Northwest_Stadium": {
+  "at": 1794253390212,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Martin_Stadium_(Northwestern_University)": {
+  "at": 1794253391798,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Notre_Dame_Stadium": {
+  "at": 1794253393378,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Teheln%C3%A9_pole": {
+  "at": 1794253394881,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Agia_Sophia_Stadium": {
+  "at": 1794253441460,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Oakwell": {
+  "at": 1794253443078,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ohio_Stadium": {
+  "at": 1794253444661,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Old_Trafford": {
+  "at": 1794253446121,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Field_Mill": {
+  "at": 1794253447422,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Oriole_Park_at_Camden_Yards": {
+  "at": 1794253449111,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Pankritio_Stadium": {
+  "at": 1794253450557,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|%C5%9Eenol_G%C3%BCne%C5%9F_Sports_Complex": {
+  "at": 1794253451948,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Parc_des_Princes": {
+  "at": 1794253453441,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Parken_Stadium": {
+  "at": 1794253454888,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Paycor_Stadium": {
+  "at": 1794253501469,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Peden_Stadium": {
+  "at": 1794253502763,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Perth_Stadium": {
+  "at": 1794253504191,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Philips_Stadion": {
+  "at": 1794253505792,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Pirelli_Stadium": {
+  "at": 1794253507208,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Pitbull_Stadium": {
+  "at": 1794253508629,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Portman_Road": {
+  "at": 1794253510092,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Pratt_%26_Whitney_Stadium_at_Rentschler_Field": {
+  "at": 1794253511697,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Rhein-Neckar-Arena": {
+  "at": 1794253513251,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Prenton_Park": {
+  "at": 1794253514752,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Pride_Park_Stadium": {
+  "at": 1794253561394,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Priestfield_Stadium": {
+  "at": 1794253562968,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Protective_Stadium": {
+  "at": 1794253564369,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Rams_Park": {
+  "at": 1794253565979,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|RCDE_Stadium": {
+  "at": 1794253567746,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Raiffeisen_Arena_(Linz)": {
+  "at": 1794253569041,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Red_Star_Stadium": {
+  "at": 1794253570501,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ram%C3%B3n_S%C3%A1nchez-Pizju%C3%A1n_Stadium": {
+  "at": 1794253572248,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Raymond_James_Stadium": {
+  "at": 1794253573649,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Red_Bull_Arena_(Salzburg)": {
+  "at": 1794253575319,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Renato_Dall%27Ara": {
+  "at": 1794253620756,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Reser_Stadium": {
+  "at": 1794253622281,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|RheinEnergieStadion": {
+  "at": 1794253623952,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Rice%E2%80%93Eccles_Stadium": {
+  "at": 1794253625606,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Right_to_Dream_Park": {
+  "at": 1794253626990,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Metropolitano_Stadium": {
+  "at": 1794253628726,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Roazhon_Park": {
+  "at": 1794253630165,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Robert_W._Plaster_Stadium": {
+  "at": 1794253631639,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Romssa_Arena": {
+  "at": 1794253633020,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Rose_Bowl_(stadium)": {
+  "at": 1794253634795,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ross%E2%80%93Ade_Stadium": {
+  "at": 1794253681413,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Royal_Birkdale_Golf_Club": {
+  "at": 1794253682965,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Rynearson_Stadium": {
+  "at": 1794253684383,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Darius_and_Gir%C4%97nas_Stadium": {
+  "at": 1794253685914,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|S.B._Ballard_Stadium": {
+  "at": 1794253687304,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|SECU_Stadium": {
+  "at": 1794253688916,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|SHI_Stadium": {
+  "at": 1794253690406,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|SMH_Group_Stadium": {
+  "at": 1794253691854,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|San_Mam%C3%A9s_Stadium_(2013)": {
+  "at": 1794253693280,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|San_Siro": {
+  "at": 1794253694961,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Sanford_Stadium": {
+  "at": 1794253740485,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bernab%C3%A9u_(stadium)": {
+  "at": 1794253742179,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Scheumann_Stadium": {
+  "at": 1794253743474,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Scott_Stadium": {
+  "at": 1794253744965,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|ScottsMiracle-Gro_Field": {
+  "at": 1794253746483,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|SeatGeek_Stadium": {
+  "at": 1794253747901,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Sedgefield_Country_Club": {
+  "at": 1794253749235,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Westfalenstadion": {
+  "at": 1794253750859,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Simmons_Bank_Liberty_Stadium": {
+  "at": 1794253752469,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Sixfields_Stadium": {
+  "at": 1794253753735,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Skonto_Stadium": {
+  "at": 1794253801243,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|SoFi_Stadium": {
+  "at": 1794253803186,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Skylight]]"
+   ]
+  }
+ },
+ "wp-infobox|Spartan_Stadium": {
+  "at": 1794253804764,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Sports_Illustrated_Stadium": {
+  "at": 1794253806367,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Camp_Nou": {
+  "at": 1794253807926,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|St_Andrew%27s_(stadium)": {
+  "at": 1794253809403,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|St_James%27_Park": {
+  "at": 1794253810829,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|St_Mary%27s_Stadium": {
+  "at": 1794253812299,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Bollaert-Delelis": {
+  "at": 1794253813732,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Francis-Le_Bl%C3%A9": {
+  "at": 1794253815128,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Louis_II": {
+  "at": 1794253860881,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Marie-Marvingt": {
+  "at": 1794253862142,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Oc%C3%A9ane": {
+  "at": 1794253863785,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_Raymond_Kopa": {
+  "at": 1794253865210,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_de_Tourbillon": {
+  "at": 1794253866651,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_de_l%27Abb%C3%A9-Deschamps": {
+  "at": 1794253869172,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_de_l%27Aube": {
+  "at": 1794253870537,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stade_du_Moustoir": {
+  "at": 1794253872019,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Benito_Stirpe": {
+  "at": 1794253873451,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Diego_Armando_Maradona": {
+  "at": 1794253874855,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Friuli": {
+  "at": 1794253921353,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Luigi_Ferraris": {
+  "at": 1794253922737,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Olimpico_Grande_Torino": {
+  "at": 1794253924287,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Pier_Luigi_Penzo": {
+  "at": 1794253925625,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_An_der_Alten_F%C3%B6rsterei": {
+  "at": 1794253927204,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_Rujevica": {
+  "at": 1794253928719,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_Miejski_(Bia%C5%82ystok)": {
+  "at": 1794253930211,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_Poljud": {
+  "at": 1794253931848,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_St%C5%99elnice": {
+  "at": 1794253933560,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadion_Z%27de%C5%BEele": {
+  "at": 1794253935125,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Arena_Zabrze": {
+  "at": 1794253980707,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Ion_Oblemenco_Stadium": {
+  "at": 1794253982156,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadium_MK": {
+  "at": 1794253983630,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadium_de_Toulouse": {
+  "at": 1794253985056,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Fadil_Vokrri_Stadium": {
+  "at": 1794253986645,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stamford_Bridge_(stadium)": {
+  "at": 1794253988156,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|State_Farm_Stadium": {
+  "at": 1794253989590,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Stockhorn_Arena": {
+  "at": 1794253990895,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Strandvallen": {
+  "at": 1794253992347,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Sun_Bowl_(stadium)": {
+  "at": 1794253993684,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Swangard_Stadium": {
+  "at": 1794254041205,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Swansea.com_Stadium": {
+  "at": 1794254042898,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|TD_Place_Stadium": {
+  "at": 1794254044404,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|TPC_Deere_Run": {
+  "at": 1794254045760,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|TPC_Southwind": {
+  "at": 1794254047191,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Tallaght_Stadium": {
+  "at": 1794254048672,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Tammelan_Stadion": {
+  "at": 1794254050189,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|City_Ground": {
+  "at": 1794254051569,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|The_Hive_Stadium": {
+  "at": 1794254053023,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|MKM_Stadium": {
+  "at": 1794254054629,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Renaissance_Club": {
+  "at": 1794254101064,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Tiger_Stadium_(Louisiana)": {
+  "at": 1794254102498,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Tofiq_Bahramov_Republican_Stadium": {
+  "at": 1794254104128,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Tottenham_Hotspur_Stadium": {
+  "at": 1794254105677,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Toumba_Stadium": {
+  "at": 1794254107061,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Truist_Park": {
+  "at": 1794254108498,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Tynecastle_Park": {
+  "at": 1794254109855,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Stadio_Brianteo": {
+  "at": 1794254111288,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|U.S._Bank_Stadium": {
+  "at": 1794254113000,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Skylight]]"
+   ]
+  }
+ },
+ "wp-infobox|UFCU_Stadium": {
+  "at": 1794254114357,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Unipol_Domus": {
+  "at": 1794254160805,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|University_Stadium_(Albuquerque)": {
+  "at": 1794254162174,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vale_Park": {
+  "at": 1794254163674,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Valley_Children%27s_Stadium": {
+  "at": 1794254165203,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Valley_Parade": {
+  "at": 1794254166693,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vasil_Levski_National_Stadium": {
+  "at": 1794254168206,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vaught%E2%80%93Hemingway_Stadium": {
+  "at": 1794254169642,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vazgen_Sargsyan_Republican_Stadium": {
+  "at": 1794254171033,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Arena_AufSchalke": {
+  "at": 1794254172597,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Kupittaa_Football_Stadium": {
+  "at": 1794254174100,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Veterans_Memorial_Stadium_(Troy_University)": {
+  "at": 1794254220633,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Vicarage_Road": {
+  "at": 1794254222092,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Viking_Stadion": {
+  "at": 1794254223468,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|V%C3%ADkingsv%C3%B6llur": {
+  "at": 1794254225061,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Dean_Court": {
+  "at": 1794254226427,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Volksparkstadion": {
+  "at": 1794254227873,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Augsburg_Arena": {
+  "at": 1794254229310,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Waldo_Stadium": {
+  "at": 1794254230699,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Fifth_Third_Stadium": {
+  "at": 1794254232096,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Wallace_Wade_Stadium": {
+  "at": 1794254233565,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|War_Memorial_Stadium_(Wyoming)": {
+  "at": 1794254281034,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Warren_McGuirk_Alumni_Stadium": {
+  "at": 1794254282379,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Wembley_Stadium": {
+  "at": 1794254284275,
+  "result": {
+   "ok": true,
+   "value": [
+    "[[Retractable roof|Partially retractable]]"
+   ]
+  }
+ },
+ "wp-infobox|Weserstadion": {
+  "at": 1794254285769,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Williams_Stadium": {
+  "at": 1794254287186,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Williams%E2%80%93Brice_Stadium": {
+  "at": 1794254288700,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Willoughby_Stadium_at_Langley_Events_Centre": {
+  "at": 1794254290288,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Yulman_Stadium": {
+  "at": 1794254291902,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Dix_Stadium": {
+  "at": 1794254293408,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|Bet365_Stadium": {
+  "at": 1794254294917,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wp-infobox|%C5%9E%C3%BCkr%C3%BC_Saraco%C4%9Flu_Stadium": {
+  "at": 1794254341793,
+  "result": {
+   "ok": true,
+   "value": []
+  }
  }
 }

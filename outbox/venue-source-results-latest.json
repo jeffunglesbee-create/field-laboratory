@@ -1,6 +1,6 @@
 {
- "at": "2026-10-24T23:10:39.159Z",
- "run": "40141634179",
+ "at": "2026-11-09T19:59:01.826Z",
+ "run": "42682560865",
  "eps": 0.02,
  "ambiguousDeg": 0.5,
  "from": "data/venue-source-candidates.json",
@@ -2711,6 +2711,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Joe Aillet Stadium is a college football stadium in Ruston, Louisiana and the home field of the Louisiana Tech University Bulldogs football team, which competes in the Sun Belt Conference.",
    "zone": "America/Chicago"
+  },
+  {
+   "name": "Johan Cruijff Arena",
+   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
+   "home": "Ajax",
+   "lat": 52.3143,
+   "lon": 4.9425,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q207109",
+   "roof": "retractable",
+   "roofBasis": "infobox roof \"[[Retractable roof|Retractable]]\"",
+   "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam.",
+   "zone": "Europe/Amsterdam"
   },
   {
    "name": "John Smith's Stadium",
@@ -5853,6 +5870,25 @@
    "zone": "Europe/Rome"
   },
   {
+   "name": "U.S. Bank Stadium",
+   "sports": "NFL",
+   "home": "Vikings",
+   "lat": 44.9739,
+   "lon": -93.2581,
+   "agreeing": [
+    "osm-reverse",
+    "osm-reverse",
+    "wikidata",
+    "wp-article"
+   ],
+   "qid": "Q7929512",
+   "via": "wider net (osm-reverse + osm-reverse + wikidata + wp-article)",
+   "roof": "dome",
+   "roofBasis": "infobox roof \"[[Skylight]]\"",
+   "lead": "U.S.",
+   "zone": "America/Chicago"
+  },
+  {
    "name": "UFCU Stadium",
    "sports": "CFB",
    "home": "Texas St",
@@ -6251,6 +6287,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Warren McGuirk Alumni Stadium, is a 17,000-seat multi-purpose stadium in Hadley, Massachusetts, on the campus of the University of Massachusetts Amherst.",
    "zone": "America/New_York"
+  },
+  {
+   "name": "Wembley Stadium",
+   "sports": "CFB,NFL",
+   "home": "Kansas",
+   "lat": 51.5559,
+   "lon": -0.2796,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q128468",
+   "roof": "retractable",
+   "roofBasis": "infobox roof \"[[Retractable roof|Partially retractable]]\"",
+   "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England.",
+   "zone": "Europe/London"
   },
   {
    "name": "Weserstadion",
@@ -6996,24 +7049,6 @@
     "nominatim": "only non-venue classes",
     "photon": "only non-venue classes"
    }
-  },
-  {
-   "name": "Johan Cruijff Arena",
-   "sports": "UEFA Europa Conference League Qualifying,UEFA Europa Conference League",
-   "home": "Ajax",
-   "lat": 52.3143,
-   "lon": 4.9425,
-   "agreeing": [
-    "nominatim",
-    "photon",
-    "wikidata"
-   ],
-   "qid": "Q207109",
-   "roof": null,
-   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam.",
-   "zone": "Europe/Amsterdam",
-   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
   {
    "name": "Kenilworth Road",
@@ -7843,26 +7878,6 @@
    }
   },
   {
-   "name": "U.S. Bank Stadium",
-   "sports": "NFL",
-   "home": "Vikings",
-   "lat": 44.9739,
-   "lon": -93.2581,
-   "agreeing": [
-    "osm-reverse",
-    "osm-reverse",
-    "wikidata",
-    "wp-article"
-   ],
-   "qid": "Q7929512",
-   "via": "wider net (osm-reverse + osm-reverse + wikidata + wp-article)",
-   "roof": null,
-   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "U.S.",
-   "zone": "America/Chicago",
-   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
-  },
-  {
    "name": "URSAPHARM-Arena an der Kaiserlinde",
    "sports": "Bundesliga",
    "home": "Elversberg",
@@ -7966,24 +7981,6 @@
      "kind": "building/data_center"
     }
    }
-  },
-  {
-   "name": "Wembley Stadium",
-   "sports": "CFB,NFL",
-   "home": "Kansas",
-   "lat": 51.5559,
-   "lon": -0.2796,
-   "agreeing": [
-    "nominatim",
-    "photon",
-    "wikidata"
-   ],
-   "qid": "Q128468",
-   "roof": null,
-   "roofBasis": "the lead names no roof, but the article mentions \"retractable roof\"",
-   "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England.",
-   "zone": "Europe/London",
-   "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
   {
    "name": "Wham Stadium",
