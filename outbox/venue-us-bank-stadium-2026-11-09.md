@@ -197,9 +197,11 @@ which printed `success` when run by hand on 2026-11-09 after the push.
 
 ## 6. Not done here
 
-- Manadon Sports Hub (the FA Cup tie, "Plymouth v Berkhamsted" on the card; a web search lists it as Plymouth Parkway v Berkhamsted). It is not a sourcing candidate: the archive holds no game there until this one is played, and
+- Manadon Sports Hub (the FA Cup tie, "Plymouth v Berkhamsted" on the card; a web search lists it as Plymouth Parkway v Berkhamsted). It is not a sourcing candidate yet: the candidates file was built on 2026-10-22, before this fixture, and
   the geocoder hosts are refused by the session's fetch tool (URL_NOT_ON_ALLOWLIST for postcodes.io and Nominatim). A hand row from a postcode alone would be one source.
   Carried, with its unblock command, as Task 3 of the CC-CMD.
+  Correction, 2026-11-09, after the first version of this file: that version said the archive holds no game at this ground until the tie is played. That was not tested. Task 3's unblock query returns
+  a row now (a scheduled fixture, `created_at` 2026-11-09 10:00:40, kickoff 19:30Z, no score), so the unblock condition is met; the query and the row are quoted in Task 3.
 - The line-609 defect. A re-read of 442 candidates changes the evidence behind rows already in the table and is not a hitchhiker on a data fix (TOUCH-ONLY). Task 2 of the CC-CMD.
 - The other 69 venues in the sourcing record's review list: 66 are still not table rows in `src/Venues.fs` (the table already holds M. M. Roberts Stadium, Ryan Field, St James Park). Task 4.
 

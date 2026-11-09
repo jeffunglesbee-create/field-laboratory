@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-09 by CC, found when the verify run for table-v2's commits failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it); Tasks 2, 3 and 4 are open, each with its unblock condition. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
+**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it) and so is Step 0 of Task 4 (`outbox/venue-red-days-2026-11-09.md`: 0 of 60 days red); Task 3 is unblocked (the archive holds the Manadon Sports Hub fixture); Task 2 waits for the owner's yes, and the rest of Task 4 for the owner's decision on each venue. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
 
 ---
 
@@ -34,7 +34,8 @@ list from the sourcing run was the only thing outdoors on the slate.
 | The live slate's venue string is the candidate's string | the code points of both, side by side | identical, 17 code points |
 | The roof went unknown because the lead was cut | `sed -n 609p scripts/venue-source.mjs`, then `decideRoof` run on the stub and on the real sentence | line 609 splits the summary at the first full stop followed by a space; the stub reproduces the committed review entry, the real sentence returns `dome` |
 | It is not only this venue | the recorded leads in the results file | 9 of 442 are 14 characters or fewer, all cut at an initial or abbreviation; 8 of them were accepted as roof `open` on "inferred: the lead names no roof" |
-| Manadon Sports Hub is not a sourcing candidate | `data/venue-source-candidates.json`, the results and the cache | no entry; the file is built from the archive, which holds no game there until the tie is played |
+| Manadon Sports Hub is not a sourcing candidate | `data/venue-source-candidates.json`, the results and the cache | no entry: the file was built 2026-10-22 and this fixture is newer than it (next row) |
+| The archive holds no game at Manadon Sports Hub until the tie is played (this document's first draft said so) | Task 3's unblock query below, run through the D1 connector on 2026-11-09 | **Refuted.** It returns `regular, FA Cup, 1`. The row `FA Cup_2026-11-09_e401931098` (Plymouth v Berkhamsted, `start_time` 2026-11-09T19:30Z, `home_score` null, `finalized_at` null) has `created_at` 2026-11-09 10:00:40: the archive holds a fixture before it is played. The first draft stated this without running the query |
 | The geocoders cannot be reached from the session | fetches of postcodes.io and Nominatim | `URL_NOT_ON_ALLOWLIST` for both |
 
 ## Rulings this builds on, and does not undo
@@ -93,20 +94,25 @@ commit with the four `venue-us-bank-stadium-*` mutations re-anchored to the gene
 
 ## Task 3 — Manadon Sports Hub
 
-Not a candidate, and cannot be made one from here: the candidates file is built from the archive, the archive has no game at this venue until the tie is
-played, and the geocoder hosts are unreachable from the session. A hand row from a postcode (PL5 3FD, from a directory listing of the Argyle Community Trust's hub)
-would be one source, and the sourcing rule asks for two independent families.
+Not a candidate yet: `data/venue-source-candidates.json` was built 2026-10-22 and has no entry for it. A hand row from a postcode (PL5 3FD, from a directory listing of the
+Argyle Community Trust's hub) would be one source, and the sourcing rule asks for two independent families. The geocoder hosts are unreachable from the session
+(`URL_NOT_ON_ALLOWLIST`); `venue-source.yml` runs on a runner, and whether the runner reaches them is for this task to find out.
 
-**Unblocked when:** the archive holds a game there. Command, through the D1 connector (the runner token is refused, error 7403), on `field-archive`
+**Unblocked 2026-11-09.** Unblock condition: the archive holds a game there. Command, through the D1 connector (the runner token is refused, error 7403), on `field-archive`
 `cc49101c-0569-4d41-8e7a-be139cde4f26`: `SELECT 'regular' t, sport, COUNT(*) FROM regular_season_games WHERE venue = 'Manadon Sports Hub' GROUP BY 2 UNION ALL SELECT 'post', sport, COUNT(*) FROM postseason_games WHERE venue = 'Manadon Sports Hub' GROUP BY 2`
-returns a row.
+returns a row. Run through the connector on 2026-11-09 it returned `{"t":"regular","sport":"FA Cup","COUNT(*)":1}`, and `SELECT * FROM regular_season_games WHERE venue = 'Manadon Sports Hub'`
+returned one row: id `FA Cup_2026-11-09_e401931098`, Plymouth v Berkhamsted, `start_time` 2026-11-09T19:30Z, `home_score` null, `finalized_at` null, `created_at` 2026-11-09 10:00:40. The archive
+holds the fixture before it is played. This document's first draft said it would hold no game there until the tie was played; that was written without running the query (Rule 100), and
+it is corrected in the premise table above, in `outbox/venue-us-bank-stadium-2026-11-09.md` (section 6) and in the session doc.
 
 Then: rebuild `data/venue-source-candidates.json` by the procedure in `outbox/cc-session-2026-10-22-outdoor-venue-sourcing.md` and `outbox/cc-session-2026-10-21-outdoor-venue-sourcing-task0.md`, run
 `venue-source.yml` mode `source`, `node scripts/venue-sourced-check.mjs --write`. If the rule accepts it, it is a generated row; if it lands in review, it goes to the
-owner with the candidates listed, as the three of 2026-10-25 did.
+owner with the candidates listed, as the three of 2026-10-25 did. A rebuild reads the archive again, so it lists every ground the archive has gained since 2026-10-22 as well as this
+one; how many that is has not been measured. The comment above the Suite check named below (`src/Suite.fs`: "Manadon Sports Hub is not a sourcing candidate: the archive holds no game there until
+this one is played") states the premise this task found false, and is rewritten in the first commit that touches that block; it is not worth a verify and a deploy on its own.
 
 **Done when:** `"Manadon Sports Hub"` is removed from `notYetCarried` in the Suite check "the grounds on the 2026-11-09 slate include a table row" and the suite passes
-without it (the check then requires it to be a row).
+without it (the check then requires it to be a row), and the comment above that check no longer says the archive holds no game there.
 
 ## Task 4 — the other review venues
 
@@ -122,7 +128,18 @@ and the six MLS grounds.
 **Step 0, measured before anything is added:** from the archive, for each of the last 60 days, whether every non-arena venue on that day's slate is one the table does not carry (a
 day verify would have gone red). That prices the remainder against the red days it would remove, as Task 0.3 of the 2026-10-20 CC-CMD did.
 
-**Done when:** that count is in `outbox/`, and each of the 66 is either a table row with its evidence or a one-line reason it stays out, decided by the owner from that list.
+**Step 0 done 2026-11-09:** `outbox/venue-red-days-2026-11-09.md`, from `outbox/venue-red-days-rows-2026-11-09.json` (D1 `field-archive`, window 2026-09-11..2026-11-09, 60 of 60 days present, 2775 games).
+Under today's 485-row table and 79 recorded arenas **0 of 60 days would have gone red**; without the U.S. Bank Stadium row, 1 of 60 would (2026-11-09, the day verify did go red). Two days rest on one
+table row: 2026-09-28 (Soldier Field; the other observable venue was Medinah CC (No. 3), which is in the review list) and 2026-11-09 (U.S. Bank Stadium; the other was Manadon Sports Hub, which is not).
+So adding any or all of the 66 would have removed 0 red days from this window; the row that removed one is the one added today. The window is partly circular (the table's sourced rows came from this
+archive), so it prices the past and is not a forecast. The generator checks its own rows (the partition, the column sums against the database's own `all` row, the list checksums recomputed
+inside the database, the statement hash, and the quotes it cites from `outbox/venue-us-bank-stadium-2026-11-09.md`), and `outbox/venue-red-days-selftest-2026-11-09.txt` shows 31 doctored inputs
+each refused for the right cause (its first run reported three of its own edits hitting an earlier check; they were fixed before the file was kept).
+
+**Step 1, unblocked and not run:** how often each of the 66 appears on a slate. Step 0 counts days, not venues, so it cannot say that. By the same embed-and-checksum method as
+`outbox/venue-red-days-2026-11-09.mjs`, over the candidates file's window (games since 2026-07-01): games and distinct days per review name, so the owner decides each venue from a number.
+
+**Done when:** Step 0's count is in `outbox/` (done), and each of the 66 is either a table row with its evidence or a one-line reason it stays out, decided by the owner from Step 1's counts.
 
 ## Not in scope
 

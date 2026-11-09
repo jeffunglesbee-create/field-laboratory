@@ -174,6 +174,26 @@ card cannot exist before 2026-11-21.
    wrong-constant copies of the compiled model, and the old needle is shown absent from the build it was wrong about
    (`outbox/forecast-deployed-wiring-needle-mutation-2026-11-09.{mjs,txt}`: 8 of 8 caught, control holds). Both runs are
    kept (`-first-run.*`).
+6. **My CC-CMD for the venue remainder stated a premise I had not tested.** It said the archive holds no game at Manadon Sports
+   Hub until the tie is played (its premise table and Task 3, section 6 of `outbox/venue-us-bank-stadium-2026-11-09.md`, and a
+   comment above the Suite check in `src/Suite.fs`). Task 3's own unblock query refutes it: it returns `regular, FA Cup, 1`, and
+   the row is a scheduled fixture (`created_at` 2026-11-09 10:00:40, kickoff 19:30Z, no score). Corrected in the CC-CMD (a
+   premise row marked refuted, Task 3 marked unblocked, with the query and the row quoted) and in the evidence document
+   (regenerated; its 11-case controls harness re-run, 11 of 11 caught). The `src/Suite.fs` comment still says it: a comment-only
+   change would cost a verify and a deploy, so it is a named part of Task 3's done condition and goes in the first commit that
+   touches that block.
+7. **Step 0 of Task 4 is measured: 0 of 60 days would have gone red** under the 485-row table (1 of 60 without the U.S. Bank
+   Stadium row, the day verify did go red; two days rest on a single row: 2026-09-28 and 2026-11-09). Record, rows, generator and
+   selftest are `outbox/venue-red-days-2026-11-09.{md,mjs}`, `outbox/venue-red-days-rows-2026-11-09.json` and
+   `outbox/venue-red-days-selftest-2026-11-09.txt` (31 of 31 doctored inputs caught). The selftest's first run reported three
+   cases as WRONG CAUSE: my doctored edits changed a venue count without its game count, so a consistency check rejected them
+   before the check they were aimed at. Fixed so each edit reaches its target; a rejection for the wrong reason is not a catch.
+
+## After the ship (docs and outbox only, no CI)
+
+`820b148` records table-v2 shipped and proven on the deployed page. `1e7d7fd` records Task 1 of the venue remainder done (verify run
+42631741258). The commit carrying this paragraph adds the Step 0 measurement, corrects item 6 and regenerates the evidence document.
+None touches `src/`, `scripts/` or a workflow, so none runs verify or deploy.
 
 ## Integration state (Rule 65)
 

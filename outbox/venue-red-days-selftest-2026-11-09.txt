@@ -1,0 +1,70 @@
+PASS  control: the unedited rows pass every check (holds)
+CAUGHT      a day's table-game count is one too high
+              venue-red-days: 2026-09-11: games (24) is not placeholder + arena + table + other (25)
+CAUGHT      a day's games and table games are both one too high (the partition still holds)
+              venue-red-days: the column sums of the day rows differ from the ALL row the database computed: c1 is 2776 typed, 2775 computed
+CAUGHT      a day row was lost in transcription
+              venue-red-days: the database counted 60 days with games but the saved rows hold 59
+CAUGHT      a day row is typed twice
+              venue-red-days: a day appears twice: 2026-09-11
+CAUGHT      a day row is dated outside the window
+              venue-red-days: a saved day is outside 2026-09-11..2026-11-09: 1999-01-01
+CAUGHT      the table-list checksum differs
+              venue-red-days: the tbl list the statement ran with is not the current one: database 485/8457/8446295, now 485/8457/8446294 (n/characters/weighted)
+CAUGHT      the arena-list count differs
+              venue-red-days: the arena list the statement ran with is not the current one: database 78/1367/1297569, now 79/1367/1297569 (n/characters/weighted)
+CAUGHT      a thin day names a covered venue that is not a table row
+              venue-red-days: 2026-09-28: "Nowhere Park" is named as covered but is not a table row
+CAUGHT      a thin day lists an arena as an observable venue
+              venue-red-days: 2026-09-28: "Amerant Bank Arena" is named as an observable venue but is recognised as an indoor arena
+CAUGHT      a thin day lists a table row as an uncovered venue
+              venue-red-days: 2026-09-28: "AESSEAL New York Stadium" is named as uncovered but is a table row
+CAUGHT      a thin day lists a placeholder as an observable venue
+              venue-red-days: 2026-09-28: "TBC" is a placeholder, not a venue
+CAUGHT      a thin day's other-venue name count disagrees with its venue count
+              venue-red-days: 2026-09-28: lists 1 other name(s) for 2 other venue(s)
+CAUGHT      a thin day names two covered venues for one
+              venue-red-days: 2026-09-28: lists 2 covered name(s) for 1 covered venue(s)
+CAUGHT      a day's other-venue count exceeds its other games
+              venue-red-days: 2026-09-28: a venue count disagrees with its game count
+CAUGHT      a count is typed as text
+              venue-red-days: 2026-09-11: c1 is not a non-negative integer ("24")
+CAUGHT      the saved columns are in another order
+              venue-red-days: the saved columns are not the statement's
+CAUGHT      a saved row has a cell too many
+              venue-red-days: a saved row has the wrong number of cells
+CAUGHT      the ALL row is typed twice
+              venue-red-days: want exactly one "all" row, found 2
+CAUGHT      the red-day control: 2026-11-09 rests on another covered ground than the Bank
+              venue-red-days: control: 2026-11-09 must rest on U.S. Bank Stadium alone (the live run went red without it), found covered="AESSEAL New York Stadium"
+CAUGHT      the red-day control: 2026-11-09 has one arena fewer than the live run counted (the ALL row kept consistent)
+              venue-red-days: control: 2026-11-09 has 10 distinct arenas, the live run's FAIL line counted 11
+CAUGHT      a day with two or more covered venues carries names
+              venue-red-days: 2026-09-11: lists names although the day has 24 covered venues (the statement lists names only when there is at most one)
+CAUGHT      the red-day control fails: the observable venues on 2026-11-09 are not the live run's
+              venue-red-days: control: 2026-11-09 observable venues are ["Somewhere Park","U.S. Bank Stadium"], the live run's FAIL line named ["Manadon Sports Hub","U.S. Bank Stadium"]
+CAUGHT      the saved rows name another statement hash
+              venue-red-days: the saved rows say they came from a statement of 15401 bytes, sha256 0000000000000000000000000000000000000000000000000000000000000000, but `sql 2026-09-11 2026-11-09` prints 15401 bytes, sha256 
+CAUGHT      the saved rows name another statement length
+              venue-red-days: the saved rows say they came from a statement of 15402 bytes, sha256 06550b964c5b95d167dc21b89c8bb8dac6f9ad8467f3932b21951a741d77587d, but `sql 2026-09-11 2026-11-09` prints 15401 bytes, sha256 
+CAUGHT      the green-day control: 2026-11-08 made to rest on the Bank row alone
+              venue-red-days: control: 2026-11-08 must not be red even without U.S. Bank Stadium (verify 42507928169 passed that day), found covered, covered=null
+PASS  control: the unedited evidence document passes checkQuotes (holds, decode count 14)
+CAUGHT      the cited FAIL line says 485 where the document says 484
+              venue-red-days: outbox/venue-us-bank-stadium-2026-11-09.md does not hold the red verify run's FAIL block for run 42621717589 (the marker line, a fence, the FAIL line, then "→ Manadon Sports Hub, U.S. Bank Stadi
+CAUGHT      the FAIL block sits under another run id
+              venue-red-days: outbox/venue-us-bank-stadium-2026-11-09.md does not hold the red verify run's FAIL block for run 42621717589 (the marker line, a fence, the FAIL line, then "→ Manadon Sports Hub, U.S. Bank Stadi
+CAUGHT      the verify run's FAIL block is gone but the live-check copy of the same line remains
+              venue-red-days: outbox/venue-us-bank-stadium-2026-11-09.md does not hold the red verify run's FAIL block for run 42621717589 (the marker line, a fence, the FAIL line, then "→ Manadon Sports Hub, U.S. Bank Stadi
+CAUGHT      the last green run's id is off by one
+              venue-red-days: outbox/venue-us-bank-stadium-2026-11-09.md does not hold the last green verify run's sentence: "The last verify run that went green, 42507928169 (`d9554f3`, 2026-11-08 18:02Z), passed this step 
+CAUGHT      the line naming the live run is gone
+              venue-red-days: outbox/venue-us-bank-stadium-2026-11-09.md: the line naming run 42631741258 was not found
+CAUGHT      the decode-status line is gone
+              venue-red-days: outbox/venue-us-bank-stadium-2026-11-09.md: no decode-status line after the line naming run 42631741258
+
+31 of 31 cases caught; control holds; 0 problem(s)
+coverage: 31 doctored inputs: 24 copies of the saved rows (each run through `analyze`, which carries every check that decides whether a record may be written), the derived green-day control (1), and 6 copies of outbox/venue-us-bank-stadium-2026-11-09.md (each run through `checkQuotes`).
+NOT exercised here: the statement's own CASE logic (it is exercised only by the two real-day controls on real data); the arena extraction's two-text agreement (it would need a doctored build); the
+"They differ" branch of control 3 (it prints rather than refuses); a day with no games in the archive (it is listed in the verdict table, not refused); the date-range helper at a month boundary beyond the window
+used. Those checks exist and have not been made to fail.

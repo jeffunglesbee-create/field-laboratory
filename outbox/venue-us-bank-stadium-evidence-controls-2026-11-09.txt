@@ -1,7 +1,7 @@
 generator: outbox/venue-us-bank-stadium-evidence-2026-11-09.mjs
 scratch inputs copied per case: verify-failed.log, livecheck-42613880170.log, jobs-42631741258.json, verify-42631741258-job.log
 
-PASS  control: unedited inputs, exit 0, output equals the committed document (13701 of 13701 characters)
+PASS  control: unedited inputs, exit 0, output equals the committed document (14085 of 14085 characters)
 CAUGHT      the step concluded failure
               exit 1: Error: green-run evidence: step "Render check against the LIVE slate" is completed/failure, not completed/success
 CAUGHT      the job ran another commit (5 job records)
