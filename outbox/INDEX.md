@@ -12,6 +12,11 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `fe4e00b` | 2026-11-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-09 [skip ci] |
+| `fe4e00b` | 2026-11-09 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-09 [skip ci] |
+| `fe4e00b` | 2026-11-09 | [sport-vocabulary-2026-11-09T22-12-15-219Z.json](sport-vocabulary-2026-11-09T22-12-15-219Z.json) | drift-sentinel: ok on 2026-11-09 [skip ci] |
+| `b1e02da` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: Step B of Task 2 is done, with its result, the manifest and the live-check compiler crash |
+| `bee239c` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `3429152` | 2026-11-09 | [venue-infobox-rule-cache-compare-2026-11-09.txt](venue-infobox-rule-cache-compare-2026-11-09.txt) | feat: the table takes the sourcing rule's 375 accepted rows, U.S. Bank Stadium among them, and loses its hand row |
 | `3429152` | 2026-11-09 | [venue-infobox-source-diff-2026-11-09.txt](venue-infobox-source-diff-2026-11-09.txt) | feat: the table takes the sourcing rule's 375 accepted rows, U.S. Bank Stadium among them, and loses its hand row |
 | `3429152` | 2026-11-09 | [venue-us-bank-generated-row-2026-11-09.txt](venue-us-bank-generated-row-2026-11-09.txt) | feat: the table takes the sourcing rule's 375 accepted rows, U.S. Bank Stadium among them, and loses its hand row |
