@@ -9,8 +9,9 @@ const SRC = 'outbox/venue-infobox-effect-2026-11-09.mjs'
 const TMP = 'outbox/venue-infobox-effect-2026-11-09.mutant.tmp.mjs'
 const src = readFileSync(SRC, 'utf8')
 const M = [
-  ['witness-open-taken', "const closed = new Set(values.map(v => classOf(v, joined)).filter(c => c !== 'open'))", 'const closed = new Set(values.map(v => classOf(v, joined)))'],
-  ['conflict-ignored', "if (closed.size > 1) return { state: 'conflict'", "if (closed.size > 5) return { state: 'conflict'"],
+  ['witness-open-taken', "const values = roofs.map(r => r.flat)\n  const closed = new Set(values.map(v => classOf(v, joined)).filter(c => c !== 'open'))", "const values = roofs.map(r => r.flat)\n  const closed = new Set(values.map(v => classOf(v, joined)))"],
+  ['conflict-ignored', "if (closed.size > 1) return { state: 'conflict', cls: null, values }\n  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }\n  return { state: values.every", "if (closed.size > 5) return { state: 'conflict', cls: null, values }\n  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }\n  return { state: values.every"],
+  ['categories-open-taken', "if (!values.length) return { state: 'no roof category', cls: null, values }\n  const closed = new Set(values.map(v => classOf(v, joined)).filter(c => c !== 'open'))", "if (!values.length) return { state: 'no roof category', cls: null, values }\n  const closed = new Set(values.map(v => classOf(v, joined)))"],
   ['disagreement-not-review', 'if (classes.size > 1) d =', 'if (classes.size > 5) d ='],
   ['witness-never-overrides-a-silent-lead', 'else if (d.roof !== witness.cls) d =', 'else if (d.roof === null) d ='],
   ['past-tense-dropped-from-status', "!d.roof || !row.zone || domeName || gone ? 'review'", "!d.roof || !row.zone || domeName ? 'review'"],
@@ -24,6 +25,9 @@ const M = [
   ['joined-term-matches-loosely', 'joined?.get(norm(v)) ?? ', '[...(joined ?? [])].find(([t]) => norm(v).includes(t))?.[1] ?? '],
   ['roof-only-change-not-listed', 'if (afterStatus !== r.status || after.roof !== r.roof) changed.push(line)', 'if (afterStatus !== r.status) changed.push(line)'],
   ['silent-field-counted-as-agreement', '(w.cls === null ? agreement.silent : w.cls === r.roof', '(w.cls === null ? agreement.agree : w.cls === r.roof'],
+  ['source-flag-ignored', "source === 'categories' ? witnessOfCategories(art, joined)", "false ? witnessOfCategories(art, joined)"],
+  ['categories-conflict-ignored', "if (closed.size > 1) return { state: 'conflict', cls: null, values }\n  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }\n  return { state: 'no witness', cls: null, values }\n}\n\n// --- the effect", "if (closed.size > 5) return { state: 'conflict', cls: null, values }\n  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }\n  return { state: 'no witness', cls: null, values }\n}\n\n// --- the effect"],
+  ['categories-vocabulary-unfiltered', "const values = art.categories.visible.filter(c => ROOFISH.test(c))", "const values = art.categories.visible"],
   ['witness-values-listed-as-vocabulary', "if (v === '' || classOf(v, joined) !== 'open') continue", "if (v === '') continue"],
 ]
 let bad = 0

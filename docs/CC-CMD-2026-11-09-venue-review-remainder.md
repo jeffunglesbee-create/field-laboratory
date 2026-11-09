@@ -134,8 +134,8 @@ lockfile +11, nothing else moved). 36 self-test checks; 15 registered mutations 
    value (`--join term=class` applies one).
 3. **Agreement.** On the rows whose roof the lead or Wikidata decides, the field's class equals it. Each disagreement is read against its article and named; one where the field is right and the table wrong is
    reported to the owner as a finding of its own.
-4. **Effect, before any build.** With the real `decideRoof` extended by the witness and computed offline from the probe JSON and the cache (`outbox/venue-infobox-effect-2026-11-09.mjs`; self-test, and 16
-   mutations each red by a named check, `outbox/venue-infobox-effect-mutation-2026-11-09.txt`): every row whose status or roof would change, by name, before and after, each read against its article. A closed
+4. **Effect, before any build.** With the real `decideRoof` extended by the witness and computed offline from the probe JSON and the cache (`outbox/venue-infobox-effect-2026-11-09.mjs`; its self-test, and
+   its mutations each red by a named check, `outbox/venue-infobox-effect-mutation-2026-11-09.txt`): every row whose status or roof would change, by name, before and after, each read against its article. A closed
    witness is one more positive source: two naming different classes make the row review, one class makes it that class. The control: with no witness the same computation reproduces the committed roof, basis
    and status of every row that has a roof stage. That is 384 of the 442 rows, not 442 as this criterion first said (measured 2026-11-09 against the committed cache: 384 of 384 reproduce; the other 58 are refused
    at the point stage, so no roof source reaches them and none can change). A wrong roof for any row stops it, as Task 2's stop rule says, unchanged. Zero rows changed means nothing is built (Rule 63).
@@ -144,12 +144,13 @@ lockfile +11, nothing else moved). 36 self-test checks; 15 registered mutations 
 
 **The categories are measured beside it, not built on.** The ruling names the infobox. The same run reads each article's categories (about eight more requests) because the five-article sample in the premise table
 showed a closed vocabulary ("Retractable-roof stadiums in ...", "Skylit stadiums in ...") that the free text may lack. Building on them is not covered by the ruling: the measurement goes to the owner beside the
-infobox's.
+infobox's. The effect tool runs the same computation with the roof-named categories as the witness (`--source categories`) and prints what the rule would do if it read them, so the owner has that number and not
+only the infobox's; nothing reads them in the rule.
 
 **Done when (Step A):** the runner's commit of `outbox/venue-infobox-probe.json` has `complete` true and every article `fetch.ok` and `parse.ok` (the workflow step's conclusion is `success`, the verdict being
 its exit code); the `.txt`'s second line reads `COVERAGE: checked N of 442 rows`; the raw tree of U.S. Bank Stadium in `controlTrees` contains `<close>&lt;/ref&gt;</close>` (the escape premise above) or the run's own
-record says why it does not; and each of the five controls is reported with a roof parameter, or with `no infobox` or `no roof parameter` as the case is. Command: `node scripts/venue-infobox.mjs --report
-outbox/venue-infobox-probe.json | sed -n 1,5p`, and `node -e` over the JSON for the two assertions.
+record says why it does not; and each of the five controls is reported with a roof parameter, or with `no infobox` or `no roof parameter` as the case is. Command: `node outbox/venue-infobox-stepa-assert-2026-11-09.mjs`, which prints each of these as PASS or FAIL with the value that decided it and the
+denominator ("checked N assertions"); its own self-test fails each assertion on a doctored probe, and `node scripts/venue-infobox.mjs --report outbox/venue-infobox-probe.json` prints the text report again.
 
 **Step B, only if criteria 1 to 5 say go:** the witness as a fourth argument of `decideRoof`, read from a new cache kind (`wp-infobox`); self-test cases each with a must-fail input; registered mutations; then
 the original Task 2 steps (a runner `source` run, the old and new results compared row by row with `outbox/venue-lead-whole-diff-2026-11-09.mjs`, `--write`, and the hand row's deletion with the four mutations'

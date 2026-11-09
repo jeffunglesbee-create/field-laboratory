@@ -4,7 +4,11 @@
 //
 //   node outbox/venue-infobox-effect-2026-11-09.mjs --self-test
 //   node outbox/venue-infobox-effect-2026-11-09.mjs                        the control only (no witness), no probe needed
-//   node outbox/venue-infobox-effect-2026-11-09.mjs outbox/venue-infobox-probe.json [--join term=class,...] [--write]
+//   node outbox/venue-infobox-effect-2026-11-09.mjs outbox/venue-infobox-probe.json [--join term=class,...] [--source infobox|categories] [--write]
+//
+// `--source categories` runs the SAME computation with the article's roof-named categories as the witness instead of the
+// Roof field. The owner's ruling names the infobox; the categories are measured beside it, never built on without his
+// word (the CC-CMD says so), and this is that measurement: what the rule would do if it read them.
 //
 // THE CONTROL COMES FIRST. The roof stage of `roofOf` (scripts/venue-source.mjs) is not exported, so its composition is
 // replayed here from the cache (`wd-roof|qid`, `wp-lead|title`, `wp-bodyroof|title`) around the real `decideRoof`, and the
@@ -57,17 +61,17 @@ export const stageInputs = (row, cache) => {
   return { kind: 'ok', wd: b.roofLabel?.value ?? null, lead, body, title, unanswered }
 }
 
-/** `roofOf`'s decision, with a closed witness `{cls, value}` as one more positive source when there is one. */
+/** `roofOf`'s decision, with a closed witness `{cls, value, source}` ('infobox' or 'categories') as one more positive source when there is one. */
 export const decideWith = (inp, witness = null) => {
   if (inp.kind === 'noqid') return decideRoof(null, null)
   if (inp.kind === 'wdfail') return { roof: null, basis: `wikidata unanswered: ${inp.why}` }
   let d = decideRoof(inp.wd, inp.lead, inp.body)
   if (witness) {
     const wdc = inp.wd ? classifyRoof(inp.wd) : null, ldc = inp.lead == null ? null : classifyRoof(inp.lead)
-    const positives = [['wikidata', wdc], ['lead', ldc], ['infobox', witness.cls]].filter(([, c]) => c && c !== 'open')
+    const positives = [['wikidata', wdc], ['lead', ldc], [witness.source, witness.cls]].filter(([, c]) => c && c !== 'open')
     const classes = new Set(positives.map(([, c]) => c))
     if (classes.size > 1) d = { roof: null, basis: `sources disagree: ${positives.map(([s, c]) => `${s} ${c}`).join(', ')}` }
-    else if (d.roof !== witness.cls) d = { roof: witness.cls, basis: `infobox roof ${JSON.stringify(witness.value)}` }
+    else if (d.roof !== witness.cls) d = { roof: witness.cls, basis: `${witness.source === 'categories' ? 'categories' : 'infobox roof'} ${JSON.stringify(witness.value)}` }
   }
   return { ...d, basis: d.roof === null && inp.unanswered ? inp.unanswered : d.basis, lead: inp.lead?.slice(0, 200) ?? null }
 }
@@ -100,11 +104,27 @@ export const witnessOf = (art, joined = null) => {
   return { state: values.every(v => v === '') ? 'empty' : 'no witness', cls: null, values }
 }
 
+/** The categories that name a roof, as the probe's report picks them. Only these are listed as vocabulary. */
+export const ROOFISH = /roof|dome|skylit|indoor|covered|enclosed|retractable|open-air/i
+
+/** The same reading of an article's categories: the roof-named ones are the values, and a closed class counts only when they agree on one. */
+export const witnessOfCategories = (art, joined = null) => {
+  if (!art) return { state: 'not requested', cls: null, values: [] }
+  if (!art.categories) return { state: 'no category answer', cls: null, values: [] }
+  if (art.categories.missing) return { state: 'page missing', cls: null, values: [] }
+  const values = art.categories.visible.filter(c => ROOFISH.test(c))
+  if (!values.length) return { state: 'no roof category', cls: null, values }
+  const closed = new Set(values.map(v => classOf(v, joined)).filter(c => c !== 'open'))
+  if (closed.size > 1) return { state: 'conflict', cls: null, values }
+  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }
+  return { state: 'no witness', cls: null, values }
+}
+
 // --- the effect on every row ------------------------------------------------------------------------
 
 const evidenceOf = r => (r.roofBasis ?? '').startsWith('wikidata P5624') || r.roofBasis === 'wikipedia lead' ? 'evidence' : /^inferred/.test(r.roofBasis ?? '') ? 'inferred' : 'other'
 
-export const effect = ({ results, cache, probe = null, extracts = [], joined = null }) => {
+export const effect = ({ results, cache, probe = null, extracts = [], joined = null, source = 'infobox' }) => {
   const rows = rowsOf(results)
   const para = new Map(extracts.map(x => [x.name, x.extract]))
   const staged = rows.filter(r => 'roofBasis' in r)
@@ -121,16 +141,16 @@ export const effect = ({ results, cache, probe = null, extracts = [], joined = n
     else { control.mismatches.push({ name: r.name, committed: [r.status, r.roof, r.roofBasis], replayed: [baseStatus, base.roof, base.basis] }); continue }
     if (!probe) continue
     const art = inp.title ? probe.articles?.[inp.title] : undefined
-    const w = inp.title ? witnessOf(art, joined) : { state: 'no article', cls: null, values: [] }
+    const w = inp.title ? (source === 'categories' ? witnessOfCategories(art, joined) : witnessOf(art, joined)) : { state: 'no article', cls: null, values: [] }
     witnessStates.set(w.state, (witnessStates.get(w.state) ?? 0) + 1)
-    const cat = (art?.categories?.visible ?? []).filter(c => /roof|dome|skylit|indoor|covered|enclosed|retractable/i.test(c))
+    const cat = (art?.categories?.visible ?? []).filter(c => ROOFISH.test(c))
     for (const v of w.values) {
       if (v === '' || classOf(v, joined) !== 'open') continue
       const x = vocab.get(v) ?? { rows: [] }
       x.rows.push({ name: r.name, roof: r.roof, kind: evidenceOf(r), status: r.status })
       vocab.set(v, x)
     }
-    const after = decideWith(inp, w.cls ? { cls: w.cls, value: w.values.join(' | ') } : null), afterStatus = statusOf(r, after)
+    const after = decideWith(inp, w.cls ? { cls: w.cls, value: w.values.join(' | '), source } : null), afterStatus = statusOf(r, after)
     const line = { name: r.name, before: { status: r.status, roof: r.roof, basis: r.roofBasis }, after: { status: afterStatus, roof: after.roof, basis: after.basis },
       field: w.values, fieldState: w.state, wikidata: inp.wd, lead: inp.lead, categories: cat, extract: para.get(r.name)?.slice(0, 400) ?? null }
     if (r.roof === 'dome' || r.roof === 'retractable') {
@@ -140,7 +160,7 @@ export const effect = ({ results, cache, probe = null, extracts = [], joined = n
     else if (w.cls) confirmed.push(line)
     else unchanged.push(line)
   }
-  return { rows: rows.length, staged: staged.length, skipped, control, changed, confirmed, agreement, vocab, witnessStates, unchanged: unchanged.length }
+  return { source, rows: rows.length, staged: staged.length, skipped, control, changed, confirmed, agreement, vocab, witnessStates, unchanged: unchanged.length }
 }
 
 // --- the report -------------------------------------------------------------------------------------
@@ -150,7 +170,7 @@ const short = (s, n) => (s == null ? 'null' : String(s).length > n ? `${String(s
 
 export const report = (e, probe, joined = null) => {
   const L = []
-  L.push(`venue-infobox effect, offline; probe ${probe ? `run ${probe.run ?? 'local'}, ${probe.at}${probe.complete ? ', complete' : ', INCOMPLETE'}` : 'none (control only)'}`)
+  L.push(`venue-infobox effect, offline, witness source: ${e.source}; probe ${probe ? `run ${probe.run ?? 'local'}, ${probe.at}${probe.complete ? ', complete' : ', INCOMPLETE'}` : 'none (control only)'}`)
   L.push(`COVERAGE: roof stage replayed for ${e.control.same + e.control.mismatches.length} of ${e.rows} rows; ${e.skipped.length} never reach it (${tally(e.skipped.map(r => (r.why ?? 'no reason').replace(/\s*[:(].*/, ''))).map(([w, n]) => `${w} ${n}`).join(', ') || 'none'}); not computable (a cache key missing): ${e.control.notComputable.length}`)
   L.push(`CONTROL (no witness): ${e.control.same} of ${e.control.same + e.control.mismatches.length} replayed rows reproduce the committed roof, basis and status; mismatches ${e.control.mismatches.length}`)
   for (const m of e.control.mismatches.slice(0, 10)) L.push(`  MISMATCH ${m.name}: committed ${JSON.stringify(m.committed)}, replayed ${JSON.stringify(m.replayed)}`)
@@ -158,17 +178,18 @@ export const report = (e, probe, joined = null) => {
   if (!probe) return L.join('\n')
   L.push('')
   L.push(`JOINED TERMS (whole value, lower-cased): ${joined?.size ? [...joined].map(([t, c]) => `${JSON.stringify(t)} = ${c}`).join(', ') : 'none (strict: the classifyRoof patterns only)'}`)
-  L.push(`THE FIELD, per replayed row: ${[...e.witnessStates].sort((a, b) => b[1] - a[1]).map(([s, n]) => `${s} ${n}`).join(', ')}`)
-  L.push(`AGREEMENT on the rows whose closed roof Wikidata or the lead decides: field agrees ${e.agreement.agree.length}, field silent ${e.agreement.silent.length}, field DISAGREES ${e.agreement.disagree.length}`)
-  for (const x of e.agreement.disagree) L.push(`  DISAGREES ${x.name}: rule ${x.before.roof} (${x.before.basis}); field ${JSON.stringify(x.field)}; lead ${JSON.stringify(short(x.lead, 120))}`)
-  L.push(`CONFIRMING (the field names the roof the rule already has): ${e.confirmed.length}; unchanged with no witness: ${e.unchanged}`)
+  L.push(`THE ${e.source === 'categories' ? 'CATEGORIES (the roof-named ones)' : 'FIELD'}, per replayed row: ${[...e.witnessStates].sort((a, b) => b[1] - a[1]).map(([s, n]) => `${s} ${n}`).join(', ')}`)
+  const W = e.source === 'categories' ? 'categories' : 'field'
+  L.push(`AGREEMENT on the rows whose closed roof Wikidata or the lead decides: ${W} agrees ${e.agreement.agree.length}, ${W} silent ${e.agreement.silent.length}, ${W} DISAGREES ${e.agreement.disagree.length}`)
+  for (const x of e.agreement.disagree) L.push(`  DISAGREES ${x.name}: rule ${x.before.roof} (${x.before.basis}); ${W} ${JSON.stringify(x.field)}; lead ${JSON.stringify(short(x.lead, 120))}`)
+  L.push(`CONFIRMING (the ${W} name the roof the rule already has): ${e.confirmed.length}; unchanged with no witness: ${e.unchanged}`)
   L.push('')
   L.push(`EFFECT: ${e.changed.length} row${e.changed.length === 1 ? '' : 's'} whose status or roof would change`)
   for (const x of e.changed) {
     L.push(`  ${x.name}`)
     L.push(`    before ${x.before.status}, ${x.before.roof ?? 'no roof'}: ${x.before.basis}`)
     L.push(`    after  ${x.after.status}, ${x.after.roof ?? 'no roof'}: ${x.after.basis}`)
-    L.push(`    field ${JSON.stringify(x.field)}; wikidata ${JSON.stringify(x.wikidata)}; lead ${JSON.stringify(short(x.lead, 140))}${x.categories.length ? `; categories ${x.categories.join(' / ')}` : ''}`)
+    L.push(`    ${W} ${JSON.stringify(x.field)}; wikidata ${JSON.stringify(x.wikidata)}; lead ${JSON.stringify(short(x.lead, 140))}${x.categories.length ? `; categories ${x.categories.join(' / ')}` : ''}`)
     L.push(`    paragraph ${JSON.stringify(short(x.extract, 400))}`)
   }
   L.push('')
@@ -281,6 +302,13 @@ const selfTest = () => {
   check('...and not when a row the sources decide as another class carries it, or when only one row does', /"Retractable"\s+3[^\n]*\[does not meet the joining test\]/.test(joinTest(mixed)) && /\[does not meet the joining test\]/.test(joinTest({ accepted: [results.accepted[0]], review: [] })), joinTest(mixed).split('\n').filter(l => /Retractable/.test(l)).join(' | '))
   const rep = report(e, probe)
   check('the report prints its coverage as "N of M", the control, and each changed row with before, after and the field', /COVERAGE: roof stage replayed for 10 of 12 rows; 2 never reach it/.test(rep) && /CONTROL \(no witness\): 10 of 10/.test(rep) && /EFFECT: 4 rows/.test(rep) && /before accepted, open: inferred: the lead names no roof\n\s+after  accepted, dome: infobox roof "Fixed dome"/.test(rep), rep.split('\n').slice(0, 4).join(' | '))
+  const cats = (...visible) => ({ ...art(), categories: { visible, hidden: 0, missing: false } })
+  check('categories as the witness: a roof-named category in the words classifyRoof trusts is a witness of its class; "Skylit stadiums" and a category that does not name a roof are not', witnessOfCategories(cats('Retractable-roof stadiums in Europe', 'NFL venues')).cls === 'retractable' && witnessOfCategories(cats('Domed stadiums in the United States')).cls === 'dome' && witnessOfCategories(cats('Skylit stadiums in the United States')).cls === null && witnessOfCategories(cats('Skylit stadiums in the United States')).state === 'no witness' && witnessOfCategories(cats('NFL venues')).state === 'no roof category')
+  check('categories: two roof categories naming different closed classes are a conflict; a missing page, no answer and no article are named and are no witness', witnessOfCategories(cats('Retractable-roof stadiums in Europe', 'Domed stadiums in X')).state === 'conflict' && witnessOfCategories({ categories: { visible: [], hidden: 0, missing: true } }).state === 'page missing' && witnessOfCategories({ fetch: { ok: true } }).state === 'no category answer' && witnessOfCategories(undefined).state === 'not requested')
+  const ec = effect({ results, cache, probe: probeOf({ Gamma: cats('Domed stadiums in X'), Zeta: art('Fixed dome'), Delta: cats('Retractable-roof stadiums in Europe') }), source: 'categories' })
+  check('--source categories reads the categories and not the Roof field: Gamma (categories) and Delta change, Zeta (the field says dome, no roof category) does not, and the report says which source it used', ec.changed.map(x => x.name).sort().join() === 'Delta Stadium,Gamma Field' && /witness source: categories/.test(report(ec, probe)) && /THE CATEGORIES/.test(report(ec, probe)), ec.changed.map(x => x.name).join())
+  check('the categories witness names itself in the basis, and in a disagreement, and not as the infobox', ec.changed.find(x => x.name === 'Gamma Field')?.after.basis === 'categories "Domed stadiums in X"' && effect({ results, cache, probe: probeOf({ Beta: cats('Retractable-roof stadiums in Europe') }), source: 'categories' }).changed.find(x => x.name === 'Beta Dome')?.after.basis === 'sources disagree: lead dome, categories retractable', JSON.stringify(ec.changed.map(x => x.after.basis)))
+  check('the vocabulary of the categories lists only roof-named categories with no witness, never the others', (() => { const v = effect({ results, cache, probe: probeOf({ Eta: cats('Skylit stadiums in the United States', 'NFL venues', 'Minneapolis') }), source: 'categories' }).vocab; return v.size === 1 && v.has('Skylit stadiums in the United States') })())
   check('--join parses term=class pairs, lower-cases the term, and refuses "open" and a pair with no term', parseJoin('Retractable=retractable,fixed=dome').get('retractable') === 'retractable' && parseJoin('fixed=dome').get('fixed') === 'dome' && (() => { try { parseJoin('x=open'); return false } catch { return true } })() && (() => { try { parseJoin('=dome'); return false } catch { return true } })())
   const ej = effect({ results, cache, probe: probeOf({ ...probe.articles, Zeta: art('Retractable') }), joined: new Map([['retractable', 'retractable']]) })
   check('a joined term takes effect on the row it sits on and the report names the joined terms (and says strict when none)', ej.changed.some(x => x.name === 'Zeta Stadium' && x.after.roof === 'retractable') && /JOINED TERMS \(whole value, lower-cased\): "retractable" = retractable/.test(report(ej, probe, new Map([['retractable', 'retractable']]))) && /JOINED TERMS[^\n]*none \(strict/.test(report(e, probe)))
@@ -308,16 +336,19 @@ const main = () => {
   const args = process.argv.slice(2)
   const ji = args.indexOf('--join')
   const joined = ji >= 0 ? parseJoin(args[ji + 1] ?? '') : null
-  const file = args.find((a, i) => !a.startsWith('--') && i !== ji + 1)
+  const si = args.indexOf('--source')
+  const source = si >= 0 ? args[si + 1] : 'infobox'
+  if (!['infobox', 'categories'].includes(source)) throw new Error(`--source ${source}: expected infobox or categories`)
+  const file = args.find((a, i) => !a.startsWith('--') && i !== ji + 1 && i !== si + 1)
   const results = JSON.parse(readFileSync(RESULTS, 'utf8')), cache = JSON.parse(readFileSync(CACHE, 'utf8'))
   const probe = file ? JSON.parse(readFileSync(file, 'utf8')) : null
-  const e = effect({ results, cache, probe, extracts: JSON.parse(readFileSync(EXTRACTS, 'utf8')), joined })
+  const e = effect({ results, cache, probe, extracts: JSON.parse(readFileSync(EXTRACTS, 'utf8')), joined, source })
   const text = report(e, probe, joined)
   console.log(text)
   if (args.includes('--write')) {
-    const tag = joined?.size ? '-joined' : ''
+    const tag = `${source === 'categories' ? '-categories' : ''}${joined?.size ? '-joined' : ''}`
     writeFileSync(`${OUT}${tag}.txt`, text + '\n')
-    writeFileSync(`${OUT}${tag}.json`, JSON.stringify({ joined: joined ? Object.fromEntries(joined) : null, probe: probe ? { run: probe.run, at: probe.at, complete: probe.complete } : null, rows: e.rows, staged: e.staged, skipped: e.skipped.map(r => ({ name: r.name, why: r.why })), control: e.control, changed: e.changed, confirmed: e.confirmed.map(x => x.name), agreement: { agree: e.agreement.agree.map(x => x.name), silent: e.agreement.silent.map(x => x.name), disagree: e.agreement.disagree }, witnessStates: Object.fromEntries(e.witnessStates), vocab: Object.fromEntries([...e.vocab].map(([k, v]) => [k, v.rows])) }, null, 1) + '\n')
+    writeFileSync(`${OUT}${tag}.json`, JSON.stringify({ source, joined: joined ? Object.fromEntries(joined) : null, probe: probe ? { run: probe.run, at: probe.at, complete: probe.complete } : null, rows: e.rows, staged: e.staged, skipped: e.skipped.map(r => ({ name: r.name, why: r.why })), control: e.control, changed: e.changed, confirmed: e.confirmed.map(x => x.name), agreement: { agree: e.agreement.agree.map(x => x.name), silent: e.agreement.silent.map(x => x.name), disagree: e.agreement.disagree }, witnessStates: Object.fromEntries(e.witnessStates), vocab: Object.fromEntries([...e.vocab].map(([k, v]) => [k, v.rows])) }, null, 1) + '\n')
   }
   process.exitCode = e.control.mismatches.length || e.control.notComputable.length ? 1 : 0
 }

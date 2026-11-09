@@ -268,8 +268,8 @@ example is not a witness (`classifyRoof("Retractable")` measured as "open"). (5)
 are refused at the point stage (measured: 384 of 384 reproduce roof, basis and status from the committed cache). Both were corrected in the CC-CMD before the probe ran, so no data had been seen.
 
 **The instrument for criterion 4**, built while the commit was verifying: `outbox/venue-infobox-effect-2026-11-09.mjs` replays the roof stage from the cache around the real `decideRoof`, adds the witness as one
-more positive source, and lists every row whose status or roof would change, the agreement with the lead and Wikidata, and the joining test for each value that is not a witness. Self-test 29 checks; 16
-mutations (`outbox/venue-infobox-effect-mutation-2026-11-09.txt`), each red by a named check. One mutation survived the first version of the tool and showed a clause of the joining test to be redundant; the
+more positive source, and lists every row whose status or roof would change, the agreement with the lead and Wikidata, and the joining test for each value that is not a witness. Its self-test and its mutations
+(`outbox/venue-infobox-effect-mutation-2026-11-09.txt`) are each red by a named check, and it reads the categories as a witness too (`--source categories`), as a measurement. One mutation survived the first version of the tool and showed a clause of the joining test to be redundant; the
 clause was removed and a fixture added for the case it had been standing in for, which is Rule 90 doing its work on a tool and not on the product.
 
 **Found on the way.**
