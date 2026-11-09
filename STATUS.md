@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `d9554f3` — but that is not `main` HEAD
+**FAILURE** on `17d28eb` at "Render check against the LIVE slate" — 1 of 98 steps did not run behind it — [run 42621717589](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42621717589)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `41a5cf2`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `1f11470` at "Render the deployed page and assert on it" — nothing was skipped behind it — [run 42613880170](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42613880170)
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `41a5cf2` — newest deployable `d9554f3` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `41a5cf2` — behind newest deployable `17d28eb` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

@@ -12,6 +12,31 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `17d28eb` | 2026-11-09 | [forecast-model-mutation-2026-11-09.txt](forecast-model-mutation-2026-11-09.txt) | ci: the mutation table gets eight entries for table-v2's constants |
+| `46398f2` | 2026-11-09 | [forecast-card-pinned.png](forecast-card-pinned.png) | feat: table-v2 — one draw share for every match, home +0.42, scale 1.14 |
+| `46398f2` | 2026-11-09 | [forecast-fit-c-at-table-v2-build-2026-11-09.txt](forecast-fit-c-at-table-v2-build-2026-11-09.txt) | feat: table-v2 — one draw share for every match, home +0.42, scale 1.14 |
+| `46398f2` | 2026-11-09 | [forecast-table-v2-oracle-2026-11-09.mjs](forecast-table-v2-oracle-2026-11-09.mjs) | feat: table-v2 — one draw share for every match, home +0.42, scale 1.14 |
+| `46398f2` | 2026-11-09 | [forecast-table-v2-oracle-2026-11-09.txt](forecast-table-v2-oracle-2026-11-09.txt) | feat: table-v2 — one draw share for every match, home +0.42, scale 1.14 |
+| `9ba4c9f` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: the C verdict recorded — session document and the CC-CMD status, with what the data do not show |
+| `9b0afae` | 2026-11-09 | [forecast-fit-c-crosscheck-2026-11-09.py](forecast-fit-c-crosscheck-2026-11-09.py) | docs: the independent recompute of the C verdict (Python, fixed once) and the break-it-on-purpose proof, 35 of 35 |
+| `9b0afae` | 2026-11-09 | [forecast-fit-c-crosscheck-2026-11-09.txt](forecast-fit-c-crosscheck-2026-11-09.txt) | docs: the independent recompute of the C verdict (Python, fixed once) and the break-it-on-purpose proof, 35 of 35 |
+| `9b0afae` | 2026-11-09 | [forecast-fit-c-mutation-2026-11-09.mjs](forecast-fit-c-mutation-2026-11-09.mjs) | docs: the independent recompute of the C verdict (Python, fixed once) and the break-it-on-purpose proof, 35 of 35 |
+| `9b0afae` | 2026-11-09 | [forecast-fit-c-mutation-2026-11-09.txt](forecast-fit-c-mutation-2026-11-09.txt) | docs: the independent recompute of the C verdict (Python, fixed once) and the break-it-on-purpose proof, 35 of 35 |
+| `5430377` | 2026-11-09 | [forecast-fit-c-2026-11-09.txt](forecast-fit-c-2026-11-09.txt) | docs: the pre-registered rule for candidate C says SHIP — the run's output, as the committed script wrote it |
+| `6409bdc` | 2026-11-09 | [forecast-fit-c-2026-11-09.mjs](forecast-fit-c-2026-11-09.mjs) | docs: the independent recompute for the C fit, and the fit script's dump carrying its own verdict, before the fit runs |
+| `6409bdc` | 2026-11-09 | [forecast-fit-c-crosscheck-2026-11-09.py](forecast-fit-c-crosscheck-2026-11-09.py) | docs: the independent recompute for the C fit, and the fit script's dump carrying its own verdict, before the fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-fit-c-bundle-check-2026-11-09.txt](forecast-fit-c-bundle-check-2026-11-09.txt) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-fit-c-crosscheck-2026-11-09.py](forecast-fit-c-crosscheck-2026-11-09.py) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-season-2024-25-2026-11-09.json](forecast-season-2024-25-2026-11-09.json) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-season-2024-25-2026-11-09.mjs](forecast-season-2024-25-2026-11-09.mjs) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-season-2024-25-2026-11-09.txt](forecast-season-2024-25-2026-11-09.txt) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-season-2024-25-crosscheck-2026-11-09.txt](forecast-season-2024-25-crosscheck-2026-11-09.txt) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-season-2024-25-mutation-2026-11-09.mjs](forecast-season-2024-25-mutation-2026-11-09.mjs) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `1984c1b` | 2026-11-09 | [forecast-season-2024-25-mutation-2026-11-09.txt](forecast-season-2024-25-mutation-2026-11-09.txt) | docs: the 2024-25 season as data, checked against two other sources, before any fit runs |
+| `3ff1763` | 2026-11-09 | [forecast-fit-c-2026-11-09.mjs](forecast-fit-c-2026-11-09.mjs) | docs: ship rule for candidate C, fixed before any 2024-25 model number |
+| `1f11470` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `5bd7aba` | 2026-11-09 | [fable-crash-upstream-issue.md](fable-crash-upstream-issue.md) | docs: the Fable crash report, ready to paste — filing it needs the owner's hands |
+| `5bd7aba` | 2026-11-09 | [fable-crash-upstream-report.md](fable-crash-upstream-report.md) | docs: the Fable crash report, ready to paste — filing it needs the owner's hands |
 | `71207e2` | 2026-11-09 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-09 [skip ci] |
 | `71207e2` | 2026-11-09 | [sport-vocabulary-2026-11-09T08-13-42-675Z.json](sport-vocabulary-2026-11-09T08-13-42-675Z.json) | drift-sentinel: ok on 2026-11-09 [skip ci] |
 | `cc8caf2` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
