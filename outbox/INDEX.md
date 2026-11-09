@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `76d6b45` | 2026-11-09 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 42651498788) [skip ci] |
+| `76d6b45` | 2026-11-09 | [venue-source-results-latest.json](venue-source-results-latest.json) | data: venue sourcing (run 42651498788) [skip ci] |
+| `4700175` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `0d3875c` | 2026-11-09 | [venue-lead-whole-probe-2026-11-09.mjs](venue-lead-whole-probe-2026-11-09.mjs) | fix: read the Wikipedia summary whole, so an initial in a venue name cannot end the lead |
 | `0d3875c` | 2026-11-09 | [venue-lead-whole-probe-2026-11-09.txt](venue-lead-whole-probe-2026-11-09.txt) | fix: read the Wikipedia summary whole, so an initial in a venue name cannot end the lead |
 | `09f1deb` | 2026-11-09 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 268140d [skip ci] |
