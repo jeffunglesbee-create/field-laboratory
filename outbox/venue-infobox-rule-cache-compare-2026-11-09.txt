@@ -1,0 +1,7 @@
+venue-infobox rule against probe: the roof values the rule read, article by article
+COVERAGE: compared 381 of 381 articles the probe read; the probe could not read 0
+RULE-READ VALUES EQUAL THE PROBE'S: 381 of 381
+RULE DID NOT ANSWER (no wp-infobox entry): 0
+DIFFER: 0
+EXTRA wp-infobox entries the probe has no article for: 0
+EQUAL: the rule read the probe's roof values on 381 of 381 articles

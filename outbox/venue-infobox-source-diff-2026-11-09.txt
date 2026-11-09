@@ -1,0 +1,29 @@
+old results: git c6d10d3:outbox/venue-source-results-latest.json; new results: git ef499a2:outbox/venue-source-results-latest.json
+COVERAGE: compared 442 of 442 old rows and 442 new rows, by name; only in old 0, only in new 0
+MOVED (lat, lon, zone, qid, agreeing, via): 0 of 442
+CHANGED (status, roof or review reason): 3 of 442; same status and roof but a different basis: 0
+PREDICTED ROWS: 3 of 3 changed; as predicted (kind, roof, basis): 3 of 3
+UNPREDICTED ROWS CHANGED: 0
+
+Johan Cruijff Arena   [review -> accepted]
+    before  review, roof null: roof: the lead names no roof, but the article mentions "retractable roof"
+    after   accepted, roof retractable: infobox roof "[[Retractable roof|Retractable]]"
+U.S. Bank Stadium   [review -> accepted]
+    before  review, roof null: roof: the lead names no roof, but the article mentions "retractable roof"
+    after   accepted, roof dome: infobox roof "[[Skylight]]"
+Wembley Stadium   [review -> accepted]
+    before  review, roof null: roof: the lead names no roof, but the article mentions "retractable roof"
+    after   accepted, roof retractable: infobox roof "[[Retractable roof|Partially retractable]]"
+
+STUB-LEAD ROWS: 9 rows whose old lead is at most 14 characters (the CC-CMD counts 9); U.S. Bank Stadium is the one with its own condition, and the other 8 are (the CC-CMD counts 8):
+  "Amon G. Carter Stadium"       lead "Amon G."      roof before open  after open    accepted -> accepted
+  "Doak Campbell Stadium"        lead "Doak S."      roof before open  after open    accepted -> accepted
+  "Doyt L. Perry Stadium"        lead "Doyt L."      roof before open  after open    accepted -> accepted
+  "Elliott T. Bowers Stadium"    lead "Elliott T."   roof before open  after open    accepted -> accepted
+  "Gerald J. Ford Stadium"       lead "Gerald J."    roof before open  after open    accepted -> accepted
+  "Joan C. Edwards Stadium"      lead "Joan C."      roof before open  after open    accepted -> accepted
+  "St. James' Park"              lead "St."          roof before open  after open    accepted -> accepted
+  "Williams Stadium (VA)"        lead "Arthur L."    roof before open  after open    accepted -> accepted
+  "U.S. Bank Stadium"            lead "U.S."         roof before null  after dome    review -> accepted
+
+AS PREDICTED: exactly the 3 rows changed, as predicted, and nothing else moved; the 8 stub-lead rows are named above
