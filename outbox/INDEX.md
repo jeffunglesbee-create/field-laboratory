@@ -12,6 +12,39 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `968ee51` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.mjs](venue-infobox-mutation-2026-11-09.mjs) | refactor: move the parse-tree reader out of the infobox probe into its own module |
+| `968ee51` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.txt](venue-infobox-mutation-2026-11-09.txt) | refactor: move the parse-tree reader out of the infobox probe into its own module |
+| `968ee51` | 2026-11-09 | [venue-infobox-read-extraction-2026-11-09.txt](venue-infobox-read-extraction-2026-11-09.txt) | refactor: move the parse-tree reader out of the infobox probe into its own module |
+| `968ee51` | 2026-11-09 | [venue-infobox-read-extraction-check-2026-11-09.mjs](venue-infobox-read-extraction-check-2026-11-09.mjs) | refactor: move the parse-tree reader out of the infobox probe into its own module |
+| `af7db7f` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09-categories-joined.json](venue-infobox-effect-2026-11-09-categories-joined.json) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09-categories-joined.txt](venue-infobox-effect-2026-11-09-categories-joined.txt) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09-categories.json](venue-infobox-effect-2026-11-09-categories.json) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09-categories.txt](venue-infobox-effect-2026-11-09-categories.txt) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09-joined.json](venue-infobox-effect-2026-11-09-joined.json) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09-joined.txt](venue-infobox-effect-2026-11-09-joined.txt) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09.json](venue-infobox-effect-2026-11-09.json) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09.mjs](venue-infobox-effect-2026-11-09.mjs) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-2026-11-09.txt](venue-infobox-effect-2026-11-09.txt) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-mutation-2026-11-09.mjs](venue-infobox-effect-mutation-2026-11-09.mjs) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-effect-mutation-2026-11-09.txt](venue-infobox-effect-mutation-2026-11-09.txt) | docs: record Step A of the infobox probe and the decision to build |
+| `af7db7f` | 2026-11-09 | [venue-infobox-stepa-2026-11-09.txt](venue-infobox-stepa-2026-11-09.txt) | docs: record Step A of the infobox probe and the decision to build |
+| `86bd5f0` | 2026-11-09 | [venue-infobox-probe.json](venue-infobox-probe.json) | data: venue sourcing (run 42668700914) [skip ci] |
+| `86bd5f0` | 2026-11-09 | [venue-infobox-probe.txt](venue-infobox-probe.txt) | data: venue sourcing (run 42668700914) [skip ci] |
+| `8d13933` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `8d13933` | 2026-11-09 | [venue-infobox-effect-2026-11-09.json](venue-infobox-effect-2026-11-09.json) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `8d13933` | 2026-11-09 | [venue-infobox-effect-2026-11-09.mjs](venue-infobox-effect-2026-11-09.mjs) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `8d13933` | 2026-11-09 | [venue-infobox-effect-2026-11-09.txt](venue-infobox-effect-2026-11-09.txt) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `8d13933` | 2026-11-09 | [venue-infobox-effect-mutation-2026-11-09.mjs](venue-infobox-effect-mutation-2026-11-09.mjs) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `8d13933` | 2026-11-09 | [venue-infobox-effect-mutation-2026-11-09.txt](venue-infobox-effect-mutation-2026-11-09.txt) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `8d13933` | 2026-11-09 | [venue-infobox-stepa-assert-2026-11-09.mjs](venue-infobox-stepa-assert-2026-11-09.mjs) | docs: the Step A done condition becomes a script with a self-test, and the effect tool reads the categories too |
+| `e022474` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `9fd5d2e` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: the offline effect tool for option 3, and two corrections to the criteria before any probe data exists |
+| `9fd5d2e` | 2026-11-09 | [venue-infobox-effect-2026-11-09.json](venue-infobox-effect-2026-11-09.json) | docs: the offline effect tool for option 3, and two corrections to the criteria before any probe data exists |
+| `9fd5d2e` | 2026-11-09 | [venue-infobox-effect-2026-11-09.mjs](venue-infobox-effect-2026-11-09.mjs) | docs: the offline effect tool for option 3, and two corrections to the criteria before any probe data exists |
+| `9fd5d2e` | 2026-11-09 | [venue-infobox-effect-2026-11-09.txt](venue-infobox-effect-2026-11-09.txt) | docs: the offline effect tool for option 3, and two corrections to the criteria before any probe data exists |
+| `9fd5d2e` | 2026-11-09 | [venue-infobox-effect-mutation-2026-11-09.mjs](venue-infobox-effect-mutation-2026-11-09.mjs) | docs: the offline effect tool for option 3, and two corrections to the criteria before any probe data exists |
+| `9fd5d2e` | 2026-11-09 | [venue-infobox-effect-mutation-2026-11-09.txt](venue-infobox-effect-mutation-2026-11-09.txt) | docs: the offline effect tool for option 3, and two corrections to the criteria before any probe data exists |
 | `b247c68` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | feat: a read-only probe of the infobox Roof field and the categories of each venue article |
 | `b247c68` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.mjs](venue-infobox-mutation-2026-11-09.mjs) | feat: a read-only probe of the infobox Roof field and the categories of each venue article |
 | `b247c68` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.txt](venue-infobox-mutation-2026-11-09.txt) | feat: a read-only probe of the infobox Roof field and the categories of each venue article |
