@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-09 by CC, found when the verify run for table-v2's commits failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it) and so is Step 0 of Task 4 (`outbox/venue-red-days-2026-11-09.md`: 0 of 60 days red); Task 3 is unblocked (the archive holds the Manadon Sports Hub fixture); Task 2 was approved ("Task 2 approved", 10:43 ET), run, MEASURED AND STOPPED (`outbox/venue-lead-whole-2026-11-09.md`): reading the whole paragraph changed 4 of 442 rows and 2 of the 4 are not safe (Center Parc Stadium open to dome on "replacing the Georgia Dome" in a paragraph that says "an outdoor stadium"; Joan C. Edwards Stadium open to dome on "indoor suites"), so per this CC-CMD's own stop rule nothing reached the table; the scripts, results and cache are restored byte for byte (`a6f99c2`, verify run 42658229991 green) and the owner then chose option 3 ("Option 3", 12:16 ET): a second structured roof source, the infobox Roof field, built first as a read-only runner probe (`scripts/venue-infobox.mjs`, `venue-source.yml` mode `infobox`) that writes none of the results, cache or table, with its go/no-go criteria written under Task 2 before any data exists; the rest of Task 4 waits for the owner's decision on each venue. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
+**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it) and so is Step 0 of Task 4 (`outbox/venue-red-days-2026-11-09.md`: 0 of 60 days red); Task 3 is unblocked (the archive holds the Manadon Sports Hub fixture); Task 2 was approved ("Task 2 approved", 10:43 ET), run, MEASURED AND STOPPED (`outbox/venue-lead-whole-2026-11-09.md`): reading the whole paragraph changed 4 of 442 rows and 2 of the 4 are not safe (Center Parc Stadium open to dome on "replacing the Georgia Dome" in a paragraph that says "an outdoor stadium"; Joan C. Edwards Stadium open to dome on "indoor suites"), so per this CC-CMD's own stop rule nothing reached the table; the scripts, results and cache are restored byte for byte (`a6f99c2`, verify run 42658229991 green) and the owner then chose option 3 ("Option 3", 12:16 ET): a second structured roof source, the infobox Roof field, built first as a read-only runner probe (`scripts/venue-infobox.mjs`, `venue-source.yml` mode `infobox`) that writes none of the results, cache or table, with its go/no-go criteria written under Task 2 before any data exists; the probe ran (run 42668700914: 381 of 381 articles fetched and parsed, its done condition 15 of 15) and criteria 1 to 5 say go (recorded under Task 2), so Step B is being built; the rest of Task 4 waits for the owner's decision on each venue. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
 
 ---
 
@@ -117,7 +117,7 @@ of them; nothing built); (2) allow one exception to "never parse", an abbreviati
 parameter named `roof` from that tree is not reading prose and not parsing wikitext, but it is a new source with failure modes of its own (template names, free-text values), which is why it is measured
 before anything is built on it.
 
-**Step A, a read-only probe (built; not yet run).** `scripts/venue-infobox.mjs`, run by `venue-source.yml` mode `infobox`. For each article the roof rule reads (the title derived as `roofOf` derives it, and compared
+**Step A, a read-only probe (built; run 2026-11-09, result below).** `scripts/venue-infobox.mjs`, run by `venue-source.yml` mode `infobox`. For each article the roof rule reads (the title derived as `roofOf` derives it, and compared
 with the cache's `wp-lead|` keys) one parse request at one a second, then the categories in batches of 50. It records every `Infobox` template, every parameter name, every parameter whose name contains "roof"
 (flat text and raw XML), the revision id, the visible categories, and the whole tree of five controls (U.S. Bank, Parken, Center Parc, Joan C. Edwards, NRG). It writes only `outbox/venue-infobox-probe.json` and
 `.txt`: the results, the cache and the table are not touched, so a run cannot leave `check:venue-sourced` red. The XML is read with `@xmldom/xmldom` 0.9.12, a new exact-pinned devDependency (package.json +1 line,
@@ -152,9 +152,45 @@ its exit code); the `.txt`'s second line reads `COVERAGE: checked N of 442 rows`
 record says why it does not; and each of the five controls is reported with a roof parameter, or with `no infobox` or `no roof parameter` as the case is. Command: `node outbox/venue-infobox-stepa-assert-2026-11-09.mjs`, which prints each of these as PASS or FAIL with the value that decided it and the
 denominator ("checked N assertions"); its own self-test fails each assertion on a doctored probe, and `node scripts/venue-infobox.mjs --report outbox/venue-infobox-probe.json` prints the text report again.
 
-**Step B, only if criteria 1 to 5 say go:** the witness as a fourth argument of `decideRoof`, read from a new cache kind (`wp-infobox`); self-test cases each with a must-fail input; registered mutations; then
-the original Task 2 steps (a runner `source` run, the old and new results compared row by row with `outbox/venue-lead-whole-diff-2026-11-09.mjs`, `--write`, and the hand row's deletion with the four mutations'
-re-anchoring only if the rule accepts U.S. Bank). Its "Done when" is the one under Task 2 above. If the criteria say stop, the report is verbatim and Task 2 closes with option 3 recorded as measured and not built.
+**Step A result (run 42668700914, 2026-11-09 17:51Z to 18:31Z; the runner's commit is `86bd5f0`).** `complete` true; 381 of 381 articles fetched, 381 of 381 parsed, 0 parser errors, categories answered for 381 of 381;
+an Infobox template in every article (346 `Infobox venue`, 13 `Infobox stadium`, and seven other spellings); `COVERAGE: checked 383 of 442 rows` (the other 59: no qid 58, Wikidata names no English article 1; the 383 rows share 381
+articles). `node outbox/venue-infobox-stepa-assert-2026-11-09.mjs`: 15 PASS, 0 FAIL, artifact `outbox/venue-infobox-stepa-2026-11-09.txt`; the escape premise held on the runner's raw tree (U.S. Bank's carries
+`<close>&lt;/ref&gt;</close>`, no parser error). 17 articles (18 rows) carry a parameter named `roof`, with five values: `[[Retractable roof|Retractable]]` on 11 rows, `[[Skylight]]` on 3, `[[Dome]]` on 2, `Dome` on 1,
+`[[Retractable roof|Partially retractable]]` on 1. None of the 355 rows the rule reads "open, inferred" has a roof parameter, so the field contradicts none of them. The run took 39.5 minutes against about 7 predicted:
+the recorded request times (194 s) and the one-second gaps (about 442 s) leave 28.6 minutes unaccounted, and 37 articles needed exactly one retry (about 47 s each); that fits `retryWait` waiting a Retry-After, but the
+probe kept each article's attempt count and not the statuses, so the cause is inferred and not measured.
+
+| # | criterion | measured | verdict |
+|---|---|---|---|
+| 1 | Read | 381 of 381 fetched and parsed, 0 parser errors; the 59 rows with no article are named by reason | met |
+| 2 | Meaning from the words | strict witness (`classifyRoof`'s patterns on the flat value): closed on 15 rows, 13 of them already decided by the lead or Wikidata; `[[Skylight]]` is on 3 rows, 2 of them decided dome by the lead (Allegiant Stadium and SoFi Stadium, "a multi-purpose indoor stadium") and none decided otherwise: it meets the joining test for dome, and no other value is a candidate | met; one term joins |
+| 3 | Agreement | 13 agree, 4 silent, 0 disagree (strict); 15 agree, 2 silent, 0 disagree with the joined term. No case of the field right and the table wrong | met |
+| 4 | Effect | control 384 of 384; 2 rows change (3 with the joined term): Johan Cruijff Arena review to retractable, Wembley Stadium review to retractable, U.S. Bank Stadium review to dome (`outbox/venue-infobox-effect-2026-11-09.txt`, `-joined.txt`); each read against its article at the revision the probe parsed (below) | met; Wembley is the one judgement call |
+| 5 | The motivating row | U.S. Bank Stadium is accepted only through the joined term, which the test passes on Allegiant and SoFi and not on U.S. Bank itself; its own lead says "an indoor stadium" | met |
+
+**The three rows read against their articles.** Read through the Action API at the revision ids the probe recorded (1383882110, 1384136752, 1384547710: equal, checked and not assumed).
+Johan Cruijff Arena: the lead's fourth paragraph says "The stadium has a retractable roof and a grass surface."; the first-sentence read never saw it; retractable is right.
+U.S. Bank Stadium: the lead says "an indoor stadium"; the Design section says the roof and walls are translucent ETFE, and its "retractable roof" is the design the funding bodies would not pay for ("Eventually,
+this design was deemed too expensive"), which is why the body check sent it to review; dome is right. Wembley Stadium: "Two partially retractable roof structures over the east and west ends of the stadium can
+be opened to allow sunlight and aid pitch growth", 13,722 of 40,000 m² of the roof movable, the infobox says "Partially retractable". The article does not say the pitch can be covered. `Retractable` is the table's
+"roof state unknown" class (`Weather.roofState`: `Retractable` is `UnknownRoofState`, shown as "retractable — not known whether the roof was closed", and not a rankable reading), which claims nothing the article does not
+support, where `OpenAir` would claim "played in the open", which it does not support either. A partial-roof class would be a type decision for the owner and not a sourcing one.
+
+**The categories, measured beside it and not built (the ruling names the infobox).** As the witness alone they would move 3 rows (Johan Cruijff Arena, Parken Stadium, Wembley Stadium: agree 13, silent 4, disagree 0,
+`outbox/venue-infobox-effect-2026-11-09-categories.txt`); with the two category terms that pass the same joining test (`Covered stadiums in the United States` and `Skylit stadiums in the United States`, both dome)
+4 rows, agreeing on 17 of 17 and disagreeing on none (`-categories-joined.txt`). Parken is the row only they reach: its lead's second sentence says "The stadium, which features a retractable roof", and its infobox has
+no roof parameter. Building on them needs the owner's word.
+
+**Decision 2026-11-09: go.** Criteria 1 to 5 are met. Step B builds the infobox as a fourth source, with `[[Skylight]]` as the one joined term, and not the categories.
+
+**Step B.** (1) `scripts/venue-infobox-read.mjs`, the pure reader (`parseUrl`, `flatOf`, `readTree` and the answer-to-tree step), moved out of the probe: the probe imports `retryWait` from the rule, and the rule
+importing the probe would be an import cycle; the probe's 36 self-test checks and 15 mutations are unchanged (the entries that cut moved code point at the new file). (2) The witness as a fourth argument of `decideRoof`
+(default `[]`, which is the rule as it was, so every existing caller and the outbox tools are unchanged; `null` is "the infobox did not answer" and blocks an `open` inference as the lead's and the body's silence
+do; two roof parameters naming different closed classes are review, never a pick), `ROOF_FIELD_TERMS` holding the one joined term with its evidence, cache kind `wp-infobox` in `CACHE_KINDS` (a kind not listed there
+is dropped on load, and every run would read Wikipedia again), and `roofOf` exported so that a self-test can drive it from a cache with no network; self-test cases each with a must-fail input and registered mutations,
+each red by a named check. (3) Then the original Task 2 steps: a runner `source` run (the cold fill, about 39 minutes), the old and new results compared row by row with
+`outbox/venue-lead-whole-diff-2026-11-09.mjs`, which must show the 3 rows above and no other, each rule-read infobox value compared with the probe's, `--write`, and the hand row's deletion with the four
+mutations' re-anchoring, since the rule accepts U.S. Bank. Its "Done when" is the one under Task 2 above.
 
 ## Task 3 — Manadon Sports Hub
 

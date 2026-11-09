@@ -1,7 +1,11 @@
 {
  "source": "infobox",
  "joined": null,
- "probe": null,
+ "probe": {
+  "run": "42668700914",
+  "at": "2026-11-09T17:51:52.119Z",
+  "complete": true
+ },
  "rows": 442,
  "staged": 384,
  "skipped": [
@@ -243,13 +247,119 @@
   "mismatches": [],
   "notComputable": []
  },
- "changed": [],
- "confirmed": [],
+ "changed": [
+  {
+   "name": "Johan Cruijff Arena",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "retractable",
+    "basis": "infobox roof \"[[Retractable roof|Retractable]]\""
+   },
+   "field": [
+    "[[Retractable roof|Retractable]]"
+   ],
+   "fieldState": "closed roof",
+   "wikidata": null,
+   "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam.",
+   "categories": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "extract": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam. Built from 1993 to 1996 at a cost equivalent to €140 million, it is the largest stadium in the country. The stadium opened as the Amsterdam Arena and it was officially renamed for the 2018–19 football season, in honour of Dutch footballer Johan Cruyff who "
+  },
+  {
+   "name": "Wembley Stadium",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "retractable",
+    "basis": "infobox roof \"[[Retractable roof|Partially retractable]]\""
+   },
+   "field": [
+    "[[Retractable roof|Partially retractable]]"
+   ],
+   "fieldState": "closed roof",
+   "wikidata": null,
+   "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England.",
+   "categories": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "extract": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England. It opened in 2007 on the site of the original Wembley Stadium, which had stood from 1923 until 2000. The stadium is England's national football stadium, and thus hosts the majority of the England national team home matches and the FA Cup Final – the f"
+  }
+ ],
+ "confirmed": [
+  "AT&T Stadium",
+  "Caesars Superdome",
+  "Decathlon Arena - Stade Pierre-Mauroy",
+  "Deutsche Bank Park",
+  "Ford Field",
+  "JMA Wireless Dome",
+  "Lucas Oil Stadium",
+  "Merkur Spiel-Arena",
+  "NRG Stadium",
+  "Reliant Stadium",
+  "Santiago Bernabéu",
+  "State Farm Stadium",
+  "Veltins Arena"
+ ],
  "agreement": {
-  "agree": [],
-  "silent": [],
+  "agree": [
+   "AT&T Stadium",
+   "Caesars Superdome",
+   "Decathlon Arena - Stade Pierre-Mauroy",
+   "Deutsche Bank Park",
+   "Ford Field",
+   "JMA Wireless Dome",
+   "Lucas Oil Stadium",
+   "Merkur Spiel-Arena",
+   "NRG Stadium",
+   "Reliant Stadium",
+   "Santiago Bernabéu",
+   "State Farm Stadium",
+   "Veltins Arena"
+  ],
+  "silent": [
+   "Alamodome",
+   "Allegiant Stadium",
+   "Fargodome",
+   "SoFi Stadium"
+  ],
   "disagree": []
  },
- "witnessStates": {},
- "vocab": {}
+ "witnessStates": {
+  "no roof parameter": 365,
+  "closed roof": 15,
+  "no witness": 3,
+  "no article": 1
+ },
+ "vocab": {
+  "[[Skylight]]": [
+   {
+    "name": "Allegiant Stadium",
+    "roof": "dome",
+    "kind": "evidence",
+    "status": "accepted"
+   },
+   {
+    "name": "SoFi Stadium",
+    "roof": "dome",
+    "kind": "evidence",
+    "status": "accepted"
+   },
+   {
+    "name": "U.S. Bank Stadium",
+    "roof": null,
+    "kind": "other",
+    "status": "review"
+   }
+  ]
+ }
 }

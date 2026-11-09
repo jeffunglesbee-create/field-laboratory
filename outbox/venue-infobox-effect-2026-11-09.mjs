@@ -309,6 +309,9 @@ const selfTest = () => {
   check('--source categories reads the categories and not the Roof field: Gamma (categories) and Delta change, Zeta (the field says dome, no roof category) does not, and the report says which source it used', ec.changed.map(x => x.name).sort().join() === 'Delta Stadium,Gamma Field' && /witness source: categories/.test(report(ec, probe)) && /THE CATEGORIES/.test(report(ec, probe)), ec.changed.map(x => x.name).join())
   check('the categories witness names itself in the basis, and in a disagreement, and not as the infobox', ec.changed.find(x => x.name === 'Gamma Field')?.after.basis === 'categories "Domed stadiums in X"' && effect({ results, cache, probe: probeOf({ Beta: cats('Retractable-roof stadiums in Europe') }), source: 'categories' }).changed.find(x => x.name === 'Beta Dome')?.after.basis === 'sources disagree: lead dome, categories retractable', JSON.stringify(ec.changed.map(x => x.after.basis)))
   check('the vocabulary of the categories lists only roof-named categories with no witness, never the others', (() => { const v = effect({ results, cache, probe: probeOf({ Eta: cats('Skylit stadiums in the United States', 'NFL venues', 'Minneapolis') }), source: 'categories' }).vocab; return v.size === 1 && v.has('Skylit stadiums in the United States') })())
+  const pa = parseArgs(['outbox/p.json']), pb = parseArgs(['--join', 'x=dome', 'outbox/p.json']), pc = parseArgs(['--source', 'categories', 'outbox/p.json', '--write']), pd = parseArgs(['outbox/p.json', '--join', 'x=dome', '--source', 'infobox'])
+  check('the command line: the probe file is found first, after a flag and its value, and before them, and a flag\'s value is never taken for it', pa.file === 'outbox/p.json' && pb.file === 'outbox/p.json' && pb.joined.get('x') === 'dome' && pc.file === 'outbox/p.json' && pc.source === 'categories' && pc.write === true && pd.file === 'outbox/p.json' && pd.source === 'infobox' && parseArgs([]).file === null && parseArgs(['--join', 'x=dome']).file === null && parseArgs(['--source', 'categories']).file === null, JSON.stringify([pa.file, pb.file, pc.file, pd.file]))
+  check('--source refuses a source it does not know', (() => { try { parseArgs(['--source', 'wikidata']); return false } catch { return true } })())
   check('--join parses term=class pairs, lower-cases the term, and refuses "open" and a pair with no term', parseJoin('Retractable=retractable,fixed=dome').get('retractable') === 'retractable' && parseJoin('fixed=dome').get('fixed') === 'dome' && (() => { try { parseJoin('x=open'); return false } catch { return true } })() && (() => { try { parseJoin('=dome'); return false } catch { return true } })())
   const ej = effect({ results, cache, probe: probeOf({ ...probe.articles, Zeta: art('Retractable') }), joined: new Map([['retractable', 'retractable']]) })
   check('a joined term takes effect on the row it sits on and the report names the joined terms (and says strict when none)', ej.changed.some(x => x.name === 'Zeta Stadium' && x.after.roof === 'retractable') && /JOINED TERMS \(whole value, lower-cased\): "retractable" = retractable/.test(report(ej, probe, new Map([['retractable', 'retractable']]))) && /JOINED TERMS[^\n]*none \(strict/.test(report(e, probe)))
@@ -332,20 +335,23 @@ export const parseJoin = spec => {
   return m
 }
 
-const main = () => {
-  const args = process.argv.slice(2)
-  const ji = args.indexOf('--join')
-  const joined = ji >= 0 ? parseJoin(args[ji + 1] ?? '') : null
-  const si = args.indexOf('--source')
+/** The command line: the probe file (the one argument that is neither a flag nor a flag's value), --join, --source, --write. */
+export const parseArgs = args => {
+  const ji = args.indexOf('--join'), si = args.indexOf('--source')
+  const valueOf = new Set([ji >= 0 ? ji + 1 : -1, si >= 0 ? si + 1 : -1])
   const source = si >= 0 ? args[si + 1] : 'infobox'
   if (!['infobox', 'categories'].includes(source)) throw new Error(`--source ${source}: expected infobox or categories`)
-  const file = args.find((a, i) => !a.startsWith('--') && i !== ji + 1 && i !== si + 1)
+  return { file: args.find((a, i) => !a.startsWith('--') && !valueOf.has(i)) ?? null, joined: ji >= 0 ? parseJoin(args[ji + 1] ?? '') : null, source, write: args.includes('--write') }
+}
+
+const main = () => {
+  const { file, joined, source, write } = parseArgs(process.argv.slice(2))
   const results = JSON.parse(readFileSync(RESULTS, 'utf8')), cache = JSON.parse(readFileSync(CACHE, 'utf8'))
   const probe = file ? JSON.parse(readFileSync(file, 'utf8')) : null
   const e = effect({ results, cache, probe, extracts: JSON.parse(readFileSync(EXTRACTS, 'utf8')), joined, source })
   const text = report(e, probe, joined)
   console.log(text)
-  if (args.includes('--write')) {
+  if (write) {
     const tag = `${source === 'categories' ? '-categories' : ''}${joined?.size ? '-joined' : ''}`
     writeFileSync(`${OUT}${tag}.txt`, text + '\n')
     writeFileSync(`${OUT}${tag}.json`, JSON.stringify({ source, joined: joined ? Object.fromEntries(joined) : null, probe: probe ? { run: probe.run, at: probe.at, complete: probe.complete } : null, rows: e.rows, staged: e.staged, skipped: e.skipped.map(r => ({ name: r.name, why: r.why })), control: e.control, changed: e.changed, confirmed: e.confirmed.map(x => x.name), agreement: { agree: e.agreement.agree.map(x => x.name), silent: e.agreement.silent.map(x => x.name), disagree: e.agreement.disagree }, witnessStates: Object.fromEntries(e.witnessStates), vocab: Object.fromEntries([...e.vocab].map(([k, v]) => [k, v.rows])) }, null, 1) + '\n')

@@ -227,13 +227,13 @@ for a mutation whose anchor had failed (a stale temp file from the run before): 
 
 **Open.** The owner chose option 3 ("Option 3", 12:16 ET); the section below is where it stands. No carry-forward exists apart from the owner's two decisions already open (the U.S. Bank hand row, the forecast store schema).
 
-## Option 3 of Task 2: the infobox probe (built and gated, not yet run)
+## Option 3 of Task 2: the infobox probe (run, and the decision to build)
 
 Owner's ruling: "Option 3" (Mon 2026-11-09 12:16 ET), a second structured source for the roof: the infobox Roof field. The option as I wrote it said it was unmeasured and needed a runner probe first, so the
 probe is Step A and whether anything is built is decided from its output. The CC-CMD (`docs/CC-CMD-2026-11-09-venue-review-remainder.md`, "Option 3 — the infobox Roof field") holds the five go/no-go
 criteria, written before any data exists, and the Step A done condition.
 
-HEAD progression: `035a20a`, then the commit carrying this section.
+HEAD progression: `035a20a`, `b247c68` (the probe), `9fd5d2e` and `8d13933` (the effect tool and the Step A assertions), `86bd5f0` (the runner's data commit), then the commit carrying this update.
 
 | What | State |
 |---|---|
@@ -279,9 +279,20 @@ clause was removed and a fixture added for the case it had been standing in for,
 12. The fetch tool (Exa) reaches Wikipedia's Action API while the sandbox proxy refuses Wikipedia and WebFetch refuses `rest_v1`. It returns a COPY of the source, which is why the one thing it cannot settle (the escape state) is
     left to the runner's raw trees.
 
-**State.** Built and gated; not yet run. Unblocked when: verify is green on this commit. Run: `gh api -X POST repos/jeffunglesbee-create/field-laboratory/actions/workflows/venue-source.yml/dispatches -f ref=main -f 'inputs[mode]=infobox'`.
-Verify: the Step A done condition in the CC-CMD (`complete` true, every article `fetch.ok` and `parse.ok`, `COVERAGE: checked N of 442 rows` on the `.txt`'s second line, the string `<close>&lt;/ref&gt;</close>` in the U.S. Bank
-control tree or the record saying why not). Step B is built only if the five criteria say go.
+13. The effect tool's first real run printed "probe none (control only)": `parseArgs` dropped the probe file when no `--join` or `--source` flag was given (`i !== ji + 1` with `ji = -1` removes index 0). The
+    self-test never called `main`, so 36 checks were green while the command line was wrong. `parseArgs` is exported with regression checks now, and a mutation puts the old line back and is red by name (21 mutations,
+    0 not red by a name, `outbox/venue-infobox-effect-mutation-2026-11-09.txt`). Rule 90: a self-test that does not run its entry point has not tested the entry point.
+14. The probe's per-article record keeps the attempt count and the summed request time, not each attempt's status nor the wait between attempts. Of the 39.5 minutes (about 7 predicted), the recorded request times
+    (194 s) and the one-second gaps (about 442 s) leave 28.6 minutes unaccounted; 37 articles needed exactly one retry, about 47 s each. That fits `retryWait` waiting a Retry-After (its own comment records 429 on this
+    API), and it is inference: the statuses were in memory (`getRecorded` has them) and were not kept. A measurement that has run is not re-run to record a cause it was not built to record.
+15. The text read for criterion 4 is the text the probe parsed: the Action API, read through the Exa tool, returned revision ids 1384136752 (Wembley), 1383882110 (Johan Cruyff Arena) and 1384547710 (U.S. Bank), each
+    equal to the probe's recorded `revid`. Checked by id and not assumed.
+16. Allegiant Stadium and SoFi Stadium are dome by their leads ("a multi-purpose indoor stadium", cache `wp-lead|`), and their infoboxes say `[[Skylight]]`; with U.S. Bank's, that is the evidence the joining test counts.
+
+**State.** Run and decided. The probe ran as run 42668700914 (the runner's commit `86bd5f0`); Step A's done condition is met (15 of 15, `outbox/venue-infobox-stepa-2026-11-09.txt`). Criteria 1 to 5 say go (the verdicts are
+in the CC-CMD under Task 2; the effect outputs are `outbox/venue-infobox-effect-2026-11-09*.txt`): the infobox would move 2 rows, 3 with the one joined term, and disagrees with none of the 13 rows the lead or Wikidata
+decides. The categories are measured beside it and not built (the owner's word is needed). Step B is in progress: the reader's extraction, the rule, the runner fill with a row-by-row diff, then the table. Unblock and
+verify for each step are in the CC-CMD under "Step B".
 
 ## Integration state (Rule 65)
 

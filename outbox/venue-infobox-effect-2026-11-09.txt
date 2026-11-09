@@ -1,3 +1,23 @@
-venue-infobox effect, offline, witness source: infobox; probe none (control only)
+venue-infobox effect, offline, witness source: infobox; probe run 42668700914, 2026-11-09T17:51:52.119Z, complete
 COVERAGE: roof stage replayed for 384 of 442 rows; 58 never reach it (no two independent families agree 49, ambiguous name 7, no source answered with a point 2); not computable (a cache key missing): 0
 CONTROL (no witness): 384 of 384 replayed rows reproduce the committed roof, basis and status; mismatches 0
+
+JOINED TERMS (whole value, lower-cased): none (strict: the classifyRoof patterns only)
+THE FIELD, per replayed row: no roof parameter 365, closed roof 15, no witness 3, no article 1
+AGREEMENT on the rows whose closed roof Wikidata or the lead decides: field agrees 13, field silent 4, field DISAGREES 0
+CONFIRMING (the field name the roof the rule already has): 13; unchanged with no witness: 369
+
+EFFECT: 2 rows whose status or roof would change
+  Johan Cruijff Arena
+    before review, no roof: the lead names no roof, but the article mentions "retractable roof"
+    after  accepted, retractable: infobox roof "[[Retractable roof|Retractable]]"
+    field ["[[Retractable roof|Retractable]]"]; wikidata null; lead "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterd..."; categories Retractable-roof stadiums in Europe
+    paragraph "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam. Built from 1993 to 1996 at a cost equivalent to €140 million, it is the largest stadium in the country. The stadium opened as the Amsterdam Arena and it was officially renamed for the 2018–19 football season, in honour of Dutch footballer Johan Cruyff who "
+  Wembley Stadium
+    before review, no roof: the lead names no roof, but the article mentions "retractable roof"
+    after  accepted, retractable: infobox roof "[[Retractable roof|Partially retractable]]"
+    field ["[[Retractable roof|Partially retractable]]"]; wikidata null; lead "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, ..."; categories Retractable-roof stadiums in Europe
+    paragraph "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England. It opened in 2007 on the site of the original Wembley Stadium, which had stood from 1923 until 2000. The stadium is England's national football stadium, and thus hosts the majority of the England national team home matches and the FA Cup Final – the f"
+
+VALUES WITH NO WITNESS (not a closed-roof word; "open" is never taken from the field), 1 distinct, rows by what the rule has:
+  "[[Skylight]]"                                   3  dome/evidence 2, no roof/other 1  [meets the joining test for dome]  (Allegiant Stadium; SoFi Stadium; U.S. Bank Stadium)

@@ -1,0 +1,32 @@
+PASS  the run is complete (no fatal error)
+      complete true
+PASS  every article was fetched
+      fetched 381 of 381
+PASS  every fetched tree parsed
+      parsed 381 of 381
+PASS  the title count is the one the run was asked for
+      asked 381, answered 381
+PASS  every article has a category answer
+      answered 381 of 381
+PASS  the .txt names its coverage on line 2 as "checked N of M rows"
+      COVERAGE: checked 383 of 442 rows (the rows whose Wikidata entry names an English article); the other 59: no qid 58, wikidata names no English article 1
+PASS  ...and N is the number of rows that have an article, M the 442 rows of the results
+      N 383, M 442, rows with a title 383
+PASS  the escape premise: the raw U.S. Bank Stadium tree carries <close>&lt;/ref&gt;</close>
+      tree 16584 characters; has the escaped close: true; has a bare </ref> inside <close>: false
+PASS  ...and the same tree reads without a parser error
+      []
+PASS  control U.S. Bank Stadium is reported
+      1 Infobox template(s); roof parameters: roof="[[Skylight]]"
+PASS  control Parken Stadium is reported
+      1 Infobox template(s); roof parameters: none
+PASS  control Center Parc Stadium is reported
+      1 Infobox template(s); roof parameters: none
+PASS  control Joan C. Edwards Stadium is reported
+      1 Infobox template(s); roof parameters: none
+PASS  control NRG Stadium is reported
+      1 Infobox template(s); roof parameters: roof="[[Retractable roof|Retractable]]"
+PASS  the timing of the run is recorded, so its duration is explained and not guessed
+      442 requests in 2355 s; per-article median 484 ms, max 1130 ms; articles needing more than one attempt 37
+
+checked 15 assertions: 15 PASS, 0 FAIL

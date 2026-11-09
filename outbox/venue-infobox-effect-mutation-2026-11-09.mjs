@@ -28,6 +28,7 @@ const M = [
   ['source-flag-ignored', "source === 'categories' ? witnessOfCategories(art, joined)", "false ? witnessOfCategories(art, joined)"],
   ['categories-conflict-ignored', "if (closed.size > 1) return { state: 'conflict', cls: null, values }\n  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }\n  return { state: 'no witness', cls: null, values }\n}\n\n// --- the effect", "if (closed.size > 5) return { state: 'conflict', cls: null, values }\n  if (closed.size === 1) return { state: 'closed roof', cls: [...closed][0], values }\n  return { state: 'no witness', cls: null, values }\n}\n\n// --- the effect"],
   ['categories-vocabulary-unfiltered', "const values = art.categories.visible.filter(c => ROOFISH.test(c))", "const values = art.categories.visible"],
+  ['args-file-excluded-when-no-flag', "const valueOf = new Set([ji >= 0 ? ji + 1 : -1, si >= 0 ? si + 1 : -1])", "const valueOf = new Set([ji + 1, si + 1])"],
   ['witness-values-listed-as-vocabulary', "if (v === '' || classOf(v, joined) !== 'open') continue", "if (v === '') continue"],
 ]
 let bad = 0

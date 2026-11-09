@@ -1,0 +1,437 @@
+{
+ "source": "categories",
+ "joined": {
+  "covered stadiums in the united states": "dome",
+  "skylit stadiums in the united states": "dome"
+ },
+ "probe": {
+  "run": "42668700914",
+  "at": "2026-11-09T17:51:52.119Z",
+  "complete": true
+ },
+ "rows": 442,
+ "staged": 384,
+ "skipped": [
+  {
+   "name": "Allianz Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Almaty Ortalyk Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "American Express Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Arena Egnatia",
+   "why": "no two independent families agree (wikidata, photon, wp-article)"
+  },
+  {
+   "name": "Black Desert Resort Golf Course",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Chase Field (NH)",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Children's Mercy Park",
+   "why": "no two independent families agree (wikidata, photon)"
+  },
+  {
+   "name": "Clarence T.C. Ching Athletics Complex",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Cotton Bowl",
+   "why": "ambiguous name: Cotton Bowl (Q1136764); Cotton Bowl (Q106777578)"
+  },
+  {
+   "name": "Crown Oil Arena",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "DW Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Estadi de la FAF d'Encamp",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Estadio Universitario",
+   "why": "ambiguous name: Estadio Universitario (Q771800); Estadio Universitario (Q2576232); Estádio Universitário de Lisboa (Q2645332); Estadio Universitario Alberto Chivo Cordova (Q3058824); Coimbra University Stadium (Q5141518); Estadio Universitario de Campeche (Q16492934); Estadio Universitario (UES) (Q3495897); University Stadium (Q936242)"
+  },
+  {
+   "name": "Europa Point Stadium",
+   "why": "no two independent families agree (wikidata, photon, wp-article)"
+  },
+  {
+   "name": "Field of Dreams",
+   "why": "ambiguous name: Field of Dreams (Q5447096); Field of Dreams (Q122750396)"
+  },
+  {
+   "name": "GEHA Field at Arrowhead Stadium",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Gaughan Group Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Generali-Arena",
+   "why": "ambiguous name: Letná Stadium (Q60103); Generali Arena (Q696476); Miskolc Sports Hall (Q1177762)"
+  },
+  {
+   "name": "Hillsborough",
+   "why": "no source answered with a point"
+  },
+  {
+   "name": "M. M. Roberts Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon, team-venue)"
+  },
+  {
+   "name": "Mansfield Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "McLane Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon, team-venue, wp-article)"
+  },
+  {
+   "name": "Medinah CC (No. 3)",
+   "why": "no source answered with a point"
+  },
+  {
+   "name": "Memorial Stadium",
+   "why": "ambiguous name: Memorial Stadium (Q383557); Memorial Stadium (Q3305509); David Booth Kansas Memorial Stadium (Q3305513); World War I Memorial Stadium (Q6588205); Memorial Field (Q6815406)"
+  },
+  {
+   "name": "Miejski Stadion Pilkarski Raków",
+   "why": "no two independent families agree (wikidata, photon, wp-article)"
+  },
+  {
+   "name": "Mikheil Meskhi Stadioni",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Mornflake Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Municipal Stadium-Poznan",
+   "why": "no two independent families agree (photon, wp-article)"
+  },
+  {
+   "name": "Nu Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon, wp-article)"
+  },
+  {
+   "name": "Olimpico",
+   "why": "no two independent families agree (wikidata)"
+  },
+  {
+   "name": "Olympia",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Our Lady of Lourdes Stadium",
+   "why": "no two independent families agree (nominatim, photon, team-venue)"
+  },
+  {
+   "name": "Peninsula Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "RELOC8 EM Community Stadium",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Reale Arena",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Riazor",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Rodney Parade",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Ryan Field",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "St James Park",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Stade Boréale",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Stade Jean Bouin",
+   "why": "ambiguous name: Stade Jean-Bouin (Q670499); Stade Jean-Bouin (Nîmes) (Q3495645); Stade Raymond Kopa (Q387213); Q3495643 (Q3495643); Q120162500 (Q120162500); Q118774790 (Q118774790); Q120168549 (Q120168549)"
+  },
+  {
+   "name": "Stade Vélodrome",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Stadio Artemio Franchi",
+   "why": "no two independent families agree (wikidata, nominatim, photon, wp-article)"
+  },
+  {
+   "name": "Stanford Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "TDECU Stadium",
+   "why": "no two independent families agree (wikidata, team-venue, wp-article)"
+  },
+  {
+   "name": "The Cherry Red Records Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "The Cliffs at Walnut Cove",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "The Completely-Suzuki Stadium",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "The County Ground",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "The Croud Meadow",
+   "why": "no two independent families agree (photon, wp-article)"
+  },
+  {
+   "name": "URSAPHARM-Arena an der Kaiserlinde",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Ulker Stadyumu",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Vare Areena TN",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Via Del Mare",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Vodafone Park",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Wham Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Yager Stadium",
+   "why": "ambiguous name: Yager Stadium (Q8046702); Yager Stadium (Q8046703)"
+  },
+  {
+   "name": "Yokohama Country Club",
+   "why": "no two independent families agree (nominatim, photon)"
+  }
+ ],
+ "control": {
+  "same": 384,
+  "mismatches": [],
+  "notComputable": []
+ },
+ "changed": [
+  {
+   "name": "Johan Cruijff Arena",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "retractable",
+    "basis": "categories \"Retractable-roof stadiums in Europe\""
+   },
+   "field": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "fieldState": "closed roof",
+   "wikidata": null,
+   "lead": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam.",
+   "categories": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "extract": "The Johan Cruyff Arena is the home stadium of football club Ajax since its opening and the main stadium of the Dutch capital city of Amsterdam. Built from 1993 to 1996 at a cost equivalent to €140 million, it is the largest stadium in the country. The stadium opened as the Amsterdam Arena and it was officially renamed for the 2018–19 football season, in honour of Dutch footballer Johan Cruyff who "
+  },
+  {
+   "name": "Parken Stadium",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "retractable",
+    "basis": "categories \"Retractable-roof stadiums in Europe\""
+   },
+   "field": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "fieldState": "closed roof",
+   "wikidata": null,
+   "lead": "Parken is a football stadium in the Indre Østerbro district of Copenhagen, Denmark, built from 1990 to 1992.",
+   "categories": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "extract": "Parken is a football stadium in the Indre Østerbro district of Copenhagen, Denmark, built from 1990 to 1992. The stadium, which features a retractable roof, currently has a capacity of 38,190 for football games, and is the home of F.C. Copenhagen and the Denmark national football team. The stadium can hold up to 50,000 for concerts with an end-stage setup, or 55,000 with a centre-stage setup."
+  },
+  {
+   "name": "U.S. Bank Stadium",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "dome",
+    "basis": "categories \"Skylit stadiums in the United States\""
+   },
+   "field": [
+    "Skylit stadiums in the United States"
+   ],
+   "fieldState": "closed roof",
+   "wikidata": null,
+   "lead": "U.S.",
+   "categories": [
+    "Skylit stadiums in the United States"
+   ],
+   "extract": "U.S. Bank Stadium is an indoor stadium in Minneapolis, Minnesota, U.S. Opened in 2016, the stadium was built on the former site of the Hubert H. Humphrey Metrodome and is the home venue of the Minnesota Vikings of the National Football League (NFL). It also hosts early season college baseball games of the Minnesota Golden Gophers."
+  },
+  {
+   "name": "Wembley Stadium",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "retractable",
+    "basis": "categories \"Retractable-roof stadiums in Europe\""
+   },
+   "field": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "fieldState": "closed roof",
+   "wikidata": null,
+   "lead": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England.",
+   "categories": [
+    "Retractable-roof stadiums in Europe"
+   ],
+   "extract": "Wembley Stadium, branded as Wembley Stadium connected by EE for sponsorship reasons, is an association football stadium in Wembley, London, England. It opened in 2007 on the site of the original Wembley Stadium, which had stood from 1923 until 2000. The stadium is England's national football stadium, and thus hosts the majority of the England national team home matches and the FA Cup Final – the f"
+  }
+ ],
+ "confirmed": [
+  "AT&T Stadium",
+  "Alamodome",
+  "Allegiant Stadium",
+  "Caesars Superdome",
+  "Decathlon Arena - Stade Pierre-Mauroy",
+  "Deutsche Bank Park",
+  "Fargodome",
+  "Ford Field",
+  "JMA Wireless Dome",
+  "Lucas Oil Stadium",
+  "Merkur Spiel-Arena",
+  "NRG Stadium",
+  "Reliant Stadium",
+  "Santiago Bernabéu",
+  "SoFi Stadium",
+  "State Farm Stadium",
+  "Veltins Arena"
+ ],
+ "agreement": {
+  "agree": [
+   "AT&T Stadium",
+   "Alamodome",
+   "Allegiant Stadium",
+   "Caesars Superdome",
+   "Decathlon Arena - Stade Pierre-Mauroy",
+   "Deutsche Bank Park",
+   "Fargodome",
+   "Ford Field",
+   "JMA Wireless Dome",
+   "Lucas Oil Stadium",
+   "Merkur Spiel-Arena",
+   "NRG Stadium",
+   "Reliant Stadium",
+   "Santiago Bernabéu",
+   "SoFi Stadium",
+   "State Farm Stadium",
+   "Veltins Arena"
+  ],
+  "silent": [],
+  "disagree": []
+ },
+ "witnessStates": {
+  "no roof category": 361,
+  "closed roof": 21,
+  "no witness": 1,
+  "no article": 1
+ },
+ "vocab": {
+  "Retractable-pitch stadiums": [
+   {
+    "name": "Allegiant Stadium",
+    "roof": "dome",
+    "kind": "evidence",
+    "status": "accepted"
+   },
+   {
+    "name": "Santiago Bernabéu",
+    "roof": "retractable",
+    "kind": "evidence",
+    "status": "accepted"
+   },
+   {
+    "name": "State Farm Stadium",
+    "roof": "retractable",
+    "kind": "evidence",
+    "status": "accepted"
+   },
+   {
+    "name": "Tottenham Hotspur Stadium",
+    "roof": "open",
+    "kind": "inferred",
+    "status": "accepted"
+   },
+   {
+    "name": "Veltins Arena",
+    "roof": "retractable",
+    "kind": "evidence",
+    "status": "accepted"
+   }
+  ],
+  "Caesars Superdome": [
+   {
+    "name": "Caesars Superdome",
+    "roof": "dome",
+    "kind": "evidence",
+    "status": "accepted"
+   }
+  ]
+ }
+}
