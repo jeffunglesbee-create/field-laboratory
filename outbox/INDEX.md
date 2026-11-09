@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b247c68` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | feat: a read-only probe of the infobox Roof field and the categories of each venue article |
+| `b247c68` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.mjs](venue-infobox-mutation-2026-11-09.mjs) | feat: a read-only probe of the infobox Roof field and the categories of each venue article |
+| `b247c68` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.txt](venue-infobox-mutation-2026-11-09.txt) | feat: a read-only probe of the infobox Roof field and the categories of each venue article |
+| `afddd7a` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `035a20a` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: Task 2 of the venue remainder measured and stopped, 2 of 4 changed roofs not safe |
+| `035a20a` | 2026-11-09 | [venue-lead-whole-2026-11-09.md](venue-lead-whole-2026-11-09.md) | docs: Task 2 of the venue remainder measured and stopped, 2 of 4 changed roofs not safe |
 | `30ac490` | 2026-11-09 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-09T16:50 [skip ci] |
 | `a6f99c2` | 2026-11-09 | [venue-lead-whole-diff-2026-11-09.json](venue-lead-whole-diff-2026-11-09.json) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
 | `a6f99c2` | 2026-11-09 | [venue-lead-whole-diff-2026-11-09.mjs](venue-lead-whole-diff-2026-11-09.mjs) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
