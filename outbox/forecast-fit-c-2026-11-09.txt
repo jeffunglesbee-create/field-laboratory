@@ -1,0 +1,118 @@
+rule block (from its begin marker to its end marker, 79 lines) sha256 36d98f5df1f891265024b15b3921e3a8369b4b144bac9a24a36d2eeb7b5ca13f
+training 2025-26: 380 matches, 370 forecastable, 330 with both clubs on >= 5 games (fit set), 40 opening-week
+test 2024-25: 380 matches, 370 forecastable, 330 with both clubs on >= 5 games (rule set), 40 opening-week; bundle sha256 1e3dfc3e3de1be0ec44cba04bb6f01f2cbb0de39e226129e67adee3cc5772221
+this season 2026-27: 100 matches, 90 forecastable, 50 with both clubs on >= 5 games (rule set), 40 opening-week; bundle sha256 074a2512965761773bca2448b2437f94866b9a684b0ec023072d45539bae60c7
+the parametrised model at table-v1's constants vs the compiled model: 830 forecasts, max abs difference 0.00e+0
+
+BASE-RATE FORECAST (home / draw / away shares of the 330 training matches, the same for every match): 0.421 / 0.273 / 0.306
+
+FIT (maximum likelihood on the 330 training forecasts; log loss summed over the matches):
+  table-v1 (home 0.30, scale 0.55, draw 0.28*exp(-|gap|/1.10)): total log loss 380.63, per match 1.153
+  C: home 0.422 +/- 0.172, scale 1.144 +/- 0.223, draw share 0.273 +/- 0.025; total log loss 340.90 (39.73 below table-v1's); per match 1.033
+     solvers: Nelder-Mead and golden-section coordinate descent end 4.0e-13 apart in log loss; |gradient| max 3.9e-6; Hessian positive definite: true; a fitted constant on a bound: false
+  ROUNDED TO TWO DECIMALS (what would ship as table-v2): home +0.42, scale 1.14, draw share 0.27 for every match
+
+2025-26, 5-fold cross-validated (n 330; quoted in the rule block): Brier C 0.6292, table-v1 0.6890, base rate 0.6614, uniform 0.6667; paired z against table-v1 -3.45, against the base rate -2.94; home-win slope 1.01 +/- 0.22
+
+SCORES, C (rounded) against table-v1, the base-rate forecast and a uniform guess; "z" = paired mean difference / its standard error, negative favours C:
+2024-25 RULE SET, both clubs >= 5 games        n 330 | Brier C 0.6000 v1 0.6524 base 0.6528 uniform 0.6667 | C-v1 -0.052 +/- 0.018 z -2.93 | C-base -0.053 +/- 0.012 z -4.41 | C-uniform z -4.62
+                                                  log loss C 1.000 v1 1.106 base 1.078 | C-v1 z -3.34 | C-base z -4.39
+2024-25 opening weeks (1-4 games)              n  40 | Brier C 0.6041 v1 0.7252 base 0.6802 uniform 0.6667 | C-v1 -0.121 +/- 0.064 z -1.90 | C-base -0.076 +/- 0.043 z -1.77 | C-uniform z -1.25
+                                                  log loss C 0.990 v1 1.303 base 1.118 | C-v1 z -2.13 | C-base z -2.00
+2026-27 RULE SET, both clubs >= 5 games        n  50 | Brier C 0.6502 v1 0.7392 base 0.6375 uniform 0.6667 | C-v1 -0.089 +/- 0.045 z -1.98 | C-base +0.013 +/- 0.040 z 0.32 | C-uniform z -0.38
+                                                  log loss C 1.093 v1 1.266 base 1.056 | C-v1 z -2.07 | C-base z 0.58
+2026-27 opening weeks (1-4 games)              n  40 | Brier C 0.6823 v1 0.9082 base 0.6950 uniform 0.6667 | C-v1 -0.226 +/- 0.064 z -3.54 | C-base -0.013 +/- 0.052 z -0.25 | C-uniform z 0.30
+                                                  log loss C 1.115 v1 1.703 base 1.139 | C-v1 z -3.30 | C-base z -0.26
+2025-26 in-sample, both clubs >= 5 games       n 330 | Brier C 0.6229 v1 0.6890 base 0.6545 uniform 0.6667 | C-v1 -0.066 +/- 0.017 z -3.87 | C-base -0.032 +/- 0.011 z -2.90 | C-uniform z -3.22
+                                                  log loss C 1.033 v1 1.153 base 1.081 | C-v1 z -4.07 | C-base z -3.03
+
+CALIBRATION of the home-win probability (calibrated = slope 1.00, intercept 0.00):
+C, 2024-25 (the rule set)                                  n 330: slope 1.18 +/- 0.21, intercept 0.05 +/- 0.13
+table-v1, 2024-25                                          n 330: slope 0.44 +/- 0.08, intercept -0.36 +/- 0.12
+C, 2026-27                                                 n  50: slope 0.25 +/- 0.39, intercept 0.03 +/- 0.33
+C, 2025-26 in-sample (rounded constants)                   n 330: slope 1.07 +/- 0.22, intercept 0.03 +/- 0.13
+
+RULE
+  PASS N1 2024-25 rule set: C beats table-v1, paired z <= -2 [z -2.93, n 330]
+  PASS N2 2024-25 rule set: C beats the base-rate forecast, paired z <= -1.645 [z -4.41, n 330, Brier C 0.6000 vs base 0.6528]
+  PASS N3 2024-25 rule set: C's home-win slope is within 1.96 standard errors of 1 [slope 1.18 +/- 0.21]
+  PASS N4 opening weeks, 2024-25 and 2026-27: C is no worse than table-v1 [2024-25 0.604 vs 0.725 (n 40), 2026-27 0.682 vs 0.908 (n 40)]
+  PASS N5 2026-27 rule set: C beats table-v1, paired z < 0 (a tripwire) [z -1.98, n 50]
+  PASS N6 the fit on 2025-26 is well posed [true]
+  (N7, every integrity check, is judged after the check list below)
+
+REPORTED, NOT GATING:
+  2024-25 rule set, C's mean probability vs how often it happened: home 42% vs 42%, draw 27% vs 24% (binomial SE 2.3 points), away 31% vs 35%
+  2024-25 rule set, table-v1 for comparison: draw 14% vs 24%
+  2024-25, every forecastable match (n 370): Brier C 0.6004 vs table-v1 0.6602; z -3.44
+  reverse fold: C fitted on 2024-25 alone: home 0.259 +/- 0.145, scale 1.015 +/- 0.166, draw share 0.236 +/- 0.023 (well posed: true); scored on 2025-26's 330 (rounded): Brier 0.6267 vs table-v1 0.6890, z -4.24
+  pooled constants (2025-26 + 2024-25, 660 forecasts; what a LATER revision would start from, not what ships): home 0.334 +/- 0.110, scale 1.070 +/- 0.133, draw share 0.255 +/- 0.017 (well posed: true)
+
+CHECKS
+PASS verdict logic: a candidate that meets every rule ships 
+PASS verdict logic: N1 (z -1.99) alone vetoes, and says so [N1 2024-25 paired z against table-v1 -1.99 is not <= -2]
+PASS verdict logic: N1 at z -2.0 still ships 
+PASS verdict logic: N2 (z -1.64) alone vetoes, and says so [N2 2024-25 paired z against the base-rate forecast -1.64 is not <= -1.645]
+PASS verdict logic: N2 at z -1.645 still ships 
+PASS verdict logic: N3 (slope 0.55, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 0.55 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 (slope 0.60, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 0.60 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 just inside its lower edge (slope 0.61, SE 0.2) still ships 
+PASS verdict logic: N3 (slope 1.45, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 1.45 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 (slope 1.40, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 1.40 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 just inside its upper edge (slope 1.39, SE 0.2) still ships 
+PASS verdict logic: N4 (opening weeks worse in 2024-25) alone vetoes, and says so [N4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: N4 (opening weeks worse in 2026-27) alone vetoes, and says so [N4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: N4 with equal opening-week Briers still ships 
+PASS verdict logic: N5 (z 0) alone vetoes, and says so [N5 2026-27 paired z against table-v1 0.00 is not < 0]
+PASS verdict logic: N5 (z +0.5) alone vetoes, and says so [N5 2026-27 paired z against table-v1 0.50 is not < 0]
+PASS verdict logic: N5 just below zero still ships 
+PASS verdict logic: N6 alone vetoes, and says so [N6 the fit is not well posed]
+PASS verdict logic: N7 alone vetoes, and says so [N7 an integrity check failed]
+PASS verdict logic: a NaN N1 z alone vetoes, and says so [N1 2024-25 paired z against table-v1 NaN is not <= -2]
+PASS verdict logic: a NaN N2 z alone vetoes, and says so [N2 2024-25 paired z against the base-rate forecast NaN is not <= -1.645]
+PASS verdict logic: a NaN slope alone vetoes, and says so [N3 2024-25 home-win slope NaN (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: a NaN opening-weeks Brier alone vetoes, and says so [N4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: a NaN N5 z alone vetoes, and says so [N5 2026-27 paired z against table-v1 NaN is not < 0]
+PASS the rule block is delimited by exactly one begin and one end marker, in that order 
+PASS precondition: the prior-season script, run on these sources, exits 0 with no red check [26 of 26 checks hold; coverage: 1 season (380 matches), no o]
+PASS source openfootball is the pinned file (51782 bytes, sha256) [51782 B, 38c1de56c9e9b666]
+PASS training: the file parses clean, 380 matches, dates 2025-08-15..2026-05-24 
+PASS source espnFinal is the pinned file (69451 bytes, sha256) [69451 B, 53b071579c206763]
+PASS training: the final table the results make equals ESPN's, club by club (20 of 20 on played, points, GF, GA) 
+PASS training: no club carries a deduction 
+PASS 2024-25: the bundle records the four pinned raw files, by bytes and sha256 
+PASS 2024-25: the ESPN payload is the 2024-25 season (season 2024, "English Premier League 2024-2025") 
+PASS 2024-25: the bundle holds 380 matches among 20 clubs, 38 each (19 home, 19 away), every ordered pair once 
+PASS 2024-25: the file's header (380 matches, 20 teams, 2024-08-16..2025-05-25) is what the bundle holds (380, 20, 2024-08-16..2025-05-25) 
+PASS 2024-25: every match's date names its own weekday (380 of 380), so a wrong year anywhere fails 
+PASS 2024-25: the matchday headings are exactly 1..38, each used 
+PASS 2024-25: no club plays twice on one date, so order within a day cannot change a table 
+PASS 2024-25: it ends before the training season begins (the seasons do not overlap) 
+PASS 2024-25: the final table the results make equals ESPN's, club by club (20 of 20 on played, points, GF, GA), 20 distinct tuples, no deductions 
+PASS 2024-25: FPL's 380 fixtures hold the same matches by date and score (0 unequal groups), pairing one-to-one (380 pairs; 0 openfootball and 0 FPL left over), clubs mapping 20 of 20 with 0 conflicts, and agreeing on date, scores and clubs (380 of 380) 
+PASS 2024-25: FPL's team list names the same 20 teams the fixtures use 
+PASS 2026-27: the bundle is the frozen file (28914 bytes, sha256) [28914 B, 074a251296576177]
+PASS 2026-27: 100 finished matches, 100 EPL rows in the archive, none unfinished 
+PASS 2026-27: the archive's finished count equals ESPN's played count for 20 of 20 clubs, and the clubs are the same 20 
+PASS 2026-27: the table the results make equals ESPN's current table (20 of 20 clubs on played, points, GF, GA); no deductions 
+PASS 2026-27: FPL's played fixtures are exactly its scored ones (100 provisional-or-final, 100 with both scores; 90 of them final, the rest in the latest matchweek) 
+PASS 2026-27: the relay's FPL fixtures hold the same 100 played matches by date and score (0 unequal groups), pairing one-to-one (100 pairs; 0 archive and 0 FPL left over), clubs mapping 20 of 20 with 0 conflicts 
+PASS 2026-27: openfootball's 45 scored lines are each an archive match on date and score (45 of 45); it has no later results to check 
+PASS 2026-27: it begins after the training season ended (the seasons do not overlap) 
+PASS 2026-27: no club plays twice on one date, so order within a day cannot change a table 
+PASS 2026-27: before normalising, the only archive name the ESPN table does not carry is "Man United" ({"Man United":8}); after it, every archive club is one of the table's 20 
+PASS the six match sets are exactly the matches with both clubs on >= 5 games, or on 1-4 games, recounted from the clubs' own games played [2025-26 rule set 330/330; 2025-26 opening weeks 40/40; 2024-25 rule set 330/330; 2024-25 opening weeks 40/40; 2026-27 rule set 50/50; 2026-27 opening weeks 40/40]
+PASS the parametrised model at the declared constants equals the compiled model on all 830 forecasts of the three seasons 
+PASS the parametrised model with infinite decay gives the same draw probability at every gap, equal to the share [0.28, 0.28, 0.28, 0.28]
+PASS table-v1 on the training set reproduces the earlier record: n 330 Brier 0.689 logloss 1.153; opening weeks n 40 Brier 0.860 logloss 1.715 [n 330 Brier 0.689 logloss 1.153; opening n 40 Brier 0.860 logloss 1.715]
+PASS table-v1 on the first 99 2026-27 matches reproduces the 2026-27 record's five bins to the digit 
+PASS C fit: the fitted constants rounded to two decimals are the ones quoted in the rule block (home 0.42, scale 1.14, draw share 0.27) [0.42, 1.14, 0.27]
+PASS C fit: the cross-validation folds partition the matches and train on none of their own test rows 
+PASS the 2025-26 cross-validated numbers equal those the rule block quotes [{"brierC":"0.6292","brierV1":"0.6890","brierBase":"0.6614","zV1":"-3.45","zBase":"-2.94","slope":"1.01","slopeSE":"0.22"}]
+PASS slope: the two unrelated solvers agree to 1e-4, all finite, on all five fits 
+PASS the 2026-27 numbers equal those the rule block quotes [{"n":50,"brierC":"0.6502","brierV1":"0.7392","brierBase":"0.6375","zV1":"-1.98","zBase":"0.32","slope":"0.25","slopeSE":"0.39","draws":"0.220"}]
+PASS the verdict function and the rule table above agree on N1-N6 
+
+63 of 63 checks hold; coverage: 3 seasons (380 + 380 + 100 matches), 330 training forecasts fitted, 330 2024-25 forecasts judged by N1-N3 (40 opening-week), 50 2026-27 forecasts judged by N5 (40 opening-week), 2024-25 cross-checked against 3 sources
+
+VERDICT: SHIP table-v2 (candidate C); constants home +0.42, scale 1.14, draw share 0.27; method statement "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
