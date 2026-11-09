@@ -12,6 +12,17 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0827a1f` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.txt](venue-infobox-mutation-2026-11-09.txt) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-read-extraction-check-2026-11-09.mjs](venue-infobox-read-extraction-check-2026-11-09.mjs) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-rule-cache-compare-2026-11-09.mjs](venue-infobox-rule-cache-compare-2026-11-09.mjs) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-rule-differential-2026-11-09.mjs](venue-infobox-rule-differential-2026-11-09.mjs) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-rule-differential-2026-11-09.txt](venue-infobox-rule-differential-2026-11-09.txt) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-rule-replay-2026-11-09.mjs](venue-infobox-rule-replay-2026-11-09.mjs) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-infobox-rule-replay-2026-11-09.txt](venue-infobox-rule-replay-2026-11-09.txt) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-source-roof-field-mutation-2026-11-09.mjs](venue-source-roof-field-mutation-2026-11-09.mjs) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `0827a1f` | 2026-11-09 | [venue-source-roof-field-mutation-2026-11-09.txt](venue-source-roof-field-mutation-2026-11-09.txt) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
+| `eca9e10` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `968ee51` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.mjs](venue-infobox-mutation-2026-11-09.mjs) | refactor: move the parse-tree reader out of the infobox probe into its own module |
 | `968ee51` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.txt](venue-infobox-mutation-2026-11-09.txt) | refactor: move the parse-tree reader out of the infobox probe into its own module |
 | `968ee51` | 2026-11-09 | [venue-infobox-read-extraction-2026-11-09.txt](venue-infobox-read-extraction-2026-11-09.txt) | refactor: move the parse-tree reader out of the infobox probe into its own module |
