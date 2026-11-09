@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a18e26a` | 2026-11-09 | [venue-us-bank-stadium-mutation-2026-11-09.txt](venue-us-bank-stadium-mutation-2026-11-09.txt) | ci: the mutation table gets four entries for the U.S. Bank Stadium row |
+| `32b2d1d` | 2026-11-09 | [venue-us-bank-stadium-2026-11-09.md](venue-us-bank-stadium-2026-11-09.md) | fix: U.S. Bank Stadium is a table row — the 2026-11-09 slate had no covered ground |
+| `32b2d1d` | 2026-11-09 | [venue-us-bank-stadium-evidence-2026-11-09.mjs](venue-us-bank-stadium-evidence-2026-11-09.mjs) | fix: U.S. Bank Stadium is a table row — the 2026-11-09 slate had no covered ground |
 | `17d28eb` | 2026-11-09 | [forecast-model-mutation-2026-11-09.txt](forecast-model-mutation-2026-11-09.txt) | ci: the mutation table gets eight entries for table-v2's constants |
 | `46398f2` | 2026-11-09 | [forecast-card-pinned.png](forecast-card-pinned.png) | feat: table-v2 — one draw share for every match, home +0.42, scale 1.14 |
 | `46398f2` | 2026-11-09 | [forecast-fit-c-at-table-v2-build-2026-11-09.txt](forecast-fit-c-at-table-v2-build-2026-11-09.txt) | feat: table-v2 — one draw share for every match, home +0.42, scale 1.14 |
