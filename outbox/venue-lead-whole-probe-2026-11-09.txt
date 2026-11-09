@@ -1,0 +1,83 @@
+# venue-lead-whole-probe-2026-11-09.mjs: measured before the change (Task 2, docs/CC-CMD-2026-11-09-venue-review-remainder.md)
+# command: node outbox/venue-lead-whole-probe-2026-11-09.mjs 268140d
+# controls: the five mutations of this script run on 2026-11-09 (B never trips; TTL 30 to 300; boundary 14 to 40; C stops excluding B rows; C never trips) took the self-test to 6/10, 8/10, 6/10, 9/10 and 7/10
+
+## self-test
+PASS  a cut lead trips all three criteria
+PASS  a whole sentence trips none
+PASS  a complete lead with no verb trips B and not C (B counts it: stated in the output)
+PASS  a lead ending "U.S." with a verb trips C and not B
+PASS  a 15-character cut is past the CC-CMD boundary and still caught by B
+PASS  doctored results: 4 rows listed, 3 carry a lead, and the coverage says so
+PASS  doctored results: A, B and C each find exactly their one row
+PASS  doctored cache: nothing expired at 29 days, the first expiry is tomorrow
+PASS  doctored cache: an entry at 31 days is counted expired
+PASS  doctored results: with every lead whole, A, B and C find nothing
+
+10/10 checks passed
+
+## measurement
+results and cache read from git rev 268140d; clock 2026-11-09T15:58:37.082Z
+candidates 442: 372 accepted, 70 review; 442 rows listed
+COVERAGE: checked 383 of 442 rows (the others carry no lead: no article, or never reached the roof rule)
+
+A. lead of 14 characters or fewer (the CC-CMD's criterion): 9 rows, 8 accepted as open on "inferred"
+  accepted   7 "Amon G. Carter Stadium"                 "Amon G."  [accepted as open, inferred]
+  accepted   7 "Doak Campbell Stadium"                  "Doak S."  [accepted as open, inferred]
+  accepted   7 "Doyt L. Perry Stadium"                  "Doyt L."  [accepted as open, inferred]
+  accepted  10 "Elliott T. Bowers Stadium"              "Elliott T."  [accepted as open, inferred]
+  accepted   9 "Gerald J. Ford Stadium"                 "Gerald J."  [accepted as open, inferred]
+  accepted   7 "Joan C. Edwards Stadium"                "Joan C."  [accepted as open, inferred]
+  accepted   3 "St. James' Park"                        "St."  [accepted as open, inferred]
+  accepted   9 "Williams Stadium (VA)"                  "Arthur L."  [accepted as open, inferred]
+  review     4 "U.S. Bank Stadium"                      "U.S."
+
+B. lead with no is/are/was/were in it, at any length: 19 rows, 18 accepted as open on "inferred"
+  accepted  30 "Allen E. Paulson Stadium"               "Evans Family Field at Allen E."  [accepted as open, inferred]
+  accepted   7 "Amon G. Carter Stadium"                 "Amon G."  [accepted as open, inferred]
+  accepted 174 "DKR-Texas Memorial Stadium"             "e to the Longhorns football team since 1924."  [accepted as open, inferred]
+  accepted   7 "Doak Campbell Stadium"                  "Doak S."  [accepted as open, inferred]
+  accepted   7 "Doyt L. Perry Stadium"                  "Doyt L."  [accepted as open, inferred]
+  accepted  10 "Elliott T. Bowers Stadium"              "Elliott T."  [accepted as open, inferred]
+  accepted  15 "Estádio Dr. Magalhaes Pessoa"           "The Estádio Dr."  [accepted as open, inferred]
+  accepted   9 "Gerald J. Ford Stadium"                 "Gerald J."  [accepted as open, inferred]
+  accepted  18 "H. A. Chapman Stadium"                  "Skelly Field at H."  [accepted as open, inferred]
+  accepted  22 "Houchens Industries-L.T. Smith Stadium" "Houchens Industries–L."  [accepted as open, inferred]
+  accepted   7 "Joan C. Edwards Stadium"                "Joan C."  [accepted as open, inferred]
+  accepted  15 "Malone Stadium"                         "FMOL Health/St."  [accepted as open, inferred]
+  accepted  22 "S.B. Ballard Stadium"                   "Kornblau Field at S.B."  [accepted as open, inferred]
+  accepted  62 "Scott Stadium"                          "full The Carl Smith Center, home of David A."  [accepted as open, inferred]
+  accepted  60 "St. Andrew's Stadium"                   "wn since 2024 for sponsorship reasons as St."  [accepted as open, inferred]
+  accepted   3 "St. James' Park"                        "St."  [accepted as open, inferred]
+  accepted  53 "Stadion im. Ernesta Pohla"              " Zabrze, officially known as the Stadion im."  [accepted as open, inferred]
+  accepted   9 "Williams Stadium (VA)"                  "Arthur L."  [accepted as open, inferred]
+  review     4 "U.S. Bank Stadium"                      "U.S."
+
+C. lead that ENDS like a name but has a verb (cut or complete: this text cannot say): 14 rows
+  accepted 135 "Acrisure Stadium"                       "ighborhood of Pittsburgh, Pennsylvania, U.S."  [accepted as open, inferred]
+  accepted 135 "Bellerive Country Club"                 " and Country, Missouri, a suburb west of St."  [accepted as open, inferred]
+  accepted 103 "Caesars Superdome"                      "door stadium in New Orleans, Louisiana, U.S."
+  accepted 117 "Deepdale"                               "hat is the home ground of Preston North End."  [accepted as open, inferred]
+  accepted  84 "Energizer Park"                         "a 22,423-seat soccer-specific stadium in St."  [accepted as open, inferred]
+  accepted 101 "Falcon Stadium"                         "ern United States, on the campus of the U.S."  [accepted as open, inferred]
+  accepted  58 "Ford Field"                             "an indoor stadium in Detroit, Michigan, U.S."
+  accepted  99 "Kybunpark"                              "Kybunpark, is a multi-purpose stadium in St."  [accepted as open, inferred]
+  accepted  72 "M&T Bank Stadium"                       "purpose stadium in Baltimore, Maryland, U.S."  [accepted as open, inferred]
+  accepted 167 "MCH Arena"                              " Herning complex and owned by MCH Group A/S."  [accepted as open, inferred]
+  accepted  71 "Michie Stadium"                         "r football stadium on the campus of the U.S."  [accepted as open, inferred]
+  accepted 103 "NRG Stadium"                            "actable roof stadium in Houston, Texas, U.S."
+  accepted 143 "Northwest Stadium"                      "ld 2.5 miles (4 km) east of Washington, D.C."  [accepted as open, inferred]
+  accepted 103 "Reliant Stadium"                        "actable roof stadium in Houston, Texas, U.S."
+
+cache, by key kind (at = when the entry was stored):
+  wd-search              551  oldest 2026-10-22T01:59:47.068Z  newest 2026-10-22T17:18:18.882Z  expired now 0
+  nominatim              578  oldest 2026-10-22T01:59:49.753Z  newest 2026-10-24T23:06:07.628Z  expired now 0
+  photon                 578  oldest 2026-10-22T01:59:50.670Z  newest 2026-10-24T23:06:08.463Z  expired now 0
+  wd-roof                387  oldest 2026-10-22T15:17:48.283Z  newest 2026-10-24T23:06:10.349Z  expired now 0
+  wd-sparql-standing     468  oldest 2026-10-22T16:58:12.822Z  newest 2026-10-22T17:18:23.928Z  expired now 0
+  wp-lead                382  oldest 2026-10-22T17:42:04.341Z  newest 2026-10-24T23:06:11.409Z  expired now 0
+  wp-bodyroof            382  oldest 2026-10-22T17:42:04.696Z  newest 2026-10-24T23:06:12.533Z  expired now 0
+  wd-occupants           403  oldest 2026-10-24T17:58:53.424Z  newest 2026-10-24T18:53:49.534Z  expired now 0
+  wp-team                378  oldest 2026-10-24T22:25:36.372Z  newest 2026-10-24T23:06:06.208Z  expired now 0
+  nm-reverse              87  oldest 2026-10-24T22:25:37.922Z  newest 2026-10-24T23:06:09.969Z  expired now 0
+TTL 30 days: the first entry expires 2026-11-21T01:59:47.068Z; expired at the clock above: 0

@@ -749,6 +749,27 @@ const MUTATIONS = [
     expect: 'node scripts/venue-source.mjs --self-test',
   },
   {
+    // The lead was cut at the first full stop and a space: "U.S. Bank Stadium is an
+    // indoor stadium" read as "U.S.", a lead that names no roof, and the venue went to
+    // review with the roof unknown. docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 2.
+    id: 'venue-source-summary-cut-at-first-stop',
+    file: 'scripts/venue-source.mjs',
+    claim: 'the Wikipedia summary is read whole: an initial or abbreviation in a name does not end the lead',
+    find: "{ ok: true, value: r.value.extract || '' }",
+    replace: "{ ok: true, value: (r.value.extract || '').split(/(?<=\\.)\\s/)[0] }",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
+    // wp-lead holds sentences cut at initials. Kept as a live kind, a re-run would
+    // answer from those and the fix would never reach the 30-day-old entries.
+    id: 'venue-source-retired-lead-kind-kept',
+    file: 'scripts/venue-source.mjs',
+    claim: 'the retired wp-lead cache kind is dropped on load and never read as a summary',
+    find: "'wd-roof', 'wp-summary', ",
+    replace: "'wd-roof', 'wp-lead', 'wp-summary', ",
+    expect: 'node scripts/venue-source.mjs --self-test',
+  },
+  {
     // An arena dropped from the list is a slate the render check calls a
     // coverage gap again.
     id: 'indoor-arena-unrecorded',

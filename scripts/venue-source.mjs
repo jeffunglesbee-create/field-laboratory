@@ -91,7 +91,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 // The key kinds this script still asks for. A kind it no longer asks for is
 // dropped on load: the cache is committed, and a retired key is weight with no
 // reader (8.2 MB on 2026-10-22, 3.5 MB of it whole article bodies).
-const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof', 'wp-team', 'nm-reverse'])
+const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-summary', 'wp-bodyroof', 'wp-team', 'nm-reverse'])
 export const liveEntries = c => Object.fromEntries(Object.entries(c).filter(([k]) => CACHE_KINDS.has(k.split('|')[0])))
 export const loadCache = () => (existsSync(CACHE_PATH) ? liveEntries(JSON.parse(readFileSync(CACHE_PATH, 'utf8'))) : {})
 export const saveCache = c => { mkdirSync('outbox', { recursive: true }); writeFileSync(CACHE_PATH, JSON.stringify(c, null, 1) + '\n') }
@@ -548,6 +548,27 @@ const selfTest = () => {
   check('roof: ...and a body with no roof words leaves the inference standing',
     decideRoof(null, 'X is a stadium in Y.', 'It holds 30,000 people.').roof === 'open')
 
+  // The lead is the summary's extract, whole (docs/CC-CMD-2026-11-09-venue-review-remainder.md,
+  // Task 2). USB is U.S. Bank Stadium's first sentence as the fetch tool read it on 2026-11-09
+  // (outbox/venue-us-bank-stadium-2026-11-09.md, section 3); AMON and GONE are fixtures of the
+  // same shape. `cut` is the derivation this replaced: every fixture must fail THAT way, or the
+  // check proves nothing.
+  const USB = 'U.S. Bank Stadium is an indoor stadium in Minneapolis, Minnesota, U.S.'
+  const AMON = 'Amon G. Carter Stadium is a stadium in Y. It has a Z.'
+  const GONE = 'Doak S. Campbell Stadium was a stadium in Y. It was torn down.'
+  const cut = e => e.split(/(?<=\.)\s/)[0]
+  const whole = e => summaryAnswer({ ok: true, value: { extract: e } })
+  check('lead: the old cut reads U.S. Bank Stadium as "U.S." and so as open (the fixture fails the old way)',
+    cut(USB) === 'U.S.' && decideRoof(null, cut(USB), '').roof === 'open')
+  check('LEAD: THE SUMMARY IS READ WHOLE, so U.S. Bank Stadium is a dome',
+    whole(USB).value === USB && decideRoof(null, whole(USB).value, '').roof === 'dome')
+  check('lead: "Amon G. Carter Stadium is ..." is read whole, where the cut left "Amon G."',
+    cut(AMON) === 'Amon G.' && whole(AMON).value === AMON)
+  check('lead: a cut lead hid a demolished building from the past-tense witness, the whole one shows it',
+    !pastTense(cut(GONE)) && pastTense(whole(GONE).value))
+  check('the cache drops the retired first-sentence kind and keeps the summary kind',
+    Object.keys(liveEntries({ 'wp-lead|X': 1, 'wp-summary|X': 2 })).join() === 'wp-summary|X')
+
   finish(summarize())
 }
 
@@ -592,6 +613,17 @@ export const decideRoof = (wikidataRoof, lead, body = null) => {
   return { roof: null, basis: 'no Wikipedia lead and no Wikidata roof' }
 }
 
+/**
+ * The Wikipedia lead as the roof rule reads it: the REST summary's `extract`, WHOLE.
+ * The summary is already the lead paragraph, bounded by the API, so this is a
+ * structural unit and not a parse. It was cut at the first full stop followed by a
+ * space, which read "U.S. Bank Stadium is an indoor stadium in Minneapolis" as
+ * "U.S." and "Amon G. Carter Stadium is ..." as "Amon G.": a lead that says nothing,
+ * which the roof rule then read as open (docs/CC-CMD-2026-11-09-venue-review-remainder.md,
+ * Task 2). A failed request passes through unchanged, so `cached` does not keep it.
+ */
+export const summaryAnswer = r => (r.ok ? { ok: true, value: r.value.extract || '' } : r)
+
 const roofOf = async (qid, cache) => {
   if (!qid) return decideRoof(null, null)
   const sparql = `SELECT ?roofLabel ?article WHERE { OPTIONAL { wd:${qid} wdt:P5624 ?roof . } OPTIONAL { ?article schema:about wd:${qid} ; schema:isPartOf <https://en.wikipedia.org/> . } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } LIMIT 1`
@@ -602,12 +634,12 @@ const roofOf = async (qid, cache) => {
   let lead = null, body = null, unanswered = null
   const title = b.article?.value?.split('/wiki/')[1]
   if (title) {
-    // Only what is used is cached: the lead sentence, and whether the body
-    // mentions a moving roof (the matched words, or '' for none).
-    const sum = await cached(cache, `wp-lead|${title}`, async () => {
-      const r = await getJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${title}`)
-      return r.ok ? { ok: true, value: (r.value.extract || '').split(/(?<=\.)\s/)[0] } : r
-    }, 1000)
+    // Only what is used is cached: the lead paragraph (the summary's extract,
+    // whole), and whether the body mentions a moving roof (the matched words, or
+    // '' for none). `wp-summary`, not `wp-lead`: the retired kind holds sentences
+    // cut at initials, and a key kind nothing asks for is dropped on load.
+    const sum = await cached(cache, `wp-summary|${title}`, async () =>
+      summaryAnswer(await getJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${title}`)), 1000)
     if (sum.ok) lead = sum.value
     const full = await cached(cache, `wp-bodyroof|${title}`, async () => {
       const r = await getJson(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&titles=${title}`)
