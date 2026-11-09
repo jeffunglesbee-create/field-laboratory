@@ -11,17 +11,17 @@
 //   2. nothing else moved, nothing is on one side only, and no row changed its basis alone (an infobox that agrees with a source changes nothing, the basis included);
 //   3. the 8 stub-lead rows are named, each with its roof and status before and after.
 //
-// "The 8 stub-lead rows" is defined only by the CC-CMD's Done-when line, so the definition is measured here and checked against the CC-CMD's own numbers: a row whose
-// old first-sentence lead is at most STUB_MAX characters is a stub (a bare initial or abbreviation: "Doak S.", "St.", "U.S."). That is 9 rows, the CC-CMD's "9 stubs
-// cached under wp-lead", and 8 once U.S. Bank Stadium, which has its own condition, is counted apart. A different count fails the run: the definition is wrong, and
-// the report would be naming the wrong rows.
+// "The 8 stub-lead rows" are defined by the CC-CMD's own count, "9 of 442 are 14 characters or fewer, 8 accepted as open" (reproduced exactly as probe criterion A in
+// outbox/venue-lead-whole-2026-11-09.md): a row whose old first-sentence lead is at most STUB_MAX characters is a stub (a bare initial or abbreviation: "Doak S.", "St.",
+// "U.S."). That is 9 rows, 8 of them accepted as open once U.S. Bank Stadium, which has its own condition and is in review, is counted apart. A different count, or one of
+// the 8 not accepted as open, fails the run: the definition is wrong, and the report would be naming the wrong rows.
 
 import { execFileSync } from 'node:child_process'
 import { createChecks, finish, isMain } from '../scripts/checks.mjs'
 import { compare } from './venue-lead-whole-diff-2026-11-09.mjs'
 
 const RESULTS = 'outbox/venue-source-results-latest.json'
-export const STUB_MAX = 10
+export const STUB_MAX = 14
 export const STUBS_IN_CC_CMD = 9
 export const STUB_ROWS_IN_CC_CMD = 8
 export const US_BANK = 'U.S. Bank Stadium'
@@ -65,6 +65,7 @@ export const judge = (oldR, newR) => {
   for (const b of c.basisOnly) problems.push(`${b.name} changed its basis alone: ${JSON.stringify(b.before.basis)} -> ${JSON.stringify(b.after.basis)}`)
   if (stubs.length !== STUBS_IN_CC_CMD) problems.push(`the stub definition (a lead of at most ${STUB_MAX} characters) finds ${stubs.length} rows, and the CC-CMD counts ${STUBS_IN_CC_CMD}`)
   if (stubs.filter(s => s.name !== US_BANK).length !== STUB_ROWS_IN_CC_CMD) problems.push(`the stub rows other than ${US_BANK} number ${stubs.filter(s => s.name !== US_BANK).length}, and the CC-CMD counts ${STUB_ROWS_IN_CC_CMD}`)
+  for (const s of stubs.filter(x => x.name !== US_BANK)) if (s.before?.status !== 'accepted' || s.before?.roof !== 'open') problems.push(`stub row ${s.name} was not accepted as open before, and the CC-CMD counts ${STUB_ROWS_IN_CC_CMD} accepted as open: ${s.before?.status}, roof ${s.before?.roof}`)
   for (const s of stubs) if (!s.after) problems.push(`stub row ${s.name} is not in the new results`)
   return { c, missing, wrong, unexpected, stubs, problems }
 }
@@ -110,9 +111,9 @@ const selfTest = async () => {
     JSON.stringify(REPLAY))
   const STUB_NAMES = ['Amon G. Carter Stadium', 'Doak Campbell Stadium', 'Doyt L. Perry Stadium', 'Elliott T. Bowers Stadium', 'Gerald J. Ford Stadium', 'Joan C. Edwards Stadium', "St. James' Park", 'Williams Stadium (VA)']
   const row = (name, o = {}) => ({ name, lat: 1, lon: 2, zone: 'UTC', qid: `Q-${name}`, agreeing: ['wikidata', 'nominatim'], via: 'x', roof: 'open', roofBasis: 'inferred: the lead names no roof', lead: 'A long first sentence naming no roof.', ...o })
-  const reviewRow = name => row(name, { roof: null, roofBasis: 'the lead names no roof, but the article mentions "retractable roof"', why: 'roof: the lead names no roof, but the article mentions "retractable roof"', lead: name === US_BANK ? 'U.S.' : 'A sentence.' })
+  const reviewRow = name => row(name, { roof: null, roofBasis: 'the lead names no roof, but the article mentions "retractable roof"', why: 'roof: the lead names no roof, but the article mentions "retractable roof"', lead: name === US_BANK ? 'U.S.' : 'A first sentence naming no roof.' })
   const oldR = { accepted: [row('Filler A'), row('Filler B', { roof: 'dome', roofBasis: 'wikipedia lead' }), ...STUB_NAMES.map(n => row(n, { lead: n.slice(0, 7) }))], review: EXPECTED.map(e => reviewRow(e.name)) }
-  const accept = e => ({ ...row(e.name, { roof: e.roof, roofBasis: e.basis, lead: e.name === US_BANK ? 'U.S.' : 'A sentence.' }) })
+  const accept = e => ({ ...row(e.name, { roof: e.roof, roofBasis: e.basis, lead: e.name === US_BANK ? 'U.S.' : 'A first sentence naming no roof.' }) })
   const newOf = (mutate = () => {}) => {
     const n = { accepted: [...oldR.accepted.map(x => ({ ...x }))], review: [] }
     n.accepted.push(...EXPECTED.map(accept))
@@ -143,7 +144,9 @@ const selfTest = async () => {
   check('A COUNT OF 9 THAT IS NOT U.S. BANK STADIUM PLUS 8 OTHERS IS CAUGHT', (j => j.stubs.length === 9 && j.problems.some(p => /other than U\.S\. Bank Stadium number 9, and the CC-CMD counts 8/.test(p)))(judge(swapped, { accepted: [...swapped.accepted, ...EXPECTED.map(accept)], review: [] })))
   const fewer = { ...oldR, accepted: oldR.accepted.filter(x => x.name !== 'Doak Campbell Stadium') }
   check('A STUB DEFINITION THAT FINDS ANOTHER COUNT THAN THE CC-CMD\'S IS CAUGHT, not reported as the 8 rows', (j => j.problems.some(p => /finds 8 rows, and the CC-CMD counts 9/.test(p)))(judge(fewer, { accepted: fewer.accepted.map(x => ({ ...x })).concat(EXPECTED.map(accept)), review: [] })))
-  check('a lead of 10 characters is a stub and one of 11 is not', stubRows({ accepted: [row('Ten', { lead: '0123456789' }), row('Eleven', { lead: '0123456789a' })], review: [] }, { accepted: [], review: [] }).map(s => s.name).join() === 'Ten')
+  check('a lead of 14 characters is a stub and one of 15 is not, the CC-CMD\'s own boundary', stubRows({ accepted: [row('Fourteen', { lead: '0123456789abcd' }), row('Fifteen', { lead: '0123456789abcde' })], review: [] }, { accepted: [], review: [] }).map(s => s.name).join() === 'Fourteen')
+  const notOpen = { accepted: oldR.accepted.map(x => (x.name === 'Doak Campbell Stadium' ? { ...x, roof: 'dome' } : x)), review: oldR.review }
+  check('A STUB ROW THAT WAS NOT ACCEPTED AS OPEN BEFORE IS CAUGHT, the CC-CMD counts 8 accepted as open', judge(notOpen, { accepted: [...notOpen.accepted, ...EXPECTED.map(accept)], review: [] }).problems.some(p => /stub row Doak Campbell Stadium was not accepted as open before/.test(p)))
   const text = report(good, 'OLD', 'NEW')
   check('the report names each of the 8 stub rows with its roof before and after', STUB_NAMES.every(n => text.includes(JSON.stringify(n))) && (text.match(/roof before open  after open/g) ?? []).length === 8, text.split('\n').filter(l => /STUB/.test(l)).join(' | '))
   check('...and carries both denominators and the three changed rows', /COVERAGE: compared 13 of 13 old rows and 13 new rows/.test(text) && EXPECTED.every(e => text.includes(`${e.name}   [review -> accepted]`)), text.split('\n')[1])
