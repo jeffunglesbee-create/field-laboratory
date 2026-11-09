@@ -1,5 +1,7 @@
 # The EPL forecast on the card — session 2026-11-08
 
+> **Updated 2026-11-09:** the model shipped as `table-v2` (`46398f2`). Every string below that reads `table-v1` is 2026-11-08's and stays as that day's record; the same card now reads `model table-v2 — …`, and the wiring proof for it is `outbox/forecast-deployed-wiring-2026-11-09.{json,png,txt}` (record: `outbox/cc-session-2026-11-09-fit-c.md`, Phase B). The one pattern that is a live instruction, the done condition under "STAGED", is corrected in place.
+
 **Repo:** field-laboratory · **Branch:** main · **Commissioned by:** the owner's "Next approved", Sun 2026-11-08 11:27 ET, approving the one next step of the previous report: *build the EPL forecast onto the lab's EPL cards from `Forecast.fs`; cards with no market price show the model alone, labelled by provenance.*
 
 **Governing document:** `docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md`. Its rulings, which this work was built to and which are enforced in code rather than promised here: Rule F is cleared for a modelled forecast and Rule A is not (pull only); a difference from the market is never rendered as an edge; agreement is as visible as disagreement; show both numbers, labelled by provenance, and let the reader subtract; model-only is the dominant state.
@@ -115,7 +117,7 @@ The mutation run found 4 survivors the first time (a missing away club not named
 - *What is staged.* A real forecast on a real `Scheduled` EPL card, on the deployed page, with the table the relay serves that day.
 - *What blocks it.* No EPL card can be `Scheduled` with a kickoff ahead before 2026-11-21T12:30Z (premise 3).
 - *What unblocks it.* The archive creates a day's rows at about 10:00Z (premise 4). A run at 11:05Z on 2026-11-21 sees the whole matchday with the first kickoff 85 minutes ahead.
-- *How it is checked.* `gh workflow run forecast-live-probe.yml -f date=2026-11-21`. It commits `outbox/forecast-live-manifest-2026-11-21*.json` and `outbox/forecast-live-*.png`. The done condition is that manifest reading `verdict: "PASS"`, `numbers` of 1 or more, `standingsRequests: 1`, `standingsStatuses: [200]`, `errors: []`, and at least one entry of `cards` with `kind: "model"` whose `text` matches `^model table-v1 — (.+) (\d+)% · draw (\d+)% · (.+) (\d+)%$`. `NOTHING-TO-JUDGE` and `WIRED-NO-FORECAST` are not passes.
+- *How it is checked.* `gh workflow run forecast-live-probe.yml -f date=2026-11-21`. It commits `outbox/forecast-live-manifest-2026-11-21*.json` and `outbox/forecast-live-*.png`. The done condition is that manifest reading `verdict: "PASS"`, `numbers` of 1 or more, `standingsRequests: 1`, `standingsStatuses: [200]`, `errors: []`, and at least one entry of `cards` with `kind: "model"` whose `text` matches `^model table-v2 — (.+) (\d+)% · draw (\d+)% · (.+) (\d+)%$` (**corrected 2026-11-09:** this pattern read `table-v1` when the section was written; `table-v2` replaced it in `46398f2`, and `MODEL_LINE` in `scripts/forecast-live-probe.mjs` is the pattern the probe really applies). `NOTHING-TO-JUDGE` and `WIRED-NO-FORECAST` are not passes.
 - *If it says NOTHING-TO-JUDGE before 12:29Z.* The archive had not made the rows: read `/context/date/2026-11-21` for EPL rows before explaining anything, and re-dispatch.
 
 ## Out of scope, and whose it is

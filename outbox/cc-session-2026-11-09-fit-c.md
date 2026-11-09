@@ -1,15 +1,17 @@
 # Session 2026-11-09 — candidate C (one draw share) tested on a fresh season under a rule fixed first: SHIP
 
-**Verdict: SHIP `table-v2`.** The pre-registered rule passes on all seven of its parts. When this document was committed
-`src/` had not changed; the commits that put `table-v2` into `src` are listed at the bottom as they land.
+**Verdict: SHIP `table-v2`, and it is shipped.** The pre-registered rule passes on all seven of its parts. This document was
+first committed with `src/` unchanged (`9ba4c9f`); Phase B, below, records the commits that put `table-v2` into `src`, the
+deploy, and the proof that the deployed page serves it.
 
 Owner order: "Go" (Mon 2026-11-09 06:43 ET). Test candidate C on 2024-25 (a season no number had been read from) and on
 this season's frozen 100-match bundle, under a rule committed before any 2024-25 model number; if the rule says SHIP, ship
 it as `table-v2` without asking again; if not, stop and report. The rule said SHIP.
 
 HEAD progression: `1f11470` → `3ff1763` (the rule, nothing fitted) → `1984c1b` (2024-25 as data) → `6409bdc` (tooling,
-before the run) → `5430377` (the run's output) → `9b0afae` (independent recompute and break-it-on-purpose proof) → the
-commit carrying this document.
+before the run) → `5430377` (the run's output) → `9b0afae` (independent recompute and break-it-on-purpose proof) → `9ba4c9f` (this document
+and the CC-CMD status) → `46398f2` (`table-v2` in `src`) → `17d28eb` (eight mutation entries) → `87b6bbb`, `32b2d1d`,
+`a18e26a` (a venue row, a separate concern: see Phase B) → the commit carrying Phase B.
 
 ## What C is
 
@@ -112,8 +114,78 @@ Shipped constants are exactly the rounded 2025-26 values (home +0.42, scale 1.14
 | `outbox/forecast-season-2024-25-2026-11-09.{mjs,json,txt}` | the 2024-25 season as data (bundle sha256 `1e3dfc3e…`), with its checks |
 | `outbox/forecast-fit-c-crosscheck-2026-11-09.{py,txt}` | the independent recompute (`data` and `fit` modes) and its output |
 | `outbox/forecast-fit-c-mutation-2026-11-09.{mjs,txt}` | the break-it-on-purpose proof for the verdict stage |
+| `outbox/forecast-table-v2-oracle-2026-11-09.{mjs,txt}` | Phase B: the compiled model against the declared one (`46398f2`) |
+| `outbox/forecast-fit-c-at-table-v2-build-2026-11-09.txt` | Phase B: the pre-registered script run against the table-v2 build (`46398f2`) |
+| `outbox/forecast-model-mutation-2026-11-09.txt` | Phase B: the eight model mutations, both runs unedited (`17d28eb`) |
+| `outbox/forecast-deployed-wiring-2026-11-09.{mjs,json,png,txt}` | Phase B: the wiring proof on the deployed page. `-first-run.*` and `-before-deploy.*` are the two NOT-WIRED runs, kept |
+| `outbox/forecast-deployed-wiring-needle-mutation-2026-11-09.{mjs,txt}` | Phase B: the corrected needle going absent on eight wrong-constant builds |
+
+## Phase B — `table-v2` in `src`, deployed, and what proves it
+
+| step | commit or run | artifact |
+|---|---|---|
+| `table-v2` into `src`: the three constants, `METHOD` and `METHOD_TAG`, and the pins that state them | `46398f2` | suite 366 → 367, all held. `outbox/forecast-table-v2-oracle-2026-11-09.{mjs,txt}`: the compiled F# model equals the model the fit declared on 21,136 inputs (1,130 real pairs, 20,006 synthetic), max difference 1.1e-16, the draw component exactly 0.27 on every one, 14 deliberately wrong twins caught, 35 of 35 checks. Its last line says 2025-26 is not replayed (the raw files are not in the repository) |
+| the mutation table gains the model's constants | `17d28eb` | 8 entries. Run before a nine-decimal pin existed, home 0.43 and scale 1.15 SURVIVED ("Nothing defends this claim"); after it all 8 are caught, 9 of 9 with the unmutated control (`outbox/forecast-model-mutation-2026-11-09.txt`, both runs unedited) |
+| verify on that push | run 42621717589, RED | step "Render check against the LIVE slate": `the venue table covers at least one venue on this slate` failed on 2026-11-09's slate (11 recorded indoor arenas, Manadon Sports Hub, U.S. Bank Stadium). It predates table-v2: live-check on the page deployed from `41a5cf2` failed the same four lines (runs 42611575822, 42613880170) |
+| the venue row, a separate concern with its own commits | `87b6bbb`, `32b2d1d`, `a18e26a` | `docs/CC-CMD-2026-11-09-venue-review-remainder.md`, `outbox/venue-us-bank-stadium-2026-11-09.md`. The deploy gate was not overridden: `deploy.yml` skipped the red commit (run 42622489104) and ran after verify went green |
+| verify, green | run 42631741258 on `a18e26a` | step #95 "Render check against the LIVE slate" `success`; its log holds `PASS  the venue table covers at least one venue on this slate` and `24/24 checks passed` |
+| deploy | run 42632774675 (`workflow_run`) | the live `/version.txt` read `a18e26a2ad8fc53a6c200bf5509a9401d467810d` |
+| wiring proof on the deployed page | `outbox/forecast-deployed-wiring-2026-11-09.{mjs,json,png,txt}` | `WIRED`, 11 of 11 checks, probed 2026-11-09T14:19:12Z |
+
+**What the wiring proof checked, and what it did not.** The script (a dated copy of the 2026-11-08 one; its header lists
+the four differences) fetches five served files and compares each byte for byte with a fresh local build of the pushed
+commit, reads `/version.txt`, then renders the deployed page pinned to the committed 2026-10-10 capture and the 2026-11-08
+table with the browser clock fixed, and reads the six EPL cards. Result: the version equals the pushed sha; five of five
+files are identical; six of six EPL cards carry the node; five read `model table-v2 — A n% · draw 27% · B n%` and one (Man
+United v Spurs) says `no forecast: not in the standings table: Man United`, as it did in the 2026-11-08 proof. Arsenal v
+Leeds reads 62 / 27 / 11 and Chelsea v Bournemouth 46 / 27 / 27, the two lines worked in plain JavaScript from the committed
+table before the page was met (table-v1 printed 92 / 5 / 3 and 57 / 19 / 25 for the same two); one request for the table;
+no page errors. It shows that the deployed build is the pushed commit and that its card draws the table-v2 line. It shows
+nothing about the model: the page is pinned, so the numbers are hindsight by construction, and a real forecast on a real
+card cannot exist before 2026-11-21.
+
+## Found on the way
+
+1. **The model's constants had no mutation entry.** Fixed in `17d28eb`. The card pins round to a whole percent, so a home
+   edge of 0.43 or a scale of 1.15 moved no digit; a pin to nine decimals now fails on either.
+2. **The pre-registered fit script reads DO NOT SHIP against the table-v2 build, by design.** Run unedited against this build
+   (`outbox/forecast-fit-c-at-table-v2-build-2026-11-09.txt`) it prints 61 of 63 checks and `VERDICT: DO NOT SHIP. N7 an
+   integrity check failed`. Both failed checks compare table-v1's constants with the compiled model, which is table-v2 now:
+   the script's own check of its parametrised model (max difference 3.18e-1 on 830 forecasts), and its precondition that the
+   prior-season script runs with no red check (25 of 26 hold; the one red check there, read on 2026-11-09 by running that script
+   on the same sources, is "the compiled model equals a plain-JS recomputation of its published constants … on all 370
+   forecasts", and those constants are table-v1's). A `diff` of the two outputs is five lines: those two checks, the line
+   printing the 3.18e-1, the count, and the verdict; every other line equals the record of `5430377`.
+   Run from a checkout of `9ba4c9f` (built there; the last commit with table-v1 in `src`) its output is byte-identical to
+   `outbox/forecast-fit-c-2026-11-09.txt`, sha256 `385f9266b668221a8c86d00be994284da193a52cf5082e879a91d673823d364e`, and ends
+   `VERDICT: SHIP`. The script is the record of a verdict at a commit, not a gate to re-run on later trees; no workflow, script
+   or npm script references it.
+3. **The store cannot stamp a model change.** 30 rows from 2026-10-04, no method column, `ModelNote: undefined`; the evidence
+   and the done condition are in `docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md` ("The store cannot stamp a model
+   change"). The fix is a schema decision and the owner's; nothing was changed here.
+4. **The first verify of these commits went red on something that was not these commits:** the venue-table coverage gap,
+   which the 2026-10-20 CC-CMD made loud on purpose when the table covers nothing on a slate. Cause and the fix (one
+   hand-accepted row, labelled as accepted by the session and not by the owner or the sourcing rule, for the owner to confirm
+   or revert): `docs/CC-CMD-2026-11-09-venue-review-remainder.md`.
+5. **The wiring script's first run against the deployed page said NOT-WIRED, and the cause was the script.** The method
+   sentence's needle expected `table-v2: ppg …` as one string, but the source builds it as `METHOD_TAG + ": ppg …"`, so the
+   compiled file never holds it contiguously. Every other check passed on that run, including the byte comparison of the five
+   served files and the exact card lines. The corrected needle (the second half of the sentence) goes absent on eight
+   wrong-constant copies of the compiled model, and the old needle is shown absent from the build it was wrong about
+   (`outbox/forecast-deployed-wiring-needle-mutation-2026-11-09.{mjs,txt}`: 8 of 8 caught, control holds). Both runs are
+   kept (`-first-run.*`).
 
 ## Integration state (Rule 65)
 
-Verdict stage only: nothing is produced for the relay or the client, and nothing is read from them except the frozen
-hold-out bundle. The `table-v2` change in `src` and its integration proof are recorded below when they land.
+- **Relay contract:** none produced or changed. The relay is untouched.
+- **Consumer:** `CardForecast.fs` prints `Forecast.METHOD_TAG` in the card line. The lab page serves `build/Forecast.js`,
+  `build/CardForecast.js`, `build/Scoreboard.js`, `build/Standings.js` and `data/standings-eng1-2026-11-08.json`, the five
+  files the proof compares.
+- **Status:** VERIFIED on the deployed page with pinned data and a fixed clock (`WIRED`, 11 of 11). STAGED: a real forecast on
+  a real card. Blocked by: no EPL card can be `Scheduled` with its kickoff ahead before 2026-11-21T12:30Z. Unblocked when: the
+  scheduled task fires at 2026-11-21T11:05Z; it applies `^model table-v2 — …`. Verify: `gh workflow run
+  forecast-live-probe.yml -f date=2026-11-21`, then `outbox/forecast-live-manifest-2026-11-21*.json` must read
+  `verdict: "PASS"` with `numbers` of 1 or more (the full condition is in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`,
+  "STAGED").
+- **Known mismatches:** none found between the model line and the table it reads. The store's missing method column is a gap
+  in the record, not a mismatch.

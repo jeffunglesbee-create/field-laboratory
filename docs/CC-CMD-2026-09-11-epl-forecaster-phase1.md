@@ -15,7 +15,10 @@ or badge-on-change, stop and report.
 `METHOD = "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"`) and
 `scripts/forecast-run.mjs`, recorded in
 `outbox/cc-session-2026-10-03-epl-forecaster-phase1.md` and
-`outbox/cc-session-2026-10-04-epl-forecaster-phase1.md`.
+`outbox/cc-session-2026-10-04-epl-forecaster-phase1.md`. **`METHOD` has read
+`table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match`
+since 2026-11-09** (shipped, below); the `table-v1` string in this paragraph is the
+2026-10-04 build's.
 
 **This line read "FILED, not started" for six days after the code shipped.**
 Corrected 2026-10-10. The error class is the one `check:docs` and the
@@ -39,6 +42,8 @@ line under the market line, `model table-v1 — Arsenal 94% · draw 4% · Spurs 
 (`src/CardForecast.fs`, `src/Standings.fs`). That is the pull-only render the
 Rule F ruling above clears. It is not the record and it does not close this
 document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
+Since 2026-11-09 the same card reads `model table-v2 — Arsenal 62% · draw 27% · Leeds 11%`
+on the pinned page (last bullets below).
 
 - Drawn only while it is not hindsight: an EPL card, `Scheduled`, kickoff ahead.
   The served table already holds a match the moment it ends (20 of 20 clubs
@@ -103,8 +108,53 @@ document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
   caught. **What it does not show:** this season's 50 matches beat table-v1
   (z −1.98) but not the base-rate forecast (0.650 against 0.638, z +0.32), and the
   2024-25 test looks backward in time (the constants were fitted on the later
-  season). Recorded in `outbox/cc-session-2026-11-09-fit-c.md`. `src/` is NOT
-  changed as of this bullet; the next bullet replaces it when `table-v2` lands.
+  season). Recorded in `outbox/cc-session-2026-11-09-fit-c.md`. It shipped the
+  same day, next bullet.
+- **`table-v2` is shipped and the deployed page serves it, 2026-11-09.** `46398f2`
+  puts it into `src` (the rating is unchanged; `threeWayFrom` takes d = rh − ra + 0.42,
+  one draw share of 0.27 for every match, and home = 0.73 × logistic(d / 1.14);
+  `METHOD` is the fit's own last line byte for byte; suite 367). `17d28eb` adds eight
+  entries to the mutation table, because the model's constants had none: home 0.43 and
+  scale 1.15 SURVIVED the card pins (they round to a whole percent) until a pin to nine
+  decimals was added, and all eight are caught with it. The compiled F# model equals the
+  model the fit declared on 21,136 inputs (max difference 1.1e-16, the draw component
+  exactly 0.27 on every one, 14 deliberately wrong twins caught; its coverage line says
+  2025-26 is not replayed because its raw files are not in the repository). The
+  pre-registered fit script, run unedited against this build, prints 61 of 63 checks and
+  `VERDICT: DO NOT SHIP. N7`: two integrity checks compare table-v1 with the compiled
+  model, so they fail by design once the compiled model is table-v2. Run from a checkout of
+  `9ba4c9f` (built there) its output is byte-identical to the committed record of `5430377`
+  (sha256 `385f9266…`) and ends `VERDICT: SHIP`. Deployed: the verify of `17d28eb` (run
+  42621717589) went red on a venue-table coverage gap that predates table-v2
+  (`docs/CC-CMD-2026-11-09-venue-review-remainder.md`); verify 42631741258 on `a18e26a` was
+  green, deploy run 42632774675 published it, and the live `/version.txt` reads
+  `a18e26a2ad8fc53a6c200bf5509a9401d467810d`. The wiring proof on the DEPLOYED page has
+  verdict `WIRED`, 11 of 11 checks (`outbox/forecast-deployed-wiring-2026-11-09.{json,png,txt}`):
+  five served files byte-identical to the local build; six EPL cards, five carrying
+  `model table-v2 — A n% · draw 27% · B n%` (Arsenal v Leeds 62 / 27 / 11 and Chelsea v
+  Bournemouth 46 / 27 / 27, worked in plain JavaScript beforehand) and one saying why it
+  carries none. The same script said NOT-WIRED against the table-v1 page before the deploy,
+  and on its first run against the table-v2 page it said NOT-WIRED on a wrong needle (the
+  method sentence is built from two literals); both runs are kept, the second with its
+  cause. **What the proof does not show:** anything about the model (the page is pinned to a
+  2026-10-10 capture and a 2026-11-08 table, so its numbers are hindsight by construction) or
+  a live card. The scheduled probe for 2026-11-21 checks `^model table-v2 — …`.
+- **The store cannot stamp a model change; found 2026-11-09, not fixed here.**
+  `forecast_observations` on `field-archive` holds 30 rows, all written 2026-10-04 between
+  15:20 and 15:25Z (10 fixtures, `epl-fixture-51` to `-60`, three runs each: `NoPrior`, then
+  `Unchanged` twice), under table-v1: their draw components run from 0.052 to 0.268, and
+  table-v2's is 0.27 for every match. The table has no method column and `value` holds only
+  the three probabilities, so nothing stored says which model wrote a row.
+  `scripts/forecast-run.mjs:188` passes `ModelNote: undefined` to the diff although the
+  comment above it says the note is set when the stored method differs from the running one.
+  The cron still only dry-runs (the write gate above is the owner's): the newest row in the
+  store is from 2026-10-04, so none has been written under table-v2. **Before that gate opens**, a stored row has to carry its method (a column or a
+  field in `value`; the schema is the owner's decision) and the writer has to read it from the
+  prior row and set `ModelNote` when it differs; otherwise the first table-v2 row for a subject
+  that has a table-v1 prior reads as an ordinary change, which is the failure `ModelRevised`
+  exists to prevent. **Done when** a run that writes two rows for one subject under two `METHOD`
+  values stores `cause = 'ModelRevised'` on the second:
+  `SELECT cause FROM forecast_observations WHERE subject = '<subject>' ORDER BY id DESC LIMIT 1`.
 
 **Phase 2 input unblocked 2026-10-10:** the fbref xG this document records as
 empty and 3.5 months stale is no longer the only source. BSD serves per-event

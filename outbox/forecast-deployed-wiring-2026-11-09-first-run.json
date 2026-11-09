@@ -1,0 +1,143 @@
+{
+  "site": "https://field-laboratory.jeffunglesbee.workers.dev",
+  "probedAt": "2026-11-09T14:17:42.892Z",
+  "expectedSha": "a18e26a2ad8fc53a6c200bf5509a9401d467810d",
+  "served": {
+    "version": "a18e26a2ad8fc53a6c200bf5509a9401d467810d",
+    "files": {
+      "build/Forecast.js": {
+        "status": 200,
+        "bytes": 16719,
+        "sha256": "a688cacc987b4d96b7c56ef8b8c036e84b590d981cdb9956d58a15802874fed3",
+        "localSha256": "a688cacc987b4d96b7c56ef8b8c036e84b590d981cdb9956d58a15802874fed3",
+        "identicalToLocalBuild": true,
+        "contains": {
+          "\"table-v2\"": true,
+          "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match": false
+        }
+      },
+      "build/CardForecast.js": {
+        "status": 200,
+        "bytes": 9020,
+        "sha256": "aeafbbf0fbca45c365534aec80835b6b23562d5a3e74e656d31b323856f1fe8b",
+        "localSha256": "aeafbbf0fbca45c365534aec80835b6b23562d5a3e74e656d31b323856f1fe8b",
+        "identicalToLocalBuild": true,
+        "contains": {
+          "standings loading": true,
+          "no forecast: standings unavailable": true,
+          "not in the standings table": true
+        }
+      },
+      "build/Scoreboard.js": {
+        "status": 200,
+        "bytes": 34250,
+        "sha256": "eeddc297fe8250c10256018c3d1d660b326c06ba61fe2ba60ee8533fd67475a8",
+        "localSha256": "eeddc297fe8250c10256018c3d1d660b326c06ba61fe2ba60ee8533fd67475a8",
+        "identicalToLocalBuild": true,
+        "contains": {
+          "data-forecast": true,
+          "desk-card__forecast": true
+        }
+      },
+      "build/Standings.js": {
+        "status": 200,
+        "bytes": 4864,
+        "sha256": "2bc033dc15914d03f3ba5f8e27ca68b588ecdc79c576c884ab5b8ebe978887cc",
+        "localSha256": "2bc033dc15914d03f3ba5f8e27ca68b588ecdc79c576c884ab5b8ebe978887cc",
+        "identicalToLocalBuild": true,
+        "contains": {
+          "more than one row answers to": true
+        }
+      },
+      "data/standings-eng1-2026-11-08.json": {
+        "status": 200,
+        "bytes": 68894,
+        "sha256": "4eebdf2a77497111bea9f4fc748e9d9bf87ab29e863ee0232d0ac75a5f8e4a7b",
+        "localSha256": "4eebdf2a77497111bea9f4fc748e9d9bf87ab29e863ee0232d0ac75a5f8e4a7b",
+        "identicalToLocalBuild": true,
+        "contains": {
+          "\"shortDisplayName\"": true
+        }
+      }
+    }
+  },
+  "page": {
+    "url": "https://field-laboratory.jeffunglesbee.workers.dev/?data=context-2026-10-10&simulate=1",
+    "clock": "2026-10-10T09:00:00Z (fixed)",
+    "eplCards": 6,
+    "cardsWithTheNode": 6,
+    "standingsRequests": [
+      "https://field-laboratory.jeffunglesbee.workers.dev/data/standings-eng1-2026-11-08.json"
+    ],
+    "errors": [],
+    "cards": [
+      {
+        "teams": "Arsenal v Leeds",
+        "market": "win prob — Arsenal 67% · draw 21% · Leeds 12%",
+        "kind": "model",
+        "text": "model table-v2 — Arsenal 62% · draw 27% · Leeds 11%",
+        "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match",
+        "afterMarket": true
+      },
+      {
+        "teams": "Aston Villa v Brentford",
+        "market": "win prob — Aston Villa 35% · draw 27% · Brentford 38%",
+        "kind": "model",
+        "text": "model table-v2 — Aston Villa 38% · draw 27% · Brentford 35%",
+        "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match",
+        "afterMarket": true
+      },
+      {
+        "teams": "Chelsea v Bournemouth",
+        "market": "win prob — Chelsea 53% · draw 24% · Bournemouth 23%",
+        "kind": "model",
+        "text": "model table-v2 — Chelsea 46% · draw 27% · Bournemouth 27%",
+        "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match",
+        "afterMarket": true
+      },
+      {
+        "teams": "Ipswich v Fulham",
+        "market": "win prob — Ipswich 35% · draw 28% · Fulham 38%",
+        "kind": "model",
+        "text": "model table-v2 — Ipswich 44% · draw 27% · Fulham 29%",
+        "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match",
+        "afterMarket": true
+      },
+      {
+        "teams": "Sunderland v Brighton",
+        "market": "win prob — Sunderland 31% · draw 28% · Brighton 42%",
+        "kind": "model",
+        "text": "model table-v2 — Sunderland 12% · draw 27% · Brighton 61%",
+        "method": "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match",
+        "afterMarket": true
+      },
+      {
+        "teams": "Man United v Spurs",
+        "market": "win prob — Man United 55% · draw 23% · Spurs 22%",
+        "kind": "clubs-not-in-table",
+        "text": "model table-v2 — no forecast: not in the standings table: Man United",
+        "method": null,
+        "afterMarket": true
+      }
+    ],
+    "kinds": {
+      "model": 5,
+      "clubs-not-in-table": 1
+    }
+  },
+  "coverage": "6 of 6 EPL cards on the page carry the forecast node; 5 served files compared with the local build; 1 pinned page, 1 clock",
+  "checks": {
+    "versionIsThePushedSha": true,
+    "everyServedFileIdenticalToTheLocalBuild": true,
+    "everyServedStringPresent": false,
+    "everyEplCardCarriesTheNode": true,
+    "atLeastOneModelLine": true,
+    "everyLineSitsAfterTheMarketLine": true,
+    "everyModelLineIsLabelledWithItsMethod": true,
+    "exactLinesAreTable_v2s": true,
+    "noLineUsesTheRulingsVocabulary": true,
+    "oneRequestForTheTable": true,
+    "noPageErrors": true
+  },
+  "verdict": "NOT-WIRED"
+}

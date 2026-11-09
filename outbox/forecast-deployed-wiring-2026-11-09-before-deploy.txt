@@ -1,0 +1,12 @@
+NOT-WIRED | 6 of 6 EPL cards on the page carry the forecast node; 5 served files compared with the local build; 1 pinned page, 1 clock
+PASS versionIsThePushedSha
+FAIL everyServedFileIdenticalToTheLocalBuild
+FAIL everyServedStringPresent
+PASS everyEplCardCarriesTheNode
+PASS atLeastOneModelLine
+PASS everyLineSitsAfterTheMarketLine
+FAIL everyModelLineIsLabelledWithItsMethod
+FAIL exactLinesAreTable_v2s
+PASS noLineUsesTheRulingsVocabulary
+PASS oneRequestForTheTable
+PASS noPageErrors

@@ -1,0 +1,17 @@
+build/Forecast.js  16705 characters, sha256 a688cacc987b4d96b7c56ef8b8c036e84b590d981cdb9956d58a15802874fed3
+needles read from the wiring script (2):
+  "\"table-v2\""
+  ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+
+PASS  control: the unmutated build carries every needle (0 absent)
+PASS  the contiguous sentence the first run looked for is absent from the build it was right about (absent)
+CAUGHT  home edge 0.42 to 0.43  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+CAUGHT  logistic scale 1.14 to 1.15  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+CAUGHT  draw share 0.27 to 0.28  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+CAUGHT  "for every match" to "for each match"  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+CAUGHT  version tag table-v2 to table-v1  (absent: "\"table-v2\"")
+CAUGHT  the whole constants clause back to table-v1's shape  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+CAUGHT  rating weight 0.25 to 0.20  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+CAUGHT  rating weight 0.10 to 0.15  (absent: ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match")
+
+8 of 8 mutations caught; control holds; 0 problem(s)
