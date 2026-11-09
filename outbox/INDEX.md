@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `30ac490` | 2026-11-09 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-09T16:50 [skip ci] |
+| `a6f99c2` | 2026-11-09 | [venue-lead-whole-diff-2026-11-09.json](venue-lead-whole-diff-2026-11-09.json) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
+| `a6f99c2` | 2026-11-09 | [venue-lead-whole-diff-2026-11-09.mjs](venue-lead-whole-diff-2026-11-09.mjs) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
+| `a6f99c2` | 2026-11-09 | [venue-lead-whole-diff-2026-11-09.txt](venue-lead-whole-diff-2026-11-09.txt) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
+| `a6f99c2` | 2026-11-09 | [venue-lead-whole-extracts-2026-11-09.json](venue-lead-whole-extracts-2026-11-09.json) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
+| `a6f99c2` | 2026-11-09 | [venue-source-cache.json](venue-source-cache.json) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
+| `a6f99c2` | 2026-11-09 | [venue-source-results-latest.json](venue-source-results-latest.json) | revert: read the Wikipedia summary whole (0d3875c); 2 of the 4 roofs it changed are wrong |
 | `76d6b45` | 2026-11-09 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 42651498788) [skip ci] |
 | `76d6b45` | 2026-11-09 | [venue-source-results-latest.json](venue-source-results-latest.json) | data: venue sourcing (run 42651498788) [skip ci] |
 | `4700175` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
