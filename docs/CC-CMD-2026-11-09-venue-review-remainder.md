@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-09 by CC, found when the verify run for table-v2's commits failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL 2026-11-09 — Task 1 is built and waits for its verify run (the artifact is named under it); Tasks 2, 3 and 4 are open, each with its unblock condition. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
+**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it); Tasks 2, 3 and 4 are open, each with its unblock condition. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
 
 ---
 
@@ -43,7 +43,7 @@ list from the sourcing run was the only thing outdoors on the slate.
   "must not turn 'the table covers nothing on this slate' into a quiet pass". `scripts/render-check.mjs` is not touched by any task here.
 - `outdoor-venue-sourcing`: "The rest are in its review list, deliberately not here." Task 1 takes one of them out of review by hand, with its evidence
   beside it in `src/Venues.fs`, as the owner did for three on 2026-10-25. The row says it was accepted by the session and not by the owner; the owner
-  confirms it or reverts the commit. Condition 2, as the owner amended it on 2026-10-25, is untouched.
+  confirms it or reverts it (`a18e26a`, then `32b2d1d`: see Task 1). Condition 2, as the owner amended it on 2026-10-25, is untouched.
 
 ## Task 1 — U.S. Bank Stadium
 
@@ -52,10 +52,20 @@ Built 2026-11-09: a hand-accepted `Dome` row (44.9739, -93.2581, `America/Chicag
 makes, which all SURVIVED before the checks and are all caught with them (`outbox/venue-us-bank-stadium-mutation-2026-11-09.txt`).
 
 **Done when:** a verify run on main has the step "Render check against the LIVE slate" at `success`, with `PASS  the venue table covers at least one
-venue on this slate` in its log, on a slate whose only covered ground is this row (2026-11-09's). Run id: (to be written here when it exists).
+venue on this slate` in its log, on a slate whose only covered ground is this row (2026-11-09's). Run id: **42631741258** (verify, the push of `a18e26a`).
 Command: `gh run view <id> --json jobs`, the step named above, `conclusion` must equal `success`.
 
-If the run is red, the cause is read from its log and written here before anything else is changed.
+**Done 2026-11-09.** Artifact, read from GitHub after the push by REST:
+`gh api "repos/<owner>/<repo>/actions/runs/42631741258/jobs?per_page=100" --jq '.jobs[].steps[] | select(.name=="Render check against the LIVE slate") | .conclusion'`
+printed `success`; the step is #95 of job `verify` (129209492878), 14:13:18Z to 14:13:20Z. Its log holds `PASS  the venue table covers at least one venue on this slate`
+once, no FAIL line, and `24/24 checks passed`, on the 14-card slate for 2026-11-09. Between the red commit (`17d28eb`, run 42621717589) and this one the only change in `src/` and `scripts/` is
+three files: the row and its comment in `src/Venues.fs` (26 lines), its two Suite checks (36) and its four mutation entries (37); `scripts/render-check.mjs` differs by 0 lines. The log
+excerpt, the diff and the job list are quoted by script in `outbox/venue-us-bank-stadium-2026-11-09.md` (section 5), and the assertions that stop that document saying VERIFIED for a red
+or wrong run are shown failing on eleven doctored inputs in `outbox/venue-us-bank-stadium-evidence-controls-2026-11-09.txt`.
+
+**Not established by that run:** which card the two chip checks examined (a passing step prints PASS lines, not the venues behind them; that it was Bills @ Vikings is an inference from the row diff), and
+the strict zone check of the row against Open-Meteo (verify runs the tolerant form). **Still open and not part of this done condition:** the row says it was accepted by the session, and the owner confirms it
+or reverts it. A revert is `a18e26a` first and then `32b2d1d`: the four mutation entries in the first anchor on the row's text in the second, so reverting only `32b2d1d` leaves them stale.
 
 ## Task 2 — the lead extraction, `scripts/venue-source.mjs` line 609
 

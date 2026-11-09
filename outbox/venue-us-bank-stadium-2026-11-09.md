@@ -1,8 +1,8 @@
 # U.S. Bank Stadium: why the table lacked it, and the row that answers 2026-11-09's red
 
 Session 2026-11-09, field-laboratory. Governing record: `docs/CC-CMD-2026-11-09-venue-review-remainder.md`.
-Every quotation below from a run log, the sourcing record or the source file was read from that file by
-the script that wrote this one (kept beside it as the command in the last section), not retyped. The
+Every quotation below from a run log, the sourcing record, the source file or git was read from that file (or
+from git) by the script that wrote this one (kept beside it as the command in the last section), not retyped. The
 two Wikipedia statements in section 4 were read through the session's fetch tool, which has a small
 model extract the quotation: they are a read, not a byte-for-byte capture, and are labelled so.
 
@@ -139,9 +139,9 @@ lead that said nothing, and `docs/CC-CMD-2026-11-09-venue-review-remainder.md` T
 
 The row is in the hand-accepted section of `src/Venues.fs`, outside the generated block, with this evidence beside it.
 It is labelled as accepted by this session and not by the owner or the sourcing rule, because it is neither, and
-the owner's earlier hand-accepted rows say "accepted by the owner". The owner confirms it or reverts the commit.
+the owner's earlier hand-accepted rows say "accepted by the owner". The owner confirms it or reverts it (`a18e26a` first, then `32b2d1d`: the four mutation entries anchor on the row).
 
-## 5. Verified here, and what is not
+## 5. Verified, and what is not
 
 Verified on this tree, 2026-11-09:
 
@@ -152,19 +152,48 @@ Verified on this tree, 2026-11-09:
   `outbox/venue-us-bank-stadium-mutation-2026-11-09.txt`: all four SURVIVED without the two new Suite checks ("Nothing defends
   this claim") and all four were CAUGHT with them, with the unmutated control passing both times.
 
-NOT verified here, and why:
+Verified on the runner, 2026-11-09: the done condition of Task 1 (`docs/CC-CMD-2026-11-09-venue-review-remainder.md`). Read by the script that wrote this file from
+two files saved from GitHub, `jobs-42631741258.json` and `verify-42631741258-job.log`, and from git:
 
-- That verify's step "Render check against the LIVE slate" passes with the row on today's slate, and that the Bills @ Vikings card
-  fills a weather chip with a roof caveat. The live relay and Open-Meteo are not reachable from this sandbox; the step runs on a runner.
-  Artifact that settles it: the verify run id on the pushed head, with that step `success` and `PASS  the venue table covers at least one venue on this slate` in its log.
+- Run 42631741258, workflow verify, push of `a18e26a` (a18e26a2ad8fc53a6c200bf5509a9401d467810d). Job 129209492878 `verify`: success. Step #95 "Render check against the LIVE slate": completed / success, 2026-11-09T14:13:18Z to 2026-11-09T14:13:20Z.
+- The lines of that step's log that bear on this venue. The step is 84 lines, 24 of them PASS and none FAIL:
+
+  ```
+  built from:    a18e26a
+  decode-status: decoded 14 game(s) for 2026-11-09
+  PASS  the venue table covers at least one venue on this slate
+  PASS  every card whose venue the table knows carries a live chip
+  PASS  every live chip carries a real roof caveat
+  24/24 checks passed
+  ```
+
+- What separates that tree from the red run's (`17d28eb`, run 42621717589): `git diff --numstat 17d28eb a18e26a -- src scripts` (added, removed, file), then the same for the check that failed, then the table rows added:
+
+  ```
+  37	0	scripts/mutation-check.mjs
+  36	0	src/Suite.fs
+  26	0	src/Venues.fs
+  scripts/render-check.mjs: no difference
+  table rows added to src/Venues.fs: at "U.S. Bank Stadium" 44.9739 -93.2581 Dome "America/Chicago"
+  ```
+
+  The red run's FAIL line (section 1) named every observable venue on the slate, Manadon Sports Hub and U.S. Bank Stadium, and the table held neither. The one table row added since is
+  U.S. Bank Stadium, and the check that failed is not touched. A slate of the same size (14 cards: section 1, and the decode line above) went from failing to passing on that row.
+
+NOT verified, and why:
+
+- Which card the two chip checks examined, and that the 14 cards are the same 14. A passing step prints PASS lines, not the venues or the card behind them. That the covered ground is the Bills @ Vikings card
+  is an inference from the paragraph above (date, count, and the one row added), not a line of the log.
 - The strict zone check of the new row against Open-Meteo (`venue-source.yml` mode `weather`, about 380 calls, no tolerance flag). verify runs the
   tolerant form; a runner cannot be asked for the strict form without spending those calls.
 
-Status: STAGED until the verify run above exists. Unblocked by: the push of the commit carrying this file. Verify with:
+Status: VERIFIED for Task 1's done condition (run 42631741258, step #95 `success`, the coverage line in its log). The two items just above are not. To read the step again from GitHub:
 
 ```
-gh run view <run-id> --json jobs | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const t=JSON.parse(s).jobs.flatMap(j=>j.steps).find(t=>t.name==="Render check against the LIVE slate");console.assert(t&&t.conclusion==="success",t);console.log(t.name,t.conclusion)})'
+gh api "repos/<owner>/<repo>/actions/runs/42631741258/jobs?per_page=100" --jq '.jobs[].steps[] | select(.name=="Render check against the LIVE slate") | .conclusion'
 ```
+
+which printed `success` when run by hand on 2026-11-09 after the push.
 
 ## 6. Not done here
 
@@ -172,8 +201,10 @@ gh run view <run-id> --json jobs | node -e 'let s="";process.stdin.on("data",d=>
   the geocoder hosts are refused by the session's fetch tool (URL_NOT_ON_ALLOWLIST for postcodes.io and Nominatim). A hand row from a postcode alone would be one source.
   Carried, with its unblock command, as Task 3 of the CC-CMD.
 - The line-609 defect. A re-read of 442 candidates changes the evidence behind rows already in the table and is not a hitchhiker on a data fix (TOUCH-ONLY). Task 2 of the CC-CMD.
-- The other 69 venues in the review list. Task 4.
+- The other 69 venues in the sourcing record's review list: 66 are still not table rows in `src/Venues.fs` (the table already holds M. M. Roberts Stadium, Ryan Field, St James Park). Task 4.
 
 Command, to regenerate this file: `node outbox/venue-us-bank-stadium-evidence-2026-11-09.mjs <repo> <scratch> > outbox/venue-us-bank-stadium-2026-11-09.md`,
-where `<scratch>` holds `verify-failed.log` (`gh run view 42621717589 --log-failed`) and `livecheck-42613880170.log` (`gh run view 42613880170 --log-failed`).
-The other inputs are `outbox/venue-source-results-latest.json`, `data/venue-source-candidates.json` and `scripts/venue-source.mjs`, as committed.
+where `<scratch>` holds `verify-failed.log` (`gh run view 42621717589 --log-failed`), `livecheck-42613880170.log` (`gh run view 42613880170 --log-failed`),
+`jobs-42631741258.json` (`gh api "repos/<owner>/<repo>/actions/runs/42631741258/jobs?per_page=100"`) and `verify-42631741258-job.log` (`gh api repos/<owner>/<repo>/actions/jobs/129209492878/logs`).
+The other inputs are `outbox/venue-source-results-latest.json`, `data/venue-source-candidates.json`, `scripts/venue-source.mjs` and `src/Venues.fs`, as committed, and the history of git for 17d28eb..a18e26a.
+The assertions that stop a red or wrong run from producing section 5's "Verified on the runner" are shown failing on doctored inputs in `outbox/venue-us-bank-stadium-evidence-controls-2026-11-09.txt`.

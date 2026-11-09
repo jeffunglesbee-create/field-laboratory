@@ -1,8 +1,16 @@
-// Builds outbox/venue-us-bank-stadium-2026-11-09.md from the committed sourcing record and the
-// failing runs' own logs, so every quotation in it is read from a file and not retyped.
+// Builds outbox/venue-us-bank-stadium-2026-11-09.md from the committed sourcing record, the failing runs' own logs
+// and the green run's job list and log, so every quotation in it is read from a file (or from git) and not retyped.
 // Usage: node outbox/venue-us-bank-stadium-evidence-2026-11-09.mjs <repo> <scratch> > outbox/venue-us-bank-stadium-2026-11-09.md
-// <scratch> holds verify-failed.log and livecheck-42613880170.log, saved from `gh run view <id> --log-failed`.
+// <scratch> holds four files saved from GitHub:
+//   verify-failed.log               `gh run view 42621717589 --log-failed`
+//   livecheck-42613880170.log       `gh run view 42613880170 --log-failed`
+//   jobs-42631741258.json           `gh api "repos/<owner>/<repo>/actions/runs/42631741258/jobs?per_page=100"`
+//   verify-42631741258-job.log      `gh api repos/<owner>/<repo>/actions/jobs/129209492878/logs` (raw: every line starts with a timestamp)
+// The "Verified on the runner" part of section 5 is written only from a run that is green: every `must` below throws otherwise, so a
+// red, missing or wrong run cannot produce a document that says VERIFIED. outbox/venue-us-bank-stadium-evidence-controls-2026-11-09.{mjs,txt}
+// shows those assertions failing on doctored inputs (Rule 90).
 import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -32,6 +40,66 @@ const asStated = rule.decideRoof(null, SENTENCE, 'retractable roof')
 
 const liveName = readFileSync(join(sp, 'verify-failed.log'), 'utf8').match(/→ (.*?) — none of them in the/)[1].split(', ').find(n => n.includes('Bank Stadium'))
 
+// ---- The green run: Task 1's done condition, read from the saved job list, the saved job log and git. ----
+const GREEN = { run: 42631741258, sha: 'a18e26a', red: '17d28eb' }
+const STEP = 'Render check against the LIVE slate'
+const MARKER = '> node scripts/render-check.mjs --tolerate-unreachable'
+const COVERAGE = 'PASS  the venue table covers at least one venue on this slate'
+const must = (ok, what) => { if (!ok) throw new Error('green-run evidence: ' + what) }
+const git = (...a) => execFileSync('git', ['-C', repo, ...a], { encoding: 'utf8' })
+
+const jobs = JSON.parse(readFileSync(join(sp, `jobs-${GREEN.run}.json`), 'utf8')).jobs
+const vjobs = jobs.filter(j => j.name === 'verify')
+must(vjobs.length === 1, `want exactly one job named verify, found ${vjobs.length}`)
+const vj = vjobs[0]
+must(vj.run_id === GREEN.run, `the job belongs to run ${vj.run_id}, not ${GREEN.run}`)
+must(vj.head_sha.startsWith(GREEN.sha), `the job ran ${vj.head_sha}, not ${GREEN.sha}`)
+const liveSteps = vj.steps.filter(t => t.name === STEP)
+must(liveSteps.length === 1, `want exactly one step named "${STEP}", found ${liveSteps.length}`)
+const liveStep = liveSteps[0]
+must(liveStep.status === 'completed' && liveStep.conclusion === 'success', `step "${STEP}" is ${liveStep.status}/${liveStep.conclusion}, not completed/success`)
+
+const rawLog = readFileSync(join(sp, `verify-${GREEN.run}-job.log`), 'utf8').split('\n').map(l => l.replace(/^﻿?\d{4}-\d\d-\d\dT[\d:.]+Z /, ''))
+const markerAt = rawLog.reduce((a, l, i) => (l === MARKER ? [...a, i] : a), [])
+must(markerAt.length === 1, `want exactly one line "${MARKER}" in the job log, found ${markerAt.length}`)
+const afterMarker = rawLog.slice(markerAt[0])
+const stepEnd = afterMarker.findIndex(l => l.startsWith('##[group]'))
+must(stepEnd > 0, 'the step has no following group header, so its end cannot be found')
+const stepLines = afterMarker.slice(0, stepEnd)
+const passLines = stepLines.filter(l => l.startsWith('PASS '))
+const failLinesInStep = stepLines.filter(l => l.startsWith('FAIL '))
+must(failLinesInStep.length === 0, `the step's log holds ${failLinesInStep.length} FAIL line(s), the first: ${failLinesInStep[0]}`)
+const coverageLines = stepLines.filter(l => l === COVERAGE)
+must(coverageLines.length === 1, `want exactly one "${COVERAGE}" line in the step, found ${coverageLines.length}`)
+const totalsLines = stepLines.filter(l => /^\d+\/\d+ checks passed$/.test(l))
+must(totalsLines.length === 1, `want exactly one "N/N checks passed" line in the step, found ${totalsLines.length}`)
+const [, gotChecks, ofChecks] = totalsLines[0].match(/^(\d+)\/(\d+) /)
+must(gotChecks === ofChecks && Number(gotChecks) === passLines.length, `the totals line reads "${totalsLines[0]}" but the step has ${passLines.length} PASS lines`)
+const onlyOne = prefix => {
+  const m = stepLines.filter(l => l.startsWith(prefix))
+  must(m.length === 1, `want exactly one line starting "${prefix}" in the step, found ${m.length}`)
+  return m[0]
+}
+const builtFrom = onlyOne('built from:')
+must(builtFrom.includes(GREEN.sha), `the step's "${builtFrom}" does not name ${GREEN.sha}`)
+const quoted = [builtFrom, onlyOne('decode-status:'), COVERAGE, onlyOne('PASS  every card whose venue the table knows carries a live chip'), onlyOne('PASS  every live chip carries a real roof caveat'), totalsLines[0]]
+
+let numstat, renderDiff, addedRows
+try {
+  numstat = git('diff', '--numstat', GREEN.red, GREEN.sha, '--', 'src', 'scripts').trim().split('\n')
+  renderDiff = git('diff', '--numstat', GREEN.red, GREEN.sha, '--', 'scripts/render-check.mjs').trim()
+  addedRows = git('diff', '-U0', GREEN.red, GREEN.sha, '--', 'src/Venues.fs').split('\n').filter(l => /^\+\s+at "/.test(l))
+} catch (e) {
+  must(false, `git could not read ${GREEN.red}..${GREEN.sha} in ${repo}: ${String(e.message).split('\n')[0]}`)
+}
+must(numstat.length >= 1 && numstat[0] !== '', `git diff --numstat printed nothing for src and scripts between ${GREEN.red} and ${GREEN.sha}`)
+must(addedRows.length === 1 && addedRows[0].includes('"U.S. Bank Stadium"'), `want exactly one table row added between ${GREEN.red} and ${GREEN.sha}, and it is U.S. Bank Stadium; found ${JSON.stringify(addedRows)}`)
+
+// The rest of the review list, from the record and the table as they stand.
+const venuesFs = readFileSync(join(repo, 'src/Venues.fs'), 'utf8')
+const others = results.review.filter(x => x.name !== 'U.S. Bank Stadium')
+const inTable = others.filter(x => venuesFs.includes(`at "${x.name}"`))
+
 const dms = (d, m, s) => d + m / 60 + s / 3600
 const lat = dms(44, 58, 26), lon = -dms(93, 15, 29)
 
@@ -44,8 +112,8 @@ const p = (...a) => out.push(a.join(''))
 p('# U.S. Bank Stadium: why the table lacked it, and the row that answers 2026-11-09\'s red')
 p()
 p('Session 2026-11-09, field-laboratory. Governing record: `docs/CC-CMD-2026-11-09-venue-review-remainder.md`.')
-p('Every quotation below from a run log, the sourcing record or the source file was read from that file by')
-p('the script that wrote this one (kept beside it as the command in the last section), not retyped. The')
+p('Every quotation below from a run log, the sourcing record, the source file or git was read from that file (or')
+p('from git) by the script that wrote this one (kept beside it as the command in the last section), not retyped. The')
 p('two Wikipedia statements in section 4 were read through the session\'s fetch tool, which has a small')
 p('model extract the quotation: they are a read, not a byte-for-byte capture, and are labelled so.')
 p()
@@ -141,9 +209,9 @@ p('- Zone. `America/Chicago`, from the run. `scripts/weather-live-check.mjs` ask
 p()
 p('The row is in the hand-accepted section of `src/Venues.fs`, outside the generated block, with this evidence beside it.')
 p('It is labelled as accepted by this session and not by the owner or the sourcing rule, because it is neither, and')
-p('the owner\'s earlier hand-accepted rows say "accepted by the owner". The owner confirms it or reverts the commit.')
+p('the owner\'s earlier hand-accepted rows say "accepted by the owner". The owner confirms it or reverts it (`a18e26a` first, then `32b2d1d`: the four mutation entries anchor on the row).')
 p()
-p('## 5. Verified here, and what is not')
+p('## 5. Verified, and what is not')
 p()
 p('Verified on this tree, 2026-11-09:')
 p()
@@ -154,19 +222,41 @@ p('- Four deliberate breaks of the row (deleted, roof OpenAir, latitude +0.01, z
 p('  `outbox/venue-us-bank-stadium-mutation-2026-11-09.txt`: all four SURVIVED without the two new Suite checks ("Nothing defends')
 p('  this claim") and all four were CAUGHT with them, with the unmutated control passing both times.')
 p()
-p('NOT verified here, and why:')
+p('Verified on the runner, 2026-11-09: the done condition of Task 1 (`docs/CC-CMD-2026-11-09-venue-review-remainder.md`). Read by the script that wrote this file from')
+p('two files saved from GitHub, `jobs-', String(GREEN.run), '.json` and `verify-', String(GREEN.run), '-job.log`, and from git:')
 p()
-p('- That verify\'s step "Render check against the LIVE slate" passes with the row on today\'s slate, and that the Bills @ Vikings card')
-p('  fills a weather chip with a roof caveat. The live relay and Open-Meteo are not reachable from this sandbox; the step runs on a runner.')
-p('  Artifact that settles it: the verify run id on the pushed head, with that step `success` and `PASS  the venue table covers at least one venue on this slate` in its log.')
+p('- Run ', String(GREEN.run), ', workflow verify, push of `', GREEN.sha, '` (', vj.head_sha, '). Job ', String(vj.id), ' `verify`: ', vj.conclusion, '. Step #', String(liveStep.number), ' "', STEP, '": ', liveStep.status, ' / ', liveStep.conclusion, ', ', liveStep.started_at, ' to ', liveStep.completed_at, '.')
+p('- The lines of that step\'s log that bear on this venue. The step is ', String(stepLines.length), ' lines, ', String(passLines.length), ' of them PASS and none FAIL:')
+p()
+p('  ```')
+for (const l of quoted) p('  ', l)
+p('  ```')
+p()
+p('- What separates that tree from the red run\'s (`', GREEN.red, '`, run 42621717589): `git diff --numstat ', GREEN.red, ' ', GREEN.sha, ' -- src scripts` (added, removed, file), then the same for the check that failed, then the table rows added:')
+p()
+p('  ```')
+for (const l of numstat) p('  ', l)
+p('  scripts/render-check.mjs: ', renderDiff === '' ? 'no difference' : renderDiff)
+p('  table rows added to src/Venues.fs: ', addedRows.map(l => l.replace(/^\+\s+/, '')).join(' | '))
+p('  ```')
+p()
+p('  The red run\'s FAIL line (section 1) named every observable venue on the slate, Manadon Sports Hub and U.S. Bank Stadium, and the table held neither. The one table row added since is')
+p('  U.S. Bank Stadium, and the check that failed is not touched. A slate of the same size (14 cards: section 1, and the decode line above) went from failing to passing on that row.')
+p()
+p('NOT verified, and why:')
+p()
+p('- Which card the two chip checks examined, and that the 14 cards are the same 14. A passing step prints PASS lines, not the venues or the card behind them. That the covered ground is the Bills @ Vikings card')
+p('  is an inference from the paragraph above (date, count, and the one row added), not a line of the log.')
 p('- The strict zone check of the new row against Open-Meteo (`venue-source.yml` mode `weather`, about 380 calls, no tolerance flag). verify runs the')
 p('  tolerant form; a runner cannot be asked for the strict form without spending those calls.')
 p()
-p('Status: STAGED until the verify run above exists. Unblocked by: the push of the commit carrying this file. Verify with:')
+p('Status: VERIFIED for Task 1\'s done condition (run ', String(GREEN.run), ', step #', String(liveStep.number), ' `', liveStep.conclusion, '`, the coverage line in its log). The two items just above are not. To read the step again from GitHub:')
 p()
 p('```')
-p('gh run view <run-id> --json jobs | node -e \'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const t=JSON.parse(s).jobs.flatMap(j=>j.steps).find(t=>t.name==="Render check against the LIVE slate");console.assert(t&&t.conclusion==="success",t);console.log(t.name,t.conclusion)})\'')
+p('gh api "repos/<owner>/<repo>/actions/runs/', String(GREEN.run), '/jobs?per_page=100" --jq \'.jobs[].steps[] | select(.name=="', STEP, '") | .conclusion\'')
 p('```')
+p()
+p('which printed `success` when run by hand on 2026-11-09 after the push.')
 p()
 p('## 6. Not done here')
 p()
@@ -174,10 +264,12 @@ p('- Manadon Sports Hub (the FA Cup tie, "Plymouth v Berkhamsted" on the card; a
 p('  the geocoder hosts are refused by the session\'s fetch tool (URL_NOT_ON_ALLOWLIST for postcodes.io and Nominatim). A hand row from a postcode alone would be one source.')
 p('  Carried, with its unblock command, as Task 3 of the CC-CMD.')
 p('- The line-', String(splitLine), ' defect. A re-read of 442 candidates changes the evidence behind rows already in the table and is not a hitchhiker on a data fix (TOUCH-ONLY). Task 2 of the CC-CMD.')
-p('- The other 69 venues in the review list. Task 4.')
+p('- The other ', String(others.length), ' venues in the sourcing record\'s review list: ', String(others.length - inTable.length), ' are still not table rows in `src/Venues.fs` (the table already holds ', inTable.map(x => x.name).join(', '), '). Task 4.')
 p()
 p('Command, to regenerate this file: `node outbox/venue-us-bank-stadium-evidence-2026-11-09.mjs <repo> <scratch> > outbox/venue-us-bank-stadium-2026-11-09.md`,')
-p('where `<scratch>` holds `verify-failed.log` (`gh run view 42621717589 --log-failed`) and `livecheck-42613880170.log` (`gh run view 42613880170 --log-failed`).')
-p('The other inputs are `outbox/venue-source-results-latest.json`, `data/venue-source-candidates.json` and `scripts/venue-source.mjs`, as committed.')
+p('where `<scratch>` holds `verify-failed.log` (`gh run view 42621717589 --log-failed`), `livecheck-42613880170.log` (`gh run view 42613880170 --log-failed`),')
+p('`jobs-', String(GREEN.run), '.json` (`gh api "repos/<owner>/<repo>/actions/runs/', String(GREEN.run), '/jobs?per_page=100"`) and `verify-', String(GREEN.run), '-job.log` (`gh api repos/<owner>/<repo>/actions/jobs/', String(vj.id), '/logs`).')
+p('The other inputs are `outbox/venue-source-results-latest.json`, `data/venue-source-candidates.json`, `scripts/venue-source.mjs` and `src/Venues.fs`, as committed, and the history of git for ', GREEN.red, '..', GREEN.sha, '.')
+p('The assertions that stop a red or wrong run from producing section 5\'s "Verified on the runner" are shown failing on doctored inputs in `outbox/venue-us-bank-stadium-evidence-controls-2026-11-09.txt`.')
 
 process.stdout.write(out.join('\n') + '\n')

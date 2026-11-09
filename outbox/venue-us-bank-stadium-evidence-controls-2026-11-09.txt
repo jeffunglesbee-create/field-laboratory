@@ -1,0 +1,32 @@
+generator: outbox/venue-us-bank-stadium-evidence-2026-11-09.mjs
+scratch inputs copied per case: verify-failed.log, livecheck-42613880170.log, jobs-42631741258.json, verify-42631741258-job.log
+
+PASS  control: unedited inputs, exit 0, output equals the committed document (13701 of 13701 characters)
+CAUGHT      the step concluded failure
+              exit 1: Error: green-run evidence: step "Render check against the LIVE slate" is completed/failure, not completed/success
+CAUGHT      the job ran another commit (5 job records)
+              exit 1: Error: green-run evidence: the job ran b18e26a2ad8fc53a6c200bf5509a9401d467810d, not a18e26a
+CAUGHT      the job belongs to another run (5 job records)
+              exit 1: Error: green-run evidence: the job belongs to run 42631741259, not 42631741258
+CAUGHT      no job is named verify
+              exit 1: Error: green-run evidence: want exactly one job named verify, found 0
+CAUGHT      no step has the name
+              exit 1: Error: green-run evidence: want exactly one step named "Render check against the LIVE slate", found 0
+CAUGHT      the coverage line reads FAIL
+              exit 1: Error: green-run evidence: the step's log holds 1 FAIL line(s), the first: FAIL  the venue table covers at least one venue on this slate
+CAUGHT      the coverage line is gone (not FAIL)
+              exit 1: Error: green-run evidence: want exactly one "PASS  the venue table covers at least one venue on this slate" line in the step, found 0
+CAUGHT      the step marker line is changed
+              exit 1: Error: green-run evidence: want exactly one line "> node scripts/render-check.mjs --tolerate-unreachable" in the job log, found 0
+CAUGHT      the totals line reads 23/24
+              exit 1: Error: green-run evidence: the totals line reads "23/24 checks passed" but the step has 24 PASS lines
+CAUGHT      one PASS line stops being a PASS line
+              exit 1: Error: green-run evidence: the totals line reads "24/24 checks passed" but the step has 23 PASS lines
+CAUGHT      the step was built from another commit
+              exit 1: Error: green-run evidence: the step's "built from:    b18e26a" does not name a18e26a
+
+11 of 11 cases caught; control holds; 0 problem(s)
+coverage: 11 edited inputs; 4 job-list assertions (job name, run id, head sha, step conclusion), 1 step-name assertion, 6 log assertions (marker, FAIL line,
+  coverage line, totals line, PASS count, built-from) are exercised. NOT exercised here: more than one verify job; more than one step of the name; no group header after
+  the step; a missing or unreadable git history for the range; a table-row diff other than the one U.S. Bank Stadium row; the decode-status, chip-line and
+  roof-caveat lines going missing (onlyOne). Those assertions exist in the generator and have not been made to fail.
