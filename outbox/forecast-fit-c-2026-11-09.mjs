@@ -570,22 +570,22 @@ console.log('\nREPORTED, NOT GATING:')
   console.log(`  pooled constants (2025-26 + 2024-25, ${trainFit.length + freshFit.length} forecasts; what a LATER revision would start from, not what ships): ${FREE_C.map((k, i) => `${k === 'drawBase' ? 'draw share' : k} ${f3(pool.th[k])} +/- ${f3(pool.se[i])}`).join(', ')} (well posed: ${pool.wellPosed})`)
 }
 
-if (dumpPath) {
-  const slim = fs => fs.map(f => ({ rh: f.rh, ra: f.ra, o: f.o }))
-  fs.writeFileSync(dumpPath, JSON.stringify({
-    TH0, thC: { home: thC.home, scale: thC.scale, drawBase: thC.drawBase }, base: BASE, cvFolds,
-    train: slim(trainFit), trainOpen: slim(trainS.open), fresh: slim(freshFit), freshOpen: slim(freshS.open), hold: slim(holdFit), holdOpen: slim(holdS.open), freshAll: slim(usable(freshAll)),
-    js: { fit: { th: { home: fitC.th.home, scale: fitC.th.scale, drawBase: fitC.th.drawBase }, nll: fitC.f }, baseNll,
-      n1: { brierC: rFresh.brierC, brierV: rFresh.brierV, brierB: rFresh.brierB, zV: rFresh.pv.z, zB: rFresh.pb.z, zU: rFresh.pu.z },
-      slope: { b: slFresh.newton.b, se: slFresh.newton.seB }, open: { freshC: rFreshOpen.brierC, freshV: rFreshOpen.brierV, holdC: rHoldOpen.brierC, holdV: rHoldOpen.brierV },
-      hold: { brierC: rHold.brierC, brierV: rHold.brierV, brierB: rHold.brierB, zV: rHold.pv.z, zB: rHold.pb.z }, cv: { brierC: mean(cvBc), brierV: mean(cvBv), brierB: mean(cvBb), zV: cvZv.z, zB: cvZb.z, slope: slCV.newton.b, se: slCV.newton.seB } },
-  }))
-}
-
 console.log('\nCHECKS')
 for (const c of checks) console.log(c.ok ? 'PASS' : 'FAIL', c.name, c.detail ? `[${c.detail}]` : '')
 const failed = checks.filter(c => !c.ok).length
 const final = decide({ ...m, checksOk: failed === 0 })
+if (dumpPath) {
+  const slim = fs2 => fs2.map(f => ({ rh: f.rh, ra: f.ra, o: f.o }))
+  fs.writeFileSync(dumpPath, JSON.stringify({
+    TH0, thC: { home: thC.home, scale: thC.scale, drawBase: thC.drawBase }, base: BASE, cvFolds,
+    train: slim(trainFit), trainOpen: slim(trainS.open), fresh: slim(freshFit), freshOpen: slim(freshS.open), hold: slim(holdFit), holdOpen: slim(holdS.open), freshAll: slim(usable(freshAll)),
+    js: { fit: { th: { home: fitC.th.home, scale: fitC.th.scale, drawBase: fitC.th.drawBase }, nll: fitC.f, wellPosed: fitC.wellPosed }, baseNll,
+      n1: { brierC: rFresh.brierC, brierV: rFresh.brierV, brierB: rFresh.brierB, zV: rFresh.pv.z, zB: rFresh.pb.z, zU: rFresh.pu.z },
+      slope: { b: slFresh.newton.b, se: slFresh.newton.seB }, open: { freshC: rFreshOpen.brierC, freshV: rFreshOpen.brierV, holdC: rHoldOpen.brierC, holdV: rHoldOpen.brierV },
+      hold: { brierC: rHold.brierC, brierV: rHold.brierV, brierB: rHold.brierB, zV: rHold.pv.z, zB: rHold.pb.z }, cv: { brierC: mean(cvBc), brierV: mean(cvBv), brierB: mean(cvBb), zV: cvZv.z, zB: cvZb.z, slope: slCV.newton.b, se: slCV.newton.seB },
+      rules: Object.fromEntries(rules.map(([id, , , ok]) => [id, ok])), verdict: { ship: final.ship, failed: final.failed } },
+  }))
+}
 console.log(`\n${checks.length - failed} of ${checks.length} checks hold; coverage: 3 seasons (${trainAll.length} + ${freshAll.length} + ${holdAll.length} matches), ${trainFit.length} training forecasts fitted, ${freshFit.length} 2024-25 forecasts judged by N1-N3 (${freshS.open.length} opening-week), ${holdFit.length} 2026-27 forecasts judged by N5 (${holdS.open.length} opening-week), 2024-25 cross-checked against 3 sources`)
 console.log(`\nVERDICT: ${final.ship ? `SHIP table-v2 (candidate C); constants home +${f2(thC.home)}, scale ${f2(thC.scale)}, draw share ${f2(thC.drawBase)}; method statement "${METHOD_STATEMENT}"` : `DO NOT SHIP. ${final.failed.join('; ')}`}`)
 process.exitCode = failed === 0 ? 0 : 1
