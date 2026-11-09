@@ -1,0 +1,51 @@
+# The four U.S. Bank Stadium mutations (scripts/mutation-check.mjs, ids venue-us-bank-stadium-*), run 2026-11-09 on src/Venues.fs with its new row.
+# Two runs of the same four entries, each block the harness's unedited stdout (the command: node scripts/mutation-check.mjs --ids <the four ids> --out <file>, wrapped in `time`).
+# BLOCK 1 ran WITHOUT the two new Suite checks (src/Suite.fs as committed at 17d28eb, suite of 367 checks), after `npm run build` on that tree.
+# BLOCK 2 ran WITH them (suite of 369 checks).
+# A first attempt at BLOCK 1 was refused by the harness before any mutation ran ("the build driver did not start: the watched initial compile ... is not the build that was there"),
+# because build/ still held the tree that had the checks. The tree was rebuilt and BLOCK 1 run again; that refusal is in neither block.
+# Reading it: SURVIVED means the break was applied and the whole suite still passed. BLOCK 1 is what the row's claims had defending them before the checks: nothing.
+
+===== BLOCK 1: without the two Suite checks =====
+
+Mutation testing 4 invariant(s)
+
+  baseline: ran 1 of 1 distinct expectation(s) from 4 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+  build driver: watch, ready in 22596 ms, clean digest ff524a9c53b4edad
+  wrote /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/mut-usbank-before.json: 4 record(s), 4 survived
+PASS  the unmutated tree passes every expectation
+FAIL  [venue-us-bank-stadium-row-deleted] the 2026-11-09 slate keeps a table row
+      → mutation SURVIVED — src/Venues.fs was broken and `node build/VerifyMain.js` still passed. Nothing defends this claim.
+FAIL  [venue-us-bank-stadium-roof-open] U.S. Bank Stadium is a fixed-roof row
+      → mutation SURVIVED — src/Venues.fs was broken and `node build/VerifyMain.js` still passed. Nothing defends this claim.
+FAIL  [venue-us-bank-stadium-moved] U.S. Bank Stadium is at the point its evidence gives
+      → mutation SURVIVED — src/Venues.fs was broken and `node build/VerifyMain.js` still passed. Nothing defends this claim.
+FAIL  [venue-us-bank-stadium-zone-changed] U.S. Bank Stadium is declared in the zone its point lies in
+      → mutation SURVIVED — src/Venues.fs was broken and `node build/VerifyMain.js` still passed. Nothing defends this claim.
+
+1/5 checks passed
+
+real	2m12.323s
+user	3m0.233s
+sys	0m8.449s
+
+===== BLOCK 2: with the two Suite checks =====
+
+Mutation testing 4 invariant(s)
+
+  baseline: ran 1 of 1 distinct expectation(s) from 4 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+  build driver: watch, ready in 20883 ms, clean digest f657c689b3e64235
+  wrote /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/mut-usbank-after.json: 4 record(s), 0 survived
+PASS  the unmutated tree passes every expectation
+PASS  [venue-us-bank-stadium-row-deleted] the 2026-11-09 slate keeps a table row
+PASS  [venue-us-bank-stadium-roof-open] U.S. Bank Stadium is a fixed-roof row
+PASS  [venue-us-bank-stadium-moved] U.S. Bank Stadium is at the point its evidence gives
+PASS  [venue-us-bank-stadium-zone-changed] U.S. Bank Stadium is declared in the zone its point lies in
+
+5/5 checks passed
+
+real	0m34.598s
+user	0m41.925s
+sys	0m3.352s

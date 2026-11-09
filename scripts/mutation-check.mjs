@@ -466,6 +466,43 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // The 2026-11-09 slate had no table row on it, and verify and live-check went
+    // red on it. U.S. Bank Stadium is the row that answers that;
+    // deleting it must make the suite red again. Four entries, one per claim the
+    // row makes: that it exists, its roof, its point and its zone.
+    // docs/CC-CMD-2026-11-09-venue-review-remainder.md
+    id: 'venue-us-bank-stadium-row-deleted',
+    file: 'src/Venues.fs',
+    claim: 'the 2026-11-09 slate keeps a table row',
+    find: '      at "U.S. Bank Stadium" 44.9739 -93.2581 Dome "America/Chicago"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-us-bank-stadium-roof-open',
+    file: 'src/Venues.fs',
+    claim: 'U.S. Bank Stadium is a fixed-roof row',
+    find: '      at "U.S. Bank Stadium" 44.9739 -93.2581 Dome "America/Chicago"\n',
+    replace: '      at "U.S. Bank Stadium" 44.9739 -93.2581 OpenAir "America/Chicago"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-us-bank-stadium-moved',
+    file: 'src/Venues.fs',
+    claim: 'U.S. Bank Stadium is at the point its evidence gives',
+    find: '      at "U.S. Bank Stadium" 44.9739 -93.2581 Dome "America/Chicago"\n',
+    replace: '      at "U.S. Bank Stadium" 44.9839 -93.2581 Dome "America/Chicago"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-us-bank-stadium-zone-changed',
+    file: 'src/Venues.fs',
+    claim: 'U.S. Bank Stadium is declared in the zone its point lies in',
+    find: '      at "U.S. Bank Stadium" 44.9739 -93.2581 Dome "America/Chicago"\n',
+    replace: '      at "U.S. Bank Stadium" 44.9739 -93.2581 Dome "America/Denver"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // The sourced block is generated from the sourcing run's artifact; a row
     // deleted by hand must not pass as a table that still matches it.
     // docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md, stage 4
