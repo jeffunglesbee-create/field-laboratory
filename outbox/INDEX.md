@@ -12,6 +12,36 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0d3875c` | 2026-11-09 | [venue-lead-whole-probe-2026-11-09.mjs](venue-lead-whole-probe-2026-11-09.mjs) | fix: read the Wikipedia summary whole, so an initial in a venue name cannot end the lead |
+| `0d3875c` | 2026-11-09 | [venue-lead-whole-probe-2026-11-09.txt](venue-lead-whole-probe-2026-11-09.txt) | fix: read the Wikipedia summary whole, so an initial in a venue name cannot end the lead |
+| `09f1deb` | 2026-11-09 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 268140d [skip ci] |
+| `268140d` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-red-days-2026-11-09.md](venue-red-days-2026-11-09.md) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-red-days-2026-11-09.mjs](venue-red-days-2026-11-09.mjs) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-red-days-rows-2026-11-09.json](venue-red-days-rows-2026-11-09.json) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-red-days-selftest-2026-11-09.txt](venue-red-days-selftest-2026-11-09.txt) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-us-bank-stadium-2026-11-09.md](venue-us-bank-stadium-2026-11-09.md) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-us-bank-stadium-evidence-2026-11-09.mjs](venue-us-bank-stadium-evidence-2026-11-09.mjs) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `268140d` | 2026-11-09 | [venue-us-bank-stadium-evidence-controls-2026-11-09.txt](venue-us-bank-stadium-evidence-controls-2026-11-09.txt) | docs: venue remainder Step 0 measured (0 of 60 days red); Manadon premise corrected |
+| `1e7d7fd` | 2026-11-09 | [venue-us-bank-stadium-2026-11-09.md](venue-us-bank-stadium-2026-11-09.md) | docs: Task 1 of the venue remainder is done - verify run 42631741258 is green |
+| `1e7d7fd` | 2026-11-09 | [venue-us-bank-stadium-evidence-2026-11-09.mjs](venue-us-bank-stadium-evidence-2026-11-09.mjs) | docs: Task 1 of the venue remainder is done - verify run 42631741258 is green |
+| `1e7d7fd` | 2026-11-09 | [venue-us-bank-stadium-evidence-controls-2026-11-09.mjs](venue-us-bank-stadium-evidence-controls-2026-11-09.mjs) | docs: Task 1 of the venue remainder is done - verify run 42631741258 is green |
+| `1e7d7fd` | 2026-11-09 | [venue-us-bank-stadium-evidence-controls-2026-11-09.txt](venue-us-bank-stadium-evidence-controls-2026-11-09.txt) | docs: Task 1 of the venue remainder is done - verify run 42631741258 is green |
+| `820b148` | 2026-11-09 | [cc-session-2026-11-08-epl-forecast-on-cards.md](cc-session-2026-11-08-epl-forecast-on-cards.md) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09-before-deploy.json](forecast-deployed-wiring-2026-11-09-before-deploy.json) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09-before-deploy.png](forecast-deployed-wiring-2026-11-09-before-deploy.png) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09-before-deploy.txt](forecast-deployed-wiring-2026-11-09-before-deploy.txt) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09-first-run.json](forecast-deployed-wiring-2026-11-09-first-run.json) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09-first-run.png](forecast-deployed-wiring-2026-11-09-first-run.png) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09-first-run.txt](forecast-deployed-wiring-2026-11-09-first-run.txt) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09.json](forecast-deployed-wiring-2026-11-09.json) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09.mjs](forecast-deployed-wiring-2026-11-09.mjs) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09.png](forecast-deployed-wiring-2026-11-09.png) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-2026-11-09.txt](forecast-deployed-wiring-2026-11-09.txt) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-needle-mutation-2026-11-09.mjs](forecast-deployed-wiring-needle-mutation-2026-11-09.mjs) | docs: record table-v2 shipped and proven on the deployed page |
+| `820b148` | 2026-11-09 | [forecast-deployed-wiring-needle-mutation-2026-11-09.txt](forecast-deployed-wiring-needle-mutation-2026-11-09.txt) | docs: record table-v2 shipped and proven on the deployed page |
+| `b05c100` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a18e26a` | 2026-11-09 | [venue-us-bank-stadium-mutation-2026-11-09.txt](venue-us-bank-stadium-mutation-2026-11-09.txt) | ci: the mutation table gets four entries for the U.S. Bank Stadium row |
 | `32b2d1d` | 2026-11-09 | [venue-us-bank-stadium-2026-11-09.md](venue-us-bank-stadium-2026-11-09.md) | fix: U.S. Bank Stadium is a table row — the 2026-11-09 slate had no covered ground |
 | `32b2d1d` | 2026-11-09 | [venue-us-bank-stadium-evidence-2026-11-09.mjs](venue-us-bank-stadium-evidence-2026-11-09.mjs) | fix: U.S. Bank Stadium is a table row — the 2026-11-09 slate had no covered ground |
