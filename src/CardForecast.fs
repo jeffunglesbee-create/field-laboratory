@@ -11,7 +11,7 @@ open Forecast
 // WHAT IT SAYS. One line under the market line, in the market line's own layout
 // (team names, rounded percentages), headed by where the number came from:
 //
-//     model table-v1 — Arsenal 38% · draw 27% · Spurs 35%
+//     model table-v2 — Arsenal 38% · draw 27% · Spurs 35%
 //
 // The head is the provenance. `Forecast.Forecast` has three cases and the market
 // line is the `MarketImplied` one; this is `Modelled`, and a card that drew both

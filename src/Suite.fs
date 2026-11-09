@@ -2095,14 +2095,51 @@ let private forecast () =
           (strong, weak)
           (weak, strong)
 
-      // THE SHAPE A TWO-WAY MODEL CANNOT EXPRESS, and the reason
-      // `Market.threeWay` exists: a mismatch has fewer draws than a level tie.
-      Verify.check "the draw share shrinks as the gap widens"
-          (fun (h, a) ->
-              let level = draw (at strong strong)
-              draw (at h a) < level)
-          (strong, weak)
-          (strong, strong)
+      // THE DRAW SHARE IS ONE NUMBER, and the pin is the point. `table-v2`'s
+      // finding is that draws were as common where `table-v1` saw a wide gap as
+      // a narrow one, so a share that falls with the gap would be a claim with
+      // nothing under it. The pairs span the widest gap the model can see and a
+      // level tie; the counterexample adds a fixture that is not priced at all
+      // (a club that has played nothing), so a model that priced only SOME
+      // fixtures at 0.27 would fail rather than pass.
+      Verify.check "every priced fixture carries the same draw share, 0.27, whatever the gap"
+          (fun (pairs: (Forecast.TableRow * Forecast.TableRow) list) ->
+              pairs |> List.forall (fun (h, a) -> abs (draw (at h a) - 0.27) < 1e-9))
+          [ (strong, weak); (weak, strong); (strong, strong); (weak, weak) ]
+          [ (strong, weak); (club "Nil" 0 0 0 0, weak) ]
+
+      // THE NUMBERS THEMSELVES, to nine decimals. The card pins below round to a
+      // whole percent, so a home edge of 0.43 for 0.42 or a scale of 1.15 for 1.14
+      // moves no printed digit: with only those pins both survived the mutation
+      // table (run 2026-11-09, before this check existed) and would have shipped
+      // as `table-v2` under a statement that no longer described them. Three
+      // fixtures: two level clubs, where the gap is the home edge alone; and the
+      // widest gap in each direction, where the scale and both rating weights
+      // move the answer. Worked in JavaScript from the method statement the fit
+      // printed, and compared with the compiled model on 21,136 inputs by
+      // outbox/forecast-table-v2-oracle-2026-11-09.mjs. The counterexample is
+      // `table-v1`'s own output for the same three fixtures.
+      Verify.check "the three-way for worked fixtures is the declared model's, to nine decimals"
+          (fun (expected: (float * float * float) list) ->
+              List.zip [ (strong, weak); (strong, strong); (weak, strong) ] expected
+              |> List.forall (fun ((h, a), (eh, ed, ea)) ->
+                  let f = at h a
+                  abs (home f - eh) < 1e-9 && abs (draw f - ed) < 1e-9 && abs (away f - ea) < 1e-9))
+          [ (0.7091419507350, 0.27, 0.02085804926502)
+            (0.4314864976619, 0.27, 0.2985135023381)
+            (0.04226382875861, 0.27, 0.6877361712414) ]
+          [ (0.9910952334403, 0.008079540949309, 0.0008252256104084)
+            (0.4981303568761, 0.2131641082751, 0.2887055348487)
+            (0.002438153852354, 0.01394037914300, 0.9836214670046) ]
+
+      // THE STATEMENT IS THE ONE THE FIT PRINTED. outbox/forecast-fit-c-2026-11-09.txt
+      // ends with it, `ModelRevised` compares methods by this string, and a drift
+      // between the tag, the constants and the record would be a different model
+      // under the same name. The counterexample is `table-v1`'s own statement.
+      Verify.check "the method statement is the one the pre-registered fit printed, byte for byte"
+          (fun (expected: string) -> Forecast.METHOD = expected)
+          "table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
+          "table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"
 
       // A deduction is carried, and the question it raises is surfaced rather
       // than answered by guessing which reading of `points` ESPN serves.
@@ -4186,7 +4223,7 @@ let private cardForecast () =
       Verify.check "a club the table does not list is named in the refusal"
           (fun (g: Game) ->
               let shown = textAt before g Scheduled loaded
-              shown = "model table-v1 — no forecast: not in the standings table: Man United")
+              shown = "model table-v2 — no forecast: not in the standings table: Man United")
           (game "EPL" "Man United" "Arsenal" kickoff)
           (game "EPL" "Man Utd" "Arsenal" kickoff)
 
@@ -4269,22 +4306,23 @@ let private cardForecast () =
       Verify.check "a failure reason longer than 80 characters is cut at 80 and the cut is marked"
           (fun (why: string) ->
               let shown = textAt before arsSpurs Scheduled (CardForecast.Unavailable why)
-              shown = "model table-v1 — no forecast: standings unavailable (" + String.replicate 80 "x" + "…)")
+              shown = "model table-v2 — no forecast: standings unavailable (" + String.replicate 80 "x" + "…)")
           (String.replicate 200 "x")
           (String.replicate 80 "x")
 
       Verify.check "a failure reason of exactly 80 characters is shown whole and unmarked"
           (fun (why: string) ->
               let shown = textAt before arsSpurs Scheduled (CardForecast.Unavailable why)
-              shown = "model table-v1 — no forecast: standings unavailable (" + why + ")")
+              shown = "model table-v2 — no forecast: standings unavailable (" + why + ")")
           (String.replicate 80 "x")
           (String.replicate 81 "x")
 
       // ── what the line says ─────────────────────────────────────────────
       // PINNED to the model's own output, worked independently of the F# from the
       // committed table: Arsenal 27 pts, goals 15-5 in 10 (rating 3.100); Spurs 12
-      // pts, 10-11 in 10 (rating 1.275); home +0.30 gives a gap of 2.125, draw
-      // share 0.28*exp(-2.125/1.10) = 4.1%, home 94.0%, away 2.0%.
+      // pts, 10-11 in 10 (rating 1.275); home +0.42 gives a gap of 2.245, a draw
+      // share of 27% as for every match, home 0.73/(1+exp(-2.245/1.14)) = 64.1%,
+      // away 8.9%.
       //
       // The pin is the point: a change to the model's constants moves this number,
       // fails here, and has to be answered with a new `METHOD_TAG` and a
@@ -4292,7 +4330,7 @@ let private cardForecast () =
       Verify.check "the line states the model's number for the fixture, home side first"
           (fun (g: Game) ->
               let shown = textAt before g Scheduled loaded
-              shown = "model table-v1 — Arsenal 94% · draw 4% · Spurs 2%")
+              shown = "model table-v2 — Arsenal 64% · draw 27% · Spurs 9%")
           arsSpurs
           spursArs
 
@@ -4318,7 +4356,7 @@ let private cardForecast () =
             textAt before arsSpurs Scheduled (CardForecast.Unavailable "HTTP 503")
             textAt before (game "EPL" "Man United" "Arsenal" kickoff) Scheduled loaded
             textAt before (game "EPL" "Arsenal" "Spurs" "") Scheduled loaded ]
-          [ "model table-v1 — Arsenal 94% · draw 4% · Spurs 2% · edge +12 pts vs market" ] ]
+          [ "model table-v2 — Arsenal 64% · draw 27% · Spurs 9% · edge +12 pts vs market" ] ]
 
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()

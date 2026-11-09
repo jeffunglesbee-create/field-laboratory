@@ -87,31 +87,41 @@ type TableRow =
 // goals scored per game, plus home advantage. No xG: `/soccer-fbref/epl.json`
 // has been empty since 2026-06-23.
 //
-// THE FOUR CONSTANTS ARE DECLARED PRIORS, NOT FITTED, and that is stated rather
-// than hidden. Five gameweeks is not enough to fit four parameters without
-// overfitting them, and a fitted number presented as measured would be the
-// worse failure. They come from EPL long-run base rates — draws around a
-// quarter of matches, home wins around 45%. `METHOD` carries the version so a
-// row written under these constants is distinguishable from a row written
-// under later ones.
+// `table-v2`, 2026-11-09. THE THREE CONSTANTS ARE FITTED, and that is stated
+// rather than hidden: by maximum likelihood on last season's 330 forecasts
+// (2025-26, both clubs on five or more games), rounded to two decimals and not
+// tuned since, and shipped because a rule fixed before any 2024-25 model number
+// said so (outbox/cc-session-2026-11-09-fit-c.md). They are home +0.42, a
+// logistic scale of 1.14, and ONE draw share of 0.27 for every match: draws were
+// as common where `table-v1` saw a wide gap as a narrow one, so the gap-dependent
+// share it declared had no evidence under it. `table-v1` was four declared
+// priors, and on last season it scored a Brier above a uniform guess's with
+// home-win probabilities about 2.4 times too steep.
+//
+// WHAT THE FIT DOES NOT SHOW. This season's first 50 qualifying matches beat
+// `table-v1` and do not beat the base rate (z +0.32); 50 is too few to say whether
+// the numbers are calibrated there. The ratings still carry no early-season
+// shrinkage.
+//
+// `METHOD` carries the version so a row written under these constants is
+// distinguishable from a row written under earlier ones.
 
 // NOT `[<Literal>]`. Fable INLINES a literal at every use site and emits no
 // export for it, so `import { METHOD }` failed at run time with "does not
 // provide an export named 'METHOD'" while the F# compiled clean and the suite
 // passed — the value is only missing at the JS boundary.
-let METHOD_TAG = "table-v1"
+let METHOD_TAG = "table-v2"
 
-/// The record's full statement of the model, and BYTE-IDENTICAL to what it was
-/// before the tag was split out — rows already in the store carry this string,
-/// and `ModelRevised` compares against it. The tag is the part a card can afford
-/// to print; the formula stays where it is checked rather than being re-parsed
-/// out of this sentence at render time.
-let METHOD = METHOD_TAG + ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.30"
+/// The record's full statement of the model. `table-v2`'s is the statement the
+/// fit's own output prints on its last line (outbox/forecast-fit-c-2026-11-09.txt),
+/// byte for byte, and the Suite pins it. The tag is the part a card can afford to
+/// print; the formula stays where it is checked rather than being re-parsed out
+/// of this sentence at render time.
+let METHOD = METHOD_TAG + ": ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match"
 
-let private HOME_ADVANTAGE = 0.30
-let private DRAW_BASE = 0.28
-let private DRAW_DECAY = 1.10
-let private SCALE = 0.55
+let private HOME_ADVANTAGE = 0.42
+let private DRAW_SHARE = 0.27
+let private SCALE = 1.14
 
 /// True when a club carries a deduction, which this model cannot yet handle
 /// honestly. Surfaces the question the day it matters instead of guessing.
@@ -129,17 +139,19 @@ let rating (r: TableRow) : float option =
 
 /// A three-way probability for one fixture, or the reason there is none.
 ///
-/// The draw share SHRINKS AS THE GAP WIDENS, which is the one shape a two-way
-/// model cannot express and the reason `Market.threeWay` exists: a mismatch has
-/// fewer draws than a level fixture, and folding the draw into the away side is
-/// the defect that type was written to remove.
+/// The draw share is ONE NUMBER, the same for a level fixture and a mismatch.
+/// That is `table-v2`'s finding and not a shortcut: last season draws were as
+/// common where `table-v1` saw a wide gap (26%) as a narrow one (25%), so a share
+/// that falls with the gap had nothing under it. What stays true of the three-way
+/// type is the other half of its reason to exist: folding the draw into the away
+/// side is the defect `Market.threeWay` was written to remove.
 ///
 /// `Market.threeWay` is the guard, not a formality — it refuses to construct
 /// unless the three sum to 1 within SUM_EPS, so a normalisation slip here
 /// becomes `SubstrateUnreachable` rather than a plausible wrong number.
 let private threeWayFrom (h: float) (a: float) : Forecast =
     let d = h - a + HOME_ADVANTAGE
-    let pDraw = DRAW_BASE * exp (-abs d / DRAW_DECAY)
+    let pDraw = DRAW_SHARE
     let pHome = (1.0 - pDraw) * (1.0 / (1.0 + exp (-d / SCALE)))
     let pAway = 1.0 - pDraw - pHome
     match Market.threeWay (pHome * 1.0<prob>) (pDraw * 1.0<prob>) (pAway * 1.0<prob>) with

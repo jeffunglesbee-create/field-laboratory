@@ -25,7 +25,9 @@
 // The expected strings below were worked INDEPENDENTLY of the F#, in JavaScript,
 // from the committed table with the constants in src/Forecast.fs, and match what
 // the page printed. A change to the model moves them; that is meant to fail here
-// until `METHOD_TAG` and these strings are answered together.
+// until `METHOD_TAG` and these strings are answered together. Re-worked for
+// `table-v2` (home +0.42, scale 1.14, draw 0.27) on 2026-11-09, from the table
+// alone, before the page was run against them.
 //
 // Usage:  node scripts/forecast-render-check.mjs --self-test
 //         URL=http://localhost:8080 node scripts/forecast-render-check.mjs
@@ -55,16 +57,16 @@ const BEFORE_ALL = '2026-10-10T09:00:00Z'
 const AFTER_FIRST = '2026-10-10T12:00:00Z'
 
 /** The full statement of the model, as `Forecast.METHOD` states it. */
-const METHOD = 'table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30'
+const METHOD = 'table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match'
 
 const ARSENAL_LEEDS = 'Arsenal v Leeds'
 const CHELSEA_BOURNEMOUTH = 'Chelsea v Bournemouth'
 const MAN_UNITED_SPURS = 'Man United v Spurs'
 
 const EXPECTED = {
-  [ARSENAL_LEEDS]: 'model table-v1 — Arsenal 92% · draw 5% · Leeds 3%',
-  [CHELSEA_BOURNEMOUTH]: 'model table-v1 — Chelsea 57% · draw 19% · Bournemouth 25%',
-  [MAN_UNITED_SPURS]: 'model table-v1 — no forecast: not in the standings table: Man United',
+  [ARSENAL_LEEDS]: 'model table-v2 — Arsenal 62% · draw 27% · Leeds 11%',
+  [CHELSEA_BOURNEMOUTH]: 'model table-v2 — Chelsea 46% · draw 27% · Bournemouth 27%',
+  [MAN_UNITED_SPURS]: 'model table-v2 — no forecast: not in the standings table: Man United',
 }
 
 /** Words the ruling for this feature forbids: a difference from the market is never shown. */
@@ -93,7 +95,7 @@ if (SELF_TEST) {
   const model = EXPECTED[ARSENAL_LEEDS]
 
   check('the ruling\'s vocabulary is not on a model line', bannedWordsIn(model).length === 0, model)
-  check('a line that names an edge is caught', bannedWordsIn('model table-v1 — Arsenal 92% · edge +12').includes('edge'))
+  check('a line that names an edge is caught', bannedWordsIn('model table-v2 — Arsenal 62% · edge +12').includes('edge'))
   check('a line that names a gap to the market is caught', bannedWordsIn('model — gap to market').includes('gap'))
   check('a line that names points is caught', bannedWordsIn('model — +12 pts').includes('pts'))
 
@@ -330,7 +332,7 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     const failed = await waitKind(page, ARSENAL_LEEDS, 'standings-unavailable')
     const card = (await readCards(page)).find(c => c.teams === ARSENAL_LEEDS)
     check('a failed table request is drawn as a refusal carrying the status it failed with, not as nothing',
-      failed === null && /^model table-v1 — no forecast: standings unavailable \(503\b/.test(card.text) && card.method === null,
+      failed === null && /^model table-v2 — no forecast: standings unavailable \(503\b/.test(card.text) && card.method === null,
       JSON.stringify(failed ?? card))
     check('...and never falls back to a table that was not asked for', !/\d+%/.test(card.text), card.text)
     check('...the only console error is the browser\'s own report of the 503 this scenario injected',
@@ -363,7 +365,7 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     await flip(page, ARSENAL_LEEDS, 'scheduled')
     const pending = await waitKind(page, ARSENAL_LEEDS, 'standings-pending')
     const card = (await readCards(page)).find(c => c.teams === ARSENAL_LEEDS)
-    check('while the table is on its way the card says so', pending === null && card.text === 'model table-v1 — standings loading',
+    check('while the table is on its way the card says so', pending === null && card.text === 'model table-v2 — standings loading',
       JSON.stringify(pending ?? card))
     check('...and the request was held, not answered', held !== null)
     if (held) {
@@ -407,7 +409,7 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     check('a card with no market price draws no market line (the setup holds)',
       alone.market === '', JSON.stringify(alone.market))
     check('...and still shows the model, labelled by where it came from',
-      unpriced === null && alone.kind === 'model' && alone.text.startsWith('model table-v1 — ') && alone.method === METHOD,
+      unpriced === null && alone.kind === 'model' && alone.text.startsWith('model table-v2 — ') && alone.method === METHOD,
       JSON.stringify(unpriced ?? alone))
     check('...with exactly the number it showed beside a market price in A',
       alone.text === EXPECTED[ARSENAL_LEEDS], alone.text)

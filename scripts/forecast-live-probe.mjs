@@ -19,7 +19,7 @@
 //   - a card that is not Scheduled carries no forecast (the table already holds its result);
 //   - a card Scheduled with its kickoff ahead carries a number or a refusal by name,
 //     never nothing;
-//   - a number has the shape "model table-v1 — A n% · draw n% · B n%", rounded
+//   - a number has the shape "model table-v2 — A n% · draw n% · B n%", rounded
 //     probabilities that sum to 99-101, and the full statement of its model on the node;
 //   - the table was asked for exactly once, at the relay's route, and the relay answered
 //     it 200 — so a run with nothing to judge still proves the live path (the route, the
@@ -45,8 +45,8 @@ export const RELAY_STANDINGS = 'https://field-relay-nba.jeffunglesbee.workers.de
 /** A kickoff this close to the probe's own clock is not judged. */
 export const GRACE_MS = 60_000
 
-export const MODEL_LINE = /^model table-v1 — (.+) (\d+)% · draw (\d+)% · (.+) (\d+)%$/
-export const METHOD_PREFIX = 'table-v1:'
+export const MODEL_LINE = /^model table-v2 — (.+) (\d+)% · draw (\d+)% · (.+) (\d+)%$/
+export const METHOD_PREFIX = 'table-v2:'
 
 /** The state a card's status text names, and its kickoff when it is Scheduled. `Scheduled <raw> (parsed HH:mm)`. */
 export const stateOf = status => {
@@ -92,7 +92,7 @@ export const judge = (cards, nowMs, standings) => {
     if (c.kind !== 'model') continue // a refusal by name is wired, not a failure
     numbers += 1
     const m = MODEL_LINE.exec(c.text ?? '')
-    if (!m) { reasons.push(`${c.teams}: a model line that is not the shape "model table-v1 — A n% · draw n% · B n%": ${JSON.stringify(c.text)}`); continue }
+    if (!m) { reasons.push(`${c.teams}: a model line that is not the shape "model table-v2 — A n% · draw n% · B n%": ${JSON.stringify(c.text)}`); continue }
     const parts = [m[2], m[3], m[5]].map(Number)
     const sum = parts.reduce((a, b) => a + b, 0)
     if (parts.some(p => p > 100) || sum < 99 || sum > 101) reasons.push(`${c.teams}: the three figures ${parts.join('/')} do not read as one distribution (sum ${sum})`)
@@ -119,7 +119,7 @@ if (SELF_TEST) {
   const ahead = '2026-11-21T12:30Z'
   const card = (over = {}) => ({
     teams: 'Arsenal v Spurs', status: `Scheduled ${ahead} (parsed 12:30)`, kind: 'model',
-    text: 'model table-v1 — Arsenal 52% · draw 24% · Spurs 24%', method: 'table-v1: ppg + 0.25*gdpg + 0.10*gfpg, home +0.30', ...over,
+    text: 'model table-v2 — Arsenal 49% · draw 27% · Spurs 24%', method: 'table-v2: ppg + 0.25*gdpg + 0.10*gfpg, home +0.42, scale 1.14, draw 0.27 for every match', ...over,
   })
   const ok = { requests: 1, statuses: [200] }
   const v = (cards, standings = ok) => judge(cards, NOW, standings).verdict
@@ -131,7 +131,7 @@ if (SELF_TEST) {
   check('a Scheduled card whose kickoff has passed is NOTHING-TO-JUDGE, not a pass',
     v([card({ status: 'Scheduled 2026-11-21T09:00Z (parsed 09:00)', kind: 'none', text: '', method: null })]) === 'NOTHING-TO-JUDGE')
   check('a refusal by name on a card with its kickoff ahead is WIRED-NO-FORECAST, not a pass',
-    v([card({ kind: 'clubs-not-in-table', text: 'model table-v1 — no forecast: not in the standings table: Spurs', method: null })]) === 'WIRED-NO-FORECAST')
+    v([card({ kind: 'clubs-not-in-table', text: 'model table-v2 — no forecast: not in the standings table: Spurs', method: null })]) === 'WIRED-NO-FORECAST')
 
   // The ways it must FAIL (Rule 90: a verdict that cannot fail proves nothing).
   check('A FINAL CARD WITH A FORECAST FAILS', v([card({ status: 'Final' })]) === 'FAIL')
@@ -140,10 +140,10 @@ if (SELF_TEST) {
     v([card({ status: 'Scheduled 2026-11-21T09:00Z (parsed 09:00)' })]) === 'FAIL')
   check('A CARD WITH ITS KICKOFF AHEAD THAT DREW NOTHING FAILS', v([card({ kind: 'none', text: '', method: null })]) === 'FAIL')
   check('A CARD STILL LOADING AFTER THE TABLE SHOULD HAVE ARRIVED FAILS',
-    v([card({ kind: 'standings-pending', text: 'model table-v1 — standings loading', method: null })]) === 'FAIL')
+    v([card({ kind: 'standings-pending', text: 'model table-v2 — standings loading', method: null })]) === 'FAIL')
   check('A MODEL LINE THAT IS NOT THE SHAPE FAILS', v([card({ text: 'model: Arsenal 52%' })]) === 'FAIL')
   check('FIGURES THAT DO NOT SUM TO ONE DISTRIBUTION FAIL',
-    v([card({ text: 'model table-v1 — Arsenal 52% · draw 24% · Spurs 40%' })]) === 'FAIL')
+    v([card({ text: 'model table-v2 — Arsenal 49% · draw 27% · Spurs 40%' })]) === 'FAIL')
   check('A NUMBER WITHOUT THE STATEMENT OF ITS MODEL FAILS', v([card({ method: null })]) === 'FAIL')
   check('A CARD WITH NO FORECAST NODE FAILS', v([card({ kind: null })]) === 'FAIL')
   check('THE TABLE ASKED FOR TWICE FAILS', v([card()], { requests: 2, statuses: [200, 200] }) === 'FAIL')
@@ -153,7 +153,7 @@ if (SELF_TEST) {
   check('...and a day with nothing to judge still fails on a table the relay did not answer',
     v([card({ status: 'Final', kind: 'none', text: '', method: null })], { requests: 1, statuses: [500] }) === 'FAIL')
   check('rounded figures that sum to 101 are one distribution, not a failure',
-    v([card({ text: 'model table-v1 — Chelsea 57% · draw 19% · Bournemouth 25%' })]) === 'PASS')
+    v([card({ text: 'model table-v2 — Chelsea 37% · draw 27% · Bournemouth 37%' })]) === 'PASS')
 
   // The grace window.
   check('a kickoff 30 s from now is not judged either way',
