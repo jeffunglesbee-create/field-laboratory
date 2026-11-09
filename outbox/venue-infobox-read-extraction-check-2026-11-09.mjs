@@ -10,11 +10,13 @@
 //   B. the lines the probe lost that the reader does not hold are exactly the declared edits;
 //   C. the lines the probe gained are exactly the declared additions.
 
-import { readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { isMain } from '../scripts/checks.mjs'
 
 const OLD = 'af7db7f'   // the parent of the extraction commit: the probe as it was
+// The new probe and the reader are read at the extraction commit too, not from the working tree: the next commit (the infobox as a source of the
+// roof rule) changes both on purpose (`answerText`, `roofValuesOf`), and this is the proof about the move and about nothing after it.
+const NEW = '968ee51'   // the extraction commit
 const DECLARED_LOST = [
   '// one request per article. This file reads the XML with a real XML parser and keeps the',
   '// parameters whose NAME contains "roof". It does not read prose and does not parse wikitext.',
@@ -73,8 +75,9 @@ const selfTest = () => {
 if (isMain(import.meta.url)) {
   if (process.argv.includes('--self-test')) selfTest()
   else {
-    const oldProbe = execFileSync('git', ['show', `${OLD}:scripts/venue-infobox.mjs`], { encoding: 'utf8' })
-    const newProbe = readFileSync('scripts/venue-infobox.mjs', 'utf8'), reader = readFileSync('scripts/venue-infobox-read.mjs', 'utf8')
+    const show = (rev, path) => execFileSync('git', ['show', `${rev}:${path}`], { encoding: 'utf8' })
+    const oldProbe = show(OLD, 'scripts/venue-infobox.mjs')
+    const newProbe = show(NEW, 'scripts/venue-infobox.mjs'), reader = show(NEW, 'scripts/venue-infobox-read.mjs')
     const c = compare(oldProbe, newProbe, reader)
     console.log(`old probe ${OLD}:scripts/venue-infobox.mjs, ${oldProbe.split('\n').length} lines; new probe ${newProbe.split('\n').length} lines; new reader ${reader.split('\n').length} lines`)
     console.log(`lines the probe lost: ${c.lost}; held by the reader verbatim: ${c.held}; not held (the declared edits): ${c.lostElsewhere.length} of ${DECLARED_LOST.length} declared`)

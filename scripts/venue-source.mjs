@@ -25,6 +25,7 @@
 
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { createChecks, finish, isMain } from './checks.mjs'
+import { parseUrl, roofValuesOf } from './venue-infobox-read.mjs'
 
 export const EPS = 0.02
 export const AMBIGUOUS_DEG = 0.5
@@ -83,6 +84,7 @@ export const tableRowCount = (text = readFileSync('src/Venues.fs', 'utf8')) => (
 const UA = 'field-laboratory-venue-source/1.0 (github.com/jeffunglesbee-create/field-laboratory; venue coordinates for weather)'
 const CACHE_PATH = 'outbox/venue-source-cache.json'
 const TTL_MS = 30 * 24 * 60 * 60 * 1000
+const WIKIPEDIA_GAP_MS = 1000
 const STADIUM_QIDS = 'wd:Q483110 wd:Q1076486'
 const OSM_KEYS = new Set(['leisure', 'building', 'amenity', 'tourism', 'sport', 'man_made'])
 
@@ -91,7 +93,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms))
 // The key kinds this script still asks for. A kind it no longer asks for is
 // dropped on load: the cache is committed, and a retired key is weight with no
 // reader (8.2 MB on 2026-10-22, 3.5 MB of it whole article bodies).
-const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof', 'wp-team', 'nm-reverse'])
+const CACHE_KINDS = new Set(['wd-occupants', 'wd-search', 'wd-sparql-standing', 'nominatim', 'photon', 'wd-roof', 'wp-lead', 'wp-bodyroof', 'wp-infobox', 'wp-team', 'nm-reverse'])
 export const liveEntries = c => Object.fromEntries(Object.entries(c).filter(([k]) => CACHE_KINDS.has(k.split('|')[0])))
 export const loadCache = () => (existsSync(CACHE_PATH) ? liveEntries(JSON.parse(readFileSync(CACHE_PATH, 'utf8'))) : {})
 export const saveCache = c => { mkdirSync('outbox', { recursive: true }); writeFileSync(CACHE_PATH, JSON.stringify(c, null, 1) + '\n') }
@@ -449,7 +451,7 @@ const occupants = async path => {
 
 // --- the self-test: the rule, with no network -------------------------------
 
-const selfTest = () => {
+const selfTest = async () => {
   const { check, summarize } = createChecks()
   const W = (lat, lon) => ({ source: 'wikidata', lat, lon })
   const N = (lat, lon) => ({ source: 'nominatim', lat, lon })
@@ -548,6 +550,93 @@ const selfTest = () => {
   check('roof: ...and a body with no roof words leaves the inference standing',
     decideRoof(null, 'X is a stadium in Y.', 'It holds 30,000 people.').roof === 'open')
 
+  // --- the infobox's Roof field, the fourth witness (Task 2, option 3) ---------
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  const SILENT = 'X is a stadium in Y.'
+  const LEGACY = [
+    [['dome', 'X has a retractable roof.'], { roof: null, basis: 'sources disagree: wikidata "dome", lead retractable' }],
+    [['dome', SILENT], { roof: 'dome', basis: 'wikidata P5624 "dome"' }],
+    [[null, 'X is an indoor stadium.'], { roof: 'dome', basis: 'wikipedia lead' }],
+    [[null, SILENT, null], { roof: null, basis: 'the lead names no roof, and the article body did not answer, so the roof check did not run' }],
+    [[null, SILENT, 'a retractable roof'], { roof: null, basis: 'the lead names no roof, but the article mentions "retractable roof"' }],
+    [[null, SILENT, ''], { roof: 'open', basis: 'inferred: the lead names no roof' }],
+    [['open-air', SILENT, ''], { roof: 'open', basis: 'wikidata P5624 "open-air", lead names no roof' }],
+    [[null, null], { roof: null, basis: 'no Wikipedia lead and no Wikidata roof' }],
+  ]
+  const legacyOff = LEGACY.filter(([args, want]) => !same(decideRoof(...args), want) || !same(decideRoof(args[0], args[1], args[2], []), want)).map(([args]) => JSON.stringify(args))
+  check('ROOF: WITH NO INFOBOX FIELD THE RULE IS WHAT IT WAS, on all eight outcomes, basis text included, whether the field is left out or is []', legacyOff.length === 0, `changed: ${legacyOff.join('; ')}`)
+  const field = (v, wd = null, lead = SILENT, body = '') => decideRoof(wd, lead, body, v)
+  const FIELD_NONE = field([])
+  check('roof: THE INFOBOX NAMES THE ROOF THE LEAD CANNOT (U.S. Bank Stadium: a lead cut to "U.S.", a body that mentions a roof that was never built)',
+    same(field(['[[Skylight]]'], null, 'U.S.', 'retractable roof'), { roof: 'dome', basis: 'infobox roof "[[Skylight]]"' }), JSON.stringify(field(['[[Skylight]]'], null, 'U.S.', 'retractable roof')))
+  check('roof: ...and a retractable roof the lead never mentions (Johan Cruijff Arena)',
+    same(field(['[[Retractable roof|Retractable]]'], null, 'The Johan Cruyff Arena is the home stadium of Ajax.', 'The stadium has a retractable roof.'), { roof: 'retractable', basis: 'infobox roof "[[Retractable roof|Retractable]]"' }))
+  check('roof: a partially retractable roof is retractable, the class that claims no more than "not known whether it was closed" (Wembley Stadium)',
+    field(['[[Retractable roof|Partially retractable]]'], null, 'Wembley Stadium is a stadium in London.', 'Two partially retractable roof structures can be opened.').roof === 'retractable')
+  check('ROOF: AN INFOBOX AND A LEAD NAMING DIFFERENT ROOFS IS REVIEW, never a pick',
+    (r => r.roof === null && /^sources disagree: lead dome, infobox retractable$/.test(r.basis))(field(['[[Retractable roof|Retractable]]'], null, 'X is an indoor stadium.')))
+  check('roof: ...and so is Wikidata against the infobox, whichever way the lead reads',
+    (r => r.roof === null && /^sources disagree: wikidata dome, infobox retractable$/.test(r.basis))(field(['[[Retractable roof|Retractable]]'], 'dome')) &&
+    field(['[[Dome]]'], 'retractable roof').roof === null)
+  check('roof: an infobox agreeing with the lead or with Wikidata changes nothing, the basis included',
+    same(field(['[[Dome]]'], null, 'X is an indoor stadium.'), decideRoof(null, 'X is an indoor stadium.', '')) && same(field(['[[Dome]]'], 'dome'), decideRoof('dome', SILENT, '')))
+  check('ROOF: TWO ROOF PARAMETERS NAMING DIFFERENT ROOFS ARE REVIEW, not the first and not the last',
+    field(['[[Dome]]', '[[Retractable roof|Retractable]]']).roof === null && field(['[[Retractable roof|Retractable]]', '[[Dome]]']).roof === null && /different roofs/.test(field(['[[Dome]]', '[[Retractable roof|Retractable]]']).basis))
+  check('roof: two roof parameters naming one class are one witness, a joined term among them', field(['[[Dome]]', '[[Skylight]]']).roof === 'dome')
+  check('roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is',
+    field(['[[SKYLIGHT]]']).roof === 'dome' && field(['  [[skylight]] ']).roof === 'dome' && same(field(['Skylight']), FIELD_NONE) && same(field(['[[Skylight]] glass']), FIELD_NONE) && same(field(['[[Atrium]]']), FIELD_NONE))
+  check('ROOF: A BARE WORD IS NO WITNESS, and "open" is never read from the field (Retractable, Fixed, None, Open, Open-air, empty)',
+    ['Retractable', 'Fixed', 'None', 'Open', 'Open-air', ''].every(v => same(field([v]), FIELD_NONE)) && FIELD_NONE.roof === 'open')
+  check('ROOF: AN INFOBOX THAT DID NOT ANSWER REFUSES AN OPEN INFERENCE, as the body check does',
+    (r => r.roof === null && /infobox did not answer/.test(r.basis))(field(null)))
+  check('roof: ...but does not undo a roof a source did name', field(null, null, 'X is an indoor stadium.').roof === 'dome' && field(null, 'dome').roof === 'dome')
+  check('roof: a closed infobox decides although the body check did not run, and although the lead did not answer',
+    field(['[[Dome]]'], null, SILENT, null).roof === 'dome' && field(['[[Dome]]'], null, null, null).roof === 'dome')
+  check('the cache keeps the infobox answers it asks for', Object.keys(liveEntries({ 'wp-infobox|X': 1, 'photon|Y': 2 })).join() === 'wp-infobox|X,photon|Y')
+
+  // The parse answer into the roof values: what the probe records and the rule keeps, from one reader.
+  const boxOf = (...params) => `<template><title>Infobox venue</title><part><name>name</name><equals>=</equals><value>X</value></part>${params.map(([n, v]) => `<part><name>${n}</name><equals>=</equals><value>${v}</value></part>`).join('')}</template>`
+  const treeFor = (...params) => `<root>${boxOf(...params)}</root>`
+  const answerFor = tree => ({ parse: { title: 'X', revid: 1, parsetree: { '*': tree } } })
+  check('the roof values of an answer are the flat value of every roof parameter', same(roofValuesOf(answerFor(treeFor(['roof', '[[Skylight]]']))), { ok: true, value: ['[[Skylight]]'] }), JSON.stringify(roofValuesOf(answerFor(treeFor(['roof', '[[Skylight]]'])))))
+  check('...from every infobox of the article, not the first alone', same(roofValuesOf(answerFor(`<root>${boxOf()}${boxOf(['roof', '[[Dome]]'])}</root>`)), { ok: true, value: ['[[Dome]]'] }))
+  check('...an infobox with no roof parameter, and an article with no infobox, answer []: an answer that says nothing, not a failure',
+    same(roofValuesOf(answerFor(treeFor())), { ok: true, value: [] }) && same(roofValuesOf(answerFor('<root>no infobox here</root>')), { ok: true, value: [] }))
+  check('AN ANSWER THAT CANNOT BE READ IS NOT AN EMPTY ONE (an API error, no parse tree, an error page that parses as XML)',
+    [{ error: { code: 'missingtitle', info: 'gone' } }, { parse: { title: 'X' } }, answerFor('<html><body>x</body></html>')].every(v => roofValuesOf(v).ok === false && typeof roofValuesOf(v).why === 'string'))
+
+  // roofOf, driven from a cache and a stubbed fetch: the wiring, with no network.
+  const QID = 'Q1', TITLE = 'U.S._Bank_Stadium'
+  const fresh = result => ({ at: Date.now(), result })
+  const cacheOf = (lead, body, box) => ({
+    [`wd-roof|${QID}`]: fresh({ ok: true, value: { results: { bindings: [{ article: { value: `https://en.wikipedia.org/wiki/${TITLE}` } }] } } }),
+    [`wp-lead|${TITLE}`]: fresh({ ok: true, value: lead }),
+    [`wp-bodyroof|${TITLE}`]: fresh({ ok: true, value: body }),
+    ...(box ? { [`wp-infobox|${TITLE}`]: fresh({ ok: true, value: box }) } : {}),
+  })
+  const realFetch = globalThis.fetch
+  const wired = async (handler, run) => {
+    const calls = []
+    globalThis.fetch = async url => { calls.push(String(url)); return handler(String(url)) }
+    try { return { out: await run(), calls } } finally { globalThis.fetch = realFetch }
+  }
+  const reply = (status, body) => ({ status, ok: status >= 200 && status < 300, headers: { get: () => null }, json: async () => body })
+  // A request nothing expected is recorded and answered 404, so a cache the wiring cannot read fails these checks at once and not after a retry's wait.
+  const refuse = () => reply(404, {})
+  const cachedAll = await wired(refuse, () => roofOf(QID, cacheOf('U.S.', 'retractable roof', ['[[Skylight]]']), { gapMs: 0 }))
+  check('ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium)',
+    cachedAll.out.roof === 'dome' && cachedAll.out.basis === 'infobox roof "[[Skylight]]"' && cachedAll.out.lead === 'U.S.' && cachedAll.calls.length === 0, `${JSON.stringify(cachedAll.out)}; ${cachedAll.calls.length} request(s)`)
+  const emptyBox = await wired(refuse, () => roofOf(QID, cacheOf(SILENT, '', []), { gapMs: 0 }))
+  check('roofOf: a cached [] is an answer that says nothing, and the inference stands', emptyBox.out.roof === 'open' && emptyBox.calls.length === 0, JSON.stringify(emptyBox.out))
+  const askCache = cacheOf(SILENT, '', null)
+  const asked = await wired(url => (url === parseUrl(TITLE) ? reply(200, answerFor(treeFor(['roof', '[[Dome]]']))) : reply(404, {})), () => roofOf(QID, askCache, { gapMs: 0 }))
+  check('ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values under wp-infobox|title',
+    same(asked.calls, [parseUrl(TITLE)]) && asked.out.roof === 'dome' && same(askCache[`wp-infobox|${TITLE}`]?.result, { ok: true, value: ['[[Dome]]'] }), `${asked.calls.join(' ')}; ${JSON.stringify(asked.out)}; ${JSON.stringify(askCache[`wp-infobox|${TITLE}`])}`)
+  const failCache = cacheOf(SILENT, '', null)
+  const failed = await wired(() => reply(404, {}), () => roofOf(QID, failCache, { gapMs: 0 }))
+  check('ROOFOF: AN INFOBOX REQUEST THAT FAILS IS "DID NOT ANSWER": review, the reason said, and nothing remembered',
+    failed.out.roof === null && /the article infobox did not answer: HTTP 404/.test(failed.out.basis) && !(`wp-infobox|${TITLE}` in failCache) && failed.calls.length === 1, `${JSON.stringify(failed.out)}; ${failed.calls.length} request(s)`)
+
   finish(summarize())
 }
 
@@ -579,46 +668,87 @@ export const BODY_ROOF = /retractable[- ]roof|roof (?:that )?(?:can|could) be (?
 /** A lead whose first verb is "was" describes a building in the past tense. */
 export const pastTense = lead => /\b(?:is|are|was|were)\b/.exec(lead ?? '')?.[0] === 'was'
 
-/** Combine Wikidata P5624 and the Wikipedia lead. Disagreement is review, never a pick. */
-export const decideRoof = (wikidataRoof, lead, body = null) => {
+// The Roof field of the article's infobox is a fourth witness, read from MediaWiki's own parse tree (scripts/venue-infobox-read.mjs) and
+// so independent of where a sentence is cut: U.S. Bank Stadium's lead reads "U.S." after the first-sentence split at the initial, and its
+// infobox says `[[Skylight]]`. docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 2, option 3; measured on all 381 venue articles by
+// run 42668700914 (outbox/venue-infobox-probe.json): 17 articles carry a roof parameter; of the 17 rows whose closed roof Wikidata or the
+// lead decides, the field agrees on 15, is silent on 2 and disagrees on none; 3 rows change (Johan Cruijff Arena, U.S. Bank Stadium,
+// Wembley Stadium).
+//
+// A value is read by `classifyRoof` first (`[[Retractable roof|Retractable]]` is retractable, `[[Dome]]` is a dome). A value its patterns
+// do not name is a closed roof only if it is listed here, WHOLE and lower-cased. A term joins on evidence, not on meaning: it must be the
+// value on at least two rows whose roof the lead had already decided as that class, and on none decided otherwise. `[[Skylight]]` is on
+// Allegiant Stadium and SoFi Stadium (their leads say "a multi-purpose indoor stadium": dome) and on U.S. Bank Stadium, whose lead cannot
+// answer; no other value passed that test (outbox/venue-infobox-effect-2026-11-09-joined.txt). A bare "Retractable" or "Fixed" names
+// nothing, and "open" is never read from the field: its absence says nothing about the roof.
+export const ROOF_FIELD_TERMS = new Map([['[[skylight]]', 'dome']])
+
+/** The class one value of the Roof field names: `classifyRoof`'s when it names a closed roof, else the class its whole text was joined to, else 'open' (which is no witness). */
+const fieldClass = value => {
+  const c = classifyRoof(value)
+  return c !== 'open' ? c : (ROOF_FIELD_TERMS.get(value.toLowerCase().trim()) ?? 'open')
+}
+
+/**
+ * Combine Wikidata P5624, the Wikipedia lead and the Roof field of the article's infobox. Disagreement is review, never a pick.
+ * `body` is the words of the article that name a roof that moves ('' for none) and null when that check did not run. `field` is the
+ * flat value of every roof parameter of the infobox: [] when it answered and names no closed roof, which is also the default, so every
+ * caller that predates the field gets the rule as it was; null when it did not answer, which refuses an `open` inference as the lead's
+ * and the body's silence do. A closed roof a source DID name stands whether or not the others answered.
+ */
+export const decideRoof = (wikidataRoof, lead, body = null, field = []) => {
   const wd = wikidataRoof ? classifyRoof(wikidataRoof) : null
   const ld = lead == null ? null : classifyRoof(lead)
+  const classes = new Set((field ?? []).map(fieldClass).filter(c => c !== 'open'))
   if (wd && wd !== 'open' && ld && ld !== 'open' && wd !== ld) return { roof: null, basis: `sources disagree: wikidata "${wikidataRoof}", lead ${ld}` }
+  if (classes.size > 1) return { roof: null, basis: `the infobox names different roofs: ${JSON.stringify(field.join(' | '))}` }
+  const fd = [...classes][0] ?? null
+  const closed = [['wikidata', wd], ['lead', ld]].filter(([, c]) => c && c !== 'open')
+  if (fd && closed.some(([, c]) => c !== fd)) return { roof: null, basis: `sources disagree: ${[...closed, ['infobox', fd]].map(([s, c]) => `${s} ${c}`).join(', ')}` }
   if (wd && wd !== 'open') return { roof: wd, basis: `wikidata P5624 "${wikidataRoof}"` }
   if (ld && ld !== 'open') return { roof: ld, basis: 'wikipedia lead' }
+  if (fd) return { roof: fd, basis: `infobox roof ${JSON.stringify(field.join(' | '))}` }
   if (ld === 'open' && body == null) return { roof: null, basis: 'the lead names no roof, and the article body did not answer, so the roof check did not run' }
+  if (ld === 'open' && field === null) return { roof: null, basis: 'the lead names no roof, and the article infobox did not answer, so the roof check did not run' }
   if (ld === 'open' && body && BODY_ROOF.test(body)) return { roof: null, basis: `the lead names no roof, but the article mentions "${body.match(BODY_ROOF)[0]}"` }
   if (ld === 'open') return { roof: 'open', basis: wd ? `wikidata P5624 "${wikidataRoof}", lead names no roof` : 'inferred: the lead names no roof' }
   return { roof: null, basis: 'no Wikipedia lead and no Wikidata roof' }
 }
 
-const roofOf = async (qid, cache) => {
+/** The roof of one venue: Wikidata P5624, the Wikipedia lead, the article body's words about a moving roof, and the infobox's Roof field. `gapMs` is the wait before each Wikipedia request the cache cannot answer. */
+export const roofOf = async (qid, cache, { gapMs = WIKIPEDIA_GAP_MS } = {}) => {
   if (!qid) return decideRoof(null, null)
   const sparql = `SELECT ?roofLabel ?article WHERE { OPTIONAL { wd:${qid} wdt:P5624 ?roof . } OPTIONAL { ?article schema:about wd:${qid} ; schema:isPartOf <https://en.wikipedia.org/> . } SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } } LIMIT 1`
   const r = await cached(cache, `wd-roof|${qid}`, () =>
     getJson(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(sparql)}`, { Accept: 'application/sparql-results+json' }), 300)
   if (!r.ok) return { roof: null, basis: `wikidata unanswered: ${r.why}` }
   const b = r.value.results.bindings[0] || {}
-  let lead = null, body = null, unanswered = null
+  let lead = null, body = null, field = [], unanswered = null
   const title = b.article?.value?.split('/wiki/')[1]
   if (title) {
-    // Only what is used is cached: the lead sentence, and whether the body
-    // mentions a moving roof (the matched words, or '' for none).
+    // Only what is used is cached: the lead sentence, whether the body
+    // mentions a moving roof (the matched words, or '' for none), and the flat
+    // value of each roof parameter of the infobox ([] for none).
     const sum = await cached(cache, `wp-lead|${title}`, async () => {
       const r = await getJson(`https://en.wikipedia.org/api/rest_v1/page/summary/${title}`)
       return r.ok ? { ok: true, value: (r.value.extract || '').split(/(?<=\.)\s/)[0] } : r
-    }, 1000)
+    }, gapMs)
     if (sum.ok) lead = sum.value
     const full = await cached(cache, `wp-bodyroof|${title}`, async () => {
       const r = await getJson(`https://en.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=1&format=json&titles=${title}`)
       if (!r.ok) return r
       const extract = Object.values(r.value.query?.pages ?? {})[0]?.extract
       return extract == null ? { ok: false, why: 'no extract' } : { ok: true, value: extract.match(BODY_ROOF)?.[0] ?? '' }
-    }, 1000)
+    }, gapMs)
     if (full.ok) body = full.value
-    unanswered = !sum.ok ? `the Wikipedia summary did not answer: ${sum.why}` : !full.ok ? `the article body did not answer: ${full.why}` : null
+    const box = await cached(cache, `wp-infobox|${title}`, async () => {
+      const r = await getJson(parseUrl(title))
+      return r.ok ? roofValuesOf(r.value) : r
+    }, gapMs)
+    field = box.ok ? box.value : null
+    unanswered = !sum.ok ? `the Wikipedia summary did not answer: ${sum.why}` : !full.ok ? `the article body did not answer: ${full.why}` : !box.ok ? `the article infobox did not answer: ${box.why}` : null
   }
-  const d = decideRoof(b.roofLabel?.value ?? null, lead, body)
+  const d = decideRoof(b.roofLabel?.value ?? null, lead, body, field)
   // Say WHY there is no roof when a source did not answer: "no Wikipedia lead"
   // hid about 100 unanswered calls in run 39824953597 behind a sentence that
   // reads like an absence.
@@ -763,7 +893,7 @@ const calibrate = async () => {
 }
 
 if (isMain(import.meta.url)) {
-  if (process.argv.includes('--self-test')) selfTest()
+  if (process.argv.includes('--self-test')) await selfTest()
   else if (process.argv.includes('--calibrate')) await calibrate()
   else if (process.argv.includes('--occupants')) await occupants(process.argv[process.argv.indexOf('--occupants') + 1])
   else if (process.argv.includes('--source')) await source(process.argv[process.argv.indexOf('--source') + 1])

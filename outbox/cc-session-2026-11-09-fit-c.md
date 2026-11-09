@@ -233,7 +233,7 @@ Owner's ruling: "Option 3" (Mon 2026-11-09 12:16 ET), a second structured source
 probe is Step A and whether anything is built is decided from its output. The CC-CMD (`docs/CC-CMD-2026-11-09-venue-review-remainder.md`, "Option 3 — the infobox Roof field") holds the five go/no-go
 criteria, written before any data exists, and the Step A done condition.
 
-HEAD progression: `035a20a`, `b247c68` (the probe), `9fd5d2e` and `8d13933` (the effect tool and the Step A assertions), `86bd5f0` (the runner's data commit), then the commit carrying this update.
+HEAD progression: `035a20a`, `b247c68` (the probe), `9fd5d2e` and `8d13933` (the effect tool and the Step A assertions), `86bd5f0` (the runner's data commit), `af7db7f` (the record of Step A and the decision to build), `968ee51` (Step B commit 1: the reader moved out of the probe; verify run 42678114036, success), then the commit carrying this update (Step B commit 2: the rule).
 
 | What | State |
 |---|---|
@@ -289,10 +289,38 @@ clause was removed and a fixture added for the case it had been standing in for,
     equal to the probe's recorded `revid`. Checked by id and not assumed.
 16. Allegiant Stadium and SoFi Stadium are dome by their leads ("a multi-purpose indoor stadium", cache `wp-lead|`), and their infoboxes say `[[Skylight]]`; with U.S. Bank's, that is the evidence the joining test counts.
 
-**State.** Run and decided. The probe ran as run 42668700914 (the runner's commit `86bd5f0`); Step A's done condition is met (15 of 15, `outbox/venue-infobox-stepa-2026-11-09.txt`). Criteria 1 to 5 say go (the verdicts are
+17. Step B commit 2 changes `scripts/venue-infobox-read.mjs` and the probe's `readArticle`, so the extraction checker (`outbox/venue-infobox-read-extraction-check-2026-11-09.mjs`), which read both from the working tree,
+    would have reported DIFFERENT on any later run. It reads them at `968ee51` now, and its output is byte-for-byte the committed section of `outbox/venue-infobox-read-extraction-2026-11-09.txt`: a proof about a move must not
+    depend on what is edited after it.
+18. A mutation of `answerText` that deletes its "no parse tree" guard crashes the probe's `readArticle` (`text.slice` of undefined) before any named check can fail, so by name it is "CRASH", not caught. The registered mutation
+    keeps the guard's meaning and changes what the answer becomes (an empty `<root/>` article), which fails the named check: `venue-infobox-answer-no-parsetree-reads-as-article`.
+19. Wikidata's roof (P5624) is null on all 387 cached `wd-roof|` answers, so Wikidata names no roof for any row and the wikidata-against-infobox disagreement path has no real row. It is covered by the self-test and two of
+    its mutations, and by nothing in the data.
+20. `lookupPlus` over the 442 candidates, from the committed cache with every entry's age set to now and `fetch` a counting stub: 0 requests, the same decision as the committed results on 442 of 442 (384 accepted). The
+    runner fill therefore asks Wikipedia for the infobox of each article and nothing else; the oldest cache entry is 18.7 days against a 30-day lifetime.
+
+**State.** Run and decided; Step B is half built and both commits are on `main`. The probe ran as run 42668700914 (the runner's commit `86bd5f0`); Step A's done condition is met (15 of 15, `outbox/venue-infobox-stepa-2026-11-09.txt`). Criteria 1 to 5 say go (the verdicts are
 in the CC-CMD under Task 2; the effect outputs are `outbox/venue-infobox-effect-2026-11-09*.txt`): the infobox would move 2 rows, 3 with the one joined term, and disagrees with none of the 13 rows the lead or Wikidata
-decides. The categories are measured beside it and not built (the owner's word is needed). Step B is in progress: the reader's extraction, the rule, the runner fill with a row-by-row diff, then the table. Unblock and
-verify for each step are in the CC-CMD under "Step B".
+decides. The categories are measured beside it and not built (the owner's word is needed).
+
+| Step B | State |
+|---|---|
+| commit 1, `968ee51` | the parse-tree reader (`parseUrl`, `flatOf`, `readTree`) is `scripts/venue-infobox-read.mjs`; identity against the old probe: 60 of 62 lost lines held verbatim, 2 declared header edits, 0 undeclared (`outbox/venue-infobox-read-extraction-2026-11-09.txt`) |
+| commit 2, this one: `scripts/venue-infobox-read.mjs` | + `answerText` (the API error and no-parse-tree failures, shared with the probe's `readArticle`) and `roofValuesOf` (the flat value of every roof parameter of every infobox: `[]` when there is none, `{ ok: false }` when the answer cannot be read) |
+| `scripts/venue-source.mjs` | `decideRoof(wikidata, lead, body, field = [])`; `ROOF_FIELD_TERMS` (`[[skylight]]` is a dome, the evidence in its comment); `roofOf` exported and reading `wp-infobox|title` (`gapMs` is its one option); `wp-infobox` in `CACHE_KINDS`; self-test 57 to 80 checks |
+| `scripts/mutation-check.mjs` | 24 entries: 22 `venue-source-roof-field-*`, 2 `venue-infobox-answer-*`; `--anchors`: checked 1243 of 1246, 0 stale |
+
+| Proof | Artifact | Result |
+|---|---|---|
+| each new mutation is red by a named check, after a control run of the unmutated copy | `outbox/venue-source-roof-field-mutation-2026-11-09.txt`; `outbox/venue-infobox-mutation-2026-11-09.txt` | control 80 PASS 0 FAIL; 22 of 22 and 17 of 17 red by a name, 0 not; the registry's own runner on the 24 ids: 25 of 25 |
+| nothing that does not use the infobox changed | `outbox/venue-infobox-rule-differential-2026-11-09.txt` | `decideRoof` against its text at `968ee51`: 144 of 144 inputs identical with the argument left out and with `[]`; `readArticle`: 13 of 13 answers identical, record and kept texts; broken on purpose it reports 24 and 2 differences |
+| the real `roofOf`, end to end and offline, is the measured prediction | `outbox/venue-infobox-rule-replay-2026-11-09.txt` | 384 of 384 rows identical to the effect tool's prediction (roof, basis, lead, status); control 384 of 384; 0 requests; 3 rows change (Johan Cruijff Arena review to retractable, U.S. Bank Stadium review to dome, Wembley Stadium review to retractable) and no other; the rule's reader reads the five raw control trees as the probe recorded, 5 of 5; broken on purpose (the field not passed, the term removed, the cache key changed) it fails each time |
+
+Not proven here, and not claimable from here: what Wikipedia serves the rule's own request today, and how many of the 381 requests are throttled. The runner fill answers both: the number of articles whose infobox did not answer
+is printed from the cache comparison (`outbox/venue-infobox-rule-cache-compare-2026-11-09.mjs`: self-test 10 of 10; on today's cache, which has no `wp-infobox|` entry yet, it prints 0 of 381 equal, 381 not answered, and exits 1,
+which is the right answer for a cache that has not been filled), and a row whose infobox did not answer is review with the reason said, never open. Next, in this session and not as a carry-forward: the runner `source` run (about 40 minutes, the
+cache otherwise answering), the row-by-row diff against the committed results, the rule-read infobox values against the probe's ("N of 381"), then `--write`, the hand row's deletion and the table check. Verify for each
+step is in the CC-CMD under "Step B".
 
 ## Integration state (Rule 65)
 

@@ -45,7 +45,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { retryWait } from './venue-source.mjs'
-import { API, parseUrl, readTree } from './venue-infobox-read.mjs'
+import { API, parseUrl, answerText, readTree } from './venue-infobox-read.mjs'
 import { createChecks, finish, isMain } from './checks.mjs'
 
 export const UA = 'field-laboratory-venue-infobox/1.0 (github.com/jeffunglesbee-create/field-laboratory; reads the Roof field of venue articles for the roof rule)'
@@ -114,9 +114,9 @@ export const readArticle = (r, keep = () => {}) => {
   const got = { ok: false, ms, attempts: r.attempts.length }
   if (!r.ok) return { fetch: { ...got, why: r.why } }
   const v = r.value
-  if (v?.error) return { fetch: { ...got, why: `api error ${v.error.code}: ${String(v.error.info).slice(0, 120)}` } }
-  const text = v?.parse?.parsetree?.['*']
-  if (typeof text !== 'string') return { fetch: { ...got, why: `no parsetree in the response (keys: ${Object.keys(v ?? {}).join(',') || 'none'})` } }
+  const a = answerText(v)
+  if (!a.ok) return { fetch: { ...got, why: a.why } }
+  const text = a.text
   keep(text)
   const t = readTree(text)
   const base = { fetch: { ...got, ok: true }, title: v.parse.title ?? null, revid: v.parse.revid ?? null, redirects: (v.parse.redirects ?? []).map(x => `${x.from} -> ${x.to}`) }

@@ -1,0 +1,22 @@
+venue-infobox rule replay, offline: roofOf end to end on the committed results, cache and probe
+COVERAGE: roofOf replayed for 384 of 442 rows; 58 never reach the roof stage; not computable (a cache key missing): 0
+NETWORK: 0 request(s) made by 384 roofOf calls (the stub refuses and counts)
+CONTROL (the no-infobox replay, as the effect tool's): 384 of 384 rows reproduce the committed roof, basis and status
+ROOFOF AGAINST THE MEASURED PREDICTION (roof, basis, lead, status): 384 of 384 rows identical; 0 differ
+CHANGED against the committed results: 3 row(s)
+  Johan Cruijff Arena
+    before review, roof none: the lead names no roof, but the article mentions "retractable roof"
+    after  accepted, roof retractable: infobox roof "[[Retractable roof|Retractable]]"
+  U.S. Bank Stadium
+    before review, roof none: the lead names no roof, but the article mentions "retractable roof"
+    after  accepted, roof dome: infobox roof "[[Skylight]]"
+  Wembley Stadium
+    before review, roof none: the lead names no roof, but the article mentions "retractable roof"
+    after  accepted, roof retractable: infobox roof "[[Retractable roof|Partially retractable]]"
+CONTROL TREES (the rule's reader on the whole raw tree, against the probe's recorded values): 5 of 5 identical
+  Center Parc Stadium: [] == []
+  Joan C. Edwards Stadium: [] == []
+  NRG Stadium: ["[[Retractable roof|Retractable]]"] == ["[[Retractable roof|Retractable]]"]
+  Parken Stadium: [] == []
+  U.S. Bank Stadium: ["[[Skylight]]"] == ["[[Skylight]]"]
+AS PREDICTED: exactly the three rows change, and roofOf is the measured prediction on every row

@@ -13,5 +13,7 @@ continuation-ignored         probe  exit 1  1 FAIL: the run reads both articles,
 unread-articles-pass         probe  exit 1  1 FAIL: an article that was not fetched makes the verdict a failure that says "1 of 2", and the report 
 denominator-is-the-answered  probe  exit 1  1 FAIL: the report names its denominators: rows with an article of all rows, parsed of fetched, infobox
 title-after-wiki-first       probe  exit 1  6 FAIL: a title is the text after /wiki/; no sitelink, no cached answer and no qid each say why || two rows on one article are one title; the stale cache key and the title the cache lacks are bo || the run reads both articles, joins the categories across the continuation, and passes its own v || the report names its denominators: rows with an article of all rows, parsed of fetched, infobox || the report lists the roof value with the roof the rule has for it, and the control that is not  || an article that was not fetched makes the verdict a failure that says "1 of 2", and the report 
+answer-api-error-ignored     reader exit 1  1 FAIL: an API error object is a fetch failure that names the code
+answer-no-parsetree-reads-as-article reader exit 1  1 FAIL: an answer without a parse tree is a fetch failure
 
-15 mutations read from the registry; 0 not red by a named check
+17 mutations read from the registry; 0 not red by a named check

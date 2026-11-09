@@ -4,7 +4,10 @@
 // WHY IT IS ITS OWN FILE. The probe imports `retryWait` from the rule, so the rule importing anything from the probe would be an
 // import cycle. This file imports nothing of ours; both of them import it. The code below was moved out of the probe without a
 // changed line (outbox/venue-infobox-read-extraction-2026-11-09.txt shows the moved text identical, and every mutation that cuts it
-// still goes red by name).
+// still goes red by name). Two things were added after the move, in the commit that made the rule read this file: `answerText` (one
+// `action=parse` answer into its XML text, or why there is none; the probe's `readArticle` calls it too, and
+// outbox/venue-infobox-rule-differential-2026-11-09.txt shows what the probe records unchanged) and `roofValuesOf` (the roof values the
+// rule keeps of one article). The extraction check is pinned to the move's own commit, so it speaks of the move and of nothing after it.
 //
 // NO NETWORK AND NO DECISION HERE. It turns the XML that `action=parse&prop=parsetree` returns into templates and parameters. What a
 // parameter means is not this file's business.
@@ -16,6 +19,14 @@ const INFOBOX = /^(?:template:)?infobox(?![a-z])/i
 const RAW_CAP = 4000
 
 export const parseUrl = title => `${API}?action=parse&page=${title}&prop=parsetree|revid&section=0&redirects=1&format=json`
+
+/** The parse tree's XML text out of one `action=parse` answer, or why there is none. An API error object and an answer with no parse tree are both a failure to read: neither is "an article with no infobox". */
+export const answerText = v => {
+  if (v?.error) return { ok: false, why: `api error ${v.error.code}: ${String(v.error.info).slice(0, 120)}` }
+  const text = v?.parse?.parsetree?.['*']
+  if (typeof text !== 'string') return { ok: false, why: `no parsetree in the response (keys: ${Object.keys(v ?? {}).join(',') || 'none'})` }
+  return { ok: true, text }
+}
 
 // --- reading the parse tree --------------------------------------------------------------------
 
@@ -74,4 +85,16 @@ export const readTree = xml => {
     infoboxes.push({ template, params, roof })
   }
   return { ok: true, errors, templates0, infoboxes }
+}
+
+/**
+ * What the roof rule keeps of one article: the flat value of every roof parameter of every Infobox, in the order the article gives them.
+ * `{ ok: true, value: [...] }`, with an empty list for an article that has no infobox or no roof parameter (an answer that says nothing,
+ * which is not a failure), or `{ ok: false, why }` when the answer could not be read at all.
+ */
+export const roofValuesOf = v => {
+  const a = answerText(v)
+  if (!a.ok) return a
+  const t = readTree(a.text)
+  return t.ok ? { ok: true, value: t.infoboxes.flatMap(i => i.roof.map(r => r.flat)) } : { ok: false, why: `the parse tree could not be read: ${t.why}` }
 }

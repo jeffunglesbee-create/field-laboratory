@@ -1,0 +1,6 @@
+old modules read from git 968ee51; the old rule exports ROOF_FIELD_TERMS: undefined, the new: object
+old readArticle reads the answer inline: true; the new reads it through answerText: true
+decideRoof, field left out:  checked 144 of 144 inputs; 0 differ
+decideRoof, field = []:      checked 144 of 144 inputs; 0 differ
+readArticle, record and kept texts: checked 13 of 13 answers; 0 differ
+IDENTICAL: nothing that does not use the infobox changed
