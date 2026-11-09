@@ -10442,6 +10442,73 @@ const MUTATIONS = [
     replace: "export const standingsRequestsIn = urls => urls\n",
     expect: "node scripts/forecast-render-check.mjs --self-test",
   },
+  // ── The model's own constants (docs/CC-CMD-2026-09-11-epl-forecaster-phase1.md; table-v2, 2026-11-09) ──
+  // Each entry moves ONE number, or ONE clause, of the model the pre-registered fit declared. A constant that moves without a new METHOD_TAG is a different model
+  // under the same name, which the CC-CMD's ModelRevised stamp exists to make visible; these are the checks that make it fail here first.
+  {
+    id: "forecast-model-draw-share-falls-with-the-gap",
+    file: "src/Forecast.fs",
+    claim: "the draw share is one number, the same for every fixture",
+    find: "    let pDraw = DRAW_SHARE\n",
+    replace: "    let pDraw = DRAW_SHARE * exp (-(abs d) / 1.10)\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-draw-share-moved",
+    file: "src/Forecast.fs",
+    claim: "the draw share is the declared 0.27",
+    find: "let private DRAW_SHARE = 0.27\n",
+    replace: "let private DRAW_SHARE = 0.28\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-home-advantage-moved",
+    file: "src/Forecast.fs",
+    claim: "the home edge is the declared 0.42",
+    find: "let private HOME_ADVANTAGE = 0.42\n",
+    replace: "let private HOME_ADVANTAGE = 0.43\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-scale-moved",
+    file: "src/Forecast.fs",
+    claim: "the logistic scale is the declared 1.14",
+    find: "let private SCALE = 1.14\n",
+    replace: "let private SCALE = 1.15\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-goal-difference-weight-moved",
+    file: "src/Forecast.fs",
+    claim: "a club's rating weighs goal difference per game at the declared 0.25",
+    find: "              + 0.25 * (float (r.GoalsFor - r.GoalsAgainst) / n)\n",
+    replace: "              + 0.26 * (float (r.GoalsFor - r.GoalsAgainst) / n)\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-goals-for-weight-moved",
+    file: "src/Forecast.fs",
+    claim: "a club's rating weighs goals for per game at the declared 0.10",
+    find: "              + 0.10 * (float r.GoalsFor / n))\n",
+    replace: "              + 0.11 * (float r.GoalsFor / n))\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-statement-drifts-from-the-constants",
+    file: "src/Forecast.fs",
+    claim: "the method statement is the one the pre-registered fit printed",
+    find: "home +0.42, scale 1.14, draw 0.27 for every match\"\n",
+    replace: "home +0.43, scale 1.14, draw 0.27 for every match\"\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "forecast-model-tag-drifts-from-the-statement",
+    file: "src/Forecast.fs",
+    claim: "the tag a card prints and the statement a row carries name the same model",
+    find: "let METHOD_TAG = \"table-v2\"\n",
+    replace: "let METHOD_TAG = \"table-v3\"\n",
+    expect: "node build/VerifyMain.js",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

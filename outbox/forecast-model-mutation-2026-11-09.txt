@@ -1,0 +1,42 @@
+# The eight model-constant mutations (scripts/mutation-check.mjs, ids forecast-model-*), run 2026-11-09 on src/Forecast.fs with its table-v2 edits.
+# Two runs of the same eight entries, each block the harness's unedited stdout (the command: node scripts/mutation-check.mjs --ids <the ids> --out <file>).
+# BLOCK 1 ran BEFORE the nine-decimal pin existed in src/Suite.fs (suite of 366 checks), and only three of the eight ids were run: the draw share that falls with the gap, home edge 0.43, scale 1.15.
+# BLOCK 2 ran AFTER the pin was added (suite of 367 checks), all eight ids.
+
+===== BLOCK 1: before the pin =====
+
+Mutation testing 3 invariant(s)
+
+  baseline: ran 1 of 1 distinct expectation(s) from 3 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+  build driver: watch, ready in 23298 ms, clean digest d4f090efd1807328
+  wrote /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/mut-before-pin.json: 3 record(s), 2 survived
+PASS  the unmutated tree passes every expectation
+PASS  [forecast-model-draw-share-falls-with-the-gap] the draw share is one number, the same for every fixture
+FAIL  [forecast-model-home-advantage-moved] the home edge is the declared 0.42
+      → mutation SURVIVED — src/Forecast.fs was broken and `node build/VerifyMain.js` still passed. Nothing defends this claim.
+FAIL  [forecast-model-scale-moved] the logistic scale is the declared 1.14
+      → mutation SURVIVED — src/Forecast.fs was broken and `node build/VerifyMain.js` still passed. Nothing defends this claim.
+
+2/4 checks passed
+
+===== BLOCK 2: after the pin =====
+
+Mutation testing 8 invariant(s)
+
+  baseline: ran 1 of 1 distinct expectation(s) from 8 mutation(s), 0 failing
+  baseline NOT written: --ids covers 1 expectation(s) of the full suite, and the artifact is the full run's
+  build driver: watch, ready in 21479 ms, clean digest 37a18b1b2ce01998
+  wrote /tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad/mut-after-pin.json: 8 record(s), 0 survived
+PASS  the unmutated tree passes every expectation
+PASS  [forecast-model-draw-share-falls-with-the-gap] the draw share is one number, the same for every fixture
+PASS  [forecast-model-draw-share-moved] the draw share is the declared 0.27
+PASS  [forecast-model-home-advantage-moved] the home edge is the declared 0.42
+PASS  [forecast-model-scale-moved] the logistic scale is the declared 1.14
+PASS  [forecast-model-goal-difference-weight-moved] a club's rating weighs goal difference per game at the declared 0.25
+PASS  [forecast-model-goals-for-weight-moved] a club's rating weighs goals for per game at the declared 0.10
+PASS  [forecast-model-statement-drifts-from-the-constants] the method statement is the one the pre-registered fit printed
+PASS  [forecast-model-tag-drifts-from-the-statement] the tag a card prints and the statement a row carries name the same model
+
+9/9 checks passed
+mutation run exit 0
