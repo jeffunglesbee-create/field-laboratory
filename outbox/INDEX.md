@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3429152` | 2026-11-09 | [venue-infobox-rule-cache-compare-2026-11-09.txt](venue-infobox-rule-cache-compare-2026-11-09.txt) | feat: the table takes the sourcing rule's 375 accepted rows, U.S. Bank Stadium among them, and loses its hand row |
+| `3429152` | 2026-11-09 | [venue-infobox-source-diff-2026-11-09.txt](venue-infobox-source-diff-2026-11-09.txt) | feat: the table takes the sourcing rule's 375 accepted rows, U.S. Bank Stadium among them, and loses its hand row |
+| `3429152` | 2026-11-09 | [venue-us-bank-generated-row-2026-11-09.txt](venue-us-bank-generated-row-2026-11-09.txt) | feat: the table takes the sourcing rule's 375 accepted rows, U.S. Bank Stadium among them, and loses its hand row |
+| `ef499a2` | 2026-11-09 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 42682560865) [skip ci] |
+| `ef499a2` | 2026-11-09 | [venue-source-results-latest.json](venue-source-results-latest.json) | data: venue sourcing (run 42682560865) [skip ci] |
+| `c6d10d3` | 2026-11-09 | [venue-infobox-source-diff-2026-11-09.mjs](venue-infobox-source-diff-2026-11-09.mjs) | docs: the diff tool's stub boundary is the CC-CMD's own 14 characters |
+| `c6d10d3` | 2026-11-09 | [venue-infobox-source-diff-mutation-2026-11-09.mjs](venue-infobox-source-diff-mutation-2026-11-09.mjs) | docs: the diff tool's stub boundary is the CC-CMD's own 14 characters |
+| `c6d10d3` | 2026-11-09 | [venue-infobox-source-diff-mutation-2026-11-09.txt](venue-infobox-source-diff-mutation-2026-11-09.txt) | docs: the diff tool's stub boundary is the CC-CMD's own 14 characters |
+| `1621efb` | 2026-11-09 | [venue-infobox-source-diff-2026-11-09.mjs](venue-infobox-source-diff-2026-11-09.mjs) | docs: the old-vs-new results diff for Step B, judged against the prediction, with its mutation proof |
+| `1621efb` | 2026-11-09 | [venue-infobox-source-diff-mutation-2026-11-09.mjs](venue-infobox-source-diff-mutation-2026-11-09.mjs) | docs: the old-vs-new results diff for Step B, judged against the prediction, with its mutation proof |
+| `1621efb` | 2026-11-09 | [venue-infobox-source-diff-mutation-2026-11-09.txt](venue-infobox-source-diff-mutation-2026-11-09.txt) | docs: the old-vs-new results diff for Step B, judged against the prediction, with its mutation proof |
+| `e9b55f5` | 2026-11-09 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `0827a1f` | 2026-11-09 | [cc-session-2026-11-09-fit-c.md](cc-session-2026-11-09-fit-c.md) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
 | `0827a1f` | 2026-11-09 | [venue-infobox-mutation-2026-11-09.txt](venue-infobox-mutation-2026-11-09.txt) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
 | `0827a1f` | 2026-11-09 | [venue-infobox-read-extraction-check-2026-11-09.mjs](venue-infobox-read-extraction-check-2026-11-09.mjs) | feat: the Wikipedia infobox Roof field is the roof rule's fourth source |
