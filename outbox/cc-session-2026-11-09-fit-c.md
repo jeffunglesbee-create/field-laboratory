@@ -225,7 +225,54 @@ for a mutation whose anchor had failed (a stale temp file from the run before): 
    5 minutes here because the restore was ready; a run left overnight would have left main red overnight. Recorded, not changed: it is the workflow's design and the owner's to alter.
 9. This sandbox cannot reach Wikipedia (the proxy answers 403 on CONNECT) and WebFetch refuses `en.wikipedia.org/api/rest_v1`, so no summary could be read here. A page the search returned (the article itself) could be.
 
-**Open.** The owner's choice among the CC-CMD's three options for Task 2. No carry-forward exists apart from that decision: each option is written down with its cost.
+**Open.** The owner chose option 3 ("Option 3", 12:16 ET); the section below is where it stands. No carry-forward exists apart from the owner's two decisions already open (the U.S. Bank hand row, the forecast store schema).
+
+## Option 3 of Task 2: the infobox probe (built and gated, not yet run)
+
+Owner's ruling: "Option 3" (Mon 2026-11-09 12:16 ET), a second structured source for the roof: the infobox Roof field. The option as I wrote it said it was unmeasured and needed a runner probe first, so the
+probe is Step A and whether anything is built is decided from its output. The CC-CMD (`docs/CC-CMD-2026-11-09-venue-review-remainder.md`, "Option 3 — the infobox Roof field") holds the five go/no-go
+criteria, written before any data exists, and the Step A done condition.
+
+HEAD progression: `035a20a`, then the commit carrying this section.
+
+| What | State |
+|---|---|
+| `scripts/venue-infobox.mjs` (508 lines) | read-only probe: for each article the roof rule reads, MediaWiki's own parse tree of section 0 (`action=parse&prop=parsetree`), read with a real XML parser; records every Infobox template, every parameter name, every parameter whose name contains "roof", the revision, the visible categories (hidden ones counted), and the whole tree of five controls. 36 self-test checks, one of them a trimmed copy of the real U.S. Bank tree |
+| `scripts/mutation-check.mjs` | 15 entries `venue-infobox-*`; `--anchors`: checked 1219 of 1222 mutation anchors, 0 stale (the 3 unchecked were there before) |
+| `.github/workflows/venue-source.yml` | mode `infobox`; writes only `outbox/venue-infobox-probe.json` and `.txt`, so the results, the cache and the table are not touched and a run cannot leave `check:venue-sourced` red |
+| `package.json`, `package-lock.json` | `@xmldom/xmldom` 0.9.12, exact-pinned devDependency: +1 line and +11 lines, nothing else moved |
+
+**Each mutation is red by the check meant to catch it** (a copy of the script with the anchor asserted once and applied, the self-test run, the failing check named; 15 read from the registry, 0 not red by a name; artifact `outbox/venue-infobox-mutation-2026-11-09.txt`, command `node outbox/venue-infobox-mutation-2026-11-09.mjs`):
+
+| Mutation | Check that goes red |
+|---|---|
+| `roof-match-case` | a capitalised Roof and a roof_type are both recorded |
+| `first-infobox-only` | two Infobox templates: both are read, and the roof is the second one's |
+| `root-not-checked` | an HTML error page, which is well-formed XML, is a failure and says its root; and the bad-tree check |
+| `ref-text-kept`, `nested-values-dropped` | the nested template and reference check |
+| `parse-error-swallowed` | a truncated tree is a failure, not "no infobox"; a mismatched tag is a failure |
+| `parser-errors-dropped` | a raw `&nbsp;` is read but the parser error is recorded |
+| `retry-after-ignored`, `429-not-retried` | a 429 is retried after the server's Retry-After, and both attempts are recorded |
+| `hidden-categories-listed`, `redirect-not-followed`, `continuation-ignored` | the redirect and continuation merge check, and the run check |
+| `unread-articles-pass` | an article that was not fetched makes the verdict a failure that says "1 of 2" |
+| `denominator-is-the-answered` | the report names its denominators |
+| `title-after-wiki-first` | six checks, among them the title derivation and the report |
+
+**Premise corrections (Rule 100).** (1) I recalled the template as `Infobox stadium`; the parse tree of U.S. Bank Stadium reads `Infobox venue`. The probe assumes no name: it reads every top-level template whose title
+starts with Infobox and counts them. (2) The escaping of the XML is inferred and not seen: the fetch tool I read the tree through decodes entities itself, so a literal `<close></ref></close>` came back that no parser
+would accept. The runner commits the raw trees of five controls, and the done condition names the string to look for. (3) "Skylight", U.S. Bank's value, is free text by the template's own documentation
+("the roof type of the venue if indoors/covered (e.g. retractable, domed, translucent)"), so what a value means is a measurement and not a lookup: criterion 2.
+
+**Found on the way.**
+10. Two mutations crashed the self-test with a TypeError instead of failing a named check (the check dereferenced a null the mutation had produced). The exit code was red, so the registry would have counted them
+    caught; by name they were not. The check is null-safe now, and the by-name run above is what showed it (Rule 90).
+11. `npm audit` reports 2 critical, `solid-js` (a direct dependency) through `seroval`, re-measured today. Neither is from this change and `package.json` has no other line moved: untouched (Rule 69), the owner's to rule on.
+12. The fetch tool (Exa) reaches Wikipedia's Action API while the sandbox proxy refuses Wikipedia and WebFetch refuses `rest_v1`. It returns a COPY of the source, which is why the one thing it cannot settle (the escape state) is
+    left to the runner's raw trees.
+
+**State.** Built and gated; not yet run. Unblocked when: verify is green on this commit. Run: `gh api -X POST repos/jeffunglesbee-create/field-laboratory/actions/workflows/venue-source.yml/dispatches -f ref=main -f 'inputs[mode]=infobox'`.
+Verify: the Step A done condition in the CC-CMD (`complete` true, every article `fetch.ok` and `parse.ok`, `COVERAGE: checked N of 442 rows` on the `.txt`'s second line, the string `<close>&lt;/ref&gt;</close>` in the U.S. Bank
+control tree or the record saying why not). Step B is built only if the five criteria say go.
 
 ## Integration state (Rule 65)
 

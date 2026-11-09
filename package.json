@@ -120,6 +120,7 @@
     "solid-js": "^1.9.14"
   },
   "devDependencies": {
+    "@xmldom/xmldom": "0.9.12",
     "playwright": "^1.62.1"
   }
 }
