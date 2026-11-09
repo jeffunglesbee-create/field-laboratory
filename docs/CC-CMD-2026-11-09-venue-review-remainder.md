@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-09 by CC, found when the verify run for table-v2's commits failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it) and so is Step 0 of Task 4 (`outbox/venue-red-days-2026-11-09.md`: 0 of 60 days red); Task 3 is unblocked (the archive holds the Manadon Sports Hub fixture); Task 2 waits for the owner's yes, and the rest of Task 4 for the owner's decision on each venue. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
+**Status:** PARTIAL 2026-11-09 — Task 1 is done (verify run 42631741258 on `a18e26a`, the live-slate step green, artifact under it) and so is Step 0 of Task 4 (`outbox/venue-red-days-2026-11-09.md`: 0 of 60 days red); Task 3 is unblocked (the archive holds the Manadon Sports Hub fixture); Task 2 was approved ("Task 2 approved", 10:43 ET), run, MEASURED AND STOPPED (`outbox/venue-lead-whole-2026-11-09.md`): reading the whole paragraph changed 4 of 442 rows and 2 of the 4 are not safe (Center Parc Stadium open to dome on "replacing the Georgia Dome" in a paragraph that says "an outdoor stadium"; Joan C. Edwards Stadium open to dome on "indoor suites"), so per this CC-CMD's own stop rule nothing reached the table; the scripts, results and cache are restored byte for byte (`a6f99c2`, verify run 42658229991 green) and Task 2 waits for the owner's choice among the three options under it; the rest of Task 4 waits for the owner's decision on each venue. Builds on `docs/CC-CMD-2026-10-20-live-slate-venue-coverage.md` and `docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md` (both DONE) and undoes nothing in them.
 
 ---
 
@@ -33,7 +33,8 @@ list from the sourcing run was the only thing outdoors on the slate.
 | U.S. Bank Stadium was sourced, not missed | `node -e` over `outbox/venue-source-results-latest.json` | in `review`, not `accepted`: position agreed by four witnesses, `roof: null`, `lead: "U.S."` |
 | The live slate's venue string is the candidate's string | the code points of both, side by side | identical, 17 code points |
 | The roof went unknown because the lead was cut | `sed -n 609p scripts/venue-source.mjs`, then `decideRoof` run on the stub and on the real sentence | line 609 splits the summary at the first full stop followed by a space; the stub reproduces the committed review entry, the real sentence returns `dome` |
-| It is not only this venue | the recorded leads in the results file | 9 of 442 are 14 characters or fewer, all cut at an initial or abbreviation; 8 of them were accepted as roof `open` on "inferred: the lead names no roof" |
+| It is not only this venue | the recorded leads in the results file | 9 of 442 are 14 characters or fewer, all cut at an initial or abbreviation; 8 of them were accepted as roof `open` on "inferred: the lead names no roof". Reproduced 2026-11-09 by `node outbox/venue-lead-whole-probe-2026-11-09.mjs 268140d`, which also tested the boundary: at any length 19 leads carry no is/are/was/were (18 accepted as open, 17 of those cut), and 14 more end like a name |
+| A paragraph is still "the lead" in the script's sense (the body "describes proposals and other stadiums") | the runner re-run of `source` with the summary read whole (run 42651498788), then `node outbox/venue-lead-whole-diff-2026-11-09.mjs 0d3875c 76d6b45` | **Refuted for 2 of the 4 rows it changes.** 442 of 442 rows compared, only the lead changed; U.S. Bank Stadium (indoor) and Parken Stadium (retractable) are right, Center Parc Stadium ("an outdoor stadium ... replacing the Georgia Dome") and Joan C. Edwards Stadium ("indoor suites") are not |
 | Manadon Sports Hub is not a sourcing candidate | `data/venue-source-candidates.json`, the results and the cache | no entry: the file was built 2026-10-22 and this fixture is newer than it (next row) |
 | The archive holds no game at Manadon Sports Hub until the tie is played (this document's first draft said so) | Task 3's unblock query below, run through the D1 connector on 2026-11-09 | **Refuted.** It returns `regular, FA Cup, 1`. The row `FA Cup_2026-11-09_e401931098` (Plymouth v Berkhamsted, `start_time` 2026-11-09T19:30Z, `home_score` null, `finalized_at` null) has `created_at` 2026-11-09 10:00:40: the archive holds a fixture before it is played. The first draft stated this without running the query |
 | The geocoders cannot be reached from the session | fetches of postcodes.io and Nominatim | `URL_NOT_ON_ALLOWLIST` for both |
@@ -91,6 +92,17 @@ mode `calibrate`: still 0 accepted-and-wrong over the hand-reviewed rows.
 **Done when:** the diff between the old and new `outbox/venue-source-results-latest.json` is committed and lists EVERY row whose status or roof changed (the 8 stub-lead
 rows must each be named, with their roof before and after), U.S. Bank Stadium is accepted by the rule and its hand row in `src/Venues.fs` is deleted in the same
 commit with the four `venue-us-bank-stadium-*` mutations re-anchored to the generated row, and `npm run check:venue-sourced` passes.
+
+**Result 2026-11-09 (owner's go "Task 2 approved", 10:43 ET): measured, stopped, nothing in the table.** The change was made (`0d3875c`: `summaryAnswer` reads the extract whole,
+cache kind `wp-summary`, self-test 57 to 62, two registered mutations both caught; verify run 42650313057 green) and run on a runner (run 42651498788, 35 minutes, commit `76d6b45`).
+Compared row by row with the results at `0d3875c`: 442 of 442 rows, only the lead changed, **4 rows changed status or roof**, and the 2 that are not safe are
+Center Parc Stadium (open to dome, contradicted by its own paragraph) and Joan C. Edwards Stadium (open to dome on "indoor suites", which the full article uses only of its suites).
+The stop rule above applied, so no `--write`, no hand-row deletion, no re-anchoring and no `calibrate` (which reads coordinates only and could not have tested this change). Main had gone red
+on `check:venue-sourced` when the runner committed; `a6f99c2` restored `scripts/venue-source.mjs` and `scripts/mutation-check.mjs` to `268140d` and the results and cache to `0d3875c`, byte for byte,
+and kept the probe, the diff tool (15 controls), the diff and the whole extracts of 383 rows. The "Done when" above is NOT met, and is not attempted by another route.
+The owner's options, with what each costs: (1) leave the first-sentence read as it was and record the blind spot (17 accepted cut-lead rows read "open" with the paragraph naming no roof for 14
+of them; nothing built); (2) allow one exception to "never parse", an abbreviation-aware sentence reader, whose effect on all 383 rows can be computed offline from the committed extracts before anything is built;
+(3) a second, structured roof source (the infobox Roof field), unmeasured, needing a runner probe first. Nothing here undoes or works around a ruling: Task 1's hand row and its confirm-or-revert decision are untouched.
 
 ## Task 3 — Manadon Sports Hub
 

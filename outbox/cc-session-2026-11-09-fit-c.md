@@ -195,6 +195,38 @@ card cannot exist before 2026-11-21.
 42631741258). The commit carrying this paragraph adds the Step 0 measurement, corrects item 6 and regenerates the evidence document.
 None touches `src/`, `scripts/` or a workflow, so none runs verify or deploy.
 
+## Task 2 of the venue remainder: measured and stopped
+
+Owner's go: "Task 2 approved" (Mon 2026-11-09 10:43 ET), with the CC-CMD's recommended fix (read the Wikipedia summary whole). Full record:
+`outbox/venue-lead-whole-2026-11-09.md`. The CC-CMD's stop rule ("if the widening produces wrong roofs for any row, do not commit, report verbatim and stop") applied.
+
+HEAD progression: `268140d`, then `0d3875c` (the fix), `76d6b45` (the runner's commit), `a6f99c2` (the restore and the evidence), then the commit carrying this section.
+
+| Commit | What | CI |
+|---|---|---|
+| `0d3875c` | `summaryAnswer` reads the extract whole, cache kind `wp-summary`; self-test 57 to 62; two registered mutations, both caught; the probe record | verify 42650313057 green, deploy 42651467822 green |
+| `76d6b45` | the runner's re-run of `source` (run 42651498788, dispatched 16:07:12Z, 35 minutes): results 374 accepted / 68 review, was 372 / 70 | none: the workflow commits to main with no verify; it left `check:venue-sourced` red (4 of 6) from 16:42:03Z |
+| `a6f99c2` | scripts, results and cache restored to `268140d` / `0d3875c` byte for byte; probe, diff tool (15 controls), diff and the 383 extracts kept | verify 42658229991 green (started 16:47:01Z), guards green, deploy 42659204732 green |
+
+The red window on main was about 5 minutes, and no verify run started in it (verify runs listed by start time: 16:00:18Z, then 16:47:01Z).
+
+**Verified.** 442 of 442 rows compared by name; `lat`, `lon`, `zone`, `qid`, `agreeing` and `via` equal on all 442, so only the lead changed. 4 rows changed status or roof:
+U.S. Bank Stadium (to dome) and Parken Stadium (to retractable) are right; Center Parc Stadium (open to dome, its paragraph says "an outdoor stadium" and names the Georgia Dome it replaced)
+and Joan C. Edwards Stadium (open to dome on "indoor suites", the only "indoor" in the full article) are not safe. The text class differs for exactly those 4 of 383 rows with an extract.
+**Controls (Rule 90).** The probe's self-test is 10 checks, five mutations each red; the diff tool's is 15, eleven mutations each red. One of my own mutation runs printed a result
+for a mutation whose anchor had failed (a stale temp file from the run before): the harness line has to assert its anchor, as the rule says, and it was rerun with the right one.
+**Not done.** Step 6, the hand-row deletion, the mutation re-anchoring and Step 7 (`calibrate`, which reads coordinates only and could not have tested a roof change): none ran, by the stop rule.
+
+**Premise corrections (Rule 100).** The CC-CMD's "9 stubs, 8 accepted as open" reproduces at 14 characters or fewer, but the boundary was untested: at any length 19 leads carry no verb (18 accepted as open,
+17 of those cut) and 14 more end like a name. The estimate "about 10 minutes" for the runner was wrong by 3.5 times; the job log is not readable from here, so the cause is not known.
+
+**Found on the way.**
+8. `venue-source.yml` commits its results to main with no verify. Any `source` run whose accepted rows differ from the table leaves `check:venue-sourced` red until the table is regenerated and pushed. It was
+   5 minutes here because the restore was ready; a run left overnight would have left main red overnight. Recorded, not changed: it is the workflow's design and the owner's to alter.
+9. This sandbox cannot reach Wikipedia (the proxy answers 403 on CONNECT) and WebFetch refuses `en.wikipedia.org/api/rest_v1`, so no summary could be read here. A page the search returned (the article itself) could be.
+
+**Open.** The owner's choice among the CC-CMD's three options for Task 2. No carry-forward exists apart from that decision: each option is written down with its cost.
+
 ## Integration state (Rule 65)
 
 - **Relay contract:** none produced or changed. The relay is untouched.
