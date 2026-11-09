@@ -1,0 +1,54 @@
+venue-infobox probe, run 42668700914, 2026-11-09T17:51:52.119Z, complete; 442 requests in 2355 s
+COVERAGE: checked 383 of 442 rows (the rows whose Wikidata entry names an English article); the other 59: no qid 58, wikidata names no English article 1
+  articles: 381 titles; fetched 381 of 381; parsed 381 of 381; parsed with parser errors 0 of 381
+  the rule's wp-lead cache keys: 382; titles only here 0; keys only in the cache 1
+  an Infobox template in 381 of 381 parsed articles; categories answered for 383 of 383 rows
+
+ROW STATE (rows with an article), the roof parameter of the infobox:
+  infobox, no roof parameter     365
+  roof parameter present         18
+
+ROW STATE by the roof the sourcing rule has now (accepted or review), rows:
+                                 dome              open              retractable       review (no roof)  
+  infobox, no roof parameter     2                 355               0                 8                 
+  roof parameter present         5                 0                 10                3                 
+
+INFOBOX TEMPLATES (every top-level template whose title starts with Infobox), 381 in 381 articles:
+  "Infobox venue"                          346
+  "Infobox stadium"                        13
+  "infobox venue"                          10
+  "Infobox golf facility"                  6
+  "Infobox Stadium"                        3
+  "infobox stadium"                        1
+  "Infobox_Golf_Facility"                  1
+  "Infobox_Stadium"                        1
+
+ROOF PARAMETER NAMES (a name containing "roof", case-blind), 17 parameters:
+  "roof"                                   17
+
+ROOF VALUES, 5 distinct (flat text; the raw XML is in the JSON), by the roof the rule has now:
+  "[[Retractable roof|Retractable]]"                        11  retractable 10, review (no roof) 1
+  "[[Skylight]]"                                             3  dome 2, review (no roof) 1  [Allegiant Stadium; SoFi Stadium; U.S. Bank Stadium]
+  "[[Dome]]"                                                 2  dome 2  [Caesars Superdome; Ford Field]
+  "[[Retractable roof|Partially retractable]]"               1  review (no roof) 1  [Wembley Stadium]
+  "Dome"                                                     1  dome 1  [JMA Wireless Dome]
+
+CATEGORIES whose name matches /roof|dome|skylit|indoor|covered|enclosed|retractable|open-air/i (visible categories only; all of them are in the JSON), 9 distinct, over 383 rows:
+  Retractable-roof stadiums in Europe                                8  retractable 5, review (no roof) 3
+  Covered stadiums in the United States                              5  dome 5
+  Retractable-pitch stadiums                                         5  dome 1, retractable 3, open 1
+  Retractable-roof stadiums in the United States                     5  retractable 5
+  Skylit stadiums in the United States                               3  dome 2, review (no roof) 1
+  Caesars Superdome                                                  1  dome 1
+  Indoor soccer venues in Louisiana                                  1  dome 1
+  Indoor soccer venues in Michigan                                   1  dome 1
+  Indoor track and field venues in New York (state)                  1  dome 1
+
+CONTROLS (the five rows the Task 2 record is about):
+  U.S. Bank Stadium          rule now: review (no roof) | roof parameter present | roof="[[Skylight]]" | categories: Skylit stadiums in the United States
+  Parken Stadium             rule now: review (no roof) | infobox, no roof parameter | categories: Retractable-roof stadiums in Europe
+  Center Parc Stadium        rule now: open | infobox, no roof parameter
+  Joan C. Edwards Stadium    rule now: open | infobox, no roof parameter
+  NRG Stadium                rule now: retractable | roof parameter present | roof="[[Retractable roof|Retractable]]" | categories: Retractable-roof stadiums in the United States
+
+TIMING per article request, ms including retries: median 484, 95th 781, max 1130; requests needing more than one attempt: 37
