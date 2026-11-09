@@ -428,6 +428,42 @@ let private weather () =
             "University Stadium (NM)"; "Rice-Eccles Stadium" ]
           [ "Kenan Stadium"; "Some Unlisted Park" ]
 
+      // The 2026-11-09 slate that turned verify and live-check red a second time:
+      // eleven NBA and NHL arenas (recorded indoor, so nothing to observe) and two
+      // grounds the table did not carry, U.S. Bank Stadium and Manadon Sports Hub
+      // (FA Cup, "Plymouth v Berkhamsted" on the card). No venue on it was a table row, so
+      // "the venue table covers at least one venue on this slate" failed. U.S. Bank
+      // Stadium is a row now. Manadon Sports Hub is not a sourcing candidate: the
+      // archive holds no game there until this one is played, and the geocoders are
+      // not reachable from this sandbox; docs/CC-CMD-2026-11-09-venue-review-remainder.md
+      // carries it. Every ground must be a row, a recorded arena or the one named
+      // as not yet carried, and at least one must be a row. The must-fail is the
+      // failure itself: a slate whose only grounds are not rows.
+      Verify.check "the grounds on the 2026-11-09 slate include a table row"
+          (fun slate ->
+              let notYetCarried = [ "Manadon Sports Hub" ]
+              let inTable n = (Venues.tryFind n).IsSome
+              let accounted n = inTable n || Venues.isIndoorArena n || List.contains n notYetCarried
+              List.forall accounted slate && List.exists inTable slate)
+          [ "U.S. Bank Stadium"; "Manadon Sports Hub" ]
+          [ "Manadon Sports Hub"; "Some Unlisted Park" ]
+
+      // A hand-accepted row has no generated twin to compare against
+      // (check:venue-sourced covers the sourced block only), so its content is held
+      // here: a fixed roof, Minneapolis's zone, and a point that rounds to the same
+      // three decimals as the one the evidence gives. Ford Field is a fixed-roof
+      // row too, in Detroit, so the must-fail fails on place and not on roof.
+      Verify.check "U.S. Bank Stadium is a fixed-roof row at Minneapolis, in America/Chicago"
+          (fun name ->
+              match Venues.tryFind name, Weather.coordinates 44.9739 -93.2581 with
+              | Some v, Some c ->
+                  v.Roof = Weather.Dome
+                  && v.Zone = "America/Chicago"
+                  && Weather.coordKey v.Where = Weather.coordKey c
+              | _ -> false)
+          "U.S. Bank Stadium"
+          "Ford Field"
+
       // The archive spells them apart by a full stop and an apostrophe: Exeter's
       // `St James Park` and Newcastle's `St. James' Park`. Both are table rows and
       // they are not the same place (the first run put Exeter's at Newcastle's).
