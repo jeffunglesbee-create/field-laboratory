@@ -89,6 +89,22 @@ document. Recorded in `outbox/cc-session-2026-11-08-epl-forecast-on-cards.md`.
   recomputed independently in Python (14 of 14 agree). A constant draw share was
   not pre-registered; testing it needs the owner's go and a season no number has
   been read from (2024-25).
+- **A constant draw share passed a rule fixed first, on a fresh season,
+  2026-11-09, and is to ship as `table-v2`.** The owner ordered the test and the
+  ship if the rule said SHIP ("Go", 06:43 ET). The rule was committed before any
+  2024-25 model number (`3ff1763`, rule block sha256 `36d98f5d…`). Candidate C
+  keeps table-v1's rating and replaces its probabilities with three constants
+  fitted on last season's 330 forecasts: home +0.42, scale 1.14, and one draw
+  share of 0.27 for every match. On 2024-25's 330 forecasts it scores a Brier of
+  0.600 against table-v1's 0.652 (z −2.93) and the base-rate forecast's 0.653
+  (z −4.41); its home-win slope is 1.18 ± 0.21; on the opening weeks of both
+  seasons it is no worse than table-v1; all seven parts of the rule hold.
+  Recomputed independently in Python (16 of 16); 35 of 35 deliberate breaks
+  caught. **What it does not show:** this season's 50 matches beat table-v1
+  (z −1.98) but not the base-rate forecast (0.650 against 0.638, z +0.32), and the
+  2024-25 test looks backward in time (the constants were fitted on the later
+  season). Recorded in `outbox/cc-session-2026-11-09-fit-c.md`. `src/` is NOT
+  changed as of this bullet; the next bullet replaces it when `table-v2` lands.
 
 **Phase 2 input unblocked 2026-10-10:** the fbref xG this document records as
 empty and 3.5 months stale is no longer the only source. BSD serves per-event
