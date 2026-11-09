@@ -1,0 +1,47 @@
+# venue-lead-whole-diff-2026-11-09.mjs: the old and the new venue-source results, row by row (Task 2, docs/CC-CMD-2026-11-09-venue-review-remainder.md)
+# command: node outbox/venue-lead-whole-diff-2026-11-09.mjs 0d3875c 76d6b45
+#   0d3875c = results and cache before the runner re-run; 76d6b45 = the runner's commit (venue-source run 42651498788, script at 0d3875c: the summary read whole)
+# controls: eleven mutations of this script run on 2026-11-09 (roof compare removed; status compare removed; review-reason compare removed; unchanged-field list emptied; basis-only list never filled; duplicate names allowed; extract guessed rather than null; only-new not computed; extractRows keeps rows with no old row (crashes); keeps rows with no extract; drops the first sentence), each took the self-test red: 12/13, 11/13, 12/13, 12/13, 12/13, 12/13, 12/13, 11/13, a crash, 13/15, 14/15
+
+## self-test
+PASS  a roof flip is a change, with both roofs named
+PASS  accepted to review is a change
+PASS  review to accepted is a change
+PASS  a new review reason alone is a change
+PASS  a longer lead alone is NOT a change
+PASS  a different basis with the same status and roof is listed apart, not as a change
+PASS  an untouched row is in neither list
+PASS  a moved coordinate is named, as the premise says nothing else changes
+PASS  a row on one side only is named on that side
+PASS  the coverage line carries both denominators and the one-sided rows
+PASS  a name on two rows is refused, because the comparison keys on it
+PASS  the whole extract is found through the cached article title
+PASS  ...and is null, not a guess, when the cache has none
+PASS  an extract row carries the old first sentence, the paragraph, and the row before and after
+PASS  a row with no extract in the cache, or no old row, is left out rather than filled
+
+15/15 checks passed
+
+## the diff
+old results: git 0d3875c; new results: git 76d6b45
+COVERAGE: compared 442 of 442 old rows and 442 new rows, by name; only in old 0, only in new 0
+PREMISE (only the lead changes): lat, lon, zone, qid, agreeing and via equal on 442 of 442 rows; moved: 0
+CHANGED (status, roof or review reason): 4 of 442; same status and roof, different basis only: 0
+  review -> accepted           2
+  roof open -> dome            2
+
+Center Parc Stadium   [roof open -> dome]
+    before  accepted, roof open: inferred: the lead names no roof
+    after   accepted, roof dome: wikipedia lead
+Joan C. Edwards Stadium   [roof open -> dome]
+    before  accepted, roof open: inferred: the lead names no roof
+    after   accepted, roof dome: wikipedia lead
+Parken Stadium   [review -> accepted]
+    before  review, roof null: roof: the lead names no roof, but the article mentions "retractable roof"
+    after   accepted, roof retractable: wikipedia lead
+U.S. Bank Stadium   [review -> accepted]
+    before  review, roof null: roof: the lead names no roof, but the article mentions "retractable roof"
+    after   accepted, roof dome: wikipedia lead
+extracts written for 383 of 442 rows (the rest have no article, or no cached summary)
+
+whole extract found in the cache for 4 of 4 changed rows

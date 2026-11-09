@@ -1,0 +1,83 @@
+{
+ "oldRev": "0d3875c",
+ "newRev": "76d6b45",
+ "oldRun": "40141634179",
+ "newRun": "42651498788",
+ "oldRows": 442,
+ "newRows": 442,
+ "compared": 442,
+ "onlyOld": [],
+ "onlyNew": [],
+ "moved": [],
+ "changed": [
+  {
+   "name": "Center Parc Stadium",
+   "kind": "roof open -> dome",
+   "before": {
+    "status": "accepted",
+    "roof": "open",
+    "basis": "inferred: the lead names no roof",
+    "why": null
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "dome",
+    "basis": "wikipedia lead",
+    "why": null
+   },
+   "extract": "Center Parc Stadium is an outdoor stadium in Atlanta, Georgia. The stadium is the home of the Georgia State Panthers football team as of the 2017 season, replacing the Georgia Dome which had served as their home stadium from the program's inception in 2010 until 2016."
+  },
+  {
+   "name": "Joan C. Edwards Stadium",
+   "kind": "roof open -> dome",
+   "before": {
+    "status": "accepted",
+    "roof": "open",
+    "basis": "inferred: the lead names no roof",
+    "why": null
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "dome",
+    "basis": "wikipedia lead",
+    "why": null
+   },
+   "extract": "Joan C. Edwards Stadium, formerly Marshall University Stadium, is a football stadium located on the campus of Marshall University in Huntington, West Virginia, United States. It currently can hold 38,000 spectators and includes twenty deluxe, indoor suites, 300 wheelchair-accessible seating, a state-of-the-art press-box, 14 concession areas, and 16 separate restrooms. It also features 90,000 sq ft (8,000 m2) of artificial turf and 1,837 tons of structural steel. It also houses the Shewey Athletic Center, a fieldhouse and a training facility. The new stadium opened in 1991 and replaced Fairfield Stadium, a condemned off-campus facility built in 1927 in the Fairfield Park neighborhood."
+  },
+  {
+   "name": "Parken Stadium",
+   "kind": "review -> accepted",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\"",
+    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "retractable",
+    "basis": "wikipedia lead",
+    "why": null
+   },
+   "extract": "Parken is a football stadium in the Indre Østerbro district of Copenhagen, Denmark, built from 1990 to 1992. The stadium, which features a retractable roof, currently has a capacity of 38,190 for football games, and is the home of F.C. Copenhagen and the Denmark national football team. The stadium can hold up to 50,000 for concerts with an end-stage setup, or 55,000 with a centre-stage setup."
+  },
+  {
+   "name": "U.S. Bank Stadium",
+   "kind": "review -> accepted",
+   "before": {
+    "status": "review",
+    "roof": null,
+    "basis": "the lead names no roof, but the article mentions \"retractable roof\"",
+    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
+   },
+   "after": {
+    "status": "accepted",
+    "roof": "dome",
+    "basis": "wikipedia lead",
+    "why": null
+   },
+   "extract": "U.S. Bank Stadium is an indoor stadium in Minneapolis, Minnesota, U.S. Opened in 2016, the stadium was built on the former site of the Hubert H. Humphrey Metrodome and is the home venue of the Minnesota Vikings of the National Football League (NFL). It also hosts early season college baseball games of the Minnesota Golden Gophers."
+  }
+ ],
+ "basisOnly": []
+}
