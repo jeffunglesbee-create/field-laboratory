@@ -1,5 +1,7 @@
 # DRAFT, NOT FILED — a report for the Fable repository (fable-compiler/Fable)
 
+**2026-11-09:** the owner said to file it. This session could not: attaching `fable-compiler/Fable` was denied by the permission layer (the session reaches four repositories, none of them Fable) and the `gh` token on the machine is invalid. The paste-ready version, with the internal references removed and every number re-checked against `outbox/fable-crash-probe-latest.json` (1 crash in 400 builds, pooled 95% Wilson interval 0.04% to 1.40%), is `outbox/fable-crash-upstream-issue.md`.
+
 Filing it posts outside this repository, so it is the owner's call. Written 2026-11-03 from `docs/CC-CMD-2026-11-03-fable-compiler-crash.md`; every number is from the runs named there.
 
 **Title:** `dotnet fable` (5.13.0): sporadic "internal error: Object reference not set to an instance of an object. (code 193)" on an unchanged project, on Linux CI
