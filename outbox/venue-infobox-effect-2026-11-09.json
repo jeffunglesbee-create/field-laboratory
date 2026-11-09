@@ -1,0 +1,254 @@
+{
+ "joined": null,
+ "probe": null,
+ "rows": 442,
+ "staged": 384,
+ "skipped": [
+  {
+   "name": "Allianz Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Almaty Ortalyk Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "American Express Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Arena Egnatia",
+   "why": "no two independent families agree (wikidata, photon, wp-article)"
+  },
+  {
+   "name": "Black Desert Resort Golf Course",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Chase Field (NH)",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Children's Mercy Park",
+   "why": "no two independent families agree (wikidata, photon)"
+  },
+  {
+   "name": "Clarence T.C. Ching Athletics Complex",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Cotton Bowl",
+   "why": "ambiguous name: Cotton Bowl (Q1136764); Cotton Bowl (Q106777578)"
+  },
+  {
+   "name": "Crown Oil Arena",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "DW Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Estadi de la FAF d'Encamp",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Estadio Universitario",
+   "why": "ambiguous name: Estadio Universitario (Q771800); Estadio Universitario (Q2576232); Estádio Universitário de Lisboa (Q2645332); Estadio Universitario Alberto Chivo Cordova (Q3058824); Coimbra University Stadium (Q5141518); Estadio Universitario de Campeche (Q16492934); Estadio Universitario (UES) (Q3495897); University Stadium (Q936242)"
+  },
+  {
+   "name": "Europa Point Stadium",
+   "why": "no two independent families agree (wikidata, photon, wp-article)"
+  },
+  {
+   "name": "Field of Dreams",
+   "why": "ambiguous name: Field of Dreams (Q5447096); Field of Dreams (Q122750396)"
+  },
+  {
+   "name": "GEHA Field at Arrowhead Stadium",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Gaughan Group Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Generali-Arena",
+   "why": "ambiguous name: Letná Stadium (Q60103); Generali Arena (Q696476); Miskolc Sports Hall (Q1177762)"
+  },
+  {
+   "name": "Hillsborough",
+   "why": "no source answered with a point"
+  },
+  {
+   "name": "M. M. Roberts Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon, team-venue)"
+  },
+  {
+   "name": "Mansfield Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "McLane Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon, team-venue, wp-article)"
+  },
+  {
+   "name": "Medinah CC (No. 3)",
+   "why": "no source answered with a point"
+  },
+  {
+   "name": "Memorial Stadium",
+   "why": "ambiguous name: Memorial Stadium (Q383557); Memorial Stadium (Q3305509); David Booth Kansas Memorial Stadium (Q3305513); World War I Memorial Stadium (Q6588205); Memorial Field (Q6815406)"
+  },
+  {
+   "name": "Miejski Stadion Pilkarski Raków",
+   "why": "no two independent families agree (wikidata, photon, wp-article)"
+  },
+  {
+   "name": "Mikheil Meskhi Stadioni",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Mornflake Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Municipal Stadium-Poznan",
+   "why": "no two independent families agree (photon, wp-article)"
+  },
+  {
+   "name": "Nu Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon, wp-article)"
+  },
+  {
+   "name": "Olimpico",
+   "why": "no two independent families agree (wikidata)"
+  },
+  {
+   "name": "Olympia",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Our Lady of Lourdes Stadium",
+   "why": "no two independent families agree (nominatim, photon, team-venue)"
+  },
+  {
+   "name": "Peninsula Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "RELOC8 EM Community Stadium",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Reale Arena",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Riazor",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Rodney Parade",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Ryan Field",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "St James Park",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Stade Boréale",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Stade Jean Bouin",
+   "why": "ambiguous name: Stade Jean-Bouin (Q670499); Stade Jean-Bouin (Nîmes) (Q3495645); Stade Raymond Kopa (Q387213); Q3495643 (Q3495643); Q120162500 (Q120162500); Q118774790 (Q118774790); Q120168549 (Q120168549)"
+  },
+  {
+   "name": "Stade Vélodrome",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Stadio Artemio Franchi",
+   "why": "no two independent families agree (wikidata, nominatim, photon, wp-article)"
+  },
+  {
+   "name": "Stanford Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "TDECU Stadium",
+   "why": "no two independent families agree (wikidata, team-venue, wp-article)"
+  },
+  {
+   "name": "The Cherry Red Records Stadium",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "The Cliffs at Walnut Cove",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "The Completely-Suzuki Stadium",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "The County Ground",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "The Croud Meadow",
+   "why": "no two independent families agree (photon, wp-article)"
+  },
+  {
+   "name": "URSAPHARM-Arena an der Kaiserlinde",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Ulker Stadyumu",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Vare Areena TN",
+   "why": "no two independent families agree (photon)"
+  },
+  {
+   "name": "Via Del Mare",
+   "why": "no two independent families agree (wikidata, wp-article)"
+  },
+  {
+   "name": "Vodafone Park",
+   "why": "no two independent families agree (wikidata, nominatim, photon)"
+  },
+  {
+   "name": "Wham Stadium",
+   "why": "no two independent families agree (nominatim, photon)"
+  },
+  {
+   "name": "Yager Stadium",
+   "why": "ambiguous name: Yager Stadium (Q8046702); Yager Stadium (Q8046703)"
+  },
+  {
+   "name": "Yokohama Country Club",
+   "why": "no two independent families agree (nominatim, photon)"
+  }
+ ],
+ "control": {
+  "same": 384,
+  "mismatches": [],
+  "notComputable": []
+ },
+ "changed": [],
+ "confirmed": [],
+ "agreement": {
+  "agree": [],
+  "silent": [],
+  "disagree": []
+ },
+ "witnessStates": {},
+ "vocab": {}
+}

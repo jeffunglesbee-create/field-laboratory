@@ -126,14 +126,19 @@ lockfile +11, nothing else moved). 36 self-test checks; 15 registered mutations 
 **Decision criteria, written before any data exists (Rule 100).**
 
 1. **Read.** Every title is fetched and parsed, or each failure is explained from its recorded reason. A probe that read fewer than all is not a measurement of all; the run's exit code is the check.
-2. **Meaning from the words, not from the venue.** A value counts as a closed roof only through the keywords `classifyRoof` already trusts (retractable; dome, domed, fixed roof, enclosed stadium, indoor).
+2. **Meaning from the words, not from the venue.** A value counts as a closed roof only through the patterns `classifyRoof` already trusts, exactly: `retractable[- ]roof|roof that retracts` (retractable) and
+   `\bdomed\b|\bdome\b|fixed roof|enclosed stadium|\bindoor\b` (dome). The bare words "Retractable", "Fixed" and "Enclosed" are therefore not witnesses (measured 2026-11-09, before the probe ran:
+   `classifyRoof("Retractable")` is "open"; this criterion first named "retractable" as a keyword, which was looser than the code, and the template's own documentation uses that bare word as its example).
    Anything else is "no witness" and the row is unchanged, "Skylight" included, and "open" is never taken from the field. A term joins that list only if the probe shows it on at least two rows whose roof the
-   lead or Wikidata P5624 already decides as that class and on none where they decide otherwise, or if the owner says so.
+   lead or Wikidata P5624 already decides as that class and on none where they decide otherwise, or if the owner says so; the match is the whole value, lower-cased, and the effect tool prints the test for every
+   value (`--join term=class` applies one).
 3. **Agreement.** On the rows whose roof the lead or Wikidata decides, the field's class equals it. Each disagreement is read against its article and named; one where the field is right and the table wrong is
    reported to the owner as a finding of its own.
-4. **Effect, before any build.** With the real `decideRoof` extended by the witness and computed offline from the probe JSON and the cache: every row whose status or roof would change, by name, before and after,
-   each read against its article. The control: with no witness the same computation reproduces the committed roof and basis of 442 of 442 rows. A wrong roof for any row stops it, as Task 2's stop rule says,
-   unchanged. Zero rows changed means nothing is built (Rule 63).
+4. **Effect, before any build.** With the real `decideRoof` extended by the witness and computed offline from the probe JSON and the cache (`outbox/venue-infobox-effect-2026-11-09.mjs`; self-test, and 16
+   mutations each red by a named check, `outbox/venue-infobox-effect-mutation-2026-11-09.txt`): every row whose status or roof would change, by name, before and after, each read against its article. A closed
+   witness is one more positive source: two naming different classes make the row review, one class makes it that class. The control: with no witness the same computation reproduces the committed roof, basis
+   and status of every row that has a roof stage. That is 384 of the 442 rows, not 442 as this criterion first said (measured 2026-11-09 against the committed cache: 384 of 384 reproduce; the other 58 are refused
+   at the point stage, so no roof source reaches them and none can change). A wrong roof for any row stops it, as Task 2's stop rule says, unchanged. Zero rows changed means nothing is built (Rule 63).
 5. **The motivating row is a consequence, not a target.** U.S. Bank Stadium is accepted by the rule only if 1 to 4 let its value through. If "Skylight" is no witness it stays in review and its hand row stays,
    and that is the report.
 

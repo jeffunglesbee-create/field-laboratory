@@ -1,0 +1,3 @@
+venue-infobox effect, offline; probe none (control only)
+COVERAGE: roof stage replayed for 384 of 442 rows; 58 never reach it (no two independent families agree 49, ambiguous name 7, no source answered with a point 2); not computable (a cache key missing): 0
+CONTROL (no witness): 384 of 384 replayed rows reproduce the committed roof, basis and status; mismatches 0

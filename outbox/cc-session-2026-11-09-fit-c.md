@@ -263,6 +263,15 @@ starts with Infobox and counts them. (2) The escaping of the XML is inferred and
 would accept. The runner commits the raw trees of five controls, and the done condition names the string to look for. (3) "Skylight", U.S. Bank's value, is free text by the template's own documentation
 ("the roof type of the venue if indoors/covered (e.g. retractable, domed, translucent)"), so what a value means is a measurement and not a lookup: criterion 2.
 
+(4) The first version of criterion 2 named "retractable" as a keyword `classifyRoof` trusts; its pattern is `retractable[- ]roof|roof that retracts`, so the bare word the template's documentation uses as its
+example is not a witness (`classifyRoof("Retractable")` measured as "open"). (5) The first version of criterion 4 said the control reproduces 442 of 442 rows; 384 of the 442 have a roof stage and the other 58
+are refused at the point stage (measured: 384 of 384 reproduce roof, basis and status from the committed cache). Both were corrected in the CC-CMD before the probe ran, so no data had been seen.
+
+**The instrument for criterion 4**, built while the commit was verifying: `outbox/venue-infobox-effect-2026-11-09.mjs` replays the roof stage from the cache around the real `decideRoof`, adds the witness as one
+more positive source, and lists every row whose status or roof would change, the agreement with the lead and Wikidata, and the joining test for each value that is not a witness. Self-test 29 checks; 16
+mutations (`outbox/venue-infobox-effect-mutation-2026-11-09.txt`), each red by a named check. One mutation survived the first version of the tool and showed a clause of the joining test to be redundant; the
+clause was removed and a fixture added for the case it had been standing in for, which is Rule 90 doing its work on a tool and not on the product.
+
 **Found on the way.**
 10. Two mutations crashed the self-test with a TypeError instead of failing a named check (the check dereferenced a null the mutation had produced). The exit code was red, so the registry would have counted them
     caught; by name they were not. The check is null-safe now, and the by-name run above is what showed it (Rule 90).
