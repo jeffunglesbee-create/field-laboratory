@@ -1,0 +1,14 @@
+PASS the four raw files are the ones the bundle pins, by bytes and sha256
+PASS openfootball re-parsed independently: 380 fixtures, and the bundle holds the same 380
+PASS every fixture equals the bundle's, field by field: i, line, matchday, date, kick-off, weekday, both clubs, both scores (380 of 380)
+PASS the file header's team count, match count and first and last day are what the bundle records
+PASS ESPN, read straight from its JSON (20 entries; games played, points, goals for and against): equal to the table the re-parsed results make, club by club
+PASS ESPN: the bundle's 20 standings rows are the same tuples
+PASS ESPN: no entry carries a deduction, and the payload names the 2024-25 season
+PASS FPL, read with the csv module: 380 fixtures, all marked finished
+PASS FPL: the bundle's 380 fixtures are the same, in the same order
+PASS FPL: the bundle's 20 team names are the teams file's
+PASS club to FPL id by intersection of candidates: every one of 20 clubs resolves to exactly one id, and the map is one-to-one (20 resolved)
+PASS with that map, the 380 re-parsed results are exactly FPL's 380 fixtures (date, both ids, both scores), as sets
+
+12 of 12 checks hold

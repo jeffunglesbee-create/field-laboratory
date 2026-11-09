@@ -1,0 +1,46 @@
+CONTROL  (nothing broken: sources, parser and bundle as committed)
+  committed bundle: python exit 0, fit --bundle-only exit 0; re-written bundle: prep exit 0, python exit 0, fit exit 0; red: 0
+CAUGHT      raw openfootball: the first fixture's home goals + 1
+    exits {"prep":1,"py":1,"fit":1}; red checks: 11; expected red: 6, red as expected: 6
+CAUGHT      raw openfootball: the first fixture line deleted
+    exits {"prep":1,"py":1,"fit":1}; red checks: 21; expected red: 5, red as expected: 5
+CAUGHT      raw openfootball: the first yearless date line moved one day (Sat 17 -> 18)
+    exits {"prep":1,"py":1,"fit":1}; red checks: 9; expected red: 2, red as expected: 2
+CAUGHT      raw openfootball: home and away swapped on the first fixture
+    exits {"prep":1,"py":1,"fit":1}; red checks: 13; expected red: 5, red as expected: 5
+CAUGHT      raw openfootball: the first matchday heading renumbered 1 -> 99
+    exits {"prep":1,"py":1,"fit":1}; red checks: 4; expected red: 2, red as expected: 2
+CAUGHT      raw FPL fixtures: the first fixture's home score 1 -> 2
+    exits {"prep":1,"py":1,"fit":1}; red checks: 8; expected red: 3, red as expected: 3
+CAUGHT      raw FPL fixtures: the first fixture marked not finished
+    exits {"prep":1,"py":1,"fit":0}; red checks: 4; expected red: 2, red as expected: 2
+CAUGHT      raw ESPN: the first club's games played 38 -> 37
+    exits {"prep":1,"py":1,"fit":1}; red checks: 5; expected red: 3, red as expected: 3
+CAUGHT      raw openfootball: the explicit year on the January rollover line, 2025 -> 2026
+    exits {"prep":1,"py":1,"fit":1}; red checks: 12; expected red: 2, red as expected: 2
+CAUGHT      parser: the half-time score is required
+    exits {"prep":1,"py":1,"fit":1}; red checks: 16; expected red: 3, red as expected: 3
+CAUGHT      parser: the kick-off time is no longer carried to the next fixture
+    exits {"prep":1,"py":1,"fit":1}; red checks: 16; expected red: 1, red as expected: 1
+CAUGHT      comparison: ESPN's goals for and against swapped in the tuple
+    exits {"prep":1,"py":0,"fit":0}; red checks: 1; expected red: 1, red as expected: 1
+CAUGHT      table engine: a win is worth 2 points
+    exits {"prep":1,"py":0,"fit":0}; red checks: 1; expected red: 1, red as expected: 1
+CAUGHT      bundle: match 10's home goals + 1
+    exits {"py":1,"fit":1}; red checks: 3; expected red: 3, red as expected: 3
+CAUGHT      bundle: match 10's weekday name rotated
+    exits {"py":1,"fit":1}; red checks: 2; expected red: 2, red as expected: 2
+CAUGHT      bundle: the FPL teams file's recorded sha256 altered
+    exits {"py":1,"fit":1}; red checks: 2; expected red: 2, red as expected: 2
+CAUGHT      bundle: the first standings row's goals for + 1
+    exits {"py":1,"fit":1}; red checks: 2; expected red: 2, red as expected: 2
+CAUGHT      bundle: a match deleted
+    exits {"py":1,"fit":1}; red checks: 6; expected red: 2, red as expected: 2
+CAUGHT      bundle: the ESPN season recorded as 2025-26
+    exits {"py":1,"fit":1}; red checks: 2; expected red: 2, red as expected: 2
+CAUGHT      bundle: the last match dated after the training season began
+    exits {"py":1,"fit":1}; red checks: 4; expected red: 1, red as expected: 1
+CAUGHT      bundle: an FPL fixture deleted
+    exits {"py":1,"fit":1}; red checks: 2; expected red: 2, red as expected: 2
+
+21 of 21 mutations caught by the checks written to catch them (0 broken harness anchors); control green in all three checkers, on the committed bundle and on a re-written one

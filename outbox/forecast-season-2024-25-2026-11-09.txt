@@ -1,0 +1,31 @@
+openfootball: 109 date lines, 380 fixtures (164 with the kick-off time carried from the line above, 16 with no half-time score)
+
+CHECKS
+PASS source openfootball is the pinned file (30316 bytes, sha256) [30316 B, e39716b01af0c865]
+PASS openfootball: the file's title is "English Premier League 2024/25" [English Premier League 2024/25]
+PASS openfootball: every non-blank line is a title, a header, a heading, a date or a fixture 
+PASS openfootball: the header's 380 matches and 20 teams are what the file holds (380, 20) 
+PASS openfootball: every club has 38 matches, 19 home and 19 away 
+PASS openfootball: every ordered pair of clubs meets exactly once (380 distinct, none against itself) 
+PASS openfootball: the matchday headings (41 of them, 3 repeats for rescheduled matches) cover exactly 1..38 
+PASS openfootball: every date line names its own weekday (109 date lines, none flagged), so a wrong year anywhere fails 
+PASS openfootball: the earliest and latest match dates are the header's first and last day (2024-08-16..2025-05-25) 
+PASS openfootball: no club plays twice on one date (so order within a day cannot change a table) 
+PASS source espnFinal is the pinned file (69462 bytes, sha256) [69462 B, e31a22e253917ea4]
+PASS espn final 2024 table decodes with the card's decoder (Standings.fromString) 
+PASS espn final: the payload is the 2024-25 season (season 2024, "English Premier League 2024-2025") 
+PASS espn final: 20 rows, 20 distinct (played, points, GF, GA) tuples, so a club is identified by its tuple and not by its name 
+PASS results-derived final table equals ESPN's, club by club (20 of 20 clubs on played, points, GF, GA) 
+PASS espn final: no club carries a points deduction, so points rebuilt from results are the official points 
+PASS source fplFixtures is the pinned file (751413 bytes, sha256) [751413 B, ce696e187569ca7c]
+PASS source fplTeams is the pinned file (1717 bytes, sha256) [1717 B, d10a6db8feca6db9]
+PASS fpl fixtures: 380 rows parsed (the stats column holds commas and quotes), all finished, all scores whole numbers 
+PASS fpl teams: 20 teams, ids unique, every fixture's two teams are among them 
+PASS fpl: the same multiset of (date, home goals, away goals) as openfootball (0 unequal groups) 
+PASS fpl: every one of 380 openfootball matches and every one of 380 FPL fixtures pairs one-to-one (380 pairs; 0 openfootball and 0 FPL left over) 
+PASS fpl: openfootball clubs and FPL teams map one-to-one, 20 of 20, with 0 conflicts 
+PASS fpl: paired fixtures agree on date, both scores and both clubs under the one mapping (380 of 380) 
+PASS the bundle round-trips through JSON to the same 380 matches, 20 standings rows and 380 FPL fixtures 
+
+25 of 25 checks hold; coverage: 380 of 380 matches parsed and compared with FPL (380 agree), 20 of 20 clubs' final tables compared with ESPN, 109 of 109 date lines checked against their weekday names, 4 of 4 source files pinned by sha256
+bundle: written to outbox/forecast-season-2024-25-2026-11-09.json, 111141 bytes, sha256 1e3dfc3e3de1be0ec44cba04bb6f01f2cbb0de39e226129e67adee3cc5772221

@@ -1,0 +1,7444 @@
+{
+ "season": "2024-25",
+ "note": "Written by outbox/forecast-season-2024-25-2026-11-09.mjs from the four raw files pinned in `raw`. Matches are in the file's order (`i`); `time` is the kick-off, carried from the line above where the file leaves it out.",
+ "raw": {
+  "openfootball": {
+   "url": "https://raw.githubusercontent.com/openfootball/england/9ee7a0c351805c99cc334478a9bf04b7d0432fec/2024-25/1-premierleague.txt",
+   "bytes": 30316,
+   "sha256": "e39716b01af0c8654a9fae7b5555e6b02f506ea05239e0d0eef41936ba80e1e3"
+  },
+  "fplFixtures": {
+   "url": "https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/d7b05b51d137bfefef4b692386d18c610975b9b9/data/2024-25/fixtures.csv",
+   "bytes": 751413,
+   "sha256": "ce696e187569ca7c45da2562811d3c38f525b58e65575531be37bebd0769ee28"
+  },
+  "fplTeams": {
+   "url": "https://raw.githubusercontent.com/vaastav/Fantasy-Premier-League/d7b05b51d137bfefef4b692386d18c610975b9b9/data/2024-25/teams.csv",
+   "bytes": 1717,
+   "sha256": "d10a6db8feca6db9e44a3ba50b15168396667ea387fee9235d6b211c7f598c3b"
+  },
+  "espnFinal": {
+   "url": "https://field-relay-nba.jeffunglesbee.workers.dev/espn-standings/soccer/eng.1/standings?season=2024",
+   "bytes": 69462,
+   "sha256": "e31a22e253917ea4cd42b728ce66d52f531c37044d0936abbd36431893624a42"
+  }
+ },
+ "espn": {
+  "season": 2024,
+  "name": "English Premier League 2024-2025"
+ },
+ "header": {
+  "matches": 380,
+  "teams": 20,
+  "first": "2024-08-16",
+  "last": "2025-05-25"
+ },
+ "matches": [
+  {
+   "i": 0,
+   "ln": 11,
+   "matchday": 1,
+   "date": "2024-08-16",
+   "time": "20:00",
+   "dow": "Fri",
+   "home": "Manchester United FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 1,
+   "ln": 13,
+   "matchday": 1,
+   "date": "2024-08-17",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 2,
+   "ln": 14,
+   "matchday": 1,
+   "date": "2024-08-17",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 3,
+   "ln": 15,
+   "matchday": 1,
+   "date": "2024-08-17",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 4,
+   "ln": 16,
+   "matchday": 1,
+   "date": "2024-08-17",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Southampton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 5,
+   "ln": 17,
+   "matchday": 1,
+   "date": "2024-08-17",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 6,
+   "ln": 18,
+   "matchday": 1,
+   "date": "2024-08-17",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Aston Villa FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 7,
+   "ln": 20,
+   "matchday": 1,
+   "date": "2024-08-18",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brentford FC",
+   "away": "Crystal Palace FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 8,
+   "ln": 21,
+   "matchday": 1,
+   "date": "2024-08-18",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 9,
+   "ln": 23,
+   "matchday": 1,
+   "date": "2024-08-19",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Leicester City FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 10,
+   "ln": 28,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Manchester United FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 11,
+   "ln": 29,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "West Ham United FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 12,
+   "ln": 30,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 13,
+   "ln": 31,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Ipswich Town FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 14,
+   "ln": 32,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Nottingham Forest FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 15,
+   "ln": 33,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Tottenham Hotspur FC",
+   "away": "Everton FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 16,
+   "ln": 34,
+   "matchday": 2,
+   "date": "2024-08-24",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Arsenal FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 17,
+   "ln": 36,
+   "matchday": 2,
+   "date": "2024-08-25",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "AFC Bournemouth",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 18,
+   "ln": 37,
+   "matchday": 2,
+   "date": "2024-08-25",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Chelsea FC",
+   "hg": 2,
+   "ag": 6
+  },
+  {
+   "i": 19,
+   "ln": 38,
+   "matchday": 2,
+   "date": "2024-08-25",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Brentford FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 20,
+   "ln": 43,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 21,
+   "ln": 44,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 22,
+   "ln": 45,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "i": 23,
+   "ln": 46,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 24,
+   "ln": 47,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "Aston Villa FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 25,
+   "ln": 48,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 26,
+   "ln": 49,
+   "matchday": 3,
+   "date": "2024-08-31",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Manchester City FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 27,
+   "ln": 51,
+   "matchday": 3,
+   "date": "2024-09-01",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Crystal Palace FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 28,
+   "ln": 52,
+   "matchday": 3,
+   "date": "2024-09-01",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Newcastle United FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 29,
+   "ln": 53,
+   "matchday": 3,
+   "date": "2024-09-01",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 30,
+   "ln": 58,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Manchester United FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 31,
+   "ln": 59,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Ipswich Town FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 32,
+   "ln": 60,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 33,
+   "ln": 61,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 34,
+   "ln": 62,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "Nottingham Forest FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 35,
+   "ln": 63,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Brentford FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 36,
+   "ln": 64,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Everton FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 37,
+   "ln": 65,
+   "matchday": 4,
+   "date": "2024-09-14",
+   "time": "20:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Chelsea FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 38,
+   "ln": 67,
+   "matchday": 4,
+   "date": "2024-09-15",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Arsenal FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 39,
+   "ln": 68,
+   "matchday": 4,
+   "date": "2024-09-15",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 40,
+   "ln": 73,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Chelsea FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 41,
+   "ln": 74,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 42,
+   "ln": 75,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Newcastle United FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 43,
+   "ln": 76,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 44,
+   "ln": 77,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "AFC Bournemouth",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 45,
+   "ln": 78,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 46,
+   "ln": 79,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Tottenham Hotspur FC",
+   "away": "Brentford FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 47,
+   "ln": 80,
+   "matchday": 5,
+   "date": "2024-09-21",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Manchester United FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 48,
+   "ln": 82,
+   "matchday": 5,
+   "date": "2024-09-22",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Nottingham Forest FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 49,
+   "ln": 83,
+   "matchday": 5,
+   "date": "2024-09-22",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester City FC",
+   "away": "Arsenal FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 50,
+   "ln": 88,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Manchester City FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 51,
+   "ln": 89,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Leicester City FC",
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "i": 52,
+   "ln": 90,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 53,
+   "ln": 91,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Chelsea FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "i": 54,
+   "ln": 92,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Crystal Palace FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 55,
+   "ln": 93,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Fulham FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 56,
+   "ln": 94,
+   "matchday": 6,
+   "date": "2024-09-28",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Liverpool FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 57,
+   "ln": 96,
+   "matchday": 6,
+   "date": "2024-09-29",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Ipswich Town FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 58,
+   "ln": 97,
+   "matchday": 6,
+   "date": "2024-09-29",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 59,
+   "ln": 99,
+   "matchday": 6,
+   "date": "2024-09-30",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "AFC Bournemouth",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 60,
+   "ln": 104,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 61,
+   "ln": 105,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 62,
+   "ln": 106,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 5,
+   "ag": 3
+  },
+  {
+   "i": 63,
+   "ln": 107,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 64,
+   "ln": 108,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Fulham FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 65,
+   "ln": 109,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Ipswich Town FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 66,
+   "ln": 110,
+   "matchday": 7,
+   "date": "2024-10-05",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Newcastle United FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 67,
+   "ln": 112,
+   "matchday": 7,
+   "date": "2024-10-06",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Aston Villa FC",
+   "away": "Manchester United FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 68,
+   "ln": 113,
+   "matchday": 7,
+   "date": "2024-10-06",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Nottingham Forest FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 69,
+   "ln": 114,
+   "matchday": 7,
+   "date": "2024-10-06",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 70,
+   "ln": 119,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Tottenham Hotspur FC",
+   "away": "West Ham United FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 71,
+   "ln": 120,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Aston Villa FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 72,
+   "ln": 121,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Everton FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 73,
+   "ln": 122,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester United FC",
+   "away": "Brentford FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 74,
+   "ln": 123,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 75,
+   "ln": 124,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "i": 76,
+   "ln": 125,
+   "matchday": 8,
+   "date": "2024-10-19",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Arsenal FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 77,
+   "ln": 127,
+   "matchday": 8,
+   "date": "2024-10-20",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Manchester City FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 78,
+   "ln": 128,
+   "matchday": 8,
+   "date": "2024-10-20",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Chelsea FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 79,
+   "ln": 130,
+   "matchday": 8,
+   "date": "2024-10-21",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Nottingham Forest FC",
+   "away": "Crystal Palace FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 80,
+   "ln": 135,
+   "matchday": 9,
+   "date": "2024-10-25",
+   "time": "20:00",
+   "dow": "Fri",
+   "home": "Leicester City FC",
+   "away": "Nottingham Forest FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 81,
+   "ln": 137,
+   "matchday": 9,
+   "date": "2024-10-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 82,
+   "ln": 138,
+   "matchday": 9,
+   "date": "2024-10-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Ipswich Town FC",
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "i": 83,
+   "ln": 139,
+   "matchday": 9,
+   "date": "2024-10-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 84,
+   "ln": 140,
+   "matchday": 9,
+   "date": "2024-10-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Southampton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 85,
+   "ln": 141,
+   "matchday": 9,
+   "date": "2024-10-26",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 86,
+   "ln": 143,
+   "matchday": 9,
+   "date": "2024-10-27",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Newcastle United FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 87,
+   "ln": 144,
+   "matchday": 9,
+   "date": "2024-10-27",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Crystal Palace FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 88,
+   "ln": 145,
+   "matchday": 9,
+   "date": "2024-10-27",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "West Ham United FC",
+   "away": "Manchester United FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 89,
+   "ln": 146,
+   "matchday": 9,
+   "date": "2024-10-27",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Arsenal FC",
+   "away": "Liverpool FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 90,
+   "ln": 151,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 91,
+   "ln": 152,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Manchester City FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 92,
+   "ln": 153,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Leicester City FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 93,
+   "ln": 154,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 94,
+   "ln": 155,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "West Ham United FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 95,
+   "ln": 156,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 96,
+   "ln": 157,
+   "matchday": 10,
+   "date": "2024-11-02",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Crystal Palace FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 97,
+   "ln": 159,
+   "matchday": 10,
+   "date": "2024-11-03",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Aston Villa FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 98,
+   "ln": 160,
+   "matchday": 10,
+   "date": "2024-11-03",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Chelsea FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 99,
+   "ln": 162,
+   "matchday": 10,
+   "date": "2024-11-04",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Fulham FC",
+   "away": "Brentford FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 100,
+   "ln": 167,
+   "matchday": 11,
+   "date": "2024-11-09",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "AFC Bournemouth",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 101,
+   "ln": 168,
+   "matchday": 11,
+   "date": "2024-11-09",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Fulham FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 102,
+   "ln": 169,
+   "matchday": 11,
+   "date": "2024-11-09",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Everton FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 103,
+   "ln": 170,
+   "matchday": 11,
+   "date": "2024-11-09",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Southampton FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 104,
+   "ln": 171,
+   "matchday": 11,
+   "date": "2024-11-09",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Manchester City FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 105,
+   "ln": 172,
+   "matchday": 11,
+   "date": "2024-11-09",
+   "time": "20:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 106,
+   "ln": 174,
+   "matchday": 11,
+   "date": "2024-11-10",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Leicester City FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 107,
+   "ln": 175,
+   "matchday": 11,
+   "date": "2024-11-10",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Nottingham Forest FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 108,
+   "ln": 176,
+   "matchday": 11,
+   "date": "2024-11-10",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 109,
+   "ln": 177,
+   "matchday": 11,
+   "date": "2024-11-10",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 110,
+   "ln": 182,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "Chelsea FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 111,
+   "ln": 183,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 112,
+   "ln": 184,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Nottingham Forest FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 113,
+   "ln": 185,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Crystal Palace FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 114,
+   "ln": 186,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 115,
+   "ln": 187,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "i": 116,
+   "ln": 188,
+   "matchday": 12,
+   "date": "2024-11-23",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "i": 117,
+   "ln": 190,
+   "matchday": 12,
+   "date": "2024-11-24",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Southampton FC",
+   "away": "Liverpool FC",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "i": 118,
+   "ln": 191,
+   "matchday": 12,
+   "date": "2024-11-24",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Ipswich Town FC",
+   "away": "Manchester United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 119,
+   "ln": 193,
+   "matchday": 12,
+   "date": "2024-11-25",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Newcastle United FC",
+   "away": "West Ham United FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 120,
+   "ln": 198,
+   "matchday": 13,
+   "date": "2024-11-29",
+   "time": "20:00",
+   "dow": "Fri",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Southampton FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 121,
+   "ln": 200,
+   "matchday": 13,
+   "date": "2024-11-30",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Leicester City FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 122,
+   "ln": 201,
+   "matchday": 13,
+   "date": "2024-11-30",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 123,
+   "ln": 202,
+   "matchday": 13,
+   "date": "2024-11-30",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 124,
+   "ln": 203,
+   "matchday": 13,
+   "date": "2024-11-30",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 4
+  },
+  {
+   "i": 125,
+   "ln": 204,
+   "matchday": 13,
+   "date": "2024-11-30",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Arsenal FC",
+   "hg": 2,
+   "ag": 5
+  },
+  {
+   "i": 126,
+   "ln": 206,
+   "matchday": 13,
+   "date": "2024-12-01",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Aston Villa FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 127,
+   "ln": 207,
+   "matchday": 13,
+   "date": "2024-12-01",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Everton FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 128,
+   "ln": 208,
+   "matchday": 13,
+   "date": "2024-12-01",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 129,
+   "ln": 209,
+   "matchday": 13,
+   "date": "2024-12-01",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Manchester City FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 130,
+   "ln": 214,
+   "matchday": 14,
+   "date": "2024-12-03",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "Ipswich Town FC",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 131,
+   "ln": 215,
+   "matchday": 14,
+   "date": "2024-12-03",
+   "time": "20:15",
+   "dow": "Tue",
+   "home": "Leicester City FC",
+   "away": "West Ham United FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 132,
+   "ln": 217,
+   "matchday": 14,
+   "date": "2024-12-04",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Everton FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 133,
+   "ln": 218,
+   "matchday": 14,
+   "date": "2024-12-04",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Manchester City FC",
+   "away": "Nottingham Forest FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 134,
+   "ln": 219,
+   "matchday": 14,
+   "date": "2024-12-04",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Newcastle United FC",
+   "away": "Liverpool FC",
+   "hg": 3,
+   "ag": 3
+  },
+  {
+   "i": 135,
+   "ln": 220,
+   "matchday": 14,
+   "date": "2024-12-04",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Southampton FC",
+   "away": "Chelsea FC",
+   "hg": 1,
+   "ag": 5
+  },
+  {
+   "i": 136,
+   "ln": 221,
+   "matchday": 14,
+   "date": "2024-12-04",
+   "time": "20:15",
+   "dow": "Wed",
+   "home": "Arsenal FC",
+   "away": "Manchester United FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 137,
+   "ln": 222,
+   "matchday": 14,
+   "date": "2024-12-04",
+   "time": "20:15",
+   "dow": "Wed",
+   "home": "Aston Villa FC",
+   "away": "Brentford FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 138,
+   "ln": 224,
+   "matchday": 14,
+   "date": "2024-12-05",
+   "time": "19:30",
+   "dow": "Thu",
+   "home": "Fulham FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 139,
+   "ln": 225,
+   "matchday": 14,
+   "date": "2024-12-05",
+   "time": "20:15",
+   "dow": "Thu",
+   "home": "AFC Bournemouth",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 140,
+   "ln": 230,
+   "matchday": 15,
+   "date": "2024-12-07",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Southampton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 141,
+   "ln": 231,
+   "matchday": 15,
+   "date": "2024-12-07",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Newcastle United FC",
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "i": 142,
+   "ln": 232,
+   "matchday": 15,
+   "date": "2024-12-07",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Manchester City FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 143,
+   "ln": 233,
+   "matchday": 15,
+   "date": "2024-12-07",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Manchester United FC",
+   "away": "Nottingham Forest FC",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "i": 144,
+   "ln": 235,
+   "matchday": 15,
+   "date": "2024-12-08",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 145,
+   "ln": 236,
+   "matchday": 15,
+   "date": "2024-12-08",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Ipswich Town FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 146,
+   "ln": 237,
+   "matchday": 15,
+   "date": "2024-12-08",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Leicester City FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 147,
+   "ln": 238,
+   "matchday": 15,
+   "date": "2024-12-08",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Chelsea FC",
+   "hg": 3,
+   "ag": 4
+  },
+  {
+   "i": 148,
+   "ln": 240,
+   "matchday": 15,
+   "date": "2024-12-09",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "West Ham United FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 149,
+   "ln": 245,
+   "matchday": 16,
+   "date": "2024-12-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Everton FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 150,
+   "ln": 246,
+   "matchday": 16,
+   "date": "2024-12-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "Fulham FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 151,
+   "ln": 247,
+   "matchday": 16,
+   "date": "2024-12-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Leicester City FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 152,
+   "ln": 248,
+   "matchday": 16,
+   "date": "2024-12-14",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 153,
+   "ln": 249,
+   "matchday": 16,
+   "date": "2024-12-14",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 154,
+   "ln": 251,
+   "matchday": 16,
+   "date": "2024-12-15",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Crystal Palace FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 155,
+   "ln": 252,
+   "matchday": 16,
+   "date": "2024-12-15",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester City FC",
+   "away": "Manchester United FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 156,
+   "ln": 253,
+   "matchday": 16,
+   "date": "2024-12-15",
+   "time": "19:00",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Brentford FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 157,
+   "ln": 254,
+   "matchday": 16,
+   "date": "2024-12-15",
+   "time": "19:00",
+   "dow": "Sun",
+   "home": "Southampton FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "i": 158,
+   "ln": 256,
+   "matchday": 16,
+   "date": "2024-12-16",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "AFC Bournemouth",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 159,
+   "ln": 261,
+   "matchday": 17,
+   "date": "2024-12-21",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Manchester City FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 160,
+   "ln": 262,
+   "matchday": 17,
+   "date": "2024-12-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Nottingham Forest FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 161,
+   "ln": 263,
+   "matchday": 17,
+   "date": "2024-12-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Newcastle United FC",
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "i": 162,
+   "ln": 264,
+   "matchday": 17,
+   "date": "2024-12-21",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 163,
+   "ln": 265,
+   "matchday": 17,
+   "date": "2024-12-21",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 5
+  },
+  {
+   "i": 164,
+   "ln": 267,
+   "matchday": 17,
+   "date": "2024-12-22",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Everton FC",
+   "away": "Chelsea FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 165,
+   "ln": 268,
+   "matchday": 17,
+   "date": "2024-12-22",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Southampton FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 166,
+   "ln": 269,
+   "matchday": 17,
+   "date": "2024-12-22",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Leicester City FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 167,
+   "ln": 270,
+   "matchday": 17,
+   "date": "2024-12-22",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "AFC Bournemouth",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 168,
+   "ln": 271,
+   "matchday": 17,
+   "date": "2024-12-22",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Liverpool FC",
+   "hg": 3,
+   "ag": 6
+  },
+  {
+   "i": 169,
+   "ln": 276,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "12:30",
+   "dow": "Thu",
+   "home": "Manchester City FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 170,
+   "ln": 277,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "15:00",
+   "dow": "Thu",
+   "home": "AFC Bournemouth",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 171,
+   "ln": 278,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "15:00",
+   "dow": "Thu",
+   "home": "Chelsea FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 172,
+   "ln": 279,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "15:00",
+   "dow": "Thu",
+   "home": "Newcastle United FC",
+   "away": "Aston Villa FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 173,
+   "ln": 280,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "15:00",
+   "dow": "Thu",
+   "home": "Nottingham Forest FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 174,
+   "ln": 281,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "15:00",
+   "dow": "Thu",
+   "home": "Southampton FC",
+   "away": "West Ham United FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 175,
+   "ln": 282,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "17:30",
+   "dow": "Thu",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Manchester United FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 176,
+   "ln": 283,
+   "matchday": 18,
+   "date": "2024-12-26",
+   "time": "20:00",
+   "dow": "Thu",
+   "home": "Liverpool FC",
+   "away": "Leicester City FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 177,
+   "ln": 285,
+   "matchday": 18,
+   "date": "2024-12-27",
+   "time": "19:30",
+   "dow": "Fri",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 178,
+   "ln": 286,
+   "matchday": 18,
+   "date": "2024-12-27",
+   "time": "20:15",
+   "dow": "Fri",
+   "home": "Arsenal FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 179,
+   "ln": 291,
+   "matchday": 19,
+   "date": "2024-12-29",
+   "time": "14:30",
+   "dow": "Sun",
+   "home": "Leicester City FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 180,
+   "ln": 292,
+   "matchday": 19,
+   "date": "2024-12-29",
+   "time": "15:00",
+   "dow": "Sun",
+   "home": "Crystal Palace FC",
+   "away": "Southampton FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 181,
+   "ln": 293,
+   "matchday": 19,
+   "date": "2024-12-29",
+   "time": "15:00",
+   "dow": "Sun",
+   "home": "Everton FC",
+   "away": "Nottingham Forest FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 182,
+   "ln": 294,
+   "matchday": 19,
+   "date": "2024-12-29",
+   "time": "15:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 183,
+   "ln": 295,
+   "matchday": 19,
+   "date": "2024-12-29",
+   "time": "15:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 184,
+   "ln": 296,
+   "matchday": 19,
+   "date": "2024-12-29",
+   "time": "17:15",
+   "dow": "Sun",
+   "home": "West Ham United FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "i": 185,
+   "ln": 298,
+   "matchday": 19,
+   "date": "2024-12-30",
+   "time": "19:45",
+   "dow": "Mon",
+   "home": "Aston Villa FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 186,
+   "ln": 299,
+   "matchday": 19,
+   "date": "2024-12-30",
+   "time": "19:45",
+   "dow": "Mon",
+   "home": "Ipswich Town FC",
+   "away": "Chelsea FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 187,
+   "ln": 300,
+   "matchday": 19,
+   "date": "2024-12-30",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Manchester United FC",
+   "away": "Newcastle United FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 188,
+   "ln": 302,
+   "matchday": 19,
+   "date": "2025-01-01",
+   "time": "17:30",
+   "dow": "Wed",
+   "home": "Brentford FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 189,
+   "ln": 307,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Tottenham Hotspur FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 190,
+   "ln": 308,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "i": 191,
+   "ln": 309,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Chelsea FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 192,
+   "ln": 310,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 193,
+   "ln": 311,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 194,
+   "ln": 312,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "West Ham United FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 195,
+   "ln": 313,
+   "matchday": 20,
+   "date": "2025-01-04",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 196,
+   "ln": 315,
+   "matchday": 20,
+   "date": "2025-01-05",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Ipswich Town FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 197,
+   "ln": 316,
+   "matchday": 20,
+   "date": "2025-01-05",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Manchester United FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 198,
+   "ln": 318,
+   "matchday": 20,
+   "date": "2025-01-06",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Nottingham Forest FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 199,
+   "ln": 323,
+   "matchday": 21,
+   "date": "2025-01-14",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "West Ham United FC",
+   "away": "Fulham FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 200,
+   "ln": 324,
+   "matchday": 21,
+   "date": "2025-01-14",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "Brentford FC",
+   "away": "Manchester City FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 201,
+   "ln": 325,
+   "matchday": 21,
+   "date": "2025-01-14",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "Chelsea FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 202,
+   "ln": 326,
+   "matchday": 21,
+   "date": "2025-01-14",
+   "time": "20:00",
+   "dow": "Tue",
+   "home": "Nottingham Forest FC",
+   "away": "Liverpool FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 203,
+   "ln": 328,
+   "matchday": 21,
+   "date": "2025-01-15",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Everton FC",
+   "away": "Aston Villa FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 204,
+   "ln": 329,
+   "matchday": 21,
+   "date": "2025-01-15",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Leicester City FC",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 205,
+   "ln": 330,
+   "matchday": 21,
+   "date": "2025-01-15",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Newcastle United FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 206,
+   "ln": 331,
+   "matchday": 21,
+   "date": "2025-01-15",
+   "time": "20:00",
+   "dow": "Wed",
+   "home": "Arsenal FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 207,
+   "ln": 333,
+   "matchday": 21,
+   "date": "2025-01-16",
+   "time": "19:30",
+   "dow": "Thu",
+   "home": "Ipswich Town FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 208,
+   "ln": 334,
+   "matchday": 21,
+   "date": "2025-01-16",
+   "time": "20:00",
+   "dow": "Thu",
+   "home": "Manchester United FC",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 209,
+   "ln": 339,
+   "matchday": 22,
+   "date": "2025-01-18",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "i": 210,
+   "ln": 340,
+   "matchday": 22,
+   "date": "2025-01-18",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 211,
+   "ln": 341,
+   "matchday": 22,
+   "date": "2025-01-18",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "Fulham FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 212,
+   "ln": 342,
+   "matchday": 22,
+   "date": "2025-01-18",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 213,
+   "ln": 343,
+   "matchday": 22,
+   "date": "2025-01-18",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 214,
+   "ln": 345,
+   "matchday": 22,
+   "date": "2025-01-19",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 215,
+   "ln": 346,
+   "matchday": 22,
+   "date": "2025-01-19",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Nottingham Forest FC",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 216,
+   "ln": 347,
+   "matchday": 22,
+   "date": "2025-01-19",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Everton FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 217,
+   "ln": 348,
+   "matchday": 22,
+   "date": "2025-01-19",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Ipswich Town FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 6
+  },
+  {
+   "i": 218,
+   "ln": 350,
+   "matchday": 22,
+   "date": "2025-01-20",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Chelsea FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 219,
+   "ln": 355,
+   "matchday": 23,
+   "date": "2025-01-25",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "Ipswich Town FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 220,
+   "ln": 356,
+   "matchday": 23,
+   "date": "2025-01-25",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Arsenal FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 221,
+   "ln": 357,
+   "matchday": 23,
+   "date": "2025-01-25",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Everton FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 222,
+   "ln": 358,
+   "matchday": 23,
+   "date": "2025-01-25",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 223,
+   "ln": 359,
+   "matchday": 23,
+   "date": "2025-01-25",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Nottingham Forest FC",
+   "hg": 5,
+   "ag": 0
+  },
+  {
+   "i": 224,
+   "ln": 360,
+   "matchday": 23,
+   "date": "2025-01-25",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Chelsea FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 225,
+   "ln": 362,
+   "matchday": 23,
+   "date": "2025-01-26",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Crystal Palace FC",
+   "away": "Brentford FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 226,
+   "ln": 363,
+   "matchday": 23,
+   "date": "2025-01-26",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Leicester City FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 227,
+   "ln": 364,
+   "matchday": 23,
+   "date": "2025-01-26",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Aston Villa FC",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 228,
+   "ln": 365,
+   "matchday": 23,
+   "date": "2025-01-26",
+   "time": "19:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Manchester United FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 229,
+   "ln": 370,
+   "matchday": 24,
+   "date": "2025-02-01",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 7,
+   "ag": 0
+  },
+  {
+   "i": 230,
+   "ln": 371,
+   "matchday": 24,
+   "date": "2025-02-01",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 231,
+   "ln": 372,
+   "matchday": 24,
+   "date": "2025-02-01",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Leicester City FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 232,
+   "ln": 373,
+   "matchday": 24,
+   "date": "2025-02-01",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 233,
+   "ln": 374,
+   "matchday": 24,
+   "date": "2025-02-01",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Southampton FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 234,
+   "ln": 375,
+   "matchday": 24,
+   "date": "2025-02-01",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 235,
+   "ln": 377,
+   "matchday": 24,
+   "date": "2025-02-02",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 236,
+   "ln": 378,
+   "matchday": 24,
+   "date": "2025-02-02",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brentford FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 237,
+   "ln": 379,
+   "matchday": 24,
+   "date": "2025-02-02",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Arsenal FC",
+   "away": "Manchester City FC",
+   "hg": 5,
+   "ag": 1
+  },
+  {
+   "i": 238,
+   "ln": 381,
+   "matchday": 24,
+   "date": "2025-02-03",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Chelsea FC",
+   "away": "West Ham United FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 239,
+   "ln": 386,
+   "matchday": 15,
+   "date": "2025-02-12",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Everton FC",
+   "away": "Liverpool FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 240,
+   "ln": 391,
+   "matchday": 25,
+   "date": "2025-02-14",
+   "time": "20:00",
+   "dow": "Fri",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Chelsea FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 241,
+   "ln": 393,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "Arsenal FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 242,
+   "ln": 394,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 243,
+   "ln": 395,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 244,
+   "ln": 396,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 245,
+   "ln": 397,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Newcastle United FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 246,
+   "ln": 398,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Nottingham Forest FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 247,
+   "ln": 399,
+   "matchday": 25,
+   "date": "2025-02-15",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 248,
+   "ln": 401,
+   "matchday": 25,
+   "date": "2025-02-16",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 249,
+   "ln": 402,
+   "matchday": 25,
+   "date": "2025-02-16",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Manchester United FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 250,
+   "ln": 407,
+   "matchday": 29,
+   "date": "2025-02-19",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Aston Villa FC",
+   "away": "Liverpool FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 251,
+   "ln": 412,
+   "matchday": 26,
+   "date": "2025-02-21",
+   "time": "20:00",
+   "dow": "Fri",
+   "home": "Leicester City FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "i": 252,
+   "ln": 414,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Manchester United FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 253,
+   "ln": 415,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "i": 254,
+   "ln": 416,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 255,
+   "ln": 417,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "West Ham United FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 256,
+   "ln": 418,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 257,
+   "ln": 419,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "i": 258,
+   "ln": 420,
+   "matchday": 26,
+   "date": "2025-02-22",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Chelsea FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 259,
+   "ln": 422,
+   "matchday": 26,
+   "date": "2025-02-23",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Newcastle United FC",
+   "away": "Nottingham Forest FC",
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "i": 260,
+   "ln": 423,
+   "matchday": 26,
+   "date": "2025-02-23",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester City FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 261,
+   "ln": 428,
+   "matchday": 27,
+   "date": "2025-02-25",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "Brighton & Hove Albion FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 262,
+   "ln": 429,
+   "matchday": 27,
+   "date": "2025-02-25",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "Crystal Palace FC",
+   "away": "Aston Villa FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 263,
+   "ln": 430,
+   "matchday": 27,
+   "date": "2025-02-25",
+   "time": "19:30",
+   "dow": "Tue",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 264,
+   "ln": 431,
+   "matchday": 27,
+   "date": "2025-02-25",
+   "time": "20:15",
+   "dow": "Tue",
+   "home": "Chelsea FC",
+   "away": "Southampton FC",
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "i": 265,
+   "ln": 433,
+   "matchday": 27,
+   "date": "2025-02-26",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Nottingham Forest FC",
+   "away": "Arsenal FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 266,
+   "ln": 434,
+   "matchday": 27,
+   "date": "2025-02-26",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Brentford FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 267,
+   "ln": 435,
+   "matchday": 27,
+   "date": "2025-02-26",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Tottenham Hotspur FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 268,
+   "ln": 436,
+   "matchday": 27,
+   "date": "2025-02-26",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Manchester United FC",
+   "away": "Ipswich Town FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 269,
+   "ln": 437,
+   "matchday": 27,
+   "date": "2025-02-26",
+   "time": "20:15",
+   "dow": "Wed",
+   "home": "Liverpool FC",
+   "away": "Newcastle United FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 270,
+   "ln": 439,
+   "matchday": 27,
+   "date": "2025-02-27",
+   "time": "20:00",
+   "dow": "Thu",
+   "home": "West Ham United FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 271,
+   "ln": 444,
+   "matchday": 28,
+   "date": "2025-03-08",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Manchester City FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 272,
+   "ln": 445,
+   "matchday": 28,
+   "date": "2025-03-08",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Fulham FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 273,
+   "ln": 446,
+   "matchday": 28,
+   "date": "2025-03-08",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 274,
+   "ln": 447,
+   "matchday": 28,
+   "date": "2025-03-08",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Liverpool FC",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 275,
+   "ln": 448,
+   "matchday": 28,
+   "date": "2025-03-08",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Aston Villa FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 276,
+   "ln": 449,
+   "matchday": 28,
+   "date": "2025-03-08",
+   "time": "20:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 277,
+   "ln": 451,
+   "matchday": 28,
+   "date": "2025-03-09",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 278,
+   "ln": 452,
+   "matchday": 28,
+   "date": "2025-03-09",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Leicester City FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 279,
+   "ln": 453,
+   "matchday": 28,
+   "date": "2025-03-09",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 280,
+   "ln": 455,
+   "matchday": 28,
+   "date": "2025-03-10",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "West Ham United FC",
+   "away": "Newcastle United FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 281,
+   "ln": 460,
+   "matchday": 29,
+   "date": "2025-03-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 282,
+   "ln": 461,
+   "matchday": 29,
+   "date": "2025-03-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Nottingham Forest FC",
+   "hg": 2,
+   "ag": 4
+  },
+  {
+   "i": 283,
+   "ln": 462,
+   "matchday": 29,
+   "date": "2025-03-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 284,
+   "ln": 463,
+   "matchday": 29,
+   "date": "2025-03-15",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 285,
+   "ln": 464,
+   "matchday": 29,
+   "date": "2025-03-15",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Brentford FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 286,
+   "ln": 466,
+   "matchday": 29,
+   "date": "2025-03-16",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Arsenal FC",
+   "away": "Chelsea FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 287,
+   "ln": 467,
+   "matchday": 29,
+   "date": "2025-03-16",
+   "time": "13:30",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 288,
+   "ln": 468,
+   "matchday": 29,
+   "date": "2025-03-16",
+   "time": "19:00",
+   "dow": "Sun",
+   "home": "Leicester City FC",
+   "away": "Manchester United FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 289,
+   "ln": 473,
+   "matchday": 30,
+   "date": "2025-04-01",
+   "time": "19:45",
+   "dow": "Tue",
+   "home": "Arsenal FC",
+   "away": "Fulham FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 290,
+   "ln": 474,
+   "matchday": 30,
+   "date": "2025-04-01",
+   "time": "19:45",
+   "dow": "Tue",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 291,
+   "ln": 475,
+   "matchday": 30,
+   "date": "2025-04-01",
+   "time": "20:00",
+   "dow": "Tue",
+   "home": "Nottingham Forest FC",
+   "away": "Manchester United FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 292,
+   "ln": 477,
+   "matchday": 30,
+   "date": "2025-04-02",
+   "time": "19:45",
+   "dow": "Wed",
+   "home": "AFC Bournemouth",
+   "away": "Ipswich Town FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 293,
+   "ln": 478,
+   "matchday": 30,
+   "date": "2025-04-02",
+   "time": "19:45",
+   "dow": "Wed",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Aston Villa FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 294,
+   "ln": 479,
+   "matchday": 30,
+   "date": "2025-04-02",
+   "time": "19:45",
+   "dow": "Wed",
+   "home": "Manchester City FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 295,
+   "ln": 480,
+   "matchday": 30,
+   "date": "2025-04-02",
+   "time": "19:45",
+   "dow": "Wed",
+   "home": "Newcastle United FC",
+   "away": "Brentford FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 296,
+   "ln": 481,
+   "matchday": 30,
+   "date": "2025-04-02",
+   "time": "19:45",
+   "dow": "Wed",
+   "home": "Southampton FC",
+   "away": "Crystal Palace FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 297,
+   "ln": 482,
+   "matchday": 30,
+   "date": "2025-04-02",
+   "time": "20:00",
+   "dow": "Wed",
+   "home": "Liverpool FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 298,
+   "ln": 484,
+   "matchday": 30,
+   "date": "2025-04-03",
+   "time": "20:00",
+   "dow": "Thu",
+   "home": "Chelsea FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 299,
+   "ln": 489,
+   "matchday": 31,
+   "date": "2025-04-05",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 300,
+   "ln": 490,
+   "matchday": 31,
+   "date": "2025-04-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 301,
+   "ln": 491,
+   "matchday": 31,
+   "date": "2025-04-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 302,
+   "ln": 492,
+   "matchday": 31,
+   "date": "2025-04-05",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "AFC Bournemouth",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 303,
+   "ln": 493,
+   "matchday": 31,
+   "date": "2025-04-05",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Nottingham Forest FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 304,
+   "ln": 495,
+   "matchday": 31,
+   "date": "2025-04-06",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brentford FC",
+   "away": "Chelsea FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 305,
+   "ln": 496,
+   "matchday": 31,
+   "date": "2025-04-06",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Liverpool FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 306,
+   "ln": 497,
+   "matchday": 31,
+   "date": "2025-04-06",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Southampton FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 307,
+   "ln": 498,
+   "matchday": 31,
+   "date": "2025-04-06",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 308,
+   "ln": 500,
+   "matchday": 31,
+   "date": "2025-04-07",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Leicester City FC",
+   "away": "Newcastle United FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 309,
+   "ln": 505,
+   "matchday": 32,
+   "date": "2025-04-12",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Manchester City FC",
+   "away": "Crystal Palace FC",
+   "hg": 5,
+   "ag": 2
+  },
+  {
+   "i": 310,
+   "ln": 506,
+   "matchday": 32,
+   "date": "2025-04-12",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 311,
+   "ln": 507,
+   "matchday": 32,
+   "date": "2025-04-12",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Nottingham Forest FC",
+   "away": "Everton FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 312,
+   "ln": 508,
+   "matchday": 32,
+   "date": "2025-04-12",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Aston Villa FC",
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "i": 313,
+   "ln": 509,
+   "matchday": 32,
+   "date": "2025-04-12",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "Brentford FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 314,
+   "ln": 511,
+   "matchday": 32,
+   "date": "2025-04-13",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Ipswich Town FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 315,
+   "ln": 512,
+   "matchday": 32,
+   "date": "2025-04-13",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "West Ham United FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 316,
+   "ln": 513,
+   "matchday": 32,
+   "date": "2025-04-13",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "i": 317,
+   "ln": 514,
+   "matchday": 32,
+   "date": "2025-04-13",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Newcastle United FC",
+   "away": "Manchester United FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 318,
+   "ln": 516,
+   "matchday": 32,
+   "date": "2025-04-14",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "AFC Bournemouth",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 319,
+   "ln": 521,
+   "matchday": 29,
+   "date": "2025-04-16",
+   "time": "19:30",
+   "dow": "Wed",
+   "home": "Newcastle United FC",
+   "away": "Crystal Palace FC",
+   "hg": 5,
+   "ag": 0
+  },
+  {
+   "i": 320,
+   "ln": 526,
+   "matchday": 33,
+   "date": "2025-04-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brentford FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "i": 321,
+   "ln": 527,
+   "matchday": 33,
+   "date": "2025-04-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Crystal Palace FC",
+   "away": "AFC Bournemouth",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 322,
+   "ln": 528,
+   "matchday": 33,
+   "date": "2025-04-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 323,
+   "ln": 529,
+   "matchday": 33,
+   "date": "2025-04-19",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "West Ham United FC",
+   "away": "Southampton FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 324,
+   "ln": 530,
+   "matchday": 33,
+   "date": "2025-04-19",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Newcastle United FC",
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "i": 325,
+   "ln": 532,
+   "matchday": 33,
+   "date": "2025-04-20",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Chelsea FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 326,
+   "ln": 533,
+   "matchday": 33,
+   "date": "2025-04-20",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Ipswich Town FC",
+   "away": "Arsenal FC",
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "i": 327,
+   "ln": 534,
+   "matchday": 33,
+   "date": "2025-04-20",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 328,
+   "ln": 535,
+   "matchday": 33,
+   "date": "2025-04-20",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Leicester City FC",
+   "away": "Liverpool FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 329,
+   "ln": 537,
+   "matchday": 33,
+   "date": "2025-04-21",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Tottenham Hotspur FC",
+   "away": "Nottingham Forest FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 330,
+   "ln": 542,
+   "matchday": 34,
+   "date": "2025-04-22",
+   "time": "20:00",
+   "dow": "Tue",
+   "home": "Manchester City FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "i": 331,
+   "ln": 544,
+   "matchday": 34,
+   "date": "2025-04-23",
+   "time": "20:00",
+   "dow": "Wed",
+   "home": "Arsenal FC",
+   "away": "Crystal Palace FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 332,
+   "ln": 546,
+   "matchday": 34,
+   "date": "2025-04-26",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Chelsea FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 333,
+   "ln": 547,
+   "matchday": 34,
+   "date": "2025-04-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Brighton & Hove Albion FC",
+   "away": "West Ham United FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 334,
+   "ln": 548,
+   "matchday": 34,
+   "date": "2025-04-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Newcastle United FC",
+   "away": "Ipswich Town FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 335,
+   "ln": 549,
+   "matchday": 34,
+   "date": "2025-04-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 336,
+   "ln": 550,
+   "matchday": 34,
+   "date": "2025-04-26",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Leicester City FC",
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "i": 337,
+   "ln": 552,
+   "matchday": 34,
+   "date": "2025-04-27",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "AFC Bournemouth",
+   "away": "Manchester United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 338,
+   "ln": 553,
+   "matchday": 34,
+   "date": "2025-04-27",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 5,
+   "ag": 1
+  },
+  {
+   "i": 339,
+   "ln": 555,
+   "matchday": 34,
+   "date": "2025-05-01",
+   "time": "19:30",
+   "dow": "Thu",
+   "home": "Nottingham Forest FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 340,
+   "ln": 560,
+   "matchday": 35,
+   "date": "2025-05-02",
+   "time": "20:00",
+   "dow": "Fri",
+   "home": "Manchester City FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 341,
+   "ln": 562,
+   "matchday": 35,
+   "date": "2025-05-03",
+   "time": "12:30",
+   "dow": "Sat",
+   "home": "Aston Villa FC",
+   "away": "Fulham FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 342,
+   "ln": 563,
+   "matchday": 35,
+   "date": "2025-05-03",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Everton FC",
+   "away": "Ipswich Town FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 343,
+   "ln": 564,
+   "matchday": 35,
+   "date": "2025-05-03",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Leicester City FC",
+   "away": "Southampton FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 344,
+   "ln": 565,
+   "matchday": 35,
+   "date": "2025-05-03",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "Arsenal FC",
+   "away": "AFC Bournemouth",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 345,
+   "ln": 567,
+   "matchday": 35,
+   "date": "2025-05-04",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brentford FC",
+   "away": "Manchester United FC",
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "i": 346,
+   "ln": 568,
+   "matchday": 35,
+   "date": "2025-05-04",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 347,
+   "ln": 569,
+   "matchday": 35,
+   "date": "2025-05-04",
+   "time": "14:00",
+   "dow": "Sun",
+   "home": "West Ham United FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 348,
+   "ln": 570,
+   "matchday": 35,
+   "date": "2025-05-04",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Chelsea FC",
+   "away": "Liverpool FC",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 349,
+   "ln": 572,
+   "matchday": 35,
+   "date": "2025-05-05",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Crystal Palace FC",
+   "away": "Nottingham Forest FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 350,
+   "ln": 577,
+   "matchday": 36,
+   "date": "2025-05-10",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Fulham FC",
+   "away": "Everton FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 351,
+   "ln": 578,
+   "matchday": 36,
+   "date": "2025-05-10",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Ipswich Town FC",
+   "away": "Brentford FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 352,
+   "ln": 579,
+   "matchday": 36,
+   "date": "2025-05-10",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Southampton FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "i": 353,
+   "ln": 580,
+   "matchday": 36,
+   "date": "2025-05-10",
+   "time": "15:00",
+   "dow": "Sat",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 354,
+   "ln": 581,
+   "matchday": 36,
+   "date": "2025-05-10",
+   "time": "17:30",
+   "dow": "Sat",
+   "home": "AFC Bournemouth",
+   "away": "Aston Villa FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 355,
+   "ln": 583,
+   "matchday": 36,
+   "date": "2025-05-11",
+   "time": "12:00",
+   "dow": "Sun",
+   "home": "Newcastle United FC",
+   "away": "Chelsea FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 356,
+   "ln": 584,
+   "matchday": 36,
+   "date": "2025-05-11",
+   "time": "14:15",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "West Ham United FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 357,
+   "ln": 585,
+   "matchday": 36,
+   "date": "2025-05-11",
+   "time": "14:15",
+   "dow": "Sun",
+   "home": "Nottingham Forest FC",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 358,
+   "ln": 586,
+   "matchday": 36,
+   "date": "2025-05-11",
+   "time": "14:15",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Crystal Palace FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 359,
+   "ln": 587,
+   "matchday": 36,
+   "date": "2025-05-11",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Arsenal FC",
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "i": 360,
+   "ln": 592,
+   "matchday": 37,
+   "date": "2025-05-16",
+   "time": "19:30",
+   "dow": "Fri",
+   "home": "Aston Villa FC",
+   "away": "Tottenham Hotspur FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 361,
+   "ln": 593,
+   "matchday": 37,
+   "date": "2025-05-16",
+   "time": "20:15",
+   "dow": "Fri",
+   "home": "Chelsea FC",
+   "away": "Manchester United FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 362,
+   "ln": 595,
+   "matchday": 37,
+   "date": "2025-05-18",
+   "time": "12:00",
+   "dow": "Sun",
+   "home": "Everton FC",
+   "away": "Southampton FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 363,
+   "ln": 596,
+   "matchday": 37,
+   "date": "2025-05-18",
+   "time": "14:15",
+   "dow": "Sun",
+   "home": "West Ham United FC",
+   "away": "Nottingham Forest FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 364,
+   "ln": 597,
+   "matchday": 37,
+   "date": "2025-05-18",
+   "time": "15:00",
+   "dow": "Sun",
+   "home": "Brentford FC",
+   "away": "Fulham FC",
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "i": 365,
+   "ln": 598,
+   "matchday": 37,
+   "date": "2025-05-18",
+   "time": "15:00",
+   "dow": "Sun",
+   "home": "Leicester City FC",
+   "away": "Ipswich Town FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 366,
+   "ln": 599,
+   "matchday": 37,
+   "date": "2025-05-18",
+   "time": "16:30",
+   "dow": "Sun",
+   "home": "Arsenal FC",
+   "away": "Newcastle United FC",
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "i": 367,
+   "ln": 601,
+   "matchday": 37,
+   "date": "2025-05-19",
+   "time": "20:00",
+   "dow": "Mon",
+   "home": "Brighton & Hove Albion FC",
+   "away": "Liverpool FC",
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "i": 368,
+   "ln": 603,
+   "matchday": 37,
+   "date": "2025-05-20",
+   "time": "20:00",
+   "dow": "Tue",
+   "home": "Crystal Palace FC",
+   "away": "Wolverhampton Wanderers FC",
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "i": 369,
+   "ln": 604,
+   "matchday": 37,
+   "date": "2025-05-20",
+   "time": "20:00",
+   "dow": "Tue",
+   "home": "Manchester City FC",
+   "away": "AFC Bournemouth",
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "i": 370,
+   "ln": 609,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "AFC Bournemouth",
+   "away": "Leicester City FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 371,
+   "ln": 610,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Fulham FC",
+   "away": "Manchester City FC",
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "i": 372,
+   "ln": 611,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Ipswich Town FC",
+   "away": "West Ham United FC",
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "i": 373,
+   "ln": 612,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Liverpool FC",
+   "away": "Crystal Palace FC",
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "i": 374,
+   "ln": 613,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Manchester United FC",
+   "away": "Aston Villa FC",
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "i": 375,
+   "ln": 614,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Newcastle United FC",
+   "away": "Everton FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 376,
+   "ln": 615,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Nottingham Forest FC",
+   "away": "Chelsea FC",
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "i": 377,
+   "ln": 616,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Southampton FC",
+   "away": "Arsenal FC",
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "i": 378,
+   "ln": 617,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Tottenham Hotspur FC",
+   "away": "Brighton & Hove Albion FC",
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "i": 379,
+   "ln": 618,
+   "matchday": 38,
+   "date": "2025-05-25",
+   "time": "16:00",
+   "dow": "Sun",
+   "home": "Wolverhampton Wanderers FC",
+   "away": "Brentford FC",
+   "hg": 1,
+   "ag": 1
+  }
+ ],
+ "standings": [
+  {
+   "team": "Liverpool",
+   "played": 38,
+   "points": 84,
+   "gf": 86,
+   "ga": 41,
+   "deductions": 0
+  },
+  {
+   "team": "Arsenal",
+   "played": 38,
+   "points": 74,
+   "gf": 69,
+   "ga": 34,
+   "deductions": 0
+  },
+  {
+   "team": "Man City",
+   "played": 38,
+   "points": 71,
+   "gf": 72,
+   "ga": 44,
+   "deductions": 0
+  },
+  {
+   "team": "Chelsea",
+   "played": 38,
+   "points": 69,
+   "gf": 64,
+   "ga": 43,
+   "deductions": 0
+  },
+  {
+   "team": "Newcastle",
+   "played": 38,
+   "points": 66,
+   "gf": 68,
+   "ga": 47,
+   "deductions": 0
+  },
+  {
+   "team": "Aston Villa",
+   "played": 38,
+   "points": 66,
+   "gf": 58,
+   "ga": 51,
+   "deductions": 0
+  },
+  {
+   "team": "Nottm Forest",
+   "played": 38,
+   "points": 65,
+   "gf": 58,
+   "ga": 46,
+   "deductions": 0
+  },
+  {
+   "team": "Brighton",
+   "played": 38,
+   "points": 61,
+   "gf": 66,
+   "ga": 59,
+   "deductions": 0
+  },
+  {
+   "team": "Bournemouth",
+   "played": 38,
+   "points": 56,
+   "gf": 58,
+   "ga": 46,
+   "deductions": 0
+  },
+  {
+   "team": "Brentford",
+   "played": 38,
+   "points": 56,
+   "gf": 66,
+   "ga": 57,
+   "deductions": 0
+  },
+  {
+   "team": "Fulham",
+   "played": 38,
+   "points": 54,
+   "gf": 54,
+   "ga": 54,
+   "deductions": 0
+  },
+  {
+   "team": "C Palace",
+   "played": 38,
+   "points": 53,
+   "gf": 51,
+   "ga": 51,
+   "deductions": 0
+  },
+  {
+   "team": "Everton",
+   "played": 38,
+   "points": 48,
+   "gf": 42,
+   "ga": 44,
+   "deductions": 0
+  },
+  {
+   "team": "West Ham",
+   "played": 38,
+   "points": 43,
+   "gf": 46,
+   "ga": 62,
+   "deductions": 0
+  },
+  {
+   "team": "Man Utd",
+   "played": 38,
+   "points": 42,
+   "gf": 44,
+   "ga": 54,
+   "deductions": 0
+  },
+  {
+   "team": "Wolves",
+   "played": 38,
+   "points": 42,
+   "gf": 54,
+   "ga": 69,
+   "deductions": 0
+  },
+  {
+   "team": "Spurs",
+   "played": 38,
+   "points": 38,
+   "gf": 64,
+   "ga": 65,
+   "deductions": 0
+  },
+  {
+   "team": "Leicester",
+   "played": 38,
+   "points": 25,
+   "gf": 33,
+   "ga": 80,
+   "deductions": 0
+  },
+  {
+   "team": "Ipswich",
+   "played": 38,
+   "points": 22,
+   "gf": 36,
+   "ga": 82,
+   "deductions": 0
+  },
+  {
+   "team": "Southampton",
+   "played": 38,
+   "points": 12,
+   "gf": 26,
+   "ga": 86,
+   "deductions": 0
+  }
+ ],
+ "fpl": [
+  {
+   "date": "2024-08-16",
+   "h": 14,
+   "a": 9,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-08-17",
+   "h": 10,
+   "a": 12,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-08-17",
+   "h": 1,
+   "a": 20,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-08-17",
+   "h": 8,
+   "a": 5,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-08-17",
+   "h": 15,
+   "a": 17,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-08-17",
+   "h": 16,
+   "a": 3,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-17",
+   "h": 19,
+   "a": 2,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-08-18",
+   "h": 4,
+   "a": 7,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-18",
+   "h": 6,
+   "a": 13,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-08-19",
+   "h": 11,
+   "a": 18,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-24",
+   "h": 5,
+   "a": 14,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-24",
+   "h": 7,
+   "a": 19,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-08-24",
+   "h": 9,
+   "a": 11,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-24",
+   "h": 13,
+   "a": 10,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-24",
+   "h": 17,
+   "a": 16,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-24",
+   "h": 18,
+   "a": 8,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2024-08-24",
+   "h": 2,
+   "a": 1,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-08-25",
+   "h": 3,
+   "a": 15,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-25",
+   "h": 20,
+   "a": 6,
+   "hg": 2,
+   "ag": 6
+  },
+  {
+   "date": "2024-08-25",
+   "h": 12,
+   "a": 4,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-08-31",
+   "h": 1,
+   "a": 5,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-31",
+   "h": 4,
+   "a": 17,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-31",
+   "h": 8,
+   "a": 3,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2024-08-31",
+   "h": 10,
+   "a": 9,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-31",
+   "h": 11,
+   "a": 2,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-08-31",
+   "h": 16,
+   "a": 20,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-08-31",
+   "h": 19,
+   "a": 13,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2024-09-01",
+   "h": 6,
+   "a": 7,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-01",
+   "h": 15,
+   "a": 18,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-01",
+   "h": 14,
+   "a": 12,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-09-14",
+   "h": 17,
+   "a": 14,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-09-14",
+   "h": 5,
+   "a": 10,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-09-14",
+   "h": 7,
+   "a": 11,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-14",
+   "h": 9,
+   "a": 19,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-14",
+   "h": 12,
+   "a": 16,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-14",
+   "h": 13,
+   "a": 4,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-14",
+   "h": 2,
+   "a": 8,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-14",
+   "h": 3,
+   "a": 6,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-15",
+   "h": 18,
+   "a": 1,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-15",
+   "h": 20,
+   "a": 15,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-21",
+   "h": 19,
+   "a": 6,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-09-21",
+   "h": 2,
+   "a": 20,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-21",
+   "h": 9,
+   "a": 15,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-21",
+   "h": 11,
+   "a": 8,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-21",
+   "h": 12,
+   "a": 3,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-09-21",
+   "h": 17,
+   "a": 10,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-21",
+   "h": 18,
+   "a": 4,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-21",
+   "h": 7,
+   "a": 14,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-09-22",
+   "h": 5,
+   "a": 16,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-22",
+   "h": 13,
+   "a": 1,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-28",
+   "h": 15,
+   "a": 13,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-28",
+   "h": 1,
+   "a": 11,
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-28",
+   "h": 4,
+   "a": 19,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-28",
+   "h": 6,
+   "a": 5,
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-28",
+   "h": 8,
+   "a": 7,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-28",
+   "h": 16,
+   "a": 9,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-09-28",
+   "h": 20,
+   "a": 12,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-29",
+   "h": 10,
+   "a": 2,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-09-29",
+   "h": 14,
+   "a": 18,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-09-30",
+   "h": 3,
+   "a": 17,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-05",
+   "h": 7,
+   "a": 12,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-05",
+   "h": 1,
+   "a": 17,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-05",
+   "h": 4,
+   "a": 20,
+   "hg": 5,
+   "ag": 3
+  },
+  {
+   "date": "2024-10-05",
+   "h": 11,
+   "a": 3,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-05",
+   "h": 13,
+   "a": 9,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2024-10-05",
+   "h": 19,
+   "a": 10,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-05",
+   "h": 8,
+   "a": 15,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-06",
+   "h": 2,
+   "a": 14,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-06",
+   "h": 6,
+   "a": 16,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-06",
+   "h": 5,
+   "a": 18,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2024-10-19",
+   "h": 18,
+   "a": 19,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-19",
+   "h": 9,
+   "a": 2,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2024-10-19",
+   "h": 14,
+   "a": 4,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-19",
+   "h": 15,
+   "a": 5,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-19",
+   "h": 17,
+   "a": 11,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2024-10-19",
+   "h": 10,
+   "a": 8,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-10-19",
+   "h": 3,
+   "a": 1,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-20",
+   "h": 20,
+   "a": 13,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-10-20",
+   "h": 12,
+   "a": 6,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-21",
+   "h": 16,
+   "a": 7,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-25",
+   "h": 11,
+   "a": 16,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2024-10-26",
+   "h": 2,
+   "a": 3,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-26",
+   "h": 4,
+   "a": 10,
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "date": "2024-10-26",
+   "h": 5,
+   "a": 20,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-10-26",
+   "h": 13,
+   "a": 17,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-26",
+   "h": 8,
+   "a": 9,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-27",
+   "h": 6,
+   "a": 15,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-27",
+   "h": 7,
+   "a": 18,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-10-27",
+   "h": 19,
+   "a": 14,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-10-27",
+   "h": 1,
+   "a": 12,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-02",
+   "h": 15,
+   "a": 1,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-02",
+   "h": 3,
+   "a": 13,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-02",
+   "h": 10,
+   "a": 11,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-02",
+   "h": 12,
+   "a": 5,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-02",
+   "h": 16,
+   "a": 19,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-02",
+   "h": 17,
+   "a": 8,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-02",
+   "h": 20,
+   "a": 7,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-03",
+   "h": 18,
+   "a": 2,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-03",
+   "h": 14,
+   "a": 6,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-04",
+   "h": 9,
+   "a": 4,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-09",
+   "h": 4,
+   "a": 3,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-09",
+   "h": 7,
+   "a": 9,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-09",
+   "h": 19,
+   "a": 8,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-09",
+   "h": 20,
+   "a": 17,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-09",
+   "h": 5,
+   "a": 13,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-09",
+   "h": 12,
+   "a": 2,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-10",
+   "h": 14,
+   "a": 11,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-10",
+   "h": 16,
+   "a": 15,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2024-11-10",
+   "h": 18,
+   "a": 10,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-10",
+   "h": 6,
+   "a": 1,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-23",
+   "h": 11,
+   "a": 6,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-23",
+   "h": 1,
+   "a": 16,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-23",
+   "h": 2,
+   "a": 7,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-23",
+   "h": 3,
+   "a": 5,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-23",
+   "h": 8,
+   "a": 4,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-23",
+   "h": 9,
+   "a": 20,
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "date": "2024-11-23",
+   "h": 13,
+   "a": 18,
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "date": "2024-11-24",
+   "h": 17,
+   "a": 12,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2024-11-24",
+   "h": 10,
+   "a": 14,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-25",
+   "h": 15,
+   "a": 19,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-11-29",
+   "h": 5,
+   "a": 17,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-30",
+   "h": 4,
+   "a": 11,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-30",
+   "h": 7,
+   "a": 15,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-11-30",
+   "h": 16,
+   "a": 10,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-11-30",
+   "h": 20,
+   "a": 3,
+   "hg": 2,
+   "ag": 4
+  },
+  {
+   "date": "2024-11-30",
+   "h": 19,
+   "a": 1,
+   "hg": 2,
+   "ag": 5
+  },
+  {
+   "date": "2024-12-01",
+   "h": 6,
+   "a": 2,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-01",
+   "h": 14,
+   "a": 8,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-01",
+   "h": 18,
+   "a": 9,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-01",
+   "h": 12,
+   "a": 13,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-03",
+   "h": 10,
+   "a": 7,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-03",
+   "h": 11,
+   "a": 19,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-04",
+   "h": 8,
+   "a": 20,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-04",
+   "h": 13,
+   "a": 16,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-04",
+   "h": 15,
+   "a": 12,
+   "hg": 3,
+   "ag": 3
+  },
+  {
+   "date": "2024-12-04",
+   "h": 17,
+   "a": 6,
+   "hg": 1,
+   "ag": 5
+  },
+  {
+   "date": "2024-12-04",
+   "h": 1,
+   "a": 14,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-04",
+   "h": 2,
+   "a": 4,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-05",
+   "h": 9,
+   "a": 5,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-05",
+   "h": 3,
+   "a": 18,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-07",
+   "h": 2,
+   "a": 17,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-07",
+   "h": 4,
+   "a": 15,
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-07",
+   "h": 7,
+   "a": 13,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-07",
+   "h": 14,
+   "a": 16,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2024-12-08",
+   "h": 9,
+   "a": 1,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-08",
+   "h": 10,
+   "a": 3,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-08",
+   "h": 11,
+   "a": 5,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-08",
+   "h": 18,
+   "a": 6,
+   "hg": 3,
+   "ag": 4
+  },
+  {
+   "date": "2024-12-09",
+   "h": 19,
+   "a": 20,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-14",
+   "h": 1,
+   "a": 8,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-14",
+   "h": 12,
+   "a": 9,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-14",
+   "h": 15,
+   "a": 11,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-14",
+   "h": 20,
+   "a": 10,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-14",
+   "h": 16,
+   "a": 2,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-15",
+   "h": 5,
+   "a": 7,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2024-12-15",
+   "h": 13,
+   "a": 14,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-15",
+   "h": 6,
+   "a": 4,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-15",
+   "h": 17,
+   "a": 18,
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "date": "2024-12-16",
+   "h": 3,
+   "a": 19,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-21",
+   "h": 2,
+   "a": 13,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-21",
+   "h": 4,
+   "a": 16,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-21",
+   "h": 10,
+   "a": 15,
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "date": "2024-12-21",
+   "h": 19,
+   "a": 5,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-21",
+   "h": 7,
+   "a": 1,
+   "hg": 1,
+   "ag": 5
+  },
+  {
+   "date": "2024-12-22",
+   "h": 8,
+   "a": 6,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-22",
+   "h": 9,
+   "a": 17,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-22",
+   "h": 11,
+   "a": 20,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-12-22",
+   "h": 14,
+   "a": 3,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2024-12-22",
+   "h": 18,
+   "a": 12,
+   "hg": 3,
+   "ag": 6
+  },
+  {
+   "date": "2024-12-26",
+   "h": 13,
+   "a": 8,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-26",
+   "h": 3,
+   "a": 7,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-26",
+   "h": 6,
+   "a": 9,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-26",
+   "h": 15,
+   "a": 2,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-26",
+   "h": 16,
+   "a": 18,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-26",
+   "h": 17,
+   "a": 19,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-26",
+   "h": 20,
+   "a": 14,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-26",
+   "h": 12,
+   "a": 11,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-27",
+   "h": 5,
+   "a": 4,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-27",
+   "h": 1,
+   "a": 10,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-29",
+   "h": 11,
+   "a": 13,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-29",
+   "h": 7,
+   "a": 17,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2024-12-29",
+   "h": 8,
+   "a": 16,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-29",
+   "h": 9,
+   "a": 3,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-29",
+   "h": 18,
+   "a": 20,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-29",
+   "h": 19,
+   "a": 12,
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "date": "2024-12-30",
+   "h": 2,
+   "a": 5,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2024-12-30",
+   "h": 10,
+   "a": 6,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2024-12-30",
+   "h": 14,
+   "a": 15,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-01",
+   "h": 4,
+   "a": 1,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2025-01-04",
+   "h": 18,
+   "a": 15,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-04",
+   "h": 2,
+   "a": 11,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-04",
+   "h": 3,
+   "a": 8,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-01-04",
+   "h": 7,
+   "a": 6,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-04",
+   "h": 13,
+   "a": 19,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-04",
+   "h": 17,
+   "a": 4,
+   "hg": 0,
+   "ag": 5
+  },
+  {
+   "date": "2025-01-04",
+   "h": 5,
+   "a": 1,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-05",
+   "h": 9,
+   "a": 10,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-05",
+   "h": 12,
+   "a": 14,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-06",
+   "h": 20,
+   "a": 16,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2025-01-14",
+   "h": 4,
+   "a": 13,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-14",
+   "h": 6,
+   "a": 3,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-14",
+   "h": 19,
+   "a": 9,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-14",
+   "h": 16,
+   "a": 12,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-15",
+   "h": 8,
+   "a": 2,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-15",
+   "h": 11,
+   "a": 7,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-15",
+   "h": 15,
+   "a": 20,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2025-01-15",
+   "h": 1,
+   "a": 18,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-16",
+   "h": 10,
+   "a": 5,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-16",
+   "h": 14,
+   "a": 17,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-18",
+   "h": 15,
+   "a": 3,
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "date": "2025-01-18",
+   "h": 4,
+   "a": 12,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-18",
+   "h": 11,
+   "a": 9,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-18",
+   "h": 19,
+   "a": 7,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-18",
+   "h": 1,
+   "a": 2,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-19",
+   "h": 8,
+   "a": 18,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-19",
+   "h": 14,
+   "a": 5,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2025-01-19",
+   "h": 16,
+   "a": 17,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-19",
+   "h": 10,
+   "a": 13,
+   "hg": 0,
+   "ag": 6
+  },
+  {
+   "date": "2025-01-20",
+   "h": 6,
+   "a": 20,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-25",
+   "h": 3,
+   "a": 16,
+   "hg": 5,
+   "ag": 0
+  },
+  {
+   "date": "2025-01-25",
+   "h": 5,
+   "a": 8,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-25",
+   "h": 12,
+   "a": 10,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-25",
+   "h": 17,
+   "a": 15,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2025-01-25",
+   "h": 20,
+   "a": 1,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-25",
+   "h": 13,
+   "a": 6,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-26",
+   "h": 7,
+   "a": 4,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-26",
+   "h": 18,
+   "a": 11,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-01-26",
+   "h": 2,
+   "a": 19,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-01-26",
+   "h": 9,
+   "a": 14,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-01",
+   "h": 16,
+   "a": 5,
+   "hg": 7,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-01",
+   "h": 3,
+   "a": 12,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-01",
+   "h": 8,
+   "a": 11,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-01",
+   "h": 10,
+   "a": 17,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-01",
+   "h": 15,
+   "a": 9,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-01",
+   "h": 20,
+   "a": 2,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-02",
+   "h": 4,
+   "a": 18,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-02",
+   "h": 14,
+   "a": 7,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-02",
+   "h": 1,
+   "a": 13,
+   "hg": 5,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-03",
+   "h": 6,
+   "a": 19,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-12",
+   "h": 8,
+   "a": 12,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-14",
+   "h": 5,
+   "a": 6,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-15",
+   "h": 11,
+   "a": 1,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-15",
+   "h": 2,
+   "a": 10,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-15",
+   "h": 9,
+   "a": 16,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-15",
+   "h": 13,
+   "a": 15,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-15",
+   "h": 17,
+   "a": 3,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2025-02-15",
+   "h": 19,
+   "a": 4,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-15",
+   "h": 7,
+   "a": 8,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-16",
+   "h": 12,
+   "a": 20,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-16",
+   "h": 18,
+   "a": 14,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-19",
+   "h": 2,
+   "a": 12,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-21",
+   "h": 11,
+   "a": 4,
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "date": "2025-02-22",
+   "h": 8,
+   "a": 14,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-22",
+   "h": 1,
+   "a": 19,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-22",
+   "h": 3,
+   "a": 20,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-22",
+   "h": 9,
+   "a": 7,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-22",
+   "h": 10,
+   "a": 18,
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "date": "2025-02-22",
+   "h": 17,
+   "a": 5,
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "date": "2025-02-22",
+   "h": 2,
+   "a": 6,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-23",
+   "h": 15,
+   "a": 16,
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "date": "2025-02-23",
+   "h": 13,
+   "a": 12,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-25",
+   "h": 5,
+   "a": 3,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-25",
+   "h": 7,
+   "a": 2,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-25",
+   "h": 20,
+   "a": 9,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-25",
+   "h": 6,
+   "a": 17,
+   "hg": 4,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-26",
+   "h": 4,
+   "a": 8,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-26",
+   "h": 14,
+   "a": 10,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-02-26",
+   "h": 16,
+   "a": 1,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-26",
+   "h": 18,
+   "a": 13,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-02-26",
+   "h": 12,
+   "a": 15,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-02-27",
+   "h": 19,
+   "a": 11,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-03-08",
+   "h": 16,
+   "a": 13,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-03-08",
+   "h": 5,
+   "a": 9,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-08",
+   "h": 7,
+   "a": 10,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-03-08",
+   "h": 12,
+   "a": 17,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-08",
+   "h": 4,
+   "a": 2,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-08",
+   "h": 20,
+   "a": 8,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-09",
+   "h": 6,
+   "a": 11,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-03-09",
+   "h": 18,
+   "a": 3,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-03-09",
+   "h": 14,
+   "a": 1,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-10",
+   "h": 19,
+   "a": 15,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-15",
+   "h": 8,
+   "a": 19,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-03-15",
+   "h": 10,
+   "a": 16,
+   "hg": 2,
+   "ag": 4
+  },
+  {
+   "date": "2025-03-15",
+   "h": 13,
+   "a": 5,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-03-15",
+   "h": 17,
+   "a": 20,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-03-15",
+   "h": 3,
+   "a": 4,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-03-16",
+   "h": 1,
+   "a": 6,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-03-16",
+   "h": 9,
+   "a": 18,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-03-16",
+   "h": 11,
+   "a": 14,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2025-04-01",
+   "h": 1,
+   "a": 9,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-01",
+   "h": 20,
+   "a": 19,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-01",
+   "h": 16,
+   "a": 14,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-02",
+   "h": 3,
+   "a": 10,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-02",
+   "h": 5,
+   "a": 2,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2025-04-02",
+   "h": 13,
+   "a": 11,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-02",
+   "h": 15,
+   "a": 4,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-02",
+   "h": 17,
+   "a": 7,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-02",
+   "h": 12,
+   "a": 8,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-03",
+   "h": 6,
+   "a": 18,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-05",
+   "h": 8,
+   "a": 1,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-05",
+   "h": 7,
+   "a": 5,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-05",
+   "h": 10,
+   "a": 20,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-05",
+   "h": 19,
+   "a": 3,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-05",
+   "h": 2,
+   "a": 16,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-06",
+   "h": 4,
+   "a": 6,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-06",
+   "h": 9,
+   "a": 12,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-06",
+   "h": 18,
+   "a": 17,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-06",
+   "h": 14,
+   "a": 13,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-07",
+   "h": 11,
+   "a": 15,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2025-04-12",
+   "h": 13,
+   "a": 7,
+   "hg": 5,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-12",
+   "h": 5,
+   "a": 11,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-12",
+   "h": 16,
+   "a": 8,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-12",
+   "h": 17,
+   "a": 2,
+   "hg": 0,
+   "ag": 3
+  },
+  {
+   "date": "2025-04-12",
+   "h": 1,
+   "a": 4,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-13",
+   "h": 6,
+   "a": 10,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-13",
+   "h": 12,
+   "a": 19,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-13",
+   "h": 20,
+   "a": 18,
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-13",
+   "h": 15,
+   "a": 14,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-14",
+   "h": 3,
+   "a": 9,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-16",
+   "h": 15,
+   "a": 7,
+   "hg": 5,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-19",
+   "h": 4,
+   "a": 5,
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-19",
+   "h": 7,
+   "a": 3,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-19",
+   "h": 8,
+   "a": 13,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-19",
+   "h": 19,
+   "a": 17,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-19",
+   "h": 2,
+   "a": 15,
+   "hg": 4,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-20",
+   "h": 9,
+   "a": 6,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-20",
+   "h": 10,
+   "a": 1,
+   "hg": 0,
+   "ag": 4
+  },
+  {
+   "date": "2025-04-20",
+   "h": 14,
+   "a": 20,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-20",
+   "h": 11,
+   "a": 12,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-21",
+   "h": 18,
+   "a": 16,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-22",
+   "h": 13,
+   "a": 2,
+   "hg": 2,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-23",
+   "h": 1,
+   "a": 7,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-26",
+   "h": 6,
+   "a": 8,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-26",
+   "h": 5,
+   "a": 19,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-26",
+   "h": 15,
+   "a": 10,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-26",
+   "h": 17,
+   "a": 9,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-04-26",
+   "h": 20,
+   "a": 11,
+   "hg": 3,
+   "ag": 0
+  },
+  {
+   "date": "2025-04-27",
+   "h": 3,
+   "a": 14,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-04-27",
+   "h": 12,
+   "a": 18,
+   "hg": 5,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-01",
+   "h": 16,
+   "a": 4,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-02",
+   "h": 13,
+   "a": 20,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-03",
+   "h": 2,
+   "a": 9,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-03",
+   "h": 8,
+   "a": 10,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-03",
+   "h": 11,
+   "a": 17,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-03",
+   "h": 1,
+   "a": 3,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-04",
+   "h": 4,
+   "a": 14,
+   "hg": 4,
+   "ag": 3
+  },
+  {
+   "date": "2025-05-04",
+   "h": 5,
+   "a": 15,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-04",
+   "h": 19,
+   "a": 18,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-04",
+   "h": 6,
+   "a": 12,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-05",
+   "h": 7,
+   "a": 16,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-10",
+   "h": 9,
+   "a": 8,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2025-05-10",
+   "h": 10,
+   "a": 4,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-10",
+   "h": 17,
+   "a": 13,
+   "hg": 0,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-10",
+   "h": 20,
+   "a": 5,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-10",
+   "h": 3,
+   "a": 2,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-11",
+   "h": 15,
+   "a": 6,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-11",
+   "h": 14,
+   "a": 19,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-11",
+   "h": 16,
+   "a": 11,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-11",
+   "h": 18,
+   "a": 7,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-11",
+   "h": 12,
+   "a": 1,
+   "hg": 2,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-16",
+   "h": 2,
+   "a": 18,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-16",
+   "h": 6,
+   "a": 14,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-18",
+   "h": 8,
+   "a": 17,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-18",
+   "h": 19,
+   "a": 16,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-18",
+   "h": 4,
+   "a": 9,
+   "hg": 2,
+   "ag": 3
+  },
+  {
+   "date": "2025-05-18",
+   "h": 11,
+   "a": 10,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-18",
+   "h": 1,
+   "a": 15,
+   "hg": 1,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-19",
+   "h": 5,
+   "a": 12,
+   "hg": 3,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-20",
+   "h": 7,
+   "a": 20,
+   "hg": 4,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-20",
+   "h": 13,
+   "a": 3,
+   "hg": 3,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-25",
+   "h": 3,
+   "a": 11,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-25",
+   "h": 9,
+   "a": 13,
+   "hg": 0,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-25",
+   "h": 10,
+   "a": 19,
+   "hg": 1,
+   "ag": 3
+  },
+  {
+   "date": "2025-05-25",
+   "h": 12,
+   "a": 7,
+   "hg": 1,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-25",
+   "h": 14,
+   "a": 2,
+   "hg": 2,
+   "ag": 0
+  },
+  {
+   "date": "2025-05-25",
+   "h": 15,
+   "a": 8,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-25",
+   "h": 16,
+   "a": 6,
+   "hg": 0,
+   "ag": 1
+  },
+  {
+   "date": "2025-05-25",
+   "h": 17,
+   "a": 1,
+   "hg": 1,
+   "ag": 2
+  },
+  {
+   "date": "2025-05-25",
+   "h": 18,
+   "a": 5,
+   "hg": 1,
+   "ag": 4
+  },
+  {
+   "date": "2025-05-25",
+   "h": 20,
+   "a": 4,
+   "hg": 1,
+   "ag": 1
+  }
+ ],
+ "fplNames": {
+  "1": "Arsenal",
+  "2": "Aston Villa",
+  "3": "Bournemouth",
+  "4": "Brentford",
+  "5": "Brighton",
+  "6": "Chelsea",
+  "7": "Crystal Palace",
+  "8": "Everton",
+  "9": "Fulham",
+  "10": "Ipswich",
+  "11": "Leicester",
+  "12": "Liverpool",
+  "13": "Man City",
+  "14": "Man Utd",
+  "15": "Newcastle",
+  "16": "Nott'm Forest",
+  "17": "Southampton",
+  "18": "Spurs",
+  "19": "West Ham",
+  "20": "Wolves"
+ }
+}

@@ -1,0 +1,66 @@
+rule block (from its begin marker to its end marker, 79 lines) sha256 36d98f5df1f891265024b15b3921e3a8369b4b144bac9a24a36d2eeb7b5ca13f
+training 2025-26: 380 matches, 370 forecastable, 330 with both clubs on >= 5 games (fit set), 40 opening-week
+test 2024-25: 380 matches, 370 forecastable, 330 with both clubs on >= 5 games (rule set), 40 opening-week; bundle sha256 1e3dfc3e3de1be0ec44cba04bb6f01f2cbb0de39e226129e67adee3cc5772221
+this season 2026-27: 100 matches, 90 forecastable, 50 with both clubs on >= 5 games (rule set), 40 opening-week; bundle sha256 074a2512965761773bca2448b2437f94866b9a684b0ec023072d45539bae60c7
+the parametrised model at table-v1's constants vs the compiled model: 830 forecasts, max abs difference 0.00e+0
+
+CHECKS (data only: C has not been fitted or scored)
+PASS verdict logic: a candidate that meets every rule ships 
+PASS verdict logic: N1 (z -1.99) alone vetoes, and says so [N1 2024-25 paired z against table-v1 -1.99 is not <= -2]
+PASS verdict logic: N1 at z -2.0 still ships 
+PASS verdict logic: N2 (z -1.64) alone vetoes, and says so [N2 2024-25 paired z against the base-rate forecast -1.64 is not <= -1.645]
+PASS verdict logic: N2 at z -1.645 still ships 
+PASS verdict logic: N3 (slope 0.55, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 0.55 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 (slope 0.60, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 0.60 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 just inside its lower edge (slope 0.61, SE 0.2) still ships 
+PASS verdict logic: N3 (slope 1.45, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 1.45 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 (slope 1.40, SE 0.2) alone vetoes, and says so [N3 2024-25 home-win slope 1.40 (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: N3 just inside its upper edge (slope 1.39, SE 0.2) still ships 
+PASS verdict logic: N4 (opening weeks worse in 2024-25) alone vetoes, and says so [N4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: N4 (opening weeks worse in 2026-27) alone vetoes, and says so [N4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: N4 with equal opening-week Briers still ships 
+PASS verdict logic: N5 (z 0) alone vetoes, and says so [N5 2026-27 paired z against table-v1 0.00 is not < 0]
+PASS verdict logic: N5 (z +0.5) alone vetoes, and says so [N5 2026-27 paired z against table-v1 0.50 is not < 0]
+PASS verdict logic: N5 just below zero still ships 
+PASS verdict logic: N6 alone vetoes, and says so [N6 the fit is not well posed]
+PASS verdict logic: N7 alone vetoes, and says so [N7 an integrity check failed]
+PASS verdict logic: a NaN N1 z alone vetoes, and says so [N1 2024-25 paired z against table-v1 NaN is not <= -2]
+PASS verdict logic: a NaN N2 z alone vetoes, and says so [N2 2024-25 paired z against the base-rate forecast NaN is not <= -1.645]
+PASS verdict logic: a NaN slope alone vetoes, and says so [N3 2024-25 home-win slope NaN (SE 0.20) differs from 1 by more than 1.96 SE]
+PASS verdict logic: a NaN opening-weeks Brier alone vetoes, and says so [N4 an opening-weeks Brier is worse than table-v1's]
+PASS verdict logic: a NaN N5 z alone vetoes, and says so [N5 2026-27 paired z against table-v1 NaN is not < 0]
+PASS the rule block is delimited by exactly one begin and one end marker, in that order 
+PASS precondition: the prior-season script, run on these sources, exits 0 with no red check [26 of 26 checks hold; coverage: 1 season (380 matches), no o]
+PASS source openfootball is the pinned file (51782 bytes, sha256) [51782 B, 38c1de56c9e9b666]
+PASS training: the file parses clean, 380 matches, dates 2025-08-15..2026-05-24 
+PASS source espnFinal is the pinned file (69451 bytes, sha256) [69451 B, 53b071579c206763]
+PASS training: the final table the results make equals ESPN's, club by club (20 of 20 on played, points, GF, GA) 
+PASS training: no club carries a deduction 
+PASS 2024-25: the bundle records the four pinned raw files, by bytes and sha256 
+PASS 2024-25: the ESPN payload is the 2024-25 season (season 2024, "English Premier League 2024-2025") 
+PASS 2024-25: the bundle holds 380 matches among 20 clubs, 38 each (19 home, 19 away), every ordered pair once 
+PASS 2024-25: the file's header (380 matches, 20 teams, 2024-08-16..2025-05-25) is what the bundle holds (380, 20, 2024-08-16..2025-05-25) 
+PASS 2024-25: every match's date names its own weekday (380 of 380), so a wrong year anywhere fails 
+PASS 2024-25: the matchday headings are exactly 1..38, each used 
+PASS 2024-25: no club plays twice on one date, so order within a day cannot change a table 
+PASS 2024-25: it ends before the training season begins (the seasons do not overlap) 
+PASS 2024-25: the final table the results make equals ESPN's, club by club (20 of 20 on played, points, GF, GA), 20 distinct tuples, no deductions 
+PASS 2024-25: FPL's 380 fixtures hold the same matches by date and score (0 unequal groups), pairing one-to-one (380 pairs; 0 openfootball and 0 FPL left over), clubs mapping 20 of 20 with 0 conflicts, and agreeing on date, scores and clubs (380 of 380) 
+PASS 2024-25: FPL's team list names the same 20 teams the fixtures use 
+PASS 2026-27: the bundle is the frozen file (28914 bytes, sha256) [28914 B, 074a251296576177]
+PASS 2026-27: 100 finished matches, 100 EPL rows in the archive, none unfinished 
+PASS 2026-27: the archive's finished count equals ESPN's played count for 20 of 20 clubs, and the clubs are the same 20 
+PASS 2026-27: the table the results make equals ESPN's current table (20 of 20 clubs on played, points, GF, GA); no deductions 
+PASS 2026-27: FPL's played fixtures are exactly its scored ones (100 provisional-or-final, 100 with both scores; 90 of them final, the rest in the latest matchweek) 
+PASS 2026-27: the relay's FPL fixtures hold the same 100 played matches by date and score (0 unequal groups), pairing one-to-one (100 pairs; 0 archive and 0 FPL left over), clubs mapping 20 of 20 with 0 conflicts 
+PASS 2026-27: openfootball's 45 scored lines are each an archive match on date and score (45 of 45); it has no later results to check 
+PASS 2026-27: it begins after the training season ended (the seasons do not overlap) 
+PASS 2026-27: no club plays twice on one date, so order within a day cannot change a table 
+PASS 2026-27: before normalising, the only archive name the ESPN table does not carry is "Man United" ({"Man United":8}); after it, every archive club is one of the table's 20 
+PASS the six match sets are exactly the matches with both clubs on >= 5 games, or on 1-4 games, recounted from the clubs' own games played [2025-26 rule set 330/330; 2025-26 opening weeks 40/40; 2024-25 rule set 330/330; 2024-25 opening weeks 40/40; 2026-27 rule set 50/50; 2026-27 opening weeks 40/40]
+PASS the parametrised model at the declared constants equals the compiled model on all 830 forecasts of the three seasons 
+PASS the parametrised model with infinite decay gives the same draw probability at every gap, equal to the share [0.28, 0.28, 0.28, 0.28]
+PASS table-v1 on the training set reproduces the earlier record: n 330 Brier 0.689 logloss 1.153; opening weeks n 40 Brier 0.860 logloss 1.715 [n 330 Brier 0.689 logloss 1.153; opening n 40 Brier 0.860 logloss 1.715]
+PASS table-v1 on the first 99 2026-27 matches reproduces the 2026-27 record's five bins to the digit 
+
+57 of 57 checks hold; coverage: 3 seasons loaded (380 + 380 + 100 matches), 2024-25 cross-checked against 3 sources (openfootball, FPL, ESPN)
