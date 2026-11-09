@@ -1,0 +1,77 @@
+harness self-test: 3 of 3 bad edits refused (an absent anchor, a repeated anchor, an edit that changes nothing)
+CONTROL  (nothing broken)
+  script exit 0, 63 of 63 checks hold, 0 rule lines red; rule block hash equals the one committed in 3ff1763; VERDICT: SHIP table-v2 (candidate C); co
+  Python recomputation exit 0, 16 of 16 checks hold
+CAUGHT       1. the model function: the draw share is multiplied by 1.01
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 5 checks + 0 rule lines + 8 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT       2. the model function: the logistic scale has the wrong sign
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 7 checks + 3 rule lines + 12 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT       3. C's draw decay is 20, not infinite (the draw share would vary with the gap)
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 4 checks + 0 rule lines + 10 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT       4. the table engine awards 2 points for a win
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 5 checks + 0 rule lines + 3 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT       5. the rating weights goal difference 0.26, not 0.25
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 6 checks + 0 rule lines + 3 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT       6. log loss taken on the wrong outcome
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 5 checks + 5 rule lines + 12 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT       7. the fit minimises Brier instead of log loss (both optimisers share the wrong objective)
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 3 checks + 0 rule lines + 10 Python checks; expected red: 3, red as expected: 3; rule block unchanged
+CAUGHT       8. the optimiser returns its starting point
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 3 checks + 2 rule lines + 12 Python checks; expected red: 3, red as expected: 3; rule block unchanged
+CAUGHT       9. cross-validation trains on every row, its own test rows included
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 0 rule lines + 2 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      10. the base-rate forecast is taken from 2024-25's own shares (a leak from the test season)
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 0 rule lines + 1 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      11. the constants are rounded up, not to nearest
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 0 rule lines + 6 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      12. the opening weeks take 1-5 games, not 1-4
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 0 rule lines + 1 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      13. the rule set takes clubs on >= 4 games, not >= 5
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 5 checks + 0 rule lines + 2 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      14. the paired z leaves out the square root of n
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 2 rule lines + 4 Python checks; expected red: 4, red as expected: 4; rule block unchanged
+CAUGHT      15. the Newton slope solver has the wrong sign on its residual
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 3 checks + 1 rule lines + 3 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      16. the slope is fitted to away wins instead of home wins (both solvers share the wrong data)
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 1 rule lines + 3 Python checks; expected red: 3, red as expected: 3; rule block unchanged
+CAUGHT      17. the 2024-25 row is scored on the 2026-27 set
+    script exit 0, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 0 checks + 2 rule lines + 3 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      18. C's rows are scored with table-v1's constants
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 3 rule lines + 5 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      19. rule N1 compared the wrong way round, in decide()
+    script exit 1, Python exit 0; last line: VERDICT: DO NOT SHIP. ; red: 23 checks + 0 rule lines + 0 Python checks; expected red: 2, red as expected: 2; rule block changed
+CAUGHT      20. rule N1 lets a NaN through, in decide()
+    script exit 1, Python exit 0; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 0 rule lines + 0 Python checks; expected red: 1, red as expected: 1; rule block changed
+CAUGHT      21. rule N4 judges one season only, in decide()
+    script exit 1, Python exit 0; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 0 rule lines + 0 Python checks; expected red: 1, red as expected: 1; rule block changed
+CAUGHT      22. rule N5 accepts z = 0, in decide()
+    script exit 1, Python exit 0; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 0 rule lines + 0 Python checks; expected red: 1, red as expected: 1; rule block changed
+CAUGHT      23. rule N3 tolerance collapsed from 1.96 to 0.1 standard errors
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 1 rule lines + 1 Python checks; expected red: 2, red as expected: 2; rule block changed
+CAUGHT      24. rule N1 threshold loosened from -2.0 to -3.0
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 1 rule lines + 1 Python checks; expected red: 2, red as expected: 2; rule block changed
+CAUGHT      25. rule N2 compared the wrong way round in the rule table (decide() untouched)
+    script exit 1, Python exit 1; last line: VERDICT: DO NOT SHIP. ; red: 1 checks + 1 rule lines + 1 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT (by the harness invariant)  26. WIRING: N7 is passed true instead of the check count (alongside a changed 2024-25 score)
+    script exit 1, Python exit 0; last line: VERDICT: SHIP table-v2; red: 2 checks + 0 rule lines + 0 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT (by the harness invariant)  27. WIRING: the printed verdict ignores the decision (alongside a changed 2024-25 score)
+    script exit 1, Python exit 0; last line: VERDICT: SHIP table-v2; red: 2 checks + 0 rule lines + 0 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      28. data: one 2024-25 score changed (the first match's home goals + 1)
+    script exit 1, Python exit 0; last line: VERDICT: DO NOT SHIP. ; red: 2 checks + 0 rule lines + 0 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      29. data: one 2026-27 score changed (the first archive row's home goals + 1)
+    script exit 1, Python exit 0; last line: VERDICT: DO NOT SHIP. ; red: 6 checks + 0 rule lines + 0 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      30. PYTHON: the fit objective is Brier
+    script exit 0, Python exit 1; last line: VERDICT: SHIP table-v2; red: 0 checks + 0 rule lines + 10 Python checks; expected red: 2, red as expected: 2; rule block unchanged
+CAUGHT      31. PYTHON: the paired z uses the population standard deviation
+    script exit 0, Python exit 1; last line: VERDICT: SHIP table-v2; red: 0 checks + 0 rule lines + 3 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      32. PYTHON: the replay weights goal difference 0.20
+    script exit 0, Python exit 1; last line: VERDICT: SHIP table-v2; red: 0 checks + 0 rule lines + 3 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      33. PYTHON: the slope standard error reads the intercept entry of the inverse Hessian
+    script exit 0, Python exit 1; last line: VERDICT: SHIP table-v2; red: 0 checks + 0 rule lines + 2 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      34. PYTHON: the N1 threshold is -3.0
+    script exit 0, Python exit 1; last line: VERDICT: SHIP table-v2; red: 0 checks + 0 rule lines + 1 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+CAUGHT      35. PYTHON: the base rate is the share NOT having each outcome
+    script exit 0, Python exit 1; last line: VERDICT: SHIP table-v2; red: 0 checks + 0 rule lines + 1 Python checks; expected red: 1, red as expected: 1; rule block unchanged
+
+35 of 35 mutations caught by the checks written to catch them (2 of them by the harness invariant, not by a check in the script), 0 broken harness anchors; control as expected
+coverage: 35 mutations = 25 in the fit script alone (6 of them in the rule block), 2 in its wiring alongside a changed score, 2 to the data bundles alone, 6 in the Python recomputation; each run uses the real 2025-26 sources and both real bundles

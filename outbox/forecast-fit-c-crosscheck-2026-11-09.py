@@ -128,11 +128,19 @@ def replay_features(matches):
             t[0] += 1; t[2] += gf; t[3] += ga; t[1] += 3 if gf > ga else 1 if gf == ga else 0
     return out
 
+def nan_for_null(x):
+    # The JavaScript writes a NaN as JSON null. A null must fail a comparison, not crash the recomputation (found by mutation 18 of the verdict-stage harness, which scores C with
+    # table-v1's constants: the paired z is 0/0, the dump carries null, and the first version died on `float - None` before it printed any result).
+    if x is None: return float('nan')
+    if isinstance(x, dict): return {k: nan_for_null(v) for k, v in x.items()}
+    if isinstance(x, list): return [nan_for_null(v) for v in x]
+    return x
+
 def mode_fit(feat_path, bundle_path):
     import math
     import numpy as np
     from scipy.optimize import minimize
-    J = json.load(open(feat_path)); js = J['js']
+    J = nan_for_null(json.load(open(feat_path))); js = J['js']
     B = json.load(open(bundle_path))
     near = lambda a, b, tol=1e-9: abs(a - b) <= tol * max(1.0, abs(b))
 
@@ -239,5 +247,10 @@ if __name__ == '__main__':
     if len(sys.argv) == 4 and sys.argv[1] == 'data':
         sys.exit(mode_data(sys.argv[2], sys.argv[3]))
     if len(sys.argv) == 4 and sys.argv[1] == 'fit':
-        sys.exit(mode_fit(sys.argv[2], sys.argv[3]))
+        try:
+            rc = mode_fit(sys.argv[2], sys.argv[3])
+        except Exception as e:   # the checks are printed at the end; an exception must not discard the ones already recorded
+            check('the recomputation ran to the end without an exception', False, f'{type(e).__name__}: {e}')
+            rc = finish()
+        sys.exit(rc)
     print(__doc__); sys.exit(2)

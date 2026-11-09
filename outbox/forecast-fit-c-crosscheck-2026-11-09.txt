@@ -1,0 +1,20 @@
+PY verdict on N1-N6: all six hold  (N7, the integrity checks, is the JavaScript's own list)
+PY coverage: 370 of 380 2024-25 matches' features re-derived from the bundle; 2025-26 (330 + 40) and 2026-27 (50 + 40) features taken from the JavaScript dump
+PASS 2024-25 features re-derived from the bundle by an independent replay equal the JavaScript's: fresh (330 forecasts, rating home, rating away, outcome) [330 vs 330]
+PASS 2024-25 features re-derived from the bundle by an independent replay equal the JavaScript's: freshOpen (40 forecasts, rating home, rating away, outcome) [40 vs 40]
+PASS 2024-25 features re-derived from the bundle by an independent replay equal the JavaScript's: freshAll (370 forecasts, rating home, rating away, outcome) [370 vs 370]
+PASS C fitted on the 2025-26 forecasts by BFGS from two starts: the starts agree, and the constants equal the JavaScript's to 1e-3 [python (0.4222, 1.1439, 0.2727) vs js (0.4222, 1.1439, 0.2727)]
+PASS the JavaScript's log loss at its constants is no lower than the optimum found here, and no more than 1e-6 above it (its solvers did not stop short) [340.899153884 vs 340.899153884]
+PASS the constants rounded to two decimals equal the JavaScript's [(0.42, 1.14, 0.27)]
+PASS well posed, judged here: the two starts agree, the gradient is ~0 (|g| 6.6e-06), the Hessian is positive definite, no constant on a bound [js says True]
+PASS the base-rate forecast is the home / draw / away shares of the 330 training matches
+PASS 2024-25 rule set (330 forecasts): mean Brier of C, table-v1 and the base rate equal the JavaScript's [0.599973 0.652355 0.652801]
+PASS 2024-25 rule set: the paired z of C against table-v1, against the base rate and against a uniform guess equal the JavaScript's [-2.9306 -4.4089 -4.6242]
+PASS 2024-25 rule set: C's home-win slope and its standard error, by BFGS and the analytic Hessian, equal the JavaScript's Newton solution [1.1773 +/- 0.2081]
+PASS opening weeks: mean Brier of C and table-v1 on 2024-25 and on 2026-27 equal the JavaScript's [0.6041/0.7252 0.6823/0.9082]
+PASS 2026-27 rule set (50 forecasts): C against table-v1, paired z, equals the JavaScript's [-1.9827]
+PASS 2025-26 five-fold cross-validated Brier of C, table-v1 and the base rate, refitted fold by fold by BFGS, equal the JavaScript's to 1e-6 [0.629230 0.688987 0.661387]
+PASS 2025-26 cross-validated paired z (against table-v1 and the base rate) and home-win slope with its SE equal the JavaScript's [-3.451 -2.937 1.011]
+PASS rules N1-N6, recomputed here from this script's own numbers and the rule's text, each give the same pass or fail as the JavaScript's [python {'N1': True, 'N2': True, 'N3': True, 'N4': True, 'N5': True, 'N6': True} vs js {'N1': True, 'N2': True, 'N3': True, 'N4': True, 'N5': True, 'N6': True}]
+
+16 of 16 checks hold
