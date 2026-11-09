@@ -1,0 +1,30 @@
+# the reader's extraction (scripts/venue-infobox-read.mjs), 2026-11-09
+# command: node outbox/venue-infobox-read-extraction-check-2026-11-09.mjs --self-test
+PASS  a faithful move passes A, B and C
+PASS  a moved line the reader changed fails
+PASS  a line deleted from the probe and kept nowhere fails
+PASS  a line added to the probe beyond the declared ones fails
+PASS  a moved line the probe still holds (a copy, not a move) fails
+PASS  a declared edit that did not happen fails
+PASS  a line invented in the reader fails
+PASS  the API line may differ from the old one only by its export
+PASS  a reader with no import is not a pass
+
+9/9 checks passed
+
+# command: node outbox/venue-infobox-read-extraction-check-2026-11-09.mjs
+old probe af7db7f:scripts/venue-infobox.mjs, 509 lines; new probe 446 lines; new reader 78 lines
+lines the probe lost: 62; held by the reader verbatim: 60; not held (the declared edits): 2 of 2 declared
+A. reader lines the probe did not lose: 0
+B. lost and not in the reader, other than the declared: 0
+C. lines the probe gained: 4 of 4 declared; others: 0
+IDENTICAL: the reader is the old text, moved
+
+# the probe's own self-test after the move: node scripts/venue-infobox.mjs --self-test
+
+36/36 checks passed
+# the committed report reproduced from the committed JSON: node scripts/venue-infobox.mjs --report outbox/venue-infobox-probe.json
+identical to outbox/venue-infobox-probe.txt, byte for byte (4048 bytes)
+
+# every probe mutation still red by a named check (outbox/venue-infobox-mutation-2026-11-09.txt): 15 mutations read from the registry; 0 not red by a named check
+# registry anchors: checked 1219 of 1222 mutation anchors; 0 stale

@@ -10,8 +10,9 @@
 //
 // HOW THE INFOBOX IS READ. MediaWiki's own preprocessor has already cut the wikitext into
 // templates and parameters; `action=parse&prop=parsetree&section=0` returns that tree as XML,
-// one request per article. This file reads the XML with a real XML parser and keeps the
-// parameters whose NAME contains "roof". It does not read prose and does not parse wikitext.
+// one request per article. The XML is read with a real XML parser and the parameters whose NAME
+// contains "roof" are kept (scripts/venue-infobox-read.mjs, which the roof rule shares). Nothing
+// here reads prose or parses wikitext.
 // The categories come from `action=query&prop=categories`, fifty titles to a request.
 //
 // THE PREMISES, AND THE ONE COMMAND THAT TESTS EACH (PREMISE-FIRST-A)
@@ -43,11 +44,10 @@
 //         node scripts/venue-infobox.mjs --report FILE.json    (no network: the text report of a committed run)
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
-import { DOMParser, XMLSerializer } from '@xmldom/xmldom'
 import { retryWait } from './venue-source.mjs'
+import { API, parseUrl, readTree } from './venue-infobox-read.mjs'
 import { createChecks, finish, isMain } from './checks.mjs'
 
-const API = 'https://en.wikipedia.org/w/api.php'
 export const UA = 'field-laboratory-venue-infobox/1.0 (github.com/jeffunglesbee-create/field-laboratory; reads the Roof field of venue articles for the roof rule)'
 export const GAP_MS = 1000
 export const BATCH = 50
@@ -57,8 +57,6 @@ export const OUT_JSON = 'outbox/venue-infobox-probe.json'
 export const OUT_TXT = 'outbox/venue-infobox-probe.txt'
 /** The five rows the Task 2 record is about. Looked up BY NAME in the results; one that is not there is said so. */
 export const CONTROLS = ['U.S. Bank Stadium', 'Parken Stadium', 'Center Parc Stadium', 'Joan C. Edwards Stadium', 'NRG Stadium']
-const INFOBOX = /^(?:template:)?infobox(?![a-z])/i
-const RAW_CAP = 4000
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
 // --- which articles --------------------------------------------------------------------------
@@ -87,65 +85,6 @@ export const population = (results, cache) => {
   return { rows, titles, leadKeys: leadKeys.length, onlyHere: titles.filter(t => !there.has(t)), onlyCache: leadKeys.filter(t => !here.has(t)) }
 }
 
-// --- reading the parse tree --------------------------------------------------------------------
-
-const kids = el => Array.from(el.childNodes ?? [])
-const elems = (el, tag) => kids(el).filter(n => n.nodeType === 1 && n.tagName === tag)
-const squash = s => s.replace(/\s+/g, ' ').trim()
-
-/** A <value> as text: its own text and the values of any template nested in it. A ref (<ext>), a comment and any other element are counted and left out. */
-export const flatOf = value => {
-  const seen = { templates: [], exts: [], comments: 0, other: [] }
-  const walk = el => {
-    let text = ''
-    for (const n of kids(el)) {
-      if (n.nodeType === 3 || n.nodeType === 4) text += n.data
-      else if (n.nodeType !== 1) continue
-      else if (n.tagName === 'template') {
-        seen.templates.push(squash(elems(n, 'title')[0]?.textContent ?? ''))
-        for (const p of elems(n, 'part')) text += ' ' + walk(elems(p, 'value')[0] ?? p)
-      } else if (n.tagName === 'ext') seen.exts.push(squash(elems(n, 'name')[0]?.textContent ?? ''))
-      else if (n.tagName === 'comment') seen.comments++
-      else seen.other.push(n.tagName)
-    }
-    return text
-  }
-  return { flat: squash(walk(value)), ...seen }
-}
-
-/** The XML text of one article's section 0 into: every top-level template title, and every Infobox template with its parameter names and its roof parameters. */
-export const readTree = xml => {
-  const errors = []
-  let doc
-  try {
-    doc = new DOMParser({ onError: (level, msg) => errors.push(`${level}: ${String(msg).slice(0, 160)}`) }).parseFromString(xml, 'text/xml')
-  } catch (e) {
-    return { ok: false, why: `${e.name}: ${String(e.message).slice(0, 200)}`, errors }
-  }
-  const root = doc.documentElement
-  if (root?.tagName !== 'root') return { ok: false, why: `the root element is ${root ? `<${root.tagName}>` : 'missing'}, not <root>`, errors }
-  const templates0 = [], infoboxes = []
-  for (const t of elems(root, 'template')) {
-    const template = squash(elems(t, 'title')[0]?.textContent ?? '')
-    templates0.push(template)
-    if (!INFOBOX.test(template)) continue
-    const params = [], roof = []
-    for (const p of elems(t, 'part')) {
-      const nm = elems(p, 'name')[0], val = elems(p, 'value')[0]
-      if (!nm || !val) return { ok: false, why: `a parameter of "${template}" has no ${nm ? '<value>' : '<name>'}`, errors }
-      const index = nm.getAttribute('index')
-      const param = index ? `#${index}` : squash(nm.textContent)
-      params.push(param)
-      if (!index && /roof/i.test(param)) {
-        const raw = new XMLSerializer().serializeToString(p)
-        roof.push({ param, ...flatOf(val), raw: raw.slice(0, RAW_CAP), rawLength: raw.length })
-      }
-    }
-    infoboxes.push({ template, params, roof })
-  }
-  return { ok: true, errors, templates0, infoboxes }
-}
-
 // --- the network --------------------------------------------------------------------------------
 
 /** GET json with the repository's retry policy (`retryWait`: a 429 waits what Retry-After asks), recording every attempt so that a slow run is measured and not guessed at. */
@@ -168,8 +107,6 @@ export const getRecorded = async (url, { fetchImpl = fetch, wait = sleep } = {})
   }
   return { ok: false, why, attempts }
 }
-
-export const parseUrl = title => `${API}?action=parse&page=${title}&prop=parsetree|revid&section=0&redirects=1&format=json`
 
 /** One answer of the parse call into the article's record. `keep` is called with the whole tree text for the controls. */
 export const readArticle = (r, keep = () => {}) => {

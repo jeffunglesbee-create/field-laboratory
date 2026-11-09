@@ -8351,7 +8351,7 @@ const MUTATIONS = [
   // --- the Wikipedia infobox and category probe, docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 2 option 3: scripts/venue-infobox.mjs ---
   {
     id: 'venue-infobox-roof-match-case',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "a parameter named Roof, capitalised, is a roof parameter",
     find: "if (!index && /roof/i.test(param)) {",
     replace: "if (!index && /roof/.test(param)) {",
@@ -8359,7 +8359,7 @@ const MUTATIONS = [
   },
   {
     id: 'venue-infobox-first-infobox-only',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "every Infobox template on a page is read, not the first one",
     find: "    infoboxes.push({ template, params, roof })",
     replace: "    infoboxes.push({ template, params, roof }); break",
@@ -8367,7 +8367,7 @@ const MUTATIONS = [
   },
   {
     id: 'venue-infobox-root-not-checked',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "an HTML page, which parses as XML, is a failure and not a page with no infobox",
     find: "  if (root?.tagName !== 'root') return { ok: false,",
     replace: "  if (false) return { ok: false,",
@@ -8375,7 +8375,7 @@ const MUTATIONS = [
   },
   {
     id: 'venue-infobox-ref-text-kept',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "a reference inside a roof value is left out of its text",
     find: "else if (n.tagName === 'ext') seen.exts.push(",
     replace: "else if (n.tagName === 'ext') text += n.textContent, seen.exts.push(",
@@ -8383,7 +8383,7 @@ const MUTATIONS = [
   },
   {
     id: 'venue-infobox-nested-values-dropped',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "the value of a template nested in a roof value is part of its text",
     find: "for (const p of elems(n, 'part')) text += ' ' + walk(elems(p, 'value')[0] ?? p)",
     replace: "for (const p of elems(n, 'part')) text += ''",
@@ -8391,7 +8391,7 @@ const MUTATIONS = [
   },
   {
     id: 'venue-infobox-parse-error-swallowed',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "a tree that does not parse is a failure and not a page with no infobox",
     find: "    return { ok: false, why: `${e.name}: ${String(e.message).slice(0, 200)}`, errors }",
     replace: "    return { ok: true, errors, templates0: [], infoboxes: [] }",
@@ -8399,7 +8399,7 @@ const MUTATIONS = [
   },
   {
     id: 'venue-infobox-parser-errors-dropped',
-    file: 'scripts/venue-infobox.mjs',
+    file: 'scripts/venue-infobox-read.mjs',
     claim: "a parser error on a tree that still reads is recorded against the article",
     find: "(level, msg) => errors.push(",
     replace: "(level, msg) => [].push(",
