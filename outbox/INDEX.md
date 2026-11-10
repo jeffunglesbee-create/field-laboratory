@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e599caf` | 2026-11-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-10 [skip ci] |
+| `e599caf` | 2026-11-10 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-10 [skip ci] |
+| `08a0443` | 2026-11-10 | [cc-session-2026-11-10-manadon.md](cc-session-2026-11-10-manadon.md) | docs: Task 3 result and the session record |
+| `9df2d21` | 2026-11-10 | [live-chip-rain-refusal-2026-11-10.txt](live-chip-rain-refusal-2026-11-10.txt) | docs: correct the expired-log count in the live-chip evidence |
+| `40ea2f1` | 2026-11-10 | [live-chip-rain-refusal-2026-11-10.txt](live-chip-rain-refusal-2026-11-10.txt) | docs: file the live-chip refused-payload CC-CMD with its evidence |
+| `aa0dfe5` | 2026-11-10 | [cc-session-2026-11-10-fable-issue-prefill.md](cc-session-2026-11-10-fable-issue-prefill.md) | docs: the Fable prefill's landing, with the gate, verify, guards, deploy and the first run it was read from |
+| `c26c1a9` | 2026-11-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `0279fe1` | 2026-11-10 | [fable-issue-prefill-latest.md](fable-issue-prefill-latest.md) | probe: is the Fable crash already reported, and the link that files it [skip ci] |
 | `172d5a7` | 2026-11-10 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 20eca39 [skip ci] |
 | `cdf2fa7` | 2026-11-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
