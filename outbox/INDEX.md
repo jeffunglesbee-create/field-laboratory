@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b266e5f` | 2026-11-10 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 42861596952) [skip ci] |
+| `b266e5f` | 2026-11-10 | [venue-source-results-latest.json](venue-source-results-latest.json) | data: venue sourcing (run 42861596952) [skip ci] |
+| `722e101` | 2026-11-10 | [venue-candidates-completeness-2026-11-10.sql](venue-candidates-completeness-2026-11-10.sql) | data: the candidates list gains the 17 grounds the archive has taken in since 2026-10-22 |
+| `722e101` | 2026-11-10 | [venue-candidates-extend-2026-11-10.mjs](venue-candidates-extend-2026-11-10.mjs) | data: the candidates list gains the 17 grounds the archive has taken in since 2026-10-22 |
+| `722e101` | 2026-11-10 | [venue-candidates-gained-2026-11-10.json](venue-candidates-gained-2026-11-10.json) | data: the candidates list gains the 17 grounds the archive has taken in since 2026-10-22 |
+| `722e101` | 2026-11-10 | [venue-task3-source-diff-2026-11-10.mjs](venue-task3-source-diff-2026-11-10.mjs) | data: the candidates list gains the 17 grounds the archive has taken in since 2026-10-22 |
+| `facbfc6` | 2026-11-10 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-10T15:13 [skip ci] |
 | `36c3d17` | 2026-11-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `0a1f94e` | 2026-11-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-10 [skip ci] |
 | `aa7e9a1` | 2026-11-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
