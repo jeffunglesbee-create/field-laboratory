@@ -1073,6 +1073,12 @@ jobs:
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:fable-probe
 
+      # The Fable issue prefill (scripts/fable-issue-prefill.mjs): a search that failed must not read as a search that found nothing, and the link must carry the
+      # whole report. Each clause has a must-fail twin; no network here. The search itself runs on demand in fable-issue-prefill.yml.
+      - name: The Fable issue prefill refuses what it must
+        if: "!cancelled() && steps.build.outcome == 'success'"
+        run: npm run check:fable-issue
+
       # docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md. The table's sourced
       # block is generated from outbox/venue-source-results-latest.json; this
       # holds the two together, with no network, both ways: every accepted
