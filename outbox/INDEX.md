@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `faa831d` | 2026-11-10 | [venue-task3-source-diff-2026-11-10.mjs](venue-task3-source-diff-2026-11-10.mjs) | feat: the table takes the 9 grounds the sourcing rule accepted of the 17 the archive gained; Manadon Sports Hub is in review |
+| `faa831d` | 2026-11-10 | [venue-task3-source-diff-2026-11-10.txt](venue-task3-source-diff-2026-11-10.txt) | feat: the table takes the 9 grounds the sourcing rule accepted of the 17 the archive gained; Manadon Sports Hub is in review |
+| `a535217` | 2026-11-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `b266e5f` | 2026-11-10 | [venue-source-cache.json](venue-source-cache.json) | data: venue sourcing (run 42861596952) [skip ci] |
 | `b266e5f` | 2026-11-10 | [venue-source-results-latest.json](venue-source-results-latest.json) | data: venue sourcing (run 42861596952) [skip ci] |
 | `722e101` | 2026-11-10 | [venue-candidates-completeness-2026-11-10.sql](venue-candidates-completeness-2026-11-10.sql) | data: the candidates list gains the 17 grounds the archive has taken in since 2026-10-22 |
