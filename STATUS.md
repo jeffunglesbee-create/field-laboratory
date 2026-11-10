@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `faa831d` at "Render check against the LIVE slate" — 1 of 98 steps did not run behind it — [run 42863538303](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42863538303)
+**green** on `faa831d` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `faa831d` — failing step unknown: the run's steps could not be read — [run 42864685304](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42864685304)
+`live-check` (post-deploy, against the deployed page): **running** on `ef1f33a`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `722e101` — behind newest deployable `faa831d` (deploy not landed) |
+| Cloudflare Workers | live | `ef1f33a` — newest deployable `faa831d` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
