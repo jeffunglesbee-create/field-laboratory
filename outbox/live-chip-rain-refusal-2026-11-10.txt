@@ -1,0 +1,156 @@
+live chip, refused payload: what was measured on 2026-11-10
+
+Rule 73 context for every claim: times are UTC and come from the quoted lines; the method is the command or run named beside each block; the conditions are the live
+2026-11-10 slate (33 distinct venue names, 16 of them grounds the table knows). Behaviour is stated only where a log or a response shows it; where a reading of the code is offered it says so. The cause of the inconsistent payloads
+is NOT established (section 6).
+
+Assembled by a script from saved run logs and run listings. The script is not committed: its inputs are job logs, and the API already answers HTTP 410 (expired) for 9 of the logs this
+file needed (section 5). Quoted lines are verbatim from the log named beside them; the counts can be re-derived with the commands at the end while the logs are served.
+
+1. THE FAILURE
+   verify run 42863538303 (head faa831d), attempt 1, job 129995709243, step 95 "Render check against the LIVE slate", 17:22:45Z to 17:23:08Z.
+   Command: gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/129995709243/logs   (quoted verbatim, timestamps kept)
+
+   2026-11-10T17:23:08.3011938Z open-meteo (start+duration): 480+285ms 480+287ms 481+288ms 481+287ms 769+76ms 769+76ms 769+78ms 769+74ms 848+75ms 848+76ms 848+75ms 848+73ms 924+73ms 925+76ms 925+76ms 925+75ms
+   2026-11-10T17:23:08.3012907Z attribution: page — 16 request(s) received a response (200)
+   2026-11-10T17:23:08.3024654Z FAIL  the chips all filled within the wait
+   2026-11-10T17:23:08.3025259Z       → page.waitForFunction: Timeout 20000ms exceeded.
+   2026-11-10T17:23:08.3025920Z FAIL  every card whose venue the table knows carries a live chip
+   2026-11-10T17:23:08.3027775Z       → 16 known venue(s) on this slate, 14 chip(s) filled. Attribution from the page's own window: page — 16 request(s) received a response (200). A late node probe saw: HTTP 200 (a later moment, not evidence about the page's window). The page reported: 2 venue(s) did not answer: The Kassam Stadium: Error at: `$`
+   2026-11-10T17:23:08.3029392Z The following `failure` occurred with the decoder: rain 0.1 exceeds precipitation 0 after 75ms, Broadfield Stadium: Error at: `$`
+   2026-11-10T17:23:08.3031052Z The following `failure` occurred with the decoder: rain 0.6 exceeds precipitation 0.3 after 74ms. Request timings (start+duration): 480+285ms 480+287ms 481+288ms 481+287ms 769+76ms 769+76ms 769+78ms 769+74ms 848+75ms 848+76ms 848+75ms 848+73ms 924+73ms 925+76ms 925+76ms 925+75ms. Page built from: faa831d
+   2026-11-10T17:23:08.3033315Z 22/24 checks passed
+
+   The page asked Open-Meteo 16 times (16 grounds), received HTTP 200 sixteen times, and its decoder refused two payloads. Each entry of the page's report is
+   "<venue>: Error at: `$`", then Thoth.Json's next line "The following `failure` occurred with the decoder: <why> after <ms>ms". The first entry is The Kassam Stadium and the
+   second Broadfield Stadium, so Kassam's refusal is "rain 0.1 exceeds precipitation 0" (75 ms) and Broadfield's is "rain 0.6 exceeds precipitation 0.3" (74 ms).
+
+2. THE SAME STEP, THE SAME COMMIT, ATTEMPT 2
+   Re-run of the failed job only (POST .../actions/runs/42863538303/rerun-failed-jobs, 17:33:02Z). Job 130004734299, the step at 17:37:54Z.
+
+   2026-11-10T17:37:54.6212418Z open-meteo (start+duration): 523+492ms 523+491ms 523+492ms 523+492ms 1017+125ms 1017+124ms 1017+125ms 1017+125ms 1144+125ms 1144+126ms 1144+125ms 1144+125ms 1271+125ms 1271+124ms 1271+125ms 1271+125ms
+   2026-11-10T17:37:54.6220426Z PASS  the venue table covers at least one venue on this slate
+   2026-11-10T17:37:54.6220946Z PASS  the chips all filled within the wait
+   2026-11-10T17:37:54.6221352Z PASS  every card whose venue the table knows carries a live chip
+   2026-11-10T17:37:54.6222498Z 24/24 checks passed
+
+   deploy run 42867015300 (success) and live-check run 42867186531 (success) followed; the deployed page's own live-slate render, at 17:41:05Z, made 16 requests and passed
+   "every card whose venue the table knows carries a live chip" (live-check job 130008554316, step 10).
+
+3. THE RUN BEFORE IT, WITHOUT THE 9 ROWS (15 of today's 16 known grounds)
+   verify run 42861579266 (head 722e101), job 129988815501, live-slate render at 17:12:00Z, quoted from its log:
+
+   2026-11-10T17:12:00.3450978Z open-meteo (start+duration): 703+73ms 703+70ms 704+72ms 704+71ms 779+20ms 780+25ms 780+24ms 780+32ms 813+35ms 813+35ms 813+35ms 814+34ms 852+22ms 853+27ms 853+27ms
+   2026-11-10T17:12:00.3461407Z PASS  the chips all filled within the wait
+   2026-11-10T17:12:00.3461919Z PASS  every card whose venue the table knows carries a live chip
+
+   That is 15 requests, all filled. Broadfield Stadium was a table row there and is not one of the 9 rows faa831d added: `git diff b266e5f faa831d -- src/Venues.fs` shows it as an
+   unchanged context line and the added lines are the nine named in the commit message; `git show --stat --format= faa831d` lists four files and none is src/Weather.fs.
+   So the refusals at 17:23Z do not come from faa831d's change to the table or from a change to the decoder.
+
+4. THE SAME 16 REQUESTS FROM A RUNNER, 5 MINUTES AFTER THE FAILURE
+   probe-url run 42865237075 (run created 17:28:02Z, job 130001705688 started 17:28:06Z). Input: forecastUrl(Where) from build/Weather.js for each of the 16 table rows on the slate, plus "&format=csv"
+   (the same parameters the page sends; CSV only so the reply fits the workflow's 400-byte print). Names and coordinates are from build/Venues.js.
+
+   ground                        lat      lon       HTTP  time             precip rain   rain <= precip + 0.001
+   Blundell Park                 53.5702  -0.0465   200   2026-11-10T17:15 0.00   0.00   yes
+   Broadfield Stadium            51.0996  -0.1948   200   2026-11-10T17:15 0.30   0.30   yes
+   Doyt L. Perry Stadium         41.3781  -83.6225  200   2026-11-10T12:15 0.00   0.00   yes
+   Edgeley Park                  53.3997  -2.1664   200   2026-11-10T17:15 0.00   0.00   yes
+   Home Park                     50.3881  -4.1509   200   2026-11-10T17:15 0.00   0.00   yes
+   InfoCision Stadium            41.0724  -81.5083  200   2026-11-10T12:15 0.00   0.00   yes
+   JobServe Community Stadium    51.9234  0.8977    200   2026-11-10T17:15 0.00   0.00   yes
+   John Smith's Stadium          53.6543  -1.7683   200   2026-11-10T17:15 0.00   0.00   yes
+   King Power Stadium            52.6204  -1.1423   200   2026-11-10T17:15 0.00   0.00   yes
+   Lamex Stadium                 51.8897  -0.1937   200   2026-11-10T17:15 0.00   0.00   yes
+   One Call Stadium              53.1381  -1.2007   200   2026-11-10T17:15 0.00   0.00   yes
+   Pirelli Stadium               52.8219  -1.6269   200   2026-11-10T17:15 0.00   0.00   yes
+   Sixfields Stadium             52.2352  -0.9335   200   2026-11-10T17:15 0.00   0.00   yes
+   The Hive Stadium              51.6026  -0.2917   200   2026-11-10T17:15 0.00   0.00   yes
+   The Kassam Stadium            51.7164  -1.2066   200   2026-11-10T17:15 0.00   0.00   yes
+   Valley Parade                 53.8043  -1.7592   200   2026-11-10T17:15 0.00   0.00   yes
+
+   checked 16 of 16 URLs: each equals forecastUrl(Where) from build/Weather.js once "&format=csv" is removed (the page requests `forecastUrl venue.Where`, the fetchUnsafe call in WeatherView.fs).
+   checked 16 of 16 requests; HTTP 200; violations of rain <= precipitation + 0.001: 0 of 16.
+   Broadfield Stadium reads precipitation 0.30, rain 0.30 here, where the 17:23Z pair was precipitation 0.3, rain 0.6. The Kassam Stadium reads precipitation 0.00, rain 0.00, where the 17:23Z pair was precipitation 0, rain 0.1.
+
+5. HOW OFTEN: EVERY FAILING ATTEMPT OF EVERY RUN OF THE TWO WORKFLOWS THAT RENDER THE LIVE SLATE, SINCE THE RULE WAS WRITTEN (2026-08-11)
+   The rule is `elif rain > total + 0.001<mm> then None` in the `precipitation` function of src/Weather.fs, with the message `rain %g exceeds precipitation %g` in `currentDecoder`; both
+   arrived with the file in 8fc40c3 (2026-08-11; `git show 8fc40c3:src/Weather.fs | grep -n "rain > total + 0.001\|exceeds precipitation"` finds both).
+   Method, per workflow: list every run (gh api .../actions/workflows/<file>/runs, paged; the API returns at most 1000 per query, so the older part is fetched by a created= date range and
+   the result is compared with total_count); for each run whose last attempt failed, and for the first attempt of each run that was re-run, read the job's failing steps by name; where the
+   live-render step failed, download the job log, require it to be non-empty and to carry the render-check banner (else the row is UNREAD; an UNREAD row enters this file only if the API answers HTTP 410 for that job, and is then counted as not readable), and grep it for
+   "rain <x> exceeds precipitation <y>" with any number format. The scan's ids are compared with the API's failing set as SETS, not counts: a first paged pass looked complete by count and
+   had skipped one run, because the list shifted while it was being paged (the re-run above changed which runs were failures).
+
+   verify (job "verify", step 95):
+     runs listed 425; the API's total_count for the same created= range (2026-08-11T00:00:00Z..2026-11-10T17:18:10Z) is 425, equal. Oldest 2026-08-11T00:21:29Z. cancelled 26, failure 158, success 241.
+     failing attempts 161: 158 runs whose last attempt failed (set equal to the API's failing set: 0 missing, 0 extra) and 3 first attempt(s) of the 3 run(s) that were re-run.
+       re-run: run 42863538303 on faa831d (2026-11-10T17:18:10Z), attempt 2, now success; attempt 1 failed at: Render check against the LIVE slate
+       re-run: run 39003023704 on d9f2cce (2026-10-17T04:33:40Z), attempt 2, now success; attempt 1 failed at: Render check against the LIVE slate | Weather against the LIVE Open-Meteo API
+       re-run: run 38155172428 on ec479e2 (2026-10-11T16:22:15Z), attempt 2, now success; attempt 1 failed at: The Verify panel shows the counterexample that gives each row teeth | Weather against the LIVE Open-Meteo API
+     failing attempts at "Render check against the LIVE slate": 44 (42 last attempts, 2 first attempts). Logs read: 44 of 44, 115855 to 498157 bytes, each with the render-check banner.
+     carrying the decoder's refusal: 1 of the 44 read (run 42863538303 attempt 1, run created 2026-11-10T17:18:10Z).
+     not searched: 5 failing attempt(s) with no failing step recorded; 112 that failed only at other steps (their logs were not searched; whether the live-render step ran in them was not checked run by run).
+
+   live-check (job "live", the render step):
+     runs listed 1187; the API's total_count for the same created= ranges (2026-08-11T00:00:00Z..2026-09-30T23:59:59Z: 857; 2026-10-01T00:00:00Z..2026-11-10T17:39:29Z: 330) is 1187, equal. Oldest 2026-08-11T00:26:10Z. cancelled 18, failure 330, skipped 183, success 656.
+     failing attempts 332: 330 runs whose last attempt failed (set equal to the API's failing set: 0 missing, 0 extra) and 2 first attempt(s) of the 2 run(s) that were re-run.
+       re-run: run 33356339613 on 44e82a9 (2026-08-31T04:13:41Z), attempt 2, now failure; attempt 1 failed at: Build (the venue table this check derives its expectation from)
+       re-run: run 42690276129 on 3429152 (2026-11-09T20:09:48Z), attempt 2, now success; attempt 1 failed at: Build (the venue table this check derives its expectation from)
+     failing attempts at "Render the deployed page and assert on it": 109 (109 last attempts, 0 first attempts). Logs read: 100 of 109, 45126 to 103670 bytes, each with the render-check banner. Not readable: 9, the API answers HTTP 410 Gone for each of them (confirmed per job on 2026-11-10), all from runs created 2026-08-12T02:49:00Z to 2026-08-12T15:18:14Z; the oldest readable log is from a run created 2026-08-13T00:01:26Z.
+     carrying the decoder's refusal: 0 of the 100 read; not known for the 9 that expired.
+     not searched: 1 failing attempt(s) with no failing step recorded; 222 that failed only at other steps (their logs were not searched; whether the live-render step ran in them was not checked run by run).
+
+   verify, the other live step, "Weather against the LIVE Open-Meteo API" (scripts/weather-live-check.mjs decodes one real payload with the same decoder):
+     failing attempts at it: 10 (8 of them failed nowhere else among the live steps, so they are part of the 112 counted above as "failed only at other steps"). Logs read: 8 of 10; not readable: 2, HTTP 410 body (151 bytes) in the saved response for each (runs created 2026-08-11T22:40:22Z, 2026-08-12T16:12:16Z).
+     carrying the decoder's refusal ("rain <x> exceeds precipitation <y>"): 0 of the 8 read. The same phrase without numbers appears once in 7 of them and each time it is the F# suite's own PASS line "a reading where rain exceeds precipitation is refused", not a decode failure.
+     live-check has no step of this name (0 of its failing attempts).
+
+   verify, failing step per failing attempt (an attempt that failed at several steps is its own row):
+     38  Render check against the LIVE slate
+     31  Source and outbox changed together, every commit
+     14  Doc citations are anchored, not just numbered
+     10  The chrome, measured on the rendered page
+     10  No value is written without being read back
+      7  Weather against the LIVE Open-Meteo API
+      7  No tracked file carries a known-exposed credential
+      6  Every gate row has teeth
+      6  Importing a module never runs it
+      5  (no failing step recorded)
+      3  The score's weight axis interpolates
+      3  Breaking each invariant makes a check fail
+      2  No check script kills itself mid-write
+      2  Source and outbox changed together, every commit | Render check against the LIVE slate
+      2  Render check against the LIVE slate | Weather against the LIVE Open-Meteo API
+      2  No script a workflow depends on became unreachable
+      2  The zone choice changes the slate (window simulation)
+      2  Confidence gate (>= 95)
+      2  Proof-doc claims are compiler-verified
+      1  The chrome, measured on the rendered page | Render check against the LIVE slate
+      1  Source and outbox changed together, every commit | Importing a module never runs it | Render check against the LIVE slate
+      1  The Verify panel shows the counterexample that gives each row teeth | Weather against the LIVE Open-Meteo API
+      1  Build (F# -> JS, then assemble public/)
+      1  The quality bar is on the scale the scorer can reach
+      1  Rows the desk cannot name
+      1  Pick'em — chips, grading, and the row that wraps in production
+
+6. WHAT IS NOT KNOWN
+   - What the two refused bodies contained. They were not captured: the page reports the decoder's message ("rain 0.1 exceeds precipitation 0"), not the body, and the reading that the body
+     was inconsistent is the decoder's, not a quoted payload.
+   - Why the pair was inconsistent. Not established. Two page requests at about 17:23Z were; 16 runner requests at 17:28Z, 16 page requests at 17:37Z and 16 at 17:41Z (live-check),
+     and 15 at 17:12Z before them, were not.
+   - Whether it is per request, per location or per minute.
+   - What the rate is. Counted above: attempts, by workflow. Not counted: how many weather requests all runs made, passing runs included, so neither figure above is a per-request rate or a
+     per-run rate. How many grounds a slate asks about depends on the slate (11-10 asked about 16 of its 33 venue names).
+   - Whether the runner's CSV replies carry the same values as the JSON replies the page receives. The probe workflow prints 400 bytes per URL, so the runner asked for "&format=csv"; the URLs differ from the page's by that flag alone (checked in section 4). That the CSV reply carries the same values as the JSON reply was not tested.
+   - Whether the page's own request is what permits it: it names no `models` (forecastUrl), so which model supplies each variable is Open-Meteo's choice. A reading, not tested.
+   - Whether Open-Meteo documents rain <= precipitation, and whether a measurement behind the rule exists elsewhere. 8fc40c3's message gives the rule as a modelling choice ("Precipitation as one
+     fact with rain contained in total") and cites no measurement of how rain and precipitation relate in real payloads. It does describe scripts/weather-live-check.mjs, which decodes a real payload on a runner and carries the invariant (its comment: "rain never exceeds total precipitation"). field-playground was not searched.
+
+Commands, for anyone repeating this:
+   gh api repos/jeffunglesbee-create/field-laboratory/actions/runs/42863538303/attempts/1/jobs     # attempt 1 (job 129995709243)
+   gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/129995709243/logs                # attempt 1, the failure
+   gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/130004734299/logs                # attempt 2, the pass
+   gh api -X POST repos/jeffunglesbee-create/field-laboratory/actions/runs/42863538303/rerun-failed-jobs   # 17:33:02Z
+   gh api -X POST repos/jeffunglesbee-create/field-laboratory/actions/workflows/probe-url.yml/dispatches -f ref=main -f "inputs[urls]=<the 16 quoted URLs>"   # run 42865237075, created 17:28:02Z
