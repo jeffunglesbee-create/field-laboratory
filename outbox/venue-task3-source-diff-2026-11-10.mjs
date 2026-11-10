@@ -77,7 +77,10 @@ export const verdict = j => (j.problems.length
   : { code: 0, text: `\nAS PREDICTED: the ${j.c.compared} old rows are untouched, the ${GAINED} new rows are exactly the list's, ${j.accepted.length} accepted inside their countries and ${j.review.length} in review` })
 
 const pt = x => `${x.lat}, ${x.lon}`
-const sourcesOf = x => Object.values(x.sources ?? {}).map(s => `      ${String(s.source).padEnd(9)} ${pt(s).padEnd(22)} ${JSON.stringify(s.label ?? null)}${s.qid ? `  ${s.qid}` : ''}${s.kind ? `  ${s.kind}` : ''}`)
+/** One line per source the rule asked, in the results' own order: its point and label, or the answer it gave in words ("no entity", "no result"). */
+const sourcesOf = x => Object.entries(x.sources ?? {}).map(([name, s]) => (typeof s === 'string'
+  ? `      ${name.padEnd(9)} ${s}`
+  : `      ${String(s.source ?? name).padEnd(9)} ${pt(s).padEnd(22)} ${JSON.stringify(s.label ?? null)}${s.qid ? `  ${s.qid}` : ''}${s.kind ? `  ${s.kind}` : ''}`))
 
 export const report = (j, oldRev, newRev, oldR, newR) => {
   const { c } = j
@@ -107,7 +110,7 @@ const selfTest = () => {
   const NEW_ENGLAND = ['Aggborough Stadium', 'Brunton Park']
   const gained = [...NEW_ENGLAND, 'Stade de France', MANADON, ...Object.keys(WHERE).filter(n => ![...NEW_ENGLAND, 'Stade de France', MANADON].includes(n))]
   const england = (name, o = {}) => old(name, { lat: 52.4, lon: -2.2, ...o })
-  const reviewRow = (name, o = {}) => ({ name, sports: 'FA Cup', home: 'H', lat: 50.4, lon: -4.1, zone: 'Europe/London', qid: null, agreeing: ['nominatim'], roof: null, roofBasis: 'no lead', lead: null, why: 'no two independent families agree (nominatim)', unanswered: [], sources: { nominatim: { source: 'nominatim', lat: 50.4, lon: -4.1, label: 'Manadon Sports Hub, Plymouth', kind: 'leisure/sports_centre' }, photon: { source: 'photon', lat: 25.8, lon: -80.1, label: 'Flamingo Park' } }, via: 'x', ...o })
+  const reviewRow = (name, o = {}) => ({ name, sports: 'FA Cup', home: 'H', lat: 50.4, lon: -4.1, zone: 'Europe/London', qid: null, agreeing: ['nominatim'], roof: null, roofBasis: 'no lead', lead: null, why: 'no two independent families agree (nominatim)', unanswered: [], sources: { wikidata: 'no entity', nominatim: { source: 'nominatim', lat: 50.4, lon: -4.1, label: 'Manadon Sports Hub, Plymouth', kind: 'leisure/sports_centre' }, photon: { source: 'photon', lat: 25.8, lon: -80.1, label: 'Flamingo Park' } }, via: 'x', ...o })
   const oldR = { at: 'T0', run: 1, from: LIST, of: 3, accepted: [old('Filler A'), old('Filler B', { roof: 'dome', roofBasis: 'wikipedia lead' })], review: [reviewRow('Filler C', { why: 'old reason' })] }
   const stade = old('Stade de France', { lat: 48.9245, lon: 2.3601, zone: 'Europe/Paris', roof: 'open' })
   const newRows = () => ({ accepted: gained.filter(n => n !== MANADON && n !== 'Stade de France').map(n => england(n)).concat([{ ...stade }]), review: [reviewRow(MANADON)] })
@@ -148,7 +151,7 @@ const selfTest = () => {
     verdict(good).code === 0 && /^\nAS PREDICTED: the 3 old rows are untouched, the 17 new rows are exactly the list's, 16 accepted inside their countries and 1 in review/.test(verdict(good).text) &&
     (v => v.code === 1 && /^\nNOT AS PREDICTED:\n {2}/.test(v.text))(verdict(judge(oldR, newOf(n => { n.accepted.find(x => x.name === 'Filler A').lat = 9 }), list, gained))))
   const text = report(good, 'OLD', 'NEW', oldR, newOf())
-  check('the report carries both denominators, the 17 rows, and Manadon\'s row with every source\'s point', /COVERAGE: compared 3 of 3 old rows and 20 new rows/.test(text) && /THE 17 NEW ROWS: 16 accepted, 1 in review \(checked 17 of 17\)/.test(text) && /MANADON SPORTS HUB: review: no two independent families agree/.test(text) && /nominatim\s+50.4, -4.1\s+"Manadon Sports Hub, Plymouth"/.test(text) && /photon\s+25.8, -80.1/.test(text), text.split('\n').slice(0, 8).join(' | '))
+  check('the report carries both denominators, the 17 rows, and Manadon\'s row with every source\'s point', /COVERAGE: compared 3 of 3 old rows and 20 new rows/.test(text) && /THE 17 NEW ROWS: 16 accepted, 1 in review \(checked 17 of 17\)/.test(text) && /MANADON SPORTS HUB: review: no two independent families agree/.test(text) && /nominatim\s+50.4, -4.1\s+"Manadon Sports Hub, Plymouth"/.test(text) && /photon\s+25.8, -80.1/.test(text) && /wikidata\s+no entity/.test(text) && !/undefined/.test(text), text.split('\n').slice(0, 8).join(' | '))
   check('...and the 17 stated places are each one of the two the table defines', Object.keys(WHERE).length === GAINED && Object.values(WHERE).every(p => PLACES[p]), JSON.stringify(Object.keys(WHERE).length))
   finish(summarize())
 }

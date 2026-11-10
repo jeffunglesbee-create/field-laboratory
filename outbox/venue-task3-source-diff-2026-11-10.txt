@@ -1,0 +1,70 @@
+old results: git 722e101:outbox/venue-source-results-latest.json (run 42682560865, 2026-11-09T19:59:01.826Z); new results: git b266e5f:outbox/venue-source-results-latest.json (run 42861596952, 2026-11-10T17:12:32.969Z)
+COVERAGE: the run read 459 of the list's entries from data/venue-source-candidates.json; accepted 384 + review 75
+COVERAGE: compared 442 of 442 old rows and 459 new rows, by name; only in old 0, only in new 17
+MOVED (lat, lon, zone, qid, agreeing, via): 0 of 442
+CHANGED (status, roof or review reason): 0 of 442; same status and roof but a different basis: 0
+THE 17 NEW ROWS: 9 accepted, 8 in review (checked 17 of 17)
+  Aggborough Stadium             accepted  52.3805, -2.2427       Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  Brunton Park                   accepted  54.8956, -2.9136       Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  Hornchurch Stadium             accepted  51.5566, 0.2383        Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  J. Davidson Stadium            accepted  53.3834, -2.3352       Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  Meadow Park                    accepted  51.662, -0.2724        Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  Nethermoor Park                accepted  53.8772, -1.7194       Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  Silverlake Stadium             accepted  50.9524, -1.3719       Europe/London  roof open        by nominatim+photon+wikidata  (inferred: the lead names no roof)
+  The Kassam Stadium             accepted  51.7164, -1.2066       Europe/London  roof open        by nominatim+photon+wp-article  (inferred: the lead names no roof)
+  The Raymond McEnhill Stadium   accepted  51.1043, -1.7858       Europe/London  roof open        by photon+wp-article  (inferred: the lead names no roof)
+  Crabble Athletic Ground        review    no two independent families agree (wikidata, photon, wp-article)
+      wikidata  51.137814, 1.284883    "Crabble Athletic Ground"  Q5180263
+      nominatim no result
+      photon    51.4668519, -0.3033217 "Richmond Athletic Ground"  leisure/sports_centre
+  EnviroVent Stadium             review    no two independent families agree (photon)
+      wikidata  no entity
+      nominatim no result
+      photon    51.648648, -0.4018332  "Enviroment Building"  building/hospital
+  Flamingo Park                  review    no two independent families agree (nominatim, photon)
+      wikidata  no venue entity with coordinates
+      nominatim 25.7846592, -80.1374631 "Flamingo Park, 999, Miami Beach, Miami-Dade County, Florida, 33139, United States"  leisure/park
+      photon    50.4070718, -104.6120729 "Flamingo Park"  leisure/park
+  Manadon Sports Hub             review    no two independent families agree (photon)
+      wikidata  no entity
+      nominatim no result
+      photon    1.304491, 103.8743437  "National Stadium"  leisure/stadium
+  RAW Charging Stadium           review    no two independent families agree (photon)
+      wikidata  no entity
+      nominatim no result
+      photon    44.7832203, 20.4646751 "Стадион „Рајко Митић”"  leisure/stadium
+  Stade de France                review    ambiguous name: Stade de France (Q13205); Stade de Franceville (Q1968221); Q120181268 (Q120181268)
+      wikidata  48.924444444, 2.36     "Stade de France"  Q13205
+      nominatim 48.9244726, 2.3601325  "Stade de France, Avenue du Stade de France, Franc-Moisin - Bel-Air - Stade de France, Saint-Denis, Seine-Saint-Denis, Île-de-France, France métropolitaine, 93200, France"  leisure/stadium
+      photon    48.9244726, 2.3601325  "Stade de France"  leisure/stadium
+  The Stan Robinson Stadium      review    no two independent families agree (nominatim, photon)
+      wikidata  no entity
+      nominatim 52.81867, -2.1168487   "The Stan Robinson Stadium, Astonfields Road, Burleyfields, Hopton, Stafford, Staffordshire, England, ST16 3YU, United Kingdom"  leisure/stadium
+      photon    52.81867, -2.1168487   "The Stan Robinson Stadium"  leisure/stadium
+  The Wyatt Homes Stadium        review    no two independent families agree (photon)
+      wikidata  no entity
+      nominatim no result
+      photon    39.3218477, -76.6024926 "The Stadium School"  building/school
+
+MANADON SPORTS HUB: review: no two independent families agree (photon)
+{
+ "status": "review",
+ "name": "Manadon Sports Hub",
+ "sports": "FA Cup",
+ "home": "Plymouth",
+ "why": "no two independent families agree (photon)",
+ "unanswered": [],
+ "sources": {
+  "wikidata": "no entity",
+  "nominatim": "no result",
+  "photon": {
+   "source": "photon",
+   "lat": 1.304491,
+   "lon": 103.8743437,
+   "label": "National Stadium",
+   "kind": "leisure/stadium"
+  }
+ }
+}
+
+AS PREDICTED: the 442 old rows are untouched, the 17 new rows are exactly the list's, 9 accepted inside their countries and 8 in review

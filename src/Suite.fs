@@ -433,12 +433,13 @@ let private weather () =
       // grounds the table did not carry, U.S. Bank Stadium and Manadon Sports Hub
       // (FA Cup, "Plymouth v Berkhamsted" on the card). No venue on it was a table row, so
       // "the venue table covers at least one venue on this slate" failed. U.S. Bank
-      // Stadium is a row now. Manadon Sports Hub is not a sourcing candidate: the
-      // archive holds no game there until this one is played, and the geocoders are
-      // not reachable from this sandbox; docs/CC-CMD-2026-11-09-venue-review-remainder.md
-      // carries it. Every ground must be a row, a recorded arena or the one named
-      // as not yet carried, and at least one must be a row. The must-fail is the
-      // failure itself: a slate whose only grounds are not rows.
+      // Stadium is a row now. Manadon Sports Hub is a sourcing candidate (the archive
+      // took in the fixture on 2026-11-09, before it was played); the 2026-11-10 run
+      // left it in review, no two sources agreeing, and it stays named here until it
+      // is a row (docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3). Every
+      // ground must be a row, a recorded arena or the one named as not yet carried,
+      // and at least one must be a row. The must-fail is the failure itself: a slate
+      // whose only grounds are not rows.
       Verify.check "the grounds on the 2026-11-09 slate include a table row"
           (fun slate ->
               let notYetCarried = [ "Manadon Sports Hub" ]
