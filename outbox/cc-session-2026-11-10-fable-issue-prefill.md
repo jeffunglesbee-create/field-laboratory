@@ -30,3 +30,20 @@ Session: https://claude.ai/code/session_017RuhXKQdbuZ7W9Q7sR1Vrm
 - The search itself: it runs on a runner, and this session did not read the Fable repository (it is outside the repositories this session is scoped to). The first dispatch is the test; its output is `outbox/fable-issue-prefill-latest.md`.
 - Where GitHub starts cutting a long new-issue link. The report is about 4 KB, so the link is about 5 KB against a 7500-character budget; the limit itself was not measured.
 - That the quoted-phrase queries find the crash's wording if it was reported: the three phrasings are the ones in the report (`code 193`, `internal error` with `Object reference not set to an instance of an object`, `internal error` with `Thoth.Json`); a report worded otherwise would be missed, which is why the verdict states its denominator and the note says to search by hand when it is INCOMPLETE.
+
+## Landing and the first run
+
+Landed on `main` as `c7100db`, a merge of `main` into the branch: the scored gate ran on the branch at `20eca39`, and `main` had moved by another session's venue work (`src/Venues.fs`, `src/Suite.fs`, `data/venue-source-candidates.json`), a file set disjoint from this change (checked with `comm` over both diffs), so `verify` on the landing commit is the check of the merged tree. Read from the runs on that commit, 2026-11-10:
+
+| run | id | result |
+|---|---|---|
+| the scored gate, on the branch tree `20eca39` | `verify-full` 42863006083 | 530/530, ledger `20eca396f753-*`, gate step 2385 s, the proof row 14 s, run 41 min |
+| `verify` | 42871063764 | success (18:02:28Z to 18:08:16Z) |
+| `guards` | 42871063691 | success |
+| `deploy` | 42872099848 | success (after `verify`, on `0279fe1`, which carries the prefill's own commit) |
+| `fable-issue-prefill`, first dispatch on `main` | 42871091618 | success in 19 s; committed `outbox/fable-issue-prefill-latest.md` as `0279fe1` |
+
+The first run's verdict: **POSSIBLE DUPLICATE, 6 items (3 queries)**: issues 193, 1829, 1878, 2007, 3925 and pull request 1755 of fable-compiler/Fable, all closed. By title none is this crash (a static-members inlining bug, FCS namespaces, package-incompatibility messages, a CoreLib collision, an invalid string length, a Fulma build failure); the titles are all that was read, because this session does not read that repository. The link in the file is 3646 characters and its decoded body is identical to `outbox/fable-crash-upstream-issue.md` (checked).
+
+Filing stays the owner's click.
+
