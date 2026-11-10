@@ -1,10 +1,10 @@
 {
- "at": "2026-11-09T19:59:01.826Z",
- "run": "42682560865",
+ "at": "2026-11-10T17:12:32.969Z",
+ "run": "42861596952",
  "eps": 0.02,
  "ambiguousDeg": 0.5,
  "from": "data/venue-source-candidates.json",
- "of": 442,
+ "of": 459,
  "accepted": [
   {
    "name": "AESSEAL New York Stadium",
@@ -124,6 +124,23 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Adams Park is a football stadium in High Wycombe, Buckinghamshire, and the home of Wycombe Wanderers F.C..",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "Aggborough Stadium",
+   "sports": "FA Cup",
+   "home": "Kid'minster",
+   "lat": 52.3805,
+   "lon": -2.2427,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q4692188",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Aggborough Stadium is a football stadium in Kidderminster, England.",
    "zone": "Europe/London"
   },
   {
@@ -762,6 +779,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Brooks Stadium is a 21,000-seat multi-purpose stadium in Conway, South Carolina.",
    "zone": "America/New_York"
+  },
+  {
+   "name": "Brunton Park",
+   "sports": "FA Cup",
+   "home": "Carlisle",
+   "lat": 54.8956,
+   "lon": -2.9136,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q994219",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Brunton Park is a football stadium and the home of Carlisle United.",
+   "zone": "Europe/London"
   },
   {
    "name": "Bryant-Denny Stadium",
@@ -2422,6 +2456,23 @@
    "zone": "Europe/London"
   },
   {
+   "name": "Hornchurch Stadium",
+   "sports": "FA Cup",
+   "home": "Hornchurh",
+   "lat": 51.5566,
+   "lon": 0.2383,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q5904196",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Hornchurch Stadium is an athletics and football stadium located on Bridge Avenue in Upminster in the London Borough of Havering, East London, England.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "Hornet Stadium",
    "sports": "CFB",
    "home": "Sacramento St",
@@ -2591,6 +2642,23 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Inver Park is a football stadium in Larne, County Antrim, Northern Ireland.",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "J. Davidson Stadium",
+   "sports": "FA Cup",
+   "home": "Altrincham",
+   "lat": 53.3834,
+   "lon": -2.3352,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q2440403",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Moss Lane is a multi-purpose stadium in Altrincham, Greater Manchester, England.",
    "zone": "Europe/London"
   },
   {
@@ -3444,6 +3512,24 @@
    "zone": "Europe/London"
   },
   {
+   "name": "Meadow Park",
+   "sports": "FA Cup",
+   "home": "Boreham Wood",
+   "lat": 51.662,
+   "lon": -0.2724,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q3303777",
+   "via": "home team (tier 1, Q3303777)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Meadow Park, currently known as the Mangata Developments Stadium Meadow Park for sponsorship reasons, is a football ground in Borehamwood, Hertfordshire, England which serves as the home ground of Bor",
+   "zone": "Europe/London"
+  },
+  {
    "name": "Memorial Stadium (Bloomington, IN)",
    "sports": "CFB",
    "home": "Indiana",
@@ -3719,6 +3805,23 @@
    "roofBasis": "inferred: the lead names no roof",
    "lead": "Navy–Marine Corps Memorial Stadium is an open-air stadium located off the campus of the United States Naval Academy in Annapolis, Maryland.",
    "zone": "America/New_York"
+  },
+  {
+   "name": "Nethermoor Park",
+   "sports": "FA Cup",
+   "home": "Guiseley",
+   "lat": 53.8772,
+   "lon": -1.7194,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q21061466",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Nethermoor Park is a football stadium in Guiseley, West Yorkshire and the home ground of Guiseley A.F.C.",
+   "zone": "Europe/London"
   },
   {
    "name": "New Balance Arena",
@@ -4842,6 +4945,23 @@
    "zone": "Europe/Berlin"
   },
   {
+   "name": "Silverlake Stadium",
+   "sports": "FA Cup",
+   "home": "Eastleigh",
+   "lat": 50.9524,
+   "lon": -1.3719,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wikidata"
+   ],
+   "qid": "Q17020186",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "Ten Acres, known as the Silverlake Stadium for sponsorship purposes, is a football ground in Eastleigh, Hampshire, England.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "Simmons Bank Liberty Stadium",
    "sports": "CFB",
    "home": "Memphis",
@@ -5711,6 +5831,24 @@
    "zone": "Europe/London"
   },
   {
+   "name": "The Kassam Stadium",
+   "sports": "FA Cup,EFL Trophy",
+   "home": "Oxford Utd",
+   "lat": 51.7164,
+   "lon": -1.2066,
+   "agreeing": [
+    "nominatim",
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q1672134",
+   "via": "wider net (nominatim + photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Kassam Stadium is a football stadium in Oxford, England.",
+   "zone": "Europe/London"
+  },
+  {
    "name": "The MKM Stadium",
    "sports": "EPL",
    "home": "Hull",
@@ -5726,6 +5864,23 @@
    "roof": "open",
    "roofBasis": "inferred: the lead names no roof",
    "lead": "The MKM Stadium is a multi-purpose stadium in Kingston upon Hull, England.",
+   "zone": "Europe/London"
+  },
+  {
+   "name": "The Raymond McEnhill Stadium",
+   "sports": "FA Cup",
+   "home": "Salisbury",
+   "lat": 51.1043,
+   "lon": -1.7858,
+   "agreeing": [
+    "photon",
+    "wp-article"
+   ],
+   "qid": "Q7299006",
+   "via": "wider net (photon + wp-article)",
+   "roof": "open",
+   "roofBasis": "inferred: the lead names no roof",
+   "lead": "The Raymond McEnhill Stadium is a purpose-built 5,000 capacity football stadium in Salisbury, Wiltshire, England.",
    "zone": "Europe/London"
   },
   {
@@ -6734,6 +6889,31 @@
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
   {
+   "name": "Crabble Athletic Ground",
+   "sports": "FA Cup",
+   "home": "Dover",
+   "why": "no two independent families agree (wikidata, photon, wp-article)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": {
+     "source": "wikidata",
+     "lat": 51.137814,
+     "lon": 1.284883,
+     "label": "Crabble Athletic Ground",
+     "qid": "Q5180263",
+     "ambiguous": null
+    },
+    "nominatim": "no result",
+    "photon": {
+     "source": "photon",
+     "lat": 51.4668519,
+     "lon": -0.3033217,
+     "label": "Richmond Athletic Ground",
+     "kind": "leisure/sports_centre"
+    }
+   }
+  },
+  {
    "name": "Crown Oil Arena",
    "sports": "EFL Trophy",
    "home": "Rochdale",
@@ -6805,6 +6985,24 @@
    "lead": "Stadion Feijenoord, more commonly known by its nickname De Kuip, is a stadium in Rotterdam, Netherlands.",
    "zone": "Europe/Amsterdam",
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
+  },
+  {
+   "name": "EnviroVent Stadium",
+   "sports": "FA Cup",
+   "home": "Harrogate",
+   "why": "no two independent families agree (photon)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": "no entity",
+    "nominatim": "no result",
+    "photon": {
+     "source": "photon",
+     "lat": 51.648648,
+     "lon": -0.4018332,
+     "label": "Enviroment Building",
+     "kind": "building/hospital"
+    }
+   }
   },
   {
    "name": "Estadi de la FAF d'Encamp",
@@ -6919,6 +7117,30 @@
      "lat": 30.3078742,
      "lon": -97.9622018,
      "label": "Field of Dreams",
+     "kind": "leisure/park"
+    }
+   }
+  },
+  {
+   "name": "Flamingo Park",
+   "sports": "FA Cup",
+   "home": "Cray",
+   "why": "no two independent families agree (nominatim, photon)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": "no venue entity with coordinates",
+    "nominatim": {
+     "source": "nominatim",
+     "lat": 25.7846592,
+     "lon": -80.1374631,
+     "label": "Flamingo Park, 999, Miami Beach, Miami-Dade County, Florida, 33139, United States",
+     "kind": "leisure/park"
+    },
+    "photon": {
+     "source": "photon",
+     "lat": 50.4070718,
+     "lon": -104.6120729,
+     "label": "Flamingo Park",
      "kind": "leisure/park"
     }
    }
@@ -7094,6 +7316,24 @@
      "lat": 30.5319402,
      "lon": -89.6851939,
      "label": "M. M. Roberts Stadium",
+     "kind": "leisure/stadium"
+    }
+   }
+  },
+  {
+   "name": "Manadon Sports Hub",
+   "sports": "FA Cup",
+   "home": "Plymouth",
+   "why": "no two independent families agree (photon)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": "no entity",
+    "nominatim": "no result",
+    "photon": {
+     "source": "photon",
+     "lat": 1.304491,
+     "lon": 103.8743437,
+     "label": "National Stadium",
      "kind": "leisure/stadium"
     }
    }
@@ -7452,6 +7692,24 @@
    "why": "roof: the lead names no roof, but the article mentions \"retractable roof\""
   },
   {
+   "name": "RAW Charging Stadium",
+   "sports": "FA Cup",
+   "home": "Oxford City",
+   "why": "no two independent families agree (photon)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": "no entity",
+    "nominatim": "no result",
+    "photon": {
+     "source": "photon",
+     "lat": 44.7832203,
+     "lon": 20.4646751,
+     "label": "Стадион „Рајко Митић”",
+     "kind": "leisure/stadium"
+    }
+   }
+  },
+  {
    "name": "RELOC8 EM Community Stadium",
    "sports": "EFL Cup,EFL Trophy",
    "home": "Bromley",
@@ -7688,6 +7946,41 @@
    }
   },
   {
+   "name": "Stade de France",
+   "sports": "NFL",
+   "home": "Saints",
+   "why": "ambiguous name: Stade de France (Q13205); Stade de Franceville (Q1968221); Q120181268 (Q120181268)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": {
+     "source": "wikidata",
+     "lat": 48.924444444,
+     "lon": 2.36,
+     "label": "Stade de France",
+     "qid": "Q13205",
+     "ambiguous": [
+      "Stade de France (Q13205)",
+      "Stade de Franceville (Q1968221)",
+      "Q120181268 (Q120181268)"
+     ]
+    },
+    "nominatim": {
+     "source": "nominatim",
+     "lat": 48.9244726,
+     "lon": 2.3601325,
+     "label": "Stade de France, Avenue du Stade de France, Franc-Moisin - Bel-Air - Stade de France, Saint-Denis, Seine-Saint-Denis, Île-de-France, France métropolitaine, 93200, France",
+     "kind": "leisure/stadium"
+    },
+    "photon": {
+     "source": "photon",
+     "lat": 48.9244726,
+     "lon": 2.3601325,
+     "label": "Stade de France",
+     "kind": "leisure/stadium"
+    }
+   }
+  },
+  {
    "name": "Stadio Artemio Franchi",
    "sports": "Serie A",
    "home": "Fiorentina",
@@ -7874,6 +8167,48 @@
      "lon": -1.1374871,
      "label": "Meadow Lane Stadium",
      "kind": "leisure/stadium"
+    }
+   }
+  },
+  {
+   "name": "The Stan Robinson Stadium",
+   "sports": "FA Cup",
+   "home": "Stafford",
+   "why": "no two independent families agree (nominatim, photon)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": "no entity",
+    "nominatim": {
+     "source": "nominatim",
+     "lat": 52.81867,
+     "lon": -2.1168487,
+     "label": "The Stan Robinson Stadium, Astonfields Road, Burleyfields, Hopton, Stafford, Staffordshire, England, ST16 3YU, United Kingdom",
+     "kind": "leisure/stadium"
+    },
+    "photon": {
+     "source": "photon",
+     "lat": 52.81867,
+     "lon": -2.1168487,
+     "label": "The Stan Robinson Stadium",
+     "kind": "leisure/stadium"
+    }
+   }
+  },
+  {
+   "name": "The Wyatt Homes Stadium",
+   "sports": "FA Cup",
+   "home": "Wimborne",
+   "why": "no two independent families agree (photon)",
+   "unanswered": [],
+   "sources": {
+    "wikidata": "no entity",
+    "nominatim": "no result",
+    "photon": {
+     "source": "photon",
+     "lat": 39.3218477,
+     "lon": -76.6024926,
+     "label": "The Stadium School",
+     "kind": "building/school"
     }
    }
   },
