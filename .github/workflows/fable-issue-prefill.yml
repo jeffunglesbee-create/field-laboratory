@@ -3,7 +3,8 @@
 #
 # Reads the PUBLIC search API of the Fable repository, writes outbox/fable-issue-prefill-latest.md (the verdict, any candidate duplicates, and GitHub's
 # own new-issue link with the title and body filled in) and commits it. It posts nothing: filing is the owner's click, because posting would need a token
-# for a repository this project does not own. The job's GITHUB_TOKEN is used only to raise the search rate limit.
+# for a repository this project does not own. In the search step the job's GITHUB_TOKEN only raises the search rate limit; the Commit step pushes to THIS
+# repository with the token the checkout stored.
 #
 # Trigger: a push of outbox/.trigger-fable-issue-prefill (runs from the pushing ref's own copy of this file) or a dispatch. No schedule: it answers one question.
 name: fable-issue-prefill
@@ -33,7 +34,11 @@ jobs:
       - name: Search, then write the link
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/fable-issue-prefill.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+        # `a | tee` takes tee's exit status under the default shell (bash -e, no pipefail), so a search that threw would leave this step GREEN and the previous
+        # verdict standing in the file: exactly what the script exists to prevent (found by review; forecast-run.yml records the same trap measured on a run).
+        run: |
+          node scripts/fable-issue-prefill.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          exit ${PIPESTATUS[0]}
       - name: Commit
         run: |
           git config user.email "noreply@anthropic.com"

@@ -1074,7 +1074,8 @@ jobs:
         run: npm run check:fable-probe
 
       # The Fable issue prefill (scripts/fable-issue-prefill.mjs): a search that failed must not read as a search that found nothing, and the link must carry the
-      # whole report. Each clause has a must-fail twin; no network here. The search itself runs on demand in fable-issue-prefill.yml.
+      # whole report. The behaviours it guards were each broken on purpose and caught (outbox/cc-session-2026-11-10-fable-issue-prefill.md); no network here.
+      # The search itself runs on demand in fable-issue-prefill.yml.
       - name: The Fable issue prefill refuses what it must
         if: "!cancelled() && steps.build.outcome == 'success'"
         run: npm run check:fable-issue
