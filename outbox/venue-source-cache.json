@@ -254537,5 +254537,4903 @@
    "ok": true,
    "value": []
   }
+ },
+ "wd-search|Aggborough Stadium": {
+  "at": 1794330445164,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Aggborough Stadium"
+    },
+    "search": [
+     {
+      "id": "Q4692188",
+      "title": "Q4692188",
+      "pageid": 4483418,
+      "concepturi": "http://www.wikidata.org/entity/Q4692188",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q4692188",
+      "display": {
+       "label": {
+        "value": "Aggborough",
+        "language": "en"
+       },
+       "description": {
+        "value": "English football stadium",
+        "language": "en"
+       }
+      },
+      "label": "Aggborough",
+      "description": "English football stadium",
+      "match": {
+       "type": "label",
+       "language": "sv",
+       "text": "Aggborough Stadium"
+      },
+      "aliases": [
+       "Aggborough Stadium"
+      ]
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q4692188": {
+  "at": 1794330447122,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q4692188"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Aggborough"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.242652777 52.380472222)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q4692188"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Aggborough"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.242652777 52.380472222)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Aggborough Stadium": {
+  "at": 1794330448450,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 277440586,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 314907430,
+     "lat": "52.3804787",
+     "lon": "-2.2427359",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.3054111172263137,
+     "addresstype": "leisure",
+     "name": "Aggborough Stadium",
+     "display_name": "Aggborough Stadium, Hoo Road, Aggborough, Kidderminster, Hoobrook, Wyre Forest, Worcestershire, England, DY10 1NB, United Kingdom",
+     "boundingbox": [
+      "52.3798314",
+      "52.3811177",
+      "-2.2436153",
+      "-2.2418490"
+     ]
+    },
+    {
+     "place_id": 276307595,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "node",
+     "osm_id": 11815967065,
+     "lat": "52.3807027",
+     "lon": "-2.2435262",
+     "category": "amenity",
+     "type": "bar",
+     "place_rank": 30,
+     "importance": 0.00005474097810325807,
+     "addresstype": "amenity",
+     "name": "Harriers Arms",
+     "display_name": "Harriers Arms, Aggborough Stadium, Hoo Road, Aggborough, Kidderminster, Hoobrook, Wyre Forest, Worcestershire, England, DY10 1NB, United Kingdom",
+     "boundingbox": [
+      "52.3806527",
+      "52.3807527",
+      "-2.2435762",
+      "-2.2434762"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Aggborough Stadium": {
+  "at": 1794330449820,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 314907430,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Aggborough Stadium",
+       "street": "Hoo Road",
+       "locality": "Aggborough",
+       "district": "Kidderminster",
+       "city": "Kidderminster",
+       "county": "Worcestershire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "DY10 1NB",
+       "countrycode": "GB",
+       "extent": [
+        -2.2436153,
+        52.3811177,
+        -2.241849,
+        52.3798314
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -2.2427359,
+        52.3804787
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 105807554,
+       "osm_key": "highway",
+       "osm_value": "unclassified",
+       "type": "street",
+       "name": "Stadium Close",
+       "locality": "Aggborough",
+       "district": "Kidderminster",
+       "city": "Wyre Forest",
+       "county": "Worcestershire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "DY10 1NB",
+       "countrycode": "GB",
+       "extent": [
+        -2.2436224,
+        52.3821733,
+        -2.2417473,
+        52.3812728
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -2.2424038,
+        52.3813069
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q4692188": {
+  "at": 1794330450618,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Aggborough_Stadium"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Aggborough_Stadium": {
+  "at": 1794330451767,
+  "result": {
+   "ok": true,
+   "value": "Aggborough Stadium is a football stadium in Kidderminster, England."
+  }
+ },
+ "wp-bodyroof|Aggborough_Stadium": {
+  "at": 1794330452873,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Aggborough_Stadium": {
+  "at": 1794330454238,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|Brunton Park": {
+  "at": 1794330454867,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Brunton Park"
+    },
+    "search": [
+     {
+      "id": "Q994219",
+      "title": "Q994219",
+      "pageid": 943777,
+      "concepturi": "http://www.wikidata.org/entity/Q994219",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q994219",
+      "display": {
+       "label": {
+        "value": "Brunton Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "football stadium",
+        "language": "en"
+       }
+      },
+      "label": "Brunton Park",
+      "description": "football stadium",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Brunton Park"
+      }
+     },
+     {
+      "id": "Q131527810",
+      "title": "Q131527810",
+      "pageid": 125438813,
+      "concepturi": "http://www.wikidata.org/entity/Q131527810",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q131527810",
+      "display": {
+       "label": {
+        "value": "Brunton Park Clinic",
+        "language": "en"
+       },
+       "description": {
+        "value": "doctors surgery in Newcastle Upon Tyne, Tyne & Wear, United Kingdom",
+        "language": "en"
+       }
+      },
+      "label": "Brunton Park Clinic",
+      "description": "doctors surgery in Newcastle Upon Tyne, Tyne & Wear, United Kingdom",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Brunton Park Clinic"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q994219,Q131527810": {
+  "at": 1794330455960,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q994219"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.91365 54.89556)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brunton Park"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q994219"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.91365 54.89556)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brunton Park"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q994219"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.91365 54.89556)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brunton Park"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q994219"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.91365 54.89556)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Brunton Park"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Brunton Park": {
+  "at": 1794330457602,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 274164388,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 47484057,
+     "lat": "54.8955532",
+     "lon": "-2.9136003",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.48189203920926627,
+     "addresstype": "leisure",
+     "name": "Brunton Park",
+     "display_name": "Brunton Park, Warwick Road, Kingfisher Park, Garlands, Botcherby, Carlisle, Cumberland, England, CA1 1LL, United Kingdom",
+     "boundingbox": [
+      "54.8947757",
+      "54.8961902",
+      "-2.9148269",
+      "-2.9124025"
+     ]
+    },
+    {
+     "place_id": 354389454,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 29906684,
+     "lat": "42.1250350",
+     "lon": "-72.5845425",
+     "category": "leisure",
+     "type": "park",
+     "place_rank": 24,
+     "importance": 0.08006597924773019,
+     "addresstype": "park",
+     "name": "Brunton Park",
+     "display_name": "Brunton Park, Liberty Heights, McKnight, Springfield, Hampden County, Massachusetts, United States",
+     "boundingbox": [
+      "42.1247806",
+      "42.1251374",
+      "-72.5847645",
+      "-72.5844442"
+     ]
+    },
+    {
+     "place_id": 274487915,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 554299700,
+     "lat": "55.4377671",
+     "lon": "-2.7630691",
+     "category": "leisure",
+     "type": "park",
+     "place_rank": 24,
+     "importance": 0.0800528458075837,
+     "addresstype": "park",
+     "name": "Brunton Park",
+     "display_name": "Brunton Park, Bucklands, Courthill, Hawick, Scottish Borders, Alba / Scotland, TD9 8EW, United Kingdom",
+     "boundingbox": [
+      "55.4367567",
+      "55.4388124",
+      "-2.7646867",
+      "-2.7609168"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Brunton Park": {
+  "at": 1794330459147,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 47484057,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Brunton Park",
+       "street": "Warwick Road",
+       "locality": "Kingfisher Park",
+       "district": "Botcherby",
+       "city": "Carlisle",
+       "county": "Cumberland",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "CA1 1LL",
+       "countrycode": "GB",
+       "extent": [
+        -2.9148269,
+        54.8961902,
+        -2.9124025,
+        54.8947757
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -2.9136003,
+        54.8955532
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 554299700,
+       "osm_key": "leisure",
+       "osm_value": "park",
+       "type": "other",
+       "name": "Brunton Park",
+       "locality": "Bucklands",
+       "district": "Courthill",
+       "city": "Hawick",
+       "county": "The Scottish Borders",
+       "state": "Alba / Scotland",
+       "country": "United Kingdom",
+       "postcode": "TD9 8EW",
+       "countrycode": "GB",
+       "extent": [
+        -2.7646867,
+        55.4388124,
+        -2.7609168,
+        55.4367567
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -2.7630691,
+        55.4377671
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 84955774,
+       "osm_key": "leisure",
+       "osm_value": "park",
+       "type": "other",
+       "name": "Brunton Park",
+       "district": "Hatfields Beach",
+       "city": "Hibiscus and Bays",
+       "state": "Auckland",
+       "country": "New Zealand / Aotearoa",
+       "countrycode": "NZ",
+       "extent": [
+        174.6891704,
+        -36.5796661,
+        174.6910328,
+        -36.5813073
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        174.6902001,
+        -36.5804842
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q994219": {
+  "at": 1794330459529,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Brunton_Park"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Brunton_Park": {
+  "at": 1794330460633,
+  "result": {
+   "ok": true,
+   "value": "Brunton Park is a football stadium and the home of Carlisle United."
+  }
+ },
+ "wp-bodyroof|Brunton_Park": {
+  "at": 1794330461747,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Brunton_Park": {
+  "at": 1794330463146,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|Crabble Athletic Ground": {
+  "at": 1794330463653,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Crabble Athletic Ground"
+    },
+    "search": [
+     {
+      "id": "Q5180263",
+      "title": "Q5180263",
+      "pageid": 4951090,
+      "concepturi": "http://www.wikidata.org/entity/Q5180263",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q5180263",
+      "display": {
+       "label": {
+        "value": "Crabble Athletic Ground",
+        "language": "en"
+       },
+       "description": {
+        "value": "football stadium in River, Kent, England",
+        "language": "en"
+       }
+      },
+      "label": "Crabble Athletic Ground",
+      "description": "football stadium in River, Kent, England",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Crabble Athletic Ground"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q5180263": {
+  "at": 1794330464676,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5180263"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Crabble Athletic Ground"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(1.284883 51.137814)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5180263"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Crabble Athletic Ground"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(1.284883 51.137814)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Crabble Athletic Ground": {
+  "at": 1794330465904,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "photon|Crabble Athletic Ground": {
+  "at": 1794330469194,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 1372425873,
+       "osm_key": "leisure",
+       "osm_value": "sports_centre",
+       "type": "house",
+       "name": "Richmond Athletic Ground",
+       "street": "Michels Row",
+       "district": "North Sheen",
+       "city": "London Borough of Richmond upon Thames",
+       "county": "Greater London",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "TW9 2SU",
+       "countrycode": "GB",
+       "extent": [
+        -0.3061232,
+        51.4687428,
+        -0.3006051,
+        51.46493
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -0.3033217,
+        51.4668519
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 1264687817,
+       "osm_key": "leisure",
+       "osm_value": "park",
+       "type": "other",
+       "name": "Athletic Ground",
+       "city": "Bhor Saidan",
+       "county": "Thanesar",
+       "state": "Haryāna",
+       "country": "India",
+       "countrycode": "IN",
+       "extent": [
+        76.7117534,
+        29.9595289,
+        76.7133524,
+        29.9589014
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        76.7126357,
+        29.9592281
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 34126396,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Talbot Athletic Ground",
+       "street": "Manor Street",
+       "district": "Velindre",
+       "city": "Port Talbot",
+       "county": "Neath Port Talbot",
+       "state": "Cymru / Wales",
+       "country": "United Kingdom",
+       "postcode": "SA13 1AB",
+       "countrycode": "GB",
+       "extent": [
+        -3.7779518,
+        51.5945782,
+        -3.77454,
+        51.5932017
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -3.7761968,
+        51.5938938
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|Crabble Athletic Ground": {
+  "at": 1794330469747,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 100
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Crabble Athletic Ground",
+       "pageid": 16926003,
+       "size": 22964,
+       "wordcount": 2471,
+       "snippet": "The <span class=\"searchmatch\">Crabble</span> <span class=\"searchmatch\">Athletic</span> <span class=\"searchmatch\">Ground</span>, also known as simply <span class=\"searchmatch\">Crabble</span>, or The <span class=\"searchmatch\">Crabble</span> is a football stadium located in the northern Dover suburb of River, Kent. It",
+       "timestamp": "2026-10-24T16:14:40Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-team|props|Crabble Athletic Ground": {
+  "at": 1794330480288,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "query": {
+     "pages": {
+      "16926003": {
+       "pageid": 16926003,
+       "ns": 0,
+       "title": "Crabble Athletic Ground",
+       "pageprops": {
+        "wikibase_item": "Q5180263"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "wp-team|article-venue|Q5180263": {
+  "at": 1794330482728,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Crabble Athletic Ground"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(1.284883 51.137814)"
+       }
+      },
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Crabble Athletic Ground"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(1.284883 51.137814)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nm-reverse|51.1378,1.2849": {
+  "at": 1794330483984,
+  "result": {
+   "ok": true,
+   "value": {
+    "place_id": 100937700,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 54913225,
+    "lat": "51.1378031",
+    "lon": "1.2848860",
+    "category": "leisure",
+    "type": "pitch",
+    "place_rank": 30,
+    "importance": 0.00006496604867623434,
+    "addresstype": "leisure",
+    "name": "Dover Athletic FC",
+    "display_name": "Dover Athletic FC, Lewisham Road, Crabble, River, Dover, Kent, England, CT17 0QF, United Kingdom",
+    "address": {
+     "leisure": "Dover Athletic FC",
+     "road": "Lewisham Road",
+     "suburb": "Crabble",
+     "village": "River",
+     "city": "Dover",
+     "county": "Kent",
+     "ISO3166-2-lvl6": "GB-KEN",
+     "state": "England",
+     "ISO3166-2-lvl4": "GB-ENG",
+     "postcode": "CT17 0QF",
+     "country": "United Kingdom",
+     "country_code": "gb"
+    },
+    "boundingbox": [
+     "51.1372132",
+     "51.1384057",
+     "1.2838947",
+     "1.2858729"
+    ]
+   }
+  }
+ },
+ "wd-search|EnviroVent Stadium": {
+  "at": 1794330484521,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "EnviroVent Stadium"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|EnviroVent Stadium": {
+  "at": 1794330486097,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "photon|EnviroVent Stadium": {
+  "at": 1794330488230,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 941118265,
+       "osm_key": "building",
+       "osm_value": "hospital",
+       "type": "house",
+       "name": "Enviroment Building",
+       "street": "Stadium Way",
+       "district": "Watford Heath",
+       "city": "Watford",
+       "county": "Hertfordshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "WD18 0LX",
+       "countrycode": "GB",
+       "extent": [
+        -0.4022749,
+        51.6489119,
+        -0.4014088,
+        51.6483909
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -0.4018332,
+        51.648648
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "N",
+       "osm_id": 7996089866,
+       "osm_key": "office",
+       "osm_value": "educational_institution",
+       "type": "house",
+       "housenumber": "1949",
+       "name": "UF Engineering School of Sustainable Infrastructure & Environment",
+       "street": "Stadium Road",
+       "city": "Gainesville",
+       "county": "Alachua",
+       "state": "FL",
+       "country": "United States",
+       "postcode": "32611",
+       "countrycode": "US"
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -82.3489381,
+        29.6483903
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 354410062,
+       "osm_key": "building",
+       "osm_value": "university",
+       "type": "house",
+       "name": "Environmental Research Facility",
+       "street": "West Stadium Way",
+       "city": "Reno",
+       "county": "Washoe",
+       "state": "Nevada",
+       "country": "United States",
+       "postcode": "89557",
+       "countrycode": "US",
+       "extent": [
+        -119.8195834,
+        39.5479012,
+        -119.8194032,
+        39.5477365
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -119.8194873,
+        39.547818
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|EnviroVent Stadium": {
+  "at": 1794330488804,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 62
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Wetherby Road",
+       "pageid": 6490057,
+       "size": 7295,
+       "wordcount": 560,
+       "snippet": "Retrieved 9 June 2026. &quot;Harrogate Town : <span class=\"searchmatch\">EnviroVent</span> <span class=\"searchmatch\">Stadium</span>&quot;. Retrieved 3 September 2020. &quot;Wetherby Road- CNG <span class=\"searchmatch\">Stadium</span>&quot;. Football Ground Map. Retrieved 25 November",
+       "timestamp": "2026-10-24T15:46:16Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Flamingo Park": {
+  "at": 1794330489339,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Flamingo Park"
+    },
+    "search": [
+     {
+      "id": "Q98174195",
+      "title": "Q98174195",
+      "pageid": 96456463,
+      "concepturi": "http://www.wikidata.org/entity/Q98174195",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q98174195",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "Australian fashion house",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "Australian fashion house",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     },
+     {
+      "id": "Q49489768",
+      "title": "Q49489768",
+      "pageid": 50492784,
+      "concepturi": "http://www.wikidata.org/entity/Q49489768",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49489768",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Palm Beach County, Florida, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "park in Palm Beach County, Florida, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     },
+     {
+      "id": "Q111455045",
+      "title": "Q111455045",
+      "pageid": 106416381,
+      "concepturi": "http://www.wikidata.org/entity/Q111455045",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q111455045",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "Florida historic marker F-619",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "Florida historic marker F-619",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     },
+     {
+      "id": "Q7442258",
+      "title": "Q7442258",
+      "pageid": 7353498,
+      "concepturi": "http://www.wikidata.org/entity/Q7442258",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q7442258",
+      "display": {
+       "label": {
+        "value": "Seaview Wildlife Encounter",
+        "language": "en"
+       },
+       "description": {
+        "value": "wildlife park in Seaview, Isle of Wight, England",
+        "language": "en"
+       }
+      },
+      "label": "Seaview Wildlife Encounter",
+      "description": "wildlife park in Seaview, Isle of Wight, England",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "Flamingo Park"
+      },
+      "aliases": [
+       "Flamingo Park"
+      ]
+     },
+     {
+      "id": "Q49489766",
+      "title": "Q49489766",
+      "pageid": 50492782,
+      "concepturi": "http://www.wikidata.org/entity/Q49489766",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49489766",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Miami Beach, Florida, U.S.A.",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "park in Miami Beach, Florida, U.S.A.",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     },
+     {
+      "id": "Q140321270",
+      "title": "Q140321270",
+      "pageid": 133758760,
+      "concepturi": "http://www.wikidata.org/entity/Q140321270",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q140321270",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Miami Beach, Florida, United States",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "park in Miami Beach, Florida, United States",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     },
+     {
+      "id": "Q49489765",
+      "title": "Q49489765",
+      "pageid": 50492781,
+      "concepturi": "http://www.wikidata.org/entity/Q49489765",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49489765",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Broward County, Florida, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "park in Broward County, Florida, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     },
+     {
+      "id": "Q31582515",
+      "title": "Q31582515",
+      "pageid": 33104632,
+      "concepturi": "http://www.wikidata.org/entity/Q31582515",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q31582515",
+      "display": {
+       "label": {
+        "value": "Flamingo Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Madison County, Alabama, United States",
+        "language": "en"
+       }
+      },
+      "label": "Flamingo Park",
+      "description": "park in Madison County, Alabama, United States",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Flamingo Park"
+      }
+     }
+    ],
+    "search-continue": 8,
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q98174195,Q49489768,Q111455045,Q7442258,Q49489766,Q140321270,Q49489765,Q31582515": {
+  "at": 1794330490141,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": []
+    }
+   }
+  }
+ },
+ "nominatim|Flamingo Park": {
+  "at": 1794330491881,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 35584264,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "node",
+     "osm_id": 2269479487,
+     "lat": "-27.9481926",
+     "lon": "26.7287318",
+     "category": "place",
+     "type": "suburb",
+     "place_rank": 19,
+     "importance": 0.14671951857785911,
+     "addresstype": "suburb",
+     "name": "Flamingo Park",
+     "display_name": "Flamingo Park, Matjhabeng Ward 34, Welkom, Matjhabeng Local Municipality, Lejweleputswa District Municipality, Free State, 9460, South Africa",
+     "boundingbox": [
+      "-27.9681926",
+      "-27.9281926",
+      "26.7087318",
+      "26.7487318"
+     ]
+    },
+    {
+     "place_id": 431766902,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 190936021,
+     "lat": "51.4297555",
+     "lon": "0.0811711",
+     "category": "landuse",
+     "type": "recreation_ground",
+     "place_rank": 24,
+     "importance": 0.08009307927061872,
+     "addresstype": "recreation_ground",
+     "name": "Flamingo Park",
+     "display_name": "Flamingo Park, Kemnal, Chislehurst, London Borough of Bromley, Greater London, England, BR7 6HL, United Kingdom",
+     "boundingbox": [
+      "51.4282399",
+      "51.4310827",
+      "0.0790019",
+      "0.0843249"
+     ]
+    },
+    {
+     "place_id": 304814322,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 76684242,
+     "lat": "25.7846592",
+     "lon": "-80.1374631",
+     "category": "leisure",
+     "type": "park",
+     "place_rank": 24,
+     "importance": 0.08007754558632789,
+     "addresstype": "park",
+     "name": "Flamingo Park",
+     "display_name": "Flamingo Park, 999, Miami Beach, Miami-Dade County, Florida, 33139, United States",
+     "boundingbox": [
+      "25.7818423",
+      "25.7870462",
+      "-80.1408165",
+      "-80.1363728"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Flamingo Park": {
+  "at": 1794330493249,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "N",
+       "osm_id": 2269479487,
+       "osm_key": "place",
+       "osm_value": "suburb",
+       "type": "locality",
+       "name": "Flamingo Park",
+       "district": "Matjhabeng Ward 34",
+       "city": "Matjhabeng Local Municipality",
+       "county": "Lejweleputswa District Municipality",
+       "state": "Free State",
+       "country": "South Africa",
+       "postcode": "9460",
+       "countrycode": "ZA"
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        26.7287318,
+        -27.9481926
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 1372790920,
+       "osm_key": "landuse",
+       "osm_value": "residential",
+       "type": "locality",
+       "name": "Flamingo Park",
+       "city": "Boise",
+       "county": "Ada",
+       "state": "Idaho",
+       "country": "United States",
+       "countrycode": "US",
+       "extent": [
+        -116.256933,
+        43.6217621,
+        -116.254265,
+        43.6200605
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -116.255603,
+        43.6207418
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 235175181,
+       "osm_key": "leisure",
+       "osm_value": "park",
+       "type": "other",
+       "name": "Flamingo Park",
+       "city": "Regina",
+       "state": "Saskatchewan",
+       "country": "Canada",
+       "countrycode": "CA",
+       "extent": [
+        -104.6123682,
+        50.4072603,
+        -104.6117777,
+        50.4068831
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -104.6120729,
+        50.4070718
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|Flamingo Park": {
+  "at": 1794330493785,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 3160
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Flamingo Park",
+       "pageid": 75078625,
+       "size": 298,
+       "wordcount": 73,
+       "snippet": "<span class=\"searchmatch\">Flamingo</span> <span class=\"searchmatch\">Park</span> may refer to: <span class=\"searchmatch\">Flamingo</span> <span class=\"searchmatch\">Park</span>, former name of Seaview Wildlife Encounter in South East England <span class=\"searchmatch\">Flamingo</span> <span class=\"searchmatch\">Park</span> Historic Residential District",
+       "timestamp": "2023-12-08T00:54:54Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-team|props|Flamingo Park": {
+  "at": 1794330494177,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "query": {
+     "pages": {
+      "75078625": {
+       "pageid": 75078625,
+       "ns": 0,
+       "title": "Flamingo Park",
+       "pageprops": {
+        "wikibase_item": "Q123118410"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "wp-team|article-venue|Q123118410": {
+  "at": 1794330535154,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": []
+    }
+   }
+  }
+ },
+ "wd-search|Hornchurch Stadium": {
+  "at": 1794330535708,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Hornchurch Stadium"
+    },
+    "search": [
+     {
+      "id": "Q5904196",
+      "title": "Q5904196",
+      "pageid": 5674734,
+      "concepturi": "http://www.wikidata.org/entity/Q5904196",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q5904196",
+      "display": {
+       "label": {
+        "value": "Hornchurch Stadium",
+        "language": "en"
+       },
+       "description": {
+        "value": "stadium in the London Borough of Havering, east London, England",
+        "language": "en"
+       }
+      },
+      "label": "Hornchurch Stadium",
+      "description": "stadium in the London Borough of Havering, east London, England",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Hornchurch Stadium"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q5904196": {
+  "at": 1794330536422,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q5904196"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Hornchurch Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(0.238316666 51.556547222)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Hornchurch Stadium": {
+  "at": 1794330537658,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 100378815,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 23042163,
+     "lat": "51.5565905",
+     "lon": "0.2383171",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.2917175836992075,
+     "addresstype": "leisure",
+     "name": "Hornchurch Stadium",
+     "display_name": "Hornchurch Stadium, Bridge Avenue, Upminster Bridge, Upminster, London Borough of Havering, Greater London, England, RM14 2LX, United Kingdom",
+     "boundingbox": [
+      "51.5557824",
+      "51.5573570",
+      "0.2375348",
+      "0.2390925"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Hornchurch Stadium": {
+  "at": 1794330539244,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 23042163,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Hornchurch Stadium",
+       "street": "Bridge Avenue",
+       "locality": "Upminster Bridge",
+       "district": "Upminster",
+       "city": "London Borough of Havering",
+       "county": "Greater London",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "RM14 2LX",
+       "countrycode": "GB",
+       "extent": [
+        0.2375348,
+        51.557357,
+        0.2390925,
+        51.5557824
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        0.2383171,
+        51.5565905
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q5904196": {
+  "at": 1794330539747,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Hornchurch_Stadium"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Hornchurch_Stadium": {
+  "at": 1794330540885,
+  "result": {
+   "ok": true,
+   "value": "The Hornchurch Stadium is an athletics and football stadium located on Bridge Avenue in Upminster in the London Borough of Havering, East London, England."
+  }
+ },
+ "wp-bodyroof|Hornchurch_Stadium": {
+  "at": 1794330541999,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Hornchurch_Stadium": {
+  "at": 1794330543341,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|J. Davidson Stadium": {
+  "at": 1794330543869,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "J. Davidson Stadium"
+    },
+    "search": [
+     {
+      "id": "Q2440403",
+      "title": "Q2440403",
+      "pageid": 2357174,
+      "concepturi": "http://www.wikidata.org/entity/Q2440403",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q2440403",
+      "display": {
+       "label": {
+        "value": "Moss Lane",
+        "language": "en"
+       },
+       "description": {
+        "value": "multi-purpose stadium in Altrincham, Greater Manchester, England",
+        "language": "en"
+       }
+      },
+      "label": "Moss Lane",
+      "description": "multi-purpose stadium in Altrincham, Greater Manchester, England",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "J. Davidson Stadium"
+      },
+      "aliases": [
+       "J. Davidson Stadium"
+      ]
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q2440403": {
+  "at": 1794330544611,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q2440403"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Moss Lane"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.335158 53.383436)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q2440403"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Moss Lane"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.335158 53.383436)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q2440403"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Moss Lane"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.335158 53.383436)"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q2440403"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Moss Lane"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-2.335158 53.383436)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|J. Davidson Stadium": {
+  "at": 1794330546043,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 275329029,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 4313090,
+     "lat": "53.3833838",
+     "lon": "-2.3352283",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.3908938462590478,
+     "addresstype": "leisure",
+     "name": "Moss Lane",
+     "display_name": "Moss Lane, Hale, Altrincham, Trafford, Greater Manchester, England, WA15 8AP, United Kingdom",
+     "boundingbox": [
+      "53.3828159",
+      "53.3839683",
+      "-2.3363926",
+      "-2.3340532"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|J. Davidson Stadium": {
+  "at": 1794330548486,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 4313090,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Moss Lane",
+       "street": "Moss Lane",
+       "district": "Hale",
+       "city": "Trafford",
+       "county": "Greater Manchester",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "WA15 8AP",
+       "countrycode": "GB",
+       "extent": [
+        -2.3363926,
+        53.3839683,
+        -2.3340532,
+        53.3828159
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -2.3352283,
+        53.3833838
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 187083446,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "housenumber": "210",
+       "name": "FirstBank Stadium",
+       "street": "Jess Neely Drive",
+       "city": "Nashville",
+       "county": "Davidson",
+       "state": "TN",
+       "country": "United States",
+       "postcode": "37203",
+       "countrycode": "US",
+       "extent": [
+        -86.8098452,
+        36.1447033,
+        -86.8079747,
+        36.1431154
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -86.8089205,
+        36.1439196
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 192469132,
+       "osm_key": "leisure",
+       "osm_value": "pitch",
+       "type": "house",
+       "housenumber": "3500",
+       "name": "Hale Stadium",
+       "street": "John A Merritt Boulevard",
+       "city": "Nashville",
+       "county": "Davidson",
+       "state": "TN",
+       "country": "United States",
+       "postcode": "37209",
+       "countrycode": "US",
+       "extent": [
+        -86.8272954,
+        36.1688005,
+        -86.8264774,
+        36.1677295
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -86.8268864,
+        36.168265
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q2440403": {
+  "at": 1794330549091,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Moss_Lane"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Moss_Lane": {
+  "at": 1794330550206,
+  "result": {
+   "ok": true,
+   "value": "Moss Lane is a multi-purpose stadium in Altrincham, Greater Manchester, England."
+  }
+ },
+ "wp-bodyroof|Moss_Lane": {
+  "at": 1794330551316,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Moss_Lane": {
+  "at": 1794330552645,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|Manadon Sports Hub": {
+  "at": 1794330553200,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Manadon Sports Hub"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|Manadon Sports Hub": {
+  "at": 1794330554829,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "photon|Manadon Sports Hub": {
+  "at": 1794330558104,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "R",
+       "osm_id": 5912847,
+       "osm_key": "landuse",
+       "osm_value": "recreation_ground",
+       "type": "other",
+       "name": "Park Island Sports Hub",
+       "district": "Parklands",
+       "city": "Napier",
+       "state": "Hawke's Bay",
+       "country": "New Zealand / Aotearoa",
+       "countrycode": "NZ",
+       "extent": [
+        176.8541558,
+        -39.503041,
+        176.8667628,
+        -39.5115047
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        176.8572464,
+        -39.5084168
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 182827369,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "National Stadium",
+       "street": "Stadium Park Connector",
+       "locality": "Tanjong Rhu",
+       "district": "Kallang",
+       "city": "Singapore",
+       "country": "Singapore",
+       "postcode": "397628",
+       "countrycode": "SG",
+       "extent": [
+        103.8729168,
+        1.3058536,
+        103.8757757,
+        1.303028
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        103.8743437,
+        1.304491
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 974192704,
+       "osm_key": "landuse",
+       "osm_value": "commercial",
+       "type": "locality",
+       "name": "Sports Hub",
+       "district": "Bokarina",
+       "city": "Sunshine Coast",
+       "state": "Queensland",
+       "country": "Australia",
+       "postcode": "4575",
+       "countrycode": "AU",
+       "extent": [
+        153.1234676,
+        -26.7309514,
+        153.1249513,
+        -26.731746
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        153.1242532,
+        -26.7313345
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|Manadon Sports Hub": {
+  "at": 1794330558645,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 12
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Bolitho Park",
+       "pageid": 68395957,
+       "size": 3721,
+       "wordcount": 245,
+       "snippet": "National League South. The site shares an entrance point with the <span class=\"searchmatch\">Manadon</span> <span class=\"searchmatch\">Sports</span> <span class=\"searchmatch\">Hub</span>, home of Plymouth Argyle L.F.C. Plymouth Parkway moved into the purpose",
+       "timestamp": "2026-11-09T19:06:24Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Meadow Park": {
+  "at": 1794330559115,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Meadow Park"
+    },
+    "search": [
+     {
+      "id": "Q3303777",
+      "title": "Q3303777",
+      "pageid": 3150618,
+      "concepturi": "http://www.wikidata.org/entity/Q3303777",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q3303777",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "home ground of Boreham Wood FC and Arsenal Women FC",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "home ground of Boreham Wood FC and Arsenal Women FC",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q65067494",
+      "title": "Q65067494",
+      "pageid": 64709061,
+      "concepturi": "http://www.wikidata.org/entity/Q65067494",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q65067494",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "football stadium in Gloucester, Gloucestershire, England",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "football stadium in Gloucester, Gloucestershire, England",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q22097705",
+      "title": "Q22097705",
+      "pageid": 24128533,
+      "concepturi": "http://www.wikidata.org/entity/Q22097705",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q22097705",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "football ground in Dumbarton, West Dunbartonshire, Scotland",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "football ground in Dumbarton, West Dunbartonshire, Scotland",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q49524208",
+      "title": "Q49524208",
+      "pageid": 50526859,
+      "concepturi": "http://www.wikidata.org/entity/Q49524208",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49524208",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Lane County, Oregon, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "park in Lane County, Oregon, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q49524193",
+      "title": "Q49524193",
+      "pageid": 50526844,
+      "concepturi": "http://www.wikidata.org/entity/Q49524193",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49524193",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Contra Costa County, California, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "park in Contra Costa County, California, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q49524204",
+      "title": "Q49524204",
+      "pageid": 50526855,
+      "concepturi": "http://www.wikidata.org/entity/Q49524204",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49524204",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Sherburne County, Minnesota, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "park in Sherburne County, Minnesota, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q49524213",
+      "title": "Q49524213",
+      "pageid": 50526864,
+      "concepturi": "http://www.wikidata.org/entity/Q49524213",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49524213",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in Dane County, Wisconsin, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "park in Dane County, Wisconsin, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     },
+     {
+      "id": "Q49524196",
+      "title": "Q49524196",
+      "pageid": 50526847,
+      "concepturi": "http://www.wikidata.org/entity/Q49524196",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q49524196",
+      "display": {
+       "label": {
+        "value": "Meadow Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "park in San Bernardino County, California, United States of America",
+        "language": "en"
+       }
+      },
+      "label": "Meadow Park",
+      "description": "park in San Bernardino County, California, United States of America",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Meadow Park"
+      }
+     }
+    ],
+    "search-continue": 8,
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q3303777,Q65067494,Q22097705,Q49524208,Q49524193,Q49524204,Q49524213,Q49524196": {
+  "at": 1794330561121,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q22097705"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-4.5679 55.9486)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Meadow Park"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.272222 51.661944)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Meadow Park"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q22097705"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-4.5679 55.9486)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Meadow Park"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-0.272222 51.661944)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Meadow Park"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-occupants|Q22097705,Q3303777": {
+  "at": 1794330561956,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "occLabel"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Arsenal W.F.C."
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Boreham Wood F.C."
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Arsenal F.C. Under-21s and Academy"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Arsenal W.F.C. Academy"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "2000–01 Arsenal L.F.C. season"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q22097705"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Dumbarton Harp F.C."
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Arsenal W.F.C."
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Boreham Wood F.C."
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q3303777"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Arsenal F.C. Under-21s and Academy"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Meadow Park": {
+  "at": 1794330563243,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 280444713,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 41384012,
+     "lat": "51.6620315",
+     "lon": "-0.2724395",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.44678935115471147,
+     "addresstype": "leisure",
+     "name": "Meadow Park",
+     "display_name": "Meadow Park, Broughinge Road, Elstree and Borehamwood, Borehamwood, Hertsmere, Hertfordshire, England, WD6 5AL, United Kingdom",
+     "boundingbox": [
+      "51.6612876",
+      "51.6626463",
+      "-0.2733075",
+      "-0.2714375"
+     ]
+    },
+    {
+     "place_id": 334860689,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "node",
+     "osm_id": 151834868,
+     "lat": "32.0182189",
+     "lon": "-93.7010155",
+     "category": "place",
+     "type": "hamlet",
+     "place_rank": 20,
+     "importance": 0.13338139696345463,
+     "addresstype": "hamlet",
+     "name": "Meadow Park",
+     "display_name": "Meadow Park, Mansfield, DeSoto Parish, Louisiana, United States",
+     "boundingbox": [
+      "31.9982189",
+      "32.0382189",
+      "-93.7210155",
+      "-93.6810155"
+     ]
+    },
+    {
+     "place_id": 341113456,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "node",
+     "osm_id": 154186502,
+     "lat": "34.4584396",
+     "lon": "-82.6548552",
+     "category": "place",
+     "type": "hamlet",
+     "place_rank": 20,
+     "importance": 0.13336833524071104,
+     "addresstype": "hamlet",
+     "name": "Meadow Park",
+     "display_name": "Meadow Park, Anderson County, South Carolina, 29624, United States",
+     "boundingbox": [
+      "34.4384396",
+      "34.4784396",
+      "-82.6748552",
+      "-82.6348552"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Meadow Park": {
+  "at": 1794330565409,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 41384012,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Meadow Park",
+       "street": "Broughinge Road",
+       "district": "Elstree and Borehamwood",
+       "city": "Borehamwood",
+       "county": "Hertfordshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "WD6 5AL",
+       "countrycode": "GB",
+       "extent": [
+        -0.2733075,
+        51.6626463,
+        -0.2714375,
+        51.6612876
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -0.2724395,
+        51.6620315
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 161594389,
+       "osm_key": "amenity",
+       "osm_value": "school",
+       "type": "house",
+       "name": "Meadow Park School",
+       "street": "Abbey Road",
+       "district": "Whitley",
+       "city": "Coventry",
+       "county": "West Midlands",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "CV3 4BD",
+       "countrycode": "GB",
+       "extent": [
+        -1.4888928,
+        52.3877964,
+        -1.4856219,
+        52.3856618
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.4875216,
+        52.3866698
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 315311702,
+       "osm_key": "leisure",
+       "osm_value": "park",
+       "type": "other",
+       "name": "Sunken Meadow State Park",
+       "district": "Kings Park",
+       "city": "Smithtown",
+       "county": "Suffolk",
+       "state": "New York",
+       "country": "United States",
+       "countrycode": "US",
+       "extent": [
+        -73.2862777,
+        40.9190215,
+        -73.2309841,
+        40.8873148
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -73.2591011,
+        40.9032528
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q3303777": {
+  "at": 1794330566041,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Meadow_Park_(Borehamwood)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Meadow_Park_(Borehamwood)": {
+  "at": 1794330600251,
+  "result": {
+   "ok": true,
+   "value": "Meadow Park, currently known as the Mangata Developments Stadium Meadow Park for sponsorship reasons, is a football ground in Borehamwood, Hertfordshire, England which serves as the home ground of Boreham Wood Football Club."
+  }
+ },
+ "wp-bodyroof|Meadow_Park_(Borehamwood)": {
+  "at": 1794330601385,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Meadow_Park_(Borehamwood)": {
+  "at": 1794330602825,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|Nethermoor Park": {
+  "at": 1794330603365,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Nethermoor Park"
+    },
+    "search": [
+     {
+      "id": "Q21061466",
+      "title": "Q21061466",
+      "pageid": 23108410,
+      "concepturi": "http://www.wikidata.org/entity/Q21061466",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q21061466",
+      "display": {
+       "label": {
+        "value": "Nethermoor Park",
+        "language": "en"
+       },
+       "description": {
+        "value": "a sports venue in Guiseley",
+        "language": "en"
+       }
+      },
+      "label": "Nethermoor Park",
+      "description": "a sports venue in Guiseley",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Nethermoor Park"
+      }
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q21061466": {
+  "at": 1794330604036,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q21061466"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Nethermoor Park"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.71943057 53.87717819)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Nethermoor Park": {
+  "at": 1794330605617,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 278305894,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 833172668,
+     "lat": "53.8772669",
+     "lon": "-1.7193260",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.3078369698940717,
+     "addresstype": "leisure",
+     "name": "Nethermoor Park",
+     "display_name": "Nethermoor Park, Ings Crescent, White Cross, Tranmere Park, Guiseley, Leeds, West Yorkshire, England, LS20 8DD, United Kingdom",
+     "boundingbox": [
+      "53.8766047",
+      "53.8779202",
+      "-1.7205110",
+      "-1.7180957"
+     ]
+    },
+    {
+     "place_id": 279408979,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 833172661,
+     "lat": "53.8764431",
+     "lon": "-1.7189057",
+     "category": "landuse",
+     "type": "recreation_ground",
+     "place_rank": 24,
+     "importance": 0.08007288090333406,
+     "addresstype": "recreation_ground",
+     "name": "Nethermoor Park",
+     "display_name": "Nethermoor Park, Tranmere Park, Guiseley, Leeds, West Yorkshire, England, United Kingdom",
+     "boundingbox": [
+      "53.8758101",
+      "53.8770909",
+      "-1.7212915",
+      "-1.7168854"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Nethermoor Park": {
+  "at": 1794330607766,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 833172668,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Nethermoor Park",
+       "street": "Ings Crescent",
+       "locality": "White Cross",
+       "district": "Tranmere Park",
+       "city": "Leeds",
+       "county": "West Yorkshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "LS20 8DD",
+       "countrycode": "GB",
+       "extent": [
+        -1.720511,
+        53.8779202,
+        -1.7180957,
+        53.8766047
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.719326,
+        53.8772669
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 833172661,
+       "osm_key": "landuse",
+       "osm_value": "recreation_ground",
+       "type": "other",
+       "name": "Nethermoor Park",
+       "district": "Tranmere Park",
+       "city": "Leeds",
+       "county": "West Yorkshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "countrycode": "GB",
+       "extent": [
+        -1.7212915,
+        53.8770909,
+        -1.7168854,
+        53.8758101
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.7189057,
+        53.8764431
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 261515599,
+       "osm_key": "amenity",
+       "osm_value": "parking",
+       "type": "house",
+       "name": "Nethermoor Park Car Park",
+       "street": "Ings Crescent",
+       "locality": "White Cross",
+       "district": "Tranmere Park",
+       "city": "Leeds",
+       "county": "West Yorkshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "LS20 8DA",
+       "countrycode": "GB",
+       "extent": [
+        -1.7208539,
+        53.8772641,
+        -1.7202681,
+        53.8768959
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.720563,
+        53.8770954
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q21061466": {
+  "at": 1794330608372,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Nethermoor_Park"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Nethermoor_Park": {
+  "at": 1794330609496,
+  "result": {
+   "ok": true,
+   "value": "Nethermoor Park is a football stadium in Guiseley, West Yorkshire and the home ground of Guiseley A.F.C."
+  }
+ },
+ "wp-bodyroof|Nethermoor_Park": {
+  "at": 1794330610603,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Nethermoor_Park": {
+  "at": 1794330611907,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|RAW Charging Stadium": {
+  "at": 1794330612464,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "RAW Charging Stadium"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|RAW Charging Stadium": {
+  "at": 1794330615083,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "photon|RAW Charging Stadium": {
+  "at": 1794330618755,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 26763283,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Стадион „Рајко Митић”",
+       "street": "Рајка Митића",
+       "locality": "МЗ Војвода Мишић (Савски венац)",
+       "district": "Савски венац",
+       "city": "Београд",
+       "county": "Град Београд",
+       "state": "Централна Србија",
+       "country": "Србија",
+       "postcode": "11000",
+       "countrycode": "RS",
+       "extent": [
+        20.4631759,
+        44.784419,
+        20.466203,
+        44.7819131
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        20.4646751,
+        44.7832203
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "R",
+       "osm_id": 2282167,
+       "osm_key": "leisure",
+       "osm_value": "sports_centre",
+       "type": "house",
+       "name": "Стадіон «Динамо» ім. Валерія Лобановського",
+       "street": "Паркова дорога",
+       "locality": "Бегічевська Гора",
+       "district": "Клов",
+       "city": "Київ",
+       "country": "Україна",
+       "postcode": "01008",
+       "countrycode": "UA",
+       "extent": [
+        30.5303528,
+        50.4520512,
+        30.5367882,
+        50.4493196
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        30.5313164,
+        50.4507026
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 47000529,
+       "osm_key": "leisure",
+       "osm_value": "pitch",
+       "type": "house",
+       "name": "Stadiumi Fadil Vokrri",
+       "street": "Rinia",
+       "district": "Lakrishtë",
+       "city": "Prishtinë",
+       "county": "Rajoni i Prishtinës / Prištinski okrug",
+       "country": "Kosova / Kosovo",
+       "postcode": "10000",
+       "countrycode": "XK",
+       "extent": [
+        21.1564985,
+        42.6634165,
+        21.1576668,
+        42.6622893
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        21.1570827,
+        42.6628529
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|RAW Charging Stadium": {
+  "at": 1794330619335,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 730
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "2024–25 National League",
+       "pageid": 76606321,
+       "size": 144770,
+       "wordcount": 2333,
+       "snippet": "Athletic Forest Green Rovers v Southend United 1 June 2025 15:00 BST Wembley <span class=\"searchmatch\">Stadium</span>, London Attendance: 52,115 Referee: Elliot Bell Source: [1] Legend: Blue",
+       "timestamp": "2026-10-03T00:28:23Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|Silverlake Stadium": {
+  "at": 1794330619900,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Silverlake Stadium"
+    },
+    "search": [
+     {
+      "id": "Q17020186",
+      "title": "Q17020186",
+      "pageid": 18625280,
+      "concepturi": "http://www.wikidata.org/entity/Q17020186",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q17020186",
+      "display": {
+       "label": {
+        "value": "Ten Acres",
+        "language": "en"
+       },
+       "description": {
+        "value": "stadium in Eastleigh, Hampshire, England",
+        "language": "en"
+       }
+      },
+      "label": "Ten Acres",
+      "description": "stadium in Eastleigh, Hampshire, England",
+      "match": {
+       "type": "alias",
+       "language": "en",
+       "text": "Silverlake Stadium"
+      },
+      "aliases": [
+       "Silverlake Stadium"
+      ]
+     }
+    ],
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q17020186": {
+  "at": 1794330620701,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q17020186"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Ten Acres"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.37176944 50.95229444)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Silverlake Stadium": {
+  "at": 1794330626368,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 282740614,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 854932752,
+     "lat": "50.9524511",
+     "lon": "-1.3719149",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.3552828743550627,
+     "addresstype": "leisure",
+     "name": "Silverlake Stadium",
+     "display_name": "Silverlake Stadium, Stoneham Lane, South Stoneham, Eastleigh, Hampshire, England, SO50 9NW, United Kingdom",
+     "boundingbox": [
+      "50.9515367",
+      "50.9531464",
+      "-1.3734629",
+      "-1.3703310"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Silverlake Stadium": {
+  "at": 1794330628652,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 854932752,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Silverlake Stadium",
+       "street": "Stoneham Lane",
+       "locality": "South Stoneham",
+       "district": "Eastleigh",
+       "city": "Eastleigh",
+       "county": "Hampshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "SO50 9NW",
+       "countrycode": "GB",
+       "extent": [
+        -1.3734629,
+        50.9531464,
+        -1.370331,
+        50.9515367
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.3719149,
+        50.9524511
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-roof|Q17020186": {
+  "at": 1794330629287,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Ten_Acres"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Ten_Acres": {
+  "at": 1794330660488,
+  "result": {
+   "ok": true,
+   "value": "Ten Acres, known as the Silverlake Stadium for sponsorship purposes, is a football ground in Eastleigh, Hampshire, England."
+  }
+ },
+ "wp-bodyroof|Ten_Acres": {
+  "at": 1794330661591,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Ten_Acres": {
+  "at": 1794330662998,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|Stade de France": {
+  "at": 1794330663615,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "Stade de France"
+    },
+    "search": [
+     {
+      "id": "Q13205",
+      "title": "Q13205",
+      "pageid": 14838,
+      "concepturi": "http://www.wikidata.org/entity/Q13205",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q13205",
+      "display": {
+       "label": {
+        "value": "Stade de France",
+        "language": "en"
+       },
+       "description": {
+        "value": "national stadium of France",
+        "language": "en"
+       }
+      },
+      "label": "Stade de France",
+      "description": "national stadium of France",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stade de France"
+      }
+     },
+     {
+      "id": "Q65225999",
+      "title": "Q65225999",
+      "pageid": 64866231,
+      "concepturi": "http://www.wikidata.org/entity/Q65225999",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q65225999",
+      "display": {
+       "label": {
+        "value": "Stade de France",
+        "language": "en"
+       },
+       "description": {
+        "value": "future Paris metro station",
+        "language": "en"
+       }
+      },
+      "label": "Stade de France",
+      "description": "future Paris metro station",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stade de France"
+      }
+     },
+     {
+      "id": "Q86255976",
+      "title": "Q86255976",
+      "pageid": 85513061,
+      "concepturi": "http://www.wikidata.org/entity/Q86255976",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q86255976",
+      "display": {
+       "label": {
+        "value": "Stade de France",
+        "language": "en"
+       },
+       "description": {
+        "value": "bicycle-sharing station of Vélib’ Métropole network",
+        "language": "en"
+       }
+      },
+      "label": "Stade de France",
+      "description": "bicycle-sharing station of Vélib’ Métropole network",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stade de France"
+      }
+     },
+     {
+      "id": "Q2678290",
+      "title": "Q2678290",
+      "pageid": 2579443,
+      "concepturi": "http://www.wikidata.org/entity/Q2678290",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q2678290",
+      "display": {
+       "label": {
+        "value": "Stade de France – Saint-Denis",
+        "language": "en"
+       },
+       "description": {
+        "value": "French railway station",
+        "language": "en"
+       }
+      },
+      "label": "Stade de France – Saint-Denis",
+      "description": "French railway station",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stade de France – Saint-Denis"
+      }
+     },
+     {
+      "id": "Q1968221",
+      "title": "Q1968221",
+      "pageid": 1897253,
+      "concepturi": "http://www.wikidata.org/entity/Q1968221",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q1968221",
+      "display": {
+       "label": {
+        "value": "Stade de Franceville",
+        "language": "en"
+       },
+       "description": {
+        "value": "association football stadium in Gabon",
+        "language": "en"
+       }
+      },
+      "label": "Stade de Franceville",
+      "description": "association football stadium in Gabon",
+      "match": {
+       "type": "label",
+       "language": "en",
+       "text": "Stade de Franceville"
+      }
+     },
+     {
+      "id": "Q120181268",
+      "title": "Q120181268",
+      "pageid": 114638676,
+      "concepturi": "http://www.wikidata.org/entity/Q120181268",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q120181268",
+      "display": {
+       "label": {
+        "value": "stade de France",
+        "language": "fr"
+       }
+      },
+      "label": "stade de France",
+      "match": {
+       "type": "label",
+       "language": "fr",
+       "text": "stade de France"
+      }
+     },
+     {
+      "id": "Q3495968",
+      "title": "Q3495968",
+      "pageid": 3329215,
+      "concepturi": "http://www.wikidata.org/entity/Q3495968",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q3495968",
+      "display": {
+       "label": {
+        "value": "Stade de France 98 Johnny allume le feu",
+        "language": "nl"
+       },
+       "description": {
+        "value": "live album by Johnny Hallyday",
+        "language": "en"
+       }
+      },
+      "label": "Stade de France 98 Johnny allume le feu",
+      "description": "live album by Johnny Hallyday",
+      "match": {
+       "type": "label",
+       "language": "nl",
+       "text": "Stade de France 98 Johnny allume le feu"
+      }
+     },
+     {
+      "id": "Q56869528",
+      "title": "Q56869528",
+      "pageid": 56785957,
+      "concepturi": "http://www.wikidata.org/entity/Q56869528",
+      "repository": "wikidata",
+      "url": "//www.wikidata.org/wiki/Q56869528",
+      "display": {
+       "label": {
+        "value": "Stade De France - Saint-Denis Rer",
+        "language": "fr"
+       }
+      },
+      "label": "Stade De France - Saint-Denis Rer",
+      "match": {
+       "type": "alias",
+       "language": "fr",
+       "text": "Stade De France - Saint-Denis Rer"
+      }
+     }
+    ],
+    "search-continue": 8,
+    "success": 1
+   }
+  }
+ },
+ "wd-sparql-standing|Q13205,Q65225999,Q86255976,Q2678290,Q1968221,Q120181268,Q3495968,Q56869528": {
+  "at": 1794330664631,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q120181268"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(6.07911 49.3652)"
+       },
+       "itemLabel": {
+        "type": "literal",
+        "value": "Q120181268"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1968221"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(13.574444 -1.638611)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de Franceville"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q1968221"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(13.574444 -1.638611)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de Franceville"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(2.36 48.924444444)"
+       },
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Stade de France"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-occupants|Q120181268,Q13205,Q1968221": {
+  "at": 1794330675225,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "item",
+      "occLabel"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "France men's national association football team"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "France national rugby union team"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Team Vitality"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "France men's national association football team"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "2007 Rugby World Cup"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "UEFA Euro 2016"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "France national rugby union team"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "1999 Rugby World Cup"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "UEFA Euro 2016 finals: Portugal v France"
+       }
+      },
+      {
+       "item": {
+        "type": "uri",
+        "value": "http://www.wikidata.org/entity/Q13205"
+       },
+       "occLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "2024 Summer Paralympics"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nominatim|Stade de France": {
+  "at": 1794330680586,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 98405025,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 64003104,
+     "lat": "48.9244726",
+     "lon": "2.3601325",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.6294642130361772,
+     "addresstype": "leisure",
+     "name": "Stade de France",
+     "display_name": "Stade de France, Avenue du Stade de France, Franc-Moisin - Bel-Air - Stade de France, Saint-Denis, Seine-Saint-Denis, Île-de-France, France métropolitaine, 93200, France",
+     "boundingbox": [
+      "48.9230105",
+      "48.9259293",
+      "2.3581704",
+      "2.3620928"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|Stade de France": {
+  "at": 1794330682079,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 64003104,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Stade de France",
+       "street": "Avenue du Stade de France",
+       "district": "Franc-Moisin - Bel-Air - Stade de France",
+       "city": "Saint-Denis",
+       "county": "Seine-Saint-Denis",
+       "state": "Île-de-France",
+       "country": "France",
+       "postcode": "93200",
+       "countrycode": "FR",
+       "extent": [
+        2.3581704,
+        48.9259293,
+        2.3620928,
+        48.9230105
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        2.3601325,
+        48.9244726
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "N",
+       "osm_id": 5584582080,
+       "osm_key": "railway",
+       "osm_value": "station",
+       "type": "house",
+       "name": "Stade de France - Saint-Denis",
+       "street": "Place aux Étoiles",
+       "locality": "Le Landy",
+       "district": "Pleyel - Confluence",
+       "city": "Saint-Denis",
+       "county": "Seine-Saint-Denis",
+       "state": "Île-de-France",
+       "country": "France",
+       "postcode": "93210",
+       "countrycode": "FR"
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        2.3504824,
+        48.9177
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "N",
+       "osm_id": 9334637138,
+       "osm_key": "railway",
+       "osm_value": "station",
+       "type": "house",
+       "name": "La Plaine - Stade de France",
+       "street": "Avenue du Stade de France",
+       "locality": "La Montjoie",
+       "district": "La Plaine",
+       "city": "Saint-Denis",
+       "county": "Seine-Saint-Denis",
+       "state": "Île-de-France",
+       "country": "France",
+       "postcode": "93210",
+       "countrycode": "FR"
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        2.3622939,
+        48.9179282
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wd-search|The Kassam Stadium": {
+  "at": 1794330682651,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "The Kassam Stadium"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|The Kassam Stadium": {
+  "at": 1794330683880,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 281772559,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "node",
+     "osm_id": 6742314535,
+     "lat": "51.7164483",
+     "lon": "-1.2057989",
+     "category": "amenity",
+     "type": "marketplace",
+     "place_rank": 30,
+     "importance": 0.00007606088349732231,
+     "addresstype": "amenity",
+     "name": "Car Boot Sale - The Kassam Stadium",
+     "display_name": "Car Boot Sale - The Kassam Stadium, Guelder Road, Minchery Farm, Blackbird Leys, Oxford, Oxfordshire, England, OX4 7WB, United Kingdom",
+     "boundingbox": [
+      "51.7163983",
+      "51.7164983",
+      "-1.2058489",
+      "-1.2057489"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|The Kassam Stadium": {
+  "at": 1794330684917,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "N",
+       "osm_id": 6742314535,
+       "osm_key": "amenity",
+       "osm_value": "marketplace",
+       "type": "house",
+       "name": "Car Boot Sale - The Kassam Stadium",
+       "street": "Guelder Road",
+       "district": "Blackbird Leys",
+       "city": "Oxford",
+       "county": "Oxfordshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "OX4 7WB",
+       "countrycode": "GB"
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.2057989,
+        51.7164483
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|The Kassam Stadium": {
+  "at": 1794330685492,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 748
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Kassam Stadium",
+       "pageid": 2649503,
+       "size": 24479,
+       "wordcount": 2587,
+       "snippet": "<span class=\"searchmatch\">The</span> <span class=\"searchmatch\">Kassam</span> <span class=\"searchmatch\">Stadium</span> (also known as Grenoble Road) is a football <span class=\"searchmatch\">stadium</span> in Oxford, England. It is <span class=\"searchmatch\">the</span> home of Oxford United Football Club, and is named",
+       "timestamp": "2026-11-04T18:54:28Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-team|props|Kassam Stadium": {
+  "at": 1794330685880,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "query": {
+     "pages": {
+      "2649503": {
+       "pageid": 2649503,
+       "ns": 0,
+       "title": "Kassam Stadium",
+       "pageprops": {
+        "wikibase_item": "Q1672134"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "wp-team|article-venue|Q1672134": {
+  "at": 1794330688312,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Kassam Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.208067 51.716419)"
+       }
+      },
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Kassam Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.208067 51.716419)"
+       }
+      },
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Kassam Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.208067 51.716419)"
+       }
+      },
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Kassam Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.208067 51.716419)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nm-reverse|51.7164,-1.2081": {
+  "at": 1794330689594,
+  "result": {
+   "ok": true,
+   "value": {
+    "place_id": 281879766,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "way",
+    "osm_id": 219357867,
+    "lat": "51.7165071",
+    "lon": "-1.2079254",
+    "category": "leisure",
+    "type": "pitch",
+    "place_rank": 30,
+    "importance": 0.00007606088349732231,
+    "addresstype": "leisure",
+    "name": "",
+    "display_name": "Grenoble Road, Littlemore, Oxford, Oxfordshire, England, OX4 4XP, United Kingdom",
+    "address": {
+     "road": "Grenoble Road",
+     "suburb": "Littlemore",
+     "city": "Oxford",
+     "county": "Oxfordshire",
+     "ISO3166-2-lvl6": "GB-OXF",
+     "state": "England",
+     "ISO3166-2-lvl4": "GB-ENG",
+     "postcode": "OX4 4XP",
+     "country": "United Kingdom",
+     "country_code": "gb"
+    },
+    "boundingbox": [
+     "51.7161330",
+     "51.7168811",
+     "-1.2087331",
+     "-1.2071178"
+    ]
+   }
+  }
+ },
+ "wd-roof|Q1672134": {
+  "at": 1794330690319,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Kassam_Stadium"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Kassam_Stadium": {
+  "at": 1794330691425,
+  "result": {
+   "ok": true,
+   "value": "The Kassam Stadium is a football stadium in Oxford, England."
+  }
+ },
+ "wp-bodyroof|Kassam_Stadium": {
+  "at": 1794330692521,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Kassam_Stadium": {
+  "at": 1794330693838,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|The Raymond McEnhill Stadium": {
+  "at": 1794330720411,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "The Raymond McEnhill Stadium"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|The Raymond McEnhill Stadium": {
+  "at": 1794330722098,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "photon|The Raymond McEnhill Stadium": {
+  "at": 1794330724881,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 125005987,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "Raymond McEnhill Stadium",
+       "street": "Roger Way",
+       "locality": "Old Sarum",
+       "district": "Laverstock",
+       "city": "Ford",
+       "county": "Wiltshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "SP4 6GS",
+       "countrycode": "GB",
+       "extent": [
+        -1.7869017,
+        51.1049855,
+        -1.7847927,
+        51.1037128
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.7858458,
+        51.1043198
+       ]
+      }
+     },
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "N",
+       "osm_id": 1326968519,
+       "osm_key": "amenity",
+       "osm_value": "bar",
+       "type": "house",
+       "name": "Chalkies Bar",
+       "street": "Partridge Way",
+       "locality": "Old Sarum",
+       "district": "Laverstock",
+       "city": "Ford",
+       "county": "Wiltshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "SP4 6PU",
+       "countrycode": "GB"
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -1.786211,
+        51.1039342
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|The Raymond McEnhill Stadium": {
+  "at": 1794330727948,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 65
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Raymond McEnhill Stadium",
+       "pageid": 11989353,
+       "size": 4224,
+       "wordcount": 409,
+       "snippet": "<span class=\"searchmatch\">The</span> <span class=\"searchmatch\">Raymond</span> <span class=\"searchmatch\">McEnhill</span> <span class=\"searchmatch\">Stadium</span> is a purpose-built 5,000 capacity football <span class=\"searchmatch\">stadium</span> in Salisbury, Wiltshire, England. It is <span class=\"searchmatch\">the</span> home of Salisbury Football",
+       "timestamp": "2026-11-10T11:27:11Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-team|props|Raymond McEnhill Stadium": {
+  "at": 1794330728344,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "query": {
+     "pages": {
+      "11989353": {
+       "pageid": 11989353,
+       "ns": 0,
+       "title": "Raymond McEnhill Stadium",
+       "pageprops": {
+        "wikibase_item": "Q7299006"
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "wp-team|article-venue|Q7299006": {
+  "at": 1794330730435,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "itemLabel",
+      "c"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Raymond McEnhill Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.785758 51.104339)"
+       }
+      },
+      {
+       "itemLabel": {
+        "xml:lang": "en",
+        "type": "literal",
+        "value": "Raymond McEnhill Stadium"
+       },
+       "c": {
+        "datatype": "http://www.opengis.net/ont/geosparql#wktLiteral",
+        "type": "literal",
+        "value": "Point(-1.785758 51.104339)"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "nm-reverse|51.1043,-1.7858": {
+  "at": 1794330733067,
+  "result": {
+   "ok": true,
+   "value": {
+    "place_id": 281037533,
+    "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+    "osm_type": "node",
+    "osm_id": 1326968519,
+    "lat": "51.1039342",
+    "lon": "-1.7862110",
+    "category": "amenity",
+    "type": "bar",
+    "place_rank": 30,
+    "importance": 0.000040000762951049326,
+    "addresstype": "amenity",
+    "name": "Chalkies Bar",
+    "display_name": "Chalkies Bar, Partridge Way, Old Sarum, Laverstock, Stratford-sub-Castle, Ford, Wiltshire, England, SP4 6PU, United Kingdom",
+    "address": {
+     "amenity": "Chalkies Bar",
+     "road": "Partridge Way",
+     "suburb": "Old Sarum",
+     "village": "Stratford-sub-Castle",
+     "county": "Wiltshire",
+     "ISO3166-2-lvl6": "GB-WIL",
+     "state": "England",
+     "ISO3166-2-lvl4": "GB-ENG",
+     "postcode": "SP4 6PU",
+     "country": "United Kingdom",
+     "country_code": "gb"
+    },
+    "boundingbox": [
+     "51.1038842",
+     "51.1039842",
+     "-1.7862610",
+     "-1.7861610"
+    ]
+   }
+  }
+ },
+ "wd-roof|Q7299006": {
+  "at": 1794330734358,
+  "result": {
+   "ok": true,
+   "value": {
+    "head": {
+     "vars": [
+      "roofLabel",
+      "article"
+     ]
+    },
+    "results": {
+     "bindings": [
+      {
+       "article": {
+        "type": "uri",
+        "value": "https://en.wikipedia.org/wiki/Raymond_McEnhill_Stadium"
+       }
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wp-lead|Raymond_McEnhill_Stadium": {
+  "at": 1794330735459,
+  "result": {
+   "ok": true,
+   "value": "The Raymond McEnhill Stadium is a purpose-built 5,000 capacity football stadium in Salisbury, Wiltshire, England."
+  }
+ },
+ "wp-bodyroof|Raymond_McEnhill_Stadium": {
+  "at": 1794330736565,
+  "result": {
+   "ok": true,
+   "value": ""
+  }
+ },
+ "wp-infobox|Raymond_McEnhill_Stadium": {
+  "at": 1794330737882,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "wd-search|The Stan Robinson Stadium": {
+  "at": 1794330738331,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "The Stan Robinson Stadium"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|The Stan Robinson Stadium": {
+  "at": 1794330739985,
+  "result": {
+   "ok": true,
+   "value": [
+    {
+     "place_id": 275916963,
+     "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+     "osm_type": "way",
+     "osm_id": 55440947,
+     "lat": "52.8186700",
+     "lon": "-2.1168487",
+     "category": "leisure",
+     "type": "stadium",
+     "place_rank": 30,
+     "importance": 0.00005776684214537297,
+     "addresstype": "leisure",
+     "name": "The Stan Robinson Stadium",
+     "display_name": "The Stan Robinson Stadium, Astonfields Road, Burleyfields, Hopton, Stafford, Staffordshire, England, ST16 3YU, United Kingdom",
+     "boundingbox": [
+      "52.8178831",
+      "52.8193584",
+      "-2.1177331",
+      "-2.1159211"
+     ]
+    }
+   ]
+  }
+ },
+ "photon|The Stan Robinson Stadium": {
+  "at": 1794330741649,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 55440947,
+       "osm_key": "leisure",
+       "osm_value": "stadium",
+       "type": "house",
+       "name": "The Stan Robinson Stadium",
+       "street": "Peter James Court",
+       "district": "Astonfields",
+       "city": "Stafford",
+       "county": "Staffordshire",
+       "state": "England",
+       "country": "United Kingdom",
+       "postcode": "ST16 3YU",
+       "countrycode": "GB",
+       "extent": [
+        -2.1177331,
+        52.8193584,
+        -2.1159211,
+        52.8178831
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -2.1168487,
+        52.81867
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|The Stan Robinson Stadium": {
+  "at": 1794330742296,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 1992
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Stafford Rangers F.C.",
+       "pageid": 2521092,
+       "size": 27472,
+       "wordcount": 2862,
+       "snippet": "renamed <span class=\"searchmatch\">The</span> <span class=\"searchmatch\">Stan</span> <span class=\"searchmatch\">Robinson</span> <span class=\"searchmatch\">Stadium</span>, due to a new sponsorship deal with <span class=\"searchmatch\">the</span> haulage company of <span class=\"searchmatch\">the</span> same name. This is due to <span class=\"searchmatch\">the</span> loyalty and support <span class=\"searchmatch\">Stan</span> Robinson",
+       "timestamp": "2026-11-10T14:54:15Z"
+      }
+     ]
+    }
+   }
+  }
+ },
+ "wd-search|The Wyatt Homes Stadium": {
+  "at": 1794330742756,
+  "result": {
+   "ok": true,
+   "value": {
+    "searchinfo": {
+     "search": "The Wyatt Homes Stadium"
+    },
+    "search": [],
+    "success": 1
+   }
+  }
+ },
+ "nominatim|The Wyatt Homes Stadium": {
+  "at": 1794330750386,
+  "result": {
+   "ok": true,
+   "value": []
+  }
+ },
+ "photon|The Wyatt Homes Stadium": {
+  "at": 1794330752263,
+  "result": {
+   "ok": true,
+   "value": {
+    "type": "FeatureCollection",
+    "features": [
+     {
+      "type": "Feature",
+      "properties": {
+       "osm_type": "W",
+       "osm_id": 336328902,
+       "osm_key": "building",
+       "osm_value": "school",
+       "type": "house",
+       "housenumber": "1400",
+       "name": "The Stadium School",
+       "street": "Exeter Hall Avenue",
+       "locality": "Coldstream-Homestead-Montebello",
+       "city": "Baltimore",
+       "state": "MD",
+       "country": "United States",
+       "postcode": "21218",
+       "countrycode": "US",
+       "extent": [
+        -76.6030968,
+        39.3223767,
+        -76.601905,
+        39.3213236
+       ]
+      },
+      "geometry": {
+       "type": "Point",
+       "coordinates": [
+        -76.6024926,
+        39.3218477
+       ]
+      }
+     }
+    ]
+   }
+  }
+ },
+ "wp-team|article|The Wyatt Homes Stadium": {
+  "at": 1794330752836,
+  "result": {
+   "ok": true,
+   "value": {
+    "batchcomplete": "",
+    "continue": {
+     "sroffset": 1,
+     "continue": "-||"
+    },
+    "query": {
+     "searchinfo": {
+      "totalhits": 2426
+     },
+     "search": [
+      {
+       "ns": 0,
+       "title": "Wimborne Town F.C.",
+       "pageid": 3738062,
+       "size": 15819,
+       "wordcount": 1736,
+       "snippet": "Hospital. <span class=\"searchmatch\">The</span> new ground is owned by <span class=\"searchmatch\">the</span> local council and <span class=\"searchmatch\">the</span> club have a long lease from them. <span class=\"searchmatch\">The</span> ground was renamed <span class=\"searchmatch\">the</span> <span class=\"searchmatch\">Wyatt</span> <span class=\"searchmatch\">Homes</span> <span class=\"searchmatch\">Stadium</span> for <span class=\"searchmatch\">the</span> 2024/25",
+       "timestamp": "2026-11-10T14:47:07Z"
+      }
+     ]
+    }
+   }
+  }
  }
 }
