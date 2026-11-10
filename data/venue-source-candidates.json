@@ -1,6 +1,6 @@
 {
- "source": "field-archive D1 cc49101c, regular_season_games + postseason_games, date >= 2026-07-01, sport not NBA/NHL, queried 2026-10-22; minus src/Venues.fs table names, indoor arenas, placeholders, and WNBA arenas",
- "count": 442,
+ "source": "field-archive D1 cc49101c, regular_season_games + postseason_games, date >= 2026-07-01, sport not NBA/NHL, queried 2026-10-22; minus src/Venues.fs table names, indoor arenas, placeholders, and WNBA arenas; extended 2026-11-10 with 17 venues the archive gained since (outbox/venue-candidates-gained-2026-11-10.json: same window and sports, no row created before 2026-10-22; not a table row at b1e02da; not already listed)",
+ "count": 459,
  "candidates": [
   {
    "venue": "AESSEAL New York Stadium",
@@ -57,6 +57,13 @@
    "home": "Wycombe",
    "games": 3,
    "last": "2026-10-06"
+  },
+  {
+   "venue": "Aggborough Stadium",
+   "sports": "FA Cup",
+   "home": "Kid'minster",
+   "games": 1,
+   "last": "2026-11-07"
   },
   {
    "venue": "Aggie Memorial Stadium",
@@ -360,6 +367,13 @@
    "last": "2026-10-16"
   },
   {
+   "venue": "Brunton Park",
+   "sports": "FA Cup",
+   "home": "Carlisle",
+   "games": 1,
+   "last": "2026-11-07"
+  },
+  {
    "venue": "Bryant-Denny Stadium",
    "sports": "CFB",
    "home": "Alabama",
@@ -498,6 +512,13 @@
    "home": "Coventry",
    "games": 4,
    "last": "2026-10-12"
+  },
+  {
+   "venue": "Crabble Athletic Ground",
+   "sports": "FA Cup",
+   "home": "Dover",
+   "games": 1,
+   "last": "2026-11-07"
   },
   {
    "venue": "Crown Oil Arena",
@@ -738,6 +759,13 @@
    "last": "2026-10-19"
   },
   {
+   "venue": "EnviroVent Stadium",
+   "sports": "FA Cup",
+   "home": "Harrogate",
+   "games": 1,
+   "last": "2026-11-07"
+  },
+  {
    "venue": "Estadi Ciutat de València",
    "sports": "La Liga",
    "home": "Levante",
@@ -932,6 +960,13 @@
    "home": "FAU",
    "games": 3,
    "last": "2026-10-03"
+  },
+  {
+   "venue": "Flamingo Park",
+   "sports": "FA Cup",
+   "home": "Cray",
+   "games": 1,
+   "last": "2026-11-08"
   },
   {
    "venue": "Folsom Field",
@@ -1158,6 +1193,13 @@
    "last": "2026-09-22"
   },
   {
+   "venue": "Hornchurch Stadium",
+   "sports": "FA Cup",
+   "home": "Hornchurh",
+   "games": 1,
+   "last": "2026-11-07"
+  },
+  {
    "venue": "Hornet Stadium",
    "sports": "CFB",
    "home": "Sacramento St",
@@ -1226,6 +1268,13 @@
    "home": "Larne",
    "games": 1,
    "last": "2026-08-27"
+  },
+  {
+   "venue": "J. Davidson Stadium",
+   "sports": "FA Cup",
+   "home": "Altrincham",
+   "games": 1,
+   "last": "2026-11-07"
   },
   {
    "venue": "JMA Wireless Dome",
@@ -1557,6 +1606,13 @@
    "last": "2026-08-27"
   },
   {
+   "venue": "Manadon Sports Hub",
+   "sports": "FA Cup",
+   "home": "Plymouth",
+   "games": 1,
+   "last": "2026-11-09"
+  },
+  {
    "venue": "Mansfield Stadium",
    "sports": "MLS",
    "home": "FC Dallas",
@@ -1604,6 +1660,13 @@
    "home": "Notts County",
    "games": 2,
    "last": "2026-10-13"
+  },
+  {
+   "venue": "Meadow Park",
+   "sports": "FA Cup",
+   "home": "Boreham Wood",
+   "games": 1,
+   "last": "2026-11-07"
   },
   {
    "venue": "Medinah CC (No. 3)",
@@ -1758,6 +1821,13 @@
    "home": "Navy",
    "games": 2,
    "last": "2026-10-10"
+  },
+  {
+   "venue": "Nethermoor Park",
+   "sports": "FA Cup",
+   "home": "Guiseley",
+   "games": 1,
+   "last": "2026-11-07"
   },
   {
    "venue": "New Balance Arena",
@@ -2017,6 +2087,13 @@
    "home": "Galatasaray",
    "games": 1,
    "last": "2026-10-13"
+  },
+  {
+   "venue": "RAW Charging Stadium",
+   "sports": "FA Cup",
+   "home": "Oxford City",
+   "games": 1,
+   "last": "2026-11-06"
   },
   {
    "venue": "RCDE Stadium",
@@ -2306,6 +2383,13 @@
    "last": "2026-10-09"
   },
   {
+   "venue": "Silverlake Stadium",
+   "sports": "FA Cup",
+   "home": "Eastleigh",
+   "games": 1,
+   "last": "2026-11-07"
+  },
+  {
    "venue": "Simmons Bank Liberty Stadium",
    "sports": "CFB",
    "home": "Memphis",
@@ -2444,6 +2528,13 @@
    "home": "Marseille",
    "games": 4,
    "last": "2026-10-15"
+  },
+  {
+   "venue": "Stade de France",
+   "sports": "NFL",
+   "home": "Saints",
+   "games": 1,
+   "last": "2026-10-25"
   },
   {
    "venue": "Stade de Tourbillon",
@@ -2747,6 +2838,13 @@
    "last": "2026-08-18"
   },
   {
+   "venue": "The Kassam Stadium",
+   "sports": "FA Cup,EFL Trophy",
+   "home": "Oxford Utd",
+   "games": 2,
+   "last": "2026-11-10"
+  },
+  {
    "venue": "The MKM Stadium",
    "sports": "EPL",
    "home": "Hull",
@@ -2754,11 +2852,32 @@
    "last": "2026-10-11"
   },
   {
+   "venue": "The Raymond McEnhill Stadium",
+   "sports": "FA Cup",
+   "home": "Salisbury",
+   "games": 1,
+   "last": "2026-11-07"
+  },
+  {
    "venue": "The Renaissance Club",
    "sports": "golf",
    "home": "Genesis Scottish Open",
    "games": 5,
    "last": "2026-07-13"
+  },
+  {
+   "venue": "The Stan Robinson Stadium",
+   "sports": "FA Cup",
+   "home": "Stafford",
+   "games": 1,
+   "last": "2026-11-08"
+  },
+  {
+   "venue": "The Wyatt Homes Stadium",
+   "sports": "FA Cup",
+   "home": "Wimborne",
+   "games": 1,
+   "last": "2026-11-08"
   },
   {
    "venue": "Tiger Stadium (LA)",

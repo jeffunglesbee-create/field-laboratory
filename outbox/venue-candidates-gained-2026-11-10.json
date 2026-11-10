@@ -1,0 +1,27 @@
+{
+ "what": "Venues in the archive window of data/venue-source-candidates.json that had no archive row created before 2026-10-22, the day the list was built: the grounds the archive gained since. The rows are the connector's own, unedited; the SQL is below. docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3.",
+ "database": "field-archive cc49101c-0569-4d41-8e7a-be139cde4f26, through the Cloudflare D1 connector (read-only SELECT)",
+ "queried": "2026-11-10",
+ "sql": "SELECT venue, COUNT(*) AS games, MIN(date) AS first_date, MAX(date) AS last, MIN(created_at) AS first_created, group_concat(DISTINCT sport) AS sports, group_concat(DISTINCT home) AS homes FROM (SELECT venue, sport, home, date, created_at FROM regular_season_games UNION ALL SELECT venue, sport, home, date, created_at FROM postseason_games) WHERE date >= '2026-07-01' AND sport NOT IN ('NBA','NHL') AND venue IS NOT NULL AND venue <> '' GROUP BY venue HAVING SUM(CASE WHEN created_at < '2026-10-22' THEN 1 ELSE 0 END) = 0 ORDER BY venue",
+ "d1_meta": { "rows_read": 9175, "sql_duration_ms": 17.3275, "served_by": "v3-prod" },
+ "rows": [
+  { "venue": "Aggborough Stadium", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:44", "sports": "FA Cup", "homes": "Kid'minster" },
+  { "venue": "Brunton Park", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:41", "sports": "FA Cup", "homes": "Carlisle" },
+  { "venue": "Crabble Athletic Ground", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:43", "sports": "FA Cup", "homes": "Dover" },
+  { "venue": "EnviroVent Stadium", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:44", "sports": "FA Cup", "homes": "Harrogate" },
+  { "venue": "Flamingo Park", "games": 1, "first_date": "2026-11-08", "last": "2026-11-08", "first_created": "2026-11-08 10:00:33", "sports": "FA Cup", "homes": "Cray" },
+  { "venue": "Hornchurch Stadium", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:39", "sports": "FA Cup", "homes": "Hornchurh" },
+  { "venue": "J. Davidson Stadium", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:47", "sports": "FA Cup", "homes": "Altrincham" },
+  { "venue": "Manadon Sports Hub", "games": 1, "first_date": "2026-11-09", "last": "2026-11-09", "first_created": "2026-11-09 10:00:40", "sports": "FA Cup", "homes": "Plymouth" },
+  { "venue": "Meadow Park", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:40", "sports": "FA Cup", "homes": "Boreham Wood" },
+  { "venue": "Merkur Spiel-Arena", "games": 1, "first_date": "2026-10-22", "last": "2026-10-22", "first_created": "2026-10-22 10:00:45", "sports": "UEFA Europa League", "homes": "Union SG" },
+  { "venue": "Nethermoor Park", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:44", "sports": "FA Cup", "homes": "Guiseley" },
+  { "venue": "RAW Charging Stadium", "games": 1, "first_date": "2026-11-06", "last": "2026-11-06", "first_created": "2026-11-07 01:30:24", "sports": "FA Cup", "homes": "Oxford City" },
+  { "venue": "Silverlake Stadium", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:43", "sports": "FA Cup", "homes": "Eastleigh" },
+  { "venue": "Stade de France", "games": 1, "first_date": "2026-10-25", "last": "2026-10-25", "first_created": "2026-10-25 10:00:43", "sports": "NFL", "homes": "Saints" },
+  { "venue": "The Kassam Stadium", "games": 2, "first_date": "2026-11-07", "last": "2026-11-10", "first_created": "2026-11-07 10:00:46", "sports": "FA Cup,EFL Trophy", "homes": "Oxford Utd" },
+  { "venue": "The Raymond McEnhill Stadium", "games": 1, "first_date": "2026-11-07", "last": "2026-11-07", "first_created": "2026-11-07 10:00:47", "sports": "FA Cup", "homes": "Salisbury" },
+  { "venue": "The Stan Robinson Stadium", "games": 1, "first_date": "2026-11-08", "last": "2026-11-08", "first_created": "2026-11-08 10:00:33", "sports": "FA Cup", "homes": "Stafford" },
+  { "venue": "The Wyatt Homes Stadium", "games": 1, "first_date": "2026-11-08", "last": "2026-11-08", "first_created": "2026-11-08 10:00:34", "sports": "FA Cup", "homes": "Wimborne" }
+ ]
+}
