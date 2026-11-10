@@ -4,8 +4,9 @@ Rule 73 context for every claim: times are UTC and come from the quoted lines; t
 2026-11-10 slate (33 distinct venue names, 16 of them grounds the table knows). Behaviour is stated only where a log or a response shows it; where a reading of the code is offered it says so. The cause of the inconsistent payloads
 is NOT established (section 6).
 
-Assembled by a script from saved run logs and run listings. The script is not committed: its inputs are job logs, and the API already answers HTTP 410 (expired) for 9 of the logs this
-file needed (section 5). Quoted lines are verbatim from the log named beside them; the counts can be re-derived with the commands at the end while the logs are served.
+Assembled by a script from saved run logs and run listings. The script is not committed: its inputs are job logs, and the API already answers HTTP 410 (expired) for 11 of the logs this
+file needed (9 of live-check's render-step logs and 2 of verify's weather-step logs, section 5). Quoted lines are verbatim from the log named beside them; the counts can be re-derived with the
+commands at the end while the logs are served.
 
 1. THE FAILURE
    verify run 42863538303 (head faa831d), attempt 1, job 129995709243, step 95 "Render check against the LIVE slate", 17:22:45Z to 17:23:08Z.
