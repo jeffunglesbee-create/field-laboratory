@@ -2229,5 +2229,32 @@
         "withDraw": 0
       }
     }
+  },
+  {
+    "date": "2026-11-10",
+    "source": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-10",
+    "at": "2026-11-10T19:33:41.540Z",
+    "sports": {
+      "NBA": {
+        "rows": 6,
+        "withOdds": 6,
+        "withDraw": 0
+      },
+      "NHL": {
+        "rows": 7,
+        "withOdds": 7,
+        "withDraw": 0
+      },
+      "EFL Trophy": {
+        "rows": 17,
+        "withOdds": 0,
+        "withDraw": 0
+      },
+      "CFB": {
+        "rows": 3,
+        "withOdds": 3,
+        "withDraw": 0
+      }
+    }
   }
 ]
