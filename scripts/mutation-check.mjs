@@ -14085,6 +14085,13 @@ if (writesBaseline(ONLY, subsetIds)) {
     `expectation(s) of the full suite, and the artifact is the full run's`)
 }
 
+// NAMED NOW, NOT ONLY AT THE SUMMARY. The check below prints when the run summarizes, and a fatal()
+// between here and there (the build driver not starting, measured 2026-11-11 on runs 42964147134 and
+// 42967615166) ends the process first: both runs said `9 failing` and `10 failing` and named none.
+for (const r of baselineResults.filter(r => !r.passed && !r.notApplicable)) {
+  console.log(`  baseline FAILING: $ ${r.cmd}  (exit ${r.status})`)
+  for (const l of String(r.tail || '').split('\n').slice(-12)) console.log(`      ${l}`)
+}
 check('the unmutated tree passes every expectation',
   baselineFailures.length === 0,
   `${baselineFailures.length} of ${distinctExpects.length} distinct expectation(s) ` +

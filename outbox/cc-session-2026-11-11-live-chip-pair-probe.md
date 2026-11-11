@@ -64,3 +64,30 @@ shape, for whoever can dispatch.
 
 The scored gate (`verify-full`, needs .NET and a browser) and the live run, then the three answers
 under Task 1 in the CC-CMD.
+
+## The gate went red for a reason outside this branch, and the harness hid which expectations failed
+
+verify-full run 42964147134 (this branch, 116bb3c) and run 42967615166 (another session's
+pipes-guard, without this commit) failed the same way: a mutation shard's baseline reported
+`9 failing` / `10 failing` expectations on the unmutated tree, then `the build driver did not start:
+the watched initial compile (101c68b36acaf790) is not the build that was there (...)`. The full job
+scored 510/530 with the mutation row the only failure. Same runner image, runner, node, dotnet and
+Fable as the last green gate (42947403479, aa71d3a, 02:38Z), and main gained no source change since.
+Locally (no network, served build) shard 6's 36 expectations: 34 pass, 2 crash on this sandbox's
+Playwright path.
+
+Neither log names the failing commands: `mutation-check.mjs` records them only in a check printed at
+the summary, and the driver failure calls `fatal()` first. Branch `gate-baseline-names` prints each
+failing baseline command and its output tail immediately after the baseline line (7 lines), proved
+here: one mutation whose expectation fails in this sandbox now prints
+`baseline FAILING: $ node scripts/lineups-render-check.mjs (exit 1)` before the driver starts;
+`--anchors` reads 0 stale. It is dispatched as a diagnostic gate after the other session's run ends.
+
+**Cause, found by the other session and confirmed here from the shard 6 log (lines 230, 258, 261):**
+not anything live, as I had suspected. The shard's first build hit Fable's known internal error
+(`Thoth.Json.10.5.1/Types.fs(33,1) ... Object reference not set to an instance of an object`), and
+the repeat printed `Skipped compilation because all generated files are up-to-date!` and
+`build: worked after 1 repeat(s)`: it trusted the crashed output, so the baseline ran against a
+broken build/ and the driver's digest check fired. Fixed on main in 4f0da01 (`build/` is cleared
+before each repeat). With that base, this branch's gate (verify-full 43020056001 on 7ee50ba) scored
+530/530 and landed on main by fast-forward (5f1ace27).
