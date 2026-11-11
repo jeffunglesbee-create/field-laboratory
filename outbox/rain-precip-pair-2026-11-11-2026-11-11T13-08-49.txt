@@ -1,0 +1,11 @@
+checked 67 of 120 expected samples
+VERDICT: not-observable-dry
+slate 2026-11-11; 4 ground(s) x 30 round(s) every 60s; 2026-11-11T13:08:49.170Z to 2026-11-11T13:38:00.582Z
+per-request rate of rain > precipitation + 0.001: 0 of 67 read responses (0.00%)
+wet at the start: no; wet samples overall: 0
+
+ground                                   read  violations  flips
+Oakwell                                    13           0      0
+Scheumann Stadium                          13           0      0
+Kelly/Shorts Stadium                       18           0      0
+Glass Bowl                                 23           0      0

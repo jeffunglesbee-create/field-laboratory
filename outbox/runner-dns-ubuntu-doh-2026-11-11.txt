@@ -1,0 +1,77 @@
+checked 14 of 14 URLs in 2 probe runs: 13 answered HTTP 200 (their DNS Status is in the JSON), 1 was unreachable (Quad9, a 30 s timeout, which says nothing about DNS). One resolver (Google Public DNS), one vantage (a GitHub runner), 2026-11-11 16:33Z and 16:34Z.
+
+Why the Ubuntu mirror names do not resolve on the runners: what Google Public DNS says when asked from a runner.
+docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, item 7 of 'What was measured'.
+
+METHOD: probe-url.yml dispatched by hand with DNS-over-HTTPS JSON URLs (https://dns.google/resolve?name=...&type=A). That workflow prints the HTTP code, the size and the first 400 bytes of each answer
+and exits red if any URL is non-2xx or unreachable; DoH answers 200 for a failed lookup, so the DNS verdict is the Status field in the JSON (0 NOERROR, 2 SERVFAIL, 3 NXDOMAIN), not the run's colour.
+Run 1 (43059481392, job 130657811902) concluded success; run 2 (43059656512, job 130658433176) concluded failure only because of the Quad9 timeout.
+In run 2 the names `nx-$RANDOM` were built by the workflow's shell, so each is a name no cache can hold and a resolver has to ask the zone's name servers. The number in each is printed with the GET line.
+cd=1 asks the resolver not to validate DNSSEC; the CD field of the answer echoes it.
+Below, every GET / RESULT / JSON line is copied from the job logs (the Probe step) without editing.
+
+== RUN 1: 43059481392, dispatched 2026-11-11T16:33:21Z
+GET https://dns.google/resolve?name=archive.ubuntu.com&type=A
+  RESULT: HTTP 200, 987 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"archive.ubuntu.com.","type":1}],"Answer":[{"name":"archive.ubuntu.com.","type":1,"TTL":32,"data":"185.125.190.81"},{"name":"archive.ubuntu.com.","type":1,"TTL":32,"data":"91.189.92.23"},{"name":"archive.ubuntu.com.","type":1,"TTL":32,"data":"91.189.91.83"},{"name":"archive.ubuntu.com.","type":1,"TTL":32,"data":"9
+GET https://dns.google/resolve?name=archive.ubuntu.com&type=A&cd=1
+  RESULT: HTTP 200, 117 bytes
+{"Status":2,"TC":false,"RD":true,"RA":true,"AD":false,"CD":true,"Question":[{"name":"archive.ubuntu.com.","type":1}]}
+GET https://dns.google/resolve?name=security.ubuntu.com&type=A
+  RESULT: HTTP 200, 311 bytes
+{"Status":2,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"security.ubuntu.com.","type":1}],"Comment":"Resolution failure. Please check https://intodns.com/security.ubuntu.com","extended_dns_errors":[{"info_code":22,"extra_text":"At delegation ubuntu.com for security.ubuntu.com/a"}]}
+GET https://dns.google/resolve?name=azure.archive.ubuntu.com&type=A
+  RESULT: HTTP 200, 460 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"azure.archive.ubuntu.com.","type":1}],"Answer":[{"name":"azure.archive.ubuntu.com.","type":5,"TTL":27,"data":"ubuntu-archive-asm.trafficmanager.net."},{"name":"ubuntu-archive-asm.trafficmanager.net.","type":5,"TTL":150,"data":"cloud-mirror-lb.centralus.cloudapp.azure.com."},{"name":"cloud-mirror-lb.centralus.clou
+GET https://dns.google/resolve?name=ubuntu.com&type=NS
+  RESULT: HTTP 200, 337 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"ubuntu.com.","type":2}],"Answer":[{"name":"ubuntu.com.","type":2,"TTL":13623,"data":"ns1.canonical.com."},{"name":"ubuntu.com.","type":2,"TTL":13623,"data":"ns2.canonical.com."},{"name":"ubuntu.com.","type":2,"TTL":13623,"data":"ns3.canonical.com."}]}
+GET https://dns.google/resolve?name=github.com&type=A
+  RESULT: HTTP 200, 223 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"github.com.","type":1}],"Answer":[{"name":"github.com.","type":1,"TTL":60,"data":"140.82.114.4"}],"Comment":"Response from 198.51.44.8."}
+Cleaning up orphan processes
+
+== RUN 2: 43059656512, dispatched 2026-11-11T16:34:25Z
+GET https://dns.google/resolve?name=nx-8455.ubuntu.com&type=A
+  RESULT: HTTP 200, 296 bytes
+{"Status":2,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"nx-8455.ubuntu.com.","type":1}],"Comment":"All name servers for zone unresponsive (no query sent).","extended_dns_errors":[{"info_code":23,"extra_text":"No response received from name servers for ubuntu.com"}]}
+GET https://dns.google/resolve?name=nx-25669.ubuntu.com&type=A
+  RESULT: HTTP 200, 119 bytes
+{"Status":2,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"nx-25669.ubuntu.com.","type":1}]}
+GET https://dns.google/resolve?name=nx-28016.canonical.com&type=A
+  RESULT: HTTP 200, 310 bytes
+{"Status":2,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"nx-28016.canonical.com.","type":1}],"Comment":"Name servers did not respond [185.125.190.66, 185.125.190.65].","extended_dns_errors":[{"info_code":22,"extra_text":"At delegation canonical.com for nx-28016.canonical.com/a"}]}
+GET https://dns.google/resolve?name=nx-15809.github.com&type=A
+  RESULT: HTTP 200, 301 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"nx-15809.github.com.","type":1}],"Authority":[{"name":"github.com.","type":6,"TTL":1800,"data":"dns1.p08.nsone.net. hostmaster.nsone.net. 1656468023 43200 7200 1209600 3600"}],"Comment":"Response from 198.51.45.8."}
+GET https://dns.google/resolve?name=security.ubuntu.com&type=A&cd=1
+  RESULT: HTTP 200, 1080 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":true,"Question":[{"name":"security.ubuntu.com.","type":1}],"Answer":[{"name":"security.ubuntu.com.","type":1,"TTL":18,"data":"91.189.90.13"},{"name":"security.ubuntu.com.","type":1,"TTL":18,"data":"185.125.190.83"},{"name":"security.ubuntu.com.","type":1,"TTL":18,"data":"91.189.92.23"},{"name":"security.ubuntu.com.","type":1,"TTL":18,"data
+GET https://dns.google/resolve?name=archive.ubuntu.com&type=A&cd=1
+  RESULT: HTTP 200, 986 bytes
+{"Status":0,"TC":false,"RD":true,"RA":true,"AD":false,"CD":true,"Question":[{"name":"archive.ubuntu.com.","type":1}],"Answer":[{"name":"archive.ubuntu.com.","type":1,"TTL":19,"data":"91.189.91.81"},{"name":"archive.ubuntu.com.","type":1,"TTL":19,"data":"91.189.90.11"},{"name":"archive.ubuntu.com.","type":1,"TTL":19,"data":"91.189.91.82"},{"name":"archive.ubuntu.com.","type":1,"TTL":19,"data":"91.1
+GET https://dns.google/resolve?name=ns1.canonical.com&type=A
+  RESULT: HTTP 200, 300 bytes
+{"Status":2,"TC":false,"RD":true,"RA":true,"AD":false,"CD":false,"Question":[{"name":"ns1.canonical.com.","type":1}],"Comment":"Name servers did not respond [185.125.190.65, 185.125.190.66].","extended_dns_errors":[{"info_code":22,"extra_text":"At delegation canonical.com for ns1.canonical.com/a"}]}
+GET https://dns.quad9.net:5053/dns-query?name=security.ubuntu.com&type=A
+  RESULT: unreachable — curl: (28) Connection timed out after 30002 milliseconds
+##[error]Process completed with exit code 1.
+Cleaning up orphan processes
+
+== WHAT THESE 13 ANSWERS SHOW (Google Public DNS, asked from a GitHub runner, 16:33Z to 16:35Z)
+1. Within about two minutes Google's resolvers could get an answer from the name servers of ubuntu.com for some lookups and not for others.
+   security.ubuntu.com, validation on: SERVFAIL, "At delegation ubuntu.com" (extended error 22). The same name with validation off, in the next run (dispatched 64 s after the first): NOERROR with addresses.
+   archive.ubuntu.com, validation off: SERVFAIL in run 1 and NOERROR in run 2. Two names no cache can hold (nx-8455 and nx-25669 under ubuntu.com): both SERVFAIL, one with
+   "All name servers for zone unresponsive (no query sent)" (extended error 23, "No response received from name servers for ubuntu.com").
+2. canonical.com, the zone that holds ubuntu.com's name servers (the NS answer for ubuntu.com is ns1, ns2 and ns3.canonical.com): both lookups made there failed (2 of 2, none answered): a name no cache can hold (nx-28016) and
+   ns1.canonical.com itself, SERVFAIL with "Name servers did not respond [185.125.190.66, 185.125.190.65]" (extended error 22, "At delegation canonical.com").
+3. The controls answer: github.com, and a name no cache can hold under github.com (nx-15809), both NOERROR. So the lookup path from the runner to Google, and Google's resolvers, work.
+4. The failures are not specific to DNSSEC validation: one failed with validation off (archive.ubuntu.com, run 1) and the same kind of query succeeded with it on and off.
+5. azure.archive.ubuntu.com answered NOERROR (a CNAME chain through trafficmanager.net to an Azure load balancer); its TTL was 27 s, so it had been looked up a moment before.
+
+== WHAT THEY DO NOT SHOW
+- That the runner's own resolver fails for the same reason. It was not asked. The runners' curl said "Could not resolve host" for all three mirror names in 6 of 6 probes from 15:44Z to 16:23Z
+  (the loop probes are recorded with the Task 1 result of the CC-CMD), which is what an unreachable zone would produce, and is not proof of it.
+- When it began, whether it is global or particular to the path between Google and Canonical's servers, or when it ends. One resolver, one vantage, two minutes.
+- Which address belongs to which name server: the error text names 185.125.190.65 and .66 for the canonical.com delegation; ns1.canonical.com's own address lookup failed, so the mapping was not read.
+- Quad9's answer: its JSON endpoint on port 5053 timed out from the runner.

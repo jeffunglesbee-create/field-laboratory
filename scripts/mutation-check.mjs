@@ -503,6 +503,45 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // The other ground on that slate with no table row, Manadon Sports Hub, is a hand
+    // row the owner accepted on 2026-11-11 on the evidence in
+    // outbox/venue-manadon-evidence-2026-11-11.txt. Four entries again, one per claim the
+    // row makes: that it exists, its roof, its point and its zone. The point entry moves
+    // the longitude 0.001 degrees, about 71 m east-west: the content check compares the
+    // row to the postcode point through Weather.coordKey, which keeps three decimals.
+    // docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3
+    id: 'venue-manadon-row-deleted',
+    file: 'src/Venues.fs',
+    claim: 'the 2026-11-09 slate keeps its Manadon Sports Hub row',
+    find: '      at "Manadon Sports Hub" 50.4091 -4.1453 OpenAir "Europe/London"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-manadon-roof-covered',
+    file: 'src/Venues.fs',
+    claim: 'Manadon Sports Hub is an open-air row',
+    find: '      at "Manadon Sports Hub" 50.4091 -4.1453 OpenAir "Europe/London"\n',
+    replace: '      at "Manadon Sports Hub" 50.4091 -4.1453 Dome "Europe/London"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-manadon-moved',
+    file: 'src/Venues.fs',
+    claim: 'Manadon Sports Hub is at the point its evidence gives',
+    find: '      at "Manadon Sports Hub" 50.4091 -4.1453 OpenAir "Europe/London"\n',
+    replace: '      at "Manadon Sports Hub" 50.4091 -4.1463 OpenAir "Europe/London"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-manadon-zone-changed',
+    file: 'src/Venues.fs',
+    claim: 'Manadon Sports Hub is declared in the zone its point lies in',
+    find: '      at "Manadon Sports Hub" 50.4091 -4.1453 OpenAir "Europe/London"\n',
+    replace: '      at "Manadon Sports Hub" 50.4091 -4.1453 OpenAir "Europe/Paris"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // The sourced block is generated from the sourcing run's artifact; a row
     // deleted by hand must not pass as a table that still matches it.
     // docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md, stage 4
@@ -15353,6 +15392,13 @@ if (writesBaseline(ONLY, subsetIds)) {
     `expectation(s) of the full suite, and the artifact is the full run's`)
 }
 
+// NAMED NOW, NOT ONLY AT THE SUMMARY. The check below prints when the run summarizes, and a fatal()
+// between here and there (the build driver not starting, measured 2026-11-11 on runs 42964147134 and
+// 42967615166) ends the process first: both runs said `9 failing` and `10 failing` and named none.
+for (const r of baselineResults.filter(r => !r.passed && !r.notApplicable)) {
+  console.log(`  baseline FAILING: $ ${r.cmd}  (exit ${r.status})`)
+  for (const l of String(r.tail || '').split('\n').slice(-12)) console.log(`      ${l}`)
+}
 check('the unmutated tree passes every expectation',
   baselineFailures.length === 0,
   `${baselineFailures.length} of ${distinctExpects.length} distinct expectation(s) ` +

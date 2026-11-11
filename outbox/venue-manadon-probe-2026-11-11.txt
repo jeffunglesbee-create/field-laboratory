@@ -1,0 +1,116 @@
+Runner probes for the Manadon Sports Hub hand row, 2026-11-11.
+docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3 ("Manadon Sports Hub approved", 2026-11-11 09:50 ET).
+
+Workflow: .github/workflows/probe-url.yml, dispatched from the session through the REST API (gh api -X POST
+.../actions/workflows/probe-url.yml/dispatches). For each URL it prints the HTTP status, the byte count and the FIRST
+400 BYTES of the answer, so every body below is cut at 400 bytes. curl's default User-Agent is sent; the workflow
+cannot set another. Each probe below is that workflow's "Probe" step, verbatim, with only the runner's per-line
+timestamp removed. The session's own shell got no HTTP answer (curl status 000) from api.postcodes.io,
+nominatim.openstreetmap.org or api.open-meteo.com when tried on 2026-11-11, which is why these ran on a runner.
+
+Probes 1 and 2 ended red by the workflow's own rule (a URL that answers non-2xx, or does not answer, fails the run).
+In probe 1 the URL that did it is overpass-api.de (HTTP 406 Not Acceptable); in probe 2 it is overpass.kumi.systems
+(no answer in 30 s). Neither is a repository CI run. The Overpass query was therefore never answered, and what
+OpenStreetMap says about the hub rests on the Nominatim and Photon answers below and nothing else.
+
+#### PROBE 1: run 43043341528, job 130600662181, dispatched 2026-11-11T14:56:24Z, concluded failure
+==============================================================
+GET https://nominatim.openstreetmap.org/search?q=Manadon+Sports+and+Community+Hub&format=jsonv2&limit=3
+  RESULT: HTTP 200, 2 bytes
+  --- first 400 bytes ---
+[]
+==============================================================
+GET https://api.postcodes.io/postcodes/PL5%203FD
+  RESULT: HTTP 200, 1873 bytes
+  --- first 400 bytes ---
+{"status":200,"result":{"postcode":"PL5 3FD","quality":1,"eastings":247660,"northings":58786,"country":"England","nhs_ha":"South West","longitude":-4.145326,"latitude":50.40913,"european_electoral_region":"South West","primary_care_trust":"Plymouth Teaching","region":"South West","lsoa":"Plymouth 007B","msoa":"Plymouth 007","incode":"3FD","outcode":"PL5","parliamentary_constituency":"Plymouth Moor
+==============================================================
+GET https://api.postcodes.io/postcodes/PL5%203JG
+  RESULT: HTTP 200, 1873 bytes
+  --- first 400 bytes ---
+{"status":200,"result":{"postcode":"PL5 3JG","quality":1,"eastings":247631,"northings":58857,"country":"England","nhs_ha":"South West","longitude":-4.145762,"latitude":50.409761,"european_electoral_region":"South West","primary_care_trust":"Plymouth Teaching","region":"South West","lsoa":"Plymouth 007D","msoa":"Plymouth 007","incode":"3JG","outcode":"PL5","parliamentary_constituency":"Plymouth Moo
+==============================================================
+GET https://nominatim.openstreetmap.org/search?postalcode=PL5+3FD&country=gb&format=jsonv2&limit=3
+  RESULT: HTTP 200, 429 bytes
+  --- first 400 bytes ---
+[{"place_id":379133835,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","postcode_id":"Pgb:PL5_3FD","lat":"50.4084706","lon":"-4.1471188","category":"place","type":"postcode","place_rank":23,"importance":0.09334333333333333,"addresstype":"postcode","name":"PL5 3FD","display_name":"PL5 3FD, Plymouth, England, United Kingdom","boundingbox":["50.4021765","50.4147647"
+==============================================================
+GET https://www.wikidata.org/w/api.php?action=wbsearchentities&search=Manadon&language=en&limit=10&format=json
+  RESULT: HTTP 200, 1873 bytes
+  --- first 400 bytes ---
+{"searchinfo":{"search":"Manadon"},"search":[{"id":"Q6746604","title":"Q6746604","pageid":6589797,"concepturi":"http://www.wikidata.org/entity/Q6746604","repository":"wikidata","url":"//www.wikidata.org/wiki/Q6746604","display":{"label":{"value":"Manadon","language":"en"},"description":{"value":"suburb in Plymouth, Devon, England, UK","language":"en"}},"label":"Manadon","description":"suburb in Pl
+==============================================================
+GET https://nominatim.openstreetmap.org/search?street=121+St+Peters+Road&city=Plymouth&country=gb&format=jsonv2&limit=3
+  RESULT: HTTP 200, 1447 bytes
+  --- first 400 bytes ---
+[{"place_id":281689155,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"way","osm_id":1098668770,"lat":"50.4072890","lon":"-4.1486167","category":"highway","type":"tertiary","place_rank":26,"importance":0.05340304341191726,"addresstype":"tertiary","name":"St Peters Road","display_name":"St Peters Road, Manadon, Crownhill, Plymouth, England, PL5 3JH, Un
+==============================================================
+GET https://overpass-api.de/api/interpreter?data=%5Bout%3Acsv(%3A%3Atype%2C%3A%3Aid%2C%3A%3Alat%2C%3A%3Alon%2Cname%2C%22addr%3Ahousenumber%22%2C%22addr%3Astreet%22%2C%22addr%3Apostcode%22%2Cleisure%2Csport%3Btrue%3B%22%7C%22)%5D%5Btimeout%3A25%5D%3B(nwr%5B%22name%22~%22Manadon%22%2Ci%5D%5B%22leisure%22%5D(50.37%2C-4.20%2C50.44%2C-4.09)%3Bnwr%5B%22addr%3Apostcode%22~%22%5EPL5%203(FD%7CJG)%24%22%5D(50.37%2C-4.20%2C50.44%2C-4.09)%3B)%3Bout%20center%3B
+  RESULT: HTTP 406, 156 bytes
+  --- first 400 bytes ---
+<html>
+<head><title>406 Not Acceptable</title></head>
+<body>
+<center><h1>406 Not Acceptable</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
+  ^ non-2xx
+==============================================================
+GET https://photon.komoot.io/api/?q=Manadon+Sports+and+Community+Hub&limit=3
+  RESULT: HTTP 200, 1432 bytes
+  --- first 400 bytes ---
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"W","osm_id":133392842,"osm_key":"leisure","osm_value":"sports_centre","type":"house","name":"Academy Sports and Community Hub","street":"Mallusk Road","district":"Hyde Park","city":"Antrim and Newtownabbey District","county":"County Antrim","state":"Northern Ireland","country":"United Kingdom","postcode":"BT36 4QE"
+##[error]Process completed with exit code 1.
+#### END OF PROBE 1
+
+#### PROBE 2: run 43043700916, job 130601961078, dispatched 2026-11-11T14:58:41Z, concluded failure
+==============================================================
+GET https://nominatim.openstreetmap.org/reverse?lat=50.40913&lon=-4.145326&zoom=18&format=jsonv2
+  RESULT: HTTP 200, 712 bytes
+  --- first 400 bytes ---
+{"place_id":285119701,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"node","osm_id":11071937905,"lat":"50.4091371","lon":"-4.1455026","category":"emergency","type":"defibrillator","place_rank":30,"importance":6.971007858391725e-05,"addresstype":"emergency","name":"","display_name":"St Peters Road, Manadon, Crownhill, Plymouth, England, PL5 3JG, Unite
+==============================================================
+GET https://photon.komoot.io/reverse?lon=-4.145326&lat=50.40913&limit=3
+  RESULT: HTTP 200, 1215 bytes
+  --- first 400 bytes ---
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"W","osm_id":182331918,"osm_key":"highway","osm_value":"tertiary","type":"street","name":"St Peters Road","district":"Manadon","city":"Plymouth","state":"England","country":"United Kingdom","postcode":"PL5 3JG","countrycode":"GB","extent":[-4.146426,50.4097874,-4.1447759,50.4094199]},"geometry":{"type":"Point","coor
+==============================================================
+GET https://overpass.kumi.systems/api/interpreter?data=%5Bout%3Acsv(%3A%3Atype%2C%3A%3Aid%2C%3A%3Alat%2C%3A%3Alon%2Cname%2C%22addr%3Ahousenumber%22%2C%22addr%3Astreet%22%2C%22addr%3Apostcode%22%2Cleisure%2Csport%3Btrue%3B%22%7C%22)%5D%5Btimeout%3A25%5D%3B(nwr%5B%22name%22~%22Manadon%22%2Ci%5D%5B%22leisure%22%5D(50.37%2C-4.20%2C50.44%2C-4.09)%3Bnwr%5B%22addr%3Apostcode%22~%22%5EPL5%203(FD%7CJG)%24%22%5D(50.37%2C-4.20%2C50.44%2C-4.09)%3B)%3Bout%20center%3B
+  RESULT: unreachable — curl: (28) Operation timed out after 30002 milliseconds with 0 bytes received
+==============================================================
+GET https://nominatim.openstreetmap.org/reverse?lat=50.409761&lon=-4.145762&zoom=18&format=jsonv2
+  RESULT: HTTP 200, 723 bytes
+  --- first 400 bytes ---
+{"place_id":284677937,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"way","osm_id":643465450,"lat":"50.4097546","lon":"-4.1457298","category":"building","type":"house","place_rank":30,"importance":6.971007858391725e-05,"addresstype":"building","name":"","display_name":"88, St Peters Road, Manadon, Crownhill, Plymouth, England, PL5 3JG, United Kingdom
+==============================================================
+GET https://api.postcodes.io/postcodes?lon=-4.145326&lat=50.40913&limit=5&radius=250
+  RESULT: HTTP 200, 9405 bytes
+  --- first 400 bytes ---
+{"status":200,"result":[{"postcode":"PL5 3FD","quality":1,"eastings":247660,"northings":58786,"country":"England","nhs_ha":"South West","longitude":-4.145326,"latitude":50.40913,"european_electoral_region":"South West","primary_care_trust":"Plymouth Teaching","region":"South West","lsoa":"Plymouth 007B","msoa":"Plymouth 007","incode":"3FD","outcode":"PL5","parliamentary_constituency":"Plymouth Moo
+==============================================================
+GET https://nominatim.openstreetmap.org/search?q=Manadon&viewbox=-4.17,50.42,-4.12,50.395&bounded=1&format=jsonv2&limit=1
+  RESULT: HTTP 200, 454 bytes
+  --- first 400 bytes ---
+[{"place_id":285043702,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"node","osm_id":1667668965,"lat":"50.4066036","lon":"-4.1414193","category":"place","type":"suburb","place_rank":19,"importance":0.2574973608523206,"addresstype":"suburb","name":"Manadon","display_name":"Manadon, Crownhill, Plymouth, England, PL5 3UA, United Kingdom","boundingbox":[
+==============================================================
+GET https://photon.komoot.io/api/?q=Manadon+Sports+Hub&lat=50.409&lon=-4.145&limit=3
+  RESULT: HTTP 200, 1326 bytes
+  --- first 400 bytes ---
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"osm_type":"N","osm_id":11833901016,"osm_key":"amenity","osm_value":"language_school","type":"house","name":"The Kidslingo Hub","street":"Christian Mill Business Park","locality":"Christian Mill Business Park","district":"Manadon","city":"Plymouth","state":"England","country":"United Kingdom","postcode":"PL6 7PS","countrycode"
+==============================================================
+GET https://nominatim.openstreetmap.org/search?q=sports+centre&viewbox=-4.17,50.42,-4.12,50.395&bounded=1&format=jsonv2&limit=1
+  RESULT: HTTP 200, 501 bytes
+  --- first 400 bytes ---
+[{"place_id":285263218,"licence":"Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright","osm_type":"way","osm_id":1149827447,"lat":"50.4025612","lon":"-4.1539261","category":"leisure","type":"sports_centre","place_rank":30,"importance":6.971007858391725e-05,"addresstype":"leisure","name":"YMCA Plymouth","display_name":"YMCA Plymouth, Honicknowle Lane, Ham, Crownhill, Plymouth, En
+##[error]Process completed with exit code 1.
+#### END OF PROBE 2
+
+#### PROBE 3: run 43044457109, job 130604601530, dispatched 2026-11-11T15:03:12Z, concluded success
+==============================================================
+GET https://api.open-meteo.com/v1/forecast?latitude=50.4091&longitude=-4.1453&current=temperature_2m&timezone=auto
+  RESULT: HTTP 200, 336 bytes
+  --- first 400 bytes ---
+{"latitude":50.408367,"longitude":-4.135742,"generationtime_ms":0.020384788513183594,"utc_offset_seconds":0,"timezone":"Europe/London","timezone_abbreviation":"GMT","elevation":67.0,"current_units":{"time":"iso8601","interval":"seconds","temperature_2m":"°C"},"current":{"time":"2026-11-11T15:00","interval":900,"temperature_2m":11.4}}
+#### END OF PROBE 3

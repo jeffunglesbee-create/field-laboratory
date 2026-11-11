@@ -1,0 +1,67 @@
+Printed results of the three commands below, run from the repository root on 2026-11-11 (HEAD at the time: 214ec5ed, with these files uncommitted).
+
+== 1. REPORT: node outbox/venue-manadon-evidence-2026-11-11.mjs
+MANADON SPORTS HUB: where the evidence puts it. Reads outbox/venue-manadon-probe-2026-11-11.txt and outbox/venue-manadon-pages-2026-11-11.txt; no network.
+COVERAGE: parsed 17 of 17 URL blocks (15 answered HTTP 200, 1 HTTP 406, 1 unreachable); 2 of 2 anchored page lines read once each (the council's address, the Active Places grid reference).
+
+THE POINT       PL5 3FD (the council's address for the hub), OS postcode directory through postcodes.io: lat 50.40913, lon -4.145326, E 247660 N 58786, quality 1
+THE BOX         the sourcing rule's 0.02 degrees is about 2224.0 m north-south and 1418.9 m east-west at this latitude (approximate constants, 111200 m a degree of latitude)
+
+FAMILIES that place the hub (the point belongs to family 1; each other source must be inside the box):
+  1. OS postcode directory: the point, and the site's other postcode PL5 3JG (the club's FAQ postcode)   lat 50.409761, lon -4.145762   76.7 m from the point   dLat +0.000631 dLon -0.000436   inside
+  2. Sport England Active Places listing   E 247664.88 N 58727.59   58.6 m from the point   dE +4.9 dN -58.4   inside   (133.8 m from PL5 3JG's centre: it is neither postcode's centre)
+
+NOT COUNTED:
+  Nominatim's postcode point for PL5 3FD   lat 50.4084706, lon -4.1471188   146.7 m from the point (where Nominatim takes GB postcodes from was not established)
+  OpenStreetMap reverse at the point: node 11071937905, emergency/defibrillator, name "", 12.5 m away
+  OpenStreetMap reverse at PL5 3JG: way 643465450, building/house, name ""
+  OpenStreetMap name search "Manadon Sports and Community Hub": []
+  Photon, the same name: "Academy Sports and Community Hub", Northern Ireland (a different place)
+
+ZONE            Open-Meteo at the row's point: Europe/London; its grid cell is lat 50.408367, lon -4.135742, current 2026-11-11T15:00
+THE ROW         at "Manadon Sports Hub" 50.4091 -4.1453 OpenAir "Europe/London"
+
+PASS  the probe file holds 17 URL blocks, each URL once
+PASS  the council's address line carries the postcode the point was taken for
+PASS  postcodes.io answers quality 1 for both postcodes
+PASS  the OS postcode directory's other postcode is inside the sourcing rule's box around the point
+PASS  the Active Places grid reference is inside the sourcing rule's box around the point
+PASS  the Active Places grid reference is neither postcode's centre
+PASS  OpenStreetMap has nothing under the hub's licensed name, and names nothing at the two postcode points
+PASS  Open-Meteo reports Europe/London at the row's point
+
+8/8 checks passed
+(exit 0)
+
+== 2. SELF-TEST: node outbox/venue-manadon-evidence-2026-11-11.mjs --self-test
+PASS  the real files pass every check, so a red below is the doctoring and not the baseline
+PASS  A LOW POSITIONAL QUALITY IS CAUGHT
+PASS  A SECOND POSTCODE 22 KM AWAY IS CAUGHT BY THE BOX
+PASS  AN ACTIVE PLACES POINT 3 KM NORTH IS CAUGHT BY THE BOX
+PASS  AN ACTIVE PLACES POINT THAT IS A POSTCODE CENTRE IS CAUGHT
+PASS  A NAMED OPENSTREETMAP OBJECT UNDER THE HUB NAME IS CAUGHT
+PASS  A DIFFERENT ZONE FROM OPEN-METEO IS CAUGHT
+PASS  A DIFFERENT POSTCODE ON THE COUNCIL'S LINE IS CAUGHT
+PASS  A DUPLICATED ANCHOR IN THE PAGES FILE IS CAUGHT
+PASS  A URL THAT OCCURS TWICE IS CAUGHT
+PASS  A MISSING PROBE BLOCK IS CAUGHT
+PASS  A NON-UNIQUE ANCHOR STOPS THE HARNESS
+PASS  A MUTATION THAT CHANGES NOTHING STOPS THE HARNESS
+PASS  checked 10 of 10 doctorings, each with a unique anchor in the real files
+
+14/14 checks passed
+(exit 0)
+
+== 3. SCRIPT MUTATIONS: node outbox/venue-manadon-evidence-mutations-2026-11-11.mjs
+RED BY THE NAMED CHECK  the harness stops asserting that an anchor is unique  (exit 1; failed: A NON-UNIQUE ANCHOR STOPS THE HARNESS)
+RED BY THE NAMED CHECK  the harness stops asserting that a mutation changed something  (exit 1; failed: A MUTATION THAT CHANGES NOTHING STOPS THE HARNESS)
+RED BY THE NAMED CHECK  the zone check passes whatever Open-Meteo says  (exit 1; failed: A DIFFERENT ZONE FROM OPEN-METEO IS CAUGHT)
+RED BY THE NAMED CHECK  once() accepts a second match  (exit 1; failed: A DUPLICATED ANCHOR IN THE PAGES FILE IS CAUGHT)
+RED BY THE NAMED CHECK  blocks() accepts a URL twice  (exit 1; failed: A URL THAT OCCURS TWICE IS CAUGHT)
+RED BY THE NAMED CHECK  the degree box is 1000 times too wide  (exit 1; failed: A SECOND POSTCODE 22 KM AWAY IS CAUGHT BY THE BOX)
+RED BY THE NAMED CHECK  the Active Places box test ignores north-south  (exit 1; failed: AN ACTIVE PLACES POINT 3 KM NORTH IS CAUGHT BY THE BOX)
+RED BY THE NAMED CHECK  the OpenStreetMap check ignores the name search  (exit 1; failed: A NAMED OPENSTREETMAP OBJECT UNDER THE HUB NAME IS CAUGHT)
+RED BY THE NAMED CHECK  the quality check accepts any quality  (exit 1; failed: A LOW POSITIONAL QUALITY IS CAUGHT)
+
+checked 9 of 9 script mutations; 9 went red by the named check
+(exit 0)

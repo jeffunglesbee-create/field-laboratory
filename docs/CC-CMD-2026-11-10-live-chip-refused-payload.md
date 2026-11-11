@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-10 by CC, found when the verify run for `faa831d` failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED 2026-11-10. Nothing here is built. Task 1 is a measurement and is unblocked but not approved; the choice under "Options" waits on its result and on the owner. The red itself was cleared by re-running the failed job (attempt 2 green; `deploy` run 42867015300 and `live-check` run 42867186531 green). The re-run is not a fix and is recorded here so it cannot read as a quiet pass.
+**Status:** PARTIAL 2026-11-11. Task 1 is approved (owner, 2026-11-11), built and landed (`e23288f`, gate verify-full 43020056001 530/530, on main by fast-forward `5f1ace27`), and run once: the run was `not-observable-dry`, so the three questions are not yet answered. The wet re-run is scheduled for Saturday 2026-11-14 (below, "Run 1"). The choice under "Options" still waits on a wet result and on the owner. The red itself was cleared by re-running the failed job (attempt 2 green; `deploy` run 42867015300 and `live-check` run 42867186531 green). The re-run is not a fix and is recorded here so it cannot read as a quiet pass.
 
 ---
 
@@ -61,6 +61,35 @@ Searched 2026-11-10 by content (`exceeds precipitation`, `did not answer`, `carr
 Open-Meteo is unreachable from the session (403 at the proxy), so this runs on a runner, as `open-meteo-egress-probe.yml` does. A dispatch-only workflow and a script with a `--self-test` and registered mutations, each red by a named check (Rule 90). Imports `forecastUrl` and the venue table from `build/`, so the URL is the page's. Every 60 seconds for 30 minutes it requests every ground of a named slate date, records `time`, `precipitation` and `rain`, and on a violation (`rain` above `precipitation` by more than 0.001) records what a request with `models` set says for the same ground. Whether `current` accepts `models`, and what shape it answers, is the first command run before anything is written (Rule 68). Verdicts, none of them silent: `refusal-observed`, `none-observed-while-wet`, `not-observable-dry` (no ground reads any precipitation at the start; that is "not measured", not a pass).
 
 **Done when:** the samples are in `outbox/` with `checked N of M expected samples` in the file's first line (Rule 91), the verdict is printed in it, and a paragraph under this task answers three things from the file: the per-request rate, whether a location stays inconsistent or flips, and which source supplied `rain` and `precipitation` in each violation. Cost: about 35 runner minutes and no change to `src/`.
+
+### Task 1, run 1 (2026-11-11): dry, not measured
+
+`rain-precip-pair-probe.yml` run 43026392230, slate 2026-11-11, 13:08:49Z to 13:38:00Z,
+`outbox/rain-precip-pair-2026-11-11-2026-11-11T13-08-49.txt` and its `.jsonl` (every raw body):
+
+```
+checked 67 of 120 expected samples
+VERDICT: not-observable-dry
+slate 2026-11-11; 4 ground(s) x 30 round(s) every 60s
+per-request rate of rain > precipitation + 0.001: 0 of 67 read responses (0.00%)
+wet at the start: no; wet samples overall: 0
+```
+
+The four grounds were Oakwell, Scheumann Stadium, Kelly/Shorts Stadium and the Glass Bowl. Every read
+response had 0 for both values, so **the three questions are not answered by this run**: a rate of 0
+on dry readings says nothing about wet ones, no ground had anything to flip, and no violation needed
+attributing.
+
+**Seen, not this task:** 53 of the 120 requests (44%) failed before an answer (`fetch failed`, recorded
+as status 0), spread across the whole half hour (per round: from 0 of 4 to 4 of 4) and across all
+four grounds (7 to 17 each). That is a runner-to-Open-Meteo connection failure rate, not a decoder
+refusal, and the probe kept only `e.message`, not `e.cause`, so its cause is not recorded. Whether it
+is per-host rate limiting, a DNS or IPv6 path, or something else is not known. It is relevant to the
+live-slate step's earlier reds in the 2026-10-17 and 2026-10-20 weather CC-CMDs, and is reported to
+the owner rather than filed, because no cause was measured.
+
+**Run 2:** Saturday 2026-11-14, the full English slate (most kickoffs 15:00 UK), dispatched at 14:20Z so
+the 30 minutes fall before and around kickoff. Scheduled as this session's own follow-up.
 
 ## Options, for the owner, after Task 1
 

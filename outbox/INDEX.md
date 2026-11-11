@@ -12,6 +12,28 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e5acdec` | 2026-11-11 | [runner-dns-ubuntu-doh-2026-11-11.txt](runner-dns-ubuntu-doh-2026-11-11.txt) | docs: what Google Public DNS says about the Ubuntu zone, asked from a runner |
+| `81f4190` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-manadon-mutation-entries-record-2026-11-11.json](venue-manadon-mutation-entries-record-2026-11-11.json) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-manadon-source-mutations-2026-11-11.txt](venue-manadon-source-mutations-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-manadon-zone-geotz-2026-11-11.txt](venue-manadon-zone-geotz-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-slate-check-clauses-2026-11-11.txt](venue-slate-check-clauses-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.mjs](venue-manadon-evidence-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.txt](venue-manadon-evidence-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-mutations-2026-11-11.mjs](venue-manadon-evidence-mutations-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-pages-2026-11-11.txt](venue-manadon-pages-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-probe-2026-11-11.txt](venue-manadon-probe-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `214ec5e` | 2026-11-11 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-11T14:42 [skip ci] |
+| `a739815` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of df59d1f [skip ci] |
+| `aacc1b1` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | fix: the mutation harness names its failing baseline expectations before anything can end the run |
+| `041c81f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: the live-chip probe's first run was dry, so the three questions wait for Saturday's slate |
+| `0fe9630` | 2026-11-11 | [rain-precip-pair-2026-11-11-2026-11-11T13-08-49.jsonl](rain-precip-pair-2026-11-11-2026-11-11T13-08-49.jsonl) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `0fe9630` | 2026-11-11 | [rain-precip-pair-2026-11-11-2026-11-11T13-08-49.txt](rain-precip-pair-2026-11-11-2026-11-11T13-08-49.txt) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `46c4006` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 7ee50ba [skip ci] |
+| `e23288f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | feat: a runner probe samples Open-Meteo's rain against precipitation for a slate's grounds |
+| `4e19734` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the pipes guard and the build-steady fix landed: the gate, the red on the landing commit and why, and the status |
+| `4e19734` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the pipes guard and the build-steady fix landed: the gate, the red on the landing commit and why, and the status |
+| `1eb5177` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1b7df2d` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 41424c9 [skip ci] |
 | `5adffba` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `41424c9` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | fix: the live-shape capture's own block is tested end to end, its two premises are kept apart, and the Full time gap is counted |
