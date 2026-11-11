@@ -328,7 +328,7 @@ const teeAudit = () => {
 }
 
 /**
- * THE BROWSER INSTALL IS NOT AN APT INSTALL, AND IT DOES NOT WAIT FOREVER.
+ * EVERY BROWSER INSTALL RUNS NO APT AND ENDS AFTER AT MOST FIVE MINUTES (THE WORKFLOWS USE THREE).
  *
  * On 2026-11-11 the runners could not resolve the Ubuntu package mirrors for about three hours (docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md). Every
  * `npx playwright install --with-deps chromium` waited ten minutes on apt, which was fetching nine font packages, and failed; the steps after it were skipped,
@@ -354,10 +354,10 @@ export const installTimeoutSeconds = text => {
   const found = []
   const lead = String.raw`(?:^|[;&|(])[ \t]*(?:[A-Za-z_]\w*=\S*[ \t]+)*(?:env[ \t]+(?:[A-Za-z_]\w*=\S*[ \t]+)*)?(?:sudo[ \t]+(?:-\S+[ \t]+)*)?timeout[ \t]+`
   const tail = String.raw`[ \t]+(?:[^\s;&|]+[ \t]+){0,4}?(?:\S*\/)?${PKG}[ \t]+install(?:-deps)?\b`
-  for (const m of text.matchAll(new RegExp(String.raw`${lead}((?:-[ks]\s+\S+\s+|-\S+\s+)*[^\s;&|]+)${tail}`, 'gm'))) {
+  for (const m of text.matchAll(new RegExp(String.raw`${lead}((?:(?:-[ks]|--kill-after|--signal)\s+\S+\s+|-\S+\s+)*[^\s;&|]+)${tail}`, 'gm'))) {
     const toks = m[1].trim().split(/\s+/)
     let i = 0
-    while (i < toks.length - 1 && toks[i].startsWith('-')) i += toks[i] === '-k' || toks[i] === '-s' ? 2 : 1
+    while (i < toks.length - 1 && toks[i].startsWith('-')) i += /^(-k|-s|--kill-after|--signal)$/.test(toks[i]) ? 2 : 1
     const d = /^(\d+(?:\.\d+)?)([smhd]?)$/.exec(toks[i] ?? '')
     if (!d || i !== toks.length - 1) continue
     const seconds = Number(d[1]) * DURATION[d[2]]
@@ -728,6 +728,12 @@ check('install: environment assignments, env, sudo, wrapper words, a path and ; 
     'true; timeout 180 npx playwright install chromium', 'echo x | timeout 180 npx playwright install chromium', 'sudo timeout 180 npx playwright install chromium',
     'timeout -s KILL 180 npx playwright install chromium', 'timeout --signal=KILL 3m npx playwright install chromium' ].every(c => ins('- name: i', `  run: ${c}`)?.bound === 'timeout' && ins('- name: i', `  run: ${c}`)?.seconds === 180),
   'a wrapped or prefixed timeout form was reported as unbounded')
+check('install: a long option with its argument in a separate word (--kill-after 10, --signal KILL) is skipped, and a duration after it is the one read',
+  ins('- name: i', '  run: timeout --kill-after 10 180 npx playwright install chromium')?.seconds === 180
+    && ins('- name: i', '  run: timeout --signal KILL 3m npx playwright install chromium')?.seconds === 180
+    && ins('- name: i', '  run: timeout --kill-after 10 99999 npx playwright install chromium')?.bound === null
+    && ins('- name: i', '  run: timeout --foreground --preserve-status 180 npx playwright install chromium')?.seconds === 180,
+  'the argument of a long option was read as the duration, so a long limit passed as ten seconds')
 check('install: the duration units are seconds, minutes, hours and days, and a decimal count of minutes is read',
   ins('- name: i', '  run: timeout 5m npx playwright install chromium')?.seconds === 300
     && ins('- name: i', '  run: timeout 2.5m npx playwright install chromium')?.seconds === 150
