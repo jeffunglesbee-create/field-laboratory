@@ -138,43 +138,124 @@ export const danglingScheduleGuards = (text) => {
 }
 
 /**
+ * The shell text of a step, read the way bash reads it: returns `{ code, bare }`.
+ *
+ * `code` has comments (a `#` that begins a word, outside quotes) and heredoc bodies removed and keeps quotes: a guard is looked for here, so
+ * `exit "${PIPESTATUS[0]}"` is seen and a comment or a heredoc that SAYS pipefail is not. `bare` is `code` with the inside of every quoted string
+ * emptied, so `echo "a | tee b"` is not a pipe, and an apostrophe in a comment or in heredoc prose cannot pair with a quote on a later line and swallow
+ * a real pipe (the first version blanked quotes with one regular expression and did exactly that: found by review, 2026-11-11).
+ *
+ * NOT READ, and said here so the check's silence is not read as more than it is: a pipe inside `$( )` within double quotes, inside a nested
+ * `sh -c '...'` string, and `$'...'` quoting. A step that needs those writes the convention instead.
+ */
+export const shellViews = script => {
+  const out = []
+  const bare = []
+  const heredocs = [] // { delim, dash } waiting for their closing line
+  let single = false
+  let double = false
+  for (const line of script.split('\n')) {
+    if (heredocs.length && !single && !double) {
+      const h = heredocs[0]
+      if ((h.dash ? line.replace(/^\t+/, '') : line) === h.delim) heredocs.shift()
+      continue
+    }
+    let code = ''
+    let plain = ''
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i]
+      if (single) {
+        code += c
+        if (c === "'") { single = false; plain += c } // the content is dropped from `plain`, the quotes stay
+      } else if (double) {
+        code += c
+        if (c === '\\' && i + 1 < line.length) { code += line[++i] } else if (c === '"') { double = false; plain += c }
+      } else if (c === '\\' && i + 1 < line.length) {
+        code += c + line[i + 1]
+        plain += c + line[i + 1]
+        i++
+      } else if (c === "'") { single = true; code += c; plain += c } else if (c === '"') { double = true; code += c; plain += c } else if (c === '#' && (i === 0 || /\s/.test(line[i - 1]))) {
+        break // a comment to the end of the line
+      } else {
+        if (c === '<' && line[i + 1] === '<' && line[i - 1] !== '<') { // not <<<word, which is a here-string; <<< "x" has no identifier after << and never matches below
+          const m = /^<<(-?)\s*(['"]?)([A-Za-z_][\w]*)\2/.exec(line.slice(i))
+          if (m) heredocs.push({ delim: m[3], dash: m[1] === '-' })
+        }
+        code += c
+        plain += c
+      }
+    }
+    out.push(code)
+    bare.push(plain)
+  }
+  return { code: out.join('\n'), bare: bare.join('\n') }
+}
+
+/**
  * Every `run:` step of a workflow, with the script it runs.
  *
- * Same reading as `jobsOf`: indentation, not YAML. A step starts at a `- key:` line and ends at the next one of the same or a shallower indent;
- * its `run:` is the sibling key at the step's own key indent (a `run:` nested under `with:` is not a step's script). `script` has the
- * comment-only lines of a block scalar removed: a comment that SAYS "pipefail" or "PIPESTATUS" must not read as a guard (the first version of
- * the offline counter did exactly that, and called two fixed steps guarded after their real line was deleted).
+ * Same reading as `jobsOf`: indentation, not YAML. A step is a `- key:` item of a `steps:` list (a matrix `include:` entry with a `run:` key is not one);
+ * it ends at the next item of the same or a shallower indent, or at the first line that dedents out of the list (so the next job's keys are not read
+ * as this step's). Its `run:` is the sibling key at the step's key indent. A block scalar (`|`, `>`), a quoted scalar and a plain scalar that continues
+ * on the next lines are all read to the end; CRLF is normalised.
  */
 export const runStepsOf = text => {
-  const lines = text.split('\n')
+  const lines = text.replace(/\r\n/g, '\n').split('\n')
+  const indentOf = l => /^(\s*)/.exec(l)[1].length
+  const blank = l => l.trim() === '' || /^\s*#/.test(l)
   const starts = []
-  lines.forEach((l, i) => { const m = /^(\s*)- [A-Za-z_-]+:/.exec(l); if (m) starts.push({ i, indent: m[1].length }) })
+  lines.forEach((l, i) => {
+    const m = /^(\s*)- [A-Za-z_-]+:/.exec(l)
+    if (!m) return
+    for (let j = i - 1; j >= 0; j--) {
+      if (blank(lines[j]) || indentOf(lines[j]) >= m[1].length) continue
+      if (/^\s*steps:\s*(#.*)?$/.test(lines[j])) starts.push({ i, indent: m[1].length })
+      break
+    }
+  })
   const steps = []
   starts.forEach((st, k) => {
     let end = lines.length
-    for (let j = k + 1; j < starts.length; j++) if (starts[j].indent <= st.indent) { end = starts[j].i; break }
+    for (let j = st.i + 1; j < lines.length; j++) {
+      if (!blank(lines[j]) && indentOf(lines[j]) < st.indent) { end = j; break }
+      if (j === (starts[k + 1]?.i ?? -1)) { end = j; break }
+    }
     const seg = lines.slice(st.i, end)
     const keyIndent = st.indent + 2
+    const keyLine = (j, key) => (j === 0 ? new RegExp(`^(\\s*)- ${key}:\\s*(.*)$`) : new RegExp(`^(\\s*)${key}:\\s*(.*)$`)).exec(seg[j])
     let runAt = -1
     let value = ''
     for (let j = 0; j < seg.length; j++) {
-      const m = j === 0 ? /^(\s*)- run:\s*(.*)$/.exec(seg[j]) : /^(\s*)run:\s*(.*)$/.exec(seg[j])
+      const m = keyLine(j, 'run')
       if (m && (j === 0 || m[1].length === keyIndent)) { runAt = j; value = m[2]; break }
     }
     if (runAt < 0) return
-    let script = value
+    const continuation = []
+    for (let j = runAt + 1; j < seg.length; j++) {
+      if (seg[j].trim() === '' || indentOf(seg[j]) > keyIndent) continuation.push(seg[j])
+      else break
+    }
+    let script
     if (/^[|>][+-]?\s*(#.*)?$/.test(value)) {
-      const body = []
-      for (let j = runAt + 1; j < seg.length; j++) {
-        if (seg[j].trim() === '' || /^(\s*)/.exec(seg[j])[1].length > keyIndent) body.push(seg[j])
-        else break
-      }
-      script = body.filter(l => !/^\s*#/.test(l)).join('\n')
+      // YAML strips the block's own indentation (the first content line's) before the shell sees the text; a heredoc's closing line only matches without it
+      const first = continuation.find(l => l.trim() !== '')
+      const base = first === undefined ? 0 : indentOf(first)
+      script = continuation.map(l => l.slice(Math.min(base, indentOf(l)))).join('\n') // comment lines are removed by shellViews
+    }
+    else {
+      // plain and quoted scalars fold their continuation lines into one line
+      script = [value, ...continuation.map(l => l.trim())].filter(l => l !== '').join(' ')
+      const q = /^(["'])([\s\S]*)\1\s*(#.*)?$/.exec(script)
+      if (q) script = q[1] === '"' ? q[2].replace(/\\(["\\])/g, '$1') : q[2].replace(/''/g, "'")
     }
     const keyValue = key => {
       for (let j = 0; j < seg.length; j++) {
-        const m = (j === 0 ? new RegExp(`^(\\s*)- ${key}:\\s*(.*?)(?:\\s+#.*)?$`) : new RegExp(`^(\\s*)${key}:\\s*(.*?)(?:\\s+#.*)?$`)).exec(seg[j])
-        if (m && (j === 0 || m[1].length === keyIndent)) return m[2]
+        const m = keyLine(j, key)
+        if (!(m && (j === 0 || m[1].length === keyIndent))) continue
+        let v = m[2].replace(/\s+#.*$/, '').trim()
+        const q = /^(["'])(.*)\1$/.exec(v)
+        if (q) v = q[2]
+        return v
       }
       return null
     }
@@ -183,21 +264,24 @@ export const runStepsOf = text => {
   return steps
 }
 
-/** A quoted span is blanked before the pipe is looked for, so `echo "a | tee b"` is not a pipe. Multi-line quotes (`node -e '...'`) are one span. */
-const blankQuotes = text => text.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, '""')
-
 /**
- * `undefined` if the step does not pipe into `tee`; otherwise what carries the left side's exit status: 'PIPESTATUS', 'pipefail', 'shell', or `null`: nothing.
+ * `undefined` if the step does not pipe into `tee`; otherwise what handles the left side's exit status: 'PIPESTATUS', 'pipefail', 'shell', or `null`: nothing.
  *
  * THE FAILURE IS A GREEN STEP OVER A FAILED SCRIPT. A step with no `shell:` runs `bash -e {0}`, with no pipefail, so in `node script | tee f` the
  * step's status is tee's. A script that throws leaves the step green, and whatever it should have written is whatever the last run left. Measured on a
- * real run (forecast-run.yml:62), reproduced offline on fable-issue-prefill.yml (2026-11-10), and present in nine of 337 steps on 2026-11-11.
- * `||` is not a pipe, `|&` is, and `shell: bash -e {0}` or `shell: sh` is not a guard (an explicit bash adds -o pipefail; those do not).
+ * real run (forecast-run.yml:62), reproduced offline on fable-issue-prefill.yml (2026-11-10), and present in nine of 337 steps on 2026-11-11 (three of
+ * them fixed the same day, the other six by this check).
+ *
+ * WHAT IS TESTED IS TEXT, PER STEP, NOT PER PIPELINE: the step must contain PIPESTATUS, `set ... -o pipefail`, or an explicit `shell: bash` (which adds
+ * -o pipefail) or a shell value that says pipefail, in code that is not a comment or a heredoc. It does not prove the guard reaches EVERY pipe of a step
+ * that has two. `||` is not a pipe, `|&` is, a `sudo`/`command`/path prefix or a backslash-newline before `tee` is still tee, and `shell: bash -e {0}`
+ * and `shell: sh` are not guards. `defaults.run.shell` is not read: a workflow that sets it writes `shell: bash` on the step or uses the convention.
  */
 export const teePipeGuard = step => {
-  if (!/(?<!\|)\|&?\s*tee\b/.test(blankQuotes(step.script))) return undefined
-  if (/\bPIPESTATUS\b/.test(step.script)) return 'PIPESTATUS'
-  if (/\bset\s+(?:-[A-Za-z]+\s+)*-[A-Za-z]*o\s+pipefail\b/.test(step.script)) return 'pipefail'
+  const { code, bare } = shellViews(step.script)
+  if (!/(?<!\|)\|&?[\s\\]*(?:(?:sudo|command|exec|env|time|nice|stdbuf)\s+(?:-\S+\s+)*)?(?:\S*\/)?tee\b/.test(bare)) return undefined
+  if (/\bPIPESTATUS\b/.test(code)) return 'PIPESTATUS'
+  if (/\bset\s+(?:[^\n;|&]*?\s)?-[A-Za-z]*o\s+pipefail\b/.test(code)) return 'pipefail'
   if (step.shell === 'bash' || /\bpipefail\b/.test(step.shell ?? '')) return 'shell'
   return null
 }
@@ -279,7 +363,7 @@ const tee = teeAudit()
 console.log(`Read ${tee.steps} run steps; ${tee.piped} pipe into tee (${Object.entries(tee.byGuard).map(([k, v]) => `${v} by ${k}`).join(', ') || 'none guarded'}; ${tee.unguarded.length} unguarded)\n`)
 check('the tee audit read run steps and found tee pipes, so it is not vacuous', tee.steps > 0 && tee.piped > 0,
   `${tee.steps} run steps read, ${tee.piped} piping into tee: the step reader found nothing`)
-check('no run step pipes into tee without carrying the left side\'s exit status', tee.unguarded.length === 0,
+check('no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell', tee.unguarded.length === 0,
   `${tee.unguarded.length} step(s): under the default shell (bash -e) the step's status is tee's, so a script that throws leaves it green. Add \`exit \${PIPESTATUS[0]}\` after the pipeline, \`set -o pipefail\` before it, or \`shell: bash\` to the step:\n      → ${tee.unguarded.join('\n      → ')}`)
 
 // A guard shown only to pass is half-tested. This replays the exact historical
@@ -396,6 +480,54 @@ check('tee: a run: nested under with: is not a step script',
   flagged('- uses: some/action@v1', '  with:', '    run: node a.mjs | tee f') === 0, 'a with: input named run was read as a script')
 check('tee: steps are counted, with or without a tee',
   runStepsOf(wf('- name: a', '  run: echo 1', '- uses: x/y@v1', '- name: b', '  run: echo 2 | tee f')).length === 2, 'the step reader miscounts')
+
+// The shapes review found (2026-11-11) that the first version got wrong, each with the reading that must now hold.
+const pipeStep = (...lines) => ['- name: p', '  run: |', ...lines.map(l => '    ' + l)]
+check('tee: an apostrophe in a TRAILING comment does not hide a real pipe',
+  flagged(...pipeStep("echo ok # it's fine", 'node a.mjs | tee f', "echo 'done'")) === 1
+    && flagged(...pipeStep('echo ok # say "hi', 'node a.mjs | tee f', 'echo "done"')) === 1,
+  'a quote in a comment paired with a later quote and swallowed the pipe')
+check('tee: heredoc prose with an apostrophe does not hide a real pipe, and a | tee INSIDE heredoc data is not a pipe',
+  flagged(...pipeStep('cat > n.md <<EOF', "it's a note", 'EOF', 'node a.mjs | tee f', "echo 'x'")) === 1
+    && flagged(...pipeStep('cat > n.md <<EOF', 'echo a | tee b', 'EOF')) === 0
+    && flagged(...pipeStep('cat > n.md <<-"EOF"', '\techo a | tee b', '\tEOF', 'echo done')) === 0
+    && flagged(...pipeStep('cat > n.md <<-"EOF"', '\techo a | tee b', '\tEOF', 'node a.mjs | tee f')) === 1
+    && flagged(...pipeStep('cat <<< "a | tee b"')) === 0,
+  'the heredoc reader is wrong')
+check('tee: a pipe after a heredoc has closed is read, and a here-string (<<< "x" and <<<EOF) is not a heredoc',
+  flagged(...pipeStep('cat <<< "x"', 'node a.mjs | tee f')) === 1 && flagged(...pipeStep('cat <<<EOF', 'node a.mjs | tee f')) === 1,
+  'a here-string was read as a heredoc and swallowed the rest')
+check('tee: a double-quoted, a single-quoted and a plain multi-line run scalar are read',
+  flagged('- name: p', '  run: "node a.mjs | tee f"') === 1
+    && flagged('- name: p', "  run: 'node a.mjs | tee f'") === 1
+    && flagged('- name: p', '  run: node a.mjs', '    | tee f') === 1
+    && flagged('- name: p', '  run: "node a.mjs | tee f; exit ${PIPESTATUS[0]}"') === 0,
+  'a YAML scalar form hid the pipe')
+check('tee: set -o errexit -o pipefail (long form) guards',
+  flagged(...pipeStep('set -o errexit -o pipefail', 'node a.mjs | tee f')) === 0, 'the long form was not recognised')
+check('tee: shell: "bash" (quoted) and shell: bash with trailing spaces guard',
+  flagged('- name: p', '  shell: "bash"', '  run: node a.mjs | tee f') === 0 && flagged('- name: p', '  shell: bash   ', '  run: node a.mjs | tee f') === 0,
+  'a quoted or padded bash shell was not recognised')
+check('tee: | sudo tee, | /usr/bin/tee and a backslash-newline before tee are tee pipes',
+  flagged('- name: p', '  run: node a.mjs | sudo tee f') === 1
+    && flagged('- name: p', '  run: node a.mjs | /usr/bin/tee f') === 1
+    && flagged(...pipeStep('node a.mjs |\\', '  tee f')) === 1,
+  'a prefixed or split tee was missed')
+check('tee: a CRLF workflow is read the same as an LF one',
+  unguardedTeePipes(wf(...bare).replace(/\n/g, '\r\n')).length === 1, 'CRLF yielded no steps')
+check('tee: a matrix include entry with a run: key is not a step, and the next job\'s keys are not this step\'s',
+  unguardedTeePipes(['jobs:', '  a:', '    strategy:', '      matrix:', '        include:', '          - run: node a.mjs | tee f',
+    '    steps:', '      - name: ok', '        run: echo hi'].join('\n') + '\n').length === 0
+    && unguardedTeePipes(['jobs:', '  a:', '    steps:', '      - name: p', '        run: node a.mjs | tee f',
+      '  b:', '    defaults:', '      run:', '        shell: bash'].join('\n') + '\n').length === 1,
+  'a matrix entry was read as a step, or a later job bled into the last step')
+check('tee: # inside ${#x} or $# is not a comment',
+  flagged(...pipeStep('echo ${#x} $# | tee f')) === 1, 'a # that does not begin a word was read as a comment')
+check('tee: an escaped quote inside a double-quoted string does not end it',
+  flagged(...pipeStep('echo "a \\" | tee b"')) === 0 && flagged(...pipeStep('echo "a \\"" | tee b')) === 1,
+  'a \\" was read as the end of the string')
+check('tee: the guard is looked for in code only: PIPESTATUS inside a heredoc is not a guard',
+  flagged(...pipeStep('cat > n.md <<EOF', 'exit ${PIPESTATUS[0]}', 'EOF', 'node a.mjs | tee f')) === 1, 'a heredoc body passed for a guard')
 
 finish(summarize())
 

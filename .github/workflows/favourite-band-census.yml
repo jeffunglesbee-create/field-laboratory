@@ -63,8 +63,9 @@ jobs:
           exit ${PIPESTATUS[0]}
 
       - name: Commit the census
-        # always(): a refused census now fails the step above, and its console output is the evidence of why; this step used to run after it
-        # because the step above was green, and it still must.
+        # always(): a refused census now fails the step above. This step used to run after it because the step above was green, and it still must: the
+        # file it commits holds the census's STDOUT (the counts and their denominators, which are what a refused reading needs beside it); the reason for the
+        # refusal (CENSUS VOID, a reading that collapsed) is printed to stderr and is in the step's log, not in the file.
         if: always()
         run: |
           git config user.email "claude@field.dev"

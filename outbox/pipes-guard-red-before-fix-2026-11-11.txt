@@ -1,12 +1,23 @@
+# The final tee check (scripts/workflow-check.mjs at the commit that lands) run over the workflows as they were. RED is the point.
 
-Scanned 60 jobs across 51 workflows
+## .github/workflows at a6b282a: the state the CC-CMD was filed in
+Read 337 run steps; 30 pipe into tee (6 by pipefail, 14 by PIPESTATUS, 1 by shell; 9 unguarded)
+FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
+      → 9 step(s): under the default shell (bash -e) the step's status is tee's, so a script that throws leaves it green. Add `exit ${PIPESTATUS[0]}` after the pipeline, `set -o pipefail` before it, or `shell: bash` to the step:
+      → alternate-colour-probe.yml:52  Probe
+      → alternate-colour-probe.yml:62  Why the remaining cards stay plain
+      → alternate-colour-probe.yml:70  Spellings that resolve to nothing
+      → fable-crash-probe.yml:58  50 builds
+      → fable-crash-probe.yml:91  The table
+      → favourite-band-census.yml:58  Census
+      → mutation-ids-probe.yml:52  What the driver said about each id
+      → open-meteo-egress-probe.yml:51  Probe
+      → verify.yml:257  Fail on any F# compiler warning
+41/42 checks passed
 
+## .github/workflows at f4b6103 (origin/main when this was built; the first three steps already fixed by aa71d3a)
 Read 337 run steps; 30 pipe into tee (6 by pipefail, 17 by PIPESTATUS, 1 by shell; 6 unguarded)
-
-PASS  at least one job was parsed
-PASS  no job runs a build-dependent script without building
-PASS  the tee audit read run steps and found tee pipes, so it is not vacuous
-FAIL  no run step pipes into tee without carrying the left side's exit status
+FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
       → 6 step(s): under the default shell (bash -e) the step's status is tee's, so a script that throws leaves it green. Add `exit ${PIPESTATUS[0]}` after the pipeline, `set -o pipefail` before it, or `shell: bash` to the step:
       → alternate-colour-probe.yml:52  Probe
       → alternate-colour-probe.yml:62  Why the remaining cards stay plain
@@ -14,13 +25,8 @@ FAIL  no run step pipes into tee without carrying the left side's exit status
       → favourite-band-census.yml:58  Census
       → open-meteo-egress-probe.yml:51  Probe
       → verify.yml:257  Fail on any F# compiler warning
-PASS  the detector still catches the original mistake
-PASS  the detector knows the steady build wrapper is a build
-PASS  the detector does not flag a job that does build
-PASS  the detector catches a history reader on a shallow checkout
-PASS  the detector does not flag fetch-depth: 0
-PASS  a guard matching a declared cron is not flagged
-PASS  THE DETECTOR CATCHES A GUARD THAT MATCHES NO CRON
-PASS  a workflow with crons yields them
+41/42 checks passed
 
-11/12 checks passed
+## .github/workflows in the working tree (the fix applied)
+Read 337 run steps; 30 pipe into tee (22 by PIPESTATUS, 7 by pipefail, 1 by shell; 0 unguarded)
+42/42 checks passed
