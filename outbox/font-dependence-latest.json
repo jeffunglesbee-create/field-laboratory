@@ -11,7 +11,7 @@
       "checked": 20,
       "geometryDiffer": 0,
       "fontsDiffer": 0,
-      "pixelsDiffer": 0,
+      "pixelsDiffer": 2,
       "newFonts": []
     },
     "teeth": {
@@ -32,5 +32,9 @@
       "newFonts": []
     }
   },
+  "fallback": [
+    "fallback-text cell (control, the first run against the same again): boxes same, fonts same, pixels same; fonts drawn: {\"DejaVu Sans\":169,\"Noto Color Emoji\":1} -> {\"DejaVu Sans\":169,\"Noto Color Emoji\":1}",
+    "fallback-text cell (treatment, without the nine fonts against with them): boxes same, fonts DIFFER, pixels differ; fonts drawn: {\"DejaVu Sans\":169,\"Noto Color Emoji\":1} -> {\"DejaVu Sans\":135,\"WenQuanYi Zen Hei\":24,\"Loma\":10,\"Noto Color Emoji\":1}"
+  ],
   "treatmentMoved": []
 }

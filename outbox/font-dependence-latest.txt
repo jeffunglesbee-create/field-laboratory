@@ -2,7 +2,10 @@ checked 20 of 20 cells (10 viewports x 2 states); control 0 differ, teeth 20 dif
 VERDICT: fonts-not-needed
 why: with the nine fonts installed no element box or scroll size moved in any of 20 cells, and no font outside the first run's drew a glyph
 apt install of the nine fonts: ok
-pixels: control 0, teeth 20, treatment 0 of 20 cells differ (reported, not decided on)
+pixels: control 2, teeth 20, treatment 0 of 20 cells differ (reported, not decided on)
 fonts that drew glyphs in the treatment and not in the first run: none
 cells whose font usage differs: control 0, teeth 20, treatment 0
+scope: the page ?data=context-2026-08-29 (Latin text drawn in the page's own web fonts) at 10 viewports x 2 states; the next lines say what text the page's faces do not carry would do
+fallback-text cell (control, the first run against the same again): boxes same, fonts same, pixels same; fonts drawn: {"DejaVu Sans":169,"Noto Color Emoji":1} -> {"DejaVu Sans":169,"Noto Color Emoji":1}
+fallback-text cell (treatment, without the nine fonts against with them): boxes same, fonts DIFFER, pixels differ; fonts drawn: {"DejaVu Sans":169,"Noto Color Emoji":1} -> {"DejaVu Sans":135,"WenQuanYi Zen Hei":24,"Loma":10,"Noto Color Emoji":1}
 chromium 151.0.7922.34; url http://localhost:8080/?data=context-2026-08-29
