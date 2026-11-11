@@ -26,3 +26,11 @@ The owner said "go" to build the guard filed after the owed-work check. Built on
 ## What the check does not read (also in the code's comments and the CC-CMD)
 
 A guard is found as TEXT per step, so a step with two pipes and one guard passes; a pipe in `$( )` within double quotes, in a nested `sh -c '...'` string or in `$'...'` is not scanned; `defaults.run.shell` is not read; other ways of hiding a failed script (`|| true`, `;`, `if: always()` after a failed writer) are the same class and are not scanned. Not run on Actions: the six steps' behaviour is shown with a shim; all three affected workflows are dispatch-only and none was dispatched.
+
+## The scored gate (added before landing)
+
+**Run 42971457634** (`verify-full`, branch `pipes-guard`, head `125e28d`, dispatched 06:18Z, finished 06:58Z): `full` and all 8 mutation shards succeeded. **Ledger `125e28def6ff-954295b1b0f5`: 530/530, total 100, gate 2281 s** (`docs/confidence-log.jsonl`, written by the gate's own ledger commit `7779ea9`). `dirty: true` on that line is the gate's own write of `outbox/mutation-baseline-latest.json` (commit `a6dc8e5` changes only that file); every full run in the ledger since `7af6e24` that reached 530/530 carries the same flag, and the two that failed early (`0d3df2e`, `b07f072`) do not.
+
+**The run before it was red for a different reason**, and I read it wrong first. Run 42967615166 (`0d3df2e`) scored 510/530: only the mutation row, shard 4. I called it environmental (the same row failed on another session's tree); the shard's Build step said otherwise: the first build hit the Fable crash, `build-steady` repeated it, and the repeat printed `Skipped compilation because all generated files are up-to-date!` over the crashed output, so the baseline ran against it (10 of 39 failing) and the driver refused to start. The repair is its own commit, `4327e1f`, written up in `outbox/cc-session-2026-11-11-build-steady-clean.md`. That red run was cancelled by the dispatch of this one.
+
+**Collateral, stated once:** my dispatch of 42967615166 (05:43Z) cancelled six leftover shard jobs of the other session's run 42964147134 (its `full` job had already failed at 05:17Z). That session's failure was the same crash, so its shards were going to be red either way, but they were not mine to cancel; I had not checked for a run in progress.

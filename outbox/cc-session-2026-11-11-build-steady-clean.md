@@ -35,3 +35,11 @@ That a crashed first build on a runner now ends on a good build. A crash cannot 
 ## Carry-forwards
 
 None owed. The pipes guard (`docs/CC-CMD-2026-11-11-workflow-pipes-into-tee.md`) still needs its green scored gate, which this fix is meant to make reachable; its session note is `outbox/cc-session-2026-11-11-pipes-guard.md`.
+
+## The scored gate (added before landing)
+
+Run 42971457634 (`125e28d`, which carries this fix): 530/530, ledger `125e28def6ff-954295b1b0f5`, gate 2281 s. All 8 shards' baselines: **309 of 309 expectations, 0 failing** (42, 41, 40, 39, 38, 36, 38, 35), against 10 of 39 and 9 of 36 in the two red shards.
+
+**What this gate does and does not show about the fix.** I read the job logs of all 9 jobs (the 8 shards in full; the `full` job's last 900 lines, which do not reach its Build step). The 8 shard Build steps show **0 `RETRY build` lines and 0 `Skipped compilation` lines**: no first build crashed in this run, so the fix was not exercised by it. Absence of a crash proves nothing about the fix and none is claimed. What the gate does show: the change did not break `build-steady` or `buildSteadily` on the normal path (8 builds, 0 repeats, all green) and the 16-check self-test is in the gate. The full job's Build step took 23 s, which is the length of a build with no repeat; that is consistent with no repeat and is not proof. The proof that the fix recompiles is `outbox/build-steady-real-fable-proof-2026-11-11.txt`.
+
+**STAGED.** Unblocked by: any later `verify-full` or other gate whose shard Build step prints `RETRY build`. Verify: in that step's log the line after `RETRY build N` must not be `Skipped compilation`, and the line before it must be the repeat's `clearing build/ and building again`.
