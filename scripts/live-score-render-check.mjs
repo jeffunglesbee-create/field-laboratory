@@ -428,7 +428,8 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       await ctx.close()
     }
 
-    // (b) an answer held across three ticks: one request per key at a time, and the next tick asks again once it is answered
+    // (b) an answer held across a tick: one request per key at a time, and the next tick asks again once it is answered. The held request is released well inside the deadline
+    // (`LivePollTimeoutMs`, longer than the period on purpose: see src/LiveScore.fs), so the page's one-request-per-key guard is what keeps epl from being asked at the first tick.
     {
       const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
       const pg = await ctx.newPage()
@@ -446,15 +447,55 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       await pg.waitForSelector('.desk-card', { timeout: 15_000 })
       await pg.waitForTimeout(500)
       const atLoad = { ...n }
-      for (let i = 0; i < 3; i++) { await pg.clock.fastForward(60_000); await pg.waitForTimeout(150) }
+      await pg.clock.fastForward(60_000)
+      await pg.waitForTimeout(250)
       const held = { ...n }
       release()
       await settle(pg, EARLY, { score: '1–0' })
       await pg.clock.fastForward(60_000)
       await pg.waitForTimeout(400)
-      check('a request still unanswered holds its key: three ticks later the page has not asked for epl again, while laliga, answered, is asked every tick',
-        atLoad.epl === 1 && held.epl === 1 && held.laliga === atLoad.laliga + 3, JSON.stringify({ atLoad, held }))
+      check('a request still unanswered holds its key: one tick later the page has not asked for epl again, while laliga, answered, is asked',
+        atLoad.epl === 1 && held.epl === 1 && held.laliga === atLoad.laliga + 1, JSON.stringify({ atLoad, held }))
       check('...and once it is answered the next tick asks for it again', n.epl === 2, JSON.stringify({ held, after: n }))
+      await ctx.close()
+    }
+
+    // (c) a request that NEVER answers (review 2026-11-11, poll S4 and S18): without a deadline the key stayed held for the life of the page, the card said nothing, and no later
+    // tick asked again. The deadline is `AbortSignal.timeout`, which the fake clock DOES drive (measured 2026-11-11: a fetch given `AbortSignal.timeout(15000)` rejected with
+    // `TimeoutError` after `clock.fastForward(60000)`), and its length is read from src/LiveScore.fs so this check follows the constant. The request is still open at the tick
+    // inside the deadline (so the guard held it), is cut at the deadline with the card saying the feed did not answer, and the next tick asks for the key again and is told.
+    {
+      const DEADLINE_MS = Number(readFileSync('src/LiveScore.fs', 'utf8').match(/let LivePollTimeoutMs = (\d+)/)?.[1])
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      let release
+      const gate = new Promise(res => { release = res })
+      const n = { epl: 0, laliga: 0 }
+      await routesFor(pg, mk(), async r => {
+        const key = new URL(r.request().url()).searchParams.get('sport')
+        const i = n[key]++
+        if (key === 'epl' && i === 0) { await gate; return r.abort().catch(() => {}) }
+        return r.fulfill({ contentType: 'application/json', body: FEEDS[key] ?? JSON.stringify({ games: [] }) })
+      })
+      await pg.clock.install({ time: new Date(AT) })
+      await pg.goto(UNPINNED, { waitUntil: 'commit' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      await pg.waitForTimeout(500)
+      const before = await readCard(pg, EARLY)
+      await pg.clock.fastForward(60_000)
+      await pg.waitForTimeout(250)
+      const insideDeadline = await readCard(pg, EARLY)
+      const askedInside = n.epl
+      await pg.clock.fastForward(DEADLINE_MS - 60_000 + 1_000)
+      const cut = await settle(pg, EARLY, { live: WORDS.unavailable })
+      check('a request that never answers is held at the tick inside its deadline, and cut at the deadline with the card saying the feed did not answer rather than staying silent',
+        Number.isFinite(DEADLINE_MS) && DEADLINE_MS > 60_000 && before.live !== WORDS.unavailable && insideDeadline.live !== WORDS.unavailable && askedInside === 1 && cut.live === WORDS.unavailable,
+        JSON.stringify({ DEADLINE_MS, before: before.live, insideDeadline: insideDeadline.live, askedInside, cut: cut.live }))
+      await pg.clock.fastForward(60_000)
+      await pg.waitForTimeout(400)
+      const again = await settle(pg, EARLY, { score: '1–0' })
+      check('...and the next tick asks for that key again and the card is told the score: the stalled request did not pin the key', n.epl === 2 && again.score === '1–0', JSON.stringify({ asked: n.epl, score: again.score }))
+      release()
       await ctx.close()
     }
   }

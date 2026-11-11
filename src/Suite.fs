@@ -4567,6 +4567,13 @@ let private liveScore () =
 
       // Three separate instants, because one check with a before and an after never asked about DURING: `now <= start + 3h` mutated to
       // `now <= start` kept the old check green while the poll's timer would have stopped at kickoff (review 2026-11-11, semantics F3).
+      // Review 2026-11-11 (poll S4, S18): the deadline is longer than the period so the in-flight guard can hold a key across a tick (a shorter one ends every request
+      // first and the guard could never fire), and no longer than three periods so a hung request is reported within three ticks.
+      Verify.check "a poll request's deadline is longer than the period and at most three periods"
+          (fun deadline -> deadline > LiveScore.LivePollMs && deadline <= 3 * LiveScore.LivePollMs)
+          LiveScore.LivePollTimeoutMs
+          LiveScore.LivePollMs
+
       Verify.check "work is ahead before a window"
           (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
           "2026-11-21T10:00:00Z"

@@ -118,6 +118,26 @@ let private tryFetchText (url: string) =
             return Error e.Message
     }
 
+/// The same `AbortSignal.timeout` the weather panel uses (WeatherView.fs `timeoutSignal`), kept private to each module.
+[<Fable.Core.Emit("AbortSignal.timeout($0)")>]
+let private timeoutSignal (ms: int) : AbortSignal = Fable.Core.Util.jsNative
+
+/// `tryFetchText` with a deadline: a request that has not answered in `ms` is an `Error` ("signal timed out"), not a promise that
+/// stays open for the life of the page. The live poll holds a key while its request is in flight, so without this one stalled
+/// connection would stop that key being asked for good (review 2026-11-11, poll S4 and S18).
+let private tryFetchTextWithin (ms: int) (url: string) =
+    promise {
+        try
+            let! res = fetch url [ Signal(timeoutSignal ms) ]
+            if res.Ok then
+                let! body = res.text ()
+                return Ok body
+            else
+                return Error(sprintf "HTTP %d" res.Status)
+        with e ->
+            return Error e.Message
+    }
+
 /// Disposal handle for the currently-rendered slate's Solid root. Date
 /// navigation re-renders into the same mount, so each pass must dispose the
 /// previous one or every day viewed leaves a live set of effects behind.
@@ -298,7 +318,8 @@ let private loadMetricsOnce () =
 //   - ONE `setInterval`, every `LiveScore.LivePollMs` (60 s);
 //   - a request only while the tab is visible, and only for a sport key that has a card inside its live window
 //     (`LiveScore.liveKeysAt`: kickoff to three hours after it), at most ONE request per key per tick, and none while the previous
-//     request for that key is still in flight;
+//     request for that key is still in flight (a request unanswered after `LiveScore.LivePollTimeoutMs`, one and a half periods, is an
+//     `Error`, so its key is freed and the card names the failure);
 //   - the timer STOPS when no soccer card has a window now or ahead (`LiveScore.liveWorkAheadAt`), and when the slate is
 //     re-rendered (`disposePrevious`), so a page left on a finished slate holds no timer;
 //   - none at all on a page pinned to a capture (`?data=`), which must not reach the network;
@@ -327,7 +348,7 @@ let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: 
         elif (string document?visibilityState) = "visible" then
             for key in LiveScore.liveKeysAt now (games ()) do
                 if inFlight.Add key then
-                    tryFetchText (RELAY_BASE + LiveFeed.feedPath key etDay)
+                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
                         let cards =

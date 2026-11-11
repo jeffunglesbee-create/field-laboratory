@@ -36,7 +36,35 @@ entries caught, anchors 0 stale.
   section "Open questions for the owner" is added; the comment claims in `check-live-score-poll.mjs`, `LiveFeed.fs`, `Scoreboard.fs` and `Suite.fs` now say what
   was and was not measured; `poll-survives-a-re-render` is labelled a text claim.
 
+## S4 and S18: a request that never answers (this commit)
+
+A poll request had no deadline, and a key is held (`inFlight`) while its request is open, so one stalled connection stopped that key being asked for good and the
+card said nothing. The request now carries `AbortSignal.timeout(LiveScore.LivePollTimeoutMs)` (`tryFetchTextWithin` in `src/Program.fs`, the same primitive
+`WeatherView.fs` uses); a timeout is an `Error`, so the key is released and the cards read `live score unavailable`.
+
+**The first value was wrong, and the reason is worth keeping.** I started with 15 s (a quarter of the period). With a deadline SHORTER than the period every request
+ends before the next tick, so the in-flight guard can never fire: it became unreachable code, and the render scenario that defends it (a request held across a tick)
+could not be produced. The deadline is 90 s, one and a half periods, on purpose longer than the period: a slow answer still counts, a hung relay sees one request per
+key at a time and no pile-up, and a request that never answers is cut and reported within two ticks. Suite and poll check both assert `period < deadline <= 3 x period`.
+It is a bound, not a measurement: how long the relay takes to answer `/v2/games` is not measured here.
+
+Measured 2026-11-11 (a throwaway Playwright script against the pre-installed Chromium): a `fetch` given `AbortSignal.timeout(15000)` on a page with `clock.install()`
+rejected with `TimeoutError` after `clock.fastForward(60000)`, so the fake clock drives the deadline and the render check needs no real waiting (10 s for 43 checks).
+The render check reads the deadline from `src/LiveScore.fs`, so it follows the constant.
+
+Defended by: Suite case; two text-scan claims (the request is `tryFetchTextWithin LiveScore.LivePollTimeoutMs`, and there is no fetch without a deadline; the constant is
+inside `period < deadline <= 3 x period`) with 4 new self-test fixtures; render scenario (c) (held at the tick inside the deadline, cut at the deadline with the card
+saying the feed did not answer, asked again at the next tick and told the score) and scenario (b) re-shaped to one tick; three table entries
+(`poll-request-without-a-deadline`, `poll-deadline-signal-dropped`, `poll-deadline-shorter-than-the-period`). All 27 `poll-*` entries caught, baseline 3 of 3 passing.
+
+## Process incident, recorded (Rule 77)
+
+The first run of the 27 `poll-*` entries reported "the unmutated tree passes every expectation: FAIL, 1 of 3 already failing: `node scripts/live-score-render-check.mjs`"
+and then printed 27 PASS lines. Those PASS lines meant nothing (the harness says so) and I did not accept them. Eight standalone runs passed, so it was not the check;
+eight runs under double CPU load passed, so it was not load; two harness runs of the same three expectations passed. The command that failed had been started without
+`PW_CHROMIUM` exported (each shell call starts clean), and `env -u PW_CHROMIUM node scripts/live-score-render-check.mjs` reproduces it exactly: `browserType.launch:
+Executable doesn't exist`. The 27 entries were re-run with it set: baseline 0 failing, 27 of 27 caught.
+
 ## Still to do from the same review
 
-S4 and S18 (a fetch that never settles pins its key for the life of the poll: needs a timeout), S8, S10 and S24 (the `LiveUnavailable` reason is built at six
-sites and shown nowhere; `CardHandle.Id` has no reader). Each lands as its own commit.
+S8, S10 and S24 (the `LiveUnavailable` reason is built at six sites and shown nowhere; `CardHandle.Id` has no reader). Its own commit.

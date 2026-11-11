@@ -57,10 +57,19 @@ let liveSportKey (sport: Sport) : string option =
     | _ -> None
 
 /// THE POLL'S NAMED CONDITIONS (the CC-CMD's "Design"; the owner may change them, and `check:live-score-poll` reads them).
-/// One tick a minute, for the reason in the CC-CMD's arithmetic: each request for a live game costs the relay an uncached BSD
-/// call and a game-object write, and the relay already makes 720 of them per key per three hours on its own.
+/// One tick a minute, for the reason in the CC-CMD's arithmetic (fact 6): each request costs the relay one uncached BSD call whether
+/// or not a game is live, and the relay's own poller already makes up to 720 requests per key per three hours.
 [<Literal>]
 let LivePollMs = 60000
+
+/// How long one poll request may stay unanswered. A key is held while its request is in flight, so a request that never answered
+/// would stop that key being asked for good with the card saying nothing (review 2026-11-11, poll S4 and S18). One and a half
+/// periods, on purpose LONGER than the period: a slow answer still counts, and while one is open its key is not asked again
+/// (`inFlight`), so a hung relay sees one request per key at a time and no pile-up. After that long it is cut and the card says the
+/// feed did not answer. (Under a deadline SHORTER than the period every request would end before the next tick and that guard
+/// could never fire.) A bound, not a measurement: how long the relay takes to answer `/v2/games` is not measured here.
+[<Literal>]
+let LivePollTimeoutMs = 90000
 
 /// A card is in its live window from its start time to this long after it. A soccer match is about two hours with its breaks
 /// and stoppage, and the archive's first score has been seen 115.5 to 135 minutes after kickoff (CC-CMD fact 3), so three hours

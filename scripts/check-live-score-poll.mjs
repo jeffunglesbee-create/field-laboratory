@@ -39,7 +39,7 @@ import { createChecks, isMain, finish } from './checks.mjs'
 import { RECURRENCE, codeOnly, sliceBetween } from './check-lineups-pull-only.mjs'
 
 /** More than the shared recurrence terms: every other way F# in a browser schedules work, listens or reaches the network, none of which the lineups check
- *  needed to name. `tryFetchText` is the poll's ONE fetch and is counted separately; a bare `fetch`, `Fetch.` or the older request objects are not it. */
+ *  needed to name. `tryFetchTextWithin` is the poll's ONE fetch and is counted separately; a bare `fetch`, `Fetch.` or the older request objects are not it. */
 export const EXTRA_TERMS = [
   ['Promise.sleep', /\bPromise\.sleep\b/], ['Async.Sleep', /\bAsync\.Sleep\b/], ['requestIdleCallback', /\brequestIdleCallback\b/],
   ['queueMicrotask', /\bqueueMicrotask\b/], ['addEventListener', /\.addEventListener\b/], ['an on<event> handler', /\.on[a-z]+\s*<-/],
@@ -85,7 +85,12 @@ export const claimsOf = ({ program, liveScore, sources }) => {
   claim('...and the timer stops when no window is ahead', /LiveScore\.liveWorkAheadAt\b[\s\S]*?stopLivePoll \(\)/.test(code))
   claim('...one request per key at a time: a key is held by `if inFlight.Add key then` and released first thing in the answer callback',
     /if inFlight\.Add key then/.test(code) && /Promise\.iter \(fun result ->\s*\n\s*inFlight\.Remove key \|> ignore/.test(code) && count(/inFlight\.Remove key\b/, code) === 1)
-  claim('...and one fetch in the region', count(/\btryFetchText\b/, code) === 1, `tryFetchText x${count(/\btryFetchText\b/, code)}`)
+  claim('...and one fetch in the region, with a deadline: `tryFetchTextWithin LiveScore.LivePollTimeoutMs`, and no fetch without one',
+    count(/\btryFetchTextWithin LiveScore\.LivePollTimeoutMs\b/, code) === 1 && count(/\btryFetchText\b/, code) === 0 && count(/\btryFetchTextWithin\b/, code) === 1,
+    `tryFetchTextWithin x${count(/\btryFetchTextWithin\b/, code)}, tryFetchText x${count(/\btryFetchText\b/, code)}`)
+  const timeout = (liveScore.match(/\[<Literal>\]\s*let LivePollTimeoutMs\s*=\s*(\d+)[ \t]*(?:\r?\n|$)/) ?? [])[1]
+  claim('...and the deadline is longer than the period (so the in-flight guard can hold a key across a tick) and at most three periods (the render check observes it)',
+    Number(timeout) > PERIOD_MS && Number(timeout) <= 3 * PERIOD_MS, `LivePollTimeoutMs = ${timeout}, period ${PERIOD_MS}`)
 
   const outside = region === null ? codeOnly(program) : codeOnly(program.replace(region, ''))
   const calls = outside.split('\n').filter(l => /\bstartLivePoll\b/.test(l) && !/let private startLivePoll/.test(l))
@@ -129,7 +134,7 @@ let private startLivePoll (handles) (etDay: string) =
         elif (string document?visibilityState) = "visible" then
             for key in LiveScore.liveKeysAt now (games ()) do
                 if inFlight.Add key then
-                    tryFetchText (RELAY_BASE + path)
+                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
                         let cards = handles |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
@@ -144,7 +149,7 @@ let private disposePrevious () =
 let go () =
     if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll cardHandles.Value payload.Date
 `
-const GOOD_SCORE = '[<Literal>]\nlet LivePollMs = 60000\n'
+const GOOD_SCORE = '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 90000\n'
 const run = (program, liveScore = GOOD_SCORE, sources = { 'src/Program.fs': program, 'src/LiveScore.fs': liveScore }) =>
   claimsOf({ program, liveScore, sources })
 const failing = (program, liveScore, sources) => run(program, liveScore, sources).filter(c => !c.ok).map(c => c.name)
@@ -163,7 +168,7 @@ if (SELF_TEST) {
   one('a setTimeout in the region is caught', GOOD.replace('    livePollTimer <- Some', '    window.setTimeout ((fun () -> ()), 1000) |> ignore\n    livePollTimer <- Some'))
   one('a timer whose id is never stored is caught (the next render could not clear it)', GOOD.replace('    livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))', '    window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs) |> ignore'))
   one('a timer cleared by the wrong id is caught', GOOD.replace('        window.clearInterval id\n', '        window.clearInterval 0.0\n'))
-  one('a period written as an expression is caught, not read as its first number', GOOD, '[<Literal>]\nlet LivePollMs = 60000 / 4\n')
+  one('a period written as an expression is caught, not read as its first number', GOOD, '[<Literal>]\nlet LivePollMs = 60000 / 4\n\n[<Literal>]\nlet LivePollTimeoutMs = 90000\n')
   one('a sleep loop made with Promise.sleep is caught', GOOD.replace('    livePollTimer <- Some', '    Promise.sleep 15000 |> Promise.iter (fun () -> tick ())\n    livePollTimer <- Some'))
   one('Async.Sleep is caught', GOOD.replace('    livePollTimer <- Some', '    async { do! Async.Sleep 15000 } |> ignore\n    livePollTimer <- Some'))
   one('an online listener is caught', GOOD.replace('    livePollTimer <- Some', '    window.addEventListener("online", fun _ -> tick ())\n    livePollTimer <- Some'))
@@ -171,18 +176,24 @@ if (SELF_TEST) {
   one('a raw fetch in the region is caught', GOOD.replace('    livePollTimer <- Some', '    fetch "https://x" [] |> ignore\n    livePollTimer <- Some'))
   one('a Promise.sleep anywhere in src is caught, not only in the region', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let w = Promise.sleep 5000' })
   one('an in-flight guard that is always open is caught', GOOD.replace('if inFlight.Add key then', 'if inFlight.Add key || true then'))
-  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchText (RELAY_BASE + path)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchText (RELAY_BASE + path)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
+  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
   one('an answer told every card of the window, whatever its league, is caught', GOOD.replace('LiveScore.answersTo key now h.Game', 'LiveScore.inLiveWindowAt now h.Game'))
   one('a poll that asks for the URL\'s day is caught', GOOD.replace('startLivePoll cardHandles.Value payload.Date', 'startLivePoll cardHandles.Value (viewedDate ())'))
   one('a 15 s period is caught', GOOD.replace('LiveScore.LivePollMs))', '15000))'))
-  one('a LivePollMs of 15000 is caught', GOOD, '[<Literal>]\nlet LivePollMs = 15000\n')
+  one('a LivePollMs of 15000 is caught', GOOD, '[<Literal>]\nlet LivePollMs = 15000\n\n[<Literal>]\nlet LivePollTimeoutMs = 30000\n')
+  // Review 2026-11-11 (poll S4, S18): the fixtures below keep every other claim satisfied, so only the deadline claims can be the reason they fail.
+  one('a request with no deadline is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)', 'tryFetchText (RELAY_BASE + path)'))
+  one('a deadline written as a number rather than the named constant is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs', 'tryFetchTextWithin 999999'))
+  one('a deadline shorter than the period is caught (the in-flight guard could never fire)', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 15000\n')
+  one('a deadline longer than three periods is caught', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 300000\n')
+  one('a deadline of zero is caught', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 0\n')
   one('no visibility gate is caught', GOOD.replace('elif (string document?visibilityState) = "visible" then', 'else'))
   one('no in-flight guard is caught', GOOD.replace('if inFlight.Add key then', 'if true then'))
   one('a poll on a pinned page is caught', GOOD.replace('if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll', 'startLivePoll'))
   one('a poll that is never stopped on re-render is caught', GOOD.replace('let private disposePrevious () =\n    stopLivePoll ()', 'let private disposePrevious () ='))
   one('a timer outside the region is caught', GOOD + '\nlet private stray = window.setInterval ((fun () -> ()), 1000)\n')
   one('a socket anywhere in src is caught', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let s = WebSocket("x")' })
-  one('a second fetch in the region is caught', GOOD.replace('                        ())', '                        tryFetchText "x" |> ignore\n                        ())'))
+  one('a second fetch in the region is caught', GOOD.replace('                        ())', '                        tryFetchTextWithin 1000 "x" |> ignore\n                        ())'))
   check('a comment that names a timeout is not read as one',
     failing(GOOD.replace('    let inFlight', '    // no setTimeout here\n    let inFlight')).length === 0)
   check('the coverage line names what was read', coverageOf({ program: GOOD, sources: { a: '', b: '' } }).startsWith('scanned 2 F# source file(s)'))
