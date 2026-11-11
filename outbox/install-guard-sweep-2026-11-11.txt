@@ -1,0 +1,17 @@
+unmutated: exit 0, 0 failing check(s), 63/63 checks passed
+CAUGHT      install-deps is not apt  (exit 1, 1 failing:  install: the install-deps subcommand is apt)
+CAUGHT      --with-deps is read only at the start of the arguments  (exit 1, 1 failing:  install: --with-deps is apt, before or after the browser name, w)
+CAUGHT      the limit is 50 minutes, not 5  (exit 1, 1 failing:  install: a limit above five minutes, zero (disabled), or an expr)
+CAUGHT      a step timeout of zero counts  (exit 1, 1 failing:  install: a limit above five minutes, zero (disabled), or an expr)
+CAUGHT      a composite step is bounded by a key it cannot carry  (exit 1, 1 failing:  install: in a composite action a step's timeout-minutes is not c)
+CAUGHT      a backslash-continued install is read line by line  (exit 1, 1 failing:  install: --with-deps is apt, before or after the browser name, w)
+CAUGHT      quotes are kept, so an echoed install is an install  (exit 1, 1 failing:  install: a mention in a comment or inside a quoted string is not)
+CAUGHT      the arguments run on past the end of the line  (exit 1, 1 failing:  install: --with-deps on another line or another command is not t)
+CAUGHT      timeout 0 (disabled) counts as a bound  (exit 1, 1 failing:  install: a limit above five minutes, zero (disabled), or an expr)
+CAUGHT      timeout -k 10 3m: the option argument is read as the duration  (exit 1, 1 failing:  install: a timeout prefix bounds it: 180, 3m, 180s, --kill-after)
+CAUGHT      3m is read as three seconds  (exit 1, 1 failing:  install: a timeout prefix bounds it: 180, 3m, 180s, --kill-after)
+CAUGHT      an install the step reader missed is not reported  (exit 1, 1 failing:  install: an install command the step reader cannot see is report)
+CAUGHT      a comment line counts as an install command  (exit 1, 1 failing:  install: a comment that mentions an install is not counted as a )
+CAUGHT      composite actions are not read  (exit 1, 2 failing:  install: the audit reads workflows and composite actions: two in |  install: a workflow and a composite action that still run --with)
+
+caught 14 of 14 mutations
