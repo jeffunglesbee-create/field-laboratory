@@ -4623,7 +4623,7 @@ let private liveScore () =
           "2026-11-21T13:00:00Z"
           "2026-11-21T16:00:00Z"
 
-      // THE MEASURED CASE (2026-11-08): no score in the archive, 45 minutes in. A reading turns it into in progress.
+      // THE CASE (CC-CMD fact 1: a synthetic row read `Scheduled` 45 minutes in, 2026-11-11): no score in the archive, 45 minutes in. A reading turns it into in progress.
       Verify.check "a started row with no score and a live reading is in progress with that score"
           (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = InProgress(1, 0))
           (LiveScore.LiveNow(1, 0, Some "45'"))

@@ -29,7 +29,14 @@ entries caught, anchors 0 stale.
   as an open question, not decided here.
 - S2 (relay cost per tick is larger than fact 6 states). A documentation correction, next commit.
 
-## Still to do from the same review (named, in order)
+## Landed after this commit
 
-S6/S19 decoder cases and mutations, S7/S11 probe decoder parity with the page's decoder, S4/S18 fetch timeout, S8/S10/S24 the unrendered
-`LiveUnavailable` reason and `CardHandle.Id`, S13/S14/S23 written claims. Each lands as its own commit.
+- S6, S7, S11, S19 (decoder contracts, numeric strings, probe parity): `outbox/live-score-decoder-review-2026-11-11.md`.
+- S2, S13, S14, S23 and the two owner questions (S0, S3/S12): the CC-CMD's Status, fact 6, the poll arithmetic, Design, Task 6 and Task 7 are corrected and a
+  section "Open questions for the owner" is added; the comment claims in `check-live-score-poll.mjs`, `LiveFeed.fs`, `Scoreboard.fs` and `Suite.fs` now say what
+  was and was not measured; `poll-survives-a-re-render` is labelled a text claim.
+
+## Still to do from the same review
+
+S4 and S18 (a fetch that never settles pins its key for the life of the poll: needs a timeout), S8, S10 and S24 (the `LiveUnavailable` reason is built at six
+sites and shown nowhere; `CardHandle.Id` has no reader). Each lands as its own commit.

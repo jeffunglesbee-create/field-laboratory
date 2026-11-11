@@ -54,7 +54,8 @@ let private scoreText (g: Game) (state: GameState) =
 /// The status line, with "has the start time passed" given rather than read, so a test can say which.
 ///
 /// `Scheduled` is what `gameStateAt` answers for any row with no score, INCLUDING a match that kicked off an hour ago
-/// (measured 2026-11-08: Man Utd v Aston Villa, start 16:30Z, no score in the archive, `Scheduled` 45 minutes in). So a
+/// (CC-CMD fact 1, 2026-11-11: a hand-made row of that shape, start 16:30Z and no score, read `Scheduled` at a fixed 17:15Z, 45 minutes in, in a scratch Fable
+/// build driven in Playwright; the archive's own row for Man Utd v Aston Villa got its score at `finalized_at` 18:45:25Z, CC-CMD fact 3). So a
 /// `Scheduled` row whose start time has passed says that, in the words of what is known: the start time passed and no score
 /// was served. It does not say the match kicked off (a postponed fixture is also a row whose start time has passed), and it
 /// is not `Scheduled <time>`, which reads as a promise about the future.

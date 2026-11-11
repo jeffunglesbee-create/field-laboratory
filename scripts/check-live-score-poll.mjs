@@ -3,15 +3,17 @@
 // built it has ended.
 //
 // docs/CC-CMD-2026-11-11-soccer-live-scores.md. The owner ruled on 2026-11-11 "Auto-poll while a match is live". Every other
-// surface of this page asks once and never again (the forecast, the lineups tab, the weather), each with its own check that
-// fails if a timer appears. This one has a timer on purpose, so the claim is not "no timer" but "THIS timer, and only these
+// surface of this page asks once and never again. Two of them have their own check that fails if a timer appears: the forecast
+// (`check-forecast-pull-only.mjs`) and the lineups tab (`check-lineups-pull-only.mjs`). The weather has none: a weather timer
+// would be caught only by claim 7 below, the one that says this is the only timer in `src/*.fs` (review 2026-11-11, S13: this
+// header said all three had one). This one has a timer on purpose, so the claim is not "no timer" but "THIS timer, and only these
 // conditions", and each condition is a scan of the F# source:
 //
 //   1. one region, marked, in src/Program.fs;
 //   2. exactly ONE setInterval in it, and no other recurrence term (a timeout, an animation frame, a socket, an event source,
 //      a listener, a Solid effect);
-//   3. its period is `LiveScore.LivePollMs`, and that is 60000 (the arithmetic is in the CC-CMD: each request for a live game
-//      costs the relay an uncached BSD call and a game-object write, and the relay already makes 720 of them per key per 3 h);
+//   3. its period is `LiveScore.LivePollMs`, and that is 60000 (the arithmetic is in the CC-CMD, fact 6: each request costs the
+//      relay one uncached BSD call whether or not a game is live, and the relay's own poller already makes up to 720 per key per 3 h);
 //   4. a request only while the tab is visible, only for a key that has a card in its window (`liveKeysAt`), the timer stops
 //      when no window is ahead (`liveWorkAheadAt`), one request per key at a time (`inFlight`), ONE fetch in the region;
 //   5. none on a page pinned to a capture (`?data=`), which must not reach the network;

@@ -20,7 +20,7 @@ The capture the soccer work built is sport-agnostic: `live-shape-capture.yml` ta
 
 ## Task 2 — decide (owner), then build only what Task 1 shows is a gap
 
-If a sport's in-play cards read `Scheduled` or `Final` while the match is live, the soccer overlay (`applyLive`, the poll, the `Full time` marker) is the shape to reuse, with the sport key mapping extended and each sport's own state words read from its own capture, not assumed from soccer's. The comeback line on the Stats tab already belongs to the non-soccer sports and needs nothing.
+If a sport's in-play cards read `Scheduled` or `Final` while the match is live, the soccer overlay (`LiveFeed.readingFor`, `LiveScore.foldReading`, the poll, the `Full time` marker) is the shape to reuse, with the sport key mapping extended and each sport's own state words read from its own capture, not assumed from soccer's. The comeback line on the Stats tab already belongs to the non-soccer sports and needs nothing.
 
 ## Not in scope
 

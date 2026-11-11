@@ -55,7 +55,7 @@ let decodeFeed (text: string) : Result<FeedGame list, string> =
     Decode.fromString (Decode.field "games" (Decode.list feedGameDecoder)) text
 
 /// The path (and query) of the relay's live pull route for one sport key and one ET field day. The relay's default date is the
-/// UTC day, which is the wrong day after 20:00 Eastern, so the day is always passed.
+/// UTC day, which is the wrong day once the UTC date turns (19:00 Eastern in winter, 20:00 in summer), so the day is always passed.
 let feedPath (sportKey: string) (etDay: string) : string = sprintf "/v2/games?sport=%s&date=%s" sportKey etDay
 
 /// What the feed says about THIS card's game.

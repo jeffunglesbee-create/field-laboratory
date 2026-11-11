@@ -11414,7 +11414,7 @@ const MUTATIONS = [
   {
     id: "poll-survives-a-re-render",
     file: "src/Program.fs",
-    claim: "re-rendering the slate stops the timer",
+    claim: "re-rendering the slate stops the timer (a TEXT claim: `disposePrevious` names the stop; on a route that polls, `startLivePoll` also stops the old timer first, so the number of live timers across re-renders is observed by the render check, see the poll-timer-id-* entries)",
     find: "let private disposePrevious () =\n    stopLivePoll ()\n",
     replace: "let private disposePrevious () =\n",
     expect: "node scripts/check-live-score-poll.mjs",
