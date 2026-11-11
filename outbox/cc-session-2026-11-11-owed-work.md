@@ -16,3 +16,12 @@ Session: https://claude.ai/code/session_017RuhXKQdbuZ7W9Q7sR1Vrm
 ## A finding the check turned up, filed
 
 Counting the steps for item 1 found that the trap is wider than my workflows: **9 `run:` steps of 337 (30 pipe into `tee`) carry nothing that preserves the left side's exit status**, and `scripts/workflow-check.mjs` has no check that would say so. Filed as `docs/CC-CMD-2026-11-11-workflow-pipes-into-tee.md` (FILED, unblocked, not started: the owner's go covered my own two workflows, and this touches four others and a shared guard). Method and output: `outbox/find-unguarded-pipes-2026-11-11.mjs`, `outbox/unguarded-pipes-2026-11-11.txt`.
+
+## Item 1, fixed: the three unguarded steps in my own probe workflows
+
+`fable-crash-probe.yml` ("50 builds", "The table") and `mutation-ids-probe.yml` ("What the driver said about each id") now end with `exit ${PIPESTATUS[0]}`. Nothing else in them changed (diff: 10 lines added, 1 changed). `node outbox/find-unguarded-pipes-2026-11-11.mjs .` goes from 9 steps to 6, and the six are other workflows' (`docs/CC-CMD-2026-11-11-workflow-pipes-into-tee.md`).
+
+Premise checked before the comment saying it went into the workflow: a measured build crash does not make the probe script exit non-zero (`scripts/fable-crash-probe.mjs` records it and exits 0; its only non-zero exits are a usage error, 2, and a throw), so the fix changes the outcome only when the script itself fails.
+
+Artifact: `outbox/pipe-fix-proof-2026-11-11.mjs`, its output `outbox/pipe-fix-proof-2026-11-11.txt`. Each step's `run:` text before the change (`git show origin/main:`) and after is run under `bash -e` with `node` replaced by a shim that exits 3: **before, all three steps exit 0 (green over a failed script); after, all three exit 3**; with a shim that exits 0 all six runs exit 0. Rule 90: with the three exit lines deleted in a copy the harness goes red (3 of 3 not as expected, exit 1); with the real fix it is green. This is the shell behaviour of the step, not a run on Actions.
+

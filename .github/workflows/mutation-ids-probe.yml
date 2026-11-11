@@ -57,3 +57,5 @@ jobs:
             console.log(`mode ${d.mode}, clean digest ${d.cleanDigest}`)
             for (const r of d.records) console.log(JSON.stringify(r))
           ' "$F" | tee -a "$GITHUB_STEP_SUMMARY"
+          # `a | tee` takes tee's exit status under the default shell (bash -e, no pipefail): without this line a result file that did not parse would leave the step green.
+          exit ${PIPESTATUS[0]}

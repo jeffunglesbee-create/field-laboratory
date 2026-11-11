@@ -60,6 +60,9 @@ jobs:
             --cell "sdk ${{ matrix.sdk }}, ${{ matrix.out }} outDir" \
             --out-mode "${{ matrix.out }}" --builds 50 --part ${{ matrix.part }} \
             --out "$RUNNER_TEMP/probe/${{ matrix.sdk }}-${{ matrix.out }}-${{ matrix.part }}.json" 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          # `a | tee` takes tee's exit status under the default shell (bash -e, no pipefail): without this line a probe that threw would leave the step green.
+          # A build that CRASHES is the measurement, not a failure: the script records it and exits 0.
+          exit ${PIPESTATUS[0]}
       - name: Keep the cell's record
         if: always()
         uses: actions/upload-artifact@v4
@@ -88,7 +91,11 @@ jobs:
           path: ${{ runner.temp }}/cells
           merge-multiple: true
       - name: The table
-        run: node scripts/fable-crash-probe.mjs --merge "$RUNNER_TEMP/cells" --out outbox/fable-crash-probe-latest.json 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          node scripts/fable-crash-probe.mjs --merge "$RUNNER_TEMP/cells" --out outbox/fable-crash-probe-latest.json 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          # `a | tee` takes tee's exit status under the default shell (bash -e, no pipefail): without this line a merge that threw would leave the step green
+          # and the previous table standing in the file.
+          exit ${PIPESTATUS[0]}
       - name: Commit
         if: always()
         run: |

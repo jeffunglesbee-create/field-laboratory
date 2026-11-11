@@ -1,0 +1,6 @@
+step                                           script exits 3: before -> after    script exits 0: before -> after
+fable-crash-probe.yml: 50 builds                 0 -> 3                      0 -> 0   AS EXPECTED
+fable-crash-probe.yml: The table                 0 -> 3                      0 -> 0   AS EXPECTED
+mutation-ids-probe.yml: What the driver said about each id   0 -> 3                      0 -> 0   AS EXPECTED
+
+3 step(s), 0 not as expected (expected: before 0, after 3 for a throwing script; 0 and 0 for a script that succeeds)
