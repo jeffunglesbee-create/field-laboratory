@@ -20,7 +20,8 @@
 //   node scripts/font-dependence-probe.mjs --run --label A1 --out /tmp/A1.json [--url U] [--inject-css CSS]
 //   node scripts/font-dependence-probe.mjs --judge --a1 /tmp/A1.json --a2 /tmp/A2.json --teeth /tmp/T.json --b /tmp/B.json --apt ok|failed \
 //        --json outbox/font-dependence-latest.json --text outbox/font-dependence-latest.txt
-//   node scripts/font-dependence-probe.mjs --premises --before /tmp/before.txt --after /tmp/after.txt --seconds /tmp/install-seconds.txt --fonts-after /tmp/fonts-after.txt --out outbox/install-no-apt-probe-latest.txt
+//   node scripts/font-dependence-probe.mjs --premises --before /tmp/before.txt --after /tmp/after.txt --seconds /tmp/install-seconds.txt --fonts-after /tmp/fonts-after.txt \
+//        --timeout-file /tmp/timeout.txt --out outbox/install-no-apt-probe-latest.txt
 //   node scripts/font-dependence-probe.mjs --self-test
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -95,16 +96,31 @@ export const verdictOf = ({ control, teeth, treatment, apt }) => {
   }
 }
 
-export const textOf = ({ control, teeth, treatment, verdict, why, apt, meta }) => [
-  `checked ${treatment.checked} of ${treatment.checked} cells (${VIEWPORTS.length} viewports x ${PHASES.length} states); control ${control.geometryDiffer} differ, teeth ${teeth.geometryDiffer} differ, treatment ${treatment.geometryDiffer} differ in geometry`,
+/** The one page-less cell: text in scripts and symbols the page's own faces do not carry, at one viewport, so the first run's fallback fonts can be told from the second's. Informational: it does not decide the verdict. */
+export const FALLBACK_HTML = `<div style="font: 16px/1.4 'DM Sans', ui-sans-serif, system-ui, sans-serif; width: 600px; padding: 8px">
+<p>Latin: Manchester United v Arsenal, Cear\u00e1 SC, Atl\u00e9tico</p><p>\u65e5\u672c\u8a9e \u6771\u4eac\u30f4\u30a7\u30eb\u30c7\u30a3</p><p>\ud55c\uad6d\uc5b4 \uc11c\uc6b8 \uc774\ub79c\ub4dc</p><p>\u4e2d\u6587 \u5317\u4eac\u56fd\u5b89</p>
+<p>\u0e44\u0e17\u0e22 \u0e01\u0e23\u0e38\u0e07\u0e40\u0e17\u0e1e</p><p>\u0420\u0443\u0441\u0441\u043a\u0438\u0439 \u0421\u043f\u0430\u0440\u0442\u0430\u043a</p><p>\u0395\u03bb\u03bb\u03b7\u03bd\u03b9\u03ba\u03ac \u039f\u03bb\u03c5\u03bc\u03c0\u03b9\u03b1\u03ba\u03cc\u03c2</p>
+<p>\u05e2\u05d1\u05e8\u05d9\u05ea \u05d4\u05e4\u05d5\u05e2\u05dc</p><p>\u0627\u0644\u0639\u0631\u0628\u064a\u0629 \u0627\u0644\u0647\u0644\u0627\u0644</p><p>\u25b2 \u25bc \u25c6 \u25cf \u2192 \u26bd \u2605 \u2713 \u2014 \u2013</p></div>`
+
+/** The fallback cell of two runs, said in a line. Pure. */
+export const fallbackLine = (a, b, label) => {
+  if (!a || !b) return `fallback-text cell (${label}): not measured`
+  const c = compareCells(a, b)
+  return `fallback-text cell (${label}): boxes ${c.geometry.length ? `DIFFER (max ${c.maxDelta}px)` : 'same'}, fonts ${c.fontsDiffer ? 'DIFFER' : 'same'}, pixels ${c.pixelsDiffer ? 'differ' : 'same'}; fonts drawn: ${JSON.stringify(a.fonts)} -> ${JSON.stringify(b.fonts)}`
+}
+
+export const textOf = ({ control, teeth, treatment, verdict, why, apt, meta, fallback = [] }) => [
+  `checked ${control.checked} of ${control.checked} cells (${VIEWPORTS.length} viewports x ${PHASES.length} states); control ${control.geometryDiffer} differ, teeth ${teeth.geometryDiffer} differ, ${treatment ? `treatment ${treatment.geometryDiffer} differ in geometry` : 'treatment NOT RUN (0 of 0 cells compared)'}`,
   `VERDICT: ${verdict}`,
   `why: ${why}`,
   `apt install of the nine fonts: ${apt}`,
-  `pixels: control ${control.pixelsDiffer}, teeth ${teeth.pixelsDiffer}, treatment ${treatment.pixelsDiffer} of ${treatment.checked} cells differ (reported, not decided on)`,
-  `fonts that drew glyphs in the treatment and not in the first run: ${treatment.newFonts.join(', ') || 'none'}`,
-  `cells whose font usage differs: control ${control.fontsDiffer}, teeth ${teeth.fontsDiffer}, treatment ${treatment.fontsDiffer}`,
+  `pixels: control ${control.pixelsDiffer}, teeth ${teeth.pixelsDiffer}, treatment ${treatment ? `${treatment.pixelsDiffer} of ${treatment.checked}` : 'not run'} cells differ (reported, not decided on)`,
+  `fonts that drew glyphs in the treatment and not in the first run: ${treatment ? treatment.newFonts.join(', ') || 'none' : 'not run'}`,
+  `cells whose font usage differs: control ${control.fontsDiffer}, teeth ${teeth.fontsDiffer}, treatment ${treatment ? treatment.fontsDiffer : 'not run'}`,
+  `scope: the page ?data=context-2026-08-29 (Latin text drawn in the page's own web fonts) at 10 viewports x 2 states; the next lines say what text the page's faces do not carry would do`,
+  ...fallback,
   ...(meta ? [`chromium ${meta.chromium}; url ${meta.url}`] : []),
-  ...treatment.cells.filter(c => c.geometry.length).slice(0, 5).map(c => `  moved: ${c.cell} ${c.geometry.join('+')} maxDelta ${c.maxDelta}px ${JSON.stringify(c.first[0] ?? null)}`),
+  ...(treatment ? treatment.cells.filter(c => c.geometry.length).slice(0, 5).map(c => `  moved: ${c.cell} ${c.geometry.join('+')} maxDelta ${c.maxDelta}px ${JSON.stringify(c.first[0] ?? null)}`) : []),
 ].join('\n') + '\n'
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -112,10 +128,14 @@ export const textOf = ({ control, teeth, treatment, verdict, why, apt, meta }) =
 
 export const kv = text => Object.fromEntries(String(text ?? '').split('\n').map(l => /^([A-Za-z_]+):\s*(.*)$/.exec(l)).filter(Boolean).map(m => [m[1], m[2].trim()]))
 export const INSTALL_LIMIT_SECONDS = 180
+export const TIMEOUT_TEST_SECONDS = 3
 
-/** Five premises of "drop --with-deps", each held or failed from the numbers. `checked N of N` is printed first (Rule 91). */
-export const premisesOf = ({ before, after, seconds, fontsAfter }) => {
-  const b = kv(before), a = kv(after), sec = kv(seconds), f = kv(fontsAfter)
+/**
+ * Seven premises of "drop --with-deps" and "bound it", each held or failed from the numbers. `checked N of N` is printed first (Rule 91). The last two are the limit's own:
+ * the `timeout` on the runner (GNU or uutils, the image decides) must end a stalled process tree with a non-zero exit, in the plain form and with --kill-after, and leave no process behind.
+ */
+export const premisesOf = ({ before, after, seconds, fontsAfter, timeoutInfo = '' }) => {
+  const b = kv(before), a = kv(after), sec = kv(seconds), f = kv(fontsAfter), t = kv(timeoutInfo)
   const n = x => (x !== undefined && /^\d+$/.test(x) ? Number(x) : null)
   const list = [
     [b.dpkg_list_sha !== undefined && b.dpkg_list_sha === a.dpkg_list_sha && b.dpkg_log_bytes === a.dpkg_log_bytes && b.apt_history_bytes === a.apt_history_bytes,
@@ -128,6 +148,10 @@ export const premisesOf = ({ before, after, seconds, fontsAfter }) => {
       `the install finished inside its ${INSTALL_LIMIT_SECONDS} s limit (${sec.install_seconds ?? 'unknown'} s)`],
     [n(b.nine_fonts_installed) === 0,
       `none of the nine fonts was installed before, so the treatment is a real change (${b.nine_fonts_installed ?? 'unknown'} of 9 present before; ${f.nine_fonts_installed ?? 'not installed'} of 9 after the apt step)`],
+    ...['plain', 'kill'].map(k => [
+      n(t[`${k}_exit`]) !== null && n(t[`${k}_exit`]) !== 0 && n(t[`${k}_seconds`]) !== null && n(t[`${k}_seconds`]) <= TIMEOUT_TEST_SECONDS + 3 && n(t[`${k}_survivors`]) === 0,
+      `the runner's timeout${k === 'kill' ? ' --kill-after=10' : ''} ends a stalled process tree: exit ${t[`${k}_exit`] ?? 'unknown'} (non-zero fails the step), ${t[`${k}_seconds`] ?? 'unknown'} s for a ${TIMEOUT_TEST_SECONDS} s limit, ${t[`${k}_survivors`] ?? 'unknown'} processes left (${t.timeout_path ?? 'unknown binary'}; ${t.timeout_version ?? 'unknown version'})`,
+    ]),
   ]
   const held = list.filter(([ok]) => ok).length
   return { total: list.length, held, text: [`checked ${list.length} of ${list.length} premises: ${held} held`, ...list.map(([ok, why]) => `${ok ? 'HELD  ' : 'FAILED'}  ${why}`), `image: ${b.image ?? 'unknown'}`].join('\n') + '\n' }
@@ -191,7 +215,14 @@ export const runProbe = async ({ url = PAGE_URL, label, injectCss = '' }) => {
       cells.push(await measure(page, client, v.id, 'opened'))
       await page.close()
     }
-    return { label, url, injectCss, chromium: browser.version(), cells }
+    const fb = await browser.newPage({ viewport: { width: 800, height: 700 } })
+    const fbClient = await fb.context().newCDPSession(fb)
+    await fbClient.send('DOM.enable')
+    await fbClient.send('CSS.enable')
+    await fb.setContent(`<!doctype html><meta charset="utf-8"><body style="margin:0">${FALLBACK_HTML}</body>`)
+    const fallback = await measure(fb, fbClient, 'X1', 'fallback')
+    await fb.close()
+    return { label, url, injectCss, chromium: browser.version(), cells, fallback }
   } finally {
     await browser.close()
   }
@@ -237,20 +268,30 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   check('the nine fonts are the nine the 2026-11-11 apt log lists', NINE_FONTS.length === 9 && new Set(NINE_FONTS).size === 9, NINE_FONTS.join(' '))
   const before = 'image: PRETTY_NAME="Ubuntu 26.04" / 20261101\ndpkg_list_sha: aaaa\ndpkg_log_bytes: 100\napt_history_bytes: 200\nnine_fonts_installed: 0\nfc_list_lines: 12\n'
   const after = 'dpkg_list_sha: aaaa\ndpkg_log_bytes: 100\napt_history_bytes: 200\nshim_calls: 0\nbrowser_binaries: 2\nldd_not_found: /x/chrome 0\nldd_not_found: /x/headless 0\nldd_not_found_total: 0\n'
-  const P = over => premisesOf({ before, after, seconds: 'install_seconds: 9\n', fontsAfter: 'nine_fonts_installed: 9\n', ...over })
-  check('premises: a clean install is 5 of 5 held, and the count is the first line', P({}).held === 5 && P({}).text.split('\n')[0] === 'checked 5 of 5 premises: 5 held', P({}).text.split('\n')[0])
+  const tinfo = 'timeout_path: /usr/bin/timeout\ntimeout_version: timeout (GNU coreutils) 9.4\nplain_exit: 124\nplain_seconds: 3\nplain_survivors: 0\nkill_exit: 124\nkill_seconds: 3\nkill_survivors: 0\n'
+  const P = over => premisesOf({ before, after, seconds: 'install_seconds: 9\n', fontsAfter: 'nine_fonts_installed: 9\n', timeoutInfo: tinfo, ...over })
+  check('premises: a clean install is 7 of 7 held, and the count is the first line', P({}).held === 7 && P({}).text.split('\n')[0] === 'checked 7 of 7 premises: 7 held', P({}).text.split('\n')[0])
   check('MUTATION: a package-list change, a dpkg.log growth or an apt history growth each fails the first premise',
-    [after.replace('dpkg_list_sha: aaaa', 'dpkg_list_sha: bbbb'), after.replace('dpkg_log_bytes: 100', 'dpkg_log_bytes: 150'), after.replace('apt_history_bytes: 200', 'apt_history_bytes: 260')].every(a => P({ after: a }).held === 4 && /^FAILED  the install changed no package/m.test(P({ after: a }).text)),
+    [after.replace('dpkg_list_sha: aaaa', 'dpkg_list_sha: bbbb'), after.replace('dpkg_log_bytes: 100', 'dpkg_log_bytes: 150'), after.replace('apt_history_bytes: 200', 'apt_history_bytes: 260')].every(a => P({ after: a }).held === 6 && /^FAILED  the install changed no package/m.test(P({ after: a }).text)),
     'an install that touched apt was read as clean')
   check('MUTATION: a shim call fails the second premise, and so does a missing count',
-    P({ after: after.replace('shim_calls: 0', 'shim_calls: 3') }).held === 4 && P({ after: after.replace('shim_calls: 0\n', '') }).held === 4, 'a logged apt call, or a missing count, passed')
+    P({ after: after.replace('shim_calls: 0', 'shim_calls: 3') }).held === 6 && P({ after: after.replace('shim_calls: 0\n', '') }).held === 6, 'a logged apt call, or a missing count, passed')
   check('MUTATION: one library not found, or no browser binary at all, fails the third premise',
-    P({ after: after.replace('ldd_not_found_total: 0', 'ldd_not_found_total: 1') }).held === 4 && P({ after: after.replace('browser_binaries: 2', 'browser_binaries: 0') }).held === 4, 'a missing library, or nothing to check, passed')
+    P({ after: after.replace('ldd_not_found_total: 0', 'ldd_not_found_total: 1') }).held === 6 && P({ after: after.replace('browser_binaries: 2', 'browser_binaries: 0') }).held === 6, 'a missing library, or nothing to check, passed')
   check('MUTATION: 181 s, a missing time, and exactly 180 s: only the first two fail the limit',
-    P({ seconds: 'install_seconds: 181\n' }).held === 4 && P({ seconds: '' }).held === 4 && P({ seconds: 'install_seconds: 180\n' }).held === 5, 'the limit is read wrongly')
+    P({ seconds: 'install_seconds: 181\n' }).held === 6 && P({ seconds: '' }).held === 6 && P({ seconds: 'install_seconds: 180\n' }).held === 7, 'the limit is read wrongly')
   check('MUTATION: a runner that already had one of the nine fonts fails the last premise (the treatment would not be a change)',
-    P({ before: before.replace('nine_fonts_installed: 0', 'nine_fonts_installed: 1') }).held === 4, 'a treatment that changes nothing passed')
+    P({ before: before.replace('nine_fonts_installed: 0', 'nine_fonts_installed: 1') }).held === 6, 'a treatment that changes nothing passed')
   check('premises: an empty input holds nothing and does not throw', premisesOf({ before: '', after: '', seconds: '', fontsAfter: '' }).held === 0, 'empty input held a premise')
+  check('MUTATION: a timeout that exits 0, leaves a process behind, takes longer than its limit allows, or was never measured fails its premise (plain and --kill-after separately)',
+    [tinfo.replace('plain_exit: 124', 'plain_exit: 0'), tinfo.replace('plain_survivors: 0', 'plain_survivors: 2'), tinfo.replace('plain_seconds: 3', 'plain_seconds: 30'), tinfo.replace('kill_exit: 124', 'kill_exit: 0'), tinfo.replace('kill_survivors: 0', 'kill_survivors: 1'), '']
+      .every(t => P({ timeoutInfo: t }).held <= 6) && P({ timeoutInfo: tinfo.replace('plain_exit: 124', 'plain_exit: 0') }).held === 6 && P({ timeoutInfo: '' }).held === 5,
+    'a timeout that does not stop the tree passed')
+  check('a timeout that exits 125 (uutils with --kill-after) or 137 (SIGKILL) still fails the step, so it holds', P({ timeoutInfo: tinfo.replace('kill_exit: 124', 'kill_exit: 125') }).held === 7 && P({ timeoutInfo: tinfo.replace('kill_exit: 124', 'kill_exit: 137') }).held === 7, 'a non-zero exit other than 124 was refused')
+  const noT = textOf({ control: same, teeth: teethRun, treatment: null, verdict: 'not-observable', why: 'the nine fonts were not installed (apt failed), so there is no treatment run to compare', apt: 'failed' })
+  check('MUTATION: when apt failed the first line says the treatment was not run and compared 0 cells, and does not print a clean treatment', /treatment NOT RUN \(0 of 0 cells compared\)/.test(noT.split('\n')[0]) && !/treatment 0 differ/.test(noT) && /treatment not run/.test(noT), noT.split('\n')[0])
+  const fbA = { id: 'X1', phase: 'fallback', n: 3, scrollWidth: 800, scrollHeight: 300, rects: [[0, 0, 1, 1], [0, 1, 2, 2], [3, 3, 3, 3]], labels: ['p', 'p', 'p'], fonts: { 'DM Sans': 10 }, shotSha: 'x' }
+  check('the fallback line says same when nothing moved, and DIFFER with the size and both font maps when a fallback font changed the boxes', /boxes same, fonts same, pixels same/.test(fallbackLine(fbA, fbA, 'l')) && /boxes DIFFER \(max 4px\).*fonts DIFFER.*"Noto":3/.test(fallbackLine(fbA, { ...fbA, rects: [[0, 0, 1, 1], [0, 1, 6, 2], [3, 3, 3, 3]], fonts: { 'DM Sans': 7, Noto: 3 }, shotSha: 'y' }, 'l')) && /not measured/.test(fallbackLine(fbA, undefined, 'l')), fallbackLine(fbA, fbA, 'l'))
   finish(summarize())
 } else if (isMain(import.meta.url) && process.argv.includes('--run')) {
   const r = await runProbe({ url: arg('--url', PAGE_URL), label: arg('--label', 'run'), injectCss: arg('--inject-css', '') })
@@ -260,7 +301,7 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   console.log(`${r.label}: ${r.cells.length} cells, chromium ${r.chromium}; fonts that drew glyphs: ${JSON.stringify(used)}`)
 } else if (isMain(import.meta.url) && process.argv.includes('--premises')) {
   const read = f => { try { return readFileSync(arg(f), 'utf8') } catch { return '' } }
-  const r = premisesOf({ before: read('--before'), after: read('--after'), seconds: read('--seconds'), fontsAfter: read('--fonts-after') })
+  const r = premisesOf({ before: read('--before'), after: read('--after'), seconds: read('--seconds'), fontsAfter: read('--fonts-after'), timeoutInfo: read('--timeout-file') })
   process.stdout.write(r.text)
   writeFileSync(arg('--out', '/dev/null'), r.text)
   process.exitCode = r.held === r.total ? 0 : 2
@@ -271,13 +312,14 @@ if (isMain(import.meta.url) && process.argv.includes('--self-test')) {
   const b = apt === 'ok' ? load('--b') : null
   const control = compareRuns(a1, a2)
   const teeth = compareRuns(a1, t)
-  const treatment = b ? compareRuns(a1, b) : { checked: a1.cells.length, geometryDiffer: 0, fontsDiffer: 0, pixelsDiffer: 0, newFonts: [], cells: [] }
+  const treatment = b ? compareRuns(a1, b) : null
   const v = verdictOf({ control, teeth, treatment, apt })
   const meta = { chromium: a1.chromium, url: a1.url }
-  const text = textOf({ control, teeth, treatment, ...v, apt, meta })
+  const fallback = [fallbackLine(a1.fallback, a2.fallback, 'control, the first run against the same again'), fallbackLine(a1.fallback, b?.fallback, 'treatment, without the nine fonts against with them')]
+  const text = textOf({ control, teeth, treatment, ...v, apt, meta, fallback })
   process.stdout.write(text)
   writeFileSync(arg('--text', '/dev/null'), text)
-  writeFileSync(arg('--json', '/dev/null'), JSON.stringify({ ...v, apt, meta, summary: { control: { ...control, cells: undefined }, teeth: { ...teeth, cells: undefined }, treatment: { ...treatment, cells: undefined } }, treatmentMoved: treatment.cells.filter(c => c.geometry.length).slice(0, 20) }, null, 2) + '\n')
+  writeFileSync(arg('--json', '/dev/null'), JSON.stringify({ ...v, apt, meta, summary: { control: { ...control, cells: undefined }, teeth: { ...teeth, cells: undefined }, treatment: treatment ? { ...treatment, cells: undefined } : null }, fallback, treatmentMoved: treatment ? treatment.cells.filter(c => c.geometry.length).slice(0, 20) : [] }, null, 2) + '\n')
   process.exitCode = v.verdict === 'not-observable' ? 2 : 0
 } else if (isMain(import.meta.url)) {
   console.log('usage: --run | --judge | --self-test (see the header)')

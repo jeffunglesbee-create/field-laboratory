@@ -7,10 +7,12 @@
 #
 #   1. The install itself. Does it touch apt (the dpkg and apt logs and the package list before and after, and a PATH shim that logs any apt/dpkg/sudo call)?
 #      Does the browser it leaves have every shared library it needs (ldd)? How long does it take (the limit is 180 s)? Were the nine fonts really absent?
+#      Does the runner's `timeout`, the form the composite action and one combined step use for the limit, end a stalled process tree with a non-zero exit?
 #      -> outbox/install-no-apt-probe-latest.txt, first line `checked N of N premises`.
 #   2. The fonts. With the page the layout checks load, at the ten canonical viewports, at rest and with every card opened (20 cells): do any element box,
 #      scroll size or drawn font change when the nine fonts are installed afterwards? The control (the same page twice) and the teeth (every font forced to
-#      monospace) are run first; a verdict is only given when the control repeats and the teeth see the change.
+#      monospace) are run first; a verdict is only given when the control repeats and the teeth see the change. One more cell, outside the verdict, draws text in scripts
+#      and symbols the page's own faces do not carry (CJK, Thai, Cyrillic, Greek, Hebrew, Arabic, symbols) to show which fallback fonts the nine packages would supply.
 #      -> outbox/font-dependence-latest.{json,txt}, first line `checked N of N cells`.
 #
 # Two triggers: a push of outbox/.trigger-font-dependence-probe, which runs from the pushing ref's own copy of this file, and workflow_dispatch once it is on main.
@@ -104,6 +106,31 @@ jobs:
             echo "ldd_not_found_total: $MISSING"
           } | tee /tmp/after.txt
 
+      # The limit on the composite action and on the combined `Install` step is a coreutils `timeout`. The runner image decides which one it is (GNU, or uutils on 26.04),
+      # so its behaviour is measured here: a process tree that never ends, killed by the plain form and by the --kill-after form, with the exit status, the time and the survivors.
+      - name: The runner's timeout ends a stalled process tree
+        shell: bash
+        run: |
+          {
+            echo "timeout_path: $(readlink -f "$(command -v timeout)")"
+            echo "timeout_version: $(timeout --version 2>&1 | head -1)"
+            tree() {
+              label=$1
+              shift
+              start=$(date +%s)
+              set +e
+              "$@" bash -c 'sleep 4711 & sleep 4712 & wait'
+              code=$?
+              set -e
+              echo "${label}_exit: $code"
+              echo "${label}_seconds: $(( $(date +%s) - start ))"
+              echo "${label}_survivors: $(pgrep -fc 'sleep 471[12]' || true)"
+              pkill -f 'sleep 471[12]' || true
+            }
+            tree plain timeout 3
+            tree kill timeout --kill-after=10 3
+          } | tee /tmp/timeout.txt
+
       - name: Serve the built site
         run: |
           node scripts/serve.mjs &
@@ -151,7 +178,7 @@ jobs:
           [ "${{ steps.apt.outcome }}" = "success" ] && APT=ok
           set +e
           node scripts/font-dependence-probe.mjs --premises --before /tmp/before.txt --after /tmp/after.txt --seconds /tmp/install-seconds.txt \
-            --fonts-after /tmp/fonts-after.txt --out outbox/install-no-apt-probe-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+            --fonts-after /tmp/fonts-after.txt --timeout-file /tmp/timeout.txt --out outbox/install-no-apt-probe-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           PREM=${PIPESTATUS[0]}
           node scripts/font-dependence-probe.mjs --judge --a1 /tmp/A1.json --a2 /tmp/A2.json --teeth /tmp/T.json --b /tmp/B.json --apt "$APT" \
             --json outbox/font-dependence-latest.json --text outbox/font-dependence-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
@@ -170,9 +197,13 @@ jobs:
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
             sleep $((i * 5))
           done
+          # A conflicted rebase leaves HEAD on the upstream tip, so "HEAD is on origin" is true even when nothing was pushed. What landed is what is compared: each result
+          # file on origin must be the file this run wrote (a second run that lost the race to the first reads its own files back as different and fails here).
+          git rebase --abort 2>/dev/null || true
           git fetch -q origin "${GITHUB_REF_NAME}"
-          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
-            || { echo "FAIL: push did not land after retries"; exit 1; }
+          for f in outbox/font-dependence-latest.json outbox/font-dependence-latest.txt outbox/install-no-apt-probe-latest.txt; do
+            git diff --quiet "origin/${GITHUB_REF_NAME}" -- "$f" || { echo "FAIL: $f on origin is not the file this run wrote (the push did not land, or another run wrote it)"; exit 1; }
+          done
 
       - name: A verdict that is not-observable decides the job
         if: steps.judge.outcome != 'success'
