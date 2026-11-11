@@ -1,0 +1,77 @@
+name: live shape capture
+
+# Dispatch-only, NO schedule.
+#
+# docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 1. The laboratory is going to read soccer scores from the
+# relay's GET /v2/games and the keys a LIVE soccer game carries have never been observed (CC-CMD fact 5), so the
+# first thing built is this measurement: while a match is in play, fetch the feed and the archive row the page
+# already reads, and commit both as they arrived. Rule 68: write the decoder against the real shape.
+#
+# Why no `schedule:`. A match is in play at moments nobody can name a month ahead, and a cron firing at a guess
+# would capture a quiet feed and look like a measurement. It is dispatched at chosen minutes by a one-shot
+# scheduled task, and by hand. The page's own poll is the only timer this feature adds, and it is not here.
+#
+# CI because the sandbox 403s *.workers.dev at CONNECT.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sport:
+        description: "The relay's /v2/games sport key, e.g. efltrophy or epl."
+        required: true
+        type: string
+      date:
+        description: 'The ET field day, YYYY-MM-DD. The relay defaults to the UTC date, which is the wrong day after 20:00 ET.'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Two dispatches a few minutes apart must not race each other's push.
+concurrency:
+  group: live-shape-capture
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+
+      # Rule 90: a script whose checks have only ever passed has proven nothing, so its self-test (which fails on a
+      # pre game with score 0 read as live) runs first and a red one stops the capture.
+      - name: The capture's own checks
+        run: node scripts/live-shape-capture.mjs --self-test
+
+      # The inputs reach the script through the environment, never spliced into the command line.
+      - name: Capture
+        env:
+          SPORT: ${{ inputs.sport }}
+          DATE: ${{ inputs.date }}
+        run: node scripts/live-shape-capture.mjs "$SPORT" "$DATE"
+
+      # `if: always()`: a capture that failed still wrote a file saying why, and that is worth keeping.
+      - name: Commit the capture
+        if: always()
+        env:
+          SPORT: ${{ inputs.sport }}
+          DATE: ${{ inputs.date }}
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/live-capture-*.json
+          git diff --cached --quiet && echo "no capture was written" && exit 0
+          git commit -m "probe: the live /v2/games shape of $SPORT on $DATE [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin main && git push origin main && break
+            sleep $((i * 5))
+          done
+          # The loop exits 0 when every attempt fails (its last command is `sleep`), so a lost capture would report
+          # as a green step. Same guard as capture-lineups-fixture.yml.
+          git fetch -q origin main
+          git merge-base --is-ancestor HEAD origin/main \
+            || { echo "FAIL: push did not land after retries"; exit 1; }

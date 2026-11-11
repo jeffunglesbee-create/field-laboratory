@@ -10861,6 +10861,59 @@ const MUTATIONS = [
     replace: "let METHOD_TAG = \"table-v3\"\n",
     expect: "node build/VerifyMain.js",
   },
+  // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 1: the live-shape capture. Each entry breaks one thing the
+  // capture's claim rests on and expects its own self-test to notice (Rule 90).
+  {
+    // A pre game reports score 0, an integer, with a clock string. Only the feed's state word separates it from a live game.
+    id: "live-capture-state-gate-removed",
+    file: "scripts/live-shape-capture.mjs",
+    claim: "a game is live only when the feed's state says live, never because it has integer scores",
+    find: "    if (d.state === 'live') {\n",
+    replace: "    if (d.state === 'live' || d.scoresAreIntegers) {\n",
+    expect: "node scripts/live-shape-capture.mjs --self-test",
+  },
+  {
+    // The archive says 'Man Utd', the feed 'Manchester United'.
+    id: "live-capture-joins-by-name",
+    file: "scripts/live-shape-capture.mjs",
+    claim: "a feed game joins its archive row by espn event id, never by team name",
+    find: "    const row = espnId ? byEspn.get(espnId) : undefined\n",
+    replace: "    const row = rows.find(r => r && r.home && g?.home?.name && String(r.home) === String(g.home.name))\n",
+    expect: "node scripts/live-shape-capture.mjs --self-test",
+  },
+  {
+    // The design rests on the archive having NO score while the feed does; a scored archive row must not count.
+    id: "live-capture-archive-null-not-required",
+    file: "scripts/live-shape-capture.mjs",
+    claim: "a live game counts toward the proof only while its archive row has no score",
+    find: "      const archiveUnscored = !!(j?.matched && j.archive.home_score === null && j.archive.away_score === null)\n",
+    replace: "      const archiveUnscored = !!(j?.matched)\n",
+    expect: "node scripts/live-shape-capture.mjs --self-test",
+  },
+  {
+    id: "live-capture-proof-needs-no-full-shape-game",
+    file: "scripts/live-shape-capture.mjs",
+    claim: "the live shape is proved only by at least one live game that shows all of it",
+    find: "export const provedOf = s => s.liveFullShape >= 1",
+    replace: "export const provedOf = s => s.liveFullShape >= 0",
+    expect: "node scripts/live-shape-capture.mjs --self-test",
+  },
+  {
+    id: "live-capture-proof-split-across-games",
+    file: "scripts/live-shape-capture.mjs",
+    claim: "integer scores, a clock string and an unscored archive row must all be seen on the same game",
+    find: "      if (d.scoresAreIntegers && d.clockIsString && archiveUnscored) liveFullShape++\n",
+    replace: "      if (d.scoresAreIntegers || d.clockIsString || archiveUnscored) liveFullShape++\n",
+    expect: "node scripts/live-shape-capture.mjs --self-test",
+  },
+  {
+    id: "live-capture-file-name-drops-the-minute",
+    file: "scripts/live-shape-capture.mjs",
+    claim: "two captures of the same sport and day, minutes apart, write different files",
+    find: "-${at.toISOString().slice(11, 16).replace(':', '')}Z.json`",
+    replace: ".json`",
+    expect: "node scripts/live-shape-capture.mjs --self-test",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
