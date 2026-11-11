@@ -1,6 +1,6 @@
 # A started row with no score says what is known (CC-CMD-2026-11-11-soccer-live-scores, Task 4)
 
-2026-11-11. `src/Desk.fs` (`startTimePassedAt`, `startTimePassed`), `src/Scoreboard.fs` (`statusTextWith`), `src/Suite.fs` (10 cases), `scripts/mutation-check.mjs` (5 entries), the CC-CMD's wording.
+2026-11-11. `src/Desk.fs` (`startTimePassedAt`, `startTimePassed`), `src/Scoreboard.fs` (`statusTextWith`), `src/Suite.fs` (9 cases; this note and the commit message first said 10, found by review 2026-11-11 by diffing the check count, 371 to 380), `scripts/mutation-check.mjs` (5 entries), the CC-CMD's wording.
 
 ## The measured bug
 

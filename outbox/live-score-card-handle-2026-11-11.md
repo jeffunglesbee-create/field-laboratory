@@ -14,7 +14,7 @@
 |---|---|
 | `npm run build` (no warnings), `node build/VerifyMain.js` | 403 of 403 |
 | the six card-rendering gate rows, `forecast-render-check` (38/38), `brief-flip-check` (20/20), `lineups-render-check` (71/71) against the new card structure | all pass, `PW_CHROMIUM` set |
-| the three `live-*` entries on `foldReading` and `forecast-card-on-every-card` through the harness, with the static server up | 5 of 5 |
+| the three `live-*` entries on `foldReading` and `forecast-card-on-every-card` through the harness, with the static server up | 4 entries caught, and the harness's own check that the unmutated tree passes: the "5 of 5" this row first said counted that baseline check as a fifth entry (found by review 2026-11-11) |
 | anchors | two entries moved (`forecast-card-on-every-card` reads `shown`, `live-reading-beats-archive-final` reads the new line); 0 stale |
 
 ## Not defended yet

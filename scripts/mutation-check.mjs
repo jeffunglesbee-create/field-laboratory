@@ -11375,6 +11375,24 @@ const MUTATIONS = [
     replace: "    | Sport.FIFAWorldCup -> Some \"wc2026\"\n",
     expect: "node build/VerifyMain.js",
   },
+  // Review 2026-11-11, semantics F5 / F7: the render check's 'a pinned page makes no request to the live feed' had never failed (there was no poll
+  // to make one), and the forecast probe's wording for a card past kickoff named a state the page no longer produces.
+  {
+    id: "poll-runs-on-a-pinned-page-seen-by-the-render-check",
+    file: "src/Program.fs",
+    claim: "a pinned page makes no request to the live feed, as the render check observes it",
+    find: "                if (queryParam \"data\").IsNone then startLivePoll cardHandles.Value (viewedDate ())\n",
+    replace: "                startLivePoll cardHandles.Value (viewedDate ())\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "forecast-live-start-passed-is-another-state",
+    file: "scripts/forecast-live-probe.mjs",
+    claim: "a card that says its start time passed, with a forecast, fails and says why",
+    find: "  if (s.startsWith('Start time passed')) return 'startpassed'\n",
+    replace: "",
+    expect: "node scripts/forecast-live-probe.mjs --self-test",
+  },
   // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8: the live-score probe's verdict logic. Each entry breaks one thing its
   // verdict rests on and expects its own self-test to notice (Rule 90).
   {
