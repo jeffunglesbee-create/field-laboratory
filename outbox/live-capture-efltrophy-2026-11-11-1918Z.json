@@ -1,0 +1,326 @@
+{
+  "capturedAt": "2026-11-11T19:18:54.529Z",
+  "sport": "efltrophy",
+  "date": "2026-11-11",
+  "relay": "https://field-relay-nba.jeffunglesbee.workers.dev",
+  "error": null,
+  "v2": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/v2/games?sport=efltrophy&date=2026-11-11",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public, max-age=15",
+    "age": null,
+    "date": "Wed, 11 Nov 2026 19:18:55 GMT",
+    "bytes": 1988,
+    "body": {
+      "sport": "efltrophy",
+      "date": "2026-11-11",
+      "games": [
+        {
+          "id": "espn:401911177",
+          "espnEventId": "401911177",
+          "sport": "efltrophy",
+          "league": "EFL Trophy",
+          "state": "live",
+          "start": "2026-11-11T19:00Z",
+          "home": {
+            "name": "Barnsley",
+            "abbr": "BAR",
+            "score": 0
+          },
+          "away": {
+            "name": "Oldham Athletic",
+            "abbr": "OLD",
+            "score": 0
+          },
+          "clock": "18'",
+          "periodNum": 1,
+          "periodLabel": "18'",
+          "venue": "Oakwell",
+          "round": "EFL Trophy, Northern Group G",
+          "situation": {
+            "elapsed": 18,
+            "isStoppage": false,
+            "isHalftime": false,
+            "isShootout": false,
+            "manAdvantage": null,
+            "homeSOT": 0,
+            "awaySOT": 0,
+            "hasStats": false
+          },
+          "matchEvents": [],
+          "streams": [],
+          "winProb": {
+            "homeWin": 0.335238721177642,
+            "draw": 0.32952255764471616,
+            "awayWin": 0.335238721177642,
+            "source": "default-lambda"
+          },
+          "openingWP": {
+            "homeWin": 0.335238721177642,
+            "draw": 0.32952255764471616,
+            "awayWin": 0.335238721177642,
+            "source": "default-lambda",
+            "elapsed": 18,
+            "storedAt": 1794424735223
+          },
+          "wpDelta": null,
+          "recentWPHistory": [
+            {
+              "elapsed": 18,
+              "homeWin": 0.335238721177642,
+              "draw": 0.32952255764471616
+            }
+          ],
+          "openingAdvanceProb": null
+        },
+        {
+          "id": "espn:401906340",
+          "espnEventId": "401906340",
+          "sport": "efltrophy",
+          "league": "EFL Trophy",
+          "state": "live",
+          "start": "2026-11-11T19:00Z",
+          "home": {
+            "name": "Sheffield Wednesday",
+            "abbr": "SHW",
+            "score": 0
+          },
+          "away": {
+            "name": "Accrington Stanley",
+            "abbr": "ACC",
+            "score": 0
+          },
+          "clock": "18'",
+          "periodNum": 1,
+          "periodLabel": "18'",
+          "venue": "Hillsborough",
+          "round": "EFL Trophy, Northern Group A",
+          "situation": {
+            "elapsed": 18,
+            "isStoppage": false,
+            "isHalftime": false,
+            "isShootout": false,
+            "manAdvantage": null,
+            "homeSOT": 0,
+            "awaySOT": 0,
+            "hasStats": false
+          },
+          "matchEvents": [],
+          "streams": [],
+          "winProb": {
+            "homeWin": 0.335238721177642,
+            "draw": 0.32952255764471616,
+            "awayWin": 0.335238721177642,
+            "source": "default-lambda"
+          },
+          "openingWP": {
+            "homeWin": 0.335238721177642,
+            "draw": 0.32952255764471616,
+            "awayWin": 0.335238721177642,
+            "source": "default-lambda",
+            "elapsed": 18,
+            "storedAt": 1794424735247
+          },
+          "wpDelta": null,
+          "recentWPHistory": [
+            {
+              "elapsed": 18,
+              "homeWin": 0.335238721177642,
+              "draw": 0.32952255764471616
+            }
+          ],
+          "openingAdvanceProb": null
+        }
+      ],
+      "count": 2,
+      "source": "espn-wc",
+      "ts": 1794424735294
+    },
+    "parseError": null
+  },
+  "archive": {
+    "url": "https://field-relay-nba.jeffunglesbee.workers.dev/context/date/2026-11-11",
+    "status": 200,
+    "contentType": "application/json",
+    "cacheControl": "public,max-age=300",
+    "age": null,
+    "date": "Wed, 11 Nov 2026 19:18:54 GMT",
+    "bytes": 175818,
+    "parseError": null,
+    "rowCount": 21
+  },
+  "games": [
+    {
+      "id": "espn:401911177",
+      "espnId": "401911177",
+      "state": "live",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "18'",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-11T19:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "matchEvents",
+        "openingAdvanceProb",
+        "openingWP",
+        "periodLabel",
+        "periodNum",
+        "recentWPHistory",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue",
+        "winProb",
+        "wpDelta"
+      ]
+    },
+    {
+      "id": "espn:401906340",
+      "espnId": "401906340",
+      "state": "live",
+      "homeScore": 0,
+      "awayScore": 0,
+      "scoresAreIntegers": true,
+      "clock": "18'",
+      "clockIsString": true,
+      "periodNum": 1,
+      "start": "2026-11-11T19:00Z",
+      "hasSituation": true,
+      "keys": [
+        "away",
+        "clock",
+        "espnEventId",
+        "home",
+        "id",
+        "league",
+        "matchEvents",
+        "openingAdvanceProb",
+        "openingWP",
+        "periodLabel",
+        "periodNum",
+        "recentWPHistory",
+        "round",
+        "situation",
+        "sport",
+        "start",
+        "state",
+        "streams",
+        "venue",
+        "winProb",
+        "wpDelta"
+      ]
+    }
+  ],
+  "joins": [
+    {
+      "espnId": "401911177",
+      "matched": true,
+      "archive": {
+        "id": "EFL Trophy_2026-11-11_e401911177",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-11T19:00Z"
+      },
+      "raw": {
+        "id": "EFL Trophy_2026-11-11_e401911177",
+        "sport": "EFL Trophy",
+        "league": "EFL Trophy",
+        "date": "2026-11-11",
+        "home": "Barnsley",
+        "away": "Oldham",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Oakwell",
+        "streams": null,
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-11 10:00:31",
+        "opening_odds": null,
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401911177",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-11T19:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    },
+    {
+      "espnId": "401906340",
+      "matched": true,
+      "archive": {
+        "id": "EFL Trophy_2026-11-11_e401906340",
+        "home_score": null,
+        "away_score": null,
+        "finalized_at": null,
+        "start_time": "2026-11-11T19:00Z"
+      },
+      "raw": {
+        "id": "EFL Trophy_2026-11-11_e401906340",
+        "sport": "EFL Trophy",
+        "league": "EFL Trophy",
+        "date": "2026-11-11",
+        "home": "Sheffield Wed",
+        "away": "Accrington",
+        "home_score": null,
+        "away_score": null,
+        "venue": "Hillsborough",
+        "streams": null,
+        "note": null,
+        "tags": null,
+        "crew": null,
+        "local_note": null,
+        "created_at": "2026-11-11 10:00:32",
+        "opening_odds": null,
+        "closing_odds": null,
+        "drama_peak": null,
+        "drama_arc": null,
+        "espn_event_id": "401906340",
+        "went_to_ot": null,
+        "finalized_at": null,
+        "start_time": "2026-11-11T19:00Z",
+        "importance": null,
+        "inplay_odds": null,
+        "bsd_event_id": null
+      }
+    }
+  ],
+  "summary": {
+    "gamesInFeed": 2,
+    "byState": {
+      "live": 2
+    },
+    "live": 2,
+    "liveWithIntegerScores": 2,
+    "liveWithClockString": 2,
+    "liveWithArchiveScoreNull": 2,
+    "liveFeedShape": 2,
+    "liveFullShape": 2,
+    "preWithScoreZero": 0,
+    "archiveMatched": 2,
+    "finalWithArchiveUnscored": 0
+  },
+  "coverage": "checked 2 of 2 games joined to an archive row; 2 live",
+  "gap": "final in the feed with an unscored archive row: 0 of 0 final game(s)",
+  "feedShapeSeen": true,
+  "proved": true
+}
