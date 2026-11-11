@@ -1,0 +1,10 @@
+checked 7 of 7 premises: 7 held
+stamp: run 43104450683 attempt 1 sha 0640e4b9ec8828da5e572fb7f5ba07f0e30c4768 at 2026-11-11T21:38:36Z
+HELD    the install changed no package, wrote nothing to the dpkg or apt logs and left the apt package lists alone (package list 2708c1ed7a0f1c0d -> 2708c1ed7a0f1c0d; dpkg.log 0 -> 0 bytes; apt history 0 -> 0; apt lists 79613ab2b2fce0b0 -> 79613ab2b2fce0b0)
+HELD    no apt, apt-get, dpkg or sudo call was made during the install, each shimmed on PATH (0 calls logged)
+HELD    every browser binary the install left has all its shared libraries (2 binaries, 0 libraries not found)
+HELD    the install finished inside its 180 s limit (7 s)
+HELD    none of the nine fonts was installed before, so the treatment is a real change (0 of 9 present before; 9 of 9 after the apt step; fontconfig then lists: FreeSans;IPAGothic,IPAゴシック;Loma;Unifont;Unifont CSUR;Unifont Sample;Unifont Upper;Unifont\-JP;WenQuanYi Zen Hei Mono,文泉驛等寬正黑,文泉驿等宽正黑;WenQuanYi Zen Hei Sharp,文泉驛點陣正黑,文泉驿点阵正黑;WenQuanYi Zen Hei,文泉驛正黑,文泉驿正黑;)
+HELD    the runner's timeout ends a stalled process tree: exit 124 (non-zero fails the step), 3 s for a 3 s limit, 0 processes left (/usr/lib/cargo/bin/coreutils/timeout; timeout (uutils coreutils) 0.10.0)
+HELD    the runner's timeout --kill-after=10 ends a stalled process tree: exit 124 (non-zero fails the step), 3 s for a 3 s limit, 0 processes left (/usr/lib/cargo/bin/coreutils/timeout; timeout (uutils coreutils) 0.10.0)
+image: PRETTY_NAME="Ubuntu 26.04.1 LTS" / 20261101.186.1

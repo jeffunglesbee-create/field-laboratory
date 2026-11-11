@@ -171,8 +171,10 @@ jobs:
 
       # The gate drives real browsers through several of its rows, and those
       # rows fetch from the local server. Started here, before anything needs it.
+      # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 3
+        run: npx playwright install chromium
 
       - name: Serve the built site
         run: |

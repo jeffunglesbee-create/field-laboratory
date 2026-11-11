@@ -53,9 +53,12 @@ runs:
       shell: bash
       run: node scripts/build-steady.mjs
 
+    # No --with-deps (that is apt, and apt stalled ten minutes on 2026-11-11 when the Ubuntu mirrors did not resolve) and a time limit; docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
+    # A composite action's step takes no timeout-minutes (GitHub lists none for them), so the limit is coreutils timeout: 180 s, SIGKILL 10 s later if the install
+    # ignores SIGTERM, and any non-zero exit fails the step.
     - name: Install Chromium
       shell: bash
-      run: npx playwright install --with-deps chromium
+      run: timeout --kill-after=10 180 npx playwright install chromium
 
     - name: Serve the built site
       shell: bash
