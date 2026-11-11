@@ -12,6 +12,38 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `3b435de` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | docs: options 2 and 3 of the apt-mirror CC-CMD are built; the scored gate on ecbdb2a read 530/530 |
+| `f3d8480` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of ecbdb2a [skip ci] |
+| `256ff5f` | 2026-11-11 | [.trigger-font-dependence-probe](.trigger-font-dependence-probe) | docs: the apt-mirror CC-CMD records options 2 and 3 as built; the session note is the record of the work [skip ci] |
+| `256ff5f` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | docs: the apt-mirror CC-CMD records options 2 and 3 as built; the session note is the record of the work [skip ci] |
+| `ecbdb2a` | 2026-11-11 | [font-dependence-latest.json](font-dependence-latest.json) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `ecbdb2a` | 2026-11-11 | [font-dependence-latest.txt](font-dependence-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `ecbdb2a` | 2026-11-11 | [install-no-apt-probe-latest.txt](install-no-apt-probe-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `6d4d566` | 2026-11-11 | [install-guard-sweep-2026-11-11.mjs](install-guard-sweep-2026-11-11.mjs) | check: timeout's long options with a separate argument, and the docstring says what the rule ensures |
+| `6d4d566` | 2026-11-11 | [install-guard-sweep-2026-11-11.txt](install-guard-sweep-2026-11-11.txt) | check: timeout's long options with a separate argument, and the docstring says what the rule ensures |
+| `0640e4b` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | probe: a positive control for the treatment, stamped results, and a sweep of the probe's own self-test |
+| `0640e4b` | 2026-11-11 | [font-probe-sweep-2026-11-11.mjs](font-probe-sweep-2026-11-11.mjs) | probe: a positive control for the treatment, stamped results, and a sweep of the probe's own self-test |
+| `0640e4b` | 2026-11-11 | [font-probe-sweep-2026-11-11.txt](font-probe-sweep-2026-11-11.txt) | probe: a positive control for the treatment, stamped results, and a sweep of the probe's own self-test |
+| `895ae59` | 2026-11-11 | [font-dependence-latest.json](font-dependence-latest.json) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `895ae59` | 2026-11-11 | [font-dependence-latest.txt](font-dependence-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `895ae59` | 2026-11-11 | [install-no-apt-probe-latest.txt](install-no-apt-probe-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `eedbf4d` | 2026-11-11 | [install-no-apt-red-before-2026-11-11.mjs](install-no-apt-red-before-2026-11-11.mjs) | outbox: the red-before / green-after audit is a committed script, run at a clean tree |
+| `eedbf4d` | 2026-11-11 | [install-no-apt-red-before-2026-11-11.txt](install-no-apt-red-before-2026-11-11.txt) | outbox: the red-before / green-after audit is a committed script, run at a clean tree |
+| `3282493` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | probe: the runner's timeout, a fallback-text cell, treatment-not-run, and a commit-back that fails loudly |
+| `4578ba9` | 2026-11-11 | [install-guard-sweep-2026-11-11.mjs](install-guard-sweep-2026-11-11.mjs) | check: the review's findings on the browser-install rule: pinned versions, folded scalars, wrapped timeouts, whole minutes |
+| `4578ba9` | 2026-11-11 | [install-guard-sweep-2026-11-11.txt](install-guard-sweep-2026-11-11.txt) | check: the review's findings on the browser-install rule: pinned versions, folded scalars, wrapped timeouts, whole minutes |
+| `69c26b4` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-2121Z.json](live-capture-efltrophy-2026-11-11-2121Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
+| `096fde3` | 2026-11-11 | [font-dependence-latest.json](font-dependence-latest.json) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `096fde3` | 2026-11-11 | [font-dependence-latest.txt](font-dependence-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `096fde3` | 2026-11-11 | [install-no-apt-probe-latest.txt](install-no-apt-probe-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
+| `da6684b` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-2059Z.json](live-capture-efltrophy-2026-11-11-2059Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
+| `b8f3603` | 2026-11-11 | [.trigger-font-dependence-probe](.trigger-font-dependence-probe) | probe: trigger the font-dependence probe again; the first push fell in GitHub's 20:22-20:26Z webhook incident and its run never got a job |
+| `d726715` | 2026-11-11 | [.trigger-font-dependence-probe](.trigger-font-dependence-probe) | probe: what dropping --with-deps from the browser install costs, measured on a runner |
+| `d726715` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | probe: what dropping --with-deps from the browser install costs, measured on a runner |
+| `103d54e` | 2026-11-11 | [install-guard-sweep-2026-11-11.mjs](install-guard-sweep-2026-11-11.mjs) | check: no browser install goes through apt and every one is time-bounded |
+| `103d54e` | 2026-11-11 | [install-guard-sweep-2026-11-11.txt](install-guard-sweep-2026-11-11.txt) | check: no browser install goes through apt and every one is time-bounded |
+| `11680a3` | 2026-11-11 | [install-no-apt-red-before-2026-11-11.txt](install-no-apt-red-before-2026-11-11.txt) | ci: the browser install takes no apt and a three minute limit, at all ten sites |
+| `87736ff` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-1954Z.json](live-capture-efltrophy-2026-11-11-1954Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
 | `07c0dbb` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `07c0dbb` | 2026-11-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `e44c720` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-1918Z.json](live-capture-efltrophy-2026-11-11-1918Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
