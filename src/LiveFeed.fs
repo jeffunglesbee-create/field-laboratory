@@ -65,7 +65,7 @@ let feedPath (sportKey: string) (etDay: string) : string = sprintf "/v2/games?sp
 /// - `live` with both scores is the live score; `final` with both scores is full time (the archive has not finalised it
 ///   yet, or the card would be Final and the reading would not show).
 /// - a card with no ESPN event id cannot be joined, a feed with no game for the card has nothing to say, a state word this file
-///   does not read, and a live or final game with no score: each is `LiveUnavailable` with the reason, said on the card.
+///   does not read, and a live or final game with no score: each is `LiveUnavailable` with the reason, carried on the card as `data-why` (the words on the card are `live score unavailable`).
 let readingFor (feed: FeedGame list) (game: Game) : LiveReading =
     match game.EspnEventId with
     | None -> LiveUnavailable "the card carries no ESPN event id to join the feed on"

@@ -112,6 +112,7 @@ const readCard = (page, teams) =>
       score: txt('score'),
       status: txt('status'),
       live: txt('live'),
+      why: c.querySelector('[data-testid="live"]')?.getAttribute('data-why') ?? null,
       drama: txt('drama'),
       forecast: c.querySelector('[data-testid="forecast"]')?.getAttribute('data-forecast') ?? null,
     }
@@ -329,6 +330,8 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       feedRequests.length === 3 && mismatches(third, { live: WORDS.unavailable, status: WORDS.passed, score: '—' }).length === 0,
       JSON.stringify({ n: feedRequests.length, card: third }))
 
+    check('...and the reason rides on the card as data-why, the feed\'s own status (the words stay the same)', typeof third.why === 'string' && third.why.includes('503'), JSON.stringify(third.why))
+
     await pg.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }))
     await pg.clock.fastForward(60_000)
     await pg.waitForTimeout(300)
@@ -339,11 +342,13 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     const fourth = await settle(pg, EARLY, { score: '3–0' })
     check('a visible tab asks again at the next tick and the card is live again',
       feedRequests.length === 4 && mismatches(fourth, { score: '3–0', live: "70'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: fourth }))
+    check('...and the reason is gone with the unavailable note: no data-why on a card that reads a clock', fourth.why === null, JSON.stringify(fourth.why))
 
     await pg.clock.fastForward(60_000)
     const fifth = await settle(pg, EARLY, { live: WORDS.unavailable })
     check('a body that is not JSON is said on the card in words, never a blank',
       feedRequests.length === 5 && mismatches(fifth, { live: WORDS.unavailable, status: WORDS.passed }).length === 0, JSON.stringify({ n: feedRequests.length, card: fifth }))
+    check('...and its reason says the body was unreadable', typeof fifth.why === 'string' && fifth.why.startsWith('unreadable'), JSON.stringify(fifth.why))
 
     await pg.clock.fastForward(3 * 60 * 60 * 1000)
     await pg.waitForTimeout(300)
@@ -491,10 +496,11 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       check('a request that never answers is held at the tick inside its deadline, and cut at the deadline with the card saying the feed did not answer rather than staying silent',
         Number.isFinite(DEADLINE_MS) && DEADLINE_MS > 60_000 && before.live !== WORDS.unavailable && insideDeadline.live !== WORDS.unavailable && askedInside === 1 && cut.live === WORDS.unavailable,
         JSON.stringify({ DEADLINE_MS, before: before.live, insideDeadline: insideDeadline.live, askedInside, cut: cut.live }))
+      check('...and the reason says the feed did not answer', typeof cut.why === 'string' && cut.why.startsWith('the feed did not answer'), JSON.stringify(cut.why))
       await pg.clock.fastForward(60_000)
       await pg.waitForTimeout(400)
       const again = await settle(pg, EARLY, { score: '1–0' })
-      check('...and the next tick asks for that key again and the card is told the score: the stalled request did not pin the key', n.epl === 2 && again.score === '1–0', JSON.stringify({ asked: n.epl, score: again.score }))
+      check('...and the next tick asks for that key again and the card is told the score: the stalled request did not pin the key', n.epl === 2 && again.score === '1–0' && again.why === null, JSON.stringify({ asked: n.epl, score: again.score, why: again.why }))
       release()
       await ctx.close()
     }

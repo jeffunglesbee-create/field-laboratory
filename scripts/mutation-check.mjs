@@ -11994,6 +11994,31 @@ const MUTATIONS = [
     replace: "let LivePollTimeoutMs = 15000\n",
     expect: "node build/VerifyMain.js",
   },
+  // Review 2026-11-11 (decoder S8, S10, S24): the reason behind `live score unavailable` rides on the card as data-why.
+  {
+    id: "live-why-for-a-finalised-card",
+    file: "src/LiveScore.fs",
+    claim: "a game the archive has finalised carries no reason, as it carries no live note",
+    find: "    | Final _, _ -> \"\"\n    | _, LiveUnavailable why -> why\n",
+    replace: "    | _, LiveUnavailable why -> why\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-why-attribute-not-set",
+    file: "src/Scoreboard.fs",
+    claim: "the reason behind live score unavailable rides on the card as data-why",
+    find: "                  | why -> liveNode.setAttribute(\"data-why\", why))\n",
+    replace: "                  | why -> ())\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "live-why-attribute-never-removed",
+    file: "src/Scoreboard.fs",
+    claim: "a card that reads a clock again carries no data-why",
+    find: "                  | \"\" -> liveNode.removeAttribute \"data-why\"\n",
+    replace: "                  | \"\" -> ()\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
   {
     id: "live-keys-ask-for-a-finalised-card",
     file: "src/LiveScore.fs",

@@ -325,7 +325,7 @@ let private loadMetricsOnce () =
 //   - none at all on a page pinned to a capture (`?data=`), which must not reach the network;
 //   - no socket, no event source, no visibility listener: a tab that becomes visible waits for the next tick.
 // What it asks is the relay's pull route (ADR-002 Rule A: a reader's page asks; nothing is pushed). What it does with the answer is
-// `CardHandle.SetReading`; a failed or unreadable answer is said on the card ("live score unavailable"), never a silent blank.
+// `CardHandle.SetReading`; a failed or unreadable answer is said on the card ("live score unavailable", the reason as `data-why`), never a silent blank.
 let private RELAY_BASE = "https://field-relay-nba.jeffunglesbee.workers.dev"
 
 let mutable private livePollTimer : float option = None

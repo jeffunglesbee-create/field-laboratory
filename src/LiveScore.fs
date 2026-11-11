@@ -150,3 +150,13 @@ let liveNoteFor (archive: GameState) (reading: LiveReading) : string =
     match archive with
     | Final _ -> ""
     | _ -> liveNoteText reading
+
+/// WHY there is no score, for the node that says `live score unavailable`: the reading's own reason while that is what the note says,
+/// and nothing otherwise (a clock, `Full time`, no reading, or an archive `Final`, which carries no live note). The card carries it as
+/// `data-why`: the words beside the score stay `live score unavailable`, and a person with devtools, and the render check, can read
+/// what the feed said or did not say (review 2026-11-11, decoder S8 and S10: the reason was built at six sites and shown nowhere).
+let liveWhyFor (archive: GameState) (reading: LiveReading) : string =
+    match archive, reading with
+    | Final _, _ -> ""
+    | _, LiveUnavailable why -> why
+    | _ -> ""

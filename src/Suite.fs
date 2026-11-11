@@ -4698,7 +4698,23 @@ let private liveScore () =
       Verify.check "no reading and a live reading with no clock say nothing"
           (fun reading -> LiveScore.liveNoteText reading = "")
           (LiveScore.LiveNow(1, 0, None))
-          (LiveScore.FullTime(1, 0)) ]
+          (LiveScore.FullTime(1, 0))
+
+      // Review 2026-11-11 (decoder S8, S10, S24): the reason behind `live score unavailable` was carried and never read.
+      Verify.check "the reason is the reading's own while the note says unavailable"
+          (fun reading -> LiveScore.liveWhyFor Scheduled reading = "the feed has no game for this card")
+          (LiveScore.LiveUnavailable "the feed has no game for this card")
+          (LiveScore.LiveUnavailable "another reason")
+
+      Verify.check "a clock, full time or no reading carries no reason"
+          (fun reading -> LiveScore.liveWhyFor Scheduled reading = "")
+          (LiveScore.LiveNow(1, 0, Some "34'"))
+          (LiveScore.LiveUnavailable "x")
+
+      Verify.check "a game the archive has finalised carries no reason, as it carries no live note"
+          (fun archive -> LiveScore.liveWhyFor archive (LiveScore.LiveUnavailable "x") = "")
+          (Final(2, 1, false))
+          Scheduled ]
 
 // ---------------------------------------------------------------------------
 // The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The two bodies below are EXCERPTS of what the relay served

@@ -496,11 +496,10 @@ let private lineupAffordance (game: Game) : HTMLElement option =
         Some details
 // ── end lineup disclosure ───────────────────────────────────────────────────
 
-/// What the page can do to ONE card after it is drawn. Keyed by the game's id, not by a position in a list, so a poll that
-/// reads a feed finds the card by what the feed says (its ESPN event id, joined to this game) and not by where it sits.
+/// What the page can do to ONE card after it is drawn. The poll finds a card by what the feed says (its ESPN event id, joined to the
+/// `Game` the handle holds) and not by where it sits in a list.
 type CardHandle =
-    { Id: string
-      Game: Game
+    { Game: Game
       /// The archive's answer, set from outside the page's data (the test affordance).
       SetState: GameState -> unit
       /// What the live feed said about this game. `NoReading` puts the card back as the archive leaves it.
@@ -553,7 +552,13 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           // The feed's clock, `Full time`, or why there is no score. Only a card of a sport the feed is asked about has the node,
           // so every other card keeps its structure byte for byte.
           if (LiveScore.liveSportKey game.Sport).IsSome then
-              stateNode "desk-card__live" "live" (fun () -> LiveScore.liveNoteFor (state ()) (reading ()))
+              let liveNode = stateNode "desk-card__live" "live" (fun () -> LiveScore.liveNoteFor (state ()) (reading ()))
+              // The reason behind `live score unavailable`, as an attribute: the words on the card stay the same (CC-CMD: a named state).
+              Solid.createEffect (fun () ->
+                  match LiveScore.liveWhyFor (state ()) (reading ()) with
+                  | "" -> liveNode.removeAttribute "data-why"
+                  | why -> liveNode.setAttribute("data-why", why))
+              liveNode
           stateNode "desk-card__drama" "drama" drama
           // Empty at render. Weather is asynchronous and the card is not, so
           // this is a slot rather than a value — filled by WeatherView.fillCards
@@ -778,8 +783,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
 
     mount.appendChild card |> ignore
 
-    { Id = game.Id
-      Game = game
+    { Game = game
       SetState = setState
       SetReading =
         fun r ->

@@ -65,6 +65,24 @@ eight runs under double CPU load passed, so it was not load; two harness runs of
 `PW_CHROMIUM` exported (each shell call starts clean), and `env -u PW_CHROMIUM node scripts/live-score-render-check.mjs` reproduces it exactly: `browserType.launch:
 Executable doesn't exist`. The 27 entries were re-run with it set: baseline 0 failing, 27 of 27 caught.
 
-## Still to do from the same review
+## S8, S10, S24: the reason behind `live score unavailable` (this commit)
 
-S8, S10 and S24 (the `LiveUnavailable` reason is built at six sites and shown nowhere; `CardHandle.Id` has no reader). Its own commit.
+`LiveUnavailable` carried a reason built at six sites and no code read it, while two comments said it was "said on the card" and a Suite check pinned a string nobody
+saw. The card now carries it as `data-why` on the live node (`LiveScore.liveWhyFor`, mirroring `liveNoteFor`: the reading's reason while the note says unavailable,
+nothing for a clock, `Full time`, no reading, or an archive `Final`). The words beside the score are unchanged, so the CC-CMD's named state is untouched. The render
+check reads it: a 503 carries the status, an unreadable body says `unreadable`, a cut request says `the feed did not answer`, and a card that reads a clock again carries
+no `data-why`. Three Suite cases and three table entries (`live-why-for-a-finalised-card`, `live-why-attribute-not-set`, `live-why-attribute-never-removed`), 3 of 3 caught.
+`CardHandle.Id` had no reader and is removed (Rule 63); its comment, which described the card as keyed by it, is corrected.
+
+Observed while adding the assertion, NOT changed (Rule 69): a 503 from the relay reaches the card as `the feed did not answer: 503 Service Unavailable for URL https://...`,
+not as `HTTP 503`, so the typed `fetch` in `tryFetchText`'s neighbour `tryFetchTextWithin` rejects a non-2xx answer itself and the `if res.Ok ... else Error "HTTP %d"` branch was
+not the path a 503 took. The text is correct and informative either way. `tryFetchText` (the older helper other routes use) has the same shape and was not examined.
+
+## Correction to the section above
+
+It says the poll check gained "4 new self-test fixtures". It gained 5 (no deadline, a number instead of the constant, shorter than the period, longer than three periods,
+zero); the self-test went from 28 to 33.
+
+## Nothing left from this review's held list except
+
+S0 and S3/S12, which are the owner questions in the CC-CMD (decided by the owner, not built), and the probe/decoder/poll work above, all landed on `live-scores-t3`.
