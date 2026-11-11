@@ -29,3 +29,24 @@ Artifact: `outbox/pipe-fix-proof-2026-11-11.mjs`, its output `outbox/pipe-fix-pr
 
 `verify-full` run 42947403479 on the branch tree `aa71d3a` (dispatched 2026-11-11T02:38Z, 39 min 20 s): **530/530**, `failing: []`, ledger `aa71d3a164ab-8ded4ed83eda`, gate step 2258 s, the proof row 20 s (batched: 14 to 28 s in every scored gate since). `main` did not move between the branch base (`a6b282a`) and the landing, so the landing is a fast-forward of the branch; this note's commit is its head, so that `verify` runs on it (the gate's own ledger commits carry the skip directive and would have suppressed it).
 
+## Landing
+
+Landed on `main` as `a10bce9` (a fast-forward of the branch; `main` had not moved from `a6b282a`). Read from the runs on that commit, 2026-11-11:
+
+| run | id | result |
+|---|---|---|
+| the scored gate, on the branch tree `aa71d3a` | `verify-full` 42947403479 | 530/530, ledger `aa71d3a164ab-8ded4ed83eda`, gate step 2258 s, proof row 20 s, 39 min 20 s |
+| `verify` | 42952695389 | success (03:25:45Z to 03:31:50Z) |
+| `guards` | 42952695239 | success |
+| `deploy` | 42953365443 | success (after `verify`) |
+
+## End state of the five owed items
+
+1. **Pipe into `tee` in my probe workflows: fixed and landed** (three steps, `aa71d3a`). Six such steps remain in other workflows: `docs/CC-CMD-2026-11-11-workflow-pipes-into-tee.md`, FILED, unblocked, waits for the owner's go.
+2. **GATE-TIMING heading: fixed and landed** (`720f2c8`).
+3. **`proof-check` follow-ups: the crash repeat is row D5 of `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md`** (`a6b282a`); the signal-handler item was never owed (already built by another session).
+4. **The Fable issue: the owner's click**, not visible from here. To learn whether it was filed, dispatch `fable-issue-prefill.yml` again: an open item with the report's title would appear in its table.
+5. **The MLS rows with no BSD event: not mine**, inside the relay's 2026-11-07 lineup-join work.
+
+Branches `proof-batch`, `fable-issue-prefill`, `gate-speed`, `land-probe` and `workflow-pipes-mine` are fully merged into `main` and left in place (deleting a remote branch is the owner's call).
+
