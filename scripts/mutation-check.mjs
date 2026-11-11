@@ -10914,6 +10914,23 @@ const MUTATIONS = [
     replace: ".json`",
     expect: "node scripts/live-shape-capture.mjs --self-test",
   },
+  // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 3.
+  {
+    id: "stats-soccer-comeback-line-ungated",
+    file: "src/Stats.fs",
+    claim: "a soccer match in progress carries no comeback line (its words are runs and innings)",
+    find: "    if (sportMeta sport).IsSoccer then None else liveMargin state\n",
+    replace: "    liveMargin state\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "stats-comeback-gate-drops-baseball",
+    file: "src/Stats.fs",
+    claim: "a baseball game in progress keeps its comeback line, so the soccer gate is not 'always none'",
+    find: "    if (sportMeta sport).IsSoccer then None else liveMargin state\n",
+    replace: "    None\n",
+    expect: "node build/VerifyMain.js",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

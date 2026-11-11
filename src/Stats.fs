@@ -70,6 +70,16 @@ let liveMargin (state: GameState) : LiveMargin option =
     | Scheduled
     | Final _ -> None
 
+/// The comeback line, for a game of a named sport.
+///
+/// The line is written in runs and innings ("N-run gap", "needs an inning"). A soccer match has neither, so a soccer
+/// match in progress carries NO comeback line rather than a baseball sentence about a football match.
+/// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 3: before the live-score overlay nothing could put a soccer game in
+/// progress on this tab, and the overlay will. `StatsView` calls this rather than `liveMargin`; the render check of Task 6
+/// is what will defend that call on a real page, so this commit asserts only the function.
+let comebackMargin (sport: Sport) (state: GameState) : LiveMargin option =
+    if (sportMeta sport).IsSoccer then None else liveMargin state
+
 let marginOf ({ Leader = l; Trailer = t }) = l - t
 
 /// The line itself. Takes a `LiveMargin`, so it cannot be reached from a game

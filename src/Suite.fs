@@ -948,6 +948,18 @@ let private stats () =
           (InProgress(4, 2))
           Scheduled
 
+      // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 3. The line's words are runs and innings; a soccer match in
+      // progress must not carry one, and a baseball game in progress must keep it, or "always None" satisfies the first.
+      Verify.check "a soccer match in progress has no comeback line: its words are about runs and innings"
+          (fun sport -> (Stats.comebackMargin sport (InProgress(1, 0))).IsNone)
+          Sport.EPL
+          Sport.MLB
+
+      Verify.check "a baseball game in progress keeps its comeback line"
+          (fun sport -> (Stats.comebackMargin sport (InProgress(4, 2))).IsSome)
+          Sport.MLB
+          Sport.EPL
+
       // The sentence itself is true exactly when it is reachable.
       Verify.check "a real 0-0 in progress is genuinely tied"
           (fun state ->
