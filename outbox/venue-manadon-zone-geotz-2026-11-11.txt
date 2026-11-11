@@ -1,0 +1,70 @@
+The zone of the Manadon Sports Hub row by geo-tz (a timezone-boundary lookup; no network), run 2026-11-11T16:18Z.
+
+Why this file exists: the comment above the row in src/Venues.fs says "Europe/London by geo-tz 8.1.4 and by Open-Meteo at the point. The answers are in
+outbox/venue-manadon-evidence-2026-11-11.txt and the files beside it." The Open-Meteo answer is in that file (the last check of its report). The geo-tz answer was
+taken on 2026-11-11 while the row was being built and was not committed, so the comment pointed at a file that did not hold it. This is a re-run, not the original reading:
+same package, same version, the same three points and two controls. It is the artifact the comment names.
+
+Method: `npm install geo-tz@8.1.4` in an empty directory outside the repository; the script below saved there as zone-check.cjs; `node zone-check.cjs`.
+geo-tz is not a dependency of this repository, so the script is printed here and not committed.
+COVERAGE: 3 points of the row's own (the row as written and the two postcodes), 2 controls, 5 of 5 checks; 1 doctoring of 1 went red by the named check.
+
+== 1. THE SCRIPT (zone-check.cjs, 27 lines)
+const { find } = require('geo-tz')
+const version = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'node_modules/geo-tz/package.json'), 'utf8')).version
+const points = [
+  ['the row, as written in src/Venues.fs', 50.4091, -4.1453],
+  ['PL5 3FD, OS postcode directory via postcodes.io', 50.40913, -4.145326],
+  ['PL5 3JG, OS postcode directory via postcodes.io', 50.409761, -4.145762],
+  ['control: Hoboken, New Jersey (must differ)', 40.7440, -74.0324],
+  ['control: Paris (must differ)', 48.8566, 2.3522]
+]
+console.log(`geo-tz ${version}, entry ${require.resolve('geo-tz').split('/node_modules/')[1]}`)
+let want = 0, got = 0
+for (const [label, lat, lon] of points) {
+  const z = find(lat, lon)
+  console.log(`${label.padEnd(52)} ${lat}, ${lon}  ->  ${JSON.stringify(z)}`)
+}
+const row = find(50.4091, -4.1453), a = find(50.40913, -4.145326), b = find(50.409761, -4.145762)
+const hob = find(40.7440, -74.0324), par = find(48.8566, 2.3522)
+const checks = [
+  ['the row is in Europe/London only', JSON.stringify(row) === '["Europe/London"]'],
+  ['PL5 3FD is in Europe/London only', JSON.stringify(a) === '["Europe/London"]'],
+  ['PL5 3JG is in Europe/London only', JSON.stringify(b) === '["Europe/London"]'],
+  ['the Hoboken control answers America/New_York, so the lookup can say something else', JSON.stringify(hob) === '["America/New_York"]'],
+  ['the Paris control answers Europe/Paris, so the lookup can say something else', JSON.stringify(par) === '["Europe/Paris"]']
+]
+for (const [l, ok] of checks) { console.log(`${ok ? 'PASS' : 'FAIL'}  ${l}`); ok ? got++ : 0; want++ }
+console.log(`${got}/${want} checks passed`)
+process.exit(got === want ? 0 : 1)
+
+== 2. REAL RUN: node zone-check.cjs
+geo-tz 8.1.4, entry geo-tz/dist/find-1970.js
+the row, as written in src/Venues.fs                 50.4091, -4.1453  ->  ["Europe/London"]
+PL5 3FD, OS postcode directory via postcodes.io      50.40913, -4.145326  ->  ["Europe/London"]
+PL5 3JG, OS postcode directory via postcodes.io      50.409761, -4.145762  ->  ["Europe/London"]
+control: Hoboken, New Jersey (must differ)           40.744, -74.0324  ->  ["America/New_York"]
+control: Paris (must differ)                         48.8566, 2.3522  ->  ["Europe/Paris"]
+PASS  the row is in Europe/London only
+PASS  PL5 3FD is in Europe/London only
+PASS  PL5 3JG is in Europe/London only
+PASS  the Hoboken control answers America/New_York, so the lookup can say something else
+PASS  the Paris control answers Europe/Paris, so the lookup can say something else
+5/5 checks passed
+(exit 0)
+
+== 3. DOCTORED RUN: the point the first check looks up replaced by Paris's, to see the check go red (the table above the checks is printed from the unchanged list of points, so it still shows the real row)
+The anchor `const row = find(50.4091, -4.1453)` occurs 1 time in the script; the doctored copy differs from it: yes.
+geo-tz 8.1.4, entry geo-tz/dist/find-1970.js
+the row, as written in src/Venues.fs                 50.4091, -4.1453  ->  ["Europe/London"]
+PL5 3FD, OS postcode directory via postcodes.io      50.40913, -4.145326  ->  ["Europe/London"]
+PL5 3JG, OS postcode directory via postcodes.io      50.409761, -4.145762  ->  ["Europe/London"]
+control: Hoboken, New Jersey (must differ)           40.744, -74.0324  ->  ["America/New_York"]
+control: Paris (must differ)                         48.8566, 2.3522  ->  ["Europe/Paris"]
+FAIL  the row is in Europe/London only
+PASS  PL5 3FD is in Europe/London only
+PASS  PL5 3JG is in Europe/London only
+PASS  the Hoboken control answers America/New_York, so the lookup can say something else
+PASS  the Paris control answers Europe/Paris, so the lookup can say something else
+4/5 checks passed
+(exit 1)

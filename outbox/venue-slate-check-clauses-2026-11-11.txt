@@ -1,0 +1,73 @@
+Does the suite notice when one clause of the slate check is deleted? Measured 2026-11-11, 16:23:12Z to 16:24:31Z, on HEAD eabb568c (src/ identical to 7e1a7e5).
+
+WHAT: the check "the grounds on the 2026-11-09 slate include a table row" in src/Suite.fs is `List.forall accounted slate && List.exists inTable slate`. Each of its two clauses is deleted
+in turn; the suite is rebuilt (npm run build) and run (node build/VerifyMain.js). The anchor is asserted to occur once in src/Suite.fs (it occurs twice without the line above it:
+the 2026-10-20 slate check has the same final line), the mutated text is asserted to differ and to occur once, the compiled build/Suite.js digest is printed so a green result
+can be shown to be a different program that was built, and src/Suite.fs is restored byte for byte (sha) and rebuilt at the end.
+
+FINDING: both deletions leave the suite at 370/370 with nothing red beyond the harness's own deliberate probe. Neither clause is held by itself. The check's must-fail slate
+(`Bell Centre`, `Some Unlisted Park`) fails on both clauses at once: Some Unlisted Park is not accounted for, and neither ground is a row. The slate it replaced
+(`Manadon Sports Hub`, `Some Unlisted Park`, before 7e1a7e5) had the same shape, read from `git show 7e1a7e5^:src/Suite.fs` and not measured. The 2026-10-20 check above it ends with the same line and
+was not measured. Nothing was changed: the row deletion of the five source mutations (outbox/venue-manadon-source-mutations-2026-11-11.txt) is still caught, by both the slate check and the Manadon check.
+COVERAGE: 2 of 2 clause deletions of the one check measured; the 2026-10-20 check and every other Suite check were not.
+
+== 1. THE SCRIPT (51 lines; run as: python3 -W ignore mut-slate-clauses.py from outside the repository's tree, which it enters itself)
+import subprocess, sys, shutil, re, datetime, os, hashlib
+os.chdir('/home/claude/field-laboratory')
+SP = '/tmp/claude-0/-home-claude/17dcf9de-532b-5e13-b576-6123f7d6b834/scratchpad'
+F = 'src/Suite.fs'
+orig = open(F, encoding='utf-8').read()
+open(f'{SP}/Suite.before-clauses.fs', 'w', encoding='utf-8').write(orig)
+sha = lambda s: hashlib.sha256(s.encode()).hexdigest()[:16]
+ANCHOR = '              let accounted n = inTable n || Venues.isIndoorArena n\n              List.forall accounted slate && List.exists inTable slate)\n'
+assert orig.count(ANCHOR) == 1, ('anchor count', orig.count(ANCHOR))
+
+def run(cmd, timeout=240):
+    p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+    return p.returncode, p.stdout + p.stderr
+
+def suite():
+    rc, out = run('node build/VerifyMain.js')
+    fails = [l[10:].strip() for l in out.splitlines() if l.startswith('FAIL ')]
+    held = re.findall(r'(\d+/\d+) checks held', out)
+    return rc, fails, (held[-1] + ' checks held' if held else 'no summary line')
+
+digest = lambda: hashlib.sha256(open('build/Suite.js','rb').read()).hexdigest()[:16]
+now = lambda: datetime.datetime.utcnow().strftime('%H:%M:%SZ')
+rc0, out0 = run('npm run build'); base_digest = digest()
+print(f'baseline build exit {rc0}; compiled Suite.js digest {base_digest}')
+print(f'start {now()}  Suite.fs sha {sha(orig)}  HEAD {run("git rev-parse --short HEAD")[1].strip()}')
+muts = [
+  ('drop the "at least one is a row" clause', '              let accounted n = inTable n || Venues.isIndoorArena n\n              List.forall accounted slate)\n'),
+  ('drop the "every ground is accounted for" clause', '              let accounted n = inTable n || Venues.isIndoorArena n\n              List.exists inTable slate)\n'),
+]
+try:
+    for label, repl in muts:
+        new = orig.replace(ANCHOR, repl)
+        assert new != orig and new.count(repl) == 1
+        open(F, 'w', encoding='utf-8').write(new)
+        rc, out = run('npm run build')
+        if rc != 0:
+            print(f'MUTATION DID NOT BUILD | {label} | build exit {rc}')
+            continue
+        rc, fails, held = suite()
+        base = {'broken'}
+        extra = [f for f in fails if f not in base]
+        verdict = 'NOT CAUGHT (suite stays green)' if (rc == 0 and not extra) else 'RED'
+        d = digest()
+        print(f'{verdict} | {label} | suite exit {rc} | {held} | failed beyond the harness probe: {extra} | compiled digest {d} ({"differs from" if d != base_digest else "SAME AS"} the baseline {base_digest})')
+finally:
+    open(F, 'w', encoding='utf-8').write(orig)
+    assert sha(open(F, encoding='utf-8').read()) == sha(orig)
+    rc, out = run('npm run build')
+    rc2, fails, held = suite()
+    print(f'restored: compiled digest {digest()} (baseline {base_digest}); Suite.fs sha {sha(open(F, encoding="utf-8").read())} (before {sha(orig)}); rebuilt exit {rc}; suite exit {rc2}; {held}')
+print(f'end {now()}')
+
+== 2. OUTPUT, unedited
+baseline build exit 0; compiled Suite.js digest 101f175849e502c4
+start 16:23:12Z  Suite.fs sha dd19d4397fa28a66  HEAD eabb568c
+NOT CAUGHT (suite stays green) | drop the "at least one is a row" clause | suite exit 0 | 370/370 checks held | failed beyond the harness probe: [] | compiled digest bb6676bec2a42198 (differs from the baseline 101f175849e502c4)
+NOT CAUGHT (suite stays green) | drop the "every ground is accounted for" clause | suite exit 0 | 370/370 checks held | failed beyond the harness probe: [] | compiled digest ff4081dabed36f13 (differs from the baseline 101f175849e502c4)
+restored: compiled digest 101f175849e502c4 (baseline 101f175849e502c4); Suite.fs sha dd19d4397fa28a66 (before dd19d4397fa28a66); rebuilt exit 0; suite exit 0; 370/370 checks held
+end 16:24:31Z

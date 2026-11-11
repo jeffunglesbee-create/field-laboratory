@@ -1,0 +1,17 @@
+Five source mutations of the Manadon Sports Hub row, run on the pushed tree (HEAD 7e1a7e59, clean) on 2026-11-11 from 15:49:29Z to 15:52:05Z.
+
+WHAT: for each mutation the script writes src/Venues.fs with the row's own line changed (the anchor is asserted to occur once and the change to differ from the original), runs `npm run build` and `node build/VerifyMain.js`, and requires the suite to go red by exactly the named check(s). The suite's own harness self-test prints one deliberate FAIL line in every run ("broken", a counting probe), so a red is judged against the unmutated baseline's FAIL set and never against zero: the FAIL lines minus the baseline's must equal the expected set. The baseline runs first and must read 370/370.
+
+THE TOOL: a 42-line Python script in the session's scratchpad. It is NOT committed, so this file records its output and is not a re-runnable tool. The re-runnable form of four of the five is the registry entries venue-manadon-row-deleted, venue-manadon-roof-covered, venue-manadon-moved and venue-manadon-zone-changed in scripts/mutation-check.mjs, which the gate's mutation row runs; the harness's own record of them (4 of 4 caught, each with a changed compiled digest) is outbox/venue-manadon-mutation-entries-record-2026-11-11.json, taken on 2026-11-11 at 15:24:11Z on the tree that became 7e1a7e59. The fifth mutation, latitude moved 0.1 degrees, has no registry entry; the same named check catches the longitude entry.
+
+OUTPUT, unedited:
+
+baseline: exit 0, 370/370 held, FAIL lines it prints anyway: ['broken']
+RED BY THE NAMED CHECK | row deleted | exit 1 | failed: ['broken', 'the grounds on the 2026-11-09 slate include a table row', 'Manadon Sports Hub is an open-air row at Plymouth, in Europe/London']
+RED BY THE NAMED CHECK | latitude moved 0.1 deg | exit 1 | failed: ['broken', 'Manadon Sports Hub is an open-air row at Plymouth, in Europe/London']
+RED BY THE NAMED CHECK | roof Retractable | exit 1 | failed: ['broken', 'Manadon Sports Hub is an open-air row at Plymouth, in Europe/London']
+RED BY THE NAMED CHECK | zone Europe/Paris | exit 1 | failed: ['broken', 'Manadon Sports Hub is an open-air row at Plymouth, in Europe/London']
+RED BY THE NAMED CHECK | longitude 0.001 off (beyond the 3-decimal key) | exit 1 | failed: ['broken', 'Manadon Sports Hub is an open-air row at Plymouth, in Europe/London']
+checked 5 of 5 source mutations; 5 went red by exactly the named check(s); src/Venues.fs restored byte for byte
+exit=0
+2026-11-11T15:52:05Z

@@ -1,0 +1,85 @@
+{
+ "at": "2026-11-11T15:24:11.050Z",
+ "sha": "214ec5ed17b3ba2cfb27ffd7317d02d081f67e9a",
+ "mode": "watch",
+ "shard": null,
+ "ids": [
+  "venue-manadon-row-deleted",
+  "venue-manadon-roof-covered",
+  "venue-manadon-moved",
+  "venue-manadon-zone-changed"
+ ],
+ "tableSize": 1266,
+ "cleanDigest": "b10e6b329c9212d9",
+ "baseline": {
+  "ran": 1,
+  "failing": 0,
+  "notApplicable": [],
+  "results": [
+   {
+    "cmd": "node build/VerifyMain.js",
+    "passed": true
+   }
+  ]
+ },
+ "baselineMs": 899,
+ "wallMs": 44456,
+ "records": [
+  {
+   "id": "venue-manadon-row-deleted",
+   "file": "src/Venues.fs",
+   "kind": "src",
+   "verdict": "caught",
+   "expect": "node build/VerifyMain.js",
+   "buildMs": 1451,
+   "restoreMs": 1392,
+   "expectMs": 1305,
+   "digestChanged": true,
+   "cycles": 1,
+   "digest": "47cc56afed40e020",
+   "crashRetries": 0
+  },
+  {
+   "id": "venue-manadon-roof-covered",
+   "file": "src/Venues.fs",
+   "kind": "src",
+   "verdict": "caught",
+   "expect": "node build/VerifyMain.js",
+   "buildMs": 1679,
+   "restoreMs": 1644,
+   "expectMs": 988,
+   "digestChanged": true,
+   "cycles": 1,
+   "digest": "3377cf197a79852e",
+   "crashRetries": 0
+  },
+  {
+   "id": "venue-manadon-moved",
+   "file": "src/Venues.fs",
+   "kind": "src",
+   "verdict": "caught",
+   "expect": "node build/VerifyMain.js",
+   "buildMs": 1317,
+   "restoreMs": 1373,
+   "expectMs": 758,
+   "digestChanged": true,
+   "cycles": 1,
+   "digest": "ba3f969e9b757917",
+   "crashRetries": 0
+  },
+  {
+   "id": "venue-manadon-zone-changed",
+   "file": "src/Venues.fs",
+   "kind": "src",
+   "verdict": "caught",
+   "expect": "node build/VerifyMain.js",
+   "buildMs": 1260,
+   "restoreMs": 1349,
+   "expectMs": 746,
+   "digestChanged": true,
+   "cycles": 1,
+   "digest": "afb6585334481803",
+   "crashRetries": 0
+  }
+ ]
+}
