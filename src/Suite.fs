@@ -432,22 +432,20 @@ let private weather () =
       // eleven NBA and NHL arenas (recorded indoor, so nothing to observe) and two
       // grounds the table did not carry, U.S. Bank Stadium and Manadon Sports Hub
       // (FA Cup, "Plymouth v Berkhamsted" on the card). No venue on it was a table row, so
-      // "the venue table covers at least one venue on this slate" failed. U.S. Bank
-      // Stadium is a row now. Manadon Sports Hub is a sourcing candidate (the archive
-      // took in the fixture on 2026-11-09, before it was played); the 2026-11-10 run
-      // left it in review, no two sources agreeing, and it stays named here until it
-      // is a row (docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3). Every
-      // ground must be a row, a recorded arena or the one named as not yet carried,
-      // and at least one must be a row. The must-fail is the failure itself: a slate
-      // whose only grounds are not rows.
+      // "the venue table covers at least one venue on this slate" failed. Both are
+      // rows now: U.S. Bank Stadium by the sourcing rule, Manadon Sports Hub by hand,
+      // accepted by the owner on 2026-11-11 with its evidence beside it in Venues.fs
+      // (docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3). Nothing on the
+      // slate is exempt: every ground must be a row or a recorded arena, and at least
+      // one must be a row. The must-fail is the failure itself: a slate whose only
+      // grounds are not rows.
       Verify.check "the grounds on the 2026-11-09 slate include a table row"
           (fun slate ->
-              let notYetCarried = [ "Manadon Sports Hub" ]
               let inTable n = (Venues.tryFind n).IsSome
-              let accounted n = inTable n || Venues.isIndoorArena n || List.contains n notYetCarried
+              let accounted n = inTable n || Venues.isIndoorArena n
               List.forall accounted slate && List.exists inTable slate)
           [ "U.S. Bank Stadium"; "Manadon Sports Hub" ]
-          [ "Manadon Sports Hub"; "Some Unlisted Park" ]
+          [ "Bell Centre"; "Some Unlisted Park" ]
 
       // A hand-accepted row has no generated twin to compare against
       // (check:venue-sourced covers the sourced block only), so its content is held
@@ -464,6 +462,22 @@ let private weather () =
               | _ -> false)
           "U.S. Bank Stadium"
           "Ford Field"
+
+      // Manadon Sports Hub is hand-accepted too (Venues.fs, 2026-11-11), so its content
+      // is held here for the same reason: an open-air row, in England's zone, at a
+      // point that rounds to the same three decimals as the one its evidence gives
+      // (the OS postcode directory's PL5 3FD). Anfield is open air in Europe/London as
+      // well, so the must-fail fails on place and not on roof or zone.
+      Verify.check "Manadon Sports Hub is an open-air row at Plymouth, in Europe/London"
+          (fun name ->
+              match Venues.tryFind name, Weather.coordinates 50.40913 -4.145326 with
+              | Some v, Some c ->
+                  v.Roof = Weather.OpenAir
+                  && v.Zone = "Europe/London"
+                  && Weather.coordKey v.Where = Weather.coordKey c
+              | _ -> false)
+          "Manadon Sports Hub"
+          "Anfield"
 
       // The archive spells them apart by a full stop and an apostrophe: Exeter's
       // `St James Park` and Newcastle's `St. James' Park`. Both are table rows and

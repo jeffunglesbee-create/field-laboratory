@@ -1,0 +1,66 @@
+Public pages read for the Manadon Sports Hub hand row, 2026-11-11.
+docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 3 ("Manadon Sports Hub approved", 2026-11-11 09:50 ET).
+
+HOW THESE WERE READ, and what that makes them. The session's shell cannot reach these sites, and
+probe-url.yml prints only the first 400 bytes of a body, which for an HTML page is its header. So each page was
+read through the session's fetch tool (Exa web_fetch_exa, which returns the page's text as markdown), and every
+line below prefixed "> " was copied by hand from that tool's output for that page. It is a read, not a
+byte-for-byte capture, and nothing here is a number a script fetched. Everything was read on 2026-11-11, at about
+14:50Z to 15:00Z (the fetch tool does not stamp its reads).
+The two entries marked "model extract" came through WebFetch, whose small model quotes the page: they agree with the
+others and are not relied on for anything.
+
+The script beside this file (venue-manadon-evidence-2026-11-11.mjs) parses exactly two lines out of this file, the
+council's address line and the Active Places grid reference, and asserts each occurs once.
+
+== 1. Plymouth City Council, Licensing Act 2003 premises licence register
+url:  https://licensing.plymouth.gov.uk/1/LicensingActPremises/Search/3589
+tool: Exa web_fetch_exa
+> # Licensing Act 2003 - Premises Licence Register as at 04:24 on 25 February 2026
+> ### Manadon Sports and Community Hub
+> 121 St Peters Road, Plymouth, Devon, PL5 3FD
+> | PA1061 | Premises Licence | 25/10/2019 | indefinite |
+
+== 2. sports-facilities.co.uk, listing "MANADON FOOTBALL DEVELOPMENT CENTRE" (a directory of Sport England's Active Places data; Sport England's own page was not read)
+url:  https://sports-facilities.co.uk/sites/view/20001118
+tool: Exa web_fetch_exa
+> # MANADON FOOTBALL DEVELOPMENT CENTRE Plymouth PL5 3JG
+> MANADON FOOTBALL DEVELOPMENT CENTRE St Peters Road Manadon Plymouth PL5 3JG
+> (Easting:247664.88, Northing:58727.59)
+> - Synthetic Turf Pitches - Sand Filled Synthetic Turf Pitches Plymouth
+> - Grass Pitches - Cricket Grass Pitches Plymouth
+> Year built: 2002
+
+== 3. Plymouth Argyle, "Manadon Heaven", published 2018-01-12 (the club's news page for the project, before the build)
+url:  https://pafc.co.uk/news/2018/january/manadon-heaven
+tool: Exa web_fetch_exa
+> WORK to transform an artificial football pitch into a brand new sports facility for the Manadon and Honicknowle communities is now under way.
+> Where Is It? The Manadon Sports Centre is on the site of the former RNEC Manadon, off St Peters Road, Plymouth, PL5 3JG, adjacent to Plymouth Parkway Football Club.
+> replace the current sand-dressed Astroturf, which is not fit for purpose;
+
+== 4. Plymouth Argyle, "Official Opening", published 2019-07-01
+url:  https://www.pafc.co.uk/news/2019/july/official-opening/
+tool: Exa web_fetch_exa
+> A NEW multi-million-pound sports hub in Manadon, Plymouth, which is expected to support 30,000 people taking part in physical activity a year opened on Friday (28 June).
+> The facility, which includes a floodlit third generation (3G) artificial grass pitch (AGP), one adult and one junior grass football pitches, a new artificial cricket wicket, eight grass wickets and a four-team changing pavilion
+> There is no doubt the Manadon Sports Hub is the largest project ever undertaken by the Trust
+> Partner clubs Kitto All Saints, YMCA All Saints, SB Frankfort and Plymouth Parkway FC all play at the Manadon hub
+
+== 5. Plymouth City Council news, "Goalie legend opens city's new sports hub", 12 July 2019
+url:  https://www.plymouth.gov.uk/news/goalie-legend-opens-citys-new-sports-hub
+tool: Exa web_fetch_exa
+> Plymouth’s new Manadon Sports and Community Hub was officially opened today in a special event attended by local and national footballing legend Peter Shilton.
+> It boasts a floodlit third generation (3G) artificial grass pitch, two grass football pitches, an artificial cricket wicket, eight grass wickets and a four-team changing pavilion.
+
+== 6. Food Standards Agency ratings page (model extract; Exa returned CRAWL_SSL_ERROR for this page)
+url:  https://www.foodhygieneratings.org.uk/manadon-sports-community-hub
+tool: WebFetch (a small model quotes the page)
+> Manadon Sports & Community Hub
+> 121 St Peters Road
+> Plymouth
+> PL5 3FD
+
+== 7. extratime.com ground page (model extract)
+url:  https://extratime.com/ground/2965/manadon-sports-hub/
+tool: WebFetch (a small model quotes the page)
+> located on St. Peters Road, Manadon in Plymouth, Devon, England.
