@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**running** on `b3bceaa`
+**FAILURE** on `b3bceaa` at "Doc citations are anchored, not just numbered" — 13 of 100 steps did not run behind it — [run 43114846739](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43114846739)
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `b3bceaa`
+`live-check` (post-deploy, against the deployed page): **SKIPPED** on `9b50e36` — failing step unknown: the run's steps could not be read — [run 43115511547](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43115511547)
 
 ## Is it published?
 
