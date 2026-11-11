@@ -14,14 +14,14 @@ The Suite's checks that said "no score" built `FeedGame` values by hand, so the 
 | a null or absent score decodes as 0 | `0-0 In progress` for a score nobody served |
 | `final` with no score reads `FullTime(0, 0)` | `In progress`, `0-0`, `Full time` |
 | home and away paths swapped | `0-1` for `1-0` (only the browser check noticed) |
-| `Optional` score or clock becomes `Required` | one game with no clock blanks every card of the sport |
+| `Optional` score or clock becomes `Required` | one game with no clock blanks every in-window, archive-unfinalised card of that sport key |
 | `state` becomes optional with a default | a game with no state read as `pre` |
 | one malformed game dropped instead of failing the feed | that card says "the feed has no game for this card", a wrong reason |
 
 Fifteen Suite cases now run served-shaped bodies through `decodeFeed` then `readingFor`, each a pair (a body the claim holds for, one it does not).
 Twelve entries in `scripts/mutation-check.mjs` (`feed-decoder-swaps-home-and-away` ... `feed-score-range-is-not-checked`) break one contract each: 12 of 12 caught.
 
-Pinned as the current contract, not argued for: one malformed game fails the whole feed, and every card of that sport says `live score unavailable`.
+Pinned as the current contract, not argued for: one malformed game fails the whole feed, and every in-window, archive-unfinalised card of that sport key says `live score unavailable` (`answersTo` and `liveNoteFor` choose which cards are told; one not yet started, past its window or finalised is not).
 
 ## 2. The probe's decoder disagreed with the page's (S7, S11)
 
@@ -48,9 +48,12 @@ by that check, because neither the Suite nor the probe's self-test checks a nega
 
 ## 3. Behaviour change worth knowing about
 
-A relay that started serving scores as strings would now make every card of that sport read `live score unavailable` with the decoder's message
-(`Expecting a float but instead got: "1"`), where before it would have drawn the score. That is the intended direction (no coercion), and it is visible on the
-card and in the probe's `#decode-status`.
+A relay that started serving scores as strings would now make every in-window, archive-unfinalised card of that sport key read `live score unavailable`, where before
+it would have drawn the score. That is the intended direction (no coercion). Where the decoder's message (`Expecting a float but instead got: "1"`) is visible: in the
+card's `data-why` attribute (devtools), since 5415065 and nowhere before it; and in the probe's manifest as `outcomes[].decoded.why`, in the PROBE decoder's own wording
+("a score is not a whole number from 0 to the int32 maximum"), not Thoth's. It is not on the card as text and not in the probe's `#decode-status`, which is the page's
+slate-decode line and never carries the feed decoder's failure (corrected by the fix-review 2026-11-11, card F10). This relay's `Number()` makes a string score unreachable
+today (`adaptESPNWCSoccer`, relay origin/main `src/index.js` 2369-2370).
 
 ## 4. Process incident, recorded (Rule 77)
 

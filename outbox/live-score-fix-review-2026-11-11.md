@@ -92,7 +92,7 @@ Three parts of the poll the fix-review showed no browser scenario observed:
    passed the render check at 47/47 because every scenario served a slate whose `date` equals the URL's. The text claim caught only the first.
 2. **The guard on an empty date** (poll F1, defence F21): `&& payload.Date <> ""` was pinned by nothing (the claim's regex needed only the other two parts of the line, and
    the self-test fixture removed the guard together with `IsNone`). With the guard gone a slate with no `date` makes the page ask `/v2/games?sport=epl&date=`, and the relay turns an empty
-   date into the UTC day (`handleV2Games`, relay `src/index.js` ~4392), the wrong day after 19:00 Eastern. A relay success body always carries `date` (both skeptics read the handler), so
+   date into the UTC day (`handleV2Games`, relay `src/index.js` ~4392, as a skeptic read it), the wrong day after 19:00 Eastern. A relay success body always carries `date` (one skeptic read the handler: relay origin/main `src/index.js` ~12576, `ok: true, date,`, after the `YYYY-MM-DD` check; not re-read here), so
    this branch is not reachable from the relay today; it is the page's own contract with `DeskPayload.Date`, which decodes an absent date as `""` (`src/Desk.fs` 1186).
 3. **The value of the deadline** (poll F23). The render scenario knew the request was open at 60 s and cut by 91 s, so a signal of 65 s, or hard-coded 90 s with `ms` ignored, or any value from 60 s
    to about 94 s, passed.
@@ -124,3 +124,26 @@ the commit that observed the branch, so declining to remove it was wrong. `tryFe
 
 Built: the branch is removed and the comment says where a refused answer ends up. A table entry (`poll-refused-answer-loses-its-status`) replaces the rejection's
 message with a constant in the `with`; the render check's 503 scenario (`why` includes `503`) fails on it, 1 of 1 caught. Suite 456/456, render 58/58, poll check 16/16.
+
+## C6. What the written account said that the code or the data did not (review poll F3, F4; decoder F7; card F9-F14, F16, F17; no behaviour changes)
+
+Each was checked against the source by the skeptics. The relay facts were also re-read here: `AMBIENT_SPORTS`, `SPORT_ACTIVE_MONTHS` (January is 0, so `wc26` `[5,6,7]` is June to August; the
+comment in the file says "Jun-Jul"), the `cacheTtl: 25` self-call, the `wc26` by-date BSD call and the `/crunch` POST, in the scratchpad copies of the relay's `src/index.js` and
+`src/ambient-do.js` (the `ambient-do.js` copy is byte-identical to relay `origin/main` `76edcbab` at the time of writing).
+
+| claim that was false | what is true | where corrected |
+|---|---|---|
+| a hung request sees "one request per key at a time and no pile-up" | the guard is per `startLivePoll`: a re-render starts a new poll with its own set (measured by a skeptic: request held, Today pressed, two requests for the key). The first tick of the new poll is immediate (open question 2) | `src/LiveScore.fs` (`LivePollTimeoutMs`), the CC-CMD poll bullet |
+| after the deadline "the card says the feed did not answer" | the visible words are `live score unavailable`; `the feed did not answer` is the `data-why` reason | same two places; the poll-review outbox |
+| a card keeps its answer "until the page is reloaded or the archive finalises" | an open page never re-reads the archive (the slate is fetched only by `start()`: boot, Today, date buttons, Back), so a game finalised meanwhile is not seen until the reader re-renders | CC-CMD open question 1 |
+| "your ruling's window" (3 h) | the owner named the mode, "auto-poll while a match is live"; the window and the cadence are CC's proposal (CC-CMD ruling 1 says so) | CC-CMD open question 1 |
+| one viewer adds 25% to the relay's per-key load | only for the six keys `AmbientDO` polls in November (`AMBIENT_SPORTS` and `SPORT_ACTIVE_MONTHS`, relay `ambient-do.js` 119-150: epl, mls, laliga, seriea, bundesliga, ligue1; wc26 only in June to August). For the other ten lab keys, `efltrophy` (tonight's capture and the 2026-11-17 proof) among them, a viewer is the only caller. `AmbientDO`'s self-call carries `cf: { cacheTtl: 25 }` (`ambient-do.js` 1210), which may make the share larger; not measured | CC-CMD poll bullet and fact 6, `src/LiveScore.fs` (`LivePollMs`), the poll check's header |
+| fact 6 lists the cost of "each request" | a `wc26` request makes a second BSD by-date call (4 s timeout, no `cf` cache; relay `index.js` 4599-4611) and each live game with a crunch condition a `GameDO /crunch` POST (4829-4840); the sibling CC-CMD's title repeated the "for a live game" framing and is retitled | CC-CMD fact 6, the sibling's title |
+| every card of that sport says `live score unavailable` when the feed fails | only the cards of that sport key that are inside their window and not finalised in the archive (`answersTo`, `liveNoteFor`); a string score cannot reach the page from this relay (`Number()`) | the decoder review outbox, the Suite comment |
+| the string-score error is "visible on the card and in the probe's `#decode-status`" | it is the card's `data-why` attribute (devtools) and the probe's `outcomes[].decoded.why`, in the probe decoder's own wording; `#decode-status` is the slate-decode line | the decoder review outbox |
+| the reason was built at "six sites" | seven: five in `LiveFeed.readingFor`, two in the poll's answer callback (eight with the test affordance) | `src/LiveScore.fs`, the poll-review outbox |
+| the CC-CMD Status names `-live-scores-bsd-cache.md`, and Task 2 is in neither list | the file is `docs/CC-CMD-2026-11-11-v2-games-bsd-cache.md`; Task 2's artifact `outbox/live-premises-2026-11-11.json` is on neither `main` nor the branch (`git ls-tree`, 2026-11-11), so Task 2 is listed as not done | CC-CMD Status |
+| `CardHandle` is `{ Id; ... }` and the page finds a card by its id; Task 6 says `src/Desk.fs` holds the pure decode; "the join is the poll's"; the render check "does not prove that the poll asks the right route at the right moments" | `Id` is gone (5415065); the decode and join are `src/LiveFeed.fs`, the merge and window `src/LiveScore.fs`; the poll hands the feed to `LiveFeed.readingFor`; the unpinned render scenarios now observe the route, the day, the period, the timers, one request per key, the deadline and the window | the handle outbox (a correction section), CC-CMD Task 6 and the join sentence, the render check's header |
+| the poll check's extra terms are scanned "across all of `src/*.fs`" and 14 fixtures were added | the extra terms are tested against the poll region only; the timer, sleep and socket names are scanned across `src/*.fs`. 13 fixtures were added (12 `one(` + 3 `check(` before, 25 + 3 after; counted with `git show`) | the poll-review outbox (a corrections section) |
+
+Result: Suite 456/456, render 58/58, poll check 16/16 (self-test 36/36), anchors 0 stale after these edits (no behaviour changed: `src/` differences are comments).

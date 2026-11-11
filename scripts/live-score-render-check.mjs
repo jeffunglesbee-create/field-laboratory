@@ -11,8 +11,9 @@
 // the 11:30Z and 14:00Z kickoffs (`page.clock.setFixedTime` fixes `Date.now()` only; timers keep running), so "the start time
 // has passed" is a fact about a real row and not a flag.
 //
-// WHAT THIS DOES NOT PROVE. That the poll asks the right route at the right moments, and that the feed's real body decodes:
-// those need the poll and a real body, and have their own scenarios when they exist. The numbers here are the test's own.
+// WHAT THIS DOES NOT PROVE. That the feed's real body decodes: no body of a game in play has been captured yet. The first part of this file drives a
+// card through `__labSetReading`; the unpinned scenarios further down run the poll against a mocked relay and a fake clock and observe its route, its
+// day, its period, its timers, one request per key, its deadline and its window. The numbers in both are the test's own.
 //
 // Usage:  node scripts/live-score-render-check.mjs --self-test
 //         URL=http://localhost:8080 node scripts/live-score-render-check.mjs   (the server must be up: node scripts/serve.mjs)

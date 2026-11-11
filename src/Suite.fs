@@ -5023,7 +5023,8 @@ let private liveFeed () =
           liveAsym
 
       // PINNED as the current contract, not argued for: the relay owns the shape (CONTRACTS.md), so one malformed game fails the whole feed and every card of
-      // that sport says "live score unavailable" with the decoder's message, rather than the bad game being skipped and ITS card saying "the feed has no game".
+      // that sport key that is inside its window and not finalised in the archive says "live score unavailable" with the decoder's message (`answersTo` and `liveNoteFor`
+      // choose which; a card not yet started, past its window or finalised is not told), rather than the bad game being skipped and ITS card saying "the feed has no game".
       Verify.check "one malformed game fails the whole feed rather than being skipped"
           (fun body -> LiveFeed.decodeFeed body |> Result.isError)
           oneBadOfTwo

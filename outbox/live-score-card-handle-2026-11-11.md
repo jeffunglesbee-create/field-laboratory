@@ -20,3 +20,8 @@
 ## Not defended yet
 
 The WIRING is not defended by any check that exists: nothing fails if the card's score memo goes back to reading `state ()`, or if the live node stops reading the reading. The pure functions are. `scripts/live-score-render-check.mjs` (the next commit of Task 6) drives a real card through the handle and is what defends the wiring; until it exists this commit claims the pure half and the structure, not the behaviour on a page.
+
+## Correction (fix-review wf_ae397945-0b8, card F16)
+
+`CardHandle` is `{ Game; SetState; SetReading }`: `Id` was removed in 5415065 because nothing read it. The page does not find a card by its game id; the poll joins a feed game to a card through
+`h.Game.EspnEventId` inside `LiveFeed.readingFor`, and the test affordance finds a card by its position in the handle list.

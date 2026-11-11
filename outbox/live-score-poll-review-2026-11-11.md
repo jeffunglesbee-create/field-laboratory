@@ -14,7 +14,7 @@ wiring had never been reviewed before this. Nothing here was run against a real 
 | S17 | nothing proved the timer is cleared | render check wraps the page's own `setInterval`/`clearInterval` and counts live timers across re-renders | `poll-timer-id-not-stored`, `poll-clears-the-wrong-timer` (+ text-scan twin) |
 | S18 | in-flight guard was a presence grep | render check holds one answer unanswered and asserts one request per key; claim pins release-first | `poll-in-flight-guard-always-open`, `poll-in-flight-released-before-the-answer` (+ text-scan twin) |
 | S20 | `liveWorkAheadAt`'s start-less branch undefended | Suite case, table entry | `live-work-ahead-for-a-start-less-row` |
-| S21 | the one-timer claim was a keyword grep | `EXTRA_TERMS`: `Promise.sleep`, `Async.Sleep`, `requestIdleCallback`, `queueMicrotask`, listeners, `on<event>` handlers, bare `fetch`, `XMLHttpRequest`, `sendBeacon`; scanned across all of `src/*.fs` | 14 new self-test fixtures in the file (several belong to the other rows) |
+| S21 | the one-timer claim was a keyword grep | `EXTRA_TERMS`: `Promise.sleep`, `Async.Sleep`, `requestIdleCallback`, `queueMicrotask`, listeners, `on<event>` handlers, bare `fetch`, `XMLHttpRequest`, `sendBeacon`; scanned in the poll region only (the timer and sleep names and the sockets are scanned across `src/*.fs` by the claims at the end of the check; the extra terms are not) | 13 new self-test fixtures in the file (several belong to the other rows) |
 | S22 | the period was defended by text only (`60000 / 4` passed) | period regex anchored to end of line; render check observes the period the page really gives | `poll-period-seen-by-the-render-check`, `poll-period-expression-seen-by-the-text-scan` |
 
 Measured after the fix: Suite 428/428, render check 41/41, poll check 14/14 (self-test 28/28), forecast render 38/38, state check 11/11, all 24 `poll-*`
@@ -54,7 +54,7 @@ The render check reads the deadline from `src/LiveScore.fs`, so it follows the c
 
 Defended by: Suite case; two text-scan claims (the request is `tryFetchTextWithin LiveScore.LivePollTimeoutMs`, and there is no fetch without a deadline; the constant is
 inside `period < deadline <= 3 x period`) with 4 new self-test fixtures; render scenario (c) (held at the tick inside the deadline, cut at the deadline with the card
-saying the feed did not answer, asked again at the next tick and told the score) and scenario (b) re-shaped to one tick; three table entries
+reading `live score unavailable` and `the feed did not answer` as its reason, asked again at the next tick and told the score) and scenario (b) re-shaped to one tick; three table entries
 (`poll-request-without-a-deadline`, `poll-deadline-signal-dropped`, `poll-deadline-shorter-than-the-period`). All 27 `poll-*` entries caught, baseline 3 of 3 passing.
 
 ## Process incident, recorded (Rule 77)
@@ -67,7 +67,7 @@ Executable doesn't exist`. The 27 entries were re-run with it set: baseline 0 fa
 
 ## S8, S10, S24: the reason behind `live score unavailable` (this commit)
 
-`LiveUnavailable` carried a reason built at six sites and no code read it, while two comments said it was "said on the card" and a Suite check pinned a string nobody
+`LiveUnavailable` carried a reason built at seven sites (five in `LiveFeed.readingFor`, two in the poll's answer callback) and no code read it, while two comments said it was "said on the card" and a Suite check pinned a string nobody
 saw. The card now carries it as `data-why` on the live node (`LiveScore.liveWhyFor`, mirroring `liveNoteFor`: the reading's reason while the note says unavailable,
 nothing for a clock, `Full time`, no reading, or an archive `Final`). The words beside the score are unchanged, so the CC-CMD's named state is untouched. The render
 check reads it: a 503 carries the status, an unreadable body says `unreadable`, a cut request says `the feed did not answer`, and a card that reads a clock again carries
@@ -86,3 +86,13 @@ zero); the self-test went from 28 to 33.
 ## Nothing left from this review's held list except
 
 S0 and S3/S12, which are the owner questions in the CC-CMD (decided by the owner, not built), and the probe/decoder/poll work above, all landed on `live-scores-t3`.
+
+## Corrections by the fix-review (workflow wf_ae397945-0b8, 2026-11-11; `outbox/live-score-fix-review-2026-11-11.md`)
+
+- Row S21: the extra terms (`queueMicrotask`, listeners, `on<event>` handlers, a bare `fetch`, `XMLHttpRequest`, `sendBeacon`, `Promise.sleep`, `Async.Sleep`, `requestIdleCallback`) are tested
+  against the poll REGION only, not across all of `src/*.fs`; `setInterval`, `setTimeout`, `requestAnimationFrame`, `requestIdleCallback`, `Promise.sleep`, `Async.Sleep` and the sockets are scanned
+  across `src/*.fs` by the two claims at the end of the check. The self-test gained 13 fixtures (12 + 3 before, 25 + 3 after), not 14.
+- The "six sites" in the S8/S10/S24 section is seven: five `LiveUnavailable` constructions in `LiveFeed.readingFor`, two in the poll's answer callback (the test affordance adds an eighth).
+- The note that the `HTTP %d` branch of `tryFetchTextWithin` was "NOT changed (Rule 69)" was wrong: Rule 69 protects existing code and that helper was new in the commit that saw the
+  branch. It is removed (fix-review section C5).
+- "Cut at the deadline with the card saying the feed did not answer": the visible words are `live score unavailable`; `the feed did not answer` is the `data-why` reason.

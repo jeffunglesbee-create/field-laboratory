@@ -58,16 +58,18 @@ let liveSportKey (sport: Sport) : string option =
 
 /// THE POLL'S NAMED CONDITIONS (the CC-CMD's "Design"; the owner may change them, and `check:live-score-poll` reads them).
 /// One tick a minute, for the reason in the CC-CMD's arithmetic (fact 6): each request costs the relay one uncached BSD call whether
-/// or not a game is live, and the relay's own poller already makes up to 720 requests per key per three hours.
+/// or not a game is live. For the six keys the relay's own poller (`AmbientDO`) covers in November it already makes up to 720 requests per key per three hours while a game
+/// is live, so a viewer adds at most 25% there; for the other ten lab keys, `efltrophy` among them, a viewer is the only caller (CC-CMD, the poll bullet's arithmetic).
 [<Literal>]
 let LivePollMs = 60000
 
 /// How long one poll request may stay unanswered. A key is held while its request is in flight, so a request that never answered
 /// would stop that key being asked for good with the card saying nothing (review 2026-11-11, poll S4 and S18). One and a half
 /// periods, on purpose LONGER than the period: a slow answer still counts, and while one is open its key is not asked again
-/// (`inFlight`), so a hung relay sees one request per key at a time and no pile-up. After that long it is cut and the card says the
-/// feed did not answer. (Under a deadline SHORTER than the period every request would end before the next tick and that guard
-/// could never fire.) A bound, not a measurement: how long the relay takes to answer `/v2/games` is not measured here.
+/// within that poll (`inFlight` belongs to one `startLivePoll`; a re-render starts a new poll with its own, so a reader pressing Today
+/// during a hung request adds a request each time: CC-CMD open question 2). After that long the request is cut and the card reads
+/// `live score unavailable`, with `the feed did not answer` as its `data-why`. (Under a deadline SHORTER than the period every
+/// request would end before the next tick and that guard could never fire.) A bound, not a measurement: how long the relay takes to answer `/v2/games` is not measured here.
 [<Literal>]
 let LivePollTimeoutMs = 90000
 
@@ -154,7 +156,7 @@ let liveNoteFor (archive: GameState) (reading: LiveReading) : string =
 /// WHY there is no score, for the node that says `live score unavailable`: the reading's own reason while that is what the note says,
 /// and nothing otherwise (a clock, `Full time`, no reading, or an archive `Final`, which carries no live note). The card carries it as
 /// `data-why`: the words beside the score stay `live score unavailable`, and a person with devtools, and the render check, can read
-/// what the feed said or did not say (review 2026-11-11, decoder S8 and S10: the reason was built at six sites and shown nowhere).
+/// what the feed said or did not say (review 2026-11-11, decoder S8 and S10: the reason was built at seven sites (five in `LiveFeed.readingFor`, two in the poll's answer callback) and shown nowhere).
 let liveWhyFor (archive: GameState) (reading: LiveReading) : string =
     match archive, reading with
     | Final _, _ -> ""

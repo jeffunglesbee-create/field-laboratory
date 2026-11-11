@@ -1,4 +1,4 @@
-# Claude Code Command — a /v2/games request for a live game makes two uncached BSD calls and a GameDO write; cache the BSD ones
+# Claude Code Command — every /v2/games request makes an uncached BSD call (two for wc26) and a live game adds a GameDO write; cache the BSD ones
 
 **Branch:** main — commit directly, do not create a feature branch or PR
 **Filed from:** field-laboratory

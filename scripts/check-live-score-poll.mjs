@@ -13,7 +13,7 @@
 //   2. exactly ONE setInterval in it, and no other recurrence term (a timeout, an animation frame, a socket, an event source,
 //      a listener, a Solid effect);
 //   3. its period is `LiveScore.LivePollMs`, and that is 60000 (the arithmetic is in the CC-CMD, fact 6: each request costs the
-//      relay one uncached BSD call whether or not a game is live, and the relay's own poller already makes up to 720 per key per 3 h);
+//      relay one uncached BSD call whether or not a game is live; for the six keys the relay's own poller covers in November it already makes up to 720 per key per 3 h, for the other ten a viewer is the only caller);
 //   4. a request only while the tab is visible, only for a key that has a card in its window (`liveKeysAt`), the timer stops
 //      when no window is ahead (`liveWorkAheadAt`), one request per key at a time (`inFlight`), ONE fetch in the region;
 //   5. none on a page pinned to a capture (`?data=`), which must not reach the network;
