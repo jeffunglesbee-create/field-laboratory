@@ -233,6 +233,42 @@ if (isMain(import.meta.url) && !SELF_TEST) {
 
   await context.close()
 
+  // ── a card drawn BEFORE kickoff and read AFTER it ─────────────────────────
+  // Every scenario above fixes the clock before the page loads, so no card was ever drawn early and read late. That is exactly the
+  // card a reader has: the page opened at 12:00Z, the match at 14:00Z, and a poll answering at 14:05Z that the feed has nothing for.
+  // The answer leaves the archive's state untouched, so the card must still re-read the clock (review 2026-11-11, semantics F1: it
+  // kept `Scheduled <iso>` and its forecast beside a note saying the score was unavailable).
+  {
+    const ctx2 = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx2.newPage()
+    const errs2 = []
+    pg.on('pageerror', e => errs2.push(`pageerror: ${e.message}`))
+    await pg.clock.setFixedTime(AT)
+    await pg.goto(SLATE, { waitUntil: 'networkidle' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+    // The committed capture has this match finalised; the archive state is set to Scheduled at 12:00Z, which is what the page drew.
+    await setState(pg, LATE, 'scheduled')
+    await settle(pg, LATE, { status: WORDS.preKickoff })
+    await pg.waitForFunction(i => document.querySelectorAll('.desk-card')[i]?.querySelector('[data-testid="forecast"]')?.getAttribute('data-forecast') === 'model',
+      await index(pg, LATE), { timeout: 5000 }).catch(() => {})
+    const drawn = await readCard(pg, LATE)
+    check('at 12:00Z, before its 14:00Z kickoff, the card reads Scheduled with the model line',
+      mismatches(drawn, { status: WORDS.preKickoff, score: '—', forecast: 'model' }).length === 0, JSON.stringify(drawn))
+    await pg.clock.setFixedTime('2026-10-10T14:05:00Z')
+    await setReading(pg, LATE, 'unavailable')
+    const late = await settle(pg, LATE, { status: WORDS.passed })
+    check('after kickoff, a feed that failed leaves the card saying the start time passed, not Scheduled, with the reason beside it',
+      mismatches(late, { status: WORDS.passed, score: '—', live: WORDS.unavailable }).length === 0, JSON.stringify(late))
+    check('...and the model line is gone: a forecast is drawn only before kickoff',
+      mismatches(late, { forecast: 'none' }).length === 0, JSON.stringify(late))
+    await setReading(pg, LATE, 'none')
+    const none = await settle(pg, LATE, { live: '' })
+    check('a feed with nothing for the game (no reading) reads the same: start time passed, no forecast, no note',
+      mismatches(none, { status: WORDS.passed, forecast: 'none', live: '' }).length === 0, JSON.stringify(none))
+    check('no page errors on that card', errs2.length === 0, errs2.join(' | '))
+    await ctx2.close()
+  }
+
   // ── the poll, on an UNPINNED page, with the relay's routes mocked ─────────
   // The slate is the committed one reduced to Arsenal v Leeds, with its score and finalisation removed so the archive says what
   // it said for Man Utd v Aston Villa on 2026-11-08: no score, the start time behind us. The feed is scripted, one body per tick.

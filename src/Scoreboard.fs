@@ -514,15 +514,25 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
     // archive says the game is over.
     let reading, setReading = Solid.createSignal LiveScore.NoReading
     let shown = Solid.createMemo (fun () -> LiveScore.foldReading (state ()) (reading ()))
+    // A count of how many times the page has been told anything about this game. The card's text depends on the WALL CLOCK (a started
+    // row with no score reads `Start time passed`; the forecast is drawn only before kickoff), and a reading that leaves the state as
+    // the archive has it (`NoReading`, `LiveUnavailable`) makes `shown` return the very same object, which a memo does not announce.
+    // So a card drawn before kickoff kept `Scheduled <iso>` and its forecast after kickoff, beside a note saying the score was
+    // unavailable (review 2026-11-11, semantics F1; reproduced against the compiled card). Everything that reads the clock reads
+    // `shownNow`, which also reads this, so every answer from the feed re-reads it. Pull only: this is a count, not a timer.
+    let heard, setHeard = Solid.createSignal 0
+    let shownNow () =
+        heard () |> ignore
+        shown ()
 
     // Derived values that recompute reactively rather than being baked in at
     // render time.
-    let display = Solid.createMemo (fun () -> scoreText game (shown ()))
-    let status = Solid.createMemo (fun () -> statusText game (shown ()))
+    let display = Solid.createMemo (fun () -> scoreText game (shownNow ()))
+    let status = Solid.createMemo (fun () -> statusText game (shownNow ()))
     // Drama is state-derived now, not immutable: the number is permitted only
     // once the game is final, so the slot has to appear at the moment the game
     // ends and must never be present before it.
-    let drama = Solid.createMemo (fun () -> dramaText game (shown ()))
+    let drama = Solid.createMemo (fun () -> dramaText game (shownNow ()))
 
     let card = el "div" "desk-card" ""
     card.setAttribute("data-game-id", game.Id)
@@ -560,7 +570,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           // card has the node at all, so every other card keeps its old
           // structure byte for byte.
           if game.Sport = Sport.EPL then
-              forecastNode game shown table
+              forecastNode game shownNow table
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
     // Where the front-face children are hosted. For a card with no brief this is
@@ -767,7 +777,13 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
 
     mount.appendChild card |> ignore
 
-    { Id = game.Id; Game = game; SetState = setState; SetReading = setReading }
+    { Id = game.Id
+      Game = game
+      SetState = setState
+      SetReading =
+        fun r ->
+            setReading r
+            setHeard (heard () + 1) }
 
 /// Renders the whole slate, grouped by sport, and returns the card handles in
 /// DOM order so index 0 always addresses the first card on screen.
