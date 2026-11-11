@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-11T03:17:34.968Z",
+  "at": "2026-11-11T08:45:10.463Z",
   "scope": "full",
-  "ran": 93,
-  "from_mutations": 1245,
+  "ran": 94,
+  "from_mutations": 1262,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -377,22 +377,26 @@
     {
       "cmd": "node scripts/forecast-render-check.mjs --self-test",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/live-shape-capture.mjs --self-test",
+      "passed": true
     }
   ],
   "shards": {
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2021294,
-      1803280,
-      2182055,
-      2267772,
-      2140403,
-      2149445,
-      1799546,
-      1823902
+      2179156,
+      2026006,
+      1996509,
+      2319280,
+      2009267,
+      2133035,
+      1976501,
+      1786044
     ],
-    "longestMs": 2267772,
-    "sumMs": 16187697
+    "longestMs": 2319280,
+    "sumMs": 16425798
   }
 }

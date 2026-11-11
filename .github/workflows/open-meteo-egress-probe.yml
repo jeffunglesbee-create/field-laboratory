@@ -56,6 +56,9 @@ jobs:
             sleep 1
           done
           node scripts/probe-open-meteo-egress.mjs | tee outbox/open-meteo-egress-console.txt
+          # `a | tee` takes tee's exit status (bash -e, no pipefail). The probe exits 1 on `not-observable` (its own failure signal) and 0 on every other
+          # verdict; this step used to report all of them green. The next step is always(), so the reading is still committed.
+          exit ${PIPESTATUS[0]}
 
       - name: Commit the reading
         if: always()

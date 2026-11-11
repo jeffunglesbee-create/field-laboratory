@@ -1,6 +1,10 @@
 // Lists every `run:` step in .github/workflows/*.yml that pipes into tee with nothing that carries the left side's exit status:
 // no PIPESTATUS, no pipefail, no explicit `shell: bash` in the step (an explicit bash shell runs with -eo pipefail).
-// Usage: node find-unguarded-pipes.mjs <repo-root>
+// Usage: node outbox/find-unguarded-pipes-2026-11-11.mjs <repo-root>
+// SUPERSEDED by the check in scripts/workflow-check.mjs (`npm run check:workflows` prints the same denominators and fails on an unguarded step). This
+// counter is kept as the independent first count: both read 337 run steps, 30 piping into tee, 9 unguarded at a6b282a and 6 at f4b6103. It differs from
+// the check in one way that matters: it looks for PIPESTATUS/pipefail in the step's raw text, so a COMMENT that says pipefail counts as a guard here and
+// does not in the check.
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 const root = process.argv[2]

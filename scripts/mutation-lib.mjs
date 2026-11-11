@@ -409,10 +409,15 @@ export const confirmFullCompile = (outDir, command = `dotnet fable src/Laborator
  * compiler crash was measured on the runners at about 1 build in 100 (docs/CC-CMD-2026-11-03-fable-compiler-crash.md) and the sharded gate has nine builds a run.
  * The output of the LAST attempt is returned whole, so a build that really fails is readable.
  */
-export const buildSteadily = async (command, onRetry = () => {}, pauseMs = 3000) => {
+export const buildSteadily = async (command, onRetry = () => {}, pauseMs = 3000, clean = () => {}) => {
   let last = null
+  let runs = 0
   const builder = {
     compile: async () => {
+      // `clean` runs before every REPEAT and never before the first build. Fable trusts the files a build leaves behind: the repeat of a crashed build printed
+      // "Skipped compilation because all generated files are up-to-date!", reported success, and left the crashed output in build/ (measured 2026-11-11 on two
+      // gate runs: shard 4 of 42967615166 and shard 6 of 42964147134, each then failed its baseline against that output). A repeat that compiles nothing is not a repeat.
+      if (runs++ > 0) clean()
       const r = spawnSync(command, { shell: true, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 })
       const out = `${r.stdout ?? ''}${r.stderr ?? ''}`
       last = out

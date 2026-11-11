@@ -12,6 +12,30 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1b7df2d` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 41424c9 [skip ci] |
+| `5adffba` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `41424c9` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | fix: the live-shape capture's own block is tested end to end, its two premises are kept apart, and the Full time gap is counted |
+| `04fc0b5` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `e1b75e0` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of c4d74c3 [skip ci] |
+| `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
+| `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
+| `a6dc8e5` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 125e28d [skip ci] |
+| `4327e1f` | 2026-11-11 | [build-steady-clean-sweep-2026-11-11.mjs](build-steady-clean-sweep-2026-11-11.mjs) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
+| `4327e1f` | 2026-11-11 | [build-steady-clean-sweep-2026-11-11.txt](build-steady-clean-sweep-2026-11-11.txt) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
+| `4327e1f` | 2026-11-11 | [build-steady-real-fable-proof-2026-11-11.mjs](build-steady-real-fable-proof-2026-11-11.mjs) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
+| `4327e1f` | 2026-11-11 | [build-steady-real-fable-proof-2026-11-11.txt](build-steady-real-fable-proof-2026-11-11.txt) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
+| `4327e1f` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
+| `0d3df2e` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
+| `0d3df2e` | 2026-11-11 | [find-unguarded-pipes-2026-11-11.mjs](find-unguarded-pipes-2026-11-11.mjs) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
+| `0d3df2e` | 2026-11-11 | [pipes-guard-red-before-fix-2026-11-11.txt](pipes-guard-red-before-fix-2026-11-11.txt) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
+| `0d3df2e` | 2026-11-11 | [pipes-guard-sweep-2026-11-11.txt](pipes-guard-sweep-2026-11-11.txt) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
+| `c4d74c3` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | feat: capture what the relay says about a soccer game while it is in play, before a decoder is written against it |
+| `8f33fd1` | 2026-11-11 | [pipe-fix-proof-2-2026-11-11.mjs](pipe-fix-proof-2-2026-11-11.mjs) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
+| `8f33fd1` | 2026-11-11 | [pipe-fix-proof-2-2026-11-11.txt](pipe-fix-proof-2-2026-11-11.txt) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
+| `8f33fd1` | 2026-11-11 | [pipes-guard-red-before-fix-2026-11-11.txt](pipes-guard-red-before-fix-2026-11-11.txt) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
+| `8f33fd1` | 2026-11-11 | [pipes-guard-sweep-2026-11-11.txt](pipes-guard-sweep-2026-11-11.txt) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
+| `f4b6103` | 2026-11-11 | [cc-session-2026-11-11-owed-work.md](cc-session-2026-11-11-owed-work.md) | docs: the probe workflows' pipe fix landed: verify, guards and deploy green, and the end state of the owed work |
+| `a02fa98` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a10bce9` | 2026-11-11 | [cc-session-2026-11-11-owed-work.md](cc-session-2026-11-11-owed-work.md) | docs: the gate for the probe workflows' pipe fix: 530/530, proof row 20 s |
 | `a1224cd` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of aa71d3a [skip ci] |
 | `aa71d3a` | 2026-11-11 | [cc-session-2026-11-11-owed-work.md](cc-session-2026-11-11-owed-work.md) | ci: the probe workflows' measuring steps fail when their script fails |

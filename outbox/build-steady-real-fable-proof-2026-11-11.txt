@@ -1,0 +1,5 @@
+GOOD   fresh compile into an empty directory: 65589a71d73b4b8d
+clean  build-steady exit 0; repeat compiled; cleared the output first; digest 65589a71d73b4b8d; EQUALS good
+noclean build-steady exit 0; repeat SKIPPED compilation; cleared nothing; digest 433ffb910996eb7d; DIFFERS from good
+
+PASS  with the output cleared the repeat compiles and ends on the good build; without it the repeat reports success on the spoiled output (the gate failure, reproduced with the real compiler)

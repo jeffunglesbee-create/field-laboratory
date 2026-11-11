@@ -1,0 +1,10 @@
+unmutated: exit 0, 16/16 checks passed
+CAUGHT      the repeat clears nothing (the defect)  (exit 1, 3 failing check(s))
+CAUGHT      the output is cleared before the FIRST build too  (exit 1, 2 failing check(s))
+CAUGHT      the default command clears no directory  (exit 1, 1 failing check(s))
+CAUGHT      a custom --cmd clears `build` by default  (exit 1, 2 failing check(s))
+CAUGHT      the command line never passes a clear function  (exit 1, 2 failing check(s))
+CAUGHT      the command line ignores --clean  (exit 1, 1 failing check(s))
+CAUGHT      the clear removes the wrong directory  (exit 1, 2 failing check(s))
+
+caught 7 of 7 mutations

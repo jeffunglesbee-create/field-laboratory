@@ -1,0 +1,45 @@
+# Rule 90: each clause of the tee check (scripts/workflow-check.mjs), broken in a copy; the check must go red. 2026-11-11.
+# Each line: CAUGHT (exit non-zero, and the first failing check) or SURVIVED. The harness is a scratch script, not in the repo (the earlier sweeps of this repo's checks were kept the same way).
+
+CAUGHT    a step need not be under steps:   <- FAIL  tee: a matrix include entry with a run: key is not a step, and the next job's keys are no
+CAUGHT    a step ends only at the next item, not at a dedent   <- FAIL  tee: a matrix include entry with a run: key is not a step, and the next job's keys are no
+CAUGHT    a step does not end at the next item   <- FAIL  tee: steps are counted, with or without a tee
+CAUGHT    key indent off by two   <- FAIL  the tee audit read run steps and found tee pipes, so it is not vacuous
+CAUGHT    a nested run: is read as the step script   <- FAIL  tee: a run: nested under with: is not a step script
+CAUGHT    block scalar never recognised   <- FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
+CAUGHT    block scalar not de-indented   <- FAIL  tee: heredoc prose with an apostrophe does not hide a real pipe, and a | tee INSIDE hered
+CAUGHT    plain scalar continuation lines dropped   <- FAIL  tee: a double-quoted, a single-quoted and a plain multi-line run scalar are read
+CAUGHT    a quoted scalar is not unwrapped   <- FAIL  tee: a double-quoted, a single-quoted and a plain multi-line run scalar are read
+CAUGHT    CRLF not normalised   <- FAIL  tee: a CRLF workflow is read the same as an LF one
+CAUGHT    a # inside a name is a comment   <- FAIL  tee: a name containing # is read whole (it is not a comment)
+CAUGHT    a quoted shell value is not unwrapped   <- FAIL  tee: shell: "bash" (quoted) and shell: bash with trailing spaces guard
+CAUGHT    comments not removed from code   <- FAIL  tee: A COMMENT THAT MENTIONS PIPESTATUS AND PIPEFAIL IS NOT A GUARD
+CAUGHT    # not at a word start is a comment   <- FAIL  tee: # inside ${#x} or $# is not a comment
+CAUGHT    heredocs are not detected   <- FAIL  tee: heredoc prose with an apostrophe does not hide a real pipe, and a | tee INSIDE hered
+CAUGHT    <<<word is a heredoc   <- FAIL  tee: a pipe after a heredoc has closed is read, and a here-string (<<< "x" and <<<EOF) is
+CAUGHT    <<- does not strip tabs   <- FAIL  tee: heredoc prose with an apostrophe does not hide a real pipe, and a | tee INSIDE hered
+CAUGHT    a single quote never closes   <- FAIL  tee: "| tee" inside quotes is not a pipe, and a pipe after a multi-line quoted script is
+CAUGHT    an escaped double quote ends the string   <- FAIL  tee: an escaped quote inside a double-quoted string does not end it
+CAUGHT    || read as a pipe   <- FAIL  tee: || before tee is not a pipe
+CAUGHT    |& not a pipe   <- FAIL  tee: |& tee is a pipe
+CAUGHT    a backslash-newline before tee is not seen   <- FAIL  tee: | sudo tee, | /usr/bin/tee and a backslash-newline before tee are tee pipes
+CAUGHT    sudo tee is not seen   <- FAIL  tee: | sudo tee, | /usr/bin/tee and a backslash-newline before tee are tee pipes
+CAUGHT    /usr/bin/tee is not seen   <- FAIL  tee: | sudo tee, | /usr/bin/tee and a backslash-newline before tee are tee pipes
+CAUGHT    a non-tee step reported as null   <- FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
+CAUGHT    PIPESTATUS is not a guard   <- FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
+CAUGHT    PIPESTATUS looked for in comments too   <- FAIL  tee: A COMMENT THAT MENTIONS PIPESTATUS AND PIPEFAIL IS NOT A GUARD
+CAUGHT    pipefail long form not recognised   <- FAIL  tee: set -o pipefail, set -eo pipefail, set -euo pipefail and set -e -o pipefail each gua
+CAUGHT    set -e alone is a guard   <- FAIL  tee: set -e alone is not a guard
+CAUGHT    any bash shell is a guard   <- FAIL  tee: shell: bash -e {0} and shell: sh are NOT guards
+CAUGHT    pipefail in a shell template is not a guard   <- FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
+CAUGHT    guarded steps are reported   <- FAIL  tee: exit ${PIPESTATUS[0]} on the next line is a guard
+CAUGHT    the audit reports every tee pipe   <- FAIL  no run step pipes into tee without PIPESTATUS, pipefail or an explicit bash shell
+CAUGHT    the audit reads no files   <- FAIL  the tee audit read run steps and found tee pipes, so it is not vacuous
+
+34 mutation(s), 0 survived or did not apply; the unmutated check exits 0
+
+# The pair that is EXPECTED to stay green (and why the vacuity check exists):
+blind reader alone:                     exit 1 (red, by: the tee audit read run steps and found tee pipes, so it is not vacuous)
+blind reader AND the vacuity check gone: exit 0 (green: nothing else looks at what the reader read)
+
+# The first sweep (21 mutations of the first version, 20 caught and the pair above) found no survivor of the old code; the review then found five false negatives the first version had, and the version above, with a shell scanner, is the one swept here. Its own sweep found three survivors: a redundant comment filter and a redundant here-string clause (both removed as dead code) and a heredoc <<- fixture that could not tell a closed heredoc from an open one (the fixture now has a real pipe after the closing line).
