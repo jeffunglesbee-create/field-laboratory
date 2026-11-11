@@ -12,6 +12,16 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a739815` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of df59d1f [skip ci] |
+| `aacc1b1` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | fix: the mutation harness names its failing baseline expectations before anything can end the run |
+| `041c81f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: the live-chip probe's first run was dry, so the three questions wait for Saturday's slate |
+| `0fe9630` | 2026-11-11 | [rain-precip-pair-2026-11-11-2026-11-11T13-08-49.jsonl](rain-precip-pair-2026-11-11-2026-11-11T13-08-49.jsonl) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `0fe9630` | 2026-11-11 | [rain-precip-pair-2026-11-11-2026-11-11T13-08-49.txt](rain-precip-pair-2026-11-11-2026-11-11T13-08-49.txt) | probe: Open-Meteo rain against precipitation, sampled [skip ci] |
+| `46c4006` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 7ee50ba [skip ci] |
+| `e23288f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | feat: a runner probe samples Open-Meteo's rain against precipitation for a slate's grounds |
+| `4e19734` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the pipes guard and the build-steady fix landed: the gate, the red on the landing commit and why, and the status |
+| `4e19734` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the pipes guard and the build-steady fix landed: the gate, the red on the landing commit and why, and the status |
+| `1eb5177` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1b7df2d` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 41424c9 [skip ci] |
 | `5adffba` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `41424c9` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | fix: the live-shape capture's own block is tested end to end, its two premises are kept apart, and the Full time gap is counted |
