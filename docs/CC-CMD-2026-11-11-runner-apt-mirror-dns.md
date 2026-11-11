@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-11 by CC, found when the verify run for `7e1a7e5` (the Manadon Sports Hub row) failed at "Install Chromium"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** FILED 2026-11-11. Nothing here is built and no option below is approved. Task 1 is done: the failure ended between 16:49Z and 16:58Z (the tenth probe, 16:58Z, resolved all three hosts), verify run 43048578660 reran on attempt 2 and succeeded with the F# suite at 370 of 370, and the record is `outbox/runner-apt-mirror-probes-2026-11-11.md`. Whether it recurs is not known, and the three options are the owner's.
+**Status:** **PARTIAL 2026-11-11: options 2 and 3 BUILT on the owner's word ("2 and 3, make it work"); option 1 (the F# suite and the other browser-free rows surviving a failed install) was not chosen and stays open.** `--with-deps` is gone from the ten install sites, every install ends after at most three minutes, and `scripts/workflow-check.mjs` keeps both true; the record, the commits and the run ids are in `outbox/cc-session-2026-11-11-install-no-apt.md`. Measured on a runner before landing (Ubuntu 26.04.1, image 20261101.186.1): `outbox/install-no-apt-probe-latest.txt` `checked 7 of 7 premises: 7 held`, `outbox/font-dependence-latest.txt` `checked 20 of 20 cells`, verdict `fonts-not-needed` for the Scoreboard tab of one capture. Task 1 below, and its Result, stand as written: the failure of 2026-11-11 ended between 16:49Z and 16:58Z and whether it recurs is not known.
 
 ---
 
@@ -69,4 +69,4 @@ Options 1 and 2 are independent; 1 alone would have answered today's question ab
 
 ## Not in scope
 
-Deploying `7e1a7e5` around the red (`deploy.yml`'s verify gate skips a red commit on purpose, and a manual dispatch for a known-red commit is not done); editing any workflow, `scripts/render-check.mjs` or `src/Weather.fs`; the 2026-11-06 timing record, which stays as it was written.
+Deploying `7e1a7e5` around the red (`deploy.yml`'s verify gate skips a red commit on purpose, and a manual dispatch for a known-red commit is not done); editing `scripts/render-check.mjs` or `src/Weather.fs`; the 2026-11-06 timing record, which stays as it was written. (This list described the filing, whose Task 1 changed no tracked file. Editing the workflows that run the install is what the owner chose for options 2 and 3 afterwards.)
