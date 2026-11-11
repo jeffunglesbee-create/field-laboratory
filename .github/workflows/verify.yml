@@ -259,6 +259,8 @@ jobs:
           # Warnings here have twice been the first sign of something actually
           # wrong (a duplicate FSharp.Core reference, a redundant downcast
           # hiding a type confusion), so they are not tolerated.
+          # pipefail: a recompile that FAILS must fail this step, not leave a log with no warning text in it that the grep below calls clean.
+          set -o pipefail
           dotnet build src/Laboratory.fsproj --no-restore 2>&1 | tee /tmp/build.txt
           if grep -qE 'warning (FS|NU)[0-9]+' /tmp/build.txt; then
             echo "::error::Build emitted warnings — see above."

@@ -1,0 +1,9 @@
+step                                                               tool exits 3: before -> after   tool exits 0: before -> after
+alternate-colour-probe.yml: Probe                                  0 -> 3                       0 -> 0   AS EXPECTED
+alternate-colour-probe.yml: Why the remaining cards stay plain     0 -> 3                       0 -> 0   AS EXPECTED
+alternate-colour-probe.yml: Spellings that resolve to nothing      0 -> 3                       0 -> 0   AS EXPECTED
+favourite-band-census.yml: Census                                  0 -> 3                       0 -> 0   AS EXPECTED
+open-meteo-egress-probe.yml: Probe                                 0 -> 3                       0 -> 0   AS EXPECTED
+verify.yml: Fail on any F# compiler warning                        0 -> 3                       0 -> 0   AS EXPECTED
+
+6 step(s), 0 not as expected (expected: before 0, after 3 for a failing tool; 0 and 0 for a tool that succeeds)

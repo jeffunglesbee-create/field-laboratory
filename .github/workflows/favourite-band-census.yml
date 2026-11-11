@@ -58,8 +58,14 @@ jobs:
         run: |
           node scripts/favourite-band-census.mjs --days "${{ github.event.inputs.days || 45 }}" \
             | tee outbox/favourite-band-census-$(date -u +%Y%m%dT%H%M%SZ).txt
+          # `a | tee` takes tee's exit status (bash -e, no pipefail): the census exits 1 on a VOID shadow and on a refused reading, and this step used to
+          # report both green. Carry its status.
+          exit ${PIPESTATUS[0]}
 
       - name: Commit the census
+        # always(): a refused census now fails the step above, and its console output is the evidence of why; this step used to run after it
+        # because the step above was green, and it still must.
+        if: always()
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"

@@ -1,0 +1,23 @@
+CAUGHT    step start: only "- run:" lines start a step   <- FAIL  the tee audit read run steps and found tee pipes, so it is not vacuous
+CAUGHT    step end: same-indent start no longer ends a step   <- FAIL  tee: steps are counted, with or without a tee
+CAUGHT    key indent off by two   <- FAIL  the tee audit read run steps and found tee pipes, so it is not vacuous
+CAUGHT    a nested run: is read as the step script   <- FAIL  tee: a run: nested under with: is not a step script
+CAUGHT    block scalar never recognised   <- FAIL  tee: a bare pipe into tee is flagged
+CAUGHT    comment lines kept in the script   <- FAIL  tee: A COMMENT THAT MENTIONS PIPESTATUS AND PIPEFAIL IS NOT A GUARD
+CAUGHT    a # inside a name is a comment   <- FAIL  tee: a name containing # is read whole (it is not a comment)
+CAUGHT    quotes not blanked   <- FAIL  tee: "| tee" inside quotes is not a pipe, and a pipe after a multi-line quoted script is
+CAUGHT    double quotes not blanked   <- FAIL  tee: "| tee" inside quotes is not a pipe, and a pipe after a multi-line quoted script is
+CAUGHT    || read as a pipe   <- FAIL  tee: || before tee is not a pipe
+CAUGHT    |& not a pipe   <- FAIL  tee: |& tee is a pipe
+CAUGHT    a non-tee step reported as null   <- FAIL  no run step pipes into tee without carrying the left side's exit status
+CAUGHT    PIPESTATUS is not a guard   <- FAIL  no run step pipes into tee without carrying the left side's exit status
+CAUGHT    pipefail only as set -o   <- FAIL  no run step pipes into tee without carrying the left side's exit status
+CAUGHT    set -e alone is a guard   <- FAIL  tee: set -e alone is not a guard
+CAUGHT    any bash shell is a guard   <- FAIL  tee: shell: bash -e {0} and shell: sh are NOT guards
+CAUGHT    pipefail in a shell template is not a guard   <- FAIL  no run step pipes into tee without carrying the left side's exit status
+CAUGHT    guarded steps are reported   <- FAIL  tee: exit ${PIPESTATUS[0]} on the next line is a guard
+CAUGHT    the audit reports every tee pipe   <- FAIL  no run step pipes into tee without carrying the left side's exit status
+CAUGHT    the audit reads no files   <- FAIL  the tee audit read run steps and found tee pipes, so it is not vacuous
+SURVIVED  the vacuity check is gone
+
+21 mutation(s), 1 survived or did not apply; the unmutated check exits 0

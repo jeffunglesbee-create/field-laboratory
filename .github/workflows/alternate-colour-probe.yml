@@ -53,6 +53,8 @@ jobs:
           node scripts/probe-alternate-colours.mjs --self-test
           node scripts/probe-alternate-colours.mjs --capture "${{ inputs.capture || 'context-2026-08-29' }}" \
             | tee outbox/alternate-colours-console.txt
+          # `a | tee` takes tee's exit status under the default shell (bash -e, no pipefail): carry the script's, or a script that threw leaves the step green.
+          exit ${PIPESTATUS[0]}
 
       # THE SAME QUESTION ONE STEP ON: of the cards that still cannot render,
       # which are a limit of the SOURCE and which of the fixture? Shares this
@@ -62,6 +64,7 @@ jobs:
         run: |
           node scripts/probe-plain-card-causes.mjs --self-test
           node scripts/probe-plain-card-causes.mjs | tee outbox/plain-card-causes-console.txt
+          exit ${PIPESTATUS[0]}
 
       # The spellings that still resolve to nothing, with ESPN's plausible
       # candidates beside them, so an alias is written from evidence.
@@ -70,6 +73,7 @@ jobs:
         run: |
           node scripts/probe-unresolved-spellings.mjs --self-test
           node scripts/probe-unresolved-spellings.mjs | tee outbox/unresolved-spellings-console.txt
+          exit ${PIPESTATUS[0]}
 
       - name: Commit the reading
         if: always()
