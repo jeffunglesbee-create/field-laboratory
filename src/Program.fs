@@ -429,12 +429,13 @@ let private exposeForTesting (handles: ResizeArray<Scoreboard.CardHandle>) =
         if index >= 0 && index < handles.Count then handles.[index].SetState (named name))
 
     // The same affordance for the live feed's reading (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6): a render check
-    // drives a card through `SetReading` without a feed. System.Func for the reason above. `kind` is live, fulltime,
+    // drives a card through `SetReading` without a feed. System.Func for the reason above. `kind` is live, halftime, fulltime,
     // unavailable, or anything else for no reading; `clock` is the feed's text, empty for none.
     window?__labSetReading <- System.Func<int, string, int, int, string, unit>(fun index kind home away clock ->
         let reading =
             match kind with
             | "live" -> LiveScore.LiveNow(home, away, (if clock = "" then None else Some clock))
+            | "halftime" -> LiveScore.HalfTime(home, away)
             | "fulltime" -> LiveScore.FullTime(home, away)
             | "unavailable" -> LiveScore.LiveUnavailable "test"
             | _ -> LiveScore.NoReading

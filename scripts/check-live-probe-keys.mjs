@@ -70,6 +70,17 @@ const BATTERY = {
   'a boolean away score': { games: [game({ away: { score: true } })] },
   'a null away score': { games: [game({ away: { score: null } })] },
   'an away team with no score': { games: [game({ away: {} })] },
+  // The half-time flag (src/LiveFeed.fs `IsHalftime`, the probe's `halftimeOf`): where the relay puts it, and every shape of it a body could carry.
+  'a half-time flag true': { games: [game({ situation: { isHalftime: true } })] },
+  'a half-time flag false': { games: [game({ situation: { isHalftime: false } })] },
+  'a null half-time flag': { games: [game({ situation: { isHalftime: null } })] },
+  'a situation with no half-time flag': { games: [game({ situation: { elapsed: 34 } })] },
+  'a null situation': { games: [game({ situation: null })] },
+  'a string half-time flag': { games: [game({ situation: { isHalftime: 'true' } })] },
+  'a numeric half-time flag': { games: [game({ situation: { isHalftime: 1 } })] },
+  'a string situation': { games: [game({ situation: 'x' })] },
+  'a numeric situation': { games: [game({ situation: 5 })] },
+  'a list for the situation': { games: [game({ situation: [] })] },
   'no home team': { games: [without('home')] },
   'a null home team': { games: [game({ home: null })] },
   'a string home team': { games: [game({ home: 'x' })] },
@@ -83,8 +94,8 @@ const BATTERY = {
 }
 // The page's Result is Fable's (tag 0 = Ok, fields[0] = a list of records, None = undefined); the probe's is { ok, games }. Both reduced to the same shape, with `null` for no score and
 // `''` for no clock (the probe's own reading of an absent clock; the page keeps `None` and `readingFor` drops an empty one, which is the same reading).
-const pageShape = r => (r.tag === 0 ? { ok: true, games: [...r.fields[0]].map(g => ({ id: g.EspnEventId, state: g.State, home: g.HomeScore ?? null, away: g.AwayScore ?? null, clock: g.Clock ?? '' })) } : { ok: false })
-const probeShape = r => (r.ok ? { ok: true, games: r.games.map(g => ({ id: g.espnId, state: g.state, home: g.home, away: g.away, clock: g.clock })) } : { ok: false })
+const pageShape = r => (r.tag === 0 ? { ok: true, games: [...r.fields[0]].map(g => ({ id: g.EspnEventId, state: g.State, home: g.HomeScore ?? null, away: g.AwayScore ?? null, clock: g.Clock ?? '', halftime: g.IsHalftime })) } : { ok: false })
+const probeShape = r => (r.ok ? { ok: true, games: r.games.map(g => ({ id: g.espnId, state: g.state, home: g.home, away: g.away, clock: g.clock, halftime: g.halftime })) } : { ok: false })
 
 const verdicts = Object.entries(BATTERY).map(([name, body]) => {
   const page = pageShape(pageDecodeFeed(JSON.stringify(body)))
@@ -95,5 +106,6 @@ for (const v of verdicts) check(`the probe's decoder and the page's agree: ${v.n
 check('the battery has both outcomes, so agreement on it is not agreement on nothing (at least 8 decode and at least 8 fail)', verdicts.filter(v => v.page.ok).length >= 8 && verdicts.filter(v => !v.page.ok).length >= 8,
   `${verdicts.filter(v => v.page.ok).length} decode, ${verdicts.filter(v => !v.page.ok).length} fail`)
 check('a decoded game carries its fields, so the comparison above compared something', verdicts.find(v => v.name === 'a live game with a clock').page.games[0].clock === "34'")
-console.log(`compared the page's and the probe's feed decoders on ${verdicts.length} bodies: ${verdicts.filter(v => v.same).length} agree (${verdicts.filter(v => v.page.ok).length} decode, ${verdicts.filter(v => !v.page.ok).length} fail the feed). Not covered: bodies outside this list; a game in play (not captured yet).`)
+check('...and the half-time flag, so a decoder that ignored it would be seen', verdicts.find(v => v.name === 'a half-time flag true').page.games[0].halftime === true && verdicts.find(v => v.name === 'a half-time flag false').page.games[0].halftime === false)
+console.log(`compared the page's and the probe's feed decoders on ${verdicts.length} bodies: ${verdicts.filter(v => v.same).length} agree (${verdicts.filter(v => v.page.ok).length} decode, ${verdicts.filter(v => !v.page.ok).length} fail the feed). Not covered: bodies outside this list. The two real bodies of games in play (2026-11-11) are decoded by the Suite, not by this battery.`)
 finish(summarize())

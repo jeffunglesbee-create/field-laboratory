@@ -25,6 +25,9 @@ type LiveReading =
     | NoReading
     /// The feed says the game is in play. The clock is the feed's own text, verbatim, when it carried one.
     | LiveNow of home: int * away: int * clock: string option
+    /// The feed says the game is in play and ESPN's status is half time (`situation.isHalftime`). The feed's clock at the break is the first half's last
+    /// reading (`45'+3'` on 2026-11-11, captured), which reads as stoppage time in play; the card says `Half time` instead. The owner approved it 2026-11-11.
+    | HalfTime of home: int * away: int
     /// The feed says the game is over and the archive row has not finalised it yet. The card stays `In progress`, marked.
     | FullTime of home: int * away: int
     /// The feed failed, or has no game for this card. Said on the card in words; never a blank and never `Scheduled`.
@@ -132,17 +135,19 @@ let foldReading (archive: GameState) (reading: LiveReading) : GameState =
     | _ ->
         match reading with
         | LiveNow(h, a, _)
+        | HalfTime(h, a)
         | FullTime(h, a) -> InProgress(h, a)
         | NoReading
         | LiveUnavailable _ -> archive
 
-/// The words beside the score for a reading: the feed's clock, `Full time`, or the reason the score is missing. Empty when there
+/// The words beside the score for a reading: the feed's clock, `Half time`, `Full time`, or the reason the score is missing. Empty when there
 /// is nothing to say. It is a sibling of the status line, which stays `In progress` (the live grouping reads that exact text).
 let liveNoteText (reading: LiveReading) : string =
     match reading with
     | NoReading -> ""
     | LiveNow(_, _, Some clock) -> clock
     | LiveNow(_, _, None) -> ""
+    | HalfTime _ -> "Half time"
     | FullTime _ -> "Full time"
     | LiveUnavailable _ -> "live score unavailable"
 
@@ -154,7 +159,7 @@ let liveNoteFor (archive: GameState) (reading: LiveReading) : string =
     | _ -> liveNoteText reading
 
 /// WHY there is no score, for the node that says `live score unavailable`: the reading's own reason while that is what the note says,
-/// and nothing otherwise (a clock, `Full time`, no reading, or an archive `Final`, which carries no live note). The card carries it as
+/// and nothing otherwise (a clock, `Half time`, `Full time`, no reading, or an archive `Final`, which carries no live note). The card carries it as
 /// `data-why`: the words beside the score stay `live score unavailable`, and a person with devtools, and the render check, can read
 /// what the feed said or did not say (review 2026-11-11, decoder S8 and S10: the reason was built at seven sites (five in `LiveFeed.readingFor`, two in the poll's answer callback) and shown nowhere).
 let liveWhyFor (archive: GameState) (reading: LiveReading) : string =

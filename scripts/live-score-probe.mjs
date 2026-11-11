@@ -65,7 +65,7 @@ export const LABEL_TO_KEY = {
 export const SOCCER = Object.keys(LABEL_TO_KEY)
 
 /** The page's words, spelled out in full on purpose (a typo in the page must not be forgiven by a check that derives the same string). */
-export const WORDS = { inProgress: 'In progress', fullTime: 'Full time', unavailable: 'live score unavailable' }
+export const WORDS = { inProgress: 'In progress', halfTime: 'Half time', fullTime: 'Full time', unavailable: 'live score unavailable' }
 /** The poll's window after a start time (src/LiveScore.fs `liveWindowAfterStart`). */
 export const WINDOW_MS = 3 * 3600_000
 /** A card whose window opened this recently may not have been asked yet: the next tick is up to a minute away. */
@@ -83,6 +83,15 @@ const intOrNull = v =>
  *  error there (`Decode.Optional.At` accepts a null or absent team and nothing else). Held to the page's decoder by `scripts/check-live-probe-keys.mjs`. */
 const teamOk = t => t === undefined || t === null || (typeof t === 'object' && !Array.isArray(t))
 
+/** The page's `situation.isHalftime` (src/LiveFeed.fs `IsHalftime`): `situation` is absent, null or an object (not a string, a number or a list), and the flag in it is absent, null or a boolean.
+ *  Absent, null and false all read false. Held to the page's decoder by `scripts/check-live-probe-keys.mjs`. */
+const halftimeOf = s => {
+  if (s === undefined || s === null) return { ok: true, v: false }
+  if (typeof s !== 'object' || Array.isArray(s)) return { ok: false }
+  const f = s.isHalftime
+  return f === undefined || f === null ? { ok: true, v: false } : typeof f === 'boolean' ? { ok: true, v: f } : { ok: false }
+}
+
 /** A `/v2/games` body as `src/LiveFeed.fs` `decodeFeed` reads it: a `games` list, every game an object with a string `espnEventId` and a
  *  string `state`; a score is an integer or absent, a clock a string or absent. ONE bad game fails the whole feed, as it does on the page. */
 export const decodeFeed = body => {
@@ -96,7 +105,9 @@ export const decodeFeed = body => {
     const h = intOrNull(g.home?.score), a = intOrNull(g.away?.score)
     if (!h.ok || !a.ok) return { ok: false, why: 'a score is not a whole number from 0 to the int32 maximum' }
     if (g.clock !== undefined && g.clock !== null && typeof g.clock !== 'string') return { ok: false, why: 'a clock is not a string' }
-    games.push({ espnId: g.espnEventId, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '' })
+    const ht = halftimeOf(g.situation)
+    if (!ht.ok) return { ok: false, why: 'situation is not an object, or isHalftime is not a boolean' }
+    games.push({ espnId: g.espnEventId, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '', halftime: ht.v })
   }
   return { ok: true, games }
 }
@@ -121,7 +132,9 @@ export const judgeCard = (card, last) => {
   if (last.state === 'live') {
     if (!inProgress) return bad(`the feed says live and the card says "${card.status}"`)
     if (!scoreMatches(card, last)) return bad(`the card shows ${card.score}, the feed ${arrow(last.home, last.away)}`)
-    if (card.live !== last.clock) return bad(`the card's clock note is "${card.live}", the feed's "${last.clock}"`)
+    // At half time the feed's clock still reads the first half's last minute (`45'+3'`) and the page says `Half time` instead (owner approved 2026-11-11).
+    const want = last.halftime ? WORDS.halfTime : last.clock
+    if (card.live !== want) return bad(`the card's note is "${card.live}", ${last.halftime ? 'the feed says half time' : `the feed's clock is "${last.clock}"`}`)
     if (!forecastFree(card)) return bad(`a card in play carries a forecast (${card.forecast})`)
     return { kind: 'live', ok: true, reason: '' }
   }
@@ -197,6 +210,7 @@ export const judge = ({ cards, rows, outcomes, runner, requests, nowMs, decodeSt
     forecastAbsent: withNode.length === 0 ? null : withNode.every(r => r.forecast === 'none'),
     scheduledAfterKickoff,
     fullTimeMarker: rowsOut.some(r => r.live === WORDS.fullTime),
+    halfTimeMarker: rowsOut.some(r => r.live === WORDS.halfTime),
     requestsToV2Games: requests,
     checked: `checked ${judged} of ${rowsOut.length} soccer cards against the page's own last /v2/games answer (${count('unjoined')} with no ESPN id, ${count('out-of-window')} outside their window, ${count('no-reading')} with no reading yet); ${live.length} live`,
     rows: rowsOut,
@@ -278,6 +292,12 @@ if (SELF_TEST) {
     [{ home: { score: -1 } }, { away: { score: -1 } }, { away: { score: -2147483649 } }].every(t => feedWith(t).ok === false) && [{ home: { score: 0 } }, { away: { score: 0 } }].every(t => feedWith(t).ok === true))
   check('a numeric-string, fractional or boolean score on the AWAY side fails the feed, as on the home side',
     [{ away: { score: '0' } }, { away: { score: 1.5 } }, { away: { score: true } }].every(t => feedWith({ home: { score: 1 }, ...t }).ok === false))
+  // Half time: the page's `situation.isHalftime` (src/LiveFeed.fs), held to it by `scripts/check-live-probe-keys.mjs`.
+  check('the half-time flag is read from `situation`: true reads true; absent, null, a null situation and false read false',
+    feedWith({ situation: { isHalftime: true } }).games[0].halftime === true
+      && [{}, { situation: null }, { situation: {} }, { situation: { isHalftime: null } }, { situation: { isHalftime: false } }].every(t => feedWith(t).games[0].halftime === false))
+  check('a flag that is not a boolean, or a `situation` that is a string, a number or a list, fails the feed, as on the page',
+    [{ situation: { isHalftime: 'true' } }, { situation: { isHalftime: 1 } }, { situation: 'x' }, { situation: 5 }, { situation: [] }].every(t => feedWith(t).ok === false))
   check('a team that is a string, a number or a list fails the feed, a null or absent one does not',
     [{ home: 'x' }, { home: 5 }, { home: [] }, { away: 'x' }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === false)
       && [{ home: null }, {}, { home: {} }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === true))
@@ -302,6 +322,12 @@ if (SELF_TEST) {
   check('a forecast on a card in play is a failure: the page\'s forecast word is `model`', j(card({ forecast: 'model' }), game()).ok === false)
   check('the page\'s own word for an EPL card with no line, `none`, is NOT a forecast, and no node at all is not either',
     j(card({ forecast: 'none' }), game()).ok === true && j(card({ forecast: null }), game()).ok === true)
+  // Half time (owner approved 2026-11-11; captured 19:54Z: the feed's state stays `live`, its clock reads `45'+3'`, and `situation.isHalftime` is true).
+  const half = game({ home: 3, away: 0, clock: "45'+3'", halftime: true })
+  check('a game the feed says is at half time is ok when the card says Half time with the score', j(card({ live: 'Half time', score: '3–0' }), half).ok === true)
+  check('...and the feed\'s clock beside it is a failure: the card must say Half time, not stoppage time', j(card({ live: "45'+3'", score: '3–0' }), half).ok === false)
+  check('...and a card that says Half time while the feed does not is a failure', j(card({ live: 'Half time' }), game()).ok === false)
+  check('...and no note at all at half time is a failure', j(card({ live: '', score: '3–0' }), half).ok === false)
   const fin = game({ state: 'final', home: 2, away: 1, clock: "90'" })
   check('a final game the archive has not finalised is In progress with the Full time note and the final score', j(card({ live: 'Full time', score: '2–1' }), fin).ok === true)
   check('...with the wrong score it is a failure', j(card({ live: 'Full time', score: '0–0' }), fin).ok === false)
@@ -363,6 +389,8 @@ if (SELF_TEST) {
     run({ cards: [card({ score: '0–1' })], runner: { ok: false, why: ['x'], live: new Set() } }).verdict === 'FAIL')
   const rFull = run({ cards: [card({ live: 'Full time', score: '2–1' })], outcomes: [poll([fin])], runner: runnerOk() })
   check('fullTimeMarker is seen on a card that says Full time and not on one that does not', rFull.fullTimeMarker === true && r1.fullTimeMarker === false)
+  const rHalf = run({ cards: [card({ live: 'Half time', score: '3–0' })], outcomes: [poll([game({ home: 3, away: 0, clock: "45'+3'", halftime: true })])], runner: runnerOk('401911177') })
+  check('halfTimeMarker is seen on a card that says Half time and not on one that does not, and that card is judged ok', rHalf.halfTimeMarker === true && r1.halfTimeMarker === false && rHalf.rows[0].ok === true, JSON.stringify(rHalf.rows[0]))
   check('scheduledAfterKickoff also reads a `final` card that still says Scheduled, and both of the page\'s old words',
     run({ cards: [card({ status: SCHED, live: '' })], outcomes: [poll([fin])], runner: runnerOk() }).scheduledAfterKickoff === true
       && run({ cards: [card({ status: PASSED, live: '' })], outcomes: [poll([fin])], runner: runnerOk() }).scheduledAfterKickoff === true)

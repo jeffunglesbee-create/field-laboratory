@@ -27,7 +27,10 @@ type FeedGame =
       HomeScore: int option
       AwayScore: int option
       /// The feed's clock text, verbatim, as served (`34'`, `90'+9'`); `None` when the key is absent or null.
-      Clock: string option }
+      Clock: string option
+      /// `situation.isHalftime`: the relay's own flag, true exactly when ESPN's status is `STATUS_HALFTIME` (relay `adaptESPNWCSoccer`). A game that is not live has `situation: null`,
+      /// so absent, null and a null `situation` all read false; a value that is not a boolean is an error, as a string score is.
+      IsHalftime: bool }
 
 /// A score is a JSON NUMBER that is a whole number from 0 to the largest int32. `Decode.int` also reads the string "1" (and " 1") as 1, and the relay never serves one:
 /// `adaptESPNWCSoccer` emits `Number(x)` or null, so a string means the relay's shape changed, and it is named, not coerced (the same strictness `Decode.string`
@@ -49,7 +52,8 @@ let private feedGameDecoder: Decoder<FeedGame> =
           State = get.Required.Field "state" Decode.string
           HomeScore = get.Optional.At [ "home"; "score" ] wholeScore
           AwayScore = get.Optional.At [ "away"; "score" ] wholeScore
-          Clock = get.Optional.Field "clock" Decode.string })
+          Clock = get.Optional.Field "clock" Decode.string
+          IsHalftime = get.Optional.At [ "situation"; "isHalftime" ] Decode.bool |> Option.defaultValue false })
 
 /// The games of a `/v2/games` body. A body with no `games` list, or a game with no `espnEventId` or no `state`, is an ERROR
 /// that says so: the relay owns this contract, and a slate that quietly reads as empty would be a card saying nothing.
@@ -64,7 +68,8 @@ let feedPath (sportKey: string) (etDay: string) : string = sprintf "/v2/games?sp
 ///
 /// - `pre` is no reading: the feed has not seen the match start, and the card keeps whatever the archive says (a delayed
 ///   kickoff reads `Start time passed, no score served`, which is true). Its `score: 0` is never read.
-/// - `live` with both scores is the live score; `final` with both scores is full time (the archive has not finalised it
+/// - `live` with both scores is the live score, or half time when the feed's `situation.isHalftime` is true (the state word stays `live` at the break: captured 2026-11-11,
+///   clock `45'+3'`); `final` with both scores is full time (the archive has not finalised it
 ///   yet, or the card would be Final and the reading would not show).
 /// - a card with no ESPN event id cannot be joined, a feed with no game for the card has nothing to say, a state word this file
 ///   does not read, and a live or final game with no score: each is `LiveUnavailable` with the reason, carried on the card as `data-why` (the words on the card are `live score unavailable`).
@@ -79,6 +84,7 @@ let readingFor (feed: FeedGame list) (game: Game) : LiveReading =
             | "pre" -> NoReading
             | "live" ->
                 match f.HomeScore, f.AwayScore with
+                | Some h, Some a when f.IsHalftime -> HalfTime(h, a)
                 | Some h, Some a -> LiveNow(h, a, f.Clock |> Option.filter (fun c -> c <> ""))
                 | _ -> LiveUnavailable "the feed says live and carries no score"
             | "final" ->

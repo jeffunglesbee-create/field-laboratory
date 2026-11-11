@@ -4665,6 +4665,11 @@ let private liveScore () =
           (LiveScore.LiveNow(1, 0, Some "45'"))
           LiveScore.NoReading
 
+      Verify.check "a half-time reading keeps the card in progress with its score, never final"
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = InProgress(1, 0))
+          (LiveScore.HalfTime(1, 0))
+          LiveScore.NoReading
+
       Verify.check "a reading that says full time keeps the card in progress, never final"
           (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T14:40:00Z") epl) reading = InProgress(2, 2))
           (LiveScore.FullTime(2, 2))
@@ -4724,6 +4729,16 @@ let private liveScore () =
           (InProgress(2, 1))
           (Final(2, 1, false))
 
+      Verify.check "a half-time reading says Half time, and a game the archive has finalised carries no such note"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.HalfTime(1, 0)) = "Half time")
+          (InProgress(1, 0))
+          (Final(1, 0, false))
+
+      Verify.check "half time and full time are different words"
+          (fun reading -> LiveScore.liveNoteText reading = "Half time")
+          (LiveScore.HalfTime(1, 0))
+          (LiveScore.FullTime(1, 0))
+
       Verify.check "no reading and a live reading with no clock say nothing"
           (fun reading -> LiveScore.liveNoteText reading = "")
           (LiveScore.LiveNow(1, 0, None))
@@ -4737,9 +4752,9 @@ let private liveScore () =
 
       // Fix-review 2026-11-11, defence F22: the titles said "a clock, full time or no reading" and "a game the archive has finalised", and the inputs were ONE of each (a clock; a regulation final), so
       // `| _, FullTime _ -> "full time"` added above the catch-all, or the Final arm narrowed to `Final(_, _, false)`, kept every check green. Each class is now every member.
-      Verify.check "a clock, full time or no reading carries no reason"
+      Verify.check "a clock, half time, full time or no reading carries no reason"
           (fun readings -> readings |> List.forall (fun reading -> LiveScore.liveWhyFor Scheduled reading = ""))
-          [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveNow(1, 0, None); LiveScore.FullTime(1, 0); LiveScore.NoReading ]
+          [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveNow(1, 0, None); LiveScore.HalfTime(1, 0); LiveScore.FullTime(1, 0); LiveScore.NoReading ]
           [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveUnavailable "x" ]
 
       Verify.check "a game the archive has finalised carries no reason, in regulation or after extra time, as it carries no live note"
@@ -4748,10 +4763,13 @@ let private liveScore () =
           [ Final(2, 1, true); Scheduled ] ]
 
 // ---------------------------------------------------------------------------
-// The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The two bodies below are EXCERPTS of what the relay served
-// on 2026-11-11 (a probe of /v2/games?sport=epl&date=2026-11-08 and ?sport=efltrophy&date=2026-11-11): the keys as served, with the
-// per-game `matchEvents` and `streams` lists left out. No body of a game IN PLAY has been captured yet; live-shape-capture is
-// getting one on 2026-11-11, and no check below claims to know that shape.
+// The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The bodies below are EXCERPTS of what the relay served
+// on 2026-11-11, the keys as served with the per-game lists (`matchEvents`, `streams`, `recentWPHistory`) and the win-probability objects left out:
+// a probe of /v2/games?sport=epl&date=2026-11-08 (`finalBody`) and ?sport=efltrophy&date=2026-11-11 before kickoff (`preBody`), and TWO GAMES IN PLAY,
+// captured by `live-shape-capture` the same evening: `liveRealBody` is the capture of 19:18:54Z (Barnsley v Oldham Athletic, 18', 0-0) and `halftimeRealBody`
+// the capture of 19:54:02Z (the same game at half time, 3-0, clock `45'+3'`, `situation.isHalftime: true`), both in
+// `outbox/live-capture-efltrophy-2026-11-11-<HHMM>Z.json`, `v2.body`. At half time the feed's state word stays `live`; only `situation.isHalftime` says so.
+// Not captured yet: a game in the second half, in stoppage time of the second, in extra time, or at full time (the captures of 20:20Z to 21:30Z).
 // ---------------------------------------------------------------------------
 
 let private liveFeed () =
@@ -4766,7 +4784,14 @@ let private liveFeed () =
           State = state
           HomeScore = home
           AwayScore = away
-          Clock = clock }
+          Clock = clock
+          IsHalftime = false }
+
+    let liveRealBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"18'","periodNum":1,"periodLabel":"18'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":18,"isStoppage":false,"isHalftime":false,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794424735294}"""
+
+    let halftimeRealBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":3},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"45'+3'","periodNum":1,"periodLabel":"45'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":45,"isStoppage":true,"isHalftime":true,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794426843196}"""
 
     let card (espn: string option) : Game =
         { Id = "g1"
@@ -4795,6 +4820,25 @@ let private liveFeed () =
           FinalizedAt = None }
 
     let one (game: string) : string = sprintf """{"games":[%s]}""" game
+
+    // Half time (owner approved 2026-11-11, after the capture of 19:54Z): the feed says `live` and `situation.isHalftime: true`. Bodies for the flag's every shape.
+    let liveHalf = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"45'+2'","situation":{"isHalftime":true}}"""
+    let liveHalfNoScore = one """{"espnEventId":"7","state":"live","home":{},"away":{},"clock":"45'","situation":{"isHalftime":true}}"""
+    let finalHalf = one """{"espnEventId":"7","state":"final","home":{"score":2},"away":{"score":1},"clock":"90'","situation":{"isHalftime":true}}"""
+    let preHalf = one """{"espnEventId":"7","state":"pre","home":{"score":0},"away":{"score":0},"clock":"0'","situation":{"isHalftime":true}}"""
+    let situationNull = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":null}"""
+    let situationNoFlag = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":{"elapsed":34}}"""
+    let situationFlagNull = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":{"isHalftime":null}}"""
+    let situationFlagFalse = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":{"isHalftime":false}}"""
+    let flagString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":{"isHalftime":"true"}}"""
+    let flagNumber = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":{"isHalftime":1}}"""
+    let situationString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":"x"}"""
+
+    let halftimeFlags (body: string) : Result<bool list, string> =
+        LiveFeed.decodeFeed body |> Result.map (List.map (fun g -> g.IsHalftime))
+
+    let readReal (body: string) : Result<LiveScore.LiveReading, string> =
+        LiveFeed.decodeFeed body |> Result.map (fun parsed -> LiveFeed.readingFor parsed (card (Some "401911177")))
 
     let readThrough (body: string) : Result<LiveScore.LiveReading, string> =
         LiveFeed.decodeFeed body |> Result.map (fun parsed -> LiveFeed.readingFor parsed (card (Some "7")))
@@ -5035,6 +5079,57 @@ let private liveFeed () =
           (fun body -> errorMentions "clock" (LiveFeed.decodeFeed body))
           clockNumber
           liveAsym
+
+      // The two games in play captured on 2026-11-11 (the header above): the first real bodies of a match in play this page has read.
+      Verify.check "a game in play, as captured at 19:18Z, decodes to its id, state, scores, clock and no half time"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "401911177" "live" (Some 0) (Some 0) (Some "18'") ])
+          liveRealBody
+          halftimeRealBody
+
+      Verify.check "a game at half time, as captured at 19:54Z, decodes with its clock as served and the half-time flag set"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ { feedGame "401911177" "live" (Some 3) (Some 0) (Some "45'+3'") with IsHalftime = true } ])
+          halftimeRealBody
+          liveRealBody
+
+      Verify.check "a game in play, as captured, is read as live with its score and the feed's clock"
+          (fun body -> readReal body = Ok(LiveScore.LiveNow(0, 0, Some "18'")))
+          liveRealBody
+          halftimeRealBody
+
+      Verify.check "a game at half time, as captured, is read as half time with its score and not as its clock"
+          (fun body -> readReal body = Ok(LiveScore.HalfTime(3, 0)))
+          halftimeRealBody
+          liveRealBody
+
+      Verify.check "a live game that is not at half time carries the flag false whether `situation` is null, has no flag, or has a null or false one"
+          (fun bodies -> bodies |> List.forall (fun body -> halftimeFlags body = Ok [ false ]))
+          [ situationNull; situationNoFlag; situationFlagNull; situationFlagFalse; liveAsym ]
+          [ situationNull; liveHalf ]
+
+      Verify.check "a half-time flag that is not a boolean is an error naming the field, as a string score is"
+          (fun bodies -> bodies |> List.forall (fun body -> errorMentions "isHalftime" (LiveFeed.decodeFeed body)))
+          [ flagString; flagNumber ]
+          [ flagString; liveHalf ]
+
+      Verify.check "a `situation` that is not an object is an error naming it"
+          (fun body -> errorMentions "situation" (LiveFeed.decodeFeed body))
+          situationString
+          liveHalf
+
+      Verify.check "the half-time flag is read from a live game only: a finished game that carries it is still full time"
+          (fun body -> readThrough body = Ok(LiveScore.FullTime(2, 1)))
+          finalHalf
+          liveHalf
+
+      Verify.check "the half-time flag is read from a live game only: a game not started that carries it is still no reading"
+          (fun body -> readThrough body = Ok LiveScore.NoReading)
+          preHalf
+          liveHalf
+
+      Verify.check "a live game at half time that carries no score is unavailable, never half time at 0-0"
+          (fun body -> isUnavailable (readThrough body))
+          liveHalfNoScore
+          liveHalf
 
       // PINNED as the current contract, not argued for: the relay owns the shape (CONTRACTS.md), so one malformed game fails the whole feed and every card of
       // that sport key that is inside its window and not finalised in the archive says "live score unavailable" with the decoder's message (`answersTo` and `liveNoteFor`
