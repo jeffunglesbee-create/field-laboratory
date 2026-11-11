@@ -125,15 +125,15 @@ let private timeoutSignal (ms: int) : AbortSignal = Fable.Core.Util.jsNative
 /// `tryFetchText` with a deadline: a request that has not answered in `ms` is an `Error` ("signal timed out"), not a promise that
 /// stays open for the life of the page. The live poll holds a key while its request is in flight, so without this one stalled
 /// connection would stop that key being asked for good (review 2026-11-11, poll S4 and S18).
+/// `fetch` is Fable.Fetch's CHECKED one: it rejects a non-2xx response itself, with a message that carries the status ("503 Service Unavailable for URL ..."), so a
+/// refused answer ends up in the `with` below and there is no status branch to write. (An `if res.Ok ... else Error "HTTP %d"` here could never run: fix-review 2026-11-11,
+/// poll F2 and card F15. `WeatherView.fs` records the same trap and uses `fetchUnsafe`, whose branch is live.)
 let private tryFetchTextWithin (ms: int) (url: string) =
     promise {
         try
             let! res = fetch url [ Signal(timeoutSignal ms) ]
-            if res.Ok then
-                let! body = res.text ()
-                return Ok body
-            else
-                return Error(sprintf "HTTP %d" res.Status)
+            let! body = res.text ()
+            return Ok body
         with e ->
             return Error e.Message
     }

@@ -12263,6 +12263,15 @@ const MUTATIONS = [
     replace: "Signal(timeoutSignal (ms + 10000))",
     expect: "node scripts/live-score-render-check.mjs",
   },
+  // Fix-review 2026-11-11 (poll F2, card F15): the unreachable `HTTP %d` branch is gone, so the status a refused answer carries comes ONLY from the checked fetch's rejection. This shows the render check sees it.
+  {
+    id: "poll-refused-answer-loses-its-status",
+    file: "src/Program.fs",
+    claim: "a 503 is said on the card with its status in the reason, from the rejection the checked fetch raises",
+    find: "            let! res = fetch url [ Signal(timeoutSignal ms) ]\n            let! body = res.text ()\n            return Ok body\n        with e ->\n            return Error e.Message\n",
+    replace: "            let! res = fetch url [ Signal(timeoutSignal ms) ]\n            let! body = res.text ()\n            return Ok body\n        with _ ->\n            return Error \"unanswered\"\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

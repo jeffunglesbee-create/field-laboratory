@@ -111,3 +111,16 @@ What the band does not pin: a signal within 2 s of the constant. A signal that i
 `LivePollTimeoutMs`; the claim "the deadline is `LivePollTimeoutMs`" is then pinned by the text scan (`tryFetchTextWithin LiveScore.LivePollTimeoutMs`) plus the 2-second band, not by an exact value.
 
 Result: render check 58/58 (was 54). 9 mutations run (7 new, `poll-asks-for-the-wrong-day`, `poll-deadline-signal-dropped`), 9 caught (3 m 18 s).
+
+## C5. The status branch of `tryFetchTextWithin` that could never run (review poll F2, card F15)
+
+`tryFetchTextWithin` (new in 61a9515) copied `tryFetchText`'s `if res.Ok ... else Error "HTTP %d"`. `fetch` there is Fable.Fetch's checked `fetch$`, which throws
+`Exception(errorString(response))` when `!response.ok` (`build/fable_modules/Fable.Fetch.2.7.0/Fetch.fs.js` 83-93, read by both skeptics, one ran it against a stubbed
+`{ok:false,status:503}`). The `else` arm never ran, and the reason a 503 carries is `503 Service Unavailable for URL ...` from the rejection, not `HTTP 503`.
+`src/WeatherView.fs` 272-283 records the same trap and uses `fetchUnsafe`.
+
+Correction to `live-score-poll-review-2026-11-11.md` (rows S18/S21 and its "NOT changed (Rule 69)" note): Rule 69 protects code that already existed; this helper is new in
+the commit that observed the branch, so declining to remove it was wrong. `tryFetchText` (older, used elsewhere) keeps its branch, untouched.
+
+Built: the branch is removed and the comment says where a refused answer ends up. A table entry (`poll-refused-answer-loses-its-status`) replaces the rejection's
+message with a constant in the `with`; the render check's 503 scenario (`why` includes `503`) fails on it, 1 of 1 caught. Suite 456/456, render 58/58, poll check 16/16.
