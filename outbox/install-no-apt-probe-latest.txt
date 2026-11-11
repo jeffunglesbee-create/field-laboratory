@@ -1,0 +1,7 @@
+checked 5 of 5 premises: 5 held
+HELD    the install changed no package and wrote nothing to the dpkg or apt logs (package list 2708c1ed7a0f1c0d -> 2708c1ed7a0f1c0d; dpkg.log 0 -> 0 bytes; apt history 0 -> 0)
+HELD    no apt, apt-get, dpkg or sudo call was made during the install, each shimmed on PATH (0 calls logged)
+HELD    every browser binary the install left has all its shared libraries (2 binaries, 0 libraries not found)
+HELD    the install finished inside its 180 s limit (9 s)
+HELD    none of the nine fonts was installed before, so the treatment is a real change (0 of 9 present before; 9 of 9 after the apt step)
+image: PRETTY_NAME="Ubuntu 26.04.1 LTS" / 20261101.186.1

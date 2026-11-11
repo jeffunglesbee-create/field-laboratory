@@ -1,0 +1,36 @@
+{
+  "verdict": "fonts-not-needed",
+  "why": "with the nine fonts installed no element box or scroll size moved in any of 20 cells, and no font outside the first run's drew a glyph",
+  "apt": "ok",
+  "meta": {
+    "chromium": "151.0.7922.34",
+    "url": "http://localhost:8080/?data=context-2026-08-29"
+  },
+  "summary": {
+    "control": {
+      "checked": 20,
+      "geometryDiffer": 0,
+      "fontsDiffer": 0,
+      "pixelsDiffer": 0,
+      "newFonts": []
+    },
+    "teeth": {
+      "checked": 20,
+      "geometryDiffer": 20,
+      "fontsDiffer": 20,
+      "pixelsDiffer": 20,
+      "newFonts": [
+        "DejaVu Sans Mono",
+        "Liberation Mono"
+      ]
+    },
+    "treatment": {
+      "checked": 20,
+      "geometryDiffer": 0,
+      "fontsDiffer": 0,
+      "pixelsDiffer": 0,
+      "newFonts": []
+    }
+  },
+  "treatmentMoved": []
+}

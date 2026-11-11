@@ -1,0 +1,8 @@
+checked 20 of 20 cells (10 viewports x 2 states); control 0 differ, teeth 20 differ, treatment 0 differ in geometry
+VERDICT: fonts-not-needed
+why: with the nine fonts installed no element box or scroll size moved in any of 20 cells, and no font outside the first run's drew a glyph
+apt install of the nine fonts: ok
+pixels: control 0, teeth 20, treatment 0 of 20 cells differ (reported, not decided on)
+fonts that drew glyphs in the treatment and not in the first run: none
+cells whose font usage differs: control 0, teeth 20, treatment 0
+chromium 151.0.7922.34; url http://localhost:8080/?data=context-2026-08-29
