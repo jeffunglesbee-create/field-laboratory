@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `07c0dbb` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `07c0dbb` | 2026-11-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `e44c720` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-1918Z.json](live-capture-efltrophy-2026-11-11-1918Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
+| `18d0ae9` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 1877c12 [skip ci] |
+| `1877c12` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | feat: the rain-precip probe records why a request got no answer |
+| `ff4af25` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the owner kept the Manadon row ("Keep", 12:24 ET) |
+| `edd0c58` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: Task 3's Done-when is met in CI and the row is live; the session record brought up to date |
+| `e03ed18` | 2026-11-11 | [runner-apt-mirror-probes-2026-11-11.md](runner-apt-mirror-probes-2026-11-11.md) | docs: the ten apt-mirror probes and the rerun they were waiting for (Task 1 of the outage CC-CMD) |
+| `4775e9b` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e5acdec` | 2026-11-11 | [runner-dns-ubuntu-doh-2026-11-11.txt](runner-dns-ubuntu-doh-2026-11-11.txt) | docs: what Google Public DNS says about the Ubuntu zone, asked from a runner |
 | `81f4190` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
 | `81f4190` | 2026-11-11 | [venue-manadon-mutation-entries-record-2026-11-11.json](venue-manadon-mutation-entries-record-2026-11-11.json) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
