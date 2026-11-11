@@ -6,6 +6,30 @@
     "chromium": "151.0.7922.34",
     "url": "http://localhost:8080/?data=context-2026-08-29"
   },
+  "stamp": "run 43104450683 attempt 1 sha 0640e4b9ec8828da5e572fb7f5ba07f0e30c4768 at 2026-11-11T21:38:36Z",
+  "visible": {
+    "of": 5,
+    "changed": [
+      "IPAGothic",
+      "WenQuanYi Zen Hei",
+      "Loma",
+      "FreeSans",
+      "Unifont"
+    ],
+    "drawnAsAsked": [
+      "IPAGothic",
+      "WenQuanYi Zen Hei",
+      "Loma",
+      "FreeSans",
+      "Unifont"
+    ]
+  },
+  "firstRunFonts": {
+    "Chakra Petch": 674,
+    "DM Sans 9pt": 453958,
+    "DejaVu Sans": 40,
+    "Chakra Petch SemiBold": 29264
+  },
   "summary": {
     "control": {
       "checked": 20,
@@ -28,13 +52,13 @@
       "checked": 20,
       "geometryDiffer": 0,
       "fontsDiffer": 0,
-      "pixelsDiffer": 0,
+      "pixelsDiffer": 2,
       "newFonts": []
     }
   },
   "fallback": [
-    "fallback-text cell (control, the first run against the same again): boxes same, fonts same, pixels same; fonts drawn: {\"DejaVu Sans\":169,\"Noto Color Emoji\":1} -> {\"DejaVu Sans\":169,\"Noto Color Emoji\":1}",
-    "fallback-text cell (treatment, without the nine fonts against with them): boxes same, fonts DIFFER, pixels differ; fonts drawn: {\"DejaVu Sans\":169,\"Noto Color Emoji\":1} -> {\"DejaVu Sans\":135,\"WenQuanYi Zen Hei\":24,\"Loma\":10,\"Noto Color Emoji\":1}"
+    "fallback-text cell (control, the first run against the same again): boxes same, fonts same, pixels same; fonts drawn: {\"DejaVu Sans\":169,\"Noto Color Emoji\":1,\"Liberation Sans\":42} -> {\"DejaVu Sans\":169,\"Noto Color Emoji\":1,\"Liberation Sans\":42}",
+    "fallback-text cell (treatment, without the nine fonts against with them): boxes DIFFER (max 8px), fonts DIFFER, pixels differ; fonts drawn: {\"DejaVu Sans\":169,\"Noto Color Emoji\":1,\"Liberation Sans\":42} -> {\"DejaVu Sans\":135,\"WenQuanYi Zen Hei\":28,\"Loma\":15,\"Noto Color Emoji\":1,\"IPAGothic\":7,\"FreeSans\":14,\"Unifont\":12}"
   ],
   "treatmentMoved": []
 }

@@ -1,11 +1,14 @@
 checked 20 of 20 cells (10 viewports x 2 states); control 0 differ, teeth 20 differ, treatment 0 differ in geometry
+stamp: run 43104450683 attempt 1 sha 0640e4b9ec8828da5e572fb7f5ba07f0e30c4768 at 2026-11-11T21:38:36Z
 VERDICT: fonts-not-needed
 why: with the nine fonts installed no element box or scroll size moved in any of 20 cells, and no font outside the first run's drew a glyph
 apt install of the nine fonts: ok
-pixels: control 2, teeth 20, treatment 0 of 20 cells differ (reported, not decided on)
+treatment visible to Chromium (five families asked for by name, drawn differently after the install): 5 of 5 (IPAGothic, WenQuanYi Zen Hei, Loma, FreeSans, Unifont); drawn as asked after: IPAGothic, WenQuanYi Zen Hei, Loma, FreeSans, Unifont
+pixels: control 2, teeth 20, treatment 2 of 20 cells differ (reported, not decided on: a whole-page hash is not repeatable on every Chromium build, so the screenshot half of the CC-CMD's question is answered only as far as the control here repeated)
+first run: glyphs drawn per font family: {"Chakra Petch":674,"DM Sans 9pt":453958,"DejaVu Sans":40,"Chakra Petch SemiBold":29264}
 fonts that drew glyphs in the treatment and not in the first run: none
 cells whose font usage differs: control 0, teeth 20, treatment 0
-scope: the page ?data=context-2026-08-29 (Latin text drawn in the page's own web fonts) at 10 viewports x 2 states; the next lines say what text the page's faces do not carry would do
-fallback-text cell (control, the first run against the same again): boxes same, fonts same, pixels same; fonts drawn: {"DejaVu Sans":169,"Noto Color Emoji":1} -> {"DejaVu Sans":169,"Noto Color Emoji":1}
-fallback-text cell (treatment, without the nine fonts against with them): boxes same, fonts DIFFER, pixels differ; fonts drawn: {"DejaVu Sans":169,"Noto Color Emoji":1} -> {"DejaVu Sans":135,"WenQuanYi Zen Hei":24,"Loma":10,"Noto Color Emoji":1}
+scope: the Scoreboard tab of ?data=context-2026-08-29 only (1 of 11 tabs; Latin text drawn in the page's own two web faces) at 10 viewports x 2 states; the lines below say what text those faces do not carry would do
+fallback-text cell (control, the first run against the same again): boxes same, fonts same, pixels same; fonts drawn: {"DejaVu Sans":169,"Noto Color Emoji":1,"Liberation Sans":42} -> {"DejaVu Sans":169,"Noto Color Emoji":1,"Liberation Sans":42}
+fallback-text cell (treatment, without the nine fonts against with them): boxes DIFFER (max 8px), fonts DIFFER, pixels differ; fonts drawn: {"DejaVu Sans":169,"Noto Color Emoji":1,"Liberation Sans":42} -> {"DejaVu Sans":135,"WenQuanYi Zen Hei":28,"Loma":15,"Noto Color Emoji":1,"IPAGothic":7,"FreeSans":14,"Unifont":12}
 chromium 151.0.7922.34; url http://localhost:8080/?data=context-2026-08-29
