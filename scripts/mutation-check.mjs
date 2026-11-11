@@ -12075,6 +12075,39 @@ const MUTATIONS = [
     replace: "let LivePollMs = 60000 / 4\n",
     expect: "node scripts/check-live-score-poll.mjs",
   },
+  // Fix-review 2026-11-11 (defence F18, F19): the lower bound of the window, for the request selection and for the answer's selection, each seen by the Suite and by the browser.
+  {
+    id: "live-keys-ask-before-the-kickoff",
+    file: "src/LiveScore.fs",
+    claim: "a card is asked about from its kickoff and not before it (the Suite)",
+    find: "    inLiveWindowAt now g\n    && (match gameStateAt now g with\n        | Final _ -> false\n",
+    replace: "    (match g.StartTime with Some s -> now <= s + liveWindowAfterStart | None -> false)\n    && (match gameStateAt now g with\n        | Final _ -> false\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-keys-ask-before-the-kickoff-in-the-browser",
+    file: "src/LiveScore.fs",
+    claim: "a card two hours before its kickoff is not asked about, at load or across ticks (the browser)",
+    find: "    inLiveWindowAt now g\n    && (match gameStateAt now g with\n        | Final _ -> false\n",
+    replace: "    (match g.StartTime with Some s -> now <= s + liveWindowAfterStart | None -> false)\n    && (match gameStateAt now g with\n        | Final _ -> false\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "live-answer-told-before-the-kickoff",
+    file: "src/LiveScore.fs",
+    claim: "an answer is told a card from its kickoff and not before it (the Suite)",
+    find: "    liveSportKey g.Sport = Some key && inLiveWindowAt now g\n",
+    replace: "    liveSportKey g.Sport = Some key && (match g.StartTime with Some s -> now <= s + liveWindowAfterStart | None -> false)\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-answer-told-before-the-kickoff-in-the-browser",
+    file: "src/LiveScore.fs",
+    claim: "a failed feed is not told to a card of the same league two hours before its kickoff (the browser)",
+    find: "    liveSportKey g.Sport = Some key && inLiveWindowAt now g\n",
+    replace: "    liveSportKey g.Sport = Some key && (match g.StartTime with Some s -> now <= s + liveWindowAfterStart | None -> false)\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

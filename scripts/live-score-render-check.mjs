@@ -504,6 +504,69 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       release()
       await ctx.close()
     }
+
+    // Fix-review 2026-11-11 (defence F18, F19): every scenario above starts its cards at 11:30Z with the clock at 12:00Z, so no card of a polled league was ever AHEAD of its
+    // kickoff, and the lower bound of the window was defended by nothing the browser ran. These two put a same-league card hours ahead of its kickoff.
+    // Chelsea v Bournemouth (EPL, 14:00Z in the committed slate) is that card; the clock is the same 12:00Z.
+    const CHELSEA = '401878775'
+    const mkAhead = ids => {
+      const slate = JSON.parse(readFileSync('data/context-2026-10-10.json', 'utf8'))
+      slate.games.regular = slate.games.regular.filter(g => ids.includes(String(g.espn_event_id)))
+        .map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+      slate.games.postseason = []
+      return slate
+    }
+
+    // (d) a card whose kickoff is ahead is not asked about, and the poll is armed so the silence is not an absence of timer: it asks once the window opens
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      const errs = []
+      pg.on('pageerror', e => errs.push(e.message))
+      const asked = []
+      await routesFor(pg, mkAhead([CHELSEA]), r => {
+        asked.push(new URL(r.request().url()).searchParams.get('sport'))
+        return r.fulfill({ contentType: 'application/json', body: feedFor('epl', CHELSEA, 0, 0, "1'") })
+      })
+      await pg.clock.install({ time: new Date(AT) })
+      await instrument(pg)
+      await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      await pg.waitForTimeout(400)
+      for (let i = 0; i < 3; i++) {
+        await pg.clock.fastForward(60_000)
+        await pg.waitForTimeout(250)
+      }
+      const beforeKickoff = asked.length
+      const armed = await alive(pg)
+      await pg.clock.fastForward(2 * 60 * 60 * 1000)
+      const inPlay = await settle(pg, LATE, { score: '0–0' })
+      check('a card two hours before its kickoff is not asked about, at load or across three ticks, while the poll is armed',
+        beforeKickoff === 0 && armed === 1, JSON.stringify({ beforeKickoff, armed }))
+      check('...and once the clock is past its kickoff the next tick asks once and the card is told the score',
+        asked.length === 1 && mismatches(inPlay, { score: '0–0', live: "1'", status: WORDS.inProgress }).length === 0, JSON.stringify({ asked, card: inPlay }))
+      check('no page errors with a card ahead of its window', errs.length === 0, errs.join(' | '))
+      await ctx.close()
+    }
+
+    // (e) a failed feed is told only the cards inside their window: the card in play says so, a card of the same league hours ahead says nothing
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      const errs = []
+      pg.on('pageerror', e => errs.push(e.message))
+      await routesFor(pg, mkAhead([ARSENAL_LEEDS_ESPN, CHELSEA]), r => r.fulfill({ status: 503, body: 'down' }))
+      await pg.clock.install({ time: new Date(AT) })
+      await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      const inWindow = await settle(pg, EARLY, { live: WORDS.unavailable })
+      await pg.waitForTimeout(300)
+      const ahead = await readCard(pg, LATE)
+      check('a 503 is told to the card in its window and not to a card of the same league two hours before its kickoff: no note, no reason',
+        inWindow.live === WORDS.unavailable && ahead.live === '' && ahead.why === null, JSON.stringify({ inWindow: inWindow.live, ahead: { live: ahead.live, why: ahead.why } }))
+      check('no page errors when the feed fails beside a card ahead of its window', errs.length === 0, errs.join(' | '))
+      await ctx.close()
+    }
   }
 
   await browser.close()

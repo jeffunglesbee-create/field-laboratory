@@ -4565,6 +4565,14 @@ let private liveScore () =
           Sport.EPL
           Sport.MLB
 
+      // Fix-review 2026-11-11, defence F18: `pollableAt`'s window test mutated to the END of the window alone kept every check green, because the pair
+      // above fails at 09:30Z for a reason that is not epl's lower bound (the efltrophy card's own kickoff is the only thing that moves). ONE card, one second either side of its kickoff:
+      // the fail input can fail only on the lower bound. Asked before kickoff, a viewer would cost the relay a request a minute for the hours before the match.
+      Verify.check "a card is asked about from its kickoff and not a second before it"
+          (fun now -> LiveScore.liveKeysAt (at now) [ epl ] = [ "epl" ])
+          "2026-11-21T12:30:00Z"
+          "2026-11-21T12:29:59Z"
+
       // Three separate instants, because one check with a before and an after never asked about DURING: `now <= start + 3h` mutated to
       // `now <= start` kept the old check green while the poll's timer would have stopped at kickoff (review 2026-11-11, semantics F3).
       // Review 2026-11-11 (poll S4, S18): the deadline is longer than the period so the in-flight guard can hold a key across a tick (a shorter one ends every request
@@ -4629,6 +4637,13 @@ let private liveScore () =
           (fun now -> LiveScore.answersTo "epl" (at now) epl)
           "2026-11-21T13:00:00Z"
           "2026-11-21T16:00:00Z"
+
+      // Fix-review 2026-11-11, defence F19: the pair above tests only the far end of the window, so `answersTo` reduced to `now <= start + 3h` kept every check green
+      // and a failed feed would stamp `live score unavailable` on every card of the league hours before its kickoff. One second either side of the kickoff.
+      Verify.check "an answer is told a card from its kickoff and not a second before it"
+          (fun now -> LiveScore.answersTo "epl" (at now) epl)
+          "2026-11-21T12:30:00Z"
+          "2026-11-21T12:29:59Z"
 
       // THE CASE (CC-CMD fact 1: a synthetic row read `Scheduled` 45 minutes in, 2026-11-11): no score in the archive, 45 minutes in. A reading turns it into in progress.
       Verify.check "a started row with no score and a live reading is in progress with that score"
