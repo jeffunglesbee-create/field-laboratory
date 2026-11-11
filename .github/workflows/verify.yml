@@ -650,6 +650,12 @@ jobs:
       - name: The live score poll's conditions
         run: npm run check:live-score-poll
 
+      # docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8. The probe needs a match in play and the live page, so it runs from
+      # its own workflow (live-score-probe.yml), not here; its verdict logic, which must answer NOTHING-TO-JUDGE and not PASS
+      # when no game is live, runs on every push.
+      - name: The live score probe's own checks
+        run: npm run check:live-score-probe
+
       # Wiring proof only: a card of the 2026-10-10 capture flipped to Scheduled
       # and scored against a 2026-11-08 table is hindsight. Kept either way so a
       # reader can look at the line in its card; it is not evidence of accuracy.

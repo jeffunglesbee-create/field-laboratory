@@ -1,0 +1,93 @@
+# A live soccer score on a lab card, on the DEPLOYED page, at real time, from a runner.
+# scripts/live-score-probe.mjs; docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8 and its Done condition.
+#
+# live-score-render-check judges a card on a pinned page at a fake clock with a mocked feed: wiring. This judges the page that is live,
+# at the time the runner runs it, with the feed the relay serves then: a real match in play. A real Chromium against the live URLs, a
+# committed screenshot and a manifest in outbox/. A runner so that it happens with nobody in a session (the authoring sandbox 403s
+# *.workers.dev at CONNECT).
+#
+# IT HAS A WINDOW. A card shows a live score only while a lab-covered soccer match is in play, so a run at any other time answers
+# NOTHING-TO-JUDGE, which is NOT a pass and leaves the job red, as forecast-live-probe's does: the manifest, committed either way, says no
+# game was live. The runs worth making are listed in the CC-CMD,
+# Task 10 (11-17 19:35Z and 20:10Z, 11-20 00:50Z, 11-20 19:55Z / 20:10Z / 20:30Z, 11-21 12:50Z and 13:25Z).
+#
+# DISPATCH ONLY, NO SCHEDULE: it answers a question about a moment someone names; it is not a monitor, and a monitor is a recurring
+# Actions cost (CLAUDE.md, "Actions budget"). The page's own poll is the only timer this feature adds, and it is not here. It makes the
+# page's own requests, one /context/date and one /v2/games per key the page asked about: nothing else on the relay.
+name: live-score-probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Slate day, YYYY-MM-DD in ET (default: today in ET)'
+        required: false
+        default: ''
+        type: string
+      watch:
+        description: 'Seconds the page is watched before its cards are read (default 70, so a 60 s tick has fired)'
+        required: false
+        default: '70'
+        type: string
+
+permissions:
+  contents: write
+
+# Two dispatches a few minutes apart must not race each other's push.
+concurrency:
+  group: live-score-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: The page that is live
+        run: |
+          SITE=https://field-laboratory.jeffunglesbee.workers.dev
+          echo "deployed: $(curl -sSf --max-time 30 "$SITE/version.txt" | tr -d '[:space:]')"
+          echo "this ref: $(git rev-parse HEAD)"
+          # Printed, not enforced: the probe is about the page that is live, and the manifest records what it did.
+      - name: The probe's own verdict logic, before it judges anything
+        run: node scripts/live-score-probe.mjs --self-test
+      # The inputs reach the script through the environment, never spliced into the command line.
+      - name: Probe the live page
+        id: probe
+        continue-on-error: true
+        env:
+          PROBE_DATE: ${{ inputs.date }}
+          PROBE_WATCH: ${{ inputs.watch }}
+        run: |
+          ARGS=""
+          if [ -n "$PROBE_DATE" ]; then ARGS="--date $PROBE_DATE"; fi
+          if [ -n "$PROBE_WATCH" ]; then ARGS="$ARGS --watch $PROBE_WATCH"; fi
+          node scripts/live-score-probe.mjs $ARGS 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+      # `if: always()`: a probe that failed still wrote a manifest saying why, and that is worth keeping.
+      - name: Commit
+        if: always()
+        run: |
+          git config user.name "Claude"
+          git config user.email "noreply@anthropic.com"
+          git add outbox/live-score-manifest-*.json outbox/live-score-*.png 2>/dev/null || true
+          git diff --cached --quiet && echo "no manifest was written" && exit 0
+          git commit -m "probe: a live soccer score on a lab card, on the live page [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+      - name: The probe's verdict decides the job
+        if: steps.probe.outcome != 'success'
+        run: |
+          echo "live-score-probe did not PASS (FAIL, or NOTHING-TO-JUDGE because no game was live): see the manifest and the step summary"
+          exit 1
