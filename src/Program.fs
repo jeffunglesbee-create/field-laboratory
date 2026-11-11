@@ -332,7 +332,7 @@ let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: 
                         inFlight.Remove key |> ignore
                         let cards =
                             handles
-                            |> Seq.filter (fun h -> LiveScore.liveSportKey h.Game.Sport = Some key && LiveScore.inLiveWindowAt now h.Game)
+                            |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
                             |> List.ofSeq
                         match result with
                         | Error why ->
@@ -542,7 +542,9 @@ let private start () =
                         exposeForTesting handles)
 
                 // The live score. A page pinned to a capture never polls: it must not reach the network.
-                if (queryParam "data").IsNone then startLivePoll cardHandles.Value (viewedDate ())
+                // The day asked is the day of the cards just drawn (`payload.Date`), not the URL's: `start()` has no generation guard, so two
+                // overlapping navigations can render one day's slate under another's URL (review 2026-11-11, poll S5).
+                if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll cardHandles.Value payload.Date
 
                 // The model's forecast needs the table; nothing else on the page
                 // does, so a slate with no EPL card spends no request. ONE request,

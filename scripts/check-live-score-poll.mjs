@@ -18,6 +18,13 @@
 //   6. the timer is stopped when the slate is re-rendered (`disposePrevious`);
 //   7. it is the ONLY timer in `src/*.fs`: no other setInterval, setTimeout or animation frame, no socket or event source.
 //
+// REVIEW 2026-11-11 (wf_584a08a5-824, poll lens and defence lens). This is a text scan and each claim below was shown to survive a one-line break the
+// scan could not see: a timer whose id was never stored, one cleared by the wrong id, a period written `60000 / 4`, a sleep loop made with
+// `Promise.sleep`, a raw `fetch`, an `online` listener. The BEHAVIOURS (one live timer across re-renders, the named period as the page really gives
+// it, one request per key while one is unanswered, each league's cards told its own league's answer) are now observed by
+// `scripts/live-score-render-check.mjs`, which wraps the page's own `setInterval`. What stays here is what a render cannot show: that nothing else
+// in the source schedules or fetches, and that the named pieces are written.
+//
 // WHAT THIS CAN AND CANNOT SEE (Rule 91). It reads F# SOURCE, in the files printed at the end of every run, with comments
 // removed by the shared scanner (so a comment that says "no timeout" is not read as one). It does not read `build/` or `public/`,
 // and it cannot see a timer a called library arms on its own. It says THESE conditions are what is written; that the page
@@ -28,6 +35,14 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { createChecks, isMain, finish } from './checks.mjs'
 import { RECURRENCE, codeOnly, sliceBetween } from './check-lineups-pull-only.mjs'
+
+/** More than the shared recurrence terms: every other way F# in a browser schedules work, listens or reaches the network, none of which the lineups check
+ *  needed to name. `tryFetchText` is the poll's ONE fetch and is counted separately; a bare `fetch`, `Fetch.` or the older request objects are not it. */
+export const EXTRA_TERMS = [
+  ['Promise.sleep', /\bPromise\.sleep\b/], ['Async.Sleep', /\bAsync\.Sleep\b/], ['requestIdleCallback', /\brequestIdleCallback\b/],
+  ['queueMicrotask', /\bqueueMicrotask\b/], ['addEventListener', /\.addEventListener\b/], ['an on<event> handler', /\.on[a-z]+\s*<-/],
+  ['fetch', /\bfetch\b/], ['Fetch.', /\bFetch\./], ['XMLHttpRequest', /\bXMLHttpRequest\b/], ['sendBeacon', /\bsendBeacon\b/],
+]
 
 export const PROGRAM = 'src/Program.fs'
 export const LIVE_SCORE = 'src/LiveScore.fs'
@@ -52,31 +67,34 @@ export const claimsOf = ({ program, liveScore, sources }) => {
 
   claim('the region holds exactly one setInterval', count(/\bwindow\.setInterval\b/, code) === 1 && count(/\bsetInterval\b/, code) === 1,
     `setInterval x${count(/\bsetInterval\b/, code)}`)
-  const others = RECURRENCE.filter(([name]) => name !== 'setInterval' && name !== 'window.setInterval').filter(([, re]) => re.test(code)).map(([name]) => name)
-  claim('...and no other recurrence term: no timeout, animation frame, socket, event source, listener or effect', others.length === 0, others.join(', '))
-  claim('...and one clearInterval, in the stop function', count(/\bwindow\.clearInterval\b/, code) === 1 && /let private stopLivePoll \(\) =[\s\S]*?clearInterval/.test(code))
+  const others = [...RECURRENCE.filter(([name]) => name !== 'setInterval' && name !== 'window.setInterval'), ...EXTRA_TERMS].filter(([, re]) => re.test(code)).map(([name]) => name)
+  claim('...and no other recurrence or network term: no timeout, sleep, animation frame, idle callback, socket, event source, listener, handler, bare fetch or effect', others.length === 0, others.join(', '))
+  claim('...and one clearInterval, in the stop function, given the id the timer was stored under',
+    count(/\bwindow\.clearInterval\b/, code) === 1 && /let private stopLivePoll \(\) =[\s\S]*?\| Some id ->\s*window\.clearInterval id\b/.test(code) && /livePollTimer <- Some\(window\.setInterval\b/.test(code))
 
-  const period = (liveScore.match(/\[<Literal>\]\s*let LivePollMs\s*=\s*(\d+)/) ?? [])[1]
+  // Anchored to the end of the line: `let LivePollMs = 60000 / 4` read as 60000 before (review S22). The delay the page really gives is observed by the render check.
+  const period = (liveScore.match(/\[<Literal>\]\s*let LivePollMs\s*=\s*(\d+)[ \t]*(?:\r?\n|$)/) ?? [])[1]
   claim(`the period is LiveScore.LivePollMs and that is ${PERIOD_MS} ms`,
     /setInterval\s*\(\s*\(fun \(\) -> tick \(\)\)\s*,\s*LiveScore\.LivePollMs\s*\)/.test(code) && Number(period) === PERIOD_MS,
     `LivePollMs = ${period}; call: ${(code.match(/setInterval[^\n]*/) ?? ['none'])[0].trim()}`)
 
   claim('a request is made only while the tab is visible', /\(string document\?visibilityState\)\s*=\s*"visible"/.test(code))
-  claim('...only for a key with a card in its window', /LiveScore\.liveKeysAt\b/.test(code) && /LiveScore\.inLiveWindowAt\b/.test(code))
+  claim('...only for a key with a card to ask about (`liveKeysAt`), and an answer is told only the cards `answersTo` selects: the key\'s sport, in its window', /LiveScore\.liveKeysAt\b/.test(code) && /Seq\.filter \(fun h -> LiveScore\.answersTo key now h\.Game\)/.test(code))
   claim('...and the timer stops when no window is ahead', /LiveScore\.liveWorkAheadAt\b[\s\S]*?stopLivePoll \(\)/.test(code))
-  claim('...one request per key at a time', /inFlight\.Add key\b/.test(code) && /inFlight\.Remove key\b/.test(code))
+  claim('...one request per key at a time: a key is held by `if inFlight.Add key then` and released first thing in the answer callback',
+    /if inFlight\.Add key then/.test(code) && /Promise\.iter \(fun result ->\s*\n\s*inFlight\.Remove key \|> ignore/.test(code) && count(/inFlight\.Remove key\b/, code) === 1)
   claim('...and one fetch in the region', count(/\btryFetchText\b/, code) === 1, `tryFetchText x${count(/\btryFetchText\b/, code)}`)
 
   const outside = region === null ? codeOnly(program) : codeOnly(program.replace(region, ''))
   const calls = outside.split('\n').filter(l => /\bstartLivePoll\b/.test(l) && !/let private startLivePoll/.test(l))
-  claim('a page pinned to a capture starts no poll: the one call is guarded by (queryParam "data").IsNone',
-    calls.length === 1 && /\(queryParam "data"\)\.IsNone/.test(calls[0]), JSON.stringify(calls))
+  claim('a page pinned to a capture starts no poll: the one call is guarded by (queryParam "data").IsNone, and asks for the day of the cards just drawn (`payload.Date`)',
+    calls.length === 1 && /\(queryParam "data"\)\.IsNone/.test(calls[0]) && /startLivePoll cardHandles\.Value payload\.Date\b/.test(calls[0]), JSON.stringify(calls))
   const dispose = (outside.match(/let private disposePrevious \(\) =[\s\S]*?\n\n/) ?? [''])[0]
   claim('re-rendering the slate stops the timer: disposePrevious calls stopLivePoll', /\bstopLivePoll \(\)/.test(dispose))
 
   const all = Object.entries(sources).map(([file, text]) => [file, codeOnly(text)])
-  const timers = all.flatMap(([file, text]) => [...text.matchAll(/\b(setInterval|setTimeout|requestAnimationFrame)\b/g)].map(m => `${file}: ${m[1]}`))
-  claim('it is the only timer in src/*.fs', timers.length === 1 && timers[0].startsWith('src/Program.fs'), timers.join(' | '))
+  const timers = all.flatMap(([file, text]) => [...text.matchAll(/\b(setInterval|setTimeout|requestAnimationFrame|requestIdleCallback|Promise\.sleep|Async\.Sleep)\b/g)].map(m => `${file}: ${m[1]}`))
+  claim('it is the only timer or sleep in src/*.fs', timers.length === 1 && timers[0].startsWith('src/Program.fs'), timers.join(' | '))
   const sockets = all.flatMap(([file, text]) => [...text.matchAll(/\b(EventSource|WebSocket)\b/g)].map(m => `${file}: ${m[1]}`))
   claim('...and there is no socket or event source anywhere in src/*.fs', sockets.length === 0, sockets.join(' | '))
   return out
@@ -112,7 +130,7 @@ let private startLivePoll (handles) (etDay: string) =
                     tryFetchText (RELAY_BASE + path)
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
-                        let cards = handles |> Seq.filter (fun h -> LiveScore.inLiveWindowAt now h.Game)
+                        let cards = handles |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
                         ())
     livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
 ${TO} ────────
@@ -122,7 +140,7 @@ let private disposePrevious () =
     ()
 
 let go () =
-    if (queryParam "data").IsNone then startLivePoll handles day
+    if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll cardHandles.Value payload.Date
 `
 const GOOD_SCORE = '[<Literal>]\nlet LivePollMs = 60000\n'
 const run = (program, liveScore = GOOD_SCORE, sources = { 'src/Program.fs': program, 'src/LiveScore.fs': liveScore }) =>
@@ -141,11 +159,24 @@ if (SELF_TEST) {
   one('a missing begin marker is caught', GOOD.replace(FROM, '// ── something else'))
   one('a second timer in the region is caught', GOOD.replace('    livePollTimer <- Some', '    window.setInterval ((fun () -> ()), 1000) |> ignore\n    livePollTimer <- Some'))
   one('a setTimeout in the region is caught', GOOD.replace('    livePollTimer <- Some', '    window.setTimeout ((fun () -> ()), 1000) |> ignore\n    livePollTimer <- Some'))
+  one('a timer whose id is never stored is caught (the next render could not clear it)', GOOD.replace('    livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))', '    window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs) |> ignore'))
+  one('a timer cleared by the wrong id is caught', GOOD.replace('        window.clearInterval id\n', '        window.clearInterval 0.0\n'))
+  one('a period written as an expression is caught, not read as its first number', GOOD, '[<Literal>]\nlet LivePollMs = 60000 / 4\n')
+  one('a sleep loop made with Promise.sleep is caught', GOOD.replace('    livePollTimer <- Some', '    Promise.sleep 15000 |> Promise.iter (fun () -> tick ())\n    livePollTimer <- Some'))
+  one('Async.Sleep is caught', GOOD.replace('    livePollTimer <- Some', '    async { do! Async.Sleep 15000 } |> ignore\n    livePollTimer <- Some'))
+  one('an online listener is caught', GOOD.replace('    livePollTimer <- Some', '    window.addEventListener("online", fun _ -> tick ())\n    livePollTimer <- Some'))
+  one('an onfocus handler is caught', GOOD.replace('    livePollTimer <- Some', '    window.onfocus <- (fun _ -> tick ())\n    livePollTimer <- Some'))
+  one('a raw fetch in the region is caught', GOOD.replace('    livePollTimer <- Some', '    fetch "https://x" [] |> ignore\n    livePollTimer <- Some'))
+  one('a Promise.sleep anywhere in src is caught, not only in the region', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let w = Promise.sleep 5000' })
+  one('an in-flight guard that is always open is caught', GOOD.replace('if inFlight.Add key then', 'if inFlight.Add key || true then'))
+  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchText (RELAY_BASE + path)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchText (RELAY_BASE + path)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
+  one('an answer told every card of the window, whatever its league, is caught', GOOD.replace('LiveScore.answersTo key now h.Game', 'LiveScore.inLiveWindowAt now h.Game'))
+  one('a poll that asks for the URL\'s day is caught', GOOD.replace('startLivePoll cardHandles.Value payload.Date', 'startLivePoll cardHandles.Value (viewedDate ())'))
   one('a 15 s period is caught', GOOD.replace('LiveScore.LivePollMs))', '15000))'))
   one('a LivePollMs of 15000 is caught', GOOD, '[<Literal>]\nlet LivePollMs = 15000\n')
   one('no visibility gate is caught', GOOD.replace('elif (string document?visibilityState) = "visible" then', 'else'))
   one('no in-flight guard is caught', GOOD.replace('if inFlight.Add key then', 'if true then'))
-  one('a poll on a pinned page is caught', GOOD.replace('if (queryParam "data").IsNone then startLivePoll', 'startLivePoll'))
+  one('a poll on a pinned page is caught', GOOD.replace('if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll', 'startLivePoll'))
   one('a poll that is never stopped on re-render is caught', GOOD.replace('let private disposePrevious () =\n    stopLivePoll ()', 'let private disposePrevious () ='))
   one('a timer outside the region is caught', GOOD + '\nlet private stray = window.setInterval ((fun () -> ()), 1000)\n')
   one('a socket anywhere in src is caught', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let s = WebSocket("x")' })

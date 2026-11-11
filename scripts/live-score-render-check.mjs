@@ -357,6 +357,108 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     await ctx.close()
   }
 
+  // ── the poll across two leagues, re-renders, a held answer and its period ──────────────────────────────────────
+  // Review 2026-11-11 (poll S9/S16, S17, S18, S22): the selection of cards an answer is told, the timer's clearing, the in-flight guard and the
+  // period were each defended by a text scan only, and every one survived a one-line break. These observe the page instead. The page's own
+  // `setInterval`/`clearInterval` are wrapped before it loads, so what is counted is the intervals that are alive, and the delay they were given.
+  {
+    const RAYO = '401882849'
+    const mk = () => {
+      const slate = JSON.parse(readFileSync('data/context-2026-10-10.json', 'utf8'))
+      slate.games.regular = slate.games.regular.filter(g => [ARSENAL_LEEDS_ESPN, RAYO].includes(String(g.espn_event_id)))
+        .map(g => ({ ...g, start_time: '2026-10-10T11:30Z', home_score: null, away_score: null, finalized_at: null }))
+      slate.games.postseason = []
+      return slate
+    }
+    const feedFor = (key, id, home, away, clock) => JSON.stringify({ sport: key, date: '2026-10-10', count: 1, games: [{ id: `espn:${id}`, espnEventId: id, sport: key, state: 'live', start: '2026-10-10T11:30Z',
+      home: { name: 'H', abbr: 'H', score: home }, away: { name: 'A', abbr: 'A', score: away }, clock, periodNum: 1, periodLabel: '', situation: null, matchEvents: [], streams: [] }] })
+    const FEEDS = { epl: feedFor('epl', ARSENAL_LEEDS_ESPN, 1, 0, "34'"), laliga: feedFor('laliga', RAYO, 2, 2, "50'") }
+    const routesFor = async (pg, slate, onFeed) => {
+      await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+      await pg.route(`${RELAY}/context/date/2026-10-09`, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ ...slate, date: '2026-10-09', games: { regular: [], postseason: [] } }) }))
+      await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
+      await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), onFeed)
+    }
+    const instrument = pg => pg.addInitScript(() => {
+      window.__iv = { alive: new Set(), delays: [] }
+      const si = window.setInterval.bind(window), ci = window.clearInterval.bind(window)
+      window.setInterval = (fn, d, ...rest) => { const id = si(fn, d, ...rest); window.__iv.alive.add(id); window.__iv.delays.push(d); return id }
+      window.clearInterval = id => { window.__iv.alive.delete(id); return ci(id) }
+    })
+    const alive = pg => pg.evaluate(() => window.__iv.alive.size)
+
+    // (a) two leagues, each card told its own league's answer, and the timers across re-renders
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      const errs = []
+      pg.on('pageerror', e => errs.push(e.message))
+      const asked = []
+      await routesFor(pg, mk(), r => {
+        const key = new URL(r.request().url()).searchParams.get('sport')
+        asked.push(key)
+        return r.fulfill({ contentType: 'application/json', body: FEEDS[key] ?? JSON.stringify({ games: [] }) })
+      })
+      // The fake clock first, then the wrapper: init scripts run in registration order, and the clock replaces the timer functions it finds.
+      await pg.clock.install({ time: new Date(AT) })
+      await instrument(pg)
+      await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      const epl = await settle(pg, EARLY, { score: '1–0' })
+      const liga = await settle(pg, 'Rayo v Athletic', { score: '2–2' })
+      check('two soccer leagues in their windows are asked once each, and every card is told its OWN league\'s answer',
+        [...asked].sort().join() === 'epl,laliga' && mismatches(epl, { score: '1–0', live: "34'", status: WORDS.inProgress }).length === 0 && mismatches(liga, { score: '2–2', live: "50'", status: WORDS.inProgress }).length === 0,
+        JSON.stringify({ asked, epl, liga }))
+      check('...and neither card reads `live score unavailable` because the other league\'s feed had no game for it',
+        epl.live !== WORDS.unavailable && liga.live !== WORDS.unavailable)
+      const iv = await pg.evaluate(() => ({ alive: window.__iv.alive.size, delays: window.__iv.delays }))
+      check('the poll holds ONE timer, and the delay the page gave it is the named period, 60000 ms',
+        iv.alive === 1 && iv.delays.length >= 1 && iv.delays.includes(60000) && iv.delays.every(d => d >= 60000), JSON.stringify(iv))
+      await pg.click('#prev-day')
+      await pg.waitForFunction(() => document.querySelectorAll('.desk-card').length === 0, null, { timeout: 8000 }).catch(() => {})
+      check('re-rendering to a day with no soccer card clears the timer: none alive', (await alive(pg)) === 0, String(await alive(pg)))
+      await pg.click('#today')
+      await pg.waitForSelector('.desk-card', { timeout: 8000 })
+      await settle(pg, EARLY, { score: '1–0' })
+      check('...and coming back to a day with cards in their window arms exactly one, not two', (await alive(pg)) === 1, String(await alive(pg)))
+      await pg.clock.fastForward(3 * 60 * 60 * 1000 + 60_000)
+      await pg.waitForTimeout(300)
+      check('once every window has passed the timer is cleared: none alive', (await alive(pg)) === 0, String(await alive(pg)))
+      check('no page errors across the re-renders', errs.length === 0, errs.join(' | '))
+      await ctx.close()
+    }
+
+    // (b) an answer held across three ticks: one request per key at a time, and the next tick asks again once it is answered
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      let release
+      const gate = new Promise(res => { release = res })
+      const n = { epl: 0, laliga: 0 }
+      await routesFor(pg, mk(), async r => {
+        const key = new URL(r.request().url()).searchParams.get('sport')
+        const i = n[key]++
+        if (key === 'epl' && i === 0) await gate
+        return r.fulfill({ contentType: 'application/json', body: FEEDS[key] ?? JSON.stringify({ games: [] }) })
+      })
+      await pg.clock.install({ time: new Date(AT) })
+      await pg.goto(UNPINNED, { waitUntil: 'commit' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      await pg.waitForTimeout(500)
+      const atLoad = { ...n }
+      for (let i = 0; i < 3; i++) { await pg.clock.fastForward(60_000); await pg.waitForTimeout(150) }
+      const held = { ...n }
+      release()
+      await settle(pg, EARLY, { score: '1–0' })
+      await pg.clock.fastForward(60_000)
+      await pg.waitForTimeout(400)
+      check('a request still unanswered holds its key: three ticks later the page has not asked for epl again, while laliga, answered, is asked every tick',
+        atLoad.epl === 1 && held.epl === 1 && held.laliga === atLoad.laliga + 3, JSON.stringify({ atLoad, held }))
+      check('...and once it is answered the next tick asks for it again', n.epl === 2, JSON.stringify({ held, after: n }))
+      await ctx.close()
+    }
+  }
+
   await browser.close()
   finish(summarize())
 }

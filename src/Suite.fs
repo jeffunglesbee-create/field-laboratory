@@ -4498,6 +4498,7 @@ let private liveScore () =
 
     let kickoff = Some(at "2026-11-21T12:30:00Z")
     let epl = game Sport.EPL kickoff None None None
+    let finalised = game Sport.EPL kickoff (Some "2026-11-21 14:35:00") (Some 2) (Some 1)
 
     [ Verify.check "a feed key is known for a soccer sport and not for any other"
           (fun sport -> (LiveScore.liveSportKey sport).IsSome)
@@ -4585,6 +4586,42 @@ let private liveScore () =
           (fun sport -> LiveScore.liveWorkAheadAt (at "2026-11-21T10:00:00Z") [ game sport kickoff None None None ])
           Sport.EPL
           Sport.MLB
+
+      // Review 2026-11-11, poll S20: only inLiveWindowAt had a start-less case, so a start-less soccer row could keep the timer armed unseen.
+      Verify.check "a soccer row with no start time has no live work ahead, as it is never in a window"
+          (fun start -> LiveScore.liveWorkAheadAt (at "2026-11-21T10:00:00Z") [ game Sport.EPL start None None None ])
+          kickoff
+          None
+
+      // Review 2026-11-11, poll S1: the archive's Final wins over any reading, so an answer about a finalised card changes nothing.
+      Verify.check "a card the archive has finalised is not asked about, though it is inside its window"
+          (fun g -> LiveScore.liveKeysAt (at "2026-11-21T14:50:00Z") [ g ] = [ "epl" ])
+          epl
+          finalised
+
+      Verify.check "a slate with one finalised card and one card in play asks for the card in play's key only"
+          (fun slate -> LiveScore.liveKeysAt (at "2026-11-21T14:50:00Z") slate = [ "efltrophy" ])
+          [ finalised; game Sport.EFLTrophy kickoff None None None ]
+          [ epl; game Sport.EFLTrophy kickoff None None None ]
+
+      Verify.check "no live work is ahead when the only soccer card is finalised"
+          (fun g -> LiveScore.liveWorkAheadAt (at "2026-11-21T14:50:00Z") [ g ])
+          epl
+          finalised
+
+      // Review 2026-11-11, poll S9 and S16: the selection of cards an answer is told was an inline closure nothing pinned.
+      Verify.check "an answer for the epl key is told the epl cards and no other league's"
+          (fun other ->
+              [ epl; game other kickoff None None None ]
+              |> List.filter (LiveScore.answersTo "epl" (at "2026-11-21T13:00:00Z"))
+              |> List.length = 1)
+          Sport.MLS
+          Sport.EPL
+
+      Verify.check "an answer is told only the cards inside their window"
+          (fun now -> LiveScore.answersTo "epl" (at now) epl)
+          "2026-11-21T13:00:00Z"
+          "2026-11-21T16:00:00Z"
 
       // THE MEASURED CASE (2026-11-08): no score in the archive, 45 minutes in. A reading turns it into in progress.
       Verify.check "a started row with no score and a live reading is in progress with that score"

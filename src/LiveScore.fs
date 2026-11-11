@@ -75,20 +75,39 @@ let inLiveWindowAt (now: DateTimeOffset) (g: Game) : bool =
     | Some start -> now >= start && now <= start + liveWindowAfterStart
     | None -> false
 
-/// The distinct feed keys to ask at this instant: one per sport that has a card in its window, in first-seen order. Empty means
-/// no request is made on this tick, which is the common case.
+/// Is the card worth asking the feed about at this instant? In its window, and not already `Final` in the archive: the archive's
+/// `Final` always wins over a reading (`foldReading`), so an answer about a finished card changes nothing and only costs the relay a
+/// request (review 2026-11-11, poll S1: at 18:45Z on the committed 2026-10-10 slate it asked for six keys, two of them for cards the
+/// archive had finalised 15 minutes earlier).
+let pollableAt (now: DateTimeOffset) (g: Game) : bool =
+    inLiveWindowAt now g
+    && (match gameStateAt now g with
+        | Final _ -> false
+        | _ -> true)
+
+/// Is this card one of those an answer for `key` is told? Its sport is the key's and it is inside its window. Pure, so the Suite can
+/// pin the selection: dropping the sport test made every other league's card read `live score unavailable` and no check noticed
+/// (review 2026-11-11, poll S9 and S16, when it was an inline closure in the poll).
+let answersTo (key: string) (now: DateTimeOffset) (g: Game) : bool =
+    liveSportKey g.Sport = Some key && inLiveWindowAt now g
+
+/// The distinct feed keys to ask at this instant: one per sport that has a pollable card, in first-seen order. Empty means no
+/// request is made on this tick, which is the common case.
 let liveKeysAt (now: DateTimeOffset) (games: Game list) : string list =
     games
-    |> List.filter (inLiveWindowAt now)
+    |> List.filter (pollableAt now)
     |> List.choose (fun g -> liveSportKey g.Sport)
     |> List.distinct
 
-/// May the poll still have something to do? True while any soccer card is in its window or has a window ahead. When it is
-/// false the timer is stopped, so a page left open on a finished slate holds no timer.
+/// May the poll still have something to do? True while any soccer card the archive has not finalised is in its window or has a
+/// window ahead. When it is false the timer is stopped, so a page left open on a finished slate holds no timer.
 let liveWorkAheadAt (now: DateTimeOffset) (games: Game list) : bool =
     games
     |> List.exists (fun g ->
         (liveSportKey g.Sport).IsSome
+        && (match gameStateAt now g with
+            | Final _ -> false
+            | _ -> true)
         && (match g.StartTime with
             | Some start -> now <= start + liveWindowAfterStart
             | None -> false))
