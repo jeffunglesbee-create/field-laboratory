@@ -439,6 +439,8 @@ export const probe = async ({ browser, site, relay = RELAY, date, watchSeconds, 
     await wait(page, watchSeconds * 1000)
     // A poll that fired near the end of the watch may still be in flight, and its answer is what the card shows next: wait for it (bounded), then
     // for the answers to be read, then a moment for the page to apply them. Whatever is still open after the bound is recorded, not ignored.
+    // A request fired in the very last instant of the watch has not necessarily reached this listener yet: let the events arrive before asking how many are open.
+    await page.waitForTimeout(300)
     for (const deadline = Date.now() + 10_000; open > 0 && Date.now() < deadline;) await page.waitForTimeout(100)
     for (let n = -1; n !== pending.length;) { n = pending.length; await Promise.all(pending) }
     await page.waitForTimeout(300)
