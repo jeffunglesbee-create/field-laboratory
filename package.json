@@ -95,6 +95,7 @@
     "check:forecast-pull-only": "node scripts/check-forecast-pull-only.mjs --self-test && node scripts/check-forecast-pull-only.mjs",
     "check:forecast": "node scripts/forecast-render-check.mjs --self-test && node scripts/forecast-render-check.mjs",
     "check:forecast-live": "node scripts/forecast-live-probe.mjs --self-test",
+    "check:live-capture": "node scripts/live-shape-capture.mjs --self-test",
     "check:ceiling": "node scripts/ceiling-check.mjs",
     "check:journalism": "node scripts/journalism-check.mjs",
     "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs",

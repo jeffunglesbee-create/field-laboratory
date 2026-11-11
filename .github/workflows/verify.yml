@@ -629,6 +629,12 @@ jobs:
       - name: The live-path forecast probe's own checks
         run: npm run check:forecast-live
 
+      # docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 1. The capture needs a match in play and the live relay, so it
+      # runs from its own workflow (live-shape-capture.yml), not here; its self-test, which fails when a pre game with
+      # score 0 is read as live, runs on every push.
+      - name: The live shape capture's own checks
+        run: npm run check:live-capture
+
       - name: The forecast, on the rendered page
         run: node scripts/forecast-render-check.mjs
 
