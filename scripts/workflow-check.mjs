@@ -201,6 +201,23 @@ export const shellViews = script => {
  * as this step's). Its `run:` is the sibling key at the step's key indent. A block scalar (`|`, `>`), a quoted scalar and a plain scalar that continues
  * on the next lines are all read to the end; CRLF is normalised.
  */
+const foldScalar = lines => {
+  let out = ''
+  let seen = false
+  let prevSpaced = false
+  let blanks = 0
+  for (const l of lines) {
+    if (l.trim() === '') { blanks++; continue }
+    const spaced = /^[ \t]/.test(l)
+    if (!seen) out = l
+    else if (blanks > 0) out += '\n'.repeat(spaced || prevSpaced ? blanks + 1 : blanks) + l
+    else out += (spaced || prevSpaced ? '\n' : ' ') + l
+    seen = true
+    prevSpaced = spaced
+    blanks = 0
+  }
+  return out
+}
 export const runStepsOf = text => {
   const lines = text.replace(/\r\n/g, '\n').split('\n')
   const indentOf = l => /^(\s*)/.exec(l)[1].length
@@ -242,7 +259,9 @@ export const runStepsOf = text => {
       // YAML strips the block's own indentation (the first content line's) before the shell sees the text; a heredoc's closing line only matches without it
       const first = continuation.find(l => l.trim() !== '')
       const base = first === undefined ? 0 : indentOf(first)
-      script = continuation.map(l => l.slice(Math.min(base, indentOf(l)))).join('\n') // comment lines are removed by shellViews
+      const body = continuation.map(l => l.slice(Math.min(base, indentOf(l)))) // comment lines are removed by shellViews
+      // `|` keeps its line breaks; `>` folds a break between two lines of the same indent into a space (a blank line is one break, a more-indented line keeps its breaks)
+      script = value[0] === '>' ? foldScalar(body) : body.join('\n')
     }
     else {
       // plain and quoted scalars fold their continuation lines into one line
@@ -318,14 +337,24 @@ const teeAudit = () => {
  * `undefined` if the step does not install a browser; otherwise `{ viaApt, bound, seconds }`: `viaApt` if it passes `--with-deps` or runs `install-deps`;
  * `bound` is 'step' (the step's own `timeout-minutes`, which a composite action's step cannot carry, so it is not counted there), 'timeout' (a coreutils
  * `timeout` directly in front of the install command), or `null` for none; `seconds` is the limit that counted. A limit counts only up to MAX_INSTALL_SECONDS.
- * A job-level `timeout-minutes` is not a step bound: it would end the whole job, and the verify job has none. An expression is not a number and does not count.
+ * A job-level `timeout-minutes` is not a step bound: it would end the whole job, and the verify job has none. An expression is not a number and does not count, and neither
+ * does a fraction (GitHub: "Fractional values are not supported").
+ *
+ * WHAT IT DOES NOT READ. Only a literal `playwright install` / `install-deps` command (also `playwright@<version>`, `@playwright/test`, `playwright-core` and a `.../playwright/cli.js`
+ * path) is audited. A `--with-deps` that is quoted, held in a variable or a `${{ }}` expression, or placed after a redirect is not seen, and neither is an install behind
+ * `npm run <script>`, a third-party `uses:` action or a hand-written `apt-get install` of the browser. A `timeout` counts only when it sits directly in front of the install
+ * command (environment assignments, `env`, `sudo` and up to four wrapper words such as `npx --no-install` may stand between). The cross-check below catches a textual install
+ * command that the step reader could not place; it cannot catch one that never mentions `playwright`.
  */
 export const MAX_INSTALL_SECONDS = 300
 const DURATION = { '': 1, s: 1, m: 60, h: 3600, d: 86400 }
-const INSTALL = String.raw`\bplaywright(?:-core)?\s+(install-deps|install)\b([^\n;&|]*)`
+const PKG = String.raw`(?:@playwright\/test|playwright(?:-core)?)(?:@[^\s;&|]+)?(?:\/cli\.js)?`
+const INSTALL = String.raw`(?<![\w-])${PKG}\s+(install-deps|install)\b([^\n;&|]*)`
 export const installTimeoutSeconds = text => {
   const found = []
-  for (const m of text.matchAll(/(?:^|[;&|(])\s*(?:sudo\s+)?timeout\s+((?:-[ks]\s+\S+\s+|-\S+\s+)*[^\s;&|]+)\s+(?:npx\s+(?:--?\S+\s+)*|pnpm\s+exec\s+|yarn\s+|python3?\s+-m\s+)?playwright(?:-core)?\s+install(?:-deps)?\b/gm)) {
+  const lead = String.raw`(?:^|[;&|(])[ \t]*(?:[A-Za-z_]\w*=\S*[ \t]+)*(?:env[ \t]+(?:[A-Za-z_]\w*=\S*[ \t]+)*)?(?:sudo[ \t]+(?:-\S+[ \t]+)*)?timeout[ \t]+`
+  const tail = String.raw`[ \t]+(?:[^\s;&|]+[ \t]+){0,4}?(?:\S*\/)?${PKG}[ \t]+install(?:-deps)?\b`
+  for (const m of text.matchAll(new RegExp(String.raw`${lead}((?:-[ks]\s+\S+\s+|-\S+\s+)*[^\s;&|]+)${tail}`, 'gm'))) {
     const toks = m[1].trim().split(/\s+/)
     let i = 0
     while (i < toks.length - 1 && toks[i].startsWith('-')) i += toks[i] === '-k' || toks[i] === '-s' ? 2 : 1
@@ -342,7 +371,7 @@ export const browserInstallOf = (step, { composite = false } = {}) => {
   const m = new RegExp(INSTALL).exec(joined)
   if (!m) return undefined
   const viaApt = m[1] === 'install-deps' || /(?:^|\s)--with-deps\b/.test(m[2])
-  const stepMinutes = !composite && /^\d+(?:\.\d+)?$/.test(step.timeoutMinutes ?? '') ? Number(step.timeoutMinutes) * 60 : null
+  const stepMinutes = !composite && /^\d+$/.test(step.timeoutMinutes ?? '') ? Number(step.timeoutMinutes) * 60 : null
   const prefix = installTimeoutSeconds(joined)
   const okStep = stepMinutes !== null && stepMinutes > 0 && stepMinutes <= MAX_INSTALL_SECONDS
   const okPrefix = prefix !== null && prefix <= MAX_INSTALL_SECONDS
@@ -352,11 +381,14 @@ export const browserInstallOf = (step, { composite = false } = {}) => {
 export const installAudit = (root = '.') => {
   const wfDir = `${root}/${WORKFLOWS}`
   const files = readdirSync(wfDir).filter(f => /\.ya?ml$/.test(f)).map(f => ({ path: `${WORKFLOWS}/${f}`, composite: false }))
-  if (existsSync(`${root}/.github/actions`)) {
-    for (const d of readdirSync(`${root}/.github/actions`)) {
-      for (const f of ['action.yml', 'action.yaml']) if (existsSync(`${root}/.github/actions/${d}/${f}`)) files.push({ path: `.github/actions/${d}/${f}`, composite: true })
+  const walk = dir => {
+    if (!existsSync(`${root}/${dir}`)) return
+    for (const e of readdirSync(`${root}/${dir}`, { withFileTypes: true })) {
+      if (e.isDirectory()) walk(`${dir}/${e.name}`)
+      else if (/^action\.ya?ml$/.test(e.name)) files.push({ path: `${dir}/${e.name}`, composite: true })
     }
   }
+  walk('.github/actions')
   let steps = 0
   const installs = []
   const missed = []
@@ -367,7 +399,7 @@ export const installAudit = (root = '.') => {
     const here = read.map(st => ({ st, r: browserInstallOf(st, { composite }) })).filter(x => x.r !== undefined)
     for (const { st, r } of here) installs.push({ at: `${path}:${st.line}${st.name ? `  ${st.name}` : ''}`, ...r })
     // every textual install command, comments aside, must sit inside a step the reader found
-    const wanted = text.split('\n').filter(l => !/^\s*#/.test(l)).join('\n').match(/\bplaywright(?:-core)?\s+install\b/g)?.length ?? 0
+    const wanted = text.split('\n').filter(l => !/^\s*#/.test(l)).join('\n').match(/(?<![\w-])(?:@playwright\/test|playwright(?:-core)?)\S*\s+install(?:-deps)?\b/g)?.length ?? 0
     if (wanted !== here.length) missed.push(`${path}: ${wanted} install command(s) in the text, ${here.length} read as steps`)
   }
   return { files: files.length, steps, installs, missed }
@@ -442,9 +474,9 @@ check('the install audit found browser installs, so it is not vacuous', inst.ins
   `${inst.steps} run steps read in ${inst.files} files and none installs a browser: the reader is blind or the installs were removed`)
 check('every playwright install command in a file is inside a step the audit read', inst.missed.length === 0,
   `${inst.missed.length} file(s) hold an install command the step reader did not find, so it was not audited:\n      → ${inst.missed.join('\n      → ')}`)
-check('no browser install goes through apt (no --with-deps, no install-deps)', viaApt.length === 0,
+check('no `playwright install` command goes through apt (no --with-deps, no install-deps)', viaApt.length === 0,
   `${viaApt.length} step(s): apt is what stalled for ten minutes on 2026-11-11 when the Ubuntu mirrors did not resolve. Run \`npx playwright install chromium\`; the runner image already has the libraries:\n      → ${viaApt.map(i => i.at).join('\n      → ')}`)
-check(`every browser install is bounded: timeout-minutes on the step, or a timeout prefix, of at most ${MAX_INSTALL_SECONDS / 60} minutes`, unbounded.length === 0,
+check(`every playwright install command is bounded: timeout-minutes on the step, or a timeout prefix, of at most ${MAX_INSTALL_SECONDS / 60} minutes`, unbounded.length === 0,
   `${unbounded.length} step(s) wait as long as the job lets them. A workflow step takes \`timeout-minutes: 3\`; a composite action's step cannot, so it runs \`timeout 180 npx playwright install chromium\`:\n      → ${unbounded.map(i => i.at).join('\n      → ')}`)
 
 // A guard shown only to pass is half-tested. This replays the exact historical
@@ -660,8 +692,10 @@ check('install: a limit above five minutes, zero (disabled), or an expression is
 check('install: a timeout on another command, or after the install, is no bound',
   ins('- name: i', '  run: |', '    timeout 60 sleep 1', '    npx playwright install chromium')?.bound === null
     && ins('- name: i', '  run: |', '    npx playwright install chromium', '    timeout 60 true')?.bound === null
-    && ins('- name: i', '  run: timeout 180 sudo npx playwright install chromium')?.bound === null,
-  'a timeout that is not on the install counted (the sudo case is a documented limit: put sudo first)')
+    && ins('- name: i', '  run: timeout 60 sleep 1; npx playwright install chromium')?.bound === null
+    && ins('- name: i', '  run: timeout 60 sleep 1 && npx playwright install chromium')?.bound === null
+    && ins('- name: i', '  run: |', '    timeout', '    180 npx playwright install chromium')?.bound === null,
+  'a timeout that is not on the install counted')
 check('install: another step\'s timeout-minutes and a job-level timeout-minutes do not bound this step; the first key of a step may be the timeout',
   browserInstallOf(runStepsOf(wf('- name: other', '  timeout-minutes: 3', '  run: echo hi', '- name: i', I))[1])?.bound === null
     && browserInstallOf(runStepsOf(['jobs:', '  x:', '    timeout-minutes: 3', '    steps:', '      - name: i', '        run: npx playwright install chromium'].join('\n') + '\n')[0])?.bound === null
@@ -675,6 +709,36 @@ check('install: in a composite action a step\'s timeout-minutes is not counted (
   insAct('- name: i', '  shell: bash', '  timeout-minutes: 3', '  run: npx playwright install chromium')?.bound === null
     && insAct('- name: i', '  shell: bash', '  run: timeout 180 npx playwright install chromium')?.bound === 'timeout',
   'a composite action step was bounded by a key it cannot carry, or its timeout prefix was missed')
+check('install: a version-pinned package, @playwright/test and a cli.js path are installs, and --with-deps on them is apt',
+  ins('- name: i', '  run: npx playwright@1.57.0 install --with-deps chromium')?.viaApt === true
+    && ins('- name: i', '  run: npx -y playwright@latest install chromium')?.bound === null
+    && ins('- name: i', '  run: npx @playwright/test install --with-deps chromium')?.viaApt === true
+    && ins('- name: i', '  run: node node_modules/playwright/cli.js install --with-deps chromium')?.viaApt === true
+    && ins('- name: i', '  run: npx playwright-core@1.62.1 install chromium')?.bound === null
+    && ins('- name: i', '  run: npx my-playwright install --with-deps') === undefined,
+  'a pinned, scoped or path form was missed, or a package that merely ends in playwright was read as it')
+check('install: a folded (>) scalar is one line, so --with-deps on its second line is apt, while the | twin keeps it a separate line',
+  ins('- name: i', '  run: >', '    npx playwright install', '    --with-deps chromium')?.viaApt === true
+    && ins('- name: i', '  run: |', '    npx playwright install', '    --with-deps chromium')?.viaApt === false
+    && ins('- name: i', '  run: >', '    npx playwright install chromium', '', '    echo --with-deps')?.viaApt === false,
+  'a folded scalar was read with its line breaks, or a blank line in it did not break')
+check('install: environment assignments, env, sudo, wrapper words, a path and ; or | before timeout still bound the install',
+  [ 'PLAYWRIGHT_BROWSERS_PATH=0 timeout 180 npx playwright install chromium', 'env X=1 Y=2 timeout 180 npx playwright install chromium',
+    'timeout 180 ./node_modules/.bin/playwright install chromium', 'timeout 180 npm exec -- playwright install chromium', 'timeout 180 sudo npx playwright install chromium',
+    'true; timeout 180 npx playwright install chromium', 'echo x | timeout 180 npx playwright install chromium', 'sudo timeout 180 npx playwright install chromium',
+    'timeout -s KILL 180 npx playwright install chromium', 'timeout --signal=KILL 3m npx playwright install chromium' ].every(c => ins('- name: i', `  run: ${c}`)?.bound === 'timeout' && ins('- name: i', `  run: ${c}`)?.seconds === 180),
+  'a wrapped or prefixed timeout form was reported as unbounded')
+check('install: the duration units are seconds, minutes, hours and days, and a decimal count of minutes is read',
+  ins('- name: i', '  run: timeout 5m npx playwright install chromium')?.seconds === 300
+    && ins('- name: i', '  run: timeout 2.5m npx playwright install chromium')?.seconds === 150
+    && ins('- name: i', '  run: timeout 301 npx playwright install chromium')?.bound === null
+    && ins('- name: i', '  run: timeout 301s npx playwright install chromium')?.bound === null
+    && ins('- name: i', '  run: timeout 1h npx playwright install chromium')?.bound === null
+    && ins('- name: i', '  run: timeout 1d npx playwright install chromium')?.bound === null,
+  'a duration unit was read wrongly: 1h or 1d counted as a bound, or 5m or 2.5m did not')
+check('install: timeout-minutes must be a whole number: 3.5 is not a bound (GitHub: fractional values are not supported), 5 is, 6 is not',
+  ins('- name: i', '  timeout-minutes: 3.5', I)?.bound === null && ins('- name: i', '  timeout-minutes: 5', I)?.bound === 'step' && ins('- name: i', '  timeout-minutes: 6', I)?.bound === null,
+  'a fractional step timeout counted as a bound')
 const treeOf = files => {
   const root = mkdtempSync(join(tmpdir(), 'wfcheck-'))
   mkdirSync(`${root}/.github/workflows`, { recursive: true })
@@ -689,6 +753,18 @@ const treeOk = treeOf({ '.github/workflows/a.yml': okWf, '.github/actions/s/acti
 check('install: the audit reads workflows and composite actions: two installs, both bounded, none through apt, none missed',
   treeOk.installs.length === 2 && treeOk.installs.every(i => !i.viaApt && i.bound !== null) && treeOk.missed.length === 0 && treeOk.files === 2,
   JSON.stringify(treeOk))
+const treeShapes = treeOf({
+  '.github/workflows/a.yaml': okWf,
+  '.github/actions/s/action.yaml': okAct,
+  '.github/actions/a/b/action.yml': act('- name: i', '  shell: bash', '  run: npx playwright-core install --with-deps chromium'),
+})
+check('install: a .yaml workflow, an action.yaml and a composite action nested two directories deep are read (the nested one is apt and unbounded)',
+  treeShapes.files === 3 && treeShapes.installs.length === 3 && treeShapes.installs.filter(i => i.viaApt).length === 1 && treeShapes.installs.filter(i => i.bound === null).length === 1 && treeShapes.missed.length === 0,
+  JSON.stringify(treeShapes))
+check('install: a pinned install the step reader places is not "missed", and an install text in a place the reader cannot see still is',
+  treeOf({ '.github/workflows/a.yml': wf('- name: i', '  run: npx playwright@1.57.0 install chromium', '  timeout-minutes: 3') }).missed.length === 0
+    && treeOf({ '.github/workflows/a.yml': ['jobs:', '  x:', '    env:', '      CMD: npx playwright@1.57.0 install chromium', '    steps:', '      - run: echo hi'].join('\n') + '\n' }).missed.length === 1,
+  'the cross-check does not follow the reader onto the pinned form')
 const treeBad = treeOf({ '.github/workflows/a.yml': wf('- name: i', '  run: npx playwright install --with-deps chromium'), '.github/actions/s/action.yml': act('- name: i', '  shell: bash', '  run: npx playwright install --with-deps chromium') })
 check('install: a workflow and a composite action that still run --with-deps unbounded are both found',
   treeBad.installs.length === 2 && treeBad.installs.every(i => i.viaApt && i.bound === null), JSON.stringify(treeBad))
