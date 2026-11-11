@@ -65,11 +65,9 @@ jobs:
         env:
           PROBE_DATE: ${{ inputs.date }}
           PROBE_WATCH: ${{ inputs.watch }}
+        # The script reads PROBE_DATE and PROBE_WATCH itself and validates them (exit 2 on a usage error), so nothing is spliced into the command line.
         run: |
-          ARGS=""
-          if [ -n "$PROBE_DATE" ]; then ARGS="--date $PROBE_DATE"; fi
-          if [ -n "$PROBE_WATCH" ]; then ARGS="$ARGS --watch $PROBE_WATCH"; fi
-          node scripts/live-score-probe.mjs $ARGS 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
+          node scripts/live-score-probe.mjs 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"; exit ${PIPESTATUS[0]}
       # `if: always()`: a probe that failed still wrote a manifest saying why, and that is worth keeping.
       - name: Commit
         if: always()

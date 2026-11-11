@@ -656,6 +656,16 @@ jobs:
       - name: The live score probe's own checks
         run: npm run check:live-score-probe
 
+      # The probe's key table is a hand copy of the registry (it runs on a runner that builds nothing); this holds it to the compiled registry.
+      - name: The live score probe's key table against the registry
+        run: npm run check:live-probe-keys
+
+      # The probe's glue (listeners, the card reader, the manifest, the verdict) run against the rendered page with the relay's routes mocked and a
+      # fake clock: a live match, the whistle, a page that never polls, a refused poll, a 503 after a good one, an unreadable body, the committed
+      # capture, a runner that cannot read its own view, a probe that dies. It needs the server started above, like the render checks.
+      - name: The live score probe's glue, on the rendered page
+        run: npm run check:live-score-probe-e2e
+
       # Wiring proof only: a card of the 2026-10-10 capture flipped to Scheduled
       # and scored against a 2026-11-08 table is hindsight. Kept either way so a
       # reader can look at the line in its card; it is not evidence of accuracy.
