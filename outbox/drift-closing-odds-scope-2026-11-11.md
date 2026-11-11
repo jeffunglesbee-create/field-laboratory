@@ -1,0 +1,37 @@
+# drift-sentinel read a landed ask as REGRESSED because it counted competitions nobody prices (2026-11-11)
+
+The sentinel's run 42982786522 (2026-11-11 07:53Z) ended `REGRESSED CC-CMD-2026-08-21-closing-odds-capture (surviving ask) — landed 2026-08-27, no longer
+holds on /context/date/2026-11-10` and failed. This was left uninvestigated earlier in the day; it is investigated here (Rule 77), with a measurement.
+
+## What the data says (D1 `field-archive`, read-only, 2026-11-11)
+
+`regular_season_games`, soccer sports, by day, rows with an `opening_odds` value:
+
+| day | EPL | La Liga | Serie A | Bundesliga | Ligue 1 | MLS | FA Cup | EFL Trophy |
+|---|---|---|---|---|---|---|---|---|
+| 2026-11-07 | 4 of 4 | 4 of 4 | 4 of 4 | 5 of 5 | 2 of 2 | 22 of 23 | **0 of 33** | n/a |
+| 2026-11-08 | 5 of 5 | 5 of 5 | 5 of 5 | 3 of 3 | 6 of 6 | n/a | **0 of 4** | n/a |
+| 2026-11-09 | n/a | n/a | n/a | n/a | n/a | n/a | **0 of 1** | n/a |
+| 2026-11-10 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | **0 of 17** |
+
+On 2026-11-10 the archive's ONLY soccer rows were 17 EFL Trophy games. The relay has never priced that competition (or the FA Cup) in the days
+read. The predicate counted every soccer sport (`isSoccerSport`), found 17 games and no opening line, and returned `false`: "the pre-fix condition
+returning". It was not. The relay is capturing opening lines for every priced league on every day it played.
+
+## What it is, and what it is not
+
+A false positive in the lab's own predicate, not a relay regression. The ask is "capture `opening_odds` for EPL and La Liga"; the predicate
+asked about all soccer. It will flap on any international-break midweek of cup and lower-league soccer (the next is the week of 2026-11-16).
+Not claimed: that the relay captures every league; only the two the ask names are now in the predicate.
+
+## Change (`scripts/cc-cmd-followup.mjs`)
+
+`soccerOpeningCoverage` counts only EPL and La Liga rows (`OPENING_ASK_LABELS`, compared by the registry's `Label`). A slate with none is `null`
+(not observable), as an off-day is. The pre-fix condition still reads `false`: an EPL game with no line beside unpriced cup games.
+
+Three self-test cases from this finding, 58 of 58: the 2026-11-10 shape reads `null`; an EPL game with no line beside cup games is still
+`false`; a stray line on an FA Cup game cannot stand in for an EPL one. Two table entries break the scope (back to every soccer sport; La Liga
+dropped) and both are caught through the harness. `check:mutation-anchors` 0 stale.
+
+Not run here: the sentinel against the live `/context/date` (the sandbox cannot reach the relay). The first run on `main` after this lands, a
+scheduled one or a dispatch, is the proof: it must read `no rows` for this ask on a slate like 2026-11-10 and `holds` on one with EPL or La Liga games.

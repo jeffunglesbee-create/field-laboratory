@@ -11393,6 +11393,24 @@ const MUTATIONS = [
     replace: "",
     expect: "node scripts/forecast-live-probe.mjs --self-test",
   },
+  // 2026-11-11: drift-sentinel read a landed ask as REGRESSED because the predicate counted every soccer sport and the archive's only soccer rows on
+  // 2026-11-10 were 17 EFL Trophy games the relay has never priced. Each entry breaks one claim of the corrected predicate.
+  {
+    id: "drift-closing-odds-counts-every-soccer-sport",
+    file: "scripts/cc-cmd-followup.mjs",
+    claim: "the closing-odds sentinel asks about the competitions the ask names, not every soccer sport",
+    find: "  const soccer = games.filter(g => isOpeningAskSport(g?.sport))\n",
+    replace: "  const soccer = games.filter(g => SOCCER_SPORTS.has(g?.sport))\n",
+    expect: "node scripts/cc-cmd-followup.mjs --self-test",
+  },
+  {
+    id: "drift-closing-odds-drops-la-liga",
+    file: "scripts/cc-cmd-followup.mjs",
+    claim: "La Liga is one of the two competitions the closing-odds ask names",
+    find: "const OPENING_ASK_LABELS = new Set(['EPL', 'La Liga'])\n",
+    replace: "const OPENING_ASK_LABELS = new Set(['EPL'])\n",
+    expect: "node scripts/cc-cmd-followup.mjs --self-test",
+  },
   // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8: the live-score probe's verdict logic. Each entry breaks one thing its
   // verdict rests on and expects its own self-test to notice (Rule 90).
   {
