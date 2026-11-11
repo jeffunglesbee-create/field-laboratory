@@ -8,11 +8,13 @@
 #   1. The install itself. Does it touch apt (the dpkg and apt logs and the package list before and after, and a PATH shim that logs any apt/dpkg/sudo call)?
 #      Does the browser it leaves have every shared library it needs (ldd)? How long does it take (the limit is 180 s)? Were the nine fonts really absent?
 #      Does the runner's `timeout`, the form the composite action and one combined step use for the limit, end a stalled process tree with a non-zero exit?
-#      -> outbox/install-no-apt-probe-latest.txt, first line `checked N of N premises`.
+#      -> outbox/install-no-apt-probe-latest.txt, first line `checked N of N premises`, second line the run, attempt, commit and time.
 #   2. The fonts. With the page the layout checks load, at the ten canonical viewports, at rest and with every card opened (20 cells): do any element box,
 #      scroll size or drawn font change when the nine fonts are installed afterwards? The control (the same page twice) and the teeth (every font forced to
 #      monospace) are run first; a verdict is only given when the control repeats and the teeth see the change. One more cell, outside the verdict, draws text in scripts
-#      and symbols the page's own faces do not carry (CJK, Thai, Cyrillic, Greek, Hebrew, Arabic, symbols) to show which fallback fonts the nine packages would supply.
+#      and symbols the page's own faces do not carry (CJK, Thai, Cyrillic, Greek, Hebrew, Arabic, symbols) to show which fallback fonts the nine packages would supply, and the
+#      treatment's POSITIVE CONTROL: the five font families the packages provide are each asked for by name and Chromium says what drew them, so a clean comparison cannot be
+#      what a treatment that changed nothing looks like (fewer than three of five drawn differently after the install makes the verdict not-observable).
 #      -> outbox/font-dependence-latest.{json,txt}, first line `checked N of N cells`.
 #
 # Two triggers: a push of outbox/.trigger-font-dependence-probe, which runs from the pushing ref's own copy of this file, and workflow_dispatch once it is on main.
@@ -37,6 +39,10 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+
+      # An earlier run's result files are removed first. A run that fails part-way then commits their deletion and no result, and a stale file never sits beside a fresh one.
+      - name: Clear the last run's results
+        run: rm -f outbox/font-dependence-latest.json outbox/font-dependence-latest.txt outbox/install-no-apt-probe-latest.txt
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -66,6 +72,7 @@ jobs:
             echo "dpkg_list_sha: $(dpkg-query -W -f '${Package} ${Version}\n' | sort | sha256sum | cut -c1-16)"
             echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"
             echo "apt_history_bytes: $(stat -c %s /var/log/apt/history.log 2>/dev/null || echo none)"
+            echo "apt_lists_sha: $(find /var/lib/apt/lists -type f -printf '%p %s %T@\n' 2>/dev/null | sort | sha256sum | cut -c1-16)"
             echo "nine_fonts_installed: $(dpkg -l $NINE 2>/dev/null | grep -c '^ii' || true)"
             echo "fc_list_lines: $(fc-list | wc -l)"
           } | tee /tmp/before.txt
@@ -94,6 +101,7 @@ jobs:
             echo "dpkg_list_sha: $(dpkg-query -W -f '${Package} ${Version}\n' | sort | sha256sum | cut -c1-16)"
             echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"
             echo "apt_history_bytes: $(stat -c %s /var/log/apt/history.log 2>/dev/null || echo none)"
+            echo "apt_lists_sha: $(find /var/lib/apt/lists -type f -printf '%p %s %T@\n' 2>/dev/null | sort | sha256sum | cut -c1-16)"
             echo "shim_calls: $(wc -l < /tmp/apt-calls.log)"
             BINS=$(find "$HOME/.cache/ms-playwright" -type f \( -name chrome -o -name chrome-headless-shell \) -perm -u+x)
             echo "browser_binaries: $(echo "$BINS" | grep -c .)"
@@ -162,6 +170,7 @@ jobs:
             echo "nine_fonts_installed: $(dpkg -l $NINE 2>/dev/null | grep -c '^ii' || true)"
             echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"
             echo "fc_list_lines: $(fc-list | wc -l)"
+            echo "fc_nine_families: $(fc-list : family | grep -Ei 'IPAGothic|WenQuanYi|Loma|FreeSans|Unifont' | sort -u | tr '\n' ';')"
           } | tee /tmp/fonts-after.txt
 
       - name: B, the page with the nine fonts installed
@@ -176,12 +185,13 @@ jobs:
         run: |
           APT=failed
           [ "${{ steps.apt.outcome }}" = "success" ] && APT=ok
+          STAMP="run $GITHUB_RUN_ID attempt $GITHUB_RUN_ATTEMPT sha $GITHUB_SHA at $(date -u +%FT%TZ)"
           set +e
           node scripts/font-dependence-probe.mjs --premises --before /tmp/before.txt --after /tmp/after.txt --seconds /tmp/install-seconds.txt \
-            --fonts-after /tmp/fonts-after.txt --timeout-file /tmp/timeout.txt --out outbox/install-no-apt-probe-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+            --fonts-after /tmp/fonts-after.txt --timeout-file /tmp/timeout.txt --stamp "$STAMP" --out outbox/install-no-apt-probe-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           PREM=${PIPESTATUS[0]}
           node scripts/font-dependence-probe.mjs --judge --a1 /tmp/A1.json --a2 /tmp/A2.json --teeth /tmp/T.json --b /tmp/B.json --apt "$APT" \
-            --json outbox/font-dependence-latest.json --text outbox/font-dependence-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+            --stamp "$STAMP" --json outbox/font-dependence-latest.json --text outbox/font-dependence-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           JUDGE=${PIPESTATUS[0]}
           [ "$PREM" = "0" ] && [ "$JUDGE" = "0" ]
 
