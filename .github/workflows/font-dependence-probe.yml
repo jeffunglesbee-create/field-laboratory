@@ -1,0 +1,181 @@
+# What dropping `--with-deps` from the browser install costs, measured on a runner.
+# docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, options 2 and 3 (the owner: "2 and 3, make it work"); scripts/font-dependence-probe.mjs.
+#
+# `npx playwright install --with-deps chromium` ran apt, and on 2026-11-11 apt waited ten minutes on mirrors that did not resolve, for NINE FONT packages
+# (every library it wanted was already on the image). The install now takes no apt and a three minute limit. Two things were not known and are measured here,
+# in one job on one fresh runner, before anything lands:
+#
+#   1. The install itself. Does it touch apt (the dpkg and apt logs and the package list before and after, and a PATH shim that logs any apt/dpkg/sudo call)?
+#      Does the browser it leaves have every shared library it needs (ldd)? How long does it take (the limit is 180 s)? Were the nine fonts really absent?
+#      -> outbox/install-no-apt-probe-latest.txt, first line `checked N of N premises`.
+#   2. The fonts. With the page the layout checks load, at the ten canonical viewports, at rest and with every card opened (20 cells): do any element box,
+#      scroll size or drawn font change when the nine fonts are installed afterwards? The control (the same page twice) and the teeth (every font forced to
+#      monospace) are run first; a verdict is only given when the control repeats and the teeth see the change.
+#      -> outbox/font-dependence-latest.{json,txt}, first line `checked N of N cells`.
+#
+# Two triggers: a push of outbox/.trigger-font-dependence-probe, which runs from the pushing ref's own copy of this file, and workflow_dispatch once it is on main.
+# The commit goes back to the ref that started the run. No schedule: it answers a question once.
+name: font-dependence-probe
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'outbox/.trigger-font-dependence-probe'
+
+permissions:
+  contents: write
+
+env:
+  NINE: fonts-ipafont-gothic fonts-freefont-ttf fonts-tlwg-loma-otf fonts-unifont fonts-wqy-zenhei xfonts-encodings xfonts-utils xfonts-cyrillic xfonts-scalable
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: |
+          npm ci
+          dotnet tool restore
+
+      - name: Build (F# -> JS, then assemble public/)
+        run: node scripts/build-steady.mjs
+
+      - name: The probe's own checks, before it judges anything
+        run: node scripts/font-dependence-probe.mjs --self-test
+
+      - name: What this runner has before the browser is installed
+        shell: bash
+        run: |
+          {
+            echo "image: $(grep -m1 '^PRETTY_NAME' /etc/os-release) / ${ImageVersion:-unknown}"
+            echo "dpkg_list_sha: $(dpkg-query -W -f '${Package} ${Version}\n' | sort | sha256sum | cut -c1-16)"
+            echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"
+            echo "apt_history_bytes: $(stat -c %s /var/log/apt/history.log 2>/dev/null || echo none)"
+            echo "nine_fonts_installed: $(dpkg -l $NINE 2>/dev/null | grep -c '^ii' || true)"
+            echo "fc_list_lines: $(fc-list | wc -l)"
+          } | tee /tmp/before.txt
+
+      # The install exactly as every workflow now runs it (no --with-deps, 180 s), with apt, dpkg and sudo replaced on PATH by shims that log the call and fail.
+      # If the install needed one of them it fails loudly here, and the log says which.
+      - name: Install Chromium, with apt watched
+        id: install
+        timeout-minutes: 3
+        shell: bash
+        run: |
+          mkdir -p /tmp/shims
+          for c in apt apt-get dpkg sudo; do
+            printf '#!/bin/sh\necho "$0 $*" >> /tmp/apt-calls.log\nexit 97\n' > "/tmp/shims/$c"
+            chmod +x "/tmp/shims/$c"
+          done
+          : > /tmp/apt-calls.log
+          START=$(date +%s)
+          PATH="/tmp/shims:$PATH" npx playwright install chromium
+          echo "install_seconds: $(( $(date +%s) - START ))" | tee /tmp/install-seconds.txt
+
+      - name: What the install did
+        shell: bash
+        run: |
+          {
+            echo "dpkg_list_sha: $(dpkg-query -W -f '${Package} ${Version}\n' | sort | sha256sum | cut -c1-16)"
+            echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"
+            echo "apt_history_bytes: $(stat -c %s /var/log/apt/history.log 2>/dev/null || echo none)"
+            echo "shim_calls: $(wc -l < /tmp/apt-calls.log)"
+            BINS=$(find "$HOME/.cache/ms-playwright" -type f \( -name chrome -o -name chrome-headless-shell \) -perm -u+x)
+            echo "browser_binaries: $(echo "$BINS" | grep -c .)"
+            MISSING=0
+            for b in $BINS; do
+              N=$(ldd "$b" 2>&1 | grep -c 'not found' || true)
+              echo "ldd_not_found: $b $N"
+              MISSING=$((MISSING + N))
+            done
+            echo "ldd_not_found_total: $MISSING"
+          } | tee /tmp/after.txt
+
+      - name: Serve the built site
+        run: |
+          node scripts/serve.mjs &
+          for i in $(seq 1 20); do
+            curl -sf -o /dev/null http://localhost:8080/ && break
+            sleep 1
+          done
+
+      - name: A1, the page as it is, the nine fonts absent
+        run: node scripts/font-dependence-probe.mjs --run --label A1 --out /tmp/A1.json
+
+      - name: A2, the control
+        run: node scripts/font-dependence-probe.mjs --run --label A2 --out /tmp/A2.json
+
+      - name: T, the teeth (every font forced to monospace)
+        run: |
+          node scripts/font-dependence-probe.mjs --run --label T --out /tmp/T.json \
+            --inject-css "html, body, body * { font-family: monospace !important; }"
+
+      # The treatment. This is the apt step the install used to carry, run here ON PURPOSE and only here, to put the nine fonts on the runner.
+      - name: Install the nine fonts
+        id: apt
+        continue-on-error: true
+        shell: bash
+        run: |
+          timeout 240 sudo apt-get update
+          timeout 240 sudo apt-get install -y --no-install-recommends $NINE
+          {
+            echo "nine_fonts_installed: $(dpkg -l $NINE 2>/dev/null | grep -c '^ii' || true)"
+            echo "dpkg_log_bytes: $(stat -c %s /var/log/dpkg.log 2>/dev/null || echo none)"
+            echo "fc_list_lines: $(fc-list | wc -l)"
+          } | tee /tmp/fonts-after.txt
+
+      - name: B, the page with the nine fonts installed
+        if: steps.apt.outcome == 'success'
+        run: node scripts/font-dependence-probe.mjs --run --label B --out /tmp/B.json
+
+      - name: The verdicts
+        id: judge
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          APT=failed
+          [ "${{ steps.apt.outcome }}" = "success" ] && APT=ok
+          set +e
+          node scripts/font-dependence-probe.mjs --premises --before /tmp/before.txt --after /tmp/after.txt --seconds /tmp/install-seconds.txt \
+            --fonts-after /tmp/fonts-after.txt --out outbox/install-no-apt-probe-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          PREM=${PIPESTATUS[0]}
+          node scripts/font-dependence-probe.mjs --judge --a1 /tmp/A1.json --a2 /tmp/A2.json --teeth /tmp/T.json --b /tmp/B.json --apt "$APT" \
+            --json outbox/font-dependence-latest.json --text outbox/font-dependence-latest.txt 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          JUDGE=${PIPESTATUS[0]}
+          [ "$PREM" = "0" ] && [ "$JUDGE" = "0" ]
+
+      - name: Commit
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/font-dependence-latest.json outbox/font-dependence-latest.txt outbox/install-no-apt-probe-latest.txt 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
+
+      - name: A verdict that is not-observable decides the job
+        if: steps.judge.outcome != 'success'
+        run: |
+          echo "font-dependence-probe: the verdict step did not succeed (a not-observable verdict exits 2): see outbox/font-dependence-latest.txt"
+          exit 1
