@@ -638,6 +638,14 @@ jobs:
       - name: The forecast, on the rendered page
         run: node scripts/forecast-render-check.mjs
 
+      # docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6. A real card is told what the live feed said, through the page's own
+      # test affordance, at a fixed clock. The poll and the real feed body have their own steps when they exist.
+      - name: The live score's own checks
+        run: npm run check:live-score-render
+
+      - name: The live score, on the rendered page
+        run: node scripts/live-score-render-check.mjs
+
       # Wiring proof only: a card of the 2026-10-10 capture flipped to Scheduled
       # and scored against a 2026-11-08 table is hindsight. Kept either way so a
       # reader can look at the line in its card; it is not evidence of accuracy.

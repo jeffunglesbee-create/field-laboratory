@@ -109,3 +109,10 @@ let liveNoteText (reading: LiveReading) : string =
     | LiveNow(_, _, None) -> ""
     | FullTime _ -> "Full time"
     | LiveUnavailable _ -> "live score unavailable"
+
+/// The note beside the score, given what the ARCHIVE says. A game the archive has finalised carries no live note: the card says
+/// `Final`, and a clock or `Full time` beside it would contradict that.
+let liveNoteFor (archive: GameState) (reading: LiveReading) : string =
+    match archive with
+    | Final _ -> ""
+    | _ -> liveNoteText reading

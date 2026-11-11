@@ -4618,6 +4618,16 @@ let private liveScore () =
           (LiveScore.LiveUnavailable "x", "live score unavailable")
           (LiveScore.LiveUnavailable "x", "")
 
+      Verify.check "a game the archive has finalised carries no live note, whatever the reading says"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.FullTime(2, 1)) = "")
+          (Final(2, 1, false))
+          (InProgress(2, 1))
+
+      Verify.check "a game that is not final carries the reading's note"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.FullTime(2, 1)) = "Full time")
+          (InProgress(2, 1))
+          (Final(2, 1, false))
+
       Verify.check "no reading and a live reading with no clock say nothing"
           (fun reading -> LiveScore.liveNoteText reading = "")
           (LiveScore.LiveNow(1, 0, None))

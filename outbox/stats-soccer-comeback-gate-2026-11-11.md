@@ -17,6 +17,6 @@ The Stats tab's comeback line is written in runs and innings: `N-run gap`, `need
 | `node build/VerifyMain.js` after `npm run build` | 371 of 371 (two new cases: an EPL match in progress has no margin and an MLB game does, each with its counterexample) |
 | `stats-soccer-comeback-line-ungated` (the gate removed) and `stats-comeback-gate-drops-baseball` (the gate answers None for everything) through the harness | both caught, plus the unmutated tree: 3 of 3 |
 
-## Not defended yet
+## Not defended yet, and not reachable yet
 
-The view's CALL is not defended: a change that puts `liveMargin` back in `StatsView.fs` is not caught by anything that exists today, because no render check has a soccer match in progress on the Stats tab. The comment in `Stats.fs` says so and claims only the function. Task 6's render check (`scripts/live-score-render-check.mjs`, a soccer card flipped to in progress, the Stats tab read) is what defends the call; until it exists this is a stated gap, not a covered one.
+The view's CALL is not defended: a change that puts `liveMargin` back in `StatsView.fs` is not caught by anything that exists. A later look (2026-11-11, the same session) found the claim in this note's first version, that Task 6's render check would defend it, was wrong: the Stats tab renders from the games list and `gameState game`, not from a card's reading, so a live reading on a slate card does not reach it and `scripts/live-score-render-check.mjs` cannot drive it. Today the gate is a preventative one: nothing puts a soccer game in progress on the Stats tab. If the Stats tab is ever given the live reading, that change owns a check of this call.

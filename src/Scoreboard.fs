@@ -542,7 +542,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           // The feed's clock, `Full time`, or why there is no score. Only a card of a sport the feed is asked about has the node,
           // so every other card keeps its structure byte for byte.
           if (LiveScore.liveSportKey game.Sport).IsSome then
-              stateNode "desk-card__live" "live" (fun () -> LiveScore.liveNoteText (reading ()))
+              stateNode "desk-card__live" "live" (fun () -> LiveScore.liveNoteFor (state ()) (reading ()))
           stateNode "desk-card__drama" "drama" drama
           // Empty at render. Weather is asynchronous and the card is not, so
           // this is a slot rather than a value — filled by WeatherView.fillCards

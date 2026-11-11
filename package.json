@@ -96,6 +96,7 @@
     "check:forecast": "node scripts/forecast-render-check.mjs --self-test && node scripts/forecast-render-check.mjs",
     "check:forecast-live": "node scripts/forecast-live-probe.mjs --self-test",
     "check:live-capture": "node scripts/live-shape-capture.mjs --self-test",
+    "check:live-score-render": "node scripts/live-score-render-check.mjs --self-test",
     "check:ceiling": "node scripts/ceiling-check.mjs",
     "check:journalism": "node scripts/journalism-check.mjs",
     "check:docs": "node scripts/docs-check.mjs --self-test && node scripts/docs-check.mjs",

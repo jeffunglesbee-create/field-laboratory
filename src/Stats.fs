@@ -75,8 +75,9 @@ let liveMargin (state: GameState) : LiveMargin option =
 /// The line is written in runs and innings ("N-run gap", "needs an inning"). A soccer match has neither, so a soccer
 /// match in progress carries NO comeback line rather than a baseball sentence about a football match.
 /// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 3: before the live-score overlay nothing could put a soccer game in
-/// progress on this tab, and the overlay will. `StatsView` calls this rather than `liveMargin`; the render check of Task 6
-/// is what will defend that call on a real page, so this commit asserts only the function.
+/// progress on this tab, and the overlay will. `StatsView` calls this rather than `liveMargin`. The Stats tab renders from the
+/// games list and not from a card's live reading, so nothing reaches this call with a soccer game in progress today and no check
+/// drives it; this asserts only the function. Giving the tab the live reading would own a check of the call.
 let comebackMargin (sport: Sport) (state: GameState) : LiveMargin option =
     if (sportMeta sport).IsSoccer then None else liveMargin state
 
