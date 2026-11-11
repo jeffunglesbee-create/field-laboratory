@@ -4740,6 +4740,44 @@ let private liveFeed () =
           BsdEventId = None
           FinalizedAt = None }
 
+    let one (game: string) : string = sprintf """{"games":[%s]}""" game
+
+    let readThrough (body: string) : Result<LiveScore.LiveReading, string> =
+        LiveFeed.decodeFeed body |> Result.map (fun parsed -> LiveFeed.readingFor parsed (card (Some "7")))
+
+    let isUnavailable (r: Result<LiveScore.LiveReading, string>) : bool =
+        match r with
+        | Ok(LiveScore.LiveUnavailable _) -> true
+        | _ -> false
+
+    let errorMentions (text: string) (r: Result<LiveFeed.FeedGame list, string>) : bool =
+        match r with
+        | Error e -> e.Contains text
+        | Ok _ -> false
+
+    let liveAsym = one """{"espnEventId":"7","state":"live","home":{"score":2},"away":{"score":1},"clock":"34'"}"""
+    let liveSwapped = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":2},"clock":"34'"}"""
+    let liveHomeNull = one """{"espnEventId":"7","state":"live","home":{"score":null},"away":{"score":1},"clock":"34'"}"""
+    let liveNoScoreKey = one """{"espnEventId":"7","state":"live","home":{},"away":{},"clock":"34'"}"""
+    let liveClock = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"12'"}"""
+    let liveNullClock = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":null}"""
+    let liveAbsentClock = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0}}"""
+    let finalBoth = one """{"espnEventId":"7","state":"final","home":{"score":2},"away":{"score":1},"clock":"90'"}"""
+    let finalNoScore = one """{"espnEventId":"7","state":"final","home":{},"away":{}}"""
+    let finalOneSide = one """{"espnEventId":"7","state":"final","home":{"score":2},"away":{}}"""
+    let preScored = one """{"espnEventId":"7","state":"pre","home":{"score":2},"away":{"score":1},"clock":"0'"}"""
+    let stateMissing = one """{"espnEventId":"7","home":{"score":1},"away":{"score":0}}"""
+    let scoreFloat = one """{"espnEventId":"7","state":"live","home":{"score":1.5},"away":{"score":0}}"""
+    let scoreString = one """{"espnEventId":"7","state":"live","home":{"score":"1"},"away":{"score":"0"}}"""
+    let scoreHuge = one """{"espnEventId":"7","state":"live","home":{"score":2147483648},"away":{"score":0}}"""
+    let clockNumber = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":34}"""
+
+    let oneBadOfTwo =
+        """{"games":[{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0}},{"espnEventId":"8","home":{"score":1},"away":{"score":0}}]}"""
+
+    let twoGood =
+        """{"games":[{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0}},{"espnEventId":"8","state":"pre","home":{"score":0},"away":{"score":0}}]}"""
+
     let feed =
         [ feedGame "401879240" "live" (Some 1) (Some 0) (Some "34'")
           feedGame "401879241" "pre" (Some 0) (Some 0) (Some "0'")
@@ -4823,7 +4861,88 @@ let private liveFeed () =
       Verify.check "an empty clock is no clock"
           (fun clock -> LiveFeed.readingFor [ feedGame "7" "live" (Some 1) (Some 0) clock ] (card (Some "7")) = LiveScore.LiveNow(1, 0, None))
           (Some "")
-          (Some "12'") ]
+          (Some "12'")
+
+      // The decoder's own contracts (review 2026-11-11, decoder S6 and S19). Everything above builds `FeedGame` values by hand, so the decoder was off the
+      // path of every "no score" check; these run a served-shaped body through `decodeFeed` and then `readingFor`, the way the page does. Each pair is a
+      // body the claim holds for and one it does not, so a check that always passes cannot pass here. The bodies are written to the keys the relay emits
+      // (`adaptESPNWCSoccer`: `Number(x)` or null for a score, `displayClock` text for the clock); none is a capture of a game in play.
+      Verify.check "a live body reads home first and away second, with its clock (an asymmetric score, so a swap shows)"
+          (fun body -> readThrough body = Ok(LiveScore.LiveNow(2, 1, Some "34'")))
+          liveAsym
+          liveSwapped
+
+      Verify.check "a live game whose score is null on one side is unavailable, never a zero"
+          (fun body -> isUnavailable (readThrough body))
+          liveHomeNull
+          liveAsym
+
+      Verify.check "a live game with no score key at all is unavailable, never 0-0"
+          (fun body -> isUnavailable (readThrough body))
+          liveNoScoreKey
+          liveAsym
+
+      Verify.check "a final game with no score is unavailable, never a fabricated 0-0 full time"
+          (fun body -> isUnavailable (readThrough body))
+          finalNoScore
+          finalBoth
+
+      Verify.check "a final game with a score on one side only is unavailable, never half a score"
+          (fun body -> isUnavailable (readThrough body))
+          finalOneSide
+          finalBoth
+
+      Verify.check "a final body with both scores is full time, home first"
+          (fun body -> readThrough body = Ok(LiveScore.FullTime(2, 1)))
+          finalBoth
+          finalNoScore
+
+      Verify.check "a null clock is no clock, not an error"
+          (fun body -> readThrough body = Ok(LiveScore.LiveNow(1, 0, None)))
+          liveNullClock
+          liveClock
+
+      Verify.check "an absent clock is no clock, not an error"
+          (fun body -> readThrough body = Ok(LiveScore.LiveNow(1, 0, None)))
+          liveAbsentClock
+          liveClock
+
+      Verify.check "a pre game that reports a nonzero score is still no reading"
+          (fun body -> readThrough body = Ok LiveScore.NoReading)
+          preScored
+          liveAsym
+
+      Verify.check "a game with no state is an error, never a read"
+          (fun body -> LiveFeed.decodeFeed body |> Result.isError)
+          stateMissing
+          liveAsym
+
+      Verify.check "a score that is not a whole number is an error naming the field"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreFloat
+          liveAsym
+
+      Verify.check "a score served as a numeric string is an error naming the field, not a coerced number"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreString
+          liveAsym
+
+      Verify.check "a score outside the int32 range is an error naming the field"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreHuge
+          liveAsym
+
+      Verify.check "a clock that is not text is an error naming the field"
+          (fun body -> errorMentions "clock" (LiveFeed.decodeFeed body))
+          clockNumber
+          liveAsym
+
+      // PINNED as the current contract, not argued for: the relay owns the shape (CONTRACTS.md), so one malformed game fails the whole feed and every card of
+      // that sport says "live score unavailable" with the decoder's message, rather than the bad game being skipped and ITS card saying "the feed has no game".
+      Verify.check "one malformed game fails the whole feed rather than being skipped"
+          (fun body -> LiveFeed.decodeFeed body |> Result.isError)
+          oneBadOfTwo
+          twoGood ]
 
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()

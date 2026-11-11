@@ -29,12 +29,24 @@ type FeedGame =
       /// The feed's clock text, verbatim, as served (`34'`, `90'+9'`); `None` when the key is absent or null.
       Clock: string option }
 
+/// A score is a JSON NUMBER that is a whole number inside the int32 range. `Decode.int` also reads the string "1" (and " 1") as 1, and the relay never serves one:
+/// `adaptESPNWCSoccer` emits `Number(x)` or null, so a string means the relay's shape changed, and it is named, not coerced (the same strictness `Decode.string`
+/// already has for the clock, the state and the id). Review 2026-11-11, decoder S7 and S11; `scripts/check-live-probe-keys.mjs` holds the probe's copy of this
+/// decoder to the page's on one battery.
+let private wholeScore: Decoder<int> =
+    Decode.float
+    |> Decode.andThen (fun n ->
+        if n = System.Math.Floor n && n >= -2147483648.0 && n <= 2147483647.0 then
+            Decode.succeed (int n)
+        else
+            Decode.fail (sprintf "Expecting a whole number that fits an int but instead got: %s" (string n)))
+
 let private feedGameDecoder: Decoder<FeedGame> =
     Decode.object (fun get ->
         { EspnEventId = get.Required.Field "espnEventId" Decode.string
           State = get.Required.Field "state" Decode.string
-          HomeScore = get.Optional.At [ "home"; "score" ] Decode.int
-          AwayScore = get.Optional.At [ "away"; "score" ] Decode.int
+          HomeScore = get.Optional.At [ "home"; "score" ] wholeScore
+          AwayScore = get.Optional.At [ "away"; "score" ] wholeScore
           Clock = get.Optional.Field "clock" Decode.string })
 
 /// The games of a `/v2/games` body. A body with no `games` list, or a game with no `espnEventId` or no `state`, is an ERROR

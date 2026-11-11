@@ -7,12 +7,17 @@
 // entry with the registry's key, and the table has nothing the registry does not. It runs where `build/` exists (verify.yml), never on the probe's
 // runner.
 //
+// It ALSO holds the probe's COPY of the feed decoder (`decodeFeed` in the probe) to the page's own (`decodeFeed` in build/LiveFeed.js) on one battery of bodies
+// (review 2026-11-11, decoder S7 and S11: the probe's own self-test and mutation table asserted a rejection the page did not make, and the page rejected
+// bodies the probe accepted). Both read the same bodies; the check fails on any disagreement about whether the feed decodes, and about every game it decodes to.
+//
 // Usage: node scripts/check-live-probe-keys.mjs
 
 import { createChecks, finish } from './checks.mjs'
 import { allSports, sportMeta } from '../build/Desk.js'
 import { liveSportKey } from '../build/LiveScore.js'
-import { LABEL_TO_KEY, SOCCER } from './live-score-probe.mjs'
+import { decodeFeed as pageDecodeFeed } from '../build/LiveFeed.js'
+import { LABEL_TO_KEY, SOCCER, decodeFeed as probeDecodeFeed } from './live-score-probe.mjs'
 
 const { check, summarize } = createChecks()
 const soccer = [...allSports].filter(s => sportMeta(s).IsSoccer)
@@ -28,4 +33,56 @@ const extra = SOCCER.filter(l => !labels.includes(l))
 check('the probe\'s table names no sport the registry does not have as soccer', extra.length === 0, extra.join(', '))
 check('every key in the table is distinct', new Set(Object.values(LABEL_TO_KEY)).size === Object.keys(LABEL_TO_KEY).length)
 console.log(`compared ${soccer.length} registry soccer sports with ${SOCCER.length} table entries`)
+
+// ---- the feed decoder, page versus probe -------------------------------------------------------------------------------------------------------------------
+const game = over => ({ espnEventId: '7', state: 'live', home: { score: 1 }, away: { score: 0 }, ...over })
+const without = key => { const { [key]: _gone, ...rest } = game(); return rest }
+/** Bodies of `/v2/games`, each one decision the decoder makes. None is a capture of a game in play: they are shaped to the keys the relay emits (`adaptESPNWCSoccer`). */
+const BATTERY = {
+  'a live game with a clock': { games: [game({ clock: "34'" })] },
+  'no games at all': { games: [] },
+  'games is an object': { games: {} },
+  'no games key': {},
+  'a game that is a number': { games: [5] },
+  'a game that is null': { games: [null] },
+  'a numeric espnEventId': { games: [game({ espnEventId: 7 })] },
+  'a null espnEventId': { games: [game({ espnEventId: null })] },
+  'a numeric state': { games: [game({ state: 3 })] },
+  'no state': { games: [without('state')] },
+  'a numeric-string score': { games: [game({ home: { score: '1' } })] },
+  'a numeric-string score with a space': { games: [game({ home: { score: ' 1' } })] },
+  'a non-numeric string score': { games: [game({ home: { score: 'x' } })] },
+  'a fractional score': { games: [game({ home: { score: 1.5 } })] },
+  'the largest int32 score': { games: [game({ home: { score: 2147483647 } })] },
+  'a score over int32': { games: [game({ home: { score: 2147483648 } })] },
+  'a negative score': { games: [game({ home: { score: -1 } })] },
+  'a boolean score': { games: [game({ home: { score: true } })] },
+  'an object score': { games: [game({ home: { score: {} } })] },
+  'a null score': { games: [game({ home: { score: null } })] },
+  'no home team': { games: [without('home')] },
+  'a null home team': { games: [game({ home: null })] },
+  'a string home team': { games: [game({ home: 'x' })] },
+  'a list for the away team': { games: [game({ away: [] })] },
+  'a number for the home team': { games: [game({ home: 5 })] },
+  'an empty clock': { games: [game({ clock: '' })] },
+  'a null clock': { games: [game({ clock: null })] },
+  'a numeric clock': { games: [game({ clock: 34 })] },
+  'keys the decoder does not read': { games: [game({ foo: 1, home: { score: 1, name: 'A' } })] },
+  'one bad game of two': { games: [game(), game({ espnEventId: 9, state: undefined })] },
+}
+// The page's Result is Fable's (tag 0 = Ok, fields[0] = a list of records, None = undefined); the probe's is { ok, games }. Both reduced to the same shape, with `null` for no score and
+// `''` for no clock (the probe's own reading of an absent clock; the page keeps `None` and `readingFor` drops an empty one, which is the same reading).
+const pageShape = r => (r.tag === 0 ? { ok: true, games: [...r.fields[0]].map(g => ({ id: g.EspnEventId, state: g.State, home: g.HomeScore ?? null, away: g.AwayScore ?? null, clock: g.Clock ?? '' })) } : { ok: false })
+const probeShape = r => (r.ok ? { ok: true, games: r.games.map(g => ({ id: g.espnId, state: g.state, home: g.home, away: g.away, clock: g.clock })) } : { ok: false })
+
+const verdicts = Object.entries(BATTERY).map(([name, body]) => {
+  const page = pageShape(pageDecodeFeed(JSON.stringify(body)))
+  const probe = probeShape(probeDecodeFeed(JSON.parse(JSON.stringify(body))))
+  return { name, page, probe, same: JSON.stringify(page) === JSON.stringify(probe) }
+})
+for (const v of verdicts) check(`the probe's decoder and the page's agree: ${v.name} (${v.page.ok ? 'decodes' : 'fails the feed'})`, v.same, `page ${JSON.stringify(v.page)}, probe ${JSON.stringify(v.probe)}`)
+check('the battery has both outcomes, so agreement on it is not agreement on nothing (at least 8 decode and at least 8 fail)', verdicts.filter(v => v.page.ok).length >= 8 && verdicts.filter(v => !v.page.ok).length >= 8,
+  `${verdicts.filter(v => v.page.ok).length} decode, ${verdicts.filter(v => !v.page.ok).length} fail`)
+check('a decoded game carries its fields, so the comparison above compared something', verdicts.find(v => v.name === 'a live game with a clock').page.games[0].clock === "34'")
+console.log(`compared the page's and the probe's feed decoders on ${verdicts.length} bodies: ${verdicts.filter(v => v.same).length} agree (${verdicts.filter(v => v.page.ok).length} decode, ${verdicts.filter(v => !v.page.ok).length} fail the feed). Not covered: bodies outside this list; a game in play (not captured yet).`)
 finish(summarize())

@@ -75,7 +75,13 @@ const arrow = (h, a) => `${h}–${a}`
 
 // --- reading the feed the way the page does ----------------------------------
 
-const intOrNull = v => (v === undefined || v === null ? { ok: true, v: null } : Number.isInteger(v) ? { ok: true, v } : { ok: false })
+// The page's `wholeScore` (src/LiveFeed.fs): a JSON number that is whole and fits an int32, or nothing. A numeric string is NOT one.
+const intOrNull = v =>
+  v === undefined || v === null ? { ok: true, v: null } : typeof v === 'number' && Number.isInteger(v) && v >= -2147483648 && v <= 2147483647 ? { ok: true, v } : { ok: false }
+
+/** A team of a game: nothing, null, or an object (not an array). The page reads `home.score` through a path, and a team that is a string, a number or a list is an
+ *  error there (`Decode.Optional.At` accepts a null or absent team and nothing else). Held to the page's decoder by `scripts/check-live-probe-keys.mjs`. */
+const teamOk = t => t === undefined || t === null || (typeof t === 'object' && !Array.isArray(t))
 
 /** A `/v2/games` body as `src/LiveFeed.fs` `decodeFeed` reads it: a `games` list, every game an object with a string `espnEventId` and a
  *  string `state`; a score is an integer or absent, a clock a string or absent. ONE bad game fails the whole feed, as it does on the page. */
@@ -86,8 +92,9 @@ export const decodeFeed = body => {
     if (!g || typeof g !== 'object') return { ok: false, why: 'a game is not an object' }
     if (typeof g.espnEventId !== 'string') return { ok: false, why: 'a game has no string espnEventId' }
     if (typeof g.state !== 'string') return { ok: false, why: 'a game has no string state' }
+    if (!teamOk(g.home) || !teamOk(g.away)) return { ok: false, why: 'a team is not an object' }
     const h = intOrNull(g.home?.score), a = intOrNull(g.away?.score)
-    if (!h.ok || !a.ok) return { ok: false, why: 'a score is not an integer' }
+    if (!h.ok || !a.ok) return { ok: false, why: 'a score is not a whole number inside the int32 range' }
     if (g.clock !== undefined && g.clock !== null && typeof g.clock !== 'string') return { ok: false, why: 'a clock is not a string' }
     games.push({ espnId: g.espnEventId, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '' })
   }
@@ -261,6 +268,12 @@ if (SELF_TEST) {
   check('ONE bad game fails the whole feed, as the page does: no espnEventId, a numeric id, no state, a string score, a numeric clock, a null game',
     [{ state: 'live' }, { espnEventId: 1, state: 'live' }, { espnEventId: '1' }, { espnEventId: '1', state: 'live', home: { score: '1' } }, { espnEventId: '1', state: 'live', clock: 34 }, null]
       .every(g => decodeFeed({ games: [{ espnEventId: '2', state: 'pre' }, g] }).ok === false))
+  // Review 2026-11-11 (decoder S7, S11): the probe and the page disagreed on these. `scripts/check-live-probe-keys.mjs` now holds this decoder to the compiled one on a shared battery.
+  check('a score over the int32 range fails the feed, as it does on the page',
+    decodeFeed({ games: [{ espnEventId: '1', state: 'live', home: { score: 2147483648 } }] }).ok === false && decodeFeed({ games: [{ espnEventId: '1', state: 'live', home: { score: 2147483647 } }] }).ok === true)
+  check('a team that is a string, a number or a list fails the feed, a null or absent one does not',
+    [{ home: 'x' }, { home: 5 }, { home: [] }, { away: 'x' }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === false)
+      && [{ home: null }, {}, { home: {} }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === true))
   check('gamesOf-equivalent reading: the live game of two is found by its ESPN id', decodeFeed({ games: [{ espnEventId: '9', state: 'pre' }, { espnEventId: '1', state: 'live', home: { score: 2 }, away: { score: 2 }, clock: "80'" }] }).games.find(g => g.espnId === '1').home === 2)
 
   // rows and ids
