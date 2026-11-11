@@ -11333,6 +11333,48 @@ const MUTATIONS = [
     replace: "  .desk-card__live:empty { }\n",
     expect: "node scripts/live-score-render-check.mjs",
   },
+  // Review 2026-11-11, semantics F3 / rules F3 / rules F12: the check named 'before it, during it, and not after it' never asked about during, and
+  // fourteen of the sixteen feed keys were pinned by nothing. Each entry breaks one claim the new Suite cases make.
+  {
+    id: "live-work-ahead-stops-at-kickoff",
+    file: "src/LiveScore.fs",
+    claim: "the poll's timer keeps running while a match is in play",
+    find: "            | Some start -> now <= start + liveWindowAfterStart\n",
+    replace: "            | Some start -> now <= start\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-work-ahead-ends-before-the-last-instant",
+    file: "src/LiveScore.fs",
+    claim: "work is ahead at the last instant of the window, as the window itself includes it",
+    find: "            | Some start -> now <= start + liveWindowAfterStart\n",
+    replace: "            | Some start -> now < start + liveWindowAfterStart\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-key-facup-mistyped",
+    file: "src/LiveScore.fs",
+    claim: "the FA Cup asks the relay for facup",
+    find: "    | Sport.FACup -> Some \"facup\"\n",
+    replace: "    | Sport.FACup -> Some \"fa\"\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-key-uefa-qualifying-mistyped",
+    file: "src/LiveScore.fs",
+    claim: "the UEFA Champions League qualifying rounds ask for uclqual",
+    find: "    | Sport.UEFAChampionsLeagueQualifying -> Some \"uclqual\"\n",
+    replace: "    | Sport.UEFAChampionsLeagueQualifying -> Some \"uclq\"\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-key-world-cup-mistyped",
+    file: "src/LiveScore.fs",
+    claim: "the World Cup asks for wc26",
+    find: "    | Sport.FIFAWorldCup -> Some \"wc26\"\n",
+    replace: "    | Sport.FIFAWorldCup -> Some \"wc2026\"\n",
+    expect: "node build/VerifyMain.js",
+  },
   // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8: the live-score probe's verdict logic. Each entry breaks one thing its
   // verdict rests on and expects its own self-test to notice (Rule 90).
   {

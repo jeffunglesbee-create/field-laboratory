@@ -9,8 +9,13 @@ open Desk
 //
 // WHY A SEPARATE READING AND NOT A NEW GameState CASE. A fourth case would be an exhaustive-match site in eight places
 // (the card, Stats, Pick'em, the amnesty zone...) and each would have to decide what a live soccer score means for it. Instead
-// the feed's answer becomes a `LiveReading` and `stateWith` folds it into the SAME three-case `GameState` the page already
-// understands, so the card, Stats and Pick'em keep agreeing. A reading never makes a game `Final`: `Final` is what opens the
+// the feed's answer becomes a `LiveReading` and `foldReading` folds it into the SAME three-case `GameState` the page already
+// understands. The fold happens in ONE place, the card (`Scoreboard.render` folds over its own state signal); Pick'em and Stats still
+// read the archive row alone and do not see a reading, so for the minutes a match is in play the card says `In progress` where the
+// Pick'em chip says `PENDING`. That is the state before this feature too (both read Scheduled), now disagreeing instead of agreeing
+// wrongly; the parity is filed as docs/CC-CMD-2026-11-11-live-scores-tabs.md. (An earlier version of this comment said the three
+// "keep agreeing": that was the design's intent and not what was built, found by review 2026-11-11.)
+// A reading never makes a game `Final`: `Final` is what opens the
 // amnesty zone (drama text, the sparkline, Pick'em grading), and the owner's ruling is that only the archive says a game is over
 // (docs/CC-CMD-2026-10-15-empowerment-metrics.md ruling 2(b)).
 
@@ -27,7 +32,10 @@ type LiveReading =
 
 /// The relay's `/v2/games` sport key for a laboratory soccer sport; `None` for a sport the feed is not asked about.
 /// A new soccer `Sport` with no key here fails the Suite (every `IsSoccer` sport must have one), so the table cannot drift
-/// quietly. The keys are the relay's, read from its `SPORT_CONFIG` on 2026-11-11 (field-relay-nba `src/index.js`).
+/// quietly. The keys are the relay's `V2_LEAGUES` (field-relay-nba `src/index.js`, which `handleV2Games` resolves). Measured on the
+/// DEPLOYED relay on 2026-11-11 through `probe_relay_route`: `/v2/games?sport=<key>&date=2026-11-11` answered 200 for each of the 16
+/// keys below, and an unknown key answers 400 with a `supported` list that contains all 16. (An earlier version of this comment
+/// named `SPORT_CONFIG`, which holds three of the sixteen; the values were right, the cited table was not.)
 let liveSportKey (sport: Sport) : string option =
     match sport with
     | Sport.EPL -> Some "epl"
@@ -55,7 +63,9 @@ let liveSportKey (sport: Sport) : string option =
 let LivePollMs = 60000
 
 /// A card is in its live window from its start time to this long after it. A soccer match is about two hours with its breaks
-/// and stoppage, and the archive finalises 15 to 45 minutes after that, so three hours covers the gap the `Full time` marker is for.
+/// and stoppage, and the archive's first score has been seen 115.5 to 135 minutes after kickoff (CC-CMD fact 3), so three hours
+/// covers the gap the `Full time` marker is for. How long ESPN says `final` before the archive finalises is NOT measured on a real
+/// match as of 2026-11-11; the capture's late samples are the first.
 let liveWindowAfterStart = TimeSpan.FromHours 3.0
 
 /// Is the card inside its live window at this instant? Inclusive at both ends. A row with no start time is never in one: an
@@ -95,10 +105,6 @@ let foldReading (archive: GameState) (reading: LiveReading) : GameState =
         | FullTime(h, a) -> InProgress(h, a)
         | NoReading
         | LiveUnavailable _ -> archive
-
-/// `foldReading` over the archive's own answer at a named instant. The card folds over its current state signal instead, so a
-/// state set from outside the page's data (the test affordance) is the "archive" it folds over.
-let stateWith (now: DateTimeOffset) (g: Game) (reading: LiveReading) : GameState = foldReading (gameStateAt now g) reading
 
 /// The words beside the score for a reading: the feed's clock, `Full time`, or the reason the score is missing. Empty when there
 /// is nothing to say. It is a sibling of the status line, which stays `In progress` (the live grouping reads that exact text).

@@ -4520,6 +4520,17 @@ let private liveScore () =
           (Sport.EFLTrophy, "efltrophy")
           (Sport.EFLTrophy, "efltroph")
 
+      // All sixteen, by value, so a key mistyped for a league nobody has checked (FA Cup, a UEFA qualifying slug) fails here. The values are
+      // the relay's V2_LEAGUES keys; on 2026-11-11 each answered 200 on the deployed relay (see `LiveScore.liveSportKey`).
+      Verify.check "each of the sixteen soccer sports asks for the relay's key for it"
+          (fun pairs -> pairs |> List.forall (fun (sport, key) -> LiveScore.liveSportKey sport = Some key))
+          [ (Sport.EPL, "epl"); (Sport.MLS, "mls"); (Sport.LaLiga, "laliga"); (Sport.SerieA, "seriea"); (Sport.Bundesliga, "bundesliga")
+            (Sport.Ligue1, "ligue1"); (Sport.UEFAChampionsLeague, "ucl"); (Sport.UEFAChampionsLeagueQualifying, "uclqual")
+            (Sport.UEFAEuropaLeague, "europa"); (Sport.UEFAEuropaLeagueQualifying, "europaqual")
+            (Sport.UEFAEuropaConferenceLeague, "conference"); (Sport.UEFAEuropaConferenceLeagueQualifying, "conferencequal")
+            (Sport.FIFAWorldCup, "wc26"); (Sport.EFLCup, "eflcup"); (Sport.EFLTrophy, "efltrophy"); (Sport.FACup, "facup") ]
+          [ (Sport.EPL, "epl"); (Sport.FACup, "fa") ]
+
       Verify.check "no two soccer sports share a feed key"
           (fun sports -> (sports |> List.choose LiveScore.liveSportKey |> List.distinct |> List.length) = List.length sports)
           (allSports |> List.filter (fun s -> (sportMeta s).IsSoccer))
@@ -4553,9 +4564,21 @@ let private liveScore () =
           Sport.EPL
           Sport.MLB
 
-      Verify.check "work is ahead before a window, during it, and not after it"
+      // Three separate instants, because one check with a before and an after never asked about DURING: `now <= start + 3h` mutated to
+      // `now <= start` kept the old check green while the poll's timer would have stopped at kickoff (review 2026-11-11, semantics F3).
+      Verify.check "work is ahead before a window"
           (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
           "2026-11-21T10:00:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "work is ahead while a match is in play, which is what keeps the timer running"
+          (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
+          "2026-11-21T13:15:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "work is ahead at the last instant of the window and not after it"
+          (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
+          "2026-11-21T15:30:00Z"
           "2026-11-21T15:30:01Z"
 
       Verify.check "a slate with no soccer card has no live work ahead"
@@ -4565,25 +4588,25 @@ let private liveScore () =
 
       // THE MEASURED CASE (2026-11-08): no score in the archive, 45 minutes in. A reading turns it into in progress.
       Verify.check "a started row with no score and a live reading is in progress with that score"
-          (fun reading -> LiveScore.stateWith (at "2026-11-21T13:15:00Z") epl reading = InProgress(1, 0))
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = InProgress(1, 0))
           (LiveScore.LiveNow(1, 0, Some "45'"))
           LiveScore.NoReading
 
       Verify.check "a reading that says full time keeps the card in progress, never final"
-          (fun reading -> LiveScore.stateWith (at "2026-11-21T14:40:00Z") epl reading = InProgress(2, 2))
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T14:40:00Z") epl) reading = InProgress(2, 2))
           (LiveScore.FullTime(2, 2))
           (LiveScore.LiveNow(2, 1, None))
 
       // Final opens the amnesty zone and Pick'em grading; only the archive may say a game is over, and a reading cannot take it back.
       Verify.check "the archive's Final is never taken back by a reading"
           (fun g ->
-              let state = LiveScore.stateWith (at "2026-11-21T16:00:00Z") g (LiveScore.LiveNow(0, 0, None))
+              let state = LiveScore.foldReading (gameStateAt (at "2026-11-21T16:00:00Z") g) (LiveScore.LiveNow(0, 0, None))
               state = Final(2, 1, false))
           (game Sport.EPL kickoff (Some "2026-11-21 14:35:00") (Some 2) (Some 1))
           (game Sport.EPL kickoff None (Some 2) (Some 1))
 
       Verify.check "no reading and an unavailable reading leave the archive's own answer"
-          (fun reading -> LiveScore.stateWith (at "2026-11-21T13:15:00Z") epl reading = Scheduled)
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = Scheduled)
           (LiveScore.LiveUnavailable "the feed did not answer")
           (LiveScore.LiveNow(1, 0, None))
 
@@ -4599,7 +4622,7 @@ let private liveScore () =
           (Final(1, 0, false))
 
       Verify.check "a placeholder score before kickoff is still Scheduled under no reading"
-          (fun now -> LiveScore.stateWith (at now) (game Sport.EPL kickoff None (Some 0) (Some 0)) LiveScore.NoReading = Scheduled)
+          (fun now -> LiveScore.foldReading (gameStateAt (at now) (game Sport.EPL kickoff None (Some 0) (Some 0))) LiveScore.NoReading = Scheduled)
           "2026-11-21T12:00:00Z"
           "2026-11-21T13:00:00Z"
 
