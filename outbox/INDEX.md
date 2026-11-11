@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `1b7df2d` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 41424c9 [skip ci] |
+| `5adffba` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `41424c9` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | fix: the live-shape capture's own block is tested end to end, its two premises are kept apart, and the Full time gap is counted |
 | `04fc0b5` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `e1b75e0` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of c4d74c3 [skip ci] |
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
