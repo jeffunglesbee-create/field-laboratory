@@ -12,6 +12,7 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `04fc0b5` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
 | `a6dc8e5` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 125e28d [skip ci] |
