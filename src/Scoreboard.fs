@@ -495,20 +495,34 @@ let private lineupAffordance (game: Game) : HTMLElement option =
         Some details
 // ── end lineup disclosure ───────────────────────────────────────────────────
 
-/// Builds the card and mounts it. Returns the state setter so scores can be
-/// pushed reactively without re-rendering the card — the whole point of an
-/// island.
-let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: unit -> CardForecast.TableState) =
+/// What the page can do to ONE card after it is drawn. Keyed by the game's id, not by a position in a list, so a poll that
+/// reads a feed finds the card by what the feed says (its ESPN event id, joined to this game) and not by where it sits.
+type CardHandle =
+    { Id: string
+      Game: Game
+      /// The archive's answer, set from outside the page's data (the test affordance).
+      SetState: GameState -> unit
+      /// What the live feed said about this game. `NoReading` puts the card back as the archive leaves it.
+      SetReading: LiveScore.LiveReading -> unit }
+
+/// Builds the card and mounts it. Returns its handle so scores can be pushed
+/// reactively without re-rendering the card — the whole point of an island.
+let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: unit -> CardForecast.TableState) : CardHandle =
     let state, setState = Solid.createSignal (gameState game)
+    // The feed's reading, and what the card SHOWS: the archive's state with the reading folded over it. The archive's `Final`
+    // always wins and a reading never makes a game Final (LiveScore.foldReading), so the amnesty zone stays closed until the
+    // archive says the game is over.
+    let reading, setReading = Solid.createSignal LiveScore.NoReading
+    let shown = Solid.createMemo (fun () -> LiveScore.foldReading (state ()) (reading ()))
 
     // Derived values that recompute reactively rather than being baked in at
     // render time.
-    let display = Solid.createMemo (fun () -> scoreText game (state ()))
-    let status = Solid.createMemo (fun () -> statusText game (state ()))
+    let display = Solid.createMemo (fun () -> scoreText game (shown ()))
+    let status = Solid.createMemo (fun () -> statusText game (shown ()))
     // Drama is state-derived now, not immutable: the number is permitted only
     // once the game is final, so the slot has to appear at the moment the game
     // ends and must never be present before it.
-    let drama = Solid.createMemo (fun () -> dramaText game (state ()))
+    let drama = Solid.createMemo (fun () -> dramaText game (shown ()))
 
     let card = el "div" "desk-card" ""
     card.setAttribute("data-game-id", game.Id)
@@ -525,6 +539,10 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           teamsNode game
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
+          // The feed's clock, `Full time`, or why there is no score. Only a card of a sport the feed is asked about has the node,
+          // so every other card keeps its structure byte for byte.
+          if (LiveScore.liveSportKey game.Sport).IsSome then
+              stateNode "desk-card__live" "live" (fun () -> LiveScore.liveNoteText (reading ()))
           stateNode "desk-card__drama" "drama" drama
           // Empty at render. Weather is asynchronous and the card is not, so
           // this is a slot rather than a value — filled by WeatherView.fillCards
@@ -542,7 +560,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           // card has the node at all, so every other card keeps its old
           // structure byte for byte.
           if game.Sport = Sport.EPL then
-              forecastNode game state table
+              forecastNode game shown table
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
     // Where the front-face children are hosted. For a card with no brief this is
@@ -749,9 +767,9 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
 
     mount.appendChild card |> ignore
 
-    setState
+    { Id = game.Id; Game = game; SetState = setState; SetReading = setReading }
 
-/// Renders the whole slate, grouped by sport, and returns the state setters in
+/// Renders the whole slate, grouped by sport, and returns the card handles in
 /// DOM order so index 0 always addresses the first card on screen.
 ///
 /// Groups are ordered by size descending then name, so a 20-game MLB slate leads
@@ -766,7 +784,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
 /// and never fetches: the request is made once by the caller, so thirty cards
 /// cannot become thirty requests.
 let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) (table: unit -> CardForecast.TableState) =
-    let setters = ResizeArray<GameState -> unit>()
+    let handles = ResizeArray<CardHandle>()
 
     // game.Id -> its brief, resolved once for the whole slate. Empty when the
     // payload carried no briefs, which is the common case on a scheduled slate
@@ -800,9 +818,9 @@ let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) (ta
 
         let grid = el "div" "sport-group__grid" ""
         for game in gs do
-            setters.Add(render grid game (Map.tryFind game.Id byGame) table)
+            handles.Add(render grid game (Map.tryFind game.Id byGame) table)
         section.appendChild grid |> ignore
 
         mount.appendChild section |> ignore
 
-    setters
+    handles

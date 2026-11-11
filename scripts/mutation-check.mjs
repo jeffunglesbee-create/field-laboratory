@@ -10586,8 +10586,8 @@ const MUTATIONS = [
     id: "forecast-card-on-every-card",
     file: "src/Scoreboard.fs",
     claim: "only an EPL card has the forecast node, so every other card keeps its old structure",
-    find: "          if game.Sport = Sport.EPL then\n              forecastNode game state table\n",
-    replace: "          if true then\n              forecastNode game state table\n",
+    find: "          if game.Sport = Sport.EPL then\n              forecastNode game shown table\n",
+    replace: "          if true then\n              forecastNode game shown table\n",
     expect: "node scripts/forecast-render-check.mjs",
   },
   {
@@ -11009,8 +11009,8 @@ const MUTATIONS = [
     id: "live-reading-beats-archive-final",
     file: "src/LiveScore.fs",
     claim: "the archive's Final is never taken back by a reading",
-    find: "    | Final _ as archive -> archive\n",
-    replace: "    | Final _ as archive when false -> archive\n",
+    find: "    | Final _ -> archive\n",
+    replace: "    | Final _ when false -> archive\n",
     expect: "node build/VerifyMain.js",
   },
   {

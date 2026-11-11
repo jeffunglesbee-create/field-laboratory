@@ -86,15 +86,19 @@ let liveWorkAheadAt (now: DateTimeOffset) (games: Game list) : bool =
 /// The state a card shows once the feed has spoken. The ARCHIVE's `Final` always wins: a reading is never allowed to take a game
 /// back from `Final`, and never to make one. A reading that adds a score turns a started `Scheduled` row into `InProgress`; no
 /// reading, or an unavailable one, leaves the archive's own answer.
-let stateWith (now: DateTimeOffset) (g: Game) (reading: LiveReading) : GameState =
-    match gameStateAt now g with
-    | Final _ as archive -> archive
-    | archive ->
+let foldReading (archive: GameState) (reading: LiveReading) : GameState =
+    match archive with
+    | Final _ -> archive
+    | _ ->
         match reading with
         | LiveNow(h, a, _)
         | FullTime(h, a) -> InProgress(h, a)
         | NoReading
         | LiveUnavailable _ -> archive
+
+/// `foldReading` over the archive's own answer at a named instant. The card folds over its current state signal instead, so a
+/// state set from outside the page's data (the test affordance) is the "archive" it folds over.
+let stateWith (now: DateTimeOffset) (g: Game) (reading: LiveReading) : GameState = foldReading (gameStateAt now g) reading
 
 /// The words beside the score for a reading: the feed's clock, `Full time`, or the reason the score is missing. Empty when there
 /// is nothing to say. It is a sibling of the status line, which stays `In progress` (the live grouping reads that exact text).

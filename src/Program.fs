@@ -329,7 +329,7 @@ let private reportFailed (id: string) (text: string) = reportAs "failed" id text
 /// check only ever saw the initial paint. Driving a real state transition needs
 /// a way in from outside the page, so the setters are exposed deliberately —
 /// behind a flag, never in a normal load.
-let private exposeForTesting (setters: ResizeArray<GameState -> unit>) =
+let private exposeForTesting (handles: ResizeArray<Scoreboard.CardHandle>) =
     let named name =
         match name with
         | "scheduled" -> Scheduled
@@ -343,7 +343,7 @@ let private exposeForTesting (setters: ResizeArray<GameState -> unit>) =
     // the fallback case instead of the one asked for. Verified in the emitted
     // JS; System.Func emits a genuine two-parameter function.
     window?__labSetState <- System.Func<int, string, unit>(fun index name ->
-        if index >= 0 && index < setters.Count then setters.[index] (named name))
+        if index >= 0 && index < handles.Count then handles.[index].SetState (named name))
 
 /// The tab title says which day and which surface.
 ///
@@ -460,9 +460,9 @@ let private start () =
 
                 Solid.createRoot (fun dispose ->
                     disposeRoot <- Some(fun () -> dispose.Invoke())
-                    let setters = Scoreboard.renderSlate mount games briefs table
+                    let handles = Scoreboard.renderSlate mount games briefs table
                     if window.location.search.Contains "simulate=1" then
-                        exposeForTesting setters)
+                        exposeForTesting handles)
 
                 // The model's forecast needs the table; nothing else on the page
                 // does, so a slate with no EPL card spends no request. ONE request,

@@ -4587,6 +4587,17 @@ let private liveScore () =
           (LiveScore.LiveUnavailable "the feed did not answer")
           (LiveScore.LiveNow(1, 0, None))
 
+      // The card folds over its CURRENT state signal, so a state set from outside the page's data is the archive it folds over.
+      Verify.check "no reading leaves any archive state exactly as it is"
+          (fun archive -> LiveScore.foldReading archive LiveScore.NoReading = InProgress(1, 0))
+          (InProgress(1, 0))
+          Scheduled
+
+      Verify.check "a score reading turns a Scheduled archive state into in progress with that score"
+          (fun archive -> LiveScore.foldReading archive (LiveScore.LiveNow(1, 0, None)) = InProgress(1, 0))
+          Scheduled
+          (Final(1, 0, false))
+
       Verify.check "a placeholder score before kickoff is still Scheduled under no reading"
           (fun now -> LiveScore.stateWith (at now) (game Sport.EPL kickoff None (Some 0) (Some 0)) LiveScore.NoReading = Scheduled)
           "2026-11-21T12:00:00Z"
