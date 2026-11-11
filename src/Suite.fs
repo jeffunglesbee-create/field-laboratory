@@ -4670,6 +4670,19 @@ let private liveScore () =
           (LiveScore.HalfTime(1, 0))
           LiveScore.NoReading
 
+      // Fix-review round 3 (defence F5): the guard was checked with a live reading only, so HalfTime and FullTime could take a card back from Final unseen.
+      Verify.check "a card the archive has finalised is never taken back by any reading: none, live, half time, full time or unavailable"
+          (fun archive ->
+              [ LiveScore.NoReading
+                LiveScore.LiveNow(0, 0, None)
+                LiveScore.LiveNow(1, 0, Some "34'")
+                LiveScore.HalfTime(1, 0)
+                LiveScore.FullTime(2, 1)
+                LiveScore.LiveUnavailable "x" ]
+              |> List.forall (fun reading -> LiveScore.foldReading archive reading = archive))
+          (Final(2, 1, false))
+          Scheduled
+
       Verify.check "a reading that says full time keeps the card in progress, never final"
           (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T14:40:00Z") epl) reading = InProgress(2, 2))
           (LiveScore.FullTime(2, 2))
@@ -4837,6 +4850,13 @@ let private liveFeed () =
     let flagString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":{"isHalftime":"true"}}"""
     let flagNumber = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":{"isHalftime":1}}"""
     let situationString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":"x"}"""
+    // Fix-review round 3 (defence F3): `isStoppage` (the clock has a `+`) and `isHalftime` (ESPN's status) are set independently by the relay, and every captured body had them equal
+    // (false/false at 18', true/true at the break). A game in ADDED TIME with the ball in play is stoppage true and half time false: the case the feature exists to tell apart.
+    let liveStoppage = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"45'+2'","situation":{"elapsed":45,"isStoppage":true,"isHalftime":false}}"""
+    let liveStoppageLate = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"90'+4'","situation":{"elapsed":90,"isStoppage":true,"isHalftime":false}}"""
+    // Two live games in ONE feed, the first at the break and the second in play (defence F4).
+    let twoGamesOneAtTheBreak =
+        """{"games":[{"espnEventId":"1","state":"live","home":{"score":1},"away":{"score":0},"clock":"45'+2'","situation":{"isHalftime":true}},{"espnEventId":"2","state":"live","home":{"score":2},"away":{"score":2},"clock":"34'","situation":{"isHalftime":false}}]}"""
 
     let halftimeFlags (body: string) : Result<bool list, string> =
         LiveFeed.decodeFeed body |> Result.map (List.map (fun g -> g.IsHalftime))
@@ -5135,6 +5155,26 @@ let private liveFeed () =
           (fun body -> errorMentions "situation" (LiveFeed.decodeFeed body))
           situationString
           liveHalf
+
+      Verify.check "a live game in added time of a half, with the ball in play, is read as its clock and never as half time: only `situation.isHalftime` says half time"
+          (fun bodies ->
+              bodies
+              |> List.forall (fun body ->
+                  match readThrough body with
+                  | Ok(LiveScore.LiveNow(1, 0, Some clock)) -> clock.Contains "+"
+                  | _ -> false))
+          [ liveStoppage; liveStoppageLate ]
+          [ liveStoppage; liveHalf ]
+
+      Verify.check "the half-time flag belongs to its own game: of two live games in one feed the one at the break reads half time and the other its own clock"
+          (fun (atTheBreak, inPlay) ->
+              match LiveFeed.decodeFeed twoGamesOneAtTheBreak with
+              | Ok parsed ->
+                  let read id = LiveFeed.readingFor parsed (card (Some id))
+                  read atTheBreak = LiveScore.HalfTime(1, 0) && read inPlay = LiveScore.LiveNow(2, 2, Some "34'")
+              | Error _ -> false)
+          ("1", "2")
+          ("2", "1")
 
       Verify.check "the half-time flag is read from a live game only: a finished game that carries it is still full time"
           (fun body -> readThrough body = Ok(LiveScore.FullTime(2, 1)))

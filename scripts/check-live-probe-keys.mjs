@@ -13,6 +13,7 @@
 //
 // Usage: node scripts/check-live-probe-keys.mjs
 
+import { readdirSync, readFileSync } from 'node:fs'
 import { createChecks, finish } from './checks.mjs'
 import { allSports, sportMeta } from '../build/Desk.js'
 import { liveSportKey } from '../build/LiveScore.js'
@@ -81,6 +82,14 @@ const BATTERY = {
   'a string situation': { games: [game({ situation: 'x' })] },
   'a numeric situation': { games: [game({ situation: 5 })] },
   'a list for the situation': { games: [game({ situation: [] })] },
+  // Fix-review round 3 (defence F3, F6): added time in play is not half time, and the falsy values a truthiness test would let through.
+  'added time in play, stoppage true and half time false': { games: [game({ clock: "45'+2'", situation: { isStoppage: true, isHalftime: false } })] },
+  'added time at the break, stoppage true and half time true': { games: [game({ clock: "45'+3'", situation: { isStoppage: true, isHalftime: true } })] },
+  'a false situation': { games: [game({ situation: false })] },
+  'a zero situation': { games: [game({ situation: 0 })] },
+  'an empty-string situation': { games: [game({ situation: '' })] },
+  'a zero half-time flag': { games: [game({ situation: { isHalftime: 0 } })] },
+  'an empty-string half-time flag': { games: [game({ situation: { isHalftime: '' } })] },
   'no home team': { games: [without('home')] },
   'a null home team': { games: [game({ home: null })] },
   'a string home team': { games: [game({ home: 'x' })] },
@@ -108,4 +117,25 @@ check('the battery has both outcomes, so agreement on it is not agreement on not
 check('a decoded game carries its fields, so the comparison above compared something', verdicts.find(v => v.name === 'a live game with a clock').page.games[0].clock === "34'")
 check('...and the half-time flag, so a decoder that ignored it would be seen', verdicts.find(v => v.name === 'a half-time flag true').page.games[0].halftime === true && verdicts.find(v => v.name === 'a half-time flag false').page.games[0].halftime === false)
 console.log(`compared the page's and the probe's feed decoders on ${verdicts.length} bodies: ${verdicts.filter(v => v.same).length} agree (${verdicts.filter(v => v.page.ok).length} decode, ${verdicts.filter(v => !v.page.ok).length} fail the feed). Not covered: bodies outside this list. The two real bodies of games in play (2026-11-11) are decoded by the Suite, not by this battery.`)
+
+// ---- the COMMITTED captures of real games, through both decoders ------------------------------------------------------------------------------------------------
+// Fix-review round 3 (Rule 89): the notes said both decoders read the real bodies "unchanged", and no committed check ran them. Every `outbox/live-capture-*.json` of a soccer key
+// carries the relay's real `/v2/games` body as `v2.body`; both decoders read it, and must decode it, to the same games. Read from the working directory, as the other scripts read `data/`.
+const soccerKeys = new Set(Object.values(LABEL_TO_KEY))
+const captureFiles = readdirSync('outbox').filter(f => /^live-capture-.+\.json$/.test(f)).sort()
+let readFromCaptures = 0
+let notCompared = 0
+for (const f of captureFiles) {
+  const j = JSON.parse(readFileSync(`outbox/${f}`, 'utf8'))
+  const body = j.v2?.body
+  if (!soccerKeys.has(j.sport) || body === undefined || body === null) { notCompared++; continue }
+  const text = typeof body === 'string' ? body : JSON.stringify(body)
+  const page = pageShape(pageDecodeFeed(text))
+  const probe = probeShape(probeDecodeFeed(JSON.parse(text)))
+  readFromCaptures++
+  check(`the committed capture ${f} (${j.capturedAt}) decodes with the page's decoder and the probe's, to the same games`,
+    page.ok && probe.ok && page.games.length > 0 && JSON.stringify(page) === JSON.stringify(probe), `page ${JSON.stringify(page)}, probe ${JSON.stringify(probe)}`)
+}
+check('there is at least one committed capture of a soccer key, so the loop above compared something', readFromCaptures > 0)
+console.log(`compared both decoders on ${readFromCaptures} committed capture bod${readFromCaptures === 1 ? 'y' : 'ies'} (outbox/live-capture-*.json: ${captureFiles.length} files, ${notCompared} of another sport or with no body)`)
 finish(summarize())

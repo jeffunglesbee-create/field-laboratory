@@ -297,7 +297,10 @@ if (SELF_TEST) {
     feedWith({ situation: { isHalftime: true } }).games[0].halftime === true
       && [{}, { situation: null }, { situation: {} }, { situation: { isHalftime: null } }, { situation: { isHalftime: false } }].every(t => feedWith(t).games[0].halftime === false))
   check('a flag that is not a boolean, or a `situation` that is a string, a number or a list, fails the feed, as on the page',
-    [{ situation: { isHalftime: 'true' } }, { situation: { isHalftime: 1 } }, { situation: 'x' }, { situation: 5 }, { situation: [] }].every(t => feedWith(t).ok === false))
+    [{ situation: { isHalftime: 'true' } }, { situation: { isHalftime: 1 } }, { situation: 'x' }, { situation: 5 }, { situation: [] },
+      { situation: false }, { situation: 0 }, { situation: '' }, { situation: { isHalftime: 0 } }, { situation: { isHalftime: '' } }].every(t => feedWith(t).ok === false))
+  check('added time in play (stoppage true, half time false) is not half time; the break (both true) is',
+    feedWith({ situation: { isStoppage: true, isHalftime: false } }).games[0].halftime === false && feedWith({ situation: { isStoppage: true, isHalftime: true } }).games[0].halftime === true)
   check('a team that is a string, a number or a list fails the feed, a null or absent one does not',
     [{ home: 'x' }, { home: 5 }, { home: [] }, { away: 'x' }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === false)
       && [{ home: null }, {}, { home: {} }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === true))

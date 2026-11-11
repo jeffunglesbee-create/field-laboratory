@@ -235,6 +235,14 @@ if (isMain(import.meta.url) && !SELF_TEST) {
   const kept = await settle(page, EARLY, { status: WORDS.finalOvertime })
   check('a card the archive has finalised is never taken back by a reading: Final, its score, no note',
     mismatches(kept, { status: WORDS.finalOvertime, score: '7–4', live: '' }).length === 0, JSON.stringify(kept))
+  // Fix-review round 3 (defence F5): the guard was checked with a live reading only; a half-time or full-time reading must not take a finalised card back either.
+  for (const kind of ['halftime', 'fulltime']) {
+    await setReading(page, EARLY, kind, 1, 0)
+    await page.waitForTimeout(150)
+    const held = await readCard(page, EARLY)
+    check(`a card the archive has finalised is not taken back by a ${kind} reading either: Final / OT, its score, no note`,
+      mismatches(held, { status: WORDS.finalOvertime, score: '7–4', live: '' }).length === 0, JSON.stringify(held))
+  }
   // Fix-review 2026-11-11 (card F8, defence F22): the `Final _, _ -> ""` arm of `liveWhyFor` is reached on a real page only through the state the card's effect hands it, and the Suite pins the
   // pure function alone: the effect reading a constant instead of the card's state passed every check. A card the archive has finalised (after extra time here: `Final / OT`) is told the feed failed,
   // and must carry neither a note nor a reason. The reading is then shown to have been held all along: give the card back to the archive and the same reading's reason appears.
@@ -396,8 +404,8 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       slate.games.postseason = []
       return slate
     }
-    const feedFor = (key, id, home, away, clock, half) => JSON.stringify({ sport: key, date: '2026-10-10', count: 1, games: [{ id: `espn:${id}`, espnEventId: id, sport: key, state: 'live', start: '2026-10-10T11:30Z',
-      home: { name: 'H', abbr: 'H', score: home }, away: { name: 'A', abbr: 'A', score: away }, clock, periodNum: 1, periodLabel: '', situation: half === undefined ? null : { isHalftime: half }, matchEvents: [], streams: [] }] })
+    const feedFor = (key, id, home, away, clock, situation) => JSON.stringify({ sport: key, date: '2026-10-10', count: 1, games: [{ id: `espn:${id}`, espnEventId: id, sport: key, state: 'live', start: '2026-10-10T11:30Z',
+      home: { name: 'H', abbr: 'H', score: home }, away: { name: 'A', abbr: 'A', score: away }, clock, periodNum: 1, periodLabel: '', situation: situation === undefined ? null : situation, matchEvents: [], streams: [] }] })
     const FEEDS = { epl: feedFor('epl', ARSENAL_LEEDS_ESPN, 1, 0, "34'"), laliga: feedFor('laliga', RAYO, 2, 2, "50'") }
     const routesFor = async (pg, slate, onFeed) => {
       await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
@@ -655,29 +663,40 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       await ctx.close()
     }
 
-    // (h) half time through the poll: the flag is per GAME (the other league's card in play keeps its clock), and the note goes back to the clock when the flag clears.
-    // The feed's clock at the break is `45'+3'`, which on its own reads as stoppage time in play (captured 2026-11-11, owner approved the marker).
+    // (h) half time through the poll, from added time in play to the break to the second half. The flag is per SPORT FEED here (the other league's game in play keeps its clock; per game within one
+    // feed is the Suite's), and `isStoppage` is NOT `isHalftime` (fix-review round 3, defence F3): the relay sets them independently and every captured body had them equal, so the first answer is
+    // added time with the ball in play (`45'+2'`, stoppage true, half time false) and must read as its clock. The break itself reads `45'+3'` with both true (captured 2026-11-11), which on its own
+    // reads as stoppage time in play; the owner approved a `Half time` note.
     {
       const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
       const pg = await ctx.newPage()
       const errs = []
       pg.on('pageerror', e => errs.push(e.message))
       const n = { epl: 0 }
+      const bodies = [
+        feedFor('epl', ARSENAL_LEEDS_ESPN, 3, 0, "45'+2'", { elapsed: 45, isStoppage: true, isHalftime: false }),
+        feedFor('epl', ARSENAL_LEEDS_ESPN, 3, 0, "45'+3'", { elapsed: 45, isStoppage: true, isHalftime: true }),
+        feedFor('epl', ARSENAL_LEEDS_ESPN, 3, 0, "46'", { elapsed: 46, isStoppage: false, isHalftime: false }),
+      ]
       await routesFor(pg, mk(), r => {
         const key = new URL(r.request().url()).searchParams.get('sport')
-        if (key === 'epl') return r.fulfill({ contentType: 'application/json', body: n.epl++ === 0 ? feedFor('epl', ARSENAL_LEEDS_ESPN, 3, 0, "45'+3'", true) : feedFor('epl', ARSENAL_LEEDS_ESPN, 3, 0, "46'", false) })
+        if (key === 'epl') return r.fulfill({ contentType: 'application/json', body: bodies[Math.min(n.epl++, bodies.length - 1)] })
         return r.fulfill({ contentType: 'application/json', body: FEEDS[key] ?? JSON.stringify({ games: [] }) })
       })
       await pg.clock.install({ time: new Date(AT) })
       await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
       await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      const inAddedTime = await settle(pg, EARLY, { live: "45'+2'" })
+      check('a game in added time of the first half, ball in play (stoppage true, half time false), reads its clock and not Half time',
+        mismatches(inAddedTime, { score: '3–0', status: WORDS.inProgress, live: "45'+2'" }).length === 0, JSON.stringify(inAddedTime))
+      await pg.clock.fastForward(60_000)
       const atBreak = await settle(pg, EARLY, { live: WORDS.halfTime })
       const other = await settle(pg, 'Rayo v Athletic', { score: '2–2' })
-      check('a game the feed says is at half time reads Half time with its score, not the clock `45\'+3\'`, and the other league\'s game in play keeps its clock',
+      check('one tick later the same game at the break reads Half time with its score, not the clock `45\'+3\'`, and the other league\'s game in play keeps its clock',
         mismatches(atBreak, { score: '3–0', status: WORDS.inProgress, live: WORDS.halfTime }).length === 0 && mismatches(other, { live: "50'", status: WORDS.inProgress }).length === 0, JSON.stringify({ atBreak, other }))
       await pg.clock.fastForward(60_000)
       const resumed = await settle(pg, EARLY, { live: "46'" })
-      check('...and one tick later, with the flag clear, the note is the clock again', n.epl === 2 && mismatches(resumed, { score: '3–0', live: "46'", status: WORDS.inProgress }).length === 0 && resumed.why === null, JSON.stringify({ asked: n.epl, resumed }))
+      check('...and one tick later, with the flag clear, the note is the clock again', n.epl === 3 && mismatches(resumed, { score: '3–0', live: "46'", status: WORDS.inProgress }).length === 0 && resumed.why === null, JSON.stringify({ asked: n.epl, resumed }))
       check('no page errors across half time', errs.length === 0, errs.join(' | '))
       await ctx.close()
     }
