@@ -4721,15 +4721,17 @@ let private liveScore () =
           (LiveScore.LiveUnavailable "the feed has no game for this card")
           (LiveScore.LiveUnavailable "another reason")
 
+      // Fix-review 2026-11-11, defence F22: the titles said "a clock, full time or no reading" and "a game the archive has finalised", and the inputs were ONE of each (a clock; a regulation final), so
+      // `| _, FullTime _ -> "full time"` added above the catch-all, or the Final arm narrowed to `Final(_, _, false)`, kept every check green. Each class is now every member.
       Verify.check "a clock, full time or no reading carries no reason"
-          (fun reading -> LiveScore.liveWhyFor Scheduled reading = "")
-          (LiveScore.LiveNow(1, 0, Some "34'"))
-          (LiveScore.LiveUnavailable "x")
+          (fun readings -> readings |> List.forall (fun reading -> LiveScore.liveWhyFor Scheduled reading = ""))
+          [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveNow(1, 0, None); LiveScore.FullTime(1, 0); LiveScore.NoReading ]
+          [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveUnavailable "x" ]
 
-      Verify.check "a game the archive has finalised carries no reason, as it carries no live note"
-          (fun archive -> LiveScore.liveWhyFor archive (LiveScore.LiveUnavailable "x") = "")
-          (Final(2, 1, false))
-          Scheduled ]
+      Verify.check "a game the archive has finalised carries no reason, in regulation or after extra time, as it carries no live note"
+          (fun archives -> archives |> List.forall (fun archive -> LiveScore.liveWhyFor archive (LiveScore.LiveUnavailable "x") = ""))
+          [ Final(2, 1, false); Final(2, 1, true) ]
+          [ Final(2, 1, true); Scheduled ] ]
 
 // ---------------------------------------------------------------------------
 // The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The two bodies below are EXCERPTS of what the relay served

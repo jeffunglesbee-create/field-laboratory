@@ -226,6 +226,18 @@ if (isMain(import.meta.url) && !SELF_TEST) {
   const kept = await settle(page, EARLY, { status: WORDS.finalOvertime })
   check('a card the archive has finalised is never taken back by a reading: Final, its score, no note',
     mismatches(kept, { status: WORDS.finalOvertime, score: '7–4', live: '' }).length === 0, JSON.stringify(kept))
+  // Fix-review 2026-11-11 (card F8, defence F22): the `Final _, _ -> ""` arm of `liveWhyFor` is reached on a real page only through the state the card's effect hands it, and the Suite pins the
+  // pure function alone: the effect reading a constant instead of the card's state passed every check. A card the archive has finalised (after extra time here: `Final / OT`) is told the feed failed,
+  // and must carry neither a note nor a reason. The reading is then shown to have been held all along: give the card back to the archive and the same reading's reason appears.
+  await setReading(page, EARLY, 'unavailable')
+  await page.waitForTimeout(150)
+  const finalUnavailable = await readCard(page, EARLY)
+  check('a card the archive has finalised, told the feed failed, carries no note and no reason: Final / OT, an empty live node, no data-why',
+    mismatches(finalUnavailable, { status: WORDS.finalOvertime, score: '7–4', live: '' }).length === 0 && finalUnavailable.why === null, JSON.stringify(finalUnavailable))
+  await setState(page, EARLY, 'scheduled')
+  const finalGivenBack = await settle(page, EARLY, { live: WORDS.unavailable })
+  check('...and the reading was there all along: once the archive no longer says Final the same reading says unavailable, with its reason',
+    mismatches(finalGivenBack, { live: WORDS.unavailable }).length === 0 && finalGivenBack.why === 'test', JSON.stringify(finalGivenBack))
 
   // ── a card whose kickoff is still ahead ──────────────────────────────────
   await setState(page, LATE, 'scheduled')

@@ -55,9 +55,30 @@ Built:
 |---|---|
 | `n >= 0.0` (page) and `v >= 0` (probe); the failure text says "from 0" | `src/LiveFeed.fs`, `scripts/live-score-probe.mjs` |
 | Suite: a negative home score; zero on both sides decodes (the lower bound is 0, not 1); away float, numeric string, over int32, negative and boolean, each with a GOOD home score so the error can only be the away side's | `src/Suite.fs` |
-| the parity battery: a score below int32, a zero home score, and eight away-side bodies (string, fraction, over int32, largest int32, negative, boolean, null, no score); the old `-1` body now fails on BOTH sides | `scripts/check-live-probe-keys.mjs` (61 bodies' checks, was 51) |
+| the parity battery: a score below int32, a zero home score, and eight away-side bodies (string, fraction, over int32, largest int32, negative, boolean, null, no score); the old `-1` body now fails on BOTH sides | `scripts/check-live-probe-keys.mjs` (61 checks over 40 bodies, was 51 over 30) |
 | probe self-test: either side over, either side negative, zero decodes, away string/fraction/boolean | `scripts/live-score-probe.mjs` (56 checks, was 54) |
 | nine new mutation entries: negative accepted, lower bound 1, away null as zero, away required, away truncated, away coerced, away range unchecked, probe ignores away (self-test and parity) | `scripts/mutation-check.mjs`; the five that anchored on the old bound are re-anchored and the two parity ids renamed `...-rejects-a-zero-score` |
 
 Result: Suite 456/456 (was 449). 14 mutations run, 14 caught (52 s): the 5 re-anchored and the 9 new. Anchors: 1404 of 1407 checked, 0 stale
-(the 3 not checked are the harness's own self-test-only entries).
+(the 3 not checked are the 3 entries that carry no `file` and `find`, which `staleAnchors` skips: counted by reading the table, 3 of 1407).
+
+## C3. The reason beside a card the archive has finalised (review card F8, defence F22)
+
+`liveWhyFor`'s `Final _, _ -> ""` arm is reached on a real page only through the state the card's effect hands it (`liveWhyFor (state ()) (reading ())`,
+`src/Scoreboard.fs`). The Suite pinned the pure function; the render check never put a Final card beside an `unavailable` reading. Reproduced by both
+skeptics: the effect reading a constant archive state instead of `state ()` kept the render check at 47/47, and a Final card told the feed failed then carried
+`data-why="the feed did not answer: 503 ..."` beside an empty note, which is the attribute-versus-note disagreement the wiring exists to prevent. It is reachable
+on a matchday: `answersTo` does not exclude archive-Final cards, so one finalised card in its window and one in play both get told a failed feed.
+
+The Suite titles also claimed more than their inputs held (defence F22): "a clock, full time or no reading" was ONE clock, and "a game the archive has
+finalised" was a regulation final. `| _, FullTime _ -> "full time"` added above the catch-all, or the Final arm narrowed to `Final(_, _, false)`, kept every check green.
+
+Built:
+
+| what | where |
+|---|---|
+| each class is now every member: a clock, no clock, full time, no reading; a regulation final and an extra-time final | `src/Suite.fs` |
+| pinned-page step: the `Final / OT` card is told `unavailable`; it reads no note and no `data-why`. Then the archive state is set back to scheduled and the SAME reading's note and reason (`test`) appear, which shows the reading was held all along and only the Final state hid it (so the first assertion is not vacuous) | `scripts/live-score-render-check.mjs` (54 checks, was 52) |
+| three entries: the effect reads `Scheduled` instead of the card's state (browser); the Final arm narrowed to regulation (Suite); a `FullTime` case added to the reason (Suite) | `scripts/mutation-check.mjs` |
+
+Result: Suite 456/456. 6 mutations run (3 new, the 3 existing `live-why-*`), 6 caught (2 m 06 s).

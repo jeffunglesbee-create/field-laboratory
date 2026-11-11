@@ -12181,6 +12181,31 @@ const MUTATIONS = [
     replace: "if (!h.ok) return",
     expect: "node scripts/check-live-probe-keys.mjs",
   },
+  // Fix-review 2026-11-11 (card F8, defence F22): the reason's three inputs. The archive state the effect reads, the Final arm for extra time, and the readings that carry no reason.
+  {
+    id: "live-why-effect-ignores-the-archive-state",
+    file: "src/Scoreboard.fs",
+    claim: "a card the archive has finalised, told the feed failed, carries no note and no reason (the effect reads the card's own state)",
+    find: "                  match LiveScore.liveWhyFor (state ()) (reading ()) with\n",
+    replace: "                  match LiveScore.liveWhyFor Scheduled (reading ()) with\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "live-why-for-an-extra-time-final",
+    file: "src/LiveScore.fs",
+    claim: "a game the archive has finalised carries no reason, in regulation or after extra time",
+    find: "    | Final _, _ -> \"\"\n    | _, LiveUnavailable why -> why\n",
+    replace: "    | Final(_, _, false), _ -> \"\"\n    | _, LiveUnavailable why -> why\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "live-why-for-full-time",
+    file: "src/LiveScore.fs",
+    claim: "a clock, full time or no reading carries no reason",
+    find: "    | _, LiveUnavailable why -> why\n    | _ -> \"\"",
+    replace: "    | _, LiveUnavailable why -> why\n    | _, FullTime _ -> \"full time\"\n    | _ -> \"\"",
+    expect: "node build/VerifyMain.js",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own
