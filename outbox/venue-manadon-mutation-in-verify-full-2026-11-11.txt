@@ -1,0 +1,50 @@
+checked 4 of 4 Manadon mutation entries: 4 of 4 printed PASS, in 4 of 8 shard logs of one scored verify-full run; the other 4 shard logs hold none of the four, and all 8 hold 0 SURVIVED lines
+
+WHAT THIS IS
+The four registry entries added in 7e1a7e5 (scripts/mutation-check.mjs: venue-manadon-row-deleted,
+venue-manadon-roof-covered, venue-manadon-moved, venue-manadon-zone-changed) had been run only through
+the harness's --ids mode on this session's machine (outbox/venue-manadon-mutation-entries-record-2026-11-11.json).
+The gate that runs the whole registry on eight shards, verify-full, was dispatched by another session on
+its own branch, and its tip contains 7e1a7e5, so the gate ran the four entries. Read 2026-11-11 from the
+shard job logs. Before this read, docs and the session record said the Monday 2026-11-16 06:00Z run would be
+the first to exercise them; that was true when written (no verify-full had run on a tree holding them).
+
+RUN
+run 43105482710, workflow verify-full, event workflow_dispatch, branch install-no-apt, head ecbdb2ab, created 21:42:57Z, updated 22:25:42Z, conclusion success
+its head ecbdb2ab contains 7e1a7e5: yes (git merge-base --is-ancestor 7e1a7e5 ecbdb2ab)
+
+THE FOUR LINES, verbatim from the shard job logs (log timestamp, then the harness line):
+  shard job 130807590886: 2026-11-11T22:20:46.1420912Z PASS  [venue-manadon-row-deleted] the 2026-11-09 slate keeps its Manadon Sports Hub row
+  shard job 130807590809: 2026-11-11T22:22:28.5828059Z PASS  [venue-manadon-roof-covered] Manadon Sports Hub is an open-air row
+  shard job 130807590819: 2026-11-11T22:21:11.4358982Z PASS  [venue-manadon-moved] Manadon Sports Hub is at the point its evidence gives
+  shard job 130807590828: 2026-11-11T22:17:26.4081656Z PASS  [venue-manadon-zone-changed] Manadon Sports Hub is declared in the zone its point lies in
+
+COVERAGE (Rule 91): the eight shard job logs, hits for the string venue-manadon:
+  130807590886  mutation shard 1 of 8  hits=1  SURVIVED=0  defended-by-compiler=0
+  130807590809  mutation shard 2 of 8  hits=1  SURVIVED=0  defended-by-compiler=0
+  130807590819  mutation shard 3 of 8  hits=1  SURVIVED=0  defended-by-compiler=0
+  130807590828  mutation shard 4 of 8  hits=1  SURVIVED=0  defended-by-compiler=0
+  130807591189  mutation shard 5 of 8  hits=0  SURVIVED=0  defended-by-compiler=0
+  130807591040  mutation shard 6 of 8  hits=0  SURVIVED=0  defended-by-compiler=0
+  130807590830  mutation shard 7 of 8  hits=0  SURVIVED=0  defended-by-compiler=0
+  130807590893  mutation shard 8 of 8  hits=0  SURVIVED=0  defended-by-compiler=0
+
+WHAT PASS MEANS in this harness (read from scripts/mutation-check.mjs, the end of the per-entry loop)
+For a mutation that built and was tested, the line is printed by check(`[${m.id}] ${m.claim}`, !survived, ...):
+PASS means the entry's expected command went red, FAIL (with "mutation SURVIVED") means it stayed green.
+For a mutated file the compiler refuses, the line is PASS followed by a '-> defended by the COMPILER' line.
+None of the four is followed by that line (0 in all four shards), so each was tested and went red by its
+expected command, and none was refused by the compiler. The anchor check is a separate mode and was not read
+from this run: --anchors reported 1264 of 1267 checked, 0 stale, on the pushed tree
+(outbox/cc-session-2026-11-11-manadon-row.md).
+
+NOT SHOWN
+- Which check caught each entry: the log line does not name it. The entries' 'expect' fields are in the source.
+- The compiled digest of each mutation: the harness records it, this read did not open that record.
+- That the next verify-full on main passes. This run is on branch install-no-apt.
+- The weekly run (cron '0 6 * * 1' in .github/workflows/verify-full.yml, Monday 2026-11-16 06:00Z) is still scheduled;
+  it is no longer the first to run these four.
+
+RE-RUN (the logs are retained by GitHub for its own retention period, which was not read):
+  gh api repos/jeffunglesbee-create/field-laboratory/actions/runs/43105482710/jobs --jq '.jobs[] | [(.id|tostring), .name] | @tsv'
+  gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/<job id>/logs | grep -c venue-manadon
