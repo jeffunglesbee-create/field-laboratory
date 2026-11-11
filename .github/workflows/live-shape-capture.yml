@@ -63,7 +63,9 @@ jobs:
         run: |
           git config user.name "Claude"
           git config user.email "noreply@anthropic.com"
-          git add outbox/live-capture-*.json
+          # `|| true`: with no file written (a usage error, a red self-test) the glob matches nothing and git add dies on a pathspec
+          # error before the next line can say so, masking the step that really failed.
+          git add outbox/live-capture-*.json 2>/dev/null || true
           git diff --cached --quiet && echo "no capture was written" && exit 0
           git commit -m "probe: the live /v2/games shape of $SPORT on $DATE [skip ci]"
           for i in 1 2 3; do
