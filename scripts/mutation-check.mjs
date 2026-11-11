@@ -11315,6 +11315,24 @@ const MUTATIONS = [
     replace: "              forecastNode game shown table\n",
     expect: "node scripts/live-score-render-check.mjs",
   },
+  // Review 2026-11-11, semantics F8: the live node had a class and no CSS rule, so it read larger and brighter than the status line above it,
+  // and a check that reads textContent could not see that. The render check now reads computed style.
+  {
+    id: "live-note-has-no-style",
+    file: "index.html",
+    claim: "the live note is set like the status line it sits under, not at the page's 15px and full opacity",
+    find: "  .desk-card__live { font-size: .8rem; opacity: .75; font-variant-numeric: tabular-nums; }\n",
+    replace: "  .desk-card__live { }\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "live-note-empty-takes-a-line",
+    file: "index.html",
+    claim: "an empty live note takes no line on a card with nothing to say",
+    find: "  .desk-card__live:empty { display: none; }\n",
+    replace: "  .desk-card__live:empty { }\n",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
   // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 8: the live-score probe's verdict logic. Each entry breaks one thing its
   // verdict rests on and expects its own self-test to notice (Rule 90).
   {

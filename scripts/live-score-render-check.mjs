@@ -172,9 +172,20 @@ if (isMain(import.meta.url) && !SELF_TEST) {
     soccer.length > 0 && soccer.every(c => c.hasLive && c.live === ''), JSON.stringify({ soccer: soccer.length, withNode: soccer.filter(c => c.hasLive).length }))
   check('no card of any other sport has one, so their structure is unchanged',
     others.length > 0 && others.every(c => !c.hasLive), JSON.stringify({ others: others.length, withNode: others.filter(c => c.hasLive).map(c => c.sport) }))
+  // What the node LOOKS like, not just what it says (review 2026-11-11, semantics F8: it had no CSS rule, so it read larger and brighter than
+  // the status line above it, and a check that reads textContent cannot see that).
+  const lookOf = (pg, teams) =>
+    pg.evaluate(t => {
+      const c = [...document.querySelectorAll('.desk-card')].find(x => x.querySelector('.desk-card__teams')?.textContent === t)
+      const st = getComputedStyle(c.querySelector('[data-testid="status"]'))
+      const lv = getComputedStyle(c.querySelector('[data-testid="live"]'))
+      return { statusFont: st.fontSize, liveFont: lv.fontSize, statusOpacity: st.opacity, liveOpacity: lv.opacity, liveDisplay: lv.display, liveTabular: lv.fontVariantNumeric }
+    }, teams)
   const first = await readCard(page, EARLY)
   check('a card the archive has finalised reads Final, with no live note',
     mismatches(first, { status: 'Final', score: '2–1', live: '' }).length === 0, JSON.stringify(first))
+  const quiet = await lookOf(page, EARLY)
+  check('...and the empty live node takes no line', quiet.liveDisplay === 'none', JSON.stringify(quiet))
 
   // ── a match in play whose score the archive does not have ────────────────
   await setState(page, EARLY, 'scheduled')
@@ -187,6 +198,9 @@ if (isMain(import.meta.url) && !SELF_TEST) {
   check('a live reading gives the card the feed\'s score and In progress',
     mismatches(inPlay, { score: '1–0', status: WORDS.inProgress }).length === 0, JSON.stringify(inPlay))
   check('...and the feed\'s clock beside it', mismatches(inPlay, { live: "34'" }).length === 0, JSON.stringify(inPlay))
+  const look = await lookOf(page, EARLY)
+  check('...and the clock is set like the status line it sits under: same size, same opacity, tabular figures',
+    look.liveFont === look.statusFont && look.liveOpacity === look.statusOpacity && /tabular-nums/.test(look.liveTabular) && look.liveDisplay !== 'none', JSON.stringify(look))
   check('...with no forecast and no drama text on a card in play',
     mismatches(inPlay, { forecast: 'none', drama: '' }).length === 0, JSON.stringify(inPlay))
 
