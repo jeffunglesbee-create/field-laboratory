@@ -14,7 +14,7 @@ open LiveScore
 // integer, NOT null) and `clock: "0'"`, so a score is never read without the state beside it. A game in PLAY was captured on
 // 2026-11-11 (the 19:00Z EFL Trophy matches, `outbox/live-capture-efltrophy-2026-11-11-*.json`): `state: "live"`, integer scores, a clock string
 // (`18'`, `45'+3'`), `periodNum`, and `situation` an object with `isHalftime`; at half time the state word stays `live`. The relay's
-// `final` games carry `situation: null`. Not seen: stoppage time of the second half while live, extra time, a shootout. A state word
+// `final` games carried `situation: null` in the two captured (the relay's BSD enrichment can give any game it matches `{ elapsed }`, which reads false too). Not seen: stoppage time of the second half while live, extra time, a shootout. A state word
 // this file does not know is a named reading, never a guess (see `readingFor`).
 //
 // JOINED BY ESPN EVENT ID, never by name: the archive says "Man Utd", the feed "Manchester United" (CC-CMD fact 4). The
@@ -29,7 +29,7 @@ type FeedGame =
       AwayScore: int option
       /// The feed's clock text, verbatim, as served (`34'`, `90'+9'`); `None` when the key is absent or null.
       Clock: string option
-      /// `situation.isHalftime`: the relay's own flag, true exactly when ESPN's status is `STATUS_HALFTIME` (relay `adaptESPNWCSoccer`). A game that is not live has `situation: null`,
+      /// `situation.isHalftime`: the relay's own flag, true exactly when ESPN's status is `STATUS_HALFTIME` (relay `adaptESPNWCSoccer`). A game that is not live has `situation: null` unless the relay's BSD enrichment matched it (then `{ elapsed }`),
       /// so absent, null and a null `situation` all read false; a value that is not a boolean is an error, as a string score is.
       IsHalftime: bool }
 

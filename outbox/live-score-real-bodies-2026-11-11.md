@@ -16,20 +16,20 @@ Method for the direct reads: `mcp__FIELD_Handoff__probe_relay_route` (the sandbo
 
 Keys of a live game: `id`, `espnEventId`, `sport`, `league`, `state`, `start`, `home`, `away`, `clock`, `periodNum`, `periodLabel`, `venue`, `round`, `situation`
 (`elapsed`, `isStoppage`, `isHalftime`, `isShootout`, `manAdvantage`, `homeSOT`, `awaySOT`, `hasStats`), `matchEvents`, `streams`, `winProb`, `openingWP`, `wpDelta`,
-`recentWPHistory`, `openingAdvanceProb` (and `_crunch` late in the match). A `final` game carries `id` through `situation: null`, `matchEvents` and `streams` and none of the win-probability keys.
+`recentWPHistory`, `openingAdvanceProb` (the relay sets a `_crunch` key on a live game under four conditions, `handleV2Games`; none of the four captures carries it). A `final` game carries `id` through `situation: null`, `matchEvents` and `streams` and none of the win-probability keys.
 The page reads `espnEventId`, `state`, `home.score`, `away.score`, `clock` and `situation.isHalftime`; the win-probability keys are the relay's and are not read.
 
 ## What this settles
 
-- The feed shape the stack assumed (state `live`, integer scores, a string clock) is what the relay serves. The page's and the probe's decoders read all three committed bodies unchanged.
+- The feed shape the stack assumed (state `live`, integer scores, a string clock) is what the relay serves. The page's and the probe's decoders read all four committed capture files unchanged (a one-off command at 19:20Z, 19:55Z and 21:25Z; `scripts/check-live-probe-keys.mjs` now runs both decoders on every committed soccer capture).
 - At half time there is no state word: `situation.isHalftime` is the only signal (the Half time marker, owner approved).
 - The flag clears in the second half and the clock continues (direct read at ~20:34Z).
-- The Full time gap is real on a real match: feed `final` with an unscored archive row for at least 1.5 minutes (20:58Z to 20:59:30Z observed, ending 21:00:26Z), at most one `*/15` tick.
+- The Full time gap is real on a real match: feed `final` with an unscored archive row for at least 55 seconds from the committed files (capture 20:59:30.117Z, archive `finalized_at` 21:00:26) and about 2.4 minutes with the uncommitted direct read at about 20:58Z; the archive finalised within one `*/15` tick of ESPN completing. The card never re-reads the archive, so on an open page the note would stay until a re-render (CC-CMD open question 1).
   The archive finalised 120.4 minutes after kickoff, inside CC-CMD fact 3's 115.5 to 135 range and inside the 3 h window.
 
 ## What it does not settle
 
 - One match, two games, one tick. The gap's width is a sample. Extra time and a shootout were not seen, and neither was stoppage time of the second half while live.
 - The capture runs at 20:20Z to 20:50Z did not happen: run 43096288444 (dispatched 20:28:44Z) ended `startup_failure` after 9 minutes queued (GitHub-side; no job ran), and the routines for those slots did not dispatch.
-  The 19:10Z, 19:45Z, 20:20Z, 20:50Z, 21:00Z and 21:12Z routines each fired late or not at all; the captures that exist were dispatched by the authoring session's redundancy reminders (19:18Z, 19:54Z, 20:58Z, 21:22Z).
+  The stored routines for the 19:10Z, 19:45Z, 20:20Z, 20:50Z, 21:00Z and 21:12Z slots committed no capture. The four captures were made at 19:18:54Z, 19:54:02Z, 20:59:30Z and 21:21:25Z (`capturedAt`); the authoring session dispatched runs at about those times in answer to its redundancy reminders, and the files record no run id, so the repo does not identify who dispatched each.
 - The poll has still not run against a real match: the stack is not on `main`.

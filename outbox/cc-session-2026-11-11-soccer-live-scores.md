@@ -17,7 +17,7 @@ Tasks 3 and 4: `1cd0d1f` Stats gate (a soccer match in progress has no comeback 
 Task 6, the pure half and the card: `067c6b2` `LiveScore.fs`; `385af29` the card handle; `f414386` the real-card render check; `a4412cf` `LiveFeed.fs` (decode, join by ESPN event id).
 Task 7, the poll: `7354826` the poll region and `scripts/check-live-score-poll.mjs`.
 Task 8, the probe: `8ab827b`, reworked in `940f226` and `89b077b`.
-Review fixes: `88abf10` memo staleness; `9404a71` CSS for the live note; `560cf70`, `f5e2719` claim corrections; `597efb3`, `e3e4497`, `f334d38`, `61a9515`, `5415065` the first review of the poll, decoder and wiring (25 held findings: 22 fixed, 3 are owner questions in the CC-CMD);
+Review fixes: `88abf10` memo staleness; `9404a71` CSS for the live note; `560cf70`, `f5e2719` claim corrections; `597efb3`, `e3e4497`, `f334d38`, `61a9515`, `5415065` the first review of the poll, decoder and wiring (25 held findings: 22 fixed, 3 findings that make 2 owner questions in the CC-CMD);
 `ec9f68a`, `e4f3dbf`, `6e66d02`, `f55e973`, `b557bdb`, `6fbc369` the second review, of those fixes (24 findings, all handled; `outbox/live-score-fix-review-2026-11-11.md`).
 Docs and a separate concern that rides the stack: `cc670d0`, `4033cf5`, `3bda750` the follow-up CC-CMDs (other sports, the relay's BSD cache, the tabs); `1f4a346` the drift sentinel's closing-odds predicate (EFL Trophy and FA Cup are never priced; D1 measured), to be proved on the sentinel's first run after landing.
 
@@ -36,7 +36,7 @@ Behaviour decided in the fixes: a score is a whole number from 0 (a negative is 
   Unblocked when a capture file shows `feedShapeSeen: true`. Verify: `node -e` over `outbox/live-capture-efltrophy-2026-11-11-*.json` for a game with `state: "live"`, integer scores and a non-empty `clock`.
 - **The deployed-page proof (CC-CMD Done condition).** Blocked by: the stack is not on `main`. Unblocked when it lands and a lab-covered match is live (first chance 2026-11-17 19:00Z, EFL Trophy).
   Verify: `node scripts/live-score-probe.mjs --date <ET day>` returns `doneCondition: true` and `scoreMatchesFeed: true`.
-- **Whether ESPN's `final` precedes the archive's finalisation** (the `Full time` window): sampled by the 20:50Z to 21:30Z captures; the 3 h poll window against extra time is owner question 3.
+- **Whether ESPN's `final` precedes the archive's finalisation** (the `Full time` window): sampled by the 20:50Z to 21:30Z captures; the 3 h poll window against extra time is part of owner question 1.
 
 ## Integration state (Rule 65)
 
@@ -49,7 +49,7 @@ KNOWN MISMATCHES: none known; the relay's real live body is the unknown.
 ## Carry-forwards
 
 None deferred without a CC-CMD. In this CC-CMD and not done: Tasks 2 (artifact absent), 5, 9 (scored gate and landing), 10 (schedule the proofs), 12 (this record, finalised at close). Filed: `docs/CC-CMD-2026-11-11-live-scores-other-sports.md`,
-`-v2-games-bsd-cache.md`, `-live-scores-tabs.md`. Owner questions (a reading's age, an immediate tick on re-render, the 3 h window against extra time) are in the CC-CMD.
+`-v2-games-bsd-cache.md`, `-live-scores-tabs.md`. Two owner questions are in the CC-CMD: a reading's age with the 3 h window against extra time, and an immediate tick on re-render.
 
 ## Incidents (Rule 77)
 

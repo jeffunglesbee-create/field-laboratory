@@ -4778,8 +4778,8 @@ let private liveScore () =
 // ---------------------------------------------------------------------------
 // The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The bodies below are EXCERPTS of what the relay served
 // on 2026-11-11, the keys as served with the per-game lists (`matchEvents`, `streams`, `recentWPHistory`) and the win-probability objects left out:
-// a probe of /v2/games?sport=epl&date=2026-11-08 (`finalBody`) and ?sport=efltrophy&date=2026-11-11 before kickoff (`preBody`), and THREE GAMES CAPTURED THE SAME EVENING by
-// `live-shape-capture` (`outbox/live-capture-efltrophy-2026-11-11-<HHMM>Z.json`, `v2.body`): `liveRealBody` is the capture of 19:18:54Z (Barnsley v Oldham Athletic, 18', 0-0),
+// a probe of /v2/games?sport=epl&date=2026-11-08 (`finalBody`) and ?sport=efltrophy&date=2026-11-11 before kickoff (`preBody`), and THREE BODIES OF ONE GAME (Barnsley v Oldham Athletic) CAPTURED THE SAME EVENING by
+// `live-shape-capture` (`outbox/live-capture-efltrophy-2026-11-11-<HHMM>Z.json`, `v2.body`; each capture held two games, the second (Sheffield Wednesday v Accrington) is dropped here and `count` is set to 1): `liveRealBody` is the capture of 19:18:54Z (Barnsley v Oldham Athletic, 18', 0-0),
 // `halftimeRealBody` the capture of 19:54:02Z (the same game at half time, 3-0, clock `45'+3'`, `situation.isHalftime: true`; the state word stays `live`, only the flag says so), and
 // `finalRealBody` the capture of 20:59:30Z (the same game at 5-2, `final`, clock `90'+3'`, `situation: null`) taken while the archive row still had no score: it was finalised at
 // 21:00:26Z (the capture of 21:21:25Z shows it scored). Read through the relay but NOT in a committed capture: the second half (74' and 76', `periodNum` 2, `isHalftime: false`, 20:34Z).

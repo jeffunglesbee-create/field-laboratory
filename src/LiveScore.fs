@@ -25,7 +25,7 @@ type LiveReading =
     | NoReading
     /// The feed says the game is in play. The clock is the feed's own text, verbatim, when it carried one.
     | LiveNow of home: int * away: int * clock: string option
-    /// The feed says the game is in play and ESPN's status is half time (`situation.isHalftime`). The feed's clock at the break is the first half's last
+    /// The feed says the game is in play and ESPN's status is half time (`situation.isHalftime`). The feed's clock at the one sample of the break (2026-11-11 19:54:02Z) was the first half's last
     /// reading (`45'+3'` on 2026-11-11, captured), which reads as stoppage time in play; the card says `Half time` instead. The owner approved it 2026-11-11.
     | HalfTime of home: int * away: int
     /// The feed says the game is over and the archive row has not finalised it yet. The card stays `In progress`, marked.
@@ -78,8 +78,8 @@ let LivePollTimeoutMs = 90000
 
 /// A card is in its live window from its start time to this long after it. A soccer match is about two hours with its breaks
 /// and stoppage, and the archive's first score has been seen 115.5 to 135 minutes after kickoff (CC-CMD fact 3), so three hours
-/// covers the gap the `Full time` marker is for. Measured once on a real match, 2026-11-11 (EFL Trophy, kickoff 19:00Z): the feed said `final` by
-/// 20:58Z, the archive rows were still unscored at 20:59:30Z, and both were finalised at 21:00:26Z and 21:00:28Z, the `*/15` tick, 120.4 minutes
+/// covers the gap the `Full time` marker is for. Measured once on a real match, 2026-11-11 (EFL Trophy, kickoff 19:00Z): the feed said `final` at
+/// 20:59:30Z in a committed capture (and at about 20:58Z in an uncommitted direct read), the archive rows were still unscored then, and both were finalised at 21:00:26Z and 21:00:28Z, the `*/15` tick, 120.4 minutes
 /// after kickoff (`outbox/live-score-real-bodies-2026-11-11.md`). One match, two games: a sample, not a bound.
 let liveWindowAfterStart = TimeSpan.FromHours 3.0
 

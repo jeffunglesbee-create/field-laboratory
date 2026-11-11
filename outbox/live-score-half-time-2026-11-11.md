@@ -2,10 +2,10 @@
 
 ## Why
 
-The capture of 19:54:02Z (run started by the 19:45Z redundancy; `outbox/live-capture-efltrophy-2026-11-11-1954Z.json`) is the first real half-time body:
+The capture of 19:54:02Z (`outbox/live-capture-efltrophy-2026-11-11-1954Z.json`) is the first real half-time body:
 both EFL Trophy games `state: "live"`, clock `"45'+3'"`, `periodNum` 1, `periodLabel` `"45'"`, `situation: { elapsed: 45, isStoppage: true, isHalftime: true, ... }`,
 scores 3-0 and 0-2, archive rows still unscored. There is no half-time state word. The card's note was the feed's clock, so it would have read `45'+3'`, the same
-as stoppage time in play, for the whole break. The owner approved a `Half time` note. The relay sets `isHalftime` exactly when ESPN's status name is
+as stoppage time in play (at the one sample, about six minutes into the break; its length and the clock at its start and end were not measured). The owner approved a `Half time` note. The relay sets `isHalftime` exactly when ESPN's status name is
 `STATUS_HALFTIME` (relay `adaptESPNWCSoccer`, read 2026-11-11 in the scratchpad copy of `origin/main`); `situation` is an object for a live game and null otherwise.
 
 ## What changed
@@ -28,5 +28,5 @@ Real bodies: both decode with the page's and the probe's decoders (checked at 19
 
 ## Not known
 
-What the feed says in the second half after the break (does `isHalftime` return to false and the clock continue from `45'`?). The capture at 20:20Z is the first sample;
+What the feed says in the second half after the break: seen once, in a direct read at about 20:34Z that is NOT a committed capture (`isHalftime` false, `periodNum` 2, clocks `74'` and `76'`), so no committed body shows the flag clearing;
 the render check's scenario (h) assumes the flag clears, and the Suite pins only the decoder, so a body that kept the flag true after the restart would show `Half time` for the second half.
