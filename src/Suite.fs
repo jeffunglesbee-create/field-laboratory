@@ -4808,6 +4808,14 @@ let private liveFeed () =
     let scoreFloat = one """{"espnEventId":"7","state":"live","home":{"score":1.5},"away":{"score":0}}"""
     let scoreString = one """{"espnEventId":"7","state":"live","home":{"score":"1"},"away":{"score":"0"}}"""
     let scoreHuge = one """{"espnEventId":"7","state":"live","home":{"score":2147483648},"away":{"score":0}}"""
+    let scoreNegative = one """{"espnEventId":"7","state":"live","home":{"score":-1},"away":{"score":0}}"""
+    // Fix-review 2026-11-11, decoder F5: HomeScore and AwayScore are two call sites, and every bad body above put its bad value on `home` (scoreString put it on both, where the home
+    // error arrives first). Each of these has a good home score, so the error can only come from the away side.
+    let awayFloat = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":1.5}}"""
+    let awayString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":"0"}}"""
+    let awayHuge = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":2147483648}}"""
+    let awayNegative = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":-1}}"""
+    let awayBool = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":true}}"""
     let clockNumber = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":34}"""
 
     let oneBadOfTwo =
@@ -4968,6 +4976,43 @@ let private liveFeed () =
       Verify.check "a score outside the int32 range is an error naming the field"
           (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
           scoreHuge
+          liveAsym
+
+      // Fix-review 2026-11-11, decoder F6 and defence F24: the lower bound was the int32 minimum, which no check pinned (it could be moved or removed with every check green) and which
+      // has no meaning for a football score. A negative score is refused, the way a string or a fraction is.
+      Verify.check "a negative score is an error naming the field, not a score drawn as -1"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreNegative
+          liveAsym
+
+      Verify.check "a score of zero on each side decodes, so the lower bound is 0 and not 1"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "7" "live" (Some 0) (Some 0) None ])
+          (one """{"espnEventId":"7","state":"live","home":{"score":0},"away":{"score":0}}""")
+          liveAsym
+
+      Verify.check "an away score that is not a whole number is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayFloat
+          liveAsym
+
+      Verify.check "an away score served as a numeric string is an error naming the away field, not a coerced number"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayString
+          liveAsym
+
+      Verify.check "an away score outside the int32 range is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayHuge
+          liveAsym
+
+      Verify.check "a negative away score is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayNegative
+          liveAsym
+
+      Verify.check "an away score that is a boolean is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayBool
           liveAsym
 
       Verify.check "a clock that is not text is an error naming the field"

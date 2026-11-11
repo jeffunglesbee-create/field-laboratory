@@ -75,9 +75,9 @@ const arrow = (h, a) => `${h}–${a}`
 
 // --- reading the feed the way the page does ----------------------------------
 
-// The page's `wholeScore` (src/LiveFeed.fs): a JSON number that is whole and fits an int32, or nothing. A numeric string is NOT one.
+// The page's `wholeScore` (src/LiveFeed.fs): a JSON number that is whole, from 0 to the largest int32, or nothing. A numeric string is NOT one, and neither is a negative number.
 const intOrNull = v =>
-  v === undefined || v === null ? { ok: true, v: null } : typeof v === 'number' && Number.isInteger(v) && v >= -2147483648 && v <= 2147483647 ? { ok: true, v } : { ok: false }
+  v === undefined || v === null ? { ok: true, v: null } : typeof v === 'number' && Number.isInteger(v) && v >= 0 && v <= 2147483647 ? { ok: true, v } : { ok: false }
 
 /** A team of a game: nothing, null, or an object (not an array). The page reads `home.score` through a path, and a team that is a string, a number or a list is an
  *  error there (`Decode.Optional.At` accepts a null or absent team and nothing else). Held to the page's decoder by `scripts/check-live-probe-keys.mjs`. */
@@ -94,7 +94,7 @@ export const decodeFeed = body => {
     if (typeof g.state !== 'string') return { ok: false, why: 'a game has no string state' }
     if (!teamOk(g.home) || !teamOk(g.away)) return { ok: false, why: 'a team is not an object' }
     const h = intOrNull(g.home?.score), a = intOrNull(g.away?.score)
-    if (!h.ok || !a.ok) return { ok: false, why: 'a score is not a whole number inside the int32 range' }
+    if (!h.ok || !a.ok) return { ok: false, why: 'a score is not a whole number from 0 to the int32 maximum' }
     if (g.clock !== undefined && g.clock !== null && typeof g.clock !== 'string') return { ok: false, why: 'a clock is not a string' }
     games.push({ espnId: g.espnEventId, state: g.state, home: h.v, away: a.v, clock: g.clock ?? '' })
   }
@@ -269,8 +269,15 @@ if (SELF_TEST) {
     [{ state: 'live' }, { espnEventId: 1, state: 'live' }, { espnEventId: '1' }, { espnEventId: '1', state: 'live', home: { score: '1' } }, { espnEventId: '1', state: 'live', clock: 34 }, null]
       .every(g => decodeFeed({ games: [{ espnEventId: '2', state: 'pre' }, g] }).ok === false))
   // Review 2026-11-11 (decoder S7, S11): the probe and the page disagreed on these. `scripts/check-live-probe-keys.mjs` now holds this decoder to the compiled one on a shared battery.
-  check('a score over the int32 range fails the feed, as it does on the page',
-    decodeFeed({ games: [{ espnEventId: '1', state: 'live', home: { score: 2147483648 } }] }).ok === false && decodeFeed({ games: [{ espnEventId: '1', state: 'live', home: { score: 2147483647 } }] }).ok === true)
+  const feedWith = t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] })
+  check('a score over the int32 range fails the feed on either side, as it does on the page; the largest int32 does not',
+    [{ home: { score: 2147483648 } }, { away: { score: 2147483648 } }].every(t => feedWith(t).ok === false) && [{ home: { score: 2147483647 } }, { away: { score: 2147483647 } }].every(t => feedWith(t).ok === true))
+  // Fix-review 2026-11-11 (decoder F6, defence F24): the lower bound is 0, and nothing pinned it. Every bad value of the home side's checks is held against the AWAY side too (decoder F5: the away
+  // line was a separate call site no body ever put a bad value on).
+  check('a negative score fails the feed on either side, and a zero does not',
+    [{ home: { score: -1 } }, { away: { score: -1 } }, { away: { score: -2147483649 } }].every(t => feedWith(t).ok === false) && [{ home: { score: 0 } }, { away: { score: 0 } }].every(t => feedWith(t).ok === true))
+  check('a numeric-string, fractional or boolean score on the AWAY side fails the feed, as on the home side',
+    [{ away: { score: '0' } }, { away: { score: 1.5 } }, { away: { score: true } }].every(t => feedWith({ home: { score: 1 }, ...t }).ok === false))
   check('a team that is a string, a number or a list fails the feed, a null or absent one does not',
     [{ home: 'x' }, { home: 5 }, { home: [] }, { away: 'x' }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === false)
       && [{ home: null }, {}, { home: {} }].every(t => decodeFeed({ games: [{ espnEventId: '1', state: 'live', ...t }] }).ok === true))

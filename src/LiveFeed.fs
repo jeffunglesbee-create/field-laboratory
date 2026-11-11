@@ -29,17 +29,19 @@ type FeedGame =
       /// The feed's clock text, verbatim, as served (`34'`, `90'+9'`); `None` when the key is absent or null.
       Clock: string option }
 
-/// A score is a JSON NUMBER that is a whole number inside the int32 range. `Decode.int` also reads the string "1" (and " 1") as 1, and the relay never serves one:
+/// A score is a JSON NUMBER that is a whole number from 0 to the largest int32. `Decode.int` also reads the string "1" (and " 1") as 1, and the relay never serves one:
 /// `adaptESPNWCSoccer` emits `Number(x)` or null, so a string means the relay's shape changed, and it is named, not coerced (the same strictness `Decode.string`
 /// already has for the clock, the state and the id). Review 2026-11-11, decoder S7 and S11; `scripts/check-live-probe-keys.mjs` holds the probe's copy of this
 /// decoder to the page's on one battery.
+/// A negative score is refused too (fix-review 2026-11-11, decoder F6 and defence F24): no football score is negative, so one in a body means the relay's shape changed,
+/// and `-1–0` drawn on a card would read as a score. The lower bound used to be the int32 minimum, which has no meaning in the domain and which nothing pinned.
 let private wholeScore: Decoder<int> =
     Decode.float
     |> Decode.andThen (fun n ->
-        if n = System.Math.Floor n && n >= -2147483648.0 && n <= 2147483647.0 then
+        if n = System.Math.Floor n && n >= 0.0 && n <= 2147483647.0 then
             Decode.succeed (int n)
         else
-            Decode.fail (sprintf "Expecting a whole number that fits an int but instead got: %s" (string n)))
+            Decode.fail (sprintf "Expecting a whole number from 0 that fits an int but instead got: %s" (string n)))
 
 let private feedGameDecoder: Decoder<FeedGame> =
     Decode.object (fun get ->
