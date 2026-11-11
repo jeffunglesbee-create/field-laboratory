@@ -1,0 +1,10 @@
+run steps read: 337; steps that pipe into tee: 30; of those with nothing carrying the left side's exit status: 9
+  alternate-colour-probe.yml:52  Probe
+  alternate-colour-probe.yml:62  Why the remaining cards stay plain
+  alternate-colour-probe.yml:70  Spellings that resolve to nothing
+  fable-crash-probe.yml:58  50 builds
+  fable-crash-probe.yml:91  The table
+  favourite-band-census.yml:58  Census
+  mutation-ids-probe.yml:52  What the driver said about each id
+  open-meteo-egress-probe.yml:51  Probe
+  verify.yml:257  Fail on any F# compiler warning
