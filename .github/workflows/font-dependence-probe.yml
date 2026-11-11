@@ -211,6 +211,8 @@ jobs:
           # file on origin must be the file this run wrote (a second run that lost the race to the first reads its own files back as different and fails here).
           git rebase --abort 2>/dev/null || true
           git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
           for f in outbox/font-dependence-latest.json outbox/font-dependence-latest.txt outbox/install-no-apt-probe-latest.txt; do
             git diff --quiet "origin/${GITHUB_REF_NAME}" -- "$f" || { echo "FAIL: $f on origin is not the file this run wrote (the push did not land, or another run wrote it)"; exit 1; }
           done
