@@ -38,6 +38,11 @@ const MUTATIONS = [
   ['P10 the coverage line is not first', '    `checked ${s.checked} of ${s.expected} expected samples`,\n', '', 'O1'],
   ['P11 the wave drifts from the page\'s maxInFlight', 'export const WAVE = 4 ', 'export const WAVE = 8 ', 'C2'],
   ['P12 the tolerance drifts from the decoder\'s', 'export const TOLERANCE = 0.001 ', 'export const TOLERANCE = 0.01 ', 'C1'],
+  ['P13 the cause code is dropped (run 1\'s defect)', 'cause: c?.code ?? null,', 'cause: null,', 'E1'],
+  ['P14 per-address codes are dropped', 'const codes = Array.isArray(c?.errors) ? c.errors.map(x => x?.code ?? x?.name ?? String(x)) : []', 'const codes = []', 'E2'],
+  ['P15 a code-less cause is labelled by name only', "err.cause ?? (err.causeMessage ? `cause: ${err.causeMessage}` : err.name ?? 'unknown')", "err.cause ?? err.name ?? 'unknown'", 'E6'],
+  ['P16 unanswered requests are not counted', 'const unanswered = samples.filter(s => s.failure)', 'const unanswered = []', 'E4'],
+  ['P17 the cause line is not printed', '    `requests with no answer: ${s.unanswered}`', '    void `requests with no answer: ${s.unanswered}`', 'O5'],
 ]
 
 // Resolved: a copy reached through a symlinked $TMPDIR is not the entry point of its own file, so its

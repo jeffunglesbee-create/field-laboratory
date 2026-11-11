@@ -80,7 +80,29 @@ export const attribute = (pair, perModel) => ({
   rainFrom: perModel.filter(m => m.ok && Math.abs(m.rain - pair.rain) <= TOLERANCE).map(m => m.model),
 })
 
-/** samples: [{ round, ground, ok, precipitation, rain, violation, attribution? }] */
+/**
+ * A failed fetch, kept whole enough to say WHY. Node's fetch throws "fetch failed" for every
+ * connection-level failure and puts the reason in `cause` (a code such as ECONNRESET, or an
+ * AggregateError whose `errors` are one per address tried). Run 1 kept only the message, so 53
+ * failures of 120 were recorded with no reason at all.
+ */
+export const errorOf = (e) => {
+  const c = e?.cause
+  const codes = Array.isArray(c?.errors) ? c.errors.map(x => x?.code ?? x?.name ?? String(x)) : []
+  return { name: e?.name ?? null, message: e?.message ?? String(e), cause: c?.code ?? null,
+           causeMessage: c?.message ?? null, causeCodes: codes }
+}
+
+/**
+ * One label per failure, for counting: the cause code, the per-address codes, the cause's message
+ * when it has no code (measured on Node 22.22: a blocked port gives cause `Error: bad port`, no code),
+ * or the error's own name (a TimeoutError has no cause).
+ */
+export const causeKey = (err) =>
+  err.causeCodes?.length ? `${err.cause ?? 'cause'}[${[...new Set(err.causeCodes)].sort().join(',')}]`
+    : err.cause ?? (err.causeMessage ? `cause: ${err.causeMessage}` : err.name ?? 'unknown')
+
+/** samples: [{ round, ground, ok, precipitation, rain, violation, attribution?, failure? }] */
 export const summarize = ({ samples, grounds, rounds }) => {
   const expected = grounds.length * rounds
   const read = samples.filter(s => s.ok)
@@ -94,8 +116,11 @@ export const summarize = ({ samples, grounds, rounds }) => {
     for (let i = 1; i < seq.length; i++) if (seq[i] !== seq[i - 1]) flips++
     byGround[g] = { read: seq.length, violations: seq.filter(Boolean).length, flips }
   }
+  const unanswered = samples.filter(s => s.failure)
+  const byCause = {}
+  for (const s of unanswered) byCause[s.failure] = (byCause[s.failure] || 0) + 1
   const verdict = violations.length ? 'refusal-observed' : wetAtStart ? 'none-observed-while-wet' : 'not-observable-dry'
-  return { expected, checked: read.length, violations: violations.length, wetAtStart, wetSamples: read.filter(s => s.precipitation > 0 || s.rain > 0).length, byGround, verdict, violationSamples: violations }
+  return { expected, checked: read.length, violations: violations.length, wetAtStart, wetSamples: read.filter(s => s.precipitation > 0 || s.rain > 0).length, byGround, verdict, violationSamples: violations, unanswered: unanswered.length, byCause }
 }
 
 export const render = ({ date, summary, startedAt, finishedAt, rounds, everyS }) => {
@@ -107,6 +132,7 @@ export const render = ({ date, summary, startedAt, finishedAt, rounds, everyS })
     `slate ${date}; ${Object.keys(s.byGround).length} ground(s) x ${rounds} round(s) every ${everyS}s; ${startedAt} to ${finishedAt}`,
     `per-request rate of rain > precipitation + ${TOLERANCE}: ${rate}`,
     `wet at the start: ${s.wetAtStart ? 'yes' : 'no'}; wet samples overall: ${s.wetSamples}`,
+    `requests with no answer: ${s.unanswered}` + (s.unanswered ? `, by cause: ${Object.entries(s.byCause).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}`).join(', ')}` : ''),
     '',
     'ground                                   read  violations  flips',
     ...Object.entries(s.byGround).map(([g, v]) => `${g.padEnd(40)} ${String(v.read).padStart(4)}  ${String(v.violations).padStart(10)}  ${String(v.flips).padStart(5)}`),
@@ -128,7 +154,7 @@ const get = async (url) => {
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(15_000) })
     return { status: r.status, text: await r.text() }
-  } catch (e) { return { status: 0, text: '', error: e.message } }
+  } catch (e) { return { status: 0, text: '', error: errorOf(e) } }
 }
 
 async function live () {
@@ -163,8 +189,9 @@ async function live () {
         const ground = wave[k]
         const a = answers[k]
         const p = readPair(a.status, a.text)
-        const sample = { round, ground, at: new Date().toISOString(), status: a.status, ...p, violation: p.ok ? isViolation(p.precipitation, p.rain) : false }
-        const record = { ...sample, body: a.text || a.error || '' }
+        const sample = { round, ground, at: new Date().toISOString(), status: a.status, ...p, violation: p.ok ? isViolation(p.precipitation, p.rain) : false,
+                         ...(a.error ? { failure: causeKey(a.error) } : {}) }
+        const record = { ...sample, body: a.text || '', ...(a.error ? { error: a.error } : {}) }
         if (sample.violation) {
           const w = table.get(ground).Where
           const perModel = []
@@ -241,6 +268,21 @@ function selfTest () {
   check('S6 dry at the start and no violation is not-observable-dry, even if it rained later', dry.verdict === 'not-observable-dry' && dry.wetSamples === 1)
   check('S7 dry with a violation is still refusal-observed (0.1 over 0 happened on a dry reading)',
     summarize({ samples: [S(0, 'A', 0, 0), S(1, 'A', 0, 0.1)], grounds: ['A'], rounds: 2 }).verdict === 'refusal-observed')
+
+  const reset = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' }) })
+  check('E1 a fetch failure keeps its cause code, not only "fetch failed"', errorOf(reset).cause === 'ECONNRESET' && causeKey(errorOf(reset)) === 'ECONNRESET')
+  const agg = Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new AggregateError([Object.assign(new Error('a'), { code: 'ETIMEDOUT' }), Object.assign(new Error('b'), { code: 'ENETUNREACH' })], 'x'), { code: 'ETIMEDOUT' }) })
+  check('E2 one code per address tried is kept and counted as one label', JSON.stringify(errorOf(agg).causeCodes) === '["ETIMEDOUT","ENETUNREACH"]' && causeKey(errorOf(agg)) === 'ETIMEDOUT[ENETUNREACH,ETIMEDOUT]')
+  // The shape Node 22.22's fetch really throws for a blocked port, measured here: a cause with a message and no code.
+  check('E6 a cause with no code is labelled by its message, not by a bare "Error"',
+    causeKey(errorOf(Object.assign(new TypeError('fetch failed'), { cause: new Error('bad port') }))) === 'cause: bad port')
+  const timeout = Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' })
+  check('E3 a timeout with no cause is labelled by its name', causeKey(errorOf(timeout)) === 'TimeoutError')
+  const failed = summarize({ samples: [S(0, 'A', 0, 0), { round: 0, ground: 'B', ok: false, violation: false, failure: 'ECONNRESET' }, { round: 1, ground: 'B', ok: false, violation: false, failure: 'ECONNRESET' }, { round: 1, ground: 'A', ok: false, violation: false, failure: 'TimeoutError' }], grounds, rounds: 2 })
+  check('E4 unanswered requests are counted by cause', failed.unanswered === 3 && failed.byCause.ECONNRESET === 2 && failed.byCause.TimeoutError === 1)
+  check('E5 a non-200 that answered is not an unanswered request', summarize({ samples: [{ round: 0, ground: 'A', ok: false, status: 429, violation: false }], grounds: ['A'], rounds: 1 }).unanswered === 0)
+  check('O5 the causes are printed, most frequent first',
+    /^requests with no answer: 3, by cause: ECONNRESET 2, TimeoutError 1$/m.test(render({ date: 'd', summary: failed, startedAt: 's', finishedAt: 'f', rounds: 2, everyS: 60 })))
 
   const txt = render({ date: '2026-11-14', summary: wet, startedAt: 's', finishedAt: 'f', rounds: 3, everyS: 60 })
   check('O1 the first line is the coverage (Rule 91)', txt.split('\n')[0] === 'checked 5 of 6 expected samples')
