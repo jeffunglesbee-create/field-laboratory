@@ -105,3 +105,19 @@ the half hour and all four grounds. The probe kept `e.message` only, so the caus
 Reported to the owner, not filed.
 
 Run 2 is scheduled for Saturday 2026-11-14 at 14:20Z (the full English slate, kickoffs 15:00 UK).
+
+## The probe records why a request got no answer (owner: "Yes", 2026-11-11)
+
+Run 1 lost the reason for 53 of its 120 requests: `get()` kept `e.message`, which Node's fetch sets to
+`fetch failed` for every connection-level failure. Now each failure keeps its name, message, the
+cause's code and message, and one code per address tried when the cause is an AggregateError
+(`errorOf`); the sample carries one label (`causeKey`), the summary counts them, and a new line reads
+`requests with no answer: N, by cause: <label> <count>, ...`. The raw `error` object is in the `.jsonl`.
+
+Checked against REAL failures of Node 22.22's fetch here, not only against built ones: a refused port
+gives `ECONNREFUSED`, an unknown host `ENOTFOUND`, a hung server under `AbortSignal.timeout`
+`TimeoutError` (no cause), and a blocked port a cause with a message and NO code (`bad port`), which
+the first version labelled a useless `Error`; it is now `cause: bad port`. Self-test 32/32; 17 of 17
+mutations caught, each by its named check (5 new: the cause code dropped, per-address codes dropped,
+a code-less cause labelled by name, failures not counted, the line not printed);
+`check:mutate-copy --only probe-rain-precip-pair` 9/9. Saturday's run 2 will carry it.
