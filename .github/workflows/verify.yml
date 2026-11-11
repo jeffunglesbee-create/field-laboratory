@@ -646,6 +646,10 @@ jobs:
       - name: The live score, on the rendered page
         run: node scripts/live-score-render-check.mjs
 
+      # The poll is the laboratory's only timer, on the owner's ruling; this reads its named conditions out of the F# source.
+      - name: The live score poll's conditions
+        run: npm run check:live-score-poll
+
       # Wiring proof only: a card of the 2026-10-10 capture flipped to Scheduled
       # and scored against a 2026-11-08 table is hindsight. Kept either way so a
       # reader can look at the line in its card; it is not evidence of accuracy.

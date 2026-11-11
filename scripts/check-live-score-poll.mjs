@@ -1,0 +1,170 @@
+#!/usr/bin/env node
+// The live-score poll is the laboratory's ONLY timer, and this is what says what its conditions are after the session that
+// built it has ended.
+//
+// docs/CC-CMD-2026-11-11-soccer-live-scores.md. The owner ruled on 2026-11-11 "Auto-poll while a match is live". Every other
+// surface of this page asks once and never again (the forecast, the lineups tab, the weather), each with its own check that
+// fails if a timer appears. This one has a timer on purpose, so the claim is not "no timer" but "THIS timer, and only these
+// conditions", and each condition is a scan of the F# source:
+//
+//   1. one region, marked, in src/Program.fs;
+//   2. exactly ONE setInterval in it, and no other recurrence term (a timeout, an animation frame, a socket, an event source,
+//      a listener, a Solid effect);
+//   3. its period is `LiveScore.LivePollMs`, and that is 60000 (the arithmetic is in the CC-CMD: each request for a live game
+//      costs the relay an uncached BSD call and a game-object write, and the relay already makes 720 of them per key per 3 h);
+//   4. a request only while the tab is visible, only for a key that has a card in its window (`liveKeysAt`), the timer stops
+//      when no window is ahead (`liveWorkAheadAt`), one request per key at a time (`inFlight`), ONE fetch in the region;
+//   5. none on a page pinned to a capture (`?data=`), which must not reach the network;
+//   6. the timer is stopped when the slate is re-rendered (`disposePrevious`);
+//   7. it is the ONLY timer in `src/*.fs`: no other setInterval, setTimeout or animation frame, no socket or event source.
+//
+// WHAT THIS CAN AND CANNOT SEE (Rule 91). It reads F# SOURCE, in the files printed at the end of every run, with comments
+// removed by the shared scanner (so a comment that says "no timeout" is not read as one). It does not read `build/` or `public/`,
+// and it cannot see a timer a called library arms on its own. It says THESE conditions are what is written; that the page
+// holds to them in a browser is `scripts/live-score-render-check.mjs`, which counts the requests it makes.
+//
+// Usage: node scripts/check-live-score-poll.mjs [--self-test]
+
+import { readFileSync, readdirSync } from 'node:fs'
+import { createChecks, isMain, finish } from './checks.mjs'
+import { RECURRENCE, codeOnly, sliceBetween } from './check-lineups-pull-only.mjs'
+
+export const PROGRAM = 'src/Program.fs'
+export const LIVE_SCORE = 'src/LiveScore.fs'
+export const FROM = '// ── live score poll: begin'
+export const TO = '// ── live score poll: end'
+export const PERIOD_MS = 60000
+
+const count = (re, text) => (text.match(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g')) ?? []).length
+
+/** The region's text, or null when it is absent or its begin marker occurs more than once. */
+export const regionOf = program =>
+  program.split(FROM).length === 2 ? sliceBetween(program, FROM, TO) : null
+
+/** Every claim, as { name, ok, detail }. Pure: it is handed the text of the files. */
+export const claimsOf = ({ program, liveScore, sources }) => {
+  const out = []
+  const claim = (name, ok, detail = '') => out.push({ name, ok: !!ok, detail })
+
+  const region = regionOf(program)
+  claim('the poll is one marked region of src/Program.fs', region !== null, region === null ? `markers "${FROM}" and "${TO}" not found exactly once` : '')
+  const code = region === null ? '' : codeOnly(region)
+
+  claim('the region holds exactly one setInterval', count(/\bwindow\.setInterval\b/, code) === 1 && count(/\bsetInterval\b/, code) === 1,
+    `setInterval x${count(/\bsetInterval\b/, code)}`)
+  const others = RECURRENCE.filter(([name]) => name !== 'setInterval' && name !== 'window.setInterval').filter(([, re]) => re.test(code)).map(([name]) => name)
+  claim('...and no other recurrence term: no timeout, animation frame, socket, event source, listener or effect', others.length === 0, others.join(', '))
+  claim('...and one clearInterval, in the stop function', count(/\bwindow\.clearInterval\b/, code) === 1 && /let private stopLivePoll \(\) =[\s\S]*?clearInterval/.test(code))
+
+  const period = (liveScore.match(/\[<Literal>\]\s*let LivePollMs\s*=\s*(\d+)/) ?? [])[1]
+  claim(`the period is LiveScore.LivePollMs and that is ${PERIOD_MS} ms`,
+    /setInterval\s*\(\s*\(fun \(\) -> tick \(\)\)\s*,\s*LiveScore\.LivePollMs\s*\)/.test(code) && Number(period) === PERIOD_MS,
+    `LivePollMs = ${period}; call: ${(code.match(/setInterval[^\n]*/) ?? ['none'])[0].trim()}`)
+
+  claim('a request is made only while the tab is visible', /\(string document\?visibilityState\)\s*=\s*"visible"/.test(code))
+  claim('...only for a key with a card in its window', /LiveScore\.liveKeysAt\b/.test(code) && /LiveScore\.inLiveWindowAt\b/.test(code))
+  claim('...and the timer stops when no window is ahead', /LiveScore\.liveWorkAheadAt\b[\s\S]*?stopLivePoll \(\)/.test(code))
+  claim('...one request per key at a time', /inFlight\.Add key\b/.test(code) && /inFlight\.Remove key\b/.test(code))
+  claim('...and one fetch in the region', count(/\btryFetchText\b/, code) === 1, `tryFetchText x${count(/\btryFetchText\b/, code)}`)
+
+  const outside = region === null ? codeOnly(program) : codeOnly(program.replace(region, ''))
+  const calls = outside.split('\n').filter(l => /\bstartLivePoll\b/.test(l) && !/let private startLivePoll/.test(l))
+  claim('a page pinned to a capture starts no poll: the one call is guarded by (queryParam "data").IsNone',
+    calls.length === 1 && /\(queryParam "data"\)\.IsNone/.test(calls[0]), JSON.stringify(calls))
+  const dispose = (outside.match(/let private disposePrevious \(\) =[\s\S]*?\n\n/) ?? [''])[0]
+  claim('re-rendering the slate stops the timer: disposePrevious calls stopLivePoll', /\bstopLivePoll \(\)/.test(dispose))
+
+  const all = Object.entries(sources).map(([file, text]) => [file, codeOnly(text)])
+  const timers = all.flatMap(([file, text]) => [...text.matchAll(/\b(setInterval|setTimeout|requestAnimationFrame)\b/g)].map(m => `${file}: ${m[1]}`))
+  claim('it is the only timer in src/*.fs', timers.length === 1 && timers[0].startsWith('src/Program.fs'), timers.join(' | '))
+  const sockets = all.flatMap(([file, text]) => [...text.matchAll(/\b(EventSource|WebSocket)\b/g)].map(m => `${file}: ${m[1]}`))
+  claim('...and there is no socket or event source anywhere in src/*.fs', sockets.length === 0, sockets.join(' | '))
+  return out
+}
+
+/** The files and what was read, printed with every run so a green result is not read as more than it is. */
+export const coverageOf = ({ program, sources }) => {
+  const region = regionOf(program)
+  return `scanned ${Object.keys(sources).length} F# source file(s); the poll region is ${region === null ? 'ABSENT' : region.split('\n').length + ' lines of ' + PROGRAM}`
+}
+
+// --- self-test ---------------------------------------------------------------
+
+const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
+
+/** A minimal program that satisfies every claim, and variants that each break exactly one. */
+const GOOD = `module Program
+let private queryParam (n: string) = None
+${FROM} ──────
+let private stopLivePoll () =
+    match livePollTimer with
+    | Some id ->
+        window.clearInterval id
+        livePollTimer <- None
+    | None -> ()
+let private startLivePoll (handles) (etDay: string) =
+    let inFlight = HashSet<string>()
+    let tick () =
+        if not (LiveScore.liveWorkAheadAt now (games ())) then stopLivePoll ()
+        elif (string document?visibilityState) = "visible" then
+            for key in LiveScore.liveKeysAt now (games ()) do
+                if inFlight.Add key then
+                    tryFetchText (RELAY_BASE + path)
+                    |> Promise.iter (fun result ->
+                        inFlight.Remove key |> ignore
+                        let cards = handles |> Seq.filter (fun h -> LiveScore.inLiveWindowAt now h.Game)
+                        ())
+    livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
+${TO} ────────
+
+let private disposePrevious () =
+    stopLivePoll ()
+    ()
+
+let go () =
+    if (queryParam "data").IsNone then startLivePoll handles day
+`
+const GOOD_SCORE = '[<Literal>]\nlet LivePollMs = 60000\n'
+const run = (program, liveScore = GOOD_SCORE, sources = { 'src/Program.fs': program, 'src/LiveScore.fs': liveScore }) =>
+  claimsOf({ program, liveScore, sources })
+const failing = (program, liveScore, sources) => run(program, liveScore, sources).filter(c => !c.ok).map(c => c.name)
+
+if (SELF_TEST) {
+  const { check, summarize } = createChecks()
+  const bad = failing(GOOD)
+  check('the good fixture satisfies every claim', bad.length === 0, bad.join(' | '))
+  const one = (name, program, liveScore, sources) => {
+    const f = failing(program, liveScore, sources)
+    check(name, f.length >= 1, `nothing failed; claims: ${run(program, liveScore, sources).map(c => c.name).length}`)
+  }
+
+  one('a missing begin marker is caught', GOOD.replace(FROM, '// ── something else'))
+  one('a second timer in the region is caught', GOOD.replace('    livePollTimer <- Some', '    window.setInterval ((fun () -> ()), 1000) |> ignore\n    livePollTimer <- Some'))
+  one('a setTimeout in the region is caught', GOOD.replace('    livePollTimer <- Some', '    window.setTimeout ((fun () -> ()), 1000) |> ignore\n    livePollTimer <- Some'))
+  one('a 15 s period is caught', GOOD.replace('LiveScore.LivePollMs))', '15000))'))
+  one('a LivePollMs of 15000 is caught', GOOD, '[<Literal>]\nlet LivePollMs = 15000\n')
+  one('no visibility gate is caught', GOOD.replace('elif (string document?visibilityState) = "visible" then', 'else'))
+  one('no in-flight guard is caught', GOOD.replace('if inFlight.Add key then', 'if true then'))
+  one('a poll on a pinned page is caught', GOOD.replace('if (queryParam "data").IsNone then startLivePoll', 'startLivePoll'))
+  one('a poll that is never stopped on re-render is caught', GOOD.replace('let private disposePrevious () =\n    stopLivePoll ()', 'let private disposePrevious () ='))
+  one('a timer outside the region is caught', GOOD + '\nlet private stray = window.setInterval ((fun () -> ()), 1000)\n')
+  one('a socket anywhere in src is caught', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let s = WebSocket("x")' })
+  one('a second fetch in the region is caught', GOOD.replace('                        ())', '                        tryFetchText "x" |> ignore\n                        ())'))
+  check('a comment that names a timeout is not read as one',
+    failing(GOOD.replace('    let inFlight', '    // no setTimeout here\n    let inFlight')).length === 0)
+  check('the coverage line names what was read', coverageOf({ program: GOOD, sources: { a: '', b: '' } }).startsWith('scanned 2 F# source file(s)'))
+  finish(summarize())
+}
+
+// --- the live scan -----------------------------------------------------------
+
+if (isMain(import.meta.url) && !SELF_TEST) {
+  const { check, summarize } = createChecks()
+  const files = readdirSync('src').filter(f => f.endsWith('.fs')).map(f => `src/${f}`)
+  const sources = Object.fromEntries(files.map(f => [f, readFileSync(f, 'utf8')]))
+  const program = sources[PROGRAM]
+  const liveScore = sources[LIVE_SCORE]
+  for (const c of claimsOf({ program, liveScore, sources })) check(c.name, c.ok, c.detail)
+  console.log(coverageOf({ program, sources }))
+  finish(summarize())
+}

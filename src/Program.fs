@@ -291,9 +291,71 @@ let private loadMetricsOnce () =
         | null -> ()
         | mount -> MetricsView.load mount |> Promise.start
 
+// ── live score poll: begin ──────────────────────────────────────────────
+// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6. THE LABORATORY'S ONLY TIMER, and it is here on the owner's ruling of
+// 2026-11-11 ("Auto-poll while a match is live"). Its conditions are NAMED, not implied, and `scripts/check-live-score-poll.mjs`
+// reads this region by its markers and fails if one is not what is written here:
+//   - ONE `setInterval`, every `LiveScore.LivePollMs` (60 s);
+//   - a request only while the tab is visible, and only for a sport key that has a card inside its live window
+//     (`LiveScore.liveKeysAt`: kickoff to three hours after it), at most ONE request per key per tick, and none while the previous
+//     request for that key is still in flight;
+//   - the timer STOPS when no soccer card has a window now or ahead (`LiveScore.liveWorkAheadAt`), and when the slate is
+//     re-rendered (`disposePrevious`), so a page left on a finished slate holds no timer;
+//   - none at all on a page pinned to a capture (`?data=`), which must not reach the network;
+//   - no socket, no event source, no visibility listener: a tab that becomes visible waits for the next tick.
+// What it asks is the relay's pull route (ADR-002 Rule A: a reader's page asks; nothing is pushed). What it does with the answer is
+// `CardHandle.SetReading`; a failed or unreadable answer is said on the card ("live score unavailable"), never a silent blank.
+let private RELAY_BASE = "https://field-relay-nba.jeffunglesbee.workers.dev"
+
+let mutable private livePollTimer : float option = None
+
+let private stopLivePoll () =
+    match livePollTimer with
+    | Some id ->
+        window.clearInterval id
+        livePollTimer <- None
+    | None -> ()
+
+let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: string) =
+    stopLivePoll ()
+    let inFlight = System.Collections.Generic.HashSet<string>()
+    let games () = handles |> Seq.map (fun h -> h.Game) |> List.ofSeq
+
+    let tick () =
+        let now = System.DateTimeOffset.UtcNow
+        if not (LiveScore.liveWorkAheadAt now (games ())) then stopLivePoll ()
+        elif (string document?visibilityState) = "visible" then
+            for key in LiveScore.liveKeysAt now (games ()) do
+                if inFlight.Add key then
+                    tryFetchText (RELAY_BASE + LiveFeed.feedPath key etDay)
+                    |> Promise.iter (fun result ->
+                        inFlight.Remove key |> ignore
+                        let cards =
+                            handles
+                            |> Seq.filter (fun h -> LiveScore.liveSportKey h.Game.Sport = Some key && LiveScore.inLiveWindowAt now h.Game)
+                            |> List.ofSeq
+                        match result with
+                        | Error why ->
+                            for h in cards do
+                                h.SetReading(LiveScore.LiveUnavailable(sprintf "the feed did not answer: %s" why))
+                        | Ok body ->
+                            match LiveFeed.decodeFeed body with
+                            | Error why ->
+                                for h in cards do
+                                    h.SetReading(LiveScore.LiveUnavailable("unreadable — " + why))
+                            | Ok feed ->
+                                for h in cards do
+                                    h.SetReading(LiveFeed.readingFor feed h.Game))
+
+    if LiveScore.liveWorkAheadAt System.DateTimeOffset.UtcNow (games ()) then
+        tick ()
+        livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
+// ── live score poll: end ────────────────────────────────────────────────
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
+    stopLivePoll ()
     match disposeRoot with
     | Some dispose ->
         dispose ()
@@ -470,11 +532,17 @@ let private start () =
                 // effects, made inside it, are what the root disposes.
                 let table, setTable = Solid.createSignal CardForecast.Pending
 
+                let cardHandles = ref (ResizeArray<Scoreboard.CardHandle>())
+
                 Solid.createRoot (fun dispose ->
                     disposeRoot <- Some(fun () -> dispose.Invoke())
                     let handles = Scoreboard.renderSlate mount games briefs table
+                    cardHandles.Value <- handles
                     if window.location.search.Contains "simulate=1" then
                         exposeForTesting handles)
+
+                // The live score. A page pinned to a capture never polls: it must not reach the network.
+                if (queryParam "data").IsNone then startLivePoll cardHandles.Value (viewedDate ())
 
                 // The model's forecast needs the table; nothing else on the page
                 // does, so a slate with no EPL card spends no request. ONE request,

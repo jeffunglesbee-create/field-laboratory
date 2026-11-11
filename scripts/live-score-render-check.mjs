@@ -17,6 +17,7 @@
 // Usage:  node scripts/live-score-render-check.mjs --self-test
 //         URL=http://localhost:8080 node scripts/live-score-render-check.mjs   (the server must be up: node scripts/serve.mjs)
 
+import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright'
 import { createChecks, isMain, finish } from './checks.mjs'
 
@@ -24,6 +25,17 @@ const BASE = (process.env.URL || 'http://localhost:8080').replace(/\/+$/, '')
 const SLATE = `${BASE}/?data=context-2026-10-10&simulate=1`
 /** Between the 11:30Z and 14:00Z kickoffs of the committed slate. */
 const AT = '2026-10-10T12:00:00Z'
+
+const RELAY = 'https://field-relay-nba.jeffunglesbee.workers.dev'
+/** The UNPINNED page's routes, spelled out in full on purpose (a typo in the page's own constant must not be forgiven). */
+export const ROUTES = {
+  slate: `${RELAY}/context/date/2026-10-10`,
+  standings: `${RELAY}/espn-standings/soccer/eng.1/standings`,
+  feed: `${RELAY}/v2/games?sport=epl&date=2026-10-10`,
+}
+const UNPINNED = `${BASE}/?date=2026-10-10&simulate=1`
+/** Arsenal v Leeds' ESPN event id in the committed slate (src reads it as `espn_event_id`). */
+const ARSENAL_LEEDS_ESPN = '401879268'
 
 const EARLY = 'Arsenal v Leeds' // kicked off 11:30Z, finalised in the capture
 const LATE = 'Chelsea v Bournemouth' // kicks off 14:00Z
@@ -49,6 +61,16 @@ export const WORDS = {
 export const mismatches = (card, want) =>
   Object.keys(want).filter(k => card[k] !== want[k]).map(k => `${k}: "${card[k]}" is not "${want[k]}"`)
 
+/** A scripted /v2/games body for the one game of the mocked slate. The KEYS are those of two real probes (2026-11-11); the values are
+ *  this test's own. The keys of a game in play are not yet captured from the relay, so what a live game carries is this test's assumption. */
+export const feedBody = (state, home, away, clock) =>
+  JSON.stringify({
+    sport: 'epl', date: '2026-10-10', count: 1,
+    games: [{ id: `espn:${ARSENAL_LEEDS_ESPN}`, espnEventId: ARSENAL_LEEDS_ESPN, sport: 'epl', league: 'EPL', state, start: '2026-10-10T11:30Z',
+      home: { name: 'Arsenal', abbr: 'ARS', score: home }, away: { name: 'Leeds United', abbr: 'LEE', score: away },
+      clock, periodNum: 1, periodLabel: "", situation: null, matchEvents: [], streams: [] }],
+  })
+
 // --- self-test ---------------------------------------------------------------
 
 const SELF_TEST = isMain(import.meta.url) && process.argv.includes('--self-test')
@@ -66,6 +88,10 @@ if (SELF_TEST) {
   check('the words are spelled out, and each is distinct', new Set(Object.values(WORDS)).size === Object.values(WORDS).length)
   check('the pre-kickoff string is the one the 2026-11-21 probe parses (it starts "Scheduled ")', /^Scheduled (\S+)/.test(WORDS.preKickoff))
   check('the post-kickoff string does not start with "Scheduled"', !WORDS.passed.startsWith('Scheduled'))
+  check('the feed route is spelled out in full, with the sport key and the ET day',
+    ROUTES.feed === 'https://field-relay-nba.jeffunglesbee.workers.dev/v2/games?sport=epl&date=2026-10-10' && UNPINNED.includes('date=2026-10-10'))
+  check('a scripted feed body names the game by its ESPN event id', feedBody('live', 1, 0, "34'").includes(`"espnEventId":"${ARSENAL_LEEDS_ESPN}"`))
+  check('a scripted feed body for another state differs', feedBody('final', 2, 1, "90'+4'") !== feedBody('live', 1, 0, "34'"))
 
   finish(summarize())
 }
@@ -206,6 +232,81 @@ if (isMain(import.meta.url) && !SELF_TEST) {
   check('no page or console errors', errors.length === 0, errors.join(' | '))
 
   await context.close()
+
+  // ── the poll, on an UNPINNED page, with the relay's routes mocked ─────────
+  // The slate is the committed one reduced to Arsenal v Leeds, with its score and finalisation removed so the archive says what
+  // it said for Man Utd v Aston Villa on 2026-11-08: no score, the start time behind us. The feed is scripted, one body per tick.
+  // The clock is a FAKE one (`clock.install`): timers are controlled, so a 60 s tick is `fastForward`, not a wait.
+  {
+    const slate = JSON.parse(readFileSync('data/context-2026-10-10.json', 'utf8'))
+    slate.games.regular = slate.games.regular.filter(g => String(g.espn_event_id) === ARSENAL_LEEDS_ESPN)
+      .map(g => ({ ...g, home_score: null, away_score: null, finalized_at: null }))
+    slate.games.postseason = []
+    const errors2 = []
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+    const pg = await ctx.newPage()
+    pg.on('pageerror', e => errors2.push(`pageerror: ${e.message}`))
+    const feedRequests = []
+    const script = [feedBody('live', 1, 0, "34'"), feedBody('final', 2, 1, "90'+4'"), 'FAIL', feedBody('live', 3, 0, "70'"), 'GARBAGE']
+    await pg.route(ROUTES.slate, r => r.fulfill({ contentType: 'application/json', body: JSON.stringify(slate) }))
+    await pg.route(ROUTES.standings, r => r.fulfill({ contentType: 'application/json', body: readFileSync('data/standings-eng1-2026-11-08.json', 'utf8') }))
+    await pg.route(url => url.href.startsWith(`${RELAY}/v2/games`), r => {
+      feedRequests.push(r.request().url())
+      const body = script[Math.min(feedRequests.length - 1, script.length - 1)]
+      if (body === 'FAIL') return r.fulfill({ status: 503, body: 'down' })
+      if (body === 'GARBAGE') return r.fulfill({ contentType: 'text/html', body: '<html>maintenance</html>' })
+      return r.fulfill({ contentType: 'application/json', body })
+    })
+    await pg.clock.install({ time: new Date(AT) })
+    await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+    await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+
+    const first = await settle(pg, EARLY, { score: '1–0' })
+    check('an unpinned page with a card in its window asks the feed once at load, for the sport key and the ET day',
+      feedRequests.length === 1 && feedRequests[0] === ROUTES.feed, JSON.stringify(feedRequests))
+    check('...and the card shows the feed\'s live score, In progress and the feed\'s clock',
+      mismatches(first, { score: '1–0', status: WORDS.inProgress, live: "34'" }).length === 0, JSON.stringify(first))
+
+    await pg.clock.fastForward(60_000)
+    const second = await settle(pg, EARLY, { live: WORDS.fullTime })
+    check('one tick later it asks again, once, and a final feed game reads Full time (the archive has not finalised it)',
+      feedRequests.length === 2 && mismatches(second, { score: '2–1', status: WORDS.inProgress, live: WORDS.fullTime }).length === 0,
+      JSON.stringify({ n: feedRequests.length, card: second }))
+
+    await pg.clock.fastForward(60_000)
+    const third = await settle(pg, EARLY, { live: WORDS.unavailable })
+    check('a feed that answers 503 is said on the card in words, and the card goes back to the archive\'s answer',
+      feedRequests.length === 3 && mismatches(third, { live: WORDS.unavailable, status: WORDS.passed, score: '—' }).length === 0,
+      JSON.stringify({ n: feedRequests.length, card: third }))
+
+    await pg.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }))
+    await pg.clock.fastForward(60_000)
+    await pg.waitForTimeout(300)
+    check('a hidden tab asks for nothing', feedRequests.length === 3, String(feedRequests.length))
+
+    await pg.evaluate(() => Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' }))
+    await pg.clock.fastForward(60_000)
+    const fourth = await settle(pg, EARLY, { score: '3–0' })
+    check('a visible tab asks again at the next tick and the card is live again',
+      feedRequests.length === 4 && mismatches(fourth, { score: '3–0', live: "70'" }).length === 0, JSON.stringify({ n: feedRequests.length, card: fourth }))
+
+    await pg.clock.fastForward(60_000)
+    const fifth = await settle(pg, EARLY, { live: WORDS.unavailable })
+    check('a body that is not JSON is said on the card in words, never a blank',
+      feedRequests.length === 5 && mismatches(fifth, { live: WORDS.unavailable, status: WORDS.passed }).length === 0, JSON.stringify({ n: feedRequests.length, card: fifth }))
+
+    await pg.clock.fastForward(3 * 60 * 60 * 1000)
+    await pg.waitForTimeout(300)
+    const afterWindow = feedRequests.length
+    await pg.clock.fastForward(60_000)
+    await pg.clock.fastForward(60_000)
+    await pg.waitForTimeout(300)
+    check('once the card\'s window (three hours after the start) has passed the poll stops: no request at the next ticks',
+      feedRequests.length === afterWindow, JSON.stringify({ afterWindow, now: feedRequests.length }))
+    check('no page errors on the unpinned page', errors2.length === 0, errors2.join(' | '))
+    await ctx.close()
+  }
+
   await browser.close()
   finish(summarize())
 }
