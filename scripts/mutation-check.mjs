@@ -12206,6 +12206,63 @@ const MUTATIONS = [
     replace: "    | _, LiveUnavailable why -> why\n    | _, FullTime _ -> \"full time\"\n    | _ -> \"\"",
     expect: "node build/VerifyMain.js",
   },
+  // Fix-review 2026-11-11 (poll F1, F23; defence F20, F21): the day the poll asks for, the guard on an empty date, and the VALUE of the deadline.
+  {
+    id: "poll-asks-for-the-urls-day-at-the-call",
+    file: "src/Program.fs",
+    claim: "a slate dated the 9th under a URL for the 10th is asked for the 9th (the call passes the cards' day)",
+    find: "startLivePoll cardHandles.Value payload.Date",
+    replace: "startLivePoll cardHandles.Value (viewedDate ())",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "poll-asks-for-the-urls-day-inside-the-poll",
+    file: "src/Program.fs",
+    claim: "a slate dated the 9th under a URL for the 10th is asked for the 9th (the poll builds its route from the day it was started with)",
+    find: "LiveFeed.feedPath key etDay",
+    replace: "LiveFeed.feedPath key (viewedDate ())",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "poll-asks-for-the-urls-day-inside-the-poll-seen-by-the-text-scan",
+    file: "src/Program.fs",
+    claim: "the request is built from the day the poll was started with (the text scan's own claim)",
+    find: "LiveFeed.feedPath key etDay",
+    replace: "LiveFeed.feedPath key (viewedDate ())",
+    expect: "node scripts/check-live-score-poll.mjs",
+  },
+  {
+    id: "poll-starts-on-an-empty-date",
+    file: "src/Program.fs",
+    claim: "a slate with no date draws its cards and asks the feed for nothing",
+    find: "if (queryParam \"data\").IsNone && payload.Date <> \"\" then startLivePoll",
+    replace: "if (queryParam \"data\").IsNone then startLivePoll",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "poll-starts-on-an-empty-date-seen-by-the-text-scan",
+    file: "src/Program.fs",
+    claim: "the poll's one call is guarded on an empty date (the text scan's own claim)",
+    find: "if (queryParam \"data\").IsNone && payload.Date <> \"\" then startLivePoll",
+    replace: "if (queryParam \"data\").IsNone then startLivePoll",
+    expect: "node scripts/check-live-score-poll.mjs",
+  },
+  {
+    id: "poll-deadline-signal-shorter-than-the-constant",
+    file: "src/Program.fs",
+    claim: "a request is held until two seconds before its deadline, and the deadline is the constant's (here the signal is 5 s short)",
+    find: "Signal(timeoutSignal ms)",
+    replace: "Signal(timeoutSignal (ms - 5000))",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
+  {
+    id: "poll-deadline-signal-longer-than-the-constant",
+    file: "src/Program.fs",
+    claim: "a request is cut two seconds after its deadline, and the deadline is the constant's (here the signal is 10 s long)",
+    find: "Signal(timeoutSignal ms)",
+    replace: "Signal(timeoutSignal (ms + 10000))",
+    expect: "node scripts/live-score-render-check.mjs",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

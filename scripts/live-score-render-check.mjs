@@ -479,41 +479,107 @@ if (isMain(import.meta.url) && !SELF_TEST) {
 
     // (c) a request that NEVER answers (review 2026-11-11, poll S4 and S18): without a deadline the key stayed held for the life of the page, the card said nothing, and no later
     // tick asked again. The deadline is `AbortSignal.timeout`, which the fake clock DOES drive (measured 2026-11-11: a fetch given `AbortSignal.timeout(15000)` rejected with
-    // `TimeoutError` after `clock.fastForward(60000)`), and its length is read from src/LiveScore.fs so this check follows the constant. The request is still open at the tick
-    // inside the deadline (so the guard held it), is cut at the deadline with the card saying the feed did not answer, and the next tick asks for the key again and is told.
+    // `TimeoutError` after `clock.fastForward(60000)`), and its length is read from src/LiveScore.fs so this check follows the constant.
+    // Fix-review 2026-11-11 (poll F23): the first version only knew the request was still open at 60 s and cut by 91 s, so a signal of 65 s, or any value from 60 s to about 94 s, passed. The
+    // installed clock keeps running in real time unless it is paused (a checkpoint a second before the deadline failed 4 runs in 5 in a reviewer's replica, on the real-time drift), so the clock is PAUSED once the request is
+    // in flight and moved only by `runFor`: the time the request has been open is then known exactly (`e` below, from the page's own `Date.now()` at the request and at the pause), and the
+    // request must be open two seconds before its deadline and cut two seconds after it. Measured on 6 runs with 0.5 to 2.5 s of real-time drift before the pause (scratch, 2026-11-11): the same
+    // answer every time. The band is the clock's own: a signal 5 s short or 10 s long fails (table entries `poll-deadline-signal-*`).
     {
       const DEADLINE_MS = Number(readFileSync('src/LiveScore.fs', 'utf8').match(/let LivePollTimeoutMs = (\d+)/)?.[1])
+      const TICK_PAST = 65_000, BAND = 2_000
       const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
       const pg = await ctx.newPage()
       let release
       const gate = new Promise(res => { release = res })
       const n = { epl: 0, laliga: 0 }
+      let t0 = null
       await routesFor(pg, mk(), async r => {
         const key = new URL(r.request().url()).searchParams.get('sport')
         const i = n[key]++
-        if (key === 'epl' && i === 0) { await gate; return r.abort().catch(() => {}) }
+        if (key === 'epl' && i === 0) { t0 = await pg.evaluate(() => Date.now()); await gate; return r.abort().catch(() => {}) }
         return r.fulfill({ contentType: 'application/json', body: FEEDS[key] ?? JSON.stringify({ games: [] }) })
       })
       await pg.clock.install({ time: new Date(AT) })
       await pg.goto(UNPINNED, { waitUntil: 'commit' })
       await pg.waitForSelector('.desk-card', { timeout: 15_000 })
-      await pg.waitForTimeout(500)
+      for (let i = 0; t0 === null && i < 100; i++) await pg.waitForTimeout(50)
       const before = await readCard(pg, EARLY)
-      await pg.clock.fastForward(60_000)
-      await pg.waitForTimeout(250)
-      const insideDeadline = await readCard(pg, EARLY)
-      const askedInside = n.epl
-      await pg.clock.fastForward(DEADLINE_MS - 60_000 + 1_000)
-      const cut = await settle(pg, EARLY, { live: WORDS.unavailable })
-      check('a request that never answers is held at the tick inside its deadline, and cut at the deadline with the card saying the feed did not answer rather than staying silent',
-        Number.isFinite(DEADLINE_MS) && DEADLINE_MS > 60_000 && before.live !== WORDS.unavailable && insideDeadline.live !== WORDS.unavailable && askedInside === 1 && cut.live === WORDS.unavailable,
-        JSON.stringify({ DEADLINE_MS, before: before.live, insideDeadline: insideDeadline.live, askedInside, cut: cut.live }))
-      check('...and the reason says the feed did not answer', typeof cut.why === 'string' && cut.why.startsWith('the feed did not answer'), JSON.stringify(cut.why))
-      await pg.clock.fastForward(60_000)
+      const tNow = await pg.evaluate(() => Date.now())
+      await pg.clock.pauseAt(new Date(tNow + 1))
+      const e = tNow + 1 - t0
+      const geometryOk = Number.isFinite(DEADLINE_MS) && t0 !== null && e >= 0 && e < 10_000 && DEADLINE_MS >= TICK_PAST + 2 * BAND
+      let insideDeadline = null, askedInside = null, justBefore = null, cut = null
+      if (geometryOk) {
+        await pg.clock.runFor(TICK_PAST - e)
+        await pg.waitForTimeout(250)
+        insideDeadline = await readCard(pg, EARLY)
+        askedInside = n.epl
+        await pg.clock.runFor(DEADLINE_MS - BAND - TICK_PAST)
+        await pg.waitForTimeout(250)
+        justBefore = await readCard(pg, EARLY)
+        await pg.clock.runFor(2 * BAND)
+        cut = await settle(pg, EARLY, { live: WORDS.unavailable })
+      }
+      check('a request that never answers is held through the tick after it and until two seconds before its deadline, and is cut two seconds after it with the card saying so rather than staying silent',
+        geometryOk && before.live !== WORDS.unavailable && insideDeadline.live !== WORDS.unavailable && askedInside === 1 && justBefore.live !== WORDS.unavailable && cut.live === WORDS.unavailable,
+        JSON.stringify({ DEADLINE_MS, openForMs: e, before: before?.live, insideDeadline: insideDeadline?.live, askedInside, justBefore: justBefore?.live, cut: cut?.live }))
+      check('...and the reason says the feed did not answer', typeof cut?.why === 'string' && cut.why.startsWith('the feed did not answer'), JSON.stringify(cut?.why))
+      if (geometryOk) await pg.clock.runFor(60_000)
       await pg.waitForTimeout(400)
       const again = await settle(pg, EARLY, { score: '1–0' })
       check('...and the next tick asks for that key again and the card is told the score: the stalled request did not pin the key', n.epl === 2 && again.score === '1–0' && again.why === null, JSON.stringify({ asked: n.epl, score: again.score, why: again.why }))
       release()
+      await ctx.close()
+    }
+
+    // (f) THE DAY ASKED is the day of the cards drawn, not the URL's (review 2026-11-11, poll S5; fix-review poll F1 and defence F20). `start()` has no generation guard, so two overlapping navigations can
+    // leave one day's slate drawn under another day's URL. Here the URL says 2026-10-10 and the slate it is answered with says 2026-10-09: the feed must be asked for the 9th. Every scenario above serves a slate
+    // whose `date` equals the URL's, so the two days were indistinguishable and a poll that asked for the URL's day (at the call, or inside the poll) passed.
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      const errs = []
+      pg.on('pageerror', e => errs.push(e.message))
+      const asked = []
+      await routesFor(pg, { ...mk(), date: '2026-10-09' }, r => {
+        const u = new URL(r.request().url())
+        asked.push(`${u.searchParams.get('sport')}:${u.searchParams.get('date')}`)
+        return r.fulfill({ contentType: 'application/json', body: FEEDS[u.searchParams.get('sport')] ?? JSON.stringify({ games: [] }) })
+      })
+      await pg.clock.install({ time: new Date(AT) })
+      await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      await settle(pg, EARLY, { score: '1–0' })
+      check('a slate dated the 9th, drawn under a URL for the 10th, is asked for the 9th: every request carries the date of the cards, never the URL\'s',
+        asked.length === 2 && [...asked].sort().join() === 'epl:2026-10-09,laliga:2026-10-09', JSON.stringify(asked))
+      check('no page errors when the slate\'s day and the URL\'s differ', errs.length === 0, errs.join(' | '))
+      await ctx.close()
+    }
+
+    // (g) a slate that carries no date asks for nothing (fix-review poll F1 and defence F21). The relay turns an empty `date` into the UTC day, which is the wrong day after 19:00 Eastern, so the page
+    // does not ask; the cards are still drawn, and no timer is armed for a poll that will not run.
+    {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 1400 } })
+      const pg = await ctx.newPage()
+      const errs = []
+      pg.on('pageerror', e => errs.push(e.message))
+      const asked = []
+      const noDate = mk()
+      delete noDate.date
+      await routesFor(pg, noDate, r => { asked.push(r.request().url()); return r.fulfill({ contentType: 'application/json', body: FEEDS.epl }) })
+      await pg.clock.install({ time: new Date(AT) })
+      await instrument(pg)
+      await pg.goto(UNPINNED, { waitUntil: 'networkidle' })
+      await pg.waitForSelector('.desk-card', { timeout: 15_000 })
+      for (let i = 0; i < 2; i++) {
+        await pg.clock.fastForward(60_000)
+        await pg.waitForTimeout(250)
+      }
+      const drawn = await readCard(pg, EARLY)
+      check('a slate with no date draws its cards and asks the feed for nothing, at load or across two ticks, with no timer armed',
+        drawn !== null && asked.length === 0 && (await alive(pg)) === 0, JSON.stringify({ drawn: drawn?.status, asked, alive: await alive(pg) }))
+      check('no page errors on a slate with no date', errs.length === 0, errs.join(' | '))
       await ctx.close()
     }
 

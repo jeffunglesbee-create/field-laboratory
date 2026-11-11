@@ -82,3 +82,32 @@ Built:
 | three entries: the effect reads `Scheduled` instead of the card's state (browser); the Final arm narrowed to regulation (Suite); a `FullTime` case added to the reason (Suite) | `scripts/mutation-check.mjs` |
 
 Result: Suite 456/456. 6 mutations run (3 new, the 3 existing `live-why-*`), 6 caught (2 m 06 s).
+
+## C4. The day the poll asks for, the guard on an empty date, and the value of the deadline (review poll F1, F23; defence F20, F21)
+
+Three parts of the poll the fix-review showed no browser scenario observed:
+
+1. **The day asked** (poll F1, defence F20). The call site passes `payload.Date` and `startLivePoll` builds its route from the `etDay` it was given. A
+   mutant that asked for the URL's day, at the call (`viewedDate ()` in place of `payload.Date`) or inside the poll (`LiveFeed.feedPath key (viewedDate ())`, `etDay` unused),
+   passed the render check at 47/47 because every scenario served a slate whose `date` equals the URL's. The text claim caught only the first.
+2. **The guard on an empty date** (poll F1, defence F21): `&& payload.Date <> ""` was pinned by nothing (the claim's regex needed only the other two parts of the line, and
+   the self-test fixture removed the guard together with `IsNone`). With the guard gone a slate with no `date` makes the page ask `/v2/games?sport=epl&date=`, and the relay turns an empty
+   date into the UTC day (`handleV2Games`, relay `src/index.js` ~4392), the wrong day after 19:00 Eastern. A relay success body always carries `date` (both skeptics read the handler), so
+   this branch is not reachable from the relay today; it is the page's own contract with `DeskPayload.Date`, which decodes an absent date as `""` (`src/Desk.fs` 1186).
+3. **The value of the deadline** (poll F23). The render scenario knew the request was open at 60 s and cut by 91 s, so a signal of 65 s, or hard-coded 90 s with `ms` ignored, or any value from 60 s
+   to about 94 s, passed.
+
+Built:
+
+| what | where |
+|---|---|
+| scenario (f): the URL says the 10th, the slate it is answered with is dated the 9th; every request must carry `date=2026-10-09` | `scripts/live-score-render-check.mjs` |
+| scenario (g): a slate with no `date` draws its cards, asks for nothing at load or across two ticks, and arms no timer | same |
+| scenario (c) rewritten around a PAUSED clock. The first version checked at 60 s and 91 s; a reviewer's replica of the proposed 1-second band failed 4 runs in 5, because `clock.install` lets time run in real time. The clock is now paused once the request is in flight (`pauseAt`) and moved only by `runFor`; the time the request has been open is known exactly from the page's own `Date.now()` at the request and at the pause. It must be open at deadline minus 2 s and cut at deadline plus 2 s. Measured before building it: 6 runs with 0.5 to 2.5 s of real-time drift, identical result; after building it, 3 runs of the whole check, 58/58 each | same |
+| two claims in the poll check: the call is guarded on `payload.Date <> ""`, and the route is `LiveFeed.feedPath key etDay` with no other day source (`viewedDate`, `queryParam`) in the region; three self-test fixtures, each breaking one part | `scripts/check-live-score-poll.mjs` (16 checks, was 15; self-test 36, was 33) |
+| seven entries: the URL's day at the call, inside the poll (browser and text scan), an empty date (browser and text scan), a signal 5 s short, a signal 10 s long | `scripts/mutation-check.mjs` |
+
+What the band does not pin: a signal within 2 s of the constant. A signal that ignores `ms` and hard-codes 90 s is the same code at today's constant and differs only after someone retunes
+`LivePollTimeoutMs`; the claim "the deadline is `LivePollTimeoutMs`" is then pinned by the text scan (`tryFetchTextWithin LiveScore.LivePollTimeoutMs`) plus the 2-second band, not by an exact value.
+
+Result: render check 58/58 (was 54). 9 mutations run (7 new, `poll-asks-for-the-wrong-day`, `poll-deadline-signal-dropped`), 9 caught (3 m 18 s).

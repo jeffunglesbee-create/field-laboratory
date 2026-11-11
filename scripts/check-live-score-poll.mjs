@@ -94,8 +94,12 @@ export const claimsOf = ({ program, liveScore, sources }) => {
 
   const outside = region === null ? codeOnly(program) : codeOnly(program.replace(region, ''))
   const calls = outside.split('\n').filter(l => /\bstartLivePoll\b/.test(l) && !/let private startLivePoll/.test(l))
-  claim('a page pinned to a capture starts no poll: the one call is guarded by (queryParam "data").IsNone, and asks for the day of the cards just drawn (`payload.Date`)',
-    calls.length === 1 && /\(queryParam "data"\)\.IsNone/.test(calls[0]) && /startLivePoll cardHandles\.Value payload\.Date\b/.test(calls[0]), JSON.stringify(calls))
+  claim('a page pinned to a capture starts no poll, and neither does a slate with no date: the one call is guarded by (queryParam "data").IsNone and by payload.Date <> "", and asks for the day of the cards just drawn (`payload.Date`)',
+    calls.length === 1 && /\(queryParam "data"\)\.IsNone/.test(calls[0]) && /&&\s*payload\.Date <> ""/.test(calls[0]) && /startLivePoll cardHandles\.Value payload\.Date\b/.test(calls[0]), JSON.stringify(calls))
+  // Fix-review 2026-11-11 (defence F20): the call site passes `payload.Date`, but the poll could still ignore it and ask for the URL's day. The route is built from the day the poll was STARTED with.
+  claim('...and the request is built from that day: `LiveFeed.feedPath key etDay`, with no other day source in the region',
+    count(/\bLiveFeed\.feedPath key etDay\b/, code) === 1 && !/\bviewedDate\b|\bqueryParam\b|\bfieldToday\b|\bDateTimeOffset\.UtcNow\b[^\n]*\bfieldDay/.test(code),
+    `feedPath x${count(/\bLiveFeed\.feedPath\b/, code)}, with etDay x${count(/\bLiveFeed\.feedPath key etDay\b/, code)}`)
   const dispose = (outside.match(/let private disposePrevious \(\) =[\s\S]*?\n\n/) ?? [''])[0]
   claim('re-rendering the slate stops the timer: disposePrevious calls stopLivePoll', /\bstopLivePoll \(\)/.test(dispose))
 
@@ -134,7 +138,7 @@ let private startLivePoll (handles) (etDay: string) =
         elif (string document?visibilityState) = "visible" then
             for key in LiveScore.liveKeysAt now (games ()) do
                 if inFlight.Add key then
-                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)
+                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
                     |> Promise.iter (fun result ->
                         inFlight.Remove key |> ignore
                         let cards = handles |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
@@ -176,13 +180,17 @@ if (SELF_TEST) {
   one('a raw fetch in the region is caught', GOOD.replace('    livePollTimer <- Some', '    fetch "https://x" [] |> ignore\n    livePollTimer <- Some'))
   one('a Promise.sleep anywhere in src is caught, not only in the region', GOOD, GOOD_SCORE, { 'src/Program.fs': GOOD, 'src/Other.fs': 'let w = Promise.sleep 5000' })
   one('an in-flight guard that is always open is caught', GOOD.replace('if inFlight.Add key then', 'if inFlight.Add key || true then'))
-  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
+  one('a key released before its answer arrives is caught', GOOD.replace('                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)\n', '                    inFlight.Remove key |> ignore\n                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)\n').replace('                        inFlight.Remove key |> ignore\n', ''))
   one('an answer told every card of the window, whatever its league, is caught', GOOD.replace('LiveScore.answersTo key now h.Game', 'LiveScore.inLiveWindowAt now h.Game'))
   one('a poll that asks for the URL\'s day is caught', GOOD.replace('startLivePoll cardHandles.Value payload.Date', 'startLivePoll cardHandles.Value (viewedDate ())'))
+  // Fix-review 2026-11-11 (poll F1, defence F20, F21): each fixture breaks one of the two new parts only.
+  one('a poll that ignores the day it was started with and asks for the URL\'s day inside the poll is caught', GOOD.replace('LiveFeed.feedPath key etDay', 'LiveFeed.feedPath key (viewedDate ())'))
+  one('a poll started on an empty date is caught', GOOD.replace(' && payload.Date <> ""', ''))
+  one('a route built with no day at all is caught', GOOD.replace('LiveFeed.feedPath key etDay', 'LiveFeed.feedPath key ""'))
   one('a 15 s period is caught', GOOD.replace('LiveScore.LivePollMs))', '15000))'))
   one('a LivePollMs of 15000 is caught', GOOD, '[<Literal>]\nlet LivePollMs = 15000\n\n[<Literal>]\nlet LivePollTimeoutMs = 30000\n')
   // Review 2026-11-11 (poll S4, S18): the fixtures below keep every other claim satisfied, so only the deadline claims can be the reason they fail.
-  one('a request with no deadline is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + path)', 'tryFetchText (RELAY_BASE + path)'))
+  one('a request with no deadline is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)', 'tryFetchText (RELAY_BASE + LiveFeed.feedPath key etDay)'))
   one('a deadline written as a number rather than the named constant is caught', GOOD.replace('tryFetchTextWithin LiveScore.LivePollTimeoutMs', 'tryFetchTextWithin 999999'))
   one('a deadline shorter than the period is caught (the in-flight guard could never fire)', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 15000\n')
   one('a deadline longer than three periods is caught', GOOD, '[<Literal>]\nlet LivePollMs = 60000\n\n[<Literal>]\nlet LivePollTimeoutMs = 300000\n')
