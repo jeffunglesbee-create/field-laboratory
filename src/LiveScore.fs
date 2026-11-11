@@ -78,8 +78,9 @@ let LivePollTimeoutMs = 90000
 
 /// A card is in its live window from its start time to this long after it. A soccer match is about two hours with its breaks
 /// and stoppage, and the archive's first score has been seen 115.5 to 135 minutes after kickoff (CC-CMD fact 3), so three hours
-/// covers the gap the `Full time` marker is for. How long ESPN says `final` before the archive finalises is NOT measured on a real
-/// match as of 2026-11-11; the capture's late samples are the first.
+/// covers the gap the `Full time` marker is for. Measured once on a real match, 2026-11-11 (EFL Trophy, kickoff 19:00Z): the feed said `final` by
+/// 20:58Z, the archive rows were still unscored at 20:59:30Z, and both were finalised at 21:00:26Z and 21:00:28Z, the `*/15` tick, 120.4 minutes
+/// after kickoff (`outbox/live-score-real-bodies-2026-11-11.md`). One match, two games: a sample, not a bound.
 let liveWindowAfterStart = TimeSpan.FromHours 3.0
 
 /// Is the card inside its live window at this instant? Inclusive at both ends. A row with no start time is never in one: an

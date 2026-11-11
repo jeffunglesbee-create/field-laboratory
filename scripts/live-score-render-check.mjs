@@ -11,7 +11,7 @@
 // the 11:30Z and 14:00Z kickoffs (`page.clock.setFixedTime` fixes `Date.now()` only; timers keep running), so "the start time
 // has passed" is a fact about a real row and not a flag.
 //
-// WHAT THIS DOES NOT PROVE. That the feed's real body decodes: no body of a game in play has been captured yet. The first part of this file drives a
+// WHAT THIS DOES NOT PROVE. That the feed's real bodies decode: the Suite does that, on the three bodies captured 2026-11-11 (live, half time, final). The first part of this file drives a
 // card through `__labSetReading`; the unpinned scenarios further down run the poll against a mocked relay and a fake clock and observe its route, its
 // day, its period, its timers, one request per key, its deadline and its window. The numbers in both are the test's own.
 //
@@ -64,7 +64,7 @@ export const mismatches = (card, want) =>
   Object.keys(want).filter(k => card[k] !== want[k]).map(k => `${k}: "${card[k]}" is not "${want[k]}"`)
 
 /** A scripted /v2/games body for the one game of the mocked slate. The KEYS are those of two real probes (2026-11-11); the values are
- *  this test's own. The keys of a game in play are not yet captured from the relay, so what a live game carries is this test's assumption. */
+ *  this test's own. The keys of a game in play were captured 2026-11-11 (the Suite holds the real bodies); a scripted body here carries only the keys the page reads. */
 export const feedBody = (state, home, away, clock) =>
   JSON.stringify({
     sport: 'epl', date: '2026-10-10', count: 1,

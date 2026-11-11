@@ -11,10 +11,11 @@ open LiveScore
 // { sport, date, games: [ { id: "espn:401879240", espnEventId: "401879240", state: "final", start: "2026-11-08T16:30Z",
 //   home: { name, abbr, score: 4 }, away: { ... }, clock: "90'+9'", periodNum: 0, periodLabel: "", situation: null,
 //   matchEvents: [...], ... } ], count, source, ts }. A game that has not started reports `state: "pre"` with `score: 0` (an
-// integer, NOT null) and `clock: "0'"`, so a score is never read without the state beside it. The keys of a game in PLAY have
-// not been captured as of this file: `live-shape-capture` is getting them on 2026-11-11 (the 19:00Z EFL Trophy matches), and
-// the state word `live` is the relay adapter's, read in its source, not observed. A state word this file does not know is a
-// named reading, never a guess (see `readingFor`).
+// integer, NOT null) and `clock: "0'"`, so a score is never read without the state beside it. A game in PLAY was captured on
+// 2026-11-11 (the 19:00Z EFL Trophy matches, `outbox/live-capture-efltrophy-2026-11-11-*.json`): `state: "live"`, integer scores, a clock string
+// (`18'`, `45'+3'`), `periodNum`, and `situation` an object with `isHalftime`; at half time the state word stays `live`. The relay's
+// `final` games carry `situation: null`. Not seen: stoppage time of the second half while live, extra time, a shootout. A state word
+// this file does not know is a named reading, never a guess (see `readingFor`).
 //
 // JOINED BY ESPN EVENT ID, never by name: the archive says "Man Utd", the feed "Manchester United" (CC-CMD fact 4). The
 // feed carries the id as its own key, `espnEventId`, and the lab already decodes `espn_event_id` from the archive row.

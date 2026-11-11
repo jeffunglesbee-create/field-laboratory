@@ -4765,11 +4765,12 @@ let private liveScore () =
 // ---------------------------------------------------------------------------
 // The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The bodies below are EXCERPTS of what the relay served
 // on 2026-11-11, the keys as served with the per-game lists (`matchEvents`, `streams`, `recentWPHistory`) and the win-probability objects left out:
-// a probe of /v2/games?sport=epl&date=2026-11-08 (`finalBody`) and ?sport=efltrophy&date=2026-11-11 before kickoff (`preBody`), and TWO GAMES IN PLAY,
-// captured by `live-shape-capture` the same evening: `liveRealBody` is the capture of 19:18:54Z (Barnsley v Oldham Athletic, 18', 0-0) and `halftimeRealBody`
-// the capture of 19:54:02Z (the same game at half time, 3-0, clock `45'+3'`, `situation.isHalftime: true`), both in
-// `outbox/live-capture-efltrophy-2026-11-11-<HHMM>Z.json`, `v2.body`. At half time the feed's state word stays `live`; only `situation.isHalftime` says so.
-// Not captured yet: a game in the second half, in stoppage time of the second, in extra time, or at full time (the captures of 20:20Z to 21:30Z).
+// a probe of /v2/games?sport=epl&date=2026-11-08 (`finalBody`) and ?sport=efltrophy&date=2026-11-11 before kickoff (`preBody`), and THREE GAMES CAPTURED THE SAME EVENING by
+// `live-shape-capture` (`outbox/live-capture-efltrophy-2026-11-11-<HHMM>Z.json`, `v2.body`): `liveRealBody` is the capture of 19:18:54Z (Barnsley v Oldham Athletic, 18', 0-0),
+// `halftimeRealBody` the capture of 19:54:02Z (the same game at half time, 3-0, clock `45'+3'`, `situation.isHalftime: true`; the state word stays `live`, only the flag says so), and
+// `finalRealBody` the capture of 20:59:30Z (the same game at 5-2, `final`, clock `90'+3'`, `situation: null`) taken while the archive row still had no score: it was finalised at
+// 21:00:26Z (the capture of 21:21:25Z shows it scored). Read through the relay but NOT in a committed capture: the second half (74' and 76', `periodNum` 2, `isHalftime: false`, 20:34Z).
+// Not captured: stoppage time of the second half while live, extra time, a shootout.
 // ---------------------------------------------------------------------------
 
 let private liveFeed () =
@@ -4789,6 +4790,9 @@ let private liveFeed () =
 
     let liveRealBody =
         """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"18'","periodNum":1,"periodLabel":"18'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":18,"isStoppage":false,"isHalftime":false,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794424735294}"""
+
+    let finalRealBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"final","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":5},"away":{"name":"Oldham Athletic","abbr":"OLD","score":2},"clock":"90'+3'","periodNum":0,"periodLabel":"","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":null}],"count":1,"source":"espn-wc","ts":1794430770749}"""
 
     let halftimeRealBody =
         """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":3},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"45'+3'","periodNum":1,"periodLabel":"45'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":45,"isStoppage":true,"isHalftime":true,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794426843196}"""
@@ -5100,6 +5104,22 @@ let private liveFeed () =
           (fun body -> readReal body = Ok(LiveScore.HalfTime(3, 0)))
           halftimeRealBody
           liveRealBody
+
+      // The Full time ruling's case, on a real match (2026-11-11): the feed says `final` while the archive row has no score yet.
+      Verify.check "a game that has finished, as captured at 20:59Z with the archive unscored, decodes to its score and its clock as served"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "401911177" "final" (Some 5) (Some 2) (Some "90'+3'") ])
+          finalRealBody
+          halftimeRealBody
+
+      Verify.check "...and is read as full time with that score"
+          (fun body -> readReal body = Ok(LiveScore.FullTime(5, 2)))
+          finalRealBody
+          halftimeRealBody
+
+      Verify.check "...and a card the archive has not scored stays In progress with its score and a Full time note, while one the archive has finalised stays Final with none"
+          (fun archive -> LiveScore.foldReading archive (LiveScore.FullTime(5, 2)) = InProgress(5, 2) && LiveScore.liveNoteFor archive (LiveScore.FullTime(5, 2)) = "Full time")
+          (gameStateAt (at "2026-11-11T20:59:30Z") (card (Some "401911177")))
+          (Final(5, 2, false))
 
       Verify.check "a live game that is not at half time carries the flag false whether `situation` is null, has no flag, or has a null or false one"
           (fun bodies -> bodies |> List.forall (fun body -> halftimeFlags body = Ok [ false ]))
