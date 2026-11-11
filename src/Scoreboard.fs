@@ -51,7 +51,19 @@ let private scoreText (g: Game) (state: GameState) =
     | InProgress(h, a) -> line h a
     | Final(h, a, _) -> line h a
 
-let private statusText (g: Game) (state: GameState) =
+/// The status line, with "has the start time passed" given rather than read, so a test can say which.
+///
+/// `Scheduled` is what `gameStateAt` answers for any row with no score, INCLUDING a match that kicked off an hour ago
+/// (CC-CMD fact 1, 2026-11-11: a hand-made row of that shape, start 16:30Z and no score, read `Scheduled` at a fixed 17:15Z, 45 minutes in, in a scratch Fable
+/// build driven in Playwright; the archive's own row for Man Utd v Aston Villa got its score at `finalized_at` 18:45:25Z, CC-CMD fact 3). So a
+/// `Scheduled` row whose start time has passed says that, in the words of what is known: the start time passed and no score
+/// was served. It does not say the match kicked off (a postponed fixture is also a row whose start time has passed), and it
+/// is not `Scheduled <time>`, which reads as a promise about the future.
+///
+/// Every other status string is unchanged byte for byte. The 2026-11-21 forecast probe parses `^Scheduled (\S+)` on a card
+/// that is `Scheduled` with its kickoff AHEAD, and that text does not move.
+/// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 4.
+let statusTextWith (startTimePassed: bool) (g: Game) (state: GameState) =
     match (sportMeta g.Sport).Matchup with
     // Before the contest state machine, not after it: that machine reports
     // every event as `Scheduled`, so reading `state` first would render a
@@ -59,6 +71,7 @@ let private statusText (g: Game) (state: GameState) =
     | NotAContest _ -> eventStatusText g.FinalizedAt
     | _ ->
     match state with
+    | Scheduled when startTimePassed -> "Start time passed, no score served"
     | Scheduled ->
         match g.RawStartTime, g.StartTime with
         | Some raw, Some parsed -> sprintf "Scheduled %s (parsed %s)" raw (parsed.ToString "HH:mm")
@@ -67,6 +80,8 @@ let private statusText (g: Game) (state: GameState) =
     | InProgress _ -> "In progress"
     | Final(_, _, true) -> "Final / OT"
     | Final(_, _, false) -> "Final"
+
+let private statusText (g: Game) (state: GameState) = statusTextWith (startTimePassed g) g state
 
 /// A decode failure in the arc field. Reportable in any game state: this says
 /// the payload was broken, which is a fact about the data, not a drama score.
@@ -481,20 +496,43 @@ let private lineupAffordance (game: Game) : HTMLElement option =
         Some details
 // ── end lineup disclosure ───────────────────────────────────────────────────
 
-/// Builds the card and mounts it. Returns the state setter so scores can be
-/// pushed reactively without re-rendering the card — the whole point of an
-/// island.
-let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: unit -> CardForecast.TableState) =
+/// What the page can do to ONE card after it is drawn. The poll finds a card by what the feed says (its ESPN event id, joined to the
+/// `Game` the handle holds) and not by where it sits in a list.
+type CardHandle =
+    { Game: Game
+      /// The archive's answer, set from outside the page's data (the test affordance).
+      SetState: GameState -> unit
+      /// What the live feed said about this game. `NoReading` puts the card back as the archive leaves it.
+      SetReading: LiveScore.LiveReading -> unit }
+
+/// Builds the card and mounts it. Returns its handle so scores can be pushed
+/// reactively without re-rendering the card — the whole point of an island.
+let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: unit -> CardForecast.TableState) : CardHandle =
     let state, setState = Solid.createSignal (gameState game)
+    // The feed's reading, and what the card SHOWS: the archive's state with the reading folded over it. The archive's `Final`
+    // always wins and a reading never makes a game Final (LiveScore.foldReading), so the amnesty zone stays closed until the
+    // archive says the game is over.
+    let reading, setReading = Solid.createSignal LiveScore.NoReading
+    let shown = Solid.createMemo (fun () -> LiveScore.foldReading (state ()) (reading ()))
+    // A count of how many times the page has been told anything about this game. The card's text depends on the WALL CLOCK (a started
+    // row with no score reads `Start time passed`; the forecast is drawn only before kickoff), and a reading that leaves the state as
+    // the archive has it (`NoReading`, `LiveUnavailable`) makes `shown` return the very same object, which a memo does not announce.
+    // So a card drawn before kickoff kept `Scheduled <iso>` and its forecast after kickoff, beside a note saying the score was
+    // unavailable (review 2026-11-11, semantics F1; reproduced against the compiled card). Everything that reads the clock reads
+    // `shownNow`, which also reads this, so every answer from the feed re-reads it. Pull only: this is a count, not a timer.
+    let heard, setHeard = Solid.createSignal 0
+    let shownNow () =
+        heard () |> ignore
+        shown ()
 
     // Derived values that recompute reactively rather than being baked in at
     // render time.
-    let display = Solid.createMemo (fun () -> scoreText game (state ()))
-    let status = Solid.createMemo (fun () -> statusText game (state ()))
+    let display = Solid.createMemo (fun () -> scoreText game (shownNow ()))
+    let status = Solid.createMemo (fun () -> statusText game (shownNow ()))
     // Drama is state-derived now, not immutable: the number is permitted only
     // once the game is final, so the slot has to appear at the moment the game
     // ends and must never be present before it.
-    let drama = Solid.createMemo (fun () -> dramaText game (state ()))
+    let drama = Solid.createMemo (fun () -> dramaText game (shownNow ()))
 
     let card = el "div" "desk-card" ""
     card.setAttribute("data-game-id", game.Id)
@@ -511,6 +549,16 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           teamsNode game
           stateNode "desk-card__score" "score" display
           stateNode "desk-card__status" "status" status
+          // The feed's clock, `Full time`, or why there is no score. Only a card of a sport the feed is asked about has the node,
+          // so every other card keeps its structure byte for byte.
+          if (LiveScore.liveSportKey game.Sport).IsSome then
+              let liveNode = stateNode "desk-card__live" "live" (fun () -> LiveScore.liveNoteFor (state ()) (reading ()))
+              // The reason behind `live score unavailable`, as an attribute: the words on the card stay the same (CC-CMD: a named state).
+              Solid.createEffect (fun () ->
+                  match LiveScore.liveWhyFor (state ()) (reading ()) with
+                  | "" -> liveNode.removeAttribute "data-why"
+                  | why -> liveNode.setAttribute("data-why", why))
+              liveNode
           stateNode "desk-card__drama" "drama" drama
           // Empty at render. Weather is asynchronous and the card is not, so
           // this is a slot rather than a value — filled by WeatherView.fillCards
@@ -528,7 +576,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
           // card has the node at all, so every other card keeps its old
           // structure byte for byte.
           if game.Sport = Sport.EPL then
-              forecastNode game state table
+              forecastNode game shownNow table
           staticNode "desk-card__desk" "desk" (deskText game) ]
 
     // Where the front-face children are hosted. For a card with no brief this is
@@ -735,9 +783,14 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
 
     mount.appendChild card |> ignore
 
-    setState
+    { Game = game
+      SetState = setState
+      SetReading =
+        fun r ->
+            setReading r
+            setHeard (heard () + 1) }
 
-/// Renders the whole slate, grouped by sport, and returns the state setters in
+/// Renders the whole slate, grouped by sport, and returns the card handles in
 /// DOM order so index 0 always addresses the first card on screen.
 ///
 /// Groups are ordered by size descending then name, so a 20-game MLB slate leads
@@ -752,7 +805,7 @@ let render (mount: HTMLElement) (game: Game) (briefOpt: Brief option) (table: un
 /// and never fetches: the request is made once by the caller, so thirty cards
 /// cannot become thirty requests.
 let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) (table: unit -> CardForecast.TableState) =
-    let setters = ResizeArray<GameState -> unit>()
+    let handles = ResizeArray<CardHandle>()
 
     // game.Id -> its brief, resolved once for the whole slate. Empty when the
     // payload carried no briefs, which is the common case on a scheduled slate
@@ -786,9 +839,9 @@ let renderSlate (mount: HTMLElement) (games: Game list) (briefs: Brief list) (ta
 
         let grid = el "div" "sport-group__grid" ""
         for game in gs do
-            setters.Add(render grid game (Map.tryFind game.Id byGame) table)
+            handles.Add(render grid game (Map.tryFind game.Id byGame) table)
         section.appendChild grid |> ignore
 
         mount.appendChild section |> ignore
 
-    setters
+    handles

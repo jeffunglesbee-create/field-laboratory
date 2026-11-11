@@ -519,6 +519,12 @@
     font-variation-settings: 'wght' 700;
   }
   .desk-card__status { font-size: .8rem; opacity: .75; }
+  /* The feed's clock, `Full time`, or why there is no score (docs/CC-CMD-2026-11-11-soccer-live-scores.md). It reads as part of the status
+     line it sits under: the same size and weight, the minute in tabular figures so it does not jitter as it changes. Without this rule the
+     node inherited the page's 15px at full opacity and read larger and brighter than the status above it (review 2026-11-11, semantics F8).
+     A card with nothing to say carries the node empty, and an empty node must not take a line. */
+  .desk-card__live { font-size: .8rem; opacity: .75; font-variant-numeric: tabular-nums; }
+  .desk-card__live:empty { display: none; }
   .desk-card__drama, .desk-card__odds, .desk-card__winprob, .desk-card__forecast { font-size: .75rem; opacity: .55; margin-top: .3rem; }
   .desk-card__winprob, .desk-card__forecast { font-variant-numeric: tabular-nums; }
   /* The model's line, under the market's and in the same type: two numbers read

@@ -1215,6 +1215,15 @@ let notYetStartedAt (now: DateTimeOffset) (g: Game) =
     | Some start -> now < start
     | None -> false
 
+/// Has the start time passed, as of a named instant? The other half of `notYetStartedAt`, and not its negation: an absent
+/// start time is false here too, because it is no more evidence that a game has begun than that it has not.
+/// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 4: a row whose start time has passed and that carries no score must
+/// say so, instead of reading `Scheduled` while a match is in play.
+let startTimePassedAt (now: DateTimeOffset) (g: Game) =
+    match g.StartTime with
+    | Some start -> now >= start
+    | None -> false
+
 /// The state of a game AT A NAMED INSTANT.
 ///
 /// This is the real function; `gameState` below just supplies "now".
@@ -1281,6 +1290,10 @@ let gameStateAt (now: DateTimeOffset) (g: Game) : GameState =
 
 /// The state of a game right now. The only impure entry point.
 let gameState (g: Game) : GameState = gameStateAt DateTimeOffset.UtcNow g
+
+/// `startTimePassedAt` at the wall clock. Impure on purpose and next to `gameState`, the other reader of it: the card's
+/// status text asks it at the same moment it asks for the state.
+let startTimePassed (g: Game) : bool = startTimePassedAt DateTimeOffset.UtcNow g
 
 // ---------------------------------------------------------------------------
 // Line shapes

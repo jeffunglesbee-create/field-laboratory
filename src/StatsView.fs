@@ -62,7 +62,7 @@ let private renderReport (mount: HTMLElement) (report: ScoutingReport) (state: G
     // THE LINE THAT IS A BUG IN PRODUCTION. It appears only when `liveMargin`
     // yields one, which is only for a game in progress. On a scheduled game
     // there is nothing to render and nothing to guard.
-    match liveMargin state with
+    match comebackMargin report.Sport state with
     | Some margin ->
         let line = child card (el "div" "st-card__comeback" (comebackText margin))
         line.setAttribute ("data-comeback", "true")

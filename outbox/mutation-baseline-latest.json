@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-11T22:25:31.391Z",
+  "at": "2026-11-11T23:30:10.944Z",
   "scope": "full",
-  "ran": 94,
-  "from_mutations": 1266,
+  "ran": 102,
+  "from_mutations": 1444,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -381,22 +381,54 @@
     {
       "cmd": "node scripts/live-shape-capture.mjs --self-test",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/live-score-render-check.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/live-score-render-check.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-live-score-poll.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/forecast-live-probe.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/cc-cmd-followup.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/live-score-probe.mjs --self-test",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/check-live-probe-keys.mjs",
+      "passed": true
+    },
+    {
+      "cmd": "node scripts/live-score-probe.mjs --e2e",
+      "passed": true
     }
   ],
   "shards": {
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2203554,
-      2309528,
-      2238974,
-      2020738,
-      2455194,
-      2177019,
-      2243260,
-      2062691
+      2092801,
+      2454562,
+      2527902,
+      2778686,
+      2504329,
+      2610438,
+      2748370,
+      2647026
     ],
-    "longestMs": 2455194,
-    "sumMs": 17710958
+    "longestMs": 2778686,
+    "sumMs": 20364114
   }
 }

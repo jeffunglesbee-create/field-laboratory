@@ -118,6 +118,26 @@ let private tryFetchText (url: string) =
             return Error e.Message
     }
 
+/// The same `AbortSignal.timeout` the weather panel uses (WeatherView.fs `timeoutSignal`), kept private to each module.
+[<Fable.Core.Emit("AbortSignal.timeout($0)")>]
+let private timeoutSignal (ms: int) : AbortSignal = Fable.Core.Util.jsNative
+
+/// `tryFetchText` with a deadline: a request that has not answered in `ms` is an `Error` ("signal timed out"), not a promise that
+/// stays open for the life of the page. The live poll holds a key while its request is in flight, so without this one stalled
+/// connection would stop that key being asked for good (review 2026-11-11, poll S4 and S18).
+/// `fetch` is Fable.Fetch's CHECKED one: it rejects a non-2xx response itself, with a message that carries the status ("503 Service Unavailable for URL ..."), so a
+/// refused answer ends up in the `with` below and there is no status branch to write. (An `if res.Ok ... else Error "HTTP %d"` here could never run: fix-review 2026-11-11,
+/// poll F2 and card F15. `WeatherView.fs` records the same trap and uses `fetchUnsafe`, whose branch is live.)
+let private tryFetchTextWithin (ms: int) (url: string) =
+    promise {
+        try
+            let! res = fetch url [ Signal(timeoutSignal ms) ]
+            let! body = res.text ()
+            return Ok body
+        with e ->
+            return Error e.Message
+    }
+
 /// Disposal handle for the currently-rendered slate's Solid root. Date
 /// navigation re-renders into the same mount, so each pass must dispose the
 /// previous one or every day viewed leaves a live set of effects behind.
@@ -291,9 +311,72 @@ let private loadMetricsOnce () =
         | null -> ()
         | mount -> MetricsView.load mount |> Promise.start
 
+// ── live score poll: begin ──────────────────────────────────────────────
+// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6. THE LABORATORY'S ONLY TIMER, and it is here on the owner's ruling of
+// 2026-11-11 ("Auto-poll while a match is live"). Its conditions are NAMED, not implied, and `scripts/check-live-score-poll.mjs`
+// reads this region by its markers and fails if one is not what is written here:
+//   - ONE `setInterval`, every `LiveScore.LivePollMs` (60 s);
+//   - a request only while the tab is visible, and only for a sport key that has a card inside its live window
+//     (`LiveScore.liveKeysAt`: kickoff to three hours after it), at most ONE request per key per tick, and none while the previous
+//     request for that key is still in flight (a request unanswered after `LiveScore.LivePollTimeoutMs`, one and a half periods, is an
+//     `Error`, so its key is freed and the card names the failure);
+//   - the timer STOPS when no soccer card has a window now or ahead (`LiveScore.liveWorkAheadAt`), and when the slate is
+//     re-rendered (`disposePrevious`), so a page left on a finished slate holds no timer;
+//   - none at all on a page pinned to a capture (`?data=`), which must not reach the network;
+//   - no socket, no event source, no visibility listener: a tab that becomes visible waits for the next tick.
+// What it asks is the relay's pull route (ADR-002 Rule A: a reader's page asks; nothing is pushed). What it does with the answer is
+// `CardHandle.SetReading`; a failed or unreadable answer is said on the card ("live score unavailable", the reason as `data-why`), never a silent blank.
+let private RELAY_BASE = "https://field-relay-nba.jeffunglesbee.workers.dev"
+
+let mutable private livePollTimer : float option = None
+
+let private stopLivePoll () =
+    match livePollTimer with
+    | Some id ->
+        window.clearInterval id
+        livePollTimer <- None
+    | None -> ()
+
+let private startLivePoll (handles: ResizeArray<Scoreboard.CardHandle>) (etDay: string) =
+    stopLivePoll ()
+    let inFlight = System.Collections.Generic.HashSet<string>()
+    let games () = handles |> Seq.map (fun h -> h.Game) |> List.ofSeq
+
+    let tick () =
+        let now = System.DateTimeOffset.UtcNow
+        if not (LiveScore.liveWorkAheadAt now (games ())) then stopLivePoll ()
+        elif (string document?visibilityState) = "visible" then
+            for key in LiveScore.liveKeysAt now (games ()) do
+                if inFlight.Add key then
+                    tryFetchTextWithin LiveScore.LivePollTimeoutMs (RELAY_BASE + LiveFeed.feedPath key etDay)
+                    |> Promise.iter (fun result ->
+                        inFlight.Remove key |> ignore
+                        let cards =
+                            handles
+                            |> Seq.filter (fun h -> LiveScore.answersTo key now h.Game)
+                            |> List.ofSeq
+                        match result with
+                        | Error why ->
+                            for h in cards do
+                                h.SetReading(LiveScore.LiveUnavailable(sprintf "the feed did not answer: %s" why))
+                        | Ok body ->
+                            match LiveFeed.decodeFeed body with
+                            | Error why ->
+                                for h in cards do
+                                    h.SetReading(LiveScore.LiveUnavailable("unreadable — " + why))
+                            | Ok feed ->
+                                for h in cards do
+                                    h.SetReading(LiveFeed.readingFor feed h.Game))
+
+    if LiveScore.liveWorkAheadAt System.DateTimeOffset.UtcNow (games ()) then
+        tick ()
+        livePollTimer <- Some(window.setInterval ((fun () -> tick ()), LiveScore.LivePollMs))
+// ── live score poll: end ────────────────────────────────────────────────
+
 let mutable private disposeRoot : (unit -> unit) option = None
 
 let private disposePrevious () =
+    stopLivePoll ()
     match disposeRoot with
     | Some dispose ->
         dispose ()
@@ -329,7 +412,7 @@ let private reportFailed (id: string) (text: string) = reportAs "failed" id text
 /// check only ever saw the initial paint. Driving a real state transition needs
 /// a way in from outside the page, so the setters are exposed deliberately —
 /// behind a flag, never in a normal load.
-let private exposeForTesting (setters: ResizeArray<GameState -> unit>) =
+let private exposeForTesting (handles: ResizeArray<Scoreboard.CardHandle>) =
     let named name =
         match name with
         | "scheduled" -> Scheduled
@@ -343,7 +426,20 @@ let private exposeForTesting (setters: ResizeArray<GameState -> unit>) =
     // the fallback case instead of the one asked for. Verified in the emitted
     // JS; System.Func emits a genuine two-parameter function.
     window?__labSetState <- System.Func<int, string, unit>(fun index name ->
-        if index >= 0 && index < setters.Count then setters.[index] (named name))
+        if index >= 0 && index < handles.Count then handles.[index].SetState (named name))
+
+    // The same affordance for the live feed's reading (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6): a render check
+    // drives a card through `SetReading` without a feed. System.Func for the reason above. `kind` is live, halftime, fulltime,
+    // unavailable, or anything else for no reading; `clock` is the feed's text, empty for none.
+    window?__labSetReading <- System.Func<int, string, int, int, string, unit>(fun index kind home away clock ->
+        let reading =
+            match kind with
+            | "live" -> LiveScore.LiveNow(home, away, (if clock = "" then None else Some clock))
+            | "halftime" -> LiveScore.HalfTime(home, away)
+            | "fulltime" -> LiveScore.FullTime(home, away)
+            | "unavailable" -> LiveScore.LiveUnavailable "test"
+            | _ -> LiveScore.NoReading
+        if index >= 0 && index < handles.Count then handles.[index].SetReading reading)
 
 /// The tab title says which day and which surface.
 ///
@@ -458,11 +554,19 @@ let private start () =
                 // effects, made inside it, are what the root disposes.
                 let table, setTable = Solid.createSignal CardForecast.Pending
 
+                let cardHandles = ref (ResizeArray<Scoreboard.CardHandle>())
+
                 Solid.createRoot (fun dispose ->
                     disposeRoot <- Some(fun () -> dispose.Invoke())
-                    let setters = Scoreboard.renderSlate mount games briefs table
+                    let handles = Scoreboard.renderSlate mount games briefs table
+                    cardHandles.Value <- handles
                     if window.location.search.Contains "simulate=1" then
-                        exposeForTesting setters)
+                        exposeForTesting handles)
+
+                // The live score. A page pinned to a capture never polls: it must not reach the network.
+                // The day asked is the day of the cards just drawn (`payload.Date`), not the URL's: `start()` has no generation guard, so two
+                // overlapping navigations can render one day's slate under another's URL (review 2026-11-11, poll S5).
+                if (queryParam "data").IsNone && payload.Date <> "" then startLivePoll cardHandles.Value payload.Date
 
                 // The model's forecast needs the table; nothing else on the page
                 // does, so a slate with no EPL card spends no request. ONE request,

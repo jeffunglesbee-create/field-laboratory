@@ -52,6 +52,9 @@ export const METHOD_PREFIX = 'table-v2:'
 export const stateOf = status => {
   const s = String(status ?? '')
   if (s.startsWith('Scheduled')) return 'scheduled'
+  // What the page says for a started row with no served score (src/Scoreboard.fs `statusTextWith`, live-scores Task 4). It has no
+  // kickoff in it, so it is told apart from `Scheduled`: a card in this state must carry no forecast, and the message says why.
+  if (s.startsWith('Start time passed')) return 'startpassed'
   if (s.startsWith('In progress')) return 'inprogress'
   if (s.startsWith('Final')) return 'final'
   return 'other'
@@ -77,6 +80,10 @@ export const judge = (cards, nowMs, standings) => {
     const behind = kickoff !== null && nowMs - kickoff > GRACE_MS
     if (c.kind === null) { reasons.push(`${c.teams}: no forecast node on an EPL card`); continue }
 
+    if (state === 'startpassed') {
+      if (c.kind !== 'none') reasons.push(`${c.teams}: its start time has passed (no score served) and it still carries a forecast (${c.kind})`)
+      continue
+    }
     if (state !== 'scheduled') {
       if (c.kind !== 'none') reasons.push(`${c.teams}: a ${state} card carries a forecast (${c.kind})`)
       continue
@@ -138,6 +145,11 @@ if (SELF_TEST) {
   check('A CARD IN PLAY WITH A FORECAST FAILS', v([card({ status: 'In progress' })]) === 'FAIL')
   check('A CARD PAST ITS KICKOFF WITH A FORECAST FAILS',
     v([card({ status: 'Scheduled 2026-11-21T09:00Z (parsed 09:00)' })]) === 'FAIL')
+  // The text a real page shows once kickoff has passed and no score has arrived (the row a page opened before kickoff reads after its first
+  // poll, and a page drawn after kickoff reads at once). The path above uses the text the page shows only in the minute before its first poll.
+  check('A CARD THAT SAYS ITS START TIME HAS PASSED, WITH A FORECAST, FAILS, AND SAYS WHY',
+    (r => r.verdict === 'FAIL' && /start time has passed/.test(r.reasons.join()))(judge([card({ status: 'Start time passed, no score served' })], NOW, ok)))
+  check('...and one that carries no forecast is not a failure', judge([card({ status: 'Start time passed, no score served', kind: 'none', text: '', method: null })], NOW, ok).verdict === 'NOTHING-TO-JUDGE')
   check('A CARD WITH ITS KICKOFF AHEAD THAT DREW NOTHING FAILS', v([card({ kind: 'none', text: '', method: null })]) === 'FAIL')
   check('A CARD STILL LOADING AFTER THE TABLE SHOULD HAVE ARRIVED FAILS',
     v([card({ kind: 'standings-pending', text: 'model table-v2 — standings loading', method: null })]) === 'FAIL')
@@ -164,8 +176,8 @@ if (SELF_TEST) {
   check('the kickoff is read from the status text', kickoffOf('Scheduled 2026-11-21T12:30Z (parsed 12:30)') === Date.parse('2026-11-21T12:30:00Z'))
   check('a kickoff the page could not parse is still read from its raw text, and no start time reads as none',
     kickoffOf('Scheduled 2026-11-21T12:30Z (UNPARSED)') !== null && kickoffOf('Scheduled — no start time') === null)
-  check('the four states are told apart',
-    ['Scheduled x', 'In progress', 'Final', 'Final / OT', 'Postponed'].map(stateOf).join() === 'scheduled,inprogress,final,final,other')
+  check('the five states are told apart',
+    ['Scheduled x', 'In progress', 'Final', 'Final / OT', 'Start time passed, no score served', 'Postponed'].map(stateOf).join() === 'scheduled,inprogress,final,final,startpassed,other')
 
   finish(summarize())
 }

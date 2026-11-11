@@ -248,7 +248,64 @@ let private state () =
       Verify.check "a started game without finalized_at is In Progress, not Final"
           (fun (now, g) -> gameStateAt (at now) g = InProgress(4, 2))
           ("2026-08-10T00:30:00Z", game kickoff None (Some 4) (Some 2))
-          ("2026-08-10T00:30:00Z", game kickoff (Some "2026-08-10T00:20:00Z") (Some 4) (Some 2)) ]
+          ("2026-08-10T00:30:00Z", game kickoff (Some "2026-08-10T00:20:00Z") (Some 4) (Some 2))
+
+      // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 4. The start time has passed only when there is one and it is
+      // behind the instant; an absent one is no evidence either way, as `notYetStartedAt` already says.
+      Verify.check "the start time has passed once the instant is at or after it"
+          (fun (now, g) -> startTimePassedAt (at now) g)
+          ("2026-08-09T23:05:00Z", game kickoff None None None)
+          ("2026-08-09T23:04:59Z", game kickoff None None None)
+
+      Verify.check "an absent start time has not 'passed' either"
+          (fun (now, g) -> not (startTimePassedAt (at now) g))
+          ("2026-08-10T02:00:00Z", game None None None None)
+          ("2026-08-10T02:00:00Z", game kickoff None None None)
+
+      // THE MEASURED BUG: a row with no score whose start time has passed read `Scheduled <time>` while the match was in
+      // play. It now says what is known. Whether the start time has passed is an input, so each reading can be asked for.
+      Verify.check "a Scheduled row whose start time has passed says so, and does not read as Scheduled"
+          (fun started ->
+              let g = { game kickoff None None None with RawStartTime = Some "2026-08-09T23:05:00Z" }
+              Scoreboard.statusTextWith started g Scheduled = "Start time passed, no score served")
+          true
+          false
+
+      // The strings the 2026-11-21 forecast probe and the render checks read must not move: they are pinned here byte for byte.
+      Verify.check "before kickoff the status is 'Scheduled <raw> (parsed HH:mm)', byte for byte"
+          (fun started ->
+              let g = { game kickoff None None None with RawStartTime = Some "2026-08-09T23:05:00Z" }
+              Scoreboard.statusTextWith started g Scheduled = "Scheduled 2026-08-09T23:05:00Z (parsed 23:05)")
+          false
+          true
+
+      Verify.check "a row with a raw start time that did not parse is 'Scheduled <raw> (UNPARSED)', byte for byte"
+          (fun started ->
+              let g = { game None None None None with RawStartTime = Some "soon" }
+              Scoreboard.statusTextWith started g Scheduled = "Scheduled soon (UNPARSED)")
+          false
+          true
+
+      Verify.check "a row with no start time at all is 'Scheduled — no start time', byte for byte"
+          (fun started -> Scoreboard.statusTextWith started (game None None None None) Scheduled = "Scheduled — no start time")
+          false
+          true
+
+      // Only `Scheduled` reads the start time. These three are asked with it TRUE, the case that could have leaked.
+      Verify.check "In progress is 'In progress' even when the start time has passed"
+          (fun state -> Scoreboard.statusTextWith true (game kickoff None (Some 1) (Some 0)) state = "In progress")
+          (InProgress(1, 0))
+          Scheduled
+
+      Verify.check "Final is 'Final' even when the start time has passed"
+          (fun state -> Scoreboard.statusTextWith true (game kickoff None (Some 1) (Some 0)) state = "Final")
+          (Final(1, 0, false))
+          (InProgress(1, 0))
+
+      Verify.check "Final after overtime is 'Final / OT' even when the start time has passed"
+          (fun state -> Scoreboard.statusTextWith true (game kickoff None (Some 1) (Some 0)) state = "Final / OT")
+          (Final(1, 0, true))
+          (Final(1, 0, false)) ]
 
 // ---------------------------------------------------------------------------
 // Weather. Each counterexample below is a failure written down in FIELD's own
@@ -961,6 +1018,18 @@ let private stats () =
           (fun state -> (Stats.liveMargin state).IsSome)
           (InProgress(4, 2))
           Scheduled
+
+      // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 3. The line's words are runs and innings; a soccer match in
+      // progress must not carry one, and a baseball game in progress must keep it, or "always None" satisfies the first.
+      Verify.check "a soccer match in progress has no comeback line: its words are about runs and innings"
+          (fun sport -> (Stats.comebackMargin sport (InProgress(1, 0))).IsNone)
+          Sport.EPL
+          Sport.MLB
+
+      Verify.check "a baseball game in progress keeps its comeback line"
+          (fun sport -> (Stats.comebackMargin sport (InProgress(4, 2))).IsSome)
+          Sport.MLB
+          Sport.EPL
 
       // The sentence itself is true exactly when it is reachable.
       Verify.check "a real 0-0 in progress is genuinely tied"
@@ -4409,6 +4478,727 @@ let private cardForecast () =
             textAt before (game "EPL" "Arsenal" "Spurs" "") Scheduled loaded ]
           [ "model table-v2 — Arsenal 64% · draw 27% · Spurs 9% · edge +12 pts vs market" ] ]
 
+// ---------------------------------------------------------------------------
+// The live score's pure half (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). Every check carries the input that must
+// fail it, so "always true" and "always false" both fail the harness's own teeth test.
+// ---------------------------------------------------------------------------
+
+let private liveScore () =
+    let game (sport: Sport) (start: DateTimeOffset option) (finalized: string option) home away =
+        { Id = "g1"
+          Sport = sport
+          League = "x"
+          Day = Some(fieldDayAt (at "2026-11-21T12:00:00Z"))
+          Home = "Home"
+          Away = "Away"
+          HomeScore = home
+          AwayScore = away
+          Venue = None
+          Streams = None
+          Note = None
+          LocalNote = None
+          Crew = None
+          Tags = NotPresent
+          StartTime = start
+          RawStartTime = None
+          DramaPeak = None
+          DramaArc = NotPresent
+          OpeningOdds = NotPresent
+          ClosingOdds = NotPresent
+          Overtime = RegulationOnly
+          EspnEventId = Some "401879233"
+          BsdEventId = None
+          FinalizedAt = finalized }
+
+    let kickoff = Some(at "2026-11-21T12:30:00Z")
+    let epl = game Sport.EPL kickoff None None None
+    let finalised = game Sport.EPL kickoff (Some "2026-11-21 14:35:00") (Some 2) (Some 1)
+
+    [ Verify.check "a feed key is known for a soccer sport and not for any other"
+          (fun sport -> (LiveScore.liveSportKey sport).IsSome)
+          Sport.EPL
+          Sport.MLB
+
+      // The hold input is DERIVED from the sport list, so a soccer sport added without a key fails here.
+      Verify.check "every laboratory soccer sport has a feed key"
+          (fun sports -> sports |> List.forall (fun s -> (LiveScore.liveSportKey s).IsSome))
+          (allSports |> List.filter (fun s -> (sportMeta s).IsSoccer))
+          allSports
+
+      Verify.check "the keys are the relay's: EPL is epl"
+          (fun (sport, key) -> LiveScore.liveSportKey sport = Some key)
+          (Sport.EPL, "epl")
+          (Sport.EPL, "premier")
+
+      Verify.check "the keys are the relay's: the EFL Trophy is efltrophy"
+          (fun (sport, key) -> LiveScore.liveSportKey sport = Some key)
+          (Sport.EFLTrophy, "efltrophy")
+          (Sport.EFLTrophy, "efltroph")
+
+      // All sixteen, by value, so a key mistyped for a league nobody has checked (FA Cup, a UEFA qualifying slug) fails here. The values are
+      // the relay's V2_LEAGUES keys; on 2026-11-11 each answered 200 on the deployed relay (see `LiveScore.liveSportKey`).
+      Verify.check "each of the sixteen soccer sports asks for the relay's key for it"
+          (fun pairs -> pairs |> List.forall (fun (sport, key) -> LiveScore.liveSportKey sport = Some key))
+          [ (Sport.EPL, "epl"); (Sport.MLS, "mls"); (Sport.LaLiga, "laliga"); (Sport.SerieA, "seriea"); (Sport.Bundesliga, "bundesliga")
+            (Sport.Ligue1, "ligue1"); (Sport.UEFAChampionsLeague, "ucl"); (Sport.UEFAChampionsLeagueQualifying, "uclqual")
+            (Sport.UEFAEuropaLeague, "europa"); (Sport.UEFAEuropaLeagueQualifying, "europaqual")
+            (Sport.UEFAEuropaConferenceLeague, "conference"); (Sport.UEFAEuropaConferenceLeagueQualifying, "conferencequal")
+            (Sport.FIFAWorldCup, "wc26"); (Sport.EFLCup, "eflcup"); (Sport.EFLTrophy, "efltrophy"); (Sport.FACup, "facup") ]
+          [ (Sport.EPL, "epl"); (Sport.FACup, "fa") ]
+
+      Verify.check "no two soccer sports share a feed key"
+          (fun sports -> (sports |> List.choose LiveScore.liveSportKey |> List.distinct |> List.length) = List.length sports)
+          (allSports |> List.filter (fun s -> (sportMeta s).IsSoccer))
+          [ Sport.EPL; Sport.EPL ]
+
+      Verify.check "the window includes the start time itself"
+          (fun now -> LiveScore.inLiveWindowAt (at now) epl)
+          "2026-11-21T12:30:00Z"
+          "2026-11-21T12:29:59Z"
+
+      Verify.check "the window includes its last instant, three hours after the start"
+          (fun now -> LiveScore.inLiveWindowAt (at now) epl)
+          "2026-11-21T15:30:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "a row with no start time is never in a window"
+          (fun start -> LiveScore.inLiveWindowAt (at "2026-11-21T13:00:00Z") (game Sport.EPL start None None None))
+          kickoff
+          None
+
+      Verify.check "one key per sport with a card in its window, and none for a card outside it"
+          (fun now ->
+              let slate = [ epl; { epl with Id = "g2" }; game Sport.EFLTrophy (Some(at "2026-11-21T09:00:00Z")) None None None ]
+              let keys = LiveScore.liveKeysAt (at now) slate
+              keys = [ "epl" ])
+          "2026-11-21T13:00:00Z"
+          "2026-11-21T09:30:00Z"
+
+      Verify.check "a sport that is not soccer is never asked about, even inside its window"
+          (fun sport -> LiveScore.liveKeysAt (at "2026-11-21T13:00:00Z") [ game sport kickoff None None None ] = [ "epl" ])
+          Sport.EPL
+          Sport.MLB
+
+      // Fix-review 2026-11-11, defence F18: `pollableAt`'s window test mutated to the END of the window alone kept every check green, because the pair
+      // above fails at 09:30Z for a reason that is not epl's lower bound (the efltrophy card's own kickoff is the only thing that moves). ONE card, one second either side of its kickoff:
+      // the fail input can fail only on the lower bound. Asked before kickoff, a viewer would cost the relay a request a minute for the hours before the match.
+      Verify.check "a card is asked about from its kickoff and not a second before it"
+          (fun now -> LiveScore.liveKeysAt (at now) [ epl ] = [ "epl" ])
+          "2026-11-21T12:30:00Z"
+          "2026-11-21T12:29:59Z"
+
+      // Three separate instants, because one check with a before and an after never asked about DURING: `now <= start + 3h` mutated to
+      // `now <= start` kept the old check green while the poll's timer would have stopped at kickoff (review 2026-11-11, semantics F3).
+      // Review 2026-11-11 (poll S4, S18): the deadline is longer than the period so the in-flight guard can hold a key across a tick (a shorter one ends every request
+      // first and the guard could never fire), and no longer than three periods so a hung request is reported within three ticks.
+      Verify.check "a poll request's deadline is longer than the period and at most three periods"
+          (fun deadline -> deadline > LiveScore.LivePollMs && deadline <= 3 * LiveScore.LivePollMs)
+          LiveScore.LivePollTimeoutMs
+          LiveScore.LivePollMs
+
+      Verify.check "work is ahead before a window"
+          (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
+          "2026-11-21T10:00:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "work is ahead while a match is in play, which is what keeps the timer running"
+          (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
+          "2026-11-21T13:15:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "work is ahead at the last instant of the window and not after it"
+          (fun now -> LiveScore.liveWorkAheadAt (at now) [ epl ])
+          "2026-11-21T15:30:00Z"
+          "2026-11-21T15:30:01Z"
+
+      Verify.check "a slate with no soccer card has no live work ahead"
+          (fun sport -> LiveScore.liveWorkAheadAt (at "2026-11-21T10:00:00Z") [ game sport kickoff None None None ])
+          Sport.EPL
+          Sport.MLB
+
+      // Review 2026-11-11, poll S20: only inLiveWindowAt had a start-less case, so a start-less soccer row could keep the timer armed unseen.
+      Verify.check "a soccer row with no start time has no live work ahead, as it is never in a window"
+          (fun start -> LiveScore.liveWorkAheadAt (at "2026-11-21T10:00:00Z") [ game Sport.EPL start None None None ])
+          kickoff
+          None
+
+      // Review 2026-11-11, poll S1: the archive's Final wins over any reading, so an answer about a finalised card changes nothing.
+      Verify.check "a card the archive has finalised is not asked about, though it is inside its window"
+          (fun g -> LiveScore.liveKeysAt (at "2026-11-21T14:50:00Z") [ g ] = [ "epl" ])
+          epl
+          finalised
+
+      Verify.check "a slate with one finalised card and one card in play asks for the card in play's key only"
+          (fun slate -> LiveScore.liveKeysAt (at "2026-11-21T14:50:00Z") slate = [ "efltrophy" ])
+          [ finalised; game Sport.EFLTrophy kickoff None None None ]
+          [ epl; game Sport.EFLTrophy kickoff None None None ]
+
+      Verify.check "no live work is ahead when the only soccer card is finalised"
+          (fun g -> LiveScore.liveWorkAheadAt (at "2026-11-21T14:50:00Z") [ g ])
+          epl
+          finalised
+
+      // Review 2026-11-11, poll S9 and S16: the selection of cards an answer is told was an inline closure nothing pinned.
+      Verify.check "an answer for the epl key is told the epl cards and no other league's"
+          (fun other ->
+              [ epl; game other kickoff None None None ]
+              |> List.filter (LiveScore.answersTo "epl" (at "2026-11-21T13:00:00Z"))
+              |> List.length = 1)
+          Sport.MLS
+          Sport.EPL
+
+      Verify.check "an answer is told only the cards inside their window"
+          (fun now -> LiveScore.answersTo "epl" (at now) epl)
+          "2026-11-21T13:00:00Z"
+          "2026-11-21T16:00:00Z"
+
+      // Fix-review 2026-11-11, defence F19: the pair above tests only the far end of the window, so `answersTo` reduced to `now <= start + 3h` kept every check green
+      // and a failed feed would stamp `live score unavailable` on every card of the league hours before its kickoff. One second either side of the kickoff.
+      Verify.check "an answer is told a card from its kickoff and not a second before it"
+          (fun now -> LiveScore.answersTo "epl" (at now) epl)
+          "2026-11-21T12:30:00Z"
+          "2026-11-21T12:29:59Z"
+
+      // THE CASE (CC-CMD fact 1: a synthetic row read `Scheduled` 45 minutes in, 2026-11-11): no score in the archive, 45 minutes in. A reading turns it into in progress.
+      Verify.check "a started row with no score and a live reading is in progress with that score"
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = InProgress(1, 0))
+          (LiveScore.LiveNow(1, 0, Some "45'"))
+          LiveScore.NoReading
+
+      Verify.check "a half-time reading keeps the card in progress with its score, never final"
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = InProgress(1, 0))
+          (LiveScore.HalfTime(1, 0))
+          LiveScore.NoReading
+
+      // Fix-review round 3 (defence F5): the guard was checked with a live reading only, so HalfTime and FullTime could take a card back from Final unseen.
+      Verify.check "a card the archive has finalised is never taken back by any reading: none, live, half time, full time or unavailable"
+          (fun archive ->
+              [ LiveScore.NoReading
+                LiveScore.LiveNow(0, 0, None)
+                LiveScore.LiveNow(1, 0, Some "34'")
+                LiveScore.HalfTime(1, 0)
+                LiveScore.FullTime(2, 1)
+                LiveScore.LiveUnavailable "x" ]
+              |> List.forall (fun reading -> LiveScore.foldReading archive reading = archive))
+          (Final(2, 1, false))
+          Scheduled
+
+      Verify.check "a reading that says full time keeps the card in progress, never final"
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T14:40:00Z") epl) reading = InProgress(2, 2))
+          (LiveScore.FullTime(2, 2))
+          (LiveScore.LiveNow(2, 1, None))
+
+      // Final opens the amnesty zone and Pick'em grading; only the archive may say a game is over, and a reading cannot take it back.
+      Verify.check "the archive's Final is never taken back by a reading"
+          (fun g ->
+              let state = LiveScore.foldReading (gameStateAt (at "2026-11-21T16:00:00Z") g) (LiveScore.LiveNow(0, 0, None))
+              state = Final(2, 1, false))
+          (game Sport.EPL kickoff (Some "2026-11-21 14:35:00") (Some 2) (Some 1))
+          (game Sport.EPL kickoff None (Some 2) (Some 1))
+
+      Verify.check "no reading and an unavailable reading leave the archive's own answer"
+          (fun reading -> LiveScore.foldReading (gameStateAt (at "2026-11-21T13:15:00Z") epl) reading = Scheduled)
+          (LiveScore.LiveUnavailable "the feed did not answer")
+          (LiveScore.LiveNow(1, 0, None))
+
+      // The card folds over its CURRENT state signal, so a state set from outside the page's data is the archive it folds over.
+      Verify.check "no reading leaves any archive state exactly as it is"
+          (fun archive -> LiveScore.foldReading archive LiveScore.NoReading = InProgress(1, 0))
+          (InProgress(1, 0))
+          Scheduled
+
+      Verify.check "a score reading turns a Scheduled archive state into in progress with that score"
+          (fun archive -> LiveScore.foldReading archive (LiveScore.LiveNow(1, 0, None)) = InProgress(1, 0))
+          Scheduled
+          (Final(1, 0, false))
+
+      Verify.check "a placeholder score before kickoff is still Scheduled under no reading"
+          (fun now -> LiveScore.foldReading (gameStateAt (at now) (game Sport.EPL kickoff None (Some 0) (Some 0))) LiveScore.NoReading = Scheduled)
+          "2026-11-21T12:00:00Z"
+          "2026-11-21T13:00:00Z"
+
+      Verify.check "the note beside the score is the feed's clock, the words Full time, or the reason, and nothing otherwise"
+          (fun (reading, text) -> LiveScore.liveNoteText reading = text)
+          (LiveScore.LiveNow(1, 0, Some "45'"), "45'")
+          (LiveScore.LiveNow(1, 0, Some "45'"), "")
+
+      Verify.check "full time is worded Full time"
+          (fun (reading, text) -> LiveScore.liveNoteText reading = text)
+          (LiveScore.FullTime(1, 0), "Full time")
+          (LiveScore.FullTime(1, 0), "Final")
+
+      Verify.check "an unavailable score is said in words"
+          (fun (reading, text) -> LiveScore.liveNoteText reading = text)
+          (LiveScore.LiveUnavailable "x", "live score unavailable")
+          (LiveScore.LiveUnavailable "x", "")
+
+      Verify.check "a game the archive has finalised carries no live note, whatever the reading says"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.FullTime(2, 1)) = "")
+          (Final(2, 1, false))
+          (InProgress(2, 1))
+
+      Verify.check "a game that is not final carries the reading's note"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.FullTime(2, 1)) = "Full time")
+          (InProgress(2, 1))
+          (Final(2, 1, false))
+
+      Verify.check "a half-time reading says Half time, and a game the archive has finalised carries no such note"
+          (fun archive -> LiveScore.liveNoteFor archive (LiveScore.HalfTime(1, 0)) = "Half time")
+          (InProgress(1, 0))
+          (Final(1, 0, false))
+
+      Verify.check "half time and full time are different words"
+          (fun reading -> LiveScore.liveNoteText reading = "Half time")
+          (LiveScore.HalfTime(1, 0))
+          (LiveScore.FullTime(1, 0))
+
+      Verify.check "no reading and a live reading with no clock say nothing"
+          (fun reading -> LiveScore.liveNoteText reading = "")
+          (LiveScore.LiveNow(1, 0, None))
+          (LiveScore.FullTime(1, 0))
+
+      // Review 2026-11-11 (decoder S8, S10, S24): the reason behind `live score unavailable` was carried and never read.
+      Verify.check "the reason is the reading's own while the note says unavailable"
+          (fun reading -> LiveScore.liveWhyFor Scheduled reading = "the feed has no game for this card")
+          (LiveScore.LiveUnavailable "the feed has no game for this card")
+          (LiveScore.LiveUnavailable "another reason")
+
+      // Fix-review 2026-11-11, defence F22: the titles said "a clock, full time or no reading" and "a game the archive has finalised", and the inputs were ONE of each (a clock; a regulation final), so
+      // `| _, FullTime _ -> "full time"` added above the catch-all, or the Final arm narrowed to `Final(_, _, false)`, kept every check green. Each class is now every member.
+      Verify.check "a clock, half time, full time or no reading carries no reason"
+          (fun readings -> readings |> List.forall (fun reading -> LiveScore.liveWhyFor Scheduled reading = ""))
+          [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveNow(1, 0, None); LiveScore.HalfTime(1, 0); LiveScore.FullTime(1, 0); LiveScore.NoReading ]
+          [ LiveScore.LiveNow(1, 0, Some "34'"); LiveScore.LiveUnavailable "x" ]
+
+      Verify.check "a game the archive has finalised carries no reason, in regulation or after extra time, as it carries no live note"
+          (fun archives -> archives |> List.forall (fun archive -> LiveScore.liveWhyFor archive (LiveScore.LiveUnavailable "x") = ""))
+          [ Final(2, 1, false); Final(2, 1, true) ]
+          [ Final(2, 1, true); Scheduled ] ]
+
+// ---------------------------------------------------------------------------
+// The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The bodies below are EXCERPTS of what the relay served
+// on 2026-11-11, the keys as served with the per-game lists (`matchEvents`, `streams`, `recentWPHistory`) and the win-probability objects left out:
+// a probe of /v2/games?sport=epl&date=2026-11-08 (`finalBody`) and ?sport=efltrophy&date=2026-11-11 before kickoff (`preBody`), and THREE BODIES OF ONE GAME (Barnsley v Oldham Athletic) CAPTURED THE SAME EVENING by
+// `live-shape-capture` (`outbox/live-capture-efltrophy-2026-11-11-<HHMM>Z.json`, `v2.body`; each capture held two games, the second (Sheffield Wednesday v Accrington) is dropped here and `count` is set to 1): `liveRealBody` is the capture of 19:18:54Z (Barnsley v Oldham Athletic, 18', 0-0),
+// `halftimeRealBody` the capture of 19:54:02Z (the same game at half time, 3-0, clock `45'+3'`, `situation.isHalftime: true`; the state word stays `live`, only the flag says so), and
+// `finalRealBody` the capture of 20:59:30Z (the same game at 5-2, `final`, clock `90'+3'`, `situation: null`) taken while the archive row still had no score: it was finalised at
+// 21:00:26Z (the capture of 21:21:25Z shows it scored). Read through the relay but NOT in a committed capture: the second half (74' and 76', `periodNum` 2, `isHalftime: false`, 20:34Z).
+// Not captured: stoppage time of the second half while live, extra time, a shootout.
+// ---------------------------------------------------------------------------
+
+let private liveFeed () =
+    let finalBody =
+        """{"sport":"epl","date":"2026-11-08","games":[{"id":"espn:401879240","espnEventId":"401879240","sport":"epl","league":"EPL","state":"final","start":"2026-11-08T16:30Z","home":{"name":"Manchester United","abbr":"MAN","score":4},"away":{"name":"Aston Villa","abbr":"AVL","score":4},"clock":"90'+9'","periodNum":0,"periodLabel":"","venue":"Old Trafford","round":"English Premier League","situation":null}],"count":1,"source":"espn-wc","ts":1794378859941}"""
+
+    let preBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"pre","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"0'","periodNum":0,"periodLabel":"","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":null,"matchEvents":[],"streams":[]}],"count":1,"source":"espn-wc","ts":1794378915750}"""
+
+    let feedGame id state home away clock : LiveFeed.FeedGame =
+        { EspnEventId = id
+          State = state
+          HomeScore = home
+          AwayScore = away
+          Clock = clock
+          IsHalftime = false }
+
+    let liveRealBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"18'","periodNum":1,"periodLabel":"18'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":18,"isStoppage":false,"isHalftime":false,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794424735294}"""
+
+    let finalRealBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"final","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":5},"away":{"name":"Oldham Athletic","abbr":"OLD","score":2},"clock":"90'+3'","periodNum":0,"periodLabel":"","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":null}],"count":1,"source":"espn-wc","ts":1794430770749}"""
+
+    let halftimeRealBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"live","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":3},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"45'+3'","periodNum":1,"periodLabel":"45'","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":{"elapsed":45,"isStoppage":true,"isHalftime":true,"isShootout":false,"manAdvantage":null,"homeSOT":0,"awaySOT":0,"hasStats":false}}],"count":1,"source":"espn-wc","ts":1794426843196}"""
+
+    let card (espn: string option) : Game =
+        { Id = "g1"
+          Sport = Sport.EPL
+          League = "EPL"
+          Day = Some(fieldDayAt (at "2026-11-08T12:00:00Z"))
+          Home = "Man Utd"
+          Away = "Aston Villa"
+          HomeScore = None
+          AwayScore = None
+          Venue = None
+          Streams = None
+          Note = None
+          LocalNote = None
+          Crew = None
+          Tags = NotPresent
+          StartTime = Some(at "2026-11-08T16:30:00Z")
+          RawStartTime = None
+          DramaPeak = None
+          DramaArc = NotPresent
+          OpeningOdds = NotPresent
+          ClosingOdds = NotPresent
+          Overtime = RegulationOnly
+          EspnEventId = espn
+          BsdEventId = None
+          FinalizedAt = None }
+
+    let one (game: string) : string = sprintf """{"games":[%s]}""" game
+
+    // Half time (owner approved 2026-11-11, after the capture of 19:54Z): the feed says `live` and `situation.isHalftime: true`. Bodies for the flag's every shape.
+    let liveHalf = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"45'+2'","situation":{"isHalftime":true}}"""
+    let liveHalfNoScore = one """{"espnEventId":"7","state":"live","home":{},"away":{},"clock":"45'","situation":{"isHalftime":true}}"""
+    let finalHalf = one """{"espnEventId":"7","state":"final","home":{"score":2},"away":{"score":1},"clock":"90'","situation":{"isHalftime":true}}"""
+    let preHalf = one """{"espnEventId":"7","state":"pre","home":{"score":0},"away":{"score":0},"clock":"0'","situation":{"isHalftime":true}}"""
+    let situationNull = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":null}"""
+    let situationNoFlag = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":{"elapsed":34}}"""
+    let situationFlagNull = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":{"isHalftime":null}}"""
+    let situationFlagFalse = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"34'","situation":{"isHalftime":false}}"""
+    let flagString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":{"isHalftime":"true"}}"""
+    let flagNumber = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":{"isHalftime":1}}"""
+    let situationString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"situation":"x"}"""
+    // Fix-review round 3 (defence F3): `isStoppage` (the clock has a `+`) and `isHalftime` (ESPN's status) are set independently by the relay, and every captured body had them equal
+    // (false/false at 18', true/true at the break). A game in ADDED TIME with the ball in play is stoppage true and half time false: the case the feature exists to tell apart.
+    let liveStoppage = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"45'+2'","situation":{"elapsed":45,"isStoppage":true,"isHalftime":false}}"""
+    let liveStoppageLate = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"90'+4'","situation":{"elapsed":90,"isStoppage":true,"isHalftime":false}}"""
+    // Two live games in ONE feed, the first at the break and the second in play (defence F4).
+    let twoGamesOneAtTheBreak =
+        """{"games":[{"espnEventId":"1","state":"live","home":{"score":1},"away":{"score":0},"clock":"45'+2'","situation":{"isHalftime":true}},{"espnEventId":"2","state":"live","home":{"score":2},"away":{"score":2},"clock":"34'","situation":{"isHalftime":false}}]}"""
+
+    let halftimeFlags (body: string) : Result<bool list, string> =
+        LiveFeed.decodeFeed body |> Result.map (List.map (fun g -> g.IsHalftime))
+
+    let readReal (body: string) : Result<LiveScore.LiveReading, string> =
+        LiveFeed.decodeFeed body |> Result.map (fun parsed -> LiveFeed.readingFor parsed (card (Some "401911177")))
+
+    let readThrough (body: string) : Result<LiveScore.LiveReading, string> =
+        LiveFeed.decodeFeed body |> Result.map (fun parsed -> LiveFeed.readingFor parsed (card (Some "7")))
+
+    let isUnavailable (r: Result<LiveScore.LiveReading, string>) : bool =
+        match r with
+        | Ok(LiveScore.LiveUnavailable _) -> true
+        | _ -> false
+
+    let errorMentions (text: string) (r: Result<LiveFeed.FeedGame list, string>) : bool =
+        match r with
+        | Error e -> e.Contains text
+        | Ok _ -> false
+
+    let liveAsym = one """{"espnEventId":"7","state":"live","home":{"score":2},"away":{"score":1},"clock":"34'"}"""
+    let liveSwapped = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":2},"clock":"34'"}"""
+    let liveHomeNull = one """{"espnEventId":"7","state":"live","home":{"score":null},"away":{"score":1},"clock":"34'"}"""
+    let liveNoScoreKey = one """{"espnEventId":"7","state":"live","home":{},"away":{},"clock":"34'"}"""
+    let liveClock = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":"12'"}"""
+    let liveNullClock = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":null}"""
+    let liveAbsentClock = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0}}"""
+    let finalBoth = one """{"espnEventId":"7","state":"final","home":{"score":2},"away":{"score":1},"clock":"90'"}"""
+    let finalNoScore = one """{"espnEventId":"7","state":"final","home":{},"away":{}}"""
+    let finalOneSide = one """{"espnEventId":"7","state":"final","home":{"score":2},"away":{}}"""
+    let preScored = one """{"espnEventId":"7","state":"pre","home":{"score":2},"away":{"score":1},"clock":"0'"}"""
+    let stateMissing = one """{"espnEventId":"7","home":{"score":1},"away":{"score":0}}"""
+    let scoreFloat = one """{"espnEventId":"7","state":"live","home":{"score":1.5},"away":{"score":0}}"""
+    let scoreString = one """{"espnEventId":"7","state":"live","home":{"score":"1"},"away":{"score":"0"}}"""
+    let scoreHuge = one """{"espnEventId":"7","state":"live","home":{"score":2147483648},"away":{"score":0}}"""
+    let scoreNegative = one """{"espnEventId":"7","state":"live","home":{"score":-1},"away":{"score":0}}"""
+    // Fix-review 2026-11-11, decoder F5: HomeScore and AwayScore are two call sites, and every bad body above put its bad value on `home` (scoreString put it on both, where the home
+    // error arrives first). Each of these has a good home score, so the error can only come from the away side.
+    let awayFloat = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":1.5}}"""
+    let awayString = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":"0"}}"""
+    let awayHuge = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":2147483648}}"""
+    let awayNegative = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":-1}}"""
+    let awayBool = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":true}}"""
+    let clockNumber = one """{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0},"clock":34}"""
+
+    let oneBadOfTwo =
+        """{"games":[{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0}},{"espnEventId":"8","home":{"score":1},"away":{"score":0}}]}"""
+
+    let twoGood =
+        """{"games":[{"espnEventId":"7","state":"live","home":{"score":1},"away":{"score":0}},{"espnEventId":"8","state":"pre","home":{"score":0},"away":{"score":0}}]}"""
+
+    let feed =
+        [ feedGame "401879240" "live" (Some 1) (Some 0) (Some "34'")
+          feedGame "401879241" "pre" (Some 0) (Some 0) (Some "0'")
+          feedGame "401879242" "final" (Some 2) (Some 1) (Some "90'+4'") ]
+
+    [ Verify.check "a served final game decodes to its id, state, both scores and the clock as served"
+          (fun body ->
+              let expected = Ok [ feedGame "401879240" "final" (Some 4) (Some 4) (Some "90'+9'") ]
+              LiveFeed.decodeFeed body = expected)
+          finalBody
+          preBody
+
+      Verify.check "a served pre game decodes with its score 0 and clock 0' (so a score is never read without the state)"
+          (fun body ->
+              let expected = Ok [ feedGame "401911177" "pre" (Some 0) (Some 0) (Some "0'") ]
+              LiveFeed.decodeFeed body = expected)
+          preBody
+          finalBody
+
+      Verify.check "a body with no games list is an error, never an empty slate"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          """{"sport":"epl","date":"2026-11-08","count":0}"""
+          finalBody
+
+      Verify.check "a game with no espnEventId is an error that names it"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          """{"games":[{"id":"espn:1","state":"pre","home":{"score":0},"away":{"score":0}}]}"""
+          finalBody
+
+      Verify.check "a body that is not JSON is an error"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          "<html>502</html>"
+          finalBody
+
+      Verify.check "the path asks for the sport key and the ET day"
+          (fun (key, day) -> LiveFeed.feedPath key day = "/v2/games?sport=efltrophy&date=2026-11-11")
+          ("efltrophy", "2026-11-11")
+          ("efltrophy", "2026-11-10")
+
+      Verify.check "a card joins its game by ESPN event id, not by position"
+          (fun espn -> LiveFeed.readingFor feed (card espn) = LiveScore.LiveNow(1, 0, Some "34'"))
+          (Some "401879240")
+          (Some "401879242")
+
+      Verify.check "a game the feed says is pre is no reading, whatever score it reports"
+          (fun espn -> LiveFeed.readingFor feed (card espn) = LiveScore.NoReading)
+          (Some "401879241")
+          (Some "401879240")
+
+      Verify.check "a game the feed says is final is full time, not live"
+          (fun espn -> LiveFeed.readingFor feed (card espn) = LiveScore.FullTime(2, 1))
+          (Some "401879242")
+          (Some "401879240")
+
+      Verify.check "a card the feed has no game for says so"
+          (fun espn -> (match LiveFeed.readingFor feed (card espn) with LiveScore.LiveUnavailable _ -> true | _ -> false))
+          (Some "999")
+          (Some "401879240")
+
+      Verify.check "a card with no ESPN event id cannot be joined and says so, rather than reading nothing"
+          (fun espn -> (match LiveFeed.readingFor feed (card espn) with LiveScore.LiveUnavailable _ -> true | _ -> false))
+          None
+          (Some "401879240")
+
+      Verify.check "a state word the page does not read is named, not guessed"
+          (fun state ->
+              match LiveFeed.readingFor [ feedGame "7" state (Some 1) (Some 0) None ] (card (Some "7")) with
+              | LiveScore.LiveUnavailable why -> why.Contains state
+              | _ -> false)
+          "suspended"
+          "live"
+
+      Verify.check "a live game with no score is unavailable, not 0-0"
+          (fun (home, away) ->
+              match LiveFeed.readingFor [ feedGame "7" "live" home away None ] (card (Some "7")) with
+              | LiveScore.LiveUnavailable _ -> true
+              | _ -> false)
+          (None, None)
+          (Some 1, Some 0)
+
+      Verify.check "an empty clock is no clock"
+          (fun clock -> LiveFeed.readingFor [ feedGame "7" "live" (Some 1) (Some 0) clock ] (card (Some "7")) = LiveScore.LiveNow(1, 0, None))
+          (Some "")
+          (Some "12'")
+
+      // The decoder's own contracts (review 2026-11-11, decoder S6 and S19). Everything above builds `FeedGame` values by hand, so the decoder was off the
+      // path of every "no score" check; these run a served-shaped body through `decodeFeed` and then `readingFor`, the way the page does. Each pair is a
+      // body the claim holds for and one it does not, so a check that always passes cannot pass here. The bodies are written to the keys the relay emits
+      // (`adaptESPNWCSoccer`: `Number(x)` or null for a score, `displayClock` text for the clock); none is a capture of a game in play.
+      Verify.check "a live body reads home first and away second, with its clock (an asymmetric score, so a swap shows)"
+          (fun body -> readThrough body = Ok(LiveScore.LiveNow(2, 1, Some "34'")))
+          liveAsym
+          liveSwapped
+
+      Verify.check "a live game whose score is null on one side is unavailable, never a zero"
+          (fun body -> isUnavailable (readThrough body))
+          liveHomeNull
+          liveAsym
+
+      Verify.check "a live game with no score key at all is unavailable, never 0-0"
+          (fun body -> isUnavailable (readThrough body))
+          liveNoScoreKey
+          liveAsym
+
+      Verify.check "a final game with no score is unavailable, never a fabricated 0-0 full time"
+          (fun body -> isUnavailable (readThrough body))
+          finalNoScore
+          finalBoth
+
+      Verify.check "a final game with a score on one side only is unavailable, never half a score"
+          (fun body -> isUnavailable (readThrough body))
+          finalOneSide
+          finalBoth
+
+      Verify.check "a final body with both scores is full time, home first"
+          (fun body -> readThrough body = Ok(LiveScore.FullTime(2, 1)))
+          finalBoth
+          finalNoScore
+
+      Verify.check "a null clock is no clock, not an error"
+          (fun body -> readThrough body = Ok(LiveScore.LiveNow(1, 0, None)))
+          liveNullClock
+          liveClock
+
+      Verify.check "an absent clock is no clock, not an error"
+          (fun body -> readThrough body = Ok(LiveScore.LiveNow(1, 0, None)))
+          liveAbsentClock
+          liveClock
+
+      Verify.check "a pre game that reports a nonzero score is still no reading"
+          (fun body -> readThrough body = Ok LiveScore.NoReading)
+          preScored
+          liveAsym
+
+      Verify.check "a game with no state is an error, never a read"
+          (fun body -> LiveFeed.decodeFeed body |> Result.isError)
+          stateMissing
+          liveAsym
+
+      Verify.check "a score that is not a whole number is an error naming the field"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreFloat
+          liveAsym
+
+      Verify.check "a score served as a numeric string is an error naming the field, not a coerced number"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreString
+          liveAsym
+
+      Verify.check "a score outside the int32 range is an error naming the field"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreHuge
+          liveAsym
+
+      // Fix-review 2026-11-11, decoder F6 and defence F24: the lower bound was the int32 minimum, which no check pinned (it could be moved or removed with every check green) and which
+      // has no meaning for a football score. A negative score is refused, the way a string or a fraction is.
+      Verify.check "a negative score is an error naming the field, not a score drawn as -1"
+          (fun body -> errorMentions "home.score" (LiveFeed.decodeFeed body))
+          scoreNegative
+          liveAsym
+
+      Verify.check "a score of zero on each side decodes, so the lower bound is 0 and not 1"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "7" "live" (Some 0) (Some 0) None ])
+          (one """{"espnEventId":"7","state":"live","home":{"score":0},"away":{"score":0}}""")
+          liveAsym
+
+      Verify.check "an away score that is not a whole number is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayFloat
+          liveAsym
+
+      Verify.check "an away score served as a numeric string is an error naming the away field, not a coerced number"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayString
+          liveAsym
+
+      Verify.check "an away score outside the int32 range is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayHuge
+          liveAsym
+
+      Verify.check "a negative away score is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayNegative
+          liveAsym
+
+      Verify.check "an away score that is a boolean is an error naming the away field"
+          (fun body -> errorMentions "away.score" (LiveFeed.decodeFeed body))
+          awayBool
+          liveAsym
+
+      Verify.check "a clock that is not text is an error naming the field"
+          (fun body -> errorMentions "clock" (LiveFeed.decodeFeed body))
+          clockNumber
+          liveAsym
+
+      // The two games in play captured on 2026-11-11 (the header above): the first real bodies of a match in play this page has read.
+      Verify.check "a game in play, as captured at 19:18Z, decodes to its id, state, scores, clock and no half time"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "401911177" "live" (Some 0) (Some 0) (Some "18'") ])
+          liveRealBody
+          halftimeRealBody
+
+      Verify.check "a game at half time, as captured at 19:54Z, decodes with its clock as served and the half-time flag set"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ { feedGame "401911177" "live" (Some 3) (Some 0) (Some "45'+3'") with IsHalftime = true } ])
+          halftimeRealBody
+          liveRealBody
+
+      Verify.check "a game in play, as captured, is read as live with its score and the feed's clock"
+          (fun body -> readReal body = Ok(LiveScore.LiveNow(0, 0, Some "18'")))
+          liveRealBody
+          halftimeRealBody
+
+      Verify.check "a game at half time, as captured, is read as half time with its score and not as its clock"
+          (fun body -> readReal body = Ok(LiveScore.HalfTime(3, 0)))
+          halftimeRealBody
+          liveRealBody
+
+      // The Full time ruling's case, on a real match (2026-11-11): the feed says `final` while the archive row has no score yet.
+      Verify.check "a game that has finished, as captured at 20:59Z with the archive unscored, decodes to its score and its clock as served"
+          (fun body -> LiveFeed.decodeFeed body = Ok [ feedGame "401911177" "final" (Some 5) (Some 2) (Some "90'+3'") ])
+          finalRealBody
+          halftimeRealBody
+
+      Verify.check "...and is read as full time with that score"
+          (fun body -> readReal body = Ok(LiveScore.FullTime(5, 2)))
+          finalRealBody
+          halftimeRealBody
+
+      Verify.check "...and a card the archive has not scored stays In progress with its score and a Full time note, while one the archive has finalised stays Final with none"
+          (fun archive -> LiveScore.foldReading archive (LiveScore.FullTime(5, 2)) = InProgress(5, 2) && LiveScore.liveNoteFor archive (LiveScore.FullTime(5, 2)) = "Full time")
+          (gameStateAt (at "2026-11-11T20:59:30Z") (card (Some "401911177")))
+          (Final(5, 2, false))
+
+      Verify.check "a live game that is not at half time carries the flag false whether `situation` is null, has no flag, or has a null or false one"
+          (fun bodies -> bodies |> List.forall (fun body -> halftimeFlags body = Ok [ false ]))
+          [ situationNull; situationNoFlag; situationFlagNull; situationFlagFalse; liveAsym ]
+          [ situationNull; liveHalf ]
+
+      Verify.check "a half-time flag that is not a boolean is an error naming the field, as a string score is"
+          (fun bodies -> bodies |> List.forall (fun body -> errorMentions "isHalftime" (LiveFeed.decodeFeed body)))
+          [ flagString; flagNumber ]
+          [ flagString; liveHalf ]
+
+      Verify.check "a `situation` that is not an object is an error naming it"
+          (fun body -> errorMentions "situation" (LiveFeed.decodeFeed body))
+          situationString
+          liveHalf
+
+      Verify.check "a live game in added time of a half, with the ball in play, is read as its clock and never as half time: only `situation.isHalftime` says half time"
+          (fun bodies ->
+              bodies
+              |> List.forall (fun body ->
+                  match readThrough body with
+                  | Ok(LiveScore.LiveNow(1, 0, Some clock)) -> clock.Contains "+"
+                  | _ -> false))
+          [ liveStoppage; liveStoppageLate ]
+          [ liveStoppage; liveHalf ]
+
+      Verify.check "the half-time flag belongs to its own game: of two live games in one feed the one at the break reads half time and the other its own clock"
+          (fun (atTheBreak, inPlay) ->
+              match LiveFeed.decodeFeed twoGamesOneAtTheBreak with
+              | Ok parsed ->
+                  let read id = LiveFeed.readingFor parsed (card (Some id))
+                  read atTheBreak = LiveScore.HalfTime(1, 0) && read inPlay = LiveScore.LiveNow(2, 2, Some "34'")
+              | Error _ -> false)
+          ("1", "2")
+          ("2", "1")
+
+      Verify.check "the half-time flag is read from a live game only: a finished game that carries it is still full time"
+          (fun body -> readThrough body = Ok(LiveScore.FullTime(2, 1)))
+          finalHalf
+          liveHalf
+
+      Verify.check "the half-time flag is read from a live game only: a game not started that carries it is still no reading"
+          (fun body -> readThrough body = Ok LiveScore.NoReading)
+          preHalf
+          liveHalf
+
+      Verify.check "a live game at half time that carries no score is unavailable, never half time at 0-0"
+          (fun body -> isUnavailable (readThrough body))
+          liveHalfNoScore
+          liveHalf
+
+      // PINNED as the current contract, not argued for: the relay owns the shape (CONTRACTS.md), so one malformed game fails the whole feed and every card of
+      // that sport key that is inside its window and not finalised in the archive says "live score unavailable" with the decoder's message (`answersTo` and `liveNoteFor`
+      // choose which; a card not yet started, past its window or finalised is not told), rather than the bad game being skipped and ITS card saying "the feed has no game".
+      Verify.check "one malformed game fails the whole feed rather than being skipped"
+          (fun body -> LiveFeed.decodeFeed body |> Result.isError)
+          oneBadOfTwo
+          twoGood ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -4426,6 +5216,8 @@ let groups () : (string * Verify.Sealed list) list =
       "Lineups", lineups ()
       "Lineup cards", lineupCards ()
       "Card forecasts", cardForecast ()
+      "Live scores", liveScore ()
+      "Live feed", liveFeed ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
       "Second Wind", secondWind ()

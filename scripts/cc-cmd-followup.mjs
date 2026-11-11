@@ -102,9 +102,18 @@ const soccerMoneylines = j => {
 /// FUTURE EVENT goes stale silently, because nothing re-evaluates whether the
 /// event happened — a human has to notice. Everything in this file re-evaluates
 /// every sentinel run, which is the property that ask was missing.
+///
+/// SCOPED TO THE COMPETITIONS THE ASK NAMES (EPL and La Liga), not to every soccer sport. On 2026-11-10 the only soccer rows in the archive
+/// were 17 EFL Trophy games, a competition the relay has never priced (D1, 2026-11-11: 0 of 17 with an opening line, and 0 of 33 FA Cup games
+/// on 2026-11-07 and 0 of 4 on 2026-11-08, while every priced league showed lines on the days it played), so this counted soccer, found no
+/// line, and the drift sentinel reported a landed ask as REGRESSED on an international-break midweek. The relay had not regressed; the
+/// predicate was asking about leagues nobody asked the relay to price. A slate with no EPL or La Liga game is `null`, as an off-day is.
+const OPENING_ASK_LABELS = new Set(['EPL', 'La Liga'])
+const isOpeningAskSport = name => OPENING_ASK_LABELS.has(sportMeta(sportOfString(String(name ?? ''))).Label)
+
 const soccerOpeningCoverage = j => {
   const games = Array.isArray(j?.games?.regular) ? j.games.regular : []
-  const soccer = games.filter(g => SOCCER_SPORTS.has(g?.sport))
+  const soccer = games.filter(g => isOpeningAskSport(g?.sport))
   const withOpen = soccer.filter(g => {
     if (!g?.opening_odds) return false
     try { return !!JSON.parse(g.opening_odds) } catch { return false }
@@ -243,9 +252,10 @@ const LANDED = [
     route: `/context/date/${yesterdayUTC()}`,
     // Three states, same discipline as the three-way ask below.
     //
-    // `null` = no soccer game in the payload at all. An off-day proves nothing,
-    // and reporting it as `false` would read as "the fix regressed" every
-    // Monday.
+    // `null` = no EPL or La Liga game in the payload at all (the competitions the
+    // ask names; see `soccerOpeningCoverage`). An off-day, or a midweek of cup
+    // and lower-league soccer nobody prices, proves nothing, and reporting it as
+    // `false` would read as "the fix regressed" every Monday.
     //
     // `true`  = at least one soccer game carries an opening line. That IS the
     // surviving ask: the relay's own probe measured EPL 4/5 and La Liga 2/3 on
@@ -284,9 +294,10 @@ const LANDED = [
     // price the open/close pair is not a sequence, and the Odds Story layer
     // falls back to NotASequence rather than narrating movement.
     //
-    // The three states below are unchanged and are why this is safe on the
-    // fatal list: `null` for a slate with no soccer game at all, so an off-day
-    // never reads as a regression.
+    // The three states below are why this is safe on the fatal list: `null` for
+    // a slate with no EPL or La Liga game, so an off-day never reads as a
+    // regression. (It used to count EVERY soccer sport, and read `false` on
+    // 2026-11-10, a slate of 17 EFL Trophy games nobody prices.)
     holds: j => {
       const { soccer, withOpen } = soccerOpeningCoverage(j)
       if (soccer === 0) return null
@@ -589,6 +600,19 @@ if (SELF_TEST) {
   check('closing-odds: unparseable opening_odds does not count as coverage',
     co.landed(payload([gm('EPL', 'not json')])) === false,
     'a corrupt column passes as a captured line')
+
+  // 2026-11-10: the archive's only soccer rows were 17 EFL Trophy games, which the relay has never priced. This read `false` and failed the sentinel.
+  check('closing-odds: a slate whose only soccer is a competition nobody prices is null, not a regression',
+    co.landed(payload([gm('EFL Trophy', null), gm('EFL Trophy', null), gm('FA Cup', null)])) === null,
+    'the 2026-11-10 false positive: a break-week midweek read as the fix regressing')
+
+  check('closing-odds: an EPL game with no line beside unpriced cup games is still not-landed',
+    co.landed(payload([gm('EPL', null), gm('FA Cup', null), gm('EFL Trophy', null)])) === false,
+    'scoping the predicate to the ask must not blind it to the pre-fix condition')
+
+  check('closing-odds: an unpriced cup game with a line cannot stand in for an EPL one',
+    co.landed(payload([gm('EPL', null), gm('FA Cup', '{"moneyline":{"home":-110}}')])) === false,
+    'a stray line on a competition outside the ask reads the ask as landed')
 
   check('closing-odds: one covered soccer game among uncovered ones is enough',
     co.landed(payload([gm('EPL', null), gm('La Liga', '{"moneyline":{}}')])) === true,

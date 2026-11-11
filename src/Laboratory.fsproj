@@ -69,6 +69,10 @@
     <Compile Include="TeamColours.fs" />
     <Compile Include="Route.fs" />
     <Compile Include="Desk.fs" />
+    <!-- The pure half of the live score: what a card may be told, when it is worth asking, which key to ask. -->
+    <Compile Include="LiveScore.fs" />
+    <!-- The relay's /v2/games as the laboratory reads it: the decoder and the reading for a card. -->
+    <Compile Include="LiveFeed.fs" />
     <Compile Include="Pick.fs" />
     <Compile Include="Lineups.fs" />
     <!-- The lineup drawing, above Scoreboard.fs: a soccer card opens its game's
