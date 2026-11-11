@@ -17,7 +17,9 @@ pair (the capture tonight) only if the poll is deployed, which it is not until t
 ## Two things the first draft got wrong, found before commit
 
 1. **The join.** The draft read an ESPN id out of the card's `data-game-id` with `/_e(\d+)$/`. The card's id is the archive row's id,
-   e.g. `2026-10-10-mls-stl-la` (read from `data/context-2026-10-10.json`, 125 rows). It carries no ESPN id. The probe now reads
+   and rows come in two id schemes: `2026-10-10-mls-stl-la` (read from `data/context-2026-10-10.json`, 125 rows), which carries no ESPN id, and the
+   newer `EFL Trophy_2026-11-11_e401911177` (CC-CMD Task 2's probe), which embeds one. A regex on the second scheme would have joined some cards and
+   silently dropped the rest, so the join goes through the row, not the id's spelling. The probe now reads
    `/context/date/<day>` and joins card id -> `espn_event_id` -> the feed's `espnEventId`. A card whose row has no ESPN id is counted
    as `unjoined`, never skipped silently.
 2. **The oracle.** The draft compared the card with two feed fetches made by the runner. A clock moves every minute and the page polls
