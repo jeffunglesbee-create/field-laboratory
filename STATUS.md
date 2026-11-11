@@ -6,7 +6,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `4210c88` — but that is not `main` HEAD
+**FAILURE** on `7e1a7e5` at "Install Chromium" — 61 of 100 steps did not run behind it — [run 43048578660](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43048578660)
 
 ## Is the live artifact healthy?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `4210c88` — behind newest deployable `aacc1b1` (deploy not landed) |
+| Cloudflare Workers | live | `4210c88` — behind newest deployable `7e1a7e5` (deploy not landed) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

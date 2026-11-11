@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.mjs](venue-manadon-evidence-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.txt](venue-manadon-evidence-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-mutations-2026-11-11.mjs](venue-manadon-evidence-mutations-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-pages-2026-11-11.txt](venue-manadon-pages-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `7e1a7e5` | 2026-11-11 | [venue-manadon-probe-2026-11-11.txt](venue-manadon-probe-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `214ec5e` | 2026-11-11 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-11T14:42 [skip ci] |
 | `a739815` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of df59d1f [skip ci] |
 | `aacc1b1` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | fix: the mutation harness names its failing baseline expectations before anything can end the run |
 | `041c81f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: the live-chip probe's first run was dry, so the three questions wait for Saturday's slate |
