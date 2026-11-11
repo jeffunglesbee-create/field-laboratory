@@ -33,7 +33,10 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
+      - name: Install Chromium
+        timeout-minutes: 3
+        run: npx playwright install chromium
       - name: The page that is live
         run: |
           SITE=https://field-laboratory.jeffunglesbee.workers.dev

@@ -1,0 +1,27 @@
+the browser-install audit of scripts/workflow-check.mjs (installAudit), run over the workflows at origin/main 87736ff and over this branch
+command: git archive origin/main .github | tar -x -C /tmp/mainwf; node -e "import('./scripts/workflow-check.mjs').then(m => m.installAudit('/tmp/mainwf'))"
+
+origin/main 87736ff (before): read 351 run steps in 54 files (workflows and composite actions); 10 install a browser (0 bounded by timeout-minutes, 0 by timeout; 10 through apt; 10 unbounded); 0 install command(s) missed by the step reader
+  .github/workflows/client-sections-probe.yml:36  apt=true bound=null
+  .github/workflows/forecast-live-probe.yml:47  apt=true bound=null
+  .github/workflows/lineups-card-probe.yml:38  apt=true bound=null
+  .github/workflows/lineups-live-probe.yml:36  apt=true bound=null
+  .github/workflows/live-check.yml:96  apt=true bound=null
+  .github/workflows/metrics-screenshot.yml:37  Install Chromium  apt=true bound=null
+  .github/workflows/open-meteo-egress-probe.yml:36  Install  apt=true bound=null
+  .github/workflows/verify-full.yml:175  Install Chromium  apt=true bound=null
+  .github/workflows/verify.yml:314  Install Chromium  apt=true bound=null
+  .github/actions/mutation-shard/action.yml:58  Install Chromium  apt=true bound=null
+
+install-no-apt (after): read 366 run steps in 55 files (workflows and composite actions); 11 install a browser (9 bounded by timeout-minutes, 2 by timeout; 0 through apt; 0 unbounded); 0 install command(s) missed by the step reader
+  .github/workflows/client-sections-probe.yml:39  Install Chromium  apt=false bound=step 180s
+  .github/workflows/font-dependence-probe.yml:77  Install Chromium, with apt watched  apt=false bound=step 180s
+  .github/workflows/forecast-live-probe.yml:50  Install Chromium  apt=false bound=step 180s
+  .github/workflows/lineups-card-probe.yml:41  Install Chromium  apt=false bound=step 180s
+  .github/workflows/lineups-live-probe.yml:39  Install Chromium  apt=false bound=step 180s
+  .github/workflows/live-check.yml:99  Install Chromium  apt=false bound=step 180s
+  .github/workflows/metrics-screenshot.yml:39  Install Chromium  apt=false bound=step 180s
+  .github/workflows/open-meteo-egress-probe.yml:36  Install  apt=false bound=timeout 180s
+  .github/workflows/verify-full.yml:177  Install Chromium  apt=false bound=step 180s
+  .github/workflows/verify.yml:316  Install Chromium  apt=false bound=step 180s
+  .github/actions/mutation-shard/action.yml:60  Install Chromium  apt=false bound=timeout 180s

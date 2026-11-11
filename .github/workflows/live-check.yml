@@ -93,7 +93,10 @@ jobs:
           dotnet-version: '10.0.x'
 
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
+      - name: Install Chromium
+        timeout-minutes: 3
+        run: npx playwright install chromium
 
       # render-check imports the compiled venue table (build/Venues.js) to derive
       # how many weather chips this slate SHOULD carry. Without a build that is a

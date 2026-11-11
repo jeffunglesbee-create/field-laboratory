@@ -149,7 +149,7 @@ const readPanel = page =>
 
 if (isMain(import.meta.url) && !SELF_TEST) {
   const { check, summarize } = createChecks()
-  // CI runs `npx playwright install --with-deps chromium` and needs nothing
+  // CI runs `npx playwright install chromium` and needs nothing
   // here. A sandbox whose pre-installed build differs from the one the pinned
   // package wants can point at it instead of re-downloading:
   //   PW_CHROMIUM=/opt/pw-browsers/chromium-1194/chrome-linux/chrome

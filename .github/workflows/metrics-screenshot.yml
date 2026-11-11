@@ -33,8 +33,10 @@ jobs:
           dotnet tool restore
       - name: Build
         run: npm run build
+      # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        timeout-minutes: 3
+        run: npx playwright install chromium
       - name: Serve the built site
         run: |
           node scripts/serve.mjs &

@@ -35,7 +35,8 @@ jobs:
       - name: Install
         run: |
           npm ci
-          npx playwright install --with-deps chromium
+          # No --with-deps (apt) and a time limit on the install alone, not on npm ci or the tool restore: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
+          timeout 180 npx playwright install chromium
           dotnet tool restore
 
       # The probe imports forecastUrl and the venue table from build/, so the URL
