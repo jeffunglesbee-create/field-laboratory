@@ -4633,6 +4633,138 @@ let private liveScore () =
           (LiveScore.LiveNow(1, 0, None))
           (LiveScore.FullTime(1, 0)) ]
 
+// ---------------------------------------------------------------------------
+// The live feed (docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 6). The two bodies below are EXCERPTS of what the relay served
+// on 2026-11-11 (a probe of /v2/games?sport=epl&date=2026-11-08 and ?sport=efltrophy&date=2026-11-11): the keys as served, with the
+// per-game `matchEvents` and `streams` lists left out. No body of a game IN PLAY has been captured yet; live-shape-capture is
+// getting one on 2026-11-11, and no check below claims to know that shape.
+// ---------------------------------------------------------------------------
+
+let private liveFeed () =
+    let finalBody =
+        """{"sport":"epl","date":"2026-11-08","games":[{"id":"espn:401879240","espnEventId":"401879240","sport":"epl","league":"EPL","state":"final","start":"2026-11-08T16:30Z","home":{"name":"Manchester United","abbr":"MAN","score":4},"away":{"name":"Aston Villa","abbr":"AVL","score":4},"clock":"90'+9'","periodNum":0,"periodLabel":"","venue":"Old Trafford","round":"English Premier League","situation":null}],"count":1,"source":"espn-wc","ts":1794378859941}"""
+
+    let preBody =
+        """{"sport":"efltrophy","date":"2026-11-11","games":[{"id":"espn:401911177","espnEventId":"401911177","sport":"efltrophy","league":"EFL Trophy","state":"pre","start":"2026-11-11T19:00Z","home":{"name":"Barnsley","abbr":"BAR","score":0},"away":{"name":"Oldham Athletic","abbr":"OLD","score":0},"clock":"0'","periodNum":0,"periodLabel":"","venue":"Oakwell","round":"EFL Trophy, Northern Group G","situation":null,"matchEvents":[],"streams":[]}],"count":1,"source":"espn-wc","ts":1794378915750}"""
+
+    let feedGame id state home away clock : LiveFeed.FeedGame =
+        { EspnEventId = id
+          State = state
+          HomeScore = home
+          AwayScore = away
+          Clock = clock }
+
+    let card (espn: string option) : Game =
+        { Id = "g1"
+          Sport = Sport.EPL
+          League = "EPL"
+          Day = Some(fieldDayAt (at "2026-11-08T12:00:00Z"))
+          Home = "Man Utd"
+          Away = "Aston Villa"
+          HomeScore = None
+          AwayScore = None
+          Venue = None
+          Streams = None
+          Note = None
+          LocalNote = None
+          Crew = None
+          Tags = NotPresent
+          StartTime = Some(at "2026-11-08T16:30:00Z")
+          RawStartTime = None
+          DramaPeak = None
+          DramaArc = NotPresent
+          OpeningOdds = NotPresent
+          ClosingOdds = NotPresent
+          Overtime = RegulationOnly
+          EspnEventId = espn
+          BsdEventId = None
+          FinalizedAt = None }
+
+    let feed =
+        [ feedGame "401879240" "live" (Some 1) (Some 0) (Some "34'")
+          feedGame "401879241" "pre" (Some 0) (Some 0) (Some "0'")
+          feedGame "401879242" "final" (Some 2) (Some 1) (Some "90'+4'") ]
+
+    [ Verify.check "a served final game decodes to its id, state, both scores and the clock as served"
+          (fun body ->
+              let expected = Ok [ feedGame "401879240" "final" (Some 4) (Some 4) (Some "90'+9'") ]
+              LiveFeed.decodeFeed body = expected)
+          finalBody
+          preBody
+
+      Verify.check "a served pre game decodes with its score 0 and clock 0' (so a score is never read without the state)"
+          (fun body ->
+              let expected = Ok [ feedGame "401911177" "pre" (Some 0) (Some 0) (Some "0'") ]
+              LiveFeed.decodeFeed body = expected)
+          preBody
+          finalBody
+
+      Verify.check "a body with no games list is an error, never an empty slate"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          """{"sport":"epl","date":"2026-11-08","count":0}"""
+          finalBody
+
+      Verify.check "a game with no espnEventId is an error that names it"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          """{"games":[{"id":"espn:1","state":"pre","home":{"score":0},"away":{"score":0}}]}"""
+          finalBody
+
+      Verify.check "a body that is not JSON is an error"
+          (fun body -> (LiveFeed.decodeFeed body |> Result.isError))
+          "<html>502</html>"
+          finalBody
+
+      Verify.check "the path asks for the sport key and the ET day"
+          (fun (key, day) -> LiveFeed.feedPath key day = "/v2/games?sport=efltrophy&date=2026-11-11")
+          ("efltrophy", "2026-11-11")
+          ("efltrophy", "2026-11-10")
+
+      Verify.check "a card joins its game by ESPN event id, not by position"
+          (fun espn -> LiveFeed.readingFor feed (card espn) = LiveScore.LiveNow(1, 0, Some "34'"))
+          (Some "401879240")
+          (Some "401879242")
+
+      Verify.check "a game the feed says is pre is no reading, whatever score it reports"
+          (fun espn -> LiveFeed.readingFor feed (card espn) = LiveScore.NoReading)
+          (Some "401879241")
+          (Some "401879240")
+
+      Verify.check "a game the feed says is final is full time, not live"
+          (fun espn -> LiveFeed.readingFor feed (card espn) = LiveScore.FullTime(2, 1))
+          (Some "401879242")
+          (Some "401879240")
+
+      Verify.check "a card the feed has no game for says so"
+          (fun espn -> (match LiveFeed.readingFor feed (card espn) with LiveScore.LiveUnavailable _ -> true | _ -> false))
+          (Some "999")
+          (Some "401879240")
+
+      Verify.check "a card with no ESPN event id cannot be joined and says so, rather than reading nothing"
+          (fun espn -> (match LiveFeed.readingFor feed (card espn) with LiveScore.LiveUnavailable _ -> true | _ -> false))
+          None
+          (Some "401879240")
+
+      Verify.check "a state word the page does not read is named, not guessed"
+          (fun state ->
+              match LiveFeed.readingFor [ feedGame "7" state (Some 1) (Some 0) None ] (card (Some "7")) with
+              | LiveScore.LiveUnavailable why -> why.Contains state
+              | _ -> false)
+          "suspended"
+          "live"
+
+      Verify.check "a live game with no score is unavailable, not 0-0"
+          (fun (home, away) ->
+              match LiveFeed.readingFor [ feedGame "7" "live" home away None ] (card (Some "7")) with
+              | LiveScore.LiveUnavailable _ -> true
+              | _ -> false)
+          (None, None)
+          (Some 1, Some 0)
+
+      Verify.check "an empty clock is no clock"
+          (fun clock -> LiveFeed.readingFor [ feedGame "7" "live" (Some 1) (Some 0) clock ] (card (Some "7")) = LiveScore.LiveNow(1, 0, None))
+          (Some "")
+          (Some "12'") ]
+
 let groups () : (string * Verify.Sealed list) list =
     [ "Forecasts", forecast ()
       "Time zones", zone ()
@@ -4651,6 +4783,7 @@ let groups () : (string * Verify.Sealed list) list =
       "Lineup cards", lineupCards ()
       "Card forecasts", cardForecast ()
       "Live scores", liveScore ()
+      "Live feed", liveFeed ()
       "Flow", flow ()
       "Gravity Well", gravityWell ()
       "Second Wind", secondWind ()
