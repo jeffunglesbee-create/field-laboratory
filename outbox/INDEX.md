@@ -12,6 +12,17 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `0cf1dde` | 2026-11-11 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the soccer live-scores CC-CMD and session record say the stack is on main, and what is still staged |
+| `b5cf990` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of e1f5f28 [skip ci] |
+| `0d07d71` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the four Manadon mutation entries already ran in a scored verify-full |
+| `0d07d71` | 2026-11-11 | [venue-manadon-mutation-in-verify-full-2026-11-11.txt](venue-manadon-mutation-in-verify-full-2026-11-11.txt) | docs: the four Manadon mutation entries already ran in a scored verify-full |
+| `97dc675` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | docs: the landing of options 2 and 3, with its two reds; E1 recurred and is recorded on its row [no-verify: check:citations fails on E1 (4 deleted-here paths against a budget of 1) for a cause outside this commit; this commit is docs only, adds no new path to the count, and check:short-circuit and check:setup-script, which the hook never reached, were run by hand and pass] |
+| `e1f5f28` | 2026-11-11 | [live-score-round3-review-2026-11-11.md](live-score-round3-review-2026-11-11.md) | ci: the live-score probe's browser install takes no apt and a three minute limit |
+| `bc0f861` | 2026-11-11 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the live-score account says what the captures show: the gap's bounds, the card, the second half |
+| `bc0f861` | 2026-11-11 | [live-score-half-time-2026-11-11.md](live-score-half-time-2026-11-11.md) | docs: the live-score account says what the captures show: the gap's bounds, the card, the second half |
+| `bc0f861` | 2026-11-11 | [live-score-real-bodies-2026-11-11.md](live-score-real-bodies-2026-11-11.md) | docs: the live-score account says what the captures show: the gap's bounds, the card, the second half |
+| `bc0f861` | 2026-11-11 | [live-score-round3-review-2026-11-11.md](live-score-round3-review-2026-11-11.md) | docs: the live-score account says what the captures show: the gap's bounds, the card, the second half |
+| `3afe1c0` | 2026-11-11 | [live-score-round3-review-2026-11-11.md](live-score-round3-review-2026-11-11.md) | fix: half time is told apart from added time, belongs to its game, and no reading reopens a finalised card |
 | `3b435de` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | docs: options 2 and 3 of the apt-mirror CC-CMD are built; the scored gate on ecbdb2a read 530/530 |
 | `f3d8480` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of ecbdb2a [skip ci] |
 | `256ff5f` | 2026-11-11 | [.trigger-font-dependence-probe](.trigger-font-dependence-probe) | docs: the apt-mirror CC-CMD records options 2 and 3 as built; the session note is the record of the work [skip ci] |
@@ -32,6 +43,7 @@ would describe, so listing itself would always be one commit stale.
 | `3282493` | 2026-11-11 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | probe: the runner's timeout, a fallback-text cell, treatment-not-run, and a commit-back that fails loudly |
 | `4578ba9` | 2026-11-11 | [install-guard-sweep-2026-11-11.mjs](install-guard-sweep-2026-11-11.mjs) | check: the review's findings on the browser-install rule: pinned versions, folded scalars, wrapped timeouts, whole minutes |
 | `4578ba9` | 2026-11-11 | [install-guard-sweep-2026-11-11.txt](install-guard-sweep-2026-11-11.txt) | check: the review's findings on the browser-install rule: pinned versions, folded scalars, wrapped timeouts, whole minutes |
+| `a4085c4` | 2026-11-11 | [live-score-real-bodies-2026-11-11.md](live-score-real-bodies-2026-11-11.md) | test: the real final body of a match is read as full time, and the measured Full time gap is written down |
 | `69c26b4` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-2121Z.json](live-capture-efltrophy-2026-11-11-2121Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
 | `096fde3` | 2026-11-11 | [font-dependence-latest.json](font-dependence-latest.json) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
 | `096fde3` | 2026-11-11 | [font-dependence-latest.txt](font-dependence-latest.txt) | probe: what dropping --with-deps from the browser install costs, measured on a runner [skip ci] |
@@ -43,6 +55,7 @@ would describe, so listing itself would always be one commit stale.
 | `103d54e` | 2026-11-11 | [install-guard-sweep-2026-11-11.mjs](install-guard-sweep-2026-11-11.mjs) | check: no browser install goes through apt and every one is time-bounded |
 | `103d54e` | 2026-11-11 | [install-guard-sweep-2026-11-11.txt](install-guard-sweep-2026-11-11.txt) | check: no browser install goes through apt and every one is time-bounded |
 | `11680a3` | 2026-11-11 | [install-no-apt-red-before-2026-11-11.txt](install-no-apt-red-before-2026-11-11.txt) | ci: the browser install takes no apt and a three minute limit, at all ten sites |
+| `cb7005e` | 2026-11-11 | [live-score-half-time-2026-11-11.md](live-score-half-time-2026-11-11.md) | feat: a card at half time says Half time, from the feed's own flag |
 | `87736ff` | 2026-11-11 | [live-capture-efltrophy-2026-11-11-1954Z.json](live-capture-efltrophy-2026-11-11-1954Z.json) | probe: the live /v2/games shape of efltrophy on 2026-11-11 [skip ci] |
 | `07c0dbb` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `07c0dbb` | 2026-11-11 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
@@ -52,19 +65,35 @@ would describe, so listing itself would always be one commit stale.
 | `ff4af25` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the owner kept the Manadon row ("Keep", 12:24 ET) |
 | `edd0c58` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: Task 3's Done-when is met in CI and the row is live; the session record brought up to date |
 | `e03ed18` | 2026-11-11 | [runner-apt-mirror-probes-2026-11-11.md](runner-apt-mirror-probes-2026-11-11.md) | docs: the ten apt-mirror probes and the rerun they were waiting for (Task 1 of the outage CC-CMD) |
+| `63c2a95` | 2026-11-11 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the session record for the soccer live-scores work, to be finished at landing (Rule 67) |
 | `4775e9b` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
+| `6fbc369` | 2026-11-11 | [live-score-card-handle-2026-11-11.md](live-score-card-handle-2026-11-11.md) | docs: the live-score account says what the code and the data say |
+| `6fbc369` | 2026-11-11 | [live-score-decoder-review-2026-11-11.md](live-score-decoder-review-2026-11-11.md) | docs: the live-score account says what the code and the data say |
+| `6fbc369` | 2026-11-11 | [live-score-fix-review-2026-11-11.md](live-score-fix-review-2026-11-11.md) | docs: the live-score account says what the code and the data say |
+| `6fbc369` | 2026-11-11 | [live-score-poll-review-2026-11-11.md](live-score-poll-review-2026-11-11.md) | docs: the live-score account says what the code and the data say |
+| `b557bdb` | 2026-11-11 | [live-score-fix-review-2026-11-11.md](live-score-fix-review-2026-11-11.md) | fix: the poll's fetch helper drops the status branch that could never run |
+| `f55e973` | 2026-11-11 | [live-score-fix-review-2026-11-11.md](live-score-fix-review-2026-11-11.md) | fix: the day the poll asks for, its guard on an empty date and its deadline's value are each observed |
 | `e5acdec` | 2026-11-11 | [runner-dns-ubuntu-doh-2026-11-11.txt](runner-dns-ubuntu-doh-2026-11-11.txt) | docs: what Google Public DNS says about the Ubuntu zone, asked from a runner |
+| `6e66d02` | 2026-11-11 | [live-score-fix-review-2026-11-11.md](live-score-fix-review-2026-11-11.md) | fix: the reason behind "live score unavailable" is pinned against the archive's state and its whole input classes |
+| `e4f3dbf` | 2026-11-11 | [live-score-fix-review-2026-11-11.md](live-score-fix-review-2026-11-11.md) | fix: a score is a whole number from 0, and the away side is held to every contract the home side is |
 | `81f4190` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
 | `81f4190` | 2026-11-11 | [venue-manadon-mutation-entries-record-2026-11-11.json](venue-manadon-mutation-entries-record-2026-11-11.json) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
 | `81f4190` | 2026-11-11 | [venue-manadon-source-mutations-2026-11-11.txt](venue-manadon-source-mutations-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
 | `81f4190` | 2026-11-11 | [venue-manadon-zone-geotz-2026-11-11.txt](venue-manadon-zone-geotz-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
 | `81f4190` | 2026-11-11 | [venue-slate-check-clauses-2026-11-11.txt](venue-slate-check-clauses-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `ec9f68a` | 2026-11-11 | [live-score-fix-review-2026-11-11.md](live-score-fix-review-2026-11-11.md) | fix: the lower bound of the poll window is defended where the request and the answer are selected |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.mjs](venue-manadon-evidence-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.txt](venue-manadon-evidence-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-mutations-2026-11-11.mjs](venue-manadon-evidence-mutations-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-pages-2026-11-11.txt](venue-manadon-pages-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-probe-2026-11-11.txt](venue-manadon-probe-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
+| `5415065` | 2026-11-11 | [live-score-poll-review-2026-11-11.md](live-score-poll-review-2026-11-11.md) | fix: the reason behind "live score unavailable" rides on the card as data-why, and a handle field nothing reads is removed |
+| `61a9515` | 2026-11-11 | [live-score-poll-review-2026-11-11.md](live-score-poll-review-2026-11-11.md) | fix: a live-poll request that never answers is cut at a deadline, so it cannot hold its key for the life of the page |
 | `214ec5e` | 2026-11-11 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-11T14:42 [skip ci] |
+| `f334d38` | 2026-11-11 | [live-score-poll-review-2026-11-11.md](live-score-poll-review-2026-11-11.md) | docs: the live-score CC-CMD and comments say what was built and what was measured, and two design questions go to the owner |
+| `e3e4497` | 2026-11-11 | [live-score-decoder-review-2026-11-11.md](live-score-decoder-review-2026-11-11.md) | fix: the live feed decoder's contracts are defended, a numeric-string score is refused, and the probe's copy of the decoder is held to the page's |
+| `597efb3` | 2026-11-11 | [live-score-poll-review-2026-11-11.md](live-score-poll-review-2026-11-11.md) | fix: the live poll asks only for cards an answer can change, for the day it drew, and every claim about it is observed |
+| `89b077b` | 2026-11-11 | [live-probe-e2e-race-2026-11-11.md](live-probe-e2e-race-2026-11-11.md) | fix: the probe lets a poll fired in the last instant of the watch reach its listener before it asks how many are open |
 | `a739815` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of df59d1f [skip ci] |
 | `aacc1b1` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | fix: the mutation harness names its failing baseline expectations before anything can end the run |
 | `041c81f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | docs: the live-chip probe's first run was dry, so the three questions wait for Saturday's slate |
@@ -74,8 +103,17 @@ would describe, so listing itself would always be one commit stale.
 | `e23288f` | 2026-11-11 | [cc-session-2026-11-11-live-chip-pair-probe.md](cc-session-2026-11-11-live-chip-pair-probe.md) | feat: a runner probe samples Open-Meteo's rain against precipitation for a slate's grounds |
 | `4e19734` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the pipes guard and the build-steady fix landed: the gate, the red on the landing commit and why, and the status |
 | `4e19734` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the pipes guard and the build-steady fix landed: the gate, the red on the landing commit and why, and the status |
+| `940f226` | 2026-11-11 | [live-score-probe-2026-11-11.md](live-score-probe-2026-11-11.md) | fix: the live-score probe reads the runner's view from the cards, records every poll's outcome, and has its glue run end to end |
 | `1eb5177` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `1b7df2d` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 41424c9 [skip ci] |
+| `1f4a346` | 2026-11-11 | [drift-closing-odds-scope-2026-11-11.md](drift-closing-odds-scope-2026-11-11.md) | fix: the closing-odds sentinel asks about the competitions the ask names, so a midweek of unpriced cup soccer is not a regression |
+| `3bda750` | 2026-11-11 | [live-score-probe-2026-11-11.md](live-score-probe-2026-11-11.md) | docs: the probe note says rows come in two id schemes, so the join goes through the archive row |
+| `f5e2719` | 2026-11-11 | [live-score-card-handle-2026-11-11.md](live-score-card-handle-2026-11-11.md) | fix: the forecast probe names the state a real page shows after kickoff, the pinned-page guard has failed on purpose, and two miscounts are corrected |
+| `f5e2719` | 2026-11-11 | [live-score-review-corrections-2026-11-11.md](live-score-review-corrections-2026-11-11.md) | fix: the forecast probe names the state a real page shows after kickoff, the pinned-page guard has failed on purpose, and two miscounts are corrected |
+| `f5e2719` | 2026-11-11 | [status-start-time-passed-2026-11-11.md](status-start-time-passed-2026-11-11.md) | fix: the forecast probe names the state a real page shows after kickoff, the pinned-page guard has failed on purpose, and two miscounts are corrected |
+| `560cf70` | 2026-11-11 | [live-score-pure-half-2026-11-11.md](live-score-pure-half-2026-11-11.md) | fix: the pure half says what it does: the false "keep agreeing" claim corrected, all sixteen feed keys pinned, the poll's during-window case asked |
+| `9404a71` | 2026-11-11 | [live-score-note-style-2026-11-11.md](live-score-note-style-2026-11-11.md) | fix: the live note is set like the status line it sits under, instead of at the page's 15px and full opacity |
+| `88abf10` | 2026-11-11 | [live-score-memo-staleness-2026-11-11.md](live-score-memo-staleness-2026-11-11.md) | fix: a card drawn before kickoff re-reads the clock whenever the feed answers, so it stops saying Scheduled after the match has started |
 | `5adffba` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `41424c9` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | fix: the live-shape capture's own block is tested end to end, its two premises are kept apart, and the Full time gap is counted |
 | `04fc0b5` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
@@ -83,11 +121,20 @@ would describe, so listing itself would always be one commit stale.
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
 | `a6dc8e5` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 125e28d [skip ci] |
+| `8ab827b` | 2026-11-11 | [live-score-probe-2026-11-11.md](live-score-probe-2026-11-11.md) | feat: a probe that reads the live page at real time and judges each soccer card against the last reading the page itself received |
+| `7354826` | 2026-11-11 | [live-score-poll-2026-11-11.md](live-score-poll-2026-11-11.md) | feat: the laboratory's one timer: a live-score poll with named conditions, and a check that reads them out of the source |
+| `a4412cf` | 2026-11-11 | [live-feed-decoder-2026-11-11.md](live-feed-decoder-2026-11-11.md) | feat: the relay's /v2/games, decoded the way the laboratory reads it, and the reading for a card joined by ESPN event id |
 | `4327e1f` | 2026-11-11 | [build-steady-clean-sweep-2026-11-11.mjs](build-steady-clean-sweep-2026-11-11.mjs) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
 | `4327e1f` | 2026-11-11 | [build-steady-clean-sweep-2026-11-11.txt](build-steady-clean-sweep-2026-11-11.txt) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
 | `4327e1f` | 2026-11-11 | [build-steady-real-fable-proof-2026-11-11.mjs](build-steady-real-fable-proof-2026-11-11.mjs) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
 | `4327e1f` | 2026-11-11 | [build-steady-real-fable-proof-2026-11-11.txt](build-steady-real-fable-proof-2026-11-11.txt) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
 | `4327e1f` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | fix: a repeat of a crashed build clears build/ first, so it compiles instead of skipping over the crash's output |
+| `f414386` | 2026-11-11 | [live-score-render-check-2026-11-11.md](live-score-render-check-2026-11-11.md) | test: a real card, told what the live feed said, reads the score, the clock, Full time and the reason, and the archive's Final wins |
+| `f414386` | 2026-11-11 | [stats-soccer-comeback-gate-2026-11-11.md](stats-soccer-comeback-gate-2026-11-11.md) | test: a real card, told what the live feed said, reads the score, the clock, Full time and the reason, and the archive's Final wins |
+| `385af29` | 2026-11-11 | [live-score-card-handle-2026-11-11.md](live-score-card-handle-2026-11-11.md) | feat: a card can be told what the live feed said: a handle keyed by game id, a reading signal and a live note node |
+| `067c6b2` | 2026-11-11 | [live-score-pure-half-2026-11-11.md](live-score-pure-half-2026-11-11.md) | feat: the live score's pure half: what a card may be told, when it is worth asking, and which feed key to ask |
+| `5a1f98b` | 2026-11-11 | [status-start-time-passed-2026-11-11.md](status-start-time-passed-2026-11-11.md) | fix: a row whose start time has passed and that has no score says so instead of reading Scheduled |
+| `1cd0d1f` | 2026-11-11 | [stats-soccer-comeback-gate-2026-11-11.md](stats-soccer-comeback-gate-2026-11-11.md) | fix: a soccer match in progress carries no comeback line, whose words are about runs and innings |
 | `0d3df2e` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
 | `0d3df2e` | 2026-11-11 | [find-unguarded-pipes-2026-11-11.mjs](find-unguarded-pipes-2026-11-11.mjs) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
 | `0d3df2e` | 2026-11-11 | [pipes-guard-red-before-fix-2026-11-11.txt](pipes-guard-red-before-fix-2026-11-11.txt) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |

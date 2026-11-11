@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `b3bceaa` at "Doc citations are anchored, not just numbered" — 13 of 100 steps did not run behind it — [run 43114846739](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43114846739)
+**green** on `f273009` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `9b50e36` — failing step unknown: the run's steps could not be read — [run 43115511547](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43115511547)
+`live-check` (post-deploy, against the deployed page): **running** on `0cf1dde`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `e5acdec` — behind newest deployable `b3bceaa` (deploy not landed) |
+| Cloudflare Workers | live | `0cf1dde` — newest deployable `b3bceaa` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
