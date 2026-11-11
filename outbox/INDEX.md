@@ -12,6 +12,12 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `e5acdec` | 2026-11-11 | [runner-dns-ubuntu-doh-2026-11-11.txt](runner-dns-ubuntu-doh-2026-11-11.txt) | docs: what Google Public DNS says about the Ubuntu zone, asked from a runner |
+| `81f4190` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-manadon-mutation-entries-record-2026-11-11.json](venue-manadon-mutation-entries-record-2026-11-11.json) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-manadon-source-mutations-2026-11-11.txt](venue-manadon-source-mutations-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-manadon-zone-geotz-2026-11-11.txt](venue-manadon-zone-geotz-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
+| `81f4190` | 2026-11-11 | [venue-slate-check-clauses-2026-11-11.txt](venue-slate-check-clauses-2026-11-11.txt) | docs: the Manadon row's session record, its zone and slate-check measurements, and where CI stands |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.mjs](venue-manadon-evidence-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-2026-11-11.txt](venue-manadon-evidence-2026-11-11.txt) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
 | `7e1a7e5` | 2026-11-11 | [venue-manadon-evidence-mutations-2026-11-11.mjs](venue-manadon-evidence-mutations-2026-11-11.mjs) | feat: Manadon Sports Hub is a table row, accepted by hand with its evidence; the slate check loses its exemption |
