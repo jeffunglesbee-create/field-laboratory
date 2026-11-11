@@ -12,6 +12,15 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a10bce9` | 2026-11-11 | [cc-session-2026-11-11-owed-work.md](cc-session-2026-11-11-owed-work.md) | docs: the gate for the probe workflows' pipe fix: 530/530, proof row 20 s |
+| `a1224cd` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of aa71d3a [skip ci] |
+| `aa71d3a` | 2026-11-11 | [cc-session-2026-11-11-owed-work.md](cc-session-2026-11-11-owed-work.md) | ci: the probe workflows' measuring steps fail when their script fails |
+| `aa71d3a` | 2026-11-11 | [pipe-fix-proof-2026-11-11.mjs](pipe-fix-proof-2026-11-11.mjs) | ci: the probe workflows' measuring steps fail when their script fails |
+| `aa71d3a` | 2026-11-11 | [pipe-fix-proof-2026-11-11.txt](pipe-fix-proof-2026-11-11.txt) | ci: the probe workflows' measuring steps fail when their script fails |
+| `a6b282a` | 2026-11-11 | [find-unguarded-pipes-2026-11-11.mjs](find-unguarded-pipes-2026-11-11.mjs) | docs: file the two follow-ups the owed-work check found |
+| `a6b282a` | 2026-11-11 | [unguarded-pipes-2026-11-11.txt](unguarded-pipes-2026-11-11.txt) | docs: file the two follow-ups the owed-work check found |
+| `720f2c8` | 2026-11-11 | [cc-session-2026-11-11-owed-work.md](cc-session-2026-11-11-owed-work.md) | docs: the GATE-TIMING heading no longer says the gate is 6 minutes |
+| `a77c350` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `5d922d5` | 2026-11-10 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-10T23:43 [skip ci] |
 | `5a69f0a` | 2026-11-10 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `e599caf` | 2026-11-10 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-10 [skip ci] |
