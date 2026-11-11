@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **SKIPPED** on `4f0da01` — failing step unknown: the run's steps could not be read — [run 42977360634](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42977360634)
+`live-check` (post-deploy, against the deployed page): **running** on `deb031b`
 
 ## Is it published?
 
