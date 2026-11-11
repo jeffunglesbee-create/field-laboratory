@@ -1,0 +1,81 @@
+# Does Open-Meteo's `current` block say rain > precipitation, how often, and from
+# which model? Task 1 of docs/CC-CMD-2026-11-10-live-chip-refused-payload.md.
+#
+# Every 60 s for 30 min it requests every ground of a named slate that the venue
+# table knows, with the page's own forecastUrl, and on a violation asks each
+# model alone for the same ground. See scripts/probe-rain-precip-pair.mjs.
+#
+# WHY CI: api.open-meteo.com is outside the dev sandbox's egress allowlist.
+# DISPATCH ONLY. It is a measurement, not a gate. About 35 runner minutes.
+name: rain-precip pair probe
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Slate date YYYY-MM-DD (whose grounds are sampled)'
+        required: true
+        type: string
+      minutes:
+        description: 'How long to sample'
+        required: false
+        default: '30'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install
+        run: |
+          npm ci
+          dotnet tool restore
+
+      # The probe imports forecastUrl and the venue table from build/, so the URL
+      # it measures is the one the page requests rather than a copy of it.
+      - name: Build
+        run: npm run build
+
+      - name: The probe can fail
+        run: |
+          node scripts/probe-rain-precip-pair.mjs --self-test
+          node scripts/mutate-probe-rain-precip-pair.mjs
+
+      # pipefail: without it the step's exit code is tee's.
+      - name: Sample
+        shell: bash
+        env:
+          DATE: ${{ inputs.date }}
+          MINUTES: ${{ inputs.minutes }}
+        run: |
+          set -o pipefail
+          node scripts/probe-rain-precip-pair.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+          exit ${PIPESTATUS[0]}
+
+      - name: Commit the samples
+        if: always()
+        run: |
+          git config user.email "claude@field.dev"
+          git config user.name "FIELD CI"
+          git add outbox/rain-precip-pair-*.txt outbox/rain-precip-pair-*.jsonl 2>/dev/null || true
+          git diff --staged --quiet && exit 0
+          git commit -m "probe: Open-Meteo rain against precipitation, sampled [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break
+            sleep $((i * 5))
+          done
+          git fetch -q origin "${GITHUB_REF_NAME}"
+          git merge-base --is-ancestor HEAD "origin/${GITHUB_REF_NAME}" \
+            || { echo "FAIL: push did not land after retries"; exit 1; }
