@@ -64,3 +64,17 @@ shape, for whoever can dispatch.
 
 The scored gate (`verify-full`, needs .NET and a browser) and the live run, then the three answers
 under Task 1 in the CC-CMD.
+
+## Run 1 of the probe (2026-11-11): dry, so not yet an answer
+
+Probe run 43026392230 on main 5f1ace27, slate 2026-11-11, 13:08:49Z to 13:38:00Z:
+`checked 67 of 120 expected samples`, `VERDICT: not-observable-dry`, 0 violations in 67 read
+responses, and every one of them read 0 for both rain and precipitation. Four grounds (Oakwell,
+Scheumann Stadium, Kelly/Shorts Stadium, Glass Bowl). That is the verdict the probe exists to give
+instead of a false pass: the three questions need a wet slate.
+
+Also measured, not this task: 53 of 120 requests failed before an answer (`fetch failed`), spread over
+the half hour and all four grounds. The probe kept `e.message` only, so the cause is not recorded.
+Reported to the owner, not filed.
+
+Run 2 is scheduled for Saturday 2026-11-14 at 14:20Z (the full English slate, kickoffs 15:00 UK).
