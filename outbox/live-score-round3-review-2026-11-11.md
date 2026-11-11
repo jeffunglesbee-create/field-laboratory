@@ -39,3 +39,10 @@ No behaviour changed. Each row was checked against the capture files, the code o
 
 Refuted by both skeptics: that `Half time` covers only `STATUS_HALFTIME` (the extra-time breaks and a shootout fall to the frozen-clock note: unknown statuses, stated in the half-time note); that the session record is stale at the tip; and a listing of claims that cannot be verified from the repo.
 What cannot be checked from the repo: what the stored routines did (only that no capture was committed), and the direct reads at about 20:34Z and 20:58Z (no artifact: tool output of that evening, recorded in the real-bodies note with its method).
+
+## C9. The probe workflow and main's new workflow check (found while merging main, not by the review)
+
+After `main` was merged (the apt-mirror work of another session), `node scripts/workflow-check.mjs` failed 2 of 71 rows, both on `.github/workflows/live-score-probe.yml:52`:
+`npx playwright install --with-deps chromium` goes through apt, which stalled for ten minutes on 2026-11-11 when the Ubuntu mirrors did not resolve
+(`docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md`), and the step had no time limit. The stack's workflow predates the rule. Fixed to the pattern `main` now uses at its other ten sites
+(`timeout-minutes: 3`, `npx playwright install chromium`; the runner image already has the libraries). 71 of 71 after the change. The probe's own `--self-test` and `--e2e` are unchanged (11/11, 64/64).
