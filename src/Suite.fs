@@ -248,7 +248,64 @@ let private state () =
       Verify.check "a started game without finalized_at is In Progress, not Final"
           (fun (now, g) -> gameStateAt (at now) g = InProgress(4, 2))
           ("2026-08-10T00:30:00Z", game kickoff None (Some 4) (Some 2))
-          ("2026-08-10T00:30:00Z", game kickoff (Some "2026-08-10T00:20:00Z") (Some 4) (Some 2)) ]
+          ("2026-08-10T00:30:00Z", game kickoff (Some "2026-08-10T00:20:00Z") (Some 4) (Some 2))
+
+      // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 4. The start time has passed only when there is one and it is
+      // behind the instant; an absent one is no evidence either way, as `notYetStartedAt` already says.
+      Verify.check "the start time has passed once the instant is at or after it"
+          (fun (now, g) -> startTimePassedAt (at now) g)
+          ("2026-08-09T23:05:00Z", game kickoff None None None)
+          ("2026-08-09T23:04:59Z", game kickoff None None None)
+
+      Verify.check "an absent start time has not 'passed' either"
+          (fun (now, g) -> not (startTimePassedAt (at now) g))
+          ("2026-08-10T02:00:00Z", game None None None None)
+          ("2026-08-10T02:00:00Z", game kickoff None None None)
+
+      // THE MEASURED BUG: a row with no score whose start time has passed read `Scheduled <time>` while the match was in
+      // play. It now says what is known. Whether the start time has passed is an input, so each reading can be asked for.
+      Verify.check "a Scheduled row whose start time has passed says so, and does not read as Scheduled"
+          (fun started ->
+              let g = { game kickoff None None None with RawStartTime = Some "2026-08-09T23:05:00Z" }
+              Scoreboard.statusTextWith started g Scheduled = "Start time passed, no score served")
+          true
+          false
+
+      // The strings the 2026-11-21 forecast probe and the render checks read must not move: they are pinned here byte for byte.
+      Verify.check "before kickoff the status is 'Scheduled <raw> (parsed HH:mm)', byte for byte"
+          (fun started ->
+              let g = { game kickoff None None None with RawStartTime = Some "2026-08-09T23:05:00Z" }
+              Scoreboard.statusTextWith started g Scheduled = "Scheduled 2026-08-09T23:05:00Z (parsed 23:05)")
+          false
+          true
+
+      Verify.check "a row with a raw start time that did not parse is 'Scheduled <raw> (UNPARSED)', byte for byte"
+          (fun started ->
+              let g = { game None None None None with RawStartTime = Some "soon" }
+              Scoreboard.statusTextWith started g Scheduled = "Scheduled soon (UNPARSED)")
+          false
+          true
+
+      Verify.check "a row with no start time at all is 'Scheduled — no start time', byte for byte"
+          (fun started -> Scoreboard.statusTextWith started (game None None None None) Scheduled = "Scheduled — no start time")
+          false
+          true
+
+      // Only `Scheduled` reads the start time. These three are asked with it TRUE, the case that could have leaked.
+      Verify.check "In progress is 'In progress' even when the start time has passed"
+          (fun state -> Scoreboard.statusTextWith true (game kickoff None (Some 1) (Some 0)) state = "In progress")
+          (InProgress(1, 0))
+          Scheduled
+
+      Verify.check "Final is 'Final' even when the start time has passed"
+          (fun state -> Scoreboard.statusTextWith true (game kickoff None (Some 1) (Some 0)) state = "Final")
+          (Final(1, 0, false))
+          (InProgress(1, 0))
+
+      Verify.check "Final after overtime is 'Final / OT' even when the start time has passed"
+          (fun state -> Scoreboard.statusTextWith true (game kickoff None (Some 1) (Some 0)) state = "Final / OT")
+          (Final(1, 0, true))
+          (Final(1, 0, false)) ]
 
 // ---------------------------------------------------------------------------
 // Weather. Each counterexample below is a failure written down in FIELD's own

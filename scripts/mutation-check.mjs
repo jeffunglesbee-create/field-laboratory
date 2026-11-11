@@ -10931,6 +10931,47 @@ const MUTATIONS = [
     replace: "    None\n",
     expect: "node build/VerifyMain.js",
   },
+  // docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 4.
+  {
+    id: "status-started-row-still-reads-scheduled",
+    file: "src/Scoreboard.fs",
+    claim: "a Scheduled row whose start time has passed says the start time passed, not 'Scheduled <time>'",
+    find: "    | Scheduled when startTimePassed -> \"Start time passed, no score served\"\n",
+    replace: "",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "status-pre-kickoff-text-moves",
+    file: "src/Scoreboard.fs",
+    claim: "the pre-kickoff status string, which the 2026-11-21 forecast probe parses, does not change",
+    find: "        | Some raw, Some parsed -> sprintf \"Scheduled %s (parsed %s)\" raw (parsed.ToString \"HH:mm\")\n",
+    replace: "        | Some raw, Some parsed -> sprintf \"Scheduled at %s (parsed %s)\" raw (parsed.ToString \"HH:mm\")\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "status-passed-guard-reaches-in-progress-and-final",
+    file: "src/Scoreboard.fs",
+    claim: "only a Scheduled row reads the start time; In progress and Final are the same whatever it says",
+    find: "    | Scheduled when startTimePassed -> \"Start time passed, no score served\"\n",
+    replace: "    | _ when startTimePassed -> \"Start time passed, no score served\"\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "start-time-passed-excludes-the-instant",
+    file: "src/Desk.fs",
+    claim: "the start time has passed at the instant it names, not only after it",
+    find: "    | Some start -> now >= start\n",
+    replace: "    | Some start -> now > start\n",
+    expect: "node build/VerifyMain.js",
+  },
+  {
+    id: "start-time-passed-reads-absent-as-passed",
+    file: "src/Desk.fs",
+    claim: "an absent start time is not evidence that the start time has passed",
+    find: "    | Some start -> now >= start\n    | None -> false\n",
+    replace: "    | Some start -> now >= start\n    | None -> true\n",
+    expect: "node build/VerifyMain.js",
+  },
 ]
 
 // `selfTestOnly` mutations are EXPECTED to survive. They are the harness's own

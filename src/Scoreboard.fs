@@ -51,7 +51,18 @@ let private scoreText (g: Game) (state: GameState) =
     | InProgress(h, a) -> line h a
     | Final(h, a, _) -> line h a
 
-let private statusText (g: Game) (state: GameState) =
+/// The status line, with "has the start time passed" given rather than read, so a test can say which.
+///
+/// `Scheduled` is what `gameStateAt` answers for any row with no score, INCLUDING a match that kicked off an hour ago
+/// (measured 2026-11-08: Man Utd v Aston Villa, start 16:30Z, no score in the archive, `Scheduled` 45 minutes in). So a
+/// `Scheduled` row whose start time has passed says that, in the words of what is known: the start time passed and no score
+/// was served. It does not say the match kicked off (a postponed fixture is also a row whose start time has passed), and it
+/// is not `Scheduled <time>`, which reads as a promise about the future.
+///
+/// Every other status string is unchanged byte for byte. The 2026-11-21 forecast probe parses `^Scheduled (\S+)` on a card
+/// that is `Scheduled` with its kickoff AHEAD, and that text does not move.
+/// docs/CC-CMD-2026-11-11-soccer-live-scores.md, Task 4.
+let statusTextWith (startTimePassed: bool) (g: Game) (state: GameState) =
     match (sportMeta g.Sport).Matchup with
     // Before the contest state machine, not after it: that machine reports
     // every event as `Scheduled`, so reading `state` first would render a
@@ -59,6 +70,7 @@ let private statusText (g: Game) (state: GameState) =
     | NotAContest _ -> eventStatusText g.FinalizedAt
     | _ ->
     match state with
+    | Scheduled when startTimePassed -> "Start time passed, no score served"
     | Scheduled ->
         match g.RawStartTime, g.StartTime with
         | Some raw, Some parsed -> sprintf "Scheduled %s (parsed %s)" raw (parsed.ToString "HH:mm")
@@ -67,6 +79,8 @@ let private statusText (g: Game) (state: GameState) =
     | InProgress _ -> "In progress"
     | Final(_, _, true) -> "Final / OT"
     | Final(_, _, false) -> "Final"
+
+let private statusText (g: Game) (state: GameState) = statusTextWith (startTimePassed g) g state
 
 /// A decode failure in the arc field. Reportable in any game state: this says
 /// the payload was broken, which is a fact about the data, not a drama score.
