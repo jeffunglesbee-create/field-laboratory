@@ -25,3 +25,7 @@ Premise checked before the comment saying it went into the workflow: a measured 
 
 Artifact: `outbox/pipe-fix-proof-2026-11-11.mjs`, its output `outbox/pipe-fix-proof-2026-11-11.txt`. Each step's `run:` text before the change (`git show origin/main:`) and after is run under `bash -e` with `node` replaced by a shim that exits 3: **before, all three steps exit 0 (green over a failed script); after, all three exit 3**; with a shim that exits 0 all six runs exit 0. Rule 90: with the three exit lines deleted in a copy the harness goes red (3 of 3 not as expected, exit 1); with the real fix it is green. This is the shell behaviour of the step, not a run on Actions.
 
+## Gate for item 1
+
+`verify-full` run 42947403479 on the branch tree `aa71d3a` (dispatched 2026-11-11T02:38Z, 39 min 20 s): **530/530**, `failing: []`, ledger `aa71d3a164ab-8ded4ed83eda`, gate step 2258 s, the proof row 20 s (batched: 14 to 28 s in every scored gate since). `main` did not move between the branch base (`a6b282a`) and the landing, so the landing is a fast-forward of the branch; this note's commit is its head, so that `verify` runs on it (the gate's own ledger commits carry the skip directive and would have suppressed it).
+
