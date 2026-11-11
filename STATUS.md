@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**FAILURE** on `4f0da01` at "Doc citations are anchored, not just numbered" — 13 of 99 steps did not run behind it — [run 42976654310](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42976654310)
+**green** on `7381006`
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `deb031b` at "The deploy landed (published is the newest deployable commit)" — 8 of 16 steps did not run behind it — [run 42982372728](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/42982372728)
+`live-check` (post-deploy, against the deployed page): **running** on `7381006`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `a10bce9` — behind newest deployable `4327e1f` (deploy not landed) |
+| Cloudflare Workers | live | `7381006` — newest deployable `4327e1f` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel

@@ -13,6 +13,7 @@ would describe, so listing itself would always be one commit stale.
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
 | `04fc0b5` | 2026-11-11 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `e1b75e0` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of c4d74c3 [skip ci] |
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-build-steady-clean.md](cc-session-2026-11-11-build-steady-clean.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
 | `4f0da01` | 2026-11-11 | [cc-session-2026-11-11-pipes-guard.md](cc-session-2026-11-11-pipes-guard.md) | docs: the scored gate for the pipes guard and the build-steady fix: run 42971457634, 530/530 on 125e28d |
 | `a6dc8e5` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 125e28d [skip ci] |
@@ -25,6 +26,7 @@ would describe, so listing itself would always be one commit stale.
 | `0d3df2e` | 2026-11-11 | [find-unguarded-pipes-2026-11-11.mjs](find-unguarded-pipes-2026-11-11.mjs) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
 | `0d3df2e` | 2026-11-11 | [pipes-guard-red-before-fix-2026-11-11.txt](pipes-guard-red-before-fix-2026-11-11.txt) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
 | `0d3df2e` | 2026-11-11 | [pipes-guard-sweep-2026-11-11.txt](pipes-guard-sweep-2026-11-11.txt) | fix: the tee guard reads comments, heredocs, quotes and YAML scalars the way bash and YAML do; the CC-CMD corrected |
+| `c4d74c3` | 2026-11-11 | [live-shape-capture-2026-11-11.md](live-shape-capture-2026-11-11.md) | feat: capture what the relay says about a soccer game while it is in play, before a decoder is written against it |
 | `8f33fd1` | 2026-11-11 | [pipe-fix-proof-2-2026-11-11.mjs](pipe-fix-proof-2-2026-11-11.mjs) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
 | `8f33fd1` | 2026-11-11 | [pipe-fix-proof-2-2026-11-11.txt](pipe-fix-proof-2-2026-11-11.txt) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
 | `8f33fd1` | 2026-11-11 | [pipes-guard-red-before-fix-2026-11-11.txt](pipes-guard-red-before-fix-2026-11-11.txt) | wip: the tee-pipe guard in workflow-check and the six steps it found (branch snapshot, under review, not landed) |
