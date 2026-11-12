@@ -1,4 +1,5 @@
-before-E1 version: scripts/check-doc-citations.mjs at origin/main (f95ecb1); after: the working tree's (27447 bytes)
+before-E1 version: scripts/check-doc-citations.mjs at f95ecb1 (f95ecb1), sha256 f7e57a4e75e4
+after:             the working tree's, sha256 2122fd32a42a (HEAD 5cf8efb, file modified since)
 
 CONTROL: no side branch yet. The two versions must read the same.
   before E1                          exit 0  DELETED HERE 1 path(s)  scripts/chrome-check.mjs

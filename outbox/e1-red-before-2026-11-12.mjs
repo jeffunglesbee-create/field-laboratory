@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // E1 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md, reproduced on the REAL tree and not on a fixture: a document on main cites a script that exists only
 // on another branch. The repository is cloned (every local ref, full history), a side branch adds the cited script, a document citing it is written into the
-// clone's working tree, and BOTH versions of scripts/check-doc-citations.mjs are run there: the one before E1 (OLD_REV, default origin/main) and the one in the
-// working tree. Controls first: with no side branch both versions must read the same. The artifact is the pair of result lines and exit codes.
-//   node outbox/e1-red-before-2026-11-12.mjs            (from the repository root; OLD_REV=<sha> to name the version before E1)
+// clone's working tree, and BOTH versions of scripts/check-doc-citations.mjs are run there: the one before E1 (OLD_REV, default f95ecb1, the last commit of main
+// before E1: a moving ref such as origin/main would stop showing the fix once E1 lands) and the one in the working tree. Controls first: with no side branch both versions must read the same. The artifact is the pair of result lines and exit codes.
+//   node outbox/e1-red-before-2026-11-12.mjs            (from the repository root; OLD_REV=<sha> to name another version before E1)
+import { createHash } from 'node:crypto'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -13,10 +14,13 @@ import { cleanGitEnv } from '../scripts/check-doc-citations.mjs'
 const here = new URL('..', import.meta.url).pathname
 const env = cleanGitEnv(process.env)
 const git = (cwd, ...a) => execFileSync('git', a, { cwd, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
-const OLD_REV = process.env.OLD_REV || 'origin/main'
+const OLD_REV = process.env.OLD_REV || 'f95ecb1'
 const oldSource = git(here, 'show', `${OLD_REV}:scripts/check-doc-citations.mjs`)
 const oldSha = git(here, 'rev-parse', '--short', OLD_REV).trim()
-console.log(`before-E1 version: scripts/check-doc-citations.mjs at ${OLD_REV} (${oldSha}); after: the working tree's (${readFileSync(join(here, 'scripts/check-doc-citations.mjs'), 'utf8').length} bytes)`)
+const newSource = readFileSync(join(here, 'scripts/check-doc-citations.mjs'), 'utf8')
+const hash = x => createHash('sha256').update(x).digest('hex').slice(0, 12)
+console.log(`before-E1 version: scripts/check-doc-citations.mjs at ${OLD_REV} (${oldSha}), sha256 ${hash(oldSource)}`)
+console.log(`after:             the working tree's, sha256 ${hash(newSource)} (HEAD ${git(here, 'rev-parse', '--short', 'HEAD').trim()}${git(here, 'status', '--porcelain', '--', 'scripts/check-doc-citations.mjs').trim() ? ', file modified since' : ''})`)
 
 const root = mkdtempSync(join(tmpdir(), 'e1red-'))
 let verdict = 1

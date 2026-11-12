@@ -155,10 +155,11 @@ export function splitNoFile(paths, everTracked) {
  * existed only on an UNMERGED branch counted as "tracked here, then deleted"
  * the moment the branch was pushed, and a document on main that cited it went
  * red in `guards` and `verify` until the branch merged (E1 of
- * docs/CC-CMD-2026-11-06-gate-residuals-remaining.md; seen 2026-11-11 at 05:42Z
- * and again at 22:41Z, each time with every other step green and the deploy
- * held back). The same tree read DELETED HERE 1 with the remote branches not
- * fetched and 4 with them fetched: a check whose answer changes with the
+ * docs/CC-CMD-2026-11-06-gate-residuals-remaining.md; twice on 2026-11-11:
+ * live-scores-t1 pushed 05:42Z and merged 07:56Z, live-scores-t3 pushed 22:41Z and
+ * merged 23:39Z; `verify` was red at 4f0da01 and at b3bceaa and `deploy` held back).
+ * The same tree read DELETED HERE 1 with the remote branches not fetched and 4
+ * with them fetched: a check whose answer changes with the
  * checkout is not a check of the commit.
  *
  * The history REACHABLE FROM `rev` (HEAD) is the history of the tree being
@@ -171,16 +172,20 @@ export function splitNoFile(paths, everTracked) {
  * state silently switches off.
  *
  * `env` is the environment git runs in (the process's, by default). The self-test
- * passes a cleaned one: under the pre-commit hook GIT_DIR names the REAL
- * repository, and a reader that inherited it read the real history while being
- * asked about a fixture.
+ * passes a cleaned one: a hook running in a LINKED WORKTREE (where these sessions
+ * work) has GIT_DIR naming the real repository, and a reader that inherited it
+ * read the real history while being asked about a fixture. A hook in a plain
+ * checkout sets GIT_INDEX_FILE and GIT_PREFIX and no GIT_DIR (measured by a
+ * reviewer on git 2.43.0); the self-test poisons both, so it does not depend on
+ * which kind of checkout runs it.
  */
 export const HISTORY_REV = 'HEAD'
 /**
  * The environment a throwaway repository's git commands run in. Every GIT_*
  * variable of the caller is dropped: this script runs from the pre-commit hook,
- * where GIT_INDEX_FILE names the REAL repository's index, and a fixture
- * `git add` that inherited it would write into the repository being committed.
+ * where GIT_INDEX_FILE names the REAL repository's index (and GIT_DIR its
+ * repository, in a linked worktree), and a fixture `git add` that inherited
+ * them would write into the repository being committed.
  */
 export const cleanGitEnv = env => ({
   ...Object.fromEntries(Object.entries(env).filter(([k]) => !k.startsWith('GIT_'))),
@@ -194,11 +199,14 @@ export function everTrackedPaths({ cwd = '.', rev = HISTORY_REV, env = process.e
     if (shallow === 'true') {
       return { paths: null, problem: 'the clone is SHALLOW — deleted-here cannot be told from cross-repo' }
     }
-    const out = execFileSync('git', ['log', rev, '--pretty=format:', '--name-only', '--diff-filter=AR'],
+    const out = execFileSync('git', ['log', rev, '--pretty=format:', '--name-only', '--diff-filter=AR', '--'],
       { cwd, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })
     return { paths: new Set(out.split('\n').map(x => x.trim()).filter(Boolean)), problem: null }
   } catch (e) {
-    return { paths: null, problem: `git history unreadable: ${String(e.message || e).slice(0, 80)}` }
+    // git's own reason (its stderr's first line), not the command line that carries it: the prefix of
+    // e.message is already longer than any cut that kept the reason.
+    const why = String(e.stderr || '').trim().split('\n')[0] || String(e.message || e).split('\n')[0]
+    return { paths: null, problem: `git history unreadable (git log ${rev}): ${why.slice(0, 160)}` }
   }
 }
 
@@ -313,24 +321,48 @@ if (SELF_TEST) {
   //
   // Real git repositories, built here and removed after: the defect was in WHICH
   // COMMITS were read, and a predicate over an in-memory set cannot show that.
-  // Every git variable the caller set is dropped first (see cleanGitEnv).
-  const gitEnv = cleanGitEnv(process.env);
-  const leaked = cleanGitEnv({ GIT_INDEX_FILE: '/real/.git/index', GIT_DIR: '/real/.git', GIT_WORK_TREE: '/real', PATH: '/bin' });
-  check('a fixture never inherits the caller\'s git variables (the pre-commit hook sets GIT_INDEX_FILE to the real index)',
-    !('GIT_INDEX_FILE' in leaked) && !('GIT_DIR' in leaked) && !('GIT_WORK_TREE' in leaked) &&
-    leaked.PATH === '/bin' && leaked.GIT_CONFIG_GLOBAL === '/dev/null',
-    JSON.stringify(leaked));
-  const git = (cwd, ...args) => execFileSync('git', args, { cwd, env: gitEnv, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  const put = (cwd, rel, body = 'x\n') => { mkdirSync(join(cwd, rel, '..'), { recursive: true }); writeFileSync(join(cwd, rel), body); };
-  const cli = cwd => spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { cwd, env: gitEnv, encoding: 'utf8' });
+  //
+  // THE PROCESS ENVIRONMENT IS POISONED while the fixtures run: GIT_DIR and
+  // GIT_INDEX_FILE name a harmless decoy repository, as they would name the real
+  // one under a pre-commit hook. Anything that reaches git with the process's
+  // environment instead of the cleaned one then reads or writes the decoy, and a
+  // check fails. Without this the wiring was only tested when the hook happened to
+  // set those variables, and a regression to `process.env` was green in CI.
   const root = mkdtempSync(join(tmpdir(), 'cit-hist-'));
+  const tidy = () => rmSync(root, { recursive: true, force: true });
+  const onSignal = sig => { tidy(); process.exit(sig === 'SIGINT' ? 130 : 143); };
+  process.once('SIGINT', onSignal); process.once('SIGTERM', onSignal);
+  const saved = {};
+  const poison = vars => { for (const [k, v] of Object.entries(vars)) { saved[k] = process.env[k]; process.env[k] = v; } };
   try {
+    const plainEnv = cleanGitEnv(process.env);
+    const decoy = join(root, 'decoy.git');
+    execFileSync('git', ['init', '-q', '--bare', '-b', 'main', decoy], { env: plainEnv });
+    const emptyTree = execFileSync('git', ['--git-dir', decoy, 'hash-object', '-t', 'tree', '/dev/null'], { env: plainEnv, encoding: 'utf8' }).trim();
+    const decoyCommit = execFileSync('git', ['--git-dir', decoy, 'commit-tree', emptyTree, '-m', 'decoy'], { env: plainEnv, encoding: 'utf8' }).trim();
+    execFileSync('git', ['--git-dir', decoy, 'update-ref', 'refs/heads/main', decoyCommit], { env: plainEnv });
+    poison({ GIT_DIR: decoy, GIT_INDEX_FILE: join(root, 'decoy-index'), GIT_PREFIX: '' });
+
+    const gitEnv = cleanGitEnv(process.env);
+    const leaked = cleanGitEnv({ GIT_INDEX_FILE: '/real/.git/index', GIT_DIR: '/real/.git', GIT_WORK_TREE: '/real', PATH: '/bin' });
+    check('a fixture never inherits the caller\'s git variables (a pre-commit hook points GIT_INDEX_FILE, and in a linked worktree GIT_DIR, at the real repository)',
+      !('GIT_INDEX_FILE' in leaked) && !('GIT_DIR' in leaked) && !('GIT_WORK_TREE' in leaked) &&
+      leaked.PATH === '/bin' && leaked.GIT_CONFIG_GLOBAL === '/dev/null' && !('GIT_DIR' in gitEnv) && !('GIT_INDEX_FILE' in gitEnv),
+      JSON.stringify(leaked));
+    const git = (cwd, ...args) => execFileSync('git', args, { cwd, env: gitEnv, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    const put = (cwd, rel, body = 'x\n') => { mkdirSync(join(cwd, rel, '..'), { recursive: true }); writeFileSync(join(cwd, rel), body); };
+    const cli = cwd => spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { cwd, env: gitEnv, encoding: 'utf8' });
+    const read = (cwd, extra = {}) => everTrackedPaths({ cwd, env: gitEnv, ...extra });
+    const has = (r, p) => r.paths?.has(p) === true;
+
     const repo = join(root, 'repo');
     mkdirSync(repo);
     git(repo, 'init', '-q', '-b', 'main');
     put(repo, 'scripts/gone.mjs'); put(repo, 'scripts/stays.mjs');
     git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'add two scripts');
-    git(repo, 'rm', '-q', 'scripts/gone.mjs'); git(repo, 'commit', '-q', '-m', 'delete one');
+    git(repo, 'rm', '-q', 'scripts/gone.mjs'); put(repo, 'scripts/at-head.mjs');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'delete one, add one');
+    const shaB = git(repo, 'rev-parse', 'HEAD').trim();
     git(repo, 'mv', 'scripts/stays.mjs', 'scripts/moved.mjs'); git(repo, 'commit', '-q', '-m', 'rename one');
     // A document on main cites the script a task says it will create, and the file that was deleted.
     put(repo, 'docs/note.md', 'The task adds `scripts/side-only.mjs`; `scripts/gone.mjs` was removed.\n');
@@ -338,27 +370,38 @@ if (SELF_TEST) {
     git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'a document that cites both');
 
     const before = cli(repo);
-    // ... and ANOTHER SESSION PUSHES A BRANCH that adds the cited script. main is untouched.
+    // ... and ANOTHER SESSION PUSHES BRANCHES that add scripts. main is untouched.
     git(repo, 'checkout', '-q', '-b', 'side'); put(repo, 'scripts/side-only.mjs');
-    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'the branch adds the script'); git(repo, 'checkout', '-q', 'main');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'the branch adds the script');
+    put(repo, 'scripts/inside.mjs'); git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'the branch adds another');
+    git(repo, 'rm', '-q', 'scripts/inside.mjs'); git(repo, 'commit', '-q', '-m', 'and deletes it again');
+    git(repo, 'checkout', '-q', 'main');
+    git(repo, 'checkout', '-q', '-b', 'tagged'); put(repo, 'scripts/tag-only.mjs');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'reachable only by a tag'); git(repo, 'tag', 'only-tagged');
+    git(repo, 'checkout', '-q', 'main'); git(repo, 'branch', '-q', '-D', 'tagged');
+    git(repo, 'checkout', '-q', '-b', 'other'); put(repo, 'scripts/remote-only.mjs');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'a branch a clone will see only as a remote-tracking ref');
+    git(repo, 'checkout', '-q', 'main');
     const after = cli(repo);
 
-    const atHead = everTrackedPaths({ cwd: repo, env: gitEnv });
+    const atHead = read(repo);
     check('a path added only on a side branch is NOT in the history HEAD reads',
-      atHead.paths && !atHead.paths.has('scripts/side-only.mjs'),
+      atHead.paths && !has(atHead, 'scripts/side-only.mjs'),
       'an unmerged branch must not change what main is judged against');
     check('a path this branch tracked and deleted IS',
-      atHead.paths && atHead.paths.has('scripts/gone.mjs') && atHead.paths.has('scripts/stays.mjs'));
+      atHead.paths && has(atHead, 'scripts/gone.mjs') && has(atHead, 'scripts/stays.mjs'));
     check('a rename\'s new name is in the history too (renamed-to counts as added)',
-      atHead.paths?.has('scripts/moved.mjs') === true, 'git log reports the new name under status R');
+      has(atHead, 'scripts/moved.mjs'), 'git log reports the new name under status R');
     const sp2 = splitNoFile(['scripts/gone.mjs', 'scripts/side-only.mjs'], atHead.paths ?? new Set());
     check('the split calls the deleted one deleted-here and the unmerged one foreign',
       sp2.deleted.join() === 'scripts/gone.mjs' && sp2.foreign.join() === 'scripts/side-only.mjs',
       `deleted ${sp2.deleted} foreign ${sp2.foreign}`);
-    // The fixture must be able to fail: the old reader, over every ref, sees the branch.
-    check('THE FIXTURE CAN FAIL: reading every ref counts the unmerged branch\'s path (the E1 incident)',
-      everTrackedPaths({ cwd: repo, rev: '--all', env: gitEnv }).paths?.has('scripts/side-only.mjs') === true,
+    const everyRef = read(repo, { rev: '--all' });
+    check('THE FIXTURE CAN FAIL: reading every ref counts the unmerged branch\'s path and the tagged one (the E1 incident)',
+      has(everyRef, 'scripts/side-only.mjs') && has(everyRef, 'scripts/tag-only.mjs'),
       'if this passes with HEAD only, the fixture proves nothing');
+    check('a path reachable only through a TAG is not in the history HEAD reads',
+      atHead.paths && !has(atHead, 'scripts/tag-only.mjs'), 'tags are refs too; --all reads them');
     check('the command-line result does not move when another session pushes a branch',
       before.status === 0 && after.status === 0 &&
       /DELETED HERE 1 path\(s\)  scripts\/gone\.mjs/.test(before.stdout) &&
@@ -367,24 +410,65 @@ if (SELF_TEST) {
     check('the report says which history it read',
       /history    read from HEAD/.test(after.stdout), 'a verdict must say what it was read from');
 
-    // A branch that LANDED is history: its commits are reachable through the merge.
+    // What a developer's clone actually has: the other session's branches as REMOTE-TRACKING refs.
+    git(root, 'clone', '-q', 'file://' + repo, 'clone');
+    const clone = join(root, 'clone');
+    git(clone, 'fetch', '-q', '--all', '--tags');
+    const cloneRefs = git(clone, 'for-each-ref', '--format=%(refname)').split('\n').filter(r => /refs\/remotes\/origin\/(other|side)$/.test(r)).length;
+    const inClone = read(clone);
+    check('a clone that has fetched other sessions\' branches does not read them (remote-tracking refs and tags are not HEAD\'s history)',
+      cloneRefs === 2 && inClone.paths && !has(inClone, 'scripts/remote-only.mjs') && !has(inClone, 'scripts/side-only.mjs') && !has(inClone, 'scripts/tag-only.mjs') && has(inClone, 'scripts/gone.mjs'),
+      `remote-tracking refs seen ${cloneRefs}`);
+    check('...and the fixture can fail there too: --all in the clone does read the remote-tracking branch',
+      has(read(clone, { rev: '--all' }), 'scripts/remote-only.mjs'));
+
+    // A branch that LANDED is history: its commits are reachable through the merge, including a file the
+    // branch added and deleted again before the merge (which a first-parent log never shows).
     git(repo, 'merge', '-q', '--no-ff', '-m', 'merge side', 'side');
     git(repo, 'rm', '-q', 'scripts/side-only.mjs'); git(repo, 'commit', '-q', '-m', 'then delete it');
+    const merged = read(repo);
     check('a merged branch\'s files are reachable, so deleting one later reads as deleted-here',
-      everTrackedPaths({ cwd: repo, env: gitEnv }).paths?.has('scripts/side-only.mjs') === true,
-      'narrowing the log to the first parent would hide everything that came in by a merge');
+      has(merged, 'scripts/side-only.mjs'), 'a log narrowed to the first parent drops commits that came in by a merge');
+    check('...including one the branch added and deleted before the merge (only a first-parent log misses it)',
+      has(merged, 'scripts/inside.mjs'), 'git log --first-parent shows only the merge\'s own diff, which never had it');
 
-    // The two states that must stay a PROBLEM, never an empty history.
+    // HEAD means HEAD: not main, and not its parent.
+    git(repo, 'checkout', '-q', '--detach', shaB);
+    const old = read(repo);
+    check('the history is that of HEAD wherever HEAD is: detached on an older commit it holds that commit\'s own additions and nothing later',
+      has(old, 'scripts/at-head.mjs') && has(old, 'scripts/gone.mjs') && !has(old, 'scripts/moved.mjs'),
+      'a reader that names a branch, or HEAD^, differs here');
+    git(repo, 'checkout', '-q', 'main');
+    put(repo, 'HEAD', 'a file named like the revision\n');
+    check('a work-tree file named HEAD does not make the revision ambiguous',
+      has(read(repo), 'scripts/gone.mjs'), 'git log HEAD without `--` refuses when a path of that name exists');
+    rmSync(join(repo, 'HEAD'));
+
+    // The states that must stay a PROBLEM, never an empty history, on the function AND on the command line.
     git(root, 'clone', '-q', '--depth', '1', 'file://' + repo, 'shallow');
-    const sh = everTrackedPaths({ cwd: join(root, 'shallow'), env: gitEnv });
+    const sh = read(join(root, 'shallow'));
     check('a shallow clone is a problem, not an empty history',
       sh.paths === null && /SHALLOW/.test(sh.problem ?? ''), JSON.stringify(sh).slice(0, 120));
+    const shCli = cli(join(root, 'shallow'));
+    check('...and the command line fails on it, naming why',
+      shCli.status === 1 && /SHALLOW/.test(shCli.stdout + shCli.stderr), `exit ${shCli.status}`);
     mkdirSync(join(root, 'not-a-repo'));
-    const nr = everTrackedPaths({ cwd: join(root, 'not-a-repo'), env: gitEnv });
-    check('a directory with no history is a problem, not an empty history',
-      nr.paths === null && /unreadable/.test(nr.problem ?? ''), JSON.stringify(nr).slice(0, 120));
+    // GIT_CEILING_DIRECTORIES: a temp directory that sits inside some work tree must not find THAT repository.
+    const nr = read(join(root, 'not-a-repo'), { env: { ...gitEnv, GIT_CEILING_DIRECTORIES: root } });
+    check('a directory with no history is a problem, not an empty history, and says why',
+      nr.paths === null && /unreadable \(git log HEAD\)/.test(nr.problem ?? '') && /not a git repository/.test(nr.problem ?? ''), JSON.stringify(nr).slice(0, 160));
+
+    // workflow-check requires fetch-depth: 0 on a job that runs a file containing `git log` (its historyReaders
+    // regex reads the file's text). The call is now an argument list, so the text has to be here on purpose.
+    const code = readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+    check('this script still contains `git log` in code, so workflow-check keeps requiring a full clone of any job that runs it',
+      /git (log|rev-list)\b/.test(code), 'the historyReaders detector matches file text; a refactor of the call must not hide the reader from it');
+  } catch (e) {
+    check('the fixture repositories could be built and read', false, String((e && e.stderr) || (e && e.message) || e).trim().split('\n')[0].slice(0, 200));
   } finally {
-    rmSync(root, { recursive: true, force: true });
+    for (const [k, v] of Object.entries(saved)) { if (v === undefined) delete process.env[k]; else process.env[k] = v; }
+    process.removeListener('SIGINT', onSignal); process.removeListener('SIGTERM', onSignal);
+    tidy();
   }
 
   process.exit(failed === 0 ? 0 : 1);
