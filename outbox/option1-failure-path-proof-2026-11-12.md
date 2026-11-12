@@ -25,3 +25,26 @@ What this settles:
 4. A process the timed-out shell started (`sleep 600`) survived until the job's cleanup ("Terminate orphan process: pid (3756) (sleep)"). It matters only to an install that leaves children; the runner removes them.
 
 Not shown: the same failure in the other places that install a browser, none of them changed and none covered by the guard. `grep -n 'playwright install' .github/workflows/*.yml .github/actions/*/action.yml` (2026-11-12) lists 11 install sites besides this one (10 other workflow files and the composite action; `font-dependence-probe.yml` also names the command in a comment, which is not a site): `verify-full.yml` (the `full` job), the `mutation-shard` composite action, `live-check.yml` (which failed on 2026-11-11 too), and the probe workflows `client-sections-probe`, `font-dependence-probe`, `forecast-live-probe`, `lineups-card-probe`, `lineups-live-probe`, `live-score-probe`, `metrics-screenshot` and `open-meteo-egress-probe`. Also not shown: a failure that is neither a failed download nor a timeout, and a cancelled run.
+
+## Second measurement: the final step as fixed (`6ea67d9`), two more runs (2026-11-12 05:02Z)
+
+The review of `3528bb5` changed the final step (the outcome comes in through `env: INSTALL_OUTCOME` and the script prints one of three messages) and moved six self-tests into their own plain step, so the first measurement above is of an older workflow. Same method on the same two branches, fast-forwarded to a tree that is `6ea67d9` plus one sabotage and the evidence step (`proof-fastfail` at `35800cd`, `proof-timeout` at `b772460`; the second branch's name is a leftover, its scenario is now an EARLIER step failing, which skips the install). `verify.yml` dispatched on each.
+
+| | run 1: the install fails | run 2: a step before the install fails |
+|---|---|---|
+| run | `verify` 43158658704, `proof-fastfail` | `verify` 43158662089, `proof-timeout` |
+| sabotage | `PLAYWRIGHT_DOWNLOAD_HOST=https://playwright-download.invalid` on the install step | a step `PROOF - a step before the install fails` (`exit 1`) inserted before it |
+| `Install Chromium`, in the API | `success` in 2 s (`continue-on-error`); the `steps` context says `failure` | `skipped` |
+| `INSTALL_OUTCOME` in the final step's log | `failure` | `skipped` |
+| the final step's `::error::` line | `The Chromium install did not succeed (outcome: failure). The steps that need a browser were skipped. This commit is NOT verified.` | `The Chromium install was skipped because an earlier step failed. That step, not the install, is the cause. The steps that need a browser did not run. This commit is NOT verified.` |
+| the final step, and the `verify` job | `failure`, `failure` | `failure`, `failure` |
+| steps that need a browser (20) | `{'skipped': 20}` | `{'skipped': 20}` |
+| steps that need none (70 tabulated) | `{'success': 69, '-': 1}` (the one is still `in_progress` in the evidence step's snapshot, as in the first measurement) | `{'skipped': 48, 'success': 22}`: a step failed first, so every step with no `if` was skipped, which is GitHub's default and the case this message names; the 22 that ran are the ones gated on `!cancelled()` or `always()` |
+| `The browser checks' own self-tests, which launch no browser` | `success` (step 14) | `skipped` (an earlier step failed) |
+| `The F# suite, on the F# harness` | `success` (step 84) | `skipped` (same reason) |
+
+What this settles. **Run 1 is the case the branch exists for and it holds with the fixed workflow:** the install fails, the F# suite, the six self-tests and the other browser-free steps run and pass, the 20 browser steps are skipped, the job is red, and the red says why. **Run 2 shows the `skipped` branch of the message on a runner**, and why the old text ("every other step ran") was false there: the F# suite did not run, because something else failed first, and the message now says that thing is the cause.
+
+**A finding from these runs, fixed afterwards.** The `browser-gate` job FAILED on both proof branches, which is correct: the proof's own evidence step is appended after the final step and is a heredoc `gh` step the reader refuses. It also shows the guard running on a runner image (python3, PyYAML and bash present; 135 of 135 self-test checks, the real-tree read in about a second). Its output listed five problems, one of them inverted advice: for a final step that is merely not last it said the final step "needs no browser and must not wait for the install", before the real message. That is review finding 26(c), left as a nit, and a runner showed it; the guard now exempts the final step from that rule wherever it is, with a fixture and a sweep mutant.
+
+Not shown, still: a cancelled run (the `cancelled` message), an empty outcome (a renamed id; the guard refuses a renamed id by the id rules and runs the final step with an empty outcome locally), and the other places that install a browser.

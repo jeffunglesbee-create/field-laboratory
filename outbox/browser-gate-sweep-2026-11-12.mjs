@@ -57,6 +57,7 @@ const CODE = [
   ['a browser step before the install is not reported', 'if needs_browser(s, pkg, read):\n                bad.append(f"step {name(s)} needs a browser but runs BEFORE the install")', 'if False:\n                bad.append(f"step {name(s)} needs a browser but runs BEFORE the install")'],
   ['an ungated browser step is not reported', 'if not gated_if(if_text(s)):', 'if False:'],
   ['a plain step gated on the install is not reported', 'if f"steps.{INSTALL_ID}" in if_text(s):', 'if False:'],
+  ['a final step that is not last is also told to stop waiting for the install', 'if is_final_if(if_text(s)):         # the final step, wherever it is: if it is not LAST, that is its own message below\n            continue', 'if i == final_at:\n            continue'],
   ['the gate accepts a narrowing `failure()`', "GATE_EXTRA = re.compile(r\"^(?:always\\(\\)|", "GATE_EXTRA = re.compile(r\"^(?:failure\\(\\)|always\\(\\)|"],
   ['the gate accepts another step == failure', "steps\\.\\w+\\.outcome == 'success')$\")", "steps\\.\\w+\\.outcome == '(?:success|failure|skipped)')$\")"],
   ['the gate accepts any extra clause', 'GATE_CLAUSE in cl and all(GATE_EXTRA.match(p) for p in cl)', 'GATE_CLAUSE in cl'],

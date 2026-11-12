@@ -553,7 +553,7 @@ def audit(doc, pkg, read, job=JOB, final_timeout=FINAL_TIMEOUT):
         if not gated_if(if_text(s)):
             bad.append(f"step {name(s)} needs a browser and must carry `steps.{INSTALL_ID}.outcome == 'success'` in its `if`, joined only by `&&` to always(), success(), !cancelled() or another `steps.<id>.outcome == 'success'` (it has {if_text(s) or 'no if'!r})")
     for i, s in plain:
-        if i == final_at:
+        if is_final_if(if_text(s)):         # the final step, wherever it is: if it is not LAST, that is its own message below
             continue
         if f"steps.{INSTALL_ID}" in if_text(s):
             bad.append(f"step {name(s)} needs no browser and must not wait for the install (it has {if_text(s)!r}): an outage would skip it again")
@@ -753,6 +753,9 @@ def self_test():
     check("a step after the final step is refused (the failure it makes would skip it)",
           any_of("LAST step", mut(lambda s: s.append({"name": "appended", "run": "npm run pure"}))))
     check("...and so is a browser step after it", any_of("LAST step", mut(lambda s: s.append({"name": "late shots", "if": gated, "run": "npm run shot"}))))
+    check("a final step that is not last is refused for THAT, and not also told it \"must not wait for the install\" (a runner run showed the inverted advice)",
+          not any_of("must not wait", mut(lambda s: s.append({"name": "appended", "run": "npm run pure"}))) and
+          sum(1 for b in mut(lambda s: s.append({"name": "appended", "run": "npm run pure"})) if "LAST step" in b) == 1)
     check("the final step is run for all four outcomes, not one: a script that fails only for `failure` is refused for the other three",
           any_of("did not for: 'skipped': exit 0, so the job would be GREEN; 'cancelled': exit 0, so the job would be GREEN; '': exit 0",
                  mut(final_run('if [ "$INSTALL_OUTCOME" = failure ]; then echo "::error::f"; exit 1; fi'))))
