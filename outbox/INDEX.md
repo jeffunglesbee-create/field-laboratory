@@ -12,9 +12,34 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `a971445` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: option 1 (the verify job's browser steps wait for the install) is built and scored 530 of 530 |
+| `2ef2b4e` | 2026-11-12 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of c7f5991 [skip ci] |
+| `a932f5d` | 2026-11-12 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the first scheduled drift-sentinel run since the landing succeeded; what it shows and what it does not |
+| `a932f5d` | 2026-11-12 | [drift-closing-odds-scope-2026-11-11.md](drift-closing-odds-scope-2026-11-11.md) | docs: the first scheduled drift-sentinel run since the landing succeeded; what it shows and what it does not |
 | `c94e650` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-12 [skip ci] |
 | `c94e650` | 2026-11-12 | [sport-vocabulary-2026-11-12T08-32-12-885Z.json](sport-vocabulary-2026-11-12T08-32-12-885Z.json) | drift-sentinel: ok on 2026-11-12 [skip ci] |
+| `c7f5991` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: the pause-margin fix is measured (30 loaded runs: 3 failures at 1 ms, 0 at 1000 ms) and recorded in both notes |
+| `c7f5991` | 2026-11-12 | [live-score-clock-race-2026-11-12.txt](live-score-clock-race-2026-11-12.txt) | docs: the pause-margin fix is measured (30 loaded runs: 3 failures at 1 ms, 0 at 1000 ms) and recorded in both notes |
+| `34f1c46` | 2026-11-12 | [live-score-clock-race-2026-11-12.mjs](live-score-clock-race-2026-11-12.mjs) | fix: the live-score render check pauses its clock 1000 ms ahead, not 1 ms (shard 2 baseline crash) |
 | `3847562` | 2026-11-12 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the soccer live-scores session record notes the pauseAt race another session found in the render check |
+| `7ef4e52` | 2026-11-12 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 4ce37c2 [skip ci] |
+| `4ce37c2` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: the option-1 session note records the green path and drops an empty heading |
+| `264bc31` | 2026-11-12 | [option1-failure-path-proof-2026-11-12.md](option1-failure-path-proof-2026-11-12.md) | docs: the fixed verify workflow stays green on a healthy runner (run 43169163026, six jobs success) |
+| `5880003` | 2026-11-12 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | fix: the browser-gate guard runs the final step as the runner does; verify-render-check's self-test stays gated |
+| `5880003` | 2026-11-12 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | fix: the browser-gate guard runs the final step as the runner does; verify-render-check's self-test stays gated |
+| `5880003` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | fix: the browser-gate guard runs the final step as the runner does; verify-render-check's self-test stays gated |
+| `5880003` | 2026-11-12 | [option1-failure-path-proof-2026-11-12.md](option1-failure-path-proof-2026-11-12.md) | fix: the browser-gate guard runs the final step as the runner does; verify-render-check's self-test stays gated |
+| `5880003` | 2026-11-12 | [self-tests-no-launch-2026-11-12.mjs](self-tests-no-launch-2026-11-12.mjs) | fix: the browser-gate guard runs the final step as the runner does; verify-render-check's self-test stays gated |
+| `5880003` | 2026-11-12 | [self-tests-no-launch-2026-11-12.txt](self-tests-no-launch-2026-11-12.txt) | fix: the browser-gate guard runs the final step as the runner does; verify-render-check's self-test stays gated |
+| `f07154d` | 2026-11-12 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | fix: a final step that is not last is refused for that, not also told to stop waiting for the install |
+| `f07154d` | 2026-11-12 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | fix: a final step that is not last is refused for that, not also told to stop waiting for the install |
+| `f07154d` | 2026-11-12 | [option1-failure-path-proof-2026-11-12.md](option1-failure-path-proof-2026-11-12.md) | fix: a final step that is not last is refused for that, not also told to stop waiting for the install |
+| `e7ceadb` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: the option-1 session note records the review of 3528bb5 and what was done about each finding |
+| `6ea67d9` | 2026-11-12 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | fix: the browser-gate guard fails closed and runs the final step; the six self-tests leave the gate |
+| `6ea67d9` | 2026-11-12 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | fix: the browser-gate guard fails closed and runs the final step; the six self-tests leave the gate |
+| `6ea67d9` | 2026-11-12 | [option1-failure-path-proof-2026-11-12.md](option1-failure-path-proof-2026-11-12.md) | fix: the browser-gate guard fails closed and runs the final step; the six self-tests leave the gate |
+| `6ea67d9` | 2026-11-12 | [self-tests-no-launch-2026-11-12.mjs](self-tests-no-launch-2026-11-12.mjs) | fix: the browser-gate guard fails closed and runs the final step; the six self-tests leave the gate |
+| `6ea67d9` | 2026-11-12 | [self-tests-no-launch-2026-11-12.txt](self-tests-no-launch-2026-11-12.txt) | fix: the browser-gate guard fails closed and runs the final step; the six self-tests leave the gate |
 | `eb8903c` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: the runs on E1's landing are green: verify, guards, deploy (published) and live-check |
 | `f205cea` | 2026-11-12 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f2c380f` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: E1 is built; the scored gate on 2ff620c read 530/530 |
@@ -24,6 +49,15 @@ would describe, so listing itself would always be one commit stale.
 | `ed2f995` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `ed2f995` | 2026-11-12 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `ed2f995` | 2026-11-12 | [sport-vocabulary-2026-11-12T02-57-53-062Z.json](sport-vocabulary-2026-11-12T02-57-53-062Z.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `e5a508d` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: option 1 on a runner: the failure path measured twice, and what a timed-out step concludes as |
+| `e5a508d` | 2026-11-12 | [option1-failure-path-proof-2026-11-12.md](option1-failure-path-proof-2026-11-12.md) | docs: option 1 on a runner: the failure path measured twice, and what a timed-out step concludes as |
+| `d8ef7a9` | 2026-11-12 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | fix: the browser-gate guard reads calls and imports, not words, and a python import on any line |
+| `d8ef7a9` | 2026-11-12 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | fix: the browser-gate guard reads calls and imports, not words, and a python import on any line |
+| `d8ef7a9` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | fix: the browser-gate guard reads calls and imports, not words, and a python import on any line |
+| `f41b9d3` | 2026-11-12 | [browser-gate-sweep-2026-11-12.mjs](browser-gate-sweep-2026-11-12.mjs) | ci: the verify job's browser steps wait for the Chromium install, and nothing else does |
+| `f41b9d3` | 2026-11-12 | [browser-gate-sweep-2026-11-12.txt](browser-gate-sweep-2026-11-12.txt) | ci: the verify job's browser steps wait for the Chromium install, and nothing else does |
+| `f41b9d3` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | ci: the verify job's browser steps wait for the Chromium install, and nothing else does |
+| `f41b9d3` | 2026-11-12 | [verify-step-browser-classification-2026-11-12.json](verify-step-browser-classification-2026-11-12.json) | ci: the verify job's browser steps wait for the Chromium install, and nothing else does |
 | `0429049` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
 | `0429049` | 2026-11-12 | [e1-red-before-2026-11-12.mjs](e1-red-before-2026-11-12.mjs) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
 | `0429049` | 2026-11-12 | [e1-red-before-2026-11-12.txt](e1-red-before-2026-11-12.txt) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
