@@ -1,0 +1,20 @@
+before-E1 version: scripts/check-doc-citations.mjs at origin/main (f95ecb1); after: the working tree's (27447 bytes)
+
+CONTROL: no side branch yet. The two versions must read the same.
+  before E1                          exit 0  DELETED HERE 1 path(s)  scripts/chrome-check.mjs
+                                     PASS  deleted-here citations do not grow (budget 1)
+  after E1                           exit 0  DELETED HERE 1 path(s)  scripts/chrome-check.mjs
+                                     PASS  deleted-here citations do not grow (budget 1)
+
+TRIGGER: branch another-sessions-branch adds scripts/zz-e1-probe.mjs; docs/zz-e1-probe.md on e1-citations-head cites it.
+  before E1                          exit 1  DELETED HERE 2 path(s)  scripts/chrome-check.mjs, scripts/zz-e1-probe.mjs
+                                     FAIL  deleted-here citations do not grow (budget 1)
+  after E1                           exit 0  DELETED HERE 1 path(s)  scripts/chrome-check.mjs
+                                     PASS  deleted-here citations do not grow (budget 1)
+
+controls read the same and green:            true
+before E1, with the branch:                  RED (the trigger turns main red)
+after E1, with the branch:                   GREEN
+after E1, the branch changes nothing:        true
+
+red before, green after, on the real tree

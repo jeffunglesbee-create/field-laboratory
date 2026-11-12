@@ -35,9 +35,11 @@
 // A missing FILE is reported, never fatal: these repos cite each other, and
 // jubilant-bassoon's paths are legitimately absent here.
 
-import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { execSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
+import { execFileSync, spawnSync } from 'node:child_process';
 
 import { isMain } from './checks.mjs';
 
@@ -143,6 +145,61 @@ export function splitNoFile(paths, everTracked) {
   const deleted = [], foreign = []
   for (const p of paths) (everTracked.has(p) ? deleted : foreign).push(p)
   return { deleted, foreign }
+}
+
+/**
+ * WHICH HISTORY "DELETED HERE" IS DECIDED FROM, and why it is the commit under test's.
+ *
+ * It used to be `git log --all`, every ref the clone had. That made the verdict
+ * on a commit depend on which branches other sessions had pushed: a path that
+ * existed only on an UNMERGED branch counted as "tracked here, then deleted"
+ * the moment the branch was pushed, and a document on main that cited it went
+ * red in `guards` and `verify` until the branch merged (E1 of
+ * docs/CC-CMD-2026-11-06-gate-residuals-remaining.md; seen 2026-11-11 at 05:42Z
+ * and again at 22:41Z, each time with every other step green and the deploy
+ * held back). The same tree read DELETED HERE 1 with the remote branches not
+ * fetched and 4 with them fetched: a check whose answer changes with the
+ * checkout is not a check of the commit.
+ *
+ * The history REACHABLE FROM `rev` (HEAD) is the history of the tree being
+ * judged. A file added on a side branch and merged is reachable through the
+ * merge; a file that exists only on a branch that has not landed is foreign,
+ * which is what a path this tree never had is.
+ *
+ * A shallow clone, or a log that cannot be read, is a PROBLEM and not an empty
+ * set: against an empty history everything reads as foreign and the deleted-here
+ * state silently switches off.
+ *
+ * `env` is the environment git runs in (the process's, by default). The self-test
+ * passes a cleaned one: under the pre-commit hook GIT_DIR names the REAL
+ * repository, and a reader that inherited it read the real history while being
+ * asked about a fixture.
+ */
+export const HISTORY_REV = 'HEAD'
+/**
+ * The environment a throwaway repository's git commands run in. Every GIT_*
+ * variable of the caller is dropped: this script runs from the pre-commit hook,
+ * where GIT_INDEX_FILE names the REAL repository's index, and a fixture
+ * `git add` that inherited it would write into the repository being committed.
+ */
+export const cleanGitEnv = env => ({
+  ...Object.fromEntries(Object.entries(env).filter(([k]) => !k.startsWith('GIT_'))),
+  GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1',
+  GIT_AUTHOR_NAME: 'fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid',
+  GIT_COMMITTER_NAME: 'fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid',
+})
+export function everTrackedPaths({ cwd = '.', rev = HISTORY_REV, env = process.env } = {}) {
+  try {
+    const shallow = execFileSync('git', ['rev-parse', '--is-shallow-repository'], { cwd, env, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
+    if (shallow === 'true') {
+      return { paths: null, problem: 'the clone is SHALLOW — deleted-here cannot be told from cross-repo' }
+    }
+    const out = execFileSync('git', ['log', rev, '--pretty=format:', '--name-only', '--diff-filter=AR'],
+      { cwd, env, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] })
+    return { paths: new Set(out.split('\n').map(x => x.trim()).filter(Boolean)), problem: null }
+  } catch (e) {
+    return { paths: null, problem: `git history unreadable: ${String(e.message || e).slice(0, 80)}` }
+  }
 }
 
 /**
@@ -252,6 +309,84 @@ if (SELF_TEST) {
   check('a repair that matches nothing changes nothing',
     applyRepair(doc, 'src/Other.fs', 792, 819).changed === 0);
 
+  // WHICH HISTORY THE SPLIT IS READ FROM (E1 of docs/CC-CMD-2026-11-06-gate-residuals-remaining.md).
+  //
+  // Real git repositories, built here and removed after: the defect was in WHICH
+  // COMMITS were read, and a predicate over an in-memory set cannot show that.
+  // Every git variable the caller set is dropped first (see cleanGitEnv).
+  const gitEnv = cleanGitEnv(process.env);
+  const leaked = cleanGitEnv({ GIT_INDEX_FILE: '/real/.git/index', GIT_DIR: '/real/.git', GIT_WORK_TREE: '/real', PATH: '/bin' });
+  check('a fixture never inherits the caller\'s git variables (the pre-commit hook sets GIT_INDEX_FILE to the real index)',
+    !('GIT_INDEX_FILE' in leaked) && !('GIT_DIR' in leaked) && !('GIT_WORK_TREE' in leaked) &&
+    leaked.PATH === '/bin' && leaked.GIT_CONFIG_GLOBAL === '/dev/null',
+    JSON.stringify(leaked));
+  const git = (cwd, ...args) => execFileSync('git', args, { cwd, env: gitEnv, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  const put = (cwd, rel, body = 'x\n') => { mkdirSync(join(cwd, rel, '..'), { recursive: true }); writeFileSync(join(cwd, rel), body); };
+  const cli = cwd => spawnSync(process.execPath, [fileURLToPath(import.meta.url)], { cwd, env: gitEnv, encoding: 'utf8' });
+  const root = mkdtempSync(join(tmpdir(), 'cit-hist-'));
+  try {
+    const repo = join(root, 'repo');
+    mkdirSync(repo);
+    git(repo, 'init', '-q', '-b', 'main');
+    put(repo, 'scripts/gone.mjs'); put(repo, 'scripts/stays.mjs');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'add two scripts');
+    git(repo, 'rm', '-q', 'scripts/gone.mjs'); git(repo, 'commit', '-q', '-m', 'delete one');
+    git(repo, 'mv', 'scripts/stays.mjs', 'scripts/moved.mjs'); git(repo, 'commit', '-q', '-m', 'rename one');
+    // A document on main cites the script a task says it will create, and the file that was deleted.
+    put(repo, 'docs/note.md', 'The task adds `scripts/side-only.mjs`; `scripts/gone.mjs` was removed.\n');
+    put(repo, 'docs/citation-budget.txt', '0\n'); put(repo, 'docs/deleted-citation-budget.txt', '1\n');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'a document that cites both');
+
+    const before = cli(repo);
+    // ... and ANOTHER SESSION PUSHES A BRANCH that adds the cited script. main is untouched.
+    git(repo, 'checkout', '-q', '-b', 'side'); put(repo, 'scripts/side-only.mjs');
+    git(repo, 'add', '-A'); git(repo, 'commit', '-q', '-m', 'the branch adds the script'); git(repo, 'checkout', '-q', 'main');
+    const after = cli(repo);
+
+    const atHead = everTrackedPaths({ cwd: repo, env: gitEnv });
+    check('a path added only on a side branch is NOT in the history HEAD reads',
+      atHead.paths && !atHead.paths.has('scripts/side-only.mjs'),
+      'an unmerged branch must not change what main is judged against');
+    check('a path this branch tracked and deleted IS',
+      atHead.paths && atHead.paths.has('scripts/gone.mjs') && atHead.paths.has('scripts/stays.mjs'));
+    check('a rename\'s new name is in the history too (renamed-to counts as added)',
+      atHead.paths?.has('scripts/moved.mjs') === true, 'git log reports the new name under status R');
+    const sp2 = splitNoFile(['scripts/gone.mjs', 'scripts/side-only.mjs'], atHead.paths ?? new Set());
+    check('the split calls the deleted one deleted-here and the unmerged one foreign',
+      sp2.deleted.join() === 'scripts/gone.mjs' && sp2.foreign.join() === 'scripts/side-only.mjs',
+      `deleted ${sp2.deleted} foreign ${sp2.foreign}`);
+    // The fixture must be able to fail: the old reader, over every ref, sees the branch.
+    check('THE FIXTURE CAN FAIL: reading every ref counts the unmerged branch\'s path (the E1 incident)',
+      everTrackedPaths({ cwd: repo, rev: '--all', env: gitEnv }).paths?.has('scripts/side-only.mjs') === true,
+      'if this passes with HEAD only, the fixture proves nothing');
+    check('the command-line result does not move when another session pushes a branch',
+      before.status === 0 && after.status === 0 &&
+      /DELETED HERE 1 path\(s\)  scripts\/gone\.mjs/.test(before.stdout) &&
+      /DELETED HERE 1 path\(s\)  scripts\/gone\.mjs/.test(after.stdout),
+      `before exit ${before.status}: ${(before.stdout.match(/DELETED HERE.*/) || [before.stderr.slice(0, 120)])[0]} / after exit ${after.status}: ${(after.stdout.match(/DELETED HERE.*/) || [after.stderr.slice(0, 120)])[0]}`);
+    check('the report says which history it read',
+      /history    read from HEAD/.test(after.stdout), 'a verdict must say what it was read from');
+
+    // A branch that LANDED is history: its commits are reachable through the merge.
+    git(repo, 'merge', '-q', '--no-ff', '-m', 'merge side', 'side');
+    git(repo, 'rm', '-q', 'scripts/side-only.mjs'); git(repo, 'commit', '-q', '-m', 'then delete it');
+    check('a merged branch\'s files are reachable, so deleting one later reads as deleted-here',
+      everTrackedPaths({ cwd: repo, env: gitEnv }).paths?.has('scripts/side-only.mjs') === true,
+      'narrowing the log to the first parent would hide everything that came in by a merge');
+
+    // The two states that must stay a PROBLEM, never an empty history.
+    git(root, 'clone', '-q', '--depth', '1', 'file://' + repo, 'shallow');
+    const sh = everTrackedPaths({ cwd: join(root, 'shallow'), env: gitEnv });
+    check('a shallow clone is a problem, not an empty history',
+      sh.paths === null && /SHALLOW/.test(sh.problem ?? ''), JSON.stringify(sh).slice(0, 120));
+    mkdirSync(join(root, 'not-a-repo'));
+    const nr = everTrackedPaths({ cwd: join(root, 'not-a-repo'), env: gitEnv });
+    check('a directory with no history is a problem, not an empty history',
+      nr.paths === null && /unreadable/.test(nr.problem ?? ''), JSON.stringify(nr).slice(0, 120));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+
   process.exit(failed === 0 ? 0 : 1);
 }
 
@@ -276,7 +411,8 @@ const bodyOf = p => {
   return cache.get(p);
 };
 
-// EVERY PATH THIS REPO HAS EVER TRACKED, from full history.
+// EVERY PATH THE HISTORY BEHIND HEAD HAS EVER TRACKED (see everTrackedPaths for
+// which history, and why it is not every ref).
 //
 // A SHALLOW CLONE MUST ABORT, not report zero. `splitNoFile` against an empty
 // history classifies everything as foreign, so a truncated log turns the whole
@@ -286,19 +422,7 @@ const bodyOf = p => {
 // check:workflows enforces the precondition at the door: this file now contains
 // `git log`, so its historyReaders detector requires fetch-depth: 0 on any job
 // that runs it. Both jobs that do already carry it.
-let everTracked = null, historyProblem = null;
-try {
-  if (execSync('git rev-parse --is-shallow-repository', { encoding: 'utf8' }).trim() === 'true') {
-    historyProblem = 'the clone is SHALLOW — deleted-here cannot be told from cross-repo';
-  } else {
-    everTracked = new Set(
-      execSync('git log --all --pretty=format: --name-only --diff-filter=AR',
-               { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
-        .split('\n').map(x => x.trim()).filter(Boolean));
-  }
-} catch (e) {
-  historyProblem = `git history unreadable: ${String(e.message || e).slice(0, 80)}`;
-}
+const { paths: everTracked, problem: historyProblem } = everTrackedPaths();
 
 let anchored = 0, bare = 0, noFile = 0, pathOnly = 0;
 const brokenAnchors = [], stale = [], repairs = [], noFilePaths = new Set();
@@ -328,6 +452,7 @@ console.log(`  anchored   ${anchored}  (a quoted fragment beside the citation is
 console.log(`  bare       ${bare}  (a line number and nothing to verify it against)`);
 const split = everTracked ? splitNoFile([...noFilePaths], everTracked) : null;
 console.log(`  no file    ${noFile}  across ${noFilePaths.size} distinct path(s)`);
+if (everTracked) console.log(`  history    read from ${HISTORY_REV}: ${everTracked.size} path(s) ever added or renamed-to in what is reachable from it (not from other branches)`);
 if (split) {
   console.log(`    cross-repo   ${split.foreign.length} path(s)  (the relay, the client — correct and unremarkable)`);
   console.log(`    DELETED HERE ${split.deleted.length} path(s)  ${split.deleted.join(', ') || '(none)'}`);
