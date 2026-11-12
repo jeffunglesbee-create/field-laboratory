@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ed2f995` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `ed2f995` | 2026-11-12 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `ed2f995` | 2026-11-12 | [sport-vocabulary-2026-11-12T02-57-53-062Z.json](sport-vocabulary-2026-11-12T02-57-53-062Z.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `5e6e43d` | 2026-11-12 | [live-other-sports-measurement-2026-11-12.md](live-other-sports-measurement-2026-11-12.md) | docs: other-sports Task 1, reading 2 of 2: 7 of 7 live NBA games unscored in the archive, and no final game in either reading |
 | `f864fa2` | 2026-11-12 | [live-capture-nhl-2026-11-11-0201Z.json](live-capture-nhl-2026-11-11-0201Z.json) | probe: the live /v2/games shape of nhl on 2026-11-11 [skip ci] |
 | `3266042` | 2026-11-12 | [live-capture-nba-2026-11-11-0200Z.json](live-capture-nba-2026-11-11-0200Z.json) | probe: the live /v2/games shape of nba on 2026-11-11 [skip ci] |
