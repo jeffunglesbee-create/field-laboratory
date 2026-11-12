@@ -342,19 +342,22 @@ jobs:
         timeout-minutes: 3
         run: npx playwright install chromium
 
-      # The self-tests of six render checks below. Each one's npm script runs its own `--self-test` first and then drives a
+      # The self-tests of five render checks below. Each one's npm script runs its own `--self-test` first and then drives a
       # browser, so inside a gated step the self-test, which launches nothing, waited for the install with the rest and an
-      # outage skipped it. Here it does not. Measured 2026-11-12 (outbox/self-tests-no-launch-2026-11-12.txt): all six pass
-      # (77 assertions) with a playwright that throws on launch and no browser on disk, 0 launches, while two browser scripts
+      # outage skipped it. Here it does not. Measured 2026-11-12 (outbox/self-tests-no-launch-2026-11-12.txt): all five pass
+      # (73 assertions) with a playwright that throws on launch and no browser on disk, 0 launches, while two browser scripts
       # under the same stub, the positive control, do launch; and the measurement goes red when one self-test is edited to
       # launch. Nothing runs that measurement in CI: if a self-test ever launched, this step would fail in an outage, red.
       # The npm scripts still run each once more ahead of the live half, for a few hundred milliseconds apiece.
+      #
+      # NOT the sixth, `verify-render-check.mjs`: its self-test runs the whole F# suite (`node build/VerifyMain.js`, 369 rows)
+      # to learn the row count, so a red F# row would fail it here, early, and skip everything behind it, with a log that does
+      # not name the row. It stays inside `npm run check:verify-panel`, gated, where it was.
       - name: The browser checks' own self-tests, which launch no browser
         run: |
           node scripts/viewport-overflow-check.mjs --self-test
           node scripts/axis-check.mjs --self-test
           node scripts/draw-render-check.mjs --self-test
-          node scripts/verify-render-check.mjs --self-test
           node scripts/metrics-render-check.mjs --self-test
           node scripts/team-tint-render-check.mjs --self-test
 
@@ -1382,16 +1385,18 @@ jobs:
       # `failure`, and a final step that missed that would be green over a skipped suite.
       #
       # The outcome comes in through `env:` and the script says which of three things happened. `skipped` is an EARLIER step
-      # failing first (the install has no `if`, so only a failure or a cancel before it skips it): that step is the cause and
-      # this one adds nothing but the reminder that no browser step ran. scripts/check-browser-gate.py RUNS this script under
-      # bash for each outcome and requires a non-zero exit with an `::error::` line, so the last line cannot become `true`.
+      # failing first, or the run being cancelled before the install (the install has no `if`, so only one of those skips it):
+      # a failed step is the cause and this one adds nothing but the reminder that no browser step ran. The script may use only
+      # echo, `exit N` and `[ ]` comparisons of the outcome: scripts/check-browser-gate.py RUNS it under `bash -e` (the
+      # runner's default shell, which has no pipefail) for each outcome and requires a non-zero exit with an `::error::` line,
+      # and it can only know the runner does the same if the script touches no file, no variable the runner sets and no pipe.
       - name: Install Chromium did not succeed, so the steps that need a browser were skipped
         if: always() && steps.chromium.outcome != 'success'
         env:
           INSTALL_OUTCOME: ${{ steps.chromium.outcome }}
         run: |
           if [ "$INSTALL_OUTCOME" = skipped ]; then
-            echo "::error::The Chromium install was skipped because an earlier step failed. That step, not the install, is the cause. The steps that need a browser did not run. This commit is NOT verified."
+            echo "::error::The Chromium install was skipped: an earlier step failed, or the run was cancelled before it. If a step failed, that step, not the install, is the cause. The steps that need a browser did not run. This commit is NOT verified."
           elif [ "$INSTALL_OUTCOME" = cancelled ]; then
             echo "::error::The run was cancelled before the Chromium install finished. This commit is NOT verified."
           else
