@@ -1,0 +1,38 @@
+ok      [A] control: a clean copy (must not be refused)
+          exit 0: - Left the no-row set (0): none
+ok      [A] a review name twice
+          exit 1: refused: bcbdbb9: a name is on the review list twice
+ok      [A] a review entry with an empty name
+          exit 1: refused: ea6b815: a review entry has no name
+ok      [A] a table row twice
+          exit 1: refused: e379d0c: a venue name is a row twice (498 row lines, 497 names)
+ok      [A] a row line with no closing quote
+          exit 1: refused: 4bec2c0: a row line does not parse:   at "Broken name
+ok      [B] control: the unedited record and rows (must not be refused)
+          exit 0: recomputed from the statement's 75 names, the 79 saved rows, src/Venues.fs and the results file; compared 339 figures with the record: all equal (head
+ok      [B] headline: games at the 71 one too high
+          exit 1: refused: games at the 71: recomputed 283, the record says 284
+ok      [B] headline: the share of the window
+          exit 1: refused: share of the window: recomputed 5.8, the record says 5.9
+ok      [B] a band row: games
+          exit 1: refused: 5 to 9 days: games: recomputed 139, the record says 140
+ok      [B] a reason row: venue-days
+          exit 1: refused: ambiguous name: venue-days: recomputed 25, the record says 26
+ok      [B] a table row: days
+          exit 1: refused: Nu Stadium: days: recomputed 20, the record says 21
+ok      [B] a table row: last date
+          exit 1: refused: Vare Areena TN: last: recomputed 2026-08-27, the record says 2026-08-28
+ok      [B] a table row deleted
+          exit 1: refused: rows in the table of the 71: recomputed 71, the record says 70
+ok      [B] a table row names another venue
+          exit 1: refused: Olympia: games: recomputed 2, the record says 13
+ok      [B] a row of the table of the 4: first date
+          exit 1: refused: Manadon Sports Hub: first: recomputed 2026-11-09, the record says 2026-11-08
+ok      [B] the rows file: a venue one game higher
+          exit 1: refused: games at the 71: recomputed 284, the record says 283
+ok      [B] the rows file: the statement hash altered
+          exit 1: refused: the statement printed now hashes to a7f0627d77a8594f1f7517e9ed3f46b0a753b8bc24770049b3b49d30836f429b, the rows file records b7f0627d77a8594f1
+
+17 of 17 cases as wanted; 0 problem(s)
+coverage: part A, 4 doctored histories and 1 control for the population recount (5); part B, 11 doctored inputs and 1 control for the recompute (12).
+NOT exercised here: in the recount, a missing file or an unknown commit (git itself refuses); in the recompute, a section heading moved, a hold reason it does not know, a review name missing from the results file, and the membership read of src/Venues.fs. Those refusals exist and have not been made to fail.

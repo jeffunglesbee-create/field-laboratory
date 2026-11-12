@@ -1,0 +1,110 @@
+PASS  control: the unedited rows pass every check (holds)
+CAUGHT      a venue's games are one too high
+              venue-review-counts: the column sums of the venue rows differ from the ALL row the database computed: c1 is 296 typed, 295 computed
+CAUGHT      two venues' games and ids are swapped (the column sums are kept)
+              venue-review-counts: the index-weighted sums differ from the database's: c1 is 11660 typed, 11666 computed
+CAUGHT      a first date is typed one day late (every sum of counts is kept)
+              venue-review-counts: the index-weighted date offsets differ from the database's: first dates give 193399 typed, 193398 computed
+CAUGHT      a venue row was lost in transcription
+              venue-review-counts: the statement embedded 75 names but the saved rows hold 74 venue rows (missing index 1)
+CAUGHT      a venue row is typed twice
+              venue-review-counts: a venue row appears twice: index 1
+CAUGHT      a venue row carries an index outside the list
+              venue-review-counts: a venue row has an index outside 1..75
+CAUGHT      the name-list checksum differs
+              venue-review-counts: the name list the statement ran with is not the current one: database 75/1333/1371080/49874/37, now 75/1333/1371079/49874/37 (n/characters/weighted/index-weighted/longest)
+CAUGHT      the index-weighted length checksum differs
+              venue-review-counts: the name list the statement ran with is not the current one: database 75/1333/1371079/49875/37, now 75/1333/1371079/49874/37 (n/characters/weighted/index-weighted/longest)
+CAUGHT      a date is typed outside the window
+              venue-review-counts: AIL Arena (index 1): dates 2026-08-20..2099-01-01 are out of order or outside 2026-07-01..2026-11-11
+CAUGHT      a venue's days exceed its games
+              venue-review-counts: AIL Arena (index 1): days (4) exceed games (3)
+CAUGHT      a venue's distinct ids exceed its games
+              venue-review-counts: AIL Arena (index 1): distinct ids (4) exceed games (3)
+CAUGHT      a venue's distinct homes exceed its games
+              venue-review-counts: AIL Arena (index 1): homes (4) exceed games (3)
+CAUGHT      a venue's games created before the cutoff exceed its games
+              venue-review-counts: AIL Arena (index 1): games created before 2026-10-22 (4) exceed games (3)
+CAUGHT      a venue's date is typed in another format
+              venue-review-counts: AIL Arena (index 1): s1 is not a date ("2026/08/20")
+CAUGHT      a venue's days exceed the span between its first and last date
+              venue-review-counts: Black Desert Resort Golf Course (index 6): 6 days exceed the span of 2026-10-01..2026-10-05
+CAUGHT      the ALL row's latest date is not the latest of the venue rows
+              venue-review-counts: the earliest/latest dates of the venue rows (2026-07-03, 2026-11-11) differ from the ALL row (2026-07-03, 2026-11-12)
+CAUGHT      the window row ends before the venue rows do
+              venue-review-counts: the window row's dates (2026-07-01..2026-11-10) do not hold the venue rows' (2026-07-03..2026-11-11) inside 2026-07-01..2026-11-11
+CAUGHT      the window row carries a number where the statement returns NULL
+              venue-review-counts: win: c4 is not null, the statement's window row returns NULL there (5)
+CAUGHT      an index-weighted date offset is typed as text
+              venue-review-counts: wsum: s1 (an index-weighted date offset) is not a non-negative integer ("193398")
+CAUGHT      the name-list count differs
+              venue-review-counts: the name list the statement ran with is not the current one: database 74/1333/1371079/49874/37, now 75/1333/1371079/49874/37 (n/characters/weighted/index-weighted/longest)
+CAUGHT      the name-list character total differs
+              venue-review-counts: the name list the statement ran with is not the current one: database 75/1334/1371079/49874/37, now 75/1333/1371079/49874/37 (n/characters/weighted/index-weighted/longest)
+CAUGHT      the name-list longest-name length differs
+              venue-review-counts: the name list the statement ran with is not the current one: database 75/1333/1371079/49874/38, now 75/1333/1371079/49874/37 (n/characters/weighted/index-weighted/longest)
+CAUGHT      a venue with games has no dates
+              venue-review-counts: AIL Arena (index 1): games, days and dates disagree about whether the name appears
+CAUGHT      a venue with one day has two different dates
+              venue-review-counts: Arena Egnatia (index 5): 1 day(s) but first 2026-08-20 and last 2026-08-21
+CAUGHT      a count is typed as text
+              venue-review-counts: venue 1: c1 is not a non-negative integer ("3")
+CAUGHT      the saved columns are in another order
+              venue-review-counts: the saved columns are not the statement's
+CAUGHT      a saved row has a cell too many
+              venue-review-counts: a saved row has the wrong number of cells
+CAUGHT      a row has a kind the statement does not return
+              venue-review-counts: a saved row has an unexpected kind: "other"
+CAUGHT      the ALL row is typed twice
+              venue-review-counts: want exactly one "all" row, found 2
+CAUGHT      the window row counts more days than the window holds
+              venue-review-counts: the window row counts 135 days with games, but 2026-07-01..2026-11-11 holds 134 calendar days
+CAUGHT      the window row holds fewer games than the named venues
+              venue-review-counts: the window row (1 games, 1 ids) is smaller than the named venues' games (295) or has more ids than games
+CAUGHT      the saved table definitions are missing
+              venue-review-counts: the saved rows carry no `ddl` record of the two tables' definitions
+CAUGHT      a saved table definition is missing
+              venue-review-counts: ddl: want exactly one table row for regular_season_games, found 0
+CAUGHT      a table's venue column is declared COLLATE NOCASE
+              venue-review-counts: ddl: regular_season_games carries a COLLATE clause, so `=` on its venue column may not compare bytes
+CAUGHT      a table definition names no venue column line
+              venue-review-counts: ddl: postseason_games does not define `venue TEXT` as its own column line
+CAUGHT      an index that carries COLLATE came back from the definitions query
+              venue-review-counts: ddl: an object other than a table carries a COLLATE clause, so `=` may not compare bytes
+CAUGHT      the saved rows name another statement hash
+              venue-review-counts: the saved rows say they came from a statement of 3573 bytes, sha256 0000000000000000000000000000000000000000000000000000000000000000, but `sql 2026-07-01 2026-11-11` prints 3573 bytes, sha2
+CAUGHT      the saved rows name another statement length
+              venue-review-counts: the saved rows say they came from a statement of 3574 bytes, sha256 a7f0627d77a8594f1f7517e9ed3f46b0a753b8bc24770049b3b49d30836f429b, but `sql 2026-07-01 2026-11-11` prints 3573 bytes, sha2
+CAUGHT      control 3: Manadon Sports Hub has two games (every aggregate kept consistent)
+              venue-review-counts: control 3: Manadon Sports Hub must be exactly the one row FA Cup_2026-11-09_e401931098 that the 2026-11-11 session read in the same archive (1 game, 1 day, 2026-11-09); found 2 game(s), 1 d
+CAUGHT      control 2: Manadon Sports Hub is on another day than Step 0 saw it (every aggregate kept consistent)
+              venue-review-counts: control 2: Step 0 saw Manadon Sports Hub on its thin day 2026-11-09, but its dates here are 2026-11-10..2026-11-10 (1 game(s))
+CAUGHT      control 1: a name is absent from the archive window (games 0, every aggregate kept consistent)
+              venue-review-counts: control 1: AIL Arena has no game in the window, but every review name was drawn from the archive's games of that window
+CAUGHT      control 1: the candidates file counted more games than the archive holds
+              venue-review-counts: control 1: AIL Arena: the archive holds 3 game(s) in the window, fewer than the 100002 the candidates file counted (it only accumulates)
+CAUGHT      control 1: more games were created before the cutoff than the candidates file counted
+              venue-review-counts: control 1: AIL Arena: 2 game(s) were created before 2026-10-22, more than the 1 the candidates file counted
+CAUGHT      control 1: the candidates file's last date is after the archive's
+              venue-review-counts: control 1: AIL Arena: its last date 2026-11-05 is before the candidates file's 2099-01-01
+CAUGHT      control 1: a review name is missing from the candidates file
+              venue-review-counts: control 1: AIL Arena is a review name but not a row of data/venue-source-candidates.json
+CAUGHT      control 2: Step 0's thin day lies outside the name's first..last dates
+              venue-review-counts: control 2: Step 0 saw Medinah CC (No. 3) on its thin day 2000-01-01, but its dates here are 2026-09-24..2026-09-28 (5 game(s))
+CAUGHT      control 2: no name Step 0 listed is a review name
+              venue-review-counts: control 2: none of the names Step 0 listed on its thin days is a review name
+CAUGHT      control 3: the 2026-11-11 record names another day for the Manadon row
+              venue-review-counts: control 3: Manadon Sports Hub must be exactly the one row FA Cup_2026-11-09_e401931098 that the 2026-11-11 session read in the same archive (1 game, 1 day, 2026-11-10); found 1 game(s), 1 d
+PASS  control: the unedited session record passes manadonRecord (holds, id FA Cup_2026-11-09_e401931098)
+CAUGHT      the sentence that reads the archive's one Manadon row is gone
+              venue-review-counts: outbox/cc-session-2026-11-11-manadon-row.md: the sentence that reads the archive's one Manadon row ("both tables: one row, `<id>`, `start_time` <date>T...") was not found
+CAUGHT      the row id names another day than its start_time
+              venue-review-counts: outbox/cc-session-2026-11-11-manadon-row.md: the row id "FA Cup_2026-11-08_e401931098" does not carry its start_time's date 2026-11-09
+CAUGHT      the window starts a day after the candidates file's
+              venue-review-counts: the window starts 2026-07-02; the candidates file's starts 2026-07-01, and control 1 compares against its counts
+
+51 of 51 cases caught; control holds; 0 problem(s)
+coverage: 51 doctored inputs: 41 copies of the saved rows, 7 copies of the control records, one doctored window argument (each run through `analyze`, which carries every check that decides whether a record may be written), and 2 copies of the session record (each run through `manadonRecord`).
+NOT exercised here: the statement's own SQL (the join, the window and the date filter are exercised only by the three controls on real data); the compiled-table-versus-source agreement in `lists` (it would need a
+doctored build); the candidates file's `source` text checks in `lists`; the Step 0 thin-day reader on a differently shaped file; the row-count check `rows.length === N + 4` (every way to break it is refused earlier by the
+kind, index and "exactly one" checks, so it cannot fire on its own); and the report's wording. Those checks exist and have not been made to fail.

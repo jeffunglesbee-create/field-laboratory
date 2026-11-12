@@ -1,0 +1,25 @@
+# Review names with no table row, by commit
+
+Read from git: the `review` list of outbox/venue-source-results-latest.json and the `at "<name>"` rows of src/Venues.fs, at each of the 3 commits named. Checked 3 of 3 commits named on the command line; the history between them is not read.
+
+| commit | committed | results file: run, at | review names | rows in the table | review names with a row | review names with no row |
+|---|---|---|---|---|---|---|
+| `87b6bbb1` | 2026-11-09T09:08:11-05:00 | 40141634179, 2026-10-24T23:10:39.159Z | 70 | 484 | 3 | 67 |
+| `3429152d` | 2026-11-09T15:02:23-05:00 | 42682560865, 2026-11-09T19:59:01.826Z | 67 | 487 | 3 | 64 |
+| `0e17a3db` | 2026-11-12T12:51:34+00:00 | 42861596952, 2026-11-10T17:12:32.969Z | 75 | 497 | 4 | 71 |
+
+## `87b6bbb1` to `3429152d`
+
+- Entered the review list (0): none
+- Left the review list (3): Johan Cruijff Arena; U.S. Bank Stadium; Wembley Stadium
+- Left the no-row set (3): Johan Cruijff Arena (a table row at `3429152d`: yes; in `accepted` at `3429152d`: yes); U.S. Bank Stadium (a table row at `3429152d`: yes; in `accepted` at `3429152d`: yes); Wembley Stadium (a table row at `3429152d`: yes; in `accepted` at `3429152d`: yes)
+- Entered the no-row set (0): none
+- No-row set: 67, less 3, plus 0, is 64 (read at `3429152d`; this line restates the two above and checks nothing)
+
+## `3429152d` to `0e17a3db`
+
+- Entered the review list (8): Crabble Athletic Ground; EnviroVent Stadium; Flamingo Park; Manadon Sports Hub; RAW Charging Stadium; Stade de France; The Stan Robinson Stadium; The Wyatt Homes Stadium
+- Left the review list (0): none
+- Left the no-row set (0): none
+- Entered the no-row set (7): Crabble Athletic Ground; EnviroVent Stadium; Flamingo Park; RAW Charging Stadium; Stade de France; The Stan Robinson Stadium; The Wyatt Homes Stadium
+- No-row set: 64, less 0, plus 7, is 71 (read at `0e17a3db`; this line restates the two above and checks nothing)

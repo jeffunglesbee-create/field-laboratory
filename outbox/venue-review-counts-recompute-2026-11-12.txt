@@ -1,0 +1,4 @@
+sql: 3573 bytes, sha256 a7f0627d77a8594f1f7517e9ed3f46b0a753b8bc24770049b3b49d30836f429b, 75 names embedded
+recomputed from the statement's 75 names, the 79 saved rows, src/Venues.fs and the results file; compared 339 figures with the record: all equal (headline 9, bands 15, reasons 12, table of the 71 286, table of the 4 17).
+71 names with no row: 283 games on 261 venue-days of 4906 games on 134 days (5.8%); 4 with a row.
+24 names on 5 or more days carry 182 of the 283 games (64.3%).
