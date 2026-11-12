@@ -12,6 +12,19 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `ed2f995` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `ed2f995` | 2026-11-12 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `ed2f995` | 2026-11-12 | [sport-vocabulary-2026-11-12T02-57-53-062Z.json](sport-vocabulary-2026-11-12T02-57-53-062Z.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `5e6e43d` | 2026-11-12 | [live-other-sports-measurement-2026-11-12.md](live-other-sports-measurement-2026-11-12.md) | docs: other-sports Task 1, reading 2 of 2: 7 of 7 live NBA games unscored in the archive, and no final game in either reading |
+| `f864fa2` | 2026-11-12 | [live-capture-nhl-2026-11-11-0201Z.json](live-capture-nhl-2026-11-11-0201Z.json) | probe: the live /v2/games shape of nhl on 2026-11-11 [skip ci] |
+| `3266042` | 2026-11-12 | [live-capture-nba-2026-11-11-0200Z.json](live-capture-nba-2026-11-11-0200Z.json) | probe: the live /v2/games shape of nba on 2026-11-11 [skip ci] |
+| `f95ecb1` | 2026-11-12 | [live-other-sports-measurement-2026-11-12.md](live-other-sports-measurement-2026-11-12.md) | docs: other-sports Task 1, reading 1 of 2: NBA has soccer's gap in the archive, and NHL cannot use soccer's join |
+| `c1cb3f2` | 2026-11-12 | [live-capture-nhl-2026-11-11-0101Z.json](live-capture-nhl-2026-11-11-0101Z.json) | probe: the live /v2/games shape of nhl on 2026-11-11 [skip ci] |
+| `d5a2c49` | 2026-11-12 | [live-capture-nba-2026-11-11-0100Z.json](live-capture-nba-2026-11-11-0100Z.json) | probe: the live /v2/games shape of nba on 2026-11-11 [skip ci] |
+| `1551805` | 2026-11-12 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-12T00:59 [skip ci] |
+| `6ef6aec` | 2026-11-12 | [cc-session-2026-11-11-install-no-apt.md](cc-session-2026-11-11-install-no-apt.md) | docs: main is green end to end after the landing of options 2 and 3; E1 cleared, still not built |
+| `e98d7b7` | 2026-11-12 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the post-landing runs of the soccer live-scores stack, and one more Fable compiler crash counted where the others are |
+| `0443874` | 2026-11-11 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `0cf1dde` | 2026-11-11 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the soccer live-scores CC-CMD and session record say the stack is on main, and what is still staged |
 | `b5cf990` | 2026-11-11 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of e1f5f28 [skip ci] |
 | `0d07d71` | 2026-11-11 | [cc-session-2026-11-11-manadon-row.md](cc-session-2026-11-11-manadon-row.md) | docs: the four Manadon mutation entries already ran in a scored verify-full |

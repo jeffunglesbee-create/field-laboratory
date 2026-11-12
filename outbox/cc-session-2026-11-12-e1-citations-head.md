@@ -31,6 +31,10 @@ Five lenses (semantics, tests, regression, claims, CI context), a skeptic per fi
 - **Recorded as limits, not fixed:** the pre-commit hook reads `HEAD` only, so while a conflicted merge is being committed a path added and deleted on the branch being merged is invisible to it and the check passes at the door; CI judges the merge commit, where both parents are reachable (a nit: the cost of a weaker local check, with CI authoritative). A file first created inside a merge commit is invisible to `git log --name-only` in the old reader and the new one alike; `diff.renames=copies` drops a copy from the `AR` set; both inherited.
 - **Rejected by skeptics:** that `cleanGitEnv` duplicates two scrubs elsewhere in the repo (true, not a defect of this commit); that the sweep's decoy names `GIT_DIR` although a plain-checkout hook does not set it (the decoy is for the worktree case and the standalone poisoning covers both).
 
-## Not yet done at the time of writing
+## The scored gate and the landing
 
-Independent review, the scored `verify-full`, landing on `main`, and the E1 row's status. This note is completed after them.
+- **Gate:** `verify-full` run 43140989333 on `2ff620c` (the branch tip after merging `main` at `5e6e43d`), dispatched 02:22:49Z, completed `success` 03:12:36Z. `530/530 points = 100/100 (bar: 95)`, 2907 s, ledger line `2ff620c8c2dc-4eb6fff6ea8a`, `failing`, `skipped` and `notApplicable` all empty. The `full` job's log has 0 `RETRY` lines, 0 missing-library errors and 0 apt or dpkg lines; its `Install Chromium` took 10 s. The eight shard logs were not read; the run concluded `success`.
+- **Ledger commits** the gate pushed to the branch: `4d90532` (the mutation baseline) and `8b725e3` (the CI measurement), touching `docs/confidence-log.jsonl`, `docs/scale-log.jsonl` and `outbox/mutation-baseline-latest.json` only.
+- **Main moved** during the gate by docs, status and outbox files only (`ced2cd7`, no overlap with this work); merged into the branch (`4a8a2af`). Since the scored sha, no file under `src/`, `scripts/`, `.github/` or `tests/` differs; the diff against `main` is E1's own files and the three ledger files.
+- **The E1 row** of `docs/CC-CMD-2026-11-06-gate-residuals-remaining.md` records the build, the artifacts and the limit; the CC-CMD's Status says E1 is built.
+- **Landing push and its runs:** recorded below after they are read.
