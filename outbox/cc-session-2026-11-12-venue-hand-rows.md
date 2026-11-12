@@ -29,7 +29,7 @@ The deployed table is read after the push (Landing, below).
 |---|---|
 | start of this work | `aa02004a` |
 | after `git pull --rebase origin main` | `32ba1de2` (two bot commits since: `status: refresh`, `forecast: run 2026-11-12T15:35`; they touch `STATUS.md`, `outbox/INDEX.md` and `outbox/forecast-dry-run-latest.json` only) |
-| this work | two commits: the rows with their evidence, then the landing record (hashes in Landing) |
+| this work | two commits: `bf1fdf4c` (the rows with their evidence; `85117a9e` before the rebase), then this landing record |
 
 ## What was built
 
@@ -119,3 +119,15 @@ node scripts/mutation-check.mjs --ids venue-hand-row-deleted,venue-hand-row-roof
 ## Open
 
 The owner's keep or revert on the 61 rows, and his approval of Task 5. Nothing is deferred: both are decisions, recorded in the CC-CMD's second Result under Task 4 and in Task 5.
+
+## Landing (manifest, written after the push)
+
+| item | value |
+|---|---|
+| commit | `bf1fdf4c` (`bf1fdf4ca9c6359bb8500f4ef5839d97d0f228ab`) on `main`, pushed 2026-11-12 about 17:22Z after `git pull --rebase origin main` (two bot commits; the rebase changed none of the 16 files; the commit was `85117a9e` before it). 16 files: `src/Venues.fs`, `src/Suite.fs`, `scripts/mutation-check.mjs`, the CC-CMD and 12 under `outbox/` |
+| workflow runs on that commit | `guards` 43268733949 `success` (job 131359217269, 19 steps); `verify` 43268734146 `success` (job 131359218577, 113 steps, none failed, 2 skipped); `deploy` 43270433554 `success`; `live-check` 43270651320 `success` (job 131365971686, 21 steps, none failed or skipped); `status` 43270433334 `skipped`. All read by REST on 2026-11-12 |
+| what verify's log says about these rows | the F# suite prints `PASS the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives` and `477/477 checks held`; the weather step prints `Checking 558 venue coordinates against Open-Meteo's resolved zone`, `checked 558 of 558 venues` and `PASS every venue resolves to the IANA zone it declares` (17:30:19Z to 17:31:49Z). That is a runner's reading of the 61 rows, beside the page-fetch reading in `outbox/venue-hand-rows-open-meteo-zones-2026-11-12.txt` |
+| done-condition probe (deployed) | `https://field-laboratory.jeffunglesbee.workers.dev/build/Venues.js`: HTTP 200, 51873 bytes, sha256 `b0dda743fb1387bff3dad1c148988b62b1d53c121ced98be1ac2bed688d35cde`, equal to `build/Venues.js` and `public/build/Venues.js` on the tree; `/version.txt` is `bf1fdf4ca9c6359bb8500f4ef5839d97d0f228ab`; all 61 names are in the live module (61 found, 0 missing) |
+| a probe that printed ABSENT | the first name matcher printed ABSENT for `Children's Mercy Park`. The compiled module writes the apostrophe as `\'` (`Children\'s Mercy Park`). The cause was read in the module, the matcher was corrected, and the corrected one found 61 of 61. The sha256 equality had already shown the module is the one built from the rows |
+| CC-CMD state | `docs/CC-CMD-2026-11-09-venue-review-remainder.md`: Status PARTIAL, Result 2026-11-12 (second) under Task 4 with its Landed line, Task 5 filed and not approved |
+| genuine residual | the owner's keep or revert on the 61 rows (Task 4's Done-when, second clause) and his approval of Task 5. Nothing is deferred |
