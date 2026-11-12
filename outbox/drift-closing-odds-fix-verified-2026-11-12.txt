@@ -54,8 +54,9 @@ COVERAGE BY COMPETITION (the live /context/date/<d> payload read 2026-11-12; lab
   2026-11-09  FA Cup 0/1
   2026-11-10  EFL Trophy 0/17
   2026-11-11  EFL Trophy 0/2
-  checked 8 of 8 dates. EPL carried a line on 10 of 10 games and La Liga on 10 of 10 across the three dates they played. Every date a red run probed
-  held only competitions with 0 priced games, except 11-04 (see NOT KNOWN).
+  checked 8 of 8 dates. EPL carried a line on 10 of 10 games and La Liga on 10 of 10 across the three dates they played. On every date a red run probed,
+  no soccer game carried an opening line, except 11-04 (see NOT KNOWN). That includes one MLS game on 11-05, although MLS carried lines on 22 of 23 on 11-07;
+  why that game had none was not measured.
   Source versus copy: the payloads saved earlier for 11-08, 11-09 and 11-10 and the live route read now have identical sha256 (first 12: dcac7db90689,
   22aba48074c2, afc168384fae). The relay serves the same 126197-byte body for 2026-11-13, 11-14 and 11-15 with 0 regular games.
 
