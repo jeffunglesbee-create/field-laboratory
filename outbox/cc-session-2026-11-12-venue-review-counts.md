@@ -99,3 +99,13 @@ node outbox/venue-review-counts-mutations-2026-11-12.mjs | tail -4
 ## Open
 
 The owner's decision on each of the 71 venues: a list of names, or a rule such as every name on 5 or more days (24 names, 182 of the 283 games). Each row is then built the way Manadon Sports Hub's was in Task 3: the owner's yes, the evidence assembled and put beside the row, then the owner's keep or revert. Nothing is deferred in this session: no second CC-CMD is written because the remainder is a decision, recorded in the CC-CMD's Result 2026-11-12 and its Not in scope.
+
+## Landing (manifest, written after the push)
+
+| item | value |
+|---|---|
+| commit | `c86b047d` on `main`, pushed 2026-11-12 13:33Z, 12 files (11 under `outbox/` and the CC-CMD), no source |
+| workflow runs on that commit | one: `guards` run 43228455202, event `push`, `success`, job 131217670372, 19 steps, none other than `success` (read by REST on 2026-11-12). `docs/**` and `outbox/**` are outside `verify`'s and `deploy`'s triggers, so no other run was expected and none had appeared at the last read, about a minute after the push |
+| done-condition probe | the three lines under "Done condition" above, from `node outbox/venue-review-counts-recompute-2026-11-12.mjs ...` run on the tree this commit holds; the Reproduce block was run on the same tree and `cmp` found every regenerated file identical |
+| CC-CMD state | `docs/CC-CMD-2026-11-09-venue-review-remainder.md`, Status PARTIAL 2026-11-12, with Result 2026-11-12 under Task 4 |
+| genuine residual | the owner's decision on each of the 71 venues (the CC-CMD's Done-when, second clause). Nothing is deferred |
