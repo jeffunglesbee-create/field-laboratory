@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `eb8903c` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: the runs on E1's landing are green: verify, guards, deploy (published) and live-check |
+| `f205cea` | 2026-11-12 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f2c380f` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: E1 is built; the scored gate on 2ff620c read 530/530 |
 | `4d90532` | 2026-11-12 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 2ff620c [skip ci] |
 | `ced2cd7` | 2026-11-11 | [drift-closing-odds-fix-verified-2026-11-12.txt](drift-closing-odds-fix-verified-2026-11-12.txt) | docs: the closing-odds update states the counts on the red dates and no more than they show |
