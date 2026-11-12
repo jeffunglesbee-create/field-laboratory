@@ -12,6 +12,8 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `787f650` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: the runs on option 1's landing are green: verify (browser-gate, final step skipped), guards, deploy (published), live-check |
+| `f898f50` | 2026-11-12 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a971445` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: option 1 (the verify job's browser steps wait for the install) is built and scored 530 of 530 |
 | `2ef2b4e` | 2026-11-12 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of c7f5991 [skip ci] |
 | `a932f5d` | 2026-11-12 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the first scheduled drift-sentinel run since the landing succeeded; what it shows and what it does not |
