@@ -1,0 +1,137 @@
+checked the 14 most recent of 214 drift-sentinel runs, 8 of 8 probed dates with 2 script versions each, and 1 dispatched run: the fix already on main (1f4a3464) turns the 4 dates the old script read REGRESSED on (11-05, 11-09, 11-10, 11-11) into "no rows", keeps "holds" on the 3 dates EPL and La Liga played, and dispatched run 43144848254 on main finished success with no failing step
+
+WHAT THIS IS
+The owner said "Fix the sentinel" at 2026-11-11 21:47 ET. The fix already existed. Another session wrote it (1f4a3464) and it reached main in
+the live-scores landing, so nothing was built here (BUILD-ON-A). This file verifies it: which runs it could not have affected, what it reads on
+every date the red runs probed, and what a real run on main printed. Written after run 214 finished (02:58Z on 2026-11-12, 21:58 ET on 11-11).
+
+CORRECTION OF THIS SESSION'S OWN EARLIER STATUS
+This session had reported that no commit touched scripts/cc-cmd-followup.mjs or .github/workflows/drift-sentinel.yml since 2026-11-11 22:00Z and that
+a sentinel fix was only offered. Both came from a log filtered on commit date. 1f4a3464 carries the date 08:27Z and entered main at 23:39Z, so a
+date-filtered log cannot see it. `git log -S'OPENING_ASK_LABELS' -- scripts/cc-cmd-followup.mjs` shows it.
+
+THE FIX, AND WHEN IT REACHED MAIN (read with git, 2026-11-12)
+  1f4a3464  authored and committed 2026-11-11T08:27:54Z, session 01Qohnz7nEa63Hj99beetXWg (its Claude-Session trailer)
+            "fix: the closing-odds sentinel asks about the competitions the ask names, so a midweek of unpriced cup soccer is not a regression"
+            files: scripts/cc-cmd-followup.mjs, scripts/mutation-check.mjs, outbox/drift-closing-odds-scope-2026-11-11.md
+            scope: soccerOpeningCoverage counts only EPL and La Liga (OPENING_ASK_LABELS, compared by the registry's Label). A slate with neither is null.
+            An EPL game with no line is still false. Three self-test cases and two mutation entries.
+  f273009d  "Merge live-scores-t3: ..." committed 2026-11-11T23:39:28Z. The first main commit (first-parent walk, 120 commits) that contains 1f4a3464.
+            Its first-parent predecessor 0d07d712 does not. Between the fix and it, `git log --ancestry-path` lists 5 "Merge main into live-scores-t3"
+            commits, so the fix sat on that branch until the landing.
+  run 213 head e44c7207 (committed 19:18:55Z): does not contain the fix (git merge-base --is-ancestor 1f4a3464 e44c7207 says no). Run 213 ran the old script.
+  run 214 head 0748c0f7: contains 1f4a3464 (git merge-base --is-ancestor 1f4a3464 0748c0f7 says yes).
+  In the logs: run 213 prints "55/55 checks passed" at line 383 and none of the three new cases (0 hits). Run 214 prints the three at lines 360 to 362 and
+  "58/58 checks passed" at line 389. It is the only "checks passed" total that differs between the two logs, and 55 plus the three new cases is 58.
+
+THE 14 MOST RECENT RUNS (of 214), closing-odds row as each log printed it. probed = created minus one day, UTC, which is what the script's yesterdayUTC() does
+  run  created (UTC)        head      conclusion  probed      closing-odds row
+  213  2026-11-11 19:27:13  e44c7207  failure     2026-11-10  REGRESSED
+  212  2026-11-11 07:53:25  5b81a59a  failure     2026-11-10  REGRESSED
+  211  2026-11-10 19:33:03  08a0443f  failure     2026-11-09  REGRESSED
+  210  2026-11-10 08:32:11  aa7e9a19  failure     2026-11-09  REGRESSED
+  209  2026-11-09 22:11:10  b1e02dab  success     2026-11-08  holds
+  208  2026-11-09 08:12:45  cc8caf2b  success     2026-11-08  holds
+  207  2026-11-08 17:49:56  5df53142  success     2026-11-07  holds
+  206  2026-11-08 07:35:35  439d3067  success     2026-11-07  holds
+  205  2026-11-07 17:40:13  56426f61  success     2026-11-06  holds
+  204  2026-11-07 07:25:24  36783a96  success     2026-11-06  holds
+  203  2026-11-06 19:10:56  fcbc07d5  failure     2026-11-05  REGRESSED
+  202  2026-11-06 08:05:12  3358979f  failure     2026-11-05  REGRESSED
+  201  2026-11-05 19:46:31  ba08ccfa  success     2026-11-04  holds
+  200  2026-11-05 08:00:11  1e6289e3  failure     2026-11-04  REGRESSED
+  For each of the 7 red runs, the steps whose conclusion was not success or skipped: exactly one, "Did the filed CC-CMDs land?". The ##[error] line in
+  each names CC-CMD-2026-08-21-closing-odds-capture (surviving ask) and the date in the table. No other entry is REGRESSED in any of the 14 logs.
+  Run 200 and run 201 probed the same date and disagreed (see NOT KNOWN).
+
+COVERAGE BY COMPETITION (the live /context/date/<d> payload read 2026-11-12; labels from the registry in build/Desk.js; *ASK* = the two the ask names)
+  date        soccer rows: games carrying an opening line / games
+  2026-11-04  UEFA Champions League 1/9 (the one line has captured_at 11-04T21:57Z), UEFA Europa League 0/1
+  2026-11-05  MLS 0/1, UEFA Europa League 0/17, UEFA Europa Conference League 0/18
+  2026-11-06  EPL *ASK* 1/1, La Liga *ASK* 1/1, Serie A 1/1, Ligue 1 1/1, Bundesliga 0/1, FA Cup 0/2
+  2026-11-07  EPL *ASK* 4/4, La Liga *ASK* 4/4, Serie A 4/4, Bundesliga 5/5, Ligue 1 2/2, MLS 22/23, FA Cup 0/33
+  2026-11-08  EPL *ASK* 5/5, La Liga *ASK* 5/5, Serie A 5/5, Bundesliga 3/3, Ligue 1 6/6, FA Cup 0/4
+  2026-11-09  FA Cup 0/1
+  2026-11-10  EFL Trophy 0/17
+  2026-11-11  EFL Trophy 0/2
+  checked 8 of 8 dates. EPL carried a line on 10 of 10 games and La Liga on 10 of 10 across the three dates they played. Every date a red run probed
+  held only competitions with 0 priced games, except 11-04 (see NOT KNOWN).
+  Source versus copy: the payloads saved earlier for 11-08, 11-09 and 11-10 and the live route read now have identical sha256 (first 12: dcac7db90689,
+  22aba48074c2, afc168384fae). The relay serves the same 126197-byte body for 2026-11-13, 11-14 and 11-15 with 0 regular games.
+
+REPLAY: THE SAME SCRIPT VERSIONS, THE SAME 8 DATES
+  pre-fix = `git show e44c7207:scripts/cc-cmd-followup.mjs`, the script run 213 ran. It is identical to the fix's parent version (git diff --quiet).
+  post-fix = scripts/cc-cmd-followup.mjs on main.
+  Both were run as real scripts. A preload changes only the date in the /context/date route; every other route is the real relay route, fetched once.
+  probed-date  recorded verdicts               pre-fix   post-fix
+  2026-11-04   run200 REGRESSED / run201 holds  holds     no rows
+  2026-11-05   run202 REGRESSED / run203 REGRESSED  REGRESSED  no rows
+  2026-11-06   run204 holds / run205 holds      holds     holds
+  2026-11-07   run206 holds / run207 holds      holds     holds
+  2026-11-08   run208 holds / run209 holds      holds     holds
+  2026-11-09   run210 REGRESSED / run211 REGRESSED  REGRESSED  no rows
+  2026-11-10   run212 REGRESSED / run213 REGRESSED  REGRESSED  no rows
+  2026-11-11   (no run yet)                     REGRESSED no rows
+  checked 8 of 8 dates. The pre-fix replay reproduces the recorded verdict on 6 of the 6 dates where both recorded runs agreed, and one of the two on
+  11-04 (run 201's, not run 200's). The pre-fix script, run now, would have failed the 11-11 probe too; the fixed one does not.
+  Faithfulness of the replay: src/Desk.fs changed after the local build/Desk.js was made (build 2026-11-08 12:36Z; Desk.fs commit 5a1f98bb, 2026-11-11 05:52Z), and
+  the diff is 13 added lines, a start-time helper, with no change to sportMeta or sportOfString. The script's own self-test (58 of 58) ran on that build.
+
+LIVE PROOF: A RUN ON MAIN
+  run 43144848254, event workflow_dispatch, head 0748c0f7, created 2026-11-12T02:56:54Z, updated 02:58:00Z, conclusion success.
+  Every step success except two skipped by design: "The red-main sentinel's write paths still work (Sundays)" (schedule only) and "Fail if the sentinel failed"
+  (the sentinel's own exit code was 0). It probed /context/date/2026-11-11, whose soccer was 2 EFL Trophy games with no line. Verbatim from the log:
+    2026-11-12T02:57:52.0205362Z   no rows    CC-CMD-2026-08-21-closing-odds-capture (surviving ask)
+    2026-11-12T02:57:52.0246818Z ##[warning]NOT OBSERVABLE CC-CMD-2026-08-21-closing-odds-capture (surviving ask) — /context/date/2026-11-11 answered, but this slate carried nothing the predicate could judge. Not a regression.
+  The state stays visible as a warning, not silent. Run 213, on the old script, printed REGRESSED for the same ask on a slate of EFL Trophy games.
+  This satisfies the verify criterion the landing session wrote at outbox/cc-session-2026-11-11-soccer-live-scores.md line 54: the closing-odds row is not
+  REGRESSED on a day whose only soccer rows are EFL Trophy games. That file was not edited here.
+  The drift-log row for it is ed2f9951 on main, committed 2026-11-12T02:57:53Z by the workflow's identity, parent 0748c0f7 (run 214's head).
+
+THE FIX'S OWN MUTATION ENTRIES, RE-RUN HERE (Rule 90, Rule 72)
+  node scripts/mutation-check.mjs --ids drift-closing-odds-counts-every-soccer-sport,drift-closing-odds-drops-la-liga, on a clean tree:
+    PASS  [drift-closing-odds-counts-every-soccer-sport] the closing-odds sentinel asks about the competitions the ask names, not every soccer sport
+    PASS  [drift-closing-odds-drops-la-liga] La Liga is one of the two competitions the closing-odds ask names
+    3/3 checks passed
+  git status after: 0 changed files, scripts/cc-cmd-followup.mjs byte-identical to HEAD. node scripts/mutation-check.mjs --anchors: checked 1442 of 1445 mutation anchors; 0 stale.
+  PASS here means the entry's expected command (the follow-up's --self-test) went red under the mutation. This was a local run, not a scored verify-full.
+
+NOT KNOWN
+  - Why run 200 read REGRESSED on 11-04 while run 201, 11 hours later, and today's replay read holds. The one Champions League line on 11-04 carries
+    captured_at 2026-11-04T21:57Z, before run 200's read at 11-05 08:00Z, so the line's own timestamp does not explain it. When that row was written was not measured.
+    The fixed script reads no rows on 11-04 either way, because that line is not EPL or La Liga.
+  - The replay used today's payloads, not the payloads each run saw. Reproducing 6 of 6 agreed verdicts supports that they match; it does not prove it.
+  - The coverage table is read from the relay route. The landing session's note (outbox/drift-closing-odds-scope-2026-11-11.md) read D1; the two agree on 11-07, 11-08,
+    11-09 and 11-10 for every competition both list. D1 was not re-queried here.
+  - The date of the next EPL or La Liga slate. The relay lists no fixtures for 11-13 to 11-15, and the football calendar was not read.
+  - Whether the next scheduled run passes. It probes the same date run 214 did, so the same reading is expected; it has not been observed.
+
+STAGED (Rule 74): the "holds" reading on a runner after the fix
+  What: the closing-odds row printing holds in a sentinel run on the fixed script. Shown so far by the replay on 11-06, 11-07 and 11-08 and by the runner's own
+  self-test (an EPL game with a line reads LANDED, an EPL game with none beside cup games reads not-landed).
+  Blocked by: no run since the landing has probed a date with an EPL or La Liga game.
+  Unblocked when: a sentinel run probes such a date. The sentinel runs twice a day, no action needed.
+  Verify: on that run, the closing-odds row from `gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/<job id>/logs | grep -E 'Z +(REGRESSED|holds|no rows) +CC-CMD-2026-08-21-closing-odds'`
+  must read holds. REGRESSED there turns that run red by itself.
+
+SEEN, NOT THIS TASK (Rule 69)
+  - CC-CMD-2026-08-16-quality-coverage-route, an open ask, reads "HTTP 403" in run 213 and run 214 alike. It is the "1 unverifiable" in the summary line. It does not fail the
+    run (the run fails only when every open-ask probe is unreachable). Cause of the 403 not measured.
+  - Scheduled runs start 5.7 to 10.2 h after their cron, 14 of 14 (01:30Z cron: 5.9 to 7.0 h on 7 runs; 12:00Z cron: 5.7 to 10.2 h on 7 runs). Already recorded 2026-09-20 in
+    outbox/2026-09-20-rule-9-upstream-adopted-the-carve-out.md lines 90 to 97, so not filed again.
+
+RE-RUN
+  runs and each run's closing-odds row:
+    gh api 'repos/jeffunglesbee-create/field-laboratory/actions/workflows/drift-sentinel.yml/runs?per_page=14' --jq '.workflow_runs[] | [.id,.created_at,.head_sha[0:8],.conclusion] | @tsv'
+    J=$(gh api repos/jeffunglesbee-create/field-laboratory/actions/runs/<run id>/jobs --jq '.jobs[0].id'); gh api repos/jeffunglesbee-create/field-laboratory/actions/jobs/$J/logs | grep -E 'Z +(REGRESSED|holds|no rows|unverified) +CC-CMD-2026-08-21-closing-odds'
+  when the fix reached main:
+    git log -S'OPENING_ASK_LABELS' --format='%h %ad %s' --date=iso-strict -- scripts/cc-cmd-followup.mjs
+    git merge-base --is-ancestor 1f4a3464 e44c7207; echo $?      # 1 = run 213's head lacks it
+    git merge-base --is-ancestor 1f4a3464 0748c0f7; echo $?      # 0 = run 214's head has it
+  the replay (needs build/ from `dotnet fable src/Laboratory.fsproj --outDir build`, and a scratch directory $SP):
+    mkdir -p $SP/pre/scripts; git show e44c7207:scripts/cc-cmd-followup.mjs > $SP/pre/scripts/cc-cmd-followup.mjs
+    ln -s "$PWD/scripts/soccer-brief-defect.mjs" "$PWD/scripts/checks.mjs" $SP/pre/scripts/; ln -s "$PWD/build" $SP/pre/build
+    preload ($SP/date-stub.mjs): wrap globalThis.fetch so a URL containing /context/date/YYYY-MM-DD is requested with the date process.env.PROBE_DATE instead,
+    and every response is fetched once and cached by URL; nothing else is changed.
+    for D in 2026-11-04 ... 2026-11-11; do for S in $SP/pre/scripts/cc-cmd-followup.mjs scripts/cc-cmd-followup.mjs; do
+      PROBE_DATE=$D node --import $SP/date-stub.mjs $S | grep -E '^ +(REGRESSED|holds|no rows|unverified) +CC-CMD-2026-08-21-closing-odds'; done; done
