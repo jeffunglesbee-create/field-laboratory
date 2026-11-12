@@ -523,8 +523,14 @@ if (isMain(import.meta.url) && !SELF_TEST) {
       for (let i = 0; t0 === null && i < 100; i++) await pg.waitForTimeout(50)
       const before = await readCard(pg, EARLY)
       const tNow = await pg.evaluate(() => Date.now())
-      await pg.clock.pauseAt(new Date(tNow + 1))
-      const e = tNow + 1 - t0
+      // The installed clock RUNS until it is paused, so the page's time moves between the read above and the pause below, and `pauseAt` throws "Cannot fast-forward
+      // to the past" when its target is behind the page's time by then. A target 1 ms ahead was crossed on a loaded runner (shard 2 of verify-full 43170926697, 2026-11-12,
+      // while the build driver compiled: the unmutated baseline died here), and locally under CPU load in 1 of 8 runs; the call itself took 1.3 to 2.9 ms idle and up to 17 ms
+      // loaded. The pause is PAUSE_AHEAD_MS ahead and `e` is taken from that exact time, so the margin only moves `e` (bounded below by geometryOk, < 10 s) and no timer of the poll
+      // is shorter than the 60 s interval. outbox/live-score-clock-race-2026-11-12.txt.
+      const PAUSE_AHEAD_MS = 1000
+      await pg.clock.pauseAt(new Date(tNow + PAUSE_AHEAD_MS))
+      const e = tNow + PAUSE_AHEAD_MS - t0
       const geometryOk = Number.isFinite(DEADLINE_MS) && t0 !== null && e >= 0 && e < 10_000 && DEADLINE_MS >= TICK_PAST + 2 * BAND
       let insideDeadline = null, askedInside = null, justBefore = null, cut = null
       if (geometryOk) {
