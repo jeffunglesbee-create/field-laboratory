@@ -1,0 +1,23 @@
+the step: The browser checks' own self-tests, which launch no browser
+self-tests read from it: 6
+
+CONTROLS (each must launch under the stub, or the instrument cannot see a launch):
+  LAUNCHED  node scripts/spark-check.mjs  (exit 1; 1 launch line(s): chromium.launch)
+  LAUNCHED  node scripts/live-score-probe.mjs --e2e  (exit 1; 1 launch line(s): chromium.launch)
+
+THE SIX SELF-TESTS:
+  ok       node scripts/viewport-overflow-check.mjs --self-test  (exit 0; 12/12 checks passed; 0 launches)
+  ok       node scripts/axis-check.mjs --self-test  (exit 0; 17/17 checks passed; 0 launches)
+  ok       node scripts/draw-render-check.mjs --self-test  (exit 0; 4/4 checks passed; 0 launches)
+  ok       node scripts/verify-render-check.mjs --self-test  (exit 0; 4/4 checks passed; 0 launches)
+  ok       node scripts/metrics-render-check.mjs --self-test  (exit 0; 35/35 checks passed; 0 launches)
+  ok       node scripts/team-tint-render-check.mjs --self-test  (exit 0; 5/5 checks passed; 0 launches)
+
+checked 6 of 6 self-tests: 6 exit 0, 6 with 0 launches; positive control: 2 of 2 launched
+verdict: the six self-tests launch no browser
+
+MUTATION (Rule 90), run once by hand and recorded here: `scripts/axis-check.mjs` was edited so that its `--self-test` branch awaits `import('playwright')` and calls `launch()` (the call's rejection swallowed), the same command was run, and the file was restored (`git status` showed it unmodified afterwards):
+  PROBLEM  node scripts/axis-check.mjs --self-test  (exit 0; 17/17 checks passed; 1 launches)
+  checked 6 of 6 self-tests: 6 exit 0, 5 with 0 launches; positive control: 2 of 2 launched
+  verdict: NOT ESTABLISHED          (exit 1)
+A self-test that still passed its own assertions was caught only by the launch log, which is why the log and not the exit code is the instrument.

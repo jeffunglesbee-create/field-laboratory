@@ -74,9 +74,10 @@ jobs:
 
   # Its OWN job, for the reason push-lands above has one: it parses workflow YAML (python3 and PyYAML, no node, no build, no
   # browser), so it runs in seconds, in parallel, and nothing in `verify` can park it. WHAT IT GUARDS: the `verify` job's
-  # steps that need a browser wait for the Chromium install and no other step does, so a failed install (the Ubuntu mirrors
-  # were unreachable for about three hours on 2026-11-11) no longer skips the F# suite and sixty other checks that never
-  # needed one. docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, option 1.
+  # steps that need a browser wait for the Chromium install and no other step does, so a failed install (on 2026-11-11 the
+  # runner could not resolve the Ubuntu mirrors for about three hours; the cause is not established) no longer skips the
+  # F# suite and the other browser-free steps: 44 of the 63 steps that outage skipped needed no browser.
+  # docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md, option 1.
   browser-gate:
     runs-on: ubuntu-latest
     steps:
@@ -327,16 +328,35 @@ jobs:
       # No --with-deps (apt) and a time limit: docs/CC-CMD-2026-11-11-runner-apt-mirror-dns.md.
       #
       # `continue-on-error`, and the last step of this job: the install failing is NOT a step failure, so the steps that need
-      # no browser still run (on 2026-11-11 a three-hour mirror outage skipped 63 steps, the F# suite among them, for a reason
-      # that said nothing about the commit). The steps that DO need one carry `steps.chromium.outcome == 'success'`, and the
-      # final step fails the job when the install did not succeed, so it is never green with the browser steps skipped.
-      # scripts/check-browser-gate.py (job `browser-gate`) keeps all three true: which steps need a browser is decided from
-      # the scripts they run, not by hand.
+      # no browser still run (on 2026-11-11 the runner could not resolve the Ubuntu mirrors for about three hours and 63 steps
+      # were skipped, 44 of them browser-free and the F# suite among them, for a reason that said nothing about the commit).
+      # The steps that DO need a browser carry `steps.chromium.outcome == 'success'`, and the final step fails the job when
+      # the install did not succeed, so it is never green with the browser steps skipped. scripts/check-browser-gate.py
+      # (job `browser-gate`) keeps that true: which steps need a browser is decided from the scripts they run, not by hand,
+      # a step it cannot read is refused, and the final step's script is RUN to see that it fails.
+      #
+      # `continue-on-error` is on this step and on no other: anywhere else it would swallow a red step and leave the job green.
       - name: Install Chromium
         id: chromium
         continue-on-error: true
         timeout-minutes: 3
         run: npx playwright install chromium
+
+      # The self-tests of six render checks below. Each one's npm script runs its own `--self-test` first and then drives a
+      # browser, so inside a gated step the self-test, which launches nothing, waited for the install with the rest and an
+      # outage skipped it. Here it does not. Measured 2026-11-12 (outbox/self-tests-no-launch-2026-11-12.txt): all six pass
+      # (77 assertions) with a playwright that throws on launch and no browser on disk, 0 launches, while two browser scripts
+      # under the same stub, the positive control, do launch; and the measurement goes red when one self-test is edited to
+      # launch. Nothing runs that measurement in CI: if a self-test ever launched, this step would fail in an outage, red.
+      # The npm scripts still run each once more ahead of the live half, for a few hundred milliseconds apiece.
+      - name: The browser checks' own self-tests, which launch no browser
+        run: |
+          node scripts/viewport-overflow-check.mjs --self-test
+          node scripts/axis-check.mjs --self-test
+          node scripts/draw-render-check.mjs --self-test
+          node scripts/verify-render-check.mjs --self-test
+          node scripts/metrics-render-check.mjs --self-test
+          node scripts/team-tint-render-check.mjs --self-test
 
       - name: Render checks (both captures, including the state transition)
         if: steps.chromium.outcome == 'success'
@@ -1360,8 +1380,21 @@ jobs:
       # LAST, and `always()`: without this a failed install would leave the job green with every browser step skipped.
       # `!= 'success'` and not `== 'failure'`: a step killed by its timeout-minutes may conclude as something other than
       # `failure`, and a final step that missed that would be green over a skipped suite.
+      #
+      # The outcome comes in through `env:` and the script says which of three things happened. `skipped` is an EARLIER step
+      # failing first (the install has no `if`, so only a failure or a cancel before it skips it): that step is the cause and
+      # this one adds nothing but the reminder that no browser step ran. scripts/check-browser-gate.py RUNS this script under
+      # bash for each outcome and requires a non-zero exit with an `::error::` line, so the last line cannot become `true`.
       - name: Install Chromium did not succeed, so the steps that need a browser were skipped
         if: always() && steps.chromium.outcome != 'success'
+        env:
+          INSTALL_OUTCOME: ${{ steps.chromium.outcome }}
         run: |
-          echo "::error::The Chromium install did not succeed (outcome: ${{ steps.chromium.outcome }}). The steps that need a browser were skipped and every other step ran. This commit is NOT verified."
+          if [ "$INSTALL_OUTCOME" = skipped ]; then
+            echo "::error::The Chromium install was skipped because an earlier step failed. That step, not the install, is the cause. The steps that need a browser did not run. This commit is NOT verified."
+          elif [ "$INSTALL_OUTCOME" = cancelled ]; then
+            echo "::error::The run was cancelled before the Chromium install finished. This commit is NOT verified."
+          else
+            echo "::error::The Chromium install did not succeed (outcome: ${INSTALL_OUTCOME:-none, is the step id still chromium?}). The steps that need a browser were skipped. This commit is NOT verified."
+          fi
           exit 1
