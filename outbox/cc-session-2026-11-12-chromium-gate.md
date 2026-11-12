@@ -85,6 +85,10 @@ dispatched 05:02Z on throwaway branches (fast-forwarded to `35800cd` and `b77246
 
 The gate's two ledger commits (`7ef4e52`, `17353b5`: the mutation baseline and the measurement of `4ce37c2`) are merged into the branch as they were written, so the history says 510 on that commit; the next scored gate overwrites the baseline.
 
-## Not yet done at the time of writing
+## The second scored gate: 530/530
 
-A scored `verify-full` on the branch, landing, and the CC-CMD status. This note is completed after them.
+`verify-full` **43183403133** on `c7f5991` (08:29Z to 09:23Z, 3115 s of measured work): **530 of 530 (100)**, `failing []`, `skipped []`, all eight mutation shards `success`. `c7f5991` holds both the option-1 fixes and the pause-margin fix (`34f1c46`); nothing was re-run to get it (the first gate's red was investigated, root-caused and fixed, then a fresh gate was dispatched). The gate's ledger commits (`2ef2b4e`, `bc416e7`) and `main` (drift-sentinel and status refreshes, a docs commit) were merged into the branch with `git merge`; the landing diff to `main` has no `outbox/.trigger-*`.
+
+## Landing
+
+The runs on the landing commit (`verify` with its `browser-gate` job and the final step, `guards`, `deploy`, `live-check`) are recorded below by a follow-up commit once they have been read.
