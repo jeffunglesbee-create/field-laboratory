@@ -77,6 +77,14 @@ dispatched 05:02Z on throwaway branches (fast-forwarded to `35800cd` and `b77246
 
 `verify` dispatched on the branch itself at `5880003`, no sabotage: **run 43169163026, all six jobs `success`**. `Install Chromium` succeeded (10 s), the five self-tests ran, all 20 browser steps ran and passed (the F# suite and every browser-free step as well), the final step was `skipped`, and `browser-gate` passed. The change does not break the ordinary case. Details in `outbox/option1-failure-path-proof-2026-11-12.md`.
 
+## The first scored gate: 510/530, one row, and what it was
+
+`verify-full` 43170926697 on `4ce37c2` (06:50Z to 07:44Z) scored **510 of 530 (96)**; the only failing row was "breaking each invariant makes a check fail" (20 points). Cause: mutation shard 2's unmutated baseline died because `scripts/live-score-render-check.mjs` (the soccer session's check) crashed with `clock.pauseAt: Error: Cannot fast-forward to the past`. Its 181 mutations were all caught; it was the control that failed. Nothing in this branch touches that check, and the same check had passed in `verify` (43169163026) at 06:42Z on the same code. 96 meets the 95 rule, but a red row with an unexplained cause is not a clearance, so it was investigated and not re-run.
+
+**Root cause (measured, not read):** the clock `install`ed at the slate's time runs until it is paused, so the page's time moves between `pg.evaluate(() => Date.now())` and `pg.clock.pauseAt(new Date(tNow + 1))`; a 1 ms target is behind the page whenever that round trip takes longer than 1 ms. The call took 1.3 to 2.9 ms idle and up to 17 ms under CPU load; the shard's baseline ran while the build driver compiled. Reproduced locally under load (1 of 8 runs), then 30 runs of each file alternating under 16 busy processes on 4 cores (`outbox/live-score-clock-race-2026-11-12.txt`): the old margin failed 3 of 30, all with this error; a 1000 ms margin 0 of 30. **Fixed** in `34f1c46` (one hunk of the check; the pause is `PAUSE_AHEAD_MS = 1000` ahead and `e` comes from that exact time; the poll has no timer shorter than 60 s). The soccer session was told, and its CC-CMD records it. A bare `about:blank` page did not reproduce it (0 of 300 at 1 ms, idle and loaded): the race needs the real page's main thread to be busy, which is why a plain micro-test said nothing.
+
+The gate's two ledger commits (`7ef4e52`, `17353b5`: the mutation baseline and the measurement of `4ce37c2`) are merged into the branch as they were written, so the history says 510 on that commit; the next scored gate overwrites the baseline.
+
 ## Not yet done at the time of writing
 
 A scored `verify-full` on the branch, landing, and the CC-CMD status. This note is completed after them.

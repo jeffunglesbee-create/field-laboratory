@@ -1,0 +1,65 @@
+load: 16 busy processes on 4 cores; 30 runs of each, alternating
+  before = 4ce37c2:scripts/live-score-render-check.mjs (margin 1 ms), after = the working tree's (margin 1000 ms)
+  run  1 before ok     66/66 checks passed
+  run  1 after  ok     66/66 checks passed
+  run  2 before FAILED (the pauseAt past error)
+  run  2 after  ok     66/66 checks passed
+  run  3 before ok     66/66 checks passed
+  run  3 after  ok     66/66 checks passed
+  run  4 before ok     66/66 checks passed
+  run  4 after  ok     66/66 checks passed
+  run  5 before ok     66/66 checks passed
+  run  5 after  ok     66/66 checks passed
+  run  6 before ok     66/66 checks passed
+  run  6 after  ok     66/66 checks passed
+  run  7 before ok     66/66 checks passed
+  run  7 after  ok     66/66 checks passed
+  run  8 before ok     66/66 checks passed
+  run  8 after  ok     66/66 checks passed
+  run  9 before ok     66/66 checks passed
+  run  9 after  ok     66/66 checks passed
+  run 10 before ok     66/66 checks passed
+  run 10 after  ok     66/66 checks passed
+  run 11 before ok     66/66 checks passed
+  run 11 after  ok     66/66 checks passed
+  run 12 before FAILED (the pauseAt past error)
+  run 12 after  ok     66/66 checks passed
+  run 13 before ok     66/66 checks passed
+  run 13 after  ok     66/66 checks passed
+  run 14 before ok     66/66 checks passed
+  run 14 after  ok     66/66 checks passed
+  run 15 before ok     66/66 checks passed
+  run 15 after  ok     66/66 checks passed
+  run 16 before ok     66/66 checks passed
+  run 16 after  ok     66/66 checks passed
+  run 17 before ok     66/66 checks passed
+  run 17 after  ok     66/66 checks passed
+  run 18 before ok     66/66 checks passed
+  run 18 after  ok     66/66 checks passed
+  run 19 before ok     66/66 checks passed
+  run 19 after  ok     66/66 checks passed
+  run 20 before ok     66/66 checks passed
+  run 20 after  ok     66/66 checks passed
+  run 21 before ok     66/66 checks passed
+  run 21 after  ok     66/66 checks passed
+  run 22 before ok     66/66 checks passed
+  run 22 after  ok     66/66 checks passed
+  run 23 before ok     66/66 checks passed
+  run 23 after  ok     66/66 checks passed
+  run 24 before ok     66/66 checks passed
+  run 24 after  ok     66/66 checks passed
+  run 25 before ok     66/66 checks passed
+  run 25 after  ok     66/66 checks passed
+  run 26 before FAILED (the pauseAt past error)
+  run 26 after  ok     66/66 checks passed
+  run 27 before ok     66/66 checks passed
+  run 27 after  ok     66/66 checks passed
+  run 28 before ok     66/66 checks passed
+  run 28 after  ok     66/66 checks passed
+  run 29 before ok     66/66 checks passed
+  run 29 after  ok     66/66 checks passed
+  run 30 before ok     66/66 checks passed
+  run 30 after  ok     66/66 checks passed
+
+checked 30 runs of each under load: before (margin 1 ms) 3 failed, 3 of them with the pauseAt past error; after (margin 1000 ms) 0 failed, 0 with it
+verdict: no failure with the 1000 ms margin in this run
