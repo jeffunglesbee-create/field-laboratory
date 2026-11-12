@@ -24,6 +24,10 @@ By the entry script the step starts (`node <entry>`, directly or through `npm ru
 - Because its self-test fixtures embed launch calls as strings, the guard's own source reads as a browser script by the text rule (checked in its self-test); it has its own job and is never run from the `verify` job.
 - The other workflow checks pass on the edited file: `check:workflows` 71/71, `check:script-orphans`, `check:ignore-parity`, `check:import-purity`, `check:citations`, `check-push-lands.py` (26 guarded).
 
+## The failure path on a runner (`outbox/option1-failure-path-proof-2026-11-12.md`)
+
+Two throwaway branches with the install broken on purpose, `verify.yml` dispatched on each (runs 43142364471 and 43142368299): a failed download and an install that exceeds its 3-minute limit. Both: the 20 browser steps `skipped`, the F# suite and the other plain steps `success` (70 of 70, and 69 of 70 with the last one still `in_progress` in the evidence step's snapshot), the final step red with `outcome: failure`, the `verify` job `failure`, every other job `success`. **A step killed by `timeout-minutes` has `outcome: failure`**, observed; that was a claim from the runner's source. With `continue-on-error` the API shows the install step's conclusion as `success`; only the final step is red.
+
 ## Not yet done at the time of writing
 
-The failure path on a runner (a throwaway branch with the install broken: the 20 browser steps skipped, the 70 others run, the F# suite among them, the job red), a scored `verify-full`, independent review, landing, and the CC-CMD status. This note is completed after them.
+A scored `verify-full` (after E1 lands), independent review, landing, and the CC-CMD status. This note is completed after them.
