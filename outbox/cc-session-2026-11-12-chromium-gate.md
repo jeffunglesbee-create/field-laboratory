@@ -28,8 +28,6 @@ By the entry script the step starts (`node <entry>`, directly or through `npm ru
 
 Two throwaway branches with the install broken on purpose, `verify.yml` dispatched on each (runs 43142364471 and 43142368299): a failed download and an install that exceeds its 3-minute limit. Both: the 20 browser steps `skipped`, the F# suite and the other plain steps `success` (70 of 70, and 69 of 70 with the last one still `in_progress` in the evidence step's snapshot), the final step red with `outcome: failure`, the `verify` job `failure`, every other job `success`. **A step killed by `timeout-minutes` has `outcome: failure`**, observed; that was a claim from the runner's source. With `continue-on-error` the API shows the install step's conclusion as `success`; only the final step is red.
 
-## Not yet done at the time of writing
-
 ## Independent review of 3528bb5, and what was done (2026-11-12)
 
 Workflow `option1-review` (6 lenses, 42 agents, a skeptic per finding): **27 confirmed (1 major, 17 minor, 9 nit), 9 rejected.** The disposition of each cluster, in the order of its weight:
@@ -74,6 +72,10 @@ Rejected by skeptics: a `defaults.run` shell at job or workflow level (not repro
 ## The failure path with the new final step, on a runner
 
 dispatched 05:02Z on throwaway branches (fast-forwarded to `35800cd` and `b772460`, the tree of `6ea67d9` plus one sabotage and an evidence step each): `verify` 43158658704 on `proof-fastfail` (the install fails: outcome `failure`) and 43158662089 on `proof-timeout` (a step before the install fails on purpose, so the install is `skipped`). Both behaved as designed: with the install failing, the F# suite, the self-tests and the browser-free steps ran and passed, the 20 browser steps were skipped, the final step logged `INSTALL_OUTCOME: failure` and exited 1, and the job was red; with an earlier step failing, the final step logged `INSTALL_OUTCOME: skipped` and printed the `skipped` message (the F# suite did not run, because that step failed first). The `browser-gate` job also failed on both, correctly (the proof's evidence step is appended after the final step), which showed the guard running on a runner image and one message defect, fixed. The table is in `outbox/option1-failure-path-proof-2026-11-12.md`. The runner proof is of the final step at `6ea67d9`; the closed grammar and the reworded `skipped` message came after, and rest on the guard running the script locally under the runner's own shell, not on a third runner run.
+
+## The green path on a runner
+
+`verify` dispatched on the branch itself at `5880003`, no sabotage: **run 43169163026, all six jobs `success`**. `Install Chromium` succeeded (10 s), the five self-tests ran, all 20 browser steps ran and passed (the F# suite and every browser-free step as well), the final step was `skipped`, and `browser-gate` passed. The change does not break the ordinary case. Details in `outbox/option1-failure-path-proof-2026-11-12.md`.
 
 ## Not yet done at the time of writing
 
