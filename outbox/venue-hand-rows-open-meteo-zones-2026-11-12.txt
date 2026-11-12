@@ -1,0 +1,113 @@
+Open-Meteo's resolved zone for the 61 hand rows of 2026-11-12, read before the commit that adds them.
+Read 2026-11-12T17:18:17Z, in the session of docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 4 ("Yes to all").
+
+RESULT (the last line of the table below, as the comparison printed it):
+checked 61 of 61 rows; zone equal 61; zone different 0; rows unanswered 0; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+
+THE PREMISE TRIED. "The zone each of the 61 rows declares is the zone Open-Meteo resolves for the row's point."
+The rows' zones come from geo-tz/all 8.1.4 (outbox/venue-hand-rows-evidence-2026-11-12.json) and the verifier does not recompute them.
+A zone that differs by name from Open-Meteo's turns a check red. scripts/weather-live-check.mjs compares the declared zone of EVERY row
+of Venues.all with the zone Open-Meteo resolves for the row's point, one request per row, not only the grounds on a slate: 558 rows
+once these 61 land (`count` of the compiled build/Venues.js). verify.yml line 1373 runs it with --tolerate-unreachable (an unreachable
+service is a warning, and its line "checked N of M venues" says how many answered); drift-sentinel.yml line 114 runs it without the
+flag, where an unreachable service fails. A name difference has happened: scripts/venue-source.mjs records that the default geo-tz
+entry returned Europe/Brussels for Amsterdam and Europe/Berlin for Oslo, and that the flagless check (venue-source run 39820492235)
+failed those 19 rows until geo-tz/all replaced it.
+
+METHOD. Each row's point was put through Weather.forecastUrl (src/Weather.fs line 382: latitude and longitude to four decimals, the
+seven current variables, Fahrenheit and mph, timezone=auto), which is the URL scripts/weather-live-check.mjs calls, and each URL was
+fetched once. The "timezone" of the answer was compared with the row's zone in src/Venues.fs. The shell of this session is refused for
+api.open-meteo.com at its proxy (curl: CONNECT tunnel failed, response 403, measured in the same session), so the 61 URLs were fetched
+through the Exa page-fetch tool, in 4 calls of 10, 19, 16 and 16 URLs. The zone is the service's answer for a point and does not
+depend on who asks, but this is not a reading from a GitHub runner. The first 330 to 400 characters of each answer (latitude, longitude,
+utc offset, timezone, elevation) were saved as the input of the comparison, which matches each answer to its row by the point that
+was asked and not by order. "snapped" is the grid point Open-Meteo answered for; the comparison requires it within 0.15 degrees of the
+point asked.
+
+REPRODUCE, from a machine that reaches the service: for each row, curl -s the URL above with the row's latitude and longitude and read
+the "timezone" field of the answer. Or read the "checked N of M venues" line of the next verify run and of the daily sentinel.
+
+THE 61 ROWS, in the order of the block in src/Venues.fs:
+EQUAL     | AIL Arena | asked 46.0235,8.9610 | declared Europe/Zurich | resolved Europe/Zurich | snapped 46.014885,8.948109 | elevation 299 m
+EQUAL     | Allianz Stadium | asked 45.1095,7.6416 | declared Europe/Rome | resolved Europe/Rome | snapped 45.107685,7.648617 | elevation 281 m
+EQUAL     | Almaty Ortalyk Stadium | asked 43.2384,76.9243 | declared Asia/Almaty | resolved Asia/Almaty | snapped 43.26889,76.95067 | elevation 831 m
+EQUAL     | American Express Stadium | asked 50.8617,-0.0835 | declared Europe/London | resolved Europe/London | snapped 50.862232,-0.07888794 | elevation 81 m
+EQUAL     | Arena Egnatia | asked 41.0767,19.6617 | declared Europe/Tirane | resolved Europe/Tirane | snapped 41.066322,19.658907 | elevation 21 m
+EQUAL     | Bloomfield Road | asked 53.8048,-3.0482 | declared Europe/London | resolved Europe/London | snapped 53.801586,-3.0481567 | elevation 8 m
+EQUAL     | Chase Field (NH) | asked 33.4455,-112.0667 | declared America/Phoenix | resolved America/Phoenix | snapped 33.440266,-112.06021 | elevation 346 m
+EQUAL     | Children's Mercy Park | asked 39.1217,-94.8233 | declared America/Chicago | resolved America/Chicago | snapped 39.114635,-94.829094 | elevation 308 m
+EQUAL     | Clarence T.C. Ching Athletics Complex | asked 21.2941,-157.8176 | declared Pacific/Honolulu | resolved Pacific/Honolulu | snapped 21.335676,-157.79817 | elevation 7 m
+EQUAL     | Cotton Bowl | asked 32.7795,-96.7597 | declared America/Chicago | resolved America/Chicago | snapped 32.78465,-96.77165 | elevation 136 m
+EQUAL     | Coventry Building Society Arena | asked 52.4481,-1.4963 | declared Europe/London | resolved Europe/London | snapped 52.449394,-1.4968262 | elevation 100 m
+EQUAL     | Crabble Athletic Ground | asked 51.1379,1.2851 | declared Europe/London | resolved Europe/London | snapped 51.13084,1.2831573 | elevation 40 m
+EQUAL     | Crown Oil Arena | asked 53.6208,-2.1800 | declared Europe/London | resolved Europe/London | snapped 53.622517,-2.1664429 | elevation 148 m
+EQUAL     | De Kuip | asked 51.8939,4.5231 | declared Europe/Amsterdam | resolved Europe/Amsterdam | snapped 51.898,4.5239997 | elevation 3 m
+EQUAL     | DW Stadium | asked 53.5478,-2.6540 | declared Europe/London | resolved Europe/London | snapped 53.550934,-2.651352 | elevation 24 m
+EQUAL     | EnviroVent Stadium | asked 53.9917,-1.5145 | declared Europe/London | resolved Europe/London | snapped 53.996693,-1.5208893 | elevation 108 m
+EQUAL     | Estadi de la FAF d'Encamp | asked 42.5335,1.5759 | declared Europe/Andorra | resolved Europe/Andorra | snapped 42.53,1.5699997 | elevation 1242 m
+EQUAL     | Estadio Universitario | asked 25.7228,-100.3120 | declared America/Monterrey | resolved America/Monterrey | snapped 25.718683,-100.313324 | elevation 523 m
+EQUAL     | Europa Point Stadium | asked 36.1106,-5.3468 | declared Europe/Gibraltar | resolved Europe/Gibraltar | snapped 36.20785,-5.3675637 | elevation 31 m
+EQUAL     | Field of Dreams | asked 42.4978,-91.0550 | declared America/Chicago | resolved America/Chicago | snapped 42.50815,-91.04023 | elevation 305 m
+EQUAL     | Gaughan Group Stadium | asked 51.5602,-0.0127 | declared Europe/London | resolved Europe/London | snapped 51.56295,-0.012313843 | elevation 14 m
+EQUAL     | GEHA Field at Arrowhead Stadium | asked 39.0489,-94.4839 | declared America/Chicago | resolved America/Chicago | snapped 39.052387,-94.483864 | elevation 259 m
+EQUAL     | Generali-Arena | asked 48.1623,16.3875 | declared Europe/Vienna | resolved Europe/Vienna | snapped 48.16894,16.379 | elevation 245 m
+EQUAL     | Goodison Park | asked 53.4388,-2.9664 | declared Europe/London | resolved Europe/London | snapped 53.442245,-2.9529114 | elevation 46 m
+EQUAL     | Highmark Stadium | asked 42.7730,-78.7917 | declared America/New_York | resolved America/New_York | snapped 42.764954,-78.79994 | elevation 231 m
+EQUAL     | Hillsborough | asked 53.4114,-1.5006 | declared Europe/London | resolved Europe/London | snapped 53.402935,-1.5045013 | elevation 69 m
+EQUAL     | Kenilworth Road | asked 51.8841,-0.4317 | declared Europe/London | resolved Europe/London | snapped 51.877346,-0.4318695 | elevation 119 m
+EQUAL     | McLane Stadium | asked 31.5582,-97.1157 | declared America/Chicago | resolved America/Chicago | snapped 31.5528,-97.12887 | elevation 116 m
+EQUAL     | Medinah CC (No. 3) | asked 41.9657,-88.0464 | declared America/Chicago | resolved America/Chicago | snapped 41.96408,-88.0381 | elevation 221 m
+EQUAL     | Miejski Stadion Pilkarski Raków | asked 50.7768,19.1592 | declared Europe/Warsaw | resolved Europe/Warsaw | snapped 50.770657,19.168167 | elevation 255 m
+EQUAL     | Mikheil Meskhi Stadioni | asked 41.7098,44.7462 | declared Asia/Tbilisi | resolved Asia/Tbilisi | snapped 41.70268,44.783115 | elevation 480 m
+EQUAL     | Mornflake Stadium | asked 53.0875,-2.4358 | declared Europe/London | resolved Europe/London | snapped 53.08334,-2.4401245 | elevation 58 m
+EQUAL     | Municipal Stadium-Poznan | asked 52.3976,16.8579 | declared Europe/Warsaw | resolved Europe/Warsaw | snapped 52.403187,16.856785 | elevation 89 m
+EQUAL     | Nu Stadium | asked 25.7928,-80.2596 | declared America/New_York | resolved America/New_York | snapped 25.78275,-80.25581 | elevation 2 m
+EQUAL     | Olimpico | asked 41.9338,12.4548 | declared Europe/Rome | resolved Europe/Rome | snapped 41.923637,12.477454 | elevation 17 m
+EQUAL     | Olympia | asked 56.0497,12.7074 | declared Europe/Stockholm | resolved Europe/Stockholm | snapped 56.04762,12.705475 | elevation 36 m
+EQUAL     | Our Lady of Lourdes Stadium | asked 30.2159,-92.0418 | declared America/Chicago | resolved America/Chicago | snapped 30.209286,-92.032814 | elevation 11 m
+EQUAL     | Parken Stadium | asked 55.7026,12.5722 | declared Europe/Copenhagen | resolved Europe/Copenhagen | snapped 55.70526,12.568634 | elevation 9 m
+EQUAL     | Peninsula Stadium | asked 53.5136,-2.2768 | declared Europe/London | resolved Europe/London | snapped 53.51487,-2.2882843 | elevation 76 m
+EQUAL     | RAW Charging Stadium | asked 51.7739,-1.2278 | declared Europe/London | resolved Europe/London | snapped 51.78092,-1.2212372 | elevation 64 m
+EQUAL     | Reale Arena | asked 43.3014,-1.9736 | declared Europe/Madrid | resolved Europe/Madrid | snapped 43.3,-1.9700003 | elevation 7 m
+EQUAL     | Riazor | asked 43.3687,-8.4174 | declared Europe/Madrid | resolved Europe/Madrid | snapped 43.319912,-8.346158 | elevation 23 m
+EQUAL     | Rodney Parade | asked 51.5890,-2.9895 | declared Europe/London | resolved Europe/London | snapped 51.589096,-2.991928 | elevation 7 m
+EQUAL     | Stade Boréale | asked 45.5748,-73.7038 | declared America/Toronto | resolved America/Toronto | snapped 45.571354,-73.68916 | elevation 31 m
+EQUAL     | Stade de France | asked 48.9244,2.3601 | declared Europe/Paris | resolved Europe/Paris | snapped 48.921276,2.3591201 | elevation 33 m
+EQUAL     | Stade Jean Bouin | asked 48.8432,2.2529 | declared Europe/Paris | resolved Europe/Paris | snapped 48.84738,2.24658 | elevation 37 m
+EQUAL     | Stade Vélodrome | asked 43.2698,5.3959 | declared Europe/Paris | resolved Europe/Paris | snapped 43.27,5.3999996 | elevation 8 m
+EQUAL     | Stadio Artemio Franchi | asked 43.7809,11.2825 | declared Europe/Rome | resolved Europe/Rome | snapped 43.779182,11.2824335 | elevation 56 m
+EQUAL     | Stanford Stadium | asked 37.4345,-122.1615 | declared America/Los_Angeles | resolved America/Los_Angeles | snapped 37.427963,-122.154785 | elevation 18 m
+EQUAL     | TDECU Stadium | asked 29.7220,-95.3492 | declared America/Chicago | resolved America/Chicago | snapped 29.713892,-95.35587 | elevation 12 m
+EQUAL     | The Cherry Red Records Stadium | asked 51.4313,-0.1866 | declared Europe/London | resolved Europe/London | snapped 51.42275,-0.19314575 | elevation 9 m
+EQUAL     | The Completely-Suzuki Stadium | asked 51.9061,-2.0603 | declared Europe/London | resolved Europe/London | snapped 51.91319,-2.06279 | elevation 60 m
+EQUAL     | The County Ground | asked 51.5645,-1.7708 | declared Europe/London | resolved Europe/London | snapped 51.569862,-1.7768707 | elevation 102 m
+EQUAL     | The Croud Meadow | asked 52.6886,-2.7493 | declared Europe/London | resolved Europe/London | snapped 52.68737,-2.7373352 | elevation 68 m
+EQUAL     | Ulker Stadyumu | asked 40.9877,29.0370 | declared Europe/Istanbul | resolved Europe/Istanbul | snapped 40.995083,29.051971 | elevation 4 m
+EQUAL     | URSAPHARM-Arena an der Kaiserlinde | asked 49.3187,7.1216 | declared Europe/Berlin | resolved Europe/Berlin | snapped 49.313637,7.132022 | elevation 357 m
+EQUAL     | Vare Areena TN | asked 62.8846,27.6717 | declared Europe/Helsinki | resolved Europe/Helsinki | snapped 62.88781,27.682678 | elevation 117 m
+EQUAL     | Via Del Mare | asked 40.3652,18.2089 | declared Europe/Rome | resolved Europe/Rome | snapped 40.406876,18.220158 | elevation 36 m
+EQUAL     | Vodafone Park | asked 41.0393,28.9945 | declared Europe/Istanbul | resolved Europe/Istanbul | snapped 41.03005,29.018282 | elevation 10 m
+EQUAL     | Wham Stadium | asked 53.7653,-2.3709 | declared Europe/London | resolved Europe/London | snapped 53.766815,-2.378296 | elevation 154 m
+EQUAL     | Yager Stadium | asked 39.5194,-84.7329 | declared America/New_York | resolved America/New_York | snapped 39.51531,-84.73843 | elevation 244 m
+
+checked 61 of 61 rows; zone equal 61; zone different 0; rows unanswered 0; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+
+THE COMPARISON WAS BROKEN ON PURPOSE (Rule 90), once for each way it can say "not equal", each on a copy of its inputs with the anchor
+asserted to occur exactly once and the change asserted to differ from the original. The control is the undoctored inputs:
+AS WANTED | exit 0 (wanted 0) | control: nothing doctored | checked 61 of 61 rows; zone equal 61; zone different 0; rows unanswered 0; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+AS WANTED | exit 1 (wanted 1) | a declared zone changed (Rodney Parade to Europe/Paris) | checked 61 of 61 rows; zone equal 60; zone different 1; rows unanswered 0; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+AS WANTED | exit 1 (wanted 1) | an answer's zone changed (Tirane answer to Europe/Belgrade) | checked 61 of 61 rows; zone equal 60; zone different 1; rows unanswered 0; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+AS WANTED | exit 1 (wanted 1) | an answer removed (the Honolulu line) | checked 60 of 61 rows; zone equal 60; zone different 0; rows unanswered 1; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+AS WANTED | exit 1 (wanted 1) | an answer asked at another point (Zurich 46.0235 to 46.0335) | checked 60 of 61 rows; zone equal 60; zone different 0; rows unanswered 1; answers unmatched 1; duplicate answers 0; snapped over 0.15 degrees 0; answer files 4
+AS WANTED | exit 1 (wanted 1) | an answer given twice (the Zurich line) | checked 61 of 61 rows; zone equal 61; zone different 0; rows unanswered 0; answers unmatched 0; duplicate answers 1; snapped over 0.15 degrees 0; answer files 4
+AS WANTED | exit 1 (wanted 1) | an answer snapped one degree away (Zurich latitude 47.014885) | checked 61 of 61 rows; zone equal 61; zone different 0; rows unanswered 0; answers unmatched 0; duplicate answers 0; snapped over 0.15 degrees 1; answer files 4
+7 of 7 cases as wanted (1 control + 6 doctored inputs, each doctored once)
+
+WHAT THIS DOES NOT SHOW.
+- That a GitHub runner reaches api.open-meteo.com. scripts/weather-live-check.mjs records that it did not for a stretch from 2026-08-12;
+  verify's line "checked N of M venues" is the measure, and the sentinel fails on an unreachable service.
+- That the other 497 rows still resolve to their zones today. The last committed run over the whole table,
+  outbox/venue-weather-check-latest.txt, read 483 of 483 rows (the table's size then) and passed "every venue resolves to the IANA zone it declares".
+- That a point is the ground its row names. The verifier's evidence (outbox/venue-hand-rows-2026-11-12.md) is for that.
+- The comparison and its doctoring are not committed as scripts: two scratch files of 36 and 52 lines that read the saved answers and the 61
+  declared zones. Their logic is the one stated above, and the 61 pairs the comparison read are the table in this file.

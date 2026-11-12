@@ -1,0 +1,21 @@
+baseline: exit 0, 477/477 checks held; FAIL lines it prints anyway: ["broken"]
+RED BY THE NAMED CHECK | AIL Arena: latitude moved 0.1 degrees (the first row of the table) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+RED BY THE NAMED CHECK | Allianz Stadium: roof Dome | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+RED BY THE NAMED CHECK | Parken Stadium: roof OpenAir (the retractable ground) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+RED BY THE NAMED CHECK | Chase Field (NH): zone America/Chicago (the alias row) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+RED BY THE NAMED CHECK | Children's Mercy Park: longitude 0.001 degrees off (beyond the three-decimal key; a name with an apostrophe) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+RED BY THE NAMED CHECK | Stade Boréale: row deleted (a name with an accent) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+RED BY THE NAMED CHECK | Yager Stadium: zone Europe/Paris (the last row of the table) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+checked 7 of 7 source mutations of the hand rows; each must go red by exactly "the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"; src/Venues.fs sha256 56363462e187d24700b3d8fe09418c8da0f2a90bae8972a883dc4a6b2a4d2657
+PASS  the unmutated tree compiles and its suite holds (the baseline)
+PASS  [AIL Arena] latitude moved 0.1 degrees (the first row of the table): red by exactly the named check
+PASS  [Allianz Stadium] roof Dome: red by exactly the named check
+PASS  [Parken Stadium] roof OpenAir (the retractable ground): red by exactly the named check
+PASS  [Chase Field (NH)] zone America/Chicago (the alias row): red by exactly the named check
+PASS  [Children's Mercy Park] longitude 0.001 degrees off (beyond the three-decimal key; a name with an apostrophe): red by exactly the named check
+PASS  [Stade Boréale] row deleted (a name with an accent): red by exactly the named check
+PASS  [Yager Stadium] zone Europe/Paris (the last row of the table): red by exactly the named check
+PASS  src/Venues.fs is restored byte for byte
+PASS  the compiled output is rebuilt from the restored source and its suite holds
+
+10/10 checks passed

@@ -1,0 +1,8 @@
+checked 4 of 4 broken copies of the verifier (and one control); each must make its own self-test report the problem it was broken to cause.
+PASS  the untouched verifier's own self-test passes (the control)
+PASS  [a-check-goes-blind] the check "no name is built twice" always passes, so the case aimed at it must say NOT CAUGHT
+PASS  [a-doctoring-does-nothing] the point-moved case moves the point by zero, so it must say the edit left the page as it was
+PASS  [an-anchor-is-not-in-the-text] the suite-table-changed case looks for text that is not in src/Suite.fs, so it must say its anchor is in the text 0 times
+PASS  [a-judgement-goes-blind] the P5624 judgement always holds, so the case that removes the search page's count must say NOT CAUGHT
+
+5/5 checks passed

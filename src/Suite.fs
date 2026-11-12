@@ -312,6 +312,79 @@ let private state () =
 // documents or in playground's source comments — not one I invented.
 // ---------------------------------------------------------------------------
 
+// The hand rows of src/Venues.fs between its markers "hand rows 2026-11-12" (Task 4 of
+// docs/CC-CMD-2026-11-09-venue-review-remainder.md), held here by name, roof, zone and point, as
+// Manadon Sports Hub's and U.S. Bank Stadium's rows are below. Generated with that block by
+// `node outbox/venue-hand-rows-2026-11-12.mjs suite`; the same script compares both with the
+// evidence. The numbers are the rows' own: this table guards a row against an edit, and the
+// evidence is what the script checks.
+// --- BEGIN hand rows table 2026-11-12
+let private handRows =
+    [
+        "AIL Arena", 46.0235, 8.9610, Weather.OpenAir, "Europe/Zurich"
+        "Allianz Stadium", 45.1095, 7.6416, Weather.OpenAir, "Europe/Rome"
+        "Almaty Ortalyk Stadium", 43.2384, 76.9243, Weather.OpenAir, "Asia/Almaty"
+        "American Express Stadium", 50.8617, -0.0835, Weather.OpenAir, "Europe/London"
+        "Arena Egnatia", 41.0767, 19.6617, Weather.OpenAir, "Europe/Tirane"
+        "Bloomfield Road", 53.8048, -3.0482, Weather.OpenAir, "Europe/London"
+        "Chase Field (NH)", 33.4455, -112.0667, Weather.Retractable, "America/Phoenix"
+        "Children's Mercy Park", 39.1217, -94.8233, Weather.OpenAir, "America/Chicago"
+        "Clarence T.C. Ching Athletics Complex", 21.2941, -157.8176, Weather.OpenAir, "Pacific/Honolulu"
+        "Cotton Bowl", 32.7795, -96.7597, Weather.OpenAir, "America/Chicago"
+        "Coventry Building Society Arena", 52.4481, -1.4963, Weather.OpenAir, "Europe/London"
+        "Crabble Athletic Ground", 51.1379, 1.2851, Weather.OpenAir, "Europe/London"
+        "Crown Oil Arena", 53.6208, -2.1800, Weather.OpenAir, "Europe/London"
+        "De Kuip", 51.8939, 4.5231, Weather.OpenAir, "Europe/Amsterdam"
+        "DW Stadium", 53.5478, -2.6540, Weather.OpenAir, "Europe/London"
+        "EnviroVent Stadium", 53.9917, -1.5145, Weather.OpenAir, "Europe/London"
+        "Estadi de la FAF d'Encamp", 42.5335, 1.5759, Weather.OpenAir, "Europe/Andorra"
+        "Estadio Universitario", 25.7228, -100.3120, Weather.OpenAir, "America/Monterrey"
+        "Europa Point Stadium", 36.1106, -5.3468, Weather.OpenAir, "Europe/Gibraltar"
+        "Field of Dreams", 42.4978, -91.0550, Weather.OpenAir, "America/Chicago"
+        "Gaughan Group Stadium", 51.5602, -0.0127, Weather.OpenAir, "Europe/London"
+        "GEHA Field at Arrowhead Stadium", 39.0489, -94.4839, Weather.OpenAir, "America/Chicago"
+        "Generali-Arena", 48.1623, 16.3875, Weather.OpenAir, "Europe/Vienna"
+        "Goodison Park", 53.4388, -2.9664, Weather.OpenAir, "Europe/London"
+        "Highmark Stadium", 42.7730, -78.7917, Weather.OpenAir, "America/New_York"
+        "Hillsborough", 53.4114, -1.5006, Weather.OpenAir, "Europe/London"
+        "Kenilworth Road", 51.8841, -0.4317, Weather.OpenAir, "Europe/London"
+        "McLane Stadium", 31.5582, -97.1157, Weather.OpenAir, "America/Chicago"
+        "Medinah CC (No. 3)", 41.9657, -88.0464, Weather.OpenAir, "America/Chicago"
+        "Miejski Stadion Pilkarski Raków", 50.7768, 19.1592, Weather.OpenAir, "Europe/Warsaw"
+        "Mikheil Meskhi Stadioni", 41.7098, 44.7462, Weather.OpenAir, "Asia/Tbilisi"
+        "Mornflake Stadium", 53.0875, -2.4358, Weather.OpenAir, "Europe/London"
+        "Municipal Stadium-Poznan", 52.3976, 16.8579, Weather.OpenAir, "Europe/Warsaw"
+        "Nu Stadium", 25.7928, -80.2596, Weather.OpenAir, "America/New_York"
+        "Olimpico", 41.9338, 12.4548, Weather.OpenAir, "Europe/Rome"
+        "Olympia", 56.0497, 12.7074, Weather.OpenAir, "Europe/Stockholm"
+        "Our Lady of Lourdes Stadium", 30.2159, -92.0418, Weather.OpenAir, "America/Chicago"
+        "Parken Stadium", 55.7026, 12.5722, Weather.Retractable, "Europe/Copenhagen"
+        "Peninsula Stadium", 53.5136, -2.2768, Weather.OpenAir, "Europe/London"
+        "RAW Charging Stadium", 51.7739, -1.2278, Weather.OpenAir, "Europe/London"
+        "Reale Arena", 43.3014, -1.9736, Weather.OpenAir, "Europe/Madrid"
+        "Riazor", 43.3687, -8.4174, Weather.OpenAir, "Europe/Madrid"
+        "Rodney Parade", 51.5890, -2.9895, Weather.OpenAir, "Europe/London"
+        "Stade Boréale", 45.5748, -73.7038, Weather.OpenAir, "America/Toronto"
+        "Stade de France", 48.9244, 2.3601, Weather.OpenAir, "Europe/Paris"
+        "Stade Jean Bouin", 48.8432, 2.2529, Weather.OpenAir, "Europe/Paris"
+        "Stade Vélodrome", 43.2698, 5.3959, Weather.OpenAir, "Europe/Paris"
+        "Stadio Artemio Franchi", 43.7809, 11.2825, Weather.OpenAir, "Europe/Rome"
+        "Stanford Stadium", 37.4345, -122.1615, Weather.OpenAir, "America/Los_Angeles"
+        "TDECU Stadium", 29.7220, -95.3492, Weather.OpenAir, "America/Chicago"
+        "The Cherry Red Records Stadium", 51.4313, -0.1866, Weather.OpenAir, "Europe/London"
+        "The Completely-Suzuki Stadium", 51.9061, -2.0603, Weather.OpenAir, "Europe/London"
+        "The County Ground", 51.5645, -1.7708, Weather.OpenAir, "Europe/London"
+        "The Croud Meadow", 52.6886, -2.7493, Weather.OpenAir, "Europe/London"
+        "Ulker Stadyumu", 40.9877, 29.0370, Weather.OpenAir, "Europe/Istanbul"
+        "URSAPHARM-Arena an der Kaiserlinde", 49.3187, 7.1216, Weather.OpenAir, "Europe/Berlin"
+        "Vare Areena TN", 62.8846, 27.6717, Weather.OpenAir, "Europe/Helsinki"
+        "Via Del Mare", 40.3652, 18.2089, Weather.OpenAir, "Europe/Rome"
+        "Vodafone Park", 41.0393, 28.9945, Weather.OpenAir, "Europe/Istanbul"
+        "Wham Stadium", 53.7653, -2.3709, Weather.OpenAir, "Europe/London"
+        "Yager Stadium", 39.5194, -84.7329, Weather.OpenAir, "America/New_York"
+    ]
+// --- END hand rows table 2026-11-12
+
 let private weather () =
     let reading temp wind total rain =
         { Weather.Temperature = temp * 1.0<Weather.degF>
@@ -535,6 +608,26 @@ let private weather () =
               | _ -> false)
           "Manadon Sports Hub"
           "Anfield"
+
+      // Task 4's hand rows of 2026-11-12 are held as one table (handRows above): each row must exist
+      // with the roof and zone its evidence gives and a point that rounds to the same three
+      // decimals (Weather.coordKey keeps three). The must-fail is the same table with one row's zone
+      // changed to another country's, so it fails on the zone and not on a missing row. The four
+      // entries scripts/mutation-check.mjs holds for these rows break one row in Venues.fs each way.
+      Verify.check "the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"
+          (fun rows ->
+              rows
+              |> List.forall (fun (name, lat, lon, roof, zone) ->
+                  match Venues.tryFind name, Weather.coordinates lat lon with
+                  | Some v, Some c ->
+                      v.Roof = roof
+                      && v.Zone = zone
+                      && Weather.coordKey v.Where = Weather.coordKey c
+                  | _ -> false))
+          handRows
+          (handRows
+           |> List.map (fun (name, lat, lon, roof, zone) ->
+               if name = "Rodney Parade" then (name, lat, lon, roof, "Europe/Paris") else (name, lat, lon, roof, zone)))
 
       // The archive spells them apart by a full stop and an apostrophe: Exeter's
       // `St James Park` and Newcastle's `St. James' Park`. Both are table rows and

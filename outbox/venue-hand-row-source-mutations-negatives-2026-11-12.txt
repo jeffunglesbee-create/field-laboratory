@@ -1,0 +1,35 @@
+Two negative runs of outbox/venue-hand-row-source-mutations-2026-11-12.mjs, made on 2026-11-12 at about 17:06Z to show that the script can go red (Rule 90: a check that has only ever passed has proven nothing).
+
+THE TOOL: two edited copies of the script, kept in the session's scratch space and NOT committed, so this file records their output and is not a re-runnable tool. Each copy keeps only the first mutation (AIL Arena, latitude moved 0.1 degrees) so that a run takes about a minute.
+
+A. The copy names a different check ("some other check") as the one that must go red. The real mutation goes red by the hand-rows check, so the copy must say it was not as wanted. It does: a FAIL line, 3 of 4 checks, exit 1.
+B. The copy's mutation changes nothing (the new line equals the old). The script must refuse to report a result for a mutation that was not applied. It does: "the mutation changed the file" fails with "identical", nothing is compiled for it, 3 of 4 checks, exit 1.
+
+In both, src/Venues.fs was restored byte for byte and rebuilt (the last two checks pass).
+
+OUTPUT A, unedited:
+
+baseline: exit 0, 477/477 checks held; FAIL lines it prints anyway: ["broken"]
+NOT AS WANTED | AIL Arena: latitude moved 0.1 degrees (the first row of the table) | exit 1 | failed beyond the baseline: ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+checked 1 of 1 source mutations of the hand rows; each must go red by exactly "some other check"; src/Venues.fs sha256 56363462e187d24700b3d8fe09418c8da0f2a90bae8972a883dc4a6b2a4d2657
+PASS  the unmutated tree compiles and its suite holds (the baseline)
+FAIL  [AIL Arena] latitude moved 0.1 degrees (the first row of the table): red by exactly the named check
+      → exit 1; ["the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"]
+PASS  src/Venues.fs is restored byte for byte
+PASS  the compiled output is rebuilt from the restored source and its suite holds
+
+3/4 checks passed
+exit=1
+
+OUTPUT B, unedited:
+
+baseline: exit 0, 477/477 checks held; FAIL lines it prints anyway: ["broken"]
+checked 1 of 1 source mutations of the hand rows; each must go red by exactly "the hand rows of 2026-11-12 are held at the roof, zone and point their evidence gives"; src/Venues.fs sha256 56363462e187d24700b3d8fe09418c8da0f2a90bae8972a883dc4a6b2a4d2657
+PASS  the unmutated tree compiles and its suite holds (the baseline)
+FAIL  [AIL Arena] the mutation changed the file
+      → identical
+PASS  src/Venues.fs is restored byte for byte
+PASS  the compiled output is rebuilt from the restored source and its suite holds
+
+3/4 checks passed
+exit=1

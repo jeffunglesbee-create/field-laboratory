@@ -1,0 +1,20 @@
+HAND ROWS OF 2026-11-12: what the saved pages, the sourcing run and the archive give. Reads committed files only; no network.
+COVERAGE: 285 saved pages read; 60 spec entries resolved (60 to a row), 1 alias, 10 names left out, 61 rows in all; 71 of 71 names accounted for. Zones are read, not recomputed (geo-tz is not a dependency).
+ROOFS: 59 open, 1 retractable among the 60 built grounds (the alias row copies its ground's roof); 10 read by hand (a roof hit on a saved search, or a roof word after the lead's first sentence)
+FLAGS: 44 of 60 rows carry at least one flag computed from the saved pages; 9 have a home the archive lists that no needle ties; 18 have an OpenStreetMap witness whose label carries neither the venue string nor the article title
+
+PASS  the saved pages agree wherever two of them answer one question
+PASS  every spec entry resolves to a row (60 entries)
+PASS  every alias row copies a row the table has and is backed by archive rows (1 aliases)
+PASS  every name of the 71 is a row or has a reason, once (71 names)
+PASS  every name left out has a one-line reason and a quote found on a saved page (10 names)
+PASS  the archive rows saved here carry, per name, the games the counts record gives
+PASS  no name is built twice
+PASS  the roof searches find a roof where there is one (checked 5 of 5 controls)
+PASS  each of the four roof search forms has a hit on some saved page (4 of 4 forms)
+PASS  the saved Wikidata pages say P5624 is no roof property: its label is "pitting resistance equivalent number", 61 of 61 saved claim reads of it are empty, and the search for the items that carry it counts 9, with 2 of 2 hits shown whole reading stainless steel
+PASS  src/Venues.fs holds exactly the derived rows between its hand-row markers (61 rows)
+PASS  src/Suite.fs holds exactly the derived table between its markers
+PASS  no built name is also a row of the generated block
+
+13/13 checks passed

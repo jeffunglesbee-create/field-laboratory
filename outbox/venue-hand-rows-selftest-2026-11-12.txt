@@ -1,0 +1,63 @@
+untouched inputs: 13 of 13 checks pass
+
+CAUGHT  point-moved: the OpenStreetMap point of Allianz Stadium moved 0.05 degrees, so no second family agrees with Wikipedia
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  name-gone-from-lead: the lead of "Juventus Stadium" no longer says "Allianz Stadium", and nothing else ties the archive's name to it
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  team-gone-from-lead: the lead of "Cornaredo Stadium" no longer says "Lugano", and no competition needle ties the ground
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  reading-deleted: the reading of the roof phrase on Goodison Park's article is deleted, so a hit has no reading
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  reading-quote-wrong: the quote of that reading is a sentence that is not on the saved page
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  lead-reading-flipped: the reading of Parken's lead says open while its search hit says the roof retracts
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  lead-reading-deleted: Medinah's lead has a roof word after its first sentence and its reading is deleted
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  zone-changed: the saved zone of Rodney Parade is changed, so the evidence derives a row the file does not hold
+         by "src/Venues.fs holds exactly the derived rows"; also failing: 1
+CAUGHT  zone-for-another-point: the saved zone of Rodney Parade was computed for a point 0.001 degrees from the row's
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  zone-against-the-run: De Kuip's zone is Europe/Brussels, which is what geo-tz's default entry says and not what the sourcing run recorded (the mistake made on 2026-11-12)
+         by "every spec entry resolves to a row"; also failing: 2
+CAUGHT  out-quote-not-on-page: a quote under a left-out name is text that is not on its saved page
+         by "every name left out has a one-line reason and a quote found on a saved page"
+CAUGHT  out-deleted: a left-out name loses its entry, so it is neither a row nor out
+         by "every name of the 71 is a row or has a reason, once"
+CAUGHT  spec-deleted: the spec entry of Rodney Parade is deleted, so the name is neither a row nor out
+         by "every name of the 71 is a row or has a reason, once"; also failing: 2
+CAUGHT  spec-duplicated: the spec entry of Rodney Parade appears twice
+         by "no name is built twice"; also failing: 3
+CAUGHT  archive-games: one saved archive row of Allianz Stadium carries one more game
+         by "the archive rows saved here carry, per name, the games the counts record gives"
+CAUGHT  counts-games: the counts record gives Allianz Stadium one more game than the archive rows
+         by "the archive rows saved here carry, per name, the games the counts record gives"
+CAUGHT  pages-disagree: a second saved page answers the same OpenStreetMap object with a point 0.01 degrees away
+         by "the saved pages agree wherever two of them answer one question"
+CAUGHT  alias-no-shared-opponent: the opponents of the alias's games are renamed, so no opponent has games under both spellings
+         by "every alias row copies a row the table has and is backed by archive rows"; also failing: 2
+CAUGHT  alias-source-row-gone: the table has no row for Chase Field, which the alias copies
+         by "every alias row copies a row the table has and is backed by archive rows"; also failing: 2
+CAUGHT  venues-roof: the hand row of Allianz Stadium says Dome
+         by "src/Venues.fs holds exactly the derived rows"
+CAUGHT  venues-moved: the hand row of Allianz Stadium is 0.001 degrees east
+         by "src/Venues.fs holds exactly the derived rows"
+CAUGHT  venues-row-deleted: the hand row of Rodney Parade is deleted
+         by "src/Venues.fs holds exactly the derived rows"
+CAUGHT  venues-twin-in-generated: the generated block gains a row named AIL Arena
+         by "no built name is also a row of the generated block"
+CAUGHT  suite-table-changed: the Suite table says Dome for Allianz Stadium
+         by "src/Suite.fs holds exactly the derived table"
+CAUGHT  suite-markers-gone: the Suite table's begin marker is spelled differently, so the table is not found
+         by "src/Suite.fs holds exactly the derived table"
+CAUGHT  control-hit-removed: the saved search for Safeco Field's combined roof pattern answers with no hit
+         by "the roof searches find a roof where there is one"
+CAUGHT  p5624-claim-appears: one saved claim read of P5624 carries a claim
+         by "the saved Wikidata pages say P5624 is no roof property"
+CAUGHT  p5624-search-count-lost: the saved search for the items that carry P5624 no longer holds a count
+         by "the saved Wikidata pages say P5624 is no roof property"
+CAUGHT  p5624-hit-reads-stadium: the first hit of the saved search for the items that carry P5624 reads as a stadium, not as stainless steel
+         by "the saved Wikidata pages say P5624 is no roof property"
+
+29 of 29 doctored copies caught by the check each was aimed at; 0 problem(s).
+NOT exercised here: whether a saved page is what its service answers today (the pages are kept answers, nothing is fetched); whether a selector or a name needle picks the right ground (a person chose them; only their presence on a saved page is checked); the zones' correctness (read, never recomputed); the classes in the roof readings (a person's reading; only the quote's presence is checked); that the F# suite fails on a doctored src/Venues.fs row (that is what the four scripts/mutation-check.mjs entries for these rows are for); the sourcing run's results file (never doctored here).

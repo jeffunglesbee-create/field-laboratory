@@ -542,6 +542,46 @@ const MUTATIONS = [
     expect: 'node build/VerifyMain.js',
   },
   {
+    // Task 4's hand rows of 2026-11-12 (src/Venues.fs, between its hand-row markers) are held in
+    // src/Suite.fs as one table, checked row by row. Four entries on one row, Allianz Stadium, one
+    // per claim a row makes: that it exists, its roof, its point and its zone. The point entry
+    // moves the longitude 0.001 degrees, about 79 m east-west at Turin: the content check
+    // compares through Weather.coordKey, which keeps three decimals, and 7.6416 is 7.642 where
+    // 7.6426 is 7.643. The script outbox/venue-hand-rows-2026-11-12.mjs has its own self-test for
+    // the evidence side; these four are the F# side.
+    // docs/CC-CMD-2026-11-09-venue-review-remainder.md, Task 4
+    id: 'venue-hand-row-deleted',
+    file: 'src/Venues.fs',
+    claim: 'the hand rows of 2026-11-12 keep their Allianz Stadium row',
+    find: '      at "Allianz Stadium" 45.1095 7.6416 OpenAir "Europe/Rome"\n',
+    replace: '',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-hand-row-roof-covered',
+    file: 'src/Venues.fs',
+    claim: 'Allianz Stadium is an open-air row',
+    find: '      at "Allianz Stadium" 45.1095 7.6416 OpenAir "Europe/Rome"\n',
+    replace: '      at "Allianz Stadium" 45.1095 7.6416 Dome "Europe/Rome"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-hand-row-moved',
+    file: 'src/Venues.fs',
+    claim: 'Allianz Stadium is at the point its evidence gives',
+    find: '      at "Allianz Stadium" 45.1095 7.6416 OpenAir "Europe/Rome"\n',
+    replace: '      at "Allianz Stadium" 45.1095 7.6426 OpenAir "Europe/Rome"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
+    id: 'venue-hand-row-zone-changed',
+    file: 'src/Venues.fs',
+    claim: 'Allianz Stadium is declared in the zone its point lies in',
+    find: '      at "Allianz Stadium" 45.1095 7.6416 OpenAir "Europe/Rome"\n',
+    replace: '      at "Allianz Stadium" 45.1095 7.6416 OpenAir "Europe/Paris"\n',
+    expect: 'node build/VerifyMain.js',
+  },
+  {
     // The sourced block is generated from the sourcing run's artifact; a row
     // deleted by hand must not pass as a table that still matches it.
     // docs/CC-CMD-2026-10-20-outdoor-venue-sourcing.md, stage 4
