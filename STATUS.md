@@ -6,11 +6,11 @@ which is history by nature. Edits here will be overwritten._
 
 ## Did the suite pass on main?
 
-**green** on `bf1fdf4`
+**green** on `bf1fdf4` — but that is not `main` HEAD
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `bf1fdf4`
+`live-check` (post-deploy, against the deployed page): **green** on `bf1fdf4` — but that is not `main` HEAD
 
 ## Is it published?
 
@@ -18,11 +18,11 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `a971445` — behind newest deployable `bf1fdf4` (deploy not landed) |
+| Cloudflare Workers | live | `bf1fdf4` — newest deployable ✓ |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
 
-`ok` on 2026-11-12 — 0 games, 0 malformed (213 runs logged)
+`ok` on 2026-11-12 — 18 games, 0 malformed (214 runs logged)
 
 Full history: [`outbox/drift-log.md`](outbox/drift-log.md)
