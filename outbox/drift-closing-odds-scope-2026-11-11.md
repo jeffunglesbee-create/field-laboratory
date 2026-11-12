@@ -35,3 +35,18 @@ dropped) and both are caught through the harness. `check:mutation-anchors` 0 sta
 
 Not run here: the sentinel against the live `/context/date` (the sandbox cannot reach the relay). The first run on `main` after this lands, a
 scheduled one or a dispatch, is the proof: it must read `no rows` for this ask on a slate like 2026-11-10 and `holds` on one with EPL or La Liga games.
+
+## First scheduled run on `main` after the landing (read 2026-11-12 09:17Z)
+
+Added to `outbox/drift-closing-odds-fix-verified-2026-11-12.txt`, which holds the replay and the dispatched run 43144848254; nothing there is repeated.
+
+| fact | value | where |
+|---|---|---|
+| the run | 43183593967, event `schedule`, created 2026-11-12T08:31:06Z (the 01:30 slot, 7 h after its cron), head `38475623`, conclusion `success`, job 131065247102 | `mcp__github__actions_list` `list_workflow_runs` and `list_workflow_jobs` |
+| the head holds the fix | `git merge-base --is-ancestor f273009d 38475623` and `git merge-base --is-ancestor 1f4a3464 38475623` both say yes; `OPENING_ASK_LABELS` appears twice in `scripts/cc-cmd-followup.mjs` at that commit | `git` in the clone |
+| the steps | every step `success` except three skipped by design, among them `Fail if the sentinel failed`; `Did the filed CC-CMDs land?` (step 7), the step that failed in each earlier red run, is `success` | the job's step list |
+| the four scheduled runs before it | 210, 211, 212 and 213 (2026-11-10 08:32Z to 2026-11-11 19:27Z), all `failure`, all on the old script | `outbox/drift-closing-odds-fix-verified-2026-11-12.txt`, table of the 14 most recent runs |
+
+**What was not read:** the closing-odds row's own line in this run's log. The log tool returned the last 230 of 758 lines, and that row is printed in step 7, earlier. That the row is not `REGRESSED` is therefore an inference from step 7 being `success` (in each of the seven red runs the other note records, that step was the one that failed and its `##[error]` line named this ask), not a quotation. The verbatim `no rows` and `NOT OBSERVABLE` lines are the dispatched run's, in the other note. The date this run probed (yesterday in UTC, 2026-11-11, EFL Trophy only) was not read from the log either.
+
+**Still staged, unchanged:** a `holds` reading, which needs a sentinel run that probes a date with an EPL or La Liga game. The relay lists none for 2026-11-13 to 11-15; the next EPL matchday is 2026-11-21 (the forecast probe's routine names it), so the first run that probes it is the 01:30 slot of 2026-11-22, which arrives about 08:00 to 08:45Z. A reminder into the authoring session is set for 2026-11-22 09:30Z (`trig_01NRgH5ZtCuAPCCrQBZGtRC3`).

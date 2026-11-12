@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `c94e650` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-12 [skip ci] |
+| `c94e650` | 2026-11-12 | [sport-vocabulary-2026-11-12T08-32-12-885Z.json](sport-vocabulary-2026-11-12T08-32-12-885Z.json) | drift-sentinel: ok on 2026-11-12 [skip ci] |
+| `3847562` | 2026-11-12 | [cc-session-2026-11-11-soccer-live-scores.md](cc-session-2026-11-11-soccer-live-scores.md) | docs: the soccer live-scores session record notes the pauseAt race another session found in the render check |
 | `eb8903c` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: the runs on E1's landing are green: verify, guards, deploy (published) and live-check |
 | `f205cea` | 2026-11-12 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f2c380f` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: E1 is built; the scored gate on 2ff620c read 530/530 |
