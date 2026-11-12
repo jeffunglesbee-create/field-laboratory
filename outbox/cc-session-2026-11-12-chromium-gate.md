@@ -91,4 +91,9 @@ The gate's two ledger commits (`7ef4e52`, `17353b5`: the mutation baseline and t
 
 ## Landing
 
-The runs on the landing commit (`verify` with its `browser-gate` job and the final step, `guards`, `deploy`, `live-check`) are recorded below by a follow-up commit once they have been read.
+Pushed to `main` as `a971445` (`a932f5d..a971445`, 09:31Z; the head commit is docs-only, the diff to `main` carries the verify.yml, guard, `package.json` and live-score-check changes and no `outbox/.trigger-*`). The runs on it, read at 09:48Z:
+
+- **`verify` 43192147628: success** (09:31:00Z to 09:37:41Z), all six jobs. In the `verify` job: `Install Chromium` success in 7 s; `The browser checks' own self-tests, which launch no browser` success (1 s); every one of the 20 browser steps success, among them `The live score, on the rendered page` (44 s), `The live score probe's glue, on the rendered page` (90 s) and `Render check against the LIVE slate`; `The F# suite, on the F# harness` success; **the final step `Install Chromium did not succeed, so the steps that need a browser were skipped` skipped**, as it must be when the install worked; **`browser-gate` success**. This is the first `verify` on `main` with the new shape, and the first with the live-score check's 1000 ms margin.
+- `guards` 43192147497: success. `deploy` 43193134428: success and **published** (its `Does verify allow this deploy?`, `Build`, `Verify the built site before publishing it`, `Deploy` and `Confirm the deployed page actually serves` steps all success). `live-check` 43193289777: success. `status` 43193290367: success (an earlier `status` run, 43193134322, was skipped by its own condition).
+
+What stays open is the CC-CMD's five items (its "Option 1: built" section). The next piece of the root is the first of them: the guard reads one job of one file, and the `full` job of `verify-full.yml`, the scored gate itself, installs a browser the same way.
