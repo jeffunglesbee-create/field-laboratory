@@ -336,7 +336,7 @@ jobs:
         id: chromium
         continue-on-error: true
         timeout-minutes: 3
-        run: npx playwright install chromium
+        run: sleep 600 && npx playwright install chromium
 
       - name: Render checks (both captures, including the state transition)
         if: steps.chromium.outcome == 'success'
@@ -1365,3 +1365,36 @@ jobs:
         run: |
           echo "::error::The Chromium install did not succeed (outcome: ${{ steps.chromium.outcome }}). The steps that need a browser were skipped and every other step ran. This commit is NOT verified."
           exit 1
+
+      # PROOF STEP: this branch only, never merged. What every step of this job concluded, read from the API while the job runs.
+      - name: PROOF - what every step of this job concluded
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}/jobs" --paginate \
+            --jq '.jobs[] | select(.name=="verify") | .steps[] | [.number, .name, .status, (.conclusion // "-")] | @tsv' > /tmp/steps.tsv
+          cat > /tmp/evidence.py <<'PY'
+          import json, collections
+          rows = [l.rstrip("\n").split("\t") for l in open("/tmp/steps.tsv")]
+          table = json.load(open("outbox/verify-step-browser-classification-2026-11-12.json"))["table"]
+          need = {r["name"] for r in table if r["independentVerdict"] == "yes"}
+          plain = {r["name"] for r in table if r["independentVerdict"] == "no"}
+          by = lambda names: collections.Counter(r[3] for r in rows if r[1] in names)
+          print("=== PROOF: the verify job's steps, by what they concluded")
+          print("steps read from the API:", len(rows))
+          print("the", len(need), "steps that need a browser   :", dict(by(need)))
+          print("the", len(plain), "steps that do not          :", dict(by(plain)))
+          for r in rows:
+              if "F# suite" in r[1] or "Install Chromium" in r[1]:
+                  print("   ", r[0], r[1], "| status", r[2], "| conclusion", r[3])
+          print("=== every step that did not conclude 'success' or 'skipped'")
+          for r in rows:
+              if r[3] not in ("success", "skipped"):
+                  print("   ", r[0], r[1], "|", r[2], "|", r[3])
+          print("=== the browser steps and what each concluded")
+          for r in rows:
+              if r[1] in need:
+                  print("   ", r[3].ljust(9), r[1])
+          PY
+          python3 /tmp/evidence.py
