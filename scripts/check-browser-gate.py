@@ -57,6 +57,10 @@ chromium.launch, and the arguments do not include `--self-test`. Three decisions
 The classification was checked against two independent readers per step, with a judge for disagreements, over all 90
 steps that follow the install: outbox/verify-step-browser-classification-2026-11-12.json.
 
+THIS FILE IS NOT RUN FROM THE `verify` JOB, and must not be: its self-test fixtures embed launch calls as strings, so the text
+rule reads it as a browser script (checked in its self-test). It has its own job, `browser-gate`, which is also why an outage of
+the install cannot park it.
+
 READ-ONLY. Parses workflow YAML and reads scripts; runs nothing.
 """
 import json
@@ -76,10 +80,16 @@ MIN_STEPS = 60          # coverage floors: a classifier that reads nothing must 
 MIN_BROWSER = 10
 MIN_PLAIN = 30
 
+# CALLS AND IMPORTS, NOT WORDS. A word match read this very file (its docstring and its regex literals name every token
+# below) as a browser script. `chromium.launch(` and `launchPersistentContext(` need the call, `PW_CHROMIUM` needs to be
+# READ (process.env or an environ lookup), and the python import needs a line of its own: re.MULTILINE, or `^` would only
+# ever match the first line of the file.
 LAUNCH = re.compile(
     r"""from\s+['"]playwright(?:-core)?['"]|require\(\s*['"]playwright(?:-core)?['"]\s*\)|"""
-    r"""import\(\s*['"]playwright|chromium\.launch|launchPersistentContext|PW_CHROMIUM|"""
-    r"""^\s*(?:import|from)\s+playwright\b"""
+    r"""import\(\s*['"]playwright|chromium\.launch\s*\(|launchPersistentContext\s*\(|"""
+    r"""process\.env\.PW_CHROMIUM|environ[^\n]{0,24}PW_CHROMIUM|"""
+    r"""^\s*(?:import|from)\s+playwright\b""",
+    re.MULTILINE,
 )
 INSTALL_CMD = re.compile(r"\bplaywright\s+install\b")
 
@@ -196,7 +206,7 @@ def needs_browser(step, pkg, read):
             return True
     # an inline use (`node -e`, a heredoc): a launch in the step's own text, or `npx playwright <not install>`
     own = strip_comments(script)
-    if re.search(r"chromium\.launch|launchPersistentContext|require\(\s*['\"]playwright", own):
+    if LAUNCH.search(own):
         return True
     for m in re.finditer(r"\bnpx\s+playwright\s+(\w+)", own):
         if m.group(1) != "install":
@@ -291,7 +301,7 @@ def self_test():
 
     files = {
         "scripts/shot.mjs": "import { chromium } from 'playwright'\nif (process.argv.includes('--self-test')) process.exit(0)\nconst b = await chromium.launch()\n",
-        "scripts/pure.mjs": "import { readFileSync } from 'node:fs'\n// chromium.launch is only mentioned here\n",
+        "scripts/pure.mjs": "import { readFileSync } from 'node:fs'\n// await chromium.launch() is only mentioned here\n",
         "scripts/lib.mjs": "import { chromium } from 'playwright'\nexport const x = 1\n",
         "scripts/uses-lib.mjs": "import { x } from './lib.mjs'\n",
         "scripts/probe.py": "from playwright.sync_api import sync_playwright\n",
@@ -301,6 +311,9 @@ def self_test():
         "scripts/l-launch.mjs": "const b = await chromium.launch()\n",
         "scripts/l-persist.mjs": "const c = await type.launchPersistentContext(dir)\n",
         "scripts/l-env.mjs": "const exe = process.env.PW_CHROMIUM\n",
+        "scripts/l-env.py": "import os\nexe = os.environ.get('PW_CHROMIUM')\n",
+        "scripts/late.py": "# header\n\nimport os\nfrom playwright.sync_api import sync_playwright\n",
+        "scripts/prose.py": '"""Mentions chromium.launch and PW_CHROMIUM and from playwright in prose."""\nPATTERN = r"chromium\\.launch|PW_CHROMIUM"\n',
         "scripts/l-core.mjs": "import { chromium } from 'playwright-core'\n",
     }
     read = lambda p: files[p]
@@ -343,6 +356,13 @@ def self_test():
     check("`npm run` is followed through a nested script and `&&`", needs_browser({"run": "npm run nest"}, pkg, read) is True)
     check("a python script that imports playwright is a browser step", needs_browser({"run": "python3 scripts/probe.py"}, pkg, read) is True)
     check("...in either python import form", needs_browser({"run": "python3 scripts/probe2.py"}, pkg, read) is True)
+    check("a python import on a LATER line is a browser step (the pattern is multiline)", needs_browser({"run": "python3 scripts/late.py"}, pkg, read) is True)
+    check("PW_CHROMIUM read through os.environ is a browser step", needs_browser({"run": "python3 scripts/l-env.py"}, pkg, read) is True)
+    check("a script that only NAMES the tokens (a docstring, a regex literal) is not a browser step",
+          needs_browser({"run": "python3 scripts/prose.py"}, pkg, read) is False)
+    check("a script that only NAMES the tokens in a comment is not a browser step, and this guard's own source (whose fixtures embed launch calls as strings) is read as one, which is why it never runs from the verify job",
+          needs_browser({"run": "python3 scripts/prose.py"}, pkg, read) is False and
+          entry_launches(__file__, lambda p: Path(p).read_text()) is True)
     for f, how in [("l-require.mjs", "require('playwright')"), ("l-dynamic.mjs", "import('playwright')"), ("l-launch.mjs", "chromium.launch alone"),
                    ("l-persist.mjs", "launchPersistentContext alone"), ("l-env.mjs", "PW_CHROMIUM alone"), ("l-core.mjs", "playwright-core")]:
         check(f"a script that uses {how} is a browser step", needs_browser({"run": f"node scripts/{f}"}, pkg, read) is True, f)
