@@ -1,9 +1,9 @@
 {
-  "at": "2026-11-12T03:12:24.866Z",
+  "at": "2026-11-12T07:43:45.885Z",
   "scope": "full",
   "ran": 102,
   "from_mutations": 1444,
-  "failing": 0,
+  "failing": 1,
   "notApplicable": [],
   "results": [
     {
@@ -384,7 +384,9 @@
     },
     {
       "cmd": "node scripts/live-score-render-check.mjs",
-      "passed": true
+      "passed": false,
+      "status": 1,
+      "tail": "node:internal/modules/run_main:123\n    triggerUncaughtException(\n    ^\n\nclock.pauseAt: Error: Cannot fast-forward to the past\n    at ClockController._innerFastForwardTo (<anonymous>:202:13)\n    at ClockController.pauseAt (<anonymous>:133:16)\n    at async <anonymous>:337:30\n    at /home/runner/work/field-laboratory/field-laboratory/scripts/live-score-render-check.mjs:526:22 {\n  log: []\n}\n\nNode.js v22.23.4"
     },
     {
       "cmd": "node scripts/live-score-render-check.mjs --self-test",
@@ -419,16 +421,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2525386,
-      2353179,
-      2765037,
-      2694322,
-      2824387,
-      2573095,
-      2906722,
-      2340111
+      2405175,
+      2685350,
+      2546698,
+      2652043,
+      3123735,
+      2764517,
+      2667941,
+      2505529
     ],
-    "longestMs": 2906722,
-    "sumMs": 20982239
+    "longestMs": 3123735,
+    "sumMs": 21350988
   }
 }
