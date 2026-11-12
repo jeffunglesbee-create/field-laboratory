@@ -20,6 +20,7 @@
     "check:zone": "node scripts/zone-check.mjs",
     "check:window": "node scripts/window-check.mjs",
     "check:workflows": "node scripts/workflow-check.mjs",
+    "check:browser-gate": "python3 scripts/check-browser-gate.py --self-test && python3 scripts/check-browser-gate.py",
     "check:script-orphans": "node scripts/check-script-orphans.mjs --self-test && node scripts/check-script-orphans.mjs",
     "check:gate-rows": "node scripts/gate-inventory.mjs",
     "check:gate-ledger": "node scripts/gate-ledger-step-check.mjs --self-test",
