@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `aa02004` | 2026-11-12 | [cc-session-2026-11-12-venue-review-counts.md](cc-session-2026-11-12-venue-review-counts.md) | docs: Task 4 Step 1 landed: guards run 43228455202 green on c86b047d; the session record gets its manifest |
+| `c86b047` | 2026-11-12 | [cc-session-2026-11-12-venue-review-counts.md](cc-session-2026-11-12-venue-review-counts.md) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-2026-11-12.md](venue-review-counts-2026-11-12.md) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-2026-11-12.mjs](venue-review-counts-2026-11-12.mjs) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-mutations-2026-11-12.mjs](venue-review-counts-mutations-2026-11-12.mjs) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-mutations-2026-11-12.txt](venue-review-counts-mutations-2026-11-12.txt) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-recompute-2026-11-12.mjs](venue-review-counts-recompute-2026-11-12.mjs) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-recompute-2026-11-12.txt](venue-review-counts-recompute-2026-11-12.txt) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-rows-2026-11-12.json](venue-review-counts-rows-2026-11-12.json) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-counts-selftest-2026-11-12.txt](venue-review-counts-selftest-2026-11-12.txt) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-population-2026-11-12.mjs](venue-review-population-2026-11-12.mjs) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
+| `c86b047` | 2026-11-12 | [venue-review-population-2026-11-12.txt](venue-review-population-2026-11-12.txt) | docs: Task 4 Step 1: the 71 review names with no row carry 283 games on 261 venue-days; no row added |
 | `787f650` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: the runs on option 1's landing are green: verify (browser-gate, final step skipped), guards, deploy (published), live-check |
 | `f898f50` | 2026-11-12 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `a971445` | 2026-11-12 | [cc-session-2026-11-12-chromium-gate.md](cc-session-2026-11-12-chromium-gate.md) | docs: option 1 (the verify job's browser steps wait for the install) is built and scored 530 of 530 |
