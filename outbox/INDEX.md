@@ -12,12 +12,26 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f2c380f` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | docs: E1 is built; the scored gate on 2ff620c read 530/530 |
+| `4d90532` | 2026-11-12 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 2ff620c [skip ci] |
+| `ced2cd7` | 2026-11-11 | [drift-closing-odds-fix-verified-2026-11-12.txt](drift-closing-odds-fix-verified-2026-11-12.txt) | docs: the closing-odds update states the counts on the red dates and no more than they show |
+| `93d2d9d` | 2026-11-11 | [drift-closing-odds-fix-verified-2026-11-12.txt](drift-closing-odds-fix-verified-2026-11-12.txt) | docs: the closing-odds sentinel fix is already on main, and a run on main passed |
 | `ed2f995` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `ed2f995` | 2026-11-12 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
 | `ed2f995` | 2026-11-12 | [sport-vocabulary-2026-11-12T02-57-53-062Z.json](sport-vocabulary-2026-11-12T02-57-53-062Z.json) | drift-sentinel: ok on 2026-11-11 [skip ci] |
+| `0429049` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
+| `0429049` | 2026-11-12 | [e1-red-before-2026-11-12.mjs](e1-red-before-2026-11-12.mjs) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
+| `0429049` | 2026-11-12 | [e1-red-before-2026-11-12.txt](e1-red-before-2026-11-12.txt) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
+| `0429049` | 2026-11-12 | [e1-sweep-2026-11-12.mjs](e1-sweep-2026-11-12.mjs) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
+| `0429049` | 2026-11-12 | [e1-sweep-2026-11-12.txt](e1-sweep-2026-11-12.txt) | fix: E1 review findings: a readable reason, a separator, and a self-test that tests its own wiring |
 | `5e6e43d` | 2026-11-12 | [live-other-sports-measurement-2026-11-12.md](live-other-sports-measurement-2026-11-12.md) | docs: other-sports Task 1, reading 2 of 2: 7 of 7 live NBA games unscored in the archive, and no final game in either reading |
 | `f864fa2` | 2026-11-12 | [live-capture-nhl-2026-11-11-0201Z.json](live-capture-nhl-2026-11-11-0201Z.json) | probe: the live /v2/games shape of nhl on 2026-11-11 [skip ci] |
 | `3266042` | 2026-11-12 | [live-capture-nba-2026-11-11-0200Z.json](live-capture-nba-2026-11-11-0200Z.json) | probe: the live /v2/games shape of nba on 2026-11-11 [skip ci] |
+| `5cf8efb` | 2026-11-12 | [cc-session-2026-11-12-e1-citations-head.md](cc-session-2026-11-12-e1-citations-head.md) | fix: the citation check reads the history behind HEAD, not every ref (E1) |
+| `5cf8efb` | 2026-11-12 | [e1-red-before-2026-11-12.mjs](e1-red-before-2026-11-12.mjs) | fix: the citation check reads the history behind HEAD, not every ref (E1) |
+| `5cf8efb` | 2026-11-12 | [e1-red-before-2026-11-12.txt](e1-red-before-2026-11-12.txt) | fix: the citation check reads the history behind HEAD, not every ref (E1) |
+| `5cf8efb` | 2026-11-12 | [e1-sweep-2026-11-12.mjs](e1-sweep-2026-11-12.mjs) | fix: the citation check reads the history behind HEAD, not every ref (E1) |
+| `5cf8efb` | 2026-11-12 | [e1-sweep-2026-11-12.txt](e1-sweep-2026-11-12.txt) | fix: the citation check reads the history behind HEAD, not every ref (E1) |
 | `f95ecb1` | 2026-11-12 | [live-other-sports-measurement-2026-11-12.md](live-other-sports-measurement-2026-11-12.md) | docs: other-sports Task 1, reading 1 of 2: NBA has soccer's gap in the archive, and NHL cannot use soccer's join |
 | `c1cb3f2` | 2026-11-12 | [live-capture-nhl-2026-11-11-0101Z.json](live-capture-nhl-2026-11-11-0101Z.json) | probe: the live /v2/games shape of nhl on 2026-11-11 [skip ci] |
 | `d5a2c49` | 2026-11-12 | [live-capture-nba-2026-11-11-0100Z.json](live-capture-nba-2026-11-11-0100Z.json) | probe: the live /v2/games shape of nba on 2026-11-11 [skip ci] |
