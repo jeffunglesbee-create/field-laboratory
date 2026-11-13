@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `b0ed677` | 2026-11-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-13 [skip ci] |
+| `b0ed677` | 2026-11-13 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-13 [skip ci] |
+| `b0ed677` | 2026-11-13 | [sport-vocabulary-2026-11-13T19-28-54-566Z.json](sport-vocabulary-2026-11-13T19-28-54-566Z.json) | drift-sentinel: ok on 2026-11-13 [skip ci] |
+| `8870f6f` | 2026-11-13 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `6443485` | 2026-11-13 | [cc-session-2026-11-13-wikidata-statements-runner-read.md](cc-session-2026-11-13-wikidata-statements-runner-read.md) | docs: Task 5 runner read, Landing manifest and one stale paragraph corrected |
 | `a14b3cf` | 2026-11-13 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 7b94aef [skip ci] |
 | `7c252a4` | 2026-11-13 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-13T14:54 [skip ci] |
