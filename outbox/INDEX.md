@@ -12,6 +12,18 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `f323948` | 2026-11-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-13 [skip ci] |
+| `f323948` | 2026-11-13 | [sport-vocabulary-2026-11-13T08-16-43-223Z.json](sport-vocabulary-2026-11-13T08-16-43-223Z.json) | drift-sentinel: ok on 2026-11-13 [skip ci] |
+| `9fad347` | 2026-11-12 | [cc-session-2026-11-12-wikidata-roof-step-a.md](cc-session-2026-11-12-wikidata-roof-step-a.md) | docs: Step A landing manifest, and a false line in its session doc corrected |
+| `c3176fa` | 2026-11-12 | [cc-session-2026-11-12-wikidata-roof-step-a.md](cc-session-2026-11-12-wikidata-roof-step-a.md) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-evidence-2026-11-12.json](venue-wikidata-roof-evidence-2026-11-12.json) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-step-a-2026-11-12.md](venue-wikidata-roof-step-a-2026-11-12.md) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-step-a-2026-11-12.mjs](venue-wikidata-roof-step-a-2026-11-12.mjs) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-step-a-2026-11-12.txt](venue-wikidata-roof-step-a-2026-11-12.txt) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-step-a-selftest-2026-11-12.txt](venue-wikidata-roof-step-a-selftest-2026-11-12.txt) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-step-a-selftest-teeth-2026-11-12.mjs](venue-wikidata-roof-step-a-selftest-teeth-2026-11-12.mjs) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `c3176fa` | 2026-11-12 | [venue-wikidata-roof-step-a-selftest-teeth-2026-11-12.txt](venue-wikidata-roof-step-a-selftest-teeth-2026-11-12.txt) | docs: Task 5 Step A is NO-GO: Wikidata's property search for "roof" lists no roof property |
+| `b59a351` | 2026-11-13 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `04d21dc` | 2026-11-12 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-12T23:53 [skip ci] |
 | `95e968a` | 2026-11-12 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `d703ac1` | 2026-11-12 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-12 [skip ci] |
