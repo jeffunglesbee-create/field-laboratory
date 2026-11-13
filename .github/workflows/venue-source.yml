@@ -20,10 +20,10 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'calibrate (the 109 table venues, truth known), source (a list), weather (the whole table, flagless, against Open-Meteo), occupants (Wikidata occupants of the ambiguous venues), collisions (the home teams seen at each table venue, against the table row), or infobox (the Roof field of each venue article''s infobox and its categories, a measurement)'
+        description: 'calibrate (the 109 table venues, truth known), source (a list), weather (the whole table, flagless, against Open-Meteo), occupants (Wikidata occupants of the ambiguous venues), collisions (the home teams seen at each table venue, against the table row), infobox (the Roof field of each venue article''s infobox and its categories, a measurement), or statements (every statement of each Wikidata item the roof rule asks about, a measurement)'
         required: true
         type: choice
-        options: [calibrate, source, weather, occupants, collisions, infobox]
+        options: [calibrate, source, weather, occupants, collisions, infobox, statements]
         default: calibrate
       list:
         description: 'For source mode: path to a JSON list of names, in the repo'
@@ -84,6 +84,17 @@ jobs:
         if: inputs.mode == 'infobox'
         run: node scripts/venue-infobox.mjs --self-test && node scripts/venue-infobox.mjs
 
+      # Reads Wikidata's Action API (wbgetentities) for the 396 items the roof rule asks
+      # about, 25 items to a request and then their value labels 50 to a request, one
+      # request a second (scripts/venue-wikidata-statements.mjs; docs/CC-CMD-2026-11-09-
+      # venue-review-remainder.md, Task 5, "Step A, runner read"). It writes only its own
+      # two files and reads the cache and nothing else, so a run of this mode cannot leave
+      # check:venue-sourced red. A run that is not a clean measurement exits 1, and the
+      # commit step below still commits what it wrote, which is the evidence for finding why.
+      - name: The statements of each Wikidata roof item (a measurement, no decision)
+        if: inputs.mode == 'statements'
+        run: node scripts/venue-wikidata-statements.mjs --self-test && node scripts/venue-wikidata-statements.mjs
+
       # Stage 4's acceptance: every row, sourced ones included, resolves to the
       # zone it declares, with no tolerance flag. verify runs the same check with
       # --tolerate-unreachable on every main push; this is the strict run, kept
@@ -105,7 +116,7 @@ jobs:
         run: |
           git config user.email "claude@field.dev"
           git config user.name "FIELD CI"
-          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-results-latest.json outbox/venue-source-cache.json outbox/venue-weather-check-latest.txt outbox/venue-occupants-probe.json outbox/venue-collisions-latest.json outbox/venue-infobox-probe.json outbox/venue-infobox-probe.txt; do
+          for p in outbox/venue-source-calibration-latest.json outbox/venue-source-results-latest.json outbox/venue-source-cache.json outbox/venue-weather-check-latest.txt outbox/venue-occupants-probe.json outbox/venue-collisions-latest.json outbox/venue-infobox-probe.json outbox/venue-infobox-probe.txt outbox/venue-wikidata-statements-probe.json outbox/venue-wikidata-statements-probe.txt; do
             if [ -e "$p" ]; then git add "$p"; fi
           done
           git diff --cached --quiet && echo "no change" && exit 0
