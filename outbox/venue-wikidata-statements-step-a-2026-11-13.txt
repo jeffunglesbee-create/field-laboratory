@@ -1,0 +1,92 @@
+PASS  [E1] the probe file has the members this reads (items, labels, datatypes, labelIds, control)
+PASS  [R1] the read holds a record for each of the 396 items the cache holds a wd-roof answer for, and for no other (cache keys 396, records 396; lacking 0, extra 0)
+PASS  [R2] every record is a read: no item is NOT READ (read 396 of 396)
+PASS  [R4] each record is for the item asked, or records a redirect to the item that answered (checked 396 of 396; 0 redirected)
+PASS  [R6] every statement reads as a property, a rank the analysis knows (normal, preferred, deprecated) and a value or a recorded somevalue or novalue (checked 10313 of 10313)
+PASS  [R7] every property in use has a datatype this analysis knows how to read: an item, a text or something that is no text (checked 332 of 332)
+PASS  [R3] every item that is a value, and every property, has an answered label record (answered 2807 of 2807; 0 missing on Wikidata, 33 with no English label, named by property in the record)
+PASS  [R5] the probe records a complete run: complete, no fatal error, no failed labels request, no property with two datatypes
+PASS  [T1] the probe's own report and the committed read agree on what was read (report: items read 396 of 396, statements 10313; recomputed: 396 of 396, 10313)
+PASS  [K1] criterion 1: the statements read for Q1410402 carry Q7316894, under P1552 "has characteristic" (main, rank normal)
+PASS  [K2] the control's value reads as a roof through the rule's own classifier, like every other value: "retractable roof" is retractable
+PASS  [K3] the control the probe recorded is the one criterion 1 names, and the item read is it (Q1410402, Q7316894, "Pierre Mauroy Stadium")
+PASS  [C3a] every candidate's property (and qualifier property) has an English label, a description and a datatype to list (checked 8 of 8 candidates)
+PASS  [C3b] every candidate has been read and has a disposition (accounted for 8 of 8)
+PASS  [C3c] every disposition in READING is for a candidate the data has (8 of 8)
+PASS  [M1] criterion 4: the sourcing rule's own classifier reads a roof class as that class and a value that names no roof as none
+PASS  [N1] the review rows whose reason begins "roof:" are the 9 names Step 1's record counts as "roof not settled (position agreed)" (9)
+PASS  [N2] each of the 9 names is a distinct item whose statements were read (read 9 of 9), so "decides none" is not "was not read"
+PASS  [S1] the verdict does not depend on the reading or on the rank rule: as read NO-GO; with no candidate set aside NO-GO; with none set aside and every statement counted whatever its rank NO-GO
+PASS  [T2] the property the rule reads today, P5624, is on as many items' own statements as the cache's query found a roof for, the same items (read 0 of 396; cache 0 of 396)
+PASS  [G7] criterion 7: the four protected files carry the digests Step A's record printed (same 4 of 4)
+PASS  [G6] the script's own imports can read and hash but not write or reach a network (checked 4 of 4 imports)
+
+22/22 checks passed
+
+coverage (what each number is out of):
+  items read 396 of 396 (the wd-roof| keys of the cache); records 396 of 396; redirected 0
+  statements 10313 (ranks: normal 10099, preferred 142, deprecated 72); qualifier values 2618; properties in use 332
+  labels answered 2807 of 2807 (missing on Wikidata 0; no English label 33, read as no witness)
+  control Q1410402: statements read 54; found 1 P1552 rank normal
+  candidates accounted for 8 of 8 (retained 1, set aside 7); values that match only the wider word list 44, counted for nothing
+  retained candidates: items with a roof 1 of 396; rows the lead or the infobox decides that they meet 1, agree 1, disagree 0
+  the 9 names whose roof is unsettled: read 9 of 9; decided by a retained candidate 0 of 9; decided if no candidate were set aside 0 of 9 (Step 1's record counts 9)
+  the verdict by variant: as read NO-GO; no candidate set aside NO-GO; none set aside and every statement counted whatever its rank NO-GO (roof-reading values 10 under the rank rule, 11 counting every rank; candidates 8 and 8)
+  information only, no criterion: item descriptions that read as a roof 6 of 396; on rows the lead or the infobox decides 6, agree 6; on the 9 names 0
+  P5624, the property the rule reads today: on 0 of 396 items' statements; the cache's query found a roof for 0 of 396
+  protected files unchanged 4 of 4
+
+candidates (criterion 3), each with its reading and the items that carry a roof word:
+  SET ASIDE P18 "image", datatype commonsMedia; carried by 379 of 396 items; reading: a Commons file name: "Carrier Dome - New Roof 2021 (Jimhoward03).jpg" is the title of a photo, and "Dome" is a word of this building's names (its label is "JMA Wireless Dome", its Commons category "Carrier Dome")
+      Q2739617 JMA Wireless Dome: P18 = "Carrier Dome - New Roof 2021 (Jimhoward03).jpg" -> dome
+      decided row Q2739617 JMA Wireless Dome: row dome (wikipedia lead); candidate dome: agree
+      agree 1 of 1; decides 0 of 9 names
+  SET ASIDE P154 "logo image", datatype commonsMedia; carried by 46 of 396 items; reading: a Commons file name: "JMA Wireless Dome logo.png" holds the item's own label
+      Q2739617 JMA Wireless Dome: P154 = "JMA Wireless Dome logo.png" -> dome
+      decided row Q2739617 JMA Wireless Dome: row dome (wikipedia lead); candidate dome: agree
+      agree 1 of 1; decides 0 of 9 names
+  SET ASIDE P373 "Commons category", datatype string; carried by 375 of 396 items; reading: a Commons category name: "Carrier Dome" is the building's own category, a name and not a roof
+      Q2739617 JMA Wireless Dome: P373 = "Carrier Dome" -> dome
+      decided row Q2739617 JMA Wireless Dome: row dome (wikipedia lead); candidate dome: agree
+      agree 1 of 1; decides 0 of 9 names
+  SET ASIDE P466[P155] "occupant" ["follows"], datatype wikibase-item; carried by 39 of 396 items; reading: a qualifier on an occupant statement whose value is another venue's name: the Rams "follows" The Dome at America's Center, the Colts "follows" RCA Dome; it is no statement about this item's roof
+      Q849784 Los Angeles Memorial Coliseum: P466 Los Angeles Rams [P155 = "The Dome at America's Center"] -> dome
+      Q867160 Lucas Oil Stadium: P466 Indianapolis Colts [P155 = "RCA Dome"] -> dome
+      decided row Q867160 Lucas Oil Stadium: row retractable (wikipedia lead); candidate dome: DISAGREE
+      agree 0 of 1; decides 0 of 9 names
+  SET ASIDE P856 "official website", datatype url; carried by 244 of 396 items; reading: a web address: its path holds the item's own name, "jma-wireless-dome"
+      Q2739617 JMA Wireless Dome: P856 = "https://cuse.com/facilities/jma-wireless-dome/526" -> dome
+      decided row Q2739617 JMA Wireless Dome: row dome (wikipedia lead); candidate dome: agree
+      agree 1 of 1; decides 0 of 9 names
+  RETAINED  P1552 "has characteristic", datatype wikibase-item; carried by 4 of 396 items; reading: the value is a roof class: the statement says the item "has characteristic" retractable roof
+      Q1410402 Pierre Mauroy Stadium: P1552 = "retractable roof" -> retractable
+      decided row Q1410402 Decathlon Arena - Stade Pierre-Mauroy: row retractable (wikipedia lead); candidate retractable: agree
+      agree 1 of 1; decides 0 of 9 names
+  SET ASIDE P3417 "Quora topic ID", datatype external-id; carried by 66 of 396 items; reading: an identifier: Quora topic ids made of the building's names, "JMA-Wireless-Dome" and "Carrier-Dome"
+      Q2739617 JMA Wireless Dome: P3417 = "JMA-Wireless-Dome" -> dome
+      Q2739617 JMA Wireless Dome: P3417 = "Carrier-Dome" -> dome
+      decided row Q2739617 JMA Wireless Dome: row dome (wikipedia lead); candidate dome: agree
+      agree 1 of 1; decides 0 of 9 names
+  SET ASIDE P5775 "image of interior", datatype commonsMedia; carried by 23 of 396 items; reading: a Commons file name: "The Dome New Orleans Man Trip.jpg" is the title of a photo; the item is Caesars Superdome
+      Q756452 Caesars Superdome: P5775 = "The Dome New Orleans Man Trip.jpg" -> dome
+      decided row Q756452 Caesars Superdome: row dome (wikipedia lead); candidate dome: agree
+      agree 1 of 1; decides 0 of 9 names
+
+the 9 names:
+  Q140038602 AIL Arena: statements read 15; roof decided by a candidate: none; wider-list values 0; row: roof: no Wikipedia lead and no Wikidata roof
+  Q870859 Bloomfield Road: statements read 25; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q842077 Coventry Building Society Arena: statements read 35; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q330298 De Kuip: statements read 47; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q968420 Goodison Park: statements read 29; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q16251517 Highmark Stadium: statements read 12; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q1613767 Kenilworth Road: statements read 21; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q33003 Parken Stadium: statements read 33; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+  Q81492 RAMS Park: statements read 26; roof decided by a candidate: none; wider-list values 0; row: roof: the lead names no roof, but the article mentions "retractable roof"
+
+NO-GO. The control holds and the read is complete (items read 396 of 396; labels answered 2807 of 2807). Criterion 3 lists 8 candidate properties by the rule's own patterns: 7 set aside by reading the item (a name, an address, an identifier, another venue's name) and 1 retained. P1552 "has characteristic" carries a roof on 1 of 396 items, agrees with 1 of 1 rows the lead or the infobox decides, and decides 0 of the 9 names. None passes criterion 6: the names decided are 0 of 9 by a retained candidate and 0 of 9 if no candidate were set aside. The choice between the follow-ons, or neither, is the owner's.
+
+protected files, sha256:
+  5685d6dfcdf3b987d77713d1a9902b6e0adeae5e9d5fef4ff8a0c80fb99015ec  outbox/venue-source-results-latest.json
+  fb2c96e580c0dbc13b9c70cd62cb6b55cb3e1d191a61618176452f1dba6b5c72  outbox/venue-source-cache.json
+  56363462e187d24700b3d8fe09418c8da0f2a90bae8972a883dc4a6b2a4d2657  src/Venues.fs
+  ad9ed9bd7c2bbf7bef41af94f7a1e3bf6599df9e867862e30bf6ebb76959fb34  scripts/venue-source.mjs

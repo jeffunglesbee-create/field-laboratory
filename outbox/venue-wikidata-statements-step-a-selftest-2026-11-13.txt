@@ -1,0 +1,40 @@
+PASS  CONTROL: the undoctored inputs pass every check (22 of 22)
+PASS  the probe file has no labels member: aimed at [E1]; failed E1
+PASS  the control item carries no statement with the control value: aimed at [K1]; failed T1, K1, C3c
+PASS  the control value reads as no roof: aimed at [K2]; failed K2, C3c
+PASS  the probe recorded another control: aimed at [K3]; failed K3
+PASS  an item the cache asks about has no record: aimed at [R1]; failed R1, T1
+PASS  an item the cache does not hold is in the read: aimed at [R1]; failed R1, T1
+PASS  an item did not read: aimed at [R2]; failed R2, T1
+PASS  an item answers as another id: aimed at [R4]; failed R4
+PASS  a value id has no label record: aimed at [R3]; failed R3
+PASS  the probe says it did not complete: aimed at [R5]; failed R5
+PASS  the probe report and the read disagree on the items read: aimed at [T1]; failed T1
+PASS  a statement has a rank the analysis does not know: aimed at [R6]; failed R6
+PASS  a property is in use with a datatype the analysis cannot read: aimed at [R7]; failed R7, C3c
+PASS  a candidate property has no description: aimed at [C3a]; failed C3a
+PASS  a property no one has read carries a roof word: aimed at [C3b]; failed T1, C3b
+PASS  a reading is for a candidate the data no longer has: aimed at [C3c]; failed T1, C3c
+PASS  the classifier reads every text as open: aimed at [M1]; failed K2, C3c, M1
+PASS  the control statement is ranked deprecated: aimed at number retainedWitnessItems 1 -> 0 (wanted 0); failed C3c
+PASS  a preferred statement under the same property hides the roof: aimed at number retainedWitnessItems 1 -> 0 (wanted 0); failed T1, C3c
+PASS  the roof value has no English label: aimed at number retainedWitnessItems 1 -> 0 (wanted 0); failed K2, C3c
+PASS  a value matches only the wider word list: aimed at number widerOnly 44 -> 45 (wanted 45); failed T1
+PASS  a retractable roof is stated on one of the 9 names: aimed at number passing 0 -> 1 (wanted 1); failed T1
+PASS  a closed-roof word is in a file name on one of the 9 names: aimed at [S1]; failed T1, S1
+PASS  a row the lead decides names another roof than the candidate: aimed at number retainedDisagree 0 -> 1 (wanted 1); failed nothing
+PASS  no row the candidate meets is decided by the lead or the infobox: aimed at number retainedDecidedRows 1 -> 0 (wanted 0); failed nothing
+PASS  one of the 9 names carries the roof and the candidate meets no decided row (0 of 0): aimed at passing 0, retainedZeroOfZero 1, nineDecided 1; failed T1
+PASS  the description of one of the 9 names says retractable roof: aimed at number descNine 0 -> 1 (wanted 1); failed nothing
+PASS  a deprecated statement says retractable roof on one of the 9 names: aimed at [S1]; failed T1, S1
+PASS  a review row loses its roof reason: aimed at [N1]; failed N1
+PASS  one of the 9 names is an item that was not read: aimed at [N2]; failed N2
+PASS  P5624 is on an item the cache found no roof for: aimed at [T2]; failed R7, R3, T1, T2
+PASS  a protected file differs from the digest recorded: aimed at [G7]; failed G7
+PASS  the script imports a way to write: aimed at [G6]; failed G6
+PASS  OUTPUT: on "an item did not read" the report says "items read 395 of 396" (the coverage line names the items asked for, not only those read)
+PASS  OUTPUT: on "a value id has no label record" the report says "labels answered 2806 of 2807" (the label line names the ids that needed an answer)
+PASS  OUTPUT: on "a property no one has read carries a roof word" the report says "candidates accounted for 8 of 9" (the candidate line names the candidates found, not only those accounted for)
+PASS  OUTPUT: on "a protected file differs from the digest recorded" the report says "protected files unchanged 3 of 4" (the digest line names the files that must be compared)
+
+33 of 33 doctored copies caught by the check or number aimed at them; 0 not applied; 4 of 4 coverage lines print their denominators; control green

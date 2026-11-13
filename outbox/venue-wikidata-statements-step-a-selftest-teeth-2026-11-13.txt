@@ -1,0 +1,42 @@
+PASS  CONTROL: the unbroken copy's self-test exits 0 (it must exit 0)
+PASS  [E1] broken; the self-test exits 1 and reports "the probe file has no labels member" as not caught
+PASS  [R1] broken; the self-test exits 1 and reports "an item the cache asks about has no record" as not caught
+PASS  [R1b] broken; the self-test exits 1 and reports "an item the cache does not hold is in the read" as not caught
+PASS  [R2] broken; the self-test exits 1 and reports "an item did not read" as not caught
+PASS  [R3] broken; the self-test exits 1 and reports "a value id has no label record" as not caught
+PASS  [R4] broken; the self-test exits 1 and reports "an item answers as another id" as not caught
+PASS  [R5] broken; the self-test exits 1 and reports "the probe says it did not complete" as not caught
+PASS  [R6] broken; the self-test exits 1 and reports "a statement has a rank the analysis does not know" as not caught
+PASS  [R7] broken; the self-test exits 1 and reports "a property is in use with a datatype the analysis cannot read" as not caught
+PASS  [T1] broken; the self-test exits 1 and reports "the probe report and the read disagree on the items read" as not caught
+PASS  [K1] broken; the self-test exits 1 and reports "the control item carries no statement with the control value" as not caught
+PASS  [K2] broken; the self-test exits 1 and reports "the control value reads as no roof" as not caught
+PASS  [K3] broken; the self-test exits 1 and reports "the probe recorded another control" as not caught
+PASS  [C3a] broken; the self-test exits 1 and reports "a candidate property has no description" as not caught
+PASS  [C3b] broken; the self-test exits 1 and reports "a property no one has read carries a roof word" as not caught
+PASS  [C3c] broken; the self-test exits 1 and reports "a reading is for a candidate the data no longer has" as not caught
+PASS  [M1] broken; the self-test exits 1 and reports "the classifier reads every text as open" as not caught
+PASS  [N1] broken; the self-test exits 1 and reports "a review row loses its roof reason" as not caught
+PASS  [N2] broken; the self-test exits 1 and reports "one of the 9 names is an item that was not read" as not caught
+PASS  [S1] broken; the self-test exits 1 and reports "a closed-roof word is in a file name on one of the 9 names" as not caught
+PASS  [S1-reading] broken; the self-test exits 1 and reports "a closed-roof word is in a file name on one of the 9 names" as not caught
+PASS  [S1-rank] broken; the self-test exits 1 and reports "a deprecated statement says retractable roof on one of the 9 names" as not caught
+PASS  [T2] broken; the self-test exits 1 and reports "P5624 is on an item the cache found no roof for" as not caught
+PASS  [G7] broken; the self-test exits 1 and reports "a protected file differs from the digest recorded" as not caught
+PASS  [G6] broken; the self-test exits 1 and reports "the script imports a way to write" as not caught
+PASS  [rank-deprecated] broken; the self-test exits 1 and reports "the control statement is ranked deprecated" as not caught
+PASS  [rank-preferred] broken; the self-test exits 1 and reports "a preferred statement under the same property hides the roof" as not caught
+PASS  [wider-counts] broken; the self-test exits 1 and reports "a value matches only the wider word list" as not caught
+PASS  [nine-decided] broken; the self-test exits 1 and reports "a retractable roof is stated on one of the 9 names" as not caught
+PASS  [row-agreement] broken; the self-test exits 1 and reports "a row the lead decides names another roof than the candidate" as not caught
+PASS  [row-decided] broken; the self-test exits 1 and reports "no row the candidate meets is decided by the lead or the infobox" as not caught
+PASS  [zero-of-zero] broken; the self-test exits 1 and reports "one of the 9 names carries the roof and the candidate meets no decided row (0 of 0)" as not caught
+PASS  [anyrank-ignored] broken; the self-test exits 1 and reports "a deprecated statement says retractable roof on one of the 9 names" as not caught
+PASS  [reading-ignored] broken; the self-test exits 1 and reports "a closed-roof word is in a file name on one of the 9 names" as not caught
+PASS  [descriptions] broken; the self-test exits 1 and reports "the description of one of the 9 names says retractable roof" as not caught
+PASS  [out-items] broken; the self-test exits 1 and reports the coverage line on "an item did not read" as not printed
+PASS  [out-labels] broken; the self-test exits 1 and reports the coverage line on "a value id has no label record" as not printed
+PASS  [out-candidates] broken; the self-test exits 1 and reports the coverage line on "a property no one has read carries a roof word" as not printed
+PASS  [out-protected] broken; the self-test exits 1 and reports the coverage line on "a protected file differs from the digest recorded" as not printed
+
+39 of 39 broken copies refused by their own self-test, each naming what the break must lose; control green
