@@ -1,0 +1,111 @@
+venue-wikidata-statements probe, run 43439848251, 2026-11-13T14:08:16.327Z, complete; 72 calls (16 for the items, 56 for the labels), 79 HTTP attempts, 406 s
+COVERAGE: items read 396 of 396 (the wd-roof| keys of the cache); records 396 of 396
+  statements 10313 on the 396 items read (ranks: normal 10099, preferred 142, deprecated 72); qualifier values 2618; references are not read
+  properties 332 (276 carry a statement, 56 appear only as qualifiers); datatypes external-id 150, wikibase-item 94, commonsMedia 20, quantity 19, string 16, time 12, monolingualtext 11, url 9, globe-coordinate 1
+  ids to label 2807: labelled 2807 of 2807, of which 33 have no English label; missing on Wikidata 0; not answered 0; ids that are not Q or P ids, not asked for: 0
+  statements per item: min 8, median 23, max 91
+
+CONTROL Q1410402 Stade Pierre-Mauroy: read (54 statements); carries Q7316894 "retractable roof" under P1552 "has characteristic" (main, rank normal)
+
+PROPERTIES by the items that carry a statement under them, 332 in all, the 40 most carried (the whole read is in the JSON):
+  P17      "country"                                    396 of 396 items, 396 statements; as qualifier on 4 items
+  P31      "instance of"                                396 of 396 items, 508 statements
+  P625     "coordinate location"                        396 of 396 items, 396 statements
+  P131     "located in the administrative territorial entity" 390 of 396 items, 414 statements; as qualifier on 3 items
+  P466     "occupant"                                   388 of 396 items, 682 statements
+  P641     "sport"                                      381 of 396 items, 483 statements; as qualifier on 4 items
+  P1083    "maximum capacity"                           380 of 396 items, 487 statements
+  P18      "image"                                      379 of 396 items, 404 statements
+  P373     "Commons category"                           375 of 396 items, 376 statements
+  P646     "Freebase ID"                                368 of 396 items, 368 statements
+  P1619    "date of official opening"                   366 of 396 items, 369 statements
+  P127     "owned by"                                   352 of 396 items, 379 statements
+  P571     "inception"                                  290 of 396 items, 301 statements
+  P5288    "StadiumDB ID"                               280 of 396 items, 280 statements
+  P856     "official website"                           245 of 396 items, 282 statements; as qualifier on 1 items
+  P137     "operator"                                   227 of 396 items, 234 statements
+  P1566    "GeoNames ID"                                179 of 396 items, 182 statements
+  P276     "location"                                   174 of 396 items, 175 statements; as qualifier on 11 items
+  P84      "architect"                                  166 of 396 items, 189 statements
+  P454     "Structurae structure ID"                    157 of 396 items, 157 statements
+  P1004    "MusicBrainz place ID"                       133 of 396 items, 136 statements
+  P765     "surface played on"                          129 of 396 items, 138 statements
+  P10689   "OpenStreetMap way ID"                       127 of 396 items, 127 statements
+  P1617    "BBC Things ID"                              111 of 396 items, 111 statements
+  P138     "named after"                                 95 of 396 items, 168 statements; as qualifier on 6 items
+  P6375    "street address"                              84 of 396 items, 88 statements
+  P7959    "historic county"                             79 of 396 items, 79 statements
+  P7938    "associated electoral district"               76 of 396 items, 76 statements
+  P793     "significant event"                           67 of 396 items, 188 statements
+  P3417    "Quora topic ID"                              66 of 396 items, 68 statements
+  P9803    "UEFA stadium category"                       61 of 396 items, 61 statements
+  P910     "topic's main category"                       51 of 396 items, 51 statements
+  P1705    "native label"                                50 of 396 items, 56 statements
+  P154     "logo image"                                  47 of 396 items, 52 statements
+  P402     "OpenStreetMap relation ID"                   44 of 396 items, 44 statements
+  P193     "main building contractor"                    43 of 396 items, 44 statements
+  P2130    "capital cost"                                43 of 396 items, 43 statements; as qualifier on 4 items
+  P5383    "archINFORM project ID"                       43 of 396 items, 43 statements
+  P4839    "Wolfram Language entity code"                40 of 396 items, 41 statements
+  P2002    "X (Twitter) username"                        39 of 396 items, 44 statements
+
+PROPERTIES whose English label or description matches /roof|dome|skylit|indoor|covered|enclosed|retractable|open-air/i, 1:
+  P5775    "image of interior"                          23 of 396 items carry a statement; as qualifier on 0
+
+VALUES whose text matches /roof|dome|skylit|indoor|covered|enclosed|retractable|open-air/i (an item value read as its English label, a text value as itself; each listed with the roof class the sourcing rule's patterns give it, "no pattern" meaning none), 56 distinct:
+  P631     "structural engineer"          [P518 "applies to part"]     = "roof" (Q83180)    2 of 396 items  [no pattern]  Q128468 Q55074091
+  P18      "image"                        = "2009-0518-Fargodome.jpg"    1 of 396 items  [no pattern]  Q5435127
+  P18      "image"                        = "Alamodome from the Tower of the Americas IMG 4600.JPG"    1 of 396 items  [no pattern]  Q1618347
+  P18      "image"                        = "Carrier Dome - New Roof 2021 (Jimhoward03).jpg"    1 of 396 items  [dome]  Q2739617
+  P18      "image"                        = "Mercedes-Benz Superdome Poydras bike.JPG"    1 of 396 items  [no pattern]  Q756452
+  P18      "image"                        [P180 "depicts"]             = "roof" (Q83180)    1 of 396 items  [no pattern]  Q2739617
+  P18      "image"                        = "Syracuse University - Carrier Dome - basketball game.jpg"    1 of 396 items  [dome]  Q2739617
+  P154     "logo image"                   = "Caesars Superdome logo.svg"    1 of 396 items  [no pattern]  Q756452
+  P154     "logo image"                   = "JMA Wireless Dome logo.png"    1 of 396 items  [dome]  Q2739617
+  P154     "logo image"                   = "Mercedes-Benz Superdome logo.svg"    1 of 396 items  [no pattern]  Q756452
+  P244     "Library of Congress Authorities ID" [P4970 "alternative name"]   = "Louisiana Superdome (New Orleans, La.)"    1 of 396 items  [no pattern]  Q756452
+  P244     "Library of Congress Authorities ID" [P4970 "alternative name"]   = "New Orleans Superdome (New Orleans, La.)"    1 of 396 items  [no pattern]  Q756452
+  P244     "Library of Congress Authorities ID" [P1810 "subject named as"]   = "Superdome (New Orleans, La.)"    1 of 396 items  [no pattern]  Q756452
+  P373     "Commons category"             = "Alamodome"    1 of 396 items  [no pattern]  Q1618347
+  P373     "Commons category"             = "Caesars Superdome"    1 of 396 items  [no pattern]  Q756452
+  P373     "Commons category"             = "Carrier Dome"    1 of 396 items  [dome]  Q2739617
+  P373     "Commons category"             = "Fargodome"    1 of 396 items  [no pattern]  Q5435127
+  P373     "Commons category"             = "Louisiana Superdome"    1 of 396 items  [no pattern]  Q756452
+  P466     "occupant"                     [P156 "followed by"]         = "Astrodome" (Q1025406)    1 of 396 items  [no pattern]  Q1857419
+  P466     "occupant"                     [P155 "follows"]             = "Astrodome" (Q1025406)    1 of 396 items  [no pattern]  Q3237803
+  P466     "occupant"                     [P155 "follows"]             = "Caesars Superdome" (Q756452)    1 of 396 items  [no pattern]  Q8060993
+  P466     "occupant"                     [P155 "follows"]             = "Hubert H. Humphrey Metrodome" (Q1072186)    1 of 396 items  [no pattern]  Q3512039
+  P466     "occupant"                     [P155 "follows"]             = "Kingdome" (Q990430)    1 of 396 items  [no pattern]  Q1136463
+  P466     "occupant"                     [P155 "follows"]             = "RCA Dome" (Q2092780)    1 of 396 items  [dome]  Q867160
+  P466     "occupant"                     [P155 "follows"]             = "The Dome at America's Center" (Q1292739)    1 of 396 items  [dome]  Q849784
+  P856     "official website"             = "http://www.fargodome.com"    1 of 396 items  [no pattern]  Q5435127
+  P856     "official website"             = "https://cuse.com/facilities/jma-wireless-dome/526"    1 of 396 items  [dome]  Q2739617
+  P856     "official website"             = "https://www.alamodome.com/"    1 of 396 items  [no pattern]  Q1618347
+  P856     "official website"             = "https://www.caesarssuperdome.com/"    1 of 396 items  [no pattern]  Q756452
+  P910     "topic's main category"        = "Category:Caesars Superdome" (Q24069460)    1 of 396 items  [no pattern]  Q756452
+  P935     "Commons gallery"              = "Louisiana Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1398    "structure replaces"           = "Hubert H. Humphrey Metrodome" (Q1072186)    1 of 396 items  [no pattern]  Q7929512
+  P1417    "Encyclopædia Britannica Online ID" = "place/Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1417    "Encyclopædia Britannica Online ID" [P1810 "subject named as"]   = "Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1435    "heritage designation"         [P1810 "subject named as"]   = "Louisiana Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1448    "official name"                = "en:Caesars Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1448    "official name"                = "en:Louisiana Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1448    "official name"                = "en:Mercedes-Benz Superdome"    1 of 396 items  [no pattern]  Q756452
+  P1552    "has characteristic"           = "retractable roof" (Q7316894)    1 of 396 items  [retractable]  Q1410402
+  P2002    "X (Twitter) username"         = "mbsuperdome"    1 of 396 items  [no pattern]  Q756452
+  P2003    "Instagram username"           = "mbsuperdome"    1 of 396 items  [no pattern]  Q756452
+  P2003    "Instagram username"           = "the_fargodome"    1 of 396 items  [no pattern]  Q5435127
+  P2013    "Facebook username"            = "MBSuperdome"    1 of 396 items  [no pattern]  Q756452
+  P2397    "YouTube channel ID"           [P1810 "subject named as"]   = "Mercedes-Benz Superdome"    1 of 396 items  [no pattern]  Q756452
+  P3417    "Quora topic ID"               = "Alamodome"    1 of 396 items  [no pattern]  Q1618347
+  P3417    "Quora topic ID"               = "Carrier-Dome"    1 of 396 items  [dome]  Q2739617
+  P3417    "Quora topic ID"               = "JMA-Wireless-Dome"    1 of 396 items  [dome]  Q2739617
+  P3417    "Quora topic ID"               = "Mercedes-Benz-Superdome"    1 of 396 items  [no pattern]  Q756452
+  P4839    "Wolfram Language entity code" = "Entity[\"Building\", \"CarrierDome::xy9jx\"]"    1 of 396 items  [no pattern]  Q2739617
+  P4839    "Wolfram Language entity code" = "Entity[\"Building\", \"LouisianaSuperdome::k6zz2\"]"    1 of 396 items  [no pattern]  Q756452
+  P5288    "StadiumDB ID"                 = "usa/alamodome"    1 of 396 items  [no pattern]  Q1618347
+  P5288    "StadiumDB ID"                 = "usa/jma_wireless_dome"    1 of 396 items  [no pattern]  Q2739617
+  P5288    "StadiumDB ID"                 = "usa/superdome"    1 of 396 items  [no pattern]  Q756452
+  P5775    "image of interior"            = "The Dome New Orleans Man Trip.jpg"    1 of 396 items  [dome]  Q756452
+  P7502    "Golden ID (archived)"         = "Mercedes-Benz_Superdome-9WR4K"    1 of 396 items  [no pattern]  Q756452
+  P11245   "YouTube handle"               = "caesarsdome"    1 of 396 items  [no pattern]  Q756452
