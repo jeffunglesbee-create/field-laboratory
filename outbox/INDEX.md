@@ -12,6 +12,10 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `d600db2` | 2026-11-13 | [venue-wikidata-statements-probe.json](venue-wikidata-statements-probe.json) | data: venue sourcing (run 43439848251) [skip ci] |
+| `d600db2` | 2026-11-13 | [venue-wikidata-statements-probe.txt](venue-wikidata-statements-probe.txt) | data: venue sourcing (run 43439848251) [skip ci] |
+| `cad7da0` | 2026-11-13 | [cc-session-2026-11-13-wikidata-statements-runner-read.md](cc-session-2026-11-13-wikidata-statements-runner-read.md) | probe: the statements of the 396 Wikidata roof items, read from a runner (Task 5, Step A runner read) |
+| `54bc066` | 2026-11-13 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `f323948` | 2026-11-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-13 [skip ci] |
 | `f323948` | 2026-11-13 | [sport-vocabulary-2026-11-13T08-16-43-223Z.json](sport-vocabulary-2026-11-13T08-16-43-223Z.json) | drift-sentinel: ok on 2026-11-13 [skip ci] |
 | `9fad347` | 2026-11-12 | [cc-session-2026-11-12-wikidata-roof-step-a.md](cc-session-2026-11-12-wikidata-roof-step-a.md) | docs: Step A landing manifest, and a false line in its session doc corrected |
