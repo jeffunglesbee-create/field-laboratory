@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `6443485` | 2026-11-13 | [cc-session-2026-11-13-wikidata-statements-runner-read.md](cc-session-2026-11-13-wikidata-statements-runner-read.md) | docs: Task 5 runner read, Landing manifest and one stale paragraph corrected |
+| `a14b3cf` | 2026-11-13 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of 7b94aef [skip ci] |
+| `7c252a4` | 2026-11-13 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-13T14:54 [skip ci] |
 | `7b94aef` | 2026-11-13 | [cc-session-2026-11-13-wikidata-statements-runner-read.md](cc-session-2026-11-13-wikidata-statements-runner-read.md) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
 | `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-2026-11-13.md](venue-wikidata-statements-step-a-2026-11-13.md) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
 | `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-2026-11-13.mjs](venue-wikidata-statements-step-a-2026-11-13.mjs) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |

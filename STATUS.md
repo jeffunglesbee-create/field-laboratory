@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **FAILURE** on `d600db2` at "Build (the venue table this check derives its expectation from)" — 10 of 16 steps did not run behind it — [run 43441145223](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43441145223)
+`live-check` (post-deploy, against the deployed page): **running** on `6443485`
 
 ## Is it published?
 
@@ -18,7 +18,7 @@ which is history by nature. Edits here will be overwritten._
 
 | Target | State | Serving commit |
 | --- | --- | --- |
-| Cloudflare Workers | live | `d600db2` — newest deployable `cad7da0` is live ✓ (docs on top) |
+| Cloudflare Workers | live | `6443485` — newest deployable `cad7da0` is live ✓ (docs on top) |
 | GitHub Pages | not published — needs Pages switched on: Settings → Pages → Source: GitHub Actions (private repos need a paid plan) | — |
 
 ## Drift sentinel
