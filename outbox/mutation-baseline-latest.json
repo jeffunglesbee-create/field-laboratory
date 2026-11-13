@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-12T09:22:58.478Z",
+  "at": "2026-11-13T15:39:36.854Z",
   "scope": "full",
-  "ran": 102,
-  "from_mutations": 1444,
+  "ran": 103,
+  "from_mutations": 1493,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -299,6 +299,10 @@
       "passed": true
     },
     {
+      "cmd": "node scripts/venue-wikidata-statements.mjs --self-test",
+      "passed": true
+    },
+    {
       "cmd": "node scripts/outbox-row-check.mjs --self-test",
       "passed": true
     },
@@ -419,16 +423,16 @@
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2401784,
-      2532011,
-      2526007,
-      2771264,
-      3121393,
-      2289863,
-      2400568,
-      2257182
+      2960534,
+      2739740,
+      3063620,
+      2247659,
+      2108379,
+      2960702,
+      2930197,
+      2954837
     ],
-    "longestMs": 3121393,
-    "sumMs": 20300072
+    "longestMs": 3063620,
+    "sumMs": 21965668
   }
 }
