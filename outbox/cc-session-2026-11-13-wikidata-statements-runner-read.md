@@ -54,6 +54,7 @@ Session: https://claude.ai/code/session_01X1QRUKcA6Q8MCKMehmeiXX. Scope: `docs/C
 7. The first draft of the report derived "candidates accounted for n of m" by splitting the detail string of a check. I replaced it with a number the analysis computes (`num.accounted`) before running anything on it; the self-test's coverage lines now hold that number to the denominator.
 8. The first C3a name counted property ids against candidates ("checked 8 of 8 candidates" from a set of ids). Corrected to count candidates.
 9. The reasons in `READING` and the rank rule's effect were the two premises I had not tested when the analysis first printed NO-GO (see Premises); both were tested before any file was committed.
+10. After the push of `7b94aeff`, re-reading the committed document found its Carry-forwards paragraph still saying that the runner run and the analysis were yet to be done. I had written it before either existed and had corrected the other paragraphs that said so (the table row, the "Not verified" paragraph) without searching the whole file for the same claim. A search of the file for "remains", "remaining" and "not yet" found that paragraph and no other; it is corrected in the commit that adds the manifest. The same slip, in the CC-CMD's Result: I wrote "is the one the record supports" before counting what it rests on (0 of 384 rows name Wikidata); the count replaced the sentence before the commit (see Premises).
 
 ## Verified, and what is not
 
@@ -78,4 +79,56 @@ Not verified, and what verifies it: that `READING` is the reading the owner woul
 
 ## Carry-forwards
 
-None. What remains of the runner read is numbered work in the same CC-CMD section, in this order: (1) the runner run and its evidence, (2) the analysis script over the committed files, with its self-test and teeth, (3) the record and the CC-CMD's Result, (4) the Landing manifest. The two follow-ons are the owner's to approve after the read, and neither is started.
+None. The numbered work in the CC-CMD's runner-read section is done: (1) the runner run and its evidence (`venue-source` run 43439848251, committed by the runner as `d600db24`), (2) the analysis script over the committed files, with its self-test and teeth, and (3) the record and the CC-CMD's Result (both in `7b94aeff`). (4), the Landing manifest, is the last section below. The two follow-ons are the owner's to approve after the read, and neither is started.
+
+## Landing manifest
+
+Written after the push of `7b94aeff` and after its scored gate ended. Run times are UTC on 2026-11-13. Every value below was read from GitHub or computed on the pushed tree after the push.
+
+| item | value |
+|---|---|
+| analysis commit | `7b94aeff2a25dd7a2db41538737e96e476f7249e`: 8 files, 1053 insertions, 7 deletions, all under `docs/` and `outbox/` (`git show --stat`); 0 files under `src/`, `scripts/` or `.github/` |
+| probe commit | `cad7da0c`: `verify` 43439827546 success, `guards` 43439827592 success |
+| the runner's commit | `d600db24`: `venue-source` run 43439848251 (mode `statements`, dispatched 14:08:06Z, completed 14:15:09Z, success; the probe's own report: complete, 72 calls, 79 HTTP attempts, 406 s); 2 files, 3706 insertions |
+| every run GitHub holds for `7b94aeff` | 3: `guards` (push) 43445971085 success; `verify-full` (dispatched by me, on main at this SHA) 43446038484 success; `status` (schedule) 43446665338 success. No `verify`, `deploy` or `live-check` run exists for this SHA: `verify` does not watch `docs/**`, `outbox/**` or `**/*.md`, and every path of this commit matches one |
+| deploy run for this work | none. Nothing under `src/`, `scripts/` or `.github/` changed |
+| branch | `main` (`git branch --show-current`, read before this commit) |
+| protected files (criterion 7) | the sha256 of each of the four files on the pushed tree equals the digest Step A's record prints (4 of 4); `git diff --stat 3e318ff9 7b94aeff` over those four paths lists nothing |
+
+### The scored gate
+
+`verify-full` run 43446038484 on `7b94aeff2a25dd7a2db41538737e96e476f7249e`, dispatched 14:47:05Z, completed 15:39:48Z (52 min 43 s): conclusion `success`, and every one of its 9 jobs `success` (the `full` job and the 8 mutation shards; the last shard ended 15:39:15Z). The run recorded its measurement to main as `97345065`: ledger line `7b94aeff2a25-9178552ba340`, **`530/530 points = 100/100 (bar: 95)`**, 3088 s, `dirty: true` as on the lines before it, `failing`, `skipped` and `notApplicable` all empty, 23 rows timed. It recorded the mutation baseline as `a14b3cf2` (`ran` 103 of `from_mutations` 1493, `failing` 0; 102 and 1444 on the previous baseline, written 2026-11-12; the baseline gained the row `node scripts/venue-wikidata-statements.mjs --self-test`).
+
+### Done-condition probe output
+
+Run on a fresh `git archive` of `7b94aeff` extracted to an empty directory with the repository's `node_modules` linked in (the archive carries none, and `scripts/venue-source.mjs` imports `@xmldom/xmldom`). The report, the record, the self-test output and the teeth output are byte-equal to the committed files (`cmp`: 4 of 4), each run exiting 0 with nothing on stderr. The working tree was clean at the push (`git status --short` listed 0 lines), so the archive and the tree hold the same files.
+
+```text
+$ node outbox/venue-wikidata-statements-step-a-2026-11-13.mjs
+22/22 checks passed
+NO-GO. The control holds and the read is complete (items read 396 of 396; labels answered 2807 of 2807). Criterion 3 lists 8 candidate properties by the rule's own patterns: 7 set aside by reading the item (a name, an address, an identifier, another venue's name) and 1 retained. P1552 "has characteristic" carries a roof on 1 of 396 items, agrees with 1 of 1 rows the lead or the infobox decides, and decides 0 of the 9 names. None passes criterion 6: the names decided are 0 of 9 by a retained candidate and 0 of 9 if no candidate were set aside. The choice between the follow-ons, or neither, is the owner's.
+$ node outbox/venue-wikidata-statements-step-a-2026-11-13.mjs --self-test
+33 of 33 doctored copies caught by the check or number aimed at them; 0 not applied; 4 of 4 coverage lines print their denominators; control green
+$ node outbox/venue-wikidata-statements-step-a-selftest-teeth-2026-11-13.mjs
+39 of 39 broken copies refused by their own self-test, each naming what the break must lose; control green
+```
+
+What each number is out of (the report's own coverage block, Rule 91):
+
+```text
+items read 396 of 396 (the wd-roof| keys of the cache); records 396 of 396; redirected 0
+statements 10313 (ranks: normal 10099, preferred 142, deprecated 72); qualifier values 2618; properties in use 332
+labels answered 2807 of 2807 (missing on Wikidata 0; no English label 33, read as no witness)
+control Q1410402: statements read 54; found 1 P1552 rank normal
+candidates accounted for 8 of 8 (retained 1, set aside 7); values that match only the wider word list 44, counted for nothing
+retained candidates: items with a roof 1 of 396; rows the lead or the infobox decides that they meet 1, agree 1, disagree 0
+the 9 names whose roof is unsettled: read 9 of 9; decided by a retained candidate 0 of 9; decided if no candidate were set aside 0 of 9 (Step 1's record counts 9)
+the verdict by variant: as read NO-GO; no candidate set aside NO-GO; none set aside and every statement counted whatever its rank NO-GO (roof-reading values 10 under the rank rule, 11 counting every rank; candidates 8 and 8)
+information only, no criterion: item descriptions that read as a roof 6 of 396; on rows the lead or the infobox decides 6, agree 6; on the 9 names 0
+P5624, the property the rule reads today: on 0 of 396 items' statements; the cache's query found a roof for 0 of 396
+protected files unchanged 4 of 4
+```
+
+### Residual
+
+None from this work. Task 5's Done-when waits for the owner's answer on which follow-on follows, or neither (an owner decision, not deferred work). The commit that adds this section cannot name itself, and its `guards` run does not exist until the commit is pushed, so neither is in this file: `git log -1 -- outbox/cc-session-2026-11-13-wikidata-statements-runner-read.md` names the commit, and the owner report carries the run.
