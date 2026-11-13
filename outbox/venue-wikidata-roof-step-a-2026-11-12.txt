@@ -1,0 +1,42 @@
+PASS  [E1] the evidence holds every expected page and no other (checked 19 of 19 pages)
+PASS  [E2] every held page parses as JSON and has the shape of its query (checked 19 of 19)
+PASS  [E3] each attempt on the query service is recorded as the reader's error code with no body (4 attempts)
+PASS  [C1a] the property search for "roof" answered (success 1, a list)
+PASS  [C1b] the full-text search of the Property namespace for "roof" answered and every hit is shown
+PASS  [C1c] the strict-language variant of the property search lists the same ids as the first
+PASS  [C1d] every candidate has an English label, description and datatype from the entity read (checked 1 of 1)
+PASS  [K1] the property search form returns properties: the control "capacity" lists some, each with a datatype
+PASS  [K2] the word is searchable: the item search for "roof" lists an item labelled "roof"
+PASS  [K3] the full-text search form returns properties for a word they carry: "dome" lists some and every hit is shown
+PASS  [K4] a full-text hit that is set aside is explained by a value in its own statements, not by its label or description (checked 1 of 1)
+PASS  [C2a] every retained candidate was read over all 396 items (reads made 0 of 0 required)
+PASS  [C2b] the run's cache holds one answered wd-roof read per item, 396 as Task 5 counts them (answered 396 of 396; distinct 396)
+PASS  [C2e] every item the latest run's rows carry has a wd-roof answer in the cache (checked 391 of 391 items; the cache holds 5 more that no row carries)
+PASS  [C2c] P5624, which the rule reads and the run read over every item, carries a roof on none of them (0 of 396)
+PASS  [C2d] P5624, the property the rule reads today, has an English label, description and datatype that name no roof
+PASS  [V1] each roof class is exactly one item whose English label is the term, and it is the item the backlinks and statement searches asked about
+PASS  [V2] the sourcing rule's own classifier reads each class label as the roof it names
+PASS  [V3] each backlinks list is complete: answered, no continuation, fewer than the API's cap of 250, main namespace only (checked 4 of 4 lists)
+PASS  [V3b] the plain list and the redirect-following list name the same items for each class
+PASS  [V4] the statement search finds no more items under P31 than reference the class in any statement
+PASS  [V5] where a class and the lead or the infobox both decide a row's roof, they agree (1 of 1 rows; 0 disagree)
+PASS  [V6] the review rows whose reason begins "roof:" are the 9 names Step 1's record counts as "roof not settled (position agreed)" (9)
+PASS  [G6] the script's own imports can read and hash but not write or reach a network (checked 4 of 4 imports)
+
+24/24 checks passed
+
+coverage (what each number is out of):
+  pages held 19 of 19; pages with their shape 19; query-service attempts recorded 4
+  candidates listed 1; set aside 1; retained 0; reads made 0 of 0 required over 396 items
+  P5624 control: answered 396 of 396; distinct 396; carrying a roof 0 of 396; items the latest run's rows carry 391 of 391 covered
+  class items referenced by retractable roof 5, domed stadium 14; among the items retractable roof 1 of 396, domed stadium 0 of 396
+  rows the class and the lead or infobox both decide 1; agree 1; class items with no result row 0
+  the 9 names whose roof is unsettled: among the items 9 of 9; among the items that reference a class 0 of 9 (Step 1's record counts 9)
+
+NO-GO. Criterion 1 leaves 0 candidate(s): the searches list 1 (P5833) and 1 is set aside because the description is not about a roof, so no property can pass criterion 5 (it must decide the roof of at least 1 of the 9 names).
+
+protected files (criterion 6), sha256:
+  5685d6dfcdf3b987d77713d1a9902b6e0adeae5e9d5fef4ff8a0c80fb99015ec  outbox/venue-source-results-latest.json
+  fb2c96e580c0dbc13b9c70cd62cb6b55cb3e1d191a61618176452f1dba6b5c72  outbox/venue-source-cache.json
+  56363462e187d24700b3d8fe09418c8da0f2a90bae8972a883dc4a6b2a4d2657  src/Venues.fs
+  ad9ed9bd7c2bbf7bef41af94f7a1e3bf6599df9e867862e30bf6ebb76959fb34  scripts/venue-source.mjs

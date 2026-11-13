@@ -1,0 +1,23 @@
+PASS  CONTROL: the unbroken copy's self-test exits 0 (it must exit 0)
+PASS  [E1] check broken; the self-test exits 1 and names "a page that was not asked for is held" as not caught
+PASS  [E3] check broken; the self-test exits 1 and names "an attempt on the query service has no error code" as not caught
+PASS  [C1b] check broken; the self-test exits 1 and names "the full-text search has a hit it does not show" as not caught
+PASS  [C1c] check broken; the self-test exits 1 and names "the strict variant lists an id the first search does not" as not caught
+PASS  [C1d] check broken; the self-test exits 1 and names "a candidate has no datatype" as not caught
+PASS  [K1] check broken; the self-test exits 1 and names "the property search control answers with nothing" as not caught
+PASS  [K3] check broken; the self-test exits 1 and names "the full-text control answers with nothing" as not caught
+PASS  [K4] check broken; the self-test exits 1 and names "the set-aside hit has no roof word in its own statements" as not caught
+PASS  [C2a] check broken; the self-test exits 1 and names "a candidate's description is about a roof (so it is retained and nothing was read for it)" as not caught
+PASS  [C2b] check broken; the self-test exits 1 and names "an item no row carries has no wd-roof answer" as not caught
+PASS  [C2c] check broken; the self-test exits 1 and names "an item's wd-roof answer carries a roof" as not caught
+PASS  [C2e] check broken; the self-test exits 1 and names "an item a row carries has no wd-roof answer" as not caught
+PASS  [V1] check broken; the self-test exits 1 and names "a class item's label is not the term" as not caught
+PASS  [V2] check broken; the self-test exits 1 and names "the sourcing rule's classifier reads every class as open" as not caught
+PASS  [V3] check broken; the self-test exits 1 and names "a backlinks list has a continuation" as not caught
+PASS  [V3b] check broken; the self-test exits 1 and names "the two backlinks lists of a class differ" as not caught
+PASS  [V4] check broken; the self-test exits 1 and names "the statement search finds more items than reference the class" as not caught
+PASS  [V5] check broken; the self-test exits 1 and names "a row the lead decides contradicts the class" as not caught
+PASS  [V6] check broken; the self-test exits 1 and names "a review row loses its roof reason" as not caught
+PASS  [G6] check broken; the self-test exits 1 and names "the script imports a way to write" as not caught
+
+20 of 20 broken copies refused by their own self-test, each naming the doctored input aimed at the broken check; control green

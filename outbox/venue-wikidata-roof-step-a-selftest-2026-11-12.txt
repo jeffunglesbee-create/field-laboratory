@@ -1,0 +1,30 @@
+PASS  CONTROL: the undoctored inputs pass every check (24 of 24)
+PASS  a page is missing: aimed at [E1]; failed E1, K1
+PASS  a page that was not asked for is held: aimed at [E1]; failed E1
+PASS  a body is not JSON: aimed at [E2]; failed E2, C1a
+PASS  a body has another shape: aimed at [E2]; failed E2, C1a
+PASS  an attempt on the query service has no error code: aimed at [E3]; failed E3
+PASS  the full-text search has a hit it does not show: aimed at [C1b]; failed C1b
+PASS  the strict variant lists an id the first search does not: aimed at [C1c]; failed C1c
+PASS  a candidate has no datatype: aimed at [C1d]; failed C1d
+PASS  a candidate's description is about a roof (so it is retained and nothing was read for it): aimed at [C2a]; failed C2a
+PASS  an item no row carries has no wd-roof answer: aimed at [C2b]; failed C2b
+PASS  an item a row carries has no wd-roof answer: aimed at [C2e]; failed C2b, C2e
+PASS  an item's wd-roof answer is a failure: aimed at [C2b]; failed C2b
+PASS  an item's wd-roof answer carries a roof: aimed at [C2c]; failed C2c
+PASS  P5624's description is about a roof: aimed at [C2d]; failed C2d
+PASS  the property search control answers with nothing: aimed at [K1]; failed K1
+PASS  the item search control answers with nothing: aimed at [K2]; failed K2
+PASS  the full-text control answers with nothing: aimed at [K3]; failed K3
+PASS  the set-aside hit has no roof word in its own statements: aimed at [K4]; failed K4
+PASS  a class item's label is not the term: aimed at [V1]; failed V1
+PASS  the sourcing rule's classifier reads every class as open: aimed at [V2]; failed V2
+PASS  a backlinks list has a continuation: aimed at [V3]; failed V3
+PASS  the two backlinks lists of a class differ: aimed at [V3b]; failed V3b
+PASS  the statement search finds more items than reference the class: aimed at [V4]; failed V4
+PASS  a row the lead decides contradicts the class: aimed at [V5]; failed V5
+PASS  a review row loses its roof reason: aimed at [V6]; failed V6
+PASS  the script imports a way to write: aimed at [G6]; failed G6
+PASS  one of the 9 names is an item the domed-stadium class references: aimed at number nineReached 0 -> 1; failed C2e
+
+27 of 27 doctored copies caught by the check or number aimed at them; 0 not applied; control green
