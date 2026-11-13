@@ -12,6 +12,13 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `7b94aef` | 2026-11-13 | [cc-session-2026-11-13-wikidata-statements-runner-read.md](cc-session-2026-11-13-wikidata-statements-runner-read.md) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
+| `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-2026-11-13.md](venue-wikidata-statements-step-a-2026-11-13.md) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
+| `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-2026-11-13.mjs](venue-wikidata-statements-step-a-2026-11-13.mjs) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
+| `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-2026-11-13.txt](venue-wikidata-statements-step-a-2026-11-13.txt) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
+| `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-selftest-2026-11-13.txt](venue-wikidata-statements-step-a-selftest-2026-11-13.txt) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
+| `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-selftest-teeth-2026-11-13.mjs](venue-wikidata-statements-step-a-selftest-teeth-2026-11-13.mjs) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
+| `7b94aef` | 2026-11-13 | [venue-wikidata-statements-step-a-selftest-teeth-2026-11-13.txt](venue-wikidata-statements-step-a-selftest-teeth-2026-11-13.txt) | docs: Task 5 runner read, the 396 items' own statements say NO-GO by criteria 1 to 7 |
 | `d600db2` | 2026-11-13 | [venue-wikidata-statements-probe.json](venue-wikidata-statements-probe.json) | data: venue sourcing (run 43439848251) [skip ci] |
 | `d600db2` | 2026-11-13 | [venue-wikidata-statements-probe.txt](venue-wikidata-statements-probe.txt) | data: venue sourcing (run 43439848251) [skip ci] |
 | `cad7da0` | 2026-11-13 | [cc-session-2026-11-13-wikidata-statements-runner-read.md](cc-session-2026-11-13-wikidata-statements-runner-read.md) | probe: the statements of the 396 Wikidata roof items, read from a runner (Task 5, Step A runner read) |

@@ -10,7 +10,7 @@ which is history by nature. Edits here will be overwritten._
 
 ## Is the live artifact healthy?
 
-`live-check` (post-deploy, against the deployed page): **running** on `d600db2`
+`live-check` (post-deploy, against the deployed page): **FAILURE** on `d600db2` at "Build (the venue table this check derives its expectation from)" — 10 of 16 steps did not run behind it — [run 43441145223](https://github.com/jeffunglesbee-create/field-laboratory/actions/runs/43441145223)
 
 ## Is it published?
 
