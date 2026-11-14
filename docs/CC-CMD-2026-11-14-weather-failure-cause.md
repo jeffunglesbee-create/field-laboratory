@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-14 by CC, on the owner's word ("Diagnostics", Sat 2026-11-14 08:48 ET), after `outbox/live-check-weather-silent-2026-11-14.md`
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** IN PROGRESS 2026-11-14. Approved by the owner in one word. Task 0 is done at filing (below); Tasks 1 to 5 follow in the same session, with one dispatch of the existing egress probe workflow as the only dispatch.
+**Status:** PARTIAL 2026-11-14. Approved by the owner in one word. Landed on `main` in two commits, `7be7dd00` and `5ba3efeb`, each after a scored `verify-full` (43613293578 and 43622319008, 530 of 530 both). Done conditions 1 to 4 and 6 are met. Condition 5 is STAGED (Rule 74): the first runner pass printed `region unreadable` because my parser read the wrong keys, `5ba3efeb` fixes it, and no runner has printed the fixed line since (the `live-check` after that landing, 43627924560, was green, so its late probe did not run). Blocked by: the one dispatch of the egress probe workflow this CC-CMD was approved for is used (run 43620413444). Unblocked by: one more dispatch of `open-meteo-egress-probe.yml` on `main`, which needs the owner's word. Verify: `grep -o 'runner=image [^|(]*' outbox/egress-path-live-<stamp>.txt` prints `region southcentralus cloud Azure`. See "Outcome" and "Observed" below.
 
 ---
 
@@ -104,6 +104,27 @@ One dispatch. A follow-up needed because a source read nothing (region, egress a
 4. `outbox/egress-path-e2e-*.txt`: render-check's own FAIL text for the chip check contains `egress-path:`, a `probe-error=` with a code, and `dns-v4=`. A `not-observable` verdict leaves this open, not met.
 5. `runner=` carries a real region string, or the survey artifact shows the measured reason it cannot be read and the record says so.
 6. `npm run gate` >= 95, and `verify` green on the full SHA.
+
+## Outcome, 2026-11-14
+
+Two commits on `main`. `7be7dd00`, the feature: `verify-full` 43613293578 scored `ebca26e5` at 530 of 530; `verify` 43618962875, `guards` 43618962988 and `deploy` 43620027746 green on the landing SHA. `5ba3efeb`, the region fix: `verify-full` 43622319008 scored `d7a8e367` at 530 of 530; `verify` 43627238605, `guards` 43627238792 and `deploy` 43627825413 green on the landing SHA, and `live-check` 43627924560 green (105 of 105; weather chips filled, so no late probe).
+
+| # | result | artifact |
+|---|---|---|
+| 1 | met: `78/78 checks passed` (76 of 76 at the first landing); 27 registered mutations (23 at the first landing), each caught by a named check | `outbox/egress-diagnostics-wiring-2026-11-14.md` |
+| 2 | met: one file, 8 insertions, 1 deletion; no verdict, tolerance or attribution line touched | the same note |
+| 3 | met: `checked 4 of 4 shapes`, `VERDICT: pass, 4 of 4 shapes as expected` | `outbox/egress-path-live-20261114T171939Z.txt` |
+| 4 | met: `VERDICT: observed`; the chip check's FAIL carried `egress-path:`, a `probe-error=` with a code, and `dns-v4=` | `outbox/egress-path-e2e-20261114T171939Z.txt` |
+| 5 | STAGED, see the Status line. The survey found the source (`.setup_info` beside `Runner.Worker`: `Region: southcentralus`, `Cloud: Azure`) | `outbox/egress-path-survey-20261114T171939Z.txt` |
+| 6 | met for both commits: ids `ebca26e533b1-451a9c10e26c` and `d7a8e3676ee8-5443c49158b6` | `docs/confidence-log.jsonl` |
+
+The first red to carry the description, `live-check` 43620118846, had the same four failing checks as the red before the change (43603906789; 101 PASS and 4 FAIL in each), so no verdict moved. The session record is `outbox/cc-session-2026-11-14-egress-diagnostics.md`.
+
+## Observed 2026-11-14, after the description ran in a real red (premises, not findings)
+
+Added here under BUILD-ON-A, because this is the CC-CMD that covers the description. In `live-check` 43620118846 the late node probe printed `probe-error=TypeError "fetch failed" < ConnectTimeoutError UND_ERR_CONNECT_TIMEOUT "Connect Timeout Error (attempted address: api.open-meteo.com:443, timeout: 10000ms)" | cause=UND_ERR_CONNECT_TIMEOUT stage=connect-budget`, then `dns-v4=ok 51.81.167.44 0ms` and `connect-v4=51.81.167.44:443 ok 12ms`. The probe's `fetch` ran out of undici's 10 s connect budget, and the description's own TCP connect to the one address DNS returned, made afterwards, answered in 12 ms. The description has no TLS stage and connects to the first address of each family only. Separately, two runs about six minutes apart got different single addresses for the name: `51.81.167.44` in that red, `167.114.211.86` in the probe's live artifact (run 43620413444).
+
+Two premises, neither tested: (a) the name's A record rotates and some address is not reachable from some runner egress; (b) TCP completes and the TLS handshake stalls, because the connect budget covers lookup, connect and TLS. Tests, on a runner: resolve `api.open-meteo.com` 20 times and list the distinct addresses; for each address, time a TCP connect and a TLS handshake (`openssl s_client -connect <ip>:443 -servername api.open-meteo.com`, or `node:tls`). Putting that into every red means a TLS stage and every address in `describeEgressPath`. It was not built: it changes what the description probes beyond "DNS and connect results per address family", and it needs the owner's word and one runner dispatch to prove.
 
 ## What this does not establish (said before it is built)
 
