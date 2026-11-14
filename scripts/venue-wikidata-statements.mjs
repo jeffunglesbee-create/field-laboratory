@@ -7,7 +7,8 @@
 // for one. This reads them. It writes neither the sourcing results, nor the cache, nor the table, and it
 // changes no rule.
 //
-// WHAT IS READ. For each of the 396 items (the `wd-roof|` keys of the sourcing cache), `action=wbgetentities`
+// WHAT IS READ. For each item the roof rule asks about (the `wd-roof-p1552|` keys of the sourcing cache; the run committed on
+// 2026-11-13 read the 396 `wd-roof|` keys the cache held before the rule changed to P1552), `action=wbgetentities`
 // (`props=claims|labels|descriptions`, English): every statement's property, value and rank, and the property
 // and value of every qualifier on it. References are not kept. Then the English label and description of every
 // item that appears as a value and of every property seen, fifty ids to a request. One request a second, a
@@ -71,12 +72,12 @@ const askable = id => /^[QP][1-9]\d*$/.test(id)
 
 // --- which items ---------------------------------------------------------------------------------
 
-/** The items the roof rule asks Wikidata about: the `wd-roof|<qid>` keys of the sourcing cache, once each, in id order. A key that is not shaped like a Q-id is named and not read. */
+/** The items the roof rule asks Wikidata about: the `wd-roof-p1552|<qid>` keys of the sourcing cache, once each, in id order. A key that is not shaped like a Q-id is named and not read. */
 export const population = cache => {
   const ids = new Set(), bad = []
   for (const k of Object.keys(cache)) {
-    if (!k.startsWith('wd-roof|')) continue
-    const q = k.slice('wd-roof|'.length)
+    if (!k.startsWith('wd-roof-p1552|')) continue
+    const q = k.slice('wd-roof-p1552|'.length)
     if (/^Q[1-9]\d*$/.test(q)) ids.add(q); else bad.push(k)
   }
   return { ids: [...ids].sort((a, b) => Number(a.slice(1)) - Number(b.slice(1))), bad }
@@ -381,7 +382,7 @@ export const verdict = out => {
   if (!out.complete) problems.push(`the run did not complete: ${out.fatal}`)
   if (a.ids.length !== out.population.items) problems.push(`${out.population.items - a.ids.length} of ${out.population.items} items have no record`)
   if (a.notRead.length) problems.push(`${a.notRead.length} of ${a.ids.length} items were not read`)
-  if (out.population.badKeys.length) problems.push(`${out.population.badKeys.length} wd-roof| keys are not Q-ids`)
+  if (out.population.badKeys.length) problems.push(`${out.population.badKeys.length} wd-roof-p1552| keys are not Q-ids`)
   if (a.unresolved.length) problems.push(`${a.unresolved.length} of ${out.labelIds.length} ids were not answered by the labels request`)
   if (out.dtConflicts.length) problems.push(`${out.dtConflicts.length} properties carry two datatypes`)
   if (!out.control.read) problems.push(`the control ${out.control.qid} was not read: ${out.control.why}`)
@@ -397,7 +398,7 @@ export const report = out => {
   const a = analyze(out), L = []
   const cf = out.control
   L.push(`venue-wikidata-statements probe, run ${out.run ?? 'local'}, ${out.at}, ${out.complete ? 'complete' : `INCOMPLETE: ${out.fatal}`}; ${out.calls.items + out.calls.labels} calls (${out.calls.items} for the items, ${out.calls.labels} for the labels), ${out.requests} HTTP attempts, ${Math.round(out.elapsedMs / 1000)} s`)
-  L.push(`COVERAGE: items read ${a.read.length} of ${out.population.items} (the wd-roof| keys of the cache${out.population.badKeys.length ? `; ${out.population.badKeys.length} keys are not Q-ids and were not read` : ''}); records ${a.ids.length} of ${out.population.items}`)
+  L.push(`COVERAGE: items read ${a.read.length} of ${out.population.items} (the wd-roof-p1552| keys of the cache${out.population.badKeys.length ? `; ${out.population.badKeys.length} keys are not Q-ids and were not read` : ''}); records ${a.ids.length} of ${out.population.items}`)
   L.push(`  statements ${a.stmts.length} on the ${a.read.length} items read (ranks: ${tally(a.stmts, x => x.s.r).map(([r, n]) => `${r} ${n}`).join(', ') || 'none'}); qualifier values ${a.qualifiers}; references are not read`)
   const mainProps = new Set(a.stmts.map(x => x.s.p))
   L.push(`  properties ${a.byProp.size} (${mainProps.size} carry a statement, ${a.byProp.size - mainProps.size} appear only as qualifiers); datatypes ${dtTally(out).map(([d, n]) => `${d} ${n}`).join(', ')}`)
@@ -530,8 +531,8 @@ const selfTest = async () => {
   check('the items request is wbgetentities for claims, labels and descriptions in English, ids joined by |', itemsUrl(['Q1', 'Q2']) === 'https://www.wikidata.org/w/api.php?action=wbgetentities&ids=Q1|Q2&props=claims|labels|descriptions&languages=en&format=json', itemsUrl(['Q1', 'Q2']))
   check('the labels request asks for labels and descriptions and not for claims', labelsUrl(['Q1', 'P2']).includes('props=labels|descriptions') && !/claims/.test(labelsUrl(['Q1', 'P2'])), labelsUrl(['Q1', 'P2']))
   check('a failure the API reports with HTTP 200 is a failure that names its code', /missingtitle/.test(answerOf({ error: { code: 'missingtitle', info: 'x' } }).why) && !answerOf({ success: 1 }).ok && !answerOf({ entities: [] }).ok && answerOf({ entities: { Q1: {} } }).ok)
-  const pop = population({ 'wd-roof|Q20': {}, 'wd-roof|Q3': {}, 'wd-roof|Q3x': {}, 'wd-roof|Q0': {}, 'wp-lead|Foo': {}, 'wd-roof|Q100': {} })
-  check('the population is the wd-roof| keys that are Q-ids, in id order, and a key that is not one is named', pop.ids.join() === 'Q3,Q20,Q100' && pop.bad.join() === 'wd-roof|Q3x,wd-roof|Q0', J(pop))
+  const pop = population({ 'wd-roof-p1552|Q20': {}, 'wd-roof-p1552|Q3': {}, 'wd-roof-p1552|Q3x': {}, 'wd-roof-p1552|Q0': {}, 'wp-lead|Foo': {}, 'wd-roof|Q7': {}, 'wd-roof-p1552|Q100': {} })
+  check('the population is the wd-roof-p1552| keys that are Q-ids, in id order, a key that is not one is named, and a key of the kind that held P5624 answers (wd-roof|) is not read', pop.ids.join() === 'Q3,Q20,Q100' && pop.bad.join() === 'wd-roof-p1552|Q3x,wd-roof-p1552|Q0', J(pop))
   const res = (status, body, headers = {}) => ({ status, ok: status >= 200 && status < 300, headers: { get: k => headers[k] ?? null }, json: async () => { if (body === undefined) throw new Error('Unexpected token <'); return body } })
   const seq = (...rs) => { let i = 0; return async () => rs[i++] }
   const waits = []
@@ -557,7 +558,7 @@ const selfTest = async () => {
   check('ids to label: items then properties, in number order, less those already labelled; ids that are not Q or P are named and not asked for', J(want1) === J({ ask: ['Q5', 'P2', 'P31'], skip: ['L3', 'L3-F1'] }), J(want1))
 
   // The whole run, against a fake network.
-  const CACHE_FAKE = { 'wd-roof|Q1410402': { at: 1 }, 'wd-roof|Q2': { at: 1 }, 'wp-lead|Foo': { at: 1 } }
+  const CACHE_FAKE = { 'wd-roof-p1552|Q1410402': { at: 1 }, 'wd-roof-p1552|Q2': { at: 1 }, 'wp-lead|Foo': { at: 1 } }
   const names = { Q483110: 'stadium', Q7316894: 'retractable roof', Q625797: 'domed stadium', Q5: 'person', P31: 'instance of', P1552: 'has characteristic', P2046: 'area', P1000: 'note' }
   const claimsFor = {
     Q1410402: { P31: [stmt(ent('P31', 'Q483110')), stmt(ent('P31', 'Q625797'))], P1552: [stmt(ent('P1552', 'Q7316894'))], P1000: [stmt(str('P1000', 'Indoor football venue')), stmt(str('P1000', 'the fiddler-on-the-roof example'))] },
@@ -588,12 +589,12 @@ const selfTest = async () => {
   const back = JSON.parse(serialize(out))
   check('the file round-trips, and the text report of the parsed file is the report of the run', J(back) === J(out) && report(back) === rep)
   check('the file has one item and one label to a line', serialize(out).split('\n').filter(l => /^  "Q1410402": \{"ok":true/.test(l)).length === 1 && serialize(out).split('\n').filter(l => /^  "Q7316894": /.test(l)).length === 1)
-  const many = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`wd-roof|Q${100 + i}`, { at: 1 }]))
+  const many = Object.fromEntries(Array.from({ length: 60 }, (_, i) => [`wd-roof-p1552|Q${100 + i}`, { at: 1 }]))
   const seenMany = []
   await run({ cache: many, fetchJson: async url => { seenMany.push(url); const ids = /ids=([^&]+)/.exec(url)[1].split('|'); return /props=claims/.test(url) ? { ok: true, attempts: [{ status: 200, ms: 1 }], value: ans(...ids.map(id => item(id, {}))) } : { ok: true, attempts: [{ status: 200, ms: 1 }], value: ans() } }, wait: async () => {}, now: () => 0 })
   const sizes = seenMany.filter(u => /props=claims/.test(u)).map(u => /ids=([^&]+)/.exec(u)[1].split('|').length)
   check('60 items go in requests of at most the batch size: 25, 25 and 10', sizes.join() === '25,25,10' && ITEM_BATCH === 25, J(sizes))
-  const labelBatches = (() => { const ids = Array.from({ length: 120 }, (_, i) => `Q${1000 + i}`); const c = { 'wd-roof|Q1': { at: 1 } }; return { ids, c } })()
+  const labelBatches = (() => { const ids = Array.from({ length: 120 }, (_, i) => `Q${1000 + i}`); const c = { 'wd-roof-p1552|Q1': { at: 1 } }; return { ids, c } })()
   const seenLab = []
   await run({ cache: labelBatches.c, fetchJson: async url => { seenLab.push(url); const ids = /ids=([^&]+)/.exec(url)[1].split('|'); return /props=claims/.test(url) ? { ok: true, attempts: [{ status: 200, ms: 1 }], value: ans(item('Q1', { P1: labelBatches.ids.map(i => stmt(ent('P1', i))) })) } : { ok: true, attempts: [{ status: 200, ms: 1 }], value: ans(...ids.map(id => ({ id, labels: [], descriptions: [] }))) } }, wait: async () => {}, now: () => 0 })
   const lsizes = seenLab.filter(u => /props=labels/.test(u)).map(u => /ids=([^&]+)/.exec(u)[1].split('|').length)
@@ -616,12 +617,12 @@ const selfTest = async () => {
   const ncv = verdict(nc)
   check('a control that is read but does not carry the value makes the verdict a failure that names the control, and the report says NOT FOUND', ncv.code === 1 && ncv.problems.some(p => /control Q1410402 carries no statement or qualifier value Q7316894/.test(p)) && /Q7316894 "retractable roof" NOT FOUND/.test(report(nc)), J(ncv))
   check('when the control is not found its own answer is kept raw in the output, so that a link held where the probe does not read can be seen without another run; when it is found, nothing is kept', nc.controlRaw?.id === 'Q1410402' && 'claims' in nc.controlRaw && /the control's own answer, as the API gave it, is kept in the JSON as controlRaw/.test(report(nc)) && out.controlRaw === null && !/controlRaw/.test(report(out)) && dead.controlRaw === null, J([nc.controlRaw?.id, out.controlRaw, dead.controlRaw]))
-  const nr = await run({ cache: { 'wd-roof|Q2': { at: 1 } }, fetchJson: mk(), wait: async () => {}, now: () => 0 })
+  const nr = await run({ cache: { 'wd-roof-p1552|Q2': { at: 1 } }, fetchJson: mk(), wait: async () => {}, now: () => 0 })
   check('a population that lacks the control item makes the control NOT READ and the verdict a failure', nr.control.read === false && verdict(nr).code === 1 && /CONTROL Q1410402 Stade Pierre-Mauroy: NOT READ/.test(report(nr)))
   const fatal = await run({ cache: CACHE_FAKE, fetchJson: async () => { throw new Error('boom') }, wait: async () => {}, now: () => 0 })
   check('an unexpected error ends the run as incomplete with the error kept, and the verdict fails and says why', fatal.complete === false && /boom/.test(fatal.fatal) && verdict(fatal).code === 1 && verdict(fatal).problems.some(p => /the run did not complete: .*boom/.test(p)), J(verdict(fatal)))
-  const odd = verdict({ ...out, population: { items: 3, badKeys: ['wd-roof|Qx'] } })
-  check('an item the population names that has no record, and a key that is not a Q-id, are each a problem', odd.code === 1 && odd.problems.some(p => /1 of 3 items have no record/.test(p)) && odd.problems.some(p => /1 wd-roof\| keys are not Q-ids/.test(p)), J(odd))
+  const odd = verdict({ ...out, population: { items: 3, badKeys: ['wd-roof-p1552|Qx'] } })
+  check('an item the population names that has no record, and a key that is not a Q-id, are each a problem', odd.code === 1 && odd.problems.some(p => /1 of 3 items have no record/.test(p)) && odd.problems.some(p => /1 wd-roof-p1552\| keys are not Q-ids/.test(p)), J(odd))
   const cq = controlFinding({ Q1410402: digestItem('Q1410402', item('Q1410402', { P31: [stmt(ent('P31', 'Q483110'), { q: { P2: [ent('P2', 'Q7316894')] } })] }), newAcc()) })
   check('a control value carried only as a qualifier is found, and the finding names the statement property and the qualifier', cq.read && cq.found.length === 1 && cq.found[0].where === 'qualifier' && cq.found[0].p === 'P31' && cq.found[0].qualifier === 'P2', J(cq))
   const cm = controlFinding({ Q1410402: digestItem('Q1410402', item('Q1410402', { P1552: [stmt(ent('P1552', 'Q7316894'))] }), newAcc()) })

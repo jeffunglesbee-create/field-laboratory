@@ -66,11 +66,11 @@ export const rowsOf = results => [
   ...results.review.map(r => ({ ...r, status: 'review' })),
 ]
 
-/** The title the roof rule reads for a qid, derived as `roofOf` derives it (scripts/venue-source.mjs): the text after /wiki/ in the cached wd-roof answer's sitelink. */
+/** The title the roof rule reads for a qid, derived as `roofOf` derives it (scripts/venue-source.mjs): the text after /wiki/ in the cached wd-roof-p1552 answer's sitelink. */
 export const titleOf = (cache, qid) => {
   if (!qid) return { title: null, why: 'no qid' }
-  const entry = cache[`wd-roof|${qid}`]
-  if (!entry) return { title: null, why: 'no cached wd-roof answer' }
+  const entry = cache[`wd-roof-p1552|${qid}`]
+  if (!entry) return { title: null, why: 'no cached wd-roof-p1552 answer' }
   const title = (entry.result?.value?.results?.bindings?.[0] ?? {}).article?.value?.split('/wiki/')[1]
   return title ? { title, why: null } : { title: null, why: 'wikidata names no English article' }
 }
@@ -355,9 +355,9 @@ const selfTest = async () => {
   check('a part with no <value> is a failure', readTree('<root><template><title>Infobox venue</title><part><name>roof</name></part></template></root>').ok === false)
 
   // Which articles.
-  const wd = (qid, article) => [`wd-roof|${qid}`, { at: 1, result: { ok: true, value: { results: { bindings: [article ? { article: { value: `https://en.wikipedia.org/wiki/${article}` } } : {}] } } } }]
+  const wd = (qid, article) => [`wd-roof-p1552|${qid}`, { at: 1, result: { ok: true, value: { results: { bindings: [article ? { article: { value: `https://en.wikipedia.org/wiki/${article}` } } : {}] } } } }]
   const cache = Object.fromEntries([wd('Q1', 'Alpha_Stadium'), wd('Q2', null), wd('Q4', 'Alpha_Stadium'), wd('Q5', 'Beta_Park'), ['wp-lead|Alpha_Stadium', { at: 1 }], ['wp-lead|Beta_Park', { at: 1 }], ['wp-lead|Stale_Ground', { at: 1 }]])
-  check('a title is the text after /wiki/; no sitelink, no cached answer and no qid each say why', JSON.stringify([titleOf(cache, 'Q1'), titleOf(cache, 'Q2'), titleOf(cache, 'Q3'), titleOf(cache, null)]) === JSON.stringify([{ title: 'Alpha_Stadium', why: null }, { title: null, why: 'wikidata names no English article' }, { title: null, why: 'no cached wd-roof answer' }, { title: null, why: 'no qid' }]))
+  check('a title is the text after /wiki/; no sitelink, no cached answer and no qid each say why', JSON.stringify([titleOf(cache, 'Q1'), titleOf(cache, 'Q2'), titleOf(cache, 'Q3'), titleOf(cache, null)]) === JSON.stringify([{ title: 'Alpha_Stadium', why: null }, { title: null, why: 'wikidata names no English article' }, { title: null, why: 'no cached wd-roof-p1552 answer' }, { title: null, why: 'no qid' }]))
   const results = { accepted: [{ name: 'U.S. Bank Stadium', qid: 'Q1', roof: 'open', roofBasis: 'inferred' }, { name: 'Twin Row', qid: 'Q4', roof: 'dome', roofBasis: 'x' }, { name: 'Beta', qid: 'Q5', roof: null }], review: [{ name: 'No Article', qid: 'Q2', roof: null }] }
   const pop = population(results, cache)
   check('two rows on one article are one title; the stale cache key and the title the cache lacks are both reported', pop.titles.join() === 'Alpha_Stadium,Beta_Park' && pop.rows.length === 4 && pop.onlyCache.join() === 'Stale_Ground' && pop.onlyHere.length === 0, JSON.stringify(pop.onlyCache))

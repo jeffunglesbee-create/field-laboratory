@@ -1,0 +1,67 @@
+Task 5, Step B (wire P1552): the registry entries for the rule change, each applied to a copy of the file it names and run against that file's own self-test; the checks that go red are printed by name (Rule 90). Generated on the tree of the commit that adds this file.
+
+$ node scripts/mutation-check.mjs --anchors | tail -1
+checked 1503 of 1506 mutation anchors; 0 stale
+(exit 0)
+
+$ node outbox/venue-source-roof-field-mutation-2026-11-09.mjs venue-source-p1552-
+control: the unmutated twin of the rule, exit 0, 94 PASS, 0 FAIL
+first-row-only                 rule   exit 1  2 FAIL: ROOFOF READS EVERY ROW OF THE ANSWER, not the first: the closed label is on the second row || ROOFOF ASKS WIKIDATA FOR P1552 AND NOTHING ELSE, with no LIMIT, decides on every row of the ans
+open-label-is-a-witness        rule   exit 1  6 FAIL: ROOF: WITH NO INFOBOX FIELD THE RULE GIVES THESE EIGHT OUTCOMES, basis text included, whether t || WIKIDATA: A LABEL THAT NAMES NO CLOSED ROOF IS NO WITNESS ("tourist attraction", Carrow Road):  || WIKIDATA: ONLY THE CLOSED LABEL IS NAMED when a closed and an open one come together, in either || roofOf: a P1552 value that is no roof leaves the inference standing, and its basis does not nam || ROOFOF READS EVERY ROW OF THE ANSWER, not the first: the closed label is on the second row || ROOFOF ASKS WIKIDATA FOR P1552 AND NOTHING ELSE, with no LIMIT, decides on every row of the ans
+two-roofs-first-wins           rule   exit 1  1 FAIL: WIKIDATA: CLOSED LABELS NAMING DIFFERENT ROOFS ARE REVIEW, never the first, never the last, and
+asks-p5624                     rule   exit 1  1 FAIL: ROOFOF ASKS WIKIDATA FOR P1552 AND NOTHING ELSE, with no LIMIT, decides on every row of the ans
+limit-one                      rule   exit 1  1 FAIL: ROOFOF ASKS WIKIDATA FOR P1552 AND NOTHING ELSE, with no LIMIT, decides on every row of the ans
+old-kind-read                  rule   exit 1  9 FAIL: ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium) || roofOf: a cached [] is an answer that says nothing, and the inference stands || ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values  || ROOFOF: AN INFOBOX REQUEST THAT FAILS IS "DID NOT ANSWER": review, the reason said, and nothing || ROOFOF READS P1552 FROM THE CACHE AND DECIDES ON IT, asking nothing (Stade Pierre-Mauroy: a sil || roofOf: a P1552 value that is no roof leaves the inference standing, and its basis does not nam || ROOFOF READS EVERY ROW OF THE ANSWER, not the first: the closed label is on the second row || ROOFOF ASKS WIKIDATA FOR P1552 AND NOTHING ELSE, with no LIMIT, decides on every row of the ans || ROOFOF DOES NOT READ AN ANSWER TO THE OLD QUESTION: a cached wd-roof| answer (P5624) is not a P
+kind-not-kept                  rule   exit 1  1 FAIL: the cache keeps the P1552 answers it asks for and drops the P5624 answers it no longer asks for
+basis-names-p5624              rule   exit 1  7 FAIL: ROOF: WITH NO INFOBOX FIELD THE RULE GIVES THESE EIGHT OUTCOMES, basis text included, whether t || WIKIDATA: A CLOSED ROOF AMONG THE LABELS IS THE WITNESS, and the basis names the label and the  || WIKIDATA: ONLY THE CLOSED LABEL IS NAMED when a closed and an open one come together, in either || wikidata: two closed labels naming one class are one witness, both named || WIKIDATA: A CLOSED LABEL AGAINST A LEAD OR AN INFOBOX NAMING ANOTHER ROOF IS REVIEW, and one th || ROOFOF READS P1552 FROM THE CACHE AND DECIDES ON IT, asking nothing (Stade Pierre-Mauroy: a sil || ROOFOF READS EVERY ROW OF THE ANSWER, not the first: the closed label is on the second row
+lead-disagreement-ignored      rule   exit 1  3 FAIL: roof: Wikidata and the lead naming different roofs is no roof (review) || ROOF: WITH NO INFOBOX FIELD THE RULE GIVES THESE EIGHT OUTCOMES, basis text included, whether t || WIKIDATA: A CLOSED LABEL AGAINST A LEAD OR AN INFOBOX NAMING ANOTHER ROOF IS REVIEW, and one th
+unanswered-reads-as-no-roof    rule   exit 1  2 FAIL: ROOFOF: A WIKIDATA REQUEST THAT FAILS IS "UNANSWERED": no roof, the reason said, nothing rememb || ROOFOF DOES NOT READ AN ANSWER TO THE OLD QUESTION: a cached wd-roof| answer (P5624) is not a P
+
+10 of 10 mutations read from the registry; 0 not red by a named check
+(exit 0)
+
+$ node outbox/venue-source-roof-field-mutation-2026-11-09.mjs venue-infobox-title-
+control: the unmutated twin of the rule, exit 0, 94 PASS, 0 FAIL
+control: the unmutated twin of scripts/venue-infobox.mjs, exit 0, 36 PASS, 0 FAIL
+after-wiki-first               script exit 1  6 FAIL: a title is the text after /wiki/; no sitelink, no cached answer and no qid each say why || two rows on one article are one title; the stale cache key and the title the cache lacks are bo || the run reads both articles, joins the categories across the continuation, and passes its own v || the report names its denominators: rows with an article of all rows, parsed of fetched, infobox || the report lists the roof value with the roof the rule has for it, and the control that is not  || an article that was not fetched makes the verdict a failure that says "1 of 2", and the report 
+reads-the-old-kind             script exit 1  7 FAIL: a title is the text after /wiki/; no sitelink, no cached answer and no qid each say why || two rows on one article are one title; the stale cache key and the title the cache lacks are bo || the run reads both articles, joins the categories across the continuation, and passes its own v || the report names its denominators: rows with an article of all rows, parsed of fetched, infobox || the report lists the roof value with the roof the rule has for it, and the control that is not  || an article that was not fetched makes the verdict a failure that says "1 of 2", and the report  || an unexpected error ends the run as incomplete with the error kept, and the verdict fails
+
+2 of 2 mutations read from the registry; 0 not red by a named check
+(exit 0)
+
+$ node outbox/venue-source-roof-field-mutation-2026-11-09.mjs venue-wikidata-statements-population-
+control: the unmutated twin of the rule, exit 0, 94 PASS, 0 FAIL
+control: the unmutated twin of scripts/venue-wikidata-statements.mjs, exit 0, 62 PASS, 0 FAIL
+reads-the-old-kind             script exit 1  1 FAIL: the population is the wd-roof-p1552| keys that are Q-ids, in id order, a key that is not one is
+
+1 of 1 mutations read from the registry; 0 not red by a named check
+(exit 0)
+
+$ node outbox/venue-source-roof-field-mutation-2026-11-09.mjs
+control: the unmutated twin of the rule, exit 0, 94 PASS, 0 FAIL
+default-changed                rule   exit 1  3 FAIL: roof: a silent lead is open, and SAID to be inferred || roof: ...and a body with no roof words leaves the inference standing || ROOF: WITH NO INFOBOX FIELD THE RULE GIVES THESE EIGHT OUTCOMES, basis text included, whether t
+any-word-closed                rule   exit 1  2 FAIL: roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is || ROOF: A BARE WORD IS NO WITNESS, and "open" is never read from the field (Retractable, Fixed, N
+term-by-substring              rule   exit 1  1 FAIL: roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is
+term-case-sensitive            rule   exit 1  3 FAIL: roof: THE INFOBOX NAMES THE ROOF THE LEAD CANNOT (U.S. Bank Stadium: a lead cut to "U.S.", a bo || roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is || ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium)
+term-untrimmed                 rule   exit 1  1 FAIL: roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is
+term-removed                   rule   exit 1  3 FAIL: roof: THE INFOBOX NAMES THE ROOF THE LEAD CANNOT (U.S. Bank Stadium: a lead cut to "U.S.", a bo || roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is || ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium)
+term-wrong-class               rule   exit 1  4 FAIL: roof: THE INFOBOX NAMES THE ROOF THE LEAD CANNOT (U.S. Bank Stadium: a lead cut to "U.S.", a bo || roof: two roof parameters naming one class are one witness, a joined term among them || roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is || ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium)
+conflict-first-wins            rule   exit 1  1 FAIL: ROOF: TWO ROOF PARAMETERS NAMING DIFFERENT ROOFS ARE REVIEW, not the first and not the last
+disagreement-picks             rule   exit 1  3 FAIL: ROOF: AN INFOBOX AND A LEAD NAMING DIFFERENT ROOFS IS REVIEW, never a pick || roof: ...and so is Wikidata against the infobox, whichever way the lead reads || WIKIDATA: A CLOSED LABEL AGAINST A LEAD OR AN INFOBOX NAMING ANOTHER ROOF IS REVIEW, and one th
+never-decides                  rule   exit 1  8 FAIL: roof: THE INFOBOX NAMES THE ROOF THE LEAD CANNOT (U.S. Bank Stadium: a lead cut to "U.S.", a bo || roof: ...and a retractable roof the lead never mentions (Johan Cruijff Arena) || roof: a partially retractable roof is retractable, the class that claims no more than "not know || roof: two roof parameters naming one class are one witness, a joined term among them || roof: [[Skylight]] is a dome as a WHOLE value, in any case, and nothing near it is || roof: a closed infobox decides although the body check did not run, and although the lead did n || ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium) || ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values 
+agreeing-rewrites-basis        rule   exit 1  1 FAIL: roof: an infobox agreeing with the lead or with Wikidata changes nothing, the basis included
+silence-not-blocking           rule   exit 1  2 FAIL: ROOF: AN INFOBOX THAT DID NOT ANSWER REFUSES AN OPEN INFERENCE, as the body check does || ROOFOF: AN INFOBOX REQUEST THAT FAILS IS "DID NOT ANSWER": review, the reason said, and nothing
+silence-undoes-a-named-roof    rule   exit 1  1 FAIL: roof: ...but does not undo a roof a source did name
+not-passed                     rule   exit 1  3 FAIL: ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium) || ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values  || ROOFOF: AN INFOBOX REQUEST THAT FAILS IS "DID NOT ANSWER": review, the reason said, and nothing
+failure-read-as-empty          rule   exit 1  1 FAIL: ROOFOF: AN INFOBOX REQUEST THAT FAILS IS "DID NOT ANSWER": review, the reason said, and nothing
+cache-key-changed              rule   exit 1  6 FAIL: ROOFOF READS THE INFOBOX FROM THE CACHE AND DECIDES ON IT, asking nothing (U.S. Bank Stadium) || roofOf: a cached [] is an answer that says nothing, and the inference stands || ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values  || ROOFOF READS P1552 FROM THE CACHE AND DECIDES ON IT, asking nothing (Stade Pierre-Mauroy: a sil || roofOf: a P1552 value that is no roof leaves the inference standing, and its basis does not nam || ROOFOF ASKS WIKIDATA FOR P1552 AND NOTHING ELSE, with no LIMIT, decides on every row of the ans
+cache-kind-dropped             rule   exit 1  1 FAIL: the cache keeps the infobox answers it asks for
+url-changed                    rule   exit 1  1 FAIL: ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values 
+reason-not-said                rule   exit 1  1 FAIL: ROOFOF: AN INFOBOX REQUEST THAT FAILS IS "DID NOT ANSWER": review, the reason said, and nothing
+values-raw                     reader exit 1  3 FAIL: the roof values of an answer are the flat value of every roof parameter || ...from every infobox of the article, not the first alone || ROOFOF ASKS FOR THE INFOBOX BY parseUrl(title), decides on the answer and remembers the values 
+first-infobox-only             reader exit 1  1 FAIL: ...from every infobox of the article, not the first alone
+unreadable-is-empty            reader exit 1  1 FAIL: AN ANSWER THAT CANNOT BE READ IS NOT AN EMPTY ONE (an API error, no parse tree, an error page t
+
+22 of 22 mutations read from the registry; 0 not red by a named check
+(exit 0)
+
