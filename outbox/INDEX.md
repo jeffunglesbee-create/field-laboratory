@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `86cfaea` | 2026-11-14 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-14 [skip ci] |
+| `86cfaea` | 2026-11-14 | [sport-vocabulary-2026-11-14T07-44-08-797Z.json](sport-vocabulary-2026-11-14T07-44-08-797Z.json) | drift-sentinel: ok on 2026-11-14 [skip ci] |
+| `ce2eab0` | 2026-11-14 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `bd0d8e1` | 2026-11-13 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | docs: Task 5 Step B landing, verify-full green on f4619de9, the reproduction record and the manifest |
 | `bd0d8e1` | 2026-11-13 | [venue-wikidata-p1552-reproduction-2026-11-13.txt](venue-wikidata-p1552-reproduction-2026-11-13.txt) | docs: Task 5 Step B landing, verify-full green on f4619de9, the reproduction record and the manifest |
 | `8afcd24` | 2026-11-14 | [mutation-baseline-latest.json](mutation-baseline-latest.json) | Record the mutation baseline of f4619de [skip ci] |
