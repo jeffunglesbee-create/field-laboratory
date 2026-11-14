@@ -13,6 +13,7 @@
     "check:render-sports": "URL='http://localhost:8080/?data=context-2026-08-29' node scripts/render-check.mjs",
     "site": "node scripts/build-site.mjs",
     "check:live": "node scripts/render-check.mjs",
+    "check:egress-path": "node scripts/egress-path-lib.mjs --self-test",
     "check:nav": "node scripts/nav-check.mjs",
     "check:proof": "node scripts/proof-check.mjs --self-test && node scripts/proof-check.mjs",
     "check:deployed": "node scripts/live-grouping-check.mjs",

@@ -1,8 +1,8 @@
 {
-  "at": "2026-11-14T02:30:22.936Z",
+  "at": "2026-11-14T17:02:04.384Z",
   "scope": "full",
-  "ran": 103,
-  "from_mutations": 1505,
+  "ran": 104,
+  "from_mutations": 1528,
   "failing": 0,
   "notApplicable": [],
   "results": [
@@ -417,22 +417,26 @@
     {
       "cmd": "node scripts/live-score-probe.mjs --e2e",
       "passed": true
+    },
+    {
+      "cmd": "node scripts/egress-path-lib.mjs --self-test",
+      "passed": true
     }
   ],
   "shards": {
     "of": 8,
     "mode": "watch",
     "wallMs": [
-      2599551,
-      2158690,
-      2489176,
-      3366876,
-      2372077,
-      2763797,
-      3247016,
-      2259977
+      3042176,
+      3024338,
+      2578264,
+      3561419,
+      2724013,
+      2783848,
+      2299711,
+      2299830
     ],
-    "longestMs": 3366876,
-    "sumMs": 21257160
+    "longestMs": 3561419,
+    "sumMs": 22313599
   }
 }

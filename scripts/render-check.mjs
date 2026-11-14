@@ -12,6 +12,7 @@ import { all as weatherVenues, isIndoorArena } from '../build/Venues.js'
 import { forecastUrl, coordinates } from '../build/Weather.js'
 import { requestCapMs, slateDeadlineMs } from '../build/WeatherView.js'
 import { createChecks, finish } from './checks.mjs'
+import { describeEgressPath } from './egress-path-lib.mjs'
 
 const URL = process.env.URL || 'http://localhost:8080/'
 
@@ -373,13 +374,18 @@ let openMeteoDown = false
 // that refused a burst can answer a single late request perfectly well. So it
 // reports what it saw and does not pretend to have measured the page's fate.
 let probeSaw = 'not probed'
+// What the probe threw, and Node's own path to the host at this later moment. Text for the failure message and nothing else: `e.message`
+// is "fetch failed" whatever happened and the code is in `e.cause` (docs/CC-CMD-2026-11-14-weather-failure-cause.md).
+let probeErr = null
+let pathSaw = 'not probed'
 if (!pinned && (waitErr !== null || filled.length < expected)) {
   const probe = coordinates(42.3467, -71.0972)
   try {
     const r = await fetch(forecastUrl(probe), { signal: AbortSignal.timeout(15_000) })
     openMeteoDown = !r.ok
     probeSaw = `HTTP ${r.status}`
-  } catch (e) { openMeteoDown = true; probeSaw = `unreachable — ${e.message}` }
+  } catch (e) { openMeteoDown = true; probeSaw = `unreachable — ${e.message}`; probeErr = e }
+  pathSaw = await describeEgressPath({ host: new global.URL(forecastUrl(probe)).hostname, error: probeErr })
 }
 
 await browser.close()
@@ -672,6 +678,7 @@ if (!pinned) {
       `${expected} known venue(s) on this slate, ${filled.length} chip(s) filled. ` +
       `Attribution from the page's own window: ${attribution.verdict} — ${attribution.why}. ` +
       `A late node probe saw: ${probeSaw} (a later moment, not evidence about the page's window). ` +
+      `${pathSaw} (Node's own network stack at that later moment, not Chromium's). ` +
       `The page reported: ${pageAccount || '(nothing — the panel said nothing at all)'}. ` +
       `Request timings (start+duration): ${wxTiming || '(no Open-Meteo request was made at all)'}. ` +
       `Page built from: ${builtFrom}`)
