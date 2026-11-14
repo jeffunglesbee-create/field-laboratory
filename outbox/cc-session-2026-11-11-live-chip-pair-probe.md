@@ -121,3 +121,13 @@ the first version labelled a useless `Error`; it is now `cause: bad port`. Self-
 mutations caught, each by its named check (5 new: the cause code dropped, per-address codes dropped,
 a code-less cause labelled by name, failures not counted, the line not printed);
 `check:mutate-copy --only probe-rain-precip-pair` 9/9. Saturday's run 2 will carry it.
+
+## Run 2 of the probe (2026-11-14): wet, no refusal, and the connection failures have a cause
+
+Probe run 43604450815 on main be1c0152, slate 2026-11-14 (56 US grounds; no English league games that
+weekend), 14:22Z to 15:08Z: `checked 1273 of 1680 expected samples`, `VERDICT: none-observed-while-wet`,
+0 of 1,273 read responses with rain above precipitation. Only 19 readings were wet, at two grounds, all
+0.1 or 0.2 mm with rain equal to precipitation. No ground flipped, so no model was asked. 407 requests (24%)
+got no answer, all `UND_ERR_CONNECT_TIMEOUT`, in bursts of up to 30 of 56 per round: the cause the run-1
+version of the probe could not record. The CC-CMD's Task 1 is DONE as a measurement, with the thinness of
+the wet sample stated beside the answers; the options stay with the owner.

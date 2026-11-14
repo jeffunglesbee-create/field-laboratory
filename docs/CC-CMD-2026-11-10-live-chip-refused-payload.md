@@ -4,7 +4,7 @@
 **Repo:** field-laboratory
 **Filed:** 2026-11-10 by CC, found when the verify run for `faa831d` failed on "Render check against the LIVE slate"
 **Confidence gate:** `npm run gate` >= 95 before any commit
-**Status:** PARTIAL 2026-11-11. Task 1 is approved (owner, 2026-11-11), built and landed (`e23288f`, gate verify-full 43020056001 530/530, on main by fast-forward `5f1ace27`), and run once: the run was `not-observable-dry`, so the three questions are not yet answered. The wet re-run is scheduled for Saturday 2026-11-14 (below, "Run 1"). The choice under "Options" still waits on a wet result and on the owner. The red itself was cleared by re-running the failed job (attempt 2 green; `deploy` run 42867015300 and `live-check` run 42867186531 green). The re-run is not a fix and is recorded here so it cannot read as a quiet pass.
+**Status:** DONE 2026-11-14 for Task 1, the measurement (approved by the owner 2026-11-11; built `e23288f`, landed `5f1ace27` after verify-full 43020056001 530/530; failure causes added `1877c12`, verify-full 43070530181 530/530). Run 2 was wet and the three answers are written below ("Task 1, run 2"), but on thin evidence: 19 wet readings at 2 grounds, all light rain. The choice under "Options" is the owner's and is not made. The red itself was cleared by re-running the failed job (attempt 2 green; `deploy` run 42867015300 and `live-check` run 42867186531 green). The re-run is not a fix and is recorded here so it cannot read as a quiet pass.
 
 ---
 
@@ -90,6 +90,38 @@ the owner rather than filed, because no cause was measured.
 
 **Run 2:** Saturday 2026-11-14, the full English slate (most kickoffs 15:00 UK), dispatched at 14:20Z so
 the 30 minutes fall before and around kickoff. Scheduled as this session's own follow-up.
+
+### Task 1, run 2 (2026-11-14): wet, and no refusal
+
+`rain-precip-pair-probe.yml` run 43604450815 on main `be1c0152`, slate 2026-11-14, 14:22:21Z to 15:08:44Z,
+`outbox/rain-precip-pair-2026-11-14-2026-11-14T14-22-21.txt` and its `.jsonl`:
+
+```
+checked 1273 of 1680 expected samples
+VERDICT: none-observed-while-wet
+slate 2026-11-14; 56 ground(s) x 30 round(s) every 60s
+per-request rate of rain > precipitation + 0.001: 0 of 1273 read responses (0.00%)
+wet at the start: yes; wet samples overall: 19
+requests with no answer: 407, by cause: UND_ERR_CONNECT_TIMEOUT 407
+```
+
+All 56 grounds were US stadiums (the slate had no English league games: mid-November international break).
+
+**The three answers, from the file:**
+
+1. **The per-request rate:** 0 of 1,273 read responses had rain above precipitation (0 of 1,340 across runs 1 and 2).
+   Only 19 of the 1,273 were wet, at two grounds (LaVell Edwards Stadium 14, Autzen Stadium 5), all light:
+   precipitation and rain equal at 0.1 mm (10) or 0.2 mm (9). So the rate on WET readings is 0 of 19. That is
+   not evidence the refusal cannot happen: on 2026-11-10 two of 16 bodies were refused, both with precipitation
+   of 0.3 mm or less (rain 0.1 against 0, and 0.6 against 0.3). It says the pair is consistent on the large majority of readings, wet or dry.
+2. **Stays or flips:** nothing to say. No ground was ever inconsistent (0 flips on all 56).
+3. **Which source supplied each value:** no violation occurred, so no model was asked. The only evidence about
+   model mixing remains the single default body of 2026-11-11 (showers 0.20 above precipitation 0.00, Task 0).
+
+**Also measured:** 407 of 1,680 requests (24%) got no answer, every one `UND_ERR_CONNECT_TIMEOUT` (Node's fetch,
+connecting). Bursty: from 0 to 30 of the 56 requests in a round; from 0 to 20 per ground. On runners this is a
+far more common failure of a live weather read than a refused body. It bears on
+`docs/CC-CMD-2026-10-20-weather-first-call-connect.md` and the render-check tolerance branch; nothing is filed here.
 
 ## Options, for the owner, after Task 1
 
