@@ -12,6 +12,17 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `9e59307` | 2026-11-13 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
+| `9e59307` | 2026-11-13 | [venue-wikidata-p1552-2026-11-13.mjs](venue-wikidata-p1552-2026-11-13.mjs) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
+| `9e59307` | 2026-11-13 | [venue-wikidata-p1552-predict-2026-11-13.txt](venue-wikidata-p1552-predict-2026-11-13.txt) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
+| `9e59307` | 2026-11-13 | [venue-wikidata-p1552-selftest-2026-11-13.txt](venue-wikidata-p1552-selftest-2026-11-13.txt) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
+| `9e59307` | 2026-11-13 | [venue-wikidata-p1552-teeth-2026-11-13.mjs](venue-wikidata-p1552-teeth-2026-11-13.mjs) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
+| `9e59307` | 2026-11-13 | [venue-wikidata-p1552-teeth-2026-11-13.txt](venue-wikidata-p1552-teeth-2026-11-13.txt) | docs: Task 5 Step B, the offline prediction for P1552: the replay tool, its self-test and teeth, W1 and W2 met |
+| `1caa76e` | 2026-11-13 | [cc-session-2026-11-13-wire-p1552.md](cc-session-2026-11-13-wire-p1552.md) | feat: the roof rule's Wikidata step reads P1552 "has characteristic", not P5624 |
+| `1caa76e` | 2026-11-13 | [venue-source-p1552-mutation-2026-11-13.txt](venue-source-p1552-mutation-2026-11-13.txt) | feat: the roof rule's Wikidata step reads P1552 "has characteristic", not P5624 |
+| `1caa76e` | 2026-11-13 | [venue-source-roof-field-mutation-2026-11-09.mjs](venue-source-roof-field-mutation-2026-11-09.mjs) | feat: the roof rule's Wikidata step reads P1552 "has characteristic", not P5624 |
+| `501e119` | 2026-11-13 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-13T23:52 [skip ci] |
+| `1a6887c` | 2026-11-13 | [axis-manifest-latest.json](axis-manifest-latest.json) | probe: the score's weight axis on the deployed page [skip ci] |
 | `b0ed677` | 2026-11-13 | [drift-log.md](drift-log.md) | drift-sentinel: ok on 2026-11-13 [skip ci] |
 | `b0ed677` | 2026-11-13 | [odds-coverage-series.json](odds-coverage-series.json) | drift-sentinel: ok on 2026-11-13 [skip ci] |
 | `b0ed677` | 2026-11-13 | [sport-vocabulary-2026-11-13T19-28-54-566Z.json](sport-vocabulary-2026-11-13T19-28-54-566Z.json) | drift-sentinel: ok on 2026-11-13 [skip ci] |
