@@ -12,6 +12,9 @@ would describe, so listing itself would always be one commit stale.
 
 | commit | date | entry | commit subject |
 | --- | --- | --- | --- |
+| `4c88e74` | 2026-11-14 | [node-fetch-failure-shapes-2026-11-14.mjs](node-fetch-failure-shapes-2026-11-14.mjs) | docs: CC-CMD for the weather failure message that names no cause |
+| `4c88e74` | 2026-11-14 | [node-fetch-failure-shapes-2026-11-14.txt](node-fetch-failure-shapes-2026-11-14.txt) | docs: CC-CMD for the weather failure message that names no cause |
+| `aebd806` | 2026-11-14 | [forecast-dry-run-latest.json](forecast-dry-run-latest.json) | forecast: run 2026-11-14T13:47 [skip ci] |
 | `e727a13` | 2026-11-14 | [live-check-census-2026-11-14-mutate.mjs](live-check-census-2026-11-14-mutate.mjs) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
 | `e727a13` | 2026-11-14 | [live-check-census-2026-11-14.mjs](live-check-census-2026-11-14.mjs) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
 | `e727a13` | 2026-11-14 | [live-check-census-2026-11-14.tsv](live-check-census-2026-11-14.tsv) | docs: live-check reds 2026-10-09..11-14, 268 of 268 logs read; the three weather reds are Open-Meteo silence, cause not established |
