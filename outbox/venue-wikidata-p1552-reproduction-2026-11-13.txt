@@ -1,0 +1,20 @@
+Task 5, Step B (wire P1552), W8: the new tool's committed outputs reproduced on fresh `git archive` trees, byte for byte.
+Read 2026-11-13, Friday evening ET. FINAL is `git archive` of f4619de935065211861ba41234884c02e404ad58, the head `verify-full` run 43541210130 was dispatched on; TOOL is `git archive` of 9e59307849e4d8fea274a4e2262a754a90b76ebb, the commit that adds `predict`'s output. The repository's `node_modules` is linked into each tree; no `.git` is in either. `compare` reads git revisions, so it runs in the clone.
+
+EQUAL     [FINAL] node outbox/venue-wikidata-p1552-2026-11-13.mjs --self-test 2>&1  (exit 0) vs outbox/venue-wikidata-p1552-selftest-2026-11-13.txt  sha256 c0f433a88b4e/c0f433a88b4e, 43 lines
+EQUAL     [FINAL] node outbox/venue-wikidata-p1552-teeth-2026-11-13.mjs 2>&1  (exit 0) vs outbox/venue-wikidata-p1552-teeth-2026-11-13.txt  sha256 6438a5ec92ce/6438a5ec92ce, 112 lines
+EQUAL     [TOOL] node outbox/venue-wikidata-p1552-2026-11-13.mjs predict 2>&1  (exit 0) vs outbox/venue-wikidata-p1552-predict-2026-11-13.txt  sha256 160ce2063150/160ce2063150, 15 lines
+EQUAL     [clone] node outbox/venue-wikidata-p1552-2026-11-13.mjs compare 9e593078 69b2f9cc 2>&1  (exit 1) vs outbox/venue-wikidata-p1552-compare-2026-11-13.txt  sha256 8c4739bfa94f/8c4739bfa94f, 12 lines
+EQUAL     [FINAL] outbox/venue-source-p1552-mutation-2026-11-13.txt block 1 of 5: node scripts/mutation-check.mjs --anchors | tail -1  sha256 42c62b46418e/42c62b46418e
+EQUAL     [FINAL] outbox/venue-source-p1552-mutation-2026-11-13.txt block 2 of 5: node outbox/venue-source-roof-field-mutation-2026-11-09.mjs venue-source-p1552-  sha256 f53865c9c7c1/f53865c9c7c1
+EQUAL     [FINAL] outbox/venue-source-p1552-mutation-2026-11-13.txt block 3 of 5: node outbox/venue-source-roof-field-mutation-2026-11-09.mjs venue-infobox-title-  sha256 9d6f4b10c08f/9d6f4b10c08f
+EQUAL     [FINAL] outbox/venue-source-p1552-mutation-2026-11-13.txt block 4 of 5: node outbox/venue-source-roof-field-mutation-2026-11-09.mjs venue-wikidata-statements-population-  sha256 07e82c57d784/07e82c57d784
+EQUAL     [FINAL] outbox/venue-source-p1552-mutation-2026-11-13.txt block 5 of 5: node outbox/venue-source-roof-field-mutation-2026-11-09.mjs  sha256 22e0f8ff7d96/22e0f8ff7d96
+
+REPRODUCED: 4 of 4 output files byte-equal (self-test, teeth, predict, compare), and the harness file's command blocks 5 of 5.
+`predict` is reproduced on TOOL and not on FINAL, by design: on FINAL the cache no longer holds the old kind it replays and it exits 1 (`nothing was replayed`); the fill is judged by `compare`.
+
+NEGATIVE CONTROL (Rule 90, the comparison made to fail on purpose before it is trusted): the self-test run on FINAL is compared with a file it must not equal, and with the right file after one character is changed.
+  vs the wrong committed file (the teeth output): DIFFERENT, as it must be
+  vs the right file with `41/41` changed to `40/41`: DIFFERENT, as it must be
+  vs the right file: EQUAL

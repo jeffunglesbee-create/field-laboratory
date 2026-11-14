@@ -1,6 +1,6 @@
 # CC session 2026-11-13: Task 5, Step B, wire P1552 in place of P5624 in the roof rule
 
-Session: https://claude.ai/code/session_01X1QRUKcA6Q8MCKMehmeiXX. Scope: `docs/CC-CMD-2026-11-09-venue-review-remainder.md`, Task 5, "Step B, wire P1552" (the specification is commit `14178acc`: criteria W1 to W8, the premises and the order). It is edited by each commit of the work and its Landing manifest is the last section, added last. First version: with the commit that changes the rule (item 2 of the spec's order). Second: with the commit that adds the replay tool and its offline output (item 3). Third (this one): with the docs commit that records the runner's fill, `compare`'s verdict and the Result (items 4 and 5); its Landing manifest, the last section, is added last, after `verify-full` has ended.
+Session: https://claude.ai/code/session_01X1QRUKcA6Q8MCKMehmeiXX. Scope: `docs/CC-CMD-2026-11-09-venue-review-remainder.md`, Task 5, "Step B, wire P1552" (the specification is commit `14178acc`: criteria W1 to W8, the premises and the order). It is edited by each commit of the work and its Landing manifest is the last section, added last. First version: with the commit that changes the rule (item 2 of the spec's order). Second: with the commit that adds the replay tool and its offline output (item 3). Third: with the docs commit that records the runner's fill, `compare`'s verdict and the Result (items 4 and 5). Fourth (this one): with the commit that adds the reproduction record and the Landing manifest, the last section, written after `verify-full` ended (item 6).
 
 ## What the owner said and what was done
 
@@ -20,7 +20,8 @@ The time of the second answer is not recorded here because it was not read from 
 | `9e593078` | the tool that replays the committed run offline and judges the runner's fill (`outbox/venue-wikidata-p1552-2026-11-13.mjs`), its self-test and teeth, the offline `predict` output and the second version of this document (item 3 of the spec's order; pushed; `guards` run 43539060559 green) |
 | `69b2f9cc` | the runner's data commit from `venue-source` run 43539312250 (item 4): `outbox/venue-source-cache.json` and `outbox/venue-source-results-latest.json`, nothing else (pushed by the runner) |
 | the docs commit that carries this version | `outbox/venue-wikidata-p1552-compare-2026-11-13.txt` (`compare`'s output, as generated), this document, and the corrections and the Result in `docs/CC-CMD-2026-11-09-venue-review-remainder.md` (item 5) |
-| later | `verify-full` on that head and the fresh-archive reproduction (W8), then the Landing manifest, a docs-only commit that cannot change what `verify-full` measured (item 6) |
+| `8afcd248`, `2d863411` | the ledger commits `verify-full` made on its own run (`docs/confidence-log.jsonl`, `docs/scale-log.jsonl`, `outbox/mutation-baseline-latest.json`), pushed by the workflow |
+| the commit that adds the Landing manifest | `outbox/venue-wikidata-p1552-reproduction-2026-11-13.txt`, the Landing manifest below, and the Result's and the Status's W8 lines in the CC-CMD (item 6); docs only, so it cannot change what `verify-full` measured |
 
 ## Built
 
@@ -231,18 +232,107 @@ NOT AS PREDICTED:
 | W5 | the fill answers every item; the closed labels equal the probe's; the articles equal the old answers'; 0 `wikidata unanswered` | answers 391 of 391 (the specification said 396; corrected), all `ok`; 0 `wikidata unanswered`; closed labels equal the probe's 391 of 391; **articles equal 390 of 391: not met in the letter** (Q2409690, above) | `compare`; `grep -c 'wikidata unanswered'` over the results file |
 | W6 | 459 of 459 compared by name: exactly the W2 row differs; 0 moved, 0 on one side only, 0 changed in status or roof | met: 459 of 459, 1 differs (basis only), 0 moved, 0 on one side only, 0 changed in status or roof | `compare`; the second route: 458 of 459 identical as whole objects |
 | W7 | `src/Venues.fs` byte-identical, `npm run check:venue-sourced` green with no `--write` | met: the same blob at `14178acc` and `69b2f9cc` (`5029632cdef7`), `git diff --stat` over it empty; `check:venue-sourced` 6 of 6 on this tree; `--write` was not run | `compare`, the two commands |
-| W8 | `verify` green on the rule commit, `guards` green on each docs commit, `verify-full` green on the final head, each new tool's output byte-equal on a fresh `git archive`, n of n | open: `verify` 43538395303 green on `1caa76eb`; `guards` green on `14178acc` (43534002257), `1caa76eb` (43538395286) and `9e593078` (43539060559); `verify-full` and the archive reproduction run after this commit | REST, by full SHA |
+| W8 | `verify` green on the rule commit, `guards` green on each docs commit, `verify-full` green on the final head, each new tool's output byte-equal on a fresh `git archive`, n of n | met: `verify` 43538395303 green on `1caa76eb`; `guards` green on `14178acc` (43534002257), `1caa76eb` (43538395286), `9e593078` (43539060559) and `f4619de9` (43541142761); `verify-full` run 43541210130 green on `f4619de9` (9 of 9 jobs, the gate 530 of 530, total 100, no failing or skipped row); the new tool's committed outputs reproduce byte for byte on fresh `git archive` trees, 4 of 4 output files and the harness file's command blocks 5 of 5 | REST, by full SHA; `outbox/venue-wikidata-p1552-reproduction-2026-11-13.txt` |
 
-Gates, as read by REST: `verify` 43538395303 (success), `guards` 43538395286 and 43539060559 (success), `deploy` 43538991561 (success). `live-check` run 43539102233, the one the deploy started, failed in "Render the deployed page and assert on it" with `3 known venue(s) on this slate, 0 chip(s) filled … host-silent`; it is not a consequence of this work (premises table). Of the workflow's last 8 runs, 3 are red for 2 different reasons: this one and run 43348342619 (2026-11-13T01:54Z) for the weather chips, and run 43441145223 (2026-11-13T14:16Z, on the runner's statements-probe commit `d600db24`) at the step "Build (the venue table this check derives its expectation from)" with `Compilation failed`, which was not read further here.
+Gates, as read by REST: `verify` 43538395303 (success), `guards` 43538395286, 43539060559 and 43541142761 (success), `deploy` 43538991561 (success), and `verify-full` 43541210130 on `f4619de9` (success, 9 of 9 jobs, 01:32:35Z to 02:30:48Z; its ledger line reads gate 530 of 530, total 100, `failing` and `skipped` empty, 3390 s; `dirty: true` is on the earlier lines too). `live-check` run 43539102233, the one the deploy started, failed in "Render the deployed page and assert on it" with `3 known venue(s) on this slate, 0 chip(s) filled … host-silent`; it is not a consequence of this work (premises table). Of the workflow's last 8 runs, 3 are red for 2 different reasons: this one and run 43348342619 (2026-11-13T01:54Z) for the weather chips, and run 43441145223 (2026-11-13T14:16Z, on the runner's statements-probe commit `d600db24`) at the step "Build (the venue table this check derives its expectation from)" with `Compilation failed`, which was not read further here.
 
-Not verified here, and what verifies it: the registry's whole table is not run by this commit's shell (the full run is `verify-full`, which the Landing manifest records on the final head); whether the owner accepts Step B with the one named exception to W5 (his decision, below); whether the five changed dated tools' records are the ones he wants kept as they are (they are not edited; the CC-CMD's Done-when says so).
+Not verified, and what would verify it: whether the owner accepts Step B with the one named exception to W5 (his decision, below); whether he wants the five changed dated tools' records kept as they are (they are not edited; the CC-CMD's Done-when says so). No card has been rendered with this change, because nothing in it reaches the page: `src/Venues.fs`, the table the page is built from, is the same blob.
 
-## Work remaining inside this session, in the spec's order
+## Work remaining inside this session
 
-Done: the specification, the rule change (`verify`, `guards` and `deploy` green), the offline prediction (W1, W2), the runner's fill, `compare` (W5, W6) and the table check (W7).
+None of the specification's six items is open. Done, in its order: (1) the specification; (2) the rule change, with `verify`, `guards` and `deploy` green; (3) the offline prediction, W1 and W2; (4) the runner's fill; (5) `compare`, W5 and W6, and the table check, W7; (6) `verify-full` on the head that carries the Result, the fresh-archive reproduction, the Result and the Status in the CC-CMD, and the manifest below.
 
-1. Push the commit that carries this version, which is docs only, and read `guards` for it by REST on the full SHA; do not dispatch anything while it is red (Rule 77).
-2. Dispatch `verify-full` on that head (about 53 minutes) and read it by REST until it ends (W8); pull with rebase after it commits its ledger lines.
-3. On a fresh `git archive` of the final head, with `node_modules` linked: the new tool's `--self-test` and the teeth script, each compared byte for byte with its committed output, n of n (W8). `predict` reproduces only on a head that holds the old kind's cache, and `compare` reads git revisions, so neither is counted in that n; both are stated as such.
-4. The Landing manifest as this document's last section, in a docs-only commit: the commits, the run ids, the done-condition output, the protected files' digests, and the residual stated as it is.
-5. Not mine to do: the owner's decision on the one clause of W5 that is not met in its letter (Q2409690), which decides whether Step B's Done-when is met. The second follow-on, removing the Wikidata step, is not approved and is not started.
+Not mine to do: the owner's decision on the one clause of W5 that is not met in its letter (Q2409690), which decides whether Step B's Done-when is met. The second follow-on, removing the Wikidata step, is not approved and is not started.
+
+## Landing manifest
+
+Written last, after `verify-full` ended. The commit that adds it is docs only, so it cannot change what `verify-full` measured, and it cannot name its own hash or the `guards` run that commit starts; `git log -1 --format=%h -- outbox/cc-session-2026-11-13-wire-p1552.md` gives the hash.
+
+### Commits, all on `main` (`git branch --show-current` printed `main` before each push)
+
+| commit | what |
+|---|---|
+| `14178acc` | docs: the Step B specification |
+| `1caa76eb` | the rule change, its two readers, the registry entries, the harness extension, this document's first version |
+| `9e593078` | the replay tool, its self-test and teeth, the offline `predict` output, this document's second version |
+| `69b2f9cc` | the runner's data commit (`venue-source` run 43539312250) |
+| `f4619de9` | docs: the fill compared, the Result, the corrections, this document's third version |
+| `8afcd248`, `2d863411` | the ledger commits `verify-full` made |
+| the commit that adds this section | the reproduction record, this manifest, the W8 lines of the CC-CMD |
+
+### Runs, read by REST on the full SHA
+
+| run | what | conclusion |
+|---|---|---|
+| 43538395303 | `verify` on `1caa76eb` | success |
+| 43538991561 | `deploy`, started by it | success |
+| 43534002257, 43538395286, 43539060559, 43541142761 | `guards` on `14178acc`, `1caa76eb`, `9e593078`, `f4619de9` | success |
+| 43539312250 | `venue-source`, mode `source`, the fill (data commit `69b2f9cc`) | success |
+| 43541210130 | `verify-full` on `f4619de9` | success: 9 of 9 jobs, gate 530 of 530, total 100 |
+| 43539102233 | `live-check`, started by the rule commit's deploy | failure, the weather chips (`host-silent`); not a consequence of this work (premises table) |
+
+### Done-condition output
+
+The Done-when's own lines, from the committed files, with the commands that print them, run on this head (the head `verify-full` ran on plus its two ledger commits):
+
+```text
+$ git branch --show-current
+main
+$ git diff --stat f4619de9 HEAD | cat   # what the two ledger commits that verify-full made changed
+ docs/confidence-log.jsonl            |  1 +
+ docs/scale-log.jsonl                 |  1 +
+ outbox/mutation-baseline-latest.json | 24 ++++++++++++------------
+ 3 files changed, 14 insertions(+), 12 deletions(-)
+$ git rev-parse 14178acc:src/Venues.fs HEAD:src/Venues.fs
+5029632cdef772494659b28273cc276e34c84c15
+5029632cdef772494659b28273cc276e34c84c15
+$ git diff --stat 14178acc HEAD -- src/Venues.fs | wc -l
+0
+$ npm run -s check:venue-sourced | tail -1
+6/6 checks passed
+$ node scripts/venue-source.mjs --self-test | tail -1
+94/94 checks passed
+$ node scripts/venue-infobox.mjs --self-test | tail -1
+36/36 checks passed
+$ node scripts/venue-wikidata-statements.mjs --self-test | tail -1
+62/62 checks passed
+$ node scripts/mutation-check.mjs --anchors | tail -1
+checked 1503 of 1506 mutation anchors; 0 stale
+$ grep -F -e 'CONTROL (Wikidata silent)' -e 'rows whose item carries a closed P1552 label' -e 'CHANGED' -e 'AS PREDICTED' outbox/venue-wikidata-p1552-predict-2026-11-13.txt
+CONTROL (Wikidata silent): 393 of 393 rows reproduce the committed roof, basis, lead, status and review reason
+TREATMENT (the probe's values): rows whose item carries a closed P1552 label: 1
+CHANGED (status, roof or review reason): 0 of 459; same status and roof, different basis only: 1
+AS PREDICTED: no row changes status, roof or review reason, and the basis text changes on exactly 1 row (Decathlon Arena - Stade Pierre-Mauroy); the Wikidata-silent control reproduces all 393 committed roof-stage rows
+$ grep -v '^INPUTS\|^venue P1552' outbox/venue-wikidata-p1552-compare-2026-11-13.txt
+COVERAGE: 391 distinct items asked by the 393 roof-stage rows of 459; answered in the new cache 391 of 391; 5 of the 396 items the old cache answered about are not asked (no roof-stage row)
+CLOSED LABELS equal the probe's: 391 of 391; all labels equal: 391 of 391
+ARTICLES equal the old answer's: 390 of 391
+OLD KIND (wd-roof) entries left in the new cache: 0
+TABLE: src/Venues.fs is the same blob at both revs (5029632cdef7)
+COMPARED with the old results by name: 459 of 459 rows (new 459); only in old 0, only in new 0; moved 0
+CHANGED (status, roof or review reason): 0 of 459; same status and roof, different basis only: 1
+  Decathlon Arena - Stade Pierre-Mauroy: "wikipedia lead" -> "wikidata P1552 \"retractable roof\""
+NOT AS PREDICTED:
+  the article differs from the old answer's on 1 item(s): Q2409690
+```
+
+Every clause of the Done-when is met except `ARTICLES equal the old answer's: 391 of 391`, which printed 390 of 391 (Q2409690, above).
+
+### Reproduction (W8)
+
+`outbox/venue-wikidata-p1552-reproduction-2026-11-13.txt`: the new tool's self-test and teeth outputs on a fresh `git archive` of `f4619de9`, `predict`'s on a fresh archive of `9e593078` and `compare`'s in the clone, 4 of 4 output files byte-equal, and the harness file's command blocks 5 of 5, each from one pass of one script, with a negative control in the same file that fails as it must (the comparison, pointed at a file it must not equal, and at the right file with one character changed, reports DIFFERENT). `predict` is not reproduced on this head, by design: the cache no longer holds the old kind it replays, and it exits 1.
+
+### Protected files (Step A's four)
+
+`node outbox/venue-wikidata-statements-step-a-2026-11-13.mjs` prints `protected files unchanged 1 of 4` on this head and `3 of 4` on a fresh archive of `9e593078`. The three that differ do so by design: `scripts/venue-source.mjs` (the rule change, `1caa76eb`) and `outbox/venue-source-cache.json` and `outbox/venue-source-results-latest.json` (the fill, `69b2f9cc`). `src/Venues.fs` is the one that is the same.
+
+### Integration state (Rule 65)
+
+- Relay contract: none; no relay file changed (the relay is a separate repository and was not touched).
+- Client consumer: none. `grep -rl roofBasis --include='*.mjs' --include='*.fs' --include='*.js' --include='*.yml' --include='*.json' --include='*.py' .` outside `outbox/`, `node_modules`, `build/` and `public/` lists `scripts/venue-source.mjs` (the producer) and `scripts/venue-infobox.mjs` (a probe); `src/Venues.fs` is the same blob, so nothing reaches the page.
+- Status: VERIFIED for the data path, Wikidata to the rule to the results file to the table check, by the fill and by the table check. No card was rendered, because nothing in the change reaches the page.
+- Known mismatches: W5's article clause, 390 of 391, one item (Q2409690).
+
+### Residual
+
+One: W5's article clause, which is the owner's decision (above) and not deferred work. Read, and not caused by this work: 5 of the 9 dated record tools differ between `14178acc` and `69b2f9cc` (nothing runs them; none is edited, as the CC-CMD says), and `live-check` is red on the weather chips and was red the same way on 2026-11-13T01:54Z, before this work began. The Wikidata step is still in the rule: the second follow-on is not approved.
